@@ -1,0 +1,574 @@
+/* ==========================================================================
+   Demo verisi
+
+   Backoffice boşken nasıl çalıştığı anlaşılmıyor: tablolar boş, süzgeçlerin
+   ne yaptığı görünmüyor, rollerin farkı belli olmuyor. Bu dosya backoffice’e
+   uydurma ama tutarlı bir veri seti yüklüyor.
+
+   Demo kayıtları uygulamanın kendi kayıtlarından AYRI depolarda duruyor
+   (`demoMusteriler`, `demoTalepler`). Böylece backoffice’te görünüyorlar ama
+   müşterinin telefonundaki listeye karışmıyorlar. "Demo verisini
+   temizle" dendiğinde gerçek kayıtlara dokunulmadan siliniyorlar.
+
+   Yayına çıkarken bu dosyanın çağrıldığı düğme kaldırılmalı
+   (bkz. PRODA-CIKIS.md).
+   ========================================================================== */
+
+import { load, save, uid } from '../lib/storage'
+import { sifreHazirla } from '../lib/hesap'
+import { yeniNo } from '../lib/numara'
+import { talepNo } from '../lib/talep'
+import { ANAHTAR, islemYaz, personelGetir } from './veri'
+import { MAKINE_DURUMU, PARCA_ACELE, ULASIM_ZAMANI } from '../data/talepAlanlari'
+import { PRODUCTS } from '../data/products'
+import { PARCA_FIYAT } from '../data/parcaFiyat'
+import { BAYILER } from '../data/bayiler'
+
+/* ------------------------------------------------------------ Malzemeler */
+
+const ADLAR = [
+  'Ahmet', 'Mehmet', 'Mustafa', 'Hasan', 'Hüseyin', 'İbrahim', 'Ali', 'Osman',
+  'Yusuf', 'Ramazan', 'Fatma', 'Ayşe', 'Emine', 'Hatice', 'Zeynep', 'Elif',
+  'Recep', 'Kemal', 'Süleyman', 'Halil', 'Bekir', 'Şaban', 'Cemal', 'Nuri',
+]
+
+const SOYADLAR = [
+  'Yılmaz', 'Kaya', 'Demir', 'Şahin', 'Çelik', 'Yıldız', 'Yıldırım', 'Öztürk',
+  'Aydın', 'Özdemir', 'Arslan', 'Doğan', 'Kılıç', 'Aslan', 'Çetin', 'Kara',
+  'Koç', 'Kurt', 'Özkan', 'Şimşek', 'Polat', 'Korkmaz', 'Bulut', 'Erdoğan',
+]
+
+/* İl ve ilçeler bayi listesindeki illerden seçiliyor ki harita ve
+   "en yakın bayi" sıralaması anlamlı çıksın. */
+const YERLER = [
+  ['Konya', 'Selçuklu'], ['Konya', 'Çumra'], ['Aksaray', 'Merkez'],
+  ['Ankara', 'Polatlı'], ['Eskişehir', 'Alpu'], ['Balıkesir', 'Bandırma'],
+  ['Bursa', 'Karacabey'], ['İzmir', 'Torbalı'], ['Manisa', 'Salihli'],
+  ['Aydın', 'Söke'], ['Antalya', 'Korkuteli'], ['Adana', 'Ceyhan'],
+  ['Şanlıurfa', 'Viranşehir'], ['Diyarbakır', 'Bismil'], ['Malatya', 'Battalgazi'],
+  ['Kayseri', 'Develi'], ['Samsun', 'Bafra'], ['Tekirdağ', 'Malkara'],
+  ['Edirne', 'Uzunköprü'], ['Sivas', 'Şarkışla'],
+]
+
+const SERVIS_BELIRTI = [
+  'İp düğümlemiyor', 'Balya dağılıyor', 'Pikap toplamıyor', 'Ses geliyor',
+  'Zincir atıyor', 'Yağ kaçırıyor', 'Sensör uyarı veriyor', 'Titreşim var',
+]
+
+/* Parça adları fiyat listesinden geliyor: demo talebi açıldığında
+   backoffice'te tutar da hesaplanabilsin, "en çok istenen parçalar"
+   raporu gerçek kodlarla dolsun (bkz. src/data/parcaFiyat.js). */
+const PARCALAR = Object.keys(PARCA_FIYAT)
+
+const KARGO = ['Aras Kargo', 'Yurtiçi Kargo', 'MNG Kargo', 'Sürat Kargo']
+
+const YAPILAN_IS = [
+  'Bağlama grubu ayarlandı, mekik dili pimi değiştirildi.',
+  'Pikap parmakları değiştirildi, zincir gerginliği ayarlandı.',
+  'Kuyruk mili şaftı yenilendi, yağlama yapıldı.',
+  'İp yolları temizlendi, gergi mekanizması ayarlandı.',
+  'Piston segmanları değiştirildi, boşluk ayarı yapıldı.',
+]
+
+const IC_NOTLAR = [
+  'Müşteriye ulaşıldı, hasat bitince uygun olacak.',
+  'Bölge servisi yönlendirildi.',
+  'Parça stokta yok, tedarik ediliyor.',
+  'Garanti kapsamında, ücret alınmayacak.',
+]
+
+const MUSTERI_NOTLARI = [
+  'Talebiniz alındı, en kısa sürede dönüş yapacağız.',
+  'Servis ekibimiz yarın bölgenizde olacak.',
+  'Parçanız hazırlandı, kargoya verilecek.',
+]
+
+const IPTAL_NEDEN = [
+  'Müşteri vazgeçti', 'Ulaşılamadı', 'Yanlış talep', 'Bayiye yönlendirildi',
+]
+
+const SATIS_SONUC = ['Satış oldu', 'Müşteri vazgeçti', 'Rakibe gitti', 'Ulaşılamadı']
+
+/* Sesli notu yazıya çevrilmiş talepler — n8n akışının çıktısı böyle
+   görünüyor (bkz. src/backoffice/sesMetin.js). */
+const SES_METINLERI = [
+  'Merhaba, balya makinesinde ip sürekli kopuyor. Mekik dilini kontrol ettim, bir şey göremedim. Bir bakabilir misiniz?',
+  'Pikap toplamıyor, parmaklardan ikisi kırılmış. Yenisini göndermeniz lazım.',
+  'Makine çalışırken arka taraftan ses geliyor, rulman olabilir diye düşünüyorum.',
+]
+
+const SERVIS_ACIKLAMA = [
+  'Sabah çalışırken durdu, tekrar çalıştıramadım.',
+  'Balya yaparken ip sürekli kopuyor, ayar yaptım düzelmedi.',
+  'Sesin nereden geldiğini bulamadım, bakılması gerekiyor.',
+  'Hasat başladı, acele lazım.',
+  'Geçen sene de aynı yerden sorun çıkmıştı.',
+]
+
+const PARCA_ACIKLAMA = [
+  'İki takım istiyorum, kargoyla gönderebilir misiniz?',
+  'Bayiden bulamadım, sizden alabilir miyim?',
+  'Fiyat ve stok durumunu öğrenmek istiyorum.',
+  'Acele lazım, hasat sürüyor.',
+]
+
+const SATIS_ACIKLAMA = [
+  'Fiyat bilgisi ve teslim süresi öğrenmek istiyorum.',
+  'Traktörüme uygun modeli önerir misiniz?',
+  'Kredi veya taksit imkânı var mı?',
+  'Bu sezon almayı düşünüyorum.',
+]
+
+const GORUSLER = [
+  'Uygulama güzel olmuş, talebi kolayca gönderdim.',
+  'Bakım rehberi işime yaradı, teşekkürler.',
+  'Yedek parça isimlerini bulmakta zorlandım.',
+  'Bildirimlerin telefona da gelmesi iyi olur.',
+  'Bayi listesinde bize en yakın nokta yanlış görünüyor.',
+]
+
+const ROLLER_DEMO = ['yonetici', 'servis', 'servis', 'parca', 'parca', 'satis']
+
+/* ----------------------------------------------------------- Yardımcılar */
+
+function sec(dizi) {
+  return dizi[Math.floor(Math.random() * dizi.length)]
+}
+
+function secBirkac(dizi, enAz, enCok) {
+  const adet = enAz + Math.floor(Math.random() * (enCok - enAz + 1))
+  const kopya = [...dizi]
+  const sonuc = []
+  for (let i = 0; i < adet && kopya.length; i++) {
+    sonuc.push(kopya.splice(Math.floor(Math.random() * kopya.length), 1)[0])
+  }
+  return sonuc
+}
+
+function tamsayi(enAz, enCok) {
+  return enAz + Math.floor(Math.random() * (enCok - enAz + 1))
+}
+
+function gunOnce(gun) {
+  return Date.now() - gun * 86400000 - Math.floor(Math.random() * 86400000)
+}
+
+function telUret() {
+  return `5${tamsayi(30, 59)} ${tamsayi(100, 999)} ${tamsayi(10, 99)} ${tamsayi(10, 99)}`
+}
+
+function seriUret(urun) {
+  const yil = tamsayi(2019, 2025)
+  const onek = String(urun.id).toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6)
+  return `${onek}${yil}${String(tamsayi(1, 9999)).padStart(5, '0')}`
+}
+
+/* -------------------------------------------------------------- Üretim */
+
+export function demoVarMi() {
+  return load(ANAHTAR.demoMusteriler, []).length > 0
+}
+
+/**
+ * Demo verisini üretir: 10 personel, 30 müşteri, talepler ve numara
+ * değişikliği talepleri.
+ */
+export async function demoYukle() {
+  /* ---- Personel: admin dışında rastgele roller */
+  const mevcut = personelGetir()
+  const yeniPersonel = []
+
+  for (let i = 0; i < 10; i++) {
+    const ad = `${sec(ADLAR)} ${sec(SOYADLAR)}`
+    const kullanici = ad
+      .toLocaleLowerCase('tr-TR')
+      .replace(/ç/g, 'c').replace(/ğ/g, 'g').replace(/ı/g, 'i')
+      .replace(/ö/g, 'o').replace(/ş/g, 's').replace(/ü/g, 'u')
+      .replace(/[^a-z0-9\s]/g, '')
+      .split(/\s+/)
+      .join('.')
+
+    /* Aynı ad iki kez düşerse kullanıcı adı çakışmasın */
+    const benzer = [...mevcut, ...yeniPersonel].filter((p) =>
+      p.kullanici.startsWith(kullanici)
+    ).length
+
+    yeniPersonel.push({
+      id: uid(),
+      no: yeniNo('personel'),
+      ad,
+      kullanici: benzer ? `${kullanici}${benzer + 1}` : kullanici,
+      rol: ROLLER_DEMO[i % ROLLER_DEMO.length],
+      eposta: `${kullanici}@paksanmakina.com.tr`,
+      tel: '0' + telUret(),
+      aktif: i !== 9, /* biri kapalı — kapalı hesap nasıl görünüyor */
+      createdAt: gunOnce(tamsayi(30, 400)),
+      sonGiris: i < 7 ? gunOnce(tamsayi(0, 20)) : null,
+      sifre: await sifreHazirla('123456'),
+      demo: true,
+    })
+  }
+  save(ANAHTAR.personel, [...mevcut, ...yeniPersonel])
+
+  /* ---- Müşteriler */
+  const musteriler = []
+  for (let i = 0; i < 30; i++) {
+    const [il, ilce] = sec(YERLER)
+    const makineler = secBirkac(PRODUCTS, 1, 2).map((urun) => ({
+      id: uid(),
+      productId: urun.id,
+      serial: seriUret(urun),
+      year: tamsayi(2019, 2025),
+      nickname: '',
+      addedAt: gunOnce(tamsayi(10, 700)),
+      hours: tamsayi(0, 1200),
+      doneMaintenance: [],
+    }))
+
+    musteriler.push({
+      id: uid(),
+      no: yeniNo('musteri'),
+      createdAt: gunOnce(tamsayi(20, 800)),
+      ad: `${sec(ADLAR)} ${sec(SOYADLAR)}`,
+      ulke: 'TR',
+      tel: telUret(),
+      konumUlke: 'TR',
+      il,
+      ilce,
+      satici: sec(BAYILER).ad,
+      onaylar: {
+        aydinlatma: true,
+        acikRiza: true,
+        kampanya: Math.random() > 0.4,
+        surum: '1.0',
+        tarih: gunOnce(tamsayi(20, 800)),
+      },
+      bildirim: { izin: sec(['verildi', 'verildi', 'reddedildi', 'sorulmadi']) },
+      konumIzni: sec(['verildi', 'reddedildi', 'sorulmadi']),
+      makineler,
+      demo: true,
+    })
+  }
+  save(ANAHTAR.demoMusteriler, musteriler)
+
+  /* ---- Talepler
+
+     Tarihler bilerek dağıtıldı: bir kısmı son 24 saatte (yeşil), bir
+     kısmı 1-2 gün (sarı), bir kısmı daha eski (kırmızı). Renk kuralı
+     böylece backoffice’te görünüyor. */
+  const talepler = []
+
+  /* Her türün kendi aşamaları var; demo da o aşamaları izliyor ki
+     backoffice'teki durum süzgeci ve rapor sütunları boş kalmasın
+     (bkz. src/backoffice/veri.js → talepDurumlari). */
+  const DURUM = {
+    servis: ['yeni', 'incelemede', 'planlandi', 'kapandi', 'iptal'],
+    parca: ['yeni', 'incelemede', 'planlandi', 'gonderildi', 'kapandi', 'iptal'],
+    satinalma: ['yeni', 'incelemede', 'teklif', 'kapandi', 'iptal'],
+  }
+
+  /* Ağırlıklı seçim: talep havuzunun çoğu açık işten oluşsun, kapanmış
+     ve iptal olanlar azınlıkta kalsın — gerçek bir günün dağılımı
+     böyle görünüyor. */
+  const AGIRLIK = {
+    yeni: 3, incelemede: 3, planlandi: 2, teklif: 2, gonderildi: 2, kapandi: 4, iptal: 1,
+  }
+
+  function durumSec(tur) {
+    const havuz = []
+    for (const d of DURUM[tur]) for (let i = 0; i < AGIRLIK[d]; i++) havuz.push(d)
+    return sec(havuz)
+  }
+
+  musteriler.forEach((m) => {
+    const adet = tamsayi(0, 3)
+    for (let i = 0; i < adet; i++) {
+      const tur = sec(['servis', 'servis', 'parca', 'satinalma'])
+      const makine = sec(m.makineler)
+      const yasGun = sec([0, 0, 0, 0.5, 1.2, 1.6, 3, 6, 14, 40])
+      const tarih = Date.now() - yasGun * 86400000 - tamsayi(0, 6) * 3600000
+      const durum = yasGun === 0 ? 'yeni' : durumSec(tur)
+      const personel = sec(yeniPersonel).ad
+
+      /* Aşamalar sırayla işleniyor: "kapandı" bir talep önce
+         "incelemede"den geçmiş olmalı, geçmiş sütunu da öyle
+         görünmeli. İptal her aşamadan olabildiği için tek satır. */
+      const sira = DURUM[tur].filter((d) => d !== 'yeni' && d !== 'iptal')
+      const asamalar = durum === 'iptal'
+        ? ['incelemede', 'iptal']
+        : sira.slice(0, sira.indexOf(durum) + 1)
+
+      const gecmis = asamalar.map((d, j) => ({
+        durum: d,
+        tarih: tarih + (j + 1) * 3600000 * tamsayi(2, 20),
+        personel,
+      }))
+      const sonTarih = gecmis.length ? gecmis[gecmis.length - 1].tarih : tarih
+
+      const parcalar = tur === 'parca' ? secBirkac(PARCALAR, 1, 3) : []
+      const parcaAdet = {}
+      for (const x of parcalar) parcaAdet[x] = tamsayi(1, 4)
+
+      /* Yedek parçada bedel önden ödeniyor: "yeni" dışındaki her
+         aşamada ödemenin onaylanmış olması gerekiyor, yoksa talep
+         zaten ilerleyemezdi (bkz. Talepler ekranındaki ödeme kapısı). */
+      const odemeVar = tur === 'parca' && durum !== 'yeni' && durum !== 'iptal'
+
+      /* Sesli not her talepte yok; olanların bir kısmı yazıya
+         çevrilmiş durumda (bkz. src/backoffice/sesMetin.js). Ses
+         kaydının kendisi demoya konmuyor — megabaytlarca base64
+         tarayıcının hafızasını doldururdu; oynatıcı yerine süresi
+         görünüyor. */
+      const sesliMi = Math.random() > 0.75
+      const cevrildi = sesliMi && Math.random() > 0.35
+
+      talepler.push({
+        id: uid(),
+        no: talepNo(tur),
+        createdAt: tarih,
+        status: durum,
+        tur,
+        ad: m.ad,
+        tel: '+90 ' + m.tel,
+        telUlke: 'TR',
+        telHam: m.tel,
+        il: m.il,
+        ilce: m.ilce,
+        ulke: 'TR',
+        ihracat: false,
+        /* Uygulamanın sakladığı değerlerin aynısı — backoffice'te saat
+           aralıkları da görünsün. */
+        ulasim: sec(ULASIM_ZAMANI),
+        makine: tur === 'satinalma'
+          ? null
+          : { id: makine.id, serial: makine.serial, productId: makine.productId },
+        urunId: tur === 'satinalma' ? sec(PRODUCTS).id : null,
+        durum: tur === 'servis' ? sec(MAKINE_DURUMU).id : null,
+        belirtiler: tur === 'servis' ? secBirkac(SERVIS_BELIRTI, 1, 3) : [],
+        parcalar,
+        parcaAdet: tur === 'parca' ? parcaAdet : null,
+        acele: tur === 'parca' ? sec(PARCA_ACELE).id : null,
+        urunTipi: tur === 'satinalma' ? sec(['Saman', 'Kuru ot', 'Silaj']) : '',
+        arazi: tur === 'satinalma' ? sec(['Düz', 'Hafif eğimli', 'Engebeli']) : '',
+        traktor: tur === 'satinalma' ? sec(['50-75 HP', '75-100 HP', '100 HP üzeri']) : '',
+        aciklama:
+          tur === 'servis'
+            ? sec(SERVIS_ACIKLAMA)
+            : tur === 'parca'
+              ? sec(PARCA_ACIKLAMA)
+              : sec(SATIS_ACIKLAMA),
+
+        ses: sesliMi ? { veri: null, sure: tamsayi(8, 45) } : null,
+        sesMetni: cevrildi
+          ? { metin: sec(SES_METINLERI), dil: 'TR', tarih: tarih + 120000 }
+          : null,
+        ekler: [],
+
+        /* -------------------------------------------- Fatura ve ödeme */
+        fatura: tur === 'parca' ? faturaUret(m) : null,
+        dekont: tur === 'parca'
+          ? { id: uid(), tur: sec(['pdf', 'gorsel']), ad: 'dekont', boyut: tamsayi(60, 400) }
+          : null,
+        odemeOnay: odemeVar ? { tarih: tarih + 5400000, personel, not: '' } : null,
+
+        /* ----------------------------------------- Aşamaya özel kayıtlar */
+        plan: durum === 'planlandi' ? planUret(sonTarih, personel) : null,
+        teklif: (durum === 'teklif' || (durum === 'kapandi' && tur === 'satinalma'))
+          ? teklifUret(sonTarih, personel)
+          : null,
+        gonderim: durum === 'gonderildi'
+          ? gonderimUret(parcalar, parcaAdet, sonTarih, personel)
+          : null,
+        iptalBilgi: durum === 'iptal'
+          ? { neden: sec(IPTAL_NEDEN), aciklama: '', personel, tarih: sonTarih }
+          : null,
+        cozum: durum === 'kapandi'
+          ? cozumUret(tur, parcalar, parcaAdet, personel, sonTarih)
+          : null,
+
+        notlar: notUret(tarih, personel),
+        gecmis,
+        demo: true,
+      })
+    }
+  })
+  save(ANAHTAR.demoTalepler, talepler)
+
+  /* ---- Numara değişikliği talepleri
+
+     Bir kısmında seri no doğru (backoffice ✓ gösterecek), bir kısmında
+     yanlış (✕) — kontrolün nasıl çalıştığı görünsün. */
+  const numaraTalepleri = []
+  secBirkac(musteriler, 4, 6).forEach((m) => {
+    const dogru = Math.random() > 0.35
+    const makine = m.makineler[0]
+    numaraTalepleri.push({
+      id: uid(),
+      tarih: gunOnce(tamsayi(0, 12)),
+      durum: sec(['bekliyor', 'bekliyor', 'bekliyor', 'onaylandi', 'reddedildi']),
+      musteriId: m.id,
+      ad: m.ad,
+      eskiTel: '+90 ' + m.tel,
+      eskiUlke: 'TR',
+      yeniTel: telUret(),
+      yeniTelHam: telUret(),
+      yeniUlke: 'TR',
+      seri: dogru ? makine.serial : seriUret(sec(PRODUCTS)),
+      demo: true,
+    })
+  })
+  numaraTalepleri.forEach((t) => {
+    if (t.durum !== 'bekliyor') {
+      t.karar = { personel: sec(yeniPersonel).ad, tarih: t.tarih + 7200000, not: '' }
+    }
+  })
+  save(ANAHTAR.numaraTalepleri, [
+    ...numaraTalepleri,
+    ...load(ANAHTAR.numaraTalepleri, []),
+  ])
+
+  /* ---- Geri bildirimler */
+  const gorusler = secBirkac(musteriler, 5, 8).map((m) => ({
+    id: uid(),
+    no: yeniNo('geribildirim'),
+    tarih: gunOnce(tamsayi(0, 30)),
+    metin: sec(GORUSLER),
+    ad: m.ad,
+    tel: m.tel,
+    dil: 'tr',
+    surum: '0.6.1',
+    okundu: Math.random() > 0.6,
+    gonderildi: false,
+    demo: true,
+  }))
+  save(ANAHTAR.geriBildirim, [...gorusler, ...load(ANAHTAR.geriBildirim, [])])
+
+  const ozet = {
+    personel: yeniPersonel.length,
+    musteri: musteriler.length,
+    talep: talepler.length,
+    numara: numaraTalepleri.length,
+    gorus: gorusler.length,
+  }
+  islemYaz({
+    tur: 'demo',
+    ozet: `Demo verisi yüklendi · ${ozet.personel} personel, ${ozet.musteri} müşteri, ${ozet.talep} talep`,
+  })
+  return ozet
+}
+
+/** Demo kayıtlarını siler; gerçek kayıtlara dokunmaz. */
+export function demoTemizle() {
+  islemYaz({ tur: 'demo', ozet: 'Demo verisi temizlendi' })
+  save(ANAHTAR.demoMusteriler, [])
+  save(ANAHTAR.demoTalepler, [])
+  save(ANAHTAR.personel, personelGetir().filter((p) => !p.demo))
+  save(ANAHTAR.numaraTalepleri, load(ANAHTAR.numaraTalepleri, []).filter((t) => !t.demo))
+  save(ANAHTAR.geriBildirim, load(ANAHTAR.geriBildirim, []).filter((g) => !g.demo))
+}
+
+/* ---------------------------------------------------- Talep parçaları
+
+   Aşağıdaki üreticiler backoffice'in beklediği alan adlarını birebir
+   dolduruyor (bkz. src/backoffice/ekranlar/Talepler.jsx). Bir alan
+   eksik kalırsa o bölüm ekranda hiç çıkmıyor ve demo eksik görünüyor. */
+
+function faturaUret(musteri) {
+  const tuzel = Math.random() > 0.6
+  const soyad = musteri.ad.split(' ').pop()
+  return {
+    tuzel,
+    ad: tuzel ? '' : musteri.ad,
+    tc: tuzel ? '' : String(tamsayi(10000000000, 99999999999)),
+    unvan: tuzel ? soyad + ' Tarım Ltd. Şti.' : '',
+    vergiNo: tuzel ? String(tamsayi(1000000000, 9999999999)) : '',
+    tel: '+90 ' + musteri.tel,
+    farkliKisi: false,
+    adres:
+      sec(['Yeni', 'Cumhuriyet', 'Atatürk', 'Fatih']) + ' Mahallesi, ' +
+      tamsayi(1, 40) + '. Sokak No:' + tamsayi(1, 60),
+    il: musteri.il,
+    ilce: musteri.ilce,
+    ulke: 'TR',
+  }
+}
+
+function planUret(sonTarih, personel) {
+  return {
+    tarihYazi: new Date(sonTarih + 86400000 * tamsayi(1, 5)).toLocaleDateString('tr-TR'),
+    is: sec(YAPILAN_IS),
+    gorusuldu: true,
+    personel,
+    kayitTarihi: sonTarih,
+  }
+}
+
+function teklifUret(sonTarih, personel) {
+  return {
+    tutar: String(tamsayi(85, 195) * 10000),
+    gecerlilik: sec(['7 gün', '15 gün', '30 gün']),
+    not: 'Fiyata teslim ve devreye alma dâhildir.',
+    personel,
+    tarih: sonTarih,
+  }
+}
+
+function gonderimUret(parcalar, parcaAdet, sonTarih, personel) {
+  return {
+    parcalar: parcalar.map((x) => x + ' x' + parcaAdet[x]).join(', '),
+    kargo: sec(KARGO),
+    takipNo: String(tamsayi(100000000000, 999999999999)),
+    personel,
+    tarih: sonTarih,
+  }
+}
+
+/* Kapanış alanları türe göre değişiyor (bkz. Talepler ekranındaki
+   KAPANIS_ALANLARI); demo da aynı alanları dolduruyor. */
+function cozumUret(tur, parcalar, parcaAdet, personel, tarih) {
+  if (tur === 'servis') {
+    return {
+      yapilanIs: sec(YAPILAN_IS),
+      parcalar: parcalar.join(', '),
+      ucret: sec(['Garanti kapsamında', String(tamsayi(80, 450) * 10)]),
+      personel,
+      tarih,
+    }
+  }
+
+  if (tur === 'parca') {
+    return {
+      yapilanIs: 'Parçalar kargoya verildi, takip numarası müşteriye iletildi.',
+      parcalar: parcalar.map((x) => x + ' x' + parcaAdet[x]).join(', '),
+      personel,
+      tarih,
+    }
+  }
+
+  const sonuc = sec(SATIS_SONUC)
+  return {
+    sonuc,
+    satisFiyati: sonuc === 'Satış oldu' ? String(tamsayi(85, 195) * 10000) : '',
+    not: 'Görüşme tamamlandı.',
+    personel,
+    tarih,
+  }
+}
+
+/* İki tür not: iç not ekibin kendi arasında, müşteri notu telefona
+   düşüyor. İkisi de demoda olsun ki ayrım ekranda görünsün. */
+function notUret(tarih, personel) {
+  if (Math.random() < 0.45) return []
+  const notlar = [
+    { metin: sec(IC_NOTLAR), tarih: tarih + 7200000, personel, musteriye: false },
+  ]
+  if (Math.random() > 0.5) {
+    notlar.push({
+      metin: sec(MUSTERI_NOTLARI),
+      tarih: tarih + 10800000,
+      personel,
+      musteriye: true,
+    })
+  }
+  return notlar
+}

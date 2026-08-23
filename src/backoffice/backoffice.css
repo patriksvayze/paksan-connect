@@ -1,0 +1,1813 @@
+/* ==========================================================================
+   PAKSAN Backoffice
+
+   Telefondaki uygulamadan başka bir iş yapıyor, o yüzden başka görünüyor:
+   uygulama tarlada eldivenle kullanılıyor (büyük düğme, geniş boşluk),
+   backoffice ofiste fareyle ve saatlerce kullanılıyor (sık tablo, dar satır,
+   çok bilgi bir ekranda).
+
+   Ortak olan tek şey marka: aynı lacivert, aynı mavi, aynı turuncu,
+   aynı yazı tipi.
+   ========================================================================== */
+
+:root {
+  --lacivert: #0a1a33;
+  --lacivert-2: #12294a;
+  --mavi: #1848a8;
+  --mavi-acik: #2f6fe4;
+  --turuncu: #c7490a;
+
+  --zemin: #eef1f6;
+  --yuzey: #ffffff;
+  --yuzey-2: #f6f8fb;
+  --murekkep: #0f1c33;
+  --murekkep-2: #55617a;
+  --murekkep-3: #8a95a9;
+  --cizgi: #e2e7f0;
+  --cizgi-koyu: #cdd5e2;
+
+  --kirmizi: #c93636;
+  --mor: #6d3fa8;
+  --turkuaz: #0f7d8c;
+
+  /* Grafiklerde "orta" dilimin rengi. Turuncu, yanındaki kırmızıyla
+     karışıyordu — özellikle projeksiyonda ve renk körlüğünde.
+     Trafik ışığı mantığı: yeşil, sarı, kırmızı. */
+  --sari: #c79a08;
+
+  /* Talep türü renkleri.
+
+     Grafiklerde ve etiketlerde aynı renk aynı türü gösteriyor. Koyu
+     mor ile koyu mavi yan yana ayırt edilemiyordu; ikisi de bir tık
+     açıldı ve birbirinden uzaklaştırıldı. */
+  /* Servis turuncu: kırmızı, gecikme ünleminin rengi. İkisi yan yana
+     durunca ekran baştan aşağı kırmızı görünüyordu. */
+  --tur-servis: #e08512;
+  --tur-parca: #a869e8;
+  --tur-satis: #3d97f0;
+  --turuncu-d: #b8620a;
+  --yesil: #1a8348;
+  --gri: #737d8f;
+
+  --kirmizi-z: rgba(201, 54, 54, 0.1);
+  --turuncu-z: rgba(184, 98, 10, 0.12);
+  --mavi-z: rgba(24, 72, 168, 0.1);
+  --yesil-z: rgba(26, 131, 72, 0.12);
+  --gri-z: rgba(115, 125, 143, 0.12);
+  --mor-z: rgba(109, 63, 168, 0.12);
+  --turkuaz-z: rgba(15, 125, 140, 0.12);
+
+  --golge: 0 1px 2px rgba(10, 26, 51, 0.05), 0 2px 8px rgba(10, 26, 51, 0.05);
+  --golge-2: 0 12px 34px rgba(10, 26, 51, 0.14);
+  --r: 10px;
+  --yan: 232px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--zemin);
+  color: var(--murekkep);
+  font-family: Roboto, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 14.5px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+a {
+  color: var(--mavi);
+}
+
+:focus-visible {
+  outline: 2px solid var(--mavi-acik);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ------------------------------------------------------------------ Giriş */
+
+.giris {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: var(--lacivert);
+  padding: 24px;
+}
+
+.giris__kart {
+  background: var(--yuzey);
+  border-radius: 16px;
+  padding: 34px 32px 26px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: var(--golge-2);
+}
+
+.giris__kart .alan {
+  margin-bottom: 16px;
+}
+
+.giris__logo {
+  height: 34px;
+  display: block;
+  margin-bottom: 22px;
+}
+
+.giris__baslik {
+  font-size: 21px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+/* Mavi başlığın altındaki ince turuncu şerit — uygulamadaki marka
+   düzeninin aynısı. */
+.giris__cizgi {
+  width: 42px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--turuncu);
+  margin: 10px 0 24px;
+}
+
+.giris__dip {
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid var(--cizgi);
+  font-size: 12.5px;
+  color: var(--murekkep-3);
+  text-align: center;
+  line-height: 1.6;
+}
+
+/* ---------------------------------------------------------------- Düzen */
+
+.duzen {
+  display: grid;
+  grid-template-columns: var(--yan) 1fr;
+  min-height: 100vh;
+}
+
+/* ------------------------------------------------------------- Yan menü */
+
+.yan {
+  background: var(--lacivert);
+  color: #fff;
+  padding: 18px 14px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+/* Logo lacivert zeminde zor görünüyordu; beyaz bir kart içine alındı. */
+.yan__marka {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 0 6px;
+  margin-bottom: 14px;
+}
+
+.yan__marka img {
+  height: 38px;
+}
+
+.yan__bag {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.72);
+  font-weight: 500;
+  text-align: left;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+
+.yan__bag:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+}
+
+.yan__bag--on {
+  background: var(--mavi);
+  color: #fff;
+  font-weight: 700;
+}
+
+.yan__sayi {
+  margin-left: auto;
+  background: var(--kirmizi);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 700;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.yan__bag--on .yan__sayi {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.yan__dip {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.yan__dip b {
+  display: block;
+  color: #fff;
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.yan__rol {
+  display: block;
+  margin-top: 2px;
+}
+
+.yan__cikis {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  padding: 11px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.88);
+  font-weight: 700;
+  font-size: 13.5px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.yan__cikis:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+.yan__cikis:hover {
+  color: #fff;
+}
+
+/* --------------------------------------------------------------- Gövde */
+
+.govde {
+  padding: 26px 30px 60px;
+  max-width: 1280px;
+  min-width: 0;
+}
+
+.baslik {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.baslik h1 {
+  font-size: 25px;
+  font-weight: 900;
+}
+
+.baslik__sag {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+/* --------------------------------------------------------------- Kutu */
+
+.kart {
+  background: var(--yuzey);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r);
+  box-shadow: var(--golge);
+}
+
+.kart__tepe {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--cizgi);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.kart__tepe h2 {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.kart__ic {
+  padding: 18px;
+}
+
+.bos {
+  padding: 44px 20px;
+  text-align: center;
+  color: var(--murekkep-3);
+}
+
+/* ------------------------------------------------------------- Sayılar */
+
+/* Hızlı erişim kutuları tek satırda duruyor. Ekran dar kalırsa alt
+   satıra kaymak yerine yana kayıyor: yönetici bir bakışta hepsini
+   aynı hizada görsün. */
+.sayilar {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(126px, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.sayilar::-webkit-scrollbar {
+  height: 6px;
+}
+
+.sayilar::-webkit-scrollbar-thumb {
+  background: var(--cizgi-koyu);
+  border-radius: 3px;
+}
+
+.sayi {
+  background: var(--yuzey);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r);
+  padding: 13px 14px;
+  box-shadow: var(--golge);
+  text-align: left;
+  display: block;
+  width: 100%;
+  transition: border-color 0.14s ease, transform 0.1s ease;
+}
+
+button.sayi:hover {
+  border-color: var(--mavi);
+}
+
+button.sayi:active {
+  transform: translateY(1px);
+}
+
+.sayi__v {
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.sayi__k {
+  color: var(--murekkep-2);
+  font-size: 12.5px;
+  margin-top: 2px;
+  line-height: 1.35;
+}
+
+.sayi--dikkat .sayi__v {
+  color: var(--kirmizi);
+}
+
+/* -------------------------------------------------------------- Tablo */
+
+.tablo-sar {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+thead th {
+  text-align: left;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--murekkep-3);
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--cizgi);
+  white-space: nowrap;
+  background: var(--yuzey-2);
+}
+
+tbody td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--cizgi);
+  vertical-align: top;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+tbody tr.tiklanir {
+  cursor: pointer;
+}
+
+tbody tr.tiklanir:hover {
+  background: var(--yuzey-2);
+}
+
+tbody tr.secili {
+  background: var(--mavi-z);
+}
+
+/* Tek font ailesi kullanılıyor; "mono" yalnız rakamları eşit genişlikte
+   yazıyor. Ayrı bir yazı tipi yüklemek backoffice’te iki farklı font gibi
+   duruyordu. */
+.mono {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.sonuk {
+  color: var(--murekkep-2);
+}
+
+.kucuk {
+  font-size: 12.5px;
+}
+
+/* -------------------------------------------------------------- Rozet */
+
+.rz {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.rz--kirmizi {
+  background: var(--kirmizi-z);
+  color: var(--kirmizi);
+}
+
+.rz--turuncu {
+  background: var(--turuncu-z);
+  color: var(--turuncu-d);
+}
+
+.rz--mavi {
+  background: var(--mavi-z);
+  color: var(--mavi);
+}
+
+.rz--yesil {
+  background: var(--yesil-z);
+  color: var(--yesil);
+}
+
+.rz--gri {
+  background: var(--gri-z);
+  color: var(--gri);
+}
+
+.rz--mor {
+  background: var(--mor-z);
+  color: var(--mor);
+}
+
+.rz--turkuaz {
+  background: var(--turkuaz-z);
+  color: var(--turkuaz);
+}
+
+/* -------------------------------------------------------------- Düğme */
+
+.dg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 15px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 13.5px;
+  background: var(--yuzey);
+  border: 1px solid var(--cizgi-koyu);
+  color: var(--murekkep);
+  transition: background 0.13s ease, border-color 0.13s ease;
+}
+
+.dg:hover {
+  background: var(--yuzey-2);
+  border-color: var(--murekkep-3);
+}
+
+.dg--ana {
+  background: var(--mavi);
+  border-color: transparent;
+  color: #fff;
+}
+
+.dg--ana:hover {
+  background: var(--mavi-acik);
+}
+
+.dg--kucuk {
+  padding: 3px 10px;
+  font-size: 12px;
+  border-radius: 8px;
+}
+
+.dg--lg {
+  height: 42px;
+  padding: 0 20px;
+  font-size: 15px;
+  width: 100%;
+}
+
+.dg:disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------- Alan */
+
+.alan {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.alan__ad {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--murekkep-2);
+  margin-bottom: 5px;
+}
+
+.gir,
+.sec,
+.metin {
+  width: 100%;
+  border: 1px solid var(--cizgi-koyu);
+  border-radius: 8px;
+  padding: 9px 11px;
+  background: var(--yuzey);
+  transition: border-color 0.14s ease;
+}
+
+.gir:focus,
+.sec:focus,
+.metin:focus {
+  border-color: var(--mavi);
+  outline: none;
+}
+
+.metin {
+  min-height: 90px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.sec {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--murekkep-2) 50%),
+    linear-gradient(135deg, var(--murekkep-2) 50%, transparent 50%);
+  background-position: calc(100% - 16px) 55%, calc(100% - 11px) 55%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 32px;
+}
+
+.satir {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.esit {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0 14px;
+}
+
+/* ------------------------------------------------------------- Süzgeç */
+
+.suzgec {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.cip {
+  height: 32px;
+  padding: 0 13px;
+  border-radius: 999px;
+  border: 1px solid var(--cizgi-koyu);
+  background: var(--yuzey);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--murekkep-2);
+}
+
+.cip--on {
+  background: var(--lacivert);
+  border-color: transparent;
+  color: #fff;
+}
+
+.ara {
+  height: 32px;
+  min-width: 220px;
+  border: 1px solid var(--cizgi-koyu);
+  border-radius: 8px;
+  padding: 0 11px;
+  background: var(--yuzey);
+}
+
+/* ------------------------------------------------------- İki sütun */
+
+.ikili {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .ikili {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 860px) {
+  .duzen {
+    grid-template-columns: 1fr;
+  }
+
+  .yan {
+    position: static;
+    height: auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .yan__dip {
+    display: none;
+  }
+
+  .govde {
+    padding: 20px 16px 50px;
+  }
+}
+
+/* --------------------------------------------------------------- Liste */
+
+.satirlar {
+  display: flex;
+  flex-direction: column;
+}
+
+.kalem {
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--cizgi);
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.kalem:last-child {
+  border-bottom: none;
+}
+
+.kalem--yeni {
+  background: var(--mavi-z);
+}
+
+.kalem__gov {
+  flex: 1;
+  min-width: 0;
+}
+
+.kalem__alt {
+  color: var(--murekkep-2);
+  font-size: 13.5px;
+  margin-top: 2px;
+}
+
+/* ------------------------------------------------------------ Zaman çizgisi */
+
+.zaman {
+  border-left: 2px solid var(--cizgi);
+  padding-left: 14px;
+  margin-left: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.zaman__a {
+  position: relative;
+  font-size: 13.5px;
+}
+
+.zaman__a::before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cizgi-koyu);
+}
+
+.zaman__a--son::before {
+  background: var(--mavi);
+}
+
+/* ------------------------------------------------------------- Uyarı */
+
+.uyari {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: var(--turuncu-z);
+  color: var(--turuncu-d);
+  border-radius: var(--r);
+  padding: 13px 16px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  margin-bottom: 18px;
+}
+
+.uyari b {
+  color: var(--turuncu-d);
+}
+
+/* ------------------------------------------------------------- Bildirim */
+
+.tost {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  background: var(--lacivert);
+  color: #fff;
+  padding: 11px 20px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 14px;
+  box-shadow: var(--golge-2);
+  z-index: 60;
+  animation: tost 0.2s ease;
+}
+
+@keyframes tost {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tost {
+    animation: none;
+  }
+}
+
+/* ---------------------------------------------------------- Giriş ekranı */
+
+.giris__yazi {
+  color: var(--murekkep-2);
+  font-size: 13.5px;
+  line-height: 1.6;
+  margin: 10px 0 20px;
+}
+
+.giris__bag {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 8px;
+  background: none;
+  border: 0;
+  color: var(--mavi);
+  font: inherit;
+  font-size: 13.5px;
+  cursor: pointer;
+  border-radius: var(--r);
+}
+
+.giris__bag:hover {
+  background: var(--yuzey-2);
+}
+
+/* Şifre 6 rakam — haneler ayrı ayrı okunsun */
+.gir--kod {
+  letter-spacing: 0.35em;
+  font-variant-numeric: tabular-nums;
+}
+
+.hata {
+  background: var(--kirmizi-z);
+  color: var(--kirmizi);
+  border-radius: var(--r);
+  padding: 11px 14px;
+  font-size: 13.5px;
+  margin-bottom: 14px;
+}
+
+/* ------------------------------------------------------------- Yan menü */
+
+/* Geri bildirim ve işlem kaydı ayrı dursun diye menüyü ikiye bölüyor */
+.yan__ara {
+  margin-top: auto;
+  padding-top: 14px;
+}
+
+/* ------------------------------------------------------------ Bilgi şeridi */
+
+.serit {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+  background: var(--mavi-z);
+  color: var(--mavi);
+  border-radius: var(--r);
+  padding: 12px 16px;
+  font-size: 13.5px;
+  margin-bottom: 18px;
+}
+
+/* -------------------------------------------------------------- Bekleme
+
+   Veri gelene kadar duran gri satırlar. Boş ekran "kayıt yok" gibi
+   görünüyor; iskelet "geliyor" diyor. */
+
+.bekle {
+  padding: 18px 20px;
+}
+
+.bekle__satir {
+  height: 15px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--cizgi) 25%, var(--yuzey-2) 50%, var(--cizgi) 75%);
+  background-size: 320px 100%;
+  animation: bekle-kay 1.15s linear infinite;
+  margin-bottom: 12px;
+}
+
+.bekle__satir:nth-child(even) {
+  width: 74%;
+}
+
+.bekle__satir:last-child {
+  margin-bottom: 0;
+}
+
+@keyframes bekle-kay {
+  from { background-position: -320px 0; }
+  to { background-position: 320px 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bekle__satir { animation: none; }
+}
+
+/* ------------------------------------------------------------- Pencere */
+
+.pencere {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 26, 51, 0.45);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  z-index: 50;
+}
+
+.pencere__kart {
+  width: 100%;
+  max-width: 640px;
+  max-height: 90vh;
+  overflow: auto;
+}
+
+/* ----------------------------------------------------- Kimlik kontrolü */
+
+.kontrol {
+  margin: 16px 0 18px;
+  display: grid;
+  gap: 8px;
+}
+
+.kontrol__a {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  font-size: 13.5px;
+  color: var(--kirmizi);
+}
+
+.kontrol__a--ok {
+  color: var(--yesil);
+}
+
+.kontrol__a span:first-child {
+  font-weight: 900;
+}
+
+/* ------------------------------------------------------------ Onay kutusu */
+
+.secim {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 13.5px;
+  color: var(--murekkep-2);
+  margin-bottom: 18px;
+  cursor: pointer;
+}
+
+.secim input {
+  margin-top: 2px;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--mavi);
+}
+
+/* --------------------------------------------------------- Gecikme işareti
+
+   48 saati geçmiş açık talep numarasının başında kırmızı ünlem duruyor.
+   Satırın tamamını boyamak yerine tek işaret: tablo okunur kalıyor,
+   durum etiketiyle karışmıyor. */
+
+/* Bekleyen teklif etiketi.
+
+   Gecikme ünlemi kırmızı ve "işe hiç bakılmadı" demek. Teklif verilmiş
+   ama müşteri haftalardır dönmemiş talep başka bir şey: iş yapıldı,
+   takip gerekiyor. Ayrı bir renk ve ayrı bir işaret alıyor ki listede
+   ikisi karışmasın. */
+.bekleyen {
+  display: inline-grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--mor);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+  vertical-align: -2px;
+}
+
+.gecikme {
+  display: inline-grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--kirmizi);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+  vertical-align: -2px;
+}
+
+/* ------------------------------------------------------------- Ekler */
+
+.ekler {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.ekler__foto,
+.ekler__bos {
+  width: 92px;
+  height: 92px;
+  padding: 0;
+  border: 1px solid var(--cizgi);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--yuzey-2);
+  cursor: pointer;
+}
+
+.ekler__foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ekler__video {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 8px;
+  margin-top: 6px;
+  display: block;
+}
+
+.ekler__buyuk {
+  max-width: 92vw;
+  max-height: 92vh;
+  border-radius: 10px;
+  box-shadow: var(--golge-2);
+}
+
+/* ------------------------------------------- Sunucu yokken deneme bağlantısı */
+
+.giris__deneme {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--yuzey-2);
+  border-radius: var(--r);
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  font-size: 12.5px;
+  color: var(--murekkep-3);
+}
+
+.giris__deneme a {
+  color: var(--mavi);
+  font-weight: 700;
+  font-size: 13.5px;
+}
+
+/* ==========================================================================
+   Süzgeç çubuğu
+
+   Düğme sırası yerine adı yazan açılır kutular: "Durum: Açık olanlar"
+   tek bakışta okunuyor, on düğmenin hangisinin seçili olduğunu aramak
+   gerekmiyor.
+   ========================================================================== */
+
+.suzgec-cubugu {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px 14px;
+  background: var(--yuzey);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r);
+  padding: 13px 16px;
+  margin-bottom: 14px;
+  box-shadow: var(--golge);
+}
+
+.suzgec-cubugu__sayi {
+  margin-left: auto;
+  align-self: center;
+  color: var(--murekkep-3);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.secim-alan {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.secim-alan--genis {
+  flex: 1 1 240px;
+  min-width: 200px;
+}
+
+.secim-alan__ad {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--murekkep-3);
+}
+
+.sec {
+  height: 36px;
+  width: 100%;
+  padding: 0 11px;
+  border: 1px solid var(--cizgi-koyu);
+  border-radius: 8px;
+  background: var(--yuzey);
+  color: var(--murekkep);
+  font: inherit;
+  font-size: 14px;
+}
+
+select.sec {
+  padding-right: 28px;
+  cursor: pointer;
+  /* Tarayıcının kendi oku yerine tek tip ok */
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--murekkep-2) 50%),
+    linear-gradient(135deg, var(--murekkep-2) 50%, transparent 50%);
+  background-position: calc(100% - 15px) 15px, calc(100% - 10px) 15px;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.sec:focus {
+  outline: none;
+  border-color: var(--mavi);
+  box-shadow: 0 0 0 3px var(--mavi-z);
+}
+
+/* ==========================================================================
+   Dashboard — ölçüler ve grafikler
+   ========================================================================== */
+
+.olculer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.deger {
+  background: var(--yuzey);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r);
+  padding: 15px 17px;
+  box-shadow: var(--golge);
+}
+
+.deger__ad {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--murekkep-3);
+}
+
+.deger__v {
+  font-size: 27px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  margin-top: 6px;
+  line-height: 1.15;
+}
+
+.deger__alt {
+  margin-top: 4px;
+  font-size: 12.5px;
+  color: var(--murekkep-2);
+}
+
+.deger__fark {
+  font-weight: 700;
+  margin-right: 5px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Raporlar — dikkat isteyenler ve rapor kitaplığı
+   ========================================================================== */
+
+/* Yöneticinin "neye yetişmem lazım" listesi. Her satır bir iş, sağında
+   o işin listesine giden düğme. Soldaki nokta aciliyeti söylüyor. */
+
+.uyari-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.uyari-satir {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--cizgi);
+}
+
+.uyari-satir:last-child {
+  border-bottom: none;
+}
+
+.uyari-satir__nokta {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--murekkep-3);
+}
+
+.uyari-satir--kirmizi .uyari-satir__nokta { background: var(--kirmizi); }
+.uyari-satir--turuncu .uyari-satir__nokta { background: var(--turuncu-d); }
+.uyari-satir--mavi    .uyari-satir__nokta { background: var(--mavi); }
+
+.uyari-satir__ad {
+  font-size: 14.5px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+/* Rapor kitaplığı — açılır liste yerine kart.
+
+   Kartta raporun adı DEĞİL, cevapladığı soru öne çıkıyor: yönetici
+   rapor adlarını ezberlemek zorunda kalmadan aradığını buluyor. */
+
+.rapor-izgara {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 12px;
+}
+
+.rapor-kart {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: left;
+  padding: 14px 15px;
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r);
+  background: var(--yuzey);
+  transition: border-color 0.13s ease, background 0.13s ease;
+}
+
+.rapor-kart:hover {
+  background: var(--yuzey-2);
+  border-color: var(--mavi);
+}
+
+.rapor-kart__ad {
+  font-size: 14.5px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.rapor-kart__soru {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--murekkep-2);
+}
+
+/* Kartın başlık rakamı — raporu açmadan önce cevabın bir kısmı */
+.rapor-kart__deger {
+  margin-top: 6px;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+
+.rapor-kart__etiket {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--murekkep-3);
+}
+
+/* Grafik kartları ikişerli; geniş olan tam satır kaplıyor */
+.pano {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.pano > .kart {
+  margin-bottom: 0;
+}
+
+.pano__genis {
+  grid-column: 1 / -1;
+}
+
+.grafik__eksen {
+  display: flex;
+  justify-content: space-between;
+  color: var(--murekkep-3);
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+.grafik__tepe {
+  color: var(--murekkep-3);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.grafik__bos {
+  color: var(--murekkep-3);
+  font-size: 13.5px;
+  padding: 22px 0;
+  text-align: center;
+}
+
+/* -------------------------------------------------------------- Halka */
+
+.halka {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.halka__cizim {
+  width: 122px;
+  height: 122px;
+  flex: none;
+}
+
+.halka__sayi {
+  font-size: 7px;
+  font-weight: 900;
+  text-anchor: middle;
+  fill: var(--murekkep);
+}
+
+.halka__yazi {
+  font-size: 2.9px;
+  text-anchor: middle;
+  fill: var(--murekkep-3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.halka__liste {
+  flex: 1;
+  min-width: 150px;
+  display: grid;
+  gap: 7px;
+}
+
+.halka__satir {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+}
+
+.halka__nokta {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.halka__ad {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.halka__deger {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.halka__yuzde {
+  color: var(--murekkep-3);
+  font-size: 12.5px;
+  min-width: 34px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------- Yatay barlar */
+
+.ybar {
+  display: grid;
+  gap: 9px;
+}
+
+.ybar__satir {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+}
+
+.ybar__ad {
+  width: 38%;
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ybar__yol {
+  flex: 1;
+  height: 9px;
+  border-radius: 5px;
+  background: var(--yuzey-2);
+  overflow: hidden;
+}
+
+.ybar__dolu {
+  display: block;
+  height: 100%;
+  border-radius: 5px;
+}
+
+.ybar__deger {
+  min-width: 26px;
+  text-align: right;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ----------------------------------------------------------- Yığın bar */
+
+.yigin {
+  display: flex;
+  height: 15px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--yuzey-2);
+}
+
+.yigin__parca {
+  display: block;
+  height: 100%;
+}
+
+.yigin__liste {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-top: 12px;
+}
+
+.yigin__etiket {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: var(--murekkep-2);
+}
+
+/* -------------------------------------------------- Sol alt profil düğmesi */
+
+.yan__kisi {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 6px 8px;
+  margin: -6px -8px 0;
+  border-radius: 8px;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.yan__kisi:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.yan__kisi b {
+  display: block;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ------------------------------------------------- Geri bildirim cevabı */
+
+.cevap {
+  margin-top: 12px;
+  border-left: 3px solid var(--mavi);
+  padding-left: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.cevap__a {
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+/* ------------------------------------------------------- Sütun grafiği
+
+   Solda değer ölçeği, arkada kılavuz çizgileri, her çubuğun tepesinde
+   sayısı. Çizgiler olmadan çubukların hangi değere denk geldiği
+   okunmuyordu. */
+
+.sutun__govde {
+  display: flex;
+  gap: 10px;
+}
+
+.sutun__olcek {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 180px;
+  font-size: 11px;
+  color: var(--murekkep-3);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  min-width: 18px;
+  /* Rakamlar çizgilerin tam hizasında dursun */
+  transform: translateY(-6px);
+}
+
+.sutun__alan {
+  position: relative;
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(var(--sutun-adet), 1fr);
+  gap: 3px;
+  height: 180px;
+  align-items: end;
+  border-bottom: 1px solid var(--cizgi-koyu);
+}
+
+.sutun__cizgi {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--cizgi);
+}
+
+.sutun__hucre {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 100%;
+  min-width: 0;
+}
+
+.sutun__cubuk {
+  position: relative;
+  width: 100%;
+  max-width: 34px;
+  min-height: 2px;
+  border-radius: 3px 3px 0 0;
+}
+
+/* Sayı çubuğun tepesine yapışık — kısa çubukta havada kalmıyor */
+.sutun__sayi {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 2px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--murekkep-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.sutun__eksen {
+  display: grid;
+  grid-template-columns: repeat(var(--sutun-adet), 1fr);
+  gap: 3px;
+  margin-left: 28px;
+  padding-top: 6px;
+}
+
+.sutun__etiket {
+  font-size: 10.5px;
+  color: var(--murekkep-3);
+  white-space: nowrap;
+  text-align: center;
+}
+
+/* Grafik başlığı — panonun en geniş kartında biraz daha büyük */
+.kart__tepe h2.baslik--buyuk {
+  font-size: 19px;
+  letter-spacing: -0.01em;
+}
+
+/* Yatay barın parçalı hâli */
+.ybar__dolu {
+  display: flex;
+  height: 100%;
+  border-radius: 5px;
+  overflow: hidden;
+  min-width: 3px;
+}
+
+.ybar__parca {
+  display: block;
+  height: 100%;
+}
+
+/* ----------------------------------------------------- Eşit sütunlu tablo
+
+   Talepler tablosunda sütun genişlikleri içeriğe göre oynuyordu; satır
+   satır kayan bir tablo okunmuyor. Sabit yerleşimle hepsi eşit. */
+
+.tablo--esit {
+  table-layout: fixed;
+}
+
+.tablo--esit th,
+.tablo--esit td {
+  overflow-wrap: anywhere;
+}
+
+/* --------------------------------------------------------- Tür etiketi
+
+   Talep numarasının altında duruyor. Renkler Dashboard'daki
+   grafiklerle aynı. */
+
+.tur {
+  display: inline-block;
+  margin-top: 3px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.tur--servis {
+  background: var(--tur-servis);
+}
+
+.tur--parca {
+  background: var(--tur-parca);
+}
+
+.tur--satinalma {
+  background: var(--tur-satis);
+}
+
+/* ------------------------------------------- Tıklanabilir kayıt satırı
+
+   Müşterinin önceki talepleri gibi listelerde: satırın tamamı düğme. */
+
+.bag-satir {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  margin-bottom: 4px;
+  border: 1px solid var(--cizgi);
+  border-radius: 8px;
+  background: var(--yuzey);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.bag-satir:hover {
+  border-color: var(--mavi);
+  background: var(--yuzey-2);
+}
+
+/* Grafikte tıklanabilir çubuk */
+.sutun__hucre--tiklanir {
+  cursor: pointer;
+}
+
+.sutun__hucre--tiklanir:hover .sutun__cubuk {
+  filter: brightness(1.15);
+}
+
+/* Destek kaydında cevapsız kalan satır — göze çarpsın, o satır
+   bilgi tabanına yazılacak bir eksiği gösteriyor. */
+.kirmizi-yazi {
+  color: var(--kirmizi);
+}
+
+/* ==========================================================================
+   Sıralanabilir sütun başlığı
+
+   Başlık artık bir düğme. Tıklanabilir olduğu, yanındaki soluk çift
+   oktan anlaşılıyor; sıralanan sütunda ok tek yönlü ve koyu.
+   ========================================================================== */
+
+.th-sirala {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  text-transform: inherit;
+  letter-spacing: inherit;
+}
+
+.th-sirala:hover {
+  color: var(--mavi);
+}
+
+.th-sirala--on {
+  color: var(--mavi);
+}
+
+.th-sirala__ok {
+  font-size: 9px;
+  opacity: 0.4;
+  line-height: 1;
+}
+
+.th-sirala--on .th-sirala__ok {
+  opacity: 1;
+}
+
+/* Rapor tablosunun dibindeki toplam satırı — sıralamaya karışmıyor,
+   her zaman burada duruyor. */
+.toplam-satir td {
+  font-weight: 700;
+  background: var(--yuzey-2);
+  border-top: 2px solid var(--cizgi-koyu);
+}
+
+/* Duyuru görseli — backoffice’te önizleme, uygulamada pencerenin tepesi */
+.duyuru-gorsel {
+  display: block;
+  width: 100%;
+  max-height: 260px;
+  object-fit: contain;
+  margin-top: 10px;
+  border-radius: var(--r);
+  background: var(--yuzey-2);
+  border: 1px solid var(--cizgi);
+}
+
+/* Ödeme onaylanmadan geçilemeyen durum çipi.
+
+   Düğme kapatılmıyor — kapatılsaydı personel neden basamadığını
+   anlamazdı. Basılıyor ve karşısına "önce ödemeyi onaylayın" penceresi
+   çıkıyor; oradan tek tıkla ödeme onayına gidiliyor. */
+.cip--kilitli {
+  border-style: dashed;
+  color: var(--murekkep-3);
+}
+
+/* Sesli notun yazıya çevrilmiş hâli — ses oynatıcının hemen altında */
+.ses-metni {
+  margin-top: 10px;
+  padding: 12px 13px;
+  border-left: 3px solid var(--mavi);
+  border-radius: 0 8px 8px 0;
+  background: var(--mavi-z);
+  font-size: 13.5px;
+  line-height: 1.6;
+}

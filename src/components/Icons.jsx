@@ -1,0 +1,356 @@
+/* Basit, çizgi tabanlı ikon seti. Dışarıdan kütüphane kullanmıyoruz ki
+   uygulama küçük kalsın ve internet olmadan da çalışsın. */
+
+const base = (props) => ({
+  width: props.size || 24,
+  height: props.size || 24,
+  viewBox: '0 0 24 24',
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: props.sw || 2,
+  strokeLinecap: 'round',
+  strokeLinejoin: 'round',
+})
+
+export const IconHome = (p) => (
+  <svg {...base(p)}>
+    <path d="M3 10.5 12 3l9 7.5" />
+    <path d="M5 9.6V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.6" />
+  </svg>
+)
+
+export const IconMachine = (p) => (
+  <svg {...base(p)}>
+    <circle cx="6.5" cy="17" r="3.2" />
+    <circle cx="17.5" cy="17.5" r="2.7" />
+    <path d="M3 13.5V8a1 1 0 0 1 1-1h4l2 4h5" />
+    <path d="M9.7 17h5.1" />
+    <path d="M15 11v6.5" />
+    <path d="M20.2 17.5V12h-5" />
+  </svg>
+)
+
+/* "Makinelerim" sekmesi — yandan görünen rulo balya makinesi.
+
+   Biçim, şirketin verdiği örnek görselden alındı: yüksek balya haznesi,
+   üstte kapak, solda yuvarlatılmış arka kapak, sağda pikap ve çeki oku,
+   altta biri büyük iki tekerlek.
+
+   NOT: Örnek dosya (Makinelerim Logo/sample.avif) VectorStock filigranlı
+   bir önizlemeydi; lisanssız olduğu için uygulamaya konmadı. İkon aynı
+   makinenin silüetine bakılarak uygulamanın kendi çizgi stilinde
+   yeniden çizildi — böylece diğer ikonlarla aynı kalınlık ve dilde. */
+/* Balya makinesi — "Makineler" sekmesi.
+
+   PAKSAN'ın gönderdiği rulo balya makinesi simgesinden çizildi: dolu
+   siluet gövde, sol uçta çeki oku, altta kalın halkalı iki tekerlek.
+   Uygulamanın diğer simgeleri çizgi tabanlı; bu bilerek dolu bırakıldı,
+   çünkü kaynağı öyle ve alt menüde ürünün kendisini temsil ediyor.
+
+   Ölçüler 24'lük kutuya oturtuldu, renk `currentColor` — sekme seçili
+   olduğunda beyaza, değilken soluk beyaza kendiliğinden dönüyor.
+
+   İki alternatifi hazır (aşağıdaki yorumda): sadeleştirilmiş dolu hâli
+   ve tamamen çizgi hâli. Değiştirmek için gövdeyi ve tekerlekleri
+   oradaki değerlerle değiştirmek yeterli. */
+
+/* Gövde silueti — iki alternatifte de aynı. */
+const BALYA_GOVDE =
+  'M4.3 13.8 C4.0 10.4 4.2 8.5 5.5 7.5 C7.1 6.2 10.6 5.6 13.7 5.7 ' +
+  'C17.5 5.8 19.4 6.8 19.5 8.6 C19.6 10.6 19.2 12.5 18.6 13.8 Z'
+
+export const IconBaler = (p) => (
+  <svg {...base(p)}>
+    {/* gövde */}
+    <path d={BALYA_GOVDE} fill="currentColor" stroke="none" />
+    {/* çeki oku — traktöre bağlanan uç */}
+    <path d="M1.2 9.5 4.5 8.8 4.5 11.7 1.2 11.7Z" fill="currentColor" stroke="none" />
+    <path d="M4.6 10.4 6.6 13.7" strokeWidth="1.3" />
+    {/* dingil */}
+    <path d="M12 16.6h3.2" strokeWidth="1.3" />
+    {/* tekerlekler */}
+    <circle cx="8.8" cy="16.5" r="2.9" strokeWidth="1.8" />
+    <circle cx="8.8" cy="16.5" r="0.85" fill="currentColor" stroke="none" />
+    <circle cx="16.9" cy="16.9" r="1.6" strokeWidth="1.4" />
+    <circle cx="16.9" cy="16.9" r="0.45" fill="currentColor" stroke="none" />
+  </svg>
+)
+
+/* ALTERNATİF B — sadeleştirilmiş dolu hâl (çeki oku kolu ve dingil yok,
+   tekerlekler biraz iri). Çok küçük ekranlarda daha temiz durur:
+
+     <path d={BALYA_GOVDE} fill="currentColor" stroke="none" />
+     <path d="M1.4 9.6 4.6 8.9 4.6 11.8 1.4 11.8Z" fill="currentColor" stroke="none" />
+     <circle cx="9" cy="16.6" r="3.1" strokeWidth="2" />
+     <circle cx="9" cy="16.6" r="0.95" fill="currentColor" stroke="none" />
+     <circle cx="17.2" cy="17" r="1.8" strokeWidth="1.7" />
+
+   ALTERNATİF C — tamamen çizgi; diğer simgelerle aynı ağırlıkta durur:
+
+     <path d={BALYA_GOVDE} strokeWidth="1.8" />
+     <path d="M1.4 9.6 4.4 8.9 4.4 11.8 1.4 11.8Z" strokeWidth="1.6" />
+     <path d="M12 16.6h3.2" strokeWidth="1.4" />
+     <circle cx="8.8" cy="16.5" r="2.9" strokeWidth="1.7" />
+     <circle cx="16.9" cy="16.9" r="1.6" strokeWidth="1.5" />                */
+
+export const IconBell = (p) => (
+  <svg {...base(p)}>
+    <path d="M18 9a6 6 0 0 0-12 0c0 5-2 6.5-2 6.5h16S18 14 18 9Z" />
+    <path d="M13.7 20a2 2 0 0 1-3.4 0" />
+  </svg>
+)
+
+export const IconChat = (p) => (
+  <svg {...base(p)}>
+    <path d="M20.5 12.3c0 4.1-3.8 7.4-8.5 7.4-1 0-2-.15-2.9-.43L4 21l1.4-3.6C4.2 16.05 3.5 14.26 3.5 12.3c0-4.1 3.8-7.4 8.5-7.4s8.5 3.3 8.5 7.4Z" />
+    <path d="M9 11.5h6M9 14.5h3.5" />
+  </svg>
+)
+
+export const IconGrid = (p) => (
+  <svg {...base(p)}>
+    <rect x="3" y="3" width="7.5" height="7.5" rx="2" />
+    <rect x="13.5" y="3" width="7.5" height="7.5" rx="2" />
+    <rect x="3" y="13.5" width="7.5" height="7.5" rx="2" />
+    <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2" />
+  </svg>
+)
+
+export const IconUser = (p) => (
+  <svg {...base(p)}>
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4.5 20.5c1.3-3.6 4.1-5.5 7.5-5.5s6.2 1.9 7.5 5.5" />
+  </svg>
+)
+
+export const IconPlus = (p) => (
+  <svg {...base(p)}>
+    <path d="M12 5v14M5 12h14" />
+  </svg>
+)
+
+export const IconMinus = (p) => (
+  <svg {...base(p)}>
+    <path d="M5 12h14" />
+  </svg>
+)
+
+export const IconRight = (p) => (
+  <svg {...base(p)}>
+    <path d="M9 5l7 7-7 7" />
+  </svg>
+)
+
+export const IconBack = (p) => (
+  <svg {...base(p)}>
+    <path d="M15 5l-7 7 7 7" />
+  </svg>
+)
+
+export const IconPhone = (p) => (
+  <svg {...base(p)}>
+    <path d="M6.6 3.5h3l1.4 4-2 1.5a12.5 12.5 0 0 0 6 6l1.5-2 4 1.4v3a2 2 0 0 1-2.2 2A16.8 16.8 0 0 1 4.6 5.7a2 2 0 0 1 2-2.2Z" />
+  </svg>
+)
+
+export const IconBook = (p) => (
+  <svg {...base(p)}>
+    <path d="M4 5.5A2 2 0 0 1 6 3.5h13v14H6a2 2 0 0 0-2 2Z" />
+    <path d="M4 19.5a2 2 0 0 1 2-2h13v3H6a2 2 0 0 1-2-1Z" />
+    <path d="M8 8h7M8 11.5h5" />
+  </svg>
+)
+
+export const IconPlay = (p) => (
+  <svg {...base(p)}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M10.2 8.8 15.5 12l-5.3 3.2Z" fill="currentColor" />
+  </svg>
+)
+
+export const IconWrench = (p) => (
+  <svg {...base(p)}>
+    <path d="M15.6 3.6a5 5 0 0 0-5.9 6.4L3.8 15.9a2 2 0 0 0 0 2.8l1.5 1.5a2 2 0 0 0 2.8 0l5.9-5.9a5 5 0 0 0 6.4-5.9l-3 3-2.8-2.8Z" />
+  </svg>
+)
+
+export const IconCalendar = (p) => (
+  <svg {...base(p)}>
+    <rect x="3.5" y="5" width="17" height="16" rx="2.5" />
+    <path d="M3.5 10h17M8 3v4M16 3v4" />
+  </svg>
+)
+
+export const IconSearch = (p) => (
+  <svg {...base(p)}>
+    <circle cx="11" cy="11" r="6.5" />
+    <path d="m16 16 4.5 4.5" />
+  </svg>
+)
+
+export const IconCheck = (p) => (
+  <svg {...base(p)}>
+    <path d="m5 12.5 4.5 4.5L19 7.5" />
+  </svg>
+)
+
+export const IconCheckCircle = (p) => (
+  <svg {...base(p)}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="m8 12.3 2.6 2.6L16 9.5" />
+  </svg>
+)
+
+export const IconAlert = (p) => (
+  <svg {...base(p)}>
+    <path d="M12 3.8 21 19.5H3L12 3.8Z" />
+    <path d="M12 9.5v4.2M12 16.8v.1" />
+  </svg>
+)
+
+export const IconBarcode = (p) => (
+  <svg {...base(p)}>
+    <path d="M3 7.5V5a2 2 0 0 1 2-2h2.5M21 7.5V5a2 2 0 0 0-2-2h-2.5M3 16.5V19a2 2 0 0 0 2 2h2.5M21 16.5V19a2 2 0 0 1-2 2h-2.5" />
+    <path d="M7 8.5v7M10 8.5v7M13.5 8.5v7M17 8.5v7" />
+  </svg>
+)
+
+export const IconPin = (p) => (
+  <svg {...base(p)}>
+    <path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z" />
+    <circle cx="12" cy="10" r="2.6" />
+  </svg>
+)
+
+export const IconSend = (p) => (
+  <svg {...base(p)}>
+    <path d="M4.5 12 20 4.5 15.5 20l-3.8-5.6L4.5 12Z" />
+  </svg>
+)
+
+export const IconCart = (p) => (
+  <svg {...base(p)}>
+    <path d="M3 4h2.2l2.4 11.2a1.6 1.6 0 0 0 1.6 1.3h7.9a1.6 1.6 0 0 0 1.6-1.2L20.5 8H6.2" />
+    <circle cx="10" cy="20" r="1.4" />
+    <circle cx="17.5" cy="20" r="1.4" />
+  </svg>
+)
+
+export const IconTrash = (p) => (
+  <svg {...base(p)}>
+    <path d="M4 6.5h16M9.5 6.5V4.2A1.2 1.2 0 0 1 10.7 3h2.6a1.2 1.2 0 0 1 1.2 1.2v2.3" />
+    <path d="M6.5 6.5 7.4 20a1.5 1.5 0 0 0 1.5 1.4h6.2A1.5 1.5 0 0 0 16.6 20l.9-13.5" />
+  </svg>
+)
+
+export const IconShield = (p) => (
+  <svg {...base(p)}>
+    <path d="M12 3 5 6v6c0 4.4 3 7.9 7 9 4-1.1 7-4.6 7-9V6l-7-3Z" />
+    <path d="m9 12 2 2 4-4" />
+  </svg>
+)
+
+export const IconInfo = (p) => (
+  <svg {...base(p)}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 11v5M12 7.8v.1" />
+  </svg>
+)
+
+export const IconClose = (p) => (
+  <svg {...base(p)}>
+    <path d="m6 6 12 12M18 6 6 18" />
+  </svg>
+)
+
+/* Yedek parça — altıgen somun.
+
+   Denenip elenenler: dişli (küçükken gemi dümenine benzedi),
+   somun+cıvata birlikte (cıvatanın dişleri cetvel gibi okundu).
+
+   Sadeleştirildi: tek bir büyük altıgen somun. Silüeti benzersiz,
+   24px'te de 110px'te de aynı şekilde okunuyor. "Servis"in anahtarı
+   yanında durunca ikisi birlikte anlam veriyor: anahtar = servis,
+   somun = parça. */
+export const IconCog = (p) => (
+  <svg {...base(p)} strokeWidth={p.sw || 1.9}>
+    <path d="M19.4 12 15.7 18.4H8.3L4.6 12l3.7-6.4h7.4L19.4 12Z" />
+    <circle cx="12" cy="12" r="3.4" />
+  </svg>
+)
+
+/* Dil — dünya */
+export const IconGlobe = (p) => (
+  <svg {...base(p)}>
+    <circle cx="12" cy="12" r="9.2" />
+    <path d="M2.8 12h18.4" />
+    <path d="M12 2.8c2.4 2.5 3.7 5.8 3.7 9.2s-1.3 6.7-3.7 9.2c-2.4-2.5-3.7-5.8-3.7-9.2S9.6 5.3 12 2.8Z" />
+  </svg>
+)
+
+/* E-posta */
+export const IconMail = (p) => (
+  <svg {...base(p)}>
+    <rect x="2.8" y="4.8" width="18.4" height="14.4" rx="2.4" />
+    <path d="m3.4 6.6 8.6 6.2 8.6-6.2" />
+  </svg>
+)
+
+/* Ses kaydı — mikrofon ve durdurma */
+export const IconMic = (p) => (
+  <svg {...base(p)}>
+    <rect x="9" y="2.5" width="6" height="11.5" rx="3" />
+    <path d="M5.5 11.5a6.5 6.5 0 0 0 13 0" />
+    <path d="M12 18v3.5" />
+  </svg>
+)
+
+export const IconStop = (p) => (
+  <svg {...base(p)}>
+    <rect x="6" y="6" width="12" height="12" rx="2.2" />
+  </svg>
+)
+
+/* Şifre alanındaki göz düğmesi */
+export const IconEye = (p) => (
+  <svg {...base(p)}>
+    <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" />
+    <circle cx="12" cy="12" r="3.1" />
+  </svg>
+)
+
+export const IconEyeOff = (p) => (
+  <svg {...base(p)}>
+    <path d="M10.6 6.1A8.9 8.9 0 0 1 12 6c6 0 9.5 6 9.5 6a16 16 0 0 1-2.9 3.5" />
+    <path d="M6.3 7.7A16 16 0 0 0 2.5 12S6 18 12 18a9.2 9.2 0 0 0 3.6-.7" />
+    <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+    <path d="M3.5 3.5 20.5 20.5" />
+  </svg>
+)
+
+/* Kilit — değiştirilemeyen alanların yanında */
+export const IconLock = (p) => (
+  <svg {...base(p)}>
+    <rect x="4.5" y="10.5" width="15" height="10" rx="2.5" />
+    <path d="M8 10.5V7.8a4 4 0 0 1 8 0v2.7" />
+  </svg>
+)
+
+/* Marka logosu ve amblemi için components/Marka.jsx dosyasına bakın —
+   orada sitedeki gerçek PAKSAN dosyaları kullanılıyor. */
+
+/* Talep eklerinde kullanılıyor: fotoğraf makinesi ve video kamera. */
+
+export const IconCamera = (p) => (
+  <svg {...base(p)}>
+    <path d="M3 8.5a1.5 1.5 0 0 1 1.5-1.5h2.2l1.3-2h6l1.3 2h2.2A1.5 1.5 0 0 1 19 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 3 17.5z" />
+    <circle cx="11" cy="13" r="3.4" />
+  </svg>
+)
+
+export const IconVideo = (p) => (
+  <svg {...base(p)}>
+    <rect x="3" y="6.5" width="12.5" height="11" rx="2" />
+    <path d="M15.5 11.2 21 8.2v7.6l-5.5-3z" />
+  </svg>
+)

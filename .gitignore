@@ -1,0 +1,20 @@
+node_modules
+dist
+dist-backoffice
+PAKSAN_CONNECT_SUNUM.zip
+tools/ses-metni-kuyruk.json
+
+# Android derleme çıktıları — kaynak kodu değil, `npx cap sync` ve
+# derleme her seferinde yeniden üretiyor. Bu bilgisayara özel.
+android/local.properties
+android/.gradle
+android/app/build
+android/build
+
+# Derlenmiş APK'lar — kaynak koddan yeniden üretilebilir, ikili dosya
+# olduğu için git'te yalnız yer kaplar, karşılaştırma değeri yok.
+# Her sürüm zaten kendi dosyasında ayrı ayrı burada duruyor.
+apk/
+
+# Sunum ekran görüntüleri — tools/ekran-goruntusu.mjs ile üretiliyor.
+PAKSAN_CONNECT_SUNUM/sunum/gorseller
