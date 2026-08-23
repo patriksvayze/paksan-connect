@@ -21,7 +21,7 @@ import { useDil } from '../i18n'
 import { SIRKET, SURUM, UYGULAMA } from '../config'
 import {
   IconUser, IconBaler, IconMachine, IconWrench, IconRight, IconPin, IconCheckCircle,
-  IconCog, IconLock, IconPhone, IconMic, IconGlobe, IconChat, IconSend,
+  IconParca, IconLock, IconPhone, IconMic, IconGlobe, IconChat, IconSend,
 } from '../components/Icons'
 
 export default function Profile() {
@@ -288,7 +288,7 @@ export default function Profile() {
               style={{ marginTop: 18 }}
               onClick={() => nav('/talep?tur=parca')}
             >
-              <IconCog size={21} /> {t('anasayfa.yedekParcaTalebi')}
+              <IconParca size={21} /> {t('anasayfa.yedekParcaTalebi')}
             </button>
             <button
               className="btn btn--brand btn--lg"

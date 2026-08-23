@@ -19,14 +19,34 @@ export const IconHome = (p) => (
   </svg>
 )
 
+/* Genel makine simgesi — çekilir tarım makinesi.
+
+   ÖNCEDEN TRAKTÖRDÜ VE YANLIŞTI. Küçük arka tekerlek, büyük ön
+   tekerlek, kabin çizgisi: tipik bir traktör silueti. Oysa PAKSAN
+   traktör üretmiyor. Ürünlerin tamamı traktörün ARKASINA takılan
+   makineler — balya makinesi, yem karma, silaj, çayır biçme,
+   rotovatör. Müşteriye kendi makinesini gösterirken üretmediğimiz bir
+   makineyi çizmek, kataloğun tamamıyla çelişiyordu.
+
+   Yerine gelen çizim ortak paydayı alıyor: çeki oku, gövde, iki eşit
+   tekerlek. Yedi ürün kategorisinin hepsi bu silüete uyuyor; hiçbirine
+   ait olmayan bir ayrıntı (kabin, egzoz, ön yükleyici) yok. */
 export const IconMachine = (p) => (
-  <svg {...base(p)}>
-    <circle cx="6.5" cy="17" r="3.2" />
-    <circle cx="17.5" cy="17.5" r="2.7" />
-    <path d="M3 13.5V8a1 1 0 0 1 1-1h4l2 4h5" />
-    <path d="M9.7 17h5.1" />
-    <path d="M15 11v6.5" />
-    <path d="M20.2 17.5V12h-5" />
+  <svg {...base(p)} strokeWidth={p.sw || 1.9}>
+    {/* Çeki oku — traktör kancasına doğru eğimli, gerçekte olduğu gibi.
+        Düz çizildiğinde silüet el arabasına benziyordu; eğim makineyi
+        "çekilen" bir şey yapıyor. */}
+    <path d="M2 13.5 6.8 10.5" />
+    <circle cx="2.2" cy="13.6" r="1" />
+    {/* Gövde — alçak ve geniş, balya makinesi oranlarında */}
+    <rect x="6.8" y="6" width="14.6" height="7.4" rx="1.8" />
+    {/* Üstteki kapak — balya, yem karma ve silaj makinelerinin
+        hepsinde var; silüeti sandıktan ayıran ayrıntı bu. */}
+    <path d="M10.5 6V4.6h5.4V6" />
+    {/* Tekerlekler ve gövdeye bağlandıkları kısa kollar */}
+    <path d="M11 13.4v1.4M17.6 13.4v1.4" />
+    <circle cx="11" cy="17.6" r="2.8" />
+    <circle cx="17.6" cy="17.6" r="2.8" />
   </svg>
 )
 
@@ -208,10 +228,25 @@ export const IconAlert = (p) => (
   </svg>
 )
 
+/* Seri numarası — makinenin üzerindeki künye etiketi.
+
+   ÖNCEDEN BARKODDU VE YANILTIYORDU. Köşe ayraçlarının arasındaki
+   çizgiler okutma çerçevesi anlatıyor; uygulamada barkod okuma yok ve
+   eklenmesi de planlanmıyor. Müşteri numarayı makinenin üzerindeki
+   metal etiketten okuyup elle yazıyor. Kamera açılmasını bekleyen
+   kullanıcı ekranda yalnız bir yazı kutusu bulunca ne yapacağını
+   şaşırıyordu.
+
+   Yeni çizim o metal etiketin kendisi: perçinli plaka ve üzerindeki
+   iki satır. Müşterinin makinede arayacağı şeyle aynı. */
 export const IconBarcode = (p) => (
   <svg {...base(p)}>
-    <path d="M3 7.5V5a2 2 0 0 1 2-2h2.5M21 7.5V5a2 2 0 0 0-2-2h-2.5M3 16.5V19a2 2 0 0 0 2 2h2.5M21 16.5V19a2 2 0 0 1-2 2h-2.5" />
-    <path d="M7 8.5v7M10 8.5v7M13.5 8.5v7M17 8.5v7" />
+    <rect x="3" y="5.5" width="18" height="13" rx="2" />
+    {/* Köşelerdeki perçinler */}
+    <circle cx="6" cy="8.5" r="0.9" />
+    <circle cx="18" cy="8.5" r="0.9" />
+    {/* Etikete basılı numara satırları */}
+    <path d="M7.5 12.5h9M7.5 15.5h5.5" />
   </svg>
 )
 
@@ -278,6 +313,21 @@ export const IconCog = (p) => (
     <circle cx="12" cy="12" r="3.4" />
   </svg>
 )
+
+/* Yedek parçanın simgesi somun; adı da onu söylesin.
+
+   `IconCog` adı "ayar/dişli" çağrıştırdığı için ekranlarda tutmadı:
+   yedek parça kimi yerde anahtarla, kimi yerde sepetle çizilmişti.
+   Üç ayrı simge aynı işi anlatınca hiçbiri öğrenilmiyor. Anlamı adına
+   yazınca karışma ihtimali kalmıyor:
+
+       IconWrench  servis      makineye müdahale
+       IconParca   yedek parça değişecek parça
+       IconCart    satın alma  yeni makine, teklif
+
+   Çizim `IconCog` ile aynı; ayrı bir simge değil, anlamı belli olan
+   adı. */
+export const IconParca = IconCog
 
 /* Dil — dünya */
 export const IconGlobe = (p) => (

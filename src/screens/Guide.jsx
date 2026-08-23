@@ -10,7 +10,7 @@ import {
   bolumuSifirla, isaretiCevir, isaretleriGetir, maddeAnahtari,
 } from '../lib/rehberIsaret'
 import {
-  IconAlert, IconCheck, IconCheckCircle, IconRight, IconChat, IconWrench,
+  IconAlert, IconCheck, IconCheckCircle, IconRight, IconChat, IconParca,
 } from '../components/Icons'
 
 /* Bakım rehberi ekranı.
@@ -190,7 +190,7 @@ export default function Guide() {
                 className="listitem__icon"
                 style={{ background: 'var(--pk-orange-soft)', color: 'var(--pk-orange-ink)' }}
               >
-                <IconWrench size={22} />
+                <IconParca size={22} />
               </div>
               <div className="listitem__body">
                 {/* Başlık kısa: uzun cümle satıra sığmayıp kesiliyordu,

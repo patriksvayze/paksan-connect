@@ -9,7 +9,7 @@ import { destekOlay, destekOturumu } from '../lib/destekLog'
 import { PRODUCTS, getProduct, supportGroup, urunDilde } from '../data/products'
 import { DESTEK, GUVENLIK, ZORLUK } from '../data/destekVerisi'
 import {
-  IconAlert, IconCart, IconCheckCircle, IconMachine, IconRight, IconWrench,
+  IconAlert, IconCheckCircle, IconMachine, IconParca, IconRight, IconWrench,
 } from '../components/Icons'
 
 /* ==========================================================================
@@ -569,7 +569,7 @@ function Secenekler({
           <IconWrench size={18} /> {t('destek.servisTalebi')}
         </button>
         <button className="chip chip--ana" onClick={() => onTalep('parca')}>
-          <IconCart size={18} /> {t('destek.parcaTalebi')}
+          <IconParca size={18} /> {t('destek.parcaTalebi')}
         </button>
       </div>
     )

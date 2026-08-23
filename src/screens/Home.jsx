@@ -11,7 +11,7 @@ import { bayileriGetir } from '../data/bayiler'
 import { rehberListesi } from '../data/rehber'
 import { bildirimListesi, okunmamisSayisi } from '../lib/bildirimler'
 import {
-  IconBook, IconWrench, IconCart, IconPlus, IconCog,
+  IconBook, IconWrench, IconCart, IconPlus, IconParca,
   IconUser, IconCalendar, IconRight, IconBell,
 } from '../components/Icons'
 
@@ -104,7 +104,7 @@ export default function Home() {
               onClick={() => nav('/kilavuzlar')}
             />
             <QuickAction
-              icon={<IconCog size={26} />}
+              icon={<IconParca size={26} />}
               label={t('anasayfa.yedekParcaTalebi')}
               onClick={() => nav('/talep?tur=parca')}
             />

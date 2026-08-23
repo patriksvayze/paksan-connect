@@ -9,7 +9,7 @@ import { getProduct, urunDilde } from '../data/products'
 import { formatSerial, warrantyStatus } from '../lib/serial'
 import { SIRKET } from '../config'
 import {
-  IconMachine, IconChat, IconBook, IconWrench, IconPlay, IconCheck,
+  IconMachine, IconChat, IconBook, IconWrench, IconParca, IconPlay, IconCheck,
   IconShield, IconTrash, IconAlert, IconRight,
 } from '../components/Icons'
 
@@ -107,7 +107,7 @@ export default function MachineDetail() {
                 style={{ whiteSpace: 'nowrap' }}
                 onClick={() => nav(`/talep?tur=parca&makine=${machine.id}`)}
               >
-                <IconWrench size={19} /> {t('detay.yedekParca')}
+                <IconParca size={19} /> {t('detay.yedekParca')}
               </button>
             </div>
 
