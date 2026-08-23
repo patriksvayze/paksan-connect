@@ -21,7 +21,7 @@ import { useDil } from '../i18n'
 import { SIRKET, SURUM, UYGULAMA } from '../config'
 import {
   IconUser, IconBaler, IconMachine, IconWrench, IconRight, IconPin, IconCheckCircle,
-  IconParca, IconLock, IconPhone, IconMic, IconGlobe, IconChat, IconSend,
+  IconParca, IconLock, IconPhone, IconMic, IconGlobe, IconMail, IconSend,
 } from '../components/Icons'
 
 export default function Profile() {
@@ -483,9 +483,14 @@ export default function Profile() {
           </button>
 
           {/* Geri bildirim — meraklı kullanıcı için, sade bir satır.
-              Uygulamayı düzeltmenin en ucuz yolu kullanandan duymak. */}
+              Uygulamayı düzeltmenin en ucuz yolu kullanandan duymak.
+
+              Simge zarf, konuşma balonu değil: balon alt menüde Destek'i
+              anlatıyor. İkisi de mesajlaşma gibi görünse de farklı
+              işler — destek makinesiyle ilgili, geri bildirim
+              uygulamayla. Backoffice tarafında da aynı ayrım var. */}
           <button className="listitem" onClick={() => setGeriBildirim(true)}>
-            <div className="listitem__icon"><IconChat size={22} /></div>
+            <div className="listitem__icon"><IconMail size={22} /></div>
             <div className="listitem__body">
               <div className="listitem__title">{t('profil.geriBildirim')}</div>
             </div>

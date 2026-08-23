@@ -8,8 +8,10 @@
         "run",
         "dev"
       ],
-      "port": 5179,
-      "autoPort": true
+      "port": 5300,
+      "env": {
+        "PORT": "5300"
+      }
     }
   ]
 }
