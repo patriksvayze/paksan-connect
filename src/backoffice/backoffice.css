@@ -226,6 +226,26 @@ a {
   font-weight: 700;
 }
 
+/* Menü simgesi — yazıdan biraz soluk dursun ki başlık önde kalsın.
+   Seçili düğmede ikisi de beyaz. */
+.yan__ikon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  opacity: 0.75;
+}
+
+.yan__bag--on .yan__ikon,
+.yan__bag:hover .yan__ikon {
+  opacity: 1;
+}
+
+/* Uzun başlık ("Numara Değişikliği Talepleri") simgeyi ezmesin */
+.yan__ad {
+  flex: 1;
+  min-width: 0;
+}
+
 .yan__sayi {
   margin-left: auto;
   background: var(--kirmizi);

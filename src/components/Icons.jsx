@@ -404,3 +404,66 @@ export const IconVideo = (p) => (
     <path d="M15.5 11.2 21 8.2v7.6l-5.5-3z" />
   </svg>
 )
+
+/* ==========================================================================
+   Backoffice menü simgeleri
+
+   Yan menüde on bir başlık vardı ve hepsi düz yazıydı. Personel gün
+   içinde ekranlar arasında sürekli gidip geliyor; yazı okumak yerine
+   şekli tanımak çok daha hızlı. Düğmenin biçimi zaten ikon için yer
+   ayırmıştı (`.yan__bag` içinde `gap: 10px`), yalnız ikon konmamıştı.
+
+   Uygulamadakilerle aynı çizgi kalınlığı ve dili — iki taraf tek bir
+   ürün gibi dursun.
+
+   Anlamların çakışmamasına dikkat edildi: Müşteriler kişi, Personel
+   kimlik kartı; Geri Bildirimler zarf, Destek Kayıtları konuşma
+   balonu. İkisi de "mesaj" ama farklı şeyler.
+   ========================================================================== */
+
+/* Dashboard — bir büyük, iki küçük kutu. Panonun kendi yerleşimi.
+   IconGrid'den (dört eşit kare) bilerek farklı. */
+export const IconPano = (p) => (
+  <svg {...base(p)}>
+    <rect x="3" y="3" width="7.5" height="18" rx="2" />
+    <rect x="13.5" y="3" width="7.5" height="7" rx="2" />
+    <rect x="13.5" y="14" width="7.5" height="7" rx="2" />
+  </svg>
+)
+
+/* Talepler — gelen kutusu. Yığılan iş anlamını taşıyor. */
+export const IconTalep = (p) => (
+  <svg {...base(p)}>
+    <path d="M3 13.5h4.2l1.4 2.4h6.8l1.4-2.4H21" />
+    <path d="M5.2 13.5 6.9 5.2a1.4 1.4 0 0 1 1.4-1.1h7.4a1.4 1.4 0 0 1 1.4 1.1l1.7 8.3" />
+    <path d="M3 13.5v4.9A2.6 2.6 0 0 0 5.6 21h12.8a2.6 2.6 0 0 0 2.6-2.6v-4.9" />
+  </svg>
+)
+
+/* Raporlar — sütun grafik. */
+export const IconRapor = (p) => (
+  <svg {...base(p)}>
+    <path d="M3.5 20.5h17" />
+    <path d="M7 20.5v-5.5M12 20.5v-11M17 20.5v-7.5" />
+  </svg>
+)
+
+/* Personel — kimlik kartı. Müşteriyi gösteren kişi simgesiyle
+   karışmasın diye kart seçildi; personelin kurumla bağı var. */
+export const IconPersonel = (p) => (
+  <svg {...base(p)}>
+    <rect x="2.5" y="4.5" width="19" height="15" rx="2.5" />
+    <circle cx="8.5" cy="10.5" r="2.1" />
+    <path d="M5.4 15.8c.5-1.7 1.7-2.5 3.1-2.5s2.6.8 3.1 2.5" />
+    <path d="M14.5 10h4M14.5 13.5h4" />
+  </svg>
+)
+
+/* İşlem Kaydı — geriye dönen saat. Geçmişte ne olduğuna bakılan ekran. */
+export const IconKayit = (p) => (
+  <svg {...base(p)}>
+    <path d="M3.6 12a8.4 8.4 0 1 0 2.6-6.1" />
+    <path d="M3.1 4.2v4.6h4.6" />
+    <path d="M12 7.8V12l3 1.8" />
+  </svg>
+)

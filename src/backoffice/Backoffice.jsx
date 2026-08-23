@@ -9,6 +9,10 @@ import {
 import { bildirimGonder, izinDurumu, izinIste, sayiliBaslik } from './bildirim'
 import { sesMetinleriniTopla } from './sesMetin'
 import { SIRKET } from '../config'
+import {
+  IconPano, IconTalep, IconUser, IconPin, IconMail, IconRapor,
+  IconChat, IconBell, IconPhone, IconPersonel, IconKayit,
+} from '../components/Icons'
 
 import { Ozet } from './ekranlar/Ozet'
 import { Duyurular } from './ekranlar/Duyurular'
@@ -31,21 +35,34 @@ import { IslemKaydi } from './ekranlar/IslemKaydi'
 
    Menü ikiye ayrılıyor: üstte günlük iş, altta ayar işleri. */
 
+/* Simgeler anlamca çakışmayacak şekilde seçildi:
+
+     Müşteriler  kişi        · Personel  kimlik kartı
+     Geri Bildirimler zarf   · Destek Kayıtları  konuşma balonu
+
+   İkisi de "mesaj" ama farklı şeyler; aynı simgeyi paylaşsalar menüde
+   ayırt edilemezlerdi. */
 const UST_MENU = [
-  { id: 'ozet', ad: 'Dashboard' },
-  { id: 'talepler', ad: 'Talepler', izin: 'talepler', sayac: 'talep' },
-  { id: 'musteriler', ad: 'Müşteriler', izin: 'musteriler' },
-  { id: 'bayiler', ad: 'Bayiler', izin: 'bayiler' },
-  { id: 'geribildirim', ad: 'Geri Bildirimler', izin: 'geribildirim', sayac: 'gorus' },
+  { id: 'ozet', ad: 'Dashboard', Ikon: IconPano },
+  { id: 'talepler', ad: 'Talepler', izin: 'talepler', sayac: 'talep', Ikon: IconTalep },
+  { id: 'musteriler', ad: 'Müşteriler', izin: 'musteriler', Ikon: IconUser },
+  { id: 'bayiler', ad: 'Bayiler', izin: 'bayiler', Ikon: IconPin },
+  {
+    id: 'geribildirim', ad: 'Geri Bildirimler', izin: 'geribildirim',
+    sayac: 'gorus', Ikon: IconMail,
+  },
 ]
 
 const ALT_MENU = [
-  { id: 'raporlar', ad: 'Raporlar', izin: 'raporlar' },
-  { id: 'destek', ad: 'Destek Kayıtları', izin: 'destek' },
-  { id: 'duyurular', ad: 'Duyurular', izin: 'duyurular' },
-  { id: 'numara', ad: 'Numara Değişikliği Talepleri', izin: 'numara', sayac: 'numara' },
-  { id: 'personel', ad: 'Personel', izin: 'personel' },
-  { id: 'kayit', ad: 'İşlem Kaydı', izin: 'kayit' },
+  { id: 'raporlar', ad: 'Raporlar', izin: 'raporlar', Ikon: IconRapor },
+  { id: 'destek', ad: 'Destek Kayıtları', izin: 'destek', Ikon: IconChat },
+  { id: 'duyurular', ad: 'Duyurular', izin: 'duyurular', Ikon: IconBell },
+  {
+    id: 'numara', ad: 'Numara Değişikliği Talepleri', izin: 'numara',
+    sayac: 'numara', Ikon: IconPhone,
+  },
+  { id: 'personel', ad: 'Personel', izin: 'personel', Ikon: IconPersonel },
+  { id: 'kayit', ad: 'İşlem Kaydı', izin: 'kayit', Ikon: IconKayit },
 ]
 
 const ILK_EKRAN = 'ozet'
@@ -134,7 +151,12 @@ export function Backoffice() {
       className={'yan__bag' + (acik === m.id ? ' yan__bag--on' : '')}
       onClick={() => git(m.id)}
     >
-      {m.ad}
+      {m.Ikon && (
+        <span className="yan__ikon" aria-hidden="true">
+          <m.Ikon size={18} />
+        </span>
+      )}
+      <span className="yan__ad">{m.ad}</span>
       {m.sayac && sayaclar[m.sayac] > 0 && <span className="yan__sayi">{sayaclar[m.sayac]}</span>}
     </button>
   )
