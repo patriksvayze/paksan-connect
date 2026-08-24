@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { PaksanLogo } from './Marka'
+import { PaksanLogo, PaksanAmblem } from './Marka'
 import tarla from '../assets/gorseller/karsilama-tarla.png'
 
 /* ==========================================================================
@@ -70,11 +70,37 @@ export function Safak({ children }) {
       <div className="safak__gunes" />
       <img className="safak__tarla" src={tarla} alt="" />
 
-      <div className="safak__logo">
-        <PaksanLogo height={64} sadeceYazi beyaz />
-      </div>
-
       <div className="safak__ic">{children}</div>
+    </div>
+  )
+}
+
+/**
+ * Sahnenin marka bloğu — amblem üstte, PAKSAN yazısı altta.
+ *
+ * KARŞILAMA EKRANI KENDİ YERİNE KOYUYOR. Önce sahnenin içinde ayrı bir
+ * katmandı ve yüzde ile konumlanıyordu; amblem eklenip blok büyüyünce
+ * alttaki başlığın üstüne bindi. Akışın içinde durunca hiçbir ekran
+ * boyunda çakışmıyor.
+ *
+ * AMBLEM BEYAZ DAİRE İÇİNDE. Kalkan amblemi çok renkli; koyu gökyüzünde
+ * beyaza çevrilirse ayrıntıları kaybolup düz bir leke oluyor
+ * (bkz. src/components/Marka.jsx). Beyaz daire hem amblemi kendi
+ * renkleriyle bırakıyor hem güneşin doğduğu yerde duran bir madalyon
+ * gibi duruyor.
+ */
+export function SafakLogo() {
+  return (
+    <div className="safak__logo">
+      {/* Amblem yazıdan yarım saniye önce doğuyor: ikisi aynı anda
+          gelseydi tek bir blok gibi kayarlardı. Arada boşluk olunca
+          önce marka işareti, sonra adı beliriyor. */}
+      <span className="safak__amblem">
+        <PaksanAmblem size={64} cerceve />
+      </span>
+      <span className="safak__yazi">
+        <PaksanLogo height={50} sadeceYazi beyaz />
+      </span>
     </div>
   )
 }

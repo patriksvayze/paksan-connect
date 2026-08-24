@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Safak } from '../components/Safak'
+import { Safak, SafakLogo } from '../components/Safak'
 import { IconRight } from '../components/Icons'
 import { SIRKET, SURUM } from '../config'
 import { DilSecici } from '../components/DilSecici'
@@ -34,9 +34,13 @@ export default function Welcome() {
           <DilSecici koyu />
         </div>
 
-        {/* Marka yazısı sahnenin kendi katmanında, güneşle birlikte
-            doğuyor. Burada yalnız onun kapladığı yer bırakılıyor. */}
-        <div className="spacer" style={{ flexGrow: 1.9 }} />
+        {/* Marka bloğu: amblem ve PAKSAN yazısı, güneşle birlikte
+            doğuyor (bkz. src/components/Safak.jsx). Akışın içinde
+            duruyor ki altındaki başlıkla hiçbir ekran boyunda
+            çakışmasın. */}
+        <div className="spacer" style={{ flexGrow: 1.2 }} />
+        <SafakLogo />
+        <div className="spacer" style={{ flexGrow: 0.8 }} />
 
         {/* ------------------------------------------------------- Söz
 

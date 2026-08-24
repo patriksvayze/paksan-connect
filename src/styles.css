@@ -647,6 +647,14 @@ p {
      boşluklar çalışmıyor ve düğmeler logonun üstüne biniyordu. */
   display: flex;
   flex-direction: column;
+
+  /* UFUK ÇİZGİSİNİN YÜKSEKLİĞİ, TEK YERDE.
+
+     Tarla da güneş de buna bakıyor. Önceden tarla `19vh`, güneş ise
+     `bottom: 15%` idi; ikisi ayrı ölçülerdi ve ekran boyu değişince
+     birbirlerinden kopuyorlardı. Kısa ekranda güneş tarlanın içine
+     gömülüyor, uzun ekranda havada asılı kalıyordu. */
+  --ufuk: max(19vh, 96px);
 }
 
 /* ------------------------------------------------------------- Gökyüzü */
@@ -693,11 +701,22 @@ p {
   position: absolute;
   z-index: 1;
   left: 50%;
-  /* Bitmiş hâlde ufkun hemen üstünde duruyor */
-  bottom: 15%;
-  width: 190px;
-  height: 190px;
-  margin-left: -95px;
+
+  /* GÜNEŞ DOĞUYOR, HAVADA DURMUYOR.
+
+     Önceden bitmiş hâlde neredeyse tamamı ufkun üstündeydi: 190
+     piksellik parlak bir top, ekranın ortasında, düğmelerin arkasında
+     duruyordu. İki sorun birden: sahne "gün doğumu" değil "gündüz"
+     gibi görünüyordu ve düğmelerin altındaki açıklama yazıları turuncu
+     kürenin üstüne düşüp okunmaz oluyordu.
+
+     Şimdi güneşin büyük kısmı tarlanın arkasında; yalnız tepesi ufku
+     aşıyor. Aydınlığı zaten haleden (box-shadow) geliyor, o yumuşak
+     ve yazıyı bozmuyor. */
+  bottom: calc(var(--ufuk) - 120px);
+  width: 170px;
+  height: 170px;
+  margin-left: -85px;
   border-radius: 50%;
   background: radial-gradient(circle, #ffb057 0%, #f2801f 62%, #e8641a 100%);
   box-shadow: 0 0 90px 30px rgba(232, 100, 26, 0.34);
@@ -731,9 +750,8 @@ p {
   bottom: 0;
   width: 100%;
   /* Ekran boyuna göre şerit; uzun telefonlarda gökyüzü büyüyor,
-     kısa olanlarda tarla ezilmiyor. */
-  height: 19vh;
-  min-height: 96px;
+     kısa olanlarda tarla ezilmiyor. Güneş de aynı ölçüye bakıyor. */
+  height: var(--ufuk);
   object-fit: cover;
   object-position: 50% 0;
   display: block;
@@ -743,20 +761,37 @@ p {
 /* ---------------------------------------------------------------- Logo */
 
 .safak__logo {
-  position: absolute;
-  z-index: 3;
-  left: 0;
-  right: 0;
-  /* Güneşin biraz üstünde, gökyüzünün ortasında */
-  top: 26%;
+  /* AKIŞIN İÇİNDE, AYRI KATMANDA DEĞİL.
+
+     Önce yüzde ile konumlanmış ayrı bir katmandı. Yalnız yazı varken
+     sorun çıkarmıyordu; amblem eklenince blok iki katına çıktı ve
+     "Yanınızdayız" başlığının tam üstüne bindi (ölçüldü: yazı 255-320,
+     başlık 248-318 pikselde).
+
+     Yüzde ile konan sabit yükseklikte bir blok, ekran boyu değiştikçe
+     altındaki metne yaklaşıp uzaklaşıyor; er geç bir telefonda
+     çakışıyor. Akışın içinde duran blok hiçbir boyda çakışmaz.
+     Animasyonu değişmedi — hareket için ayrı katman gerekmiyor. */
   display: grid;
   place-items: center;
+  /* Amblem üstte, yazı altında */
+  gap: 12px;
   pointer-events: none;
 }
 
+/* Amblem ve yazı AYRI AYRI doğuyor, kapsayıcı durağan.
+
+   Kapsayıcı da hareket etseydi gecikmeler üst üste binerdi: amblem
+   kendi gecikmesini bir de kapsayıcınınkini beklerdi. İkisi ayrı
+   olunca aradaki yarım saniye tam istendiği gibi — önce marka
+   işareti, sonra adı. */
 @media (prefers-reduced-motion: no-preference) {
-  .safak:not(.safak--bitti) .safak__logo {
-    animation: safak-logo 1.5s cubic-bezier(0.22, 0.7, 0.3, 1) 0.5s both;
+  .safak:not(.safak--bitti) .safak__amblem {
+    animation: safak-logo 1.4s cubic-bezier(0.22, 0.7, 0.3, 1) 0.25s both;
+  }
+
+  .safak:not(.safak--bitti) .safak__yazi {
+    animation: safak-logo 1.5s cubic-bezier(0.22, 0.7, 0.3, 1) 0.75s both;
   }
 }
 
@@ -803,11 +838,21 @@ p {
      saman rengi; "Giriş yap" düğmesinin beyaz yazısı onun üstünde
      okunmuyordu. Aradaki boşluklar esnek olduğu için bu pay içeriği
      yukarı itiyor, kısa ekranda da taşma yapmıyor. */
-  padding-bottom: calc(19vh + 18px);
+  padding-bottom: calc(var(--ufuk) + 18px);
 }
 
+/* İçeriğin girişi — marka bloğu HARİÇ.
+
+   Bu solma bütün `.safak__ic` üzerindeydi. Marka bloğu da onun içinde
+   olduğu için animasyonlar üst üste biniyordu: blok kendi hareketini
+   250. milisaniyede başlatıyor ama kapsayıcı 1500. milisaniyeye kadar
+   tamamen saydam olduğu için hiç görünmüyordu. Logo güneşle birlikte
+   doğacakken içerikle birlikte, en sonda beliriyordu.
+
+   Solma artık kapsayıcıya değil, içindeki bloklara tek tek uygulanıyor;
+   marka bloğu dışarıda kalıp kendi zamanında doğuyor. */
 @media (prefers-reduced-motion: no-preference) {
-  .safak:not(.safak--bitti) .safak__ic {
+  .safak:not(.safak--bitti) .giris__ic > *:not(.safak__logo) {
     animation: safak-ic 0.9s ease 1.5s both;
   }
 }
