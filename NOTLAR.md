@@ -5,7 +5,7 @@
 > `src/config.js` (UYGULAMA), `capacitor.config.json`,
 > `android/app/src/main/res/values/strings.xml`.
 
-Sürüm: **0.9.10 (demo)** · Tarih: 24 Ağustos 2026
+Sürüm: **0.9.11 (demo)** · Tarih: 24 Ağustos 2026
 
 ---
 
@@ -628,6 +628,61 @@ yere düşürmüyor; hafta sonu vardiyası da sayılıyor. Kutunun altında
 `sunum/paksan-connect-tanitim.html` — yöneticilere sunulacak, sonra
 detaylı okunabilecek tanıtım dokümanı. Ekran görüntüsü yerleri
 hazırlandı, henüz doldurulmadı.
+
+---
+
+## 0.9.11 — Simgeler Higgsfield çizimlerinden, alt menü düzeni
+
+### Bütün simgeler yeniden üretildi
+
+Uygulamanın ve backoffice'in 46 simgesi Higgsfield ile üretildi. Elle
+çizilen simgelerin hiçbiri kalmadı.
+
+**Asıl mesele şuydu.** Üretilen çizimler PNG. PNG olarak konulamazlardı:
+simgeler alt menüde seçili sekmede beyaz, seçilmemişte soluk, karanlık
+modda bambaşka bir renk oluyor. Hazır bir PNG tek renkte donar ve 24
+pikselde bulanıklaşır. Elle benzerini çizmek de doğru cevap değildi —
+o zaman ekranda görünen şey üretilen çizim değil, ona benzetilmiş başka
+bir çizim olurdu.
+
+Üçüncü yol kuruldu: **üretilen çizimin kendisi izlenip vektöre
+dönüştürülüyor.** Ekranda görünen şey birebir üretilen çizim, ama vektör
+olduğu için her boyda net ve istenen renge dönüyor.
+
+    python tools/ikon-svg.py tools/kaynak/ikon-referans-1.png ev izgara ...
+
+Betik sayfayı siyah-beyaza indiriyor, mürekkebi satır ve sütunlara
+ayırıp simgeleri tek tek kesiyor, her birini izleyip 24 birimlik kutuya
+oturtuyor. Çıktı `src/data/ikonYollari.js` — **bu dosya elle
+düzenlenmez**, bir simgeyi değiştirmek için sayfa yenilenip betik
+yeniden çalıştırılır.
+
+**Anlamlar korundu.** Yedek parça altıgen somun (dişli değil — dişli
+"ayar" demek), seri numarası dört köşesinden perçinli künye (barkod
+değil — uygulamada barkod okuma yok), personel kimlik kartı, kayıt
+geçmişi saatli ok.
+
+**Makine simgesi iki kere üretildi.** İlkinin çeki oku uzundu, simge
+1,86 oranında yayılıyor ve alt menüde komşularının yarısı boyunda
+kalıyordu. İkincisi derli toplu: 1,18 oran, aynı ağırlıkta duruyor.
+
+### Alt menüde seçili renk yazıyı değil simgeyi sarıyor
+
+Mavi hap sekmenin tamamıydı; simgeyi ve yazıyı birlikte içine alıyordu.
+Sekmenin genişliği sabit (menünün beşte biri) ama yazının genişliği
+değişken. İkisi birbirine yaklaşınca hap yazıyı sıfır payla sarıyordu —
+ölçüldü, 279 piksellik ekranda yazının iki yanında **birer piksel**
+kalıyordu.
+
+Kapsül artık yalnız simgenin arkasında: 46x32 piksel, simgenin
+çevresinde yatayda 11, dikeyde 4 piksel pay var. Yazı kapsülün dışında,
+altında; ne kadar uzarsa uzasın kapsüle dokunmuyor. Ayar değil düzen
+düzeltmesi — sorun bir daha çıkmaz.
+
+### Profildeki bildirim satırı kaldırıldı
+
+Aynı bilgi zaten İzinler ekranında duruyordu. İzin isteme ve bildirim
+gösterme altyapısı yerinde.
 
 ---
 
