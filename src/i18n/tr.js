@@ -58,7 +58,7 @@ export const tr = {
     oto: 'Otomatik',
     acik: 'Açık',
     koyu: 'Koyu',
-    otoAlt: 'Telefonunuzun ayarını izler',
+    otoAlt: 'Seçmezseniz telefonunuzun ayarı geçerli olur',
   },
 
   dil: {
@@ -79,8 +79,10 @@ export const tr = {
   karsilama: {
     slogan: 'Yanınızdayız',
     ustSatir: "{yil}'TEN BERİ",
-    basla: 'Hemen Başlayın',
-    girisYap: 'Zaten kayıtlıyım · Giriş yap',
+    basla: 'Kayıt Ol',
+    baslaAlt: 'Yeni hesap · telefon numaranızla',
+    girisYap: 'Giriş Yap',
+    girisYapAlt: 'Hesabım var',
   },
 
   giris: {
@@ -147,7 +149,12 @@ export const tr = {
     bildirimIzin: 'Bildirimlere İzin Ver',
     bildirimSonra: 'Şimdi değil',
     bildirimNot: 'İzni sonradan telefonunuzun ayarlarından açıp kapatabilirsiniz.',
-    bildirimDemo: 'Bildirimler bu demo sürümünde henüz çalışmıyor',
+    bildirimDemo: 'Bu cihaz bildirimleri desteklemiyor',
+    /* İzin verildiği anda telefonun bildirim perdesine düşen ilk
+       bildirim. İki işi birden görüyor: iznin gerçekten çalıştığını
+       gösteriyor ve PAKSAN bildiriminin nasıl göründüğünü tanıtıyor. */
+    bildirimOrnekBaslik: 'PAKSAN bildirimleri açık',
+    bildirimOrnekMetin: 'Talepleriniz, servis randevularınız ve PAKSAN duyuruları bundan sonra buraya düşecek.',
   },
 
   sifre: {
@@ -340,6 +347,13 @@ export const tr = {
     sifreDegistir: 'Şifremi değiştir',
     sifreDegistirAlt: 'Girişte kullandığınız 6 rakamlı şifre',
     sifreYokAlt: 'Hesabınızda henüz şifre yok, şimdi belirleyin',
+    bildirimler: 'Bildirimler',
+    bildirimAcik: 'Açık · talep ve duyurular telefonunuza düşüyor',
+    bildirimKapali: 'Kapalı · telefon ayarlarından açılır',
+    bildirimSorulmadi: 'Kapalı · talep ve duyurulardan haberdar olun',
+    bildirimIzinVer: 'İzin Ver',
+    bildirimTekrarDene: 'Nasıl?',
+    bildirimAyardan: 'Telefon ayarları > Uygulamalar > PAKSAN > Bildirimler',
     telefonDegisti: 'Telefon numaram değişti',
     telefonDegistiAlt: 'Giriş numarasını Paksan güncelliyor',
     bayiIletisim: 'Bayi ve iletişim',

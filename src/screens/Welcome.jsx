@@ -56,14 +56,24 @@ export default function Welcome() {
         <div className="spacer" />
 
         {/* ------------------------------------------------------ İşlem */}
-        <div className="stack fade-in" style={{ gap: 10 }}>
+        {/* İki yol da ne olduğunu söylüyor.
+
+             Önce turuncu düğmede yalnız "Hemen Başlayın" yazıyordu; ne
+             yaptığı belli değildi ve zaten üye olan kullanıcı da ona
+             basıyordu. Şimdi düğmeler "Kayıt Ol" ve "Giriş Yap", altlarında
+             da kimin hangisine basacağı yazılı. Kayıt hâlâ ön planda —
+             turuncu ve büyük — çünkü şimdilik yeni üyeye ihtiyaç var. */}
+        <div className="stack fade-in" style={{ gap: 12 }}>
           <button className="btn btn--orange btn--lg" onClick={() => nav('/kayit')}>
             {t('karsilama.basla')}
             <IconRight size={21} />
           </button>
+          <p className="karsilama__ipucu">{t('karsilama.baslaAlt')}</p>
+
           <button className="btn btn--on-dark" onClick={() => nav('/giris')}>
             {t('karsilama.girisYap')}
           </button>
+          <p className="karsilama__ipucu">{t('karsilama.girisYapAlt')}</p>
         </div>
 
         {/* Yalnızca sürüm. Hangi sürümün kurulu olduğu, uzaktan destek

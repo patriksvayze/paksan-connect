@@ -303,13 +303,18 @@ function Bolum({
 
       {tamam && (
         <div className="rehber__bitti">
-          <span className="rehber__bitti__ikon"><IconCheckCircle size={22} /></span>
-          <div style={{ flex: 1 }}>
-            <div className="rehber__bitti__ad">
-              {t('rehberler.bolumTamam', { bolum: bolum.baslik, rehber: rehberAdi })}
-            </div>
-            <div className="small muted" style={{ marginTop: 3, lineHeight: 1.5 }}>
-              {t('rehberler.bolumTamamAlt')}
+          {/* Metin üstte tam genişlikte, düğme altında. Yan yana
+              olduklarında uzun başlıkta metne kalan yer daralıp
+              sıkışıyordu. */}
+          <div className="rehber__bitti__ust">
+            <span className="rehber__bitti__ikon"><IconCheckCircle size={22} /></span>
+            <div>
+              <div className="rehber__bitti__ad">
+                {t('rehberler.bolumTamam', { bolum: bolum.baslik, rehber: rehberAdi })}
+              </div>
+              <div className="small muted" style={{ marginTop: 3, lineHeight: 1.5 }}>
+                {t('rehberler.bolumTamamAlt')}
+              </div>
             </div>
           </div>
           {/* Günlük bakım her gün yeniden yapılıyor; işaretleri

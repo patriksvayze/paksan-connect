@@ -18,11 +18,13 @@ import { sifreyiDegistir, sifreGecerliMi, sifreDogruMu, SIFRE_HANE } from '../li
 import { SifreAlani } from '../components/SifreAlani'
 import { DilSecici } from '../components/DilSecici'
 import { TemaSecici } from '../components/TemaSecici'
+import { BildirimAyarSatiri } from '../components/BildirimAyari'
 import { useDil } from '../i18n'
 import { SIRKET, SURUM, UYGULAMA } from '../config'
 import {
   IconUser, IconBaler, IconMachine, IconWrench, IconRight, IconPin, IconCheckCircle,
   IconGorunum, IconParca, IconLock, IconPhone, IconMic, IconGlobe, IconMail, IconSend,
+  IconBell,
 } from '../components/Icons'
 
 export default function Profile() {
@@ -459,6 +461,14 @@ export default function Profile() {
             </div>
             <TemaSecici />
           </div>
+
+          {/* Bildirim izni.
+
+              İzin kayıt sırasında bir kez soruluyor; o an "şimdi değil"
+              diyen ya da uygulamayı daha önce kurmuş olan kullanıcının
+              geri dönecek yeri yoktu. Satır durumu söylüyor ve izin
+              verilmemişse istiyor (bkz. src/components/BildirimAyari.jsx). */}
+          <BildirimAyarSatiri ikon={<IconBell size={22} />} />
 
           {/* Satırlarda yalnızca düğme adı duruyor; alt açıklamalar
               kaldırıldı. Şifresi olmayan kullanıcıya bunu söylemek

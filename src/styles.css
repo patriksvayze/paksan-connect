@@ -63,6 +63,11 @@
      Aydınlık modda bu değerler ana renklerle birebir aynı — ekranda
      hiçbir fark yok. Ayrım yalnız karanlık modda işe yarıyor. */
   --pk-blue-yazi: #1848a8;
+
+  /* Dolu eylem zemini: birincil düğme, seçili seçenek, seçili hap,
+     kullanıcı baloncuğu. Karanlık modda lacivert kart yüzeyinden
+     ayırt edilemediği için ayrı belirteç oldu. */
+  --dolgu: var(--pk-navy);
   --pk-green-yazi: #1a8348;
   --pk-red-yazi: #c93636;
 
@@ -184,6 +189,15 @@
 
   /* Yazı hâlleri açılıyor — koyu zeminde okunabilsinler. */
   --pk-blue-yazi-koyu: #6f9df5;
+  /* Karanlıkta dolu eylemler mavi: lacivert yüzeyle karışmıyor.
+
+     TON ÖLÇÜLEREK SEÇİLDİ. Marka mavisinin kendisi (--pk-blue-koyu)
+     kart yüzeyine karşı 2,43:1'de kalıyordu; arayüz ögesinin zeminden
+     ayrılması için aranan ölçüt 3:1. Bir tık açığı hem onu geçiyor
+     (3,54:1) hem üstündeki beyaz yazıyı okunur bırakıyor (4,63:1) —
+     daha da açılsaydı yazı okunmaz olurdu, bu iki ölçüt ters yönde
+     çalışıyor. */
+  --dolgu-koyu: #2f6fe6;
   --pk-green-yazi-koyu: #3fbf74;
   --pk-red-yazi-koyu: #f0736f;
   --pk-orange-ink-koyu: #ff8a3d;
@@ -229,6 +243,7 @@
   --pk-blue: var(--pk-blue-koyu);
   --pk-navy: var(--pk-navy-koyu);
   --pk-blue-yazi: var(--pk-blue-yazi-koyu);
+  --dolgu: var(--dolgu-koyu);
   --pk-green-yazi: var(--pk-green-yazi-koyu);
   --pk-red-yazi: var(--pk-red-yazi-koyu);
   --pk-orange-ink: var(--pk-orange-ink-koyu);
@@ -270,6 +285,7 @@
     --pk-blue: var(--pk-blue-koyu);
     --pk-navy: var(--pk-navy-koyu);
     --pk-blue-yazi: var(--pk-blue-yazi-koyu);
+    --dolgu: var(--dolgu-koyu);
     --pk-green-yazi: var(--pk-green-yazi-koyu);
     --pk-red-yazi: var(--pk-red-yazi-koyu);
     --pk-orange-ink: var(--pk-orange-ink-koyu);
@@ -517,7 +533,7 @@ p {
 }
 
 .circbtn--dark {
-  background: var(--pk-navy);
+  background: var(--dolgu);
   color: #fff;
   border-color: transparent;
 }
@@ -863,6 +879,14 @@ p {
 
 /* Sürüm — sayfanın en dibinde, silik. Okunması gereken bir bilgi değil,
    sorulunca bakılan bir bilgi. */
+/* Düğmenin altındaki tek satırlık açıklama */
+.karsilama__ipucu {
+  margin: -4px 0 4px;
+  text-align: center;
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.62);
+}
+
 .giris__surum {
   margin: 16px 0 0;
   text-align: left;
@@ -1022,7 +1046,7 @@ p {
 }
 
 .card--dark {
-  background: var(--pk-navy);
+  background: var(--dolgu);
   color: #fff;
   box-shadow: var(--sh-2);
 }
@@ -1075,7 +1099,7 @@ p {
 }
 
 .btn--primary {
-  background: var(--pk-navy);
+  background: var(--dolgu);
   color: #fff;
 }
 
@@ -1404,7 +1428,7 @@ p {
 }
 
 .secenek--on {
-  background: var(--pk-navy);
+  background: var(--dolgu);
   border-color: transparent;
   color: #fff;
 }
@@ -1934,14 +1958,28 @@ p {
 }
 
 /* Bölüm tamamlandı şeridi */
+/* Bölüm tamamlandı şeridi.
+
+   ÖNCEDEN METİN SOLDA, DÜĞME SAĞDAYDI. "Balya makinesine özel —
+   Günlük Bakım tamamlandı!" gibi uzun bir başlıkta metne kalan yer
+   daralıyor, satır satır kırılıp sıkışıyordu. Artık metin üstte tam
+   genişlikte, düğme altında. */
 .rehber__bitti {
   display: flex;
-  align-items: center;
-  gap: 11px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
   margin-top: 14px;
-  padding: 12px 13px;
+  padding: 13px;
   border-radius: 12px;
   background: var(--pk-green-soft);
+}
+
+/* Simge ve yazı yan yana, düğme onların altında */
+.rehber__bitti__ust {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
 }
 
 .rehber__bitti__ikon {
@@ -2251,7 +2289,7 @@ p {
 }
 
 .msg--me {
-  background: var(--pk-navy);
+  background: var(--dolgu);
   color: #fff;
   border-bottom-right-radius: 7px;
 }
@@ -2509,6 +2547,20 @@ p {
   line-height: 1.4;
 }
 
+/* Liste satırının sağındaki küçük düğme.
+
+   `.btn` tam genişlik alacak şekilde kurulu — sayfa altındaki büyük
+   düğmeler öyle olmalı. Ama liste satırının içinde aynı kural düğmeyi
+   satırın yarısına yayıyor, yazıya yer kalmıyordu (ölçüldü: metin
+   kutusu 0 piksele indi, düğme 239 piksel oldu).
+
+   Burada düğme kendi yazısı kadar yer kaplıyor ve daralmıyor. */
+.listitem__eylem {
+  width: auto;
+  flex: none;
+  white-space: nowrap;
+}
+
 .listitem__chev {
   color: var(--ink-3);
   flex: none;
@@ -2541,7 +2593,7 @@ p {
   display: grid;
   place-items: center;
   flex: none;
-  background: var(--pk-navy);
+  background: var(--dolgu);
   color: #fff;
 }
 
@@ -2800,7 +2852,7 @@ p {
 }
 
 .pill--on {
-  background: var(--pk-navy);
+  background: var(--dolgu);
   border-color: transparent;
   color: #fff;
 }
@@ -2880,16 +2932,29 @@ p {
   margin-bottom: 14px;
 }
 
+/* Yüzen eylem şeridi.
+
+   ÖNCEDEN ŞERİDİN KENDİSİ GÖRÜNÜYORDU: tam genişlikte, bulanık zeminli
+   bir bant sayfanın altına yapışıyordu. Sayfa kaydırılırken içeriğin
+   bir bölümü sürekli kapalı kalıyor gibi duruyordu.
+
+   Şimdi şerit görünmez, yalnız düğme yüzüyor. Şeridin işi sadece
+   düğmeyi doğru yere koymak; zemini ve bulanıklığı kaldırıldı,
+   düğmenin kendi gölgesi onu içerikten ayırıyor. */
 .actionbar {
   position: sticky;
   bottom: calc(var(--nav-h) + var(--nav-gap) * 2 + var(--safe-bottom));
-  background: rgba(241, 244, 249, 0.92);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: none;
   padding: 12px 20px;
   display: flex;
   gap: 10px;
   z-index: 20;
+  pointer-events: none;
+}
+
+.actionbar > * {
+  pointer-events: auto;
+  box-shadow: var(--sh-2);
 }
 
 .toast {

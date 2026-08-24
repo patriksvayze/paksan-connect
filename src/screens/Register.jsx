@@ -7,7 +7,7 @@ import { AYDINLATMA, ACIK_RIZA, TICARI_ILETI, KVKK_SURUM, metinDilde } from '../
 import { telGecerliMi } from '../lib/tel'
 import { adTemizle } from '../lib/ad'
 import { alanaGit } from '../lib/formOdak'
-import { izinIste, BILDIRIM } from '../lib/bildirim'
+import { izinIste, bildirimGoster, BILDIRIM } from '../lib/bildirim'
 import { konumIzniIste, KONUM } from '../lib/konum'
 import { mevcutHesap, sifreHazirla, sifreGecerliMi, SIFRE_HANE } from '../lib/hesap'
 import { VARSAYILAN_ULKE } from '../data/ulkeler'
@@ -166,12 +166,27 @@ export default function Register() {
 
   async function bildirimeIzinVer() {
     const sonuc = await izinIste()
-    /* Android uygulamasında web bildirim arayüzü bulunmuyor; gerçek
-       bildirim Capacitor eklentisiyle gelecek (Aşama 4). O zamana kadar
-       düğme sessizce geçmesin, kullanıcı ne olduğunu bilsin. */
+
+    /* İzin alınır alınmaz ilk bildirim çıkıyor.
+
+       İki işi birden görüyor. Kullanıcı iznin gerçekten çalıştığını
+       görüyor — "izin verdim ama bir şey olmadı" hissi kalmıyor. Bir de
+       PAKSAN bildiriminin telefonda nasıl göründüğünü daha ilk anda
+       gösteriyor. */
+    if (sonuc === BILDIRIM.VERILDI) {
+      bildirimGoster({
+        baslik: t('kayit.bildirimOrnekBaslik'),
+        metin: t('kayit.bildirimOrnekMetin'),
+        yol: '/bildirimler',
+      })
+    }
+
+    /* Çok eski bir tarayıcıda bildirim hiç yok; düğme sessizce
+       geçmesin, kullanıcı ne olduğunu bilsin. */
     if (sonuc === BILDIRIM.DESTEKLENMIYOR) {
       showToast(t('kayit.bildirimDemo'))
     }
+
     setBildirimSonuc(sonuc)
     setAdim('konum')
   }

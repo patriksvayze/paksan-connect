@@ -59,7 +59,7 @@ export const en = {
     oto: 'Automatic',
     acik: 'Light',
     koyu: 'Dark',
-    otoAlt: 'Follows your phone setting',
+    otoAlt: 'If you do not choose, your phone setting applies',
   },
 
   dil: {
@@ -80,8 +80,10 @@ export const en = {
   karsilama: {
     slogan: 'Here for you',
     ustSatir: 'SINCE {yil}',
-    basla: 'Get Started',
-    girisYap: 'I already have an account · Sign in',
+    basla: 'Create Account',
+    baslaAlt: 'New account · with your phone number',
+    girisYap: 'Sign In',
+    girisYapAlt: 'I already have an account',
   },
 
   giris: {
@@ -149,7 +151,9 @@ export const en = {
     bildirimIzin: 'Allow Notifications',
     bildirimSonra: 'Not now',
     bildirimNot: 'You can turn this on or off later in your phone settings.',
-    bildirimDemo: 'Notifications do not work yet in this demo version',
+    bildirimDemo: 'This device does not support notifications',
+    bildirimOrnekBaslik: 'PAKSAN notifications are on',
+    bildirimOrnekMetin: 'Your requests, service appointments and PAKSAN announcements will arrive here from now on.',
   },
 
   sifre: {
@@ -458,6 +462,13 @@ export const en = {
     sifreDegistir: 'Change my password',
     sifreDegistirAlt: 'The 6-digit password you sign in with',
     sifreYokAlt: 'Your account has no password yet — set one now',
+    bildirimler: 'Notifications',
+    bildirimAcik: 'On · requests and announcements reach your phone',
+    bildirimKapali: 'Off · turn on from your phone settings',
+    bildirimSorulmadi: 'Off · stay informed about requests and announcements',
+    bildirimIzinVer: 'Allow',
+    bildirimTekrarDene: 'How?',
+    bildirimAyardan: 'Phone settings > Apps > PAKSAN > Notifications',
     telefonDegisti: 'My phone number has changed',
     telefonDegistiAlt: 'Paksan updates the sign-in number',
     bayiIletisim: 'Dealers and contact',

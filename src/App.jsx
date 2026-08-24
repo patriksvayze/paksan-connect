@@ -2,6 +2,8 @@ import { useEffect } from 'react'
 import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom'
 import { AppProvider, useApp } from './context/AppState'
 import { useAndroidGeri } from './lib/android'
+import { useBildirimYayini } from './lib/bildirimYayini'
+import { bildirimListesi } from './lib/bildirimler'
 import { useDil } from './i18n'
 import { Toast } from './components/Chrome'
 import { Gecis } from './components/Gecis'
@@ -65,12 +67,21 @@ function Bulunamadi() {
 }
 
 function Yonlendirme() {
-  const { user, showToast } = useApp()
+  const { user, requests, showToast } = useApp()
   const { t } = useDil()
 
   /* Android'in geri hareketi ve geri tuşu uygulamayı kapatmasın,
      uygulama içinde gezinsin (bkz. src/lib/android.js) */
   useAndroidGeri(showToast, t('ortak.cikmakIcin'))
+
+  /* Yeni bildirimler telefonun kendi bildirim perdesine düşüyor.
+     Burada duruyor, tek bir ekranda değil: kullanıcı hangi sayfada
+     olursa olsun bildirimi alsın (bkz. src/lib/bildirimYayini.js). */
+  useBildirimYayini(
+    bildirimListesi({ requests, kampanyaIzni: Boolean(user?.onaylar?.kampanya) }),
+    t,
+    Boolean(user),
+  )
 
   /* Kayıtsız kullanıcı yalnızca karşılama, kayıt ve giriş ekranlarını
      görebilir; başka bir adres istenirse karşılama açılır. */

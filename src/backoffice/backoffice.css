@@ -12,6 +12,9 @@
 
 :root {
   --lacivert: #0a1a33;
+  /* Aydınlıkta dolu eylemler lacivert; karanlıkta ayrışıyorlar,
+     sebebi --dolgu-koyu'nun yanında yazılı. */
+  --dolgu: var(--lacivert);
   --lacivert-2: #12294a;
   --mavi: #1848a8;
   --mavi-acik: #2f6fe4;
@@ -102,6 +105,21 @@
   /* Düğme zeminleri koyu kalıyor; üstlerindeki beyaz yazının kontrastı
      zeminin kendi rengine bağlı. */
   --mavi-koyu: #1d55c0;
+
+  /* Dolu eylem zemini: birincil düğme ve seçili süzgeç hapı.
+
+     AYRI BİR BELİRTEÇ OLMASININ SEBEBİ: lacivert iki ayrı iş yapıyordu
+     — yan menü gibi koyu çerçeve, bir de seçili hap gibi dolu eylem.
+     Aydınlıkta ikisi de çalışıyor. Karanlıkta lacivert (#111c33) kart
+     yüzeyinden (#161f36) ayırt edilemiyor: kontrast 1,04:1. Seçili hap
+     seçilmemiş gibi duruyor, tek belirtisi yazının kalınlaşması
+     kalıyordu.
+
+     Karanlıktaki ton ölçülerek seçildi: kart yüzeyine karşı 3,54:1
+     (arayüz ögeleri için aranan 3:1'i geçiyor), üstündeki beyaz yazı
+     4,63:1 (okunabilirlik için aranan 4,5:1'i geçiyor). İki ölçüt ters
+     yönde çalıştığı için ton daha da açılamıyor. */
+  --dolgu-koyu: #2f6fe6;
   --mavi-acik-koyu: #4b86ee;
 
   /* Yazı ve rozet renkleri koyu zeminde okunacak şekilde açık */
@@ -142,6 +160,7 @@
   --cizgi: var(--cizgi-koyu-k);
   --cizgi-koyu: var(--cizgi-koyu-koyu);
   --lacivert: var(--lacivert-koyu);
+  --dolgu: var(--dolgu-koyu);
   --lacivert-2: var(--lacivert-2-koyu);
   --mavi: var(--mavi-koyu);
   --mavi-acik: var(--mavi-acik-koyu);
@@ -179,6 +198,7 @@
     --cizgi: var(--cizgi-koyu-k);
     --cizgi-koyu: var(--cizgi-koyu-koyu);
     --lacivert: var(--lacivert-koyu);
+    --dolgu: var(--dolgu-koyu);
     --lacivert-2: var(--lacivert-2-koyu);
     --mavi: var(--mavi-koyu);
     --mavi-acik: var(--mavi-acik-koyu);
@@ -732,7 +752,7 @@ tbody tr.secili {
 }
 
 .dg--ana {
-  background: var(--mavi);
+  background: var(--dolgu);
   border-color: transparent;
   color: #fff;
 }
@@ -842,7 +862,7 @@ tbody tr.secili {
 }
 
 .cip--on {
-  background: var(--lacivert);
+  background: var(--dolgu);
   border-color: transparent;
   color: #fff;
 }

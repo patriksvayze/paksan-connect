@@ -32,25 +32,35 @@ import { load, save } from '../lib/storage'
 
 const ANAHTAR = 'tema'
 
+/* İKİ SEÇENEK, ÜÇ DEĞİL.
+
+   "Otomatik" düğmesi kaldırıldı: üç düğme profil satırına sığmıyor,
+   yazılar kırpılıp okunmaz hâle geliyordu.
+
+   Davranış kaybolmadı. Kullanıcı hiç dokunmadıysa kayıt boş kalıyor ve
+   telefonun kendi ayarı geçerli oluyor — yani varsayılan hâlâ otomatik.
+   Değişen tek şey, bir kere seçim yapıldıktan sonra o seçimin kalıcı
+   olması. */
 export const TEMALAR = [
-  { kod: 'oto', anahtar: 'tema.oto' },
   { kod: 'acik', anahtar: 'tema.acik' },
   { kod: 'koyu', anahtar: 'tema.koyu' },
 ]
 
 /** Kayıtlı tercihi belgeye uygular. Uygulama açılırken de çağrılıyor. */
 export function temayiUygula(kod) {
-  const k = kod || load(ANAHTAR, 'oto')
-  /* "Otomatik"te öznitelik hiç konmuyor; CSS o durumda işletim
+  const k = kod !== undefined ? kod : load(ANAHTAR, '')
+  /* Seçim yoksa öznitelik hiç konmuyor; CSS o durumda işletim
      sisteminin ayarına bakıyor. */
-  if (k === 'oto') document.documentElement.removeAttribute('data-tema')
+  if (k !== 'acik' && k !== 'koyu') document.documentElement.removeAttribute('data-tema')
   else document.documentElement.setAttribute('data-tema', k)
   return k
 }
 
 export function TemaSecici() {
   const { t } = useDil()
-  const [tema, setTema] = useState(() => load(ANAHTAR, 'oto'))
+  /* Kayıt boşsa "otomatik" demek: hiçbir düğme seçili görünmüyor ve
+     telefonun ayarı geçerli. */
+  const [tema, setTema] = useState(() => load(ANAHTAR, ''))
 
   useEffect(() => {
     temayiUygula(tema)
