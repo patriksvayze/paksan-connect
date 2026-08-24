@@ -9,6 +9,7 @@ import {
 import { bildirimGonder, izinDurumu, izinIste, sayiliBaslik } from './bildirim'
 import { sesMetinleriniTopla } from './sesMetin'
 import { SIRKET } from '../config'
+import { TemaSecici } from './Tema'
 import {
   IconPano, IconTalep, IconUser, IconPin, IconMail, IconRapor,
   IconChat, IconBell, IconPhone, IconPersonel, IconKayit,
@@ -293,6 +294,15 @@ function Profil({ oturum, onKapat }) {
               minute: '2-digit',
             })}
           />
+
+          <div style={{ borderTop: '1px solid var(--cizgi)', margin: '16px 0 16px' }} />
+
+          {/* Görünüm — bu bilgisayara özel. "Otomatik" işletim sisteminin
+              ayarını izliyor ve varsayılan o. */}
+          <div className="satir" style={{ gap: 10, alignItems: 'center' }}>
+            <span className="kucuk sonuk" style={{ minWidth: 110 }}>Görünüm</span>
+            <TemaSecici />
+          </div>
 
           <div style={{ borderTop: '1px solid var(--cizgi)', margin: '16px 0 16px' }} />
 

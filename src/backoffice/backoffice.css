@@ -78,52 +78,130 @@
    ve başlık kontrastı korunacak şekilde ayarlandı.
    ========================================================================== */
 
+/* ==========================================================================
+   Karanlık tema — renk değerleri
+
+   Doğrudan kullanılmıyorlar; aşağıdaki iki kural bunlara bakıyor.
+   Değerler tek yerde durduğu için yeni renk eklerken tek satır yeter.
+   ========================================================================== */
+
+:root {
+  --zemin-koyu: #0d1524;
+  --yuzey-koyu: #161f36;
+  --yuzey-2-koyu: #1d2743;
+  --murekkep-koyu: #eef2f9;
+  --murekkep-2-koyu: #adb8cc;
+  --murekkep-3-koyu: #949fb5;
+  --cizgi-koyu-k: #26314f;
+  --cizgi-koyu-koyu: #35426a;
+
+  /* Sol menü gövdeden ayrılsın diye bir tık açık */
+  --lacivert-koyu: #111c33;
+  --lacivert-2-koyu: #1b2b4d;
+
+  /* Düğme zeminleri koyu kalıyor; üstlerindeki beyaz yazının kontrastı
+     zeminin kendi rengine bağlı. */
+  --mavi-koyu: #1d55c0;
+  --mavi-acik-koyu: #4b86ee;
+
+  /* Yazı ve rozet renkleri koyu zeminde okunacak şekilde açık */
+  --turuncu-koyu: #ff8a3d;
+  --turuncu-d-koyu: #f0a53c;
+  --kirmizi-koyu: #f0736f;
+  --yesil-koyu: #3fbf74;
+  --mor-koyu: #a882eb;
+  --turkuaz-koyu: #35b3c4;
+  --sari-koyu: #e8c33c;
+  --gri-koyu: #9aa4b6;
+
+  --tur-servis-koyu: #f0a53c;
+  --tur-parca-koyu: #be8cf5;
+  --tur-satis-koyu: #60b0fa;
+
+  /* Soluk zeminler ters çevriliyor */
+  --kirmizi-z-koyu: rgba(240, 115, 111, 0.18);
+  --turuncu-z-koyu: rgba(255, 138, 61, 0.18);
+  --mavi-z-koyu: rgba(96, 176, 250, 0.16);
+  --yesil-z-koyu: rgba(63, 191, 116, 0.18);
+  --gri-z-koyu: rgba(154, 164, 182, 0.16);
+  --mor-z-koyu: rgba(168, 130, 235, 0.18);
+  --turkuaz-z-koyu: rgba(53, 179, 196, 0.18);
+
+  --golge-k: 0 1px 2px rgba(0, 0, 0, 0.32);
+  --golge-2-k: 0 12px 34px rgba(0, 0, 0, 0.5);
+}
+
+/* Elle "Koyu" seçildiğinde — işletim sisteminin ayarı ne olursa olsun. */
+:root[data-tema='koyu'] {
+  --zemin: var(--zemin-koyu);
+  --yuzey: var(--yuzey-koyu);
+  --yuzey-2: var(--yuzey-2-koyu);
+  --murekkep: var(--murekkep-koyu);
+  --murekkep-2: var(--murekkep-2-koyu);
+  --murekkep-3: var(--murekkep-3-koyu);
+  --cizgi: var(--cizgi-koyu-k);
+  --cizgi-koyu: var(--cizgi-koyu-koyu);
+  --lacivert: var(--lacivert-koyu);
+  --lacivert-2: var(--lacivert-2-koyu);
+  --mavi: var(--mavi-koyu);
+  --mavi-acik: var(--mavi-acik-koyu);
+  --turuncu: var(--turuncu-koyu);
+  --turuncu-d: var(--turuncu-d-koyu);
+  --kirmizi: var(--kirmizi-koyu);
+  --yesil: var(--yesil-koyu);
+  --mor: var(--mor-koyu);
+  --turkuaz: var(--turkuaz-koyu);
+  --sari: var(--sari-koyu);
+  --gri: var(--gri-koyu);
+  --tur-servis: var(--tur-servis-koyu);
+  --tur-parca: var(--tur-parca-koyu);
+  --tur-satis: var(--tur-satis-koyu);
+  --kirmizi-z: var(--kirmizi-z-koyu);
+  --turuncu-z: var(--turuncu-z-koyu);
+  --mavi-z: var(--mavi-z-koyu);
+  --yesil-z: var(--yesil-z-koyu);
+  --gri-z: var(--gri-z-koyu);
+  --mor-z: var(--mor-z-koyu);
+  --turkuaz-z: var(--turkuaz-z-koyu);
+  --golge: var(--golge-k);
+  --golge-2: var(--golge-2-k);
+}
+
+/* İşletim sisteminin ayarı koyu VE elle "Açık" seçilmemişse. */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --zemin: #0d1524;
-    --yuzey: #161f36;
-    --yuzey-2: #1d2743;
-    --murekkep: #eef2f9;
-    --murekkep-2: #adb8cc;
-    --murekkep-3: #949fb5;
-    --cizgi: #26314f;
-    --cizgi-koyu: #35426a;
-
-    /* Sol menü gövdeden ayrılsın diye bir tık açıldı */
-    --lacivert: #111c33;
-    --lacivert-2: #1b2b4d;
-
-    /* Düğme zeminleri koyu kalıyor; üstlerindeki beyaz yazının
-       kontrastı zeminin kendi rengine bağlı. */
-    --mavi: #1d55c0;
-    --mavi-acik: #4b86ee;
-
-    /* Yazı ve rozet renkleri koyu zeminde okunacak şekilde açıldı */
-    --turuncu: #ff8a3d;
-    --turuncu-d: #f0a53c;
-    --kirmizi: #f0736f;
-    --yesil: #3fbf74;
-    --mor: #a882eb;
-    --turkuaz: #35b3c4;
-    --sari: #e8c33c;
-    --gri: #9aa4b6;
-
-    --tur-servis: #f0a53c;
-    --tur-parca: #be8cf5;
-    --tur-satis: #60b0fa;
-
-    /* Soluk zeminler ters çevrildi: aydınlıkta koyu rengin düşük
-       saydamlığı, karanlıkta açık rengin daha yükseği. */
-    --kirmizi-z: rgba(240, 115, 111, 0.18);
-    --turuncu-z: rgba(255, 138, 61, 0.18);
-    --mavi-z: rgba(96, 176, 250, 0.16);
-    --yesil-z: rgba(63, 191, 116, 0.18);
-    --gri-z: rgba(154, 164, 182, 0.16);
-    --mor-z: rgba(168, 130, 235, 0.18);
-    --turkuaz-z: rgba(53, 179, 196, 0.18);
-
-    --golge: 0 1px 2px rgba(0, 0, 0, 0.32);
-    --golge-2: 0 12px 34px rgba(0, 0, 0, 0.5);
+  :root:not([data-tema='acik']) {
+    --zemin: var(--zemin-koyu);
+    --yuzey: var(--yuzey-koyu);
+    --yuzey-2: var(--yuzey-2-koyu);
+    --murekkep: var(--murekkep-koyu);
+    --murekkep-2: var(--murekkep-2-koyu);
+    --murekkep-3: var(--murekkep-3-koyu);
+    --cizgi: var(--cizgi-koyu-k);
+    --cizgi-koyu: var(--cizgi-koyu-koyu);
+    --lacivert: var(--lacivert-koyu);
+    --lacivert-2: var(--lacivert-2-koyu);
+    --mavi: var(--mavi-koyu);
+    --mavi-acik: var(--mavi-acik-koyu);
+    --turuncu: var(--turuncu-koyu);
+    --turuncu-d: var(--turuncu-d-koyu);
+    --kirmizi: var(--kirmizi-koyu);
+    --yesil: var(--yesil-koyu);
+    --mor: var(--mor-koyu);
+    --turkuaz: var(--turkuaz-koyu);
+    --sari: var(--sari-koyu);
+    --gri: var(--gri-koyu);
+    --tur-servis: var(--tur-servis-koyu);
+    --tur-parca: var(--tur-parca-koyu);
+    --tur-satis: var(--tur-satis-koyu);
+    --kirmizi-z: var(--kirmizi-z-koyu);
+    --turuncu-z: var(--turuncu-z-koyu);
+    --mavi-z: var(--mavi-z-koyu);
+    --yesil-z: var(--yesil-z-koyu);
+    --gri-z: var(--gri-z-koyu);
+    --mor-z: var(--mor-z-koyu);
+    --turkuaz-z: var(--turkuaz-z-koyu);
+    --golge: var(--golge-k);
+    --golge-2: var(--golge-2-k);
   }
 }
 
@@ -1905,16 +1983,56 @@ select.sec {
    kurallarla aynı özgüllükte, CSS'te eşitlikte son gelen kazanıyor.
    ========================================================================== */
 
+/* Kart ve tablo kutuları karanlıkta gölgeyle ayrılamıyor; kenarlık
+   devralıyor. Tablo satır vurgusu da karanlıkta görünmüyordu. */
+:root[data-tema='koyu'] .kart {
+  border: 1px solid var(--cizgi);
+}
+
+:root[data-tema='koyu'] tbody tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
 @media (prefers-color-scheme: dark) {
-  /* Kart ve tablo kutuları karanlıkta gölgeyle ayrılamıyor; kenarlık
-     devralıyor. */
-  .kart {
+  :root:not([data-tema='acik']) .kart {
     border: 1px solid var(--cizgi);
   }
 
-  /* Tablo satır ayrımı: aydınlıkta çok hafif bir gri yeterliydi,
-     karanlıkta görünmüyordu. */
-  tbody tr:hover {
+  :root:not([data-tema='acik']) tbody tr:hover {
     background: rgba(255, 255, 255, 0.04);
   }
+}
+
+/* -------------------------------------------------- Görünüm seçici
+
+   Profil penceresinde duruyor. Üç düğme yan yana; seçili olan beyaz
+   zeminle öne çıkıyor. */
+
+.tema-secici {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 8px;
+  background: var(--yuzey-2);
+  border: 1px solid var(--cizgi);
+}
+
+.tema-secici__dg {
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--murekkep-3);
+  transition: background 0.14s ease, color 0.14s ease;
+}
+
+.tema-secici__dg:hover {
+  color: var(--murekkep);
+}
+
+.tema-secici__dg--on {
+  background: var(--yuzey);
+  color: var(--murekkep);
+  font-weight: 700;
+  box-shadow: var(--golge);
 }
