@@ -205,10 +205,15 @@ export function DestekKayitlari({ rol, surum }) {
                         </span>
                       </td>
                       <td className="kucuk">
+                        {/* Üç ayrı sonuç var; ikisini birbirine karıştırmamak
+                            önemli. Talebe dönmemiş her oturumu "çözüldü"
+                            saymak, çözülmeyenleri başarı gibi gösteriyordu. */}
                         {yonlendirme(o) ? (
                           <span className="rz rz--turuncu">
                             {SONUC_ADI[yonlendirme(o)] || yonlendirme(o)}
                           </span>
+                        ) : cevapsizlar(o).length ? (
+                          <span className="rz rz--kirmizi">Çözülmedi</span>
                         ) : (
                           <span className="rz rz--yesil">Ekranda çözüldü</span>
                         )}
@@ -338,7 +343,23 @@ export function cevapsizlar(oturum) {
   const olaylar = oturum.olaylar || []
   const sonuc = []
   olaylar.forEach((o, i) => {
-    if (o.tur !== 'cevapsiz') return
+    /* İki ayrı olay aynı şeyi anlatıyor:
+
+         cevapsiz    eski ekranda arama sonuç vermedi
+         cozulmedi   yeni ekranda çiftçi "hâlâ devam ediyor" dedi
+
+       Yeni ekranda yazı kutusu olmadığı için `cevapsiz` bir daha hiç
+       yazılmıyor; yalnız onu okumak listeyi kalıcı olarak boşaltıyordu.
+       Eskisi de okunuyor ki geçmiş kayıtlar kaybolmasın. */
+    if (o.tur !== 'cevapsiz' && o.tur !== 'cozulmedi') return
+
+    /* `cozulmedi` hangi belirtinin çözülmediğini kendi içinde taşıyor;
+       geriye bakmaya gerek yok. */
+    if (o.tur === 'cozulmedi') {
+      if (o.deger) sonuc.push(o.deger)
+      return
+    }
+
     for (let j = i - 1; j >= 0; j--) {
       if (olaylar[j].tur === 'serbest' || olaylar[j].tur === 'soru') {
         if (olaylar[j].deger) sonuc.push(olaylar[j].deger)

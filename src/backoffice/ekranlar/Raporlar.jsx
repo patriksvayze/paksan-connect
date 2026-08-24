@@ -460,10 +460,13 @@ function dikkatIsteyenler(donem, veri, aralik, git) {
   /* Destek ekranında cevapsız kalan sorular: kılavuzda ya da veri
      setinde eksik olan her satır, ileride bir telefon demek. */
   const oturumlar = destekOturumlariGetir().filter((o) => araliktaMi(o.baslangic, aralik))
-  const eksikler = cevapsizlar(oturumlar)
-  if (eksikler.length) {
+  /* `cevapsizlar` TEK BİR OTURUM alıyor, dizi değil. Önce diziyle
+     çağrılıyordu: `oturum.olaylar` tanımsız kalıyor, fonksiyon her
+     zaman boş dönüyordu ve bu uyarı hiçbir zaman çıkamıyordu. */
+  const eksikler = oturumlar.reduce((a, o) => a + cevapsizlar(o).length, 0)
+  if (eksikler) {
     liste.push({
-      ad: `Destek ekranında ${eksikler.length} soru cevapsız kaldı`,
+      ad: `Destek ekranında ${eksikler} soru cevapsız kaldı`,
       alt: 'Müşterinin arayıp bulamadığı arızalar',
       ton: 'turuncu',
       goster: git ? () => git('destek') : null,

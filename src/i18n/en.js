@@ -626,6 +626,8 @@ export const en = {
     belgeAlt: 'from a {n}-page operator manual',
     varyantSecin: 'Values differ by model. Select your own model.',
     kilavuzYok: 'The operator manual for this model has not been added to the app yet.',
+    makinemYok: 'Your manual is not here yet',
+    makinemYokAlt: 'The operator manual for {makineler} is being prepared. It will appear here once ready. In the meantime you can use the Support screen for troubleshooting.',
 
     onceGuvenlik: 'Safety First',
     onceGuvenlikAlt: 'Before any adjustment, maintenance or repair on the machine:',

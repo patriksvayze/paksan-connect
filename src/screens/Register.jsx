@@ -60,6 +60,15 @@ export default function Register() {
   const [satici, setSatici] = useState('')
   const [hata, setHata] = useState('')
 
+  /* Bir alan değiştiğinde hata mesajı siliniyor.
+
+     Önce silinmiyordu: kullanıcı boş formu gönderip "Lütfen adınızı
+     yazın." uyarısını alıyor, adını yazıyor ama uyarı ekranda kalıyordu.
+     Formu doğru doldurduğu hâlde kırmızı bir hata görmeye devam edip
+     nerede yanlış yaptığını arıyordu. Hata gerçekten sürüyorsa bir
+     sonraki gönderimde yeniden hesaplanıyor. */
+  const hatayiTemizle = () => setHata((h) => (h ? '' : h))
+
   /* Zorunlu onaylar */
   const [aydinlatmaOnay, setAydinlatmaOnay] = useState(false)
   const [rizaOnay, setRizaOnay] = useState(false)
@@ -218,7 +227,7 @@ export default function Register() {
                 <input
                   className="input"
                   value={ad}
-                  onChange={(e) => setAd(adTemizle(e.target.value))}
+                  onChange={(e) => { hatayiTemizle(); setAd(adTemizle(e.target.value)) }}
                   placeholder={t('kayit.adOrnek')}
                   autoComplete="given-name"
                   autoCapitalize="words"
@@ -229,7 +238,7 @@ export default function Register() {
                 <input
                   className="input"
                   value={soyad}
-                  onChange={(e) => setSoyad(adTemizle(e.target.value))}
+                  onChange={(e) => { hatayiTemizle(); setSoyad(adTemizle(e.target.value)) }}
                   placeholder={t('kayit.soyadOrnek')}
                   autoComplete="family-name"
                   autoCapitalize="words"
@@ -257,6 +266,7 @@ export default function Register() {
               }}
               tel={tel}
               onTel={(x) => {
+                hatayiTemizle()
                 setTel(x)
                 setVarOlanHesap(false)
               }}
@@ -277,7 +287,7 @@ export default function Register() {
             <SifreAlani
               alan="sifre"
               deger={sifre}
-              onDegis={setSifre}
+              onDegis={(x) => { hatayiTemizle(); setSifre(x) }}
               etiket={t('kayit.sifre', { n: SIFRE_HANE })}
               autoComplete="new-password"
               ipucu={t('kayit.sifreIpucu')}
@@ -285,7 +295,7 @@ export default function Register() {
             <SifreAlani
               alan="sifre2"
               deger={sifre2}
-              onDegis={setSifre2}
+              onDegis={(x) => { hatayiTemizle(); setSifre2(x) }}
               etiket={t('kayit.sifreTekrar')}
               autoComplete="new-password"
             />
@@ -300,9 +310,9 @@ export default function Register() {
                  görünsün, kullanıcı geri dönebilsin */
               ulkeGoster={konumUlke !== 'TR' ? true : undefined}
               il={il}
-              onIl={setIl}
+              onIl={(x) => { hatayiTemizle(); setIl(x) }}
               ilce={ilce}
-              onIlce={setIlce}
+              onIlce={(x) => { hatayiTemizle(); setIlce(x) }}
             />
 
             {/* Makineyi kimden aldığı — isteğe bağlı.
@@ -319,7 +329,7 @@ export default function Register() {
               <input
                 className="input"
                 value={satici}
-                onChange={(e) => setSatici(e.target.value)}
+                onChange={(e) => { hatayiTemizle(); setSatici(e.target.value) }}
                 placeholder={t('kayit.saticiOrnek')}
                 autoCapitalize="words"
               />
@@ -333,13 +343,13 @@ export default function Register() {
               <OnayKutusu
                 cumle={metinDilde(AYDINLATMA, dil).onayCumlesi}
                 deger={aydinlatmaOnay}
-                onDegis={setAydinlatmaOnay}
+                onDegis={(x) => { hatayiTemizle(); setAydinlatmaOnay(x) }}
                 onOku={() => setAcikMetin(metinDilde(AYDINLATMA, dil))}
               />
               <OnayKutusu
                 cumle={metinDilde(ACIK_RIZA, dil).onayCumlesi}
                 deger={rizaOnay}
-                onDegis={setRizaOnay}
+                onDegis={(x) => { hatayiTemizle(); setRizaOnay(x) }}
                 onOku={() => setAcikMetin(metinDilde(ACIK_RIZA, dil))}
               />
               <OnayKutusu

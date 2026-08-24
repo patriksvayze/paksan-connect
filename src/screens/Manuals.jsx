@@ -28,10 +28,14 @@ export default function Manuals() {
   /* Kullanıcının makinelerinin modelleri — aynı modelden iki tane varsa
      kılavuz listesinde bir kez görünsün. */
   const benimModellerim = []
+  /* Kılavuzu HENÜZ olmayan kayıtlı makineler. Bunlar listede
+     görünemiyor; kullanıcıya sebebini söylemek gerekiyor. */
+  const kilavuzsuzlarim = []
   for (const m of machines) {
     const p = getProduct(m.productId)
-    if (!p || !kilavuzVarMi(p.id)) continue
-    if (!benimModellerim.some((x) => x.id === p.id)) benimModellerim.push(p)
+    if (!p) continue
+    const hedef = kilavuzVarMi(p.id) ? benimModellerim : kilavuzsuzlarim
+    if (!hedef.some((x) => x.id === p.id)) hedef.push(p)
   }
 
   /* Sıralama makine tipine göre: küçük balya → büyük balya →
@@ -63,6 +67,23 @@ export default function Manuals() {
             <IconRight size={21} />
           </span>
         </Link>
+
+        {/* Kayıtlı makinesinin kılavuzu yoksa kullanıcı listede kendi
+            makinesini arayıp bulamıyordu ve neden olmadığı hiçbir yerde
+            yazmıyordu. Ürünler ekranından bakınca açıklama çıkıyor ama
+            buraya gelen kullanıcı boşluğa bakıyordu. */}
+        {kilavuzsuzlarim.length > 0 && (
+          <div className="card" style={{ marginBottom: 18 }}>
+            <div className="card__title">{t('kilavuz.makinemYok')}</div>
+            <div className="card__sub" style={{ marginTop: 6, lineHeight: 1.6 }}>
+              {t('kilavuz.makinemYokAlt', {
+                makineler: kilavuzsuzlarim
+                  .map((p) => urunDilde(p, dil).name)
+                  .join(', '),
+              })}
+            </div>
+          </div>
+        )}
 
         {benimModellerim.length > 0 && (
           <>

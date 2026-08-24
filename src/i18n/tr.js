@@ -628,6 +628,8 @@ export const tr = {
     belgeAlt: '{n} sayfalık kullanım kılavuzundan',
     varyantSecin: 'Değerler modele göre değişiyor. Kendi modelinizi seçin.',
     kilavuzYok: 'Bu modelin kullanım kılavuzu henüz uygulamaya eklenmedi.',
+    makinemYok: 'Makinenizin kılavuzu henüz eklenmedi',
+    makinemYokAlt: '{makineler} için kullanım kılavuzu hazırlanıyor. Hazır olduğunda burada görünecek. O zamana kadar arıza çözümü için Destek ekranını kullanabilirsiniz.',
 
     /* Güvenlik: makine sayfasında yalnız "el sürmeden önce" kuralları
        duruyor, tamamı ortak Güvenlik Kuralları sayfasında. */

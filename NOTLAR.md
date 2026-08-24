@@ -5,7 +5,7 @@
 > `src/config.js` (UYGULAMA), `capacitor.config.json`,
 > `android/app/src/main/res/values/strings.xml`.
 
-Sürüm: **0.9.7 (demo)** · Tarih: 22 Ağustos 2026
+Sürüm: **0.9.8 (demo)** · Tarih: 24 Ağustos 2026
 
 ---
 
