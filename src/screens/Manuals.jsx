@@ -73,7 +73,10 @@ export default function Manuals() {
             yazmıyordu. Ürünler ekranından bakınca açıklama çıkıyor ama
             buraya gelen kullanıcı boşluğa bakıyordu. */}
         {kilavuzsuzlarim.length > 0 && (
-          <div className="card" style={{ marginBottom: 18 }}>
+          /* Üstteki güvenlik satırıyla arasında ayrı bir kutu olduğu
+             belli olacak kadar boşluk var; bitişik durduğunda ikisi tek
+             bir blok gibi okunuyordu. */
+          <div className="card" style={{ marginTop: 20, marginBottom: 18 }}>
             <div className="card__title">{t('kilavuz.makinemYok')}</div>
             <div className="card__sub" style={{ marginTop: 6, lineHeight: 1.6 }}>
               {t('kilavuz.makinemYokAlt', {

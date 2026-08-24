@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { PaksanLogo } from '../components/Marka'
+import { Safak } from '../components/Safak'
 import { IconRight } from '../components/Icons'
 import { SIRKET, SURUM } from '../config'
 import { DilSecici } from '../components/DilSecici'
@@ -8,16 +8,16 @@ import { useDil } from '../i18n'
 /* ==========================================================================
    Karşılama — uygulamanın ilk ekranı
 
-   İçerik sade: PAKSAN yazısı, "1970'ten beri / Yanınızdayız" ve iki
-   buton. Rakamlar, kuruluş bilgisi ve slogan kaldırıldı — ilk ekranın
-   işi bilgi vermek değil, marka duygusu verip kullanıcıyı içeri almak.
+   İçerik sade: "1970'ten beri / Yanınızdayız" ve iki buton. Rakamlar
+   ve slogan yok — ilk ekranın işi bilgi vermek değil, marka duygusu
+   verip kullanıcıyı içeri almak.
 
-   Tasarım: neredeyse siyah lacivert zemin, üstünde ince teknik çizim
-   ızgarası ve solda dikey turuncu bir çizgi. Yazılar sola hizalı, amblem
-   yok — yalın yazı daha ciddi duruyor, mühendislik dosyası gibi.
+   Arkasında gün doğumu sahnesi var (bkz. src/components/Safak.jsx):
+   gökyüzü geceden şafağa dönüyor, güneş ufkun arkasından yükseliyor ve
+   PAKSAN yazısı onunla birlikte doğuyor. Altta tarla ve balyalar.
 
-   (Üç tasarım denenmişti; bu seçildikten sonra diğer ikisi ve
-   arasında geçiş yapan adres anahtarı silindi.)
+   Marka yazısı bu yüzden burada değil, sahnenin içinde: hareket eden
+   bir katman.
    ========================================================================== */
 
 export default function Welcome() {
@@ -25,20 +25,18 @@ export default function Welcome() {
   const { t } = useDil()
 
   return (
-    <div className="app giris">
-      <div className="giris__ic">
+    <Safak>
+      <div className="app giris">
+        <div className="giris__ic">
         {/* Dil seçimi en tepede: uygulamayı ilk açan kişi hiçbir şey
             okumadan önce kendi dilini seçebilsin. */}
         <div className="giris__dil">
           <DilSecici koyu />
         </div>
 
-        <div className="spacer" style={{ flexGrow: 0.9 }} />
-
-        {/* ------------------------------------------------------- Marka */}
-        <div className="giris__marka fade-in">
-          <PaksanLogo height={68} sadeceYazi beyaz className="giris__logo giris__logo--yalin" />
-        </div>
+        {/* Marka yazısı sahnenin kendi katmanında, güneşle birlikte
+            doğuyor. Burada yalnız onun kapladığı yer bırakılıyor. */}
+        <div className="spacer" style={{ flexGrow: 1.9 }} />
 
         {/* ------------------------------------------------------- Söz
 
@@ -72,7 +70,8 @@ export default function Welcome() {
             verirken ilk sorulan şey; kullanıcı uygulamaya girmeden
             söyleyebilsin diye burada. */}
         <p className="giris__surum">{t('ortak.surum', { s: SURUM })}</p>
+        </div>
       </div>
-    </div>
+    </Safak>
   )
 }

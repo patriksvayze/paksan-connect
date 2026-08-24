@@ -605,8 +605,206 @@ p {
    Uygulamanın ilk ekranı ve tek tam koyu ekranı. Amaç: iki saniyede
    kurumu tanıtmak ve tek bir işleme yöneltmek.                           */
 
+/* ==========================================================================
+   Şafak — karşılama ekranının açılış sahnesi
+
+   Katman sırası aşağıdan yukarı:
+
+       gök      boyanan gökyüzü, gece → şafak
+       güneş    ufkun arkasından yükseliyor
+       tarla    görsel; güneşin alt yarısını kapatıyor
+       logo     güneşle birlikte doğuyor
+       içerik   söz ve düğmeler, en son beliriyor
+
+   Bitiş rengi bilerek koyu bırakıldı: gökyüzü açık olsaydı üstündeki
+   beyaz yazı okunmazdı. Üstte lacivert, ufka doğru turuncu — marka
+   renklerinin ikisi de sahnede.
+   ========================================================================== */
+
+.safak {
+  position: relative;
+  min-height: 100%;
+  overflow: hidden;
+  isolation: isolate;
+  /* Dikey esneklik zinciri: sahne → içerik → karşılama ekranı.
+     Kopuk olduğunda içerik ekranın tamamını kaplamıyor, aradaki
+     boşluklar çalışmıyor ve düğmeler logonun üstüne biniyordu. */
+  display: flex;
+  flex-direction: column;
+}
+
+/* ------------------------------------------------------------- Gökyüzü */
+
+.safak__gok {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    linear-gradient(
+      180deg,
+      #060f21 0%,
+      #0d2148 42%,
+      #2a3d63 66%,
+      #7a4a2a 84%,
+      #b85a1e 100%
+    );
+  /* Gece hâli: sahne başlarken sıcak tonlar yok */
+  filter: saturate(0.25) brightness(0.42);
+  transition: filter 1.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.safak--bitti .safak__gok,
+.safak:not(.safak--bitti) .safak__gok {
+  filter: saturate(1) brightness(1);
+}
+
+/* Animasyon oynarken gece hâlinden başlaması için ayrı bir kural
+   gerekiyor; yukarıdaki geçiş onu şafağa taşıyor. */
+@media (prefers-reduced-motion: no-preference) {
+  .safak:not(.safak--bitti) .safak__gok {
+    animation: safak-gok 1.8s cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+}
+
+@keyframes safak-gok {
+  from { filter: saturate(0.2) brightness(0.35); }
+  to   { filter: saturate(1) brightness(1); }
+}
+
+/* --------------------------------------------------------------- Güneş */
+
+.safak__gunes {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  /* Bitmiş hâlde ufkun hemen üstünde duruyor */
+  bottom: 15%;
+  width: 190px;
+  height: 190px;
+  margin-left: -95px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffb057 0%, #f2801f 62%, #e8641a 100%);
+  box-shadow: 0 0 90px 30px rgba(232, 100, 26, 0.34);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .safak:not(.safak--bitti) .safak__gunes {
+    animation: safak-gunes 2s cubic-bezier(0.22, 0.7, 0.3, 1) both;
+  }
+}
+
+@keyframes safak-gunes {
+  from {
+    transform: translateY(190px) scale(0.86);
+    opacity: 0.35;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* --------------------------------------------------------------- Tarla */
+
+.safak__tarla {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  /* Ekran boyuna göre şerit; uzun telefonlarda gökyüzü büyüyor,
+     kısa olanlarda tarla ezilmiyor. */
+  height: 19vh;
+  min-height: 96px;
+  object-fit: cover;
+  object-position: 50% 0;
+  display: block;
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------------- Logo */
+
+.safak__logo {
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  right: 0;
+  /* Güneşin biraz üstünde, gökyüzünün ortasında */
+  top: 26%;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .safak:not(.safak--bitti) .safak__logo {
+    animation: safak-logo 1.5s cubic-bezier(0.22, 0.7, 0.3, 1) 0.5s both;
+  }
+}
+
+@keyframes safak-logo {
+  from {
+    transform: translateY(52px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* -------------------------------------------------------------- İçerik */
+
+.safak__ic {
+  position: relative;
+  z-index: 3;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Karşılama ekranı sahnenin içinde tam boy VE tam genişlikte kalsın.
+
+   `.app` normalde `max-width: 560px; margin: 0 auto` ile ortalanıyor.
+   Esnek bir kapsayıcının içinde yatay `auto` kenar boşluğu ögeyi
+   genişlemekten alıkoyuyor; ekran 375 piksel iken içerik 294 piksele
+   düşüyor ve yanlarda tuhaf boşluk kalıyordu. Genişlik sınırı
+   içerideki bloğa taşındı. */
+.safak__ic > .giris {
+  flex: 1;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
+.safak__ic .giris__ic {
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  /* Tarla şeridinin üstünde kalsın. Şerit ekranın altında duruyor ve
+     saman rengi; "Giriş yap" düğmesinin beyaz yazısı onun üstünde
+     okunmuyordu. Aradaki boşluklar esnek olduğu için bu pay içeriği
+     yukarı itiyor, kısa ekranda da taşma yapmıyor. */
+  padding-bottom: calc(19vh + 18px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .safak:not(.safak--bitti) .safak__ic {
+    animation: safak-ic 0.9s ease 1.5s both;
+  }
+}
+
+@keyframes safak-ic {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 .giris {
-  background: #060f21;
+  /* Zemin artık şafak sahnesi çiziyor; ekran onun üstünde saydam
+     duruyor (bkz. src/components/Safak.jsx). */
+  background: none;
   color: #fff;
   min-height: 100%;
   position: relative;
@@ -620,35 +818,8 @@ p {
    Yazılar sola hizalı: ortalanmış her şey "hazır şablon" hissi
    veriyordu. */
 
-.giris::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-  background-size: 28px 28px;
-  pointer-events: none;
-}
 
 /* Soldan geçen turuncu dikey çizgi — sayfayı bir cetvel gibi bölüyor */
-.giris::after {
-  content: "";
-  position: absolute;
-  left: 24px;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: linear-gradient(
-    180deg,
-    transparent 0%,
-    var(--pk-orange) 22%,
-    var(--pk-orange) 62%,
-    transparent 100%
-  );
-  opacity: 0.65;
-  pointer-events: none;
-}
 
 /* Butonlar tam genişlikte kalsın diye burada hizalama yapılmıyor;
    sola yaslama yalnızca marka ve söz bloklarında. */
