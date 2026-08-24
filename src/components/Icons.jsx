@@ -372,9 +372,16 @@ export const IconMic = (p) => (
   </svg>
 )
 
+/* Ses kaydını durdur.
+
+   ÖNCEDEN İÇİ BOŞ BİR KAREYDİ. Kayıt düğmesinin yanında duruyor ve
+   "durdur" demiyordu; boş kare bir kutu, bir seçim kutusu, herhangi
+   bir şey olabilirdi. Dolu kare evrensel olarak "durdur" demek, daire
+   de onu bir düğme yapıyor — kayıt düğmesiyle aynı dilde. */
 export const IconStop = (p) => (
   <svg {...base(p)}>
-    <rect x="6" y="6" width="12" height="12" rx="2.2" />
+    <circle cx="12" cy="12" r="9" />
+    <rect x="8.6" y="8.6" width="6.8" height="6.8" rx="1.5" fill="currentColor" stroke="none" />
   </svg>
 )
 
@@ -438,30 +445,57 @@ export const IconVideo = (p) => (
    balonu. İkisi de "mesaj" ama farklı şeyler.
    ========================================================================== */
 
-/* Dashboard — bir büyük, iki küçük kutu. Panonun kendi yerleşimi.
-   IconGrid'den (dört eşit kare) bilerek farklı. */
+/* Dashboard — solda bir uzun, sağda iki geniş kutu. Panonun kendi
+   yerleşimi; IconGrid'den (dört eşit kare) bilerek farklı.
+
+   Oranlar düzeltildi: üç kutu da aynı genişlikteyken düzen "bir uzun
+   iki kısa" değil "üç kutu" gibi okunuyordu. Sol kutu daraldı, sağdakiler
+   genişledi; artık bir pano yerleşimine benziyor. */
 export const IconPano = (p) => (
   <svg {...base(p)}>
-    <rect x="3" y="3" width="7.5" height="18" rx="2" />
-    <rect x="13.5" y="3" width="7.5" height="7" rx="2" />
-    <rect x="13.5" y="14" width="7.5" height="7" rx="2" />
+    <rect x="3" y="3" width="6" height="18" rx="1.8" />
+    <rect x="11.4" y="3" width="9.6" height="7.6" rx="1.8" />
+    <rect x="11.4" y="13.4" width="9.6" height="7.6" rx="1.8" />
   </svg>
 )
 
-/* Talepler — gelen kutusu. Yığılan iş anlamını taşıyor. */
+/* Talepler — gelen kutusu, içine düşen ok.
+
+   ÖNCEDEN YALNIZ KUTUYDU. Kutunun eğimli yan duvarları, ağzı ve alt
+   gövdesi üç ayrı çizgiydi; 22 pikselde hepsi birbirine giriyor,
+   ortaya tanınmayan bir şekil çıkıyordu. Üstelik duran bir kutu
+   "gelen talep" demiyordu — sadece bir kap.
+
+   Ok eklendi, üstteki karışık duvarlar çıkarıldı. Aşağı inen ok
+   "geliyor" diyor; asıl anlatılmak istenen bu. */
 export const IconTalep = (p) => (
   <svg {...base(p)}>
-    <path d="M3 13.5h4.2l1.4 2.4h6.8l1.4-2.4H21" />
-    <path d="M5.2 13.5 6.9 5.2a1.4 1.4 0 0 1 1.4-1.1h7.4a1.4 1.4 0 0 1 1.4 1.1l1.7 8.3" />
-    <path d="M3 13.5v4.9A2.6 2.6 0 0 0 5.6 21h12.8a2.6 2.6 0 0 0 2.6-2.6v-4.9" />
+    {/* Kutunun ağzı ve gövdesi */}
+    <path d="M3 13.8h4.4l1.4 2.4h6.4l1.4-2.4H21" />
+    <path d="M3 13.8v4.6A2.6 2.6 0 0 0 5.6 21h12.8a2.6 2.6 0 0 0 2.6-2.6v-4.6" />
+    {/* İçine düşen ok */}
+    <path d="M12 3v6.6" />
+    <path d="M9.2 7.1 12 9.9l2.8-2.8" />
   </svg>
 )
 
-/* Raporlar — sütun grafik. */
+/* Raporlar — sütun grafik.
+
+   ÖNCE ÜÇ ÇİZGİ VARDI, HAVADA DURUYORDU. Sütunlar tek kalınlıkta üç
+   dikey çizgiydi; altlarındaki yatay çizgi zemin değil dördüncü bir
+   çizgi gibi görünüyordu. 22 pikselde üç çizgi ve bir çizgi, grafiğe
+   benzemiyordu.
+
+   Şimdi soldan ve alttan bir eksen var, sütunlar da o eksenin üstünde
+   duran gövdeler. Grafik olduğu bir bakışta anlaşılıyor. */
 export const IconRapor = (p) => (
-  <svg {...base(p)}>
-    <path d="M3.5 20.5h17" />
-    <path d="M7 20.5v-5.5M12 20.5v-11M17 20.5v-7.5" />
+  <svg {...base(p)} strokeWidth={p.sw || 1.9}>
+    {/* Eksen: solda dikey, altta yatay */}
+    <path d="M4 3.8V20h16.2" />
+    {/* Sütunlar — eksenin üstünde, farklı boylarda */}
+    <rect x="7" y="13.6" width="3.4" height="6.4" rx="0.7" />
+    <rect x="12.2" y="9.6" width="3.4" height="10.4" rx="0.7" />
+    <rect x="17.4" y="11.8" width="3.4" height="8.2" rx="0.7" />
   </svg>
 )
 
