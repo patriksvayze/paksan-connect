@@ -76,7 +76,7 @@
   --surface-3: #e8edf5;
   --ink: #0f1c33;
   --ink-2: #55617a;
-  --ink-3: #8a95a9;
+  --ink-3: #646f82;
   --line: #e6eaf2;
   --line-strong: #d6dde9;
 
@@ -1800,17 +1800,26 @@ p {
 /* Beş sekmeye çıkınca her sekmeye düşen yer beşte bire indi. Yazıyı
    kısaltıp üç nokta koymak yerine punto düşürülüyor; en dar cihazlarda
    yanlardaki boşluk da daraltılıyor. Simgeler yine tam ortada,
-   aralıkları her dilde birebir aynı. */
+   aralıkları her dilde birebir aynı.
+
+   PUNTO GEREĞİNDEN FAZLA DÜŞÜRÜLMÜŞTÜ: 10 ve 9,5 punto. Bunlar ana
+   navigasyonun etiketleri ve uygulamayı kullananların çoğu yaşlı.
+   Ölçtüm — 375 pikselde en uzun etiket ("Ana Sayfa", "Machines")
+   12 puntoda 53 piksel yer istiyor, sekmede 61 piksel var. 320
+   pikselde 12 punto taşıyor, 11 punto tam oturuyor.
+
+   Onun için iki eşik de bir üst kademeye çekildi; iki dilde de
+   hiçbir etiket kesilmiyor. */
 @media (max-width: 420px) {
   .tabbar__item {
-    font-size: 10px;
+    font-size: 12px;
     padding: 0 2px;
   }
 }
 
 @media (max-width: 340px) {
   .tabbar__item {
-    font-size: 9.5px;
+    font-size: 11px;
     padding: 0 1px;
   }
 }
@@ -3837,7 +3846,9 @@ p {
   font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.02em;
-  color: var(--pk-orange);
+  /* Koyu turuncu: marka turuncusu bu zeminde 2,95 kontrast veriyordu.
+     Güvenlik uyarısı okunamayacaksa hiç yazmamak gibi. */
+  color: var(--pk-orange-ink);
 }
 
 .dst-guvenlik__liste {
@@ -3924,7 +3935,7 @@ p {
 
 .dst-rozet--orta {
   background: var(--pk-orange-soft, rgba(226, 132, 19, 0.1));
-  color: var(--pk-orange);
+  color: var(--pk-orange-ink);
 }
 
 .dst-rozet--servis {
@@ -3943,12 +3954,15 @@ p {
   color: var(--ink-2);
 }
 
+/* Cevabın iskeleti bu iki etiket: hangi satır "nasıl anlarsınız",
+   hangisi "ne yapmalısınız". Tarlada güneş altında okunuyor, en soluk
+   renkte ve en küçük puntoda olmaları yanlıştı. */
 .dst-sebep__etiket {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--ink-3);
+  color: var(--ink-2);
 }
 
 /* Parça listesi — yedek parça talebine taşınacak adlar */
