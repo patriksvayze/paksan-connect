@@ -54,6 +54,14 @@ export const en = {
     anaSayfayaDon: 'Back to Home',
   },
 
+  tema: {
+    baslik: 'Appearance',
+    oto: 'Automatic',
+    acik: 'Light',
+    koyu: 'Dark',
+    otoAlt: 'Follows your phone setting',
+  },
+
   dil: {
     baslik: 'Language',
     sec: 'Choose language',
@@ -713,8 +721,8 @@ export const en = {
     degistir: 'Tap to change',
 
     selam: 'Hello {ad},',
+    nasilYardim: 'How can I help you?',
     neOluyor: 'What is happening with your {makine}?',
-    neOluyorGenel: 'What is happening with your machine?',
     hangiMakine: 'Which machine do you need help with?',
     baskaMakine: 'A different machine',
     nerede: 'Which part of the machine has the problem?',

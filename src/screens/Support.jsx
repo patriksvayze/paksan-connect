@@ -171,21 +171,33 @@ export default function Support() {
     setMesajlar((x) => [...x, { id: numara, ...mesaj }])
   }
 
-  function karsilama(hedefUrunId) {
-    const u = hedefUrunId ? urunDilde(getProduct(hedefUrunId), dil) : null
+  /* Karşılama her zaman aynı iki satır. İlk soru ayrı baloncukta
+     arkadan geliyor; böylece selam, makinenin seçili olup olmamasına
+     göre değişmiyor. */
+  function karsilama() {
     return {
       id: 1,
       kim: 'bot',
       metin: [
         t('destek.selam', { ad: (user?.ad || '').split(' ')[0] || '' }),
-        u ? t('destek.neOluyor', { makine: u.name }) : t('destek.hangiMakine'),
+        t('destek.nasilYardim'),
       ].join('\n'),
     }
   }
 
+  /* Karşılamadan sonraki ilk soru: makine belliyse "ne oluyor",
+     değilse "hangi makine". */
+  function ilkSoru(hedefUrunId) {
+    const u = hedefUrunId ? urunDilde(getProduct(hedefUrunId), dil) : null
+    return u ? t('destek.neOluyor', { makine: u.name }) : t('destek.hangiMakine')
+  }
+
   function bastanBasla(hedefUrunId = urunId) {
-    sayac.current = 1
-    setMesajlar([karsilama(hedefUrunId)])
+    sayac.current = 2
+    setMesajlar([
+      karsilama(),
+      { id: 2, kim: 'bot', metin: ilkSoru(hedefUrunId) },
+    ])
     /* Makine belli değilse ilk soru o. Bölümler makineye göre
        değiştiği için önce makineyi bilmek gerekiyor. */
     setAdim({ tur: hedefUrunId ? 'bolum' : 'makine' })
@@ -242,8 +254,11 @@ export default function Support() {
     /* Pencereden seçildiyse ya da konuşma ilerlemişse baştan
        başlanıyor: bölümler ve belirtiler makineye özel. */
     if (pencereden || adim?.tur !== 'makine') {
-      sayac.current = 1
-      setMesajlar([karsilama(id)])
+      sayac.current = 2
+      setMesajlar([
+        karsilama(),
+        { id: 2, kim: 'bot', metin: ilkSoru(id) },
+      ])
       return setAdim({ tur: 'bolum' })
     }
 
@@ -273,7 +288,7 @@ export default function Support() {
     if (!bulunan) return bastanBasla(acilis)
 
     sayac.current = 1
-    setMesajlar([karsilama(acilis)])
+    setMesajlar([karsilama()])
     belirtiSec(bulunan)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

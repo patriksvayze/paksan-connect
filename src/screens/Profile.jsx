@@ -17,11 +17,12 @@ import { GonderButonu } from '../components/GonderButonu'
 import { sifreyiDegistir, sifreGecerliMi, sifreDogruMu, SIFRE_HANE } from '../lib/hesap'
 import { SifreAlani } from '../components/SifreAlani'
 import { DilSecici } from '../components/DilSecici'
+import { TemaSecici } from '../components/TemaSecici'
 import { useDil } from '../i18n'
 import { SIRKET, SURUM, UYGULAMA } from '../config'
 import {
   IconUser, IconBaler, IconMachine, IconWrench, IconRight, IconPin, IconCheckCircle,
-  IconParca, IconLock, IconPhone, IconMic, IconGlobe, IconMail, IconSend,
+  IconGorunum, IconParca, IconLock, IconPhone, IconMic, IconGlobe, IconMail, IconSend,
 } from '../components/Icons'
 
 export default function Profile() {
@@ -445,6 +446,18 @@ export default function Profile() {
               <div className="listitem__title">{t('dil.baslik')}</div>
             </div>
             <DilSecici />
+          </div>
+
+          {/* Görünüm — açık/koyu. "Otomatik" telefonun kendi ayarını
+              izliyor ve varsayılan o; telefonu gün batımında kendiliğinden
+              koyuya dönen kullanıcı bu davranışı kaybetmesin. */}
+          <div className="listitem listitem--sarmal">
+            <div className="listitem__icon"><IconGorunum size={22} /></div>
+            <div className="listitem__body">
+              <div className="listitem__title">{t('tema.baslik')}</div>
+              <div className="listitem__sub">{t('tema.otoAlt')}</div>
+            </div>
+            <TemaSecici />
           </div>
 
           {/* Satırlarda yalnızca düğme adı duruyor; alt açıklamalar

@@ -53,6 +53,14 @@ export const tr = {
     anaSayfayaDon: 'Ana Sayfaya Dön',
   },
 
+  tema: {
+    baslik: 'Görünüm',
+    oto: 'Otomatik',
+    acik: 'Açık',
+    koyu: 'Koyu',
+    otoAlt: 'Telefonunuzun ayarını izler',
+  },
+
   dil: {
     baslik: 'Dil',
     sec: 'Dil seçin',
@@ -723,8 +731,8 @@ export const tr = {
 
     /* ------------------------------------------------------- Sohbet */
     selam: 'Merhaba {ad},',
+    nasilYardim: 'Nasıl yardımcı olabilirim?',
     neOluyor: '{makine} makinenizde ne oluyor?',
-    neOluyorGenel: 'Makinenizde ne oluyor?',
     hangiMakine: 'Hangi makineniz için yardım istiyorsunuz?',
     baskaMakine: 'Başka bir makine',
     nerede: 'Sorun makinenin hangi bölümünde?',

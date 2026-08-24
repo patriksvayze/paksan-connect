@@ -467,3 +467,12 @@ export const IconKayit = (p) => (
     <path d="M12 7.8V12l3 1.8" />
   </svg>
 )
+
+/* Görünüm ayarı — yarısı dolu daire. Açık/koyu tema seçiminin yerleşik
+   simgesi; ay ya da güneş çizmek "otomatik" seçeneğini anlatamıyor. */
+export const IconGorunum = (p) => (
+  <svg {...base(p)}>
+    <circle cx="12" cy="12" r="8.5" />
+    <path d="M12 3.5a8.5 8.5 0 0 1 0 17Z" fill="currentColor" stroke="none" />
+  </svg>
+)

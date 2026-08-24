@@ -158,65 +158,140 @@
    ailesi lacivert.
    ========================================================================== */
 
+/* ==========================================================================
+   Karanlık tema — renk değerleri
+
+   Buradaki belirteçler doğrudan kullanılmıyor; aşağıdaki iki kural
+   bunlara bakıyor. Değerler tek yerde durduğu için yeni renk eklerken
+   tek satır yazmak yeterli.
+   ========================================================================== */
+
+:root {
+  --bg-koyu: #0d1524;
+  --surface-koyu: #161f36;
+  --surface-2-koyu: #1d2743;
+  --surface-3-koyu: #25314f;
+  --ink-koyu: #eef2f9;
+  --ink-2-koyu: #adb8cc;
+  --ink-3-koyu: #949fb5;
+  --line-koyu: #26314f;
+  --line-strong-koyu: #35426a;
+
+  /* Düğme zeminleri koyu kalıyor: üstlerindeki beyaz yazının kontrastı
+     zeminin kendi rengine bağlı, sayfaya değil. */
+  --pk-blue-koyu: #1d55c0;
+  --pk-navy-koyu: #1b2540;
+
+  /* Yazı hâlleri açılıyor — koyu zeminde okunabilsinler. */
+  --pk-blue-yazi-koyu: #6f9df5;
+  --pk-green-yazi-koyu: #3fbf74;
+  --pk-red-yazi-koyu: #f0736f;
+  --pk-orange-ink-koyu: #ff8a3d;
+  --tur-servis-yazi-koyu: #f0a53c;
+
+  /* Soluk zeminler ters çevriliyor: aydınlıkta koyu rengin çok düşük
+     saydamlığı, karanlıkta AÇIK rengin daha yükseği. */
+  --pk-blue-soft-koyu: rgba(111, 157, 245, 0.16);
+  --pk-blue-soft-2-koyu: rgba(111, 157, 245, 0.24);
+  --pk-orange-soft-koyu: rgba(255, 138, 61, 0.18);
+  --pk-green-soft-koyu: rgba(63, 191, 116, 0.18);
+  --pk-red-soft-koyu: rgba(240, 115, 111, 0.18);
+  --pk-mor-soft-koyu: rgba(168, 130, 235, 0.2);
+  --pk-mor-koyu: #a882eb;
+
+  --tur-servis-soft-koyu: rgba(240, 165, 60, 0.2);
+  --tur-parca-soft-koyu: rgba(190, 140, 245, 0.2);
+  --tur-satis-soft-koyu: rgba(96, 176, 250, 0.2);
+
+  --on-dark-2-koyu: rgba(255, 255, 255, 0.66);
+  --on-dark-3-koyu: rgba(255, 255, 255, 0.18);
+
+  /* Karanlıkta gölge görünmez; kartları zeminden ayıran asıl şey
+     kenarlık. Gölgeler yine de derinleştiriliyor. */
+  --sh-1-koyu: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --sh-2-koyu: 0 4px 12px rgba(0, 0, 0, 0.38);
+  --sh-3-koyu: 0 12px 32px rgba(0, 0, 0, 0.5);
+  --sh-blue-koyu: 0 6px 18px rgba(0, 0, 0, 0.45);
+  --sh-orange-koyu: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+
+/* Elle "Koyu" seçildiğinde — telefonun ayarı ne olursa olsun. */
+:root[data-tema='koyu'] {
+  --bg: var(--bg-koyu);
+  --surface: var(--surface-koyu);
+  --surface-2: var(--surface-2-koyu);
+  --surface-3: var(--surface-3-koyu);
+  --ink: var(--ink-koyu);
+  --ink-2: var(--ink-2-koyu);
+  --ink-3: var(--ink-3-koyu);
+  --line: var(--line-koyu);
+  --line-strong: var(--line-strong-koyu);
+  --pk-blue: var(--pk-blue-koyu);
+  --pk-navy: var(--pk-navy-koyu);
+  --pk-blue-yazi: var(--pk-blue-yazi-koyu);
+  --pk-green-yazi: var(--pk-green-yazi-koyu);
+  --pk-red-yazi: var(--pk-red-yazi-koyu);
+  --pk-orange-ink: var(--pk-orange-ink-koyu);
+  --tur-servis-yazi: var(--tur-servis-yazi-koyu);
+  --pk-blue-soft: var(--pk-blue-soft-koyu);
+  --pk-blue-soft-2: var(--pk-blue-soft-2-koyu);
+  --pk-orange-soft: var(--pk-orange-soft-koyu);
+  --pk-green-soft: var(--pk-green-soft-koyu);
+  --pk-red-soft: var(--pk-red-soft-koyu);
+  --pk-mor-soft: var(--pk-mor-soft-koyu);
+  --pk-mor: var(--pk-mor-koyu);
+  --tur-servis-soft: var(--tur-servis-soft-koyu);
+  --tur-parca-soft: var(--tur-parca-soft-koyu);
+  --tur-satis-soft: var(--tur-satis-soft-koyu);
+  --on-dark-2: var(--on-dark-2-koyu);
+  --on-dark-3: var(--on-dark-3-koyu);
+  --sh-1: var(--sh-1-koyu);
+  --sh-2: var(--sh-2-koyu);
+  --sh-3: var(--sh-3-koyu);
+  --sh-blue: var(--sh-blue-koyu);
+  --sh-orange: var(--sh-orange-koyu);
+}
+
+/* Telefonun ayarı koyu VE kullanıcı elle "Açık" dememişse.
+
+   "Otomatik" seçildiğinde (öznitelik hiç yok) bu kural devreye giriyor;
+   "Açık" seçildiğinde `:not()` yüzünden girmiyor. */
 @media (prefers-color-scheme: dark) {
-  :root {
-    /* ---- Yüzeyler ------------------------------------------------------ */
-    --bg: #0d1524;
-    --surface: #161f36;
-    --surface-2: #1d2743;
-    --surface-3: #25314f;
-    --ink: #eef2f9;
-    --ink-2: #adb8cc;
-    --ink-3: #949fb5;
-    --line: #26314f;
-    --line-strong: #35426a;
-
-    /* ---- Marka --------------------------------------------------------- */
-
-    /* Düğme zeminleri KOYU KALIYOR: üstlerindeki beyaz yazının kontrastı
-       zeminin kendi rengine bağlı, sayfaya değil. Açılırlarsa yazı
-       okunmaz olur. */
-    --pk-blue: #1d55c0;
-    --pk-navy: #1b2540;
-
-    /* Yazı hâlleri açılıyor — koyu zeminde okunabilsinler. */
-    --pk-blue-yazi: #6f9df5;
-    --pk-green-yazi: #3fbf74;
-    --pk-red-yazi: #f0736f;
-    --pk-orange-ink: #ff8a3d;
-    --tur-servis-yazi: #f0a53c;
-
-    /* Soluk zeminler: aydınlık modda koyu rengin çok düşük saydamlığı,
-       karanlık modda AÇIK rengin daha yüksek saydamlığı. Ters çevrilmezse
-       koyu zemin üzerinde koyu leke olarak görünmez oluyorlar. */
-    --pk-blue-soft: rgba(111, 157, 245, 0.16);
-    --pk-blue-soft-2: rgba(111, 157, 245, 0.24);
-    --pk-orange-soft: rgba(255, 138, 61, 0.18);
-    --pk-green-soft: rgba(63, 191, 116, 0.18);
-    --pk-red-soft: rgba(240, 115, 111, 0.18);
-    --pk-mor-soft: rgba(168, 130, 235, 0.2);
-    --pk-mor: #a882eb;
-
-    --tur-servis-soft: rgba(240, 165, 60, 0.2);
-    --tur-parca-soft: rgba(190, 140, 245, 0.2);
-    --tur-satis-soft: rgba(96, 176, 250, 0.2);
-
-    /* Koyu zeminde beyaz yazı; değerler aynı ama zemin değiştiği için
-       burada da tanımlı kalması gerekiyor. */
-    --on-dark: rgba(255, 255, 255, 0.95);
-    --on-dark-2: rgba(255, 255, 255, 0.66);
-    --on-dark-3: rgba(255, 255, 255, 0.18);
-
-    /* Gölgeler: karanlıkta gölge görünmez, onun yerine daha derin
-       siyahla hafif bir ayrım bırakılıyor. Kartları zeminden ayıran
-       asıl şey karanlık modda kenarlık. */
-    --sh-1: 0 1px 2px rgba(0, 0, 0, 0.3);
-    --sh-2: 0 4px 12px rgba(0, 0, 0, 0.38);
-    --sh-3: 0 12px 32px rgba(0, 0, 0, 0.5);
-    --sh-blue: 0 6px 18px rgba(0, 0, 0, 0.45);
-    --sh-orange: 0 6px 18px rgba(0, 0, 0, 0.45);
+  :root:not([data-tema='acik']) {
+    --bg: var(--bg-koyu);
+    --surface: var(--surface-koyu);
+    --surface-2: var(--surface-2-koyu);
+    --surface-3: var(--surface-3-koyu);
+    --ink: var(--ink-koyu);
+    --ink-2: var(--ink-2-koyu);
+    --ink-3: var(--ink-3-koyu);
+    --line: var(--line-koyu);
+    --line-strong: var(--line-strong-koyu);
+    --pk-blue: var(--pk-blue-koyu);
+    --pk-navy: var(--pk-navy-koyu);
+    --pk-blue-yazi: var(--pk-blue-yazi-koyu);
+    --pk-green-yazi: var(--pk-green-yazi-koyu);
+    --pk-red-yazi: var(--pk-red-yazi-koyu);
+    --pk-orange-ink: var(--pk-orange-ink-koyu);
+    --tur-servis-yazi: var(--tur-servis-yazi-koyu);
+    --pk-blue-soft: var(--pk-blue-soft-koyu);
+    --pk-blue-soft-2: var(--pk-blue-soft-2-koyu);
+    --pk-orange-soft: var(--pk-orange-soft-koyu);
+    --pk-green-soft: var(--pk-green-soft-koyu);
+    --pk-red-soft: var(--pk-red-soft-koyu);
+    --pk-mor-soft: var(--pk-mor-soft-koyu);
+    --pk-mor: var(--pk-mor-koyu);
+    --tur-servis-soft: var(--tur-servis-soft-koyu);
+    --tur-parca-soft: var(--tur-parca-soft-koyu);
+    --tur-satis-soft: var(--tur-satis-soft-koyu);
+    --on-dark-2: var(--on-dark-2-koyu);
+    --on-dark-3: var(--on-dark-3-koyu);
+    --sh-1: var(--sh-1-koyu);
+    --sh-2: var(--sh-2-koyu);
+    --sh-3: var(--sh-3-koyu);
+    --sh-blue: var(--sh-blue-koyu);
+    --sh-orange: var(--sh-orange-koyu);
   }
-
 }
 
 
@@ -1242,6 +1317,17 @@ p {
 
    İki dil olduğu için açılır liste değil, yan yana iki düğme: tek
    dokunuşla değişiyor, hangi dilde olunduğu bakar bakmaz görünüyor.   */
+
+/* Üç düğmeli seçici satıra sığmayınca alta iniyor (Görünüm ayarı).
+   Dil seçicide iki düğme var, o hep yan yana kalıyor. */
+.listitem--sarmal {
+  flex-wrap: wrap;
+  row-gap: 10px;
+}
+
+.listitem--sarmal .dilsec {
+  margin-left: auto;
+}
 
 .dilsec {
   display: inline-flex;
@@ -4362,24 +4448,47 @@ p {
    kurallar bunları ezerdi — nitekim ilk denemede öyle oldu.
    ========================================================================== */
 
+/* Bileşen düzeltmeleri iki durumda da geçerli: elle koyu seçilmiş ya da
+   sistem koyu ve elle açık seçilmemiş. Seçici listesi ikisini de
+   sayıyor. */
+:root[data-tema='koyu'] .card,
+:root[data-tema='koyu'] .listitem,
+:root[data-tema='koyu'] .chip {
+  border: 1px solid var(--line);
+}
+
+:root[data-tema='koyu'] .topbar {
+  background: rgba(13, 21, 36, 0.82);
+}
+
+:root[data-tema='koyu'] .composer,
+:root[data-tema='koyu'] .actionbar {
+  background: rgba(13, 21, 36, 0.92);
+}
+
+:root[data-tema='koyu'] .photo {
+  background: linear-gradient(168deg, var(--surface-2) 0%, var(--surface) 100%);
+  border: 1px solid var(--line);
+}
+
 @media (prefers-color-scheme: dark) {
   /* Kartların kenarlığı karanlıkta zeminden ayrılmayı sağlıyor; gölge
      bunu yapamıyor. */
-  .card,
-  .listitem,
-  .chip {
+  :root:not([data-tema='acik']) .card,
+  :root:not([data-tema='acik']) .listitem,
+  :root:not([data-tema='acik']) .chip {
     border: 1px solid var(--line);
   }
 
   /* Saydam açık şeritler. Üçü de arkasını bulanıklaştırıyor, o yüzden
      saydam kalmaları gerekiyor — düz renge çevirmek altındaki içeriğin
      görünmesini bozar. Yalnız rengin kendisi koyuya döndü. */
-  .topbar {
+  :root:not([data-tema='acik']) .topbar {
     background: rgba(13, 21, 36, 0.82);
   }
 
-  .composer,
-  .actionbar {
+  :root:not([data-tema='acik']) .composer,
+  :root:not([data-tema='acik']) .actionbar {
     background: rgba(13, 21, 36, 0.92);
   }
 
@@ -4392,7 +4501,7 @@ p {
      degrade koyuya çevrildi ve ince bir çerçeve eklendi: böylece beyaz
      alan "bozuk arayüz" değil, çerçevelenmiş bir fotoğraf gibi
      okunuyor. */
-  .photo {
+  :root:not([data-tema='acik']) .photo {
     background: linear-gradient(168deg, var(--surface-2) 0%, var(--surface) 100%);
     border: 1px solid var(--line);
   }
