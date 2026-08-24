@@ -50,68 +50,54 @@ export const IconMachine = (p) => (
   </svg>
 )
 
-/* "Makinelerim" sekmesi — yandan görünen rulo balya makinesi.
+/* Balya makinesi — alt menüdeki "Makineler" sekmesi.
 
-   Biçim, şirketin verdiği örnek görselden alındı: yüksek balya haznesi,
-   üstte kapak, solda yuvarlatılmış arka kapak, sağda pikap ve çeki oku,
-   altta biri büyük iki tekerlek.
+   PAKSAN'IN KENDİ ÇİZİMİNDEN GELİYOR. "Makinelerim" listesi boşken
+   gösterilen çizimle (src/assets/gorseller/bos-makine.png) aynı
+   makine: yüksek gövde, üstte kapak, soldan aşağı inen çeki oku,
+   ucunda kanca topu, altta iki eşit tekerlek.
 
-   NOT: Örnek dosya (Makinelerim Logo/sample.avif) VectorStock filigranlı
-   bir önizlemeydi; lisanssız olduğu için uygulamaya konmadı. İkon aynı
-   makinenin silüetine bakılarak uygulamanın kendi çizgi stilinde
-   yeniden çizildi — böylece diğer ikonlarla aynı kalınlık ve dilde. */
-/* Balya makinesi — "Makineler" sekmesi.
+   Çizimdeki her ayrıntı gelmedi. Kapağın üstündeki küçük ağız denendi
+   ve çıkarıldı: 24 piksellik kutuda o parça çizgi kalınlığından daha
+   kısa kalıyor, üst üste üç kutu gibi görünüp silüeti bulandırıyordu.
+   Yer çizgileri ve yandaki rulolar da yok — onlar boş liste çiziminin
+   manzarası, makinenin parçası değil.
 
-   PAKSAN'ın gönderdiği rulo balya makinesi simgesinden çizildi: dolu
-   siluet gövde, sol uçta çeki oku, altta kalın halkalı iki tekerlek.
-   Uygulamanın diğer simgeleri çizgi tabanlı; bu bilerek dolu bırakıldı,
-   çünkü kaynağı öyle ve alt menüde ürünün kendisini temsil ediyor.
+   AYNI MAKİNENİN İKİ BOYU. Boş liste çizimi ile alt menü simgesi artık
+   aynı şeyi gösteriyor; kullanıcı "makine" kavramını bir kere
+   öğreniyor. Önceki simge dolu bir siluetti ve o çizimle ilgisi yoktu.
 
-   Ölçüler 24'lük kutuya oturtuldu, renk `currentColor` — sekme seçili
-   olduğunda beyaza, değilken soluk beyaza kendiliğinden dönüyor.
+   ÇİZGİ, DOLU DEĞİL. Alt menüdeki diğer dört simge (ana sayfa, ürünler,
+   destek, profil) çizgi tabanlı; dolu siluet aralarında ağır duruyordu.
+   Kaynak çizim de zaten çizgi. Yalnızca göbekler ve kanca topu dolu —
+   24 pikselde içi boş küçük daireler leke gibi görünüyor.
 
-   İki alternatifi hazır (aşağıdaki yorumda): sadeleştirilmiş dolu hâli
-   ve tamamen çizgi hâli. Değiştirmek için gövdeyi ve tekerlekleri
-   oradaki değerlerle değiştirmek yeterli. */
-
-/* Gövde silueti — iki alternatifte de aynı. */
-const BALYA_GOVDE =
-  'M4.3 13.8 C4.0 10.4 4.2 8.5 5.5 7.5 C7.1 6.2 10.6 5.6 13.7 5.7 ' +
-  'C17.5 5.8 19.4 6.8 19.5 8.6 C19.6 10.6 19.2 12.5 18.6 13.8 Z'
-
+   Renk `currentColor`: sekme seçiliyken beyaza, değilken soluğuna
+   kendiliğinden dönüyor. */
 export const IconBaler = (p) => (
-  <svg {...base(p)}>
-    {/* gövde */}
-    <path d={BALYA_GOVDE} fill="currentColor" stroke="none" />
-    {/* çeki oku — traktöre bağlanan uç */}
-    <path d="M1.2 9.5 4.5 8.8 4.5 11.7 1.2 11.7Z" fill="currentColor" stroke="none" />
-    <path d="M4.6 10.4 6.6 13.7" strokeWidth="1.3" />
-    {/* dingil */}
-    <path d="M12 16.6h3.2" strokeWidth="1.3" />
-    {/* tekerlekler */}
-    <circle cx="8.8" cy="16.5" r="2.9" strokeWidth="1.8" />
-    <circle cx="8.8" cy="16.5" r="0.85" fill="currentColor" stroke="none" />
-    <circle cx="16.9" cy="16.9" r="1.6" strokeWidth="1.4" />
-    <circle cx="16.9" cy="16.9" r="0.45" fill="currentColor" stroke="none" />
+  <svg {...base(p)} strokeWidth={p.sw || 1.7}>
+    {/* Kapak */}
+    <rect x="9" y="3.3" width="6" height="1.9" rx="0.7" />
+    {/* Gövde */}
+    <rect x="5.5" y="5.2" width="14.8" height="9" rx="1.8" />
+    {/* Çeki oku — traktör kancasına doğru eğimli iniyor. Düz çizilirse
+        silüet el arabasına benziyor; eğim makineyi "çekilen" bir şey
+        yapıyor. */}
+    <path d="M5.6 10.6 2.8 13.9" />
+    <circle cx="2.1" cy="14.6" r="1" fill="currentColor" stroke="none" />
+    {/* Tekerlekler ve göbekleri.
+
+        ÖLÇÜLER DENENEREK BULUNDU. Önce tekerlekler daha büyük ve
+        birbirine yakındı; 27 pikselde çizgi kalınlığı ikisinin arasını
+        kapatıyor, tek bir leke hâline geliyorlardı. Yarıçap küçültülüp
+        aralık açıldı — aradaki boşluk artık çizgi kalınlığından geniş. */}
+    <circle cx="9.8" cy="16.8" r="2.25" />
+    <circle cx="9.8" cy="16.8" r="0.7" fill="currentColor" stroke="none" />
+    <circle cx="17" cy="16.8" r="2.25" />
+    <circle cx="17" cy="16.8" r="0.7" fill="currentColor" stroke="none" />
   </svg>
 )
 
-/* ALTERNATİF B — sadeleştirilmiş dolu hâl (çeki oku kolu ve dingil yok,
-   tekerlekler biraz iri). Çok küçük ekranlarda daha temiz durur:
-
-     <path d={BALYA_GOVDE} fill="currentColor" stroke="none" />
-     <path d="M1.4 9.6 4.6 8.9 4.6 11.8 1.4 11.8Z" fill="currentColor" stroke="none" />
-     <circle cx="9" cy="16.6" r="3.1" strokeWidth="2" />
-     <circle cx="9" cy="16.6" r="0.95" fill="currentColor" stroke="none" />
-     <circle cx="17.2" cy="17" r="1.8" strokeWidth="1.7" />
-
-   ALTERNATİF C — tamamen çizgi; diğer simgelerle aynı ağırlıkta durur:
-
-     <path d={BALYA_GOVDE} strokeWidth="1.8" />
-     <path d="M1.4 9.6 4.4 8.9 4.4 11.8 1.4 11.8Z" strokeWidth="1.6" />
-     <path d="M12 16.6h3.2" strokeWidth="1.4" />
-     <circle cx="8.8" cy="16.5" r="2.9" strokeWidth="1.7" />
-     <circle cx="16.9" cy="16.9" r="1.6" strokeWidth="1.5" />                */
 
 export const IconBell = (p) => (
   <svg {...base(p)}>
@@ -239,14 +225,37 @@ export const IconAlert = (p) => (
 
    Yeni çizim o metal etiketin kendisi: perçinli plaka ve üzerindeki
    iki satır. Müşterinin makinede arayacağı şeyle aynı. */
+/* Seri numarası — makinenin üzerindeki künye etiketi.
+
+   BARKOD DEĞİL. Barkod simgesi "okut" demek; uygulamada barkod okuma
+   yok, numara etiketten okunup elle yazılıyor. Yanlış işi vaat eden
+   bir simge, kullanıcıyı olmayan bir düğmeyi aramaya gönderiyor.
+
+   İLK ETİKET DENEMESİ EKSİKTİ: perçinler yalnızca üstteydi ve iki
+   yazı satırı sola kaçıyordu; etiket bir kenarından asılmış gibi
+   duruyor, künyeye benzemiyordu.
+
+   Şimdi dört köşesinden perçinli — asıl künyeyi künye yapan ayrıntı
+   bu — ve üç satır var: üstte model, ortada KALIN olan seri numarası,
+   altta üretim yılı. Ortadaki satır en uzun ve tam koyu; simgenin
+   anlattığı şey o.
+
+   Soluk satırlar 24 piksele inince silikleşip kayboluyor, geriye
+   perçinli etiket ve numara satırı kalıyor — küçükte de doğru şeyi
+   anlatıyor. */
 export const IconBarcode = (p) => (
   <svg {...base(p)}>
-    <rect x="3" y="5.5" width="18" height="13" rx="2" />
-    {/* Köşelerdeki perçinler */}
-    <circle cx="6" cy="8.5" r="0.9" />
-    <circle cx="18" cy="8.5" r="0.9" />
-    {/* Etikete basılı numara satırları */}
-    <path d="M7.5 12.5h9M7.5 15.5h5.5" />
+    {/* Etiketin kendisi */}
+    <rect x="2.6" y="5.2" width="18.8" height="13.6" rx="2.2" />
+    {/* Dört köşedeki perçinler */}
+    <circle cx="5.3" cy="7.9" r="0.75" />
+    <circle cx="18.7" cy="7.9" r="0.75" />
+    <circle cx="5.3" cy="16.1" r="0.75" />
+    <circle cx="18.7" cy="16.1" r="0.75" />
+    {/* Model (soluk) — seri numarası (koyu) — yıl (soluk) */}
+    <path d="M8.5 9.7h4.4" opacity="0.55" />
+    <path d="M8.5 12.4h7" />
+    <path d="M8.5 15.1h4.8" opacity="0.55" />
   </svg>
 )
 
