@@ -132,7 +132,12 @@ export function TabBar() {
               (sinif ? ' ' + sinif : '')
             }
           >
-            <Icon size={27} />
+            {/* Simge kendi kapsülünün içinde. Seçili rengi yazıyı
+                değil yalnız simgeyi sarıyor — sebebi styles.css'te
+                `.tabbar__ikon` yanında yazılı. */}
+            <span className="tabbar__ikon">
+              <Icon size={24} />
+            </span>
             <span className="tabbar__label">{t(anahtar)}</span>
           </NavLink>
         )

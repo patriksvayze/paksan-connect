@@ -2220,33 +2220,63 @@ p {
   z-index: 40;
 }
 
-/* Her sekme menünün dörtte biri. Yalnızca seçili sekmenin rengi
-   değişiyor: ikon ve yazı beyaza dönüyor, altında marka mavisi bir hap
-   beliriyor. Menü sekme değişince oynamıyor, çünkü genişlikler sabit. */
+/* Her sekme menünün beşte biri. Menü sekme değişince oynamıyor,
+   çünkü genişlikler sabit. */
 .tabbar__item {
   flex: 1 1 0;
   min-width: 0;
   height: 60px;
-  border-radius: 999px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
-  padding: 0 4px;
-  color: rgba(255, 255, 255, 0.55);
+  gap: 4px;
+  padding: 0 2px;
+  color: rgba(255, 255, 255, 0.58);
   font-size: 11.5px;
   font-weight: 700;
   letter-spacing: -0.01em;
   white-space: nowrap;
-  overflow: hidden;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition: color 0.2s ease;
 }
 
+/* SEÇİLİ RENGİ YAZIYI DEĞİL SİMGEYİ SARIYOR.
+
+   Önce mavi hap sekmenin tamamıydı: simge ve yazı birlikte içine
+   alınıyordu. Sekmenin genişliği sabit (menünün beşte biri) ama yazının
+   genişliği değişken — dile, kelimeye ve punto ayarına göre. İkisi
+   birbirine yaklaşınca hap yazıyı sıfır payla sarıyordu.
+
+   Ölçüldü: 279 piksellik ekranda sekme 43, "Ana Sayfa" yazısı 41
+   piksel. Yazının iki yanında BİRER piksel kalıyordu; hap yazıyı
+   kucaklamış gibi duruyor, ucuz görünüyordu.
+
+   Kapsül artık yalnız simgenin arkasında. Genişliği yazıdan bağımsız,
+   her sekmede ve her dilde aynı. Yazı kapsülün dışında, altında; ne
+   kadar uzarsa uzasın kapsüle dokunmuyor. Sorun ayarla değil düzenle
+   çözüldü — bir daha çıkmaz. */
+.tabbar__ikon {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  max-width: 46px;
+  height: 32px;
+  border-radius: 999px;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
 
 .tabbar__item--on {
-  background: var(--pk-blue);
   color: #fff;
+}
+
+.tabbar__item--on .tabbar__ikon {
+  background: var(--pk-blue);
+}
+
+/* Dokunulduğunda kapsül hafifçe içeri basılıyor — dokunmanın işlediği
+   belli olsun. */
+.tabbar__item:active .tabbar__ikon {
+  transform: scale(0.92);
 }
 
 .tabbar__item svg {
