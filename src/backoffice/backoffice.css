@@ -63,6 +63,71 @@
   --yan: 232px;
 }
 
+/* ==========================================================================
+   Karanlık mod
+
+   Uygulamayla aynı mantık: tarayıcının/işletim sisteminin ayarı
+   izleniyor, ayrı bir düğme yok. Personelin akşam vardiyasında ya da
+   karanlık ayarlı bilgisayarda çalışması hâlinde ekran uyum sağlıyor.
+
+   Yalnız renk belirteçleri yeniden tanımlanıyor; hiçbir yerleşim ya da
+   kural değişmiyor. Sol menü zaten laciverttir ve öyle kalıyor —
+   karanlık modda gövde ona yaklaşıyor.
+
+   TABLOLAR ÖNEMLİ. Backoffice'in asıl işi tablo okumak; satır ayrımı
+   ve başlık kontrastı korunacak şekilde ayarlandı.
+   ========================================================================== */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --zemin: #0d1524;
+    --yuzey: #161f36;
+    --yuzey-2: #1d2743;
+    --murekkep: #eef2f9;
+    --murekkep-2: #adb8cc;
+    --murekkep-3: #949fb5;
+    --cizgi: #26314f;
+    --cizgi-koyu: #35426a;
+
+    /* Sol menü gövdeden ayrılsın diye bir tık açıldı */
+    --lacivert: #111c33;
+    --lacivert-2: #1b2b4d;
+
+    /* Düğme zeminleri koyu kalıyor; üstlerindeki beyaz yazının
+       kontrastı zeminin kendi rengine bağlı. */
+    --mavi: #1d55c0;
+    --mavi-acik: #4b86ee;
+
+    /* Yazı ve rozet renkleri koyu zeminde okunacak şekilde açıldı */
+    --turuncu: #ff8a3d;
+    --turuncu-d: #f0a53c;
+    --kirmizi: #f0736f;
+    --yesil: #3fbf74;
+    --mor: #a882eb;
+    --turkuaz: #35b3c4;
+    --sari: #e8c33c;
+    --gri: #9aa4b6;
+
+    --tur-servis: #f0a53c;
+    --tur-parca: #be8cf5;
+    --tur-satis: #60b0fa;
+
+    /* Soluk zeminler ters çevrildi: aydınlıkta koyu rengin düşük
+       saydamlığı, karanlıkta açık rengin daha yükseği. */
+    --kirmizi-z: rgba(240, 115, 111, 0.18);
+    --turuncu-z: rgba(255, 138, 61, 0.18);
+    --mavi-z: rgba(96, 176, 250, 0.16);
+    --yesil-z: rgba(63, 191, 116, 0.18);
+    --gri-z: rgba(154, 164, 182, 0.16);
+    --mor-z: rgba(168, 130, 235, 0.18);
+    --turkuaz-z: rgba(53, 179, 196, 0.18);
+
+    --golge: 0 1px 2px rgba(0, 0, 0, 0.32);
+    --golge-2: 0 12px 34px rgba(0, 0, 0, 0.5);
+  }
+}
+
+
 * {
   box-sizing: border-box;
 }
@@ -1830,4 +1895,26 @@ select.sec {
   background: var(--mavi-z);
   font-size: 13.5px;
   line-height: 1.6;
+}
+
+
+/* ==========================================================================
+   Karanlık mod — bileşen düzeltmeleri
+
+   Dosyanın sonunda olmak zorunda: buradaki seçiciler yukarıdaki
+   kurallarla aynı özgüllükte, CSS'te eşitlikte son gelen kazanıyor.
+   ========================================================================== */
+
+@media (prefers-color-scheme: dark) {
+  /* Kart ve tablo kutuları karanlıkta gölgeyle ayrılamıyor; kenarlık
+     devralıyor. */
+  .kart {
+    border: 1px solid var(--cizgi);
+  }
+
+  /* Tablo satır ayrımı: aydınlıkta çok hafif bir gri yeterliydi,
+     karanlıkta görünmüyordu. */
+  tbody tr:hover {
+    background: rgba(255, 255, 255, 0.04);
+  }
 }

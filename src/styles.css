@@ -53,6 +53,22 @@
   --pk-red: #c93636;
   --pk-red-soft: rgba(201, 54, 54, 0.1);
 
+  /* Marka renklerinin YAZI hâli.
+
+     Aynı renk hem yazı hem düğme zemini olarak kullanılıyor. Karanlık
+     modda yazının açılması, zeminin açılmaMASI gerekiyor: koyu mavi
+     koyu zeminde okunmuyor (kontrast 2,20), ama düğme zemini açılırsa
+     üstündeki beyaz yazı okunmaz olur.
+
+     Aydınlık modda bu değerler ana renklerle birebir aynı — ekranda
+     hiçbir fark yok. Ayrım yalnız karanlık modda işe yarıyor. */
+  --pk-blue-yazi: #1848a8;
+  --pk-green-yazi: #1a8348;
+  --pk-red-yazi: #c93636;
+
+  /* Servis rozetinin yazı rengi; sabit değer olarak gömülüydü. */
+  --tur-servis-yazi: #8f5200;
+
   /* Fiyat teklifi aşaması. Mavi ve yeşil zaten "devam ediyor" ve
      "bitti" demek; teklifin beklemesi ikisi de değil — kendi rengi
      olmalı ki listede karışmasın. */
@@ -106,6 +122,104 @@
   --composer-h: 68px;
 }
 
+/* ==========================================================================
+   Karanlık mod
+
+   NEDEN VAR
+
+   Bu makineler gün doğumunda ve batımında çalışıyor — uygulamanın kendi
+   bakım verisinde "sabah erken, çiy varken balyalayın" yazıyor. O ışıkta
+   beyaz ekran gözü yorar ve karanlığa alışmış gözü bir süre kör eder.
+   Ayrıca gece ahırda yem karma makinesinin başında telefona bakan biri
+   için de aynı şey geçerli.
+
+   Telefonun kendi ayarını izliyor; uygulamada ayrı bir düğme yok.
+   Kullanıcı telefonunu nasıl ayarladıysa uygulama ona uyuyor — çiftçiye
+   bir ayar daha öğretmeye gerek yok.
+
+   NASIL KURULDU
+
+   Yalnızca renk belirteçleri yeniden tanımlanıyor. Tek bir yerleşim,
+   ölçü ya da kural değişmiyor; bütün ekranlar aynı kalıyor. Bu yüzden
+   yeni ekran eklendiğinde karanlık mod kendiliğinden çalışıyor.
+
+   ÖLÇÜLER (WCAG AA küçük yazı için 4,5:1)
+
+     ana yazı      16,3 : 1
+     ikincil yazı   9,1 : 1
+     üçüncül yazı   6,2 : 1
+     mavi yazı      6,8 : 1
+     turuncu yazı   7,8 : 1
+     yeşil yazı     7,8 : 1
+     kırmızı yazı   6,4 : 1
+
+   Zemin saf siyah değil, lacivere çalan koyu bir ton (#0d1524). Saf
+   siyahta beyaz yazı "parlıyor" ve okumak yorucu oluyor; ayrıca marka
+   ailesi lacivert.
+   ========================================================================== */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* ---- Yüzeyler ------------------------------------------------------ */
+    --bg: #0d1524;
+    --surface: #161f36;
+    --surface-2: #1d2743;
+    --surface-3: #25314f;
+    --ink: #eef2f9;
+    --ink-2: #adb8cc;
+    --ink-3: #949fb5;
+    --line: #26314f;
+    --line-strong: #35426a;
+
+    /* ---- Marka --------------------------------------------------------- */
+
+    /* Düğme zeminleri KOYU KALIYOR: üstlerindeki beyaz yazının kontrastı
+       zeminin kendi rengine bağlı, sayfaya değil. Açılırlarsa yazı
+       okunmaz olur. */
+    --pk-blue: #1d55c0;
+    --pk-navy: #1b2540;
+
+    /* Yazı hâlleri açılıyor — koyu zeminde okunabilsinler. */
+    --pk-blue-yazi: #6f9df5;
+    --pk-green-yazi: #3fbf74;
+    --pk-red-yazi: #f0736f;
+    --pk-orange-ink: #ff8a3d;
+    --tur-servis-yazi: #f0a53c;
+
+    /* Soluk zeminler: aydınlık modda koyu rengin çok düşük saydamlığı,
+       karanlık modda AÇIK rengin daha yüksek saydamlığı. Ters çevrilmezse
+       koyu zemin üzerinde koyu leke olarak görünmez oluyorlar. */
+    --pk-blue-soft: rgba(111, 157, 245, 0.16);
+    --pk-blue-soft-2: rgba(111, 157, 245, 0.24);
+    --pk-orange-soft: rgba(255, 138, 61, 0.18);
+    --pk-green-soft: rgba(63, 191, 116, 0.18);
+    --pk-red-soft: rgba(240, 115, 111, 0.18);
+    --pk-mor-soft: rgba(168, 130, 235, 0.2);
+    --pk-mor: #a882eb;
+
+    --tur-servis-soft: rgba(240, 165, 60, 0.2);
+    --tur-parca-soft: rgba(190, 140, 245, 0.2);
+    --tur-satis-soft: rgba(96, 176, 250, 0.2);
+
+    /* Koyu zeminde beyaz yazı; değerler aynı ama zemin değiştiği için
+       burada da tanımlı kalması gerekiyor. */
+    --on-dark: rgba(255, 255, 255, 0.95);
+    --on-dark-2: rgba(255, 255, 255, 0.66);
+    --on-dark-3: rgba(255, 255, 255, 0.18);
+
+    /* Gölgeler: karanlıkta gölge görünmez, onun yerine daha derin
+       siyahla hafif bir ayrım bırakılıyor. Kartları zeminden ayıran
+       asıl şey karanlık modda kenarlık. */
+    --sh-1: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --sh-2: 0 4px 12px rgba(0, 0, 0, 0.38);
+    --sh-3: 0 12px 32px rgba(0, 0, 0, 0.5);
+    --sh-blue: 0 6px 18px rgba(0, 0, 0, 0.45);
+    --sh-orange: 0 6px 18px rgba(0, 0, 0, 0.45);
+  }
+
+}
+
+
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
@@ -150,7 +264,7 @@ button {
 }
 
 a {
-  color: var(--pk-blue);
+  color: var(--pk-blue-yazi);
   text-decoration: none;
 }
 
@@ -345,7 +459,7 @@ p {
   align-items: center;
   gap: 3px;
   flex: none;
-  color: var(--pk-blue);
+  color: var(--pk-blue-yazi);
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -752,7 +866,7 @@ p {
 
 .btn--ghost {
   background: var(--pk-blue-soft);
-  color: var(--pk-blue);
+  color: var(--pk-blue-yazi);
 }
 
 .btn--orange-soft {
@@ -789,7 +903,7 @@ p {
    Kırmızı ama dolu değil: dikkat çeksin, ama "gönder" kadar baskın olmasın. */
 .btn--bitir {
   background: var(--pk-red-soft);
-  color: var(--pk-red);
+  color: var(--pk-red-yazi);
 }
 
 .btn--lg {
@@ -841,7 +955,7 @@ p {
 .input:focus,
 .textarea:focus,
 .select:focus {
-  border-color: var(--pk-blue);
+  border-color: var(--pk-blue-yazi);
   box-shadow: 0 0 0 4px var(--pk-blue-soft);
 }
 
@@ -867,7 +981,7 @@ p {
 }
 
 .tel-kutu:focus-within {
-  border-color: var(--pk-blue);
+  border-color: var(--pk-blue-yazi);
   box-shadow: 0 0 0 4px var(--pk-blue-soft);
 }
 
@@ -918,7 +1032,7 @@ p {
 }
 
 .sifre-kutu:focus-within {
-  border-color: var(--pk-blue);
+  border-color: var(--pk-blue-yazi);
   box-shadow: 0 0 0 4px var(--pk-blue-soft);
 }
 
@@ -1008,7 +1122,7 @@ p {
 
 .field__error {
   font-size: 14px;
-  color: var(--pk-red);
+  color: var(--pk-red-yazi);
   font-weight: 500;
   margin-top: 8px;
 }
@@ -1084,7 +1198,7 @@ p {
 }
 
 .durum--on {
-  border-color: var(--pk-blue);
+  border-color: var(--pk-blue-yazi);
   background: var(--pk-blue-soft);
 }
 
@@ -1099,7 +1213,7 @@ p {
 }
 
 .durum--on .durum__isaret {
-  border-color: var(--pk-blue);
+  border-color: var(--pk-blue-yazi);
 }
 
 .durum--on .durum__isaret::after {
@@ -1266,7 +1380,7 @@ p {
   display: grid;
   place-items: center;
   background: var(--surface);
-  color: var(--pk-blue);
+  color: var(--pk-blue-yazi);
 }
 
 .onay-kutu__body {
@@ -1305,7 +1419,7 @@ p {
 }
 
 .onay--on {
-  border-color: var(--pk-blue);
+  border-color: var(--pk-blue-yazi);
   background: var(--pk-blue-soft);
 }
 
@@ -1332,7 +1446,7 @@ p {
 
 .onay--on .onay__kutu {
   background: var(--pk-blue);
-  border-color: var(--pk-blue);
+  border-color: var(--pk-blue-yazi);
   color: #fff;
 }
 
@@ -1347,7 +1461,7 @@ p {
 }
 
 .onay__oku {
-  color: var(--pk-blue);
+  color: var(--pk-blue-yazi);
   font-weight: 700;
   text-decoration: underline;
   white-space: nowrap;
@@ -1389,7 +1503,7 @@ p {
   display: grid;
   place-items: center;
   background: var(--pk-blue-soft-2);
-  color: var(--pk-blue);
+  color: var(--pk-blue-yazi);
 }
 
 .hizli__yazi {
@@ -1516,7 +1630,7 @@ p {
 .rehber__madde--on .rehber__metin {
   color: var(--ink-3);
   text-decoration: line-through;
-  text-decoration-color: var(--pk-green);
+  text-decoration-color: var(--pk-green-yazi);
 }
 
 .rehber__isaret {
@@ -1528,7 +1642,7 @@ p {
   flex: none;
   margin-top: 1px;
   background: var(--pk-green-soft);
-  color: var(--pk-green);
+  color: var(--pk-green-yazi);
   transition: background 0.14s ease, color 0.14s ease;
 }
 
@@ -1551,7 +1665,7 @@ p {
 
 .rehber__sayac--on {
   background: var(--pk-green-soft);
-  color: var(--pk-green);
+  color: var(--pk-green-yazi);
 }
 
 /* Bölüm tamamlandı şeridi */
@@ -1567,7 +1681,7 @@ p {
 
 .rehber__bitti__ikon {
   flex: none;
-  color: var(--pk-green);
+  color: var(--pk-green-yazi);
   display: grid;
   place-items: center;
 }
@@ -1576,7 +1690,7 @@ p {
   font-size: 14.5px;
   font-weight: 700;
   line-height: 1.45;
-  color: var(--pk-green);
+  color: var(--pk-green-yazi);
 }
 
 /* Bildirim adımındaki büyük ikon */
@@ -1588,7 +1702,7 @@ p {
   place-items: center;
   margin: 0 auto;
   background: var(--pk-blue-soft);
-  color: var(--pk-blue);
+  color: var(--pk-blue-yazi);
 }
 
 /* ------------------------------------------------------- Bilgilendirme metni */
@@ -1653,7 +1767,7 @@ p {
 .badge--green {
   background: var(--pk-green-soft);
   border-color: transparent;
-  color: var(--pk-green);
+  color: var(--pk-green-yazi);
 }
 
 .badge--orange {
@@ -1665,13 +1779,13 @@ p {
 .badge--red {
   background: var(--pk-red-soft);
   border-color: transparent;
-  color: var(--pk-red);
+  color: var(--pk-red-yazi);
 }
 
 .badge--blue {
   background: var(--pk-blue-soft-2);
   border-color: transparent;
-  color: var(--pk-blue);
+  color: var(--pk-blue-yazi);
 }
 
 .badge--on-dark {
@@ -1723,7 +1837,7 @@ p {
 .sectionhead button {
   font-size: 14.5px;
   font-weight: 700;
-  color: var(--pk-blue);
+  color: var(--pk-blue-yazi);
   white-space: nowrap;
 }
 
@@ -1882,7 +1996,7 @@ p {
 }
 
 .msg--bot strong {
-  color: var(--pk-blue);
+  color: var(--pk-blue-yazi);
 }
 
 .msg-ava {
@@ -2097,7 +2211,7 @@ p {
   place-items: center;
   flex: none;
   background: var(--pk-blue-soft);
-  color: var(--pk-blue);
+  color: var(--pk-blue-yazi);
 }
 
 .listitem__body {
@@ -2344,7 +2458,7 @@ p {
   letter-spacing: -0.04em;
   line-height: 1.05;
   font-variant-numeric: tabular-nums;
-  color: var(--pk-blue);
+  color: var(--pk-blue-yazi);
 }
 
 /* Etiketin sonundaki küçük ok — ikinci ve daha açık işaret.
@@ -2368,7 +2482,7 @@ p {
 
 .statstrip__k svg {
   flex: none;
-  color: var(--pk-blue);
+  color: var(--pk-blue-yazi);
   margin-top: -1px;
 }
 
@@ -2723,7 +2837,7 @@ p {
 .topbar__islem {
   font-size: 13.5px;
   font-weight: 700;
-  color: var(--pk-blue);
+  color: var(--pk-blue-yazi);
   white-space: nowrap;
   padding: 6px 2px;
 }
@@ -2909,7 +3023,7 @@ p {
   background: var(--pk-red-soft);
   border-radius: var(--r);
   padding: 13px 15px;
-  color: var(--pk-red);
+  color: var(--pk-red-yazi);
   font-size: 15px;
   font-weight: 500;
   line-height: 1.5;
@@ -2977,7 +3091,7 @@ p {
 }
 
 .kutlama__ikon {
-  color: var(--pk-green);
+  color: var(--pk-green-yazi);
 }
 
 .kutlama__baslik {
@@ -3057,7 +3171,7 @@ p {
   padding: 10px 13px;
   border-radius: var(--r-sm);
   background: var(--pk-red-soft);
-  color: var(--pk-red);
+  color: var(--pk-red-yazi);
   font-size: 14px;
   line-height: 1.5;
 }
@@ -3094,7 +3208,7 @@ p {
   align-items: center;
   justify-content: center;
   gap: 5px;
-  color: var(--pk-blue);
+  color: var(--pk-blue-yazi);
   font-size: 13px;
   font-weight: 600;
 }
@@ -3194,10 +3308,10 @@ p {
   color: var(--ink-2);
 }
 
-.durum-kart--yeni { border-left-color: var(--pk-blue); }
+.durum-kart--yeni { border-left-color: var(--pk-blue-yazi); }
 .durum-kart--yeni .durum-kart__ikon {
   background: var(--pk-blue-soft);
-  color: var(--pk-blue);
+  color: var(--pk-blue-yazi);
 }
 
 .durum-kart--incelemede { border-left-color: var(--pk-orange); }
@@ -3219,11 +3333,11 @@ p {
 }
 
 .durum-kart--gonderildi,
-.durum-kart--kapandi { border-left-color: var(--pk-green); }
+.durum-kart--kapandi { border-left-color: var(--pk-green-yazi); }
 .durum-kart--gonderildi .durum-kart__ikon,
 .durum-kart--kapandi .durum-kart__ikon {
   background: var(--pk-green-soft);
-  color: var(--pk-green);
+  color: var(--pk-green-yazi);
 }
 
 .durum-kart--iptal { border-left-color: var(--ink-3); }
@@ -3239,9 +3353,9 @@ p {
   border-left: 4px solid var(--line-strong);
 }
 
-.detay-kutu--kirmizi { border-left-color: var(--pk-red); }
+.detay-kutu--kirmizi { border-left-color: var(--pk-red-yazi); }
 .detay-kutu--turuncu { border-left-color: var(--pk-orange); }
-.detay-kutu--yesil { border-left-color: var(--pk-green); }
+.detay-kutu--yesil { border-left-color: var(--pk-green-yazi); }
 .detay-kutu--mor { border-left-color: var(--pk-mor); }
 
 .detay-satir {
@@ -3387,7 +3501,7 @@ p {
   height: 44px;
   border-radius: 12px;
   background: var(--surface-2);
-  color: var(--pk-blue);
+  color: var(--pk-blue-yazi);
   border: 1px solid var(--line);
 }
 
@@ -3453,7 +3567,7 @@ p {
 .badge--servis {
   background: var(--tur-servis-soft);
   border-color: transparent;
-  color: #8f5200;
+  color: var(--tur-servis-yazi);
 }
 
 .badge--parca {
@@ -3465,7 +3579,7 @@ p {
 .badge--satinalma {
   background: var(--tur-satis-soft);
   border-color: transparent;
-  color: var(--pk-blue);
+  color: var(--pk-blue-yazi);
 }
 
 /* ==========================================================================
@@ -3500,7 +3614,7 @@ p {
 .sekme--on {
   background: var(--pk-blue-soft);
   border-color: transparent;
-  color: var(--pk-blue);
+  color: var(--pk-blue-yazi);
 }
 
 .sekme__sayi {
@@ -3540,7 +3654,7 @@ p {
 
 .durum-hap--yeni {
   background: var(--pk-blue-soft-2);
-  color: var(--pk-blue);
+  color: var(--pk-blue-yazi);
 }
 
 .durum-hap--incelemede,
@@ -3557,7 +3671,7 @@ p {
 .durum-hap--kapandi,
 .durum-hap--gonderildi {
   background: var(--pk-green-soft);
-  color: var(--pk-green);
+  color: var(--pk-green-yazi);
 }
 
 .durum-hap--iptal {
@@ -3654,7 +3768,7 @@ p {
 }
 
 .ariza--on {
-  border-color: var(--pk-blue);
+  border-color: var(--pk-blue-yazi);
 }
 
 .ariza__bas {
@@ -3674,7 +3788,7 @@ p {
 
 .ariza__ok--on {
   transform: rotate(90deg);
-  color: var(--pk-blue);
+  color: var(--pk-blue-yazi);
 }
 
 .ariza__ic {
@@ -3776,7 +3890,7 @@ p {
 }
 
 .teshis__adimlar li::marker {
-  color: var(--pk-blue);
+  color: var(--pk-blue-yazi);
   font-weight: 800;
 }
 
@@ -3930,7 +4044,7 @@ p {
 
 .dst-rozet--kolay {
   background: var(--pk-green-soft);
-  color: var(--pk-green);
+  color: var(--pk-green-yazi);
 }
 
 .dst-rozet--orta {
@@ -3940,7 +4054,7 @@ p {
 
 .dst-rozet--servis {
   background: var(--pk-red-soft);
-  color: var(--pk-red);
+  color: var(--pk-red-yazi);
 }
 
 .dst-sebep__satir {
@@ -4089,7 +4203,7 @@ p {
 }
 
 .kilavuz-kunye__ikon {
-  color: var(--pk-blue);
+  color: var(--pk-blue-yazi);
   flex: none;
 }
 
@@ -4161,7 +4275,7 @@ p {
   display: flex;
   align-items: center;
   gap: 9px;
-  color: var(--pk-red);
+  color: var(--pk-red-yazi);
 }
 
 .kilavuz-guvenlik__ust h2 {
@@ -4189,7 +4303,7 @@ p {
   color: var(--ink-2);
 }
 
-.kilavuz-guvenlik__liste li::marker { color: var(--pk-red); }
+.kilavuz-guvenlik__liste li::marker { color: var(--pk-red-yazi); }
 
 /* Prosedür adımlarının sıra numarası — kılavuzdaki sırayı izliyor */
 .kilavuz-adim__no {
@@ -4198,7 +4312,7 @@ p {
   height: 26px;
   border-radius: 50%;
   background: var(--pk-blue-soft);
-  color: var(--pk-blue);
+  color: var(--pk-blue-yazi);
   font-size: 13px;
   font-weight: 800;
   display: grid;
@@ -4217,16 +4331,16 @@ p {
 }
 
 .guvenlik-liste li::marker {
-  color: var(--pk-red);
+  color: var(--pk-red-yazi);
   font-weight: 800;
 }
 
 /* Kılavuzlar listesindeki güvenlik satırı */
-.listitem--uyari { border-color: var(--pk-red); }
+.listitem--uyari { border-color: var(--pk-red-yazi); }
 
 .listitem__icon--uyari {
   background: var(--pk-red-soft);
-  color: var(--pk-red);
+  color: var(--pk-red-yazi);
 }
 
 /* Adet satırındaki birim etiketi — fiyatın yanında, daha soluk */
@@ -4234,4 +4348,52 @@ p {
   font-size: 11.5px;
   font-weight: 600;
   color: var(--ink-3);
+}
+
+
+/* ==========================================================================
+   Karanlık mod — bileşen düzeltmeleri
+
+   BU BLOK DOSYANIN SONUNDA OLMAK ZORUNDA. Renk belirteçleri yukarıda,
+   :root içinde tanımlı ve orada olmaları yeterli; değişkenler
+   kullanıldıkları yerde çözülüyor. Ama buradaki kurallar mevcut
+   kurallarla AYNI seçiciyi kullanıyor. CSS'te eşit özgüllükte son gelen
+   kazandığı için, yukarıda dursalardı dosyanın devamındaki asıl
+   kurallar bunları ezerdi — nitekim ilk denemede öyle oldu.
+   ========================================================================== */
+
+@media (prefers-color-scheme: dark) {
+  /* Kartların kenarlığı karanlıkta zeminden ayrılmayı sağlıyor; gölge
+     bunu yapamıyor. */
+  .card,
+  .listitem,
+  .chip {
+    border: 1px solid var(--line);
+  }
+
+  /* Saydam açık şeritler. Üçü de arkasını bulanıklaştırıyor, o yüzden
+     saydam kalmaları gerekiyor — düz renge çevirmek altındaki içeriğin
+     görünmesini bozar. Yalnız rengin kendisi koyuya döndü. */
+  .topbar {
+    background: rgba(13, 21, 36, 0.82);
+  }
+
+  .composer,
+  .actionbar {
+    background: rgba(13, 21, 36, 0.92);
+  }
+
+  /* Ürün fotoğrafları beyaz stüdyo çekimi; karanlık ekranda parlak
+     dikdörtgen olarak duruyorlar.
+
+     FOTOĞRAFIN KENDİSİNE FİLTRE UYGULANMIYOR. Karartmak makinelerin
+     turuncusunu soldurur; burası bir imalatçının kendi kataloğu, müşteri
+     makineyi gerçek renginde görmeli. Onun yerine fotoğrafın arkasındaki
+     degrade koyuya çevrildi ve ince bir çerçeve eklendi: böylece beyaz
+     alan "bozuk arayüz" değil, çerçevelenmiş bir fotoğraf gibi
+     okunuyor. */
+  .photo {
+    background: linear-gradient(168deg, var(--surface-2) 0%, var(--surface) 100%);
+    border: 1px solid var(--line);
+  }
 }
