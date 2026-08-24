@@ -63,7 +63,17 @@
   --golge: 0 1px 2px rgba(10, 26, 51, 0.05), 0 2px 8px rgba(10, 26, 51, 0.05);
   --golge-2: 0 12px 34px rgba(10, 26, 51, 0.14);
   --r: 10px;
-  --yan: 232px;
+  /* Yan menü genişliği.
+     
+     232 pikselken "Numara Değişikliği Talepleri" satırı sığmıyordu:
+     yazıya 141 piksel kalıyor, yanında bekleyen talep sayısı rozeti de
+     varsa 111'e düşüyor ve yazı ÜÇ satıra bölünüyordu. Üç satırlık bir
+     menü ögesi hem çirkin duruyor hem komşularını aşağı itiyor.
+     
+     268 pikselde yazıya rozetle birlikte 147 piksel kalıyor; en uzun
+     başlık iki satırda duruyor. Menünün geri kalanı zaten bu genişliği
+     rahat kullanıyor. */
+  --yan: 268px;
 }
 
 /* ==========================================================================
