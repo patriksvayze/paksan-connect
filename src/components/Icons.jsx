@@ -141,6 +141,14 @@ export const IconMinus = (p) => (
   </svg>
 )
 
+/* Aşağı ok — açılıp kapanan bölümlerde. Açıkken CSS ile ters
+   çevriliyor, ikinci bir simge gerekmiyor. */
+export const IconChevronDown = (p) => (
+  <svg {...base(p)}>
+    <path d="M6 9.5 12 15.5 18 9.5" />
+  </svg>
+)
+
 export const IconRight = (p) => (
   <svg {...base(p)}>
     <path d="M9 5l7 7-7 7" />

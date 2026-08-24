@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useApp } from '../context/AppState'
 import { useDil } from '../i18n'
+import { TeknikOzellikler } from '../components/TeknikOzellikler'
 import { TopBar, TabBar, DataRow, Sheet } from '../components/Chrome'
 import { UrunFoto } from '../components/Gorsel'
 import { VideoOynatici, videoTuru, VideoSure } from '../components/Video'
@@ -339,6 +340,13 @@ function Bilgiler({ product, machine }) {
         <h3 style={{ fontSize: 16, marginBottom: 12 }}>{t('detay.teknik')}</h3>
         {product.specs.map(([k, v]) => <DataRow key={k} k={k} v={v} />)}
       </div>
+
+      {/* Kayıtlı makinenin tam teknik tablosu.
+
+          Ürün sayfasındakiyle aynı bileşen. Müşterinin kendi makinesine
+          bakarken "piston kursu kaçtı, hangi lastik takılı" diye
+          sorması, katalogdan bakmasından daha sık olan durum. */}
+      <TeknikOzellikler urunId={product.id} />
 
       <div className="card">
         <h3 style={{ fontSize: 16, marginBottom: 8 }}>{t('detay.garanti')}</h3>

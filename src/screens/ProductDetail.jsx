@@ -4,6 +4,7 @@ import { useApp } from '../context/AppState'
 import { useDil } from '../i18n'
 import { TopBar, TabBar, DataRow } from '../components/Chrome'
 import { UrunFoto } from '../components/Gorsel'
+import { TeknikOzellikler } from '../components/TeknikOzellikler'
 import { VideoOynatici, videoTuru, VideoSure } from '../components/Video'
 import {
   getProduct, getCategory, productsByCategory, urunDilde, kategoriDilde,
@@ -62,7 +63,11 @@ export default function ProductDetail() {
 
           <p style={{ marginTop: 14, lineHeight: 1.65, color: 'var(--ink-2)' }}>{p.desc}</p>
 
-          {/* Teknik özellikler */}
+          {/* Öne çıkan özellikler — elle seçilmiş kısa özet.
+
+              Tam tablo aşağıda ama kırk satır. Makineye ilk bakan kişi
+              "balya ölçüsü ne, kaç beygir traktör ister" diye bakıyor;
+              o dört beş satır burada, açmadan görünüyor. */}
           <div className="sectionhead">
             <h2>{t('detay.teknik')}</h2>
           </div>
@@ -71,6 +76,10 @@ export default function ProductDetail() {
               <DataRow key={k} k={k} v={v} />
             ))}
           </div>
+
+          {/* Kaynaktaki tablonun tamamı, bölüm bölüm açılıyor
+              (bkz. src/components/TeknikOzellikler.jsx) */}
+          <TeknikOzellikler urunId={p.id} />
 
           {/* Videolar */}
           {p.videos.length > 0 && (

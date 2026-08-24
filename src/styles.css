@@ -4820,3 +4820,112 @@ p {
     border: 1px solid var(--line);
   }
 }
+
+/* ======================================================= Teknik özellikler
+
+   Açılıp kapanan bölümler. Kırk satırlık tabloyu alt alta dökmek ürün
+   sayfasını kullanılamaz hâle getiriyordu; bölümler kapalı gelince
+   sayfa bir düğme listesi kadar kısa kalıyor.
+   Bkz. src/components/TeknikOzellikler.jsx                            */
+
+.tkn {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-1);
+  overflow: hidden;
+}
+
+.tkn__baslik {
+  width: 100%;
+  min-height: var(--tap);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 15px;
+  text-align: left;
+  color: var(--ink);
+}
+
+.tkn__ad {
+  flex: 1;
+  min-width: 0;
+  font-weight: 700;
+  font-size: 14.5px;
+  letter-spacing: -0.01em;
+}
+
+/* Bölümdeki satır sayısı. Kapalı bir başlığın arkasında ne kadar bilgi
+   olduğunu söylüyor; açmaya değip değmeyeceği baştan belli oluyor. */
+.tkn__sayi {
+  flex: none;
+  min-width: 24px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--ink-3);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.tkn__ok {
+  flex: none;
+  display: grid;
+  place-items: center;
+  color: var(--ink-3);
+  transition: transform 0.18s ease;
+}
+
+.tkn--acik .tkn__ok {
+  transform: rotate(180deg);
+}
+
+.tkn__ic {
+  padding: 0 15px 6px;
+}
+
+.tkn__satir {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 9px 0;
+  border-top: 1px solid var(--line);
+}
+
+.tkn__etiket {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  color: var(--ink-2);
+  line-height: 1.45;
+}
+
+/* Değer sağda ve kalın: göz tabloyu soldan değil sağdan tarıyor,
+   aranan sayı orada. */
+.tkn__deger {
+  flex: none;
+  max-width: 55%;
+  text-align: right;
+  font-weight: 700;
+  font-size: 14.5px;
+  line-height: 1.45;
+}
+
+.tkn__birim {
+  font-weight: 600;
+  color: var(--ink-3);
+}
+
+/* Model seçici. Kaydırılan şerit yerine satır satır sarıyor: Diamond'ın
+   on modeli var, şeritte kalanlar görünmediği için kimse aramıyordu. */
+.tkn__modeller {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.tkn__modeller .pill {
+  padding: 8px 14px;
+  font-size: 14px;
+}

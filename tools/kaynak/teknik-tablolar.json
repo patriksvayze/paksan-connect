@@ -1,0 +1,7937 @@
+{
+ "orkinos-1270": {
+  "adres": "https://www.paksanmakina.com.tr/urunler/balya-makinalari/",
+  "tabloId": "10621",
+  "sutunlar": [
+   [
+    "teknkzellikler",
+    "Teknı̇k Özellikler"
+   ],
+   [
+    "ninja_column_2",
+    ""
+   ],
+   [
+    "127",
+    "1270"
+   ],
+   [
+    "127h",
+    "1270 H"
+   ]
+  ],
+  "satirlar": [
+   {
+    "options": {
+     "classes": "ninja_table_row_0 nt_row_id_1478"
+    },
+    "value": {
+     "teknkzellikler": "Balya Kesitleri ",
+     "ninja_column_2": "cm",
+     "127": "120 X 70",
+     "127h": "120 X 70",
+     "___id___": "1478"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_1 nt_row_id_1479"
+    },
+    "value": {
+     "teknkzellikler": "Balya Uzunluğu",
+     "ninja_column_2": "cm",
+     "127": "50 - 260 ",
+     "127h": "50 - 260",
+     "___id___": "1479"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_2 nt_row_id_1480"
+    },
+    "value": {
+     "teknkzellikler": "<strong>TOPLAYICI DÜZENEĞİ</strong>",
+     "ninja_column_2": "",
+     "127": "",
+     "127h": "",
+     "___id___": "1480"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_3 nt_row_id_1481"
+    },
+    "value": {
+     "teknkzellikler": "Haşpay Düzeneği",
+     "ninja_column_2": "",
+     "127": "Yok",
+     "127h": "Var",
+     "___id___": "1481"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_4 nt_row_id_1482"
+    },
+    "value": {
+     "teknkzellikler": "Bıçak Sayısı",
+     "ninja_column_2": "",
+     "127": "Yok",
+     "127h": "15",
+     "___id___": "1482"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_5 nt_row_id_1483"
+    },
+    "value": {
+     "teknkzellikler": "<strong>TIRMIK ÖLÇÜLERİ</strong>",
+     "ninja_column_2": "",
+     "127": "",
+     "127h": "",
+     "___id___": "1483"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_6 nt_row_id_1484"
+    },
+    "value": {
+     "teknkzellikler": "Tırmık Genişliği - İçten İçe",
+     "ninja_column_2": "cm",
+     "127": "230",
+     "127h": "230",
+     "___id___": "1484"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_7 nt_row_id_1485"
+    },
+    "value": {
+     "teknkzellikler": "Tırmık Genişliği - Dıştan Dışa ",
+     "ninja_column_2": "cm",
+     "127": "290",
+     "127h": "290",
+     "___id___": "1485"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_8 nt_row_id_1486"
+    },
+    "value": {
+     "teknkzellikler": "Tırmık Teli ",
+     "ninja_column_2": "Adet",
+     "127": "96",
+     "127h": "96",
+     "___id___": "1486"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_9 nt_row_id_1487"
+    },
+    "value": {
+     "teknkzellikler": "Tırmık Borusu",
+     "ninja_column_2": "Adet",
+     "127": "4",
+     "127h": "4",
+     "___id___": "1487"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_10 nt_row_id_1488"
+    },
+    "value": {
+     "teknkzellikler": "Tırmık Yöntemi",
+     "ninja_column_2": "Zincir",
+     "127": "",
+     "127h": "",
+     "___id___": "1488"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_11 nt_row_id_1489"
+    },
+    "value": {
+     "teknkzellikler": "Tırmık Tekerleği",
+     "ninja_column_2": "Standart ",
+     "127": "",
+     "127h": "",
+     "___id___": "1489"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_12 nt_row_id_1490"
+    },
+    "value": {
+     "teknkzellikler": "Hidrolik Çeki Oku",
+     "ninja_column_2": "Standart ",
+     "127": "",
+     "127h": "",
+     "___id___": "1490"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_13 nt_row_id_1491"
+    },
+    "value": {
+     "teknkzellikler": "<strong>BESLEME ODASI</strong>",
+     "ninja_column_2": "",
+     "127": "",
+     "127h": "",
+     "___id___": "1491"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_14 nt_row_id_1492"
+    },
+    "value": {
+     "teknkzellikler": "Besleme Sistemi ",
+     "ninja_column_2": "Önden Besleme",
+     "127": "",
+     "127h": "",
+     "___id___": "1492"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_15 nt_row_id_1493"
+    },
+    "value": {
+     "teknkzellikler": "Besleme Yaba Sistemi",
+     "ninja_column_2": "Adet",
+     "127": "1",
+     "127h": "1",
+     "___id___": "1493"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_16 nt_row_id_1494"
+    },
+    "value": {
+     "teknkzellikler": "Besleme Yaba Çatal Sayısı ",
+     "ninja_column_2": "Adet",
+     "127": "11",
+     "127h": "11",
+     "___id___": "1494"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_17 nt_row_id_1495"
+    },
+    "value": {
+     "teknkzellikler": "<strong>PİSTON</strong>",
+     "ninja_column_2": "",
+     "127": "",
+     "127h": "",
+     "___id___": "1495"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_18 nt_row_id_1496"
+    },
+    "value": {
+     "teknkzellikler": "Piston Kursu ",
+     "ninja_column_2": "cm",
+     "127": "75",
+     "127h": "75",
+     "___id___": "1496"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_19 nt_row_id_1497"
+    },
+    "value": {
+     "teknkzellikler": "Strok Hızı ",
+     "ninja_column_2": "rpm",
+     "127": "51",
+     "127h": "51",
+     "___id___": "1497"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_20 nt_row_id_1498"
+    },
+    "value": {
+     "teknkzellikler": "Materyal ",
+     "ninja_column_2": "Çelik Piston",
+     "127": "",
+     "127h": "",
+     "___id___": "1498"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_21 nt_row_id_1499"
+    },
+    "value": {
+     "teknkzellikler": "Piston Rayı",
+     "ninja_column_2": "Hardox",
+     "127": "",
+     "127h": "",
+     "___id___": "1499"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_22 nt_row_id_1500"
+    },
+    "value": {
+     "teknkzellikler": "<strong>BAĞLAMA SİSTEMİ</strong>",
+     "ninja_column_2": "",
+     "127": "",
+     "127h": "",
+     "___id___": "1500"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_23 nt_row_id_1501"
+    },
+    "value": {
+     "teknkzellikler": "Bağlama Sistemi ",
+     "ninja_column_2": "Çift Düğüm",
+     "127": "",
+     "127h": "",
+     "___id___": "1501"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_24 nt_row_id_1502"
+    },
+    "value": {
+     "teknkzellikler": "Mekik ",
+     "ninja_column_2": "Özel Dizayn",
+     "127": "",
+     "127h": "",
+     "___id___": "1502"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_25 nt_row_id_1503"
+    },
+    "value": {
+     "teknkzellikler": "Bağlama Grubu Emniyet Sistemi ",
+     "ninja_column_2": "Kesme Civatası",
+     "127": "",
+     "127h": "",
+     "___id___": "1503"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_26 nt_row_id_1504"
+    },
+    "value": {
+     "teknkzellikler": "İp Kapasitesi",
+     "ninja_column_2": "Adet",
+     "127": "24",
+     "127h": "24",
+     "___id___": "1504"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_27 nt_row_id_1505"
+    },
+    "value": {
+     "teknkzellikler": "<strong>ANA TAHRİK</strong>",
+     "ninja_column_2": "",
+     "127": "",
+     "127h": "",
+     "___id___": "1505"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_28 nt_row_id_1506"
+    },
+    "value": {
+     "teknkzellikler": "PTO Devir",
+     "ninja_column_2": "Standart",
+     "127": "",
+     "127h": "",
+     "___id___": "1506"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_29 nt_row_id_1507"
+    },
+    "value": {
+     "teknkzellikler": "Valon Emniyet Sistemi ",
+     "ninja_column_2": "Kesme Civatası",
+     "127": "",
+     "127h": "",
+     "___id___": "1507"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_30 nt_row_id_1508"
+    },
+    "value": {
+     "teknkzellikler": "Şanzıman",
+     "ninja_column_2": "Özel Dizayn",
+     "127": "",
+     "127h": "",
+     "___id___": "1508"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_31 nt_row_id_1509"
+    },
+    "value": {
+     "teknkzellikler": "<strong>MAKİNA ÖZELLİKLERİ</strong>",
+     "ninja_column_2": "",
+     "127": "",
+     "127h": "",
+     "___id___": "1509"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_32 nt_row_id_1510"
+    },
+    "value": {
+     "teknkzellikler": "Fren Sistemi ",
+     "ninja_column_2": "Standart",
+     "127": "",
+     "127h": "",
+     "___id___": "1510"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_33 nt_row_id_1511"
+    },
+    "value": {
+     "teknkzellikler": "Tartı Sistemi",
+     "ninja_column_2": "Opsiyon",
+     "127": "",
+     "127h": "",
+     "___id___": "1511"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_34 nt_row_id_1512"
+    },
+    "value": {
+     "teknkzellikler": "Nem Ölçer",
+     "ninja_column_2": "Opsiyon",
+     "127": "",
+     "127h": "",
+     "___id___": "1512"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_35 nt_row_id_1513"
+    },
+    "value": {
+     "teknkzellikler": "Otomatik Yağlama ",
+     "ninja_column_2": "Standart",
+     "127": "",
+     "127h": "",
+     "___id___": "1513"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_36 nt_row_id_1514"
+    },
+    "value": {
+     "teknkzellikler": "Çift Dingil",
+     "ninja_column_2": "Standart",
+     "127": "",
+     "127h": "",
+     "___id___": "1514"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_37 nt_row_id_1515"
+    },
+    "value": {
+     "teknkzellikler": "<strong>LASTİK ÖLÇÜLERİ</strong>",
+     "ninja_column_2": "",
+     "127": "",
+     "127h": "",
+     "___id___": "1515"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_38 nt_row_id_1516"
+    },
+    "value": {
+     "teknkzellikler": "Genişlik ",
+     "ninja_column_2": "",
+     "127": "50 x 500 17",
+     "127h": "50 x 500 17",
+     "___id___": "1516"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_39 nt_row_id_1517"
+    },
+    "value": {
+     "teknkzellikler": "Uzunluk",
+     "ninja_column_2": "",
+     "127": "50 x 500 17",
+     "127h": "50 x 500 17",
+     "___id___": "1517"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_40 nt_row_id_1518"
+    },
+    "value": {
+     "teknkzellikler": "<strong>MAKİNA ÖLÇÜLERİ</strong>",
+     "ninja_column_2": "",
+     "127": "",
+     "127h": "",
+     "___id___": "1518"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_41 nt_row_id_1519"
+    },
+    "value": {
+     "teknkzellikler": "Genişlik ",
+     "ninja_column_2": "cm",
+     "127": "287",
+     "127h": "287",
+     "___id___": "1519"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_42 nt_row_id_1520"
+    },
+    "value": {
+     "teknkzellikler": "Uzunluk",
+     "ninja_column_2": "cm",
+     "127": "290",
+     "127h": "290",
+     "___id___": "1520"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_43 nt_row_id_1521"
+    },
+    "value": {
+     "teknkzellikler": "Yükseklik",
+     "ninja_column_2": "cm",
+     "127": "968",
+     "127h": "968",
+     "___id___": "1521"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_44 nt_row_id_1522"
+    },
+    "value": {
+     "teknkzellikler": "Traktör Gücü ",
+     "ninja_column_2": "hp",
+     "127": "150",
+     "127h": "160",
+     "___id___": "1522"
+    }
+   }
+  ]
+ },
+ "orkinos-870": {
+  "adres": "https://www.paksanmakina.com.tr/urunler/paksan-balya-makinalari/",
+  "tabloId": "10619",
+  "sutunlar": [
+   [
+    "teknkzellikler",
+    "Teknı̇k Özellikler"
+   ],
+   [
+    "ninja_column_2",
+    ""
+   ],
+   [
+    "87",
+    "870"
+   ],
+   [
+    "87h",
+    "870 H"
+   ]
+  ],
+  "satirlar": [
+   {
+    "options": {
+     "classes": "ninja_table_row_0 nt_row_id_1433"
+    },
+    "value": {
+     "87": "80 X 70 ",
+     "teknkzellikler": "Balya Kesitleri ",
+     "ninja_column_2": "cm",
+     "87h": "80 X 70 ",
+     "___id___": "1433"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_1 nt_row_id_1434"
+    },
+    "value": {
+     "teknkzellikler": "Balya Uzunluğu",
+     "ninja_column_2": "cm",
+     "87": "50 - 260 ",
+     "87h": "50 - 260",
+     "___id___": "1434"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_2 nt_row_id_1435"
+    },
+    "value": {
+     "teknkzellikler": "<strong>TOPLAYICI DÜZENEĞİ</strong>",
+     "ninja_column_2": "",
+     "87": "",
+     "87h": "",
+     "___id___": "1435"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_3 nt_row_id_1436"
+    },
+    "value": {
+     "teknkzellikler": "Haşpay Düzeneği",
+     "ninja_column_2": "",
+     "87": "Yok",
+     "87h": "Var",
+     "___id___": "1436"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_4 nt_row_id_1437"
+    },
+    "value": {
+     "teknkzellikler": "Bıçak Sayısı",
+     "ninja_column_2": "",
+     "87": "Yok",
+     "87h": "15",
+     "___id___": "1437"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_5 nt_row_id_1438"
+    },
+    "value": {
+     "teknkzellikler": "<strong>TIRMIK ÖLÇÜLERİ</strong>",
+     "ninja_column_2": "",
+     "87": "",
+     "87h": "",
+     "___id___": "1438"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_6 nt_row_id_1439"
+    },
+    "value": {
+     "teknkzellikler": "Tırmık Genişliği - İçten İçe",
+     "ninja_column_2": "cm",
+     "87": "190",
+     "87h": "190",
+     "___id___": "1439"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_7 nt_row_id_1440"
+    },
+    "value": {
+     "teknkzellikler": "Tırmık Genişliği - Dıştan Dışa ",
+     "ninja_column_2": "cm",
+     "87": "250",
+     "87h": "250",
+     "___id___": "1440"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_8 nt_row_id_1441"
+    },
+    "value": {
+     "teknkzellikler": "Tırmık Teli ",
+     "ninja_column_2": "Adet",
+     "87": "75",
+     "87h": "75",
+     "___id___": "1441"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_9 nt_row_id_1442"
+    },
+    "value": {
+     "teknkzellikler": "Tırmık Borusu",
+     "ninja_column_2": "Adet",
+     "87": "4",
+     "87h": "4",
+     "___id___": "1442"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_10 nt_row_id_1443"
+    },
+    "value": {
+     "teknkzellikler": "Tırmık Yöntemi",
+     "ninja_column_2": "Zincir",
+     "87": "",
+     "87h": "",
+     "___id___": "1443"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_11 nt_row_id_1444"
+    },
+    "value": {
+     "teknkzellikler": "Tırmık Tekerleği",
+     "ninja_column_2": "Standart ",
+     "87": "",
+     "87h": "",
+     "___id___": "1444"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_12 nt_row_id_1445"
+    },
+    "value": {
+     "teknkzellikler": "Hidrolik Çeki Oku",
+     "ninja_column_2": "Standart ",
+     "87": "",
+     "87h": "",
+     "___id___": "1445"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_13 nt_row_id_1446"
+    },
+    "value": {
+     "teknkzellikler": "<strong>BESLEME ODASI</strong>",
+     "ninja_column_2": "",
+     "87": "",
+     "87h": "",
+     "___id___": "1446"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_14 nt_row_id_1447"
+    },
+    "value": {
+     "teknkzellikler": "Besleme Sistemi ",
+     "ninja_column_2": "Önden Besleme",
+     "87": "",
+     "87h": "",
+     "___id___": "1447"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_15 nt_row_id_1448"
+    },
+    "value": {
+     "teknkzellikler": "Besleme Yaba Sistemi",
+     "ninja_column_2": "Adet",
+     "87": "1",
+     "87h": "1",
+     "___id___": "1448"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_16 nt_row_id_1449"
+    },
+    "value": {
+     "teknkzellikler": "Besleme Yaba Çatal Sayısı ",
+     "ninja_column_2": "Adet",
+     "87": "9",
+     "87h": "9",
+     "___id___": "1449"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_17 nt_row_id_1450"
+    },
+    "value": {
+     "teknkzellikler": "<strong>PİSTON</strong>",
+     "ninja_column_2": "",
+     "87": "",
+     "87h": "",
+     "___id___": "1450"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_18 nt_row_id_1451"
+    },
+    "value": {
+     "teknkzellikler": "Piston Kursu ",
+     "ninja_column_2": "cm",
+     "87": "75",
+     "87h": "75",
+     "___id___": "1451"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_19 nt_row_id_1452"
+    },
+    "value": {
+     "teknkzellikler": "Strok Hızı ",
+     "ninja_column_2": "rpm",
+     "87": "51",
+     "87h": "51",
+     "___id___": "1452"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_20 nt_row_id_1453"
+    },
+    "value": {
+     "teknkzellikler": "Materyal ",
+     "ninja_column_2": "Çelik Piston",
+     "87": "",
+     "87h": "",
+     "___id___": "1453"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_21 nt_row_id_1454"
+    },
+    "value": {
+     "teknkzellikler": "Piston Rayı",
+     "ninja_column_2": "Hardox",
+     "87": "",
+     "87h": "",
+     "___id___": "1454"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_22 nt_row_id_1455"
+    },
+    "value": {
+     "teknkzellikler": "<strong>BAĞLAMA SİSTEMİ</strong>",
+     "ninja_column_2": "",
+     "87": "",
+     "87h": "",
+     "___id___": "1455"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_23 nt_row_id_1456"
+    },
+    "value": {
+     "teknkzellikler": "Bağlama Sistemi ",
+     "ninja_column_2": "Çift Düğüm",
+     "87": "",
+     "87h": "",
+     "___id___": "1456"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_24 nt_row_id_1457"
+    },
+    "value": {
+     "teknkzellikler": "Mekik ",
+     "ninja_column_2": "Özel Dizayn",
+     "87": "",
+     "87h": "",
+     "___id___": "1457"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_25 nt_row_id_1458"
+    },
+    "value": {
+     "teknkzellikler": "Bağlama Grubu Emniyet Sistemi ",
+     "ninja_column_2": "Kesme Civatası",
+     "87": "",
+     "87h": "",
+     "___id___": "1458"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_26 nt_row_id_1459"
+    },
+    "value": {
+     "teknkzellikler": "İp Kapasitesi",
+     "ninja_column_2": "Adet",
+     "87": "24",
+     "87h": "24",
+     "___id___": "1459"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_27 nt_row_id_1460"
+    },
+    "value": {
+     "teknkzellikler": "<strong>ANA TAHRİK</strong>",
+     "ninja_column_2": "",
+     "87": "",
+     "87h": "",
+     "___id___": "1460"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_28 nt_row_id_1461"
+    },
+    "value": {
+     "teknkzellikler": "PTO Devir",
+     "ninja_column_2": "Standart",
+     "87": "",
+     "87h": "",
+     "___id___": "1461"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_29 nt_row_id_1462"
+    },
+    "value": {
+     "teknkzellikler": "Valon Emniyet Sistemi ",
+     "ninja_column_2": "Kesme Civatası",
+     "87": "",
+     "87h": "",
+     "___id___": "1462"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_30 nt_row_id_1463"
+    },
+    "value": {
+     "teknkzellikler": "Şanzıman",
+     "ninja_column_2": "Özel Dizayn",
+     "87": "",
+     "87h": "",
+     "___id___": "1463"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_31 nt_row_id_1464"
+    },
+    "value": {
+     "teknkzellikler": "<strong>MAKİNA ÖZELLİKLERİ</strong>",
+     "ninja_column_2": "",
+     "87": "",
+     "87h": "",
+     "___id___": "1464"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_32 nt_row_id_1465"
+    },
+    "value": {
+     "teknkzellikler": "Fren Sistemi ",
+     "ninja_column_2": "Standart",
+     "87": "",
+     "87h": "",
+     "___id___": "1465"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_33 nt_row_id_1466"
+    },
+    "value": {
+     "teknkzellikler": "Tartı Sistemi",
+     "ninja_column_2": "Opsiyon",
+     "87": "",
+     "87h": "",
+     "___id___": "1466"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_34 nt_row_id_1467"
+    },
+    "value": {
+     "teknkzellikler": "Nem Ölçer",
+     "ninja_column_2": "Opsiyon",
+     "87": "",
+     "87h": "",
+     "___id___": "1467"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_35 nt_row_id_1468"
+    },
+    "value": {
+     "teknkzellikler": "Otomatik Yağlama ",
+     "ninja_column_2": "Standart",
+     "87": "",
+     "87h": "",
+     "___id___": "1468"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_36 nt_row_id_1469"
+    },
+    "value": {
+     "teknkzellikler": "Çift Dingil",
+     "ninja_column_2": "Standart",
+     "87": "",
+     "87h": "",
+     "___id___": "1469"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_37 nt_row_id_1470"
+    },
+    "value": {
+     "teknkzellikler": "<strong>LASTİK ÖLÇÜLERİ</strong>",
+     "ninja_column_2": "",
+     "87": "",
+     "87h": "",
+     "___id___": "1470"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_38 nt_row_id_1471"
+    },
+    "value": {
+     "teknkzellikler": "Genişlik ",
+     "ninja_column_2": "",
+     "87": "50 x 500 17",
+     "87h": "50 x 500 17",
+     "___id___": "1471"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_39 nt_row_id_1472"
+    },
+    "value": {
+     "teknkzellikler": "Uzunluk",
+     "ninja_column_2": "",
+     "87": "50 x 500 17",
+     "87h": "50 x 500 17",
+     "___id___": "1472"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_40 nt_row_id_1473"
+    },
+    "value": {
+     "teknkzellikler": "<strong>MAKİNA ÖLÇÜLERİ</strong>",
+     "ninja_column_2": "",
+     "87": "",
+     "87h": "",
+     "___id___": "1473"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_41 nt_row_id_1474"
+    },
+    "value": {
+     "teknkzellikler": "Genişlik ",
+     "ninja_column_2": "cm",
+     "87": "287",
+     "87h": "287",
+     "___id___": "1474"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_42 nt_row_id_1475"
+    },
+    "value": {
+     "teknkzellikler": "Uzunluk",
+     "ninja_column_2": "cm",
+     "87": "250",
+     "87h": "250",
+     "___id___": "1475"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_43 nt_row_id_1476"
+    },
+    "value": {
+     "teknkzellikler": "Yükseklik",
+     "ninja_column_2": "cm",
+     "87": "968",
+     "87h": "968",
+     "___id___": "1476"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_44 nt_row_id_1477"
+    },
+    "value": {
+     "teknkzellikler": "Traktör Gücü ",
+     "ninja_column_2": "hp",
+     "87": "110",
+     "87h": "120",
+     "___id___": "1477"
+    }
+   }
+  ]
+ },
+ "orka-870": {
+  "adres": "https://www.paksanmakina.com.tr/urunler/orka-870/",
+  "tabloId": "11481",
+  "sutunlar": [
+   [
+    "sper82model",
+    "Orka 870"
+   ],
+   [
+    "ninja_column_2",
+    ""
+   ],
+   [
+    "spers82edual2",
+    ""
+   ]
+  ],
+  "satirlar": [
+   {
+    "options": {
+     "classes": "ninja_table_row_0 nt_row_id_2852"
+    },
+    "value": {
+     "sper82model": "<strong>BALYA ÖLÇÜLERİ</strong>",
+     "ninja_column_2": "",
+     "spers82edual2": "",
+     "___id___": "2852"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_1 nt_row_id_2851"
+    },
+    "value": {
+     "sper82model": "Balya Kesitleri",
+     "ninja_column_2": "cm",
+     "spers82edual2": "80 x 70",
+     "___id___": "2851"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_2 nt_row_id_2849"
+    },
+    "value": {
+     "sper82model": "Balya Uzunluğu",
+     "ninja_column_2": "kg",
+     "spers82edual2": "20 - 240",
+     "___id___": "2849"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_3 nt_row_id_2848"
+    },
+    "value": {
+     "sper82model": "<strong>TRAKTÖR</strong>",
+     "ninja_column_2": "",
+     "spers82edual2": "",
+     "___id___": "2848"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_4 nt_row_id_2846"
+    },
+    "value": {
+     "sper82model": "Traktör Güç İhtiyacı",
+     "ninja_column_2": "hp",
+     "spers82edual2": "100",
+     "___id___": "2846"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_5 nt_row_id_2845"
+    },
+    "value": {
+     "sper82model": "Traktör Devri ",
+     "ninja_column_2": "PTO devir ",
+     "spers82edual2": "1000",
+     "___id___": "2845"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_6 nt_row_id_2840"
+    },
+    "value": {
+     "sper82model": "<strong>TOPLAMA</strong>",
+     "ninja_column_2": "",
+     "spers82edual2": "",
+     "___id___": "2840"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_7 nt_row_id_2839"
+    },
+    "value": {
+     "sper82model": "Tırmık Genişliği - İçten içe",
+     "ninja_column_2": "cm",
+     "spers82edual2": "190",
+     "___id___": "2839"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_8 nt_row_id_2823"
+    },
+    "value": {
+     "sper82model": "<strong>BALYA AĞIRLIĞI</strong>",
+     "ninja_column_2": "",
+     "spers82edual2": "",
+     "___id___": "2823"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_9 nt_row_id_2822"
+    },
+    "value": {
+     "sper82model": "Balya Ağırlığı - Ot ",
+     "ninja_column_2": "kg",
+     "spers82edual2": "300",
+     "___id___": "2822"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_10 nt_row_id_2821"
+    },
+    "value": {
+     "sper82model": "Balya Ağırlığı - Saman ",
+     "ninja_column_2": "kg",
+     "spers82edual2": "250",
+     "___id___": "2821"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_11 nt_row_id_2818"
+    },
+    "value": {
+     "sper82model": "<strong>GÜVENLİK SİSTEMİ</strong>",
+     "ninja_column_2": "",
+     "spers82edual2": "",
+     "___id___": "2818"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_12 nt_row_id_2862"
+    },
+    "value": {
+     "sper82model": "Volan Emniyet Sistemi ",
+     "ninja_column_2": "-",
+     "spers82edual2": "Pim Kesmeli",
+     "___id___": "2862"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_13 nt_row_id_2861"
+    },
+    "value": {
+     "sper82model": "Rotor Emniyet Sistemi",
+     "ninja_column_2": "-",
+     "spers82edual2": "Pim Kesmeli",
+     "___id___": "2861"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_14 nt_row_id_2811"
+    },
+    "value": {
+     "sper82model": "Yaba Emniyet Sistemi ",
+     "ninja_column_2": "-",
+     "spers82edual2": "Pim Kesmeli",
+     "___id___": "2811"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_15 nt_row_id_2810"
+    },
+    "value": {
+     "sper82model": "Tırmık Emniyet Sistemi",
+     "ninja_column_2": "-",
+     "spers82edual2": "Pim Kesmeli",
+     "___id___": "2810"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_16 nt_row_id_2809"
+    },
+    "value": {
+     "sper82model": "Bağlama Grubu Emniyet Sistemi",
+     "ninja_column_2": "-",
+     "spers82edual2": "Pim Kesmeli",
+     "___id___": "2809"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_17 nt_row_id_2807"
+    },
+    "value": {
+     "sper82model": "İp Kopma Sensörü Standart",
+     "ninja_column_2": "-",
+     "spers82edual2": "Standart",
+     "___id___": "2807"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_18 nt_row_id_2853"
+    },
+    "value": {
+     "sper82model": "Son Balya Çıkartma ",
+     "ninja_column_2": "-",
+     "spers82edual2": "Standart",
+     "___id___": "2853"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_19 nt_row_id_2854"
+    },
+    "value": {
+     "sper82model": "<strong>PİSTON</strong>",
+     "ninja_column_2": "",
+     "spers82edual2": "",
+     "___id___": "2854"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_20 nt_row_id_2855"
+    },
+    "value": {
+     "sper82model": "Piston Vuruşu ",
+     "ninja_column_2": "rpm ",
+     "spers82edual2": "51",
+     "___id___": "2855"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_21 nt_row_id_2856"
+    },
+    "value": {
+     "sper82model": "Besleme Rotoru ",
+     "ninja_column_2": "",
+     "spers82edual2": "Standart",
+     "___id___": "2856"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_22 nt_row_id_2857"
+    },
+    "value": {
+     "sper82model": "Dingil ",
+     "ninja_column_2": "",
+     "spers82edual2": "Tek Aks",
+     "___id___": "2857"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_23 nt_row_id_2858"
+    },
+    "value": {
+     "sper82model": "Nem Ölçer",
+     "ninja_column_2": "-",
+     "spers82edual2": "Opsiyon",
+     "___id___": "2858"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_24 nt_row_id_2859"
+    },
+    "value": {
+     "sper82model": "Kantar",
+     "ninja_column_2": "-",
+     "spers82edual2": "Opsiyon",
+     "___id___": "2859"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_25 nt_row_id_2860"
+    },
+    "value": {
+     "sper82model": "<strong>BAĞLAMA GRUBU</strong>",
+     "ninja_column_2": "",
+     "spers82edual2": "",
+     "___id___": "2860"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_26 nt_row_id_2870"
+    },
+    "value": {
+     "sper82model": "Bağlama Grubu ",
+     "ninja_column_2": "-",
+     "spers82edual2": "Çift Düğüm",
+     "___id___": "2870"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_27 nt_row_id_2868"
+    },
+    "value": {
+     "sper82model": "Bağlama Grubu Fanı ",
+     "ninja_column_2": "-",
+     "spers82edual2": "Hidrolik Turbo Fan",
+     "___id___": "2868"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_28 nt_row_id_2869"
+    },
+    "value": {
+     "sper82model": "<strong>MAKİNA ÖLÇÜLERİ</strong>",
+     "ninja_column_2": "",
+     "spers82edual2": "",
+     "___id___": "2869"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_29 nt_row_id_2871"
+    },
+    "value": {
+     "sper82model": "Uzunluk ",
+     "ninja_column_2": "mm",
+     "spers82edual2": " 6980",
+     "___id___": "2871"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_30 nt_row_id_2872"
+    },
+    "value": {
+     "sper82model": "Genişlik",
+     "ninja_column_2": "mm",
+     "spers82edual2": "2450",
+     "___id___": "2872"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_31 nt_row_id_2867"
+    },
+    "value": {
+     "sper82model": "Yükseklik",
+     "ninja_column_2": "mm",
+     "spers82edual2": "2650",
+     "___id___": "2867"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_32 nt_row_id_2866"
+    },
+    "value": {
+     "sper82model": "Ağırlık",
+     "ninja_column_2": "Kg",
+     "spers82edual2": "7050",
+     "___id___": "2866"
+    }
+   }
+  ]
+ },
+ "albatros-870": {
+  "adres": "https://www.paksanmakina.com.tr/urunler/albatros-870/",
+  "tabloId": "11483",
+  "sutunlar": [
+   [
+    "sper82model",
+    "Orka 870"
+   ],
+   [
+    "ninja_column_2",
+    ""
+   ],
+   [
+    "spers82edual2",
+    ""
+   ]
+  ],
+  "satirlar": [
+   {
+    "options": {
+     "classes": "ninja_table_row_0 nt_row_id_2897"
+    },
+    "value": {
+     "sper82model": "<strong>BALYA ÖLÇÜLERİ</strong>",
+     "ninja_column_2": "",
+     "spers82edual2": "",
+     "___id___": "2897"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_1 nt_row_id_2896"
+    },
+    "value": {
+     "sper82model": "Balya Kesitleri",
+     "ninja_column_2": "cm",
+     "spers82edual2": "80 x 70",
+     "___id___": "2896"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_2 nt_row_id_2895"
+    },
+    "value": {
+     "sper82model": "Balya Uzunluğu",
+     "ninja_column_2": "kg",
+     "spers82edual2": "20 - 240",
+     "___id___": "2895"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_3 nt_row_id_2894"
+    },
+    "value": {
+     "sper82model": "<strong>TRAKTÖR</strong>",
+     "ninja_column_2": "",
+     "spers82edual2": "",
+     "___id___": "2894"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_4 nt_row_id_2893"
+    },
+    "value": {
+     "sper82model": "Traktör Güç İhtiyacı",
+     "ninja_column_2": "hp",
+     "spers82edual2": "90",
+     "___id___": "2893"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_5 nt_row_id_2892"
+    },
+    "value": {
+     "sper82model": "Traktör Devri ",
+     "ninja_column_2": "PTO devir ",
+     "spers82edual2": "1000",
+     "___id___": "2892"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_6 nt_row_id_2891"
+    },
+    "value": {
+     "sper82model": "<strong>TOPLAMA</strong>",
+     "ninja_column_2": "",
+     "spers82edual2": "",
+     "___id___": "2891"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_7 nt_row_id_2890"
+    },
+    "value": {
+     "sper82model": "Tırmık Genişliği - İçten içe",
+     "ninja_column_2": "cm",
+     "spers82edual2": "190",
+     "___id___": "2890"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_8 nt_row_id_2887"
+    },
+    "value": {
+     "sper82model": "<strong>BALYA AĞIRLIĞI</strong>",
+     "ninja_column_2": "",
+     "spers82edual2": "",
+     "___id___": "2887"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_9 nt_row_id_2886"
+    },
+    "value": {
+     "sper82model": "Balya Ağırlığı - Ot ",
+     "ninja_column_2": "kg",
+     "spers82edual2": "260",
+     "___id___": "2886"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_10 nt_row_id_2885"
+    },
+    "value": {
+     "sper82model": "Balya Ağırlığı - Saman ",
+     "ninja_column_2": "kg",
+     "spers82edual2": "180",
+     "___id___": "2885"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_11 nt_row_id_2882"
+    },
+    "value": {
+     "sper82model": "<strong>GÜVENLİK SİSTEMİ</strong>",
+     "ninja_column_2": "",
+     "spers82edual2": "",
+     "___id___": "2882"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_12 nt_row_id_2883"
+    },
+    "value": {
+     "sper82model": "Volan Emniyet Sistemi ",
+     "ninja_column_2": "-",
+     "spers82edual2": "Pim Kesmeli",
+     "___id___": "2883"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_13 nt_row_id_2876"
+    },
+    "value": {
+     "sper82model": "Yaba Emniyet Sistemi ",
+     "ninja_column_2": "-",
+     "spers82edual2": "Pim Kesmeli",
+     "___id___": "2876"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_14 nt_row_id_2875"
+    },
+    "value": {
+     "sper82model": "Tırmık Emniyet Sistemi",
+     "ninja_column_2": "-",
+     "spers82edual2": "Tork Emniyet",
+     "___id___": "2875"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_15 nt_row_id_2874"
+    },
+    "value": {
+     "sper82model": "Bağlama Grubu Emniyet Sistemi",
+     "ninja_column_2": "-",
+     "spers82edual2": "Pim Kesmeli",
+     "___id___": "2874"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_16 nt_row_id_2873"
+    },
+    "value": {
+     "sper82model": "İp Kopma Sensörü Standart",
+     "ninja_column_2": "-",
+     "spers82edual2": "Standart",
+     "___id___": "2873"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_17 nt_row_id_2898"
+    },
+    "value": {
+     "sper82model": "Son Balya Çıkartma ",
+     "ninja_column_2": "-",
+     "spers82edual2": "Standart",
+     "___id___": "2898"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_18 nt_row_id_2899"
+    },
+    "value": {
+     "sper82model": "<strong>PİSTON</strong>",
+     "ninja_column_2": "",
+     "spers82edual2": "",
+     "___id___": "2899"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_19 nt_row_id_2900"
+    },
+    "value": {
+     "sper82model": "Piston Vuruşu ",
+     "ninja_column_2": "rpm ",
+     "spers82edual2": "52",
+     "___id___": "2900"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_20 nt_row_id_2901"
+    },
+    "value": {
+     "sper82model": "Besleme Rotoru ",
+     "ninja_column_2": "",
+     "spers82edual2": "Standart",
+     "___id___": "2901"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_21 nt_row_id_2902"
+    },
+    "value": {
+     "sper82model": "Dingil ",
+     "ninja_column_2": "",
+     "spers82edual2": "Tek Aks",
+     "___id___": "2902"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_22 nt_row_id_2903"
+    },
+    "value": {
+     "sper82model": "Nem Ölçer",
+     "ninja_column_2": "-",
+     "spers82edual2": "Opsiyon",
+     "___id___": "2903"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_23 nt_row_id_2904"
+    },
+    "value": {
+     "sper82model": "Kantar",
+     "ninja_column_2": "-",
+     "spers82edual2": "Opsiyon",
+     "___id___": "2904"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_24 nt_row_id_2905"
+    },
+    "value": {
+     "sper82model": "<strong>BAĞLAMA GRUBU</strong>",
+     "ninja_column_2": "",
+     "spers82edual2": "",
+     "___id___": "2905"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_25 nt_row_id_2877"
+    },
+    "value": {
+     "sper82model": "Bağlama Grubu ",
+     "ninja_column_2": "-",
+     "spers82edual2": "Tek Düğüm",
+     "___id___": "2877"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_26 nt_row_id_2880"
+    },
+    "value": {
+     "sper82model": "Bağlama Grubu Fanı ",
+     "ninja_column_2": "-",
+     "spers82edual2": "Elektrikli Motorlu",
+     "___id___": "2880"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_27 nt_row_id_2881"
+    },
+    "value": {
+     "sper82model": "<strong>MAKİNA ÖLÇÜLERİ</strong>",
+     "ninja_column_2": "",
+     "spers82edual2": "",
+     "___id___": "2881"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_28 nt_row_id_2888"
+    },
+    "value": {
+     "sper82model": "Uzunluk ",
+     "ninja_column_2": "mm",
+     "spers82edual2": "6800",
+     "___id___": "2888"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_29 nt_row_id_2889"
+    },
+    "value": {
+     "sper82model": "Genişlik",
+     "ninja_column_2": "mm",
+     "spers82edual2": "2460",
+     "___id___": "2889"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_30 nt_row_id_2879"
+    },
+    "value": {
+     "sper82model": "Yükseklik",
+     "ninja_column_2": "mm",
+     "spers82edual2": "2900",
+     "___id___": "2879"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_31 nt_row_id_2878"
+    },
+    "value": {
+     "sper82model": "Ağırlık",
+     "ninja_column_2": "Kg",
+     "spers82edual2": "5150",
+     "___id___": "2878"
+    }
+   }
+  ]
+ },
+ "super-yunus": {
+  "adres": "https://www.paksanmakina.com.tr/urunler/super-yunus-balya-makinasi/",
+  "tabloId": "7762",
+  "sutunlar": [
+   [
+    "zellkler",
+    "ÖZELLİKLER"
+   ],
+   [
+    "2pl",
+    "2 İPLİ"
+   ],
+   [
+    "3pl",
+    "3 İPLİ"
+   ],
+   [
+    "3plh",
+    "3 İPLİ H"
+   ],
+   [
+    "dual1",
+    "DUAL 1"
+   ],
+   [
+    "dual2",
+    "DUAL 2"
+   ],
+   [
+    "3yabali",
+    "3 YABALI"
+   ]
+  ],
+  "satirlar": [
+   {
+    "options": {
+     "classes": "ninja_table_row_0 nt_row_id_421"
+    },
+    "value": {
+     "zellkler": "Traktör Gücü",
+     "2pl": "55 ve Yukarı",
+     "3pl": "55 ve Yukarı",
+     "3plh": "55 ve Yukarı",
+     "dual1": "55 ve Yukarı",
+     "dual2": "55 ve Yukarı",
+     "3yabali": "55 ve Yukarı",
+     "___id___": "421"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_1 nt_row_id_422"
+    },
+    "value": {
+     "zellkler": "Balya Ağırlığı - Saman",
+     "2pl": "20 - 25 kg",
+     "3pl": "20 - 25 kg",
+     "3plh": "20 - 25 kg",
+     "dual1": "20 - 25 kg",
+     "dual2": "20 - 25 kg",
+     "3yabali": "20 - 25 kg",
+     "___id___": "422"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_2 nt_row_id_423"
+    },
+    "value": {
+     "zellkler": "Balya Ağırlığı - Ot",
+     "2pl": "25 - 35 kg",
+     "3pl": "25 - 35 kg",
+     "3plh": "25 - 35 kg",
+     "dual1": "25 - 35 kg",
+     "dual2": "25 - 35 kg",
+     "3yabali": "25 - 35 kg",
+     "___id___": "423"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_3 nt_row_id_424"
+    },
+    "value": {
+     "zellkler": "Balya / Saat",
+     "2pl": "250 - 350",
+     "3pl": "250 - 350",
+     "3plh": "250 - 350",
+     "dual1": "250 - 350",
+     "dual2": "250 - 350",
+     "3yabali": "250 - 350",
+     "___id___": "424"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_4 nt_row_id_425"
+    },
+    "value": {
+     "zellkler": "Tırmık Genişliği",
+     "2pl": "163",
+     "3pl": "163",
+     "3plh": "163",
+     "dual1": "163",
+     "dual2": "163",
+     "3yabali": "190",
+     "___id___": "425"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_5 nt_row_id_426"
+    },
+    "value": {
+     "zellkler": "Hidrolik Toplayıcı Pistonu",
+     "2pl": "Standart",
+     "3pl": "Standart",
+     "3plh": "Standart",
+     "dual1": "Standart",
+     "dual2": "Standart",
+     "3yabali": "Standart",
+     "___id___": "426"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_6 nt_row_id_427"
+    },
+    "value": {
+     "zellkler": "3. Destek Tekerİ",
+     "2pl": "Opsiyon",
+     "3pl": "Opsiyon",
+     "3plh": "Opsiyon",
+     "dual1": "Opsiyon",
+     "dual2": "Opsiyon",
+     "3yabali": "Opsiyon",
+     "___id___": "427"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_7 nt_row_id_428"
+    },
+    "value": {
+     "zellkler": "Haşpay Ünütesi",
+     "2pl": "Yok",
+     "3pl": "Yok",
+     "3plh": "Var",
+     "dual1": "Otomatik",
+     "dual2": "Otomatik",
+     "3yabali": "Otpsiyon",
+     "___id___": "428"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_8 nt_row_id_429"
+    },
+    "value": {
+     "zellkler": "Balya Ölçüsü",
+     "2pl": "36 x 46",
+     "3pl": "36 x 46",
+     "3plh": "36 x 46",
+     "dual1": "36 x 46",
+     "dual2": "36 x 46",
+     "3yabali": "36 x 46",
+     "___id___": "429"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_9 nt_row_id_430"
+    },
+    "value": {
+     "zellkler": "Strok Boyu ve Hızı",
+     "2pl": "73cm - 92 rpm",
+     "3pl": "73cm - 92 rpm",
+     "3plh": "73cm - 92 rpm",
+     "dual1": "73cm - 92 rpm",
+     "dual2": "73cm - 92 rpm",
+     "3yabali": "73cm - 92 rpm",
+     "___id___": "430"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_10 nt_row_id_431"
+    },
+    "value": {
+     "zellkler": "Kuyruk Tipi",
+     "2pl": "Standart",
+     "3pl": "Standart",
+     "3plh": "Standart",
+     "dual1": "Standart",
+     "dual2": "Standart",
+     "3yabali": "Standart",
+     "___id___": "431"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_11 nt_row_id_432"
+    },
+    "value": {
+     "zellkler": "Bağlama Gurubu",
+     "2pl": "2 İpli",
+     "3pl": "3 İpli",
+     "3plh": "3 İpli",
+     "dual1": "3 İpli",
+     "dual2": "3 İpli",
+     "3yabali": "2/3 İpli",
+     "___id___": "432"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_12 nt_row_id_433"
+    },
+    "value": {
+     "zellkler": "Telli Bağlama Grubu",
+     "2pl": "Opsiyon",
+     "3pl": "Yok",
+     "3plh": "Yok",
+     "dual1": "Yok",
+     "dual2": "Yok",
+     "3yabali": "Opsiyon",
+     "___id___": "433"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_13 nt_row_id_434"
+    },
+    "value": {
+     "zellkler": "Bağlama Grubu Aydınlatması",
+     "2pl": "Standart",
+     "3pl": "Standart",
+     "3plh": "Standart",
+     "dual1": "Standart",
+     "dual2": "Standart",
+     "3yabali": "Standart",
+     "___id___": "434"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_14 nt_row_id_435"
+    },
+    "value": {
+     "zellkler": "Bağlama Grubu Fanı",
+     "2pl": "Standart",
+     "3pl": "Standart",
+     "3plh": "Standart",
+     "dual1": "Standart",
+     "dual2": "Standart",
+     "3yabali": "Standart",
+     "___id___": "435"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_15 nt_row_id_436"
+    },
+    "value": {
+     "zellkler": "İş-Yol Konumu",
+     "2pl": "Hidrolik",
+     "3pl": "Hidrolik",
+     "3plh": "Hidrolik",
+     "dual1": "Hidrolik",
+     "dual2": "Hidrolik",
+     "3yabali": "Hidrolik",
+     "___id___": "436"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_16 nt_row_id_437"
+    },
+    "value": {
+     "zellkler": "Bağlama Sistemi Güç Aktarımı",
+     "2pl": "Zincir",
+     "3pl": "Zincir",
+     "3plh": "Zincir",
+     "dual1": "Zincir",
+     "dual2": "Zincir",
+     "3yabali": "Zincir",
+     "___id___": "437"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_17 nt_row_id_438"
+    },
+    "value": {
+     "zellkler": "Sol Yaba Güç Aktarımı",
+     "2pl": "Şaft",
+     "3pl": "Şaft",
+     "3plh": "Şaft",
+     "dual1": "Şaft",
+     "dual2": "Şaft",
+     "3yabali": "Şaft",
+     "___id___": "438"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_18 nt_row_id_439"
+    },
+    "value": {
+     "zellkler": "Sağ Yaba Güç Aktarımı",
+     "2pl": "Zincir",
+     "3pl": "Zincir",
+     "3plh": "Zincir",
+     "dual1": "Zincir",
+     "dual2": "Zincir",
+     "3yabali": "Zincir",
+     "___id___": "439"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_19 nt_row_id_440"
+    },
+    "value": {
+     "zellkler": "Toplayıcı Düzeneği Güç Aktarımı",
+     "2pl": "Zincir",
+     "3pl": "Zincir",
+     "3plh": "Zincir",
+     "dual1": "Zincir",
+     "dual2": "Zincir",
+     "3yabali": "Zincir",
+     "___id___": "440"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_20 nt_row_id_441"
+    },
+    "value": {
+     "zellkler": "İp Dolabı Kapasitesi",
+     "2pl": "8",
+     "3pl": "8",
+     "3plh": "8",
+     "dual1": "8",
+     "dual2": "8",
+     "3yabali": "8",
+     "___id___": "441"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_21 nt_row_id_442"
+    },
+    "value": {
+     "zellkler": "Mekanik Balya Sayıcı",
+     "2pl": "Standart",
+     "3pl": "Standart",
+     "3plh": "Standart",
+     "dual1": "Standart",
+     "dual2": "Standart",
+     "3yabali": "Standart",
+     "___id___": "442"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_22 nt_row_id_443"
+    },
+    "value": {
+     "zellkler": "Dijital Balya Sayıcı",
+     "2pl": "Opsiyon",
+     "3pl": "Opsiyon",
+     "3plh": "Opsiyon",
+     "dual1": "Opsiyon",
+     "dual2": "Opsiyon",
+     "3yabali": "Opsiyon",
+     "___id___": "443"
+    }
+   }
+  ]
+ },
+ "super-yunus-dual2": {
+  "adres": "https://www.paksanmakina.com.tr/urunler/paksan-balya-makinalari-6/",
+  "tabloId": "10656",
+  "sutunlar": [
+   [
+    "speryunusedual2",
+    "Süper Yunus E DUAL 2"
+   ],
+   [
+    "ninja_column_2",
+    ""
+   ],
+   [
+    "ninja_column_3",
+    ""
+   ]
+  ],
+  "satirlar": [
+   {
+    "options": {
+     "classes": "ninja_table_row_0 nt_row_id_2068"
+    },
+    "value": {
+     "speryunusedual2": "BALYA ÖLÇÜLERİ",
+     "ninja_column_2": "",
+     "ninja_column_3": "",
+     "___id___": "2068"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_1 nt_row_id_2069"
+    },
+    "value": {
+     "speryunusedual2": "Balya Kesitleri",
+     "ninja_column_2": "cm",
+     "ninja_column_3": "36 x 46",
+     "___id___": "2069"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_2 nt_row_id_2070"
+    },
+    "value": {
+     "speryunusedual2": "Balya Ağırlığı-Saman",
+     "ninja_column_2": "kg",
+     "ninja_column_3": "20-25",
+     "___id___": "2070"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_3 nt_row_id_2071"
+    },
+    "value": {
+     "speryunusedual2": "Balya Ağırlığı - Ot",
+     "ninja_column_2": "kg",
+     "ninja_column_3": "25 - 35",
+     "___id___": "2071"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_4 nt_row_id_2072"
+    },
+    "value": {
+     "speryunusedual2": "Balya Boyu",
+     "ninja_column_2": "cm",
+     "ninja_column_3": "30 - 130",
+     "___id___": "2072"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_5 nt_row_id_2073"
+    },
+    "value": {
+     "speryunusedual2": "HAŞPAY DÜZENEĞİ",
+     "ninja_column_2": "",
+     "ninja_column_3": "",
+     "___id___": "2073"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_6 nt_row_id_2074"
+    },
+    "value": {
+     "speryunusedual2": "Haspay Düzeneği",
+     "ninja_column_2": "Haşpay Sistemi",
+     "ninja_column_3": "Otomatik Haşpay",
+     "___id___": "2074"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_7 nt_row_id_2075"
+    },
+    "value": {
+     "speryunusedual2": "Haşpay Bıçak Sayısı",
+     "ninja_column_2": "Adet",
+     "ninja_column_3": "46 Bıçak",
+     "___id___": "2075"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_8 nt_row_id_2076"
+    },
+    "value": {
+     "speryunusedual2": "Bıçak Kontrolü",
+     "ninja_column_2": "-",
+     "ninja_column_3": "Hidrolik",
+     "___id___": "2076"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_9 nt_row_id_2077"
+    },
+    "value": {
+     "speryunusedual2": "Kontra Hareketi",
+     "ninja_column_2": "-",
+     "ninja_column_3": "Hidrolik",
+     "___id___": "2077"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_10 nt_row_id_2078"
+    },
+    "value": {
+     "speryunusedual2": "Rotor Sac Kalınlıkları",
+     "ninja_column_2": "mm",
+     "ninja_column_3": "20mm",
+     "___id___": "2078"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_11 nt_row_id_2079"
+    },
+    "value": {
+     "speryunusedual2": "Rotor Tahrik Yöntemi",
+     "ninja_column_2": "-",
+     "ninja_column_3": "Çift Devirli Vitesli",
+     "___id___": "2079"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_12 nt_row_id_2080"
+    },
+    "value": {
+     "speryunusedual2": "TIRMIK ÖLÇÜLERİ",
+     "ninja_column_2": "",
+     "ninja_column_3": "",
+     "___id___": "2080"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_13 nt_row_id_2081"
+    },
+    "value": {
+     "speryunusedual2": "Tırmık Genişliği - İçten içe",
+     "ninja_column_2": "cm",
+     "ninja_column_3": "163",
+     "___id___": "2081"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_14 nt_row_id_2082"
+    },
+    "value": {
+     "speryunusedual2": "Tırmık Genişliği - Dıştan Dışa",
+     "ninja_column_2": "cm",
+     "ninja_column_3": "178",
+     "___id___": "2082"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_15 nt_row_id_2083"
+    },
+    "value": {
+     "speryunusedual2": "Tırmık Teli",
+     "ninja_column_2": "Adet",
+     "ninja_column_3": "105",
+     "___id___": "2083"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_16 nt_row_id_2084"
+    },
+    "value": {
+     "speryunusedual2": "Tırmık Borusu",
+     "ninja_column_2": "Adet",
+     "ninja_column_3": "5",
+     "___id___": "2084"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_17 nt_row_id_2085"
+    },
+    "value": {
+     "speryunusedual2": "Hareket Yöntemi",
+     "ninja_column_2": "-",
+     "ninja_column_3": "Zincir",
+     "___id___": "2085"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_18 nt_row_id_2086"
+    },
+    "value": {
+     "speryunusedual2": "Tırmık Tekerleği",
+     "ninja_column_2": "-",
+     "ninja_column_3": "Opsiyon",
+     "___id___": "2086"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_19 nt_row_id_2087"
+    },
+    "value": {
+     "speryunusedual2": "Hidrolik Tırmık",
+     "ninja_column_2": "-",
+     "ninja_column_3": "Standart",
+     "___id___": "2087"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_20 nt_row_id_2088"
+    },
+    "value": {
+     "speryunusedual2": "Mekanik Tırmık",
+     "ninja_column_2": "-",
+     "ninja_column_3": "Opsiyon",
+     "___id___": "2088"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_21 nt_row_id_2089"
+    },
+    "value": {
+     "speryunusedual2": "Hidrolik Çeki Oku",
+     "ninja_column_2": "-",
+     "ninja_column_3": "Standart",
+     "___id___": "2089"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_22 nt_row_id_2090"
+    },
+    "value": {
+     "speryunusedual2": "Mekanik Çeki Oku",
+     "ninja_column_2": "-",
+     "ninja_column_3": "Opsiyon",
+     "___id___": "2090"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_23 nt_row_id_2091"
+    },
+    "value": {
+     "speryunusedual2": "BESLEME ODASI",
+     "ninja_column_2": "",
+     "ninja_column_3": "",
+     "___id___": "2091"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_24 nt_row_id_2092"
+    },
+    "value": {
+     "speryunusedual2": "Besleme Sistemi",
+     "ninja_column_2": "",
+     "ninja_column_3": "Yandan Besleme",
+     "___id___": "2092"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_25 nt_row_id_2093"
+    },
+    "value": {
+     "speryunusedual2": "Besleme Yaba Sayısı",
+     "ninja_column_2": "Adet",
+     "ninja_column_3": "2",
+     "___id___": "2093"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_26 nt_row_id_2094"
+    },
+    "value": {
+     "speryunusedual2": "Besleme Yaba Çatal Sayısı On",
+     "ninja_column_2": "Adet",
+     "ninja_column_3": "3",
+     "___id___": "2094"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_27 nt_row_id_2095"
+    },
+    "value": {
+     "speryunusedual2": "Besleme Yaba Çatal Sayısı - Arka",
+     "ninja_column_2": "cm2",
+     "ninja_column_3": "2",
+     "___id___": "2095"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_28 nt_row_id_2096"
+    },
+    "value": {
+     "speryunusedual2": "Besleme Odası Açıklığı",
+     "ninja_column_2": "",
+     "ninja_column_3": "1724",
+     "___id___": "2096"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_29 nt_row_id_2097"
+    },
+    "value": {
+     "speryunusedual2": "PİSTON",
+     "ninja_column_2": "",
+     "ninja_column_3": "",
+     "___id___": "2097"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_30 nt_row_id_2098"
+    },
+    "value": {
+     "speryunusedual2": "Piston Kursu",
+     "ninja_column_2": "cm",
+     "ninja_column_3": "73",
+     "___id___": "2098"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_31 nt_row_id_2099"
+    },
+    "value": {
+     "speryunusedual2": "Strok Hızı",
+     "ninja_column_2": "rpm",
+     "ninja_column_3": "92 - 104",
+     "___id___": "2099"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_32 nt_row_id_2100"
+    },
+    "value": {
+     "speryunusedual2": "Materyal",
+     "ninja_column_2": "-",
+     "ninja_column_3": "Çelik Pisto",
+     "___id___": "2100"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_33 nt_row_id_2101"
+    },
+    "value": {
+     "speryunusedual2": "Piston Rayi",
+     "ninja_column_2": "-",
+     "ninja_column_3": "Rulman",
+     "___id___": "2101"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_34 nt_row_id_2102"
+    },
+    "value": {
+     "speryunusedual2": "BAĞLAMA SİSTEMİ",
+     "ninja_column_2": "",
+     "ninja_column_3": "",
+     "___id___": "2102"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_35 nt_row_id_2103"
+    },
+    "value": {
+     "speryunusedual2": "İpli Bağlama",
+     "ninja_column_2": "-",
+     "ninja_column_3": "Paksan Özel Dizayn",
+     "___id___": "2103"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_36 nt_row_id_2104"
+    },
+    "value": {
+     "speryunusedual2": "Mekik",
+     "ninja_column_2": "-",
+     "ninja_column_3": "Paksan Özel Dizayn",
+     "___id___": "2104"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_37 nt_row_id_2105"
+    },
+    "value": {
+     "speryunusedual2": "Bağlama Grubu Emniyet Sistemi",
+     "ninja_column_2": "-",
+     "ninja_column_3": "Kesme Civatası",
+     "___id___": "2105"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_38 nt_row_id_2106"
+    },
+    "value": {
+     "speryunusedual2": "Tel Kapasitesi",
+     "ninja_column_2": "Adet",
+     "ninja_column_3": "8",
+     "___id___": "2106"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_39 nt_row_id_2107"
+    },
+    "value": {
+     "speryunusedual2": "ANA TAHRİK",
+     "ninja_column_2": "",
+     "ninja_column_3": "",
+     "___id___": "2107"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_40 nt_row_id_2108"
+    },
+    "value": {
+     "speryunusedual2": "PTO Devir",
+     "ninja_column_2": "-",
+     "ninja_column_3": "540-610",
+     "___id___": "2108"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_41 nt_row_id_2109"
+    },
+    "value": {
+     "speryunusedual2": "Valon Emniyet Sistemi",
+     "ninja_column_2": "-",
+     "ninja_column_3": "Kesme Civatası",
+     "___id___": "2109"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_42 nt_row_id_2110"
+    },
+    "value": {
+     "speryunusedual2": "Valon Emniyet Sistemi",
+     "ninja_column_2": "-",
+     "ninja_column_3": "Kavrama",
+     "___id___": "2110"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_43 nt_row_id_2111"
+    },
+    "value": {
+     "speryunusedual2": "Şanzıman",
+     "ninja_column_2": "-",
+     "ninja_column_3": "Paksan Özel Dizayn",
+     "___id___": "2111"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_44 nt_row_id_2112"
+    },
+    "value": {
+     "speryunusedual2": "LASTİK ÖLÇÜLERİ",
+     "ninja_column_2": "",
+     "ninja_column_3": "",
+     "___id___": "2112"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_45 nt_row_id_2113"
+    },
+    "value": {
+     "speryunusedual2": "Sağ Lastik Ölçüleri",
+     "ninja_column_2": "-",
+     "ninja_column_3": "10 x 75 15.3",
+     "___id___": "2113"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_46 nt_row_id_2114"
+    },
+    "value": {
+     "speryunusedual2": "Sol Lastik Ölçüleri",
+     "ninja_column_2": "-",
+     "ninja_column_3": "10 x 75 15.3",
+     "___id___": "2114"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_47 nt_row_id_2115"
+    },
+    "value": {
+     "speryunusedual2": "MAKİNA ÖLÇÜLERİ",
+     "ninja_column_2": "",
+     "ninja_column_3": "",
+     "___id___": "2115"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_48 nt_row_id_2116"
+    },
+    "value": {
+     "speryunusedual2": "Yükseklik - Ot",
+     "ninja_column_2": "cm",
+     "ninja_column_3": "178",
+     "___id___": "2116"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_49 nt_row_id_2117"
+    },
+    "value": {
+     "speryunusedual2": "Yükseklik - Saman",
+     "ninja_column_2": "cm",
+     "ninja_column_3": "188",
+     "___id___": "2117"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_50 nt_row_id_2118"
+    },
+    "value": {
+     "speryunusedual2": "Genişlik",
+     "ninja_column_2": "cm",
+     "ninja_column_3": "250",
+     "___id___": "2118"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_51 nt_row_id_2119"
+    },
+    "value": {
+     "speryunusedual2": "Uzunluk",
+     "ninja_column_2": "cm",
+     "ninja_column_3": "545",
+     "___id___": "2119"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_52 nt_row_id_2120"
+    },
+    "value": {
+     "speryunusedual2": "Ağırlık",
+     "ninja_column_2": "kg",
+     "ninja_column_3": "2680",
+     "___id___": "2120"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_53 nt_row_id_2121"
+    },
+    "value": {
+     "speryunusedual2": "Traktor Gücü",
+     "ninja_column_2": "hp",
+     "ninja_column_3": "55 ve Yukarı",
+     "___id___": "2121"
+    }
+   }
+  ]
+ },
+ "super-yunus-3yabali": {
+  "adres": "https://www.paksanmakina.com.tr/urunler/paksan-balya-makinalari-5/",
+  "tabloId": "7348",
+  "sutunlar": [
+   [
+    "zellkler",
+    "ÖZELLİKLER"
+   ],
+   [
+    "3yabali",
+    "3 YABALI"
+   ]
+  ],
+  "satirlar": [
+   {
+    "options": {
+     "classes": "ninja_table_row_0 nt_row_id_290"
+    },
+    "value": {
+     "zellkler": "Traktör Gücü",
+     "3yabali": "55 ve Yukarı",
+     "___id___": "290"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_1 nt_row_id_291"
+    },
+    "value": {
+     "zellkler": "Balya Ağırlığı - Saman",
+     "3yabali": "20 - 25 kg",
+     "___id___": "291"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_2 nt_row_id_292"
+    },
+    "value": {
+     "zellkler": "Balya Ağırlığı - Ot",
+     "3yabali": "25 - 35 kg",
+     "___id___": "292"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_3 nt_row_id_293"
+    },
+    "value": {
+     "zellkler": "Balya / Saat",
+     "3yabali": "250 - 350",
+     "___id___": "293"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_4 nt_row_id_294"
+    },
+    "value": {
+     "zellkler": "Tırmık Genişliği",
+     "3yabali": "190",
+     "___id___": "294"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_5 nt_row_id_295"
+    },
+    "value": {
+     "zellkler": "Hidrolik Toplayıcı Pistonu",
+     "3yabali": "Standart",
+     "___id___": "295"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_6 nt_row_id_296"
+    },
+    "value": {
+     "zellkler": "3. Destek Tekerİ",
+     "3yabali": "Opsiyon",
+     "___id___": "296"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_7 nt_row_id_297"
+    },
+    "value": {
+     "zellkler": "Haşpay Ünütesi",
+     "3yabali": "Otpsiyon",
+     "___id___": "297"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_8 nt_row_id_298"
+    },
+    "value": {
+     "zellkler": "Balya Ölçüsü",
+     "3yabali": "36 x 46",
+     "___id___": "298"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_9 nt_row_id_299"
+    },
+    "value": {
+     "zellkler": "Strok Boyu ve Hızı",
+     "3yabali": "73cm - 92 rpm",
+     "___id___": "299"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_10 nt_row_id_300"
+    },
+    "value": {
+     "zellkler": "Kuyruk Tipi",
+     "3yabali": "Standart",
+     "___id___": "300"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_11 nt_row_id_301"
+    },
+    "value": {
+     "zellkler": "Bağlama Gurubu",
+     "3yabali": "2/3 İpli",
+     "___id___": "301"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_12 nt_row_id_302"
+    },
+    "value": {
+     "zellkler": "Telli Bağlama Grubu",
+     "3yabali": "Opsiyon",
+     "___id___": "302"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_13 nt_row_id_303"
+    },
+    "value": {
+     "zellkler": "Bağlama Grubu Aydınlatması",
+     "3yabali": "Standart",
+     "___id___": "303"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_14 nt_row_id_304"
+    },
+    "value": {
+     "zellkler": "Bağlama Grubu Fanı",
+     "3yabali": "Standart",
+     "___id___": "304"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_15 nt_row_id_305"
+    },
+    "value": {
+     "zellkler": "İş-Yol Konumu",
+     "3yabali": "Hidrolik",
+     "___id___": "305"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_16 nt_row_id_306"
+    },
+    "value": {
+     "zellkler": "Bağlama Sistemi Güç Aktarımı",
+     "3yabali": "Zincir",
+     "___id___": "306"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_17 nt_row_id_307"
+    },
+    "value": {
+     "zellkler": "Sol Yaba Güç Aktarımı",
+     "3yabali": "Şaft",
+     "___id___": "307"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_18 nt_row_id_308"
+    },
+    "value": {
+     "zellkler": "Sağ Yaba Güç Aktarımı",
+     "3yabali": "Zincir",
+     "___id___": "308"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_19 nt_row_id_309"
+    },
+    "value": {
+     "zellkler": "Toplayıcı Düzeneği Güç Aktarımı",
+     "3yabali": "Zincir",
+     "___id___": "309"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_20 nt_row_id_310"
+    },
+    "value": {
+     "zellkler": "İp Dolabı Kapasitesi",
+     "3yabali": "8",
+     "___id___": "310"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_21 nt_row_id_311"
+    },
+    "value": {
+     "zellkler": "Mekanik Balya Sayıcı",
+     "3yabali": "Standart",
+     "___id___": "311"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_22 nt_row_id_312"
+    },
+    "value": {
+     "zellkler": "Dijital Balya Sayıcı",
+     "3yabali": "Opsiyon",
+     "___id___": "312"
+    }
+   }
+  ]
+ },
+ "super-8002": {
+  "adres": "https://www.paksanmakina.com.tr/urunler/paksan-balya-makinalari-2/",
+  "tabloId": "10647",
+  "sutunlar": [
+   [
+    "sper82model",
+    "Süper 8002 MODEL"
+   ],
+   [
+    "ninja_column_2",
+    ""
+   ],
+   [
+    "82",
+    "8002"
+   ],
+   [
+    "82_1",
+    "8002"
+   ],
+   [
+    "82_1_2",
+    "8002"
+   ]
+  ],
+  "satirlar": [
+   {
+    "options": {
+     "classes": "ninja_table_row_0 nt_row_id_1762"
+    },
+    "value": {
+     "82": "",
+     "sper82model": "<strong>BALYA ÖLÇÜLERİ</strong>",
+     "ninja_column_2": "",
+     "82_1": "",
+     "82_1_2": "",
+     "___id___": "1762"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_1 nt_row_id_1763"
+    },
+    "value": {
+     "82": "36 x 46",
+     "sper82model": "Balya Kesitleri",
+     "ninja_column_2": "cm",
+     "82_1": "36 x 46",
+     "82_1_2": "36 x 46",
+     "___id___": "1763"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_2 nt_row_id_1764"
+    },
+    "value": {
+     "sper82model": "Balya Ağırlığı-Saman",
+     "ninja_column_2": "kg",
+     "82": "20-25",
+     "82_1": "20-25",
+     "82_1_2": "20-25",
+     "___id___": "1764"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_3 nt_row_id_1765"
+    },
+    "value": {
+     "sper82model": "Balya Ağırlığı - Ot",
+     "ninja_column_2": "kg",
+     "82": "25 - 35",
+     "82_1": "25 - 35",
+     "82_1_2": "25 - 35",
+     "___id___": "1765"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_4 nt_row_id_1766"
+    },
+    "value": {
+     "82": "30 - 130",
+     "sper82model": "Balya Boyu",
+     "ninja_column_2": "cm",
+     "82_1": "30 - 130",
+     "82_1_2": "30 - 130",
+     "___id___": "1766"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_5 nt_row_id_1767"
+    },
+    "value": {
+     "82": "",
+     "sper82model": "<strong>HAŞPAY DÜZENEĞİ</strong>",
+     "ninja_column_2": "",
+     "82_1": "",
+     "82_1_2": "",
+     "___id___": "1767"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_6 nt_row_id_1768"
+    },
+    "value": {
+     "sper82model": "Haspay Düzeneği",
+     "ninja_column_2": "-",
+     "82": "Yok",
+     "82_1": "Yok",
+     "82_1_2": "Var",
+     "___id___": "1768"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_7 nt_row_id_1769"
+    },
+    "value": {
+     "82": "",
+     "sper82model": "<strong>TIRMIK ÖLÇÜLERİ</strong>",
+     "ninja_column_2": "",
+     "82_1": "",
+     "82_1_2": "",
+     "___id___": "1769"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_8 nt_row_id_1770"
+    },
+    "value": {
+     "sper82model": "Tırmık Genişliği - İçten içe",
+     "ninja_column_2": "cm",
+     "82": "142",
+     "82_1": "142",
+     "82_1_2": "142",
+     "___id___": "1770"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_9 nt_row_id_1771"
+    },
+    "value": {
+     "sper82model": "Tırmık Genişliği - Dıştan Dışa",
+     "ninja_column_2": "cm",
+     "82": "157",
+     "82_1": "157",
+     "82_1_2": "157",
+     "___id___": "1771"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_10 nt_row_id_1772"
+    },
+    "value": {
+     "sper82model": "Tırmık Teli",
+     "ninja_column_2": "Adet",
+     "82": "95",
+     "82_1": "95",
+     "82_1_2": "90",
+     "___id___": "1772"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_11 nt_row_id_1773"
+    },
+    "value": {
+     "sper82model": "Tırmık Borusu",
+     "ninja_column_2": "Adet",
+     "82": "5",
+     "82_1": "5",
+     "82_1_2": "5",
+     "___id___": "1773"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_12 nt_row_id_1774"
+    },
+    "value": {
+     "sper82model": "Hareket Yöntemi",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Zincir",
+     "82_1_2": "-",
+     "___id___": "1774"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_13 nt_row_id_1775"
+    },
+    "value": {
+     "sper82model": "Tırmık Tekerleği",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Opsiyon",
+     "82_1_2": "-",
+     "___id___": "1775"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_14 nt_row_id_1776"
+    },
+    "value": {
+     "sper82model": "Hidrolik Tırmık",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Standart",
+     "82_1_2": "-",
+     "___id___": "1776"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_15 nt_row_id_1777"
+    },
+    "value": {
+     "sper82model": "Mekanik Tırmık",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Opsiyon",
+     "82_1_2": "-",
+     "___id___": "1777"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_16 nt_row_id_1778"
+    },
+    "value": {
+     "sper82model": "Hidrolik Çeki Oku",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Standart",
+     "82_1_2": "-",
+     "___id___": "1778"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_17 nt_row_id_1779"
+    },
+    "value": {
+     "sper82model": "Mekanik Çeki Oku",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Opsiyon",
+     "82_1_2": "-",
+     "___id___": "1779"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_18 nt_row_id_1780"
+    },
+    "value": {
+     "82": "",
+     "sper82model": "<strong>BESLEME ODASI</strong>",
+     "ninja_column_2": "",
+     "82_1": "",
+     "82_1_2": "",
+     "___id___": "1780"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_19 nt_row_id_1781"
+    },
+    "value": {
+     "sper82model": "Besleme Sistemi",
+     "ninja_column_2": "",
+     "82": "",
+     "82_1": "Yandan Besleme",
+     "82_1_2": "",
+     "___id___": "1781"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_20 nt_row_id_1782"
+    },
+    "value": {
+     "sper82model": "Besleme Yaba Sayısı",
+     "ninja_column_2": "Adet",
+     "82": "2",
+     "82_1": "2",
+     "82_1_2": "2",
+     "___id___": "1782"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_21 nt_row_id_1783"
+    },
+    "value": {
+     "sper82model": "Besleme Yaba Çatal Sayısı On",
+     "ninja_column_2": "Adet",
+     "82": "3",
+     "82_1": "3",
+     "82_1_2": "3",
+     "___id___": "1783"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_22 nt_row_id_1784"
+    },
+    "value": {
+     "sper82model": "Besleme Yaba Çatal Sayısı Arka",
+     "ninja_column_2": "Adet",
+     "82": "2",
+     "82_1": "2",
+     "82_1_2": "2",
+     "___id___": "1784"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_23 nt_row_id_1785"
+    },
+    "value": {
+     "sper82model": "Besleme Odası Açıklığı",
+     "ninja_column_2": "cm2",
+     "82": "1724",
+     "82_1": "1724",
+     "82_1_2": "1724",
+     "___id___": "1785"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_24 nt_row_id_1786"
+    },
+    "value": {
+     "82": "",
+     "sper82model": "<strong>PİSTON</strong>",
+     "ninja_column_2": "",
+     "82_1": "",
+     "82_1_2": "",
+     "___id___": "1786"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_25 nt_row_id_1787"
+    },
+    "value": {
+     "sper82model": "Piston Kursu",
+     "ninja_column_2": "cm",
+     "82": "65",
+     "82_1": "73",
+     "82_1_2": "73",
+     "___id___": "1787"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_26 nt_row_id_1788"
+    },
+    "value": {
+     "sper82model": "Strok Hızı",
+     "ninja_column_2": "rpm",
+     "82": "92-104",
+     "82_1": "92-104",
+     "82_1_2": "92-104",
+     "___id___": "1788"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_27 nt_row_id_1789"
+    },
+    "value": {
+     "sper82model": "Materyal",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Çelik Piston",
+     "82_1_2": "-",
+     "___id___": "1789"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_28 nt_row_id_1790"
+    },
+    "value": {
+     "sper82model": "Piston Rayi",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Rulman",
+     "82_1_2": "-",
+     "___id___": "1790"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_29 nt_row_id_1791"
+    },
+    "value": {
+     "82": "",
+     "sper82model": "<strong>BAĞLAMA SİSTEMİ</strong>",
+     "ninja_column_2": "",
+     "82_1": "",
+     "82_1_2": "",
+     "___id___": "1791"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_30 nt_row_id_1792"
+    },
+    "value": {
+     "sper82model": "İpli Bağlama",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Paksan Özel Dizayn",
+     "82_1_2": "-",
+     "___id___": "1792"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_31 nt_row_id_1793"
+    },
+    "value": {
+     "sper82model": "Telli Bağlama",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Opsiyon",
+     "82_1_2": "-",
+     "___id___": "1793"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_32 nt_row_id_1794"
+    },
+    "value": {
+     "sper82model": "Mekik",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Paksan Özel Dizayn",
+     "82_1_2": "-",
+     "___id___": "1794"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_33 nt_row_id_1795"
+    },
+    "value": {
+     "sper82model": "Bağlama Grubu Emniyet Sistemi",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Kesme Civatası",
+     "82_1_2": "-",
+     "___id___": "1795"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_34 nt_row_id_1796"
+    },
+    "value": {
+     "sper82model": "İp Kapasitesi",
+     "ninja_column_2": "Adet",
+     "82": "6",
+     "82_1": "6",
+     "82_1_2": "6",
+     "___id___": "1796"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_35 nt_row_id_1797"
+    },
+    "value": {
+     "sper82model": "Tel Kapasitesi",
+     "ninja_column_2": "Adet",
+     "82": "2",
+     "82_1": "2",
+     "82_1_2": "2",
+     "___id___": "1797"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_36 nt_row_id_1798"
+    },
+    "value": {
+     "82": "",
+     "sper82model": "<strong>ANA TAHRİK</strong>",
+     "ninja_column_2": "",
+     "82_1": "",
+     "82_1_2": "",
+     "___id___": "1798"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_37 nt_row_id_1799"
+    },
+    "value": {
+     "sper82model": "PTO Devir",
+     "ninja_column_2": "-",
+     "82": "540-610",
+     "82_1": "540-610",
+     "82_1_2": "540-610",
+     "___id___": "1799"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_38 nt_row_id_1800"
+    },
+    "value": {
+     "sper82model": "Valon Emniyet Sistemi",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Kesme Civatasi",
+     "82_1_2": "-",
+     "___id___": "1800"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_39 nt_row_id_1801"
+    },
+    "value": {
+     "sper82model": "Valon Emniyet Sistemi",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Kavrama",
+     "82_1_2": "-",
+     "___id___": "1801"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_40 nt_row_id_1802"
+    },
+    "value": {
+     "sper82model": "Şanzıman",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Paksan Özel Dizayn",
+     "82_1_2": "-",
+     "___id___": "1802"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_41 nt_row_id_1803"
+    },
+    "value": {
+     "82": "",
+     "sper82model": "<strong>LASTİK ÖLÇÜLERİ</strong>",
+     "ninja_column_2": "",
+     "82_1": "",
+     "82_1_2": "",
+     "___id___": "1803"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_42 nt_row_id_1804"
+    },
+    "value": {
+     "sper82model": "Sağ Lastik Ölçüleri",
+     "ninja_column_2": "-",
+     "82": "10 x 75 15.3",
+     "82_1": "10 x 75 15.3",
+     "82_1_2": "10 x 75 15.3",
+     "___id___": "1804"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_43 nt_row_id_1805"
+    },
+    "value": {
+     "sper82model": "Sol Lastik Ölçüleri",
+     "ninja_column_2": "-",
+     "82": "10 x 75 15.3",
+     "82_1": "10 x 75 15.3",
+     "82_1_2": "10 x 75 15.3",
+     "___id___": "1805"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_44 nt_row_id_1806"
+    },
+    "value": {
+     "82": "",
+     "sper82model": "<strong>MAKİNA ÖLÇÜLERİ</strong>",
+     "ninja_column_2": "",
+     "82_1": "",
+     "82_1_2": "",
+     "___id___": "1806"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_45 nt_row_id_1807"
+    },
+    "value": {
+     "sper82model": "Yükseklik - Ot",
+     "ninja_column_2": "cm",
+     "82": "178",
+     "82_1": "178",
+     "82_1_2": "178",
+     "___id___": "1807"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_46 nt_row_id_1808"
+    },
+    "value": {
+     "sper82model": "Yükseklik - Saman",
+     "ninja_column_2": "cm",
+     "82": "188",
+     "82_1": "188",
+     "82_1_2": "188",
+     "___id___": "1808"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_47 nt_row_id_1809"
+    },
+    "value": {
+     "sper82model": "Genişlik",
+     "ninja_column_2": "cm",
+     "82": "230",
+     "82_1": "230",
+     "82_1_2": "242",
+     "___id___": "1809"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_48 nt_row_id_1810"
+    },
+    "value": {
+     "sper82model": "Uzunluk",
+     "ninja_column_2": "cm",
+     "82": "545",
+     "82_1": "545",
+     "82_1_2": "545",
+     "___id___": "1810"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_49 nt_row_id_1811"
+    },
+    "value": {
+     "sper82model": "Ağırlık",
+     "ninja_column_2": "kg",
+     "82": "1500",
+     "82_1": "1800",
+     "82_1_2": "2200",
+     "___id___": "1811"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_50 nt_row_id_1812"
+    },
+    "value": {
+     "82": "55 ve Yukarı",
+     "sper82model": "Traktor Gücü",
+     "ninja_column_2": "hp",
+     "82_1": "55 ve Yukarı",
+     "82_1_2": "55 ve Yukarı",
+     "___id___": "1812"
+    }
+   }
+  ]
+ },
+ "super-8002e": {
+  "adres": "https://www.paksanmakina.com.tr/urunler/paksan-balya-makinalari-4/",
+  "tabloId": "10649",
+  "sutunlar": [
+   [
+    "sper82model",
+    "Süper 8002-E MODEL"
+   ],
+   [
+    "ninja_column_2",
+    ""
+   ],
+   [
+    "82",
+    "8002 E"
+   ],
+   [
+    "82_1",
+    "8002 E"
+   ],
+   [
+    "82_1_2",
+    "8002 E"
+   ]
+  ],
+  "satirlar": [
+   {
+    "options": {
+     "classes": "ninja_table_row_0 nt_row_id_1844"
+    },
+    "value": {
+     "82": "",
+     "sper82model": "<strong>BALYA ÖLÇÜLERİ</strong>",
+     "ninja_column_2": "",
+     "82_1": "",
+     "82_1_2": "",
+     "___id___": "1844"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_1 nt_row_id_1843"
+    },
+    "value": {
+     "82": "36 x 46",
+     "sper82model": "Balya Kesitleri",
+     "ninja_column_2": "cm",
+     "82_1": "36 x 46",
+     "82_1_2": "36 x 46",
+     "___id___": "1843"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_2 nt_row_id_1842"
+    },
+    "value": {
+     "sper82model": "Balya Ağırlığı-Saman",
+     "ninja_column_2": "kg",
+     "82": "20-25",
+     "82_1": "20-25",
+     "82_1_2": "20-25",
+     "___id___": "1842"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_3 nt_row_id_1841"
+    },
+    "value": {
+     "sper82model": "Balya Ağırlığı - Ot",
+     "ninja_column_2": "kg",
+     "82": "25 - 35",
+     "82_1": "25 - 35",
+     "82_1_2": "25 - 35",
+     "___id___": "1841"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_4 nt_row_id_1840"
+    },
+    "value": {
+     "82": "30 - 130",
+     "sper82model": "Balya Boyu",
+     "ninja_column_2": "cm",
+     "82_1": "30 - 130",
+     "82_1_2": "30 - 130",
+     "___id___": "1840"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_5 nt_row_id_1838"
+    },
+    "value": {
+     "82": "",
+     "sper82model": "<strong>HAŞPAY DÜZENEĞİ</strong>",
+     "ninja_column_2": "",
+     "82_1": "",
+     "82_1_2": "",
+     "___id___": "1838"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_6 nt_row_id_1839"
+    },
+    "value": {
+     "sper82model": "Haspay Düzeneği",
+     "ninja_column_2": "-",
+     "82": "Yok",
+     "82_1": "Yok",
+     "82_1_2": "Var",
+     "___id___": "1839"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_7 nt_row_id_1837"
+    },
+    "value": {
+     "82": "",
+     "sper82model": "<strong>TIRMIK ÖLÇÜLERİ</strong>",
+     "ninja_column_2": "",
+     "82_1": "",
+     "82_1_2": "",
+     "___id___": "1837"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_8 nt_row_id_1836"
+    },
+    "value": {
+     "82": "150",
+     "sper82model": "Tırmık Genişliği - İçten içe",
+     "ninja_column_2": "cm",
+     "82_1": "150",
+     "82_1_2": "150",
+     "___id___": "1836"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_9 nt_row_id_1835"
+    },
+    "value": {
+     "82": "165",
+     "sper82model": "Tırmık Genişliği - Dıştan Dışa",
+     "ninja_column_2": "cm",
+     "82_1": "165",
+     "82_1_2": "165",
+     "___id___": "1835"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_10 nt_row_id_1834"
+    },
+    "value": {
+     "82": "100",
+     "sper82model": "Tırmık Teli",
+     "ninja_column_2": "Adet",
+     "82_1": "100",
+     "82_1_2": "100",
+     "___id___": "1834"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_11 nt_row_id_1833"
+    },
+    "value": {
+     "sper82model": "Tırmık Borusu",
+     "ninja_column_2": "Adet",
+     "82": "5",
+     "82_1": "5",
+     "82_1_2": "5",
+     "___id___": "1833"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_12 nt_row_id_1832"
+    },
+    "value": {
+     "sper82model": "Hareket Yöntemi",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Zincir",
+     "82_1_2": "-",
+     "___id___": "1832"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_13 nt_row_id_1831"
+    },
+    "value": {
+     "sper82model": "Tırmık Tekerleği",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Opsiyon",
+     "82_1_2": "-",
+     "___id___": "1831"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_14 nt_row_id_1830"
+    },
+    "value": {
+     "sper82model": "Hidrolik Tırmık",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Standart",
+     "82_1_2": "-",
+     "___id___": "1830"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_15 nt_row_id_1829"
+    },
+    "value": {
+     "sper82model": "Mekanik Tırmık",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Opsiyon",
+     "82_1_2": "-",
+     "___id___": "1829"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_16 nt_row_id_1828"
+    },
+    "value": {
+     "sper82model": "Hidrolik Çeki Oku",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Standart",
+     "82_1_2": "-",
+     "___id___": "1828"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_17 nt_row_id_1827"
+    },
+    "value": {
+     "sper82model": "Mekanik Çeki Oku",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Opsiyon",
+     "82_1_2": "-",
+     "___id___": "1827"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_18 nt_row_id_1826"
+    },
+    "value": {
+     "82": "",
+     "sper82model": "<strong>BESLEME ODASI</strong>",
+     "ninja_column_2": "",
+     "82_1": "",
+     "82_1_2": "",
+     "___id___": "1826"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_19 nt_row_id_1825"
+    },
+    "value": {
+     "sper82model": "Besleme Sistemi",
+     "ninja_column_2": "",
+     "82": "",
+     "82_1": "Yandan Besleme",
+     "82_1_2": "",
+     "___id___": "1825"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_20 nt_row_id_1824"
+    },
+    "value": {
+     "sper82model": "Besleme Yaba Sayısı",
+     "ninja_column_2": "Adet",
+     "82": "2",
+     "82_1": "2",
+     "82_1_2": "2",
+     "___id___": "1824"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_21 nt_row_id_1823"
+    },
+    "value": {
+     "sper82model": "Besleme Yaba Çatal Sayısı On",
+     "ninja_column_2": "Adet",
+     "82": "3",
+     "82_1": "3",
+     "82_1_2": "3",
+     "___id___": "1823"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_22 nt_row_id_1822"
+    },
+    "value": {
+     "sper82model": "Besleme Yaba Çatal Sayısı Arka",
+     "ninja_column_2": "Adet",
+     "82": "2",
+     "82_1": "2",
+     "82_1_2": "2",
+     "___id___": "1822"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_23 nt_row_id_1821"
+    },
+    "value": {
+     "sper82model": "Besleme Odası Açıklığı",
+     "ninja_column_2": "cm2",
+     "82": "1724",
+     "82_1": "1724",
+     "82_1_2": "1724",
+     "___id___": "1821"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_24 nt_row_id_1820"
+    },
+    "value": {
+     "82": "",
+     "sper82model": "<strong>PİSTON</strong>",
+     "ninja_column_2": "",
+     "82_1": "",
+     "82_1_2": "",
+     "___id___": "1820"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_25 nt_row_id_1819"
+    },
+    "value": {
+     "82": "73",
+     "sper82model": "Piston Kursu",
+     "ninja_column_2": "cm",
+     "82_1": "73",
+     "82_1_2": "73",
+     "___id___": "1819"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_26 nt_row_id_1818"
+    },
+    "value": {
+     "82": "73-104",
+     "sper82model": "Strok Hızı",
+     "ninja_column_2": "rpm",
+     "82_1": "73-104",
+     "82_1_2": "73-104",
+     "___id___": "1818"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_27 nt_row_id_1817"
+    },
+    "value": {
+     "sper82model": "Materyal",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Çelik Piston",
+     "82_1_2": "-",
+     "___id___": "1817"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_28 nt_row_id_1816"
+    },
+    "value": {
+     "sper82model": "Piston Rayi",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Rulman",
+     "82_1_2": "-",
+     "___id___": "1816"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_29 nt_row_id_1815"
+    },
+    "value": {
+     "82": "",
+     "sper82model": "<strong>BAĞLAMA SİSTEMİ</strong>",
+     "ninja_column_2": "",
+     "82_1": "",
+     "82_1_2": "",
+     "___id___": "1815"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_30 nt_row_id_1814"
+    },
+    "value": {
+     "sper82model": "İpli Bağlama",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Paksan Özel Dizayn",
+     "82_1_2": "-",
+     "___id___": "1814"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_31 nt_row_id_1813"
+    },
+    "value": {
+     "sper82model": "Telli Bağlama",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Opsiyon",
+     "82_1_2": "-",
+     "___id___": "1813"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_32 nt_row_id_1845"
+    },
+    "value": {
+     "sper82model": "Mekik",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Paksan Özel Dizayn",
+     "82_1_2": "-",
+     "___id___": "1845"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_33 nt_row_id_1846"
+    },
+    "value": {
+     "sper82model": "Bağlama Grubu Emniyet Sistemi",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Kesme Civatası",
+     "82_1_2": "-",
+     "___id___": "1846"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_34 nt_row_id_1847"
+    },
+    "value": {
+     "sper82model": "İp Kapasitesi",
+     "ninja_column_2": "Adet",
+     "82": "6",
+     "82_1": "6",
+     "82_1_2": "6",
+     "___id___": "1847"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_35 nt_row_id_1848"
+    },
+    "value": {
+     "sper82model": "Tel Kapasitesi",
+     "ninja_column_2": "Adet",
+     "82": "2",
+     "82_1": "2",
+     "82_1_2": "2",
+     "___id___": "1848"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_36 nt_row_id_1849"
+    },
+    "value": {
+     "82": "",
+     "sper82model": "<strong>ANA TAHRİK</strong>",
+     "ninja_column_2": "",
+     "82_1": "",
+     "82_1_2": "",
+     "___id___": "1849"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_37 nt_row_id_1850"
+    },
+    "value": {
+     "82": "-",
+     "sper82model": "PTO Devir",
+     "ninja_column_2": "-",
+     "82_1": "Standart",
+     "82_1_2": "-",
+     "___id___": "1850"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_38 nt_row_id_1851"
+    },
+    "value": {
+     "sper82model": "Valon Emniyet Sistemi",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Kesme Civatasi",
+     "82_1_2": "-",
+     "___id___": "1851"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_39 nt_row_id_1852"
+    },
+    "value": {
+     "sper82model": "Valon Emniyet Sistemi",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Kavrama",
+     "82_1_2": "-",
+     "___id___": "1852"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_40 nt_row_id_1853"
+    },
+    "value": {
+     "sper82model": "Şanzıman",
+     "ninja_column_2": "-",
+     "82": "-",
+     "82_1": "Paksan Özel Dizayn",
+     "82_1_2": "-",
+     "___id___": "1853"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_41 nt_row_id_1854"
+    },
+    "value": {
+     "82": "",
+     "sper82model": "<strong>LASTİK ÖLÇÜLERİ</strong>",
+     "ninja_column_2": "",
+     "82_1": "",
+     "82_1_2": "",
+     "___id___": "1854"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_42 nt_row_id_1855"
+    },
+    "value": {
+     "sper82model": "Sağ Lastik Ölçüleri",
+     "ninja_column_2": "-",
+     "82": "10 x 75 15.3",
+     "82_1": "10 x 75 15.3",
+     "82_1_2": "10 x 75 15.3",
+     "___id___": "1855"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_43 nt_row_id_1856"
+    },
+    "value": {
+     "sper82model": "Sol Lastik Ölçüleri",
+     "ninja_column_2": "-",
+     "82": "10 x 75 15.3",
+     "82_1": "10 x 75 15.3",
+     "82_1_2": "10 x 75 15.3",
+     "___id___": "1856"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_44 nt_row_id_1857"
+    },
+    "value": {
+     "82": "",
+     "sper82model": "<strong>MAKİNA ÖLÇÜLERİ</strong>",
+     "ninja_column_2": "",
+     "82_1": "",
+     "82_1_2": "",
+     "___id___": "1857"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_45 nt_row_id_1858"
+    },
+    "value": {
+     "sper82model": "Yükseklik - Ot",
+     "ninja_column_2": "cm",
+     "82": "178",
+     "82_1": "178",
+     "82_1_2": "178",
+     "___id___": "1858"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_46 nt_row_id_1859"
+    },
+    "value": {
+     "sper82model": "Yükseklik - Saman",
+     "ninja_column_2": "cm",
+     "82": "188",
+     "82_1": "188",
+     "82_1_2": "188",
+     "___id___": "1859"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_47 nt_row_id_1860"
+    },
+    "value": {
+     "82": "238",
+     "sper82model": "Genişlik",
+     "ninja_column_2": "cm",
+     "82_1": "238",
+     "82_1_2": "247",
+     "___id___": "1860"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_48 nt_row_id_1861"
+    },
+    "value": {
+     "sper82model": "Uzunluk",
+     "ninja_column_2": "cm",
+     "82": "545",
+     "82_1": "545",
+     "82_1_2": "545",
+     "___id___": "1861"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_49 nt_row_id_1862"
+    },
+    "value": {
+     "82": "1900",
+     "sper82model": "Ağırlık",
+     "ninja_column_2": "kg",
+     "82_1": "2020",
+     "82_1_2": "2570",
+     "___id___": "1862"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_50 nt_row_id_1863"
+    },
+    "value": {
+     "82": "55 ve Yukarı",
+     "sper82model": "Traktor Gücü",
+     "ninja_column_2": "hp",
+     "82_1": "55 ve Yukarı",
+     "82_1_2": "55 ve Yukarı",
+     "___id___": "1863"
+    }
+   }
+  ]
+ },
+ "super-8002e-dual2": {
+  "adres": "https://www.paksanmakina.com.tr/urunler/paksan-balya-makinalari-3/",
+  "tabloId": "10658",
+  "sutunlar": [
+   [
+    "sper82model",
+    "SÜPER S8002 E DUAL 2"
+   ],
+   [
+    "ninja_column_2",
+    ""
+   ],
+   [
+    "spers82edual2",
+    ""
+   ]
+  ],
+  "satirlar": [
+   {
+    "options": {
+     "classes": "ninja_table_row_0 nt_row_id_2122"
+    },
+    "value": {
+     "sper82model": "<strong>BALYA ÖLÇÜLERİ</strong>",
+     "ninja_column_2": "",
+     "spers82edual2": "",
+     "___id___": "2122"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_1 nt_row_id_2123"
+    },
+    "value": {
+     "sper82model": "Balya Kesitleri",
+     "ninja_column_2": "cm",
+     "spers82edual2": "36 x 46",
+     "___id___": "2123"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_2 nt_row_id_2124"
+    },
+    "value": {
+     "sper82model": "Balya Ağırlığı-Saman",
+     "ninja_column_2": "kg",
+     "spers82edual2": "20-25",
+     "___id___": "2124"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_3 nt_row_id_2125"
+    },
+    "value": {
+     "sper82model": "Balya Ağırlığı - Ot",
+     "ninja_column_2": "kg",
+     "spers82edual2": "25 - 35",
+     "___id___": "2125"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_4 nt_row_id_2126"
+    },
+    "value": {
+     "sper82model": "Balya Boyu",
+     "ninja_column_2": "cm",
+     "spers82edual2": "30 - 130",
+     "___id___": "2126"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_5 nt_row_id_2127"
+    },
+    "value": {
+     "sper82model": "<strong>HAŞPAY DÜZENEĞİ</strong>",
+     "ninja_column_2": "",
+     "spers82edual2": "",
+     "___id___": "2127"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_6 nt_row_id_2128"
+    },
+    "value": {
+     "sper82model": "Haspay Düzeneği",
+     "ninja_column_2": "Haşpay Sistemi",
+     "spers82edual2": "Otomatik Haşpay",
+     "___id___": "2128"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_7 nt_row_id_2129"
+    },
+    "value": {
+     "sper82model": "Haşpay Bıçak Sayısı",
+     "ninja_column_2": "Adet",
+     "spers82edual2": "39 Bıçak",
+     "___id___": "2129"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_8 nt_row_id_2130"
+    },
+    "value": {
+     "sper82model": "Bıçak Kontrolü",
+     "ninja_column_2": "-",
+     "spers82edual2": "Hidrolik",
+     "___id___": "2130"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_9 nt_row_id_2131"
+    },
+    "value": {
+     "sper82model": "Kontra Hareketi",
+     "ninja_column_2": "-",
+     "spers82edual2": "Hidrolik",
+     "___id___": "2131"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_10 nt_row_id_2132"
+    },
+    "value": {
+     "sper82model": "Rotor Sac Kalınlıkları",
+     "ninja_column_2": "mm",
+     "spers82edual2": "20mm",
+     "___id___": "2132"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_11 nt_row_id_2133"
+    },
+    "value": {
+     "sper82model": "Rotor Tahrik Yöntemi",
+     "ninja_column_2": "-",
+     "spers82edual2": "Çift Devirli Vitesli",
+     "___id___": "2133"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_12 nt_row_id_2134"
+    },
+    "value": {
+     "sper82model": "<strong>TIRMIK ÖLÇÜLERİ</strong>",
+     "ninja_column_2": "",
+     "spers82edual2": "",
+     "___id___": "2134"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_13 nt_row_id_2135"
+    },
+    "value": {
+     "sper82model": "Tırmık Genişliği - İçten içe",
+     "ninja_column_2": "cm",
+     "spers82edual2": "150",
+     "___id___": "2135"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_14 nt_row_id_2136"
+    },
+    "value": {
+     "sper82model": "Tırmık Genişliği - Dıştan Dışa",
+     "ninja_column_2": "",
+     "spers82edual2": "165",
+     "___id___": "2136"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_15 nt_row_id_2137"
+    },
+    "value": {
+     "sper82model": "Tırmık Teli",
+     "ninja_column_2": "Adet",
+     "spers82edual2": "100",
+     "___id___": "2137"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_16 nt_row_id_2138"
+    },
+    "value": {
+     "sper82model": "Tırmık Borusu",
+     "ninja_column_2": "Adet",
+     "spers82edual2": "4",
+     "___id___": "2138"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_17 nt_row_id_2139"
+    },
+    "value": {
+     "sper82model": "Hareket Yöntemi",
+     "ninja_column_2": "-",
+     "spers82edual2": "Zincir",
+     "___id___": "2139"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_18 nt_row_id_2140"
+    },
+    "value": {
+     "sper82model": "Tırmık Tekerleği",
+     "ninja_column_2": "-",
+     "spers82edual2": "Opsiyon",
+     "___id___": "2140"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_19 nt_row_id_2141"
+    },
+    "value": {
+     "sper82model": "Hidrolik Tırmık",
+     "ninja_column_2": "-",
+     "spers82edual2": "Standart",
+     "___id___": "2141"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_20 nt_row_id_2142"
+    },
+    "value": {
+     "sper82model": "Mekanik Tırmık",
+     "ninja_column_2": "-",
+     "spers82edual2": "Opsiyon",
+     "___id___": "2142"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_21 nt_row_id_2143"
+    },
+    "value": {
+     "sper82model": "Hidrolik Çeki Oku",
+     "ninja_column_2": "-",
+     "spers82edual2": "Standart",
+     "___id___": "2143"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_22 nt_row_id_2144"
+    },
+    "value": {
+     "sper82model": "Mekanik Çeki Oku",
+     "ninja_column_2": "-",
+     "spers82edual2": "Opsiyon",
+     "___id___": "2144"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_23 nt_row_id_2145"
+    },
+    "value": {
+     "sper82model": "<strong>BESLEME ODASI</strong>",
+     "ninja_column_2": "",
+     "spers82edual2": "",
+     "___id___": "2145"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_24 nt_row_id_2146"
+    },
+    "value": {
+     "sper82model": "Besleme Sistemi",
+     "ninja_column_2": "",
+     "spers82edual2": "Yandan Besleme",
+     "___id___": "2146"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_25 nt_row_id_2147"
+    },
+    "value": {
+     "sper82model": "Besleme Yaba Sayısı",
+     "ninja_column_2": "Adet",
+     "spers82edual2": "2",
+     "___id___": "2147"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_26 nt_row_id_2148"
+    },
+    "value": {
+     "sper82model": "Besleme Yaba Çatal Sayısı On",
+     "ninja_column_2": "Adet",
+     "spers82edual2": "3",
+     "___id___": "2148"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_27 nt_row_id_2149"
+    },
+    "value": {
+     "sper82model": "Besleme Yaba Çatal Sayısı - Arka",
+     "ninja_column_2": "cm2",
+     "spers82edual2": "2",
+     "___id___": "2149"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_28 nt_row_id_2150"
+    },
+    "value": {
+     "sper82model": "Besleme Odası Açıklığı",
+     "ninja_column_2": "",
+     "spers82edual2": "1724",
+     "___id___": "2150"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_29 nt_row_id_2151"
+    },
+    "value": {
+     "sper82model": "<strong>PİSTON</strong>",
+     "ninja_column_2": "",
+     "spers82edual2": "",
+     "___id___": "2151"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_30 nt_row_id_2152"
+    },
+    "value": {
+     "sper82model": "Piston Kursu",
+     "ninja_column_2": "cm",
+     "spers82edual2": "73",
+     "___id___": "2152"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_31 nt_row_id_2153"
+    },
+    "value": {
+     "sper82model": "Strok Hızı",
+     "ninja_column_2": "rpm",
+     "spers82edual2": "92 - 104",
+     "___id___": "2153"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_32 nt_row_id_2154"
+    },
+    "value": {
+     "sper82model": "Materyal",
+     "ninja_column_2": "-",
+     "spers82edual2": "Çelik Pisto",
+     "___id___": "2154"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_33 nt_row_id_2155"
+    },
+    "value": {
+     "sper82model": "Piston Rayi",
+     "ninja_column_2": "-",
+     "spers82edual2": "Rulman",
+     "___id___": "2155"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_34 nt_row_id_2156"
+    },
+    "value": {
+     "sper82model": "<strong>BAĞLAMA SİSTEMİ</strong>",
+     "ninja_column_2": "",
+     "spers82edual2": "",
+     "___id___": "2156"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_35 nt_row_id_2157"
+    },
+    "value": {
+     "sper82model": "İpli Bağlama",
+     "ninja_column_2": "-",
+     "spers82edual2": "Paksan Özel Dizayn",
+     "___id___": "2157"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_36 nt_row_id_2158"
+    },
+    "value": {
+     "sper82model": "Mekik",
+     "ninja_column_2": "-",
+     "spers82edual2": "Paksan Özel Dizayn",
+     "___id___": "2158"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_37 nt_row_id_2159"
+    },
+    "value": {
+     "sper82model": "Bağlama Grubu Emniyet Sistemi",
+     "ninja_column_2": "-",
+     "spers82edual2": "Kesme Civatası",
+     "___id___": "2159"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_38 nt_row_id_2160"
+    },
+    "value": {
+     "sper82model": "Tel Kapasitesi",
+     "ninja_column_2": "Adet",
+     "spers82edual2": "6",
+     "___id___": "2160"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_39 nt_row_id_2161"
+    },
+    "value": {
+     "sper82model": "<strong>ANA TAHRİK</strong>",
+     "ninja_column_2": "",
+     "spers82edual2": "",
+     "___id___": "2161"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_40 nt_row_id_2162"
+    },
+    "value": {
+     "sper82model": "PTO Devir",
+     "ninja_column_2": "-",
+     "spers82edual2": "540-610",
+     "___id___": "2162"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_41 nt_row_id_2163"
+    },
+    "value": {
+     "sper82model": "Valon Emniyet Sistemi",
+     "ninja_column_2": "-",
+     "spers82edual2": "Kesme Civatası",
+     "___id___": "2163"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_42 nt_row_id_2164"
+    },
+    "value": {
+     "sper82model": "Valon Emniyet Sistemi",
+     "ninja_column_2": "-",
+     "spers82edual2": "Kavrama",
+     "___id___": "2164"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_43 nt_row_id_2165"
+    },
+    "value": {
+     "sper82model": "Şanzıman",
+     "ninja_column_2": "-",
+     "spers82edual2": "Paksan Özel Dizayn",
+     "___id___": "2165"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_44 nt_row_id_2166"
+    },
+    "value": {
+     "sper82model": "<strong>LASTİK ÖLÇÜLERİ</strong>",
+     "ninja_column_2": "",
+     "spers82edual2": "",
+     "___id___": "2166"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_45 nt_row_id_2167"
+    },
+    "value": {
+     "sper82model": "Sağ Lastik Ölçüleri",
+     "ninja_column_2": "-",
+     "spers82edual2": "10 x 75 15.3",
+     "___id___": "2167"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_46 nt_row_id_2168"
+    },
+    "value": {
+     "sper82model": "Sol Lastik Ölçüleri",
+     "ninja_column_2": "-",
+     "spers82edual2": "10 x 75 15.3",
+     "___id___": "2168"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_47 nt_row_id_2169"
+    },
+    "value": {
+     "sper82model": "<strong>MAKİNA ÖLÇÜLERİ</strong>",
+     "ninja_column_2": "",
+     "spers82edual2": "",
+     "___id___": "2169"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_48 nt_row_id_2170"
+    },
+    "value": {
+     "sper82model": "Yükseklik - Ot",
+     "ninja_column_2": "cm",
+     "spers82edual2": "178",
+     "___id___": "2170"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_49 nt_row_id_2171"
+    },
+    "value": {
+     "sper82model": "Yükseklik - Saman",
+     "ninja_column_2": "cm",
+     "spers82edual2": "188",
+     "___id___": "2171"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_50 nt_row_id_2172"
+    },
+    "value": {
+     "sper82model": "Genişlik",
+     "ninja_column_2": "cm",
+     "spers82edual2": "250",
+     "___id___": "2172"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_51 nt_row_id_2173"
+    },
+    "value": {
+     "sper82model": "Uzunluk",
+     "ninja_column_2": "cm",
+     "spers82edual2": "545",
+     "___id___": "2173"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_52 nt_row_id_2174"
+    },
+    "value": {
+     "sper82model": "Ağırlık",
+     "ninja_column_2": "kg",
+     "spers82edual2": "2020",
+     "___id___": "2174"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_53 nt_row_id_2175"
+    },
+    "value": {
+     "sper82model": "Traktor Gücü",
+     "ninja_column_2": "hp",
+     "spers82edual2": "55 ve Yukarı",
+     "___id___": "2175"
+    }
+   }
+  ]
+ },
+ "hammer": {
+  "adres": "https://www.paksanmakina.com.tr/urunler/hammer-balya-makinasi/",
+  "tabloId": "7324",
+  "sutunlar": [
+   [
+    "zellkler",
+    "ÖZELLİKLER"
+   ],
+   [
+    "ek",
+    "HAMMER/ÇEKİÇ"
+   ]
+  ],
+  "satirlar": [
+   {
+    "options": {
+     "classes": "ninja_table_row_0 nt_row_id_79"
+    },
+    "value": {
+     "zellkler": "Traktör Gücü",
+     "ek": "50",
+     "___id___": "79"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_1 nt_row_id_80"
+    },
+    "value": {
+     "zellkler": "Balya Ağırlığı - Saman",
+     "ek": "20 - 25 kg",
+     "___id___": "80"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_2 nt_row_id_81"
+    },
+    "value": {
+     "zellkler": "Balya Ağırlığı - Ot",
+     "ek": "25 - 35 kg",
+     "___id___": "81"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_3 nt_row_id_82"
+    },
+    "value": {
+     "zellkler": "Balya / Saat",
+     "ek": "250 - 350",
+     "___id___": "82"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_4 nt_row_id_83"
+    },
+    "value": {
+     "zellkler": "Tırmık Genişliği",
+     "ek": "200",
+     "___id___": "83"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_5 nt_row_id_84"
+    },
+    "value": {
+     "zellkler": "Hidrolik Toplayıcı Pistonu",
+     "ek": "Standart",
+     "___id___": "84"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_6 nt_row_id_85"
+    },
+    "value": {
+     "zellkler": "3. Destek Tekerİ",
+     "ek": "Opsiyon",
+     "___id___": "85"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_7 nt_row_id_86"
+    },
+    "value": {
+     "zellkler": "Haşpay Ünütesi",
+     "ek": "Yok",
+     "___id___": "86"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_8 nt_row_id_87"
+    },
+    "value": {
+     "zellkler": "Balya Ölçüsü",
+     "ek": "36 x 46",
+     "___id___": "87"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_9 nt_row_id_88"
+    },
+    "value": {
+     "zellkler": "Strok Boyu ve Hızı",
+     "ek": "73cm - 92 rpm",
+     "___id___": "88"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_10 nt_row_id_89"
+    },
+    "value": {
+     "zellkler": "Kuyruk Tipi",
+     "ek": "Standart",
+     "___id___": "89"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_11 nt_row_id_90"
+    },
+    "value": {
+     "zellkler": "Bağlama Gurubu",
+     "ek": "2-3 İpli",
+     "___id___": "90"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_12 nt_row_id_91"
+    },
+    "value": {
+     "zellkler": "Telli Bağlama Grubu",
+     "ek": "Yok",
+     "___id___": "91"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_13 nt_row_id_92"
+    },
+    "value": {
+     "zellkler": "Bağlama Grubu Aydınlatması",
+     "ek": "Standart",
+     "___id___": "92"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_14 nt_row_id_93"
+    },
+    "value": {
+     "zellkler": "Bağlama Grubu Fanı",
+     "ek": "Standart",
+     "___id___": "93"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_15 nt_row_id_94"
+    },
+    "value": {
+     "zellkler": "İş-Yol Konumu",
+     "ek": "Hidrolik",
+     "___id___": "94"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_16 nt_row_id_95"
+    },
+    "value": {
+     "zellkler": "Bağlama Sistemi Güç Aktarımı",
+     "ek": "Zincir",
+     "___id___": "95"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_17 nt_row_id_96"
+    },
+    "value": {
+     "zellkler": "Sol Yaba Güç Aktarımı",
+     "ek": "Şaft",
+     "___id___": "96"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_18 nt_row_id_97"
+    },
+    "value": {
+     "zellkler": "Sağ Yaba Güç Aktarımı",
+     "ek": "Zincir",
+     "___id___": "97"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_19 nt_row_id_98"
+    },
+    "value": {
+     "zellkler": "Toplayıcı Düzeneği Güç Aktarımı",
+     "ek": "Zincir",
+     "___id___": "98"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_20 nt_row_id_99"
+    },
+    "value": {
+     "zellkler": "İp Dolabı Kapasitesi",
+     "ek": "6",
+     "___id___": "99"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_21 nt_row_id_100"
+    },
+    "value": {
+     "zellkler": "Mekanik Balya Sayıcı",
+     "ek": "Standart",
+     "___id___": "100"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_22 nt_row_id_101"
+    },
+    "value": {
+     "zellkler": "Dijital Balya Sayıcı",
+     "ek": "Opsiyon",
+     "___id___": "101"
+    }
+   }
+  ]
+ },
+ "diamond-dikey": {
+  "adres": "https://www.paksanmakina.com.tr/urunler/diamond-paksan-dikey-yem-karma-makinasi/",
+  "tabloId": "10628",
+  "sutunlar": [
+   [
+    "teknkzellikler",
+    "Teknı̇k Özellikler"
+   ],
+   [
+    "15m3",
+    "1,5 m3"
+   ],
+   [
+    "25m3",
+    "2,5 m3"
+   ],
+   [
+    "35m3",
+    "3,5 m3"
+   ],
+   [
+    "4m3",
+    "4 m3"
+   ],
+   [
+    "5m3",
+    "5 m3"
+   ],
+   [
+    "6m3",
+    "6 m3"
+   ],
+   [
+    "8m3",
+    "8 m3"
+   ],
+   [
+    "12m3",
+    "12 m3"
+   ],
+   [
+    "16m3",
+    "16 m3"
+   ],
+   [
+    "2m3",
+    "20 m3"
+   ]
+  ],
+  "satirlar": [
+   {
+    "options": {
+     "classes": "ninja_table_row_0 nt_row_id_1573"
+    },
+    "value": {
+     "teknkzellikler": "Traktör Gücü ",
+     "15m3": "30 hp",
+     "25m3": "30 hp",
+     "35m3": "30 hp",
+     "4m3": "30 hp",
+     "5m3": "50 hp",
+     "6m3": "50 hp",
+     "8m3": "60 hp",
+     "12m3": "75 hp",
+     "16m3": "95 hp",
+     "2m3": "110 hp",
+     "___id___": "1573"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_1 nt_row_id_1574"
+    },
+    "value": {
+     "teknkzellikler": "<strong>HELEZON SİSTEMİ</strong>",
+     "15m3": "",
+     "25m3": "",
+     "35m3": "",
+     "4m3": "",
+     "5m3": "",
+     "6m3": "",
+     "8m3": "",
+     "12m3": "",
+     "16m3": "",
+     "2m3": "",
+     "___id___": "1574"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_2 nt_row_id_1575"
+    },
+    "value": {
+     "teknkzellikler": "Helezon Sayısı ",
+     "15m3": "1",
+     "25m3": "1",
+     "35m3": "1",
+     "4m3": "1",
+     "5m3": "1",
+     "6m3": "1",
+     "8m3": "1",
+     "12m3": "1",
+     "16m3": "2",
+     "2m3": "2",
+     "___id___": "1575"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_3 nt_row_id_1576"
+    },
+    "value": {
+     "teknkzellikler": "Helezon Tipi",
+     "15m3": "",
+     "25m3": "",
+     "35m3": "",
+     "4m3": "",
+     "5m3": "Dikey Helezon Sistemi",
+     "6m3": "",
+     "8m3": "",
+     "12m3": "",
+     "16m3": "",
+     "2m3": "",
+     "___id___": "1576"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_4 nt_row_id_1577"
+    },
+    "value": {
+     "teknkzellikler": "Helezon Çapı",
+     "15m3": "1010 mm",
+     "25m3": "1320 mm",
+     "35m3": "1350 mm",
+     "4m3": "1350 mm",
+     "5m3": "1560 mm",
+     "6m3": "1650 mm",
+     "8m3": "1800 mm",
+     "12m3": "2400 mm",
+     "16m3": "2100 mm",
+     "2m3": "2200 mm",
+     "___id___": "1577"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_5 nt_row_id_1578"
+    },
+    "value": {
+     "teknkzellikler": "Malzeme Tipi",
+     "15m3": "",
+     "25m3": "",
+     "35m3": "",
+     "4m3": "",
+     "5m3": "ST 52",
+     "6m3": "",
+     "8m3": "",
+     "12m3": "",
+     "16m3": "",
+     "2m3": "",
+     "___id___": "1578"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_6 nt_row_id_1579"
+    },
+    "value": {
+     "teknkzellikler": "<strong>BIÇAK SİSTEMİ</strong>",
+     "15m3": "",
+     "25m3": "",
+     "35m3": "",
+     "4m3": "",
+     "5m3": "",
+     "6m3": "",
+     "8m3": "",
+     "12m3": "",
+     "16m3": "",
+     "2m3": "",
+     "___id___": "1579"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_7 nt_row_id_1580"
+    },
+    "value": {
+     "teknkzellikler": "Bıçak Sayısı",
+     "15m3": "6",
+     "25m3": "8",
+     "35m3": "8",
+     "4m3": "8",
+     "5m3": "5",
+     "6m3": "5",
+     "8m3": "9",
+     "12m3": "10",
+     "16m3": "18",
+     "2m3": "20",
+     "___id___": "1580"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_8 nt_row_id_1581"
+    },
+    "value": {
+     "teknkzellikler": "Bıçak Tipi",
+     "15m3": "",
+     "25m3": "",
+     "35m3": "",
+     "4m3": "",
+     "5m3": "Üçgen Tipi Bıçak",
+     "6m3": "",
+     "8m3": "",
+     "12m3": "",
+     "16m3": "",
+     "2m3": "",
+     "___id___": "1581"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_9 nt_row_id_1582"
+    },
+    "value": {
+     "teknkzellikler": "<strong>SAC KALINLIKLARI</strong>",
+     "15m3": "",
+     "25m3": "",
+     "35m3": "",
+     "4m3": "",
+     "5m3": "",
+     "6m3": "",
+     "8m3": "",
+     "12m3": "",
+     "16m3": "",
+     "2m3": "",
+     "___id___": "1582"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_10 nt_row_id_1583"
+    },
+    "value": {
+     "teknkzellikler": "Yan Sac Kalınlık",
+     "15m3": "4mm",
+     "25m3": "4mm",
+     "35m3": "4mm",
+     "4m3": "4mm",
+     "5m3": "5mm",
+     "6m3": "5mm",
+     "8m3": "5mm",
+     "12m3": "5mm",
+     "16m3": "6mm",
+     "2m3": "6mm",
+     "___id___": "1583"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_11 nt_row_id_1584"
+    },
+    "value": {
+     "teknkzellikler": "Taban Sac Kalınlık",
+     "15m3": "8mm",
+     "25m3": "10mm",
+     "35m3": "10mm",
+     "4m3": "10mm",
+     "5m3": "15mm",
+     "6m3": "15mm",
+     "8m3": "20mm",
+     "12m3": "20mm",
+     "16m3": "20mm",
+     "2m3": "20mm",
+     "___id___": "1584"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_12 nt_row_id_1585"
+    },
+    "value": {
+     "teknkzellikler": "Malzeme Tipi",
+     "15m3": "",
+     "25m3": "",
+     "35m3": "",
+     "4m3": "",
+     "5m3": "ST 37",
+     "6m3": "",
+     "8m3": "",
+     "12m3": "",
+     "16m3": "",
+     "2m3": "",
+     "___id___": "1585"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_13 nt_row_id_1586"
+    },
+    "value": {
+     "teknkzellikler": "<strong>MAKİNA ÖZELLİKLERİ</strong>",
+     "15m3": "",
+     "25m3": "",
+     "35m3": "",
+     "4m3": "",
+     "5m3": "",
+     "6m3": "",
+     "8m3": "",
+     "12m3": "",
+     "16m3": "",
+     "2m3": "",
+     "___id___": "1586"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_14 nt_row_id_1587"
+    },
+    "value": {
+     "teknkzellikler": "Çekilir Tip",
+     "15m3": "Asılır ",
+     "25m3": "Opsiyon",
+     "35m3": "Çekilir Tip",
+     "4m3": "Çekilir Tip",
+     "5m3": "Çekilir Tip",
+     "6m3": "Çekilir Tip",
+     "8m3": "Çekilir Tip",
+     "12m3": "Çekilir Tip",
+     "16m3": "Çekilir Tip",
+     "2m3": "Çekilir Tip",
+     "___id___": "1587"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_15 nt_row_id_1588"
+    },
+    "value": {
+     "teknkzellikler": "Yan Boşaltma Bandı",
+     "15m3": "Standart",
+     "25m3": "Standart",
+     "35m3": "Standart",
+     "4m3": "Standart",
+     "5m3": "Standart",
+     "6m3": "Yok",
+     "8m3": "Yok",
+     "12m3": "Yok",
+     "16m3": "Yok",
+     "2m3": "Yok",
+     "___id___": "1588"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_16 nt_row_id_1589"
+    },
+    "value": {
+     "teknkzellikler": "2. Boşaltma Bandı",
+     "15m3": "",
+     "25m3": "",
+     "35m3": "",
+     "4m3": "",
+     "5m3": "",
+     "6m3": "",
+     "8m3": "",
+     "12m3": "",
+     "16m3": "",
+     "2m3": "",
+     "___id___": "1589"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_17 nt_row_id_1590"
+    },
+    "value": {
+     "teknkzellikler": "Yükleme Kepçesi",
+     "15m3": "Yok",
+     "25m3": "Standart",
+     "35m3": "Standart",
+     "4m3": "Standart",
+     "5m3": "Standart",
+     "6m3": "Standart",
+     "8m3": "Standart",
+     "12m3": "Standart",
+     "16m3": "Standart",
+     "2m3": "Opsiyon",
+     "___id___": "1590"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_18 nt_row_id_1591"
+    },
+    "value": {
+     "teknkzellikler": "Kendinden Yağlama Sistemi",
+     "15m3": "Yok",
+     "25m3": "Opsiyon",
+     "35m3": "",
+     "4m3": "",
+     "5m3": "",
+     "6m3": "Standart Opsiyon",
+     "8m3": "",
+     "12m3": "",
+     "16m3": "",
+     "2m3": "",
+     "___id___": "1591"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_19 nt_row_id_1592"
+    },
+    "value": {
+     "teknkzellikler": "Dijital Tartı Sistemi ",
+     "15m3": "Yok",
+     "25m3": "Yok",
+     "35m3": "",
+     "4m3": "",
+     "5m3": "",
+     "6m3": "",
+     "8m3": "",
+     "12m3": "",
+     "16m3": "",
+     "2m3": "",
+     "___id___": "1592"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_20 nt_row_id_1593"
+    },
+    "value": {
+     "teknkzellikler": "Elektrikli Yem Karma",
+     "15m3": "",
+     "25m3": "",
+     "35m3": "Opsiyon",
+     "4m3": "",
+     "5m3": "",
+     "6m3": "",
+     "8m3": "",
+     "12m3": "Yok",
+     "16m3": "",
+     "2m3": "",
+     "___id___": "1593"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_21 nt_row_id_1594"
+    },
+    "value": {
+     "teknkzellikler": "<strong>MAKİNA ÖLÇÜLERİ</strong>",
+     "15m3": "",
+     "25m3": "",
+     "35m3": "",
+     "4m3": "",
+     "5m3": "",
+     "6m3": "",
+     "8m3": "",
+     "12m3": "",
+     "16m3": "",
+     "2m3": "",
+     "___id___": "1594"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_22 nt_row_id_1595"
+    },
+    "value": {
+     "teknkzellikler": "Ağırlık ",
+     "15m3": "435 kg",
+     "25m3": "1020 kg",
+     "35m3": "1370 kg",
+     "4m3": "1380 kg",
+     "5m3": "2350 kg",
+     "6m3": "2650 kg",
+     "8m3": "3050 kg",
+     "12m3": "4400 kg",
+     "16m3": "6000 kg",
+     "2m3": "6800 kg",
+     "___id___": "1595"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_23 nt_row_id_1596"
+    },
+    "value": {
+     "teknkzellikler": "Uzunluk ",
+     "15m3": "1635 mm",
+     "25m3": "4200 mm",
+     "35m3": "4450 mm",
+     "4m3": "4702 mm",
+     "5m3": "5100 mm",
+     "6m3": "5180 mm",
+     "8m3": "5230 mm",
+     "12m3": "5610 mm",
+     "16m3": "7390 mm ",
+     "2m3": "7340 mm",
+     "___id___": "1596"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_24 nt_row_id_1597"
+    },
+    "value": {
+     "teknkzellikler": "Genişlik",
+     "15m3": "1525 mm",
+     "25m3": "1890 mm",
+     "35m3": "2200 mm",
+     "4m3": "2293 mm",
+     "5m3": "2900 mm",
+     "6m3": "1940 mm",
+     "8m3": "2100 mm",
+     "12m3": "2460 mm",
+     "16m3": "2350 mm",
+     "2m3": "2460 mm\n",
+     "___id___": "1597"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_25 nt_row_id_1598"
+    },
+    "value": {
+     "teknkzellikler": "Yükseklik ",
+     "15m3": "1690 mm",
+     "25m3": "2050 mm",
+     "35m3": "2300 mm",
+     "4m3": "2423 mm",
+     "5m3": "2400 mm",
+     "6m3": "2870 mm",
+     "8m3": "3020 mm",
+     "12m3": "3320 mm ",
+     "16m3": "3130 mm",
+     "2m3": "3070 mm",
+     "___id___": "1598"
+    }
+   }
+  ]
+ },
+ "pelican-yatay": {
+  "adres": "https://www.paksanmakina.com.tr/urunler/pelican-yatay-yem-karma-makinalari/",
+  "tabloId": "10626",
+  "sutunlar": [
+   [
+    "teknkzellikler",
+    "Teknı̇k Özellikler"
+   ],
+   [
+    "4m3",
+    "4 m3"
+   ],
+   [
+    "6m3",
+    "6 m3"
+   ],
+   [
+    "8m3",
+    "8 m3"
+   ],
+   [
+    "1m3",
+    "10 m3"
+   ]
+  ],
+  "satirlar": [
+   {
+    "options": {
+     "classes": "ninja_table_row_0 nt_row_id_1543"
+    },
+    "value": {
+     "teknkzellikler": "Traktör Gücü ",
+     "4m3": "30 hp",
+     "6m3": "40 hp",
+     "8m3": "50 hp",
+     "1m3": "60 hp",
+     "___id___": "1543"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_1 nt_row_id_1544"
+    },
+    "value": {
+     "teknkzellikler": "<strong>HELEZON SİSTEMİ</strong>",
+     "4m3": "",
+     "6m3": "",
+     "8m3": "",
+     "1m3": "",
+     "___id___": "1544"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_2 nt_row_id_1545"
+    },
+    "value": {
+     "teknkzellikler": "Helezon Sayısı ",
+     "4m3": "2",
+     "6m3": "2",
+     "8m3": "2",
+     "1m3": "2",
+     "___id___": "1545"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_3 nt_row_id_1546"
+    },
+    "value": {
+     "teknkzellikler": "Helezon Tipi Yatay",
+     "4m3": "Helezon Sistemi",
+     "6m3": "Helezon Sistemi",
+     "8m3": "Helezon Sistemi",
+     "1m3": "Helezon Sistemi",
+     "___id___": "1546"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_4 nt_row_id_1547"
+    },
+    "value": {
+     "teknkzellikler": "Helezon Çapı",
+     "4m3": "425",
+     "6m3": "425",
+     "8m3": "480",
+     "1m3": "480",
+     "___id___": "1547"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_5 nt_row_id_1548"
+    },
+    "value": {
+     "teknkzellikler": "Malzeme Tipi",
+     "4m3": "ST 37",
+     "6m3": "ST 37",
+     "8m3": "ST 37",
+     "1m3": "ST 37",
+     "___id___": "1548"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_6 nt_row_id_1549"
+    },
+    "value": {
+     "teknkzellikler": "<strong>BIÇAK SİSTEMİ</strong>",
+     "4m3": "",
+     "6m3": "",
+     "8m3": "",
+     "1m3": "",
+     "___id___": "1549"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_7 nt_row_id_1550"
+    },
+    "value": {
+     "teknkzellikler": "Bıçak Sayısı",
+     "4m3": "56-28",
+     "6m3": "64-32",
+     "8m3": "90-44",
+     "1m3": "106-52",
+     "___id___": "1550"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_8 nt_row_id_1551"
+    },
+    "value": {
+     "teknkzellikler": "Bıçak Tipi",
+     "4m3": "Yıldız - Balta",
+     "6m3": "Yıldız - Balta",
+     "8m3": "Yıldız - Balta",
+     "1m3": "Yıldız - Balta",
+     "___id___": "1551"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_9 nt_row_id_1552"
+    },
+    "value": {
+     "teknkzellikler": "<strong>SAC KALINLIKLARI</strong>",
+     "4m3": "",
+     "6m3": "",
+     "8m3": "",
+     "1m3": "",
+     "___id___": "1552"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_10 nt_row_id_1553"
+    },
+    "value": {
+     "teknkzellikler": "Yan Sac Kalınlık",
+     "4m3": "4mm",
+     "6m3": "4mm",
+     "8m3": "4mm",
+     "1m3": "4mm",
+     "___id___": "1553"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_11 nt_row_id_1554"
+    },
+    "value": {
+     "teknkzellikler": "Taban Sac Kalınlık",
+     "4m3": "6mm",
+     "6m3": "8mm",
+     "8m3": "10mm",
+     "1m3": "10mm",
+     "___id___": "1554"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_12 nt_row_id_1555"
+    },
+    "value": {
+     "teknkzellikler": "Malzeme Tipi",
+     "4m3": "ST 37",
+     "6m3": "ST 37",
+     "8m3": "ST 37",
+     "1m3": "ST 37",
+     "___id___": "1555"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_13 nt_row_id_1556"
+    },
+    "value": {
+     "teknkzellikler": "<strong>MAKİNA ÖZELLİKLERİ</strong>",
+     "4m3": "",
+     "6m3": "",
+     "8m3": "",
+     "1m3": "",
+     "___id___": "1556"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_14 nt_row_id_1557"
+    },
+    "value": {
+     "teknkzellikler": "Çekilir Tip",
+     "4m3": "Çekilir Tip",
+     "6m3": "Çekilir Tip",
+     "8m3": "Çekilir Tip",
+     "1m3": "Çekilir Tip",
+     "___id___": "1557"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_15 nt_row_id_1558"
+    },
+    "value": {
+     "teknkzellikler": "Yan Boşaltma Bandı",
+     "4m3": "Standart",
+     "6m3": "Standart",
+     "8m3": "Standart",
+     "1m3": "Standart",
+     "___id___": "1558"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_16 nt_row_id_1559"
+    },
+    "value": {
+     "teknkzellikler": "2. Boşaltma Bandı",
+     "4m3": "Opsiyon",
+     "6m3": "Opsiyon",
+     "8m3": "Opsiyon",
+     "1m3": "Opsiyon",
+     "___id___": "1559"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_17 nt_row_id_1560"
+    },
+    "value": {
+     "teknkzellikler": "Yükleme Kepçesi",
+     "4m3": "Standart",
+     "6m3": "Standart",
+     "8m3": "Standart",
+     "1m3": "Standart",
+     "___id___": "1560"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_18 nt_row_id_1561"
+    },
+    "value": {
+     "teknkzellikler": "Kendinden Yağlama Sistemi",
+     "4m3": "Standart",
+     "6m3": "Standart",
+     "8m3": "Standart",
+     "1m3": "Standart",
+     "___id___": "1561"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_19 nt_row_id_1562"
+    },
+    "value": {
+     "teknkzellikler": "Dijital Tartı Sistemi ",
+     "4m3": "Opsiyon",
+     "6m3": "Opsiyon",
+     "8m3": "Opsiyon",
+     "1m3": "Opsiyon",
+     "___id___": "1562"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_20 nt_row_id_1563"
+    },
+    "value": {
+     "teknkzellikler": "Elektrikli Yem Karma",
+     "4m3": "Opsiyon",
+     "6m3": "Opsiyon",
+     "8m3": "Opsiyon",
+     "1m3": "Opsiyon",
+     "___id___": "1563"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_21 nt_row_id_1564"
+    },
+    "value": {
+     "teknkzellikler": "<strong>MAKİNA ÖLÇÜLERİ</strong>",
+     "4m3": "",
+     "6m3": "",
+     "8m3": "",
+     "1m3": "",
+     "___id___": "1564"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_22 nt_row_id_1565"
+    },
+    "value": {
+     "teknkzellikler": "Uzunluk",
+     "4m3": "",
+     "6m3": "cm",
+     "8m3": "780",
+     "1m3": "",
+     "___id___": "1565"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_23 nt_row_id_1566"
+    },
+    "value": {
+     "teknkzellikler": "Genişlik",
+     "4m3": "",
+     "6m3": "cm",
+     "8m3": "230",
+     "1m3": "",
+     "___id___": "1566"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_24 nt_row_id_1567"
+    },
+    "value": {
+     "teknkzellikler": "Yükseklik ",
+     "4m3": "",
+     "6m3": "cm",
+     "8m3": "365",
+     "1m3": "",
+     "___id___": "1567"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_25 nt_row_id_1568"
+    },
+    "value": {
+     "teknkzellikler": "<strong>MAKİNA ÖLÇÜLERİ İŞ KONUMU</strong>",
+     "4m3": "",
+     "6m3": "",
+     "8m3": "",
+     "1m3": "",
+     "___id___": "1568"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_26 nt_row_id_1569"
+    },
+    "value": {
+     "teknkzellikler": "Ağırlık ",
+     "4m3": "2250",
+     "6m3": "2950",
+     "8m3": "3580",
+     "1m3": "4600",
+     "___id___": "1569"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_27 nt_row_id_1570"
+    },
+    "value": {
+     "teknkzellikler": "Uzunluk ",
+     "4m3": "4365",
+     "6m3": "4755",
+     "8m3": "4855",
+     "1m3": "5680",
+     "___id___": "1570"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_28 nt_row_id_1571"
+    },
+    "value": {
+     "teknkzellikler": "Genişlik",
+     "4m3": "2040",
+     "6m3": "2100",
+     "8m3": "2350",
+     "1m3": "2200",
+     "___id___": "1571"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_29 nt_row_id_1572"
+    },
+    "value": {
+     "teknkzellikler": "Yükseklik ",
+     "4m3": "1950",
+     "6m3": "2200",
+     "8m3": "2600",
+     "1m3": "2600",
+     "___id___": "1572"
+    }
+   }
+  ]
+ },
+ "yengec-cayir": {
+  "adres": "https://www.paksanmakina.com.tr/urunler/yengec-cayir-bicme-makinasi/",
+  "tabloId": "9131",
+  "sutunlar": [
+   [
+    "yengec",
+    "ÖZELLİKLER"
+   ],
+   [
+    "model1",
+    "YENGEÇ 165"
+   ],
+   [
+    "model2",
+    "YENGEÇ 195"
+   ]
+  ],
+  "satirlar": [
+   {
+    "options": {
+     "classes": "ninja_table_row_0 nt_row_id_1312"
+    },
+    "value": {
+     "yengec": "TAMBUR",
+     "model": "2",
+     "model1": "2",
+     "model2": "2",
+     "___id___": "1312"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_1 nt_row_id_1313"
+    },
+    "value": {
+     "yengec": "GENİŞLİK",
+     "model": "135",
+     "model1": "165",
+     "model2": "195",
+     "___id___": "1313"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_2 nt_row_id_1314"
+    },
+    "value": {
+     "yengec": "HIZ",
+     "model": "10 KM",
+     "model1": "10 KM",
+     "model2": "10 KM",
+     "___id___": "1314"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_3 nt_row_id_1315"
+    },
+    "value": {
+     "yengec": "KAPASİTE",
+     "model": "1,5 H/S",
+     "model1": "1,65 H/S",
+     "model2": "1,95 H/S",
+     "___id___": "1315"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_4 nt_row_id_1316"
+    },
+    "value": {
+     "yengec": "BIÇAK SAYISI",
+     "model": "6",
+     "model1": "6",
+     "model2": "8",
+     "___id___": "1316"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_5 nt_row_id_1317"
+    },
+    "value": {
+     "yengec": "BIÇAK UZUNLUK",
+     "model1": "108 mm",
+     "model2": "108 mm",
+     "___id___": "1317"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_6 nt_row_id_1318"
+    },
+    "value": {
+     "yengec": "BIÇAK ENİ",
+     "model1": "46 mm",
+     "model2": "46 mm",
+     "___id___": "1318"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_7 nt_row_id_1319"
+    },
+    "value": {
+     "yengec": "TOPLAM GENİŞLİK",
+     "model1": "2810 mm",
+     "model2": "3200 mm",
+     "___id___": "1319"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_8 nt_row_id_1320"
+    },
+    "value": {
+     "yengec": "AĞIRLIK",
+     "model": "330 KG",
+     "model1": "380 KG",
+     "model2": "420 KG",
+     "___id___": "1320"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_9 nt_row_id_1321"
+    },
+    "value": {
+     "yengec": "DEVİR",
+     "model": "540 D/DK",
+     "model1": "540 D/DK",
+     "model2": "540 D/DK",
+     "___id___": "1321"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_10 nt_row_id_1322"
+    },
+    "value": {
+     "yengec": "GÜÇ",
+     "model1": "55 BG",
+     "model2": "60 BG",
+     "___id___": "1322"
+    }
+   }
+  ]
+ },
+ "kirlangic-ot-toplama": {
+  "adres": "https://www.paksanmakina.com.tr/urunler/kirlangic-ot-toplama-makinasi/",
+  "tabloId": "10636",
+  "sutunlar": [
+   [
+    "teknkzellikler",
+    "Teknı̇k Özellikler"
+   ],
+   [
+    "ahtapot5",
+    "11 KOLLU"
+   ],
+   [
+    "ahtapot1",
+    "9 KOLLU"
+   ]
+  ],
+  "satirlar": [
+   {
+    "options": {
+     "classes": "ninja_table_row_0 nt_row_id_1696"
+    },
+    "value": {
+     "teknkzellikler": "MODEL",
+     "ahtapot5": "KIRLANGIÇ 11 KOLLU OT TOPLAMA TIRMIĞI",
+     "ahtapot1": "KIRLANGIÇ 9 KOLLU OT TOPLAMA TIRMIĞI",
+     "___id___": "1696"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_1 nt_row_id_1697"
+    },
+    "value": {
+     "teknkzellikler": "İŞ GENİŞLİĞİ",
+     "ahtapot5": "4500 MM",
+     "ahtapot1": "4000 MM",
+     "___id___": "1697"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_2 nt_row_id_1698"
+    },
+    "value": {
+     "teknkzellikler": "ROTOR ÇAPI",
+     "ahtapot5": "3500 MM",
+     "ahtapot1": "3100 MM",
+     "___id___": "1698"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_3 nt_row_id_1699"
+    },
+    "value": {
+     "teknkzellikler": "KOL SAYISI",
+     "ahtapot5": "11 ADET",
+     "ahtapot1": "9 AD",
+     "___id___": "1699"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_4 nt_row_id_1700"
+    },
+    "value": {
+     "teknkzellikler": "TOPLAM YAY SAYISI",
+     "ahtapot5": "44 AD",
+     "ahtapot1": "27 AD",
+     "___id___": "1700"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_5 nt_row_id_1701"
+    },
+    "value": {
+     "teknkzellikler": "YAY KESİT",
+     "ahtapot5": "Ø9 MM",
+     "ahtapot1": "Ø9 MM",
+     "___id___": "1701"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_6 nt_row_id_1702"
+    },
+    "value": {
+     "teknkzellikler": "TRAKTÖR GÜCÜ",
+     "ahtapot5": "40 HP",
+     "ahtapot1": "30 HP",
+     "___id___": "1702"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_7 nt_row_id_1703"
+    },
+    "value": {
+     "teknkzellikler": "P.T.O (Kuyruk Mili) DEVRİ",
+     "ahtapot5": "540 rpm",
+     "ahtapot1": "540 D/DK",
+     "___id___": "1703"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_8 nt_row_id_1704"
+    },
+    "value": {
+     "teknkzellikler": "GENİŞLİK",
+     "ahtapot5": "2100 MM",
+     "ahtapot1": "1250 MM",
+     "___id___": "1704"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_9 nt_row_id_1705"
+    },
+    "value": {
+     "teknkzellikler": "AĞIRLIK",
+     "ahtapot5": "680 KG",
+     "ahtapot1": "345 KG",
+     "___id___": "1705"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_10 nt_row_id_1706"
+    },
+    "value": {
+     "teknkzellikler": "BAĞLANTI SİSTEMİ",
+     "ahtapot5": "ÜÇ NOKTA ASKI",
+     "ahtapot1": "ÜÇ NOKTA ASKI",
+     "___id___": "1706"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_11 nt_row_id_1707"
+    },
+    "value": {
+     "teknkzellikler": "TEKERLEK SAYISI",
+     "ahtapot5": "4 AD",
+     "ahtapot1": "2 AD",
+     "___id___": "1707"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_12 nt_row_id_1708"
+    },
+    "value": {
+     "teknkzellikler": "P.T.O TORK SINIRLAYICI",
+     "ahtapot5": "STANDART",
+     "ahtapot1": "STANDART",
+     "___id___": "1708"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_13 nt_row_id_1709"
+    },
+    "value": {
+     "teknkzellikler": "TAHRİK SİSTEMİ",
+     "ahtapot5": "STANDART",
+     "ahtapot1": "STANDART",
+     "___id___": "1709"
+    }
+   }
+  ]
+ },
+ "tesviye-kuregi": {
+  "adres": "https://www.paksanmakina.com.tr/urunler/paksan-tesviye-kuregi/",
+  "tabloId": "10643",
+  "sutunlar": [
+   [
+    "dkeyrotovatrzellkler",
+    "ÖZELLİKLER"
+   ],
+   [
+    "25d",
+    "LEVEL 4X"
+   ],
+   [
+    "3d",
+    "LEVEL 5X"
+   ]
+  ],
+  "satirlar": [
+   {
+    "options": {
+     "classes": "ninja_table_row_0 nt_row_id_1761"
+    },
+    "value": {
+     "dkeyrotovatrzellkler": "İş Genişliği",
+     "25d": "4000 mm",
+     "3d": "5000 mm",
+     "___id___": "1761"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_1 nt_row_id_1759"
+    },
+    "value": {
+     "dkeyrotovatrzellkler": "Ağırlık",
+     "25d": "2650 kg",
+     "3d": "2850 kg",
+     "___id___": "1759"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_2 nt_row_id_1758"
+    },
+    "value": {
+     "dkeyrotovatrzellkler": "Yol Genişliği",
+     "25d": "2500 mm",
+     "3d": "2850 mm",
+     "___id___": "1758"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_3 nt_row_id_1757"
+    },
+    "value": {
+     "dkeyrotovatrzellkler": "Uzunluk",
+     "25d": "5000 mm",
+     "3d": "6300 mm",
+     "___id___": "1757"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_4 nt_row_id_1756"
+    },
+    "value": {
+     "dkeyrotovatrzellkler": "Güç İhtiyacı",
+     "25d": "110 - 120 HP ",
+     "3d": "130 - 140 HP",
+     "___id___": "1756"
+    }
+   }
+  ]
+ },
+ "scorpion-silaj": {
+  "adres": "https://www.paksanmakina.com.tr/urunler/silaj-bicer/",
+  "tabloId": "10634",
+  "sutunlar": [
+   [
+    "teknkzellikler",
+    "Información técnica"
+   ],
+   [
+    "ninja_column_2",
+    ""
+   ],
+   [
+    "ahtapot5",
+    "ÜÇ SIRA"
+   ],
+   [
+    "ahtapot1",
+    "SIRA BAĞIMSIZ"
+   ]
+  ],
+  "satirlar": [
+   {
+    "options": {
+     "classes": "ninja_table_row_0 nt_row_id_1664"
+    },
+    "value": {
+     "teknkzellikler": "Largo",
+     "ninja_column_2": "cm",
+     "ahtapot5": "2700",
+     "ahtapot1": "2620",
+     "___id___": "1664"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_1 nt_row_id_1665"
+    },
+    "value": {
+     "teknkzellikler": "Anchura",
+     "ninja_column_2": "cm",
+     "ahtapot5": "2500",
+     "ahtapot1": "3310",
+     "___id___": "1665"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_2 nt_row_id_1666"
+    },
+    "value": {
+     "teknkzellikler": "Peso",
+     "ninja_column_2": "kg",
+     "ahtapot5": "2000",
+     "ahtapot1": "1200",
+     "___id___": "1666"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_3 nt_row_id_1667"
+    },
+    "value": {
+     "teknkzellikler": "Altura",
+     "ninja_column_2": "cm",
+     "ahtapot5": "4100",
+     "ahtapot1": "4660",
+     "___id___": "1667"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_4 nt_row_id_1668"
+    },
+    "value": {
+     "teknkzellikler": "Anchura de trabajo",
+     "ninja_column_2": "cm",
+     "ahtapot5": "2200",
+     "ahtapot1": "11250",
+     "___id___": "1668"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_5 nt_row_id_1669"
+    },
+    "value": {
+     "teknkzellikler": "Capacidad toneladas",
+     "ninja_column_2": "ton",
+     "ahtapot5": "70-80",
+     "ahtapot1": "45",
+     "___id___": "1669"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_6 nt_row_id_1670"
+    },
+    "value": {
+     "teknkzellikler": "Potencia del tracto",
+     "ninja_column_2": "hp",
+     "ahtapot5": "110",
+     "ahtapot1": "75",
+     "___id___": "1670"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_7 nt_row_id_1671"
+    },
+    "value": {
+     "teknkzellikler": "P T O",
+     "ninja_column_2": "rpm",
+     "ahtapot5": "750-1000",
+     "ahtapot1": "540/750/1000",
+     "___id___": "1671"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_8 nt_row_id_1672"
+    },
+    "value": {
+     "teknkzellikler": "Velocidad de trabajo ",
+     "ninja_column_2": "km/hora",
+     "ahtapot5": "10",
+     "ahtapot1": "10",
+     "___id___": "1672"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_9 nt_row_id_1674"
+    },
+    "value": {
+     "teknkzellikler": "Número de cuchillas ",
+     "ninja_column_2": "Pieza",
+     "ahtapot5": "12",
+     "ahtapot1": "12",
+     "___id___": "1674"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_10 nt_row_id_1675"
+    },
+    "value": {
+     "teknkzellikler": "Número de alas lanzadoras",
+     "ninja_column_2": " Pieza",
+     "ahtapot5": "12",
+     "ahtapot1": "12",
+     "___id___": "1675"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_11 nt_row_id_1677"
+    },
+    "value": {
+     "teknkzellikler": "Número de Ejes\t",
+     "ninja_column_2": " Pieza",
+     "ahtapot5": "2",
+     "ahtapot1": "2",
+     "___id___": "1677"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_12 nt_row_id_1678"
+    },
+    "value": {
+     "teknkzellikler": "Cuchillas Segadora",
+     "ninja_column_2": "-",
+     "ahtapot5": "Sierra",
+     "ahtapot1": "Sierra",
+     "___id___": "1678"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_13 nt_row_id_1679"
+    },
+    "value": {
+     "teknkzellikler": "Montaje en tractor",
+     "ninja_column_2": "-",
+     "ahtapot5": "Sistema de enganche de 3 ",
+     "ahtapot1": "Sistema de enganche de 3 ",
+     "___id___": "1679"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_14 nt_row_id_1681"
+    },
+    "value": {
+     "teknkzellikler": "Dispositivo de afilado",
+     "ninja_column_2": "-",
+     "ahtapot5": "Estándar ",
+     "ahtapot1": "Estándar ",
+     "___id___": "1681"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_15 nt_row_id_1682"
+    },
+    "value": {
+     "teknkzellikler": "Sistema de chimeneas",
+     "ninja_column_2": "-",
+     "ahtapot5": "Hidráulica y electrónica",
+     "ahtapot1": "Hidráulica",
+     "___id___": "1682"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_16 nt_row_id_1683"
+    },
+    "value": {
+     "teknkzellikler": "Número de tambores de alimentación",
+     "ninja_column_2": "Pieza",
+     "ahtapot5": "4",
+     "ahtapot1": "4",
+     "___id___": "1683"
+    }
+   }
+  ]
+ },
+ "silaj-paketleme": {
+  "adres": "https://www.paksanmakina.com.tr/urunler/ahtapot-1000-silaj-paketleme-makinasi/",
+  "tabloId": "10630",
+  "sutunlar": [
+   [
+    "teknkzellikler",
+    "Teknı̇k Özellikler"
+   ],
+   [
+    "ninja_column_2",
+    ""
+   ],
+   [
+    "ahtapot5",
+    "AHTAPOT 500"
+   ],
+   [
+    "ahtapot1",
+    "AHTAPOT 1000"
+   ]
+  ],
+  "satirlar": [
+   {
+    "options": {
+     "classes": "ninja_table_row_0 nt_row_id_1599"
+    },
+    "value": {
+     "teknkzellikler": "<strong>TOPLAYICI DÜZENEĞİ</strong>",
+     "ninja_column_2": "",
+     "ahtapot5": "",
+     "ahtapot1": "",
+     "___id___": "1599"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_1 nt_row_id_1600"
+    },
+    "value": {
+     "teknkzellikler": "Enerji Kaynağı",
+     "ninja_column_2": "v",
+     "ahtapot5": "Elektrik (380 V)",
+     "ahtapot1": "",
+     "___id___": "1600"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_2 nt_row_id_1601"
+    },
+    "value": {
+     "teknkzellikler": "Gerekli Güç İhtiyacı",
+     "ninja_column_2": "kw",
+     "ahtapot5": "32",
+     "ahtapot1": "36",
+     "___id___": "1601"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_3 nt_row_id_1602"
+    },
+    "value": {
+     "teknkzellikler": "Gerekli Enerji İhtiyacı",
+     "ninja_column_2": "kwh / ton",
+     "ahtapot5": "2.74",
+     "ahtapot1": "1.86",
+     "___id___": "1602"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_4 nt_row_id_1603"
+    },
+    "value": {
+     "teknkzellikler": "Jeneratör",
+     "ninja_column_2": "kw",
+     "ahtapot5": "50",
+     "ahtapot1": "50",
+     "___id___": "1603"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_5 nt_row_id_1604"
+    },
+    "value": {
+     "teknkzellikler": "Balya Odası Motor İhtiyacı",
+     "ninja_column_2": "kw",
+     "ahtapot5": "15",
+     "ahtapot1": "18.5",
+     "___id___": "1604"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_6 nt_row_id_1605"
+    },
+    "value": {
+     "teknkzellikler": "<strong>KAPASİTE</strong>",
+     "ninja_column_2": "",
+     "ahtapot5": "",
+     "ahtapot1": "",
+     "___id___": "1605"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_7 nt_row_id_1606"
+    },
+    "value": {
+     "teknkzellikler": "Balya Adedi",
+     "ninja_column_2": "saat",
+     "ahtapot5": "55-65",
+     "ahtapot1": "35-45",
+     "___id___": "1606"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_8 nt_row_id_1607"
+    },
+    "value": {
+     "teknkzellikler": "Günlük Balya Adedi",
+     "ninja_column_2": "gün",
+     "ahtapot5": "600",
+     "ahtapot1": "400",
+     "___id___": "1607"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_9 nt_row_id_1608"
+    },
+    "value": {
+     "teknkzellikler": "Bunker Kapasitesi",
+     "ninja_column_2": "m3",
+     "ahtapot5": "5.5",
+     "ahtapot1": "5.5",
+     "___id___": "1608"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_10 nt_row_id_1609"
+    },
+    "value": {
+     "teknkzellikler": "<strong>KONTROL SİSTEMİ</strong>",
+     "ninja_column_2": "",
+     "ahtapot5": "",
+     "ahtapot1": "",
+     "___id___": "1609"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_11 nt_row_id_1610"
+    },
+    "value": {
+     "teknkzellikler": "PLC",
+     "ninja_column_2": "",
+     "ahtapot5": "Tam Otomatik Kontrol Sistemi",
+     "ahtapot1": "Tam Otomatik Kontrol Sistemi",
+     "___id___": "1610"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_12 nt_row_id_1611"
+    },
+    "value": {
+     "teknkzellikler": "Kontrol Ekranı",
+     "ninja_column_2": "",
+     "ahtapot5": "10.1''",
+     "ahtapot1": "10.1''",
+     "___id___": "1611"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_13 nt_row_id_1612"
+    },
+    "value": {
+     "teknkzellikler": "<strong>BALYA EBATLARI</strong>",
+     "ninja_column_2": "",
+     "ahtapot5": "",
+     "ahtapot1": "",
+     "___id___": "1612"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_14 nt_row_id_1613"
+    },
+    "value": {
+     "teknkzellikler": "Genişlik",
+     "ninja_column_2": "mm",
+     "ahtapot5": "500",
+     "ahtapot1": "1200",
+     "___id___": "1613"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_15 nt_row_id_1614"
+    },
+    "value": {
+     "teknkzellikler": "Çap",
+     "ninja_column_2": "mm",
+     "ahtapot5": "850",
+     "ahtapot1": "1150",
+     "___id___": "1614"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_16 nt_row_id_1615"
+    },
+    "value": {
+     "teknkzellikler": "Ağırlık",
+     "ninja_column_2": "kg",
+     "ahtapot5": "350-500",
+     "ahtapot1": "350-1000",
+     "___id___": "1615"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_17 nt_row_id_1616"
+    },
+    "value": {
+     "teknkzellikler": "<strong>STREÇ VE FİLE EBATLARI</strong>",
+     "ninja_column_2": "",
+     "ahtapot5": "",
+     "ahtapot1": "",
+     "___id___": "1616"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_18 nt_row_id_1617"
+    },
+    "value": {
+     "teknkzellikler": "Streç Ebatları",
+     "ninja_column_2": "mm",
+     "ahtapot5": "500",
+     "ahtapot1": "750",
+     "___id___": "1617"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_19 nt_row_id_1618"
+    },
+    "value": {
+     "teknkzellikler": "File Ebatları",
+     "ninja_column_2": "mm",
+     "ahtapot5": "900-1050",
+     "ahtapot1": "1230-1250",
+     "___id___": "1618"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_20 nt_row_id_1619"
+    },
+    "value": {
+     "teknkzellikler": "Otomatik Yağlama",
+     "ninja_column_2": "",
+     "ahtapot5": "Standart",
+     "ahtapot1": "Standart",
+     "___id___": "1619"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_21 nt_row_id_1620"
+    },
+    "value": {
+     "teknkzellikler": "Presleme Ünitesi",
+     "ninja_column_2": "",
+     "ahtapot5": "Kauçuk Band",
+     "ahtapot1": "Kauçuk Band",
+     "___id___": "1620"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_22 nt_row_id_1621"
+    },
+    "value": {
+     "teknkzellikler": "<strong>MAKİNA ÖLÇÜLERİ</strong>",
+     "ninja_column_2": "",
+     "ahtapot5": "",
+     "ahtapot1": "",
+     "___id___": "1621"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_23 nt_row_id_1622"
+    },
+    "value": {
+     "teknkzellikler": "Uzunluk - Yol Konumu",
+     "ninja_column_2": "cm",
+     "ahtapot5": "780",
+     "ahtapot1": "810",
+     "___id___": "1622"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_24 nt_row_id_1623"
+    },
+    "value": {
+     "teknkzellikler": "Uzunluk - İş Konumu",
+     "ninja_column_2": "cm",
+     "ahtapot5": "960",
+     "ahtapot1": "1057",
+     "___id___": "1623"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_25 nt_row_id_1624"
+    },
+    "value": {
+     "teknkzellikler": "Genişlik - Yol Konumu",
+     "ninja_column_2": "cm",
+     "ahtapot5": "230",
+     "ahtapot1": "295",
+     "___id___": "1624"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_26 nt_row_id_1625"
+    },
+    "value": {
+     "teknkzellikler": "Genişlik - İş Konumu",
+     "ninja_column_2": "cm",
+     "ahtapot5": "327",
+     "ahtapot1": "327",
+     "___id___": "1625"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_27 nt_row_id_1626"
+    },
+    "value": {
+     "teknkzellikler": "Yükseklik - Yol Konumu",
+     "ninja_column_2": "cm",
+     "ahtapot5": "365",
+     "ahtapot1": "375",
+     "___id___": "1626"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_28 nt_row_id_1627"
+    },
+    "value": {
+     "teknkzellikler": "Yükseklik - İş Konumu",
+     "ninja_column_2": "cm",
+     "ahtapot5": "330",
+     "ahtapot1": "380",
+     "___id___": "1627"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_29 nt_row_id_1628"
+    },
+    "value": {
+     "teknkzellikler": "Dingil",
+     "ninja_column_2": "",
+     "ahtapot5": "Tek Hafif Yapı",
+     "ahtapot1": "Tek Hafif Yapı",
+     "___id___": "1628"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_30 nt_row_id_1629"
+    },
+    "value": {
+     "teknkzellikler": "Araç Bağlama",
+     "ninja_column_2": "",
+     "ahtapot5": "Tek Noktadan Traktör Çekişli",
+     "ahtapot1": "Tek Noktadan Traktör Çekişl",
+     "___id___": "1629"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_31 nt_row_id_1630"
+    },
+    "value": {
+     "teknkzellikler": "Ağırlık",
+     "ninja_column_2": "kg",
+     "ahtapot5": "7050",
+     "ahtapot1": "10500",
+     "___id___": "1630"
+    }
+   }
+  ]
+ },
+ "rotovator": {
+  "adres": "https://www.paksanmakina.com.tr/urunler/paksan-dikey-rotovator/",
+  "tabloId": "10639",
+  "sutunlar": [
+   [
+    "dkeyrotovatrzellkler",
+    "DİKEY ROTOVATÖR ÖZELLİKLER"
+   ],
+   [
+    "25d",
+    "MODEL 250"
+   ],
+   [
+    "3d",
+    "MODEL 300"
+   ]
+  ],
+  "satirlar": [
+   {
+    "options": {
+     "classes": "ninja_table_row_0 nt_row_id_1734"
+    },
+    "value": {
+     "dkeyrotovatrzellkler": "İş Genişliği",
+     "25d": "2465",
+     "3d": "2945",
+     "___id___": "1734"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_1 nt_row_id_1732"
+    },
+    "value": {
+     "dkeyrotovatrzellkler": "Yükseklik",
+     "25d": "1240",
+     "3d": "1240",
+     "___id___": "1732"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_2 nt_row_id_1731"
+    },
+    "value": {
+     "dkeyrotovatrzellkler": "Kg",
+     "25d": "852",
+     "3d": "948",
+     "___id___": "1731"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_3 nt_row_id_1730"
+    },
+    "value": {
+     "dkeyrotovatrzellkler": "Traktör Gücü",
+     "25d": "800-100",
+     "3d": "100-120",
+     "___id___": "1730"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_4 nt_row_id_1729"
+    },
+    "value": {
+     "dkeyrotovatrzellkler": "Bıçak Sayısı",
+     "25d": "20",
+     "3d": "24",
+     "___id___": "1729"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_5 nt_row_id_1728"
+    },
+    "value": {
+     "dkeyrotovatrzellkler": "Çalışma Derinliği",
+     "25d": "28",
+     "3d": "28",
+     "___id___": "1728"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_6 nt_row_id_1726"
+    },
+    "value": {
+     "dkeyrotovatrzellkler": "Rotor Sayısı",
+     "25d": "10",
+     "3d": "12",
+     "___id___": "1726"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_7 nt_row_id_1738"
+    },
+    "value": {
+     "dkeyrotovatrzellkler": "Yol Genişliği",
+     "25d": "2520",
+     "3d": "3000",
+     "___id___": "1738"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_8 nt_row_id_1737"
+    },
+    "value": {
+     "dkeyrotovatrzellkler": "Rotor Arası",
+     "25d": "24",
+     "3d": "24",
+     "___id___": "1737"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_9 nt_row_id_1725"
+    },
+    "value": {
+     "dkeyrotovatrzellkler": "Tesfiye Barı",
+     "25d": "Mekanik",
+     "3d": "Mekanik",
+     "___id___": "1725"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_10 nt_row_id_1736"
+    },
+    "value": {
+     "dkeyrotovatrzellkler": "Taş Kiti",
+     "25d": "Standart",
+     "3d": "Standart",
+     "___id___": "1736"
+    }
+   }
+  ]
+ },
+ "rotovator-yatay": {
+  "adres": "https://www.paksanmakina.com.tr/urunler/paksan-yatay-rotovator/",
+  "tabloId": "10641",
+  "sutunlar": [
+   [
+    "dkeyrotovatrzellkler",
+    "DİKEY ROTOVATÖR ÖZELLİKLER"
+   ],
+   [
+    "25d",
+    "MODEL 210"
+   ],
+   [
+    "3d",
+    "MODEL 230"
+   ],
+   [
+    "model_280",
+    "MODEL 280"
+   ],
+   [
+    "model_300",
+    "MODEL 300"
+   ]
+  ],
+  "satirlar": [
+   {
+    "options": {
+     "classes": "ninja_table_row_0 nt_row_id_1749"
+    },
+    "value": {
+     "dkeyrotovatrzellkler": "İş Genişliği",
+     "25d": "2465",
+     "3d": "2945",
+     "___id___": "1749"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_1 nt_row_id_1750"
+    },
+    "value": {
+     "dkeyrotovatrzellkler": "Yol Genişliği",
+     "25d": "2254",
+     "3d": "2476",
+     "model_280": "2946",
+     "model_300": "3166",
+     "___id___": "1750"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_2 nt_row_id_1747"
+    },
+    "value": {
+     "dkeyrotovatrzellkler": "Yükseklik",
+     "25d": "1179 ",
+     "3d": "1179",
+     "model_280": "1179",
+     "model_300": "1196",
+     "___id___": "1747"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_3 nt_row_id_1746"
+    },
+    "value": {
+     "dkeyrotovatrzellkler": "Kg",
+     "25d": "613",
+     "3d": "670",
+     "model_280": "737",
+     "model_300": "1006",
+     "___id___": "1746"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_4 nt_row_id_1745"
+    },
+    "value": {
+     "dkeyrotovatrzellkler": "Traktör Gücü",
+     "25d": "70-85",
+     "3d": "80-95",
+     "model_280": "85-100",
+     "model_300": "90-105",
+     "___id___": "1745"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_5 nt_row_id_1744"
+    },
+    "value": {
+     "dkeyrotovatrzellkler": "Bıçak Sayısı",
+     "25d": "48",
+     "3d": "54",
+     "model_280": "60",
+     "model_300": "66",
+     "___id___": "1744"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_6 nt_row_id_1743"
+    },
+    "value": {
+     "dkeyrotovatrzellkler": "Bıçak Tipi",
+     "25d": "C-L",
+     "3d": "C-L",
+     "model_280": "C-L",
+     "model_300": "C-L",
+     "___id___": "1743"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_7 nt_row_id_1741"
+    },
+    "value": {
+     "dkeyrotovatrzellkler": "Çalışma Derinliği",
+     "25d": "130",
+     "3d": "130",
+     "model_280": "130",
+     "model_300": "130",
+     "___id___": "1741"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_8 nt_row_id_1742"
+    },
+    "value": {
+     "dkeyrotovatrzellkler": "Rotor Çapı",
+     "25d": "89",
+     "3d": "89",
+     "model_280": "89",
+     "model_300": "102",
+     "___id___": "1742"
+    }
+   }
+  ]
+ },
+ "ipak-rulo": {
+  "adres": "https://www.paksanmakina.com.tr/urunler/i-pak-rulo-balya-makinasi/",
+  "tabloId": "10624",
+  "sutunlar": [
+   [
+    "teknkzellikler",
+    "Teknı̇k Özellikler"
+   ],
+   [
+    "ninja_column_2",
+    ""
+   ],
+   [
+    "rb12rulo",
+    "I-Pak 120"
+   ],
+   [
+    "ninja_column_4",
+    ""
+   ],
+   [
+    "ninja_column_5",
+    ""
+   ]
+  ],
+  "satirlar": [
+   {
+    "options": {
+     "classes": "ninja_table_row_0 nt_row_id_1523"
+    },
+    "value": {
+     "teknkzellikler": "<strong>BALYA ÖLÇÜLERİ </strong>",
+     "ninja_column_2": "",
+     "rb12rulo": "",
+     "ninja_column_4": "",
+     "ninja_column_5": "",
+     "___id___": "1523"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_1 nt_row_id_1524"
+    },
+    "value": {
+     "teknkzellikler": "Balya Ebatları",
+     "ninja_column_2": "mm",
+     "rb12rulo": "Ø1200x1200",
+     "ninja_column_4": "",
+     "ninja_column_5": "",
+     "___id___": "1524"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_2 nt_row_id_1525"
+    },
+    "value": {
+     "teknkzellikler": "Balya Ağırlığı ",
+     "ninja_column_2": "kg",
+     "rb12rulo": "100-700",
+     "ninja_column_4": "",
+     "ninja_column_5": "",
+     "___id___": "1525"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_3 nt_row_id_1526"
+    },
+    "value": {
+     "teknkzellikler": "Balya Odası Tipi ",
+     "ninja_column_2": "",
+     "rb12rulo": "Silindirik Sabit Odalı",
+     "ninja_column_4": "",
+     "ninja_column_5": "",
+     "___id___": "1526"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_4 nt_row_id_1527"
+    },
+    "value": {
+     "teknkzellikler": "Balya Sarma Ünitesi ",
+     "ninja_column_2": "",
+     "rb12rulo": "Standart Otomatik File veya Tek İp ile Sarma",
+     "ninja_column_4": "",
+     "ninja_column_5": "",
+     "___id___": "1527"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_5 nt_row_id_1528"
+    },
+    "value": {
+     "teknkzellikler": "<strong>HAŞPAY DÜZENEĞİ</strong>",
+     "ninja_column_2": "",
+     "rb12rulo": "",
+     "ninja_column_4": "",
+     "ninja_column_5": "",
+     "___id___": "1528"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_6 nt_row_id_1529"
+    },
+    "value": {
+     "teknkzellikler": "Tırmık Boru Sayısı ",
+     "ninja_column_2": "Ad ",
+     "rb12rulo": "4",
+     "ninja_column_4": "",
+     "ninja_column_5": "",
+     "___id___": "1529"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_7 nt_row_id_1530"
+    },
+    "value": {
+     "teknkzellikler": "Tırmık Parmak Sayısı ",
+     "ninja_column_2": "Ad ",
+     "rb12rulo": "104",
+     "ninja_column_4": "",
+     "ninja_column_5": "",
+     "___id___": "1530"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_8 nt_row_id_1531"
+    },
+    "value": {
+     "teknkzellikler": "Maksimun Tırmık Genişliği ",
+     "ninja_column_2": "mm",
+     "rb12rulo": "1940",
+     "ninja_column_4": "",
+     "ninja_column_5": "",
+     "___id___": "1531"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_9 nt_row_id_1532"
+    },
+    "value": {
+     "teknkzellikler": "<strong>GÜÇ AKTARIMI</strong>",
+     "ninja_column_2": "",
+     "rb12rulo": "",
+     "ninja_column_4": "",
+     "ninja_column_5": "",
+     "___id___": "1532"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_10 nt_row_id_1533"
+    },
+    "value": {
+     "teknkzellikler": "Kuyruk Mili Devri ",
+     "ninja_column_2": "Rpm",
+     "rb12rulo": "540",
+     "ninja_column_4": "",
+     "ninja_column_5": "",
+     "___id___": "1533"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_11 nt_row_id_1534"
+    },
+    "value": {
+     "teknkzellikler": "Güç Aktarımı",
+     "ninja_column_2": "",
+     "rb12rulo": "Teleskobik Kardan Şaf",
+     "ninja_column_4": "",
+     "ninja_column_5": "",
+     "___id___": "1534"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_12 nt_row_id_1535"
+    },
+    "value": {
+     "teknkzellikler": "Şaft Boyu min max",
+     "ninja_column_2": "mm",
+     "rb12rulo": "1010-1540",
+     "ninja_column_4": "",
+     "ninja_column_5": "",
+     "___id___": "1535"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_13 nt_row_id_1536"
+    },
+    "value": {
+     "teknkzellikler": "Şaft Tipi",
+     "ninja_column_2": "",
+     "rb12rulo": "Serbest Döşlü, Aşırı Yükte Cıvata Kesmeli",
+     "ninja_column_4": "",
+     "ninja_column_5": "",
+     "___id___": "1536"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_14 nt_row_id_1537"
+    },
+    "value": {
+     "teknkzellikler": "<strong>MAKİNA ÖLÇÜLERİ</strong>",
+     "ninja_column_2": "",
+     "rb12rulo": "",
+     "ninja_column_4": "",
+     "ninja_column_5": "",
+     "___id___": "1537"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_15 nt_row_id_1538"
+    },
+    "value": {
+     "teknkzellikler": "Uzunluk",
+     "ninja_column_2": "mm",
+     "rb12rulo": "3350",
+     "ninja_column_4": "",
+     "ninja_column_5": "",
+     "___id___": "1538"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_16 nt_row_id_1539"
+    },
+    "value": {
+     "teknkzellikler": "Genişlik ",
+     "ninja_column_2": "mm",
+     "rb12rulo": "2785",
+     "ninja_column_4": "",
+     "ninja_column_5": "",
+     "___id___": "1539"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_17 nt_row_id_1540"
+    },
+    "value": {
+     "teknkzellikler": "Yükseklik ",
+     "ninja_column_2": "mm",
+     "rb12rulo": "2210",
+     "ninja_column_4": "",
+     "ninja_column_5": "",
+     "___id___": "1540"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_18 nt_row_id_1541"
+    },
+    "value": {
+     "teknkzellikler": "Ağırlık ",
+     "ninja_column_2": "kg",
+     "rb12rulo": "2860",
+     "ninja_column_4": "",
+     "ninja_column_5": "",
+     "___id___": "1541"
+    }
+   },
+   {
+    "options": {
+     "classes": "ninja_table_row_19 nt_row_id_1542"
+    },
+    "value": {
+     "teknkzellikler": "Lastik Ebatları ",
+     "ninja_column_2": "",
+     "rb12rulo": "400/60-15,5",
+     "ninja_column_4": "",
+     "ninja_column_5": "",
+     "___id___": "1542"
+    }
+   }
+  ]
+ }
+}
