@@ -4,6 +4,7 @@ import { useApp } from '../context/AppState'
 import { TopBar, TabBar } from '../components/Chrome'
 import { useDil } from '../i18n'
 import { getRehber, guvenlikMetni } from '../data/rehber'
+import { bakimCizimi } from '../data/bakimCizimleri'
 import { getProduct, supportGroup, urunDilde } from '../data/products'
 import { rehberListesi } from '../data/rehber'
 import {
@@ -249,6 +250,7 @@ function Bolum({
 
   const yapilan = anahtarlar.filter((a) => isaretler.includes(a)).length
   const tamam = yapilan === bolum.maddeler.length && yapilan > 0
+  const cizim = bakimCizimi(bolum.baslikTr || bolum.baslik)
 
   return (
     <div
@@ -262,7 +264,10 @@ function Bolum({
             : null),
       }}
     >
-      <div className="row" style={{ alignItems: 'flex-start', gap: 10 }}>
+      <div className="row" style={{ alignItems: 'center', gap: 11 }}>
+        {/* Bölümün hangi işi anlattığını yazıyı çözmeden gösteren
+            çizim: bakmak, greslemek, sıkmak, temizlemek. */}
+        {cizim && <img className="rehber__cizim" src={cizim} alt="" />}
         <h3 style={{ fontSize: 16.5, flex: 1 }}>{bolum.baslik}</h3>
         {/* Kaç madde yapıldı — başlığın yanında, tek bakışta. */}
         <span className={'rehber__sayac' + (tamam ? ' rehber__sayac--on' : '')}>

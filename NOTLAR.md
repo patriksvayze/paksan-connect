@@ -5,7 +5,7 @@
 > `src/config.js` (UYGULAMA), `capacitor.config.json`,
 > `android/app/src/main/res/values/strings.xml`.
 
-Sürüm: **0.9.8 (demo)** · Tarih: 24 Ağustos 2026
+Sürüm: **0.9.9 (demo)** · Tarih: 24 Ağustos 2026
 
 ---
 
@@ -628,6 +628,115 @@ yere düşürmüyor; hafta sonu vardiyası da sayılıyor. Kutunun altında
 `sunum/paksan-connect-tanitim.html` — yöneticilere sunulacak, sonra
 detaylı okunabilecek tanıtım dokümanı. Ekran görüntüsü yerleri
 hazırlandı, henüz doldurulmadı.
+
+---
+
+## 0.9.9 — Çizimler, gün doğumu ve görünüm ayarı
+
+### Karşılama ekranı: gün doğumu
+
+Uygulama açıldığında gün doğuyor. Gökyüzü gece lacivertinden şafağa
+dönüyor, güneş ufkun arkasından yükseliyor, PAKSAN yazısı onunla
+birlikte doğuyor. Altta tarla ve yuvarlak balyalar.
+
+**Güneş ve logo görselin içine gömülü değil**, ayrı katman — gömülü
+olsalardı hareket ettirilemezlerdi. Üretilen görselin kendi gökyüzü
+kırpıldı, üstünde kalan şerit saydam yapıldı; boyanan gökyüzü onun
+arkasından görünüyor.
+
+    gök      boyanan gökyüzü, gece → şafak
+    güneş    ufkun arkasından yükseliyor
+    tarla    görsel; güneşin alt yarısını kapatıyor
+    logo     güneşle birlikte doğuyor
+    içerik   söz ve düğmeler, en son beliriyor
+
+Bitiş rengi bilerek koyu: üstte lacivert, ufka doğru turuncu. Açık
+olsaydı üstündeki beyaz yazı okunmazdı; ayrıca marka renklerinin ikisi
+de sahnede.
+
+**Bir kere oynuyor.** Kayıt ekranına gidip geri gelince baştan
+başlamıyor. **Hareket istemeyene hareket yok:** telefonunda "hareketi
+azalt" açık olan kullanıcıya sahne doğrudan son hâlinde geliyor.
+
+### Android açılış ekranı artık PAKSAN
+
+Capacitor projeyi kurarken kendi varsayılan görselini bırakmış: beyaz
+zeminde açık mavi bir "X". **APK'yı açan kullanıcı, uygulama yüklenene
+kadar PAKSAN yerine onu görüyordu.**
+
+Yerine karşılama sahnesiyle aynı dili konuşan bir açılış ekranı geldi:
+koyu lacivert gökyüzü, ufka doğru turuncu, ortada PAKSAN yazısı, güneşin
+durduğu yerde yumuşak bir parıltı. On bir yoğunluk için ayrı ayrı
+üretiliyor.
+
+Açılış ekranı işletim sisteminin gösterdiği tek kare bir görsel, hareket
+edemiyor; animasyon uygulama açıldıktan sonra başlıyor. İkisi aynı renk
+ve düzende olduğu için geçiş kesintisiz.
+
+Üretici: `python tools/acilis-ekrani.py`
+
+### Çizimler
+
+Higgsfield ile üretildi, `tools/gorsel-hazirla.py` ile uygulamaya
+hazırlandı.
+
+| Nerede | Çizim |
+|---|---|
+| Makinelerim boş | Çekilir makine, tarlada |
+| Bildirim yok | Sessiz zil |
+| Arama sonuçsuz | Boş büyüteç |
+| Destek → güvenlik uyarısı | Dört maddenin yanında dört çizim |
+| Bakım rehberi bölümleri | Göz kontrolü, gresleme, cıvata, temizlik |
+
+**Güvenlik ve bakım çizimleri makine değil İŞ gösteriyor**: kolu indiren
+el, kontaktan çıkan anahtar, duran dişli, gres tabancası, anahtar ve
+somun, hava tabancası. Görsel üreticiler tarım makinesi ayrıntılarında
+güvenilir değil; uydurma bir parça çizimi, müşterinin makinesinde
+olmayan bir şeyi aramasına yol açardı.
+
+Bakımda on beşten fazla bölüm var ama hepsi dört temel işe iniyor:
+bakmak, greslemek, sıkmak, temizlemek. Her bölüme ayrı çizim üretmek
+yerine bu dördü eşleştirildi; aynı iş her rehberde aynı çizimle
+görünüyor, kullanıcı çizimi bir kere öğreniyor.
+
+Eşleşme **Türkçe** başlığın anahtar kelimesine bakıyor. Çeviri Türkçe
+başlığın üstüne yazdığı için `baslikTr` olarak ayrıca saklanıyor;
+saklanmasaydı İngilizce kullanan kullanıcı hiçbir çizim görmezdi.
+
+**Hazırlama betiği ne yapıyor:** üretilen görsel doğrudan
+kullanılamıyor. Konu karenin ortasında küçük duruyor, çevresi kocaman
+beyaz; zemin de düz beyaz, karanlık modda parlak bir kare olurdu.
+Betik kenarları kırpıyor, zemini **kenardan yayılarak** saydam yapıyor
+(düz "beyaz pikseli sil" makinenin içindeki açık gri dolguları da
+silerdi) ve paleti 32 renge indiriyor. 101 KB → 8 KB. On iki çizim
+toplam 220 KB.
+
+### Görünüm ayarı — uygulama ve backoffice
+
+Karanlık mod yalnız işletim sisteminin ayarını izliyordu, geri dönüş
+yolu yoktu. İkisine de üç seçenekli bir satır kondu:
+
+    Otomatik    telefonun/bilgisayarın ayarını izler (varsayılan)
+    Açık
+    Koyu
+
+Uygulamada Profil → Görünüm, backoffice'te profil penceresinde. Ayrı
+depo anahtarları: personelin kendi bilgisayarındaki tercihi müşterinin
+telefonundakiyle ilgisiz.
+
+Renk **değerleri tek yerde** duruyor (`--x-koyu` belirteçleri); iki kural
+yalnız hangi değerin kullanılacağını söylüyor. Medya sorgusu seçici
+içine yazılamadığı için "sistem koyu" ile "elle koyu" ayrı belirtilmek
+zorunda, ama değer listesi tekrar edilmiyor.
+
+Tercih ilk çizimden **önce** uygulanıyor; sonra uygulansaydı koyu seçmiş
+kullanıcı bir an beyaz ekran görürdü.
+
+### Backoffice giriş ekranı
+
+Düz lacivert zemin, uygulamanın gökyüzüyle aynı renk düzenine geçti.
+Backoffice'in geri kalanı bilerek süssüz; burası istisna ve işin önüne
+geçmiyor. Görsel dosyası yok, gökyüzü CSS ile boyanıyor.
 
 ---
 

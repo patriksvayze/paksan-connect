@@ -401,9 +401,18 @@ function rehberCevir(r, dil) {
   if (!en) return r
 
   /* Bölümler sırayla eşleşiyor: aynı indeksteki bölüm aynı bölüm.
-     Çeviride eksik varsa o bölüm Türkçe kalıyor. */
+     Çeviride eksik varsa o bölüm Türkçe kalıyor.
+
+     Türkçe başlık `baslikTr` olarak SAKLANIYOR. Bölüm çizimleri
+     Türkçe anahtar kelimeye göre eşleşiyor (bkz. bakimCizimleri.js);
+     İngilizce başlıkla eşleştirilseydi hiçbiri tutmaz, İngilizce
+     kullanan kullanıcı çizimleri hiç görmezdi. */
   const bolumler = (trList, enList) =>
-    (trList || []).map((b, i) => ({ ...b, ...((enList || [])[i] || {}) }))
+    (trList || []).map((b, i) => ({
+      ...b,
+      ...((enList || [])[i] || {}),
+      baslikTr: b.baslik,
+    }))
 
   const gruplar = {}
   for (const [grup, liste] of Object.entries(r.gruplar || {})) {

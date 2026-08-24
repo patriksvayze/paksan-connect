@@ -256,11 +256,33 @@ a {
 
 /* ------------------------------------------------------------------ Giriş */
 
+/* Giriş ekranı — uygulamanın karşılama sahnesiyle aynı gökyüzü.
+
+   Backoffice'in geri kalanı bilerek süssüz; burası istisna. Personelin
+   gün içinde gördüğü tek "marka" ekranı bu ve işin önüne geçmiyor.
+   Uygulamayla aynı renk düzeni, iki ürünün aynı yere ait olduğunu
+   söylüyor.
+
+   Görsel dosyası yok, gökyüzü CSS ile boyanıyor: giriş ekranı için
+   ayrıca bir dosya indirmeye değmez. */
 .giris {
   min-height: 100vh;
   display: grid;
   place-items: center;
-  background: var(--lacivert);
+  background:
+    radial-gradient(
+      ellipse 70% 40% at 50% 104%,
+      rgba(232, 100, 26, 0.5) 0%,
+      rgba(232, 100, 26, 0) 62%
+    ),
+    linear-gradient(
+      180deg,
+      #060f21 0%,
+      #0d2148 46%,
+      #24365a 74%,
+      #4a3a45 92%,
+      #6b3f2c 100%
+    );
   padding: 24px;
 }
 
