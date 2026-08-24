@@ -18,3 +18,4 @@ apk/
 
 # Sunum ekran görüntüleri — tools/ekran-goruntusu.mjs ile üretiliyor.
 PAKSAN_CONNECT_SUNUM/sunum/gorseller
+__pycache__/
