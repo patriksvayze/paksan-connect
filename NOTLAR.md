@@ -5,7 +5,7 @@
 > `src/config.js` (UYGULAMA), `capacitor.config.json`,
 > `android/app/src/main/res/values/strings.xml`.
 
-Sürüm: **0.9.9 (demo)** · Tarih: 24 Ağustos 2026
+Sürüm: **0.9.10 (demo)** · Tarih: 24 Ağustos 2026
 
 ---
 
@@ -628,6 +628,153 @@ yere düşürmüyor; hafta sonu vardiyası da sayılıyor. Kutunun altında
 `sunum/paksan-connect-tanitim.html` — yöneticilere sunulacak, sonra
 detaylı okunabilecek tanıtım dokümanı. Ekran görüntüsü yerleri
 hazırlandı, henüz doldurulmadı.
+
+---
+
+## 0.9.10 — Teknik özellikler, gerçek bildirim ve karanlık mod düzeltmesi
+
+### Teknik özelliklerin tamamı geldi
+
+Ürün sayfasında elle yazılmış dört beş satırlık bir özet vardı. Oysa
+paksanmakina.com.tr'de aynı makinenin kırk satırı aşan tablosu duruyor:
+piston kursu, tırmık teli sayısı, sac kalınlıkları, lastik ölçüleri.
+Makineyi alacak ya da yedek parça arayacak kişi tam olarak bunlara
+bakıyor.
+
+**Yirmi ürünün tablosu alındı: 510 satır, 1108 dolu hücre.**
+
+Tablolar sitede sayfanın içinde değil; sonradan yükleniyor. İki betik
+işi yapıyor:
+
+    python tools/teknik-cek.py      siteden çeker
+    python tools/teknik-uret.py     src/data/teknikOzellikler.js üretir
+
+**Ekranda nasıl duruyor.** Kırk satırı alt alta dökmek ürün sayfasını
+kullanılamaz hâle getirirdi. Özellikler kaynaktaki bölümlerine ayrılmış
+(BALYA ÖLÇÜLERİ, PİSTON, LASTİK ÖLÇÜLERİ...) ve bölümler kapalı
+geliyor; her başlıkta kaç özellik olduğu yazıyor. İlk bölüm açık —
+hepsi kapalı olsaydı altında ne olduğu anlaşılmaz, kimse dokunmazdı.
+
+**Model seçici.** Bir üründe birden çok model olabiliyor; Diamond'ın on
+hacmi var. Telefonda on sütunlu tablo göstermek imkânsız. Üstte model
+seçici duruyor, altta yalnız seçili modelin değerleri. O modelde
+karşılığı olmayan satır hiç çizilmiyor: boş satır "bilgi eksik"
+izlenimi verirdi, oysa o özellik o modelde yok.
+
+Özet tablo kaldırılmadı. Makineye ilk bakan "balya ölçüsü ne, kaç
+beygir traktör ister" diye bakıyor; o dört beş satır açmadan görünüyor.
+
+Aynı bölüm kayıtlı makinenin sayfasında da var.
+
+**Sitede iki hata bulundu.** Scorpion Silaj'ın tablosu Türkçe sitede
+baştan sona İspanyolca yazılmış (Largo, Anchura, Peso...); Türkçeye
+çevrildi. Süper 8002 ve 8002E'de üç sütunun üçüne de aynı ad yazılmış
+("8002") ama değerleri farklı — üçü ayrı model. Ad uydurulmadı,
+şimdilik numaralandılar; **gerçek model adları PAKSAN'dan öğrenilince
+düzeltilecek.**
+
+### Bildirim izni artık gerçekten soruluyor
+
+APK'da bildirim izni penceresi hiç açılmıyordu. İki sebebi vardı:
+uygulama yalnızca tarayıcının bildirim arayüzünü kullanıyordu ve o
+arayüz Android'in içinde yok; ayrıca izin AndroidManifest'te ilan
+edilmemişti — Android o satır olmadan pencereyi hiç açmıyor.
+
+Artık Android'in kendi izni isteniyor ve bildirimler telefonun bildirim
+perdesine düşüyor. Bildirime dokununca ilgili ekran açılıyor.
+
+**İzin verilir verilmez ilk bildirim çıkıyor.** Kullanıcı hem iznin
+çalıştığını görüyor hem PAKSAN bildiriminin telefonunda nasıl
+durduğunu.
+
+**Profile "Bildirimler" satırı eklendi.** İzin kayıtta bir kez
+soruluyordu; "şimdi değil" diyenin ya da uygulamayı önceden kurmuş
+olanın geri dönecek yeri yoktu. Reddedilmiş izinde düğme "İzin ver"
+demiyor — Android ikinci kez sormuyor, satır telefon ayarlarını tarif
+ediyor.
+
+Bunlar **yerel** bildirim: uygulamanın kendisi koyuyor, dolayısıyla
+uygulama en az bir kez açılmış olmalı. Uygulama hiç açılmadan bildirim
+gitmesi için sunucu ve Firebase gerekiyor.
+
+### Karanlık modda seçili düğmeler görünüyor
+
+Lacivert iki ayrı iş yapıyordu: koyu çerçeve (alt menü, yan menü,
+bildirim şeridi) ve dolu eylem zemini (birincil düğme, seçili seçenek,
+seçili hap). Aydınlıkta ikisi de çalışıyor, karanlıkta ayrışıyorlar.
+
+Ölçüldü: karanlık modda seçili hap ile kart yüzeyi arasındaki kontrast
+uygulamada **1,08:1**, backoffice'te **1,04:1** idi. Yani seçili düğme
+seçilmemişten ayırt edilemiyordu; tek belirti yazının kalınlaşmasıydı.
+
+Dolu eylemler ayrı bir renk belirtecine taşındı. Karanlıktaki ton
+ölçülerek seçildi: kart yüzeyine karşı **3,54:1** (arayüz ögeleri için
+aranan 3:1'i geçiyor), üstündeki beyaz yazı **4,63:1** (okunabilirlik
+için aranan 4,5:1'i geçiyor). İki ölçüt ters yönde çalıştığı için ton
+daha açılamıyor. Aydınlık mod hiç değişmedi.
+
+### Karşılama sahnesi
+
+**Mavi şerit çayır oldu.** Üretilen görselin kendi gökyüzü kırpılmıştı
+ama tepe çizgisi sağa yükseldiği için sağda bir parçası kalmıştı.
+Tarlanın üstündeki mavi su çağrıştırıyordu; PAKSAN tarım makinesi
+üreticisi, sahnede denizin işi yok. Üst kenarı da yumuşatıldı — kesik
+kırpma çizgisi kalmadı.
+
+    python tools/karsilama-cayir.py
+
+**Amblem yazının üstüne geldi.** Beyaz daire içinde, tam renkli: kalkan
+amblemi koyu gökyüzünde beyaza çevrilirse tanınmaz bir lekeye dönüyor.
+Amblem yazıdan yarım saniye önce doğuyor.
+
+**Güneş artık doğuyor.** Bitmiş hâlde neredeyse tamamı ufkun üstündeydi;
+sahne "gün doğumu" değil "gündüz" gibi duruyor, düğmelerin altındaki
+yazılar turuncu kürenin üstüne düşüp okunmuyordu. Şimdi büyük kısmı
+tarlanın arkasında.
+
+Android açılış ekranı da sahneyle örtüşsün diye yeniden üretildi:
+
+    python tools/acilis-ekrani.py
+
+### Karşılama düğmeleri ne yaptığını söylüyor
+
+"Hemen Başlayın" ne yaptığını söylemiyordu, zaten üye olan da ona
+basıyordu. Düğmeler **"Kayıt Ol"** ve **"Giriş Yap"** oldu, altlarında
+kimin hangisine basacağı yazıyor. Kayıt hâlâ ön planda.
+
+### Görünüm ayarı iki seçenek
+
+Üç düğme profil satırına sığmıyor, yazılar kırpılıyordu. "Otomatik"
+kaldırıldı ama davranışı kaybolmadı: hiç dokunulmamışsa telefonun
+ayarı geçerli.
+
+### Simgeler
+
+45 simgenin tamamı gerçek kullanım boylarında (46 ve 22 piksel) yan
+yana çizilip tek tek bakıldı. Ölçek küçüldüğünde dağılan **dördü**
+yeniden çizildi: Raporlar, Talepler, Durdur, Pano.
+
+Alt menüdeki **Makineler** simgesi, boş liste çizimindeki makineyle
+aynı hâle getirildi — kullanıcı aynı kavramı iki ayrı resimle
+öğrenmesin. **Seri numarası** simgesi dört köşesinden perçinli künyeye
+dönüştü; önceki hâlde perçinler yalnız üstteydi, etiket bir kenarından
+asılmış gibi duruyordu.
+
+Geri kalan 41'i değişmedi: hem temiz hem tutarlılar, üstelik bir kısmı
+bilerek öyle çizilmiş. En belirgin örnek yedek parça simgesi — dişli
+sanılabilir ama somun; dişli "ayar" demek. Hepsini yeniden üretmek bu
+ayrımları silerdi.
+
+Simgeler PNG değil SVG: alt menüde seçiliyken beyaz, değilken soluk
+oluyorlar, karanlık modda da renk değiştiriyorlar. Hazır bir PNG tek
+renkte donar ve 24 pikselde bulanıklaşır.
+
+### Küçük düzeltmeler
+
+- Ürün sayfasındaki "Fiyat Teklifi İste" şeridi görünmez yapıldı;
+  sayfanın altına yapışan bulanık bir bant değil, yalnız düğme yüzüyor.
+- Bakım "tamamlandı" şeridinde metin üstte, düğme altında. Yan yana
+  olduklarında uzun başlıkta metne kalan yer daralıp sıkışıyordu.
 
 ---
 

@@ -29,7 +29,7 @@ export const AI = {
 /* Şirket bilgileri — adres ve telefonlar paksanmakina.com.tr'den,
    resmî unvan şirketten alındı. `unvan` KVKK metninde veri sorumlusu
    olarak kullanılıyor; `ad` ekranlarda görünen kısa addır. */
-export const SURUM = '0.9.9'
+export const SURUM = '0.9.10'
 
 /* Uygulamanın adı — telefonun ekranında ikonun altında yazan ad da bu.
    Şirket adından ayrı tutuluyor: şirket "PAKSAN Makina", uygulama
