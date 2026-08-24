@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppState'
+import { CIZIM } from '../data/cizimler'
 import { useDil } from '../i18n'
 import { TopBar, TabBar } from '../components/Chrome'
 import { talepTuru } from '../lib/talep'
@@ -132,7 +133,7 @@ export default function Notifications() {
 
         {liste.length === 0 ? (
           <div className="empty">
-            <IconBell size={62} />
+            <img className="empty__cizim" src={CIZIM.bosBildirim} alt="" />
             <h2 style={{ fontSize: 19, marginTop: 12 }}>{t('bildirimler.bosBaslik')}</h2>
             <p style={{ marginTop: 8, lineHeight: 1.6 }}>{t('bildirimler.bosAlt')}</p>
           </div>

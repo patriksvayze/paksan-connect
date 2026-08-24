@@ -8,6 +8,7 @@ import { load, save } from '../lib/storage'
 import { destekOlay, destekOturumu } from '../lib/destekLog'
 import { PRODUCTS, getProduct, supportGroup, urunDilde } from '../data/products'
 import { DESTEK, GUVENLIK, ZORLUK } from '../data/destekVerisi'
+import { GUVENLIK_CIZIMLERI } from '../data/cizimler'
 import {
   IconAlert, IconCheckCircle, IconMachine, IconParca, IconRight, IconWrench,
 } from '../components/Icons'
@@ -453,11 +454,22 @@ function Cevap({ belirti, dil, t }) {
           <IconAlert size={16} />
           <span>{t('destek.guvenlikBaslik')}</span>
         </div>
-        <ul className="dst-guvenlik__liste">
-          {(GUVENLIK[dil] || GUVENLIK.tr).map((g) => (
-            <li key={g}>{g}</li>
+        {/* Her maddenin yanında ne yapılacağını gösteren çizim.
+
+            Okuması zor olan kullanıcı için cümleyi çözmeden de anlam
+            çıkıyor; hangi maddeden bahsedildiği çizimden görünüyor.
+            Çizimler makine değil hareket gösteriyor (bkz.
+            src/data/cizimler.js). */}
+        <div className="dst-guvenlik__liste">
+          {(GUVENLIK[dil] || GUVENLIK.tr).map((g, i) => (
+            <div key={g} className="dst-guvenlik__madde">
+              {GUVENLIK_CIZIMLERI[i] && (
+                <img className="dst-guvenlik__cizim" src={GUVENLIK_CIZIMLERI[i]} alt="" />
+              )}
+              <span>{g}</span>
+            </div>
           ))}
-        </ul>
+        </div>
       </div>
 
       <div className="dst-cevap__ust">

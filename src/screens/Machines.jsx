@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useApp } from '../context/AppState'
+import { CIZIM } from '../data/cizimler'
 import { useDil } from '../i18n'
 import { TopBar, TabBar } from '../components/Chrome'
 import { UrunFoto } from '../components/Gorsel'
@@ -46,7 +47,9 @@ export default function Machines() {
       <div className="screen wrap fade-in" style={{ paddingTop: 18 }}>
         {machines.length === 0 ? (
           <div className="empty">
-            <IconMachine size={70} />
+            {/* Simge yerine çizim: boş ekran, kullanıcının uygulamada
+                ilk karşılaştığı yerlerden biri. */}
+            <img className="empty__cizim" src={CIZIM.bosMakine} alt="" />
             <h2 style={{ fontSize: 18.5, marginBottom: 8 }}>{t('makine.bosBaslik2')}</h2>
             <p style={{ lineHeight: 1.6, marginBottom: 24 }}>{t('makine.bosAlt2')}</p>
             <button className="btn btn--primary btn--lg" onClick={() => nav('/makine-ekle')}>

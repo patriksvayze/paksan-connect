@@ -2687,6 +2687,15 @@ p {
    `.empty svg` yazıldığında kural, boş durumun içindeki butonların
    ikonlarına da uyguluyordu: "Makine Ekle" butonundaki artı hem soluyor
    hem de 14px yukarı kayıyordu. */
+/* Boş ekran çizimi. Simgeden büyük ama sayfayı da ele geçirmiyor;
+   asıl mesaj altındaki yazı. Zemini saydam olduğu için karanlık modda
+   da doğru duruyor. */
+.empty__cizim {
+  width: min(230px, 62%);
+  height: auto;
+  margin-bottom: 4px;
+}
+
 .empty > svg {
   opacity: 0.26;
   margin-bottom: 14px;
@@ -4051,18 +4060,34 @@ p {
   color: var(--pk-orange-ink);
 }
 
+/* Güvenlik maddeleri artık madde imi yerine çizimli.
+
+   Liste imi ile başlayan bir satır ile çizim yan yana durmuyordu;
+   madde imi kaldırıldı, yerini çizim aldı. */
 .dst-guvenlik__liste {
-  margin: 8px 0 0;
-  padding-left: 19px;
+  margin: 10px 0 0;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 10px;
   font-size: 13.5px;
   line-height: 1.5;
   color: var(--ink-2);
 }
 
-.dst-guvenlik__liste li::marker { color: var(--pk-orange); }
+.dst-guvenlik__madde {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Çizim küçük ama tanınacak kadar büyük. Zemini saydam olduğu için
+   turuncu şeridin üstünde de karanlık modda da doğru duruyor. */
+.dst-guvenlik__cizim {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
 
 /* Sebep listesinin başlığı */
 .dst-cevap__ust {

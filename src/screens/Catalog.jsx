@@ -1,6 +1,7 @@
 ﻿import { useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppState'
+import { CIZIM } from '../data/cizimler'
 import { useDil } from '../i18n'
 import { TopBar, TabBar } from '../components/Chrome'
 import { UrunFoto } from '../components/Gorsel'
@@ -112,7 +113,7 @@ export default function Catalog() {
 
           {liste.length === 0 ? (
             <div className="empty">
-              <IconSearch size={58} />
+              <img className="empty__cizim" src={CIZIM.bosArama} alt="" />
               <p style={{ marginBottom: 20 }}>{t('urun.bulunamadi')}</p>
               <a {...araProps(SIRKET.telefonHam, SIRKET.telefon, showToast)} className="btn btn--soft">
                 <IconPhone size={20} /> {t('urun.bizeSorun', { tel: SIRKET.telefon })}
