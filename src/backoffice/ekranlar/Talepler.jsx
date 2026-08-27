@@ -13,6 +13,7 @@ import {
   tarihSaat, tarihYaz, useSiralama,
 } from './ortak'
 import { DisaAktar } from './aktar'
+import { boyutYaz, ekAdresi, ekYaz } from '../../lib/ekler'
 import { araliktaMi, BOS_ARALIK, Secim, SuzgecCubugu, TarihAraligi } from './suzgec'
 import { Dekont, Ekler } from './Ekler'
 import { getProduct } from '../../data/products'
@@ -60,6 +61,41 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
   )
 
   const tumTurler = rolBilgi(rol).talepTuru === null
+
+  /* DURUM SÜZGECİ SEÇİLİ TÜRE GÖRE DARALIYOR.
+
+     Önce yedi durumun hepsi her zaman listeleniyordu. Satış personeli
+     süzgeci açtığında yedek parçaya ait "Gönderildi" durumunu da
+     görüyordu — o durum fiyat teklifi talebinde hiç oluşmuyor, seçilse
+     liste hep boş geliyordu.
+
+     Her türün kendi aşamaları zaten tanımlı (bkz. veri.js →
+     talepDurumlari). Süzgeç artık onu kullanıyor:
+
+       · Rolü tek türe bağlıysa       → o türün aşamaları
+       · Admin/yönetici bir tür seçtiyse → seçilen türün aşamaları
+       · "Her tür" seçiliyse           → hepsi
+
+     "Cevap bekleyen teklifler" kısayolu da yalnız fiyat teklifi
+     görünürken çıkıyor; başka türde karşılığı yok. */
+  const suzgecTuru = tumTurler ? tur : rolBilgi(rol).talepTuru
+  const durumSecenekleri =
+    suzgecTuru && suzgecTuru !== 'hepsi' ? talepDurumlari(suzgecTuru) : DURUMLAR
+  const teklifVar = !suzgecTuru || suzgecTuru === 'hepsi' || suzgecTuru === 'satinalma'
+
+  /* Excel sütunları rolüne göre süzülüyor (bkz. aktarSutunlari) */
+  const aktarSutun = useMemo(() => aktarSutunlari(rol), [rol])
+
+  /* Tür değişince seçili durum listede kalmayabilir: "Gönderildi"
+     seçiliyken fiyat teklifine geçilirse öyle bir aşama yok. Süzgeç o
+     zaman hiçbir şey döndürmezdi ve kullanıcı sebebini anlamazdı.
+     Karşılığı kalmayan seçim "Açık olanlar"a düşüyor. */
+  useEffect(() => {
+    const gecerli = ['acik', 'gecikmis', 'hepsi']
+    if (teklifVar) gecerli.push('teklifBekleyen')
+    for (const d of durumSecenekleri) gecerli.push(d.id)
+    if (!gecerli.includes(durum)) setDurum('acik')
+  }, [durum, durumSecenekleri, teklifVar])
 
   /* Süzgeç seçenekleri elimizdeki kayıtlardan çıkarılıyor; boş il
      listelemenin anlamı yok. */
@@ -152,8 +188,8 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
         sag={
           <DisaAktar
             ad="Talepler"
-            basliklar={AKTAR_BASLIK}
-            satirlar={liste.map(aktarSatiri)}
+            basliklar={aktarSutun.map((s) => s.ad)}
+            satirlar={liste.map((t) => aktarSutun.map((s) => s.deger(t)))}
             personel={personel}
           />
         }
@@ -167,8 +203,10 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
           secenekler={[
             { deger: 'acik', ad: 'Açık olanlar' },
             { deger: 'gecikmis', ad: 'Gecikmiş talepler' },
-            { deger: 'teklifBekleyen', ad: 'Cevap bekleyen teklifler' },
-            ...DURUMLAR.map((d) => ({ deger: d.id, ad: d.ad })),
+            ...(teklifVar
+              ? [{ deger: 'teklifBekleyen', ad: 'Cevap bekleyen teklifler' }]
+              : []),
+            ...durumSecenekleri.map((d) => ({ deger: d.id, ad: d.ad })),
             { deger: 'hepsi', ad: 'Hepsi' },
           ]}
           genislik={165}
@@ -782,6 +820,11 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
                 <S key={a.ad} k={a.etiket} v={talep.cozum[a.ad]} />
               )
             )}
+            {/* Servis fişi. Kapanışta yüklendiyse burada duruyor;
+                garanti tartışmasında ya da müşteri itirazında
+                gösterilecek belge bu. */}
+            {talep.cozum.fis && <ServisFisi fis={talep.cozum.fis} />}
+
             <div className="kucuk sonuk" style={{ marginTop: 6 }}>
               {talep.cozum.personel} · {tarihYaz(talep.cozum.tarih)}
             </div>
@@ -1021,46 +1064,144 @@ function S({ k, v, mono }) {
    Ekranda ne görünüyorsa o gidiyor: rolün göremediği talep dosyaya da
    girmiyor, süzgeç açıksa süzülmüş liste iniyor. */
 
-const AKTAR_BASLIK = [
-  'Talep No', 'Tür', 'Durum', 'Tarih', 'Saat', 'Müşteri', 'Telefon',
-  'İl', 'İlçe', 'Makine', 'Seri No', 'Makinenin durumu', 'Belirtiler',
-  'İstenen parçalar', 'Açıklama', 'Aranma tercihi', 'Ek sayısı',
-  /* Fiyat teklifi ve yedek parça akışının para tarafı. Yönetici
-     "kaç teklif verdik, kaçı satışa döndü, ödemesi gelmeyen parça
-     talebi var mı" sorularını Excel'de de cevaplayabilsin. */
-  'Teklif tutarı', 'Teklif tarihi', 'Sonuç', 'Satış fiyatı',
-  'Fatura tipi', 'Fatura adı', 'Ödeme onayı', 'Kargo takip no', 'İptal sebebi',
+/* ==========================================================================
+   Excel sütunları
+
+   BAŞLIK VE HÜCRE TEK TANIMDAN ÜRETİLİYOR. Önce başlıklar bir dizide,
+   hücreler ayrı bir fonksiyonda duruyordu. Role göre sütun çıkarmak
+   gerekince bu ayrım tehlikeli hâle geldi: biri süzülüp öbürü
+   süzülmezse bütün sütunlar kayar ve kimse fark etmez — telefon
+   numarası "İl" sütununda görünür. Artık her sütun kendi adını ve
+   kendi değerini birlikte taşıyor.
+
+   ROLE GÖRE SÜZME
+
+   Bir rolün hiç bakmadığı sütunlar dosyaya girmiyor. Bunlar zaten o
+   rolün gördüğü taleplerde boş kalan sütunlar; satış personelinin
+   Excel'inde "Kargo takip no" diye boş bir sütun taşımanın anlamı yok.
+
+     satış   → makine durumu, belirtiler, istenen parçalar ve parça
+               tarafındaki fatura / ödeme / kargo sütunları
+     parça   → teklif ve satış tarafındaki sütunlar
+     servis  → istenen parçalar, teklif ve satış tarafındaki sütunlar
+
+   Admin ve yönetici bütün sütunları görüyor; ikisi de türler arası
+   karşılaştırma yapıyor.
+
+   "AÇIKLAMA" HİÇBİR ROLDEN GİZLENMİYOR. Müşterinin kendi yazdığı metin
+   her türde dolu ve her role lazım: satış talebinde "ne balyalayacağım,
+   arazim nasıl" orada yazıyor. Gizlenseydi satış personeli müşterinin
+   anlattığını Excel'de göremezdi. */
+const AKTAR_SUTUNLARI = [
+  { ad: 'Talep No', deger: (t) => t.no },
+  { ad: 'Tür', deger: (t) => TALEP_ADI[t.tur] || t.tur },
+  { ad: 'Durum', deger: (t) => durumBilgi(t.status).ad },
+  { ad: 'Tarih', deger: (t) => tarihSaat(t.createdAt)[0] },
+  { ad: 'Saat', deger: (t) => tarihSaat(t.createdAt)[1] },
+  { ad: 'Müşteri', deger: (t) => t.ad || '' },
+  { ad: 'Telefon', deger: (t) => t.tel || '' },
+  { ad: 'İl', deger: (t) => t.il || '' },
+  { ad: 'İlçe', deger: (t) => t.ilce || '' },
+  {
+    ad: 'Makine',
+    deger: (t) => (t.makine ? getProduct(t.makine.productId)?.name || '' : ''),
+  },
+  {
+    ad: 'Seri No',
+    deger: (t) => (t.makine?.serial ? formatSerial(t.makine.serial) : ''),
+  },
+
+  /* ------------------------------------------------------ Servis tarafı */
+  { ad: 'Makinenin durumu', deger: (t) => t.durum || '', gizli: ['satis'] },
+  {
+    ad: 'Belirtiler',
+    deger: (t) => (t.belirtiler || []).join(' · '),
+    gizli: ['satis'],
+  },
+
+  /* ------------------------------------------------ Yedek parça tarafı */
+  { ad: 'İstenen parçalar', deger: (t) => parcaYazisi(t), gizli: ['satis', 'servis'] },
+
+  { ad: 'Açıklama', deger: (t) => t.aciklama || '' },
+  { ad: 'Aranma tercihi', deger: (t) => t.ulasim || '' },
+  {
+    ad: 'Ek sayısı',
+    deger: (t) => String((t.ekler || []).length + (t.ses?.veri ? 1 : 0)),
+  },
+
+  /* ------------------------------------------- Fiyat teklifi ve satış */
+  { ad: 'Teklif tutarı', deger: (t) => t.teklif?.tutar || '', gizli: ['parca', 'servis'] },
+  {
+    ad: 'Teklif tarihi',
+    deger: (t) => (t.teklif?.tarih ? tarihYaz(t.teklif.tarih, false) : ''),
+    gizli: ['parca', 'servis'],
+  },
+  { ad: 'Sonuç', deger: (t) => t.cozum?.sonuc || '', gizli: ['parca', 'servis'] },
+  {
+    ad: 'Satış fiyatı',
+    deger: (t) => t.cozum?.satisFiyati || '',
+    gizli: ['parca', 'servis'],
+  },
+
+  /* ------------------------------- Ödeme ve gönderim (yedek parçada) */
+  {
+    ad: 'Fatura tipi',
+    deger: (t) => (t.fatura ? (t.fatura.tuzel ? 'Tüzel' : 'Gerçek') : ''),
+    gizli: ['satis'],
+  },
+  {
+    ad: 'Fatura adı',
+    deger: (t) => (t.fatura ? (t.fatura.tuzel ? t.fatura.unvan : t.fatura.ad) || '' : ''),
+    gizli: ['satis'],
+  },
+  {
+    ad: 'Ödeme onayı',
+    deger: (t) => (t.odemeOnay ? tarihYaz(t.odemeOnay.tarih, false) : ''),
+    gizli: ['satis'],
+  },
+  { ad: 'Kargo takip no', deger: (t) => t.gonderim?.takipNo || '', gizli: ['satis'] },
+
+  { ad: 'İptal sebebi', deger: (t) => t.iptalBilgi?.neden || '' },
 ]
 
-function aktarSatiri(t) {
-  const p = t.makine ? getProduct(t.makine.productId) : null
-  return [
-    t.no,
-    TALEP_ADI[t.tur] || t.tur,
-    durumBilgi(t.status).ad,
-    ...tarihSaat(t.createdAt),
-    t.ad || '',
-    t.tel || '',
-    t.il || '',
-    t.ilce || '',
-    p?.name || '',
-    t.makine?.serial ? formatSerial(t.makine.serial) : '',
-    t.durum || '',
-    (t.belirtiler || []).join(' · '),
-    parcaYazisi(t),
-    t.aciklama || '',
-    t.ulasim || '',
-    String((t.ekler || []).length + (t.ses?.veri ? 1 : 0)),
-    t.teklif?.tutar || '',
-    t.teklif?.tarih ? tarihYaz(t.teklif.tarih, false) : '',
-    t.cozum?.sonuc || '',
-    t.cozum?.satisFiyati || '',
-    t.fatura ? (t.fatura.tuzel ? 'Tüzel' : 'Gerçek') : '',
-    t.fatura ? (t.fatura.tuzel ? t.fatura.unvan : t.fatura.ad) || '' : '',
-    t.odemeOnay ? tarihYaz(t.odemeOnay.tarih, false) : '',
-    t.gonderim?.takipNo || '',
-    t.iptalBilgi?.neden || '',
-  ]
+/** Rolün göreceği sütunlar. */
+export function aktarSutunlari(rol) {
+  return AKTAR_SUTUNLARI.filter((x) => !(x.gizli || []).includes(rol))
+}
+
+/* Kapanışta yüklenen servis fişi.
+
+   Dosyanın kendisi IndexedDB'de (eklerle aynı yol); burada yalnız
+   kimliği duruyor. Adres asenkron çözüldüğü için düğme adres gelene
+   kadar sönük. */
+function ServisFisi({ fis }) {
+  const [adres, setAdres] = useState(null)
+
+  useEffect(() => {
+    let iptal = false
+    ekAdresi(fis.id).then((a) => {
+      if (!iptal) setAdres(a)
+    })
+    return () => {
+      iptal = true
+    }
+  }, [fis.id])
+
+  return (
+    <div className="fis" style={{ marginTop: 10 }}>
+      <span className="fis__ad">{fis.ad}</span>
+      <span className="kucuk sonuk">{boyutYaz(fis.boyut)}</span>
+      <a
+        className="dg dg--kucuk"
+        href={adres || undefined}
+        target="_blank"
+        rel="noreferrer"
+        aria-disabled={!adres}
+      >
+        {adres ? 'Aç' : '…'}
+      </a>
+    </div>
+  )
 }
 
 /* Gecikme işareti — 48 saati geçmiş açık talep */
@@ -1334,6 +1475,56 @@ function KapanisFormu({ talep, onKapat, onKaydet }) {
   const [deger, setDeger] = useState({})
   const [hata, setHata] = useState('')
 
+  /* SERVİS FİŞİ — yalnız servis taleplerinde.
+
+     Teknisyen işi sahada bitirip fişi orada dolduruyor. Fiş bugüne
+     kadar kâğıt olarak kalıyordu; talebin kaydında işin belgesi
+     bulunmuyordu. Garanti tartışmasında ya da müşteri "böyle bir işlem
+     yapılmadı" dediğinde gösterilecek bir şey yoktu.
+
+     ZORUNLU DEĞİL. Şebekenin çekmediği yerde fiş yüklenemeyebilir,
+     bazı işlerde fiş kesilmemiş olabilir. Ama fişsiz kapatmak da fark
+     edilmeden geçmemeli — onay soruluyor. */
+  const fisliMi = talep.tur === 'servis'
+  const [fis, setFis] = useState(null)
+  const [yukleniyor, setYukleniyor] = useState(false)
+  const [fisOnayi, setFisOnayi] = useState(false)
+
+  async function fisSec(e) {
+    const dosya = e.target.files?.[0]
+    e.target.value = ''
+    if (!dosya) return
+    if (dosya.size > 10 * 1024 * 1024) {
+      return setHata('Servis fişi en fazla 10 MB olabilir.')
+    }
+    setHata('')
+    setYukleniyor(true)
+    try {
+      const id = await ekYaz(dosya)
+      setFis({
+        id,
+        ad: dosya.name,
+        boyut: dosya.size,
+        tur: dosya.type.startsWith('image/') ? 'gorsel' : 'pdf',
+      })
+    } catch {
+      setHata('Servis fişi kaydedilemedi, tekrar deneyin.')
+    }
+    setYukleniyor(false)
+  }
+
+  /* Alanlar tamam mı? Kaydet düğmesi ve fişsiz onayı aynı denetimi
+     kullanıyor; iki yerde ayrı yazılırsa biri unutulur. */
+  function eksikAlan() {
+    return alanlar.find((a) => a.zorunlu && String(deger[a.ad] || '').trim().length < 3)
+  }
+
+  function kaydet() {
+    const temiz = {}
+    alanlar.forEach((a) => (temiz[a.ad] = String(deger[a.ad] || '').trim()))
+    onKaydet({ ...temiz, fis, ozet: kapanisOzeti(talep.tur, temiz) })
+  }
+
   const yaz = (a) => (e) =>
     setDeger({ ...deger, [a.ad]: a.para ? paraBicimle(e.target.value) : e.target.value })
 
@@ -1381,19 +1572,49 @@ function KapanisFormu({ talep, onKapat, onKaydet }) {
             </label>
           ))}
 
+          {fisliMi && (
+            <div className="alan">
+              <span className="alan__ad">
+                Servis Fişi<span className="sonuk"> · isteğe bağlı</span>
+              </span>
+
+              {fis ? (
+                <div className="fis">
+                  <span className="fis__ad">{fis.ad}</span>
+                  <span className="kucuk sonuk">{boyutYaz(fis.boyut)}</span>
+                  <button className="dg dg--kucuk" onClick={() => setFis(null)}>
+                    Kaldır
+                  </button>
+                </div>
+              ) : (
+                <label className="dg dg--dosya">
+                  {yukleniyor ? 'Yükleniyor…' : 'Fiş yükle · PDF veya fotoğraf'}
+                  <input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    onChange={fisSec}
+                    hidden
+                  />
+                </label>
+              )}
+
+              <span className="kucuk sonuk">
+                Sahada doldurulan servis fişini yükleyin; talebin kaydında durur.
+              </span>
+            </div>
+          )}
+
           {hata && <div className="uyari">{hata}</div>}
 
           <div className="satir">
             <button
               className="dg dg--ana"
               onClick={() => {
-                const eksik = alanlar.find(
-                  (a) => a.zorunlu && String(deger[a.ad] || '').trim().length < 3
-                )
+                const eksik = eksikAlan()
                 if (eksik) return setHata(eksik.etiket + ' alanını doldurun.')
-                const temiz = {}
-                alanlar.forEach((a) => (temiz[a.ad] = String(deger[a.ad] || '').trim()))
-                onKaydet({ ...temiz, ozet: kapanisOzeti(talep.tur, temiz) })
+                /* Fiş yoksa önce sorulur; onaylanırsa kapanır. */
+                if (fisliMi && !fis) return setFisOnayi(true)
+                kaydet()
               }}
             >
               Kapat ve kaydet
@@ -1402,6 +1623,18 @@ function KapanisFormu({ talep, onKapat, onKaydet }) {
           </div>
         </div>
       </div>
+
+      {fisOnayi && (
+        <Onay
+          baslik="Servis fişi yüklenmedi"
+          metin="Servis fişi yüklenmedi. Servis fişi olmadan kapatmak istediğinizden emin misiniz?"
+          onVazgec={() => setFisOnayi(false)}
+          onOnayla={() => {
+            setFisOnayi(false)
+            kaydet()
+          }}
+        />
+      )}
     </div>
   )
 }

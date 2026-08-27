@@ -15,7 +15,7 @@ import {
 import { cevapsizlar, konular, sorular, yonlendirme } from './DestekKayitlari'
 import { DisaAktar } from './aktar'
 import { getProduct } from '../../data/products'
-import { extractYear, formatSerial } from '../../lib/serial'
+import { formatSerial } from '../../lib/serial'
 import { SIRKET } from '../../config'
 import { parcaToplami } from '../../data/parcaFiyat'
 
@@ -63,28 +63,17 @@ import { parcaToplami } from '../../data/parcaFiyat'
    `oneCikan` o raporun özetindeki hangi sayının kartta görüneceği.
    Adı raporun kendi özetiyle birebir eşleşmeli; eşleşmezse kartta
    rakam çıkmıyor, uydurma bir sayı yazılmıyor. */
+/* "SONUÇ" ÖBEĞİ KALDIRILDI.
+
+   Dönem özeti, para akışı ve garanti maliyeti raporları çıkarıldı;
+   fiyat teklifi sonuçları Operasyon öbeğine taşındı. Üç öbek yerine
+   iki öbek kaldı: işin akışı ve büyüme. */
 const RAPORLAR = [
   {
-    deger: 'ozet', ad: 'Dönem özeti', obek: 'Sonuç',
-    soru: 'Tür tür ne geldi, ne kapandı, ne kadar sürdü?',
-    oneCikan: 'Tamamlanma',
-  },
-  {
-    deger: 'finans', ad: 'Para akışı', obek: 'Sonuç',
-    soru: 'Bu dönem ne kadar iş yaptık, hunide ne bekliyor?',
-    oneCikan: 'Satışa dönen',
-  },
-  {
-    deger: 'satis', ad: 'Fiyat teklifi sonuçları', obek: 'Sonuç',
+    deger: 'satis', ad: 'Fiyat teklifi sonuçları', obek: 'Operasyon',
     soru: 'Verdiğimiz teklifler ne oldu, hangisi cevap bekliyor?',
     oneCikan: 'Cevap bekleyen',
   },
-  {
-    deger: 'garanti', ad: 'Garanti maliyeti', obek: 'Sonuç',
-    soru: 'Hangi model bize garanti kapsamında kaça mal oluyor?',
-    oneCikan: 'Garanti oranı',
-  },
-
   {
     deger: 'gecikme', ad: 'Bekleyen işler', obek: 'Operasyon',
     soru: 'Kimsenin bakmadığı ya da cevap beklenen talepler hangileri?',
@@ -134,7 +123,6 @@ const RAPORLAR = [
 ]
 
 const OBEKLER = [
-  { ad: 'Sonuç', alt: 'Para, satış ve tamamlanma' },
   { ad: 'Operasyon', alt: 'İşin akışı ve ekibin yükü' },
   { ad: 'Büyüme', alt: 'Müşteri, bölge ve bayi' },
 ]
@@ -559,39 +547,7 @@ function dilim(dizi, oran) {
   return gecerli[i]
 }
 
-/* Seri numarasından üretim yılı.
 
-   Önce `extractYear` deneniyor; o, seri numarasının başındaki ürün
-   önekini tanıyıp hemen ardındaki dört haneyi okuyor. Bazı eski
-   numaralarda önek tanınmıyor (SUPER8 / SUPER82 gibi birbirine
-   benzeyen önekler) ve yıl okunamıyor.
-
-   Talepler ekranı bu durumda numaranın içindeki ilk 20xx dizisine
-   bakıyor; rapor da aynı yolu izliyor. İkisi ayrı davranırsa aynı
-   makine bir ekranda "2019", ötekinde "bilinmiyor" görünür. */
-function uretimYili(seri) {
-  const kesin = extractYear(seri)
-  if (kesin) return kesin
-  const eslesme = String(seri || '').match(/(20[0-9]{2})/)
-  if (!eslesme) return null
-  const yil = Number(eslesme[1])
-  return yil <= new Date().getFullYear() ? yil : null
-}
-
-/* Talep açıldığında makine garanti içinde miydi?
-
-   "Şu an garantide mi" sorusunun cevabı raporu bozar: iki yıl önceki
-   bir servis o gün garanti kapsamındaydı, bugün değil. Karşılaştırma
-   talebin tarihiyle yapılıyor.
-
-   Yıl okunamazsa null dönüyor ve o talep orana girmiyor — tahmin
-   yürütmektense "bilinmiyor" demek doğru. */
-function garantiIcindeMiydi(talep) {
-  const uretim = uretimYili(talep.makine?.serial)
-  if (!uretim) return null
-  const talepYili = new Date(talep.createdAt).getFullYear()
-  return talepYili - uretim < SIRKET.garantiYil
-}
 
 /* ------------------------------------------------------- Rapor üreticileri
 
@@ -768,63 +724,6 @@ const URETICILER = {
     }
   },
 
-  /* -------------------------------------------------- Garanti maliyeti
-
-     İMALATÇI İÇİN EN PAHALI SATIR BU. Garanti kapsamındaki her servis
-     PAKSAN'ın cebinden çıkıyor. Hangi modelde bu oran yüksekse orada
-     bir üretim sorunu var ve o sorun her satılan makineyle çarpılarak
-     büyüyor.
-
-     Garanti durumu TALEBİN TARİHİNE göre hesaplanıyor, bugüne göre
-     değil: iki yıl önceki bir servis o gün garanti kapsamındaydı. */
-  garanti(donem) {
-    const kova = {}
-
-    donem
-      .filter((t) => t.tur === 'servis' && t.makine)
-      .forEach((t) => {
-        const ad = getProduct(t.makine.productId)?.name || t.makine.productId
-        if (!kova[ad]) kova[ad] = { ic: 0, dis: 0, bilinmeyen: 0, makineler: new Set() }
-        kova[ad].makineler.add(t.makine.serial)
-
-        const icinde = garantiIcindeMiydi(t)
-        if (icinde === null) kova[ad].bilinmeyen++
-        else if (icinde) kova[ad].ic++
-        else kova[ad].dis++
-      })
-
-    const satirlar = Object.entries(kova)
-      .sort((a, b) => b[1].ic - a[1].ic)
-      .map(([ad, k]) => [
-        ad,
-        String(k.ic + k.dis + k.bilinmeyen),
-        String(k.ic),
-        String(k.dis),
-        String(k.bilinmeyen),
-        yuzde(k.ic, k.ic + k.dis),
-        String(k.makineler.size),
-        k.makineler.size ? (k.ic / k.makineler.size).toFixed(1).replace('.', ',') : '0',
-      ])
-
-    const toplamIc = Object.values(kova).reduce((a, k) => a + k.ic, 0)
-    const toplamDis = Object.values(kova).reduce((a, k) => a + k.dis, 0)
-    const toplamBilinmeyen = Object.values(kova).reduce((a, k) => a + k.bilinmeyen, 0)
-
-    return {
-      basliklar: [
-        'Model', 'Servis talebi', 'Garanti içinde', 'Garanti dışında',
-        'Yılı okunamadı', 'Garanti oranı', 'Farklı makine',
-        'Makine başına garantili servis',
-      ],
-      satirlar,
-      ozet: [
-        { ad: 'Garanti içi servis', deger: toplamIc },
-        { ad: 'Garanti dışı servis', deger: toplamDis },
-        { ad: 'Garanti oranı', deger: yuzde(toplamIc, toplamIc + toplamDis) },
-        { ad: 'Yılı okunamayan', deger: toplamBilinmeyen },
-      ],
-    }
-  },
 
   /* ------------------------------------------------- Müşteri sadakati
 
@@ -1288,7 +1187,6 @@ const URETICILER = {
 const ACIKLAMA = {
   ozet: 'Süreler talebin geçmişinden hesaplanıyor; hiç dokunulmamış talep ortalamaya girmiyor. Yüzde farklar bir önceki eşit uzunluktaki dönemle karşılaştırılıyor; "Tüm zamanlar" seçiliyse karşılaştırma yapılmıyor.',
   finans: 'Teklif ve servis tutarları personelin girdiği rakamlardan, yedek parça tutarı fiyat listesinden geliyor. Bu bir muhasebe kaydı değil — kesin ciro Logo\'daki faturadan okunur. Rakam yerine "Garanti kapsamında" gibi bir cümle yazılan servisler toplama girmiyor, ayrıca sayılıyor.',
-  garanti: 'Garanti durumu talebin AÇILDIĞI tarihe göre hesaplanıyor, bugüne göre değil. Seri numarasından üretim yılı okunamayan makineler oran hesabına girmiyor.',
   sadakat: 'Müşteriler telefon numarasına göre tekilleştirildi. Çok talep açan müşteri hem en sadık hem de makinesi en çok bozulan olabilir; ikisi de aranmayı hak ediyor.',
   destek: 'Destek ekranındaki konuşmalardan üretiliyor; talep kayıtlarından bağımsız. "Cevapsız kalan" sütunu bilgi tabanına yazılması gereken soruları gösteriyor — ayrıntısı Destek Kayıtları ekranında.',
   personel: 'Bir talebe birden çok kişi dokunmuşsa her biri kendi satırında sayılıyor.',

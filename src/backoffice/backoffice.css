@@ -573,23 +573,21 @@ a {
 /* Hızlı erişim kutuları tek satırda duruyor. Ekran dar kalırsa alt
    satıra kaymak yerine yana kayıyor: yönetici bir bakışta hepsini
    aynı hizada görsün. */
+/* Dashboard'un üstündeki sayı kutuları.
+
+   ÖNCE TEK SATIRA ZORLANIYORDU (`grid-auto-flow: column`) ve sığmayınca
+   yana kaydırılıyordu. Ölçüldü: dokuz kutu 1214 piksel istiyor, 1366
+   piksellik ekranda içeriğe 1023 piksel kalıyor. Yani en yaygın dizüstü
+   çözünürlüğünde kutuların üçte biri ekran dışında kalıyor ve kimse
+   kaydırmayı denemiyordu — dashboard'un işi bir bakışta durum vermek.
+
+   Şimdi sarıyorlar: sığan kadarı ilk satırda, kalanı alta geçiyor.
+   Kaydırma çubuğu da kalktı. */
 .sayilar {
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(126px, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(126px, 1fr));
   gap: 10px;
   margin-bottom: 18px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-}
-
-.sayilar::-webkit-scrollbar {
-  height: 6px;
-}
-
-.sayilar::-webkit-scrollbar-thumb {
-  background: var(--cizgi-koyu);
-  border-radius: 3px;
 }
 
 .sayi {
@@ -2085,4 +2083,37 @@ select.sec {
   color: var(--murekkep);
   font-weight: 700;
   box-shadow: var(--golge);
+}
+
+/* ------------------------------------------------------- Servis fişi
+
+   Servis talebi kapatılırken yüklenen fiş. Yüklendikten sonra dosya
+   adı, boyutu ve kaldırma/açma düğmesi tek satırda duruyor. */
+.fis {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border: 1px solid var(--cizgi);
+  border-radius: 8px;
+  background: var(--yuzey-2);
+}
+
+.fis__ad {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  font-size: 13.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Dosya seçme düğmesi görünüşte düğme, aslında etiket: gizli bir
+   <input type=file> sarıyor. */
+.dg--dosya {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }

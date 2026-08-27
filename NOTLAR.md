@@ -2911,6 +2911,38 @@ Genişletilmesine gerek yok. İçeriğini yine de servis ekibiniz bir okusun.
 
 ---
 
+## Ekran boyutlarına uyum — sonraya bırakılan iş
+
+**Soruldu:** uygulama ve backoffice başka ekran boyutlarında farklı mı
+görünüyor? **Cevap:** ikisi de uyumlu kurulmuş ama backoffice'te
+denenmemiş aralıklar var.
+
+**Uygulama** ölçüye göre uyum sağlıyor. Genişlikler yüzde ve `max-width`
+ile veriliyor, sahne yükseklikleri `vh` cinsinden, alt menü etiketleri
+420 ve 340 pikselde küçülüyor, kısa ekranlar için ayrı bir kural var.
+320-430 piksel aralığında ölçülerek denendi.
+
+**Backoffice** iki kırılma noktası taşıyor (1100 ve 860 piksel); 860'ın
+altında yan menü yataya dönüyor. Tablolar kendi içinde yatay
+kaydırılıyor, sayfa gövdesi kaymıyor.
+
+**Bulunan ve düzeltilen sorun:** Dashboard'un üstündeki dokuz sayı
+kutusu tek satıra zorlanıyordu. Ölçüldü — dokuz kutu 1214 piksel
+istiyor, 1366 piksellik ekranda içeriğe 1023 piksel kalıyor. En yaygın
+dizüstü çözünürlüğünde kutuların üçte biri ekran dışında kalıyordu.
+Artık sarıyorlar.
+
+**Kalan iş (öncelik değil):**
+
+- Backoffice 1100-1366 aralığında sistematik olarak denenmedi;
+  düzeltilen kutu bu aralıkta çıktı, başka yerlerde de olabilir.
+- Tarayıcı büyütme oranı (%110, %125) ayrı bir durum: ekran aynı kalıp
+  her şey büyüyor. Denenmedi.
+- Gerçek telefonlarda yalnız tek cihazda bakıldı; farklı en-boy
+  oranlarında (katlanabilir, tablet) denenmedi.
+
+---
+
 ## Sizden gereken bilgiler
 
 | Konu | Ne lazım |

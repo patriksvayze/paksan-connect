@@ -15,6 +15,7 @@
    ========================================================================== */
 
 import { load, save, uid } from '../lib/storage'
+import { ekYaz } from '../lib/ekler'
 import { sifreHazirla } from '../lib/hesap'
 import { yeniNo } from '../lib/numara'
 import { talepNo } from '../lib/talep'
@@ -129,6 +130,56 @@ const GORUSLER = [
 
 const ROLLER_DEMO = ['yonetici', 'servis', 'servis', 'parca', 'parca', 'satis']
 
+/* Destek ekranında seçilen konular ve sorular. Gerçek bilgi tabanındaki
+   başlıklarla aynı dilde yazıldı; backoffice'te "en çok sorulan" listesi
+   anlamlı görünsün. */
+const DESTEK_KONU = [
+  'Balya bağlama', 'Pikap ve toplama', 'Piston ve sıkıştırma',
+  'Şanzıman ve şaft', 'Hidrolik', 'Genel bakım',
+]
+
+const DESTEK_SORU = [
+  'Düğüm atmıyor', 'İp kopuyor', 'Balya gevşek çıkıyor',
+  'Pikap otu almıyor', 'Anormal ses geliyor', 'Yağ kaçağı var',
+  'Şaft titriyor', 'Balya sayacı çalışmıyor',
+]
+
+/* Cevapsız kalan sorular bilgi tabanının eksik listesi; demoda da
+   birkaç tane olsun ki o rapor boş çıkmasın. */
+const DESTEK_CEVAPSIZ = [
+  'Nem ölçer hata veriyor',
+  'PLC ekranı açılmıyor',
+  'Otomatik yağlama çalışmıyor',
+  'Tartı sistemi yanlış tartıyor',
+]
+
+const DUYURULAR = [
+  {
+    tur: 'duyuru',
+    baslik: 'Sezon öncesi bakım kampanyası',
+    metin: 'Nisan sonuna kadar yetkili servislerimizde sezon öncesi bakım işçiliğinde %20 indirim uygulanıyor. Randevu için bayinizle görüşebilirsiniz.',
+  },
+  {
+    tur: 'duyuru',
+    baslik: 'Yeni yedek parça fiyat listesi',
+    metin: '2026 yedek parça fiyat listesi yürürlüğe girdi. Güncel fiyatları uygulamadaki yedek parça talebi ekranından görebilirsiniz.',
+  },
+  {
+    tur: 'uyari',
+    baslik: 'Kuyruk mili koruma kapağı kontrolü',
+    metin: 'Kuyruk mili koruma kapağı hasarlı olan makinelerde çalışmayınız. Kapağı hasarlı olan müşterilerimiz bayilerinden ücretsiz değişim talep edebilir.',
+  },
+  {
+    tur: 'uyari',
+    baslik: 'Sıcak havada balya deposu kontrolü',
+    metin: 'Yüksek sıcaklıkta nemli ot balyalandığında depoda yanma riski oluşur. Balya nemini kontrol etmeden depolamayınız.',
+  },
+]
+
+/* Bakım rehberlerindeki madde anahtarları makineId-rehberId-bölüm-sıra
+   biçiminde (bkz. src/lib/rehberIsaret.js → maddeAnahtari). */
+const BAKIM_REHBERLERI = ['gunluk', 'sezonOncesi', 'sezonSonu']
+
 /* ----------------------------------------------------------- Yardımcılar */
 
 function sec(dizi) {
@@ -225,6 +276,18 @@ export async function demoYukle() {
       doneMaintenance: [],
     }))
 
+    /* Bakım işaretleri. Makinelerin bir kısmında bakım yapılmış
+       görünsün: "bakımını yapan makineler daha az arızalanıyor mu"
+       sorusu ancak işaretli kayıt varsa konuşulabiliyor. */
+    for (const mk of makineler) {
+      if (Math.random() < 0.45) continue
+      const rehber = sec(BAKIM_REHBERLERI)
+      const kacMadde = tamsayi(2, 6)
+      for (let j = 0; j < kacMadde; j++) {
+        mk.doneMaintenance.push(`${mk.id}|${rehber}|bolum${tamsayi(1, 3)}|${j}`)
+      }
+    }
+
     musteriler.push({
       id: uid(),
       no: yeniNo('musteri'),
@@ -280,14 +343,59 @@ export async function demoYukle() {
     return sec(havuz)
   }
 
-  musteriler.forEach((m) => {
-    const adet = tamsayi(0, 3)
-    for (let i = 0; i < adet; i++) {
-      const tur = sec(['servis', 'servis', 'parca', 'satinalma'])
+  /* HER TÜR x DURUM BİLEŞİMİ GARANTİLİ ÜRETİLİYOR.
+
+     Önce her müşteriye rastgele 0-3 talep açılıyordu ve durum ağırlıklı
+     seçiliyordu. Sonuç: bazı durumlar hiç çıkmıyordu. Sunumda "iptal
+     edilmiş bir talep gösterebilir misin" dendiğinde elde örnek
+     olmaması, demoyu yarıda kesiyor.
+
+     Şimdi önce her bileşimden ikişer tane üretiliyor (16 bileşim, 32
+     talep), sonra üstüne rastgele talepler ekleniyor. Böylece süzgeçte
+     hangi durum seçilirse seçilsin liste dolu geliyor. */
+  const gorevler = []
+
+  for (const tur of Object.keys(DURUM)) {
+    for (const durum of DURUM[tur]) {
+      for (let k = 0; k < 2; k++) gorevler.push({ tur, durum })
+    }
+  }
+
+  /* Rastgele ekler — havuz tek düze görünmesin */
+  for (let i = 0; i < 26; i++) {
+    const tur = sec(['servis', 'servis', 'parca', 'satinalma'])
+    gorevler.push({ tur, durum: durumSec(tur) })
+  }
+
+  /* BEKLEYEN İŞ ÖRNEKLERİ. Dashboard'daki "48 saati geçen" kutusu ve
+     Raporlar'daki "kimse bakmadı" uyarısı ancak eski ve hâlâ açık bir
+     talep varsa dolu görünüyor. */
+  gorevler.push({ tur: 'servis', durum: 'yeni', yasGun: 4 })
+  gorevler.push({ tur: 'servis', durum: 'incelemede', yasGun: 6 })
+  gorevler.push({ tur: 'parca', durum: 'yeni', yasGun: 3 })
+  gorevler.push({ tur: 'satinalma', durum: 'teklif', yasGun: 9 })
+
+  /* BUGÜN GELENLER — "bugün gelen" kutusu boş kalmasın */
+  gorevler.push({ tur: 'servis', durum: 'yeni', yasGun: 0 })
+  gorevler.push({ tur: 'parca', durum: 'yeni', yasGun: 0 })
+  gorevler.push({ tur: 'satinalma', durum: 'yeni', yasGun: 0 })
+
+  /* İHRACAT — yurtdışı talebi ayrı yoldan gidiyor, örneği olsun */
+  gorevler.push({ tur: 'satinalma', durum: 'incelemede', ihracat: true })
+
+  /* Fotoğraflı talepler: ilk beş serviste ek olacak */
+  let fotoKalan = 5
+
+  for (const gorev of gorevler) {
+    {
+      const m = sec(musteriler)
+      const tur = gorev.tur
       const makine = sec(m.makineler)
-      const yasGun = sec([0, 0, 0, 0.5, 1.2, 1.6, 3, 6, 14, 40])
+      const yasGun = gorev.yasGun !== undefined
+        ? gorev.yasGun
+        : sec([0, 0.5, 1.2, 1.6, 3, 6, 14, 40])
       const tarih = Date.now() - yasGun * 86400000 - tamsayi(0, 6) * 3600000
-      const durum = yasGun === 0 ? 'yeni' : durumSec(tur)
+      const durum = gorev.durum
       const personel = sec(yeniPersonel).ad
 
       /* Aşamalar sırayla işleniyor: "kapandı" bir talep önce
@@ -334,8 +442,8 @@ export async function demoYukle() {
         telHam: m.tel,
         il: m.il,
         ilce: m.ilce,
-        ulke: 'TR',
-        ihracat: false,
+        ulke: gorev.ihracat ? 'DE' : 'TR',
+        ihracat: Boolean(gorev.ihracat),
         /* Uygulamanın sakladığı değerlerin aynısı — backoffice'te saat
            aralıkları da görünsün. */
         ulasim: sec(ULASIM_ZAMANI),
@@ -362,7 +470,10 @@ export async function demoYukle() {
         sesMetni: cevrildi
           ? { metin: sec(SES_METINLERI), dil: 'TR', tarih: tarih + 120000 }
           : null,
+        /* Fotoğraflar aşağıda, talepler kaydedildikten sonra
+           ekleniyor: eklerin yazılması asenkron. */
         ekler: [],
+        _fotoIstensin: tur === 'servis' && fotoKalan-- > 0,
 
         /* -------------------------------------------- Fatura ve ödeme */
         fatura: tur === 'parca' ? faturaUret(m) : null,
@@ -391,7 +502,26 @@ export async function demoYukle() {
         demo: true,
       })
     }
-  })
+  }
+
+  /* Fotoğraf ekleri. Tuvale çizilip IndexedDB'ye yazılıyor; işlem
+     asenkron olduğu için talepler kurulduktan sonra yapılıyor. */
+  for (const t of talepler) {
+    if (!t._fotoIstensin) {
+      delete t._fotoIstensin
+      continue
+    }
+    delete t._fotoIstensin
+    try {
+      const kac = tamsayi(1, 3)
+      const yazilar = secBirkac(EK_YAZILARI, kac, kac)
+      t.ekler = await Promise.all(yazilar.map((y) => fotoUret(y)))
+    } catch {
+      /* Tuval ya da IndexedDB kullanılamıyorsa demo yine yüklensin */
+      t.ekler = []
+    }
+  }
+
   save(ANAHTAR.demoTalepler, talepler)
 
   /* ---- Numara değişikliği talepleri
@@ -427,6 +557,79 @@ export async function demoYukle() {
     ...load(ANAHTAR.numaraTalepleri, []),
   ])
 
+  /* ---- Destek ekranı oturumları
+
+     Destek Kayıtları ekranı demo verisinde bomboş kalıyordu; sunumda
+     "müşteri talep açmadan önce neye baktı" anlatılamıyordu.
+
+     Üç tür oturum üretiliyor:
+       · cevap bulundu, talep açılmadı  → ekranın işe yaradığı hâl
+       · cevap bulundu ama talep açıldı → yetmediği hâl
+       · cevapsız kaldı                 → bilgi tabanının eksiği
+
+     Üçü de raporlarda ayrı ayrı sayılıyor. */
+  const destekOturumlari = []
+
+  secBirkac(musteriler, 12, 18).forEach((m) => {
+    const kac = tamsayi(1, 2)
+    for (let i = 0; i < kac; i++) {
+      const makine = sec(m.makineler)
+      const urun = PRODUCTS.find((u) => u.id === makine.productId)
+      const baslangic = gunOnce(tamsayi(0, 45))
+      const sonuc = sec(['cozuldu', 'cozuldu', 'talep', 'cevapsiz'])
+
+      const olaylar = [
+        { tur: 'konu', deger: sec(DESTEK_KONU), tarih: baslangic + 20000 },
+      ]
+
+      if (sonuc === 'cevapsiz') {
+        olaylar.push({ tur: 'serbest', deger: sec(DESTEK_CEVAPSIZ), tarih: baslangic + 60000 })
+        olaylar.push({ tur: 'cevapsiz', deger: sec(DESTEK_CEVAPSIZ), tarih: baslangic + 65000 })
+      } else {
+        const soru = sec(DESTEK_SORU)
+        olaylar.push({ tur: 'soru', deger: soru, tarih: baslangic + 55000 })
+        olaylar.push({ tur: 'cevap', deger: soru, kayitId: 'kb-' + tamsayi(100, 999), tarih: baslangic + 60000 })
+        if (sonuc === 'talep') {
+          olaylar.push({ tur: 'yonlendirme', deger: 'servis', tarih: baslangic + 140000 })
+        }
+      }
+
+      destekOturumlari.push({
+        id: uid(),
+        anahtar: m.id + '-' + makine.id,
+        baslangic,
+        son: olaylar[olaylar.length - 1].tarih,
+        dil: 'tr',
+        grup: urun?.category || 'genel',
+        kullanici: { no: m.no, ad: m.ad, tel: m.tel, il: m.il, ilce: m.ilce },
+        makine: { id: makine.id, serial: makine.serial, productId: makine.productId },
+        urun: urun ? { id: urun.id, ad: urun.name } : null,
+        olaylar,
+        demo: true,
+      })
+    }
+  })
+  save(ANAHTAR.destekLog, [...destekOturumlari, ...load(ANAHTAR.destekLog, [])])
+
+  /* ---- Duyurular ve uyarılar
+
+     Duyurular ekranı da boştu. Dördü de gerçek bir üreticinin
+     gönderebileceği içerikte: iki kampanya duyurusu, iki güvenlik
+     uyarısı. Uyarılar uygulamada kampanya izni olmadan da gidiyor —
+     hizmete ilişkin bildirim izne bağlı değil. */
+  const duyurular = DUYURULAR.map((x, i) => ({
+    id: uid(),
+    tarih: gunOnce(tamsayi(1, 40) + i),
+    tur: x.tur,
+    baslik: x.baslik,
+    metin: x.metin,
+    gorsel: null,
+    personel: sec(yeniPersonel).ad,
+    pencere: i === 0,
+    demo: true,
+  }))
+  save(ANAHTAR.duyurular, [...duyurular, ...load(ANAHTAR.duyurular, [])])
+
   /* ---- Geri bildirimler */
   const gorusler = secBirkac(musteriler, 5, 8).map((m) => ({
     id: uid(),
@@ -449,10 +652,13 @@ export async function demoYukle() {
     talep: talepler.length,
     numara: numaraTalepleri.length,
     gorus: gorusler.length,
+    destek: destekOturumlari.length,
+    duyuru: duyurular.length,
   }
   islemYaz({
     tur: 'demo',
-    ozet: `Demo verisi yüklendi · ${ozet.personel} personel, ${ozet.musteri} müşteri, ${ozet.talep} talep`,
+    ozet: `Demo verisi yüklendi · ${ozet.personel} personel, ${ozet.musteri} müşteri, ` +
+      `${ozet.talep} talep, ${ozet.destek} destek oturumu, ${ozet.duyuru} duyuru`,
   })
   return ozet
 }
@@ -465,6 +671,52 @@ export function demoTemizle() {
   save(ANAHTAR.personel, personelGetir().filter((p) => !p.demo))
   save(ANAHTAR.numaraTalepleri, load(ANAHTAR.numaraTalepleri, []).filter((t) => !t.demo))
   save(ANAHTAR.geriBildirim, load(ANAHTAR.geriBildirim, []).filter((g) => !g.demo))
+  save(ANAHTAR.destekLog, load(ANAHTAR.destekLog, []).filter((o) => !o.demo))
+  save(ANAHTAR.duyurular, load(ANAHTAR.duyurular, []).filter((x) => !x.demo))
+}
+
+/* -------------------------------------------------------- Fotoğraf eki
+
+   Talep detayındaki fotoğraf bölümü demo verisinde hep boş kalıyordu;
+   sunumda "müşteri fotoğraf gönderebiliyor" denip gösterilecek bir şey
+   olmuyordu.
+
+   Gerçek fotoğraf konmuyor — kaynağı yok ve megabaytlarca veri demoyu
+   ağırlaştırırdı. Onun yerine üstünde ne olduğu yazan basit bir kare
+   çiziliyor. Ekranda fotoğrafın nasıl durduğu, büyütülünce ne olduğu ve
+   yan yana kaç tane sığdığı görünüyor; anlatılmak istenen bu. */
+const EK_YAZILARI = [
+  'Düğüm atıcı', 'Pikap', 'Şanzıman', 'Hidrolik hortum',
+  'Balya odası', 'Zincir', 'Rulman', 'Kayış',
+]
+
+async function fotoUret(yazi) {
+  const tuval = document.createElement('canvas')
+  tuval.width = 640
+  tuval.height = 480
+  const c = tuval.getContext('2d')
+
+  c.fillStyle = '#1d2b45'
+  c.fillRect(0, 0, 640, 480)
+  c.fillStyle = 'rgba(255,255,255,0.06)'
+  for (let i = 0; i < 640; i += 40) c.fillRect(i, 0, 1, 480)
+  for (let i = 0; i < 480; i += 40) c.fillRect(0, i, 640, 1)
+
+  c.fillStyle = '#e8641a'
+  c.fillRect(60, 300, 520, 120)
+  c.fillStyle = '#dce3ef'
+  c.fillRect(90, 180, 460, 130)
+
+  c.fillStyle = '#ffffff'
+  c.font = 'bold 34px system-ui, sans-serif'
+  c.fillText(yazi, 60, 100)
+  c.font = '22px system-ui, sans-serif'
+  c.fillStyle = 'rgba(255,255,255,0.65)'
+  c.fillText('müşteri fotoğrafı · demo', 60, 140)
+
+  const blob = await new Promise((r) => tuval.toBlob(r, 'image/jpeg', 0.7))
+  const id = await ekYaz(blob)
+  return { id, tur: 'foto', ad: yazi + '.jpg', boyut: blob.size }
 }
 
 /* ---------------------------------------------------- Talep parçaları
