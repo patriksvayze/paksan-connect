@@ -1597,10 +1597,6 @@ function KapanisFormu({ talep, onKapat, onKaydet }) {
                   />
                 </label>
               )}
-
-              <span className="kucuk sonuk">
-                Sahada doldurulan servis fişini yükleyin; talebin kaydında durur.
-              </span>
             </div>
           )}
 
