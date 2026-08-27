@@ -60,24 +60,26 @@ export default function Welcome() {
         <div className="spacer" />
 
         {/* ------------------------------------------------------ İşlem */}
-        {/* İki yol da ne olduğunu söylüyor.
+        {/* İki düğme, aynı boyda.
 
              Önce turuncu düğmede yalnız "Hemen Başlayın" yazıyordu; ne
              yaptığı belli değildi ve zaten üye olan kullanıcı da ona
-             basıyordu. Şimdi düğmeler "Kayıt Ol" ve "Giriş Yap", altlarında
-             da kimin hangisine basacağı yazılı. Kayıt hâlâ ön planda —
-             turuncu ve büyük — çünkü şimdilik yeni üyeye ihtiyaç var. */}
+             basıyordu. Yazılar "Kayıt Ol" ve "Giriş Yap" oldu — ikisi de
+             ne yaptığını kendi söylüyor, altlarına açıklama gerekmiyor.
+
+             Ayrım artık boyutla değil renkle: kayıt turuncu, giriş
+             saydam. Kayıt yine önde ama giriş küçük düşürülmüş
+             görünmüyor. */}
         <div className="stack fade-in" style={{ gap: 12 }}>
           <button className="btn btn--orange btn--lg" onClick={() => nav('/kayit')}>
             {t('karsilama.basla')}
             <IconRight size={21} />
           </button>
-          <p className="karsilama__ipucu">{t('karsilama.baslaAlt')}</p>
 
-          <button className="btn btn--on-dark" onClick={() => nav('/giris')}>
+          <button className="btn btn--on-dark btn--lg" onClick={() => nav('/giris')}>
             {t('karsilama.girisYap')}
+            <IconRight size={21} />
           </button>
-          <p className="karsilama__ipucu">{t('karsilama.girisYapAlt')}</p>
         </div>
 
         {/* Yalnızca sürüm. Hangi sürümün kurulu olduğu, uzaktan destek

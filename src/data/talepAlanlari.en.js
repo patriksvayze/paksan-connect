@@ -19,9 +19,9 @@ export const ULASIM_ZAMANI_EN = [
 ]
 
 export const MAKINE_DURUMU_EN = {
-  durdu: { ad: 'The machine will not run at all', alt: 'Work has stopped completely' },
-  sorunlu: { ad: 'It runs but there is a problem', alt: 'Work is disrupted, output is down' },
-  kontrol: { ad: 'It runs, but please check it', alt: 'Not urgent' },
+  durdu: { ad: 'The machine will not run at all' },
+  sorunlu: { ad: 'It runs but there is a problem' },
+  kontrol: { ad: 'It runs, but please check it' },
 }
 
 export const PARCA_ACELE_EN = {

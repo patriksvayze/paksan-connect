@@ -925,13 +925,6 @@ p {
 /* Sürüm — sayfanın en dibinde, silik. Okunması gereken bir bilgi değil,
    sorulunca bakılan bir bilgi. */
 /* Düğmenin altındaki tek satırlık açıklama */
-.karsilama__ipucu {
-  margin: -4px 0 4px;
-  text-align: center;
-  font-size: 12.5px;
-  color: rgba(255, 255, 255, 0.62);
-}
-
 .giris__surum {
   margin: 16px 0 0;
   text-align: left;
@@ -1427,6 +1420,19 @@ p {
   color: var(--ink-3);
 }
 
+/* Soru başlığının hemen ALTINDA duran açıklama.
+
+   `.field__hint` alanın altına, doldurulduktan sonra okunacak notlar
+   için. Bu ise sorunun kendisini açıklıyor; seçenekler görülmeden
+   okunması gerekiyor, o yüzden ayrı. */
+.field__aciklama {
+  display: block;
+  margin: -2px 0 10px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--ink-3);
+}
+
 .field__hint {
   font-size: 13px;
   color: var(--ink-3);
@@ -1546,12 +1552,17 @@ p {
   letter-spacing: -0.015em;
 }
 
+/* Alt açıklama satırı. Makine durumu seçeneklerinden kaldırıldı —
+   başlıklar zaten açıktı, açıklama aynı şeyi tekrar ediyordu. Yedek
+   parça ödemesindeki gerçek/tüzel kişi seçiminde duruyor; orada
+   açıklama gerçekten bilgi veriyor. */
 .durum__alt {
   display: block;
   font-size: 13px;
   color: var(--ink-3);
   margin-top: 2px;
 }
+
 
 /* ------------------------------------------------------------ Dil seçici
 
@@ -2260,7 +2271,10 @@ p {
   place-items: center;
   width: 100%;
   max-width: 46px;
-  height: 32px;
+  /* Makine simgesi geniş bir çizim olduğu için ötekilerden büyük
+     çiziliyor (bkz. Chrome.jsx → ikonBoyut). Kapsül de onun kutusunu
+     alacak kadar yüksek; yoksa simge kapsülü taşıyordu. */
+  height: 36px;
   border-radius: 999px;
   transition: background 0.2s ease, transform 0.2s ease;
 }
@@ -2304,15 +2318,20 @@ p {
    hiçbir etiket kesilmiyor. */
 @media (max-width: 420px) {
   .tabbar__item {
-    font-size: 12px;
-    padding: 0 2px;
+    /* "Makinelerim" ve "My Machines" en uzun etiketler. Ölçüldü: 375
+       piksellik ekranda sekmeye 65 piksel düşüyor, ikisi de 11 puntoda
+       60-65 piksel yer istiyor — sığıyorlar. 12 puntoda taşıyorlardı.
+
+       Yanlardaki pay da kaldırıldı; sekmenin bütün genişliği yazıya
+       kalsın. Simgeler zaten kendi kapsüllerinde ortalı. */
+    font-size: 11px;
+    padding: 0;
   }
 }
 
 @media (max-width: 340px) {
   .tabbar__item {
-    font-size: 11px;
-    padding: 0 1px;
+    font-size: 10.5px;
   }
 }
 

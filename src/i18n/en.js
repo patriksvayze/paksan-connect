@@ -72,7 +72,7 @@ export const en = {
     profil: 'Profile',
     bildirimler: 'Notifications',
     anasayfa: 'Home',
-    makinelerim: 'Machines',
+    makinelerim: 'My Machines',
     urunler: 'Products',
     destek: 'Support',
   },
@@ -81,9 +81,7 @@ export const en = {
     slogan: 'Here for you',
     ustSatir: 'SINCE {yil}',
     basla: 'Create Account',
-    baslaAlt: 'New account · with your phone number',
     girisYap: 'Sign In',
-    girisYapAlt: 'I already have an account',
   },
 
   giris: {
@@ -543,7 +541,8 @@ export const en = {
     neKadarArazi: 'How Much Land Do You Work?',
     traktorGucu: 'How Powerful Is Your Tractor?',
     traktorIpucu: 'We need to know whether the machine suits your tractor.',
-    neZamanArayalim: 'When Should We Call You?',
+    neZamanArayalim: 'When Are You Usually Available During the Day?',
+    aramaAciklamasi: 'We will get in touch if it turns out to be necessary.',
     durumSecin: 'Please mark the current state of the machine.',
     belirtiSecin: 'Please mark what is happening. If it is not listed, choose “Other” and describe it.',
     aceleSecin: 'Please mark how urgent the part is.',

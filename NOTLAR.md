@@ -1956,9 +1956,14 @@ diye ekranda gösteriliyor.
 
 ### Ekranlar
 
-Menü ikiye ayrılıyor: **üstte günlük iş**, altta **ayar işleri**.
+Menü **tek liste**; bütün düğmeler eşit aralıklı, en sık açılanlar
+üstte. Önce ikiye bölünmüştü ("günlük iş" / "ayar işleri") ama iki
+grubun sınırı kullanıcı için belli değildi — Raporlar neden ayar işi,
+Duyurular neden günlük iş değil? Açıklanmayan bir ayrım bilgi vermiyor,
+yalnızca menüyü kesiyordu.
 
-Üst grup:
+Kimin neyi göreceği yine **rolüne göre** süzülüyor; menü düzeni değişti,
+yetki kuralları aynı kaldı.
 
 | Ekran | İş |
 |---|---|
@@ -1967,12 +1972,9 @@ Menü ikiye ayrılıyor: **üstte günlük iş**, altta **ayar işleri**.
 | **Müşteriler** | Kim, hangi makine, hangi seri no, garanti durumu, KVKK onayları, talep geçmişi; admin bilgileri düzeltebilir |
 | **Bayiler** | Bayi ekleme, düzenleme, silme; koddaki listeye geri dönme |
 | **Geri Bildirimler** | Uygulamadan gelen görüş ve öneriler; okundu işaretleme |
-
-Alt grup:
-
-| Ekran | İş |
-|---|---|
 | **Raporlar** | Dönem raporları — yalnız admin ve yönetici |
+| **Destek Kayıtları** | Uygulamadaki destek asistanının oturumları |
+| **Duyurular** | Müşteriye gönderilen duyuru ve uyarılar |
 | **Numara Değişikliği Talepleri** | Telefon numarası değişikliği taleplerinin onayı — yalnız admin |
 | **Personel** | Backoffice hesapları — admin ekler/siler, yönetici yalnız görür |
 | **İşlem Kaydı** | Kim, ne zaman, hangi rolle ne yaptı — silinemez |

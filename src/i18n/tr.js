@@ -71,7 +71,7 @@ export const tr = {
     profil: 'Profil',
     bildirimler: 'Bildirimler',
     anasayfa: 'Ana Sayfa',
-    makinelerim: 'Makineler',
+    makinelerim: 'Makinelerim',
     urunler: 'Ürünler',
     destek: 'Destek',
   },
@@ -80,9 +80,7 @@ export const tr = {
     slogan: 'Yanınızdayız',
     ustSatir: "{yil}'TEN BERİ",
     basla: 'Kayıt Ol',
-    baslaAlt: 'Yeni hesap · telefon numaranızla',
     girisYap: 'Giriş Yap',
-    girisYapAlt: 'Hesabım var',
   },
 
   giris: {
@@ -424,7 +422,8 @@ export const tr = {
     neKadarArazi: 'Ne kadar Araziniz Var?',
     traktorGucu: 'Traktörünüz Kaç Beygir?',
     traktorIpucu: 'Makine traktörünüze uygun mu, bunu bilmemiz gerekiyor.',
-    neZamanArayalim: 'Sizi Ne Zaman Arayalım?',
+    neZamanArayalim: 'Gün İçerisinde Ne Zaman Müsait Oluyorsunuz?',
+    aramaAciklamasi: 'Gerekli olması durumunda sizinle iletişime geçeceğiz.',
     durumSecin: 'Makinenin şu anki durumunu işaretleyin.',
     belirtiSecin: 'Ne olduğunu işaretleyin. Listede yoksa “Diğer” seçip anlatın.',
     parcaSecin: 'Hangi parçaya ihtiyacınız olduğunu işaretleyin.',

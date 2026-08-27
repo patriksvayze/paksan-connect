@@ -43,7 +43,20 @@ import { IslemKaydi } from './ekranlar/IslemKaydi'
 
    İkisi de "mesaj" ama farklı şeyler; aynı simgeyi paylaşsalar menüde
    ayırt edilemezlerdi. */
-const UST_MENU = [
+/* MENÜ TEK LİSTE.
+
+   Önce ikiye bölünmüştü: üstte "günlük iş", altta "ayar işleri". Aradaki
+   boşluk kategori olduğunu düşündürüyordu ama iki grubun sınırı
+   kullanıcı için belli değildi — Raporlar neden ayar işi, Duyurular
+   neden günlük iş değil? Ayrım açıklanmadıkça bilgi vermiyor, yalnızca
+   menüyü kesiyordu.
+
+   Şimdi bütün düğmeler eşit aralıklı tek listede. Sıra aynı: en sık
+   açılanlar üstte.
+
+   ROL KURALLARI DEĞİŞMEDİ. Her satırın `izin` alanı duruyor; kimin
+   neyi göreceği yine rolüne göre süzülüyor (bkz. izinli()). */
+const MENU = [
   { id: 'ozet', ad: 'Dashboard', Ikon: IconPano },
   { id: 'talepler', ad: 'Talepler', izin: 'talepler', sayac: 'talep', Ikon: IconTalep },
   { id: 'musteriler', ad: 'Müşteriler', izin: 'musteriler', Ikon: IconUser },
@@ -52,9 +65,6 @@ const UST_MENU = [
     id: 'geribildirim', ad: 'Geri Bildirimler', izin: 'geribildirim',
     sayac: 'gorus', Ikon: IconMail,
   },
-]
-
-const ALT_MENU = [
   { id: 'raporlar', ad: 'Raporlar', izin: 'raporlar', Ikon: IconRapor },
   { id: 'destek', ad: 'Destek Kayıtları', izin: 'destek', Ikon: IconChat },
   { id: 'duyurular', ad: 'Duyurular', izin: 'duyurular', Ikon: IconBell },
@@ -140,11 +150,10 @@ export function Backoffice() {
 
   const ortak = { personel: oturum.ad, rol: oturum.rol, bildir, tazele, surum, git, sorgu }
 
-  const ust = UST_MENU.filter((m) => !m.izin || izinli(oturum.rol, m.izin))
-  const alt = ALT_MENU.filter((m) => !m.izin || izinli(oturum.rol, m.izin))
+  const menu = MENU.filter((m) => !m.izin || izinli(oturum.rol, m.izin))
 
   /* Yetkisi olmayan bir ekranda kalmasın (rol değişmiş olabilir) */
-  const acik = [...ust, ...alt].some((m) => m.id === ekran) ? ekran : ILK_EKRAN
+  const acik = menu.some((m) => m.id === ekran) ? ekran : ILK_EKRAN
 
   const dugme = (m) => (
     <button
@@ -169,10 +178,7 @@ export function Backoffice() {
           <img src={logo} alt="PAKSAN" />
         </div>
 
-        {ust.map(dugme)}
-
-        <div className="yan__ara" />
-        {alt.map(dugme)}
+        {menu.map(dugme)}
 
         <div className="yan__dip">
           <button className="yan__kisi" onClick={() => setProfil(true)}>

@@ -460,8 +460,12 @@ a {
   background: rgba(255, 255, 255, 0.24);
 }
 
+/* Kullanıcı kartı ve çıkış her zaman en altta.
+
+   Önce bu işi menüyü ikiye bölen boşluk yapıyordu (`.yan__ara`); menü
+   tek listeye dönünce o boşluk kalktı ve görev buraya geçti. */
 .yan__dip {
-  margin-top: 18px;
+  margin-top: auto;
   padding-top: 18px;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
   font-size: 12.5px;
@@ -1081,12 +1085,6 @@ tbody tr.secili {
 }
 
 /* ------------------------------------------------------------- Yan menü */
-
-/* Geri bildirim ve işlem kaydı ayrı dursun diye menüyü ikiye bölüyor */
-.yan__ara {
-  margin-top: auto;
-  padding-top: 14px;
-}
 
 /* ------------------------------------------------------------ Bilgi şeridi */
 

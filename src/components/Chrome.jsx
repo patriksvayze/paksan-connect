@@ -98,6 +98,16 @@ const TABS = [
     to: '/makinelerim',
     anahtar: 'menu.makinelerim',
     Icon: IconBaler,
+    /* MAKİNE SİMGESİ DAHA BÜYÜK ÇİZİLİYOR.
+
+       Öteki simgeler kare; 24 pikselde eni de boyu da 24 oluyor. Makine
+       ise geniş bir çizim (en/boy oranı 1,6): 24 pikselde boyu 15
+       piksele düşüyor, komşularının yanında yarım kalmış gibi duruyor
+       ve ne olduğu anlaşılmıyordu.
+
+       36 pikselde makinenin boyu 20 piksele çıkıyor — kareler kadar.
+       Eni 33 piksel oluyor; kapsül 46'ya 36, ikisi de sığıyor. */
+    ikonBoyut: 36,
     altYollar: ['/makine-ekle', '/makine/'],
   },
   {
@@ -118,7 +128,7 @@ export function TabBar() {
 
   return (
     <nav className="tabbar">
-      {TABS.map(({ to, anahtar, Icon, altYollar, sinif }) => {
+      {TABS.map(({ to, anahtar, Icon, altYollar, sinif, ikonBoyut }) => {
         const kendi = to === '/' ? pathname === '/' : pathname.startsWith(to)
         const aktif = kendi || altYollar.some((y) => pathname.startsWith(y))
 
@@ -136,7 +146,7 @@ export function TabBar() {
                 değil yalnız simgeyi sarıyor — sebebi styles.css'te
                 `.tabbar__ikon` yanında yazılı. */}
             <span className="tabbar__ikon">
-              <Icon size={24} />
+              <Icon size={ikonBoyut || 24} />
             </span>
             <span className="tabbar__label">{t(anahtar)}</span>
           </NavLink>

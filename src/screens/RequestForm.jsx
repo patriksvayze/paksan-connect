@@ -14,7 +14,7 @@ import {
   KDV_ORANI, PARA_BIRIMI, PARCA_FIYAT_AKTIF, parcaFiyatBilgisi, parcaToplami, paraYaz,
 } from '../data/parcaFiyat'
 import { formatSerial } from '../lib/serial'
-import { telKullanici, araProps } from '../lib/tel'
+import { telKullanici } from '../lib/tel'
 import { SesKaydi } from '../components/SesKaydi'
 import { EkAlani } from '../components/EkAlani'
 import { KonumAlani } from '../components/KonumAlani'
@@ -24,10 +24,11 @@ import { tcGecerliMi, vergiNoGecerliMi } from '../lib/kimlik'
 import { talepNo } from '../lib/talep'
 import { useGeriYakala } from '../lib/geriYakala'
 import { numaraMetni } from '../data/numaraDegisikligi'
+import { NumaraTalepFormu } from '../components/NumaraTalepFormu'
 import { useDil } from '../i18n'
 import { BANKA, SIRKET } from '../config'
 import {
-  IconCheckCircle, IconPhone, IconPin, IconRight, IconLock, IconCheck, IconAlert,
+  IconCheckCircle, IconPin, IconRight, IconLock, IconCheck, IconAlert,
   IconPlus, IconMinus, IconCart, IconInfo,
 } from '../components/Icons'
 
@@ -890,10 +891,10 @@ function TalepFormu() {
             )}
 
             {pencere === 'numara' && (
-              <NumaraDegisti
-                numaraM={numaraM}
-                showToast={showToast}
-                onGeri={() => setPencere('onay')}
+              <NumaraTalepFormu
+                onKapat={() => setPencere('onay')}
+                kapatEtiketi={numaraM.geriDon}
+                altNot={numaraM.talepKaybolmadi}
               />
             )}
           </div>
@@ -963,10 +964,7 @@ function TalepFormu() {
                       onClick={() => setDurum(d.id)}
                     >
                       <span className="durum__isaret" />
-                      <span>
-                        <span className="durum__ad">{d.ad}</span>
-                        <span className="durum__alt">{d.alt}</span>
-                      </span>
+                      <span className="durum__ad">{d.ad}</span>
                     </button>
                   ))}
                 </div>
@@ -1216,10 +1214,18 @@ function TalepFormu() {
             {tur !== 'satinalma' && <EkAlani ekler={ekler} onDegis={setEkler} />}
           </div>
 
-          {/* Çiftçi gün boyu tarlada; ne zaman aranmak istediğini
-              söylerse boşa arama sayısı düşer. */}
+          {/* Çiftçi gün boyu tarlada; ne zaman ulaşılabildiğini
+              söylerse boşa arama sayısı düşer.
+
+              SORU "SİZİ NE ZAMAN ARAYALIM?" DEĞİL. Öyle sorulduğunda
+              müşteri sanki yarın belirli bir saatte aranacağı sözü
+              verilmiş gibi anlıyordu; aranmayınca da kendisi arıyor ve
+              operasyona iki kat yük biniyordu. Şimdi önce aramanın
+              koşullu olduğu söyleniyor, sonra genel müsaitlik
+              soruluyor — saat sözü verilmiyor. */}
           <div className="field">
             <span className="field__label">{t('talep.neZamanArayalim')}</span>
+            <span className="field__aciklama">{t('talep.aramaAciklamasi')}</span>
             <div className="secenekler">
               {ulasimSecenekleri(dil).map((z) => (
                 <button
@@ -1337,10 +1343,10 @@ function TalepFormu() {
 
           {/* ------------------------------ Numaram değişti (kilitli yol) */}
           {pencere === 'numara' && (
-            <NumaraDegisti
-              numaraM={numaraM}
-              showToast={showToast}
-              onGeri={() => setPencere('onay')}
+            <NumaraTalepFormu
+              onKapat={() => setPencere('onay')}
+              kapatEtiketi={numaraM.geriDon}
+              altNot={numaraM.talepKaybolmadi}
             />
           )}
 
@@ -1392,53 +1398,6 @@ function TalepFormu() {
    Numara hesabın kimliği: burada serbest bırakmak, profildeki kilidi
    anlamsız kılardı. Numarası değişen kullanıcı PAKSAN'ı arıyor,
    değişikliği PAKSAN yapıyor. */
-function NumaraDegisti({ numaraM, showToast, onGeri }) {
-  return (
-    <>
-      <p className="muted" style={{ lineHeight: 1.6 }}>{numaraM.neden}</p>
-
-      <div className="uyari-kart">{numaraM.talepUyari}</div>
-
-      <div>
-        <span className="field__label">{numaraM.ararkenYaninizda}</span>
-        <div className="stack" style={{ gap: 8 }}>
-          {numaraM.hazirlanacaklar.map((x) => (
-            <div key={x} className="listitem listitem--flat" style={{ alignItems: 'center' }}>
-              <div
-                className="listitem__icon"
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 10,
-                  background: 'var(--pk-green-soft)',
-                  color: 'var(--pk-green)',
-                }}
-              >
-                <IconCheck size={17} />
-              </div>
-              <div className="listitem__body">
-                <div style={{ fontSize: 14.5, lineHeight: 1.5 }}>{x}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <a
-        className="btn btn--orange btn--lg"
-        {...araProps(SIRKET.telefonHam, SIRKET.telefon, showToast)}
-      >
-        <IconPhone size={21} /> {SIRKET.ad} · {SIRKET.telefon}
-      </a>
-      <button className="btn btn--soft" onClick={onGeri}>{numaraM.geriDon}</button>
-
-      <p className="small muted center" style={{ lineHeight: 1.6 }}>
-        {numaraM.talepKaybolmadi}
-      </p>
-    </>
-  )
-}
-
 /** Kutuya yalnız rakam girsin, en fazla `uzunluk` hane. */
 function rakam(deger, uzunluk) {
   return String(deger || '').replace(/\D/g, '').slice(0, uzunluk)

@@ -43,11 +43,15 @@ export const ULASIM_ZAMANI = [
 /* ------------------------------------------------------------- Servis */
 
 /* Aciliyeti müşteriye "acil mi" diye sormuyoruz — herkes acil der.
-   Bunun yerine makinenin durumu soruluyor; sıralamayı Paksan yapar. */
+   Bunun yerine makinenin durumu soruluyor; sıralamayı Paksan yapar.
+
+   ALT AÇIKLAMA YOK. Üç seçeneğin altında birer açıklama satırı vardı
+   ("İş tamamen durdu", "Acelesi yok"). Başlıklar zaten açık; açıklama
+   aynı şeyi ikinci kez söyleyip seçenekleri gereksiz yere büyütüyordu. */
 export const MAKINE_DURUMU = [
-  { id: 'durdu', ad: 'Makine hiç çalışmıyor', alt: 'İş tamamen durdu' },
-  { id: 'sorunlu', ad: 'Çalışıyor ama sorun var', alt: 'İş aksıyor, verim düştü' },
-  { id: 'kontrol', ad: 'Çalışıyor, kontrol edilsin', alt: 'Acelesi yok' },
+  { id: 'durdu', ad: 'Makine hiç çalışmıyor' },
+  { id: 'sorunlu', ad: 'Çalışıyor ama sorun var' },
+  { id: 'kontrol', ad: 'Çalışıyor, kontrol edilsin' },
 ]
 
 const ORTAK_BELIRTI = [
