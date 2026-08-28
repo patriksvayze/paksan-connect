@@ -72,7 +72,11 @@ export const en = {
     profil: 'Profile',
     bildirimler: 'Notifications',
     anasayfa: 'Home',
-    makinelerim: 'My Machines',
+    /* Alt menude "My Machines" 320 piksellik ekranda sekmeye
+       sigmiyordu (62 piksel yazi, 59 piksel yer) ve uc nokta ile
+       kesiliyordu. Sekme etiketi kisa olmali; "Machines" 46 piksel.
+       Turkce "Makinelerim" siğdigi icin degismedi. */
+    makinelerim: 'Machines',
     urunler: 'Products',
     destek: 'Support',
   },
@@ -289,7 +293,6 @@ export const en = {
     odemeMetin: 'Your receipt has been checked. Your parts are being prepared.',
     gonderildiBaslik: '{no} · Your Parts Are on the Way',
     gonderildiMetin: 'Your parts have been handed to the courier.',
-    gonderildiTakip: '{kargo} · tracking no: {takipNo}',
     gorusCevapBaslik: 'Reply to Your Feedback',
     numaraBaslik: 'Phone Number Change',
     numaraOnay: 'Your number has been updated. From now on you will sign in with your new number.',
@@ -352,10 +355,6 @@ export const en = {
     teklifTutar: 'Quoted price',
     gecerlilik: 'Valid until',
     randevuBaslik: 'Your Appointment',
-    gonderimBaslik: 'Shipping Details',
-    gonderilenParca: 'Parts shipped',
-    kargo: 'Courier',
-    takipNo: 'Tracking number',
     yapilanIs: 'Work carried out',
     sonucBaslik: 'Quote Outcome',
     degisenParca: 'Parts replaced',

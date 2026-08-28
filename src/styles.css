@@ -131,6 +131,16 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --nav-h: 74px;
   --nav-gap: 12px;
+
+  /* Alt menü — seçili sekmenin kapsülü.
+
+     Koyu menü zemininde gösterge zeminden AÇIK olmalı; koyu mavi bir
+     kapsül lacivertin üstünde kayboluyordu (ölçüldü: 2,09 kontrast).
+     Bu iki renkle kontrast 12'nin üstünde. */
+  --nav-zemin: var(--pk-navy);
+  --nav-kenar: transparent;
+  --nav-secili: #d3e2ff;
+  --nav-secili-ikon: #10254a;
   /* Destek ekranındaki sabit yazı kutusunun yüksekliği (52px kutu +
      2×8px iç boşluk). Sohbetin alt payı buna göre hesaplanıyor. */
   --composer-h: 68px;
@@ -246,6 +256,14 @@
 
 /* Elle "Koyu" seçildiğinde — telefonun ayarı ne olursa olsun. */
 :root[data-tema='koyu'] {
+  /* Karanlık modda menü sayfa zemininden ayrışmıyordu: ölçülen
+     kontrast 1,20. İki koyu yüzey üst üste gelince yüzen menünün
+     kenarı kayboluyor. Koyu zeminlerde ayrımı parlaklık değil
+     KENAR ÇİZGİSİ kurar — saç teli kalınlığında açık bir çerçeve
+     eklendi, zemin de bir tık açıldı. */
+  --nav-zemin: #1b2a4a;
+  --nav-kenar: rgba(255, 255, 255, 0.24);
+
   --bg: var(--bg-koyu);
   --surface: var(--surface-koyu);
   --surface-2: var(--surface-2-koyu);
@@ -2242,7 +2260,8 @@ p {
   width: calc(100% - 32px);
   max-width: 460px;
   height: var(--nav-h);
-  background: var(--pk-navy);
+  background: var(--nav-zemin);
+  border: 1px solid var(--nav-kenar);
   border-radius: 999px;
   box-shadow: var(--sh-3);
   display: flex;
@@ -2297,6 +2316,7 @@ p {
    kadar uzarsa uzasın kapsüle dokunmuyor. Sorun ayarla değil düzenle
    çözüldü — bir daha çıkmaz. */
 .tabbar__ikon {
+  position: relative;
   display: grid;
   place-items: center;
   width: 100%;
@@ -2305,8 +2325,46 @@ p {
      çiziliyor (bkz. Chrome.jsx → ikonBoyut). Kapsül de onun kutusunu
      alacak kadar yüksek; yoksa simge kapsülü taşıyordu. */
   height: 36px;
+  transition: color 0.2s ease, transform 0.18s ease;
+}
+
+/* SEÇİLİ KAPSÜL AÇIK RENK, SİMGESİ KOYU.
+
+   Önce kapsül koyu maviydi (--pk-blue) ve lacivert menünün üstünde
+   duruyordu. ÖLÇÜLDÜ: aradaki kontrast aydınlık temada 2,09, karanlık
+   temada 1,83. İki koyu mavi üst üste — seçili sekmenin nerede olduğu
+   görünmüyordu. Sorun renk seçimi değil, yönüydü: koyu zeminde
+   gösterge zeminden AÇIK olmalı.
+
+   Kapsül açık maviye, simgesi lacivere döndü; kontrast 12'nin üstüne
+   çıktı. Yazı kapsülün dışında olduğu için beyaz kalıyor.
+
+   Kapsül ayrı bir katman (::before) çünkü ortadan açılarak beliriyor;
+   simgenin kendisi ölçek değiştirmemeli. */
+.tabbar__ikon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
   border-radius: 999px;
-  transition: background 0.2s ease, transform 0.2s ease;
+  background: var(--nav-secili);
+  transform: scaleX(0.55);
+  opacity: 0;
+  transition: transform 0.24s cubic-bezier(0.2, 0.7, 0.3, 1),
+    opacity 0.16s ease;
+}
+
+.tabbar__item--on .tabbar__ikon::before {
+  transform: scaleX(1);
+  opacity: 1;
+}
+
+/* Hareketi azaltma isteyen kullanıcıda kapsül açılmadan belirir.
+   Uygulamanın geri kalanında da aynı kural geçerli. */
+@media (prefers-reduced-motion: reduce) {
+  .tabbar__ikon::before {
+    transform: scaleX(1);
+    transition: opacity 0.12s ease;
+  }
 }
 
 .tabbar__item--on {
@@ -2314,7 +2372,7 @@ p {
 }
 
 .tabbar__item--on .tabbar__ikon {
-  background: var(--pk-blue);
+  color: var(--nav-secili-ikon);
 }
 
 /* Dokunulduğunda kapsül hafifçe içeri basılıyor — dokunmanın işlediği
@@ -2325,6 +2383,9 @@ p {
 
 .tabbar__item svg {
   flex: none;
+  /* Kapsülün üstünde kalsın. */
+  position: relative;
+  z-index: 1;
 }
 
 .tabbar__label {
@@ -2359,9 +2420,28 @@ p {
   }
 }
 
+/* EN DAR CİHAZLARDA YAZI KESİLİYORDU.
+
+   Ölçüldü: 320 piksellik ekranda sekmeye 54 piksel düşüyor,
+   "Makinelerim" 10,5 puntoda 58 piksel istiyor — üç nokta ile
+   kesiliyordu.
+
+   Punto daha da düşürülmedi; kullanıcıların çoğu yaşlı. Bunun yerine
+   menünün kendi kenar payı ve iç boşluğu daraltıldı: sekme 59 piksele
+   çıkıyor, yazı tam oturuyor. Kapsül de biraz küçülüp simgenin iki
+   yanında nefes payı bırakıyor. */
 @media (max-width: 340px) {
+  .tabbar {
+    width: calc(100% - 16px);
+    padding: 7px 4px;
+  }
+
   .tabbar__item {
     font-size: 10.5px;
+  }
+
+  .tabbar__ikon {
+    max-width: 42px;
   }
 }
 
