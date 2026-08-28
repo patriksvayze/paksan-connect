@@ -270,6 +270,24 @@
   box-sizing: border-box;
 }
 
+/* Kaydırma çubuğunun yeri her ekranda ayrılı kalıyor.
+
+   Ekranlar arasında sayfa yüksekliği çok değişiyor (talep listesi uzun,
+   personel kısa). Çubuk çıkıp kaybolunca görünür alanın genişliği
+   değişiyor ve ortalanmış sabit öğeler — bildirim şeridi, pencereler —
+   yanlara sıçrıyor. Tablo genişlikleri de her geçişte oynuyor.
+
+   Uygulama tarafında da aynı kural var (src/styles.css). */
+html {
+  scrollbar-gutter: stable;
+}
+
+@supports not (scrollbar-gutter: stable) {
+  html {
+    overflow-y: scroll;
+  }
+}
+
 body {
   margin: 0;
   background: var(--zemin);
@@ -2276,4 +2294,18 @@ select.sec {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+}
+
+/* Kapanış formundaki OKUNUR alan.
+
+   Yedek parça kapanışında "Yapılan İş" talepten geliyor: müşterinin
+   sipariş ettiği parçalar. Personel yazmıyor, okuyor — o yüzden giriş
+   kutusu gibi değil, kutu içinde düz metin gibi duruyor. */
+.alan__oto {
+  padding: 10px 12px;
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r);
+  background: var(--yuzey-2);
+  color: var(--murekkep);
+  line-height: 1.5;
 }

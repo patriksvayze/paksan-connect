@@ -355,6 +355,33 @@ body,
   height: 100%;
 }
 
+/* SAYFALAR ARASI YATAY KAYMAYI ÖNLER.
+
+   Uzun sayfada (ana sayfa 1482px) dikey kaydırma çubuğu çıkıyor, kısa
+   sayfada (makinelerim 736px) kayboluyordu. Çubuk çıkıp kaybolunca
+   görünür alanın genişliği 614 ile 630 piksel arasında değişiyor.
+
+   `left: 50%` ile ortalanmış SABİT öğelerin hepsi bundan etkileniyordu:
+   alt menü, üst başlık, alt sayfalar, duyuru penceresi. Alt menünün
+   merkezi 307,2'den 314,8'e sıçrıyordu — çubuk genişliğinin yarısı
+   kadar. Sayfa içeriği de aynı anda 16 piksel kayıyordu.
+
+   Çözüm tek tek öğelerde değil kökte: çubuğun yeri her sayfada ayrılı
+   kalıyor, genişlik hiç değişmiyor. Dokunmatik cihazlarda çubuk zaten
+   içeriğin üstünde yüzdüğü için bu kuralın etkisi yok.
+
+   `scrollbar-gutter` desteklemeyen eski tarayıcılarda çubuk sürekli
+   gösteriliyor; sonuç aynı, genişlik sabit kalıyor. */
+html {
+  scrollbar-gutter: stable;
+}
+
+@supports not (scrollbar-gutter: stable) {
+  html {
+    overflow-y: scroll;
+  }
+}
+
 body {
   margin: 0;
   background: var(--bg);
