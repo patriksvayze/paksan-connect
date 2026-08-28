@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppState'
 import { useDil } from '../i18n'
 import { TopBar, TabBar } from '../components/Chrome'
@@ -9,7 +8,7 @@ import { konumOku, konumDestekleniyorMu, KONUM } from '../lib/konum'
 import { BayiHarita } from '../components/BayiHarita'
 import { SIRKET } from '../config'
 import {
-  IconPin, IconPhone, IconRight, IconAlert, IconCheck, IconChat, IconMail,
+  IconPin, IconPhone, IconRight, IconAlert, IconCheck, IconMail,
 } from '../components/Icons'
 
 /* Bayi ve iletişim.
@@ -39,7 +38,6 @@ const DURUM = {
 }
 
 export default function Dealers() {
-  const nav = useNavigate()
   const { user, showToast } = useApp()
   const { t, dil } = useDil()
   /* Kayıtta izin verildiyse ekran doğrudan "konum aranıyor" hâlinde
@@ -96,7 +94,7 @@ export default function Dealers() {
           <div className="listitem listitem--flat" style={{ marginBottom: 16 }}>
             <div
               className="listitem__icon"
-              style={{ background: 'var(--pk-green-soft)', color: 'var(--pk-green)' }}
+              style={{ background: 'var(--pk-green-soft)', color: 'var(--pk-green-yazi)' }}
             >
               <IconCheck size={22} />
             </div>
@@ -215,13 +213,6 @@ export default function Dealers() {
           </div>
         </div>
 
-        <button
-          className="btn btn--soft"
-          style={{ marginTop: 14 }}
-          onClick={() => nav('/destek')}
-        >
-          <IconChat size={20} /> {t('bayi.onceDestek')}
-        </button>
       </div>
 
       <TabBar />

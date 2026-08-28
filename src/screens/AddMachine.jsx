@@ -144,7 +144,7 @@ export default function AddMachine() {
 
       <div className="screen screen--nonav wrap" style={{ paddingTop: 22 }}>
         <div className="center" style={{ marginBottom: 20 }}>
-          <div style={{ color: 'var(--pk-blue)', opacity: 0.9 }}>
+          <div style={{ color: 'var(--pk-blue-yazi)', opacity: 0.9 }}>
             <IconBarcode size={58} />
           </div>
           <h2 style={{ fontSize: 20, marginTop: 10 }}>{t('ekle.seriYazin')}</h2>
@@ -176,7 +176,7 @@ export default function AddMachine() {
             }}
             role="alert"
           >
-            <span style={{ color: 'var(--pk-red)', flex: 'none' }}><IconAlert size={22} /></span>
+            <span style={{ color: 'var(--pk-red-yazi)', flex: 'none' }}><IconAlert size={22} /></span>
             <div>
               <div style={{ fontWeight: 500, fontSize: 15 }}>{hata}</div>
               <a
@@ -227,7 +227,8 @@ export default function AddMachine() {
               <button
                 key={o.serial}
                 className="row"
-                style={{ width: '100%', textAlign: 'left' }}
+                /* Satır 20 piksel yüksekliğindeydi; parmakla seçilemiyordu. */
+                style={{ width: '100%', textAlign: 'left', padding: '12px 4px' }}
                 onClick={() => { setSerial(o.serial); setHata('') }}
               >
                 <strong className="serial-mono small">{o.serial}</strong>
@@ -242,7 +243,7 @@ export default function AddMachine() {
         <div className="stack" style={{ gap: 16 }}>
           <div
             className="photo photo--wide"
-            style={{ background: 'var(--pk-blue-soft)', color: 'var(--pk-blue)', display: 'grid', placeItems: 'center' }}
+            style={{ background: 'var(--pk-blue-soft)', color: 'var(--pk-blue-yazi)', display: 'grid', placeItems: 'center' }}
           >
             <IconBarcode size={62} />
           </div>

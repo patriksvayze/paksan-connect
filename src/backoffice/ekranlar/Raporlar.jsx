@@ -12,7 +12,7 @@ import {
 import {
   araligiCoz, araliktaMi, BOS_ARALIK, Secim, SuzgecCubugu, TarihAraligi,
 } from './suzgec'
-import { cevapsizlar, konular, sorular, yonlendirme } from './DestekKayitlari'
+import { cevapsizlar, cozuldu, konular, sorular, yonlendirme } from './DestekKayitlari'
 import { DisaAktar } from './aktar'
 import { getProduct } from '../../data/products'
 import { formatSerial } from '../../lib/serial'
@@ -72,7 +72,7 @@ const RAPORLAR = [
   {
     deger: 'satis', ad: 'Fiyat teklifi sonuçları', obek: 'Operasyon',
     soru: 'Verdiğimiz teklifler ne oldu, hangisi cevap bekliyor?',
-    oneCikan: 'Cevap bekleyen',
+    oneCikan: 'Cevap beklenen',
   },
   {
     deger: 'gecikme', ad: 'Bekleyen işler', obek: 'Operasyon',
@@ -289,11 +289,22 @@ export function Raporlar({ rol, surum, git }) {
           </span>
         </div>
         <div className="kart__ic">
+          {/* Altı kutucuk, hepsi farklı bir soruya cevap veriyor:
+              kaç iş geldi · kaçı bitti · ne kadarı zamanında ·
+              ne kadar para · talep başına ne kadar · hangi makine geri
+              geldi.
+
+              "Ort. kapanma" ile "Hunide bekleyen" buradan kaldırıldı:
+              biri "Tamamlanma" ile aynı şeyi başka türlü söylüyordu,
+              öteki adından ne olduğu anlaşılmıyordu ve ikisi de kendi
+              raporlarında zaten duruyor. */}
           <Olculer
             ozet={[
-              ...(ozetR.ozet || []).slice(0, 4),
+              ...(ozetR.ozet || []).filter((x) =>
+                ['Gelen talep', 'Kapanan', 'Tamamlanma', 'Tekrar gelen makine'].includes(x.ad)
+              ),
               ...(finansR.ozet || []).filter((x) =>
-                ['Satışa dönen', 'Hunide bekleyen'].includes(x.ad)
+                ['Satışa dönen', 'Talep başına ciro'].includes(x.ad)
               ),
             ]}
           />
@@ -531,6 +542,26 @@ function paraYaz(sayi) {
   return String(Math.round(sayi)).replace(/\B(?=(\d{3})+(?!\d))/g, '.')
 }
 
+/* Kutucuklarda para birimi yazılıyor; tablolarda yazılmıyor, orada
+   sütun başlığı zaten "Tutar" diyor. */
+function paraKutu(sayi) {
+  const v = paraYaz(sayi)
+  return v === '—' ? v : v + ' ₺'
+}
+
+/* Bu dönem birden çok talep açılmış makine sayısı. Makineler seri
+   numarasıyla ayırt ediliyor; seri numarası olmayan talep sayılmıyor
+   çünkü hangi makine olduğu bilinmiyor. */
+function tekrarEdenMakine(liste) {
+  const sayac = new Map()
+  for (const t of liste) {
+    const seri = t.makine?.serial
+    if (!seri) continue
+    sayac.set(seri, (sayac.get(seri) || 0) + 1)
+  }
+  return [...sayac.values()].filter((n) => n > 1).length
+}
+
 function topla(dizi) {
   return dizi.filter((x) => x !== null).reduce((a, b) => a + b, 0)
 }
@@ -621,6 +652,11 @@ const URETICILER = {
           ad: 'Ort. kapanma',
           deger: sureYaz(ortalama(donem.map((t) => sureler(t).kapanis))),
         },
+        /* "Bu Dönem" şeridinde gösteriliyor. Aynı makineden bu dönem
+           birden çok talep açıldıysa ya arıza geçmemiş ya ilk
+           müdahale yetmemiş; imalatçı için ikisi de haber. Seri
+           numarası olmayan talepler sayılmıyor. */
+        { ad: 'Tekrar gelen makine', deger: tekrarEdenMakine(donem) },
         {
           ad: 'En yavaş %10',
           deger: sureYaz(dilim(donem.map((t) => sureler(t).kapanis), 0.9)),
@@ -710,11 +746,19 @@ const URETICILER = {
       ozet: [
         {
           ad: 'Satışa dönen',
-          deger: paraYaz(kazanilanTutar),
+          deger: paraKutu(kazanilanTutar),
           fark: fark(kazanilanTutar, oncekiKazanilan),
         },
-        { ad: 'Hunide bekleyen', deger: paraYaz(hunideTutar) },
-        { ad: 'Servis + parça', deger: paraYaz(servisTutar + parcaTutar) },
+        { ad: 'Hunide bekleyen', deger: paraKutu(hunideTutar) },
+        { ad: 'Servis + parça', deger: paraKutu(servisTutar + parcaTutar) },
+        /* "Bu Dönem" şeridinde gösteriliyor. Dönemin bütün tahsilatı
+           (satış + servis + parça) ÷ gelen talep. */
+        {
+          ad: 'Talep başına ciro',
+          deger: donem.length
+            ? paraKutu((kazanilanTutar + servisTutar + parcaTutar) / donem.length)
+            : '—',
+        },
         {
           ad: 'Teklif dönüşümü',
           deger: yuzde(kazanilan.length, kazanilan.length + kaybedilen.length),
@@ -814,13 +858,17 @@ const URETICILER = {
     oturumlar.forEach((o) => {
       const ad = o.urun?.ad || 'Makine seçilmedi'
       if (!kova[ad]) {
-        kova[ad] = { oturum: 0, soru: 0, cevapsiz: 0, talep: 0, konular: {} }
+        kova[ad] = { oturum: 0, soru: 0, cevapsiz: 0, talep: 0, cozulen: 0, konular: {} }
       }
       const k = kova[ad]
       k.oturum++
       k.soru += sorular(o).length
       k.cevapsiz += cevapsizlar(o).length
       if (yonlendirme(o)) k.talep++
+      /* "Çözüldü" ancak çiftçi öyle dediyse sayılıyor — talebe
+         dönüşmemiş her oturumu çözülmüş saymak oranı şişiriyordu
+         (bkz. DestekKayitlari.jsx → cozuldu). */
+      if (cozuldu(o)) k.cozulen++
       konular(o).forEach((c) => {
         k.konular[c] = (k.konular[c] || 0) + 1
       })
@@ -836,13 +884,14 @@ const URETICILER = {
           String(k.soru),
           String(k.cevapsiz),
           String(k.talep),
-          yuzde(k.oturum - k.talep, k.oturum),
+          yuzde(k.cozulen, k.oturum),
           enSik ? `${enSik[0]} (${enSik[1]})` : '—',
         ]
       })
 
     const toplamCevapsiz = oturumlar.reduce((a, o) => a + cevapsizlar(o).length, 0)
     const talepOlan = oturumlar.filter((o) => yonlendirme(o)).length
+    const cozulen = oturumlar.filter((o) => cozuldu(o)).length
 
     return {
       basliklar: [
@@ -856,7 +905,7 @@ const URETICILER = {
         { ad: 'Talebe dönen', deger: talepOlan },
         {
           ad: 'Ekranda çözülen',
-          deger: yuzde(oturumlar.length - talepOlan, oturumlar.length),
+          deger: yuzde(cozulen, oturumlar.length),
         },
       ],
     }
@@ -1025,7 +1074,7 @@ const URETICILER = {
       ozet: [
         { ad: 'Gelen teklif talebi', deger: teklifler.length },
         { ad: 'Fiyat verilen', deger: fiyatVerilen.length },
-        { ad: 'Cevap bekleyen', deger: fiyatVerilen.length - kapanan.length },
+        { ad: 'Cevap beklenen', deger: fiyatVerilen.length - kapanan.length },
         { ad: 'Hunide bekleyen tutar', deger: paraYaz(bekleyenTutar) },
         { ad: 'Dönüşüm', deger: yuzde(oldu.length, kapanan.length) },
       ],
@@ -1142,7 +1191,7 @@ const URETICILER = {
       satirlar,
       ozet: [
         { ad: 'Kimsenin bakmadığı', deger: gecikenler.length },
-        { ad: 'Cevap bekleyen teklif', deger: teklifBekleyen.length },
+        { ad: 'Cevap beklenen teklif', deger: teklifBekleyen.length },
         {
           ad: 'En eski',
           deger: liste.length

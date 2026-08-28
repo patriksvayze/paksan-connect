@@ -314,6 +314,50 @@ export async function demoYukle() {
   }
   save(ANAHTAR.demoMusteriler, musteriler)
 
+  /* ---- Makine kayıt defteri
+
+     Müşteri uygulamada makinesini kaydettiğinde `makineKayitlari`
+     defterine bir satır düşüyor (bkz. src/lib/makineKaydi.js) ve pano
+     "Kayıtlı Makine" kutusu o defteri sayıyor. Demo müşterilerin
+     makineleri vardı ama defter boş kalıyordu: pano 30 müşteri ve
+     0 kayıtlı makine gösteriyordu.
+
+     Logo alanları (bayi, fatura) burada dolduruluyor çünkü gerçek
+     kayıtta da Logo'dan geliyorlar; bir kısmı bilerek boş bırakıldı —
+     Logo her seri numarasını bilmiyor, backoffice o durumu da
+     gösterebilmeli. */
+  const makineKayitlari = []
+  for (const m of musteriler) {
+    for (const mk of m.makineler) {
+      const logoBildi = Math.random() > 0.15
+      const bayi = logoBildi ? sec(BAYILER) : null
+      makineKayitlari.push({
+        id: uid(),
+        tarih: mk.addedAt,
+        seri: mk.serial,
+        productId: mk.productId,
+        musteriId: m.id,
+        musteriNo: m.no,
+        musteriAd: m.ad,
+        il: m.il,
+        ilce: m.ilce,
+        bayiId: bayi?.id || null,
+        bayiAd: bayi?.ad || '',
+        uretimTarihi: logoBildi ? gunOnce(tamsayi(400, 2000)) : null,
+        faturaTarihi: logoBildi ? gunOnce(tamsayi(10, 800)) : null,
+        logoBildi,
+        /* Kayıt anıyla fatura tarihi yakınsa yeni satış sayılıyor */
+        yeniSatis: logoBildi && Math.random() > 0.7,
+        demo: true,
+      })
+    }
+  }
+  makineKayitlari.sort((a, b) => b.tarih - a.tarih)
+  save(ANAHTAR.makineKayitlari, [
+    ...makineKayitlari,
+    ...load(ANAHTAR.makineKayitlari, []).filter((x) => !x.demo),
+  ])
+
   /* ---- Talepler
 
      Tarihler bilerek dağıtıldı: bir kısmı son 24 saatte (yeşil), bir
@@ -326,7 +370,7 @@ export async function demoYukle() {
      (bkz. src/backoffice/veri.js → talepDurumlari). */
   const DURUM = {
     servis: ['yeni', 'incelemede', 'planlandi', 'kapandi', 'iptal'],
-    parca: ['yeni', 'incelemede', 'planlandi', 'gonderildi', 'kapandi', 'iptal'],
+    parca: ['yeni', 'incelemede', 'planlandi', 'kapandi', 'iptal'],
     satinalma: ['yeni', 'incelemede', 'teklif', 'kapandi', 'iptal'],
   }
 
@@ -334,7 +378,7 @@ export async function demoYukle() {
      ve iptal olanlar azınlıkta kalsın — gerçek bir günün dağılımı
      böyle görünüyor. */
   const AGIRLIK = {
-    yeni: 3, incelemede: 3, planlandi: 2, teklif: 2, gonderildi: 2, kapandi: 4, iptal: 1,
+    yeni: 3, incelemede: 3, planlandi: 2, teklif: 2, kapandi: 4, iptal: 1,
   }
 
   function durumSec(tur) {
@@ -374,6 +418,20 @@ export async function demoYukle() {
   gorevler.push({ tur: 'servis', durum: 'incelemede', yasGun: 6 })
   gorevler.push({ tur: 'parca', durum: 'yeni', yasGun: 3 })
   gorevler.push({ tur: 'satinalma', durum: 'teklif', yasGun: 9 })
+  /* "Cevap bekleyen teklif" kutusu, teklif verileli TEKLIF_BEKLEME_GUN
+     (14) günden fazla olan talepleri sayıyor. En eski demo teklifi 9
+     günlüktü, kutu hep 0 gösteriyordu. */
+  gorevler.push({ tur: 'satinalma', durum: 'teklif', yasGun: 21 })
+  gorevler.push({ tur: 'satinalma', durum: 'teklif', yasGun: 17 })
+
+  /* GÖNDERİM TARİHİ GEÇMİŞ PARÇA TALEPLERİ.
+
+     "Gönderilecek" uyarısı (bkz. veri.js → gonderimGecikti) planlanan
+     gönderim saati geçtiği hâlde hâlâ gönderilmemiş parça
+     taleplerinde çıkıyor. Havuzda planlanmış parça talebi hiç
+     yoktu; uyarı ekranda hiç görünmüyordu. */
+  gorevler.push({ tur: 'parca', durum: 'planlandi', yasGun: 6 })
+  gorevler.push({ tur: 'parca', durum: 'planlandi', yasGun: 9 })
 
   /* BUGÜN GELENLER — "bugün gelen" kutusu boş kalmasın */
   gorevler.push({ tur: 'servis', durum: 'yeni', yasGun: 0 })
@@ -406,9 +464,28 @@ export async function demoYukle() {
         ? ['incelemede', 'iptal']
         : sira.slice(0, sira.indexOf(durum) + 1)
 
+      /* Aşama tarihleri talep tarihinden İLERİ gidiyor; bugünü geçmemeli.
+         Geçmeleri mümkündü: bugün açılmış üç aşamalı bir talepte son
+         aşama 40 saat sonrasına düşebiliyordu. Sonuç ekranda gelecek
+         tarihli bir geçmiş satırı ve "-1 gündür bekliyor" gibi eksi
+         sürelerdi. Aralık bugüne sığmıyorsa aşamalar oransal olarak
+         sıkıştırılıyor — sıraları bozulmadan. */
+      /* Aralıklar biriktirilerek üretiliyor: her aşama bir öncekinden
+         SONRA olmalı. Önceden her aşama kendi rastgele sayısını
+         alıyordu ve sıra bozulabiliyordu (ikinci aşama birinciden önce
+         gelebiliyordu). */
+      const ham = []
+      let birikim = 0
+      for (let j = 0; j < asamalar.length; j++) {
+        birikim += 3600000 * tamsayi(2, 20)
+        ham.push(birikim)
+      }
+      const gereken = birikim
+      const yer = Math.max(0, Date.now() - tarih - 60000)
+      const olcek = gereken > yer ? yer / gereken : 1
       const gecmis = asamalar.map((d, j) => ({
         durum: d,
-        tarih: tarih + (j + 1) * 3600000 * tamsayi(2, 20),
+        tarih: Math.round(tarih + ham[j] * olcek),
         personel,
       }))
       const sonTarih = gecmis.length ? gecmis[gecmis.length - 1].tarih : tarih
@@ -483,12 +560,9 @@ export async function demoYukle() {
         odemeOnay: odemeVar ? { tarih: tarih + 5400000, personel, not: '' } : null,
 
         /* ----------------------------------------- Aşamaya özel kayıtlar */
-        plan: durum === 'planlandi' ? planUret(sonTarih, personel) : null,
+        plan: durum === 'planlandi' ? planUret(sonTarih, personel, tur) : null,
         teklif: (durum === 'teklif' || (durum === 'kapandi' && tur === 'satinalma'))
           ? teklifUret(sonTarih, personel)
-          : null,
-        gonderim: durum === 'gonderildi'
-          ? gonderimUret(parcalar, parcaAdet, sonTarih, personel)
           : null,
         iptalBilgi: durum === 'iptal'
           ? { neden: sec(IPTAL_NEDEN), aciklama: '', personel, tarih: sonTarih }
@@ -673,6 +747,10 @@ export function demoTemizle() {
   save(ANAHTAR.geriBildirim, load(ANAHTAR.geriBildirim, []).filter((g) => !g.demo))
   save(ANAHTAR.destekLog, load(ANAHTAR.destekLog, []).filter((o) => !o.demo))
   save(ANAHTAR.duyurular, load(ANAHTAR.duyurular, []).filter((x) => !x.demo))
+  save(
+    ANAHTAR.makineKayitlari,
+    load(ANAHTAR.makineKayitlari, []).filter((x) => !x.demo)
+  )
 }
 
 /* -------------------------------------------------------- Fotoğraf eki
@@ -745,9 +823,30 @@ function faturaUret(musteri) {
   }
 }
 
-function planUret(sonTarih, personel) {
+function planUret(sonTarih, personel, tur) {
+  /* `tarih` ZAMAN DAMGASI da yazılıyor.
+
+     Demo yalnızca `tarihYazi` üretiyordu; gerçek planlama ikisini
+     birden yazıyor (bkz. veri.js → talepPlanla). Damga olmayınca
+     "planlanan gönderim tarihi geçti" uyarısı hiçbir demo kaydında
+     çalışmıyordu — ekranda gösterilecek örnek yoktu.
+
+     Yedek parçanın bir kısmı bilerek GEÇMİŞ tarihli: gönderim
+     gecikmesi uyarısının sunumda görünmesi için. */
+  const gecmis = tur === 'parca' && Math.random() < 0.5
+  const zaman = gecmis
+    ? sonTarih - 86400000 * tamsayi(1, 4)
+    : sonTarih + 86400000 * tamsayi(1, 5)
+  const d = new Date(zaman)
   return {
-    tarihYazi: new Date(sonTarih + 86400000 * tamsayi(1, 5)).toLocaleDateString('tr-TR'),
+    tarih: zaman,
+    tarihYazi: d.toLocaleString('tr-TR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }),
     is: sec(YAPILAN_IS),
     gorusuldu: true,
     personel,
@@ -760,16 +859,6 @@ function teklifUret(sonTarih, personel) {
     tutar: String(tamsayi(85, 195) * 10000),
     gecerlilik: sec(['7 gün', '15 gün', '30 gün']),
     not: 'Fiyata teslim ve devreye alma dâhildir.',
-    personel,
-    tarih: sonTarih,
-  }
-}
-
-function gonderimUret(parcalar, parcaAdet, sonTarih, personel) {
-  return {
-    parcalar: parcalar.map((x) => x + ' x' + parcaAdet[x]).join(', '),
-    kargo: sec(KARGO),
-    takipNo: String(tamsayi(100000000000, 999999999999)),
     personel,
     tarih: sonTarih,
   }
@@ -789,9 +878,14 @@ function cozumUret(tur, parcalar, parcaAdet, personel, tarih) {
   }
 
   if (tur === 'parca') {
+    /* Kargo bilgisi kapanışın parçası: yedek parçada "gönderildi"
+       ayrı bir durum değil, kapanışın kendisi (bkz. veri.js →
+       DURUMLAR). */
     return {
       yapilanIs: 'Parçalar kargoya verildi, takip numarası müşteriye iletildi.',
       parcalar: parcalar.map((x) => x + ' x' + parcaAdet[x]).join(', '),
+      kargo: sec(KARGO),
+      takipNo: String(tamsayi(100000000000, 999999999999)),
       personel,
       tarih,
     }

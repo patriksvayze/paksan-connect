@@ -421,7 +421,7 @@ function useYeniIsHaberi(oturum, tazele) {
       }
       if (yeni.teklif > eski.teklif) {
         bildirimGonder(
-          sayiliBaslik(yeni.teklif - eski.teklif, 'Cevap Bekleyen Teklif'),
+          sayiliBaslik(yeni.teklif - eski.teklif, 'Cevap Beklenen Teklif'),
           'teklif'
         )
       }

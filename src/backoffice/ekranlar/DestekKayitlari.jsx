@@ -61,7 +61,12 @@ export function DestekKayitlari({ rol, surum }) {
           if (sonuc === 'hepsi') return true
           if (sonuc === 'cevapsiz') return cevapsizlar(o).length > 0
           if (sonuc === 'talep') return Boolean(yonlendirme(o))
-          if (sonuc === 'coz') return !yonlendirme(o) && cevapsizlar(o).length === 0
+          if (sonuc === 'coz') {
+            return !yonlendirme(o) && cevapsizlar(o).length === 0 && cozuldu(o)
+          }
+          if (sonuc === 'yarim') {
+            return !yonlendirme(o) && cevapsizlar(o).length === 0 && !cozuldu(o)
+          }
           return true
         })
         .sort((a, b) => b.baslangic - a.baslangic),
@@ -115,6 +120,7 @@ export function DestekKayitlari({ rol, surum }) {
           secenekler={[
             { deger: 'hepsi', ad: 'Hepsi' },
             { deger: 'coz', ad: 'Ekranda çözüldü' },
+            { deger: 'yarim', ad: 'Yarıda kaldı' },
             { deger: 'talep', ad: 'Talebe dönüştü' },
             { deger: 'cevapsiz', ad: 'Cevapsız kalan var' },
           ]}
@@ -205,17 +211,20 @@ export function DestekKayitlari({ rol, surum }) {
                         </span>
                       </td>
                       <td className="kucuk">
-                        {/* Üç ayrı sonuç var; ikisini birbirine karıştırmamak
-                            önemli. Talebe dönmemiş her oturumu "çözüldü"
-                            saymak, çözülmeyenleri başarı gibi gösteriyordu. */}
+                        {/* DÖRT ayrı sonuç var ve karıştırılmamaları
+                            önemli. "Ekranda çözüldü" artık çiftçinin
+                            gerçekten çözüldü demesine bağlı; kanıt
+                            yoksa oturum "yarıda kaldı" (bkz. cozuldu). */}
                         {yonlendirme(o) ? (
                           <span className="rz rz--turuncu">
                             {SONUC_ADI[yonlendirme(o)] || yonlendirme(o)}
                           </span>
                         ) : cevapsizlar(o).length ? (
                           <span className="rz rz--kirmizi">Çözülmedi</span>
-                        ) : (
+                        ) : cozuldu(o) ? (
                           <span className="rz rz--yesil">Ekranda çözüldü</span>
+                        ) : (
+                          <span className="rz rz--gri">Yarıda kaldı</span>
                         )}
                       </td>
                     </tr>
@@ -371,6 +380,24 @@ export function cevapsizlar(oturum) {
 }
 
 /** Oturum bir talebe/telefona döndüyse hangisine? */
+/* Çiftçi ekranda "çözüldü" dedi mi?
+
+   MANTIK HATASI BURADAYDI. Önceden "Ekranda çözüldü" etiketi `else`
+   dalıydı: talebe dönüşmemiş ve cevapsız kalmamış HER oturum yeşil
+   görünüyordu. Ekranı açıp gezinen, bir şey seçmeden çıkan çiftçinin
+   oturumu da "çözüldü" sayılıyordu — çözülmemiş işler başarı gibi
+   raporlanıyordu.
+
+   Oysa uygulamada bunun açık bir kaydı var: çiftçi "çözüldü"
+   düğmesine bastığında `cevap` olayı `çözüldü` değeriyle yazılıyor
+   (bkz. src/screens/Support.jsx). Etiket artık o KANITA bakıyor;
+   kanıt yoksa oturum "yarıda kaldı" sayılıyor. */
+export function cozuldu(oturum) {
+  return (oturum.olaylar || []).some(
+    (o) => o.tur === 'cevap' && o.deger === 'çözüldü'
+  )
+}
+
 export function yonlendirme(oturum) {
   const y = (oturum.olaylar || []).filter((o) => o.tur === 'yonlendirme')
   return y.length ? y[y.length - 1].deger : null
@@ -396,6 +423,12 @@ function aktarSatiri(o) {
     konular(o).join(' · '),
     sorular(o).join(' · '),
     cevapsizlar(o).join(' · '),
-    yonlendirme(o) ? SONUC_ADI[yonlendirme(o)] || yonlendirme(o) : 'Ekranda çözüldü',
+    yonlendirme(o)
+      ? SONUC_ADI[yonlendirme(o)] || yonlendirme(o)
+      : cevapsizlar(o).length
+        ? 'Çözülmedi'
+        : cozuldu(o)
+          ? 'Ekranda çözüldü'
+          : 'Yarıda kaldı',
   ]
 }

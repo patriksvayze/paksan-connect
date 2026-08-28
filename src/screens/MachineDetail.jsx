@@ -80,7 +80,7 @@ export default function MachineDetail() {
             {machine.year && <DataRow k={t('ekle.uretimYili')} v={machine.year} />}
             <div className="divider" />
             <div className="row">
-              <span style={{ color: g.tone === 'green' ? 'var(--pk-green)' : 'var(--pk-orange)' }}>
+              <span style={{ color: g.tone === 'green' ? 'var(--pk-green-yazi)' : 'var(--pk-orange-ink)' }}>
                 <IconShield size={21} />
               </span>
               <span className={'badge badge--' + (g.tone || 'blue')}>{g.label}</span>
@@ -165,7 +165,7 @@ export default function MachineDetail() {
           <div className="divider" />
           <button
             className="btn btn--soft btn--sm"
-            style={{ color: 'var(--pk-red)', borderColor: 'var(--line)' }}
+            style={{ color: 'var(--pk-red-yazi)', borderColor: 'var(--line)' }}
             onClick={() => setSilSor(true)}
           >
             <IconTrash size={19} /> {t('detay.kayitSil')}
@@ -232,7 +232,7 @@ function Videolar({ product }) {
       )}
 
       <div className="listitem listitem--flat" style={{ alignItems: 'flex-start', marginTop: 8 }}>
-        <span style={{ color: 'var(--pk-blue)', flex: 'none', marginTop: 2 }}>
+        <span style={{ color: 'var(--pk-blue-yazi)', flex: 'none', marginTop: 2 }}>
           <IconAlert size={20} />
         </span>
         <div className="listitem__body">
@@ -305,7 +305,10 @@ function Bakim({ product, done, onToggle }) {
               className="listitem__icon"
               style={{
                 background: isaretli ? 'var(--pk-green)' : 'var(--pk-blue-soft)',
-                color: isaretli ? '#fff' : 'var(--pk-blue)',
+                /* İşaretsizken --pk-blue değil --pk-blue-yazi: ana mavi
+                   karanlık temada kendi soluk zemini üstünde 1,85
+                   kontrastta kalıyor, saat aralığı hiç okunmuyordu. */
+                color: isaretli ? '#fff' : 'var(--pk-blue-yazi)',
               }}
             >
               {isaretli ? <IconCheck size={21} /> : <strong style={{ fontSize: 12.5 }}>{b.saat}s</strong>}

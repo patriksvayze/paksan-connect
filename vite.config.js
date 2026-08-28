@@ -73,13 +73,14 @@ export default defineConfig({
     chunkSizeWarningLimit: 1200,
   },
   server: {
-    /* Varsayılan 5174 — dev.bat ve NOTLAR.md bu adresi yazıyor.
+    /* PORT ortam değişkeni verilmişse o kullanılıyor.
 
-       PORT ortam değişkeni verilmişse o kullanılıyor: aynı projeyi iki
-       kez birden çalıştırmak gerektiğinde (bir pencerede geliştirme,
-       bir pencerede kontrol) ikincisi 5174'ü işgal etmesin. Elle
-       çalıştırırken hiçbir şey değişmiyor. */
-    port: Number(process.env.PORT) || 5174,
+       Verilmemişse: terminalden ELLE çalıştırıldığında 5174 —
+       dev.bat ve NOTLAR.md bu adresi yazıyor, orası değişmesin.
+       Bir ARAÇ arka planda başlattığında (Claude Code'un önizleme
+       paneli gibi) port seçimi Vite'a bırakılıyor; 5174 başka bir
+       oturum tarafından tutulduğunda takılıp kalmasın diye. */
+    port: Number(process.env.PORT) || (process.stdout.isTTY ? 5174 : undefined),
     host: true,
   },
 })

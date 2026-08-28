@@ -88,7 +88,7 @@ export function NumaraTalepFormu({ onKapat, kapatEtiketi, altNot }) {
         <div className="row" style={{ gap: 13, alignItems: 'flex-start' }}>
           <div
             className="listitem__icon"
-            style={{ background: 'var(--pk-blue-soft)', color: 'var(--pk-blue)' }}
+            style={{ background: 'var(--pk-blue-soft)', color: 'var(--pk-blue-yazi)' }}
           >
             <IconShield size={22} />
           </div>
@@ -173,7 +173,7 @@ function Sonuc({ yeni, onKapat, kapatEtiketi }) {
 
   return (
     <div className="card center" style={{ padding: '30px 20px' }}>
-      <div style={{ color: 'var(--pk-green)' }}>
+      <div style={{ color: 'var(--pk-green-yazi)' }}>
         {yeni ? <IconCheckCircle size={62} /> : <IconCheck size={62} />}
       </div>
 

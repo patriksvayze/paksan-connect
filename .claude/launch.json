@@ -2,16 +2,13 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "paksan-kontrol",
+      "name": "paksan-denetim",
       "runtimeExecutable": "npm",
       "runtimeArgs": [
         "run",
         "dev"
       ],
-      "port": 5300,
-      "env": {
-        "PORT": "5300"
-      }
+      "autoPort": true
     }
   ]
 }

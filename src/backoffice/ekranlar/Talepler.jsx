@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  DURUMLAR, durumBilgi, gecikmisMi, KAPALI_DURUMLAR, musterininDigerTalepleri,
+  DURUMLAR, durumBilgi, gecikmisMi, gonderimGecikti, gonderimGecikmeSaati,
+  KAPALI_DURUMLAR, musterininDigerTalepleri,
   odemeOnayla, parcaIlerlemeEngeli, rolBilgi, rolunTalepleri, TALEP_ADI,
   talepDurumDegistir,
-  talepDurumlari, talepGonderildi, talepIptal, talepKapat, talepleriGetir,
+  talepDurumlari, talepIptal, talepKapat, talepleriGetir,
   talepNotEkle, talepPlanla, talepTeklifVer, teklifBeklemeGunu, teklifBekliyorMu,
   TEKLIF_BEKLEME_GUN,
 } from '../veri'
@@ -204,7 +205,7 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
             { deger: 'acik', ad: 'Açık olanlar' },
             { deger: 'gecikmis', ad: 'Gecikmiş talepler' },
             ...(teklifVar
-              ? [{ deger: 'teklifBekleyen', ad: 'Cevap bekleyen teklifler' }]
+              ? [{ deger: 'teklifBekleyen', ad: 'Cevap Beklenen Teklifler' }]
               : []),
             ...durumSecenekleri.map((d) => ({ deger: d.id, ad: d.ad })),
             { deger: 'hepsi', ad: 'Hepsi' },
@@ -291,7 +292,7 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
             <Bos metin="Talep yok." />
           ) : (
             <div className="tablo-sar">
-              <table className="tablo--esit">
+              <table className="tablo--esit tablo--talepler">
                 <thead>
                   <tr>
                     <SiraliBaslik ad="Talep" alan="no" siralama={siralama} onSirala={cevir} />
@@ -317,12 +318,22 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
                         onClick={() => setSecili(t.id)}
                       >
                         <td>
-                          <div className="mono">
+                          {/* Numara TEK BAŞINA ilk satırda.
+
+                              Uyarı işaretleri önce numaranın önünde
+                              duruyordu; her biri 23 piksel yer kaplıyor
+                              ve üçü birden çıkabildiği için numara
+                              sığmıyordu (ölçüldü: 42 numaranın 18'i
+                              kırpılıyordu). Şimdi alt satıra, tür
+                              etiketinin yanına alındılar — satır sayısı
+                              değişmedi, numara tam görünüyor. */}
+                          <div className="mono talep-no">{t.no}</div>
+                          <div className="talep-alt">
+                            <TurEtiket tur={t.tur} />
                             {gecikmisMi(t) && <Gecikme />}
                             {teklifBekliyorMu(t) && <TeklifBekliyor talep={t} />}
-                            {t.no}
+                            {gonderimGecikti(t) && <GonderimGecikti talep={t} />}
                           </div>
-                          <TurEtiket tur={t.tur} />
                         </td>
                         <td>
                           <div>{t.ad || '—'}</div>
@@ -447,7 +458,6 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
     if (!kapali && yeni === 'kapandi') return setForm('kapanis')
     if (!kapali && yeni === 'planlandi') return setForm('plan')
     if (!kapali && yeni === 'teklif') return setForm('teklif')
-    if (!kapali && yeni === 'gonderildi') return setForm('gonderim')
     if (!kapali && yeni === 'iptal') return setForm('iptal')
     setOnay(yeni)
   }
@@ -492,6 +502,19 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
           <div className="uyari">
             <Gecikme />
             <span>Bu talep 48 saati geçti, hâlâ açık.</span>
+          </div>
+        )}
+
+        {/* Planlanan gönderim saati geçti ama parça hâlâ yolda değil.
+            Müşteriye tarih verildiği için bu, tutulmamış bir söz. */}
+        {gonderimGecikti(talep) && (
+          <div className="uyari">
+            <GonderimGecikti talep={talep} />
+            <span>
+              Gönderilecek: planlanan tarih {talep.plan.tarihYazi} idi,
+              üzerinden {gonderimGecikmeSaati(talep)} saat geçti ve parça
+              hâlâ gönderilmedi.
+            </span>
           </div>
         )}
 
@@ -643,6 +666,40 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
           <Ekler ekler={talep.ekler} />
         </Bolum>
 
+        {/* ------------------------------------- Müşterinin sonradan eklediği
+
+            Talep gönderildikten SONRA müşterinin uygulamadan eklediği
+            not, ses ve dosyalar. İlk gönderimin ekleriyle karışmasın
+            diye ayrı bölümde ve her biri kendi zaman damgasıyla
+            duruyor (bkz. src/lib/talepEkleme.js).
+
+            Personel için önemli: talep okunduktan sonra gelen bilgi
+            olabilir. Sıra yeniden eskiye — en yeni ekleme üstte. */}
+        {talep.eklemeler?.length > 0 && (
+          <Bolum ad={`Müşterinin Sonradan Eklediği · ${talep.eklemeler.length}`}>
+            <div className="zaman">
+              {[...talep.eklemeler]
+                .sort((a, b) => b.tarih - a.tarih)
+                .map((e) => (
+                  <div key={e.id} className="zaman__a">
+                    <div className="kucuk sonuk">{tarihYaz(e.tarih)}</div>
+                    {e.not && (
+                      <div style={{ whiteSpace: 'pre-wrap', marginTop: 4 }}>{e.not}</div>
+                    )}
+                    {e.ses?.veri && (
+                      <audio
+                        controls
+                        src={e.ses.veri}
+                        style={{ width: '100%', marginTop: 8 }}
+                      />
+                    )}
+                    {e.ekler?.length > 0 && <Ekler ekler={e.ekler} />}
+                  </div>
+                ))}
+            </div>
+          </Bolum>
+        )}
+
         {/* --------------------------------------------- Fatura ve ödeme
 
             Yedek parça bir satış: faturası kesilecek, parası önden
@@ -769,16 +826,6 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
           </Bolum>
         )}
 
-        {talep.gonderim && (
-          <Bolum ad="Gönderim">
-            <S k="Gönderilen Parça" v={talep.gonderim.parcalar} />
-            <S k="Kargo Firması" v={talep.gonderim.kargo} />
-            <S k="Takip No" v={talep.gonderim.takipNo} mono />
-            <div className="kucuk sonuk" style={{ marginTop: 6 }}>
-              {talep.gonderim.personel} · {tarihYaz(talep.gonderim.tarih)}
-            </div>
-          </Bolum>
-        )}
 
         {talep.iptalBilgi && (
           <Bolum ad="İptal Sebebi">
@@ -946,19 +993,6 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
               setForm(null)
               tazele()
               bildir(`${talep.no} iptal edildi · sebep müşteriye gitti`)
-            }}
-          />
-        )}
-
-        {form === 'gonderim' && (
-          <GonderimFormu
-            talep={talep}
-            onKapat={() => setForm(null)}
-            onKaydet={(gonderim) => {
-              talepGonderildi(talep, gonderim, personel)
-              setForm(null)
-              tazele()
-              bildir(`${talep.no} gönderildi · müşteriye bildirim gitti`)
             }}
           />
         )}
@@ -1159,7 +1193,7 @@ const AKTAR_SUTUNLARI = [
     deger: (t) => (t.odemeOnay ? tarihYaz(t.odemeOnay.tarih, false) : ''),
     gizli: ['satis'],
   },
-  { ad: 'Kargo takip no', deger: (t) => t.gonderim?.takipNo || '', gizli: ['satis'] },
+  { ad: 'Kargo takip no', deger: (t) => t.cozum?.takipNo || '', gizli: ['satis'] },
 
   { ad: 'İptal sebebi', deger: (t) => t.iptalBilgi?.neden || '' },
 ]
@@ -1231,6 +1265,24 @@ function TeklifBekliyor({ talep }) {
   )
 }
 
+/* Gönderim tarihi geçmiş parça talebi işareti.
+
+   Gecikme ünlemi (kimse bakmadı) ve kum saati (müşteri dönmedi) ile
+   karışmasın diye ayrı simge ve ayrı renk: burada top PERSONELDE,
+   verilen tarih geçmiş. */
+function GonderimGecikti({ talep }) {
+  const saat = gonderimGecikmeSaati(talep)
+  return (
+    <span
+      className="gonderilecek"
+      title={`Planlanan gönderim ${talep.plan?.tarihYazi} idi, ${saat} saat geçti`}
+      aria-label="Gönderilecek — planlanan tarih geçti"
+    >
+      📦
+    </span>
+  )
+}
+
 /* "Pikap dişi × 2 · Düğüm atıcı bıçağı"
 
    Adet ayrı bir alanda tutuluyor; eski taleplerde yok, o yüzden
@@ -1277,10 +1329,19 @@ const KAPANIS_ALANLARI = {
      Kapanışta bir kez daha sormak, aynı rakamı ikinci kez ve elle
      yazdırmak demekti; iki kayıt tutmayınca da hangisinin doğru olduğu
      belirsizleşiyordu. */
+  /* KARGO BİLGİSİ BURADA SORULUYOR.
+
+     Eskiden ayrı bir "Gönderildi" durumu ve ayrı bir gönderim formu
+     vardı. İkisi de "bitti" anlamına geldiği için kaldırıldı
+     (bkz. veri.js → DURUMLAR). Parça kargoya verildiğinde talep
+     kapanıyor; kargo firması ve takip numarası kapanışın parçası. */
   parca: [
     { ad: 'yapilanIs', etiket: 'Yapılan İş', uzun: true, zorunlu: true,
       ipucu: 'Örnek: parçalar kargoya verildi, takip numarası paylaşıldı' },
     { ad: 'parcalar', etiket: 'Gönderilen Parça', ipucu: 'Pikap dişi x2' },
+    { ad: 'kargo', etiket: 'Kargo Firması', ipucu: 'Örnek: Aras Kargo' },
+    { ad: 'takipNo', etiket: 'Takip Numarası',
+      ipucu: 'Yazarsanız müşteriye bildirimle birlikte gider' },
   ],
   /* Fiyat teklifi kapanışı.
 
@@ -1295,8 +1356,13 @@ const KAPANIS_ALANLARI = {
   satinalma: [
     { ad: 'sonuc', etiket: 'Sonuç', zorunlu: true,
       secenek: ['Satış oldu', 'Müşteri vazgeçti', 'Rakibe gitti', 'Ulaşılamadı'] },
+    /* Sonuç "Satış oldu" ise fiyat ZORUNLU. Rakamsız kapatılan satış
+       kaydı raporlarda ciro hesabını bozuyordu: satış görünüyor ama
+       tutarı yok. Diğer sonuçlarda (vazgeçti, rakibe gitti) fiyat
+       diye bir şey olmadığı için sorulmuyor. */
     { ad: 'satisFiyati', etiket: 'Sonuçlanan Satış Fiyatı', para: true,
-      ipucu: 'Satış olduysa yazın — örnek: 1780000' },
+      zorunluEger: (d) => d.sonuc === 'Satış oldu',
+      ipucu: 'Örnek: 1780000' },
     { ad: 'not', etiket: 'Not', uzun: true, ipucu: 'Görüşmede konuşulanlar' },
   ],
 }
@@ -1513,10 +1579,24 @@ function KapanisFormu({ talep, onKapat, onKaydet }) {
     setYukleniyor(false)
   }
 
+  /* Bir alan şu an zorunlu mu? Bazıları her zaman (`zorunlu`),
+     bazıları başka bir alanın değerine bağlı (`zorunluEger`) —
+     satış fiyatı yalnız sonuç "Satış oldu" iken isteniyor. */
+  function zorunluMu(a) {
+    return Boolean(a.zorunlu) || Boolean(a.zorunluEger && a.zorunluEger(deger))
+  }
+
   /* Alanlar tamam mı? Kaydet düğmesi ve fişsiz onayı aynı denetimi
-     kullanıyor; iki yerde ayrı yazılırsa biri unutulur. */
+     kullanıyor; iki yerde ayrı yazılırsa biri unutulur.
+
+     Para alanında uzunluk değil RAKAM aranıyor: "50" iki karakter
+     ama geçerli bir tutar. */
   function eksikAlan() {
-    return alanlar.find((a) => a.zorunlu && String(deger[a.ad] || '').trim().length < 3)
+    return alanlar.find((a) => {
+      if (!zorunluMu(a)) return false
+      const v = String(deger[a.ad] || '').trim()
+      return a.para ? !/\d/.test(v) : v.length < 3
+    })
   }
 
   function kaydet() {
@@ -1540,7 +1620,7 @@ function KapanisFormu({ talep, onKapat, onKaydet }) {
             <label className="alan" key={a.ad}>
               <span className="alan__ad">
                 {a.etiket}
-                {!a.zorunlu && <span className="sonuk"> · isteğe bağlı</span>}
+                {!zorunluMu(a) && <span className="sonuk"> · isteğe bağlı</span>}
               </span>
 
               {a.uzun ? (
@@ -1814,92 +1894,6 @@ function IptalFormu({ talep, onKapat, onKaydet }) {
    gidiyor: çiftçi kargonun nerede olduğunu uygulamadan görsün, santrali
    aramasın.
    ========================================================================== */
-function GonderimFormu({ talep, onKapat, onKaydet }) {
-  const [parcalar, setParcalar] = useState(parcaYazisi(talep))
-  const [kargo, setKargo] = useState('')
-  const [takipNo, setTakipNo] = useState('')
-  const [hata, setHata] = useState('')
-
-  return (
-    <div className="pencere" onClick={(e) => e.target === e.currentTarget && onKapat()}>
-      <div className="kart pencere__kart" style={{ maxWidth: 520 }}>
-        <div className="kart__tepe">
-          <h2>Gönderildi · {talep.no}</h2>
-        </div>
-
-        <div className="kart__ic">
-          {!talep.odemeOnay && (
-            <div className="uyari">
-              <span>
-                Bu talebin <b>ödemesi onaylanmadı</b>. Yine de gönderilecekse devam edin;
-                onay bilgisi kayıtta boş kalacak.
-              </span>
-            </div>
-          )}
-
-          <label className="alan">
-            <span className="alan__ad">Gönderilen Parça</span>
-            <input
-              className="gir"
-              value={parcalar}
-              onChange={(e) => setParcalar(e.target.value)}
-              autoFocus
-            />
-          </label>
-
-          <label className="alan">
-            <span className="alan__ad">
-              Kargo firması<span className="sonuk"> · isteğe bağlı</span>
-            </span>
-            <input
-              className="gir"
-              value={kargo}
-              onChange={(e) => setKargo(e.target.value)}
-              placeholder="Örnek: Aras Kargo"
-            />
-          </label>
-
-          <label className="alan">
-            <span className="alan__ad">
-              Takip numarası<span className="sonuk"> · isteğe bağlı</span>
-            </span>
-            <input
-              className="gir"
-              value={takipNo}
-              onChange={(e) => setTakipNo(e.target.value)}
-              placeholder="Kargo takip numarası"
-            />
-          </label>
-
-          {hata && <div className="uyari">{hata}</div>}
-
-          <p className="kucuk sonuk" style={{ margin: '0 0 14px' }}>
-            Takip numarası yazarsanız müşteriye bildirimle birlikte gider. Sonradan da
-            "Müşteriye gönder" notuyla iletebilirsiniz.
-          </p>
-
-          <div className="satir">
-            <button
-              className="dg dg--ana"
-              onClick={() => {
-                if (parcalar.trim().length < 2) return setHata('Gönderilen parçayı yazın.')
-                onKaydet({
-                  parcalar: parcalar.trim(),
-                  kargo: kargo.trim(),
-                  takipNo: takipNo.trim(),
-                })
-              }}
-            >
-              Gönderildi olarak kaydet
-            </button>
-            <button className="dg" onClick={onKapat}>Vazgeç</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 /* ==========================================================================
    Talebe bakacak bayi listesi
 

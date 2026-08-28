@@ -351,16 +351,26 @@ export const DURUMLAR = [
   { id: 'incelemede', ad: 'İncelemede', ton: 'turuncu' },
   { id: 'planlandi', ad: 'Planlandı', ton: 'mavi' },
   { id: 'teklif', ad: 'Teklif Verildi', ton: 'mor' },
-  { id: 'gonderildi', ad: 'Gönderildi', ton: 'turkuaz' },
+  /* "Gönderildi" DİYE AYRI BİR DURUM YOK.
+
+     Vardı ve kaldırıldı. Sebebi: yedek parçada iki ayrı "bitti"
+     durumu oluyordu — "Gönderildi" ve "Kapandı". İkisi de
+     KAPALI_DURUMLAR içindeydi, yani sistem zaten ikisini aynı şey
+     sayıyordu; fark yalnız etiketteydi. Raporda "kapanan parça
+     talebi" saymak için iki durumu birden toplamak gerekiyordu ve
+     personel hangisini seçeceğini bilmiyordu.
+
+     Parça kargoya verildiğinde iş bitiyor: talep "Kapandı" oluyor,
+     kargo firması ve takip numarası kapanış formunda soruluyor
+     (bkz. Talepler.jsx → KAPANIS_ALANLARI.parca). Müşteriye giden
+     bildirim de aynı yerden çıkıyor, takip numarasıyla birlikte. */
   { id: 'kapandi', ad: 'Kapandı', ton: 'yesil' },
   { id: 'iptal', ad: 'İptal', ton: 'gri' },
 ]
 
-/* Kapalı = üzerinde iş kalmamış. "Gönderildi" de buraya giriyor: parça
-   kargoya verildiğinde iş bitiyor, talep kapanıyor. Kargo takip
-   numarası sonradan not olarak eklenebiliyor — not eklemek kapalı
-   talepte de serbest. */
-export const KAPALI_DURUMLAR = ['kapandi', 'iptal', 'gonderildi']
+/* Kapalı = üzerinde iş kalmamış. Not eklemek kapalı talepte de
+   serbest. */
+export const KAPALI_DURUMLAR = ['kapandi', 'iptal']
 
 export function durumBilgi(id) {
   return DURUMLAR.find((d) => d.id === id) || DURUMLAR[0]
@@ -370,19 +380,16 @@ export function durumBilgi(id) {
    yaratıyordu.
 
    servis      → yeni · incelemede · planlandı · kapandı · iptal
-   parça       → yeni · incelemede · planlandı · gönderildi · kapandı · iptal
+   parça       → yeni · incelemede · planlandı · kapandı · iptal
    fiyat teklifi → yeni · incelemede · teklif verildi · kapandı · iptal
 
    Fiyat teklifinde planlanacak bir iş yok. Buna karşılık teklifin
    verilip müşterinin cevabının beklendiği uzun bir aşama var; o aşama
-   "Teklif Verildi". Yedek parçada ise kapanıştan önce parçanın
-   kargoya verildiği bir aşama var. */
+   "Teklif Verildi". Yedek parçada kargoya verme ayrı bir aşama değil,
+   kapanışın kendisi. */
 export function talepDurumlari(tur) {
-  if (tur === 'satinalma') {
-    return DURUMLAR.filter((d) => d.id !== 'planlandi' && d.id !== 'gonderildi')
-  }
-  if (tur === 'parca') return DURUMLAR.filter((d) => d.id !== 'teklif')
-  return DURUMLAR.filter((d) => d.id !== 'teklif' && d.id !== 'gonderildi')
+  if (tur === 'satinalma') return DURUMLAR.filter((d) => d.id !== 'planlandi')
+  return DURUMLAR.filter((d) => d.id !== 'teklif')
 }
 
 export const TALEP_ADI = {
@@ -504,6 +511,35 @@ function musteriyeBildir(bildirim) {
 
 export const GECIKME_SAAT = 48
 
+/* ------------------------------------------- Gönderim tarihi geçti mi?
+
+   Yedek parça talebi planlanırken bir tarih ve saat veriliyor
+   (bkz. talepPlanla) ve müşteriye bildiriliyor: "parçanız şu gün
+   kargoya verilecek". O an geçtiği hâlde talep hâlâ kapanmadıysa
+   (yani parça gönderilmediyse) verilen söz tutulmamış demektir.
+
+   GECİKME ÜNLEMİNDEN AYRI BİR ŞEY. Gecikme "talebe kimse bakmadı"
+   diyor; bu ise "bakıldı, planlandı, tarihi geçti ama gönderilmedi".
+   İkisi farklı iş gerektirdiği için ayrı işaret.
+
+   Yalnız yedek parçada var: servis randevusunda ekip sahaya gidiyor
+   ve kapanış başka türlü işliyor. */
+export function gonderimGecikti(talep) {
+  if (talep.tur !== 'parca') return false
+  const durum = talep.status || 'yeni'
+  if (KAPALI_DURUMLAR.includes(durum)) return false
+  const planlanan = talep.plan?.tarih
+  if (!planlanan) return false
+  return Date.now() > planlanan
+}
+
+/** Planlanan gönderimin üstünden kaç saat geçti? */
+export function gonderimGecikmeSaati(talep) {
+  const planlanan = talep.plan?.tarih
+  if (!planlanan) return 0
+  return Math.max(0, Math.floor((Date.now() - planlanan) / 3600000))
+}
+
 export function gecikmisMi(talep) {
   const durum = talep.status || 'yeni'
   if (KAPALI_DURUMLAR.includes(durum)) return false
@@ -541,11 +577,28 @@ export function talepKapat(talep, cozum, personel) {
     personel,
   })
 
+  /* YEDEK PARÇADA KAPANIŞ = KARGOYA VERİLDİ.
+
+     Bildirim de ona göre yazılıyor: takip numarası girildiyse
+     müşteri uygulamayı açmadan, bildirimin içinde görüyor. Eskiden
+     bu iş ayrı bir "Gönderildi" durumundan çıkıyordu; o durum
+     kaldırıldı (bkz. DURUMLAR). */
+  const parcaGonderimi = talep.tur === 'parca'
   musteriyeBildir({
     tur: 'talep',
-    baslikAnahtar: 'bildirimler.durumBaslik',
-    metinAnahtar: 'bildirimler.durum_kapandi',
-    degerler: { no: talep.no, durum: 'kapandi', talepTur: talep.tur },
+    baslikAnahtar: parcaGonderimi
+      ? 'bildirimler.gonderildiBaslik'
+      : 'bildirimler.durumBaslik',
+    metinAnahtar: parcaGonderimi
+      ? (cozum.takipNo ? 'bildirimler.gonderildiTakip' : 'bildirimler.gonderildiMetin')
+      : 'bildirimler.durum_kapandi',
+    degerler: {
+      no: talep.no,
+      durum: 'kapandi',
+      talepTur: talep.tur,
+      kargo: cozum.kargo || '',
+      takipNo: cozum.takipNo || '',
+    },
     talepNo: talep.no,
   })
 }
@@ -711,45 +764,6 @@ export function parcaIlerlemeEngeli(talep, yeniDurum) {
   if (talep.odemeOnay) return null
   if (!talep.fatura && !talep.dekont) return null /* eski talepler */
   return 'odemeOnayiYok'
-}
-
-/* ------------------------------------------------ Yedek parça: gönderim
-
-   Parça kargoya verildiğinde talep kapanıyor. Kargo firması ve takip
-   numarası isteğe bağlı; girildiyse müşteriye AYRICA not olarak
-   gidiyor — bildirimde takip numarasını görsün, uygulamayı açıp
-   aramasın diye.                                                      */
-
-export function talepGonderildi(talep, gonderim, personel) {
-  const gecmis = [...(talep.gecmis || []), { durum: 'gonderildi', tarih: Date.now(), personel }]
-  talepYaz(talep.id, {
-    status: 'gonderildi',
-    gecmis,
-    gonderim: { ...gonderim, tarih: Date.now(), personel },
-  })
-
-  islemYaz({
-    tur: 'durum',
-    ozet: `${talep.no} gönderildi${gonderim.kargo ? ' · ' + gonderim.kargo : ''}${
-      gonderim.takipNo ? ' · ' + gonderim.takipNo : ''
-    }`,
-    personel,
-  })
-
-  musteriyeBildir({
-    tur: 'talep',
-    baslikAnahtar: 'bildirimler.gonderildiBaslik',
-    metinAnahtar: gonderim.takipNo
-      ? 'bildirimler.gonderildiTakip'
-      : 'bildirimler.gonderildiMetin',
-    degerler: {
-      no: talep.no,
-      kargo: gonderim.kargo || '',
-      takipNo: gonderim.takipNo || '',
-      talepTur: talep.tur,
-    },
-    talepNo: talep.no,
-  })
 }
 
 /* ------------------------------------------------------------ Duyurular

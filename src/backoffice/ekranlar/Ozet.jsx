@@ -82,7 +82,7 @@ export function Ozet({ rol, git, surum }) {
         />
         <Sayi
           deger={v.geciken}
-          ad="48 saati Geçen"
+          ad="48 Saati Geçen"
           dikkat={v.geciken > 0}
           onClick={() => git('talepler', { durum: 'gecikmis' })}
         />
@@ -94,7 +94,7 @@ export function Ozet({ rol, git, surum }) {
         {(rol === 'satis' || yonetim) && (
           <Sayi
             deger={v.teklifBekleyen}
-            ad="Cevap Bekleyen Teklif"
+            ad="Cevap Beklenen Teklif"
             dikkat={v.teklifBekleyen > 0}
             onClick={() => git('talepler', { durum: 'teklifBekleyen' })}
           />

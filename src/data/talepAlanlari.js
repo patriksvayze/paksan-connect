@@ -34,7 +34,7 @@ import {
    Saatler PAKSAN'ın çalışma saatlerine göre: 09.00 - 18.00. Bunun
    dışında bir saat sunmak, tutulamayacak bir söz vermek olurdu. */
 export const ULASIM_ZAMANI = [
-  'Farketmez',
+  'Fark etmez',
   'Sabah (09.00 - 12.00)',
   'Öğleden sonra (12.00 - 15.00)',
   'Akşamüstü (15.00 - 18.00)',

@@ -151,7 +151,7 @@ export const PRODUCTS = [
     category: 'kucuk-balya',
     tagline: 'Küçük balya makinası',
     serialPrefix: 'SYNS',
-    desc: 'Paksan\'ın en çok tercih edilen küçük balya makinası. Elle taşınabilir balya ölçüsüyle küçük ve orta ölçekli işletmeler için idealdir.',
+    desc: 'PAKSAN\'ın en çok tercih edilen küçük balya makinası. Elle taşınabilir balya ölçüsüyle küçük ve orta ölçekli işletmeler için idealdir.',
     specs: [
       ['Balya ölçüsü', '36 x 46 cm'],
       ['Balya uzunluğu', '30 – 140 cm'],
@@ -207,7 +207,7 @@ export const PRODUCTS = [
     category: 'kucuk-balya',
     tagline: 'Küçük balya makinası',
     serialPrefix: 'S8002',
-    desc: 'Uzun yıllardır sahada kanıtlanmış klasik Paksan küçük balya makinası.',
+    desc: 'Uzun yıllardır sahada kanıtlanmış klasik PAKSAN küçük balya makinası.',
     specs: [
       ['Balya ölçüsü', '36 x 46 cm'],
       ['Balya uzunluğu', '30 – 140 cm'],

@@ -1,4 +1,5 @@
 import { PAKET, yaz } from './destek'
+import { kunyeEtiket, kunyeDeger } from '../data/teknikEtiketler'
 
 /* ==========================================================================
    Kılavuz içeriği — gerçek kullanım kılavuzlarından
@@ -251,10 +252,16 @@ export function prosedurBasligi(kart, dil = 'tr') {
    Kalıp tutmazsa soru cümlesi olduğu gibi gösteriliyor; uydurma bir
    etiket üretilmiyor. */
 export function teknikEtiket(kayit, dil = 'tr') {
-  const soru = yaz(kayit.question, dil)
-  const tr = soru.match(/ için (.+) nedir\?$/)
-  if (tr) return tr[1]
-  const en = soru.match(/^What is (.+) for .+\?$/)
-  if (en) return en[1]
-  return soru
+  /* Etiket her zaman TÜRKÇE sorudan çıkarılıyor: künye tablosunun
+     çift dilli metni orada duruyor ve sözlük ona göre kurulu
+     (bkz. src/data/teknikEtiketler.js). */
+  const soru = yaz(kayit.question, 'tr')
+  const m = soru.match(/ için (.+) nedir\?$/)
+  const ham = m ? m[1] : soru
+  return kunyeEtiket(ham, dil)
+}
+
+/** Künye değeri — çift dilli kalıntılar ayıklanmış hâliyle. */
+export function teknikDeger(kayit, dil = 'tr') {
+  return kunyeDeger(yaz(kayit.answer, 'tr'), dil)
 }

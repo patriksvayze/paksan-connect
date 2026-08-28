@@ -33,10 +33,13 @@ const IKONLAR = {
   [BILDIRIM_TURU.UYARI]: IconAlert,
 }
 
+/* Marka renginin YAZI hâli kullanılıyor (--pk-x-yazi), ana rengi değil:
+   ana renkler karanlık temada değişmiyor ve koyu kart üstünde
+   okunmuyorlar (ölçüm: mavi 1,85 · yeşil 2,47). */
 const RENKLER = {
-  [BILDIRIM_TURU.TALEP]: { zemin: 'var(--pk-green-soft)', renk: 'var(--pk-green)' },
+  [BILDIRIM_TURU.TALEP]: { zemin: 'var(--pk-green-soft)', renk: 'var(--pk-green-yazi)' },
   [BILDIRIM_TURU.RANDEVU]: { zemin: 'var(--pk-orange-soft)', renk: 'var(--pk-orange-ink)' },
-  [BILDIRIM_TURU.DUYURU]: { zemin: 'var(--pk-blue-soft)', renk: 'var(--pk-blue)' },
+  [BILDIRIM_TURU.DUYURU]: { zemin: 'var(--pk-blue-soft)', renk: 'var(--pk-blue-yazi)' },
   [BILDIRIM_TURU.UYARI]: { zemin: 'var(--pk-orange-soft)', renk: 'var(--pk-orange-ink)' },
 }
 

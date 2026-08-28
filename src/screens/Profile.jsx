@@ -69,10 +69,11 @@ export default function Profile() {
   const taleplerRef = useRef(null)
   /* Açık ve tamamlanmış talepler.
 
-     "Tamamlanmış" = üzerinde iş kalmamış: kapandı, iptal edildi ya da
-     parça gönderildi. Backoffice’in KAPALI_DURUMLAR listesiyle aynı mantık;
+     "Tamamlanmış" = üzerinde iş kalmamış: kapandı ya da iptal edildi.
+     Yedek parçada kargoya verilmek ayrı bir durum değil, kapanışın
+     kendisi. Backoffice’in KAPALI_DURUMLAR listesiyle aynı mantık;
      uygulama backoffice’in kodunu almadığı için burada tekrar yazılı. */
-  const KAPALI = ['kapandi', 'iptal', 'gonderildi']
+  const KAPALI = ['kapandi', 'iptal']
   const acikTalepler = requests.filter((r) => !KAPALI.includes(r.status || 'yeni'))
   const kapaliTalepler = requests.filter((r) => KAPALI.includes(r.status || 'yeni'))
   const seciliListe = talepSekme === 'acik' ? acikTalepler : kapaliTalepler
@@ -225,12 +226,12 @@ export default function Profile() {
             sabit yükseklik verilip ortalanıyor. */}
         <div className="ozet" style={{ marginTop: 14 }}>
           <button className="card card--tap center" onClick={() => nav('/makinelerim')}>
-            <div className="ozet__ikon" style={{ color: 'var(--pk-blue)' }}><IconBaler size={26} /></div>
+            <div className="ozet__ikon" style={{ color: 'var(--pk-blue-yazi)' }}><IconBaler size={26} /></div>
             <div style={{ fontWeight: 700, fontSize: 24, marginTop: 6 }}>{machines.length}</div>
             <div className="small muted">{t('profil.kayitliMakine')}</div>
           </button>
           <div className="card center">
-            <div className="ozet__ikon" style={{ color: 'var(--pk-orange)' }}><IconWrench size={26} /></div>
+            <div className="ozet__ikon" style={{ color: 'var(--pk-orange-ink)' }}><IconWrench size={26} /></div>
             <div style={{ fontWeight: 700, fontSize: 24, marginTop: 6 }}>{requests.length}</div>
             <div className="small muted">{t('profil.talep')}</div>
           </div>
@@ -327,7 +328,7 @@ export default function Profile() {
                     >
                       <div
                         className="listitem__icon"
-                        style={{ background: 'var(--pk-green-soft)', color: 'var(--pk-green)' }}
+                        style={{ background: 'var(--pk-green-soft)', color: 'var(--pk-green-yazi)' }}
                       >
                         <IconCheckCircle size={22} />
                       </div>
@@ -394,8 +395,8 @@ export default function Profile() {
                         {/* İptal ve kapanışta "neden" burada değil,
                             talebin kendi ekranında. Listede yalnız
                             böyle bir bilgi OLDUĞU söyleniyor. */}
-                        {(r.iptalBilgi || r.cozum || r.teklif || r.gonderim) && (
-                          <div className="small" style={{ marginTop: 6, color: 'var(--pk-blue)' }}>
+                        {(r.iptalBilgi || r.cozum || r.teklif) && (
+                          <div className="small" style={{ marginTop: 6, color: 'var(--pk-blue-yazi)' }}>
                             {t('profil.detayGor')}
                           </div>
                         )}
@@ -511,9 +512,11 @@ export default function Profile() {
           </button>
         </div>
 
+        {/* Renk --pk-red değil --pk-red-yazi: ana kırmızı karanlık temada
+            koyu kart üstünde 3,17 kontrastta kalıyordu, yazı hâli 4,64. */}
         <button
           className="btn btn--soft"
-          style={{ marginTop: 22, color: 'var(--pk-red)' }}
+          style={{ marginTop: 22, color: 'var(--pk-red-yazi)' }}
           onClick={() => setCikis(true)}
         >
           {t('profil.cikis')}
@@ -531,7 +534,8 @@ export default function Profile() {
           <button
             onClick={() => setKvkk(metinDilde(AYDINLATMA, dil))}
             className="small"
-            style={{ color: 'var(--ink-3)', textDecoration: 'underline' }}
+            /* Dokunma alanı 23 pikseldi; dolgu ile 44'e çıkıyor. */
+            style={{ color: 'var(--ink-3)', textDecoration: 'underline', padding: '11px 8px' }}
           >
             {t('profil.kvkkBaglanti')}
           </button>
@@ -580,9 +584,14 @@ export default function Profile() {
             <button
               className="small"
               style={{
-                color: 'var(--pk-blue)',
+                color: 'var(--pk-blue-yazi)',
                 textDecoration: 'underline',
+                /* Dokunma alanı yazı yüksekliği kadardı (20 piksel);
+                   dolgu ile 44'e çıkıyor, negatif dış boşluk yerleşimi
+                   olduğu gibi bırakıyor. */
                 marginTop: 10,
+                padding: '12px 6px',
+                margin: '10px -6px 0',
                 display: 'block',
               }}
               onClick={() => {

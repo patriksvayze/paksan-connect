@@ -68,8 +68,13 @@
      kullanıcı baloncuğu. Karanlık modda lacivert kart yüzeyinden
      ayırt edilemediği için ayrı belirteç oldu. */
   --dolgu: var(--pk-navy);
-  --pk-green-yazi: #1a8348;
-  --pk-red-yazi: #c93636;
+  /* Yazı hâlleri ana renklerden bir tık koyu. ÖLÇÜLEREK SEÇİLDİ:
+     rozet yazısı 12,5 punto olduğu için aranan ölçüt 4,5:1. Ana
+     yeşil kendi soluk zemini üstünde sayfa arkaplanında 3,74'te,
+     ana kırmızı 4,06'da kalıyordu — ikisi de eşiğin altı. Bu
+     değerlerle 4,66 ve 4,64 oluyor. */
+  --pk-green-yazi: #17723f;
+  --pk-red-yazi: #b93232;
 
   /* Servis rozetinin yazı rengi; sabit değer olarak gömülüydü. */
   --tur-servis-yazi: #8f5200;
@@ -102,7 +107,11 @@
   --line-strong: #d6dde9;
 
   --on-dark: rgba(255, 255, 255, 0.95);
-  --on-dark-2: rgba(255, 255, 255, 0.62);
+  /* Saydamlık ÖLÇÜLEREK seçildi. Bu yazı marka kartlarının mavi
+     gradyanı üstüne düşüyor; gradyanın en açık durağı rgb(29,85,192).
+     0,62'de kontrast 3,61'de kalıyordu (14 punto için aranan 4,5),
+     0,75'te 4,54 oluyor. */
+  --on-dark-2: rgba(255, 255, 255, 0.75);
   --on-dark-3: rgba(255, 255, 255, 0.14);
 
   /* ---- Ölçüler ---------------------------------------------------------- */
@@ -188,7 +197,12 @@
   --pk-navy-koyu: #1b2540;
 
   /* Yazı hâlleri açılıyor — koyu zeminde okunabilsinler. */
-  --pk-blue-yazi-koyu: #6f9df5;
+  /* Açıklığı ÖLÇÜLEREK seçildi. Bu ton hem rozet yazısı hem de soluk
+     mavi zeminli düğme yazısı olarak kullanılıyor; en kötü durum
+     ikinci kart yüzeyi üstündeki 0,24 tint ("Destek Al" düğmesi).
+     Eski ton (#6f9df5) orada 3,99'da, bir sonraki deneme (#83abf6)
+     4,22'de kalıyordu. Bu değerle altı zeminin en kötüsü 4,62. */
+  --pk-blue-yazi-koyu: #8fb3f7;
   /* Karanlıkta dolu eylemler mavi: lacivert yüzeyle karışmıyor.
 
      TON ÖLÇÜLEREK SEÇİLDİ. Marka mavisinin kendisi (--pk-blue-koyu)
@@ -199,7 +213,8 @@
      çalışıyor. */
   --dolgu-koyu: #2f6fe6;
   --pk-green-yazi-koyu: #3fbf74;
-  --pk-red-yazi-koyu: #f0736f;
+  /* Eski ton kart yüzeyinde 4,43'te kalıyordu; bu değerle 4,62. */
+  --pk-red-yazi-koyu: #f17975;
   --pk-orange-ink-koyu: #ff8a3d;
   --tur-servis-yazi-koyu: #f0a53c;
 
@@ -217,7 +232,7 @@
   --tur-parca-soft-koyu: rgba(190, 140, 245, 0.2);
   --tur-satis-soft-koyu: rgba(96, 176, 250, 0.2);
 
-  --on-dark-2-koyu: rgba(255, 255, 255, 0.66);
+  --on-dark-2-koyu: rgba(255, 255, 255, 0.75);
   --on-dark-3-koyu: rgba(255, 255, 255, 0.18);
 
   /* Karanlıkta gölge görünmez; kartları zeminden ayıran asıl şey
@@ -925,11 +940,13 @@ p {
 /* Sürüm — sayfanın en dibinde, silik. Okunması gereken bir bilgi değil,
    sorulunca bakılan bir bilgi. */
 /* Düğmenin altındaki tek satırlık açıklama */
+/* Saydamlık 0,34'ten 0,48'e. Karşılama ekranının koyu zemini üstünde
+   12 punto yazı 3,10 kontrasttaydı; aranan 4,5. Şimdi 4,80. */
 .giris__surum {
   margin: 16px 0 0;
   text-align: left;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.34);
+  color: rgba(255, 255, 255, 0.48);
   letter-spacing: 0.02em;
 }
 
@@ -1589,9 +1606,11 @@ p {
   border: 1px solid var(--line);
 }
 
+/* Yükseklik 34'ten 44'e — dil ve tema seçicisi telefonda parmakla
+   kullanılıyor, 34 piksellik hap ıskalanıyordu. */
 .dilsec__dugme {
   min-width: 44px;
-  padding: 7px 12px;
+  padding: 12px 12px;
   border-radius: 999px;
   font-size: 13px;
   font-weight: 700;
@@ -1797,11 +1816,15 @@ p {
   line-height: 1.5;
 }
 
+/* "Metni oku" bağlantısı onay kutusunun yanında duruyor; yazı 18 piksel
+   yüksekliğindeydi, yanlışlıkla onay kutusuna basılıyordu. */
 .onay__oku {
   color: var(--pk-blue-yazi);
   font-weight: 700;
   text-decoration: underline;
   white-space: nowrap;
+  padding: 13px 8px;
+  margin: -13px -8px;
 }
 
 /* ------------------------------------------------------- Hızlı işlemler
@@ -1954,7 +1977,9 @@ p {
   gap: 11px;
   width: 100%;
   text-align: left;
-  padding: 7px 8px;
+  /* Tek satırlık maddede yükseklik 37'ye düşüyordu; 10 piksel dolgu
+     kısa maddeyi de 44'e taşıyor. */
+  padding: 10px 8px;
   margin: 0 -8px;
   border-radius: 10px;
   background: none;
@@ -2192,12 +2217,17 @@ p {
   font-weight: 700;
 }
 
+/* "Tümü" bağlantısı. Dokunma alanı yazıdan büyük tutuluyor: yazının
+   kendisi 37x22 idi, eldivenli parmak için aranan ölçü 44. Negatif dış
+   boşluk, büyüyen alanın başlığı aşağı itmesini engelliyor. */
 .sectionhead a,
 .sectionhead button {
   font-size: 14.5px;
   font-weight: 700;
   color: var(--pk-blue-yazi);
   white-space: nowrap;
+  padding: 11px 8px;
+  margin: -11px -8px;
 }
 
 /* -------------------------------------------------- Yüzen alt menü
@@ -2932,9 +2962,11 @@ p {
   display: none;
 }
 
+/* Yükseklik 39'du, 44'e çıkarıldı: bunlar yan yana duran ve parmakla
+   seçilen varyant hapları, kaçırılması kolaydı. */
 .pill {
   flex: none;
-  padding: 10px 16px;
+  padding: 12px 16px;
   border-radius: 999px;
   background: var(--surface);
   border: 1px solid var(--line-strong);
@@ -3267,12 +3299,14 @@ p {
 }
 
 /* Başlıktaki metin düğmesi — "Tümünü okundu işaretle" */
+/* Yükseklik 32'den 44'e: başlık çubuğundaki tek dokunulur öge bu. */
 .topbar__islem {
   font-size: 13.5px;
   font-weight: 700;
   color: var(--pk-blue-yazi);
   white-space: nowrap;
-  padding: 6px 2px;
+  padding: 12px 6px;
+  margin: -12px -6px;
 }
 
 /* Ana sayfadaki bildirim düğmesinin üstündeki sayı */
@@ -4974,7 +5008,27 @@ p {
   margin-bottom: 14px;
 }
 
+/* Yükseklik 39'du; teknik özelliklerdeki varyant hapları da 44'e
+   çıkarıldı — üst satırdaki .pill kuralıyla aynı ölçüde. */
 .tkn__modeller .pill {
-  padding: 8px 14px;
+  padding: 11px 14px;
   font-size: 14px;
+}
+
+/* ------------------------------------------- Talebe sonradan ekleme
+
+   İlk gönderimin ekleri talebin kendi kartında; buradakiler sonradan
+   eklenenler. Karışmasınlar diye görünüşleri ayrı: sol kenarda turuncu
+   çizgi ve üstte zaman damgası (bkz. src/lib/talepEkleme.js). */
+
+.ekleme {
+  padding: 14px 16px;
+  border-left: 3px solid var(--pk-orange-ink);
+}
+
+.ekleme__tarih {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--pk-orange-ink);
 }

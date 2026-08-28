@@ -39,7 +39,7 @@ export default function Guides() {
             <Link key={r.id} to={`/bakim/${r.id}`} className="listitem">
               <div
                 className="listitem__icon"
-                style={{ background: 'var(--pk-green-soft)', color: 'var(--pk-green)' }}
+                style={{ background: 'var(--pk-green-soft)', color: 'var(--pk-green-yazi)' }}
               >
                 <IconCalendar size={22} />
               </div>

@@ -41,7 +41,7 @@ export const REHBERLER = [
     aylar: [5, 6, 7, 8, 9, 10],
     ortak: [
       {
-        baslik: 'Göz kontrolü',
+        baslik: 'Kontrol',
         maddeler: [
           'Makinenin çevresini dolaşın; gevşemiş, sarkmış veya kırılmış bir parça var mı bakın.',
           'Cıvata ve somunların yerinde olduğunu kontrol edin. Gevşeyen varsa sıkın.',

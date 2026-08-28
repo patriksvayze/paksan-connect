@@ -41,7 +41,7 @@ export const BAYILER = [
   {
     id: 'konya-merkez',
     no: 'BAY001',
-    ad: 'Paksan Konya Ana Bayi',
+    ad: 'PAKSAN Konya Ana Bayi',
     il: 'Konya',
     ilce: 'Selçuklu',
     adres: 'Ankara Yolu 12. km, Tarım Makinaları Sitesi',

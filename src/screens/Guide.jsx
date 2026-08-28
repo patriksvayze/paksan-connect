@@ -66,7 +66,7 @@ export default function Guide() {
             <div className="row" style={{ alignItems: 'flex-start', gap: 10 }}>
               {/* Uyarı atlanmasın diye ikon ve başlık kart içindeki
                   diğer yazılardan belirgin şekilde büyük. */}
-              <span style={{ color: 'var(--pk-red)', flex: 'none', marginTop: 1 }}>
+              <span style={{ color: 'var(--pk-red-yazi)', flex: 'none', marginTop: 1 }}>
                 <IconAlert size={28} />
               </span>
               <div style={{ flex: 1 }}>

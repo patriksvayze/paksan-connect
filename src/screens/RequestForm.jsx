@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useApp } from '../context/AppState'
 import { TopBar, TabBar, Sheet } from '../components/Chrome'
@@ -71,6 +71,15 @@ function TalepFormu() {
   /* Talebi işe yarar hâle getiren alanlar — türe göre değişiyor */
   const [durum, setDurum] = useState('')
   const [belirtiler, setBelirtiler] = useState([])
+  /* Destek ekranından gelindiyse orada listelenen "gerekebilecek
+     parçalar" hazır seçili geliyor — çiftçi aynı listeyi ikinci kez
+     işaretlemesin (bkz. Support.jsx → talepAc). Yalnız gerçekten bu
+     makinede olan parçalar alınıyor; veri değişirse eşleşmeyen ad
+     sessizce eleniyor. */
+  const destekParcalari = (params.get('parcalar') || '')
+    .split('|')
+    .map((x) => x.trim())
+    .filter(Boolean)
   const [parcalar, setParcalar] = useState([])
   /* Parça başına adet: { 'Pikap dişi': 2 }.
 
@@ -78,8 +87,11 @@ function TalepFormu() {
      Backoffice’in raporları ("en çok istenen parçalar") ve Excel aktarımı o
      diziyi okuyor; biçimini değiştirmek geçmiş kayıtları da bozardı. */
   const [parcaAdet, setParcaAdet] = useState({})
-  const [urunTipi, setUrunTipi] = useState('')
-  const [arazi, setArazi] = useState('')
+  /* İkisi de ÇOKTAN SEÇMELİ: çiftçi hem yonca hem saman balyalayabilir,
+     arazisi de tek parça olmak zorunda değil. Tek seçimken satış
+     ekibine eksik bilgi gidiyordu. */
+  const [urunTipi, setUrunTipi] = useState([])
+  const [arazi, setArazi] = useState([])
   const [traktor, setTraktor] = useState('')
   const [ulasim, setUlasim] = useState(ULASIM_ZAMANI[0])
 
@@ -116,8 +128,16 @@ function TalepFormu() {
   const [adim, setAdim] = useState('form') /* 'form' | 'odeme' */
   const [no, setNo] = useState('')
 
-  const [faturaTuzel, setFaturaTuzel] = useState(false)
-  const [faturaBaskasi, setFaturaBaskasi] = useState(false)
+  /* Fatura kime kesilecek: 'kendim' | 'baskasi' | 'firma'.
+
+     Üçü birbirini dışlıyor. Eskiden iki ayrı bayrak vardı
+     (`faturaTuzel` + `faturaBaskasi`) ve ikincisi iki farklı anlamda
+     kullanıldığı için "kendi adıma" ile "başkası adına" aynı anda
+     seçilebiliyordu. */
+  const [faturaKime, setFaturaKime] = useState('kendim')
+  /* Yalnız firma dalında: irtibat telefonu hesaptakinden farklı mı.
+     Kendi değişkeni — kişi seçimiyle bağı yok. */
+  const [faturaFarkliTel, setFaturaFarkliTel] = useState(false)
   const [faturaAd, setFaturaAd] = useState('')
   const [faturaTc, setFaturaTc] = useState('')
   const [faturaTel, setFaturaTel] = useState('')
@@ -256,6 +276,24 @@ function TalepFormu() {
   const belirtiListesi = belirtiSecenekleri(grup, dil)
   const parcaListesi = parcaSecenekleri(grup, dil)
 
+  /* Destekten gelen parçalar bir KEZ işaretleniyor. Liste makineye
+     göre kurulduğu için ilk çizimde değil, liste hazır olduğunda
+     çalışıyor; kullanıcı sonradan kaldırırsa geri gelmiyor. */
+  const parcaBaslatildi = useRef(false)
+  useEffect(() => {
+    if (parcaBaslatildi.current) return
+    if (tur !== 'parca' || destekParcalari.length === 0) return
+    if (parcaListesi.length === 0) return
+    const gecerli = destekParcalari.filter((x) =>
+      parcaListesi.some((y) => y.deger === x)
+    )
+    if (gecerli.length) {
+      parcaBaslatildi.current = true
+      setParcalar(gecerli)
+      setParcaAdet(Object.fromEntries(gecerli.map((x) => [x, 1])))
+    }
+  }, [tur, parcaListesi])
+
   /* Kayıtlar Türkçe anahtarla tutuluyor; ekranda kullanıcının dilinde
      görünmeli (bkz. src/data/talepAlanlari.js). */
   const parcaEtiket = (deger) =>
@@ -310,27 +348,29 @@ function TalepFormu() {
       alanaGit(alan)
     }
 
-    if (faturaTuzel) {
+    if (faturaKime === 'firma') {
       if (faturaUnvan.trim().length < 3) {
         return sorunlu('unvan', t('parcaOdeme.unvanEksik'))
       }
       if (!vergiNoGecerliMi(faturaVergiNo)) {
         return sorunlu('vergiNo', t('parcaOdeme.vergiNoHatali'))
       }
+      if (faturaFarkliTel && faturaTel.replace(/\D/g, '').length < 10) {
+        return sorunlu('faturaTel', t('parcaOdeme.telEksik'))
+      }
     } else {
       /* Kontrol sırası ekrandaki sırayla aynı: önce ad, sonra kimlik.
          Yoksa kullanıcı en alttaki hataya gönderiliyor, düzeltiyor,
          bu sefer yukarıdaki hata çıkıyor. */
-      if (faturaBaskasi && faturaAd.trim().length < 3) {
+      if (faturaKime === 'baskasi' && faturaAd.trim().length < 3) {
         return sorunlu('faturaAd', t('parcaOdeme.adEksik'))
       }
       if (!tcGecerliMi(faturaTc)) {
         return sorunlu('tc', t('parcaOdeme.tcHatali'))
       }
-    }
-
-    if (faturaBaskasi && faturaTel.replace(/\D/g, '').length < 10) {
-      return sorunlu('faturaTel', t('parcaOdeme.telEksik'))
+      if (faturaKime === 'baskasi' && faturaTel.replace(/\D/g, '').length < 10) {
+        return sorunlu('faturaTel', t('parcaOdeme.telEksik'))
+      }
     }
     if (faturaAdres.trim().length < 15) {
       return sorunlu('adres', t('parcaOdeme.adresEksik'))
@@ -351,16 +391,21 @@ function TalepFormu() {
      müşteriye iki kez yazdırmanın anlamı yok ve hesaptaki bilgi zaten
      doğrulanmış olan. */
   function faturaBilgisi() {
+    const firma = faturaKime === 'firma'
+    const baskasi = faturaKime === 'baskasi'
+    /* Telefon: firmada "farklı" işaretliyse yazılan, başka kişide o
+       kişinin numarası, kendi adına ise hesaptaki. */
+    const kendiTelefonu = firma ? !faturaFarkliTel : !baskasi
     const ortak = {
-      tuzel: faturaTuzel,
-      tel: faturaBaskasi ? faturaTel.trim() : telKullanici(user),
+      tuzel: firma,
+      tel: kendiTelefonu ? telKullanici(user) : faturaTel.trim(),
       adres: faturaAdres.trim(),
       il,
       ilce,
       ulke: konumUlke,
-      farkliKisi: faturaBaskasi,
+      farkliKisi: baskasi,
     }
-    if (faturaTuzel) {
+    if (firma) {
       return {
         ...ortak,
         unvan: faturaUnvan.trim(),
@@ -369,7 +414,7 @@ function TalepFormu() {
     }
     return {
       ...ortak,
-      ad: faturaBaskasi ? faturaAd.trim() : user?.ad || '',
+      ad: baskasi ? faturaAd.trim() : user?.ad || '',
       tc: faturaTc.replace(/\D/g, ''),
     }
   }
@@ -426,8 +471,10 @@ function TalepFormu() {
         /* Fatura, teslimat ve dekont — yalnız yedek parçada */
         fatura: tur === 'parca' ? faturaBilgisi() : null,
         dekont: tur === 'parca' ? dekont : null,
-        urunTipi: tur === 'satinalma' ? urunTipi : '',
-        arazi: tur === 'satinalma' ? arazi : '',
+        /* Backoffice tek satırda gösteriyor; liste virgülle
+           birleştirilip gönderiliyor. */
+        urunTipi: tur === 'satinalma' ? urunTipi.join(', ') : '',
+        arazi: tur === 'satinalma' ? arazi.join(', ') : '',
         traktor: tur === 'satinalma' ? traktor : '',
         ulasim,
         /* Ad ve telefon hesaptan alınıyor; kullanıcıya tekrar
@@ -459,7 +506,7 @@ function TalepFormu() {
         <TopBar title={t('talep.alindi')} />
         <div className="screen wrap" style={{ paddingTop: 28 }}>
           <div className="card center" style={{ padding: '30px 20px' }}>
-            <div style={{ color: 'var(--pk-green)' }}>
+            <div style={{ color: 'var(--pk-green-yazi)' }}>
               <IconCheckCircle size={62} />
             </div>
             <h2 style={{ fontSize: 21, marginTop: 12 }}>{t('talep.ulasti')}</h2>
@@ -506,7 +553,7 @@ function TalepFormu() {
               <div className="row" style={{ gap: 12, alignItems: 'center' }}>
                 <span
                   className="listitem__icon"
-                  style={{ background: 'var(--pk-blue-soft)', color: 'var(--pk-blue)' }}
+                  style={{ background: 'var(--pk-blue-soft)', color: 'var(--pk-blue-yazi)' }}
                 >
                   <IconInfo size={22} />
                 </span>
@@ -635,32 +682,36 @@ function TalepFormu() {
             {/* -------------------------------------------- Fatura tipi */}
             <div className="field">
               <span className="field__label">{t('parcaOdeme.faturaTipi')}</span>
+              {/* ÜÇ SEÇENEK, BİRİ SEÇİLİ.
+
+                  Eskiden iki düğme ve altında "fatura başkası adına
+                  kesilecek" kutucuğu vardı. "Kendi adıma" seçiliyken
+                  o kutucuk işaretlenebiliyordu — etiketle kutucuk
+                  birbirini yalanlıyordu. Üçüncü seçenek kutucuğun
+                  yerini aldı; çelişki artık kurulamıyor. */}
               <div className="durumlar">
-                <button
-                  className={'durum' + (!faturaTuzel ? ' durum--on' : '')}
-                  onClick={() => setFaturaTuzel(false)}
-                >
-                  <span className="durum__isaret" />
-                  <span>
-                    <span className="durum__ad">{t('parcaOdeme.gercekKisi')}</span>
-                    <span className="durum__alt">{t('parcaOdeme.gercekKisiAlt')}</span>
-                  </span>
-                </button>
-                <button
-                  className={'durum' + (faturaTuzel ? ' durum--on' : '')}
-                  onClick={() => setFaturaTuzel(true)}
-                >
-                  <span className="durum__isaret" />
-                  <span>
-                    <span className="durum__ad">{t('parcaOdeme.tuzelKisi')}</span>
-                    <span className="durum__alt">{t('parcaOdeme.tuzelKisiAlt')}</span>
-                  </span>
-                </button>
+                {[
+                  ['kendim', 'kendiAdima', 'kendiAdimaAlt'],
+                  ['baskasi', 'baskaKisi', 'baskaKisiAlt'],
+                  ['firma', 'tuzelKisi', 'tuzelKisiAlt'],
+                ].map(([kod, ad, alt]) => (
+                  <button
+                    key={kod}
+                    className={'durum' + (faturaKime === kod ? ' durum--on' : '')}
+                    onClick={() => setFaturaKime(kod)}
+                  >
+                    <span className="durum__isaret" />
+                    <span>
+                      <span className="durum__ad">{t('parcaOdeme.' + ad)}</span>
+                      <span className="durum__alt">{t('parcaOdeme.' + alt)}</span>
+                    </span>
+                  </button>
+                ))}
               </div>
             </div>
 
             {/* -------------------------------------------- Gerçek kişi */}
-            {!faturaTuzel && (
+            {faturaKime !== 'firma' && (
               <>
                 {/* SIRA ÖNEMLİ: önce "kime kesilecek", sonra o kişinin
                     bilgileri — kimlik numarası dâhil.
@@ -676,13 +727,7 @@ function TalepFormu() {
 
                     Şimdi kimlik numarası, adı ve telefonu ile aynı
                     öbekte ve onlardan sonra geliyor. */}
-                <OnayKutusu
-                  cumle={t('parcaOdeme.baskasiAdina')}
-                  deger={faturaBaskasi}
-                  onDegis={setFaturaBaskasi}
-                />
-
-                {faturaBaskasi ? (
+                {faturaKime === 'baskasi' ? (
                   <>
                     <label className="field" data-alan="faturaAd">
                       <span className="field__label">{t('parcaOdeme.adSoyad')}</span>
@@ -713,7 +758,9 @@ function TalepFormu() {
 
                 <label className="field" data-alan="tc">
                   <span className="field__label">
-                    {faturaBaskasi ? t('parcaOdeme.tcNoBaskasi') : t('parcaOdeme.tcNo')}
+                    {faturaKime === 'baskasi'
+                      ? t('parcaOdeme.tcNoBaskasi')
+                      : t('parcaOdeme.tcNo')}
                   </span>
                   <input
                     className="input"
@@ -724,7 +771,7 @@ function TalepFormu() {
                     placeholder={t('parcaOdeme.tcIpucu')}
                   />
                   <span className="field__hint">
-                    {faturaBaskasi
+                    {faturaKime === 'baskasi'
                       ? t('parcaOdeme.tcAciklamaBaskasi')
                       : t('parcaOdeme.tcAciklama')}
                   </span>
@@ -733,7 +780,7 @@ function TalepFormu() {
             )}
 
             {/* --------------------------------------------- Tüzel kişi */}
-            {faturaTuzel && (
+            {faturaKime === 'firma' && (
               <>
                 <label className="field" data-alan="unvan">
                   <span className="field__label">{t('parcaOdeme.unvan')}</span>
@@ -757,13 +804,17 @@ function TalepFormu() {
                   />
                 </label>
 
+                {/* Kendi değişkeni: kişi seçimiyle bağı yok. Eskiden
+                    ikisi aynı değişkeni paylaştığı için, kişi dalında
+                    işaretlenen kutucuk firmaya geçilince burada
+                    işaretli görünüyordu. */}
                 <OnayKutusu
                   cumle={t('parcaOdeme.farkliTelefon')}
-                  deger={faturaBaskasi}
-                  onDegis={setFaturaBaskasi}
+                  deger={faturaFarkliTel}
+                  onDegis={setFaturaFarkliTel}
                 />
 
-                {faturaBaskasi ? (
+                {faturaFarkliTel ? (
                   <label className="field" data-alan="faturaTel">
                     <span className="field__label">{t('parcaOdeme.telefon')}</span>
                     <input
@@ -856,7 +907,7 @@ function TalepFormu() {
                 </div>
                 <button
                   className="small"
-                  style={{ color: 'var(--pk-blue)', textDecoration: 'underline', textAlign: 'left' }}
+                  style={{ color: 'var(--pk-blue-yazi)', textDecoration: 'underline', textAlign: 'left' }}
                   onClick={() => setPencere('numara')}
                 >
                   {t('talep.kullanmiyorum')}
@@ -1142,13 +1193,16 @@ function TalepFormu() {
               {/* Satış ekibinin telefonda sorduğu üç soru. Cevapları
                   önden gelirse teklif ilk aramada verilebiliyor. */}
               <div className="field">
-                <span className="field__label">{t('talep.neBalyalayacak')}</span>
+                <span className="field__label">
+                  {t('talep.neBalyalayacak')}
+                  <span className="field__istege"> · {t('talep.birdenFazla')}</span>
+                </span>
                 <div className="secenekler">
                   {urunTipiSecenekleri(dil).map((x) => (
                     <button
                       key={x.deger}
-                      className={'secenek' + (urunTipi === x.deger ? ' secenek--on' : '')}
-                      onClick={() => setUrunTipi(urunTipi === x.deger ? '' : x.deger)}
+                      className={'secenek' + (urunTipi.includes(x.deger) ? ' secenek--on' : '')}
+                      onClick={() => cevir(setUrunTipi, x.deger)}
                     >
                       {x.etiket}
                     </button>
@@ -1157,13 +1211,16 @@ function TalepFormu() {
               </div>
 
               <div className="field">
-                <span className="field__label">{t('talep.neKadarArazi')}</span>
+                <span className="field__label">
+                  {t('talep.neKadarArazi')}
+                  <span className="field__istege"> · {t('talep.birdenFazla')}</span>
+                </span>
                 <div className="secenekler">
                   {araziSecenekleri(dil).map((x) => (
                     <button
                       key={x.deger}
-                      className={'secenek' + (arazi === x.deger ? ' secenek--on' : '')}
-                      onClick={() => setArazi(arazi === x.deger ? '' : x.deger)}
+                      className={'secenek' + (arazi.includes(x.deger) ? ' secenek--on' : '')}
+                      onClick={() => cevir(setArazi, x.deger)}
                     >
                       {x.etiket}
                     </button>
@@ -1300,7 +1357,7 @@ function TalepFormu() {
               </div>
               <button
                 className="small"
-                style={{ color: 'var(--pk-blue)', textDecoration: 'underline', textAlign: 'left' }}
+                style={{ color: 'var(--pk-blue-yazi)', textDecoration: 'underline', textAlign: 'left' }}
                 onClick={() => setPencere('numara')}
               >
                 {t('talep.kullanmiyorum')}
@@ -1317,7 +1374,7 @@ function TalepFormu() {
               </div>
               <button
                 className="small"
-                style={{ color: 'var(--pk-blue)', textDecoration: 'underline', textAlign: 'left' }}
+                style={{ color: 'var(--pk-blue-yazi)', textDecoration: 'underline', textAlign: 'left' }}
                 onClick={() => setPencere('konum')}
               >
                 {t('talep.konumDuzelt')}

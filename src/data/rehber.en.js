@@ -23,7 +23,7 @@ export const REHBER_EN = {
     neZaman: 'Every day, before going out to the field',
     ortak: [
       {
-        baslik: 'Visual check',
+        baslik: 'Check',
         maddeler: [
           'Walk around the machine and look for anything loose, hanging or broken.',
           'Check that bolts and nuts are in place. Tighten anything that has worked loose.',

@@ -163,12 +163,12 @@ export const DESC_EN = {
   'albatros-870':
     'The Albatros 870 is designed for contractors and large farms, with a high working speed and consistent bale density.',
   'super-yunus':
-    "Paksan's most popular small square baler. With a bale size that can be carried by hand, it is ideal for small and medium farms.",
+    "PAKSAN's most popular small square baler. With a bale size that can be carried by hand, it is ideal for small and medium farms.",
   'super-yunus-dual2':
     'The twin-knotter model of the Super Yunus. It makes tighter bales with fewer twine breaks.',
   'super-yunus-3yabali':
     'The Super Yunus model with a three-fork system, giving more even feeding and a higher working capacity.',
-  'super-8002': 'The classic Paksan small square baler, proven in the field for many years.',
+  'super-8002': 'The classic PAKSAN small square baler, proven in the field for many years.',
   'super-8002e':
     'The improved E series of the Super 8002, with a reinforced chassis and an upgraded feeding system.',
   'super-8002e-dual2': 'The top model of the E series, with the twin-knotter system.',

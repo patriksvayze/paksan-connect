@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useApp } from '../context/AppState'
 import { useDil } from '../i18n'
-import { TopBar, TabBar } from '../components/Chrome'
+import { TopBar, TabBar, Sheet } from '../components/Chrome'
+import { EkAlani } from '../components/EkAlani'
+import { SesKaydi } from '../components/SesKaydi'
+import { eklemeOlustur, eklemeleri, eklemeYapilabilir } from '../lib/talepEkleme'
 import { getProduct, urunDilde } from '../data/products'
 import { alanEtiketi } from '../data/talepAlanlari'
 import { formatSerial } from '../lib/serial'
@@ -12,7 +15,7 @@ import { SIRKET } from '../config'
 import { araProps } from '../lib/tel'
 import {
   IconCalendar, IconCheckCircle, IconClose, IconCart, IconMic,
-  IconPhone, IconWrench, IconInfo,
+  IconPhone, IconWrench, IconInfo, IconPlus,
 } from '../components/Icons'
 
 /* ==========================================================================
@@ -37,11 +40,21 @@ import {
 export default function RequestDetail() {
   const { id } = useParams()
   const nav = useNavigate()
-  const { requests, showToast } = useApp()
+  const { requests, updateRequest, showToast } = useApp()
   const { t, dil } = useDil()
+
+  /* Sonradan ekleme penceresi ve içindeki alanlar. */
+  const [eklemePenceresi, setEklemePenceresi] = useState(false)
+  const [yeniNot, setYeniNot] = useState('')
+  const [yeniSes, setYeniSes] = useState(null)
+  const [yeniEkler, setYeniEkler] = useState([])
+  const [eklemeHata, setEklemeHata] = useState('')
 
   const r = requests.find((x) => x.id === id)
   const yerel = dil === 'tr' ? 'tr-TR' : 'en-GB'
+
+  const sonrakiler = eklemeleri(r)
+  const eklenebilir = eklemeYapilabilir(r)
 
   const tarihYaz = (z, saatli = true) => {
     if (!z) return ''
@@ -141,14 +154,6 @@ export default function RequestDetail() {
           </Kutu>
         )}
 
-        {r.gonderim && (
-          <Kutu ad={t('talepDetay.gonderimBaslik')} ton="yesil">
-            <Satir k={t('talepDetay.gonderilenParca')} v={r.gonderim.parcalar} />
-            <Satir k={t('talepDetay.kargo')} v={r.gonderim.kargo} />
-            <Satir k={t('talepDetay.takipNo')} v={r.gonderim.takipNo} mono vurgu />
-            <Imza personel={r.gonderim.personel} tarih={tarihYaz(r.gonderim.tarih)} />
-          </Kutu>
-        )}
 
         {r.cozum && (
           <Kutu
@@ -157,6 +162,10 @@ export default function RequestDetail() {
           >
             {r.cozum.yapilanIs && <p className="detay-metin">{r.cozum.yapilanIs}</p>}
             <Satir k={t('talepDetay.degisenParca')} v={r.cozum.parcalar} />
+            {/* Yedek parçada kapanış = kargoya verildi; kargo bilgisi
+                kapanışın parçası (bkz. backoffice → KAPANIS_ALANLARI). */}
+            <Satir k={t('talepDetay.kargo')} v={r.cozum.kargo} />
+            <Satir k={t('talepDetay.takipNo')} v={r.cozum.takipNo} mono vurgu />
             <Satir k={t('talepDetay.ucret')} v={r.cozum.ucret} vurgu />
             <Satir k={t('talepDetay.sonuc')} v={r.cozum.sonuc} />
             <Satir k={t('talepDetay.satisFiyati')} v={r.cozum.satisFiyati} vurgu />
@@ -247,6 +256,55 @@ export default function RequestDetail() {
           {r.ekler?.length > 0 && <Ekler ekler={r.ekler} />}
         </div>
 
+        {/* ------------------------------------------- Sonradan eklenenler
+
+            İlk gönderimin ekleri YUKARIDA, talebin kendi kartının
+            içinde. Buraya yalnız sonradan eklenenler geliyor: ayrı
+            başlık, ayrı kart, her birinde zaman damgası. İkisi
+            karışmasın diye kasıtlı olarak ayrı duruyorlar. */}
+        {sonrakiler.length > 0 && (
+          <>
+            <div className="sectionhead" style={{ marginTop: 22 }}>
+              <h2>{t('talepDetay.eklemeBaslik')}</h2>
+              <span className="sectionhead__count">{sonrakiler.length}</span>
+            </div>
+            <div className="stack" style={{ gap: 10 }}>
+              {sonrakiler.map((e) => (
+                <div key={e.id} className="card ekleme">
+                  <div className="ekleme__tarih">{tarihYaz(e.tarih)}</div>
+                  {e.not && <p className="detay-metin" style={{ marginTop: 8 }}>{e.not}</p>}
+                  {e.ses?.veri && (
+                    <div className="row small muted" style={{ gap: 5, marginTop: 8 }}>
+                      <IconMic size={15} /> {t('profil.sesEklendi')}
+                    </div>
+                  )}
+                  {e.ekler?.length > 0 && <Ekler ekler={e.ekler} />}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Ekleme düğmesi. Kapalı talepte yerine sebebi yazıyor:
+            kapanan talebe kimse bakmıyor, oraya yazılan kimseye
+            ulaşmaz (bkz. src/lib/talepEkleme.js). */}
+        {eklenebilir ? (
+          <button
+            className="btn btn--soft"
+            style={{ marginTop: 16 }}
+            onClick={() => {
+              setEklemeHata('')
+              setEklemePenceresi(true)
+            }}
+          >
+            <IconPlus size={18} /> {t('talepDetay.eklemeYap')}
+          </button>
+        ) : (
+          <p className="small muted" style={{ marginTop: 16, lineHeight: 1.6 }}>
+            {t('talepDetay.eklemeKapali')}
+          </p>
+        )}
+
         {/* --------------------------------------------------------- Geçmiş */}
         {r.gecmis?.length > 0 && (
           <>
@@ -281,6 +339,61 @@ export default function RequestDetail() {
           </a>
         </div>
       </div>
+
+      {/* --------------------------------------------- Ekleme penceresi
+
+          Not, ses ve dosya TEK kayıtta gidiyor: çiftçi bir kere
+          "ekleme yap" diyor, elindeki her şeyi koyuyor, tek zaman
+          damgası alıyor (bkz. src/lib/talepEkleme.js). */}
+      <Sheet
+        open={eklemePenceresi}
+        onClose={() => setEklemePenceresi(false)}
+        title={t('talepDetay.eklemeYap')}
+      >
+        <div className="stack" style={{ gap: 16 }}>
+          <p className="small muted" style={{ margin: 0, lineHeight: 1.6 }}>
+            {t('talepDetay.eklemeAciklama')}
+          </p>
+
+          <label className="field">
+            <span className="field__label">{t('talepDetay.eklemeNot')}</span>
+            <textarea
+              className="textarea"
+              value={yeniNot}
+              onChange={(e) => setYeniNot(e.target.value)}
+              placeholder={t('talepDetay.eklemeNotIpucu')}
+            />
+          </label>
+
+          <SesKaydi ses={yeniSes} onDegis={setYeniSes} />
+          <EkAlani ekler={yeniEkler} onDegis={setYeniEkler} />
+
+          {eklemeHata && <div className="uyari-kart">{eklemeHata}</div>}
+
+          <button
+            className="btn btn--primary"
+            onClick={() => {
+              const kayit = eklemeOlustur({
+                not: yeniNot,
+                ses: yeniSes,
+                ekler: yeniEkler,
+              })
+              /* Boş ekleme kaydedilmiyor: personelin listesinde
+                 içi boş bir satır belirmesin. */
+              if (!kayit) return setEklemeHata(t('talepDetay.eklemeBos'))
+              updateRequest(r.id, { eklemeler: [...(r.eklemeler || []), kayit] })
+              setYeniNot('')
+              setYeniSes(null)
+              setYeniEkler([])
+              setEklemeHata('')
+              setEklemePenceresi(false)
+              showToast(t('talepDetay.eklemeAlindi'))
+            }}
+          >
+            {t('talepDetay.eklemeGonder')}
+          </button>
+        </div>
+      </Sheet>
 
       <TabBar />
     </div>

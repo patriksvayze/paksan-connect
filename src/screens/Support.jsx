@@ -230,19 +230,24 @@ export default function Support() {
     setAdim({ tur: 'bitti' })
   }
 
-  function cozulmedi() {
-    soyle({ kim: 'ben', metin: t('destek.cozulmedi') })
-    kaydet({ tur: 'cozulmedi', deger: sonBelirti.current })
-    soyle({ kim: 'bot', metin: t('destek.neYapalim') })
-    setAdim({ tur: 'cikis' })
-  }
-
-  function talepAc(tur) {
+  /* Talep açmaya gitmek, "ekranda çözülmedi" demenin kendisi: ayrıca
+     bir düğmeye basılmasına gerek yok. Kayda ikisi de yazılıyor —
+     `yonlendirme` hangi talebe gidildiğini, `cozulmedi` hangi
+     belirtinin çözülmediğini tutuyor (bkz. backoffice → Destek
+     Kayıtları). */
+  function talepAc(tur, parcalar) {
+    if (sonBelirti.current) kaydet({ tur: 'cozulmedi', deger: sonBelirti.current })
     kaydet({ tur: 'yonlendirme', deger: tur })
     const belirti = sonBelirti.current
       ? `&destek=${encodeURIComponent(sonBelirti.current)}`
       : ''
-    nav(`/talep?tur=${tur}${belirti}`)
+    /* Sebep kartında "gerekebilecek parçalar" listelendiyse o parçalar
+       talep formunda hazır seçili geliyor; çiftçi aynı listeyi ikinci
+       kez elle işaretlemiyor. */
+    const parca = tur === 'parca' && parcalar?.length
+      ? `&parcalar=${encodeURIComponent(parcalar.join('|'))}`
+      : ''
+    nav(`/talep?tur=${tur}${belirti}${parca}`)
   }
 
   /* Sohbetin içinden makine seçimi: konuşma kesilmiyor, seçilen
@@ -335,7 +340,6 @@ export default function Support() {
           onBolum={bolumSec}
           onBelirti={belirtiSec}
           onCozuldu={cozuldu}
-          onCozulmedi={cozulmedi}
           onBaskaSorun={() => {
             soyle({ kim: 'bot', metin: t('destek.nerede') })
             setAdim({ tur: 'bolum' })
@@ -524,7 +528,7 @@ function Cevap({ belirti, dil, t }) {
    ne söyleyebileceği burada duruyor. */
 function Secenekler({
   adim, bolumler, benimMakinelerim, dil, t,
-  onMakine, onBaskaMakine, onBolum, onBelirti, onCozuldu, onCozulmedi,
+  onMakine, onBaskaMakine, onBolum, onBelirti, onCozuldu,
   onBaskaSorun, onTalep,
 }) {
   if (!adim) return null
@@ -578,26 +582,36 @@ function Secenekler({
   }
 
   if (adim.tur === 'sonuc') {
+    /* ÇÖZÜLMEDİYSE NE YAPILACAĞI DOĞRUDAN BURADA.
+
+       Önce "Hâlâ devam ediyor" düğmesi vardı; ona basılınca bir adım
+       daha açılıp servis ve parça düğmeleri geliyordu. Fazladan bir
+       dokunuş, hiçbir bilgi eklemiyordu — "devam ediyor" demekle
+       "servis istiyorum" demek arasında çiftçi için bir fark yok.
+
+       Sebep kartında "gerekebilecek parçalar" listelendiyse parça
+       talebi ÖNE alınıyor: çiftçi zaten hangi parçaya ihtiyacı
+       olduğunu okumuş durumda, sipariş bir dokunuş uzakta olmalı. */
+    const parcalar = adim.belirti?.parcalar || []
     return (
-      <div className="chips">
+      <div className="chips chips--dikey">
         <button className="chip chip--ana" onClick={onCozuldu}>
           <IconCheckCircle size={18} /> {t('destek.cozuldu')}
         </button>
-        <button className="chip" onClick={onCozulmedi}>{t('destek.cozulmedi')}</button>
-      </div>
-    )
-  }
-
-  if (adim.tur === 'cikis') {
-    return (
-      <div className="chips chips--dikey">
-        <button className="chip" onClick={onBaskaSorun}>{t('destek.baskaBelirti')}</button>
+        {parcalar.length > 0 && (
+          <button className="chip chip--ana" onClick={() => onTalep('parca', parcalar)}>
+            <IconParca size={18} /> {t('destek.parcaTalebi')}
+          </button>
+        )}
         <button className="chip chip--ana" onClick={() => onTalep('servis')}>
           <IconWrench size={18} /> {t('destek.servisTalebi')}
         </button>
-        <button className="chip chip--ana" onClick={() => onTalep('parca')}>
-          <IconParca size={18} /> {t('destek.parcaTalebi')}
-        </button>
+        {parcalar.length === 0 && (
+          <button className="chip chip--ana" onClick={() => onTalep('parca')}>
+            <IconParca size={18} /> {t('destek.parcaTalebi')}
+          </button>
+        )}
+        <button className="chip" onClick={onBaskaSorun}>{t('destek.baskaBelirti')}</button>
       </div>
     )
   }

@@ -17,6 +17,9 @@
   --dolgu: var(--lacivert);
   --lacivert-2: #12294a;
   --mavi: #1848a8;
+  /* Mavi rozetin YAZI hâli. Aydınlıkta --mavi ile aynı; ayrım karanlık
+     temada işe yarıyor (bkz. --mavi-rz-koyu). */
+  --mavi-rz: #1848a8;
   --mavi-acik: #2f6fe4;
   --turuncu: #c7490a;
 
@@ -29,9 +32,13 @@
   --cizgi: #e2e7f0;
   --cizgi-koyu: #cdd5e2;
 
-  --kirmizi: #c93636;
+  --kirmizi: #bb3232;
+  /* Kırmızı rozetin ÜSTÜNDEKİ yazı. Aydınlıkta kırmızı koyu, yazı
+     beyaz (5,81); karanlıkta kırmızı açılıyor ve beyaz yazı 2,84'e
+     düşüyordu — orada koyu mürekkep gerekiyor (6,38). */
+  --rozet-yazi: #ffffff;
   --mor: #6d3fa8;
-  --turkuaz: #0f7d8c;
+  --turkuaz: #0d6f7d;
 
   /* Grafiklerde "orta" dilimin rengi. Turuncu, yanındaki kırmızıyla
      karışıyordu — özellikle projeksiyonda ve renk körlüğünde.
@@ -45,12 +52,21 @@
      açıldı ve birbirinden uzaklaştırıldı. */
   /* Servis turuncu: kırmızı, gecikme ünleminin rengi. İkisi yan yana
      durunca ekran baştan aşağı kırmızı görünüyordu. */
-  --tur-servis: #e08512;
-  --tur-parca: #a869e8;
-  --tur-satis: #3d97f0;
-  --turuncu-d: #b8620a;
-  --yesil: #1a8348;
-  --gri: #737d8f;
+  /* Uzerlerinde BEYAZ yazi var; tonlari ona gore ÖLÇÜLDÜ. Daha açık
+     hâllerinde (#e08512 · #a869e8 · #3d97f0) beyaz yazı 2,79–3,59
+     kontrasttaydı, 11,5 punto için aranan 4,5'in altı. Bu tonlarda
+     beyaz yazı 4,66–4,70; hap da kart yüzeyinden ayrılıyor (4,66+). */
+  --tur-servis: #a8640d;
+  --tur-parca: #974ce4;
+  --tur-satis: #1174d7;
+  /* Rozet yazısı olarak kullanılıyorlar; kendi soluk zeminleri üstünde
+     ÖLÇÜLDÜ. Eski değerlerde sırasıyla 3,50 · 3,80 · 3,37 kalıyordu —
+     11,5 punto yazı için aranan 4,5'in altı. Bu tonlarda 4,65 · 4,66 ·
+     4,65. Dolgu olarak kullanıldıkları yerde de üstlerindeki beyaz
+     yazıyı iyileştiriyorlar. */
+  --turuncu-d: #9b5208;
+  --yesil: #17733f;
+  --gri: #5e6775;
 
   --kirmizi-z: rgba(201, 54, 54, 0.1);
   --turuncu-z: rgba(184, 98, 10, 0.12);
@@ -115,6 +131,10 @@
   /* Düğme zeminleri koyu kalıyor; üstlerindeki beyaz yazının kontrastı
      zeminin kendi rengine bağlı. */
   --mavi-koyu: #1d55c0;
+  /* Mavi rozet yazısı karanlıkta açılıyor — dolgu hâli (--mavi-koyu)
+     açılamıyor, üstündeki beyaz yazı okunmaz olurdu. */
+  --mavi-rz-koyu: #83abf6;
+  --rozet-yazi-koyu: #111a2e;
 
   /* Dolu eylem zemini: birincil düğme ve seçili süzgeç hapı.
 
@@ -135,16 +155,22 @@
   /* Yazı ve rozet renkleri koyu zeminde okunacak şekilde açık */
   --turuncu-koyu: #ff8a3d;
   --turuncu-d-koyu: #f0a53c;
-  --kirmizi-koyu: #f0736f;
+  /* Kendi soluk zemini üstünde 4,43'te kalıyordu; bu tonda 4,62.
+     Mor da aynı sebeple bir tık açıldı (4,15 → 4,64). */
+  --kirmizi-koyu: #f17975;
   --yesil-koyu: #3fbf74;
-  --mor-koyu: #a882eb;
+  --mor-koyu: #b08ded;
   --turkuaz-koyu: #35b3c4;
   --sari-koyu: #e8c33c;
   --gri-koyu: #9aa4b6;
 
-  --tur-servis-koyu: #f0a53c;
-  --tur-parca-koyu: #be8cf5;
-  --tur-satis-koyu: #60b0fa;
+  /* Karanlıkta da beyaz yazı taşıyorlar, o yüzden AÇILMIYORLAR —
+     açık tonlarında beyaz yazı 2,07–2,54'e düşüyordu. Bu tonlarda
+     beyaz yazı 4,60–4,72, hap/kart ayrımı 3,46+ (arayüz ögesi için
+     aranan 3'ü geçiyor). */
+  --tur-servis-koyu: #a4650d;
+  --tur-parca-koyu: #9849ef;
+  --tur-satis-koyu: #0775da;
 
   /* Soluk zeminler ters çevriliyor */
   --kirmizi-z-koyu: rgba(240, 115, 111, 0.18);
@@ -173,6 +199,8 @@
   --dolgu: var(--dolgu-koyu);
   --lacivert-2: var(--lacivert-2-koyu);
   --mavi: var(--mavi-koyu);
+  --mavi-rz: var(--mavi-rz-koyu);
+  --rozet-yazi: var(--rozet-yazi-koyu);
   --mavi-acik: var(--mavi-acik-koyu);
   --turuncu: var(--turuncu-koyu);
   --turuncu-d: var(--turuncu-d-koyu);
@@ -211,6 +239,8 @@
     --dolgu: var(--dolgu-koyu);
     --lacivert-2: var(--lacivert-2-koyu);
     --mavi: var(--mavi-koyu);
+    --mavi-rz: var(--mavi-rz-koyu);
+    --rozet-yazi: var(--rozet-yazi-koyu);
     --mavi-acik: var(--mavi-acik-koyu);
     --turuncu: var(--turuncu-koyu);
     --turuncu-d: var(--turuncu-d-koyu);
@@ -441,10 +471,13 @@ a {
   min-width: 0;
 }
 
+/* Yazı beyaz değil koyu: --kirmizi karanlık temada açılıyor (koyu
+   zeminde okunsun diye) ve üstündeki beyaz yazı 2,84'e düşüyordu.
+   Koyu mürekkep her iki temanın kırmızısında da okunuyor. */
 .yan__sayi {
   margin-left: auto;
   background: var(--kirmizi);
-  color: #fff;
+  color: var(--rozet-yazi);
   font-size: 11.5px;
   font-weight: 700;
   min-width: 20px;
@@ -456,8 +489,13 @@ a {
   font-variant-numeric: tabular-nums;
 }
 
+/* Seçili satırda rozet kırmızı değil, saydam beyaz bir hap oluyor.
+   0,24 saydamlıkta üstündeki yazı hiçbir renkte 4,5'i geçmiyordu:
+   koyu mürekkep 4,33'te, beyaz 3,09'da kalıyordu. 0,55'te hap yeterince
+   açılıyor ve koyu mürekkep iki temada da 9,26 / 5,96 veriyor. */
 .yan__bag--on .yan__sayi {
-  background: rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.55);
+  color: #111a2e;
 }
 
 /* Kullanıcı kartı ve çıkış her zaman en altta.
@@ -744,9 +782,12 @@ tbody tr.secili {
   color: var(--turuncu-d);
 }
 
+/* --mavi değil --mavi-rz: --mavi karanlık temada dolgu rengi olarak
+   koyu kalıyor, kendi açık mavi tinti üstünde 2,05'te okunmuyordu.
+   Ayrı bir yazı tonu ile 5,27. */
 .rz--mavi {
   background: var(--mavi-z);
-  color: var(--mavi);
+  color: var(--mavi-rz);
 }
 
 .rz--yesil {
@@ -1085,7 +1126,10 @@ tbody tr.secili {
   padding: 8px;
   background: none;
   border: 0;
-  color: var(--mavi);
+  /* Giriş ekranı temadan bağımsız olarak hep koyu (yukarıdaki
+     .giris gradyanı). --mavi orada koyu mavi kalıyor ve kart yüzeyine
+     karşı 2,43'te okunmuyordu; --mavi-rz-koyu sabit açık ton, 7,11. */
+  color: var(--mavi-rz-koyu);
   font: inherit;
   font-size: 13.5px;
   cursor: pointer;
@@ -1121,7 +1165,9 @@ tbody tr.secili {
   align-items: center;
   flex-wrap: wrap;
   background: var(--mavi-z);
-  color: var(--mavi);
+  /* Rozetlerle aynı sebep: --mavi karanlıkta dolgu tonu, açık mavi
+     tint üstünde 2,05'te okunmuyordu (bkz. --mavi-rz). */
+  color: var(--mavi-rz);
   border-radius: var(--r);
   padding: 12px 16px;
   font-size: 13.5px;
@@ -1247,6 +1293,29 @@ tbody tr.secili {
   background: var(--mor);
   color: #fff;
   font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+  vertical-align: -2px;
+}
+
+/* Planlanan gönderim tarihi geçmiş parça talebi.
+
+   Üç işaret aynı hücrede yan yana durabiliyor ve üçü ayrı şey diyor:
+     ! kırmızı  → kimse bakmadı (gecikme)
+     ⏳ mor      → müşteri dönmedi (bekleyen teklif)
+     📦 turuncu → söz verilen tarih geçti, parça gönderilmedi
+   Renkleri bilerek ayrı; aynı renk olsalardı hangisinin ne olduğu
+   ancak üstüne gelince anlaşılırdı. */
+.gonderilecek {
+  display: inline-grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--turuncu-d);
+  color: #fff;
+  font-size: 10px;
   font-weight: 900;
   line-height: 1;
   vertical-align: -2px;
@@ -1619,8 +1688,11 @@ select.sec {
   fill: var(--murekkep);
 }
 
+/* SVG'nin görüntü kutusu 42 birim, ekranda 122 piksel çiziliyor — yani
+   her birim 2,9 piksel. 2,9'luk yazı ekranda 8,4 piksele denk geliyordu,
+   okunmuyordu. 3,7 ile ekranda 10,7 piksel oluyor. */
 .halka__yazi {
-  font-size: 2.9px;
+  font-size: 3.7px;
   text-anchor: middle;
   fill: var(--murekkep-3);
   letter-spacing: 0.08em;
@@ -1903,11 +1975,70 @@ select.sec {
   overflow-wrap: anywhere;
 }
 
+/* Talepler tablosunda sütun genişlikleri.
+
+   AMAÇ: sütunlar birbirine yakın genişlikte olsun ama hiçbir hücre
+   fazladan satıra kırılmasın.
+
+   Önce ilk sütun 24'e çıkarılmıştı, çünkü uyarı işaretleri talep
+   numarasının önünde duruyor ve numarayı taşırıyordu. İşaretler
+   alt satıra, tür etiketinin yanına alınınca (bkz. `.talep-alt`)
+   o genişliğe gerek kalmadı.
+
+   Aşağıdaki dağılım ÖLÇÜLEREK seçildi: sütunlar arası fark
+   74 pikselden 34 piksele indi, 42 talep numarasının hiçbiri
+   kırpılmıyor ve tablonun toplam yüksekliği birebir aynı kaldı
+   (3654 piksel) — yani hiçbir yerde yeni satır kırılması yok. */
+.tablo--talepler th:nth-child(1),
+.tablo--talepler td:nth-child(1) { width: 20%; }
+.tablo--talepler th:nth-child(2),
+.tablo--talepler td:nth-child(2) { width: 18%; }
+.tablo--talepler th:nth-child(3),
+.tablo--talepler td:nth-child(3) { width: 16%; }
+.tablo--talepler th:nth-child(4),
+.tablo--talepler td:nth-child(4) { width: 15%; }
+.tablo--talepler th:nth-child(5),
+.tablo--talepler td:nth-child(5) { width: 16%; }
+.tablo--talepler th:nth-child(6),
+.tablo--talepler td:nth-child(6) { width: 15%; }
+
+/* Talep numarası tek satırda kalıyor; taşarsa üç nokta ile kısalıyor
+   ama satır kırılmıyor. */
+.talep-no {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Tür etiketi ve uyarı işaretleri numaranın altında, aynı satırda.
+   İşaretler numaranın önündeyken numarayı sığmaz hâle getiriyordu. */
+.talep-alt {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-top: 3px;
+}
+
+/* Alt satıra taşındıkları için kendi sağ boşlukları gerekmiyor;
+   aradaki mesafeyi `.talep-alt` veriyor. */
+.talep-alt .gecikme,
+.talep-alt .bekleyen,
+.talep-alt .gonderilecek {
+  margin-right: 0;
+}
+
+.talep-alt .tur {
+  margin-top: 0;
+}
+
 /* --------------------------------------------------------- Tür etiketi
 
    Talep numarasının altında duruyor. Renkler Dashboard'daki
    grafiklerle aynı. */
 
+/* Yazı beyaz; okunabilirlik dolgu tonlarıyla sağlandı — bkz.
+   --tur-servis / --tur-parca / --tur-satis. */
 .tur {
   display: inline-block;
   margin-top: 3px;

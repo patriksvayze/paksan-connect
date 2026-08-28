@@ -7,7 +7,7 @@ import { getProduct, urunDilde } from '../data/products'
 import { yaz } from '../lib/destek'
 import {
   genelGuvenlik, kilavuzBelgesi, kilavuzGuvenlik, kilavuzKartlari,
-  kilavuzModelleri, kilavuzTeknik, kilavuzVarMi, prosedurBasligi, teknikEtiket,
+  kilavuzModelleri, kilavuzTeknik, kilavuzVarMi, prosedurBasligi, teknikEtiket, teknikDeger,
 } from '../lib/kilavuzVeri'
 import {
   IconBook, IconAlert, IconRight, IconChat, IconShield, IconCog,
@@ -158,7 +158,7 @@ export default function Manual() {
               {teknik.map((q) => (
                 <div key={q.faq_id} className="kilavuz-tablo__satir">
                   <span className="kilavuz-tablo__ad">{teknikEtiket(q, dil)}</span>
-                  <strong className="kilavuz-tablo__deger">{yaz(q.answer, dil)}</strong>
+                  <strong className="kilavuz-tablo__deger">{teknikDeger(q, dil)}</strong>
                 </div>
               ))}
             </div>

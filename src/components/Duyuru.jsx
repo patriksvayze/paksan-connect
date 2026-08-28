@@ -81,7 +81,7 @@ export function Duyuru() {
             style={
               uyari
                 ? { background: 'var(--pk-orange-soft)', color: 'var(--pk-orange-ink)' }
-                : { background: 'var(--pk-blue-soft)', color: 'var(--pk-blue)' }
+                : { background: 'var(--pk-blue-soft)', color: 'var(--pk-blue-yazi)' }
             }
           >
             {uyari ? <IconAlert size={22} /> : <IconBell size={22} />}

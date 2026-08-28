@@ -14,6 +14,7 @@
 
 import logo from '../assets/marka/paksan-logo.png'
 import amblem from '../assets/marka/paksan-amblem.png'
+import { MARKA_YAZI_YOLU, MARKA_YAZI_W, MARKA_YAZI_H } from '../data/markaYollari'
 
 const TAM_W = 225
 const TAM_H = 69
@@ -46,33 +47,32 @@ export function PaksanLogo({
     )
   }
 
+  /* YAZI SVG OLARAK ÇİZİLİYOR.
+
+     Önce PNG'nin yazı bölümü kırpılıp gösteriliyordu. Kaynak 225x69
+     piksel; karşılama ekranında 163x50 çiziliyor ve telefonun piksel
+     yoğunluğu 2 kat olduğu için gerçekte 326x100 gerekiyordu — yani
+     görsel %44 büyütülüyor, bulanık ve kenarları bozuk çıkıyordu.
+
+     SVG her boyutta net. Rengi de `currentColor` ile geliyor, koyu
+     zeminde beyaz yapmak için görsel filtresine gerek kalmıyor
+     (eskiden `brightness(0) invert(1)` kullanılıyordu; o filtre
+     kenar yumuşatmayı da bozuyordu). */
   const olcek = height / TAM_H
   return (
-    <span
-      aria-label="PAKSAN"
+    <svg
       role="img"
+      aria-label="PAKSAN"
       className={className}
-      style={{
-        display: 'inline-block',
-        height,
-        width: YAZI_W * olcek,
-        overflow: 'hidden',
-        ...style,
-      }}
+      viewBox={`0 0 ${MARKA_YAZI_W} ${MARKA_YAZI_H}`}
+      width={YAZI_W * olcek}
+      height={height}
+      /* Kurumsal mavi logo dosyasından ölçüldü (#1d50a0). Marka
+         rengi olduğu için tema belirteci değil, sabit değer. */
+      style={{ display: 'block', color: beyaz ? '#fff' : '#1d50a0', ...style }}
     >
-      <img
-        src={logo}
-        alt=""
-        style={{
-          height,
-          width: TAM_W * olcek,
-          maxWidth: 'none',
-          display: 'block',
-          marginLeft: -YAZI_X * olcek,
-          filter: filtre,
-        }}
-      />
-    </span>
+      <path d={MARKA_YAZI_YOLU} fill="currentColor" />
+    </svg>
   )
 }
 

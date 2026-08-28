@@ -1,27 +1,27 @@
 import { useMemo } from 'react'
 import { TopBar, TabBar } from '../components/Chrome'
 import { useDil } from '../i18n'
-import { yaz } from '../lib/destek'
-import { tumGuvenlikKurallari } from '../lib/kilavuzVeri'
+import { guvenlikObekleri, guvenlikMaddeSayisi } from '../data/guvenlik'
 import { IconAlert } from '../components/Icons'
 
 /* ==========================================================================
    Güvenlik kuralları — beş kılavuzun tamamı, tek sayfada
 
-   Neden ayrı bir sayfa: bir kılavuzun güvenlik bölümü 51-58 madde ve
-   dört kılavuzun maddeleri neredeyse birebir aynı (47 madde ortak).
-   Her makinenin kendi sayfasında aynı listeyi tekrar etmenin anlamı
-   yoktu; makine sayfalarında yalnız "makineye el sürmeden önce"
-   kuralları duruyor, tamamı burada.
+   Neden ayrı bir sayfa: her kılavuzun güvenlik bölümü 51-58 madde ve
+   kılavuzların maddeleri neredeyse birebir aynı. Her makinenin kendi
+   sayfasında aynı listeyi tekrar etmenin anlamı yoktu; makine
+   sayfalarında yalnız "makineye el sürmeden önce" kuralları duruyor,
+   tamamı burada.
 
-   Öbekler kılavuzun kendi sınıflandırması. Aynı cümle birden çok
-   kılavuzda geçiyorsa bir kez yazılıyor.
+   Liste artık ham kılavuz verisinden değil, derlenmiş halinden
+   geliyor (bkz. src/data/guvenlik.js): tekrarlar birleştirildi, dil
+   düzeltildi, öbekler işin sırasına göre dizildi.
    ========================================================================== */
 
 export default function ManualSafety() {
   const { t, dil } = useDil()
-  const oebekler = useMemo(() => tumGuvenlikKurallari(), [])
-  const toplam = oebekler.reduce((n, o) => n + o.maddeler.length, 0)
+  const oebekler = useMemo(() => guvenlikObekleri(dil), [dil])
+  const toplam = guvenlikMaddeSayisi()
 
   return (
     <div className="app">
@@ -39,14 +39,14 @@ export default function ManualSafety() {
         </div>
 
         {oebekler.map((o) => (
-          <div key={o.kategori}>
+          <div key={o.id}>
             <div className="sectionhead">
-              <h2>{t('guvenlik.k_' + o.kategori)}</h2>
+              <h2>{t('guvenlik.k_' + o.id)}</h2>
               <span className="sectionhead__count">{o.maddeler.length}</span>
             </div>
             <ol className="guvenlik-liste">
-              {o.maddeler.map((g) => (
-                <li key={g.safety_id}>{yaz(g.text, dil)}</li>
+              {o.maddeler.map((madde) => (
+                <li key={madde}>{madde}</li>
               ))}
             </ol>
           </div>

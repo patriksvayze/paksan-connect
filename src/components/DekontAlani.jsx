@@ -106,7 +106,7 @@ export function DekontAlani({ dekont, onDegis }) {
           ) : (
             <div
               className="listitem__icon"
-              style={{ background: 'var(--pk-green-soft)', color: 'var(--pk-green)' }}
+              style={{ background: 'var(--pk-green-soft)', color: 'var(--pk-green-yazi)' }}
             >
               <IconCheckCircle size={22} />
             </div>

@@ -506,7 +506,7 @@ function BildirimSatiri({ metin }) {
           height: 34,
           borderRadius: 11,
           background: 'var(--pk-green-soft)',
-          color: 'var(--pk-green)',
+          color: 'var(--pk-green-yazi)',
         }}
       >
         <IconCheck size={18} />
