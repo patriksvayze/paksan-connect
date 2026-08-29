@@ -97,3 +97,24 @@ Sorun bulursa çıkış kodu 1.
 Bazı CSS token'ları **bilerek** ayrı (backoffice'te beyaz yazı için koyu
 ton gerekiyor). Bunlar `tools/dogrula.mjs` içinde gerekçesiyle listeli —
 eklemeden önce `backoffice.css`'teki ölçüm gerekçesini oku.
+
+## Kod grafiği
+
+- Projede `codebase-memory` kod grafiği bulunur.
+- Kod grafiği, fonksiyonları ve aralarındaki çağrı ilişkilerini tutar.
+- Böylece büyük dosyaları baştan sona okumak yerine doğrudan ilgili bölüme gidilebilir.
+- Claude, kod grafiğini MCP üzerinden kullanır.
+- Codex, kendi kipinde MCP araçlarını kullanamaz; araç çağrıları onay ister ve başarısız olur.
+- Codex için komut satırı yolu kullanılır: `npm run graf`
+- Örnek kullanımlar:
+
+```bash
+npm run graf -- search_graph --query "tema uygula"
+npm run graf -- trace_path --function-name "paksan-connect.src.components.TemaSecici.temayiUygula" --direction inbound
+npm run graf -- get_architecture
+```
+
+- `--direction` yalnızca `inbound`, `outbound` veya `both` değerlerini kabul eder.
+- Aynı isim birden fazla yerdeyse araç tam nitelikli ad ister.
+- Tam nitelikli ad, önce `search_graph` kullanılarak bulunur.
+- Codex'e iş devredilirken brief içinde `npm run graf` komutunun kullanılacağı belirtilir.
