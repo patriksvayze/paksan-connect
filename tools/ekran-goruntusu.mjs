@@ -282,46 +282,37 @@ const UYGULAMA = [
     ad: '10-destek-makine-secimi', baslik: 'Destek — makine seçimi', yol: '/destek',
     adimlar: [{ js: "localStorage.removeItem('paksan.destekUrun')" }, { yenile: true }],
   },
-  { ad: '11-destek-ariza-listesi', baslik: 'Destek — arıza listesi', yol: '/destek' },
+  /* DESTEK — üç adımlı yönlendirme.
+
+     Ekran yenilendi: düz arıza listesi yerine önce konu grubu,
+     sonra belirti, sonra cevap geliyor. Seçiciler buna göre. */
+  { ad: '11-destek-konular', baslik: 'Destek — konu grupları', yol: '/destek' },
   {
-    ad: '12-destek-cozum', baslik: 'Destek — sebepler ve çözümler', yol: '/destek',
+    ad: '12-destek-belirtiler', baslik: 'Destek — belirtiler', yol: '/destek',
     adimlar: [
-      { tiklaMetin: 'İp düğümlenmiyor', kapsam: '.ariza__bas' },
+      { tiklaMetin: 'Bağlama ve düğüm', kapsam: '.chip--konu' },
+      { bekle: 600 },
+    ],
+  },
+  {
+    ad: '13-destek-cevap', baslik: 'Destek — sebepler ve çözümler', yol: '/destek',
+    adimlar: [
+      { tiklaMetin: 'Bağlama ve düğüm', kapsam: '.chip--konu' },
       { bekle: 500 },
-      { kaydirSecici: '.ariza--on' },
+      { tiklaMetin: 'İp sürekli kopuyor', kapsam: '.chip' },
+      { bekle: 800 },
+      { kaydirSecici: '.dst-sebepler' },
     ],
   },
   {
-    ad: '13-destek-guvenlik-serit', baslik: 'Destek — müdahale uyarıları', yol: '/destek',
+    ad: '14-destek-guvenlik', baslik: 'Destek — müdahale uyarısı', yol: '/destek',
     adimlar: [
-      { tiklaMetin: 'İp düğümlenmiyor', kapsam: '.ariza__bas' },
-      { bekle: 400 },
-      { tikla: '.dst-serit__bas' },
-      { bekle: 300 },
-      { kaydirSecici: '.ariza--on' },
+      { tiklaMetin: 'Bağlama ve düğüm', kapsam: '.chip--konu' },
+      { bekle: 500 },
+      { tiklaMetin: 'İp sürekli kopuyor', kapsam: '.chip' },
+      { bekle: 800 },
+      { kaydirSecici: '.dst-guvenlik' },
     ],
-  },
-  {
-    ad: '14-destek-kaynak', baslik: 'Destek — kılavuz alıntısı', yol: '/destek',
-    adimlar: [
-      { tiklaMetin: 'İp düğümlenmiyor', kapsam: '.ariza__bas' },
-      { bekle: 400 },
-      { tiklaSon: '.ariza__ic .dst-kaynak' },
-      { bekle: 300 },
-      { kaydirSecici: '.dst-alinti', bosluk: 260 },
-    ],
-  },
-  {
-    ad: '15-destek-hizli-cevaplar', baslik: 'Destek — hızlı cevaplar', yol: '/destek',
-    adimlar: [{ tiklaMetin: 'Hızlı Cevaplar', kapsam: '.sekme' }, { bekle: 400 }],
-  },
-  {
-    ad: '16-destek-kullanim', baslik: 'Destek — kullanım kartları', yol: '/destek',
-    adimlar: [{ tiklaMetin: 'Kullanım', kapsam: '.sekme' }, { bekle: 400 }],
-  },
-  {
-    ad: '17-destek-guvenlik', baslik: 'Destek — güvenlik uyarıları', yol: '/destek',
-    adimlar: [{ tiklaMetin: 'Güvenlik uyarıları', kapsam: '.btn' }, { bekle: 400 }],
   },
   { ad: '18-kilavuzlar', baslik: 'Kılavuzlar', yol: '/kilavuzlar' },
   { ad: '19-kilavuz', baslik: 'Kılavuz detayı', yol: '/kilavuz/hammer' },
