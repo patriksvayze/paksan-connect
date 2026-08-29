@@ -155,7 +155,7 @@ export function Musteriler({ personel, rol, bildir, tazele, surum }) {
             className="sec"
             value={ara}
             onChange={(e) => setAra(e.target.value)}
-            placeholder="No, ad, telefon, seri no"
+      placeholder="Müşteri numarası, ad, telefon, seri numarası"
           />
         </label>
 
@@ -259,9 +259,9 @@ function Detay({ musteri, talepler, duzenleyebilir, onDuzenle }) {
 
       <div className="kart__ic">
         <Bolum ad="Bilgiler">
-          <S k="Müşteri No" v={musteri.no} mono />
+          <S k="Müşteri numarası" v={musteri.no} mono />
           <S k="Konum" v={musteri.ilce ? `${musteri.ilce} / ${musteri.il}` : musteri.il} />
-          <S k="Makineyi Aldığı Yer" v={musteri.satici} />
+          <S k="Makineyi aldığı yer" v={musteri.satici} />
           <S k="Kayıt Tarihi" v={tarihYaz(musteri.createdAt)} />
           <S k="Bildirim İzni" v={IZIN[musteri.bildirim?.izin]} />
           <S k="Konum İzni" v={IZIN[musteri.konumIzni]} />
@@ -345,7 +345,7 @@ function Form({ musteri, onKapat, onKaydet }) {
           </div>
 
           <label className="alan">
-            <span className="alan__ad">Makineyi Aldığı Yer</span>
+          <span className="alan__ad">Makineyi aldığı yer</span>
             <input className="gir" value={d.satici} onChange={yaz('satici')} />
           </label>
 
@@ -360,8 +360,8 @@ function Form({ musteri, onKapat, onKaydet }) {
             <button
               className="dg dg--ana"
               onClick={() => {
-                if (d.ad.trim().length < 3) return setHata('Ad soyad yazın.')
-                if (!d.il.trim()) return setHata('İl yazın.')
+                if (d.ad.trim().length < 3) return setHata('Adınızı ve soyadınızı yazın.')
+                if (!d.il.trim()) return setHata('İl adını yazın.')
                 onKaydet(d)
               }}
             >
@@ -411,7 +411,7 @@ function S({ k, v, mono }) {
 /* ----------------------------------------------------------- Excel aktarımı */
 
 const AKTAR_BASLIK = [
-  'Müşteri No', 'Ad soyad', 'Telefon', 'İl', 'İlçe', 'Makineyi aldığı yer',
+    'Müşteri numarası', 'Ad soyad', 'Telefon', 'İl', 'İlçe', 'Makineyi aldığı yer',
   'Kayıt tarihi', 'Kayıt saati', 'Makine sayısı', 'Makineler', 'Seri numaraları',
   'Talep sayısı', 'Aydınlatma onayı', 'Açık rıza', 'Kampanya izni',
 ]

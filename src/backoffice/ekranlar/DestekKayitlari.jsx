@@ -122,7 +122,7 @@ export function DestekKayitlari({ rol, surum }) {
             { deger: 'coz', ad: 'Ekranda çözüldü' },
             { deger: 'yarim', ad: 'Yarıda kaldı' },
             { deger: 'talep', ad: 'Talebe dönüştü' },
-            { deger: 'cevapsiz', ad: 'Cevapsız kalan var' },
+      { deger: 'cevapsiz', ad: 'Cevapsız kalanlar' },
           ]}
           genislik={175}
         />
@@ -275,7 +275,7 @@ function OturumDetay({ oturum }) {
 
       <div className="kart__ic">
         <div style={{ marginBottom: 18 }}>
-          <S k="Müşteri No" v={oturum.kullanici?.no} mono />
+          <S k="Müşteri numarası" v={oturum.kullanici?.no} mono />
           <S k="Telefon" v={oturum.kullanici?.tel} mono />
           <S
             k="Konum"
@@ -287,7 +287,7 @@ function OturumDetay({ oturum }) {
           />
           <S k="Makine" v={oturum.urun?.ad} />
           <S
-            k="Seri No"
+            k="Seri numarası"
             v={oturum.makine?.serial ? formatSerial(oturum.makine.serial) : ''}
             mono
           />
@@ -406,7 +406,7 @@ export function yonlendirme(oturum) {
 /* --------------------------------------------------------- Excel aktarımı */
 
 const AKTAR_BASLIK = [
-  'Tarih', 'Saat', 'Müşteri no', 'Müşteri', 'Telefon', 'İl', 'Makine', 'Seri no',
+        'Tarih', 'Saat', 'Müşteri numarası', 'Müşteri', 'Telefon', 'İl', 'Makine', 'Seri numarası',
   'Dil', 'Konular', 'Sorulan', 'Cevapsız kalan', 'Sonuç',
 ]
 

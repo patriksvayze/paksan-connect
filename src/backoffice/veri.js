@@ -146,7 +146,7 @@ export async function personelEkle(veri, yapan) {
   const kullanici = veri.kullanici.trim().toLocaleLowerCase('tr-TR')
 
   if (liste.some((p) => p.kullanici === kullanici)) {
-    return { hata: 'Bu kullanıcı adı zaten var.' }
+    return { hata: 'Bu kullanıcı adı zaten kullanılıyor.' }
   }
   if (!sifreGecerliMi(veri.sifre)) {
     return { hata: 'Şifre 6 rakamdan oluşmalı.' }
@@ -185,7 +185,7 @@ export async function personelGuncelle(id, degisiklik, yapan) {
     .toLocaleLowerCase('tr-TR')
 
   if (liste.some((p) => p.id !== id && p.kullanici === kullanici)) {
-    return { hata: 'Bu kullanıcı adı zaten var.' }
+    return { hata: 'Bu kullanıcı adı zaten kullanılıyor.' }
   }
 
   const yeni = { ...eski, ...degisiklik, kullanici }
@@ -213,7 +213,7 @@ export function personelSil(id, yapan) {
   /* Son admin silinirse backoffice’e bir daha girilemez. */
   const kalanAdmin = liste.filter((p) => p.rol === 'admin' && p.id !== id).length
   if (kayit.rol === 'admin' && kalanAdmin === 0) {
-    return { hata: 'Son admin hesabı silinemez.' }
+    return { hata: 'Son yönetici hesabı silinemez.' }
   }
 
   personelYaz(liste.filter((p) => p.id !== id))
@@ -590,15 +590,9 @@ export function talepKapat(talep, cozum, personel) {
       ? 'bildirimler.gonderildiBaslik'
       : 'bildirimler.durumBaslik',
     metinAnahtar: parcaGonderimi
-      ? (cozum.takipNo ? 'bildirimler.gonderildiTakip' : 'bildirimler.gonderildiMetin')
+      ? 'bildirimler.gonderildiMetin'
       : 'bildirimler.durum_kapandi',
-    degerler: {
-      no: talep.no,
-      durum: 'kapandi',
-      talepTur: talep.tur,
-      kargo: cozum.kargo || '',
-      takipNo: cozum.takipNo || '',
-    },
+    degerler: { no: talep.no, durum: 'kapandi', talepTur: talep.tur },
     talepNo: talep.no,
   })
 }
@@ -812,7 +806,7 @@ export function duyuruSil(id, personel) {
   const liste = load(ANAHTAR.duyurular, [])
   const kayit = liste.find((d) => d.id === id)
   save(ANAHTAR.duyurular, liste.filter((d) => d.id !== id))
-  islemYaz({ tur: 'duyuru', ozet: `Duyuru geri çekildi · ${kayit?.baslik || id}`, personel })
+  islemYaz({ tur: 'duyuru', ozet: `Duyuru yayından kaldırıldı · ${kayit?.baslik || id}`, personel })
 }
 
 /* ---------------------------------------- Müşterinin diğer talepleri

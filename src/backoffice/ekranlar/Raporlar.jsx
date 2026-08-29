@@ -181,7 +181,7 @@ export function Raporlar({ rol, surum, git }) {
 
         <SuzgecCubugu>
           <button className="dg dg--kucuk" onClick={() => { setAcikRapor(null); cevir(null) }}>
-            ← Bütün raporlar
+            ← Tüm raporlar
           </button>
           <TarihAraligi aralik={aralik} onDegis={setAralik} />
           <DisaAktar
@@ -301,11 +301,12 @@ export function Raporlar({ rol, surum, git }) {
           <Olculer
             ozet={[
               ...(ozetR.ozet || []).filter((x) =>
-                ['Gelen talep', 'Kapanan', 'Tamamlanma', 'Tekrar gelen makine'].includes(x.ad)
+                [
+                  'Gelen talep', 'Kapanan', 'Tamamlanma',
+                  'Verilen tarihte teslim', 'Tekrar gelen makine',
+                ].includes(x.ad)
               ),
-              ...(finansR.ozet || []).filter((x) =>
-                ['Satışa dönen', 'Talep başına ciro'].includes(x.ad)
-              ),
+              ...(finansR.ozet || []).filter((x) => x.ad === 'Satışa dönen'),
             ]}
           />
         </div>
@@ -420,8 +421,8 @@ function dikkatIsteyenler(donem, veri, aralik, git) {
   const gecikenler = donem.filter(gecikmisMi)
   if (gecikenler.length) {
     liste.push({
-      ad: `${gecikenler.length} talebe 48 saattir kimse bakmadı`,
-      alt: 'Açık kaldığı hâlde hiçbir personel dokunmamış talepler',
+      ad: `${gecikenler.length} taleple 48 saattir ilgilenilmedi`,
+      alt: 'Açık kaldığı hâlde hiçbir personelin ilgilenmediği talepler',
       ton: 'kirmizi',
       goster: git ? () => git('talepler', { durum: 'gecikmis', aralik }) : null,
     })
@@ -430,8 +431,8 @@ function dikkatIsteyenler(donem, veri, aralik, git) {
   const teklifBekleyen = donem.filter(teklifBekliyorMu)
   if (teklifBekleyen.length) {
     liste.push({
-      ad: `${teklifBekleyen.length} teklif müşteri cevabı bekliyor`,
-      alt: 'Fiyat verildi, müşteriden dönüş gelmedi',
+      ad: `${teklifBekleyen.length} teklif müşterinin yanıtını bekliyor`,
+      alt: 'Fiyat verildi, müşteriden yanıt gelmedi',
       ton: 'turuncu',
       goster: git ? () => git('talepler', { durum: 'teklifBekleyen', aralik }) : null,
     })
@@ -450,7 +451,7 @@ function dikkatIsteyenler(donem, veri, aralik, git) {
   if (enCok && enCok[1] > 1) {
     liste.push({
       ad: `En çok servis isteyen model: ${enCok[0]} (${enCok[1]} talep)`,
-      alt: 'Aynı modelde tekrar eden arıza imalata bakmayı gerektirebilir',
+      alt: 'Aynı modelde tekrarlayan arıza, imalatın incelenmesini gerektirebilir',
       ton: 'mavi',
       goster: null,
     })
@@ -547,6 +548,29 @@ function paraYaz(sayi) {
 function paraKutu(sayi) {
   const v = paraYaz(sayi)
   return v === '—' ? v : v + ' ₺'
+}
+
+/* Müşteriye tarih verilmiş ve kapanmış taleplerin kaçında o tarihe
+   uyulduğu.
+
+   Sınır GÜNÜN SONU: saat 14.00 denip 16.00'da kapanan talep sözünde
+   sayılıyor, ertesi güne sarkan sayılmıyor. Müşteriye söylenen şey
+   gün; saat saatine tutturmak beklenmiyor.
+
+   Tarih verilmemiş talepler paydaya girmiyor — söz verilmemişse
+   tutulmamış da sayılmaz. */
+function sozTutmaOrani(liste) {
+  const sozluler = liste.filter(
+    (t) => t.plan?.tarih && t.status === 'kapandi' && t.cozum?.tarih
+  )
+  if (!sozluler.length) return '—'
+  const gunSonu = (z) => {
+    const d = new Date(z)
+    d.setHours(23, 59, 59, 999)
+    return d.getTime()
+  }
+  const tutulan = sozluler.filter((t) => t.cozum.tarih <= gunSonu(t.plan.tarih))
+  return yuzde(tutulan.length, sozluler.length)
 }
 
 /* Bu dönem birden çok talep açılmış makine sayısı. Makineler seri
@@ -657,6 +681,9 @@ const URETICILER = {
            müdahale yetmemiş; imalatçı için ikisi de haber. Seri
            numarası olmayan talepler sayılmıyor. */
         { ad: 'Tekrar gelen makine', deger: tekrarEdenMakine(donem) },
+        /* "Bu Dönem" şeridinde gösteriliyor. Müşteriye tarih verilip
+           kapanmış taleplerin kaçında söze uyulduğu. */
+        { ad: 'Verilen tarihte teslim', deger: sozTutmaOrani(donem) },
         {
           ad: 'En yavaş %10',
           deger: sureYaz(dilim(donem.map((t) => sureler(t).kapanis), 0.9)),
@@ -721,7 +748,7 @@ const URETICILER = {
 
     const satirlar = [
       ['Hunideki teklif', String(hunide.length), paraYaz(hunideTutar),
-        'Teklif verildi, müşteri cevabı bekleniyor'],
+        'Teklif verildi, müşterinin yanıtı bekleniyor'],
       ['Satışa dönen', String(kazanilan.length), paraYaz(kazanilanTutar),
         'Teklif kapandı, sonuç: satış oldu'],
       ['Kaybedilen', String(kaybedilen.length), paraYaz(kaybedilenTutar),
@@ -751,14 +778,6 @@ const URETICILER = {
         },
         { ad: 'Hunide bekleyen', deger: paraKutu(hunideTutar) },
         { ad: 'Servis + parça', deger: paraKutu(servisTutar + parcaTutar) },
-        /* "Bu Dönem" şeridinde gösteriliyor. Dönemin bütün tahsilatı
-           (satış + servis + parça) ÷ gelen talep. */
-        {
-          ad: 'Talep başına ciro',
-          deger: donem.length
-            ? paraKutu((kazanilanTutar + servisTutar + parcaTutar) / donem.length)
-            : '—',
-        },
         {
           ad: 'Teklif dönüşümü',
           deger: yuzde(kazanilan.length, kazanilan.length + kaybedilen.length),
@@ -1067,7 +1086,7 @@ const URETICILER = {
 
     return {
       basliklar: [
-        'Talep no', 'Teklif tarihi', 'Müşteri', 'İl', 'İlgilendiği ürün',
+        'Talep numarası', 'Teklif tarihi', 'Müşteri', 'İl', 'İlgilendiği ürün',
         'Teklif tutarı', 'Sonuç', 'Satış fiyatı', 'Süre',
       ],
       satirlar,
@@ -1172,7 +1191,7 @@ const URETICILER = {
       t.no,
       TALEP_ADI[t.tur] || t.tur,
       durumBilgi(t.status).ad,
-      teklifBekliyorMu(t) ? 'Müşteri cevabı bekleniyor' : 'Kimse bakmadı',
+      teklifBekliyorMu(t) ? 'Müşterinin yanıtı bekleniyor' : 'İlgilenilmedi',
       t.ad || '—',
       t.tel || '—',
       t.il || '—',
@@ -1185,7 +1204,7 @@ const URETICILER = {
 
     return {
       basliklar: [
-        'Talep no', 'Tür', 'Durum', 'Neden bekliyor', 'Müşteri', 'Telefon',
+        'Talep numarası', 'Tür', 'Durum', 'Neden bekliyor', 'Müşteri', 'Telefon',
         'İl', 'Tarih', 'Saat', 'Bekleme',
       ],
       satirlar,
@@ -1220,7 +1239,7 @@ const URETICILER = {
 
     return {
       basliklar: [
-        'Müşteri no', 'Ad soyad', 'Telefon', 'İl', 'Kayıt tarihi',
+        'Müşteri numarası', 'Ad soyad', 'Telefon', 'İl', 'Kayıt tarihi',
         'Makine', 'Seri numaraları', 'Aldığı yer',
       ],
       satirlar,
@@ -1244,6 +1263,6 @@ const ACIKLAMA = {
   satis: 'Fiyat verilmiş her teklif listede: kapanmışlar sonucuyla, bekleyenler kaç gündür beklediğiyle. Henüz fiyat çalışılmamış talepler bu listede yok.',
   bolge: 'Müşteri sayısı telefon numarasına göre tekilleştirildi.',
   bayi: 'Bu bir satış rakamı değil — müşterinin "makineyi nereden aldım" beyanı. Gerçek satış adedi Logo\'daki faturadan gelir.',
-  gecikme: 'İki tür bekleme bir arada: 48 saati geçtiği hâlde kimsenin bakmadığı talepler ve fiyatı verilip müşteri cevabı gelmeyen teklifler. "Neden bekliyor" sütunu ikisini ayırıyor.',
+  gecikme: 'İki tür bekleme bir arada: 48 saati geçtiği hâlde ilgilenilmeyen talepler ve fiyatı verilip müşterinin yanıtı alınamayan teklifler. "Neden bekliyor" sütunu ikisini ayırıyor.',
   musteri: 'Kayıt tarihi seçilen aralığa düşen müşteriler.',
 }

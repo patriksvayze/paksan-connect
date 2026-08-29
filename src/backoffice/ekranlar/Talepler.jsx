@@ -277,7 +277,7 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
             className="sec"
             value={ara}
             onChange={(e) => setAra(e.target.value)}
-            placeholder="Talep no, ad, telefon, seri no"
+            placeholder="Talep numarası, ad, telefon, seri numarası"
           />
         </label>
 
@@ -501,7 +501,7 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
         {gecikmisMi(talep) && (
           <div className="uyari">
             <Gecikme />
-            <span>Bu talep 48 saati geçti, hâlâ açık.</span>
+            <span>Bu talep 48 saati aşkın süredir açık.</span>
           </div>
         )}
 
@@ -599,7 +599,7 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
         {talep.makine && (
           <Bolum ad="Makine">
             <S k="Model" v={p?.name} />
-            <S k="Seri No" v={formatSerial(talep.makine.serial)} mono />
+            <S k="Seri numarası" v={formatSerial(talep.makine.serial)} mono />
             <S k="Üretim Yılı" v={makineYili(talep) || ''} />
             {garanti && (
               <div className="satir" style={{ gap: 10, alignItems: 'baseline', marginBottom: 5 }}>
@@ -620,7 +620,7 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
               sıralamaya katkı vermiyordu. Eski taleplerde yazılı
               olduğu için satır duruyor, boşsa görünmüyor. */}
           <S k="Aciliyet" v={aceleAdi(talep.acele)} />
-          <S k="Ne Balyalayacak" v={talep.urunTipi} />
+          <S k="Balyalanacak ürün" v={talep.urunTipi} />
           <S k="Arazi" v={talep.arazi} />
           <S k="Traktör Gücü" v={talep.traktor} />
           <S k="İlgilendiği Ürün" v={talep.urunId ? getProduct(talep.urunId)?.name : ''} />
@@ -715,15 +715,15 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
             {talep.fatura.tuzel ? (
               <>
                 <S k="Ünvan" v={talep.fatura.unvan} />
-                <S k="Vergi No" v={talep.fatura.vergiNo} mono />
+                <S k="Vergi numarası" v={talep.fatura.vergiNo} mono />
               </>
             ) : (
               <>
                 <S k="Ad Soyad" v={talep.fatura.ad} />
-                <S k="TC Kimlik No" v={talep.fatura.tc} mono />
+                <S k="T.C. kimlik numarası" v={talep.fatura.tc} mono />
               </>
             )}
-            <S k="Fatura Telefonu" v={talep.fatura.tel} mono />
+            <S k="Fatura telefonu" v={talep.fatura.tel} mono />
             {talep.fatura.farkliKisi && (
               <div className="uyari" style={{ marginTop: 8 }}>
                 Fatura, uygulamayı kullanan kişiden BAŞKASININ adına kesilecek.
@@ -731,7 +731,7 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
             )}
 
             <div className="alan__ad" style={{ marginTop: 14, marginBottom: 6 }}>
-              Teslimat Adresi
+              Teslimat adresi
             </div>
             <S
               k="İl / İlçe"
@@ -807,7 +807,7 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
         {/* Verilen teklif — müşterinin cevabı beklenirken burada duruyor */}
         {talep.teklif && (
           <Bolum ad="Verilen Teklif">
-            <S k="Teklif Tutarı" v={talep.teklif.tutar} />
+            <S k="Teklif tutarı" v={talep.teklif.tutar} />
             <S k="Geçerlilik" v={talep.teklif.gecerlilik} />
             {talep.teklif.not && (
               <p style={{ whiteSpace: 'pre-wrap', margin: '8px 0 0' }}>{talep.teklif.not}</p>
@@ -846,7 +846,7 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
 
         {talep.plan && (
           <Bolum ad="Plan">
-            <S k="Planlanan Tarih" v={talep.plan.tarihYazi} />
+            <S k="Planlanan tarih" v={talep.plan.tarihYazi} />
             <p style={{ whiteSpace: 'pre-wrap', margin: '6px 0 0' }}>{talep.plan.is}</p>
             <div className="kucuk sonuk" style={{ marginTop: 6 }}>
               {talep.plan.personel} · {tarihYaz(talep.plan.kayitTarihi)}
@@ -912,7 +912,7 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
             style={{ minHeight: 68 }}
             value={not}
             onChange={(e) => setNot(e.target.value)}
-            placeholder="Kargo takip numarası, iç not…"
+            placeholder="İç not…"
           />
           <div className="satir" style={{ marginTop: 8, gap: 8 }}>
             <button className="dg" onClick={() => notKaydet(false)}>
@@ -928,7 +928,7 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
           </div>
           <p className="kucuk sonuk" style={{ margin: '8px 0 0' }}>
             "Müşteriye gönder" dediğinizde yazdığınız cümle olduğu gibi müşterinin
-            uygulamasına düşer ve bildirim gider.
+            uygulamasında görünür ve bildirim gönderilir.
           </p>
         </Bolum>
 
@@ -1000,7 +1000,7 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
         {notOnay && (
           <Onay
             baslik="Notu müşteriye gönder"
-            metin={`Aşağıdaki yazı ${talep.ad || 'müşteriye'} olduğu gibi gidecek ve telefonuna bildirim düşecek. Gönderilen not geri alınamaz.\n\n"${not.trim()}"`}
+            metin={`Aşağıdaki yazı ${talep.ad || 'müşteriye'} olduğu gibi gönderilecek ve telefonuna bildirim gönderilecek. Gönderilen not geri alınamaz.\n\n"${not.trim()}"`}
             onayYazi="Gönder"
             onVazgec={() => setNotOnay(false)}
             onOnayla={() => {
@@ -1026,7 +1026,7 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
         {odemeOnay && (
           <Onay
             baslik="Ödemeyi onayla"
-            metin={`${talep.no} talebinin ödemesi onaylanacak. Dekontu ve hesaba geçen tutarı kontrol ettiğinizden emin olun. Müşteriye "ödemeniz alındı" bildirimi gidecek.`}
+            metin={`${talep.no} talebinin ödemesi onaylanacak. Dekontu ve hesaba geçen tutarı kontrol ettiğinizden emin olun. Müşteriye "ödemeniz alındı" bildirimi gönderilecek.`}
             onVazgec={() => setOdemeOnay(false)}
             onOnayla={() => {
               const acilacak = (talep.status || 'yeni') === 'yeni'
@@ -1127,7 +1127,7 @@ function S({ k, v, mono }) {
    arazim nasıl" orada yazıyor. Gizlenseydi satış personeli müşterinin
    anlattığını Excel'de göremezdi. */
 const AKTAR_SUTUNLARI = [
-  { ad: 'Talep No', deger: (t) => t.no },
+  { ad: 'Talep numarası', deger: (t) => t.no },
   { ad: 'Tür', deger: (t) => TALEP_ADI[t.tur] || t.tur },
   { ad: 'Durum', deger: (t) => durumBilgi(t.status).ad },
   { ad: 'Tarih', deger: (t) => tarihSaat(t.createdAt)[0] },
@@ -1141,7 +1141,7 @@ const AKTAR_SUTUNLARI = [
     deger: (t) => (t.makine ? getProduct(t.makine.productId)?.name || '' : ''),
   },
   {
-    ad: 'Seri No',
+    ad: 'Seri numarası',
     deger: (t) => (t.makine?.serial ? formatSerial(t.makine.serial) : ''),
   },
 
@@ -1193,7 +1193,6 @@ const AKTAR_SUTUNLARI = [
     deger: (t) => (t.odemeOnay ? tarihYaz(t.odemeOnay.tarih, false) : ''),
     gizli: ['satis'],
   },
-  { ad: 'Kargo takip no', deger: (t) => t.cozum?.takipNo || '', gizli: ['satis'] },
 
   { ad: 'İptal sebebi', deger: (t) => t.iptalBilgi?.neden || '' },
 ]
@@ -1317,9 +1316,9 @@ const GARANTI_ADI = {
    sonuç soruluyor. Aynı formu üç türe de sormak anlamsızdı. */
 const KAPANIS_ALANLARI = {
   servis: [
-    { ad: 'yapilanIs', etiket: 'Yapılan İş', uzun: true, zorunlu: true,
+    { ad: 'yapilanIs', etiket: 'Yapılan iş', uzun: true, zorunlu: true,
       ipucu: 'Örnek: düğüm ipi mekanizması ayarlandı, pikap dişi değişti' },
-    { ad: 'parcalar', etiket: 'Değişen Parça', ipucu: 'Pikap dişi, düğüm ipi' },
+    { ad: 'parcalar', etiket: 'Değişen parça', ipucu: 'Pikap dişi, düğüm ipi' },
     { ad: 'ucret', etiket: 'Ücret', para: true, ipucu: 'Garanti kapsamında / 1250' },
   ],
   /* Yedek parça kapanışında TUTAR SORULMUYOR.
@@ -1329,19 +1328,20 @@ const KAPANIS_ALANLARI = {
      Kapanışta bir kez daha sormak, aynı rakamı ikinci kez ve elle
      yazdırmak demekti; iki kayıt tutmayınca da hangisinin doğru olduğu
      belirsizleşiyordu. */
-  /* KARGO BİLGİSİ BURADA SORULUYOR.
+  /* YEDEK PARÇA KAPANIŞINDA PERSONEL BİR ŞEY YAZMIYOR.
 
-     Eskiden ayrı bir "Gönderildi" durumu ve ayrı bir gönderim formu
-     vardı. İkisi de "bitti" anlamına geldiği için kaldırıldı
-     (bkz. veri.js → DURUMLAR). Parça kargoya verildiğinde talep
-     kapanıyor; kargo firması ve takip numarası kapanışın parçası. */
+     "Yapılan İş" boş bir kutuydu ve zorunluydu; personel her
+     seferinde "parçalar kargoya verildi" diye aynı cümleyi
+     yazıyordu. Bilgi taşımayan, yalnızca zorunlu olduğu için
+     doldurulan bir alandı.
+
+     Şimdi orada müşterinin sipariş ettiği parçalar kendiliğinden
+     yazıyor (`oto` alanı: okunur, yazılmaz). Fazladan bir şey
+     yapıldıysa altındaki isteğe bağlı nota yazılıyor. */
   parca: [
-    { ad: 'yapilanIs', etiket: 'Yapılan İş', uzun: true, zorunlu: true,
-      ipucu: 'Örnek: parçalar kargoya verildi, takip numarası paylaşıldı' },
-    { ad: 'parcalar', etiket: 'Gönderilen Parça', ipucu: 'Pikap dişi x2' },
-    { ad: 'kargo', etiket: 'Kargo Firması', ipucu: 'Örnek: Aras Kargo' },
-    { ad: 'takipNo', etiket: 'Takip Numarası',
-      ipucu: 'Yazarsanız müşteriye bildirimle birlikte gider' },
+    { ad: 'yapilanIs', etiket: 'Yapılan iş', oto: (talep) => parcaYazisi(talep) },
+    { ad: 'not', etiket: 'Not', uzun: true,
+      ipucu: 'Fazladan bir şey yapıldıysa yazın — eksik gönderim, değişen parça, müşteriyle konuşulan' },
   ],
   /* Fiyat teklifi kapanışı.
 
@@ -1384,6 +1384,11 @@ function paraBicimle(deger) {
 function kapanisOzeti(tur, deger) {
   if (tur === 'satinalma') {
     return [deger.sonuc, deger.satisFiyati].filter(Boolean).join(' · ')
+  }
+  /* Yedek parçada "yapılan iş" gönderilen parçaların kendisi; not
+     yazıldıysa işlem kaydında o da görünsün. */
+  if (tur === 'parca') {
+    return [deger.yapilanIs, deger.not].filter(Boolean).join(' · ')
   }
   return deger.yapilanIs
 }
@@ -1458,7 +1463,7 @@ function PlanFormu({ talep, onKapat, onKaydet }) {
 
         <div className="kart__ic">
           <label className="alan">
-            <span className="alan__ad">Planlanan Tarih ve Saat</span>
+            <span className="alan__ad">Planlanan tarih ve saat</span>
             <input
               className="gir"
               type="datetime-local"
@@ -1490,7 +1495,7 @@ function PlanFormu({ talep, onKapat, onKaydet }) {
                 checked={gorusuldu}
                 onChange={(e) => setGorusuldu(e.target.checked)}
               />
-              <span>Randevu gün ve saati müşteri ile görüşüldü</span>
+              <span>Randevunun gün ve saati müşteriyle görüşüldü</span>
             </label>
           )}
 
@@ -1505,7 +1510,7 @@ function PlanFormu({ talep, onKapat, onKaydet }) {
             <button
               className="dg dg--ana"
               onClick={() => {
-                if (!tarih) return setHata('Planlanan tarihi seçin.')
+                if (!tarih) return setHata('Planlanan tarih ve saati seçin.')
                 if (is.trim().length < 5) return setHata('Planlanan işi yazın.')
                 if (gorusmeSart && !gorusuldu) {
                   return setHata('Randevuyu kaydetmeden önce müşteriyle görüşün.')
@@ -1538,7 +1543,12 @@ function PlanFormu({ talep, onKapat, onKaydet }) {
 /* Kapatma formu — alanlar türe göre değişiyor (bkz. KAPANIS_ALANLARI). */
 function KapanisFormu({ talep, onKapat, onKaydet }) {
   const alanlar = KAPANIS_ALANLARI[talep.tur] || KAPANIS_ALANLARI.servis
-  const [deger, setDeger] = useState({})
+  /* `oto` alanları talepten okunuyor ve baştan dolu geliyor. */
+  const [deger, setDeger] = useState(() => {
+    const bas = {}
+    for (const a of alanlar) if (a.oto) bas[a.ad] = a.oto(talep)
+    return bas
+  })
   const [hata, setHata] = useState('')
 
   /* SERVİS FİŞİ — yalnız servis taleplerinde.
@@ -1620,10 +1630,17 @@ function KapanisFormu({ talep, onKapat, onKaydet }) {
             <label className="alan" key={a.ad}>
               <span className="alan__ad">
                 {a.etiket}
-                {!zorunluMu(a) && <span className="sonuk"> · isteğe bağlı</span>}
+                {!a.oto && !zorunluMu(a) && (
+                  <span className="sonuk"> · isteğe bağlı</span>
+                )}
               </span>
 
-              {a.uzun ? (
+              {a.oto ? (
+                /* Okunur alan: talepten geliyor, personel değiştirmiyor.
+                   Yazılabilir bırakmak, kayıtta müşterinin sipariş
+                   ettiğinden başka bir şey görünmesine yol açardı. */
+                <div className="alan__oto">{deger[a.ad] || '—'}</div>
+              ) : a.uzun ? (
                 <textarea
                   className="metin"
                   style={{ minHeight: 78 }}
@@ -1741,7 +1758,7 @@ function TeklifFormu({ talep, onKapat, onKaydet }) {
 
         <div className="kart__ic">
           <label className="alan">
-            <span className="alan__ad">Teklif Tutarı</span>
+            <span className="alan__ad">Teklif tutarı</span>
             <input
               className="gir"
               value={tutar}
@@ -1781,7 +1798,7 @@ function TeklifFormu({ talep, onKapat, onKaydet }) {
 
           <p className="kucuk sonuk" style={{ margin: '0 0 14px' }}>
             Tutar ve geçerlilik müşterinin uygulamasında görünecek, bildirim de gidecek.
-            Müşteri {TEKLIF_BEKLEME_GUN} gün içinde dönmezse bu talep listede işaretlenir.
+            Müşteri {TEKLIF_BEKLEME_GUN} gün içinde yanıt vermezse bu talep listede işaretlenir.
           </p>
 
           <div className="satir">
@@ -1864,7 +1881,7 @@ function IptalFormu({ talep, onKapat, onKaydet }) {
           <div className="uyari" style={{ marginBottom: 14 }}>
             <span>
               Buraya yazdıklarınız müşterinin uygulamasında <b>aynen</b> görünecek.
-              Müşteri "talebim neden iptal oldu" sorusunun cevabını burada okuyacak.
+              Müşteri "talebim neden iptal oldu?" sorusunun yanıtını burada okuyacak.
             </span>
           </div>
 

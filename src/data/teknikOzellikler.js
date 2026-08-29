@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Teknik ozellikler -- paksanmakina.com.tr'den
+   Teknik özellikler -- paksanmakina.com.tr'den
    ========================================================================== */
 
 export const TEKNIK = {
@@ -63,7 +63,7 @@ export const TEKNIK = {
         ],
       },
       {
-        baslik: 'MAKİNA ÖLÇÜLERİ',
+        baslik: 'MAKİNE ÖLÇÜLERİ',
         satirlar: [
           ['Uzunluk', 'mm', ['6800']],
           ['Genişlik', 'mm', ['2460']],
@@ -108,7 +108,7 @@ export const TEKNIK = {
         ],
       },
       {
-        baslik: 'MAKİNA ÖZELLİKLERİ',
+        baslik: 'MAKİNE ÖZELLİKLERİ',
         satirlar: [
           ['Çekilir Tip', '', ['Asılır', 'Opsiyon', 'Çekilir Tip', 'Çekilir Tip', 'Çekilir Tip', 'Çekilir Tip', 'Çekilir Tip', 'Çekilir Tip', 'Çekilir Tip', 'Çekilir Tip']],
           ['Yan Boşaltma Bandı', '', ['Standart', 'Standart', 'Standart', 'Standart', 'Standart', 'Yok', 'Yok', 'Yok', 'Yok', 'Yok']],
@@ -124,7 +124,7 @@ export const TEKNIK = {
         ],
       },
       {
-        baslik: 'MAKİNA ÖLÇÜLERİ',
+        baslik: 'MAKİNE ÖLÇÜLERİ',
         satirlar: [
           ['Ağırlık', '', ['435 kg', '1020 kg', '1370 kg', '1380 kg', '2350 kg', '2650 kg', '3050 kg', '4400 kg', '6000 kg', '6800 kg']],
           ['Uzunluk', '', ['1635 mm', '4200 mm', '4450 mm', '4702 mm', '5100 mm', '5180 mm', '5230 mm', '5610 mm', '7390 mm', '7340 mm']],
@@ -147,12 +147,12 @@ export const TEKNIK = {
           ['Balya / Saat', '', ['250 - 350']],
           ['Tırmık Genişliği', '', ['200']],
           ['Hidrolik Toplayıcı Pistonu', '', ['Standart']],
-          ['3. Destek Tekerİ', '', ['Opsiyon']],
-          ['Haşpay Ünütesi', '', ['Yok']],
+          ['3. Destek Tekerleği', '', ['Opsiyon']],
+          ['Haşpay Ünitesi', '', ['Yok']],
           ['Balya Ölçüsü', '', ['36 x 46']],
           ['Strok Boyu ve Hızı', '', ['73cm - 92 rpm']],
           ['Kuyruk Tipi', '', ['Standart']],
-          ['Bağlama Gurubu', '', ['2-3 İpli']],
+          ['Bağlama Grubu', '', ['2-3 İpli']],
           ['Telli Bağlama Grubu', '', ['Yok']],
           ['Bağlama Grubu Aydınlatması', '', ['Standart']],
           ['Bağlama Grubu Fanı', '', ['Standart']],
@@ -186,20 +186,20 @@ export const TEKNIK = {
         satirlar: [
           ['Tırmık Boru Sayısı', 'Ad', ['4']],
           ['Tırmık Parmak Sayısı', 'Ad', ['104']],
-          ['Maksimun Tırmık Genişliği', 'mm', ['1940']],
+          ['Maksimum Tırmık Genişliği', 'mm', ['1940']],
         ],
       },
       {
         baslik: 'GÜÇ AKTARIMI',
         satirlar: [
           ['Kuyruk Mili Devri', 'Rpm', ['540']],
-          ['Güç Aktarımı', '', ['Teleskobik Kardan Şaf']],
+          ['Güç Aktarımı', '', ['Teleskobik kardan şaftı']],
           ['Şaft Boyu min max', 'mm', ['1010-1540']],
-          ['Şaft Tipi', '', ['Serbest Döşlü, Aşırı Yükte Cıvata Kesmeli']],
+          ['Şaft Tipi', '', ['Serbest dönüşlü, aşırı yükte cıvata kesmeli']],
         ],
       },
       {
-        baslik: 'MAKİNA ÖLÇÜLERİ',
+        baslik: 'MAKİNE ÖLÇÜLERİ',
         satirlar: [
           ['Uzunluk', 'mm', ['3350']],
           ['Genişlik', 'mm', ['2785']],
@@ -296,7 +296,7 @@ export const TEKNIK = {
         ],
       },
       {
-        baslik: 'MAKİNA ÖLÇÜLERİ',
+        baslik: 'MAKİNE ÖLÇÜLERİ',
         satirlar: [
           ['Uzunluk', 'mm', ['6980']],
           ['Genişlik', 'mm', ['2450']],
@@ -357,8 +357,8 @@ export const TEKNIK = {
         baslik: 'BAĞLAMA SİSTEMİ',
         satirlar: [
           ['Bağlama Sistemi', '', ['Çift Düğüm', 'Çift Düğüm']],
-          ['Mekik', '', ['Özel Dizayn', 'Özel Dizayn']],
-          ['Bağlama Grubu Emniyet Sistemi', '', ['Kesme Civatası', 'Kesme Civatası']],
+          ['Mekik', '', ['Özel Tasarım', 'Özel Tasarım']],
+          ['Bağlama Grubu Emniyet Sistemi', '', ['Kesme Cıvatası', 'Kesme Cıvatası']],
           ['İp Kapasitesi', 'Adet', ['24', '24']],
         ],
       },
@@ -366,12 +366,12 @@ export const TEKNIK = {
         baslik: 'ANA TAHRİK',
         satirlar: [
           ['PTO Devir', '', ['Standart', 'Standart']],
-          ['Valon Emniyet Sistemi', '', ['Kesme Civatası', 'Kesme Civatası']],
-          ['Şanzıman', '', ['Özel Dizayn', 'Özel Dizayn']],
+          ['Valon Emniyet Sistemi', '', ['Kesme Cıvatası', 'Kesme Cıvatası']],
+          ['Şanzıman', '', ['Özel Tasarım', 'Özel Tasarım']],
         ],
       },
       {
-        baslik: 'MAKİNA ÖZELLİKLERİ',
+        baslik: 'MAKİNE ÖZELLİKLERİ',
         satirlar: [
           ['Fren Sistemi', '', ['Standart', 'Standart']],
           ['Tartı Sistemi', '', ['Opsiyon', 'Opsiyon']],
@@ -388,7 +388,7 @@ export const TEKNIK = {
         ],
       },
       {
-        baslik: 'MAKİNA ÖLÇÜLERİ',
+        baslik: 'MAKİNE ÖLÇÜLERİ',
         satirlar: [
           ['Genişlik', 'cm', ['287', '287']],
           ['Uzunluk', 'cm', ['290', '290']],
@@ -449,8 +449,8 @@ export const TEKNIK = {
         baslik: 'BAĞLAMA SİSTEMİ',
         satirlar: [
           ['Bağlama Sistemi', '', ['Çift Düğüm', 'Çift Düğüm']],
-          ['Mekik', '', ['Özel Dizayn', 'Özel Dizayn']],
-          ['Bağlama Grubu Emniyet Sistemi', '', ['Kesme Civatası', 'Kesme Civatası']],
+          ['Mekik', '', ['Özel Tasarım', 'Özel Tasarım']],
+          ['Bağlama Grubu Emniyet Sistemi', '', ['Kesme Cıvatası', 'Kesme Cıvatası']],
           ['İp Kapasitesi', 'Adet', ['24', '24']],
         ],
       },
@@ -458,12 +458,12 @@ export const TEKNIK = {
         baslik: 'ANA TAHRİK',
         satirlar: [
           ['PTO Devir', '', ['Standart', 'Standart']],
-          ['Valon Emniyet Sistemi', '', ['Kesme Civatası', 'Kesme Civatası']],
-          ['Şanzıman', '', ['Özel Dizayn', 'Özel Dizayn']],
+          ['Valon Emniyet Sistemi', '', ['Kesme Cıvatası', 'Kesme Cıvatası']],
+          ['Şanzıman', '', ['Özel Tasarım', 'Özel Tasarım']],
         ],
       },
       {
-        baslik: 'MAKİNA ÖZELLİKLERİ',
+        baslik: 'MAKİNE ÖZELLİKLERİ',
         satirlar: [
           ['Fren Sistemi', '', ['Standart', 'Standart']],
           ['Tartı Sistemi', '', ['Opsiyon', 'Opsiyon']],
@@ -480,7 +480,7 @@ export const TEKNIK = {
         ],
       },
       {
-        baslik: 'MAKİNA ÖLÇÜLERİ',
+        baslik: 'MAKİNE ÖLÇÜLERİ',
         satirlar: [
           ['Genişlik', 'cm', ['287', '287']],
           ['Uzunluk', 'cm', ['250', '250']],
@@ -525,7 +525,7 @@ export const TEKNIK = {
         ],
       },
       {
-        baslik: 'MAKİNA ÖZELLİKLERİ',
+        baslik: 'MAKİNE ÖZELLİKLERİ',
         satirlar: [
           ['Çekilir Tip', '', ['Çekilir Tip', 'Çekilir Tip', 'Çekilir Tip', 'Çekilir Tip']],
           ['Yan Boşaltma Bandı', '', ['Standart', 'Standart', 'Standart', 'Standart']],
@@ -537,7 +537,7 @@ export const TEKNIK = {
         ],
       },
       {
-        baslik: 'MAKİNA ÖLÇÜLERİ',
+        baslik: 'MAKİNE ÖLÇÜLERİ',
         satirlar: [
           ['Uzunluk', '', ['', 'cm', '780', '']],
           ['Genişlik', '', ['', 'cm', '230', '']],
@@ -545,7 +545,7 @@ export const TEKNIK = {
         ],
       },
       {
-        baslik: 'MAKİNA ÖLÇÜLERİ İŞ KONUMU',
+        baslik: 'MAKİNE ÖLÇÜLERİ İŞ KONUMU',
         satirlar: [
           ['Ağırlık', '', ['2250', '2950', '3580', '4600']],
           ['Uzunluk', '', ['4365', '4755', '4855', '5680']],
@@ -571,7 +571,7 @@ export const TEKNIK = {
           ['Rotor Sayısı', '', ['10', '12', '', '', '', '']],
           ['Yol Genişliği', '', ['2520', '3000', '2254', '2476', '2946', '3166']],
           ['Rotor Arası', '', ['24', '24', '', '', '', '']],
-          ['Tesfiye Barı', '', ['Mekanik', 'Mekanik', '', '', '', '']],
+          ['Tesviye Barı', '', ['Mekanik', 'Mekanik', '', '', '', '']],
           ['Taş Kiti', '', ['Standart', 'Standart', '', '', '', '']],
           ['Bıçak Tipi', '', ['', '', 'C-L', 'C-L', 'C-L', 'C-L']],
           ['Rotor Çapı', '', ['', '', '89', '89', '89', '102']],
@@ -650,11 +650,11 @@ export const TEKNIK = {
           ['Streç Ebatları', 'mm', ['500', '750']],
           ['File Ebatları', 'mm', ['900-1050', '1230-1250']],
           ['Otomatik Yağlama', '', ['Standart', 'Standart']],
-          ['Presleme Ünitesi', '', ['Kauçuk Band', 'Kauçuk Band']],
+          ['Presleme Ünitesi', '', ['Kauçuk Bant', 'Kauçuk Bant']],
         ],
       },
       {
-        baslik: 'MAKİNA ÖLÇÜLERİ',
+        baslik: 'MAKİNE ÖLÇÜLERİ',
         satirlar: [
           ['Uzunluk - Yol Konumu', 'cm', ['780', '810']],
           ['Uzunluk - İş Konumu', 'cm', ['960', '1057']],
@@ -663,7 +663,7 @@ export const TEKNIK = {
           ['Yükseklik - Yol Konumu', 'cm', ['365', '375']],
           ['Yükseklik - İş Konumu', 'cm', ['330', '380']],
           ['Dingil', '', ['Tek Hafif Yapı', 'Tek Hafif Yapı']],
-          ['Araç Bağlama', '', ['Tek Noktadan Traktör Çekişli', 'Tek Noktadan Traktör Çekişl']],
+          ['Araç Bağlama', '', ['Tek Noktadan Traktör Çekişli', 'Tek Noktadan Traktör Çekişli']],
           ['Ağırlık', 'kg', ['7050', '10500']],
         ],
       },
@@ -719,16 +719,16 @@ export const TEKNIK = {
           ['Piston Kursu', 'cm', ['65', '73', '73']],
           ['Strok Hızı', 'rpm', ['92-104', '92-104', '92-104']],
           ['Materyal', '', ['', 'Çelik Piston', '']],
-          ['Piston Rayi', '', ['', 'Rulman', '']],
+          ['Piston Rayı', '', ['', 'Rulman', '']],
         ],
       },
       {
         baslik: 'BAĞLAMA SİSTEMİ',
         satirlar: [
-          ['İpli Bağlama', '', ['', 'Paksan Özel Dizayn', '']],
+          ['İpli Bağlama', '', ['', 'Paksan Özel Tasarım', '']],
           ['Telli Bağlama', '', ['', 'Opsiyon', '']],
-          ['Mekik', '', ['', 'Paksan Özel Dizayn', '']],
-          ['Bağlama Grubu Emniyet Sistemi', '', ['', 'Kesme Civatası', '']],
+          ['Mekik', '', ['', 'Paksan Özel Tasarım', '']],
+          ['Bağlama Grubu Emniyet Sistemi', '', ['', 'Kesme Cıvatası', '']],
           ['İp Kapasitesi', 'Adet', ['6', '6', '6']],
           ['Tel Kapasitesi', 'Adet', ['2', '2', '2']],
         ],
@@ -737,9 +737,9 @@ export const TEKNIK = {
         baslik: 'ANA TAHRİK',
         satirlar: [
           ['PTO Devir', '', ['540-610', '540-610', '540-610']],
-          ['Valon Emniyet Sistemi', '', ['', 'Kesme Civatasi', '']],
+          ['Valon Emniyet Sistemi', '', ['', 'Kesme Cıvatası', '']],
           ['Valon Emniyet Sistemi', '', ['', 'Kavrama', '']],
-          ['Şanzıman', '', ['', 'Paksan Özel Dizayn', '']],
+          ['Şanzıman', '', ['', 'Paksan Özel Tasarım', '']],
         ],
       },
       {
@@ -750,14 +750,14 @@ export const TEKNIK = {
         ],
       },
       {
-        baslik: 'MAKİNA ÖLÇÜLERİ',
+        baslik: 'MAKİNE ÖLÇÜLERİ',
         satirlar: [
           ['Yükseklik - Ot', 'cm', ['178', '178', '178']],
           ['Yükseklik - Saman', 'cm', ['188', '188', '188']],
           ['Genişlik', 'cm', ['230', '230', '242']],
           ['Uzunluk', 'cm', ['545', '545', '545']],
           ['Ağırlık', 'kg', ['1500', '1800', '2200']],
-          ['Traktor Gücü', 'hp', ['55 ve Yukarı', '55 ve Yukarı', '55 ve Yukarı']],
+          ['Traktör Gücü', 'hp', ['55 ve üzeri', '55 ve üzeri', '55 ve üzeri']],
         ],
       },
     ],
@@ -812,16 +812,16 @@ export const TEKNIK = {
           ['Piston Kursu', 'cm', ['73', '73', '73']],
           ['Strok Hızı', 'rpm', ['73-104', '73-104', '73-104']],
           ['Materyal', '', ['', 'Çelik Piston', '']],
-          ['Piston Rayi', '', ['', 'Rulman', '']],
+          ['Piston Rayı', '', ['', 'Rulman', '']],
         ],
       },
       {
         baslik: 'BAĞLAMA SİSTEMİ',
         satirlar: [
-          ['İpli Bağlama', '', ['', 'Paksan Özel Dizayn', '']],
+          ['İpli Bağlama', '', ['', 'Paksan Özel Tasarım', '']],
           ['Telli Bağlama', '', ['', 'Opsiyon', '']],
-          ['Mekik', '', ['', 'Paksan Özel Dizayn', '']],
-          ['Bağlama Grubu Emniyet Sistemi', '', ['', 'Kesme Civatası', '']],
+          ['Mekik', '', ['', 'Paksan Özel Tasarım', '']],
+          ['Bağlama Grubu Emniyet Sistemi', '', ['', 'Kesme Cıvatası', '']],
           ['İp Kapasitesi', 'Adet', ['6', '6', '6']],
           ['Tel Kapasitesi', 'Adet', ['2', '2', '2']],
         ],
@@ -830,9 +830,9 @@ export const TEKNIK = {
         baslik: 'ANA TAHRİK',
         satirlar: [
           ['PTO Devir', '', ['', 'Standart', '']],
-          ['Valon Emniyet Sistemi', '', ['', 'Kesme Civatasi', '']],
+          ['Valon Emniyet Sistemi', '', ['', 'Kesme Cıvatası', '']],
           ['Valon Emniyet Sistemi', '', ['', 'Kavrama', '']],
-          ['Şanzıman', '', ['', 'Paksan Özel Dizayn', '']],
+          ['Şanzıman', '', ['', 'Paksan Özel Tasarım', '']],
         ],
       },
       {
@@ -843,14 +843,14 @@ export const TEKNIK = {
         ],
       },
       {
-        baslik: 'MAKİNA ÖLÇÜLERİ',
+        baslik: 'MAKİNE ÖLÇÜLERİ',
         satirlar: [
           ['Yükseklik - Ot', 'cm', ['178', '178', '178']],
           ['Yükseklik - Saman', 'cm', ['188', '188', '188']],
           ['Genişlik', 'cm', ['238', '238', '247']],
           ['Uzunluk', 'cm', ['545', '545', '545']],
           ['Ağırlık', 'kg', ['1900', '2020', '2570']],
-          ['Traktor Gücü', 'hp', ['55 ve Yukarı', '55 ve Yukarı', '55 ve Yukarı']],
+          ['Traktör Gücü', 'hp', ['55 ve üzeri', '55 ve üzeri', '55 ve üzeri']],
         ],
       },
     ],
@@ -909,16 +909,16 @@ export const TEKNIK = {
         satirlar: [
           ['Piston Kursu', 'cm', ['73']],
           ['Strok Hızı', 'rpm', ['92 - 104']],
-          ['Materyal', '', ['Çelik Pisto']],
-          ['Piston Rayi', '', ['Rulman']],
+          ['Materyal', '', ['Çelik Piston']],
+          ['Piston Rayı', '', ['Rulman']],
         ],
       },
       {
         baslik: 'BAĞLAMA SİSTEMİ',
         satirlar: [
-          ['İpli Bağlama', '', ['Paksan Özel Dizayn']],
-          ['Mekik', '', ['Paksan Özel Dizayn']],
-          ['Bağlama Grubu Emniyet Sistemi', '', ['Kesme Civatası']],
+          ['İpli Bağlama', '', ['Paksan Özel Tasarım']],
+          ['Mekik', '', ['Paksan Özel Tasarım']],
+          ['Bağlama Grubu Emniyet Sistemi', '', ['Kesme Cıvatası']],
           ['Tel Kapasitesi', 'Adet', ['6']],
         ],
       },
@@ -926,9 +926,9 @@ export const TEKNIK = {
         baslik: 'ANA TAHRİK',
         satirlar: [
           ['PTO Devir', '', ['540-610']],
-          ['Valon Emniyet Sistemi', '', ['Kesme Civatası']],
+          ['Valon Emniyet Sistemi', '', ['Kesme Cıvatası']],
           ['Valon Emniyet Sistemi', '', ['Kavrama']],
-          ['Şanzıman', '', ['Paksan Özel Dizayn']],
+          ['Şanzıman', '', ['Paksan Özel Tasarım']],
         ],
       },
       {
@@ -939,14 +939,14 @@ export const TEKNIK = {
         ],
       },
       {
-        baslik: 'MAKİNA ÖLÇÜLERİ',
+        baslik: 'MAKİNE ÖLÇÜLERİ',
         satirlar: [
           ['Yükseklik - Ot', 'cm', ['178']],
           ['Yükseklik - Saman', 'cm', ['188']],
           ['Genişlik', 'cm', ['250']],
           ['Uzunluk', 'cm', ['545']],
           ['Ağırlık', 'kg', ['2020']],
-          ['Traktor Gücü', 'hp', ['55 ve Yukarı']],
+          ['Traktör Gücü', 'hp', ['55 ve üzeri']],
         ],
       },
     ],
@@ -958,18 +958,18 @@ export const TEKNIK = {
       {
         baslik: '',
         satirlar: [
-          ['Traktör Gücü', '', ['55 ve Yukarı', '55 ve Yukarı', '55 ve Yukarı', '55 ve Yukarı', '55 ve Yukarı', '55 ve Yukarı']],
+          ['Traktör Gücü', '', ['55 ve üzeri', '55 ve üzeri', '55 ve üzeri', '55 ve üzeri', '55 ve üzeri', '55 ve üzeri']],
           ['Balya Ağırlığı - Saman', '', ['20 - 25 kg', '20 - 25 kg', '20 - 25 kg', '20 - 25 kg', '20 - 25 kg', '20 - 25 kg']],
           ['Balya Ağırlığı - Ot', '', ['25 - 35 kg', '25 - 35 kg', '25 - 35 kg', '25 - 35 kg', '25 - 35 kg', '25 - 35 kg']],
           ['Balya / Saat', '', ['250 - 350', '250 - 350', '250 - 350', '250 - 350', '250 - 350', '250 - 350']],
           ['Tırmık Genişliği', '', ['163', '163', '163', '163', '163', '190']],
           ['Hidrolik Toplayıcı Pistonu', '', ['Standart', 'Standart', 'Standart', 'Standart', 'Standart', 'Standart']],
-          ['3. Destek Tekerİ', '', ['Opsiyon', 'Opsiyon', 'Opsiyon', 'Opsiyon', 'Opsiyon', 'Opsiyon']],
-          ['Haşpay Ünütesi', '', ['Yok', 'Yok', 'Var', 'Otomatik', 'Otomatik', 'Otpsiyon']],
+          ['3. Destek Tekerleği', '', ['Opsiyon', 'Opsiyon', 'Opsiyon', 'Opsiyon', 'Opsiyon', 'Opsiyon']],
+          ['Haşpay Ünitesi', '', ['Yok', 'Yok', 'Var', 'Otomatik', 'Otomatik', 'Opsiyon']],
           ['Balya Ölçüsü', '', ['36 x 46', '36 x 46', '36 x 46', '36 x 46', '36 x 46', '36 x 46']],
           ['Strok Boyu ve Hızı', '', ['73cm - 92 rpm', '73cm - 92 rpm', '73cm - 92 rpm', '73cm - 92 rpm', '73cm - 92 rpm', '73cm - 92 rpm']],
           ['Kuyruk Tipi', '', ['Standart', 'Standart', 'Standart', 'Standart', 'Standart', 'Standart']],
-          ['Bağlama Gurubu', '', ['2 İpli', '3 İpli', '3 İpli', '3 İpli', '3 İpli', '2/3 İpli']],
+          ['Bağlama Grubu', '', ['2 İpli', '3 İpli', '3 İpli', '3 İpli', '3 İpli', '2/3 İpli']],
           ['Telli Bağlama Grubu', '', ['Opsiyon', 'Yok', 'Yok', 'Yok', 'Yok', 'Opsiyon']],
           ['Bağlama Grubu Aydınlatması', '', ['Standart', 'Standart', 'Standart', 'Standart', 'Standart', 'Standart']],
           ['Bağlama Grubu Fanı', '', ['Standart', 'Standart', 'Standart', 'Standart', 'Standart', 'Standart']],
@@ -992,18 +992,18 @@ export const TEKNIK = {
       {
         baslik: '',
         satirlar: [
-          ['Traktör Gücü', '', ['55 ve Yukarı']],
+          ['Traktör Gücü', '', ['55 ve üzeri']],
           ['Balya Ağırlığı - Saman', '', ['20 - 25 kg']],
           ['Balya Ağırlığı - Ot', '', ['25 - 35 kg']],
           ['Balya / Saat', '', ['250 - 350']],
           ['Tırmık Genişliği', '', ['190']],
           ['Hidrolik Toplayıcı Pistonu', '', ['Standart']],
-          ['3. Destek Tekerİ', '', ['Opsiyon']],
-          ['Haşpay Ünütesi', '', ['Otpsiyon']],
+          ['3. Destek Tekerleği', '', ['Opsiyon']],
+          ['Haşpay Ünitesi', '', ['Opsiyon']],
           ['Balya Ölçüsü', '', ['36 x 46']],
           ['Strok Boyu ve Hızı', '', ['73cm - 92 rpm']],
           ['Kuyruk Tipi', '', ['Standart']],
-          ['Bağlama Gurubu', '', ['2/3 İpli']],
+          ['Bağlama Grubu', '', ['2/3 İpli']],
           ['Telli Bağlama Grubu', '', ['Opsiyon']],
           ['Bağlama Grubu Aydınlatması', '', ['Standart']],
           ['Bağlama Grubu Fanı', '', ['Standart']],
@@ -1073,16 +1073,16 @@ export const TEKNIK = {
         satirlar: [
           ['Piston Kursu', 'cm', ['73']],
           ['Strok Hızı', 'rpm', ['92 - 104']],
-          ['Materyal', '', ['Çelik Pisto']],
-          ['Piston Rayi', '', ['Rulman']],
+          ['Materyal', '', ['Çelik Piston']],
+          ['Piston Rayı', '', ['Rulman']],
         ],
       },
       {
         baslik: 'BAĞLAMA SİSTEMİ',
         satirlar: [
-          ['İpli Bağlama', '', ['Paksan Özel Dizayn']],
-          ['Mekik', '', ['Paksan Özel Dizayn']],
-          ['Bağlama Grubu Emniyet Sistemi', '', ['Kesme Civatası']],
+          ['İpli Bağlama', '', ['Paksan Özel Tasarım']],
+          ['Mekik', '', ['Paksan Özel Tasarım']],
+          ['Bağlama Grubu Emniyet Sistemi', '', ['Kesme Cıvatası']],
           ['Tel Kapasitesi', 'Adet', ['8']],
         ],
       },
@@ -1090,9 +1090,9 @@ export const TEKNIK = {
         baslik: 'ANA TAHRİK',
         satirlar: [
           ['PTO Devir', '', ['540-610']],
-          ['Valon Emniyet Sistemi', '', ['Kesme Civatası']],
+          ['Valon Emniyet Sistemi', '', ['Kesme Cıvatası']],
           ['Valon Emniyet Sistemi', '', ['Kavrama']],
-          ['Şanzıman', '', ['Paksan Özel Dizayn']],
+          ['Şanzıman', '', ['Paksan Özel Tasarım']],
         ],
       },
       {
@@ -1103,14 +1103,14 @@ export const TEKNIK = {
         ],
       },
       {
-        baslik: 'MAKİNA ÖLÇÜLERİ',
+        baslik: 'MAKİNE ÖLÇÜLERİ',
         satirlar: [
           ['Yükseklik - Ot', 'cm', ['178']],
           ['Yükseklik - Saman', 'cm', ['188']],
           ['Genişlik', 'cm', ['250']],
           ['Uzunluk', 'cm', ['545']],
           ['Ağırlık', 'kg', ['2680']],
-          ['Traktor Gücü', 'hp', ['55 ve Yukarı']],
+          ['Traktör Gücü', 'hp', ['55 ve üzeri']],
         ],
       },
     ],
@@ -1143,7 +1143,7 @@ export const TEKNIK = {
           ['HIZ', '', ['10 KM', '10 KM', '10 KM']],
           ['KAPASİTE', '', ['1,5 H/S', '1,65 H/S', '1,95 H/S']],
           ['BIÇAK SAYISI', '', ['6', '6', '8']],
-          ['BIÇAK UZUNLUK', '', ['', '108 mm', '108 mm']],
+          ['BIÇAK UZUNLUĞU', '', ['', '108 mm', '108 mm']],
           ['BIÇAK ENİ', '', ['', '46 mm', '46 mm']],
           ['TOPLAM GENİŞLİK', '', ['', '2810 mm', '3200 mm']],
           ['AĞIRLIK', '', ['330 KG', '380 KG', '420 KG']],

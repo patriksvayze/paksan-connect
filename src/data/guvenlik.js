@@ -18,8 +18,9 @@
         "yeyip içmemelidir", "istihab haddi" (doğrusu istiap),
         "makina kesinlikle yaklaşmayınız" (eksik ek).
 
-   Kılavuz veri paketi ELLE DÜZENLENMİYOR — olduğu gibi kopyalanıyor.
-   Bu yüzden düzeltme burada, uygulama tarafında yapıldı.
+   Kılavuz veri paketindeki metinler uygulama tarafında da güvenlik
+   kurallarıyla birlikte gözden geçiriliyor. Bu dosyada, farklı
+   kılavuzlardaki ortak kurallar sadeleştirilip tek bir listede sunuluyor.
 
    NE DEĞİŞTİ, NE DEĞİŞMEDİ:
 

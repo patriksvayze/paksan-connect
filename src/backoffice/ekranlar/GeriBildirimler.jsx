@@ -60,7 +60,7 @@ function Gorus({ gorus, personel, bildir, tazele }) {
     setNot('')
     setYaziyor(false)
     tazele()
-    bildir('Cevap gönderildi, müşterinin bildirimlerine düştü')
+    bildir('Cevap gönderildi ve müşterinin bildirimlerinde görünüyor.')
   }
 
   return (
@@ -98,7 +98,7 @@ function Gorus({ gorus, personel, bildir, tazele }) {
               style={{ minHeight: 66 }}
               value={not}
               onChange={(e) => setNot(e.target.value)}
-              placeholder="Müşterinin bildirimlerine düşecek cevabı yazın"
+          placeholder="Müşterinin bildirimlerinde görünecek cevabı yazın"
               autoFocus
             />
             <div className="satir" style={{ marginTop: 8 }}>

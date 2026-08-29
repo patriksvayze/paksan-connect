@@ -114,10 +114,10 @@ export function Ozet({ rol, git, surum }) {
         {yonetim && (
           <>
             <Sayi deger={v.gorus} ad="Okunmamış Görüş" onClick={() => git('geribildirim')} />
-            <Sayi deger={v.musteri} ad="Müşteri Adedi" onClick={() => git('musteriler')} />
+            <Sayi deger={v.musteri} ad="Müşteri sayısı" onClick={() => git('musteriler')} />
           </>
         )}
-        <Sayi deger={v.makine} ad="Kayıtlı Makine" onClick={() => git('musteriler')} />
+        <Sayi deger={v.makine} ad="Kayıtlı makine" onClick={() => git('musteriler')} />
       </div>
 
       {/* Ölçüler */}
@@ -133,7 +133,7 @@ export function Ozet({ rol, git, surum }) {
             Buradaki soru şu: gelen talebe AYNI GÜN dokunuluyor mu?
             (bkz. ayniGunOrani) */}
         <Deger
-          ad="Aynı gün Açılan Talep Oranı"
+          ad="Aynı gün açılan talep oranı"
           deger={v.ayniGun === null ? '—' : `%${v.ayniGun}`}
           alt={v.ayniGunGun ? `${v.ayniGunGun} çalışılan gün ortalaması` : undefined}
         />
@@ -173,7 +173,7 @@ export function Ozet({ rol, git, surum }) {
 
         <div className="kart">
           <div className="kart__tepe">
-            <h2>Talep Kalan Süreleri</h2>
+            <h2>Taleplerin bekleme süreleri</h2>
           </div>
           <div className="kart__ic">
             <YiginBar dilimler={v.yasDagilim} />
@@ -203,7 +203,7 @@ export function Ozet({ rol, git, surum }) {
 
         <div className="kart">
           <div className="kart__tepe">
-            <h2>Talep Statü Dağılımı</h2>
+            <h2>Talep durum dağılımı</h2>
             <span className="kucuk sonuk" style={{ marginLeft: 'auto' }}>
               Tüm zamanlar
             </span>

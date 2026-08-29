@@ -26,7 +26,7 @@ import { araliktaMi, BOS_ARALIK, Secim, SuzgecCubugu, TarihAraligi } from './suz
    kayıt sunucuda tutulacak ve kimse kendi izini silemeyecek. */
 
 const TURLER = [
-  { deger: 'hepsi', ad: 'Bütün işlemler' },
+  { deger: 'hepsi', ad: 'Tüm işlemler' },
   { deger: 'talep', ad: 'Talep' },
   { deger: 'durum', ad: 'Talep durumu' },
   { deger: 'not', ad: 'Talep notu' },

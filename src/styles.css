@@ -2892,7 +2892,7 @@ p {
 /* Ürün adı iki satırlık sabit alanda duruyor.
 
    ⚠ AD PUNTOSU 15px'te KALDI. 15,5 / 16 / 16,5 denendi; hepsinde
-   "Ahtapot Silaj Paketleme Makinası" iki satıra sığmayıp kesiliyor.
+   "Ahtapot Silaj Paketleme Makinesi" iki satıra sığmayıp kesiliyor.
    Üçüncü satıra izin vermek, aynı satırdaki iki kartın açıklamalarını
    farklı hizada başlatıyor. Kataloglardaki en uzun ad kısalırsa
    (örneğin "Ahtapot Silaj Paketleme") punto 16,5'e çıkarılabilir.

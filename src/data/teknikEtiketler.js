@@ -22,11 +22,9 @@
    AYRI tutuyor. Tahmin ya da otomatik bölme yok — kılavuzda geçen
    42 etiketin ve 13 metin değerinin tamamı elle eşlendi.
 
-   Kılavuz veri paketi (mobile_support_package.json) ELLE
-   DÜZENLENMİYOR, olduğu gibi kopyalanıyor. Düzeltme bu yüzden
-   burada, uygulama tarafında duruyor. Veri paketi yenilendiğinde
-   eşleşmeyen bir metin çıkarsa olduğu gibi gösteriliyor — uydurma
-   karşılık üretilmiyor.
+   Kılavuz veri paketindeki teknik etiketler uygulama tarafında
+   burada eşleniyor. Paket yenilendiğinde eşleşmeyen bir metin çıkarsa
+   olduğu gibi gösteriliyor — uydurma karşılık üretilmiyor.
 
    Kaynakta ayrıca şu kalıntılar vardı, onlar da burada düzeltildi:
      "* Güç"              → baştaki dipnot yıldızı
@@ -54,7 +52,9 @@ export const KUNYE_ETIKET = {
   'Elektrik sistemi Electrical system': { tr: 'Elektrik Sistemi', en: 'Electrical System' },
   'Genişlik Width': { tr: 'Genişlik', en: 'Width' },
   'Güç Aktarımı Power Transmission': { tr: 'Güç Aktarımı', en: 'Power Transmission' },
-  'Haşbay Chopper': { tr: 'Haşbay', en: 'Chopper' },
+  'traktör gücü': { tr: 'Traktör gücü', en: 'Tractor power' },
+  'haşpay ünitesi': { tr: 'Haşpay ünitesi', en: 'Chopper unit' },
+  'Haşbay Chopper': { tr: 'Haşpay', en: 'Chopper' },
   'Hız Speed': { tr: 'Hız', en: 'Speed' },
   'Kesit Section': { tr: 'Kesit', en: 'Section' },
   'Kurs Stroke': { tr: 'Kurs', en: 'Stroke' },
@@ -120,7 +120,7 @@ export const KUNYE_DEGER = {
   'Silindirik sabit odalı Cylindrical Fixed chamber': {
     tr: 'Silindirik, sabit odalı', en: 'Cylindrical, fixed chamber',
   },
-  'Standart otomatik File Standard automatic net wrapping -': {
+  'Standart otomatik file sarma': {
     tr: 'Standart otomatik file sarma', en: 'Standard automatic net wrapping',
   },
   'Teleskopik kardan şaft Telescopic cardan shaft': {

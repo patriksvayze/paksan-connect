@@ -286,7 +286,7 @@ function Profil({ oturum, onKapat }) {
         </div>
 
         <div className="kart__ic">
-          <ProfilSatir k="Personel No" v={kisi.no} mono />
+        <ProfilSatir k="Personel numarası" v={kisi.no} mono />
           <ProfilSatir k="Kullanıcı Adı" v={oturum.kullanici} mono />
           <ProfilSatir k="E-posta" v={kisi.eposta} />
           <ProfilSatir k="Telefon" v={kisi.tel} mono />
@@ -318,7 +318,7 @@ function Profil({ oturum, onKapat }) {
                 Şifre değiştirme bağlantısı <b>{sonuc.eposta}</b> adresine gönderildi.
               </p>
               <div className="giris__deneme">
-                <span>Sunucu bağlı değil, bağlantı burada:</span>
+          <span>Sunucu bağlı değil. Bağlantı:</span>
                 <a href={sonuc.baglanti}>Şifre değiştirme ekranı</a>
               </div>
             </>
@@ -457,7 +457,7 @@ function Giris({ onGiris }) {
     e.preventDefault()
     if (bekliyor) return
     if (!kullanici.trim()) return setHata('Kullanıcı adınızı yazın.')
-    if (sifre.length !== BACKOFFICE_SIFRE_HANE) return setHata('Şifre 6 rakamdan oluşuyor.')
+    if (sifre.length !== BACKOFFICE_SIFRE_HANE) return setHata('Şifre 6 rakamdan oluşmalı.')
 
     setHata('')
     setBekliyor(true)
@@ -554,7 +554,7 @@ function SifreTalebi({ onKapat }) {
             {/* Sunucu bağlanana kadar e-posta gerçekten gitmiyor;
                 bağlantı denenebilsin diye burada duruyor. */}
             <div className="giris__deneme">
-              <span>Sunucu bağlı değil, bağlantı burada:</span>
+          <span>Sunucu bağlı değil. Bağlantı:</span>
               <a href={sonuc.baglanti}>Şifre değiştirme ekranı</a>
             </div>
 
@@ -604,7 +604,7 @@ function SifreDegistir({ jeton, onBitti }) {
     e.preventDefault()
     if (bekliyor) return
     if (yeni.length !== BACKOFFICE_SIFRE_HANE) return setHata('Şifre 6 rakamdan oluşmalı.')
-    if (yeni !== tekrar) return setHata('İki şifre aynı değil.')
+    if (yeni !== tekrar) return setHata('Şifreler eşleşmiyor.')
 
     setHata('')
     setBekliyor(true)
@@ -630,14 +630,14 @@ function SifreDegistir({ jeton, onBitti }) {
           </>
         ) : bitti ? (
           <>
-            <p className="giris__yazi">Şifreniz değişti.</p>
+          <p className="giris__yazi">Şifreniz değiştirildi.</p>
             <button className="dg dg--ana dg--lg" type="button" onClick={onBitti}>
               Giriş yap
             </button>
           </>
         ) : (
           <>
-            <p className="giris__yazi">{kayit.kullanici} · yeni şifre 6 rakam olmalı.</p>
+          <p className="giris__yazi">{kayit.kullanici} · yeni şifre 6 rakamdan oluşmalı.</p>
 
             <label className="alan">
               <span className="alan__ad">Yeni Şifre</span>

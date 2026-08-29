@@ -292,8 +292,8 @@ function Form({ bayi, onKapat, onKaydet }) {
 
   function kaydet() {
     if (d.ad.trim().length < 2) return setHata('Bayi adını yazın.')
-    if (!d.il.trim()) return setHata('İl yazın.')
-    if (!d.tel.replace(/\D/g, '')) return setHata('Telefon yazın.')
+    if (!d.il.trim()) return setHata('İl adını yazın.')
+    if (!d.tel.replace(/\D/g, '')) return setHata('Telefon numarasını yazın.')
     if (!(d.yetki || []).length) return setHata('En az bir hizmet seçin.')
     setHata('')
     onKaydet({
@@ -413,7 +413,7 @@ const AKTAR_BASLIK = [
 ]
 
 const ORNEK_SATIR = [
-  'Örnek Tarım Makinaları',
+    'Örnek Tarım Makineleri',
   'Konya',
   'Selçuklu',
   'Ankara Yolu 12. km No: 5',

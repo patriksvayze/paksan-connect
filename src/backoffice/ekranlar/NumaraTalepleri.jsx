@@ -89,7 +89,7 @@ function Kart({ talep, personel, bildir, tazele }) {
     numaraTalebiKarar(talep, onay, personel, not.trim())
     setNot('')
     tazele()
-    bildir(onay ? 'Numara değiştirildi, müşteriye bildirim gitti' : 'Talep reddedildi')
+    bildir(onay ? 'Numara değiştirildi, müşteriye bildirim gönderildi.' : 'Talep reddedildi')
   }
 
   return (
@@ -107,7 +107,7 @@ function Kart({ talep, personel, bildir, tazele }) {
       <div className="kart__ic">
         <div className="esit">
           <div>
-            <div className="alan__ad">Girdiği Seri No</div>
+        <div className="alan__ad">Girdiği seri numarası</div>
             <div className="mono">{formatSerial(talep.seri) || '—'}</div>
           </div>
           <div />
@@ -115,18 +115,18 @@ function Kart({ talep, personel, bildir, tazele }) {
 
         <div className="esit" style={{ marginTop: 12 }}>
           <div>
-            <div className="alan__ad">Eski Numara</div>
+            <div className="alan__ad">Eski numara</div>
             <div className="mono">{talep.eskiTel || '—'}</div>
           </div>
           <div>
-            <div className="alan__ad">Yeni Numara</div>
+            <div className="alan__ad">Yeni numara</div>
             <div className="mono" style={{ fontWeight: 700 }}>{talep.yeniTel || '—'}</div>
           </div>
         </div>
 
         <div className="kontrol">
-          <Kontrol tamam={numaraTamam} yazi="Eski numara hesaptaki numarayla aynı" />
-          <Kontrol tamam={seriTamam} yazi="Seri no müşterinin kayıtlı makinesine ait" />
+        <Kontrol tamam={numaraTamam} yazi="Eski numara hesapta kayıtlı numarayla aynı" />
+        <Kontrol tamam={seriTamam} yazi="Seri numarası müşterinin kayıtlı makinesine ait" />
         </div>
 
         {bekliyor ? (
@@ -144,7 +144,7 @@ function Kart({ talep, personel, bildir, tazele }) {
                 className="gir"
                 value={not}
                 onChange={(e) => setNot(e.target.value)}
-                placeholder="Örnek: müşteri arandı, seri no doğrulandı"
+          placeholder="Örnek: Müşteri arandı, seri numarası doğrulandı"
               />
             </label>
 

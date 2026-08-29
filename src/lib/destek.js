@@ -9,17 +9,19 @@ import { MobileSupportRuntime } from './mobile_support_runtime'
      src/data/mobile_support_package.json   veri
      src/lib/mobile_support_runtime.ts      akış motoru
 
-   İkisi de `paksan-support-dataset` deposundan OLDUĞU GİBİ kopyalandı;
-   burada değiştirilmiyorlar. Veri seti yenilenince iki dosya yeniden
-   kopyalanır, uygulamanın geri kalanına dokunulmaz.
+   Veri paketi `paksan-support-dataset` deposundan alınır; uygulama
+   tarafında kullanıcıya gösterilen Türkçe metinler gerektiğinde
+   düzeltilir. Veri seti yenilenince paket yeniden gözden geçirilir,
+   uygulamanın geri kalanına dokunulmaz.
 
    Bu dosya arada duran ince bir katman: motoru bir kez kurup ekranların
    ihtiyaç duyduğu birkaç seçmeyi (makine listesi, hızlı cevaplar,
    prosedür kartları, kaynak yazısı) veriyor. Teşhis akışının kendisi
    motorda yürüyor — burada kopyalanmıyor.
 
-   METİN ÜRETİLMİYOR: ekranda görünen her teknik cümle pakette yazılı
-   olduğu hâliyle geliyor.
+   METİN ÜRETİLMİYOR: ekranda görünen teknik cümleler paketten gelir;
+   yalnızca kullanıcıya gösterilen dil ve teknik etiket eşlemeleri
+   uygulama tarafında düzenlenir.
    ========================================================================== */
 
 export const PAKET = paket

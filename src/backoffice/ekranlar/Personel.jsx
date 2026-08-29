@@ -244,7 +244,7 @@ function Form({ kayit, onKapat, onKaydet }) {
 
   async function kaydet() {
     if (bekliyor) return
-    if (d.ad.trim().length < 3) return setHata('Ad soyad yazın.')
+    if (d.ad.trim().length < 3) return setHata('Adınızı ve soyadınızı yazın.')
     if (!d.kullanici.trim()) return setHata('Kullanıcı adı yazın.')
     if (d.yeni && d.sifre.length !== BACKOFFICE_SIFRE_HANE) {
       return setHata('Şifre 6 rakamdan oluşmalı.')
@@ -364,7 +364,7 @@ function Form({ kayit, onKapat, onKaydet }) {
 
 const ROL_ACIKLAMA = {
   admin: 'Her şeyi görür; personel açar, müşteri bilgisi düzeltir, numara değişikliğini onaylar.',
-  yonetici: 'Bütün talepleri ve kayıtları görür; personel listesini görür ama değiştiremez.',
+  yonetici: 'Tüm talepleri ve kayıtları görür; personel listesini görür ancak değiştiremez.',
   servis: 'Yalnız servis taleplerini görür.',
   parca: 'Yalnız yedek parça taleplerini görür.',
   satis: 'Yalnız fiyat teklifi taleplerini görür.',

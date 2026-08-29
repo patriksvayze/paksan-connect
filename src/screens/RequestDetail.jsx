@@ -162,10 +162,6 @@ export default function RequestDetail() {
           >
             {r.cozum.yapilanIs && <p className="detay-metin">{r.cozum.yapilanIs}</p>}
             <Satir k={t('talepDetay.degisenParca')} v={r.cozum.parcalar} />
-            {/* Yedek parçada kapanış = kargoya verildi; kargo bilgisi
-                kapanışın parçası (bkz. backoffice → KAPANIS_ALANLARI). */}
-            <Satir k={t('talepDetay.kargo')} v={r.cozum.kargo} />
-            <Satir k={t('talepDetay.takipNo')} v={r.cozum.takipNo} mono vurgu />
             <Satir k={t('talepDetay.ucret')} v={r.cozum.ucret} vurgu />
             <Satir k={t('talepDetay.sonuc')} v={r.cozum.sonuc} />
             <Satir k={t('talepDetay.satisFiyati')} v={r.cozum.satisFiyati} vurgu />

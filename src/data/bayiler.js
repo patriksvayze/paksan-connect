@@ -44,7 +44,7 @@ export const BAYILER = [
     ad: 'PAKSAN Konya Ana Bayi',
     il: 'Konya',
     ilce: 'Selçuklu',
-    adres: 'Ankara Yolu 12. km, Tarım Makinaları Sitesi',
+    adres: 'Ankara Yolu 12. km, Tarım Makineleri Sitesi',
     tel: '03323210001',
     telYazi: '0332 321 00 01',
     enlem: 37.8746,
@@ -54,7 +54,7 @@ export const BAYILER = [
   {
     id: 'aksaray',
     no: 'BAY002',
-    ad: 'Ovataş Tarım Makinaları',
+    ad: 'Ovataş Tarım Makineleri',
     il: 'Aksaray',
     ilce: 'Merkez',
     adres: 'Nevşehir Caddesi No: 148',
@@ -80,7 +80,7 @@ export const BAYILER = [
   {
     id: 'eskisehir',
     no: 'BAY004',
-    ad: 'Porsuk Tarım Makinaları',
+    ad: 'Porsuk Tarım Makineleri',
     il: 'Eskişehir',
     ilce: 'Alpu',
     adres: 'Cumhuriyet Mahallesi, Ankara Caddesi No: 22',
@@ -93,7 +93,7 @@ export const BAYILER = [
   {
     id: 'balikesir',
     no: 'BAY005',
-    ad: 'Marmara Ziraat Makinaları',
+    ad: 'Marmara Ziraat Makineleri',
     il: 'Balıkesir',
     ilce: 'Bandırma',
     adres: 'Yeni Sanayi Sitesi 4. Blok No: 9',
@@ -132,7 +132,7 @@ export const BAYILER = [
   {
     id: 'manisa',
     no: 'BAY008',
-    ad: 'Gediz Tarım Makinaları',
+    ad: 'Gediz Tarım Makineleri',
     il: 'Manisa',
     ilce: 'Salihli',
     adres: 'Atatürk Mahallesi, İzmir Caddesi No: 214',
@@ -158,7 +158,7 @@ export const BAYILER = [
   {
     id: 'antalya',
     no: 'BAY010',
-    ad: 'Akdeniz Tarım Makinaları',
+    ad: 'Akdeniz Tarım Makineleri',
     il: 'Antalya',
     ilce: 'Korkuteli',
     adres: 'Yazır Mahallesi, Burdur Caddesi No: 33',
@@ -171,7 +171,7 @@ export const BAYILER = [
   {
     id: 'adana',
     no: 'BAY011',
-    ad: 'Çukurova Makina Ticaret',
+    ad: 'Çukurova Makine Ticaret',
     il: 'Adana',
     ilce: 'Ceyhan',
     adres: 'Yeni Mahalle, Osmaniye Yolu No: 88',
@@ -197,7 +197,7 @@ export const BAYILER = [
   {
     id: 'diyarbakir',
     no: 'BAY013',
-    ad: 'Dicle Tarım Makinaları',
+    ad: 'Dicle Tarım Makineleri',
     il: 'Diyarbakır',
     ilce: 'Bismil',
     adres: 'Kurtuluş Mahallesi, Batman Caddesi No: 51',
@@ -210,7 +210,7 @@ export const BAYILER = [
   {
     id: 'malatya',
     no: 'BAY014',
-    ad: 'Fırat Ziraat Makinaları',
+    ad: 'Fırat Ziraat Makineleri',
     il: 'Malatya',
     ilce: 'Battalgazi',
     adres: 'Hasırcılar Mahallesi, Sivas Caddesi No: 17',
@@ -249,7 +249,7 @@ export const BAYILER = [
   {
     id: 'samsun',
     no: 'BAY017',
-    ad: 'Karadeniz Tarım Makinaları',
+    ad: 'Karadeniz Tarım Makineleri',
     il: 'Samsun',
     ilce: 'Bafra',
     adres: 'Alparslan Mahallesi, Sinop Caddesi No: 132',
@@ -275,7 +275,7 @@ export const BAYILER = [
   {
     id: 'erzurum',
     no: 'BAY019',
-    ad: 'Doğu Anadolu Tarım Makinaları',
+    ad: 'Doğu Anadolu Tarım Makineleri',
     il: 'Erzurum',
     ilce: 'Pasinler',
     adres: 'Hasankale Mahallesi, Kars Yolu No: 12',
@@ -288,7 +288,7 @@ export const BAYILER = [
   {
     id: 'tekirdag',
     no: 'BAY020',
-    ad: 'Trakya Balya Makinaları',
+    ad: 'Trakya Balya Makineleri',
     il: 'Tekirdağ',
     ilce: 'Malkara',
     adres: 'Camiatik Mahallesi, Keşan Yolu No: 25',

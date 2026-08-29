@@ -291,7 +291,7 @@ export const REHBERLER = [
           'sökülmeyen cıvata, tutukluk yapan zincir ve çürümüş yatak olarak ' +
           'karşınıza çıkar. Bir günlük temizlik, bir sezonluk arıza demektir.',
         maddeler: [
-          'Makineyi baştan sona temizleyin: kanallar, koruyucu altları, zincir yatakları ve kesme bölgesi dahil.',
+          'Makineyi baştan sona temizleyin: kanallar, koruyucu altları, zincir yatakları ve kesme bölgesi dâhil.',
           'Basınçlı su kullanacaksanız rulman, elektrik bağlantısı ve gres nipellerine doğrudan tutmayın.',
           'Yıkadıktan sonra makineyi mutlaka kurutun; ıslak kaldırmayın.',
           'Kuruduktan sonra tüm gres noktalarına gres basın — su gresi yerinden attıysa yatak korumasız kalır.',

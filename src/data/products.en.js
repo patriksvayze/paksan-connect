@@ -139,7 +139,7 @@ export const VIDEO_EN = {
   'Bıçak bileme ve boşluk ayarı': 'Sharpening the knives and setting the clearance',
   'Doğru yükleme sırası': 'The right loading order',
   'Tartı kalibrasyonu': 'Calibrating the scale',
-  'Paketleme makinası kullanımı': 'Using the bale wrapper',
+  'Paketleme makinesi kullanımı': 'Using the bale wrapper',
   'Dual 2 sistemi nasıl çalışır': 'How the Dual 2 system works',
   '3 Yabalı sistem tanıtımı': 'Three-fork system overview',
   'E serisi farkları': 'What is different about the E series',

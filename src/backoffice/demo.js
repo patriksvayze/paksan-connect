@@ -63,6 +63,15 @@ const PARCALAR = Object.keys(PARCA_FIYAT)
 
 const KARGO = ['Aras Kargo', 'Yurtiçi Kargo', 'MNG Kargo', 'Sürat Kargo']
 
+/* Yedek parça kapanışındaki isteğe bağlı not — fazladan bir şey
+   yapıldıysa yazılıyor. */
+const PARCA_KAPANIS_NOTU = [
+  'Stokta olmayan parça için bir gün beklendi, müşteri bilgilendirildi.',
+  'Müşteri talebi üzerine iki parça aynı pakete konuldu.',
+  'Eski parça iade alınacak, kargo görevlisine teslim edilmesi söylendi.',
+  'Müşteriyle telefonda görüşüldü, adres teyit edildi.',
+]
+
 const YAPILAN_IS = [
   'Bağlama grubu ayarlandı, mekik dili pimi değiştirildi.',
   'Pikap parmakları değiştirildi, zincir gerginliği ayarlandı.',
@@ -79,7 +88,7 @@ const IC_NOTLAR = [
 ]
 
 const MUSTERI_NOTLARI = [
-  'Talebiniz alındı, en kısa sürede dönüş yapacağız.',
+  'Talebiniz alındı, en kısa sürede size dönüş yapacağız.',
   'Servis ekibimiz yarın bölgenizde olacak.',
   'Parçanız hazırlandı, kargoya verilecek.',
 ]
@@ -167,12 +176,12 @@ const DUYURULAR = [
   {
     tur: 'uyari',
     baslik: 'Kuyruk mili koruma kapağı kontrolü',
-    metin: 'Kuyruk mili koruma kapağı hasarlı olan makinelerde çalışmayınız. Kapağı hasarlı olan müşterilerimiz bayilerinden ücretsiz değişim talep edebilir.',
+    metin: 'Kuyruk mili koruma kapağı hasarlıysa makineyi çalıştırmayın. Kapağı hasarlı müşterilerimiz, ücretsiz değişim için bayilerine başvurabilir.',
   },
   {
     tur: 'uyari',
     baslik: 'Sıcak havada balya deposu kontrolü',
-    metin: 'Yüksek sıcaklıkta nemli ot balyalandığında depoda yanma riski oluşur. Balya nemini kontrol etmeden depolamayınız.',
+    metin: 'Yüksek sıcaklıkta nemli ot balyalandığında depoda yanma riski oluşur. Balya nemini kontrol etmeden depolamayın.',
   },
 ]
 
@@ -560,7 +569,16 @@ export async function demoYukle() {
         odemeOnay: odemeVar ? { tarih: tarih + 5400000, personel, not: '' } : null,
 
         /* ----------------------------------------- Aşamaya özel kayıtlar */
-        plan: durum === 'planlandi' ? planUret(sonTarih, personel, tur) : null,
+        /* PLAN KAPANDIKTAN SONRA DA DURUYOR.
+
+           Eskiden yalnız durum "planlandı" iken yazılıyordu; talep
+           kapanınca plan kayboluyordu. Oysa gerçekte `talepPlanla`
+           bir kez yazıyor ve kayıt kalıcı (bkz. veri.js). Kaybolunca
+           "verilen tarihte teslim edildi mi" ölçüsü kapanmış
+           taleplerde hesaplanamıyordu. */
+        plan: asamalar.includes('planlandi')
+          ? planUret(sonTarih, personel, tur)
+          : null,
         teklif: (durum === 'teklif' || (durum === 'kapandi' && tur === 'satinalma'))
           ? teklifUret(sonTarih, personel)
           : null,
@@ -878,14 +896,12 @@ function cozumUret(tur, parcalar, parcaAdet, personel, tarih) {
   }
 
   if (tur === 'parca') {
-    /* Kargo bilgisi kapanışın parçası: yedek parçada "gönderildi"
-       ayrı bir durum değil, kapanışın kendisi (bkz. veri.js →
-       DURUMLAR). */
+    /* "Yapılan iş" gönderilen parçaların kendisi; personel yazmıyor,
+       talepten geliyor (bkz. Talepler.jsx → KAPANIS_ALANLARI.parca).
+       Not isteğe bağlı, demoda bir kısmında var. */
     return {
-      yapilanIs: 'Parçalar kargoya verildi, takip numarası müşteriye iletildi.',
-      parcalar: parcalar.map((x) => x + ' x' + parcaAdet[x]).join(', '),
-      kargo: sec(KARGO),
-      takipNo: String(tamsayi(100000000000, 999999999999)),
+      yapilanIs: parcalar.map((x) => x + ' × ' + parcaAdet[x]).join(' · '),
+      not: Math.random() < 0.35 ? sec(PARCA_KAPANIS_NOTU) : '',
       personel,
       tarih,
     }

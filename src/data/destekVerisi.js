@@ -88,7 +88,7 @@ export const DESTEK = {
      Yunus, Hammer) ve büyük balya (Orkinos, Orka, Albatros). Çalışma
      mantıkları aynı olduğu için tek grup. */
   balya: {
-    ad: { tr: 'Prizmatik balya makinası', en: 'Square baler' },
+    ad: { tr: 'Prizmatik balya makinesi', en: 'Square baler' },
     bolumler: [
       {
         id: 'pikap',
@@ -141,7 +141,7 @@ export const DESTEK = {
               },
               {
                 ad: { tr: 'Yaba veya tırmık zamanlaması kaymış', en: 'Fork or feeder timing has drifted' },
-                kontrol: { tr: 'Yabalar ürünü kanala pistonun geri çekildiği anda bırakmalı.', en: 'The forks must drop the crop while the plunger is back.' },
+                kontrol: { tr: 'Yabalar, piston geri çekildiği sırada ürünü kanala bırakmalıdır.', en: 'The forks must drop the crop while the plunger is back.' },
                 yap: { tr: 'Zamanlama ayarı kataloğa göre yapılır; kendiniz denemeyin, servise bildirin.', en: 'Timing is set to the manual; report it to service rather than guessing.' },
                 zorluk: 'servis',
               },
@@ -410,7 +410,7 @@ export const DESTEK = {
 
   /* ============================================================ RULO BALYA */
   rulo: {
-    ad: { tr: 'Rulo balya makinası', en: 'Round baler' },
+    ad: { tr: 'Rulo balya makinesi', en: 'Round baler' },
     bolumler: [
       {
         id: 'pikap',
@@ -480,7 +480,7 @@ export const DESTEK = {
               },
               {
                 ad: { tr: 'Ürün odaya düzensiz giriyor', en: 'Crop enters the chamber unevenly' },
-                kontrol: { tr: 'Namlunun kalınlığı boyunca değişiyor olabilir.', en: 'The swath thickness may vary along its length.' },
+                kontrol: { tr: 'Namlunun kalınlığı, uzunluğu boyunca değişebilir.', en: 'The swath thickness may vary along its length.' },
                 yap: { tr: 'Namluyu tırmıkla düzeltin ve hızı sabit tutun.', en: 'Even the swath and keep a steady speed.' },
                 zorluk: 'kolay',
               },
@@ -566,7 +566,7 @@ export const DESTEK = {
   },
   /* ============================================================ YEM KARMA */
   yem: {
-    ad: { tr: 'Yem karma makinası', en: 'Feed mixer' },
+    ad: { tr: 'Yem karma makinesi', en: 'Feed mixer' },
     bolumler: [
       {
         id: 'karistirma',
@@ -697,7 +697,7 @@ export const DESTEK = {
 
   /* ================================================================= SİLAJ */
   silaj: {
-    ad: { tr: 'Silaj ve paketleme makinası', en: 'Forage and wrapping machine' },
+    ad: { tr: 'Silaj ve paketleme makinesi', en: 'Forage and wrapping machine' },
     bolumler: [
       {
         id: 'kesme',
@@ -857,7 +857,7 @@ export const DESTEK = {
             sebepler: [
               {
                 ad: { tr: 'Bıçaklar körelmiş veya kırılmış', en: 'Blades are blunt or broken' },
-                kontrol: { tr: 'Diskleri tek tek dönderip bıçakları sayın; eksik veya kırık olan hemen görünür.', en: 'Turn each disc and count the blades; a missing one shows at once.' },
+                kontrol: { tr: 'Diskleri tek tek döndürüp bıçakları sayın; eksik veya kırık olan hemen görünür.', en: 'Turn each disc and count the blades; a missing one shows at once.' },
                 yap: { tr: 'Bıçakları değiştirin. Bir diskteki eksik bıçak arkada şerit bırakır.', en: 'Replace the blades; one missing blade leaves a strip.' },
                 zorluk: 'orta',
               },
@@ -931,7 +931,7 @@ export const DESTEK = {
 
   /* ======================================================== TOPRAK İŞLEME */
   toprak: {
-    ad: { tr: 'Toprak işleme makinası', en: 'Soil tillage machine' },
+    ad: { tr: 'Toprak işleme makinesi', en: 'Soil tillage machine' },
     bolumler: [
       {
         id: 'isleme',

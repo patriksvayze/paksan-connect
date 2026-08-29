@@ -3,12 +3,11 @@
 
    NEDEN AYRI DOSYA
 
-   Teknik veri paksanmakina.com.tr'den olduğu gibi alınıyor
-   (src/data/teknikOzellikler.js) ve orası elle düzenlenmiyor — site
-   güncellenince betik yeniden çalıştırılıp dosya baştan üretiliyor.
-   Çeviri o dosyanın içine yazılsaydı her üretimde kaybolurdu. Burası
-   elle yazılan taraf; ikisi ürün kimliğiyle değil, metnin kendisiyle
-   eşleşiyor.
+   Teknik veri paksanmakina.com.tr'deki ürün sayfalarından alınıyor.
+   Türkçe teknik etiketler kullanıcıya gösterilmeden önce
+   src/data/teknikOzellikler.js içinde yazım ve terim tutarlılığı açısından
+   düzenleniyor. İngilizce karşılıklar burada tutuluyor; iki dosya ürün
+   kimliğiyle değil, metnin kendisiyle eşleşiyor.
 
    KARŞILIĞI OLMAYAN METİN OLDUĞU GİBİ KALIYOR
 
@@ -39,9 +38,9 @@ export const TEKNIK_BASLIK_EN = {
   'BAĞLAMA GRUBU': 'KNOTTER ASSEMBLY',
   'ANA TAHRİK': 'MAIN DRIVE',
   'GÜÇ AKTARIMI': 'POWER TRANSMISSION',
-  'MAKİNA ÖZELLİKLERİ': 'MACHINE FEATURES',
-  'MAKİNA ÖLÇÜLERİ': 'MACHINE DIMENSIONS',
-  'MAKİNA ÖLÇÜLERİ İŞ KONUMU': 'MACHINE DIMENSIONS — WORKING POSITION',
+  'MAKİNE ÖZELLİKLERİ': 'MACHINE FEATURES',
+  'MAKİNE ÖLÇÜLERİ': 'MACHINE DIMENSIONS',
+  'MAKİNE ÖLÇÜLERİ İŞ KONUMU': 'MACHINE DIMENSIONS — WORKING POSITION',
   'LASTİK ÖLÇÜLERİ': 'TYRE SIZES',
   'HAŞPAY DÜZENEĞİ': 'CHOPPER UNIT',
   'HELEZON SİSTEMİ': 'AUGER SYSTEM',
@@ -83,7 +82,7 @@ export const TEKNIK_ETIKET_EN = {
   'Tırmık Genişliği - İçten İçe': 'Pick-up width — inside to inside',
   'Tırmık Genişliği - İçten içe': 'Pick-up width — inside to inside',
   'Tırmık Genişliği - Dıştan Dışa': 'Pick-up width — outside to outside',
-  'Maksimun Tırmık Genişliği': 'Maximum pick-up width',
+  'Maksimum Tırmık Genişliği': 'Maximum pick-up width',
   'Tırmık Teli': 'Pick-up tines',
   'Tırmık Borusu': 'Pick-up tine bars',
   'Tırmık Boru Sayısı': 'Number of tine bars',
@@ -100,7 +99,7 @@ export const TEKNIK_ETIKET_EN = {
   'Haşpay Düzeneği': 'Chopper unit',
   'Haspay Düzeneği': 'Chopper unit',
   'Haşpay Bıçak Sayısı': 'Number of chopper blades',
-  'Haşpay Ünütesi': 'Chopper unit',
+  'Haşpay Ünitesi': 'Chopper unit',
 
   /* Besleme */
   'Besleme Sistemi': 'Feeding system',
@@ -120,7 +119,6 @@ export const TEKNIK_ETIKET_EN = {
   'Piston Kursu': 'Plunger stroke',
   'Piston Vuruşu': 'Plunger strokes',
   'Piston Rayı': 'Plunger rail',
-  'Piston Rayi': 'Plunger rail',
   'Strok Hızı': 'Stroke rate',
   'Strok Boyu ve Hızı': 'Stroke length and rate',
   'Presleme Ünitesi': 'Baling unit',
@@ -131,7 +129,6 @@ export const TEKNIK_ETIKET_EN = {
   'Bağlama Sistemi': 'Knotting system',
   'Bağlama Sistemi Güç Aktarımı': 'Knotter drive',
   'Bağlama Grubu': 'Knotter assembly',
-  'Bağlama Gurubu': 'Knotter assembly',
   'Bağlama Grubu Emniyet Sistemi': 'Knotter safety device',
   'Bağlama Grubu Fanı': 'Knotter fan',
   'Bağlama Grubu Aydınlatması': 'Knotter lighting',
@@ -165,7 +162,6 @@ export const TEKNIK_ETIKET_EN = {
 
   /* Traktör ve güç */
   'Traktör Gücü': 'Tractor power',
-  'Traktor Gücü': 'Tractor power',
   'TRAKTÖR GÜCÜ': 'TRACTOR POWER',
   'Traktör Güç İhtiyacı': 'Required tractor power',
   'Traktör Devri': 'Tractor speed',
@@ -215,7 +211,7 @@ export const TEKNIK_ETIKET_EN = {
   'Sağ Lastik Ölçüleri': 'Right tyre size',
   'Sol Lastik Ölçüleri': 'Left tyre size',
   'TEKERLEK SAYISI': 'NUMBER OF WHEELS',
-  '3. Destek Tekerİ': '3rd support wheel',
+  '3. Destek Tekerleği': '3rd support wheel',
   'Fren Sistemi': 'Braking system',
   'Taban Sac Kalınlık': 'Floor plate thickness',
   'Yan Sac Kalınlık': 'Side plate thickness',
@@ -227,7 +223,7 @@ export const TEKNIK_ETIKET_EN = {
   'Bıçak Tipi': 'Blade type',
   'Bıçak Kontrolü': 'Blade control',
   'BIÇAK ENİ': 'BLADE WIDTH',
-  'BIÇAK UZUNLUK': 'BLADE LENGTH',
+  'BIÇAK UZUNLUĞU': 'BLADE LENGTH',
   'Biçme Bıçağı': 'Cutter blade',
   'Bileme Düzeneği': 'Sharpening device',
   'Rotor Sayısı': 'Number of rotors',
@@ -241,7 +237,7 @@ export const TEKNIK_ETIKET_EN = {
   'KOL SAYISI': 'NUMBER OF ARMS',
   'TOPLAM YAY SAYISI': 'TOTAL NUMBER OF TINES',
   'YAY KESİT': 'TINE CROSS-SECTION',
-  'Tesfiye Barı': 'Levelling bar',
+  'Tesviye Barı': 'Levelling bar',
   'Taş Kiti': 'Stone kit',
 
   /* Yem karma */
@@ -282,8 +278,6 @@ export const TEKNIK_DEGER_EN = {
   Standart: 'Standard',
   STANDART: 'STANDARD',
   Opsiyon: 'Optional',
-  /* Sitede "Otpsiyon" diye yazılmış; yazım hatası. */
-  Otpsiyon: 'Optional',
   'Standart Opsiyon': 'Standard / optional',
   Otomatik: 'Automatic',
   Mekanik: 'Mechanical',
@@ -297,16 +291,12 @@ export const TEKNIK_DEGER_EN = {
   Hardox: 'Hardox',
   'ST 37': 'ST 37',
   'ST 52': 'ST 52',
-  'Kesme Civatası': 'Shear bolt',
-  /* Sitede noktasız "i" ile yazılmış; aynı şey. */
-  'Kesme Civatasi': 'Shear bolt',
+  'Kesme Cıvatası': 'Shear bolt',
   'Pim Kesmeli': 'Shear pin',
   'Tork Emniyet': 'Torque limiter',
   'Çelik Piston': 'Steel plunger',
-  /* Sitede eksik yazılmış. */
-  'Çelik Pisto': 'Steel plunger',
-  'Özel Dizayn': 'Custom design',
-  'Paksan Özel Dizayn': 'Paksan custom design',
+  'Özel Tasarım': 'Custom design',
+  'Paksan Özel Tasarım': 'Paksan custom design',
   'Önden Besleme': 'Front feeding',
   'Yandan Besleme': 'Side feeding',
   'Çift Düğüm': 'Double knot',
@@ -315,7 +305,7 @@ export const TEKNIK_DEGER_EN = {
   '3 İpli': '3 twine',
   '2/3 İpli': '2/3 twine',
   '2-3 İpli': '2–3 twine',
-  '55 ve Yukarı': '55 and above',
+  '55 ve üzeri': '55 and above',
   'Tek Aks': 'Single axle',
   'Çift Devirli Vitesli': 'Two-speed gearbox',
   'Yıldız - Balta': 'Star / hammer',
@@ -325,11 +315,9 @@ export const TEKNIK_DEGER_EN = {
   'ÜÇ NOKTA ASKI': 'THREE-POINT LINKAGE',
   Asılır: 'Mounted',
   'Tek Noktadan Traktör Çekişli': 'Single-point tractor hitch',
-  /* Sitede son harfi eksik yazılmış. */
-  'Tek Noktadan Traktör Çekişl': 'Single-point tractor hitch',
-  'Teleskobik Kardan Şaf': 'Telescopic PTO shaft',
+  'Teleskobik kardan şaftı': 'Telescopic PTO shaft',
   'Tek Hafif Yapı': 'Single lightweight frame',
-  'Serbest Döşlü, Aşırı Yükte Cıvata Kesmeli': 'Free floating, shear bolt on overload',
+  'Serbest dönüşlü, aşırı yükte cıvata kesmeli': 'Free floating, shear bolt on overload',
   'Helezon Sistemi': 'Auger system',
   'Dikey Helezon Sistemi': 'Vertical auger system',
   'Otomatik Haşpay': 'Automatic chopper',
@@ -337,7 +325,7 @@ export const TEKNIK_DEGER_EN = {
   'Silindirik Sabit Odalı': 'Cylindrical fixed chamber',
   'Standart Otomatik File veya Tek İp ile Sarma': 'Standard automatic net or single twine wrapping',
   'Tam Otomatik Kontrol Sistemi': 'Fully automatic control system',
-  'Kauçuk Band': 'Rubber belt',
+  'Kauçuk Bant': 'Rubber belt',
   'Elektrikli Motorlu': 'Electric motor driven',
   'Elektrik (380 V)': 'Electric (380 V)',
   'KIRLANGIÇ 9 KOLLU OT TOPLAMA TIRMIĞI': 'KIRLANGIÇ 9-ARM HAY RAKE',

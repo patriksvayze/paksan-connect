@@ -193,7 +193,7 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
                       style={{ marginLeft: 'auto' }}
                       onClick={() => setSilinecek(d)}
                     >
-                      Geri çek
+              Yayından kaldır
                     </button>
                   </div>
                   {d.gorsel && <DuyuruGorseli gorsel={d.gorsel} />}
@@ -224,14 +224,14 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
 
       {silinecek && (
         <Pencere
-          baslik="Duyuruyu geri çek"
+          baslik="Duyuruyu yayından kaldır"
           metin={`"${silinecek.baslik}" yayından kaldırılacak. Duyuruyu daha önce görmüş müşterilerin bildirim listesinden de silinir.`}
-          onayYazi="Geri çek"
+          onayYazi="Yayından kaldır"
           onOnayla={() => {
             duyuruSil(silinecek.id, personel)
             setSilinecek(null)
             tazele()
-            bildir('Duyuru geri çekildi')
+          bildir('Duyuru yayından kaldırıldı')
           }}
           onVazgec={() => setSilinecek(null)}
         />
@@ -290,7 +290,7 @@ function GorselAlani({ gorsel, onDegis }) {
     if (!dosya) return
 
     if (!dosya.type.startsWith('image/')) {
-      return setHata('Yalnız görsel dosyası yüklenebilir (JPG veya PNG).')
+        return setHata('Yalnızca JPG veya PNG görseli yükleyebilirsiniz.')
     }
     if (dosya.size > DUYURU_GORSEL.mb * 1024 * 1024) {
       return setHata(`Dosya çok büyük. En fazla ${DUYURU_GORSEL.mb} MB olmalı.`)
