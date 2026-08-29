@@ -35,3 +35,6 @@ presentation_build/
 # Sunum çalışması — üretilen .pptx ve ekran görüntüleri ikili dosya,
 # git ile karşılaştırılamıyor. Brief ve rapor da tek seferlik.
 sunum/
+
+# Denetim raporu ve kayıtları — tek seferlik çıktı
+denetim/

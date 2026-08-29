@@ -19,3 +19,6 @@ PAKSAN_CONNECT_SUNUM/
 
 # Sunum çalışması — uygulama kodu değil
 sunum/
+
+# Denetim çıktısı — uygulama kodu değil
+denetim/
