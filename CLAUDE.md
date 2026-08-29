@@ -71,3 +71,16 @@ Bu projede üç proje-özel subagent var (`.claude/agents/`):
 Genel kod tabanı keşfi için ayrıca proje-özel bir agent yazmaya gerek yok —
 global `Explore` agent tipi yeterli, bu dosya ona gereken bağlamı zaten veriyor.
 Genel diff incelemesi için `/code-review` komutu kullanılır.
+
+## Codex ile iş bölümü
+
+- Claude aynı hatada iki tur takılırsa üçüncü kez kendisi denemez; işi Codex’e devreder. İki farklı modelin kör noktaları farklıdır.
+- 20 veya daha fazla dosyaya dokunan mekanik veya toplu dönüşümleri Codex uygular, sonucu Claude doğrular.
+- Türkçe metin yazımı ve dil doğruluk kontrolü Codex’e aittir; bu kural burada hatırlatılır.
+- İş devredilirken efor açıkça belirtilir (`codex exec` için `-c model_reasoning_effort`):
+  - Türkçe metin için `low`
+  - Toplu dönüşüm için `medium`
+  - Kod incelemesi için `high`
+  - Hata teşhisi için `xhigh`
+- Kullanıcının kendi global ayarı değiştirilmez.
+- Devredilen iş sessizce başarısız olabilir; sonucu görülmeden iş bitti sayılmaz.
