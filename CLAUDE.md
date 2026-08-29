@@ -74,13 +74,26 @@ Genel diff incelemesi için `/code-review` komutu kullanılır.
 
 ## Codex ile iş bölümü
 
-- Claude aynı hatada iki tur takılırsa üçüncü kez kendisi denemez; işi Codex’e devreder. İki farklı modelin kör noktaları farklıdır.
-- 20 veya daha fazla dosyaya dokunan mekanik veya toplu dönüşümleri Codex uygular, sonucu Claude doğrular.
-- Türkçe metin yazımı ve dil doğruluk kontrolü Codex’e aittir; bu kural burada hatırlatılır.
-- İş devredilirken efor açıkça belirtilir (`codex exec` için `-c model_reasoning_effort`):
-  - Türkçe metin için `low`
-  - Toplu dönüşüm için `medium`
-  - Kod incelemesi için `high`
-  - Hata teşhisi için `xhigh`
-- Kullanıcının kendi global ayarı değiştirilmez.
-- Devredilen iş sessizce başarısız olabilir; sonucu görülmeden iş bitti sayılmaz.
+- **KALICI KURAL:** Codex’in bu projedeki rolü yalnızca Türkçe metin yazımı ve dil doğruluk kontrolüdür.
+- Başka hiçbir iş Codex’e devredilmez.
+- **GEÇİCİ DÜZENLEME:** Kullanıcının Anthropic haftalık limiti dolduğu için diğer işler 3 Eylül 2026’ya kadar geçici olarak Codex’te yürütülebilir.
+- Bu geçici düzenleme 3 Eylül 2026’da kaldırılır.
+- Projenin kalıcı yapısı bu geçici düzenleme üzerine kurulmaz.
+- İş devredilirken gereken efor açıkça belirtilir; `codex exec` için `-c model_reasoning_effort` kullanılır.
+- Türkçe metin yazımı ve dil doğruluk kontrolü için efor seviyesi `low` olarak belirlenir.
+- Devredilen iş sessizce başarısız olabilir; sonucu görülmeden iş tamamlanmış sayılmaz.
+
+## Değişiklik sonrası doğrulama
+
+Önceden elle yapılan kontroller artık tek komutta:
+
+    npm run dogrula
+
+Dört şeye bakıyor: `tr.js`/`en.js` anahtar eşitliği, kodda kullanılan
+`t('...')` anahtarlarının sözlükte karşılığı, iki CSS dosyasındaki
+token'ların uyumu, `dist/` içine backoffice kodu sızıp sızmadığı.
+Sorun bulursa çıkış kodu 1.
+
+Bazı CSS token'ları **bilerek** ayrı (backoffice'te beyaz yazı için koyu
+ton gerekiyor). Bunlar `tools/dogrula.mjs` içinde gerekçesiyle listeli —
+eklemeden önce `backoffice.css`'teki ölçüm gerekçesini oku.

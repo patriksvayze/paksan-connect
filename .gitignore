@@ -38,3 +38,11 @@ sunum/
 
 # Denetim raporu ve kayıtları — tek seferlik çıktı
 denetim/
+
+# Marketplace'ten kurulan skill'ler ve agent tanımları. Üçüncü taraf
+# içerik; yeniden kurulabiliyor, depoda yer kaplamalarının anlamı yok.
+# Projeye ait subagent'lar .claude/agents/ altında ve izleniyor.
+.agents/
+.claude/skills/
+.claude/skills-pasif/
+skills-lock.json
