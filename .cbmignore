@@ -16,3 +16,6 @@ PAKSAN_CONNECT_SUNUM/
 
 # Tarayıcı aracının bıraktığı geçici dosyalar
 .playwright-mcp/
+
+# Sunum çalışması — uygulama kodu değil
+sunum/

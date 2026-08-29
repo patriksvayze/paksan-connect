@@ -31,3 +31,7 @@ paksan-support-dataset/
 paksan-dijital-donusum/
 presentation_build/
 .playwright-mcp/
+
+# Sunum çalışması — üretilen .pptx ve ekran görüntüleri ikili dosya,
+# git ile karşılaştırılamıyor. Brief ve rapor da tek seferlik.
+sunum/
