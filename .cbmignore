@@ -1,0 +1,18 @@
+# Kod grafiğine (codebase-memory) girmemesi gereken klasörler.
+# Buradakiler uygulama kodu değil; indekse girerlerse arama
+# sonuçlarını boğuyorlar.
+
+# Destek veri seti — kendi .gitignore'u olan ayrı bir proje.
+# 2.400+ JSON dosyası var, uygulamaya yalnız üretilmiş
+# src/data/mobile_support_package.json olarak kopyalanıyor.
+# Bu klasörün kendi grafiğine ihtiyaç olursa ayrı proje olarak
+# indekslenmeli.
+paksan-support-dataset/
+
+# Sunum çalışmaları — uygulama kodu değil
+paksan-dijital-donusum/
+presentation_build/
+PAKSAN_CONNECT_SUNUM/
+
+# Tarayıcı aracının bıraktığı geçici dosyalar
+.playwright-mcp/

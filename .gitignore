@@ -19,3 +19,15 @@ apk/
 # Sunum ekran görüntüleri — tools/ekran-goruntusu.mjs ile üretiliyor.
 PAKSAN_CONNECT_SUNUM/sunum/gorseller
 __pycache__/
+
+# Bu depoya ait olmayan klasörler. Aynı dizinde duruyorlar ama
+# PAKSAN Connect'in kaynak kodu değiller:
+#   paksan-support-dataset — kendi .git'i olan ayrı proje, 2.400+ JSON.
+#     Uygulamaya yalnız üretilmiş mobile_support_package.json giriyor.
+#   paksan-dijital-donusum — kendi .git'i olan sunum projesi.
+#   presentation_build — sunum derleme çıktısı, 42 ikili dosya.
+#   .playwright-mcp — tarayıcı aracının geçici dosyaları.
+paksan-support-dataset/
+paksan-dijital-donusum/
+presentation_build/
+.playwright-mcp/
