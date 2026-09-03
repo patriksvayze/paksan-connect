@@ -14,7 +14,19 @@ import { IconCamera, IconVideo, IconClose, IconAlert } from './Icons'
 
    Fotoğraflar alınırken küçültülüyor (bkz. src/lib/ekler.js). */
 
-export function EkAlani({ ekler, onDegis }) {
+/* `mevcut`: talebin BAŞKA yerinde zaten kullanılmış ekler.
+
+   Sınır form başına değil TALEP BAŞINA sayılıyor. İlk gönderimde 5
+   fotoğraf yüklendiyse sonradan ekleme yaparken hak kalmıyor; 3
+   yüklendiyse 2 hak kalıyor.
+
+   Eskiden her ekleme kotayı sıfırlıyordu ve bir talebe sınırsız medya
+   yüklenebiliyordu. Sınırın kendisi kesin bir sayı değil — sunucuya
+   geçildiğinde yeniden değerlendirilecek, o yüzden tek yerde
+   (`EK_SINIR`) duruyor.
+
+   İlk gönderim formu bu özelliği geçmiyor; varsayılan boş dizi. */
+export function EkAlani({ ekler, onDegis, mevcut = [] }) {
   const { t } = useDil()
   const fotoRef = useRef(null)
   const videoRef = useRef(null)
@@ -22,14 +34,15 @@ export function EkAlani({ ekler, onDegis }) {
   const [calisiyor, setCalisiyor] = useState(false)
 
   const fotolar = ekler.filter((e) => e.tur === 'foto')
-  const video = ekler.find((e) => e.tur === 'video')
+  const mevcutFoto = mevcut.filter((e) => e.tur === 'foto').length
+  const video = ekler.find((e) => e.tur === 'video') || mevcut.find((e) => e.tur === 'video')
 
   async function fotoSecildi(e) {
     const dosyalar = [...(e.target.files || [])]
     e.target.value = ''
     if (!dosyalar.length) return
 
-    const yer = EK_SINIR.foto - fotolar.length
+    const yer = EK_SINIR.foto - mevcutFoto - fotolar.length
     if (yer <= 0) return setHata(t('ek.fotoSinir', { n: EK_SINIR.foto }))
 
     setHata('')
@@ -93,13 +106,13 @@ export function EkAlani({ ekler, onDegis }) {
         <button
           className="ek__dugme"
           type="button"
-          disabled={calisiyor || fotolar.length >= EK_SINIR.foto}
+          disabled={calisiyor || mevcutFoto + fotolar.length >= EK_SINIR.foto}
           onClick={() => fotoRef.current?.click()}
         >
           <IconCamera size={20} />
           {t('ek.fotoEkle')}
           <span className="ek__sayi">
-            {fotolar.length}/{EK_SINIR.foto}
+            {mevcutFoto + fotolar.length}/{EK_SINIR.foto}
           </span>
         </button>
 

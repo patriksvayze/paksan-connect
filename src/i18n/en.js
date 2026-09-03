@@ -617,7 +617,7 @@ export const en = {
     fotoEkle: 'Add Photo',
     videoEkle: 'Add Video',
     videoSure: '{n} sec max',
-    fotoSinir: 'You can add at most {n} photos.',
+    fotoSinir: 'You can add at most {n} photos to this request.',
     fotoHata: 'The photo could not be added. Try another file.',
     videoUzun: 'The video is {sure} seconds. You can add a video of at most {n} seconds.',
     videoHata: 'The video could not be added. Try another file.',

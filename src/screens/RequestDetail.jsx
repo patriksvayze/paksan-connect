@@ -54,6 +54,14 @@ export default function RequestDetail() {
   const yerel = dil === 'tr' ? 'tr-TR' : 'en-GB'
 
   const sonrakiler = eklemeleri(r)
+
+  /* Talebin şimdiye kadar kullandığı medya: ilk gönderimin ekleri artı
+     bütün sonraki eklemelerinki. Sınır talep başına sayıldığı için
+     ekleme formu bunu bilmek zorunda. */
+  const kullanilanEkler = [
+    ...(r?.ekler || []),
+    ...sonrakiler.flatMap((e) => e.ekler || []),
+  ]
   const eklenebilir = eklemeYapilabilir(r)
 
   const tarihYaz = (z, saatli = true) => {
@@ -362,7 +370,9 @@ export default function RequestDetail() {
           </label>
 
           <SesKaydi ses={yeniSes} onDegis={setYeniSes} />
-          <EkAlani ekler={yeniEkler} onDegis={setYeniEkler} />
+          {/* Medya sınırı talep başına: ilk gönderimin ve önceki
+              eklemelerin ekleri de sayıya giriyor. */}
+          <EkAlani ekler={yeniEkler} onDegis={setYeniEkler} mevcut={kullanilanEkler} />
 
           {eklemeHata && <div className="uyari-kart">{eklemeHata}</div>}
 

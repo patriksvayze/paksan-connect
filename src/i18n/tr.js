@@ -623,7 +623,7 @@ export const tr = {
     fotoEkle: 'Fotoğraf Ekle',
     videoEkle: 'Video Ekle',
     videoSure: 'en fazla {n} sn',
-    fotoSinir: 'En fazla {n} fotoğraf ekleyebilirsiniz.',
+    fotoSinir: 'Bu talep için en fazla {n} fotoğraf ekleyebilirsiniz.',
     fotoHata: 'Fotoğraf eklenemedi. Başka bir dosya deneyin.',
     videoUzun: 'Video {sure} saniye. En fazla {n} saniyelik video ekleyebilirsiniz.',
     videoHata: 'Video eklenemedi. Başka bir dosya deneyin.',
