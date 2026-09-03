@@ -26,6 +26,15 @@
         "value": "roboto",
         "createdAt": "2026-09-03T06:42:22.677Z",
         "reason": "PAKSAN marka yazi tipi, bu oturumdan onceki karar. src/backoffice/main.jsx yorumu: uygulama tarafi Roboto yukluyordu, backoffice yuklemiyordu, tarayici Segoe UI e dusuyordu; ayni marka ayni yazi tipi olmali. Sirketin marka karari denetleyici uyarisiyla degistirilmez."
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "src/backoffice/Backoffice.css"
+        ],
+        "createdAt": "2026-09-03T06:59:55.034Z",
+        "reason": "Ayni dosyanin buyuk harfli yazimi. Diskteki ad backoffice.css, denetleyici Backoffice.css diye bildiriyor ve kucuk harfli bastirma eslesmiyor. Bulgu 1862. satirdaki .cevap: alintilanan cevap blogu, e-posta alintisi gibi konvansiyonel gosterim."
       }
     ]
   }
