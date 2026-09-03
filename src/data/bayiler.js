@@ -17,8 +17,8 @@
      yetki   → bayinin verdiği hizmetler
    ========================================================================== */
 
-import { icerikListe } from '../lib/icerikDeposu'
-import { ilKoordinati } from './ilKoordinat'
+import { icerikListe } from '../lib/icerikDeposu.js'
+import { ilKoordinati } from './ilKoordinat.js'
 
 export const YETKILER = {
   satis: 'Satış',
@@ -336,6 +336,40 @@ export function ileGore(il) {
 }
 
 /* ==========================================================================
+   Sorumluluk bölgesi
+
+   Bayi kaydındaki `bolge` alanı, satış personelinin backoffice'ten
+   tanımladığı sorumluluk alanı:
+
+     bolge: [
+       { il: 'Konya', ilceler: [] },              tüm Konya
+       { il: 'Karaman', ilceler: ['Ermenek'] },   yalnız Ermenek
+     ]
+
+   İLÇE LİSTESİ BOŞSA tüm il demektir. Dolu ise yalnız o ilçeler.
+
+   Alan eski kayıtlarda yok; olmaması "bölge tanımlanmamış" anlamına
+   geliyor ve eşleştirme eski üç kademeye düşüyor.
+   ========================================================================== */
+
+/** Bayinin sorumluluk bölgesi bu il/ilçeyi kapsıyor mu? */
+export function bolgeKapsiyorMu(bayi, il, ilce) {
+  if (!il) return false
+  return (bayi.bolge || []).some(
+    (b) =>
+      b.il === il && (!b.ilceler || !b.ilceler.length || b.ilceler.includes(ilce)),
+  )
+}
+
+/** Kapsama ilçe adı yazılarak mı kuruldu, yoksa tüm il olduğu için mi? */
+function bolgeIlceyeOzelMi(bayi, il, ilce) {
+  if (!ilce) return false
+  return (bayi.bolge || []).some(
+    (b) => b.il === il && (b.ilceler || []).includes(ilce),
+  )
+}
+
+/* ==========================================================================
    Talebe bakacak bayi
 
    Makineleri bayiye satıyoruz, son kullanıcıya bayi satıyor. Bu yüzden
@@ -343,22 +377,43 @@ export function ileGore(il) {
    bayiye yönlendiriliyor. Satış personelinin talebi açtığında "bunu
    kime yollayacağım" sorusunun cevabı ekranda yazılı olmalı.
 
-   ÜÇ KADEME, sırayla:
+   DÖRT KADEME, sırayla:
 
-     1. Aynı ilçede satış yetkili bayi — en doğru adres.
-     2. Aynı ilde satış yetkili bayi.
+     0. Sorumluluk bölgesi talebi kapsayan bayi — satış personelinin
+        elle tanımladığı bölge. Tanımlıysa en doğru cevap budur.
+     1. Aynı ilçedeki yetkili bayi.
+     2. Aynı ildeki yetkili bayi.
      3. İlinde bayi yoksa, il merkezine kuş uçuşu en yakın bayiler.
 
-   Yalnız SATIŞ yetkisi olan bayiler döndürülüyor: yedek parça bayisine
-   makine teklifi yollamanın anlamı yok.
+   0. kademe bölge tanımı girilmiş bayiler için çalışıyor; hiçbir
+   bayiye bölge tanımlanmamışsa fonksiyon eskisi gibi 1-3 ile
+   sonuçlanıyor. Böylece bölge tanımlanmadan da sistem çalışmaya
+   devam ediyor.
+
+   YETKİ: hangi yetkinin arandığı talebin türüne göre değişiyor.
+   Yedek parça bayisine makine teklifi yollamanın anlamı yok; servis
+   talebini de satış bayisine yollamamak gerekiyor.
 
    @param {string} il
    @param {string} ilce
    @param {number} adet en fazla kaç bayi
-   @returns {{kademe: 'ilce'|'il'|'yakin', bayiler: Array}}
+   @param {'satis'|'servis'|'parca'} gerekenYetki
+   @returns {{kademe: 'bolge'|'ilce'|'il'|'yakin', bayiler: Array}}
    ========================================================================== */
-export function talebinBayileri(il, ilce, adet = 3) {
-  const satisBayileri = bayileriGetir().filter((b) => (b.yetki || []).includes('satis'))
+export function talebinBayileri(il, ilce, adet = 3, gerekenYetki = 'satis') {
+  const satisBayileri = bayileriGetir().filter((b) =>
+    (b.yetki || []).includes(gerekenYetki),
+  )
+
+  /* 0. kademe — sorumluluk bölgesi.
+     İlçesi açıkça yazılmış bayi, tüm ilden sorumlu olana tercih
+     ediliyor: daha dar tanım daha bilinçli bir atamadır. */
+  const bolgeliler = satisBayileri.filter((b) => bolgeKapsiyorMu(b, il, ilce))
+  if (bolgeliler.length) {
+    const ilceyeOzel = bolgeliler.filter((b) => bolgeIlceyeOzelMi(b, il, ilce))
+    const secilen = ilceyeOzel.length ? ilceyeOzel : bolgeliler
+    return { kademe: 'bolge', bayiler: secilen.slice(0, adet) }
+  }
 
   if (il) {
     const ildekiler = satisBayileri.filter((b) => b.il === il)

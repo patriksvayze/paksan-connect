@@ -7,7 +7,7 @@
    Sunucu geldiğinde bu dosya sunucudan okuyacak, uygulamanın geri kalanı
    aynı kalacak.                                                        */
 
-import { load } from './storage'
+import { load } from './storage.js'
 
 /* Eski ad korundu — bkz. src/backoffice/veri.js → ANAHTAR. */
 const ANAHTAR = 'panelIcerik'
