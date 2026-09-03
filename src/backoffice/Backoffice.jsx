@@ -12,7 +12,7 @@ import { SIRKET } from '../config'
 import { TemaSecici } from './Tema'
 import {
   IconPano, IconTalep, IconUser, IconPin, IconMail, IconRapor,
-  IconChat, IconBell, IconPhone, IconPersonel, IconKayit,
+  IconChat, IconBell, IconPhone, IconPersonel, IconKayit, IconMachine,
 } from '../components/Icons'
 
 import { Ozet } from './ekranlar/Ozet'
@@ -25,6 +25,7 @@ import { Musteriler } from './ekranlar/Musteriler'
 import { Personel } from './ekranlar/Personel'
 import { GeriBildirimler } from './ekranlar/GeriBildirimler'
 import { Bayiler } from './ekranlar/Bayiler'
+import { Makineler } from './ekranlar/Makineler'
 import { IslemKaydi } from './ekranlar/IslemKaydi'
 
 /* PAKSAN Backoffice — uygulamanın arka ofisi.
@@ -60,6 +61,7 @@ const MENU = [
   { id: 'ozet', ad: 'Dashboard', Ikon: IconPano },
   { id: 'talepler', ad: 'Talepler', izin: 'talepler', sayac: 'talep', Ikon: IconTalep },
   { id: 'musteriler', ad: 'Müşteriler', izin: 'musteriler', Ikon: IconUser },
+  { id: 'makineler', ad: 'Kayıtlı Makineler', izin: 'musteriler', Ikon: IconMachine },
   { id: 'bayiler', ad: 'Bayiler', izin: 'bayiler', Ikon: IconPin },
   {
     id: 'geribildirim', ad: 'Geri Bildirimler', izin: 'geribildirim',
@@ -200,6 +202,7 @@ export function Backoffice() {
         {acik === 'destek' && <DestekKayitlari {...ortak} />}
         {acik === 'duyurular' && <Duyurular {...ortak} />}
         {acik === 'musteriler' && <Musteriler {...ortak} />}
+        {acik === 'makineler' && <Makineler {...ortak} />}
         {acik === 'bayiler' && <Bayiler {...ortak} />}
         {acik === 'geribildirim' && <GeriBildirimler {...ortak} />}
         {acik === 'numara' && <NumaraTalepleri {...ortak} />}
