@@ -34,6 +34,18 @@ Backoffice ve bayi kodu müşteri APK'sının içine GİRMEMELİ.
 
 İkisi tek `capacitor.config.json` dosyasını paylaşır. `tools/cap-hedef.mjs` hedefi değiştirir; bayi derlemesi bitince hedefi müşteriye geri alır. Böylece depodaki dosya değişmez.
 
+### Bayi tarafında iki giriş
+
+- Bayi derlemesinin iki girişi vardır, ancak tek uygulamadır:
+  - `bayi-panel.html`: Tarayıcıdan açılan panel.
+  - `bayi-mobil.html`: Telefona kurulan sürüm.
+- İkisi de aynı `src/bayi/` kodunu yükler.
+- Mobil sürüm, panelin ayrı bir kopyası değil, aynı panelin telefona sarılmış hâlidir.
+- Ayrı tutulmalarının nedeni geliştirme sırasında karışmamalarıdır: İki ayrı adres ve sekme başlığı kullanılır.
+- Aralarındaki tek fark HTML tarafındadır; mobil sürüm yakınlaştırmayı kapatır.
+- Mobil giriş derlemede `index.html` adıyla çıkar; Capacitor `webDir` klasöründe bu adı arar.
+- Adı `bayi-mobil.html` kalsaydı APK boş ekran açardı.
+
 Bayi paneli kendi CSS kökünü açmaz, `backoffice.css` dosyasını paylaşır. `npm run dogrula` bu kuralı denetler.
 
 İlk bayi APK'sında `android-bayi` klasörü henüz üretilmedi; ilk çalıştırmada oluşur.
