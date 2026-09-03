@@ -10,6 +10,7 @@ import { load, save, uid } from '../lib/storage'
 import { sifreHazirla, sifreDogruMu, sifreGecerliMi } from '../lib/hesap'
 import { yeniNo } from '../lib/numara'
 import { SIRKET } from '../config'
+import { bayileriGetir } from '../data/bayiler.js'
 
 export const ANAHTAR = {
   kullanici: 'user',
@@ -26,6 +27,7 @@ export const ANAHTAR = {
   icerik: 'panelIcerik',
   islemKaydi: 'islemKaydi',
   oturum: 'panelOturum',
+  bayiOturum: 'bayiOturum',
   personel: 'personel',
   numaraTalepleri: 'numaraTalepleri',
   sifreTalepleri: 'sifreTalepleri',
@@ -73,7 +75,9 @@ const IZINLER = {
      günlük işin parçası değil. */
   servis: ['talepler', 'musteriler', 'bayiler'],
   parca: ['talepler', 'musteriler', 'bayiler'],
-  satis: ['talepler', 'musteriler', 'bayiler'],
+  /* Satış personeli bayinin sorumluluk bölgesini değiştirebilmeli:
+     bayi ağını tanıyan, hangi bayinin nereye baktığını bilen o. */
+  satis: ['talepler', 'musteriler', 'bayiler', 'bayiDuzenle'],
 }
 
 /** Bu roldeki kişi bu işi yapabiliyor mu? */
@@ -1080,6 +1084,119 @@ export function bayileriSifirla(personel) {
   delete mevcut.bayiler
   save(ANAHTAR.icerik, mevcut)
   islemYaz({ tur: 'bayi', ozet: 'Bayi listesi koddaki listeye döndürüldü', personel })
+}
+
+/* ------------------------------------------------------------- Bayi girişi
+
+   Bayi paneli ayrı bir derleme ama bayi kaydı ayrı bir varlık değil:
+   bayi kaydı ile bayi hesabı aynı şey. İkiye bölmek, iki yerde senkron
+   tutulacak liste demek olurdu.
+
+   Hesabı PAKSAN açıyor. Bayi kendi kaydını oluşturamıyor, şifresini
+   unutursa da PAKSAN'ı arıyor — hesap silme ve numara değişikliğinde
+   uygulanan kuralın aynısı.
+
+   `ILK_ADMIN` kalıbı burada TEKRARLANMIYOR: bilinen kullanıcı adı ve
+   şifreyle kendiliğinden açılan hesap yok. Hesabı olmayan bayi
+   giremiyor.                                                         */
+
+/** Bayiye panel hesabı tanımlar veya şifresini yeniler. */
+export async function bayiHesabiYaz(bayiId, { kullanici, sifre }, personel) {
+  const ad = String(kullanici || '').trim().toLocaleLowerCase('tr-TR')
+  if (!ad) return { hata: 'Kullanıcı adı boş olamaz.' }
+  if (sifre && !sifreGecerliMi(sifre)) {
+    return { hata: `Şifre ${BACKOFFICE_SIFRE_HANE} rakamdan oluşmalı.` }
+  }
+
+  const liste = bayileriGetir()
+  const hedef = liste.find((b) => b.id === bayiId)
+  if (!hedef) return { hata: 'Bayi bulunamadı.' }
+
+  const cakisma = liste.find((b) => b.id !== bayiId && b.kullanici === ad)
+  if (cakisma) return { hata: `Bu kullanıcı adı ${cakisma.ad} bayisinde kullanılıyor.` }
+
+  const yeniSifre = sifre ? await sifreHazirla(sifre) : hedef.sifre
+  if (!yeniSifre) return { hata: 'İlk hesap açılışında şifre gerekli.' }
+
+  const yeni = liste.map((b) =>
+    b.id === bayiId
+      ? { ...b, kullanici: ad, sifre: yeniSifre, panelAktif: true, ilkGiris: Boolean(sifre) }
+      : b,
+  )
+  bayileriYaz(
+    yeni,
+    personel,
+    `${hedef.ad} panel hesabı ${hedef.kullanici ? 'güncellendi' : 'açıldı'}`,
+  )
+  return { tamam: true }
+}
+
+/** Bayinin panel hesabını kapatır; kayıt ve geçmiş duruyor. */
+export function bayiHesabiKapat(bayiId, personel) {
+  const liste = bayileriGetir()
+  const hedef = liste.find((b) => b.id === bayiId)
+  if (!hedef) return { hata: 'Bayi bulunamadı.' }
+  bayileriYaz(
+    liste.map((b) => (b.id === bayiId ? { ...b, panelAktif: false } : b)),
+    personel,
+    `${hedef.ad} panel hesabı kapatıldı`,
+  )
+  return { tamam: true }
+}
+
+export async function bayiGirisi(kullanici, sifre) {
+  const ad = String(kullanici || '').trim().toLocaleLowerCase('tr-TR')
+  const kayit = bayileriGetir().find((b) => b.kullanici === ad)
+
+  if (!kayit) return { hata: 'Kullanıcı adı veya şifre yanlış.' }
+  if (kayit.panelAktif === false) {
+    return { hata: 'Bu hesap kapalı. PAKSAN yetkilinize başvurun.' }
+  }
+  if (!(await sifreDogruMu(sifre, kayit.sifre))) {
+    return { hata: 'Kullanıcı adı veya şifre yanlış.' }
+  }
+
+  const oturum = {
+    bayiId: kayit.id,
+    no: kayit.no,
+    ad: kayit.ad,
+    il: kayit.il,
+    ilkGiris: Boolean(kayit.ilkGiris),
+    giris: Date.now(),
+  }
+  save(ANAHTAR.bayiOturum, oturum)
+  islemYaz({ tur: 'oturum', ozet: 'Bayi paneli girişi', personel: kayit.ad, rol: 'bayi' })
+  return { oturum }
+}
+
+export function bayiOturumuGetir() {
+  const o = load(ANAHTAR.bayiOturum, null)
+  return o?.bayiId ? o : null
+}
+
+export function bayiOturumuKapat(o) {
+  islemYaz({ tur: 'oturum', ozet: 'Bayi paneli çıkışı', personel: o?.ad, rol: 'bayi' })
+  save(ANAHTAR.bayiOturum, null)
+}
+
+/** Bayi ilk girişte kendi şifresini belirliyor. */
+export async function bayiSifresiniDegistir(bayiId, yeniSifre) {
+  if (!sifreGecerliMi(yeniSifre)) {
+    return { hata: `Şifre ${BACKOFFICE_SIFRE_HANE} rakamdan oluşmalı.` }
+  }
+  const liste = bayileriGetir()
+  const hedef = liste.find((b) => b.id === bayiId)
+  if (!hedef) return { hata: 'Bayi bulunamadı.' }
+
+  const hazir = await sifreHazirla(yeniSifre)
+  bayileriYaz(
+    liste.map((b) => (b.id === bayiId ? { ...b, sifre: hazir, ilkGiris: false } : b)),
+    hedef.ad,
+    `${hedef.ad} panel şifresini değiştirdi`,
+  )
+  const o = bayiOturumuGetir()
+  if (o?.bayiId === bayiId) save(ANAHTAR.bayiOturum, { ...o, ilkGiris: false })
+  return { tamam: true }
 }
 
 /* --------------------------------------------------------- Makine kayıtları

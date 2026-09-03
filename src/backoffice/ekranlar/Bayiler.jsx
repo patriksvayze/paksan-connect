@@ -1,7 +1,9 @@
 import { useState } from 'react'
-import { bayileriGetirBackoffice, bayileriSifirla, bayileriYaz, izinli } from '../veri'
+import { bayileriGetirBackoffice, bayileriSifirla, bayileriYaz, izinli, kullaniciAdiOner } from '../veri'
+import { sifreHazirla } from '../../lib/hesap'
 import { useVeri } from '../kanca'
 import { BAYILER, YETKILER } from '../../data/bayiler'
+import { ILLER, ilceleriGetir } from '../../data/iller'
 import { Baslik, Bekleme, Bos, siraliListe, SiraliBaslik, useSiralama } from './ortak'
 import { Secim, SuzgecCubugu } from './suzgec'
 import { DisaAktar, IceAktar } from './aktar'
@@ -19,7 +21,7 @@ import { yeniNo, sayaciEnAz } from '../../lib/numara'
 
 const BOS_BAYI = {
   ad: '', il: '', ilce: '', adres: '', tel: '', telYazi: '',
-  enlem: '', boylam: '', yetki: ['satis'],
+  enlem: '', boylam: '', yetki: ['satis'], bolge: [],
 }
 
 export function Bayiler({ personel, rol, bildir, tazele, surum }) {
@@ -263,7 +265,7 @@ export function Bayiler({ personel, rol, bildir, tazele, surum }) {
         <Form
           bayi={duzenlenen}
           onKapat={() => setDuzenlenen(null)}
-          onKaydet={(b) => {
+          onKaydet={async (b) => {
             sayaciEnAz('bayi', liste.length)
             const temiz = {
               ...b,
@@ -272,6 +274,19 @@ export function Bayiler({ personel, rol, bildir, tazele, surum }) {
               boylam: Number(b.boylam) || 0,
             }
             delete temiz.yeni
+
+            /* Şifre formda düz metin duruyor, kayda özet olarak
+               giriyor. Boş bırakıldıysa eski şifre korunuyor —
+               "kullanıcı adını düzelteyim" derken şifreyi silmemek
+               için. */
+            const acikSifre = temiz.yeniSifre
+            delete temiz.yeniSifre
+            if (acikSifre) {
+              temiz.sifre = await sifreHazirla(acikSifre)
+              temiz.panelAktif = true
+              temiz.ilkGiris = true
+            }
+            temiz.kullanici = (temiz.kullanici || '').trim().toLocaleLowerCase('tr-TR')
             const yeni = b.yeni
               ? [...liste, temiz]
               : liste.map((x) => (x.id === b.id ? temiz : x))
@@ -285,6 +300,108 @@ export function Bayiler({ personel, rol, bildir, tazele, surum }) {
   )
 }
 
+/* ==========================================================================
+   Sorumluluk bölgesi seçici
+
+   Bayinin hangi yerlerden gelen talebe bakacağını satış personeli
+   burada tanımlıyor.
+
+   İl eklenince varsayılan olarak TÜM İL sorumluluğu geliyor. İlçe
+   seçilirse sorumluluk yalnız o ilçelere daralıyor. Kural tek cümle:
+   ilçe seçilmediyse tüm il.
+   ========================================================================== */
+function BolgeSecici({ bolge, onDegis }) {
+  const [acikIl, setAcikIl] = useState('')
+  const secili = bolge.map((b) => b.il)
+  const eklenebilir = ILLER.filter((il) => !secili.includes(il))
+
+  function ilEkle(il) {
+    if (!il) return
+    onDegis([...bolge, { il, ilceler: [] }])
+    setAcikIl(il)
+  }
+
+  function ilCikar(il) {
+    onDegis(bolge.filter((b) => b.il !== il))
+    if (acikIl === il) setAcikIl('')
+  }
+
+  function ilceDegistir(il, ilce) {
+    onDegis(
+      bolge.map((b) => {
+        if (b.il !== il) return b
+        const var_ = (b.ilceler || []).includes(ilce)
+        return {
+          ...b,
+          ilceler: var_
+            ? b.ilceler.filter((x) => x !== ilce)
+            : [...(b.ilceler || []), ilce],
+        }
+      }),
+    )
+  }
+
+  return (
+    <div className="alan">
+      <span className="alan__ad">Sorumluluk Bölgesi</span>
+      <p className="kucuk sonuk" style={{ margin: '0 0 8px' }}>
+        Bu bayiye hangi yerlerden gelen talepler düşecek? İlçe seçmezseniz
+        bayi tüm ilden sorumlu olur.
+      </p>
+
+      {bolge.length === 0 && (
+        <p className="kucuk sonuk" style={{ margin: '0 0 8px' }}>
+          Bölge tanımlanmadı. Talepler ile, ilçeye ve mesafeye bakılarak
+          eşleştirilmeye devam eder.
+        </p>
+      )}
+
+      {bolge.map((b) => (
+        <div key={b.il} className="kart" style={{ marginBottom: 8, padding: 10 }}>
+          <div className="satir" style={{ alignItems: 'center', gap: 8 }}>
+            <strong>{b.il}</strong>
+            <span className="kucuk sonuk">
+              {b.ilceler?.length ? `${b.ilceler.length} ilçe` : 'Tüm il'}
+            </span>
+            <button
+              className="dg"
+              style={{ marginLeft: 'auto' }}
+              onClick={() => setAcikIl(acikIl === b.il ? '' : b.il)}
+            >
+              {acikIl === b.il ? 'Kapat' : 'İlçe seç'}
+            </button>
+            <button className="dg" onClick={() => ilCikar(b.il)}>Kaldır</button>
+          </div>
+
+          {acikIl === b.il && (
+            <div className="suzgec" style={{ marginTop: 8 }}>
+              {ilceleriGetir(b.il).map((ilce) => {
+                const on = (b.ilceler || []).includes(ilce)
+                return (
+                  <button
+                    key={ilce}
+                    className={'cip' + (on ? ' cip--on' : '')}
+                    onClick={() => ilceDegistir(b.il, ilce)}
+                  >
+                    {ilce}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      ))}
+
+      <select className="gir" value="" onChange={(e) => ilEkle(e.target.value)}>
+        <option value="">İl ekle</option>
+        {eklenebilir.map((il) => (
+          <option key={il} value={il}>{il}</option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
 function Form({ bayi, onKapat, onKaydet }) {
   const [d, setD] = useState(bayi)
   const [hata, setHata] = useState('')
@@ -295,6 +412,15 @@ function Form({ bayi, onKapat, onKaydet }) {
     if (!d.il.trim()) return setHata('İl adını yazın.')
     if (!d.tel.replace(/\D/g, '')) return setHata('Telefon numarasını yazın.')
     if (!(d.yetki || []).length) return setHata('En az bir hizmet seçin.')
+    /* Kullanıcı adı yazıldıysa şifre de olmalı: şifresiz hesap
+       giriş yapamaz, ekranda "hesabı var" görünür ve kimse
+       neden giremediğini anlamaz. */
+    if (d.kullanici?.trim() && !d.sifre && !d.yeniSifre?.trim()) {
+      return setHata('Panel hesabı için şifre belirleyin.')
+    }
+    if (d.yeniSifre?.trim() && !/^\d{6}$/.test(d.yeniSifre.trim())) {
+      return setHata('Şifre 6 rakamdan oluşmalı.')
+    }
     setHata('')
     onKaydet({
       ...d,
@@ -322,16 +448,35 @@ function Form({ bayi, onKapat, onKaydet }) {
             <input className="gir" value={d.ad} onChange={yaz('ad')} autoFocus />
           </label>
 
+          {/* İl ve ilçe elle yazılıyordu. Bölge eşleştirmesi il adının
+              birebir tutmasına dayandığı için bir yazım hatası koca bir
+              ili yönlendirilemez yapardı; artık listeden seçiliyor. */}
           <div className="esit">
             <label className="alan">
               <span className="alan__ad">İl</span>
-              <input className="gir" value={d.il} onChange={yaz('il')} />
+              <select
+                className="gir"
+                value={d.il}
+                onChange={(e) => setD({ ...d, il: e.target.value, ilce: '' })}
+              >
+                <option value="">Seçin</option>
+                {ILLER.map((il) => (
+                  <option key={il} value={il}>{il}</option>
+                ))}
+              </select>
             </label>
             <label className="alan">
               <span className="alan__ad">İlçe</span>
-              <input className="gir" value={d.ilce} onChange={yaz('ilce')} />
+              <select className="gir" value={d.ilce} onChange={yaz('ilce')} disabled={!d.il}>
+                <option value="">{d.il ? 'Seçin' : 'Önce il'}</option>
+                {ilceleriGetir(d.il).map((i) => (
+                  <option key={i} value={i}>{i}</option>
+                ))}
+              </select>
             </label>
           </div>
+
+          <BolgeSecici bolge={d.bolge || []} onDegis={(b) => setD({ ...d, bolge: b })} />
 
           <label className="alan">
             <span className="alan__ad">Adres</span>
@@ -387,6 +532,55 @@ function Form({ bayi, onKapat, onKaydet }) {
                 )
               })}
             </div>
+          </div>
+
+          {/* ==================================================== Panel girişi
+
+              Bayi kaydı ile bayi hesabı aynı şey; ikiye bölmek iki yerde
+              senkron tutulacak liste demek olurdu.
+
+              Hesabı PAKSAN açıyor, bayi kendi kaydını oluşturamıyor.
+              Şifresini unutursa da PAKSAN'ı arıyor — hesap silme ve
+              numara değişikliğindeki kuralın aynısı. */}
+          <div className="alan" style={{ marginTop: 18 }}>
+            <span className="alan__ad">Panel Girişi</span>
+            <p className="kucuk sonuk" style={{ margin: '0 0 8px' }}>
+              Bayi, kendi panelinden yalnız kendi bölgesine düşen talepleri
+              görür. Kullanıcı adı boşsa bayinin paneli yoktur.
+            </p>
+            <div className="esit">
+              <label className="alan">
+                <span className="alan__ad">Kullanıcı Adı</span>
+                <input
+                  className="gir mono"
+                  value={d.kullanici || ''}
+                  onChange={yaz('kullanici')}
+                  placeholder={kullaniciAdiOner(d.ad) || 'bayi.adi'}
+                />
+              </label>
+              <label className="alan">
+                <span className="alan__ad">
+                  {d.sifre ? 'Yeni Şifre (boşsa değişmez)' : 'Şifre'}
+                </span>
+                <input
+                  className="gir mono"
+                  value={d.yeniSifre || ''}
+                  onChange={yaz('yeniSifre')}
+                  placeholder="6 rakam"
+                  inputMode="numeric"
+                />
+              </label>
+            </div>
+            {d.sifre && (
+              <label className="satir" style={{ gap: 8, alignItems: 'center' }}>
+                <input
+                  type="checkbox"
+                  checked={d.panelAktif !== false}
+                  onChange={(e) => setD({ ...d, panelAktif: e.target.checked })}
+                />
+                <span className="kucuk">Panel girişi açık</span>
+              </label>
+            )}
           </div>
 
           {hata && <div className="uyari">{hata}</div>}
