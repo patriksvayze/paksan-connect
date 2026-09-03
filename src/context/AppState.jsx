@@ -3,12 +3,12 @@ import { load, save, remove, uid } from '../lib/storage'
 import { telAnahtar } from '../lib/tel'
 import { yeniNo } from '../lib/numara'
 import { uygulamaKaydi } from '../lib/kayit'
-import { sesiCevirmeyeGonder } from '../lib/sesMetin'
 import { talepNo } from '../lib/talep'
 import { sunucuyaGonder } from '../lib/sunucu'
 import { ihracatPostasi, talepUlkesi, yurtdisiTalepMi } from '../lib/ihracat'
 import { talebinBayileri } from '../data/bayiler.js'
 import { SUNUCU } from '../config'
+import { cihazDili, DilSaglayici } from '../i18n'
 
 /* Talep türü hangi bayi yetkisini gerektiriyor. Servis talebini satış
    bayisine, parça talebini servis bayisine yollamanın anlamı yok. */
@@ -17,7 +17,6 @@ const TUR_YETKI = {
   parca: 'parca',
   satinalma: 'satis',
 }
-import { cihazDili, DilSaglayici } from '../i18n'
 
 const Ctx = createContext(null)
 
@@ -261,11 +260,6 @@ export function AppProvider({ children }) {
           (ihracat ? ' · ihracat (' + r.ulke + ')' : '') +
           (r.bayi ? ' · ' + r.bayi.ad : '')
       )
-
-      /* Sesli not varsa yazıya çevrilmeye gönderiliyor. Talep zaten
-         kaydedildi; bu gönderim onu BEKLETMİYOR, cevabı da beklenmiyor
-         (bkz. src/lib/sesMetin.js). */
-      sesiCevirmeyeGonder(r, user)
 
       return r
     },

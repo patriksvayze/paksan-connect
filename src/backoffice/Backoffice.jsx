@@ -7,7 +7,6 @@ import {
   BACKOFFICE_SIFRE_HANE,
 } from './veri'
 import { bildirimGonder, izinDurumu, izinIste, sayiliBaslik } from './bildirim'
-import { sesMetinleriniTopla } from './sesMetin'
 import { SIRKET } from '../config'
 import { TemaSecici } from './Tema'
 import {
@@ -407,12 +406,6 @@ function useYeniIsHaberi(oturum, tazele) {
     if (onceki.current === null) onceki.current = oku()
 
     const zamanlayici = setInterval(() => {
-      /* Yazıya çevrilmiş sesli notlar aynı turda toplanıyor; ayrı bir
-         zamanlayıcı açmıyoruz (bkz. src/backoffice/sesMetin.js). */
-      sesMetinleriniTopla().then((n) => {
-        if (n > 0) tazele()
-      })
-
       const yeni = oku()
       const eski = onceki.current
 

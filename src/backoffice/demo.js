@@ -99,14 +99,6 @@ const IPTAL_NEDEN = [
 
 const SATIS_SONUC = ['Satış oldu', 'Müşteri vazgeçti', 'Rakibe gitti', 'Ulaşılamadı']
 
-/* Sesli notu yazıya çevrilmiş talepler — n8n akışının çıktısı böyle
-   görünüyor (bkz. src/backoffice/sesMetin.js). */
-const SES_METINLERI = [
-  'Merhaba, balya makinesinde ip sürekli kopuyor. Mekik dilini kontrol ettim, bir şey göremedim. Bir bakabilir misiniz?',
-  'Pikap toplamıyor, parmaklardan ikisi kırılmış. Yenisini göndermeniz lazım.',
-  'Makine çalışırken arka taraftan ses geliyor, rulman olabilir diye düşünüyorum.',
-]
-
 const SERVIS_ACIKLAMA = [
   'Sabah çalışırken durdu, tekrar çalıştıramadım.',
   'Balya yaparken ip sürekli kopuyor, ayar yaptım düzelmedi.',
@@ -508,13 +500,10 @@ export async function demoYukle() {
          zaten ilerleyemezdi (bkz. Talepler ekranındaki ödeme kapısı). */
       const odemeVar = tur === 'parca' && durum !== 'yeni' && durum !== 'iptal'
 
-      /* Sesli not her talepte yok; olanların bir kısmı yazıya
-         çevrilmiş durumda (bkz. src/backoffice/sesMetin.js). Ses
-         kaydının kendisi demoya konmuyor — megabaytlarca base64
-         tarayıcının hafızasını doldururdu; oynatıcı yerine süresi
-         görünüyor. */
+      /* Sesli not her talepte yok. Ses kaydının kendisi demoya
+         konmuyor — megabaytlarca base64 tarayıcının hafızasını
+         doldururdu; oynatıcı yerine süresi görünüyor. */
       const sesliMi = Math.random() > 0.75
-      const cevrildi = sesliMi && Math.random() > 0.35
 
       talepler.push({
         id: uid(),
@@ -553,9 +542,6 @@ export async function demoYukle() {
               : sec(SATIS_ACIKLAMA),
 
         ses: sesliMi ? { veri: null, sure: tamsayi(8, 45) } : null,
-        sesMetni: cevrildi
-          ? { metin: sec(SES_METINLERI), dil: 'TR', tarih: tarih + 120000 }
-          : null,
         /* Fotoğraflar aşağıda, talepler kaydedildikten sonra
            ekleniyor: eklerin yazılması asenkron. */
         ekler: [],

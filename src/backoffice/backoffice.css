@@ -2190,16 +2190,6 @@ select.sec {
   color: var(--murekkep-3);
 }
 
-/* Sesli notun yazıya çevrilmiş hâli — ses oynatıcının hemen altında */
-.ses-metni {
-  margin-top: 10px;
-  padding: 12px 13px;
-  border-left: 3px solid var(--mavi);
-  border-radius: 0 8px 8px 0;
-  background: var(--mavi-z);
-  font-size: 13.5px;
-  line-height: 1.6;
-}
 
 
 /* ==========================================================================

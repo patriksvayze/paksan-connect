@@ -650,7 +650,7 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
           {/* Ses kaydı ya da yazıya çevrilmiş hâli — biri varsa bölüm
               açılıyor. Demo kayıtlarında sesin kendisi yok (megabaytlarca
               base64 tarayıcıyı doldururdu), yalnız süresi ve metni var. */}
-          {(talep.ses || talep.sesMetni) && (
+          {talep.ses && (
             <div style={{ marginTop: 12 }}>
               <div className="alan__ad">
                 Sesli Not{talep.ses?.sure ? ' · ' + talep.ses.sure + ' sn' : ''}
@@ -661,25 +661,6 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
                 <div className="kucuk sonuk">Ses kaydı bu kayıtta saklanmıyor.</div>
               )}
 
-              {/* Yazıya çevrilmiş hâli — n8n akışından geliyor
-                  (bkz. src/backoffice/sesMetin.js). Ses kaydı yerini
-                  ALMIYOR, yanında duruyor: çeviri yanlış anlamış
-                  olabilir, personel kaydı dinleyip doğrulayabilsin. */}
-              {talep.sesMetni?.metin ? (
-                <div className="ses-metni">
-                  <div className="alan__ad">Sesli Notun Yazıya Çevrilmiş Hâli</div>
-                  <p style={{ whiteSpace: 'pre-wrap', margin: '6px 0 0' }}>
-                    {talep.sesMetni.metin}
-                  </p>
-                  <div className="kucuk sonuk" style={{ marginTop: 8 }}>
-                    Otomatik çeviridir; kaydı dinleyerek doğrulayın.
-                  </div>
-                </div>
-              ) : (
-                <div className="kucuk sonuk" style={{ marginTop: 6 }}>
-                  Yazıya çevrilmiş hâli henüz gelmedi.
-                </div>
-              )}
             </div>
           )}
 
