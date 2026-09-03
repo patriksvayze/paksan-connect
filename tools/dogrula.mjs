@@ -160,6 +160,20 @@ const ayrisan = ortak.filter(
     !BILEREK_AYRI.has(k) && coz(tUyg.get(k), tUyg) !== coz(tBo.get(k), tBo),
 )
 
+/* Üçüncü bir CSS kökü açılmadığının denetimi.
+
+   Bayi paneli backoffice.css'i paylaşıyor; src/bayi/ altında kendi
+   :root bloğu olsaydı elle senkron tutulacak üçüncü bir renk listesi
+   doğardı. Bu kural koda yazılı olmasa unutulur. */
+const bayiCss = join(KOK, 'src/bayi')
+if (existsSync(bayiCss)) {
+  for (const d of dosyalar(bayiCss, ['.css'])) {
+    if (/^\s*:root\s*\{/m.test(readFileSync(d, 'utf8'))) {
+      bildir(`${d.split(/[\\/]/).pop()} içinde :root var — bayi paneli backoffice.css'i paylaşmalı`)
+    }
+  }
+}
+
 if (!ayrisan.length) {
   tamam(
     `${ortak.length - BILEREK_AYRI.size} ortak token aynı, ` +
@@ -174,22 +188,44 @@ if (!ayrisan.length) {
 /* -------------------------------------------------- 4. Derleme ayrımı */
 
 baslik('4. Derleme ayrımı')
-const dist = join(KOK, 'dist/assets')
-if (!existsSync(dist)) {
-  console.log('  - dist/ yok, atlandı (önce npm run build)')
-} else {
-  const js = dosyalar(dist, ['.js'])
-  const izler = ['Backoffice', 'panelOturum', 'backoffice.css']
+
+/* Üç ayrı derleme var ve her birinin içine girmemesi gereken şeyler
+   farklı:
+
+     dist/       müşterinin telefonuna kurulan APK. Ne personel ne bayi
+                 kodu girmeli.
+     dist-bayi/  bayinin cihazı. PAKSAN'ın iç ekranları girmemeli. */
+const AYRIMLAR = [
+  {
+    klasor: 'dist/assets',
+    ad: 'dist/',
+    izler: ['Backoffice', 'panelOturum', 'BayiPanel', 'bayiOturum'],
+    aciklama: 'personel ve bayi kodu',
+  },
+  {
+    klasor: 'dist-bayi/assets',
+    ad: 'dist-bayi/',
+    izler: ['IslemKaydi', 'Raporlar', 'sifreTalepleri'],
+    aciklama: "PAKSAN'ın iç ekranları",
+  },
+]
+
+for (const a of AYRIMLAR) {
+  const yol = join(KOK, a.klasor)
+  if (!existsSync(yol)) {
+    console.log(`  - ${a.ad} yok, atlandı`)
+    continue
+  }
   const bulunan = []
-  for (const d of js) {
+  for (const d of dosyalar(yol, ['.js'])) {
     const metin = readFileSync(d, 'utf8')
-    for (const iz of izler) {
+    for (const iz of a.izler) {
       const n = metin.split(iz).length - 1
       /* Tek tük geçiş metin olabilir; bir eşiğin üstü kod demek. */
-      if (n > 3) bulunan.push(`${iz} x${n} → ${d.split(/[\\/]/).pop()}`)
+      if (n > 3) bulunan.push(`${a.ad} ${iz} x${n} → ${d.split(/[\\/]/).pop()}`)
     }
   }
-  if (!bulunan.length) tamam('dist/ içinde backoffice kodu yok')
+  if (!bulunan.length) tamam(`${a.ad} içinde ${a.aciklama} yok`)
   else for (const b of bulunan) bildir(b)
 }
 

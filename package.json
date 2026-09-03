@@ -10,7 +10,8 @@
     "apk": "npm run build && npx cap sync android",
     "build:backoffice": "vite build --config vite.backoffice.config.js",
     "dogrula": "node tools/dogrula.mjs",
-    "graf": "node tools/graf.mjs"
+    "graf": "node tools/graf.mjs",
+    "build:bayi": "vite build --config vite.bayi.config.js"
   },
   "dependencies": {
     "@capacitor/android": "^6.2.1",

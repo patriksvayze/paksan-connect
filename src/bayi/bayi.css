@@ -1,0 +1,103 @@
+/* ==========================================================================
+   PAKSAN Bayi Paneli — düzen farkları
+
+   BU DOSYADA `:root` BLOĞU YOK ve olmayacak.
+
+   Renk ve ölçü token'ları backoffice.css'ten geliyor. Bu projede
+   token'lar elle senkron tutuluyor (styles.css ile backoffice.css
+   arasında zaten iki kopya var); üçüncü bir kök o yükü katlardı.
+   `npm run dogrula` bu kuralı denetliyor.
+
+   Buradaki tek iş: bayi paneli telefonda da açılıyor, backoffice ise
+   bilgisayarda. Dokunma hedefleri ve dar ekran düzeni burada.
+   ========================================================================== */
+
+/* Bayi paneli tek sütun; backoffice'in yan menülü düzeni yok.
+   Bayinin göreceği ekran sayısı az, menüye gerek duymuyor. */
+.bayi-govde {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.bayi-tepe {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.bayi-tepe__ad {
+  font-weight: 800;
+  font-size: 18px;
+}
+
+.bayi-tepe__alt {
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+/* Talep kartı. Backoffice tablo kullanıyor; bayi telefonda da
+   bakacağı için liste kart hâlinde. */
+.bayi-talep {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r);
+  background: var(--yuzey);
+  padding: 14px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.bayi-talep:hover {
+  border-color: var(--mavi);
+}
+
+.bayi-talep__ust {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.bayi-talep__ad {
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.bayi-talep__alt {
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+/* Dokunma hedefi: telefonda parmakla basılıyor, 44 pikselin altına
+   düşmemeli. */
+.bayi-islem .dg {
+  min-height: 44px;
+  padding-inline: 16px;
+}
+
+.bayi-islem {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+@media (min-width: 620px) {
+  .bayi-islem {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Devredilen talepte bayi artık işlem yapmıyor, yalnız izliyor. */
+.bayi-devir {
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r);
+  padding: 12px;
+  font-size: 14px;
+  margin-top: 12px;
+}
