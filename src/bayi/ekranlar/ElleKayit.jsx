@@ -31,7 +31,7 @@ const TURLER = [
   { id: 'satinalma', ad: 'Fiyat Teklifi' },
 ]
 
-export function ElleKayit({ oturum, onKapat, onKaydedildi }) {
+export function ElleKayit({ oturum, onKaydedildi }) {
   const [tur, setTur] = useState('servis')
   const [ad, setAd] = useState('')
   const [tel, setTel] = useState('')
@@ -99,16 +99,11 @@ export function ElleKayit({ oturum, onKapat, onKaydedildi }) {
   }
 
   return (
-    <div className="bayi-govde">
-      <div className="bayi-tepe">
-        <button className="dg" onClick={onKapat}>Geri</button>
-        <div>
-          <div className="bayi-tepe__ad">Elle Kayıt</div>
-          <div className="bayi-tepe__alt">
-            Size doğrudan gelen müşteri için talep açın.
-          </div>
-        </div>
-      </div>
+    <>
+      <p className="ipucu">
+        Uygulamayı kullanmayan, sizi telefonla arayan ya da dükkânınıza
+        gelen müşteriler için talep açın.
+      </p>
 
       <div className="kart" style={{ padding: 16 }}>
         <div className="alan">
@@ -138,6 +133,7 @@ export function ElleKayit({ oturum, onKapat, onKaydedildi }) {
             value={tel}
             onChange={(e) => setTel(e.target.value)}
             placeholder="0532 111 22 33"
+            type="tel"
             inputMode="tel"
           />
         </label>
@@ -188,12 +184,13 @@ export function ElleKayit({ oturum, onKapat, onKaydedildi }) {
         </label>
 
         {hata && <div className="uyari">{hata}</div>}
-
-        <div className="satir">
-          <button className="dg dg--ana" onClick={kaydet}>Kaydet</button>
-          <button className="dg" onClick={onKapat}>Vazgeç</button>
-        </div>
       </div>
-    </div>
+
+      <div className="yapisik">
+        <button className="dg dg--ana dg--blok" onClick={kaydet}>
+          Talebi Aç
+        </button>
+      </div>
+    </>
   )
 }

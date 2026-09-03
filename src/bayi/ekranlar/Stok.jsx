@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { stokGetir, stokYaz } from '../../lib/bayiStok'
 import { PARCA_FIYAT } from '../../data/parcaFiyat'
 import { PRODUCTS } from '../../data/products'
+import { Bolum } from '../Kabuk'
 
 /* ==========================================================================
    Bayi paneli — stok
@@ -16,7 +17,7 @@ import { PRODUCTS } from '../../data/products'
    bakmıyorum".
    ========================================================================== */
 
-export function Stok({ oturum, onKapat }) {
+export function Stok({ oturum }) {
   const [stok, setStok] = useState(() => stokGetir(oturum.bayiId))
   const [kaydedildi, setKaydedildi] = useState(false)
 
@@ -38,50 +39,48 @@ export function Stok({ oturum, onKapat }) {
   }
 
   return (
-    <div className="bayi-govde">
-      <div className="bayi-tepe">
-        <button className="dg" onClick={onKapat}>Geri</button>
-        <div>
-          <div className="bayi-tepe__ad">Stoğum</div>
-          <div className="bayi-tepe__alt">
-            Elinizdeki sayıyı yazın. Takip etmediğiniz kalemi boş bırakın.
-          </div>
+    <>
+      <p className="ipucu">
+        Takip etmediğiniz kalemi boş bırakın. Boş bırakmak “bakmıyorum”,
+        sıfır yazmak “bende yok” demek.
+      </p>
+
+      <Bolum ad="Yedek Parça">
+        <div className="kart" style={{ padding: '4px 16px' }}>
+          {Object.entries(PARCA_FIYAT).map(([ad, bilgi]) => (
+            <SayiSatiri
+              key={ad}
+              ad={ad}
+              alt={bilgi.kod}
+              deger={stok.parca[ad]}
+              onDegis={(v) => yaz('parca', ad, v)}
+            />
+          ))}
         </div>
-      </div>
+      </Bolum>
 
-      <div className="kart" style={{ padding: 16, marginBottom: 12 }}>
-        <h2 style={{ fontSize: 15, marginTop: 0 }}>Yedek Parça</h2>
-        {Object.entries(PARCA_FIYAT).map(([ad, bilgi]) => (
-          <SayiSatiri
-            key={ad}
-            ad={ad}
-            alt={bilgi.kod}
-            deger={stok.parca[ad]}
-            onDegis={(v) => yaz('parca', ad, v)}
-          />
-        ))}
-      </div>
+      <Bolum ad="Makine">
+        <div className="kart" style={{ padding: '4px 16px' }}>
+          {PRODUCTS.map((u) => (
+            <SayiSatiri
+              key={u.id}
+              ad={u.name}
+              alt={u.short || ''}
+              deger={stok.makine[u.id]}
+              onDegis={(v) => yaz('makine', u.id, v)}
+            />
+          ))}
+        </div>
+      </Bolum>
 
-      <div className="kart" style={{ padding: 16 }}>
-        <h2 style={{ fontSize: 15, marginTop: 0 }}>Makine</h2>
-        {PRODUCTS.map((u) => (
-          <SayiSatiri
-            key={u.id}
-            ad={u.name}
-            alt={u.short || ''}
-            deger={stok.makine[u.id]}
-            onDegis={(v) => yaz('makine', u.id, v)}
-          />
-        ))}
-      </div>
-
-      <div className="bayi-islem">
-        <button className="dg dg--ana" onClick={kaydet}>
+      {/* Kaydet ekranın dibine yapışık: uzun listenin sonuna kadar
+          kaydırmak gerekmesin. */}
+      <div className="yapisik">
+        <button className="dg dg--ana dg--blok" onClick={kaydet}>
           {kaydedildi ? 'Kaydedildi' : 'Kaydet'}
         </button>
-        <button className="dg" onClick={onKapat}>Geri dön</button>
       </div>
-    </div>
+    </>
   )
 }
 
@@ -89,7 +88,7 @@ function SayiSatiri({ ad, alt, deger, onDegis }) {
   return (
     <div
       className="satir"
-      style={{ alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--cizgi)' }}
+      style={{ alignItems: 'center', gap: 10, padding: '11px 0', borderBottom: '1px solid var(--cizgi)' }}
     >
       <div style={{ flex: 1 }}>
         <div>{ad}</div>

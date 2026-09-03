@@ -1,6 +1,14 @@
 import { useState } from 'react'
 import { talepKapat, talepNotEkle, talepPlanla } from '../../backoffice/veri'
 import { parcaAdedi, stokDus } from '../../lib/bayiStok'
+import { Sayfa } from '../Kabuk'
+import {
+  IconBook,
+  IconCalendar,
+  IconCheckCircle,
+  IconRight,
+  IconShield,
+} from '../../components/Icons'
 
 /* ==========================================================================
    Bayi paneli — talep detayı
@@ -25,19 +33,32 @@ export function TalepDetay({ talep, bayiAd, bayiId, onKapat, onDestekIste }) {
   const [pencere, setPencere] = useState(null)
   const paksanda = (talep.sahip || 'paksan') === 'paksan'
   const kapali = ['kapandi', 'iptal'].includes(talep.status)
+  const islemVar = !kapali && !paksanda
+
+  /* ASIL İŞLEM EKRANIN DİBİNE YAPIŞIK.
+
+     Dört düğme yan yana dururken hangisinin asıl iş olduğu belli
+     değildi. Bayinin bu ekranda yapacağı tek şey var: işi bitirmek.
+     O düğme altta, parmağın durduğu yerde ve tek başına; ötekiler
+     detayın içinde, sırası gelince bakılan seçenekler. */
+  const asilIslem = islemVar && (
+    <button
+      className="dg dg--ana dg--blok"
+      onClick={() => setPencere(talep.tur === 'parca' ? 'gonderdim' : 'tamamladim')}
+    >
+      {talep.tur === 'parca' ? 'Parçayı gönderdim' : 'İşi tamamladım'}
+    </button>
+  )
 
   return (
-    <div className="bayi-govde">
-      <div className="bayi-tepe">
-        <button className="dg" onClick={onKapat}>Geri</button>
-        <div>
-          <div className="bayi-tepe__ad">{talep.ad || '—'}</div>
-          <div className="bayi-tepe__alt mono">{talep.no}</div>
-        </div>
-      </div>
-
+    <Sayfa
+      baslik={talep.ad || '—'}
+      alt={talep.no}
+      onGeri={onKapat}
+      dip={asilIslem}
+    >
       <div className="kart" style={{ padding: 16 }}>
-        <div className="bayi-talep__ust">
+        <div className="is__ust">
           <span className={'tur tur--' + talep.tur}>
             {TUR_ADI[talep.tur] || talep.tur}
           </span>
@@ -61,42 +82,45 @@ export function TalepDetay({ talep, bayiAd, bayiId, onKapat, onDestekIste }) {
       </div>
 
       {paksanda && talep.devir && (
-        <div className="bayi-devir">
-          <strong>Bu talebe PAKSAN destek veriyor.</strong>
-          <div className="kucuk sonuk" style={{ marginTop: 4 }}>
-            Müşteri hâlâ sizin müşteriniz. PAKSAN'ın attığı adımları burada
-            görmeye devam edeceksiniz.
+        <div className="not not--mavi">
+          <IconShield size={19} />
+          <div>
+            <strong>PAKSAN bu talebe destek veriyor.</strong>
+            <p>
+              Müşteri hâlâ sizin müşteriniz. PAKSAN'ın attığı adımları
+              burada görmeye devam edeceksiniz.
+            </p>
           </div>
         </div>
       )}
 
       {kapali && (
-        <div className="bayi-devir">
-          <strong>Bu talep tamamlandı.</strong>
+        <div className="not not--yesil">
+          <IconCheckCircle size={19} />
+          <div>
+            <strong>Bu talep tamamlandı.</strong>
+          </div>
         </div>
       )}
 
-      {!kapali && !paksanda && (
-        <div className="bayi-islem">
+      {islemVar && (
+        <div className="secenek">
           {talep.tur === 'servis' && (
-            <button className="dg" onClick={() => setPencere('randevu')}>
+            <button className="secenek__dg" onClick={() => setPencere('randevu')}>
+              <IconCalendar size={19} />
               Randevu ver
+              <IconRight size={17} />
             </button>
           )}
-          {talep.tur === 'parca' ? (
-            <button className="dg dg--ana" onClick={() => setPencere('gonderdim')}>
-              Parçayı gönderdim
-            </button>
-          ) : (
-            <button className="dg dg--ana" onClick={() => setPencere('tamamladim')}>
-              İşi tamamladım
-            </button>
-          )}
-          <button className="dg" onClick={() => setPencere('not')}>
+          <button className="secenek__dg" onClick={() => setPencere('not')}>
+            <IconBook size={19} />
             Not ekle
+            <IconRight size={17} />
           </button>
-          <button className="dg" onClick={() => setPencere('destek')}>
+          <button className="secenek__dg" onClick={() => setPencere('destek')}>
+            <IconShield size={19} />
             PAKSAN'dan destek iste
+            <IconRight size={17} />
           </button>
         </div>
       )}
@@ -130,7 +154,7 @@ export function TalepDetay({ talep, bayiAd, bayiId, onKapat, onDestekIste }) {
       {pencere === 'destek' && (
         <Destek onKapat={() => setPencere(null)} onGonder={onDestekIste} />
       )}
-    </div>
+    </Sayfa>
   )
 }
 
