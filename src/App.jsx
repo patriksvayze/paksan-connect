@@ -67,7 +67,7 @@ function Bulunamadi() {
 }
 
 function Yonlendirme() {
-  const { user, requests, showToast } = useApp()
+  const { user, requests, machines, showToast } = useApp()
   const { t } = useDil()
 
   /* Android'in geri hareketi ve geri tuşu uygulamayı kapatmasın,
@@ -78,7 +78,7 @@ function Yonlendirme() {
      Burada duruyor, tek bir ekranda değil: kullanıcı hangi sayfada
      olursa olsun bildirimi alsın (bkz. src/lib/bildirimYayini.js). */
   useBildirimYayini(
-    bildirimListesi({ requests, kampanyaIzni: Boolean(user?.onaylar?.kampanya) }),
+    bildirimListesi({ requests, user, makineler: machines }),
     t,
     Boolean(user),
   )

@@ -4,6 +4,7 @@ import { useApp } from '../context/AppState'
 import { useDil } from '../i18n'
 import { load, save } from '../lib/storage'
 import { ekAdresi } from '../lib/ekler'
+import { duyuruGecerliMi, personelDuyurusuMu } from '../lib/duyuruHedef'
 import { yurtdisiTalepMi } from '../lib/ihracat'
 import { Sheet } from './Chrome'
 import { IconAlert, IconBell } from './Icons'
@@ -42,31 +43,34 @@ const ANAHTAR = 'gorulenDuyurular'
 
 export function Duyuru() {
   const nav = useNavigate()
-  const { user } = useApp()
+  const { user, machines } = useApp()
   const { t } = useDil()
   const [duyurular, setDuyurular] = useState([])
   const [sira, setSira] = useState(0)
 
-  const kampanyaIzni = Boolean(user?.onaylar?.kampanya)
 
   useEffect(() => {
     if (!user) return
 
     const gorulen = new Set(load(ANAHTAR, []))
+    /* Kime gideceği kararı tek yerde: src/lib/duyuruHedef.js.
+       Kampanya izni, yurtdışı ve hedefleme kuralları orada; burada
+       yalnız pencereye özel iki koşul kalıyor. */
     const aday = load('duyurular', [])
-      .filter((d) => d.pencere && (d.tur === 'duyuru' || d.tur === 'uyari'))
-      .filter((d) => (d.tur === 'duyuru' ? kampanyaIzni : true))
-      /* Yurtdışındaki kullanıcıya Türkçe duyuru/uyarı gösterilmiyor.
-         Bu, Türkçe güvenlik veya geri çağırma uyarısını da gizleyebilir;
-         yurtdışı kullanıcı için ayrı bir duyuru kanalı gerekip gerekmediği
-         proje sahibiyle netleştirilmeli. `dil: 'en'` gelecekteki ayrı kanal içindir. */
-      .filter((d) => !yurtdisiTalepMi(user) || d.dil === 'en')
+      .filter((d) => d.pencere && personelDuyurusuMu(d))
+      .filter((d) =>
+        duyuruGecerliMi(d, {
+          user,
+          makineler: machines,
+          yurtdisi: yurtdisiTalepMi(user),
+        }),
+      )
       .filter((d) => !gorulen.has(d.id))
       .sort((a, b) => b.tarih - a.tarih)
 
     setDuyurular(aday)
     setSira(0)
-  }, [user, kampanyaIzni])
+  }, [user, machines])
 
   function kapat() {
     const acik = duyurular[sira]

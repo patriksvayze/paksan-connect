@@ -16,6 +16,7 @@
    ========================================================================== */
 
 import { load } from './storage'
+import { duyuruGecerliMi } from './duyuruHedef.js'
 import { yurtdisiTalepMi } from './ihracat'
 
 export const BILDIRIM_TURU = {
@@ -43,7 +44,7 @@ const HATIRLATMA_SAAT = 24
  *
  * @param {{requests: array, kampanyaIzni: boolean}} kaynak
  */
-export function bildirimListesi({ requests = [], kampanyaIzni = false, user = null } = {}) {
+export function bildirimListesi({ requests = [], user = null, makineler = [] } = {}) {
   /* Yaklaşan randevular — backoffice’ten planlanan servis/parça işleri */
   const randevular = requests
     .filter((r) => r.plan?.tarih && r.status === 'planlandi')
@@ -93,11 +94,13 @@ export function bildirimListesi({ requests = [], kampanyaIzni = false, user = nu
      hizmete ilişkin bildirim (talep durumu, güvenlik uyarısı) izinden
      bağımsız. Bu ayrım KVKK / ticari elektronik ileti kuralı. */
   const backofficeden = load('duyurular', [])
-    .filter((d) => (d.tur === 'duyuru' ? kampanyaIzni : true))
-    /* Türkçe duyuru/uyarı yurtdışında gizlenebilir; özellikle güvenlik ve
-       geri çağırma uyarısı için ayrı bir yurtdışı kanalı gerekip gerekmediği
-       proje sahibine açık sorudur. `dil: 'en'` ayrı kanal içindir. */
-    .filter((d) => !yurtdisiTalepMi(user) || (d.tur !== 'duyuru' && d.tur !== 'uyari') || d.dil === 'en')
+    /* Kime gideceği kararı tek yerde: src/lib/duyuruHedef.js. Kampanya
+       izni, yurtdışı ve hedefleme kuralları orada. Talep ve numara
+       bildirimleri o yardımcıdan hiç süzülmüyor; onlar zaten kişiye
+       özel üretiliyor. */
+    .filter((d) =>
+      duyuruGecerliMi(d, { user, makineler, yurtdisi: yurtdisiTalepMi(user) }),
+    )
     .map((d) => ({
       id: 'duyuru-' + d.id,
       tur: d.tur === 'uyari' ? BILDIRIM_TURU.UYARI

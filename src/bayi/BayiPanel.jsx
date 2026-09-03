@@ -9,6 +9,8 @@ import {
   talepleriGetir,
   BACKOFFICE_SIFRE_HANE,
 } from '../backoffice/veri'
+import { load, save } from '../lib/storage'
+import { duyuruGecerliMi } from '../lib/duyuruHedef'
 import { TalepDetay } from './ekranlar/TalepDetay'
 import { Stok } from './ekranlar/Stok'
 import { ElleKayit } from './ekranlar/ElleKayit'
@@ -260,6 +262,8 @@ function Liste({ oturum, onCikis }) {
         </div>
       </div>
 
+      <BayiDuyurulari oturum={oturum} />
+
       {talepler.length === 0 && (
         <div className="kart" style={{ padding: 20 }}>
           <p style={{ margin: 0 }}>Şu an size düşen talep yok.</p>
@@ -289,6 +293,53 @@ function Liste({ oturum, onCikis }) {
     </div>
   )
 }
+
+/* PAKSAN'ın bayilere yönelttiği duyurular.
+
+   Ayrı bir bildirim listesi kurulmadı: aynı duyuru deposu okunuyor,
+   kime gideceğine duyuruHedef.js karar veriyor. Bayiye ulaşması için
+   duyurunun hedefinde "bayilere" ya da "ikisine de" seçilmiş olması
+   gerekiyor; hedefsiz duyuru müşteriye gider, bayiye değil. */
+function BayiDuyurulari({ oturum }) {
+  const [liste, setListe] = useState([])
+
+  useEffect(() => {
+    const gorulen = new Set(load(GORULEN, []))
+    setListe(
+      load('duyurular', [])
+        .filter((d) => duyuruGecerliMi(d, { bayi: oturum }))
+        .filter((d) => !gorulen.has(d.id))
+        .sort((a, b) => b.tarih - a.tarih),
+    )
+  }, [oturum])
+
+  function kapat(id) {
+    save(GORULEN, [...new Set([...load(GORULEN, []), id])])
+    setListe((l) => l.filter((d) => d.id !== id))
+  }
+
+  if (!liste.length) return null
+
+  return (
+    <>
+      {liste.map((d) => (
+        <div key={d.id} className="bayi-devir" style={{ marginBottom: 10 }}>
+          <div className="satir" style={{ alignItems: 'flex-start', gap: 10 }}>
+            <div style={{ flex: 1 }}>
+              <strong>{d.baslik}</strong>
+              <div className="kucuk" style={{ whiteSpace: 'pre-wrap', marginTop: 4 }}>
+                {d.metin}
+              </div>
+            </div>
+            <button className="dg" onClick={() => kapat(d.id)}>Anladım</button>
+          </div>
+        </div>
+      ))}
+    </>
+  )
+}
+
+const GORULEN = 'gorulenDuyurularBayi'
 
 const TUR_ADI = { servis: 'Servis', parca: 'Yedek Parça', satinalma: 'Fiyat Teklifi' }
 

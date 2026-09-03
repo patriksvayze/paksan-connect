@@ -795,7 +795,13 @@ export function duyurulariGetir() {
   return load(ANAHTAR.duyurular, []).filter((d) => d.tur === 'duyuru' || d.tur === 'uyari')
 }
 
-export function duyuruYayinla({ tur, baslik, metin, gorsel }, personel) {
+export function duyuruYayinla({ tur, baslik, metin, gorsel, hedef }, personel) {
+  /* Hedef boşsa alan hiç yazılmıyor: yokluk "herkese" demek
+     (bkz. src/lib/duyuruHedef.js). Boş dizilerle dolu bir nesne
+     yazmak da aynı sonucu verirdi ama kayıt gereksiz şişerdi. */
+  const doluHedef =
+    hedef && Object.values(hedef).some((v) => (Array.isArray(v) ? v.length : v && v !== 'musteri'))
+
   const kayit = {
     id: uid(),
     tarih: Date.now(),
@@ -808,6 +814,7 @@ export function duyuruYayinla({ tur, baslik, metin, gorsel }, personel) {
     personel,
     /* Uygulamada açılışta pencere olarak çıksın */
     pencere: true,
+    ...(doluHedef ? { hedef } : {}),
   }
   save(ANAHTAR.duyurular, [kayit, ...load(ANAHTAR.duyurular, [])])
   islemYaz({

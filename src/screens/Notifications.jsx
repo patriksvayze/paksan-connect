@@ -47,14 +47,16 @@ export default function Notifications() {
   const nav = useNavigate()
   const { t, dil } = useDil()
   const {
-    requests, user, okunanBildirimler, bildirimOku, bildirimleriOku,
+    requests, user, machines, okunanBildirimler, bildirimOku, bildirimleriOku,
   } = useApp()
 
-  /* Kampanya izni yoksa backoffice’ten gelen duyurular gösterilmiyor;
-     hizmete ilişkin bildirimler izinden bağımsız geliyor. */
+  /* Duyurunun kime gideceği src/lib/duyuruHedef.js içinde: kampanya
+     izni, yurtdışı ve hedefleme kuralları orada. Makine listesi de
+     geçiyor, çünkü duyuru modele ya da seri numarasına
+     hedeflenebiliyor. */
   const liste = useMemo(
-    () => bildirimListesi({ requests, user, kampanyaIzni: Boolean(user?.onaylar?.kampanya) }),
-    [requests, user]
+    () => bildirimListesi({ requests, user, makineler: machines }),
+    [requests, user, machines]
   )
   const okunanSet = useMemo(() => new Set(okunanBildirimler), [okunanBildirimler])
   const okunmamis = liste.filter((b) => !okunanSet.has(b.id))

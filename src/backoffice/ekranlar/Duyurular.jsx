@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { duyurulariGetir, duyuruSil, duyuruYayinla } from '../veri'
+import { ILLER } from '../../data/iller'
+import { PRODUCTS } from '../../data/products'
+import { bayileriGetir } from '../../data/bayiler.js'
 import { useVeri } from '../kanca'
 import { Baslik, Bekleme, Bos, tarihYaz } from './ortak'
 import { boyutYaz, ekAdresi, ekSil, ekYaz, fotoKucult } from '../../lib/ekler'
@@ -52,6 +55,146 @@ const TURLER = [
   },
 ]
 
+/* ==========================================================================
+   Hedefleme
+
+   Duyuru varsayılan olarak HERKESE gidiyor. Hedef seçilmediği sürece
+   kayda `hedef` alanı hiç yazılmıyor; okuma tarafı yokluğu "sınır yok"
+   diye anlıyor (bkz. src/lib/duyuruHedef.js).
+
+   Makine tipi ayrı alan değil: kategori seçimi burada ürün
+   kimliklerine genişletiliyor, böylece müşterinin telefonunda tek bir
+   liste karşılaştırması kalıyor.
+   ========================================================================== */
+
+const BOS_HEDEF = { kime: 'musteri', iller: [], bayiler: [], urunler: [] }
+
+function HedefSecici({ hedef, onDegis, bayiler }) {
+  const [acik, setAcik] = useState(false)
+
+  const cevir = (alan, deger) => {
+    const mevcut = hedef[alan] || []
+    onDegis({
+      ...hedef,
+      [alan]: mevcut.includes(deger)
+        ? mevcut.filter((x) => x !== deger)
+        : [...mevcut, deger],
+    })
+  }
+
+  const sinirVar =
+    hedef.kime !== 'musteri' ||
+    hedef.iller.length ||
+    hedef.bayiler.length ||
+    hedef.urunler.length
+
+  return (
+    <div className="alan">
+      <div className="satir" style={{ alignItems: 'center' }}>
+        <span className="alan__ad" style={{ margin: 0 }}>Kimlere Gidecek</span>
+        <button className="dg" style={{ marginLeft: 'auto' }} onClick={() => setAcik(!acik)}>
+          {acik ? 'Kapat' : 'Seç'}
+        </button>
+      </div>
+      <p className="kucuk sonuk" style={{ margin: '4px 0 0' }}>
+        {sinirVar ? ozetle(hedef, bayiler) : 'Herkese gidecek.'}
+      </p>
+
+      {acik && (
+        <div className="kart" style={{ padding: 12, marginTop: 8 }}>
+          <div className="alan">
+            <span className="alan__ad">Kime</span>
+            <div className="suzgec">
+              {[
+                { id: 'musteri', ad: 'Müşterilere' },
+                { id: 'bayi', ad: 'Bayilere' },
+                { id: 'ikisi', ad: 'İkisine de' },
+              ].map((x) => (
+                <button
+                  key={x.id}
+                  className={'cip' + (hedef.kime === x.id ? ' cip--on' : '')}
+                  onClick={() => onDegis({ ...hedef, kime: x.id })}
+                >
+                  {x.ad}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="alan">
+            <span className="alan__ad">İller · boş bırakılırsa tüm iller</span>
+            <div className="suzgec" style={{ maxHeight: 140, overflow: 'auto' }}>
+              {ILLER.map((il) => (
+                <button
+                  key={il}
+                  className={'cip' + (hedef.iller.includes(il) ? ' cip--on' : '')}
+                  onClick={() => cevir('iller', il)}
+                >
+                  {il}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {hedef.kime !== 'musteri' && (
+            <div className="alan">
+              <span className="alan__ad">Bayiler · boş bırakılırsa tüm bayiler</span>
+              <div className="suzgec" style={{ maxHeight: 120, overflow: 'auto' }}>
+                {bayiler.map((b) => (
+                  <button
+                    key={b.id}
+                    className={'cip' + (hedef.bayiler.includes(b.id) ? ' cip--on' : '')}
+                    onClick={() => cevir('bayiler', b.id)}
+                  >
+                    {b.ad}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="alan">
+            <span className="alan__ad">Makine modeli · boş bırakılırsa tüm makineler</span>
+            <div className="suzgec" style={{ maxHeight: 140, overflow: 'auto' }}>
+              {PRODUCTS.map((u) => (
+                <button
+                  key={u.id}
+                  className={'cip' + (hedef.urunler.includes(u.id) ? ' cip--on' : '')}
+                  onClick={() => cevir('urunler', u.id)}
+                >
+                  {u.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button className="dg" onClick={() => onDegis(BOS_HEDEF)}>
+            Hedefi temizle
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ozetle(hedef, bayiler) {
+  const parcalar = []
+  if (hedef.kime === 'bayi') parcalar.push('Yalnız bayilere')
+  else if (hedef.kime === 'ikisi') parcalar.push('Müşteri ve bayilere')
+  if (hedef.iller.length) parcalar.push(hedef.iller.join(', '))
+  if (hedef.bayiler.length) {
+    parcalar.push(
+      hedef.bayiler.map((id) => bayiler.find((b) => b.id === id)?.ad || id).join(', ')
+    )
+  }
+  if (hedef.urunler.length) {
+    parcalar.push(
+      hedef.urunler.map((id) => PRODUCTS.find((u) => u.id === id)?.name || id).join(', ')
+    )
+  }
+  return parcalar.join(' · ')
+}
+
 export function Duyurular({ personel, bildir, tazele, surum }) {
   const [tur, setTur] = useState('duyuru')
   const [baslik, setBaslik] = useState('')
@@ -60,8 +203,10 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
   const [hata, setHata] = useState('')
   const [onay, setOnay] = useState(false)
   const [silinecek, setSilinecek] = useState(null)
+  const [hedef, setHedef] = useState(BOS_HEDEF)
 
   const { veri: liste, yukleniyor } = useVeri(duyurulariGetir, [surum], [])
+  const bayiListesi = bayileriGetir()
 
   const secili = TURLER.find((x) => x.id === tur)
 
@@ -73,10 +218,11 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
   }
 
   function yayinla() {
-    duyuruYayinla({ tur, baslik, metin, gorsel }, personel)
+    duyuruYayinla({ tur, baslik, metin, gorsel, hedef }, personel)
     setBaslik('')
     setMetin('')
     setGorsel(null)
+    setHedef(BOS_HEDEF)
     setOnay(false)
     tazele()
     bildir('Duyuru yayınlandı')
@@ -144,6 +290,8 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
             </label>
 
             <GorselAlani gorsel={gorsel} onDegis={setGorsel} />
+
+            <HedefSecici hedef={hedef} onDegis={setHedef} bayiler={bayiListesi} />
 
             {/* Metin çevrilmiyor: personelin yazdığı cümleyi uygulama
                 çeviremez. Yurtdışı müşterisi de varsa iki dilde ayrı

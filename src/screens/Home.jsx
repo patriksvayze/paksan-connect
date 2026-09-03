@@ -23,7 +23,7 @@ export default function Home() {
   const { t, dil } = useDil()
   const { user, machines, requests, okunanBildirimler } = useApp()
   const okunmamis = okunmamisSayisi(
-    bildirimListesi({ requests, kampanyaIzni: Boolean(user?.onaylar?.kampanya) }),
+    bildirimListesi({ requests, user, makineler: machines }),
     okunanBildirimler
   )
   const kaydirildi = useKaydirildi()
