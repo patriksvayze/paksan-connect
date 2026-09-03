@@ -46,3 +46,6 @@ denetim/
 .claude/skills/
 .claude/skills-pasif/
 skills-lock.json
+
+# task-observer skill'ının tuttuğu gözlem kayıtları — araç çıktısı
+skill-observations/
