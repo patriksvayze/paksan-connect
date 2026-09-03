@@ -7,7 +7,16 @@ import { sesiCevirmeyeGonder } from '../lib/sesMetin'
 import { talepNo } from '../lib/talep'
 import { sunucuyaGonder } from '../lib/sunucu'
 import { ihracatPostasi, talepUlkesi, yurtdisiTalepMi } from '../lib/ihracat'
+import { talebinBayileri } from '../data/bayiler.js'
 import { SUNUCU } from '../config'
+
+/* Talep türü hangi bayi yetkisini gerektiriyor. Servis talebini satış
+   bayisine, parça talebini servis bayisine yollamanın anlamı yok. */
+const TUR_YETKI = {
+  servis: 'servis',
+  parca: 'parca',
+  satinalma: 'satis',
+}
 import { cihazDili, DilSaglayici } from '../i18n'
 
 const Ctx = createContext(null)
@@ -207,6 +216,20 @@ export function AppProvider({ children }) {
          BURADA veriliyor ki her talep ekranı aynı davransın. */
       const ihracat = yurtdisiTalepMi(user)
 
+      /* Talep önce BAYİYE düşüyor. PAKSAN makinelerini bayilerine
+         satıyor, son kullanıcıya satan bayi; talebin ilk muhatabı da
+         bayi olmalı. PAKSAN personeli talebi görmeye ve gerektiğinde
+         müdahale etmeye devam ediyor — görünürlük hiç kapanmıyor.
+
+         Yurtdışı talebi bayiye düşmüyor: bayi ağı Türkiye içinde.
+
+         Bayi eşleşmezse (bölgesi tanımsız, o yetkide bayi yok) talep
+         PAKSAN'da kalıyor. Boşta talep kalmıyor. */
+      const bayiEslesme = ihracat
+        ? null
+        : talebinBayileri(data.il, data.ilce, 1, TUR_YETKI[data.tur] || 'satis')
+      const bayi = bayiEslesme?.bayiler?.[0] || null
+
       const r = {
         id: uid(),
         no: talepNo(data.tur),
@@ -214,6 +237,10 @@ export function AppProvider({ children }) {
         status: 'yeni',
         ulke: talepUlkesi(user),
         ihracat,
+        bayi: bayi
+          ? { id: bayi.id, ad: bayi.ad, kademe: bayiEslesme.kademe, tarih: Date.now() }
+          : null,
+        sahip: bayi ? 'bayi' : 'paksan',
         ...data,
       }
 
@@ -230,7 +257,9 @@ export function AppProvider({ children }) {
       requestsGuncelle((list) => [r, ...list])
       uygulamaKaydi(
         'talep',
-        `${r.no} açıldı · ${r.ad}${ihracat ? ' · ihracat (' + r.ulke + ')' : ''}`
+        `${r.no} açıldı · ${r.ad}` +
+          (ihracat ? ' · ihracat (' + r.ulke + ')' : '') +
+          (r.bayi ? ' · ' + r.bayi.ad : '')
       )
 
       /* Sesli not varsa yazıya çevrilmeye gönderiliyor. Talep zaten

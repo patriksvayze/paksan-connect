@@ -1086,6 +1086,50 @@ export function bayileriSifirla(personel) {
   islemYaz({ tur: 'bayi', ozet: 'Bayi listesi koddaki listeye döndürüldü', personel })
 }
 
+/* ------------------------------------------------------- Bayi ve sahiplik
+
+   Talep oluşurken bir bayiye yazılıyor (bkz. AppState.jsx). İki alan
+   var ve ikisi farklı soruları cevaplıyor:
+
+     talep.bayi   → hangi bayinin müşterisi. BİR DAHA DEĞİŞMİYOR.
+     talep.sahip  → şu an kim ilgileniyor: 'bayi' veya 'paksan'.
+
+   Bayi yetersiz kalıp PAKSAN'dan destek istediğinde yalnız `sahip`
+   değişiyor. `bayi` sabit kaldığı için bayi, PAKSAN'ın attığı adımları
+   görmeye devam ediyor — müşteri onun müşterisi olmaya devam ediyor.
+
+   PAKSAN personeli talep bayideyken de görüyor ve müdahale edebiliyor.
+   Müdahale ettiğinde `gecmis[]`'e düşüyor, bayi de görüyor. Yetki
+   kilidi konmadı: iş tanımı "PAKSAN izler ve gerektiğinde yönlendirir"
+   diyor, kilit kimsenin istemediği bir engel olurdu.                 */
+
+/** Bu bayiye düşen talepler. */
+export function bayininTalepleri(liste, bayiId) {
+  return liste.filter((t) => t.bayi?.id === bayiId)
+}
+
+/** Bayi PAKSAN'dan destek istiyor; sorumluluk PAKSAN'a geçiyor. */
+export function destekTalepEt(talep, neden, bayiAd) {
+  /* Talep hâlâ "yeni" ise incelemeye alınıyor: PAKSAN'ın yeni talep
+     kutusunda çakılı kalmasın, personel bildirimi düşsün. Ödeme
+     onayındaki kalıbın aynısı. */
+  const durum = talep.status === 'yeni' ? 'incelemede' : talep.status
+  talepYaz(talep.id, {
+    sahip: 'paksan',
+    devir: { tarih: Date.now(), neden: neden || '', bayiAd },
+    status: durum,
+    gecmis: [...(talep.gecmis || []), { durum, tarih: Date.now(), personel: bayiAd }],
+  })
+  islemYaz({
+    tur: 'devir',
+    ozet: `${talep.no} · ${bayiAd} PAKSAN'dan destek istedi`,
+    personel: bayiAd,
+    rol: 'bayi',
+  })
+  /* Müşteriye bildirim gitmiyor: onun açısından değişen bir şey yok,
+     muhatabı hâlâ bayi. */
+}
+
 /* ------------------------------------------------------------- Bayi girişi
 
    Bayi paneli ayrı bir derleme ama bayi kaydı ayrı bir varlık değil:

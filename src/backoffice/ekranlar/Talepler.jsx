@@ -38,6 +38,7 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
   const [il, setIl] = useState('hepsi')
   const [ilce, setIlce] = useState('hepsi')
   const [makine, setMakine] = useState('hepsi')
+  const [sahiplik, setSahiplik] = useState('hepsi')
   const [ara, setAra] = useState('')
   const [secili, setSecili] = useState(null)
 
@@ -141,6 +142,9 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
       if (!araliktaMi(t.createdAt, aralik)) return false
       if (il !== 'hepsi' && t.il !== il) return false
       if (ilce !== 'hepsi' && t.ilce !== ilce) return false
+      if (sahiplik === 'bayi' && (t.sahip || 'paksan') !== 'bayi') return false
+      if (sahiplik === 'paksan' && (t.sahip || 'paksan') !== 'paksan') return false
+      if (sahiplik === 'devredilen' && !t.devir) return false
       if (makine !== 'hepsi') {
         const ad = t.makine ? getProduct(t.makine.productId)?.name : null
         if (ad !== makine) return false
@@ -161,7 +165,7 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
         .filter(Boolean)
         .some((x) => String(x).replace(/\D/g, '').includes(qRakam))
     })
-  }, [kendiTalepleri, durum, tur, aralik, il, ilce, makine, ara, tumTurler])
+  }, [kendiTalepleri, durum, tur, aralik, il, ilce, makine, ara, tumTurler, sahiplik])
 
   /* Sıralama süzgeçten SONRA: ekranda ne varsa o sıralanıyor.
      Değer fonksiyonları sıralamanın neye baktığını söylüyor —
@@ -271,6 +275,21 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
           genislik={170}
         />
 
+        {/* Talep bayiye düşse de PAKSAN listesinden çıkmıyor; bu
+            süzgeç "şu an kim ilgileniyor" sorusunu cevaplıyor. */}
+        <Secim
+          ad="Sahiplik"
+          deger={sahiplik}
+          onDegis={setSahiplik}
+          secenekler={[
+            { deger: 'hepsi', ad: 'Hepsi' },
+            { deger: 'bayi', ad: 'Bayide' },
+            { deger: 'paksan', ad: "PAKSAN'da" },
+            { deger: 'devredilen', ad: 'Devredilenler' },
+          ]}
+          genislik={150}
+        />
+
         <label className="secim-alan secim-alan--genis">
           <span className="secim-alan__ad">Ara</span>
           <input
@@ -334,6 +353,7 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
                             {teklifBekliyorMu(t) && <TeklifBekliyor talep={t} />}
                             {gonderimGecikti(t) && <GonderimGecikti talep={t} />}
                           </div>
+                          <SahiplikEtiketi talep={t} />
                         </td>
                         <td>
                           <div>{t.ad || '—'}</div>
@@ -1400,6 +1420,25 @@ function kapanisOzeti(tur, deger) {
    şeyi gösteriyor. */
 function TurEtiket({ tur }) {
   return <span className={'tur tur--' + tur}>{TALEP_ADI[tur] || tur}</span>
+}
+
+/* Talebin şu an kimde olduğunu gösteren satır.
+
+   Talep bayiye düşse de bu listeden çıkmıyor; personel her talebi
+   görüyor. Bu etiket "buna kim bakıyor" sorusunu cevaplıyor, yoksa
+   personel bayinin ilgilendiği talebe de aynı anda dokunur ve müşteri
+   iki yerden aranır.
+
+   Bayisi olmayan talepte hiçbir şey yazmıyor: satırda gereksiz gürültü
+   olmasın, "PAKSAN'da" zaten varsayılan durum. */
+function SahiplikEtiketi({ talep }) {
+  if (!talep.bayi) return null
+  const devredildi = (talep.sahip || 'paksan') === 'paksan'
+  return (
+    <div className="kucuk sonuk" style={{ marginTop: 2 }}>
+      {devredildi ? `Devredildi · ${talep.bayi.ad}` : `Bayide · ${talep.bayi.ad}`}
+    </div>
+  )
 }
 
 /* Uygulamada makinenin durumu ve aciliyet KİMLİKLE saklanıyor
