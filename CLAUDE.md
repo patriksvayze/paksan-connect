@@ -76,9 +76,6 @@ Genel diff incelemesi için `/code-review` komutu kullanılır.
 
 - **KALICI KURAL:** Codex’in bu projedeki rolü yalnızca Türkçe metin yazımı ve dil doğruluk kontrolüdür.
 - Başka hiçbir iş Codex’e devredilmez.
-- **GEÇİCİ DÜZENLEME:** Kullanıcının Anthropic haftalık limiti dolduğu için diğer işler 3 Eylül 2026’ya kadar geçici olarak Codex’te yürütülebilir.
-- Bu geçici düzenleme 3 Eylül 2026’da kaldırılır.
-- Projenin kalıcı yapısı bu geçici düzenleme üzerine kurulmaz.
 - İş devredilirken gereken efor açıkça belirtilir; `codex exec` için `-c model_reasoning_effort` kullanılır.
 - Türkçe metin yazımı ve dil doğruluk kontrolü için efor seviyesi `low` olarak belirlenir.
 - Devredilen iş sessizce başarısız olabilir; sonucu görülmeden iş tamamlanmış sayılmaz.
