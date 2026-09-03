@@ -12,10 +12,18 @@ android/.gradle
 android/app/build
 android/build
 
+# Bayi APK projesi. Müşteri projesiyle aynı kural: kaynak izleniyor,
+# derleme çıktısı ve bilgisayara özel SDK yolu izlenmiyor.
+android-bayi/local.properties
+android-bayi/.gradle
+android-bayi/app/build
+android-bayi/build
+
 # Derlenmiş APK'lar — kaynak koddan yeniden üretilebilir, ikili dosya
 # olduğu için git'te yalnız yer kaplar, karşılaştırma değeri yok.
 # Her sürüm zaten kendi dosyasında ayrı ayrı burada duruyor.
 apk/
+apk-bayi/
 
 # Sunum ekran görüntüleri — tools/ekran-goruntusu.mjs ile üretiliyor.
 PAKSAN_CONNECT_SUNUM/sunum/gorseller

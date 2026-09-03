@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">PAKSAN Bayi</string>
+    <string name="title_activity_main">PAKSAN Bayi</string>
+    <string name="package_name">com.paksanmakina.bayi</string>
+    <string name="custom_url_scheme">com.paksanmakina.bayi</string>
+</resources>
