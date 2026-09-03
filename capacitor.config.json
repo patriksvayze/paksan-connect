@@ -3,7 +3,8 @@
   "appName": "PAKSAN Connect",
   "webDir": "dist",
   "android": {
-    "allowMixedContent": false
+    "allowMixedContent": false,
+    "path": "android"
   },
   "server": {
     "androidScheme": "https"

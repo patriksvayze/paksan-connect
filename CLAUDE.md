@@ -15,12 +15,28 @@ uygulama içi tüm metin ve yorumlar sade Türkçe.
 - `src/i18n/` — `tr.js`/`en.js` (663 anahtar, eşit tutuluyor ama build'de zorlanmıyor) + `index.jsx`
 - `tools/` — otomasyon betikleri (ekran görüntüsü, ikon üretimi, veri doğrulama)
 
-## İki ayrı derleme
+## Üç ayrı derleme
 
-- `vite.config.js` → `dist/` → Capacitor/APK'ya giren, **müşteri uygulaması**
-- `vite.backoffice.config.js` → `dist-backoffice/` → **backoffice**, APK'nın içine GİRMEMELİ
+- `vite.config.js` → `dist/` → APK'ya giren **müşteri uygulaması**
+- `vite.backoffice.config.js` → `dist-backoffice/` → **backoffice personel paneli**
+- `vite.bayi.config.js` → `dist-bayi/` → **bayi paneli**
 
-`npm run build` ve `npm run build:backoffice` ayrı ayrı çalıştırılır.
+Backoffice ve bayi kodu müşteri APK'sının içine GİRMEMELİ.
+
+- `npm run build` → müşteri uygulaması
+- `npm run build:backoffice` → backoffice
+- `npm run build:bayi` → bayi paneli
+
+İki ayrı APK üretiliyor:
+
+- `npm run apk` → müşteri APK'sı
+- `npm run apk:bayi` → bayi APK'sı
+
+İkisi tek `capacitor.config.json` dosyasını paylaşır. `tools/cap-hedef.mjs` hedefi değiştirir; bayi derlemesi bitince hedefi müşteriye geri alır. Böylece depodaki dosya değişmez.
+
+Bayi paneli kendi CSS kökünü açmaz, `backoffice.css` dosyasını paylaşır. `npm run dogrula` bu kuralı denetler.
+
+İlk bayi APK'sında `android-bayi` klasörü henüz üretilmedi; ilk çalıştırmada oluşur.
 
 ## CSS — iki ayrı kök, elle senkron
 
