@@ -53,7 +53,7 @@ export default function Notifications() {
   /* Kampanya izni yoksa backoffice’ten gelen duyurular gösterilmiyor;
      hizmete ilişkin bildirimler izinden bağımsız geliyor. */
   const liste = useMemo(
-    () => bildirimListesi({ requests, kampanyaIzni: Boolean(user?.onaylar?.kampanya) }),
+    () => bildirimListesi({ requests, user, kampanyaIzni: Boolean(user?.onaylar?.kampanya) }),
     [requests, user]
   )
   const okunanSet = useMemo(() => new Set(okunanBildirimler), [okunanBildirimler])

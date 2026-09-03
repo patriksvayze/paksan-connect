@@ -431,6 +431,7 @@ export const en = {
     baslik: 'Announcement from PAKSAN',
     uyariBaslik: 'Important Notice',
     anladim: 'Got it',
+    sonraki: 'Next',
     tumBildirimler: 'All My Notifications',
   },
 
@@ -515,7 +516,7 @@ export const en = {
     parca: {
       baslik: 'Spare Part Request',
       buton: 'Send Spare Part Request',
-      aciklamaLabel: 'Your Request',
+      aciklamaLabel: 'Description',
       aciklamaPlaceholder:
         'Example: I need 2 knotter blades and 1 set of shear bolts.',
     },
@@ -678,7 +679,7 @@ export const en = {
     kilavuz: 'Manual',
     yedekParca: 'Spare Parts',
     servisTalebi: 'Create a service request',
-    servisAlt: 'Have our technical team call you about this machine',
+    servisAlt: 'Fill in the request form and our service team will get back to you',
     videolar: 'Videos',
     bakim: 'Maintenance',
     bilgiler: 'Details',
@@ -714,7 +715,9 @@ export const en = {
     ozelAdimlar: 'Steps for your machine',
     takildiginiz: 'If You Get Stuck',
     destekSorun: 'Ask the support assistant',
-    destekSorunAlt: 'Describe the step in your own words and we will work it out together',
+    destekSorunAlt: 'Follow the guided steps: topic, symptom and answer',
+    servisIsteyin: 'Request service',
+    servisIsteyinAlt: 'Ask for service support for your machine',
     parcaIsteyin: 'Request a spare part',
     parcaIsteyinAlt: 'If something needs replacing',
     digerRehberler: 'Other Guides',

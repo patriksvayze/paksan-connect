@@ -4,6 +4,7 @@ import { useApp } from '../context/AppState'
 import { useDil } from '../i18n'
 import { load, save } from '../lib/storage'
 import { ekAdresi } from '../lib/ekler'
+import { yurtdisiTalepMi } from '../lib/ihracat'
 import { Sheet } from './Chrome'
 import { IconAlert, IconBell } from './Icons'
 
@@ -30,10 +31,7 @@ import { IconAlert, IconBell } from './Icons'
               ilişkin bildirim ticari ileti sayılmıyor ve zaten
               görülmemesi tehlikeli.
 
-   ÜST ÜSTE YIĞILMIYOR: bir seferde tek duyuru gösteriliyor. Beş duyuru
-   birikmişse en yenisi çıkıyor, kapatılınca bir sonraki değil
-   Bildirimler listesi devreye giriyor — uygulamayı açan kişiyi pencere
-   zinciriyle karşılamak kaçırtır.
+   ÜST ÜSTE YIĞILMIYOR: duyurular tek pencerede sırayla gösteriliyor.
 
    GÖRÜLDÜ BİLGİSİ okundu bilgisinden AYRI tutuluyor: pencereyi
    kapatmak duyuruyu okundu saymıyor, Bildirimler listesinde mavi
@@ -46,7 +44,8 @@ export function Duyuru() {
   const nav = useNavigate()
   const { user } = useApp()
   const { t } = useDil()
-  const [acik, setAcik] = useState(null)
+  const [duyurular, setDuyurular] = useState([])
+  const [sira, setSira] = useState(0)
 
   const kampanyaIzni = Boolean(user?.onaylar?.kampanya)
 
@@ -57,17 +56,33 @@ export function Duyuru() {
     const aday = load('duyurular', [])
       .filter((d) => d.pencere && (d.tur === 'duyuru' || d.tur === 'uyari'))
       .filter((d) => (d.tur === 'duyuru' ? kampanyaIzni : true))
+      /* Yurtdışındaki kullanıcıya Türkçe duyuru/uyarı gösterilmiyor.
+         Bu, Türkçe güvenlik veya geri çağırma uyarısını da gizleyebilir;
+         yurtdışı kullanıcı için ayrı bir duyuru kanalı gerekip gerekmediği
+         proje sahibiyle netleştirilmeli. `dil: 'en'` gelecekteki ayrı kanal içindir. */
+      .filter((d) => !yurtdisiTalepMi(user) || d.dil === 'en')
       .filter((d) => !gorulen.has(d.id))
-      .sort((a, b) => b.tarih - a.tarih)[0]
+      .sort((a, b) => b.tarih - a.tarih)
 
-    if (aday) setAcik(aday)
+    setDuyurular(aday)
+    setSira(0)
   }, [user, kampanyaIzni])
 
   function kapat() {
+    const acik = duyurular[sira]
     if (acik) save(ANAHTAR, [...new Set([...load(ANAHTAR, []), acik.id])])
-    setAcik(null)
+    setDuyurular([])
   }
 
+  function ilerle() {
+    const acik = duyurular[sira]
+    if (!acik) return
+    save(ANAHTAR, [...new Set([...load(ANAHTAR, []), acik.id])])
+    if (sira < duyurular.length - 1) setSira(sira + 1)
+    else setDuyurular([])
+  }
+
+  const acik = duyurular[sira]
   if (!acik) return null
 
   const uyari = acik.tur === 'uyari'
@@ -95,8 +110,8 @@ export function Duyuru() {
 
         <p style={{ lineHeight: 1.7, whiteSpace: 'pre-wrap', margin: 0 }}>{acik.metin}</p>
 
-        <button className="btn btn--primary btn--lg" onClick={kapat}>
-          {t('duyuru.anladim')}
+        <button className="btn btn--primary btn--lg" onClick={ilerle}>
+          {sira < duyurular.length - 1 ? t('duyuru.sonraki') : t('duyuru.anladim')}
         </button>
         <button
           className="btn btn--soft"

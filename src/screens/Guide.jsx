@@ -11,7 +11,7 @@ import {
   bolumuSifirla, isaretiCevir, isaretleriGetir, maddeAnahtari,
 } from '../lib/rehberIsaret'
 import {
-  IconAlert, IconCheck, IconCheckCircle, IconRight, IconChat, IconParca,
+  IconAlert, IconCheck, IconCheckCircle, IconRight, IconChat, IconParca, IconWrench,
 } from '../components/Icons'
 
 /* Bakım rehberi ekranı.
@@ -175,6 +175,27 @@ export default function Guide() {
                 <div className="listitem__sub">
                   {t('rehberler.destekSorunAlt')}
                 </div>
+              </div>
+              <span className="listitem__chev">
+                <IconRight size={21} />
+              </span>
+            </button>
+
+            <button
+              className="listitem"
+              onClick={() =>
+                nav(`/talep?tur=servis${makine ? `&makine=${makine.id}` : ''}`)
+              }
+            >
+              <div
+                className="listitem__icon"
+                style={{ background: 'var(--pk-orange-soft)', color: 'var(--pk-orange-ink)' }}
+              >
+                <IconWrench size={22} />
+              </div>
+              <div className="listitem__body">
+                <div className="listitem__title">{t('rehberler.servisIsteyin')}</div>
+                <div className="listitem__sub">{t('rehberler.servisIsteyinAlt')}</div>
               </div>
               <span className="listitem__chev">
                 <IconRight size={21} />

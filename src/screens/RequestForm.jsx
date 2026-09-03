@@ -1254,7 +1254,7 @@ function TalepFormu() {
             <label>
               <span className="field__label">
                 {cfg('aciklamaLabel')}
-                {!aciklamaZorunlu && <span className="field__istege"> · {t('ortak.istegeBagli')}</span>}
+                {!aciklamaZorunlu && <span className="field__istege"> · {t(tur === 'servis' ? 'ortak.varsa' : 'ortak.istegeBagli')}</span>}
               </span>
               <textarea
                 className="textarea"

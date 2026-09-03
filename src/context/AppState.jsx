@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { load, save, remove, uid } from '../lib/storage'
 import { telAnahtar } from '../lib/tel'
 import { yeniNo } from '../lib/numara'
@@ -22,6 +22,15 @@ export function AppProvider({ children }) {
   const [user, setUser] = useState(() => load('user', null))
   const [machines, setMachines] = useState(() => load('machines', []))
   const [requests, setRequests] = useState(() => load('requests', []))
+  const requestsRef = useRef(requests)
+  const requestsGuncelle = useCallback((guncelle) => {
+    setRequests((liste) => {
+      const yeni = guncelle(liste)
+      requestsRef.current = yeni
+      save('requests', yeni)
+      return yeni
+    })
+  }, [])
   const [chats, setChats] = useState(() => load('chats', {}))
   /* Okunmuş bildirimlerin kimlikleri. Bildirimlerin kendisi
      saklanmıyor — uygulamanın bildiklerinden her açılışta yeniden
@@ -55,7 +64,24 @@ export function AppProvider({ children }) {
     })
   }, [user])
   useEffect(() => save('machines', machines), [machines])
-  useEffect(() => save('requests', requests), [requests])
+  useEffect(() => {
+    requestsRef.current = requests
+    save('requests', requests)
+  }, [requests])
+  useEffect(() => {
+    const yenile = () => {
+      const disaridaki = load('requests', [])
+      if (JSON.stringify(disaridaki) !== JSON.stringify(requestsRef.current)) {
+        setRequests(disaridaki)
+      }
+    }
+    window.addEventListener('focus', yenile)
+    document.addEventListener('visibilitychange', yenile)
+    return () => {
+      window.removeEventListener('focus', yenile)
+      document.removeEventListener('visibilitychange', yenile)
+    }
+  }, [])
   useEffect(() => save('chats', chats), [chats])
   useEffect(() => save('okunanBildirimler', okunanBildirimler), [okunanBildirimler])
 
@@ -86,7 +112,7 @@ export function AppProvider({ children }) {
     const anahtar = (h) => (h ? telAnahtar(h.ulke, h.tel) : '')
     if (onceki && anahtar(onceki) !== anahtar(data)) {
       setMachines([])
-      setRequests([])
+      requestsGuncelle(() => [])
       setChats({})
     }
 
@@ -96,7 +122,7 @@ export function AppProvider({ children }) {
     setUser(yeni)
     save('hesap', yeni)
     uygulamaKaydi('musteri', `${yeni.no} ${yeni.ad} hesap açtı`)
-  }, [])
+  }, [requestsGuncelle])
 
   /* Var olan hesapla giriş — kayıt kaydını olduğu gibi geri yükler.
      Sunucu geldiğinde makine ve talep listesi de burada set edilecek. */
@@ -201,7 +227,7 @@ export function AppProvider({ children }) {
       /* Talep numarasını sunucu üretiyorsa onunki geçerli */
       if (cevap?.no) r.no = cevap.no
 
-      setRequests((list) => [r, ...list])
+      requestsGuncelle((list) => [r, ...list])
       uygulamaKaydi(
         'talep',
         `${r.no} açıldı · ${r.ad}${ihracat ? ' · ihracat (' + r.ulke + ')' : ''}`
@@ -214,20 +240,20 @@ export function AppProvider({ children }) {
 
       return r
     },
-    [user]
+    [user, requestsGuncelle]
   )
 
   const updateRequest = useCallback((id, patch) => {
-    setRequests((list) => list.map((r) => (r.id === id ? { ...r, ...patch } : r)))
-  }, [])
+    requestsGuncelle((list) => list.map((r) => (r.id === id ? { ...r, ...patch } : r)))
+  }, [requestsGuncelle])
 
   const removeRequest = useCallback((id) => {
-    setRequests((list) => {
+    requestsGuncelle((list) => {
       const silinen = list.find((r) => r.id === id)
       if (silinen) uygulamaKaydi('talep', `${silinen.no} müşteri tarafından silindi`)
       return list.filter((r) => r.id !== id)
     })
-  }, [])
+  }, [requestsGuncelle])
 
   /* --------------------------------------------------------------- Sohbet */
 

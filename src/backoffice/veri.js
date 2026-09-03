@@ -117,6 +117,10 @@ export function kullaniciAdiOner(ad) {
     .join('.')
 }
 
+function epostaAnahtari(eposta) {
+  return String(eposta || '').trim().toLowerCase()
+}
+
 /* Backoffice boşken kimse giremezdi. İlk admin hesabı burada açılıyor;
    admin kendi hesabını açtıktan sonra bunu silebilir. */
 export const ILK_ADMIN = { kullanici: 'admin', sifre: '123456' }
@@ -144,9 +148,13 @@ export async function personelBaslat() {
 export async function personelEkle(veri, yapan) {
   const liste = personelGetir()
   const kullanici = veri.kullanici.trim().toLocaleLowerCase('tr-TR')
+  const eposta = epostaAnahtari(veri.eposta)
 
   if (liste.some((p) => p.kullanici === kullanici)) {
     return { hata: 'Bu kullanıcı adı zaten kullanılıyor.' }
+  }
+  if (eposta && liste.some((p) => epostaAnahtari(p.eposta) === eposta)) {
+    return { hata: 'Bu e-posta adresi zaten kayıtlı. / This email address is already in use.' }
   }
   if (!sifreGecerliMi(veri.sifre)) {
     return { hata: 'Şifre 6 rakamdan oluşmalı.' }
@@ -158,7 +166,7 @@ export async function personelEkle(veri, yapan) {
     ad: veri.ad.trim(),
     kullanici,
     rol: veri.rol,
-    eposta: veri.eposta.trim(),
+    eposta,
     tel: veri.tel.trim(),
     aktif: true,
     createdAt: Date.now(),
@@ -183,12 +191,16 @@ export async function personelGuncelle(id, degisiklik, yapan) {
   const kullanici = (degisiklik.kullanici ?? eski.kullanici)
     .trim()
     .toLocaleLowerCase('tr-TR')
+  const eposta = epostaAnahtari(degisiklik.eposta ?? eski.eposta)
 
   if (liste.some((p) => p.id !== id && p.kullanici === kullanici)) {
     return { hata: 'Bu kullanıcı adı zaten kullanılıyor.' }
   }
+  if (eposta && liste.some((p) => p.id !== id && epostaAnahtari(p.eposta) === eposta)) {
+    return { hata: 'Bu e-posta adresi zaten kayıtlı. / This email address is already in use.' }
+  }
 
-  const yeni = { ...eski, ...degisiklik, kullanici }
+  const yeni = { ...eski, ...degisiklik, kullanici, eposta }
 
   /* Şifre yalnız yazıldıysa değişiyor; boş bırakılırsa eskisi kalıyor. */
   if (degisiklik.sifre) {

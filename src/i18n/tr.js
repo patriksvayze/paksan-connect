@@ -390,7 +390,7 @@ export const tr = {
     parca: {
       baslik: 'Yedek Parça Talebi',
       buton: 'Yedek Parça Talebi Gönder',
-      aciklamaLabel: 'Talebiniz',
+      aciklamaLabel: 'Açıklama',
       aciklamaPlaceholder:
         'Örnek: 2 adet düğüm atıcı bıçağı ve 1 takım emniyet cıvatası lazım.',
     },
@@ -584,6 +584,7 @@ export const tr = {
     baslik: 'PAKSAN Duyurusu',
     uyariBaslik: 'Önemli Uyarı',
     anladim: 'Anladım',
+    sonraki: 'Sonraki',
     tumBildirimler: 'Tüm Bildirimlerim',
   },
 
@@ -690,7 +691,7 @@ export const tr = {
     kilavuz: 'Kılavuz',
     yedekParca: 'Yedek Parça',
     servisTalebi: 'Servis talebi oluştur',
-    servisAlt: 'Teknik ekibimiz bu makine için sizi arasın',
+    servisAlt: 'Talep formunu doldurun, servis ekibimiz size dönüş yapsın',
     videolar: 'Videolar',
     bakim: 'Bakım',
     bilgiler: 'Bilgiler',
@@ -726,7 +727,9 @@ export const tr = {
     ozelAdimlar: 'Makinenize özel adımlar',
     takildiginiz: 'Takıldığınız Yer Olursa',
     destekSorun: 'Destek asistanına sorun',
-    destekSorunAlt: 'Adımı kendi cümlelerinizle anlatın, birlikte çözelim',
+    destekSorunAlt: 'Konu, belirti ve cevaptan oluşan adımlarla ilerleyin',
+    servisIsteyin: 'Servis talebinde bulunun',
+    servisIsteyinAlt: 'Makineniz için servis desteği isteyin',
     parcaIsteyin: 'Yedek parça isteyin',
     parcaIsteyinAlt: 'Değişmesi gereken bir parça varsa',
     digerRehberler: 'Diğer Rehberler',
