@@ -1,0 +1,32 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "src/styles.css"
+        ],
+        "createdAt": "2026-09-03T06:41:57.299Z",
+        "reason": "Anlamsal renk kodlamasi, sus degil. styles.css:3866 yorumu durum renklerini (kirmizi iptal, mor teklif, turuncu randevu, yesil tamamlanan), 4816 yorumu ise guvenlik maddelerinin kullanim adimlariyla karismamasi icin turuncu serit kullanildigini yaziyor. Tarim makinesi uygulamasinda guvenlik uyarisinin siradan metinle karismasi gercek tehlike."
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "src/backoffice/backoffice.css"
+        ],
+        "createdAt": "2026-09-03T06:42:15.299Z",
+        "reason": "Alintilanan cevap blogu (.cevap) ve ayni kalibin ikinci kullanimi. E-posta alintisi gibi konvansiyonel gosterim, dekoratif vurgu degil."
+      },
+      {
+        "rule": "overused-font",
+        "value": "roboto",
+        "createdAt": "2026-09-03T06:42:22.677Z",
+        "reason": "PAKSAN marka yazi tipi, bu oturumdan onceki karar. src/backoffice/main.jsx yorumu: uygulama tarafi Roboto yukluyordu, backoffice yuklemiyordu, tarayici Segoe UI e dusuyordu; ayni marka ayni yazi tipi olmali. Sirketin marka karari denetleyici uyarisiyla degistirilmez."
+      }
+    ]
+  }
+}
