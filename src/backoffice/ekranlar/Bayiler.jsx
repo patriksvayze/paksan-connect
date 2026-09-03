@@ -346,12 +346,12 @@ function BolgeSecici({ bolge, onDegis }) {
       <span className="alan__ad">Sorumluluk Bölgesi</span>
       <p className="kucuk sonuk" style={{ margin: '0 0 8px' }}>
         Bu bayiye hangi yerlerden gelen talepler düşecek? İlçe seçmezseniz
-        bayi tüm ilden sorumlu olur.
+        bayi ilin tamamından sorumlu olur.
       </p>
 
       {bolge.length === 0 && (
         <p className="kucuk sonuk" style={{ margin: '0 0 8px' }}>
-          Bölge tanımlanmadı. Talepler ile, ilçeye ve mesafeye bakılarak
+          Bölge tanımlanmadı. Talepler ile, ilçe ve mesafeye göre
           eşleştirilmeye devam eder.
         </p>
       )}
@@ -361,7 +361,7 @@ function BolgeSecici({ bolge, onDegis }) {
           <div className="satir" style={{ alignItems: 'center', gap: 8 }}>
             <strong>{b.il}</strong>
             <span className="kucuk sonuk">
-              {b.ilceler?.length ? `${b.ilceler.length} ilçe` : 'Tüm il'}
+              {b.ilceler?.length ? `${b.ilceler.length} ilçe` : 'İlin tamamı'}
             </span>
             <button
               className="dg"
@@ -545,8 +545,8 @@ function Form({ bayi, onKapat, onKaydet }) {
           <div className="alan" style={{ marginTop: 18 }}>
             <span className="alan__ad">Panel Girişi</span>
             <p className="kucuk sonuk" style={{ margin: '0 0 8px' }}>
-              Bayi, kendi panelinden yalnız kendi bölgesine düşen talepleri
-              görür. Kullanıcı adı boşsa bayinin paneli yoktur.
+              Bayi, kendi panelinde yalnızca kendi bölgesine düşen talepleri
+              görür. Kullanıcı adı boşsa bayinin panel erişimi yoktur.
             </p>
             <div className="esit">
               <label className="alan">

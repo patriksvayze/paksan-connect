@@ -1113,10 +1113,10 @@ export async function bayiHesabiYaz(bayiId, { kullanici, sifre }, personel) {
   if (!hedef) return { hata: 'Bayi bulunamadı.' }
 
   const cakisma = liste.find((b) => b.id !== bayiId && b.kullanici === ad)
-  if (cakisma) return { hata: `Bu kullanıcı adı ${cakisma.ad} bayisinde kullanılıyor.` }
+  if (cakisma) return { hata: `Bu kullanıcı adı ${cakisma.ad} için zaten kullanılıyor.` }
 
   const yeniSifre = sifre ? await sifreHazirla(sifre) : hedef.sifre
-  if (!yeniSifre) return { hata: 'İlk hesap açılışında şifre gerekli.' }
+  if (!yeniSifre) return { hata: 'İlk hesap açılışında şifre gereklidir.' }
 
   const yeni = liste.map((b) =>
     b.id === bayiId
@@ -1126,7 +1126,7 @@ export async function bayiHesabiYaz(bayiId, { kullanici, sifre }, personel) {
   bayileriYaz(
     yeni,
     personel,
-    `${hedef.ad} panel hesabı ${hedef.kullanici ? 'güncellendi' : 'açıldı'}`,
+    `${hedef.ad} için panel hesabı ${hedef.kullanici ? 'güncellendi' : 'açıldı'}`,
   )
   return { tamam: true }
 }
@@ -1139,7 +1139,7 @@ export function bayiHesabiKapat(bayiId, personel) {
   bayileriYaz(
     liste.map((b) => (b.id === bayiId ? { ...b, panelAktif: false } : b)),
     personel,
-    `${hedef.ad} panel hesabı kapatıldı`,
+    `${hedef.ad} için panel hesabı kapatıldı`,
   )
   return { tamam: true }
 }
@@ -1165,7 +1165,7 @@ export async function bayiGirisi(kullanici, sifre) {
     giris: Date.now(),
   }
   save(ANAHTAR.bayiOturum, oturum)
-  islemYaz({ tur: 'oturum', ozet: 'Bayi paneli girişi', personel: kayit.ad, rol: 'bayi' })
+  islemYaz({ tur: 'oturum', ozet: 'Bayi paneline giriş', personel: kayit.ad, rol: 'bayi' })
   return { oturum }
 }
 
@@ -1175,7 +1175,7 @@ export function bayiOturumuGetir() {
 }
 
 export function bayiOturumuKapat(o) {
-  islemYaz({ tur: 'oturum', ozet: 'Bayi paneli çıkışı', personel: o?.ad, rol: 'bayi' })
+  islemYaz({ tur: 'oturum', ozet: 'Bayi panelinden çıkış', personel: o?.ad, rol: 'bayi' })
   save(ANAHTAR.bayiOturum, null)
 }
 
