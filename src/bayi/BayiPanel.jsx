@@ -10,6 +10,8 @@ import {
   BACKOFFICE_SIFRE_HANE,
 } from '../backoffice/veri'
 import { TalepDetay } from './ekranlar/TalepDetay'
+import { Stok } from './ekranlar/Stok'
+import { ElleKayit } from './ekranlar/ElleKayit'
 import logo from '../assets/marka/paksan-logo.png'
 
 /* ==========================================================================
@@ -187,17 +189,36 @@ function IlkSifre({ oturum, onBitti }) {
 function Liste({ oturum, onCikis }) {
   const [talepler, setTalepler] = useState([])
   const [acik, setAcik] = useState(null)
+  const [ekran, setEkran] = useState('liste')
   const [tazele, setTazele] = useState(0)
 
   useEffect(() => {
     setTalepler(bayininTalepleri(talepleriGetir(), oturum.bayiId))
   }, [oturum.bayiId, tazele])
 
+  if (ekran === 'stok') {
+    return <Stok oturum={oturum} onKapat={() => setEkran('liste')} />
+  }
+
+  if (ekran === 'elle') {
+    return (
+      <ElleKayit
+        oturum={oturum}
+        onKapat={() => setEkran('liste')}
+        onKaydedildi={() => {
+          setEkran('liste')
+          setTazele((x) => x + 1)
+        }}
+      />
+    )
+  }
+
   if (acik) {
     return (
       <TalepDetay
         talep={acik}
         bayiAd={oturum.ad}
+        bayiId={oturum.bayiId}
         onKapat={() => {
           setAcik(null)
           setTazele((x) => x + 1)
@@ -224,16 +245,19 @@ function Liste({ oturum, onCikis }) {
           <div className="bayi-tepe__ad">{oturum.ad}</div>
           <div className="bayi-tepe__alt">{oturum.no} · {oturum.il}</div>
         </div>
-        <button
-          className="dg"
-          style={{ marginLeft: 'auto' }}
-          onClick={() => {
-            bayiOturumuKapat(oturum)
-            onCikis()
-          }}
-        >
-          Çıkış
-        </button>
+        <div className="satir" style={{ marginLeft: 'auto', gap: 8 }}>
+          <button className="dg" onClick={() => setEkran('elle')}>Elle kayıt</button>
+          <button className="dg" onClick={() => setEkran('stok')}>Stoğum</button>
+          <button
+            className="dg"
+            onClick={() => {
+              bayiOturumuKapat(oturum)
+              onCikis()
+            }}
+          >
+            Çıkış
+          </button>
+        </div>
       </div>
 
       {talepler.length === 0 && (

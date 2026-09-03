@@ -27,6 +27,49 @@ export function makineKayitlari() {
   return load(ANAHTAR, [])
 }
 
+/* Bayinin elle açtığı kayıt.
+
+   `makineKaydet` müşteri akışı için yazıldı: Logo'ya sorup faturayı
+   öğreniyor ve `bayiId`'yi oradan dolduruyor. Logo kapalı olduğu için
+   o alan bugün hep boş kalıyor.
+
+   Bayi elle kayıt açtığında bayiyi zaten BİLİYORUZ — sormaya gerek
+   yok. Bu fonksiyon aynı deftere aynı biçimde yazıyor, farkı bayi
+   alanını doğrudan doldurması ve Logo'yu beklememesi.
+
+   `kaynak` alanı satırın nereden geldiğini söylüyor: 'bayi' elle
+   açılmış, 'musteri' uygulamadan gelmiş, 'logo' faturadan. */
+export function bayiMakineKaydi({
+  seri,
+  productId,
+  musteriAd = '',
+  il = '',
+  ilce = '',
+  bayiId,
+  bayiAd = '',
+}) {
+  const kayit = {
+    id: uid(),
+    tarih: Date.now(),
+    seri,
+    productId,
+    musteriId: null,
+    musteriNo: null,
+    musteriAd,
+    il,
+    ilce,
+    bayiId,
+    bayiAd,
+    uretimTarihi: null,
+    faturaTarihi: null,
+    logoBildi: false,
+    yeniSatis: false,
+    kaynak: 'bayi',
+  }
+  save(ANAHTAR, [kayit, ...makineKayitlari()].slice(0, 500))
+  return kayit
+}
+
 /**
  * Kaydı yazar ve kutlama gösterilip gösterilmeyeceğini söyler.
  *

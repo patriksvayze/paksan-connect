@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { talepKapat, talepNotEkle, talepPlanla } from '../../backoffice/veri'
+import { parcaAdedi, stokDus } from '../../lib/bayiStok'
 
 /* ==========================================================================
    Bayi paneli — talep detayı
@@ -20,7 +21,7 @@ import { talepKapat, talepNotEkle, talepPlanla } from '../../backoffice/veri'
 
 const TUR_ADI = { servis: 'Servis', parca: 'Yedek Parça', satinalma: 'Fiyat Teklifi' }
 
-export function TalepDetay({ talep, bayiAd, onKapat, onDestekIste }) {
+export function TalepDetay({ talep, bayiAd, bayiId, onKapat, onDestekIste }) {
   const [pencere, setPencere] = useState(null)
   const paksanda = (talep.sahip || 'paksan') === 'paksan'
   const kapali = ['kapandi', 'iptal'].includes(talep.status)
@@ -53,7 +54,7 @@ export function TalepDetay({ talep, bayiAd, onKapat, onDestekIste }) {
           <Satir ad="Belirtiler" deger={talep.belirtiler.join(', ')} />
         )}
         {talep.parcalar?.length > 0 && (
-          <Satir ad="İstenen parçalar" deger={talep.parcalar.join(', ')} />
+          <ParcaDurumu talep={talep} bayiId={bayiId} />
         )}
         {talep.aciklama && <Satir ad="Müşterinin anlattığı" deger={talep.aciklama} />}
         {talep.ulasim && <Satir ad="Aranma tercihi" deger={talep.ulasim} />}
@@ -112,6 +113,7 @@ export function TalepDetay({ talep, bayiAd, onKapat, onDestekIste }) {
         <Kapanis
           talep={talep}
           bayiAd={bayiAd}
+          bayiId={bayiId}
           parca={pencere === 'gonderdim'}
           onKapat={() => setPencere(null)}
           onBitti={onKapat}
@@ -138,6 +140,41 @@ function Satir({ ad, deger }) {
     <div style={{ marginTop: 10 }}>
       <div className="kucuk sonuk">{ad}</div>
       <div>{deger}</div>
+    </div>
+  )
+}
+
+/* İstenen parçaların yanında bayinin kendi stoğu.
+
+   Sayı bir BİLGİ, kilit değil: stok sıfır olsa da "Parçayı gönderdim"
+   düğmesi açık kalıyor. Bayiyi kendi stok kaydının doğruluğuna
+   hapsetmek, ilk yanlış sayımda paneli kullanılmaz yapardı.
+
+   "Girilmedi" ile "0" ayrı yazılıyor: biri "ben bu parçayı takip
+   etmiyorum", diğeri "bende yok". */
+function ParcaDurumu({ talep, bayiId }) {
+  return (
+    <div style={{ marginTop: 10 }}>
+      <div className="kucuk sonuk">İstenen parçalar</div>
+      {talep.parcalar.map((ad) => {
+        const adet = parcaAdedi(bayiId, ad)
+        const istenen = Number(talep.parcaAdet?.[ad]) || 1
+        return (
+          <div key={ad} className="satir" style={{ gap: 8, alignItems: 'baseline' }}>
+            <span>
+              {ad}
+              {istenen > 1 && <span className="kucuk sonuk"> × {istenen}</span>}
+            </span>
+            <span className="kucuk sonuk" style={{ marginLeft: 'auto' }}>
+              {adet === null
+                ? 'stok girilmedi'
+                : adet === 0
+                  ? 'stokta yok'
+                  : `stokta ${adet}`}
+            </span>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -211,8 +248,9 @@ function Randevu({ talep, bayiAd, onKapat, onBitti }) {
   )
 }
 
-function Kapanis({ talep, bayiAd, parca, onKapat, onBitti }) {
+function Kapanis({ talep, bayiAd, bayiId, parca, onKapat, onBitti }) {
   const [ozet, setOzet] = useState('')
+  const [dus, setDus] = useState(true)
   const [hata, setHata] = useState('')
 
   function kaydet() {
@@ -220,6 +258,7 @@ function Kapanis({ talep, bayiAd, parca, onKapat, onBitti }) {
       return setHata(parca ? 'Ne gönderdiğinizi yazın.' : 'Yaptığınız işi yazın.')
     }
     talepKapat(talep, { ozet: ozet.trim() }, bayiAd)
+    if (parca && dus) stokDus(bayiId, talep.parcalar || [], talep.parcaAdet || {})
     onBitti()
   }
 
@@ -235,6 +274,16 @@ function Kapanis({ talep, bayiAd, parca, onKapat, onBitti }) {
           placeholder={parca ? 'Örnek: 2 adet düğüm bıçağı kargoya verildi' : 'Örnek: İp kılavuzu değiştirildi'}
         />
       </label>
+      {parca && (
+        <label className="satir" style={{ gap: 8, alignItems: 'center' }}>
+          <input type="checkbox" checked={dus} onChange={(e) => setDus(e.target.checked)} />
+          <span className="kucuk">
+            Stoğumdan düş
+            {/* Varsayılan açık ama kaldırılabilir: bayi stok tutmuyorsa
+                ya da parçayı başka yerden getirttiyse düşmemeli. */}
+          </span>
+        </label>
+      )}
       {hata && <div className="uyari">{hata}</div>}
       <div className="satir">
         <button className="dg dg--ana" onClick={kaydet}>Kaydet</button>
