@@ -191,9 +191,15 @@ function TalepFormu() {
     !ses &&
     ((tur === 'parca' && parcalar.includes(PARCA_DIGER)) ||
       (tur === 'servis' && belirtiler.includes('Diğer')))
-  /* Teklifi hangi bayinin hazırlayacağını ilçe belirliyor; onay
-     penceresinde boş geçilemiyor. */
-  const ilceZorunlu = tur === 'satinalma'
+  /* Talebe hangi bayinin bakacağını ilçe belirliyor; onay penceresinde
+     boş geçilemiyor.
+
+     Eskiden yalnız satın almada zorunluydu. Bayi sorumluluk bölgeleri
+     ilçe düzeyinde tanımlanabildiği için artık üç türde de gerekiyor:
+     ilçesi olmayan talep, yalnız belirli ilçelerden sorumlu bir bayiyle
+     eşleşemiyordu. Servis için zaten gerekli bilgi — teknisyenin nereye
+     gideceği belli olmalı. */
+  const ilceZorunlu = true
 
   /* Art arda hızlı dokunuşta seçim kaybolmasın diye listenin son hâli
      üzerinden çalışıyor. */
