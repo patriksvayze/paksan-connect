@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import logo from '../assets/marka/paksan-logo.png'
+/* Giriş şeridi Higgsfield ile üretildi, uygulamanın kendi görsel
+   diline referans verilerek (bkz. tools/gorsel-hazirla.mjs). */
+import girisGorseli from '../assets/gorseller/backoffice-giris.png'
 import {
   izinli, oturumGetir, oturumKapat, backofficeGiris, personelBaslat, personelGetir,
   rolBilgi, rolunTalepleri, sifreJetonuGecerli, sifreJetonuKullan, sifreTalebiOlustur,
@@ -481,6 +484,9 @@ function Giris({ onGiris }) {
   return (
     <div className="giris">
       <form className="giris__kart" onSubmit={gir}>
+        {/* Şerit kartın üstünde. Backoffice'in kendi resmi yoktu;
+            personel günde bir kez de olsa bu ekrandan geçiyor. */}
+        <img className="giris__serit" src={girisGorseli} alt="" />
         <img className="giris__logo" src={logo} alt="PAKSAN" />
         <div className="giris__baslik">Backoffice</div>
         <div className="giris__cizgi" />

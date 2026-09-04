@@ -174,9 +174,19 @@ function stokEkle(bayiId, kalemler, sebep, kim) {
 
 /**
  * Bayi kendi stoğundan düşer: müşteriye verdiği ya da serviste
- * kullandığı parça. Onay gerekmiyor.
+ * kullandığı parça.
+ *
+ * `kaynak` düşüşün nereden geldiğini söylüyor ve geri alınıp
+ * alınamayacağını belirliyor:
+ *
+ *   'elle'  bayi stok ekranından kendi düştü  → geri alınabilir
+ *   'talep' bir talep kapanırken düşüldü      → geri ALINAMAZ
+ *
+ * İkincisinin sebebi: o talep kapandı ve "parça gönderildi" diyor.
+ * Stoğu tek başına geri almak, kaydın söylediğiyle sayının söylediğini
+ * ayırırdı. Yanlışsa talep üzerinden düzeltilir.
  */
-export function stokKullan(bayiId, kalem, adet, sebep, kim) {
+export function stokKullan(bayiId, kalem, adet, sebep, kim, kaynak = 'elle') {
   const hepsi = load('bayiStok', {})
   const k = hepsi[bayiId] || { parca: {}, makine: {} }
   const bolum = kalem.tur === 'makine' ? 'makine' : 'parca'
@@ -185,20 +195,116 @@ export function stokKullan(bayiId, kalem, adet, sebep, kim) {
   if (!Number.isFinite(mevcut) || mevcut <= 0) {
     return { hata: 'Bu kalemde düşülecek stok yok.' }
   }
-  const dus = Math.min(Number(adet) || 1, mevcut)
+  const istenen = Number(adet)
+  if (!Number.isFinite(istenen) || istenen < 1) {
+    return { hata: 'Kaç adet düşüleceğini yazın.' }
+  }
+  if (istenen > mevcut) {
+    return { hata: `Stokta ${mevcut} adet var, daha fazlası düşülemez.` }
+  }
 
   save('bayiStok', {
     ...hepsi,
-    [bayiId]: { ...k, [bolum]: { ...k[bolum], [kalem.anahtar]: mevcut - dus } },
+    [bayiId]: { ...k, [bolum]: { ...k[bolum], [kalem.anahtar]: mevcut - istenen } },
   })
-  hareketYaz({
+  const hareket = {
     id: uid(),
     bayiId,
     yon: 'cikis',
-    kalemler: [{ ...kalem, adet: dus }],
+    kalemler: [{ ...kalem, adet: istenen }],
     sebep,
     kim,
+    kaynak,
     tarih: Date.now(),
-  })
-  return { kalan: mevcut - dus }
+  }
+  hareketYaz(hareket)
+  return { kalan: mevcut - istenen, hareket }
+}
+
+/* ==========================================================================
+   Düşüşü geri alma
+
+   NEDEN SINIRLI
+
+   Geri alma, "yanlış rakam girdim" için. Genel bir stok artırma aracı
+   OLAMAZ — olsaydı kapattığımız deliği yeniden açardı: bayi stoğunu
+   kendi artıramıyor, artışın tek yolu PAKSAN sevkiyatı.
+
+   Bu yüzden dört kapı var. Dördü birden açık değilse düğme çıkmıyor:
+
+     1. Hareket bir DÜŞÜŞ olmalı. Girişler PAKSAN'ın sevkiyatı; geri
+        alınabilseydi bayi gelen malı yok sayabilirdi.
+     2. Düşüşü bayi ELİYLE yapmış olmalı. Talep kapanırken düşen parça
+        buradan geri alınmıyor (gerekçesi `stokKullan` içinde).
+     3. O kalemdeki SON hareket olmalı. Araya yeni bir hareket girdiyse
+        eskisini geri almak yanlış sayı üretir.
+     4. Süre dolmamış olmalı. On dakika, "az önce yanlış yaptım"a
+        yetiyor; düzenleme aracına dönüşmesine yetmiyor.
+
+   HİÇBİR ŞEY SİLİNMİYOR. Geri alınan hareket kayıtta kalıyor, üstüne
+   `geriAlindi` işareti konuyor ve karşılığında bir giriş hareketi
+   yazılıyor. Defterde iki satır duruyor, ikisi de okunabiliyor.
+   ========================================================================== */
+
+export const GERI_ALMA_SURESI = 10 * 60 * 1000
+
+/** Bu kalemde geri alınabilecek hareket varsa onu döndürür. */
+export function geriAlinabilir(bayiId, kalem) {
+  const anahtar = kalem.anahtar
+  const tur = kalem.tur === 'makine' ? 'makine' : 'parca'
+
+  /* O kalemin son hareketi — girişi de dahil. Araya giriş girdiyse
+     zaten geri alınmamalı (3. kapı). */
+  const son = hareketleriGetir(bayiId).find((h) =>
+    (h.kalemler || []).some((x) => x.anahtar === anahtar && (x.tur || 'parca') === tur),
+  )
+  if (!son) return null
+  if (son.yon !== 'cikis') return null
+  if (son.kaynak !== 'elle') return null
+  if (son.geriAlindi) return null
+  if (Date.now() - son.tarih > GERI_ALMA_SURESI) return null
+  return son
+}
+
+/** Geri alır: stoğu iade eder, hareketi işaretler, karşı kayıt yazar. */
+export function stokGeriAl(bayiId, hareketId, kim) {
+  const liste = load(HAREKET, [])
+  const h = liste.find((x) => x.id === hareketId && x.bayiId === bayiId)
+  if (!h) return { hata: 'Hareket bulunamadı.' }
+  if (h.yon !== 'cikis' || h.kaynak !== 'elle') {
+    return { hata: 'Bu hareket geri alınamıyor.' }
+  }
+  if (h.geriAlindi) return { hata: 'Bu düşüş zaten geri alındı.' }
+  if (Date.now() - h.tarih > GERI_ALMA_SURESI) {
+    return { hata: 'Geri alma süresi doldu.' }
+  }
+
+  const hepsi = load('bayiStok', {})
+  const k = hepsi[bayiId] || { parca: {}, makine: {} }
+  const parca = { ...k.parca }
+  const makine = { ...k.makine }
+  for (const kalem of h.kalemler || []) {
+    const hedef = kalem.tur === 'makine' ? makine : parca
+    hedef[kalem.anahtar] = (Number(hedef[kalem.anahtar]) || 0) + Number(kalem.adet)
+  }
+  save('bayiStok', { ...hepsi, [bayiId]: { parca, makine } })
+
+  /* Eski hareket silinmiyor, işaretleniyor; karşılığına giriş yazılıyor. */
+  save(
+    HAREKET,
+    [
+      {
+        id: uid(),
+        bayiId,
+        yon: 'giris',
+        kalemler: h.kalemler,
+        sebep: 'Düşüş geri alındı',
+        kim,
+        kaynak: 'geri',
+        tarih: Date.now(),
+      },
+      ...liste.map((x) => (x.id === hareketId ? { ...x, geriAlindi: true } : x)),
+    ].slice(0, 300),
+  )
+  return { tamam: true, kalemler: h.kalemler }
 }

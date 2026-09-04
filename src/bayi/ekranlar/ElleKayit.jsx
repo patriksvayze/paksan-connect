@@ -7,9 +7,14 @@ import { extractYear, formatSerial, normalizeSerial, validateSerial } from '../.
 import { bayiMakineKaydi } from '../../lib/makineKaydi'
 import { islemYaz, musterileriGetir } from '../../backoffice/veri'
 import { PARCA_FIYAT } from '../../data/parcaFiyat'
-import { getProduct } from '../../data/products'
+import { CATEGORIES, PRODUCTS, getProduct } from '../../data/products'
 import { Bolum } from '../Kabuk'
-import { IconAlert, IconCheckCircle, IconSend } from '../../components/Icons'
+import {
+  IconAlert,
+  IconCheckCircle,
+  IconChevronDown,
+  IconSend,
+} from '../../components/Icons'
 
 /* ==========================================================================
    Bayi paneli — elle kayıt
@@ -53,6 +58,16 @@ import { IconAlert, IconCheckCircle, IconSend } from '../../components/Icons'
 
    Müşteri kayıtlı ama hiç makinesi yoksa kutu geri geliyor; o zaman
    elle yazmak tek yol.
+
+   FİYAT TEKLİFİ TERS ÇALIŞIYOR
+
+   Servis ve yedek parça talebi müşterinin SAHİP OLDUĞU makine için
+   açılıyor. Fiyat teklifi ise sahip OLMADIĞI makine için: müşteri yeni
+   bir makine almak istiyor. Bu yüzden o sekmede müşterinin kendi
+   makineleri değil, PAKSAN'ın ürettiği bütün makineler listeleniyor.
+
+   Liste yirmi kalem; alt alta düğme olarak dizilseydi ekranın yarısını
+   kaplardı. Seçim tek satırda duruyor, dokununca açılıyor.
 
    KAYITLI OLMAYAN MÜŞTERİ
 
@@ -117,13 +132,21 @@ export function ElleKayit({ oturum, onKaydedildi }) {
   const tamNumara = rakamlar(tel).length === 10
   const yabanci = tamNumara && !eslesen
 
-  const makineler = eslesen?.makineler || []
+  /* Fiyat teklifinde soru "hangi makineyi almak istiyor", öteki iki
+     türde "hangi makinesi için geldi". Gerekçesi dosyanın başında. */
+  const teklif = tur === 'satinalma'
+  const makineler = teklif ? [] : eslesen?.makineler || []
 
   /* Tek makine kendiliğinden seçili: bayiye sorulacak bir şey yok.
      Birden fazlaysa seçim bekleniyor. */
   const secilenMakine =
     makineler.find((m) => m.id === makineId) ||
     (makineler.length === 1 ? makineler[0] : null)
+
+  /* Fiyat teklifinde seçilen PAKSAN ürünü. Bu bir makine KAYDI değil,
+     yalnız hangi modelin sorulduğu — talebe `urunId` olarak gidiyor,
+     uygulamadan gelen fiyat teklifiyle aynı alan. */
+  const [urunId, setUrunId] = useState('')
 
   /* Eşleşme bulununca alanlar dolduruluyor; bayi isterse üzerine
      yazabiliyor (müşteri taşınmış olabilir).
@@ -165,6 +188,9 @@ export function ElleKayit({ oturum, onKaydedildi }) {
     if (tur === 'parca' && !secilenParcalar.length) {
       return setHata('En az bir parça seçin.')
     }
+    if (teklif && !urunId) {
+      return setHata('Teklif istenen makineyi seçin.')
+    }
 
     /* Kayıtlı müşterinin makinesi listeden seçildiyse doğrulanacak bir
        şey yok: o seri numarası zaten sistemde. Talebe uygulamadan gelen
@@ -172,7 +198,10 @@ export function ElleKayit({ oturum, onKaydedildi }) {
     let makine = null
     let yeniKayit = false
 
-    if (secilenMakine) {
+    if (teklif) {
+      /* Teklifte makine kaydı açılmıyor: müşterinin henüz o makinesi
+         yok. Seri numarası da yok, olamaz. */
+    } else if (secilenMakine) {
       makine = {
         id: secilenMakine.id,
         serial: secilenMakine.serial,
@@ -206,7 +235,10 @@ export function ElleKayit({ oturum, onKaydedildi }) {
       ulke: 'TR',
       ihracat: false,
       aciklama: aciklama.trim(),
-      makine,
+      /* Fiyat teklifinde `makine` boş, `urunId` dolu; uygulamadan gelen
+         teklif talebiyle aynı şekil (bkz. RequestForm.jsx). */
+      makine: teklif ? null : makine,
+      urunId: teklif ? urunId : null,
       elle: true,
       /* Kayıtlı müşteriyse talep onun hesabına bağlanıyor: kendi
          uygulamasında görüyor, bildirimleri ona düşüyor. */
@@ -368,8 +400,14 @@ export function ElleKayit({ oturum, onKaydedildi }) {
         </div>
 
         {/* MAKİNE: kayıtlı müşteride SEÇİLİYOR, ötekinde yazılıyor.
+            Fiyat teklifinde ise PAKSAN'ın bütün ürünleri listeleniyor.
             Gerekçesi dosyanın başında. */}
-        {makineler.length > 0 ? (
+        {teklif ? (
+          <UrunSecici
+            deger={urunId}
+            onDegis={(v) => { setUrunId(v); setHata('') }}
+          />
+        ) : makineler.length > 0 ? (
           <div className="alan">
             <span className="alan__ad">
               {makineler.length === 1 ? 'Müşterinin Makinesi' : 'Hangi Makine'}
@@ -455,6 +493,84 @@ export function ElleKayit({ oturum, onKaydedildi }) {
         </button>
       </div>
     </>
+  )
+}
+
+/* ==========================================================================
+   Ürün seçici — fiyat teklifi için
+
+   Yirmi makine var. Hepsini alt alta düğme olarak dizmek ekranın
+   yarısını kaplıyordu; bayi aradığı modeli bulmak için kaydırmak
+   zorunda kalıyordu.
+
+   Kapalıyken tek satır: seçilen model, ya da "Makine seçin". Dokununca
+   liste açılıyor ve kategorilere ayrılmış hâlde geliyor — bayi zaten
+   "büyük balya mı, silaj mı" diye düşünüyor, model adından değil
+   işinden gidiyor.
+
+   `<select>` KULLANILMADI. Telefonda işletim sisteminin kendi tekerlek
+   listesi açılıyor; orada kategori başlığı, model altındaki açıklama
+   ve seçili işareti gösterilemiyor. Ayrıca dokunma hedefi bizim
+   ölçümüzde değil, işletim sisteminin ölçüsünde oluyor.
+   ========================================================================== */
+
+function UrunSecici({ deger, onDegis }) {
+  const [acik, setAcik] = useState(false)
+  const secili = PRODUCTS.find((p) => p.id === deger)
+
+  return (
+    <div className="alan">
+      <span className="alan__ad">Teklif İstenen Makine</span>
+
+      <button
+        className={'secici' + (acik ? ' secici--acik' : '')}
+        onClick={() => setAcik(!acik)}
+        aria-expanded={acik}
+      >
+        <div className="secici__yazi">
+          {secili ? (
+            <>
+              <div>{secili.name}</div>
+              <div className="kucuk sonuk">
+                {CATEGORIES.find((k) => k.id === secili.category)?.short}
+              </div>
+            </>
+          ) : (
+            <span className="sonuk">Makine seçin</span>
+          )}
+        </div>
+        <IconChevronDown size={20} />
+      </button>
+
+      {acik && (
+        <div className="secici__liste">
+          {CATEGORIES.map((kat) => {
+            const urunler = PRODUCTS.filter((p) => p.category === kat.id)
+            if (!urunler.length) return null
+            return (
+              <div key={kat.id}>
+                <div className="secici__baslik">{kat.name}</div>
+                {urunler.map((u) => (
+                  <button
+                    key={u.id}
+                    className={'secici__satir' + (u.id === deger ? ' secici__satir--on' : '')}
+                    onClick={() => { onDegis(u.id); setAcik(false) }}
+                  >
+                    <span>{u.name}</span>
+                    {u.id === deger && <IconCheckCircle size={19} />}
+                  </button>
+                ))}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      <span className="kucuk sonuk">
+        Müşteri bu makineyi almak istiyor. PAKSAN’ın ürettiği bütün
+        makineler listede.
+      </span>
+    </div>
   )
 }
 

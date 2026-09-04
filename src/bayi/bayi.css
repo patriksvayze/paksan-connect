@@ -234,51 +234,114 @@
    Bayi uygulamayı açtığında ilk sorusu "bugün ne var". Cevabı kartları
    sayarak buluyordu. */
 
-.ozet {
-  display: flex;
-  align-items: center;
-  gap: var(--bosluk-3);
+/* ==========================================================================
+   Bugün
+
+   Burada "1 iş sizi bekliyor" yazan bir sayaç vardı. Kaldırıldı;
+   gerekçesi BayiPanel.jsx içindeki `Bugun` bileşeninin başında.
+
+   Kart lacivert kalıyor — ekranın en üstündeki tek koyu yüzey, göz
+   oraya ilk gidiyor. Karanlık temada `--lacivert` sayfa zeminine çok
+   yaklaştığı için (ölçülen ayrım 1,08) beyazın saydamıyla bir sınır
+   çiziliyor: aydınlıkta ince bir iç kenar, karanlıkta ayırıcı.
+   ========================================================================== */
+
+.bugun {
   padding: var(--bosluk-4);
   margin-bottom: var(--bosluk-4);
   border-radius: var(--r-3);
   background: var(--lacivert);
-  /* Karanlık temada `--lacivert` sayfa zeminine çok yaklaşıyor
-     (ölçülen ayrım 1,08) ve kart düz bir leke gibi duruyordu.
-     Kartlar çizgileriyle ayrılıyor, bunun çizgisi yoktu. Beyazın
-     saydamı iki temada da işe yarıyor: aydınlıkta lacivertin üstünde
-     ince bir iç kenar, karanlıkta zeminden ayıran sınır. */
   border: 1px solid rgba(255, 255, 255, 0.14);
   color: #fff;
 }
 
-.ozet strong {
+.bugun__ust {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-2);
   font-size: var(--yazi-3);
-  font-weight: 700;
 }
 
-.ozet p {
-  margin: var(--bosluk-1) 0 0;
+.bugun__tarih {
+  margin-left: auto;
   font-size: var(--yazi-2);
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.bugun__liste {
+  margin-top: var(--bosluk-3);
+}
+
+/* Randevu satırı. Sıra soldan sağa bayinin sorduğu sırayla: ne zaman,
+   kim, nerede. Satırın tamamı dokunma hedefi. */
+.bugun__satir {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  width: 100%;
+  min-height: var(--dokunma);
+  padding: var(--bosluk-2) 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.bugun__saat {
+  flex: none;
+  min-width: 62px;
+  font-size: var(--yazi-2);
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Tarihi geçmiş randevu turuncu: bayi o gün gitmemiş ve gitmeli.
+   `--turuncu-d` koyu zeminde okunması için ayrılmış olan ton. */
+.bugun__satir--gec .bugun__saat {
+  color: var(--turuncu-d);
+}
+
+.bugun__ad {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--yazi-3);
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bugun__yer {
+  flex: none;
+  font-size: var(--yazi-2);
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.bugun__bos {
+  margin: var(--bosluk-2) 0 0;
+  font-size: var(--yazi-3);
+  line-height: 1.55;
   color: rgba(255, 255, 255, 0.82);
 }
 
-.ozet__sayi {
-  flex: none;
-  display: grid;
-  place-items: center;
-  min-width: var(--dokunma);
-  height: var(--dokunma);
-  padding: 0 var(--bosluk-2);
-  border-radius: var(--r-2);
-  background: rgba(255, 255, 255, 0.14);
-  font-size: var(--yazi-5);
-  font-weight: 900;
-  line-height: 1;
+/* Sayılar altta ve küçük: randevu somut bir plan, bunlar hatırlatma.
+   Aynı ağırlıkta durmamaları gerekiyor. */
+.bugun__sayilar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bosluk-2);
+  margin-top: var(--bosluk-3);
 }
 
-/* Geciken iş varsa sayı kutusu kırmızıya dönüyor — özet kartı da
-   listedeki şeritle aynı dili konuşuyor. */
-.ozet--gec .ozet__sayi {
+.bugun__rozet {
+  padding: 4px 10px;
+  border-radius: var(--r-tam);
+  background: rgba(255, 255, 255, 0.14);
+  font-size: var(--yazi-1);
+  font-weight: 700;
+}
+
+.bugun__rozet--gec {
   background: var(--kirmizi);
   color: var(--rozet-yazi);
 }
@@ -698,6 +761,15 @@
   color: var(--murekkep-2);
 }
 
+/* Boş durum çizimi. Saydam zeminli olduğu için iki temada da aynı
+   duruyor; 260 piksel ekranın yarısını kaplamadan tanınıyor. */
+.bos__gorsel {
+  width: 100%;
+  max-width: 260px;
+  height: auto;
+  margin-bottom: var(--bosluk-2);
+}
+
 /* ------------------------------------------------------------- Hesap */
 
 .kimlik {
@@ -787,6 +859,213 @@
   opacity: 0.35;
   pointer-events: none;
 }
+
+/* ---------------------------------------------------- Düşüş satırı
+
+   Satırda dört şey var: ad, eldeki sayı, düşülecek adet, düşür
+   düğmesi. Dar telefonda yan yana sığmıyorlar, o yüzden ad üstte tam
+   satır, sayılar altta sağa yaslı — iki satırlı bir ızgara.
+
+   Geri alma düğmesi ızgaranın altına, tam genişlikte geçiyor:
+   çıktığında satırın düzenini bozmuyor, kaybolduğunda da satır
+   yerinden oynamıyor. */
+
+.stok-satir--dus {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  grid-template-areas:
+    'ad ad ad ad'
+    '. adet giris dus';
+  align-items: center;
+  gap: var(--bosluk-2) var(--bosluk-3);
+  padding: var(--bosluk-3) 0;
+}
+
+.stok-satir__ad {
+  grid-area: ad;
+  min-width: 0;
+}
+
+.stok-satir--dus .stok-adet {
+  grid-area: adet;
+}
+
+.stok-satir--dus .stok-dus {
+  grid-area: dus;
+}
+
+/* Adet kutusu. Genişlik üç haneye göre: bir bayinin tek seferde 999
+   adetten fazla düşmesi gerçekçi değil, daha genişi de satırı
+   sıkıştırıyor. */
+.stok-giris {
+  grid-area: giris;
+  width: 72px;
+  text-align: right;
+}
+
+/* Geri alma. Kalıcı bir düğme gibi durmamalı — on dakikalık bir
+   kapıdan bahsediyor. O yüzden çerçevesiz, küçük ve satırın altında. */
+.stok-geri {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--bosluk-2);
+  width: 100%;
+  min-height: var(--dokunma);
+  margin-top: var(--bosluk-1);
+  border-radius: var(--r-2);
+  background: var(--mavi-z);
+  color: var(--mavi-rz);
+  font: inherit;
+  font-size: var(--yazi-2);
+  font-weight: 700;
+}
+
+/* ---------------------------------------------------- Onay penceresi
+
+   Bayi panelinin kendi penceresi. Backoffice'in `.pencere` kalıbı
+   masaüstü için: ortada dar bir kart. Telefonda pencere alttan
+   geliyor ve tam genişlikte duruyor — parmağın olduğu yerde. */
+
+.pencere-bayi {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(10, 26, 51, 0.5);
+}
+
+.pencere-bayi__kart {
+  width: 100%;
+  padding: var(--bosluk-5);
+  padding-bottom: calc(var(--bosluk-5) + env(safe-area-inset-bottom, 0px));
+  border-radius: var(--r-3) var(--r-3) 0 0;
+  background: var(--yuzey);
+}
+
+.pencere-bayi__kart h2 {
+  margin: 0 0 var(--bosluk-3);
+  font-size: var(--yazi-4);
+}
+
+.pencere-bayi__kart p {
+  margin: 0 0 var(--bosluk-3);
+  font-size: var(--yazi-3);
+  line-height: 1.55;
+}
+
+/* Eski sayı → yeni sayı. Bayinin kafasındaki hesabı ekranda
+   göstermek, "kaç kalacak" sorusunu onaydan önce cevaplıyor. */
+.dus-ozet {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--bosluk-3);
+  padding: var(--bosluk-3);
+  margin-bottom: var(--bosluk-3);
+  border-radius: var(--r-2);
+  background: var(--yuzey-2);
+  font-size: var(--yazi-5);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.dus-ozet > svg {
+  color: var(--murekkep-3);
+}
+
+/* ------------------------------------------------------ Ürün seçici
+
+   Fiyat teklifinde PAKSAN'ın bütün makineleri listeleniyor. Kapalı
+   hâli tek satır, açık hâli kategorilere ayrılmış liste. Gerekçesi
+   ElleKayit.jsx içinde. */
+
+.secici {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  width: 100%;
+  min-height: var(--dokunma-genis);
+  padding: var(--bosluk-3);
+  border: 1px solid var(--cizgi-koyu);
+  border-radius: var(--r-2);
+  background: var(--yuzey);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.secici--acik {
+  border-color: var(--mavi);
+  border-radius: var(--r-2) var(--r-2) 0 0;
+}
+
+.secici__yazi {
+  flex: 1;
+  min-width: 0;
+}
+
+.secici--acik > svg {
+  transform: rotate(180deg);
+}
+
+/* Liste yüksekliği sınırlı: açıldığında ekranın tamamını kaplayıp
+   altındaki alanları gizlemiyor, kendi içinde kayıyor. */
+.secici__liste {
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid var(--mavi);
+  border-top: 0;
+  border-radius: 0 0 var(--r-2) var(--r-2);
+  background: var(--yuzey);
+}
+
+.secici__baslik {
+  position: sticky;
+  top: 0;
+  padding: var(--bosluk-2) var(--bosluk-3);
+  background: var(--yuzey-2);
+  font-size: var(--yazi-1);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--murekkep-2);
+}
+
+.secici__satir {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  width: 100%;
+  min-height: var(--dokunma);
+  padding: var(--bosluk-2) var(--bosluk-3);
+  border-bottom: 1px solid var(--cizgi);
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: var(--yazi-3);
+  text-align: left;
+}
+
+.secici__satir > span {
+  flex: 1;
+}
+
+.secici__satir--on {
+  background: var(--mavi-z);
+  color: var(--mavi-rz);
+  font-weight: 700;
+}
+
+/* Giriş şeridi burada TANIMLANMIYOR.
+
+   Bayi paneli giriş kartını backoffice.css'ten alıyor (`.giris__kart`)
+   ve şerit o kartın dolgusuna göre hesaplanıyor. İkinci bir tanım
+   yazmak, iki dosyada iki ayrı sayı tutmak demek olurdu; kartın
+   dolgusu değiştiğinde biri unutulur. Tanım `.giris__kart`'ın hemen
+   altında, backoffice.css içinde. */
 
 /* Sipariş kartı — bayinin PAKSAN'a verdiği sipariş. */
 .siparis {

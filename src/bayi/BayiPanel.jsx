@@ -22,10 +22,16 @@ import {
   IconPlus,
   IconUser,
   IconBell,
+  IconCalendar,
   IconPhone,
   IconShield,
 } from '../components/Icons'
 import { PaksanLogo } from '../components/Marka'
+/* Çizimler Higgsfield ile üretildi, uygulamanın kendi görsel diline
+   (kalın lacivert kontur, düz dolgu, sınırlı palet) referans verilerek.
+   Küçültme ve sıkıştırma: tools/gorsel-hazirla.mjs */
+import bosIsGorseli from '../assets/gorseller/bayi-bos-is.png'
+import girisGorseli from '../assets/gorseller/bayi-giris.png'
 import { TalepDetay } from './ekranlar/TalepDetay'
 import { Stok } from './ekranlar/Stok'
 import { ElleKayit } from './ekranlar/ElleKayit'
@@ -106,6 +112,10 @@ function Giris({ onGiris }) {
   return (
     <div className="giris">
       <form className="giris__kart" onSubmit={gir}>
+        {/* Şerit kartın en üstünde, tam genişlikte. Giriş ekranı
+            uygulamanın ilk izlenimi ve tek kimliği logo değil: bayi
+            burada ne işi olduğunu da görüyor. */}
+        <img className="giris__serit" src={girisGorseli} alt="" />
         <PaksanLogo height={26} style={{ marginBottom: 14 }} />
         <div className="giris__baslik">Bayi Girişi</div>
         <div className="giris__cizgi" />
@@ -332,34 +342,15 @@ function Uygulama({ oturum, onCikis }) {
 /* ---------------------------------------------------------------- İşler */
 
 function Isler({ oturum, bekleyen, biten, onAc }) {
-  const geciken = bekleyen.filter(gecikmisMi).length
-
   return (
     <>
-      {/* Günün durumu listenin ÜSTÜNDE.
-
-          Bayi uygulamayı açtığında ilk sorusu "bugün ne var" oluyor;
-          cevabı kartları sayarak bulmak zorundaydı. Geciken iş varsa
-          ayrıca yazılıyor: listede kırmızı şeritle de görünüyor ama
-          o şerit ancak o karta bakınca fark ediliyor. */}
-      {bekleyen.length > 0 && (
-        <div className={'ozet' + (geciken ? ' ozet--gec' : '')}>
-          <div className="ozet__sayi">{bekleyen.length}</div>
-          <div>
-            <strong>iş sizi bekliyor</strong>
-            {/* Sayı yazılmıyor: Codex tekil/çoğul kalıbı yerine bunu
-                verdi ve kaç tane olduğu zaten listede kırmızı şeritli
-                kartlardan görülüyor. */}
-            {geciken > 0 && <p>48 saati aşan işlere önce bakın.</p>}
-          </div>
-        </div>
-      )}
+      <Bugun bekleyen={bekleyen} onAc={onAc} />
 
       <BayiDuyurulari oturum={oturum} />
 
       {bekleyen.length === 0 && biten.length === 0 && (
         <Bos
-          Icon={IconWrench}
+          gorsel={bosIsGorseli}
           baslik="Şu an size düşen iş yok"
           alt="Bölgenizden bir talep geldiğinde burada görünecek."
         />
@@ -381,6 +372,121 @@ function Isler({ oturum, bekleyen, biten, onAc }) {
         </Bolum>
       )}
     </>
+  )
+}
+
+/* ==========================================================================
+   Bugün
+
+   BURADA ÖNCE BİR SAYAÇ VARDI
+
+   "1 iş sizi bekliyor" yazan büyük bir blok. Sorun şuydu: sayı zaten
+   listenin kendisinde duruyor — kartları görüyorsunuz. Ekranın en
+   değerli yerini, hiçbir soruyu cevaplamayan bir tekrar tutuyordu.
+
+   Saha uygulamalarında o alanın karşılığı bellidir: teknisyen
+   uygulamayı açtığında GÜNÜN PROGRAMINI görür, iş sayısını değil.
+   Bayinin sabah sorduğu soru "kaç işim var" değil, "bugün nereye
+   gideceğim".
+
+   Bu yüzden blok üç şeyi bu sırayla söylüyor:
+
+     1. BUGÜNKÜ RANDEVULAR — tarih, müşteri, yer. Dokununca talep açılıyor.
+     2. GECİKEN İŞ — 48 saati aşmış, randevusu da yok.
+     3. RANDEVUSUZ İŞ — sırada bekleyen, henüz gün verilmemiş.
+
+   Randevusu olan iş varsa o listeleniyor. Yoksa blok bir cümleye
+   iniyor. Hiç iş yoksa hiç çıkmıyor — boş bir kutu, boşluğun
+   kendisinden daha kötü.
+
+   YARINI DA GÖSTERİYOR: randevu bugün yoksa ama yarın varsa, bayi bunu
+   akşamdan bilmek istiyor.
+   ========================================================================== */
+
+function gunBasi(t = Date.now()) {
+  return new Date(t).setHours(0, 0, 0, 0)
+}
+
+function Bugun({ bekleyen, onAc }) {
+  const bugun = gunBasi()
+  const yarin = bugun + 86400000
+
+  const randevulu = bekleyen
+    .filter((t) => t.plan?.tarih)
+    .sort((a, b) => a.plan.tarih - b.plan.tarih)
+
+  const bugunku = randevulu.filter((t) => {
+    const g = gunBasi(t.plan.tarih)
+    return g <= bugun
+  })
+  const yarinki = randevulu.filter((t) => gunBasi(t.plan.tarih) === yarin)
+
+  const geciken = bekleyen.filter((t) => !t.plan && gecikmisMi(t))
+  const sirada = bekleyen.filter((t) => !t.plan && !gecikmisMi(t))
+
+  if (!bekleyen.length) return null
+
+  return (
+    <div className="bugun">
+      <div className="bugun__ust">
+        <IconCalendar size={17} />
+        <strong>Bugün</strong>
+        <span className="bugun__tarih">
+          {new Date().toLocaleDateString('tr-TR', {
+            day: 'numeric',
+            month: 'long',
+            weekday: 'long',
+          })}
+        </span>
+      </div>
+
+      {bugunku.length > 0 ? (
+        <div className="bugun__liste">
+          {bugunku.map((t) => {
+            /* Tarihi geçmiş randevu da bu listede: bayi o işe gitmedi
+               ve gitmesi gerekiyor. Sessizce düşerse unutuluyor. */
+            const gecti = gunBasi(t.plan.tarih) < bugun
+            return (
+              <button
+                key={t.id}
+                className={'bugun__satir' + (gecti ? ' bugun__satir--gec' : '')}
+                onClick={() => onAc(t)}
+              >
+                <span className="bugun__saat">
+                  {gecti ? t.plan.tarihYazi : 'bugün'}
+                </span>
+                <span className="bugun__ad">{t.ad || '—'}</span>
+                <span className="bugun__yer">{t.ilce || t.il || ''}</span>
+              </button>
+            )
+          })}
+        </div>
+      ) : (
+        <p className="bugun__bos">
+          Bugün için verilmiş randevunuz yok.
+          {yarinki.length > 0 && ` Yarın ${yarinki.length} randevunuz var.`}
+        </p>
+      )}
+
+      {/* Sayılar altta, tek satırda. Randevu somut bir plan; bunlar
+          hatırlatma. Aynı ağırlıkta gösterilmemeleri gerekiyor. */}
+      {(geciken.length > 0 || sirada.length > 0) && (
+        <div className="bugun__sayilar">
+          {geciken.length > 0 && (
+            <span className="bugun__rozet bugun__rozet--gec">
+              {geciken.length} işin üzerinden 48 saat geçti
+            </span>
+          )}
+          {/* "gün bekliyor" iki türlü okunuyordu — "günlerdir bekliyor"
+              da anlaşılabiliyordu. Kastedilen: randevusu verilmemiş. */}
+          {sirada.length > 0 && (
+            <span className="bugun__rozet">
+              {sirada.length} işe gün verilmedi
+            </span>
+          )}
+        </div>
+      )}
+    </div>
   )
 }
 

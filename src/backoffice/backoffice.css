@@ -373,6 +373,26 @@ a {
   box-shadow: var(--golge-2);
 }
 
+/* Giriş kartının üstündeki şerit.
+
+   Kartın kendi dolgusunun dışına taşıyor: negatif kenar boşluğuyla
+   kartın köşelerine kadar gidiyor, üst köşeleri kartınkiyle aynı
+   yuvarlaklıkta. Yoksa görselin çevresinde ince bir çerçeve kalıyor
+   ve kartın içine yapıştırılmış gibi duruyordu.
+
+   Çizimin zemini bilerek korundu (saydam yapılmadı): gökyüzü ve tarla
+   çizimin parçası. Koyu temada da aynı duruyor — bir fotoğraf gibi
+   okunuyor, arayüz yüzeyi gibi değil. */
+.giris__serit {
+  display: block;
+  width: calc(100% + 64px);
+  margin: -34px -32px 22px;
+  border-radius: 16px 16px 0 0;
+  aspect-ratio: 1400 / 640;
+  object-fit: cover;
+  object-position: center 62%;
+}
+
 .giris__kart .alan {
   margin-bottom: 16px;
 }

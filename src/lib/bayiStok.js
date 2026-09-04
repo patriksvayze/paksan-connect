@@ -79,6 +79,9 @@ export function stokDus(bayiId, parcalar = [], adetler = {}, talepNo, kim) {
       Number(adetler[ad]) || 1,
       talepNo ? `${talepNo} · müşteriye gönderildi` : 'Müşteriye gönderildi',
       kim,
+      /* Talepten gelen düşüş stok ekranından geri ALINAMIYOR: talep
+         kapandı ve "gönderildi" diyor. Gerekçesi bayiSiparis.js'te. */
+      'talep',
     )
   }
   return stokGetir(bayiId).parca

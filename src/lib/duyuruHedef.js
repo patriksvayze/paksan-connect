@@ -75,8 +75,16 @@ export function duyuruGecerliMi(
   { user = null, makineler = [], bayi = null, yurtdisi = false } = {},
 ) {
   /* Talep, numara ve görüş bildirimleri buradan hiç süzülmüyor:
-     onlar zaten kişiye özel üretiliyor. */
-  if (!personelDuyurusuMu(d)) return true
+     onlar zaten kişiye özel üretiliyor.
+
+     BAYİ TARAFI HARİÇ. Bu kayıtlar bir MÜŞTERİNİN kendi bildirimi:
+     "talebiniz alındı", "numaranız değişti". Bayi paneline hiçbir
+     koşulda düşmemeleri gerekiyor. Düşüyorlardı da: bayi ekranında
+     içi boş, yalnız "Anladım" düğmesi olan kutular çıkıyordu — çünkü
+     o kayıtlarda `baslik`/`metin` yok, sözlük anahtarı var ve bayi
+     tarafında sözlük yok. Kutu boş görünüyordu ama asıl sorun
+     görünmesiydi: başkasının bildirimi. */
+  if (!personelDuyurusuMu(d)) return !bayi
 
   /* Kampanya duyurusu yalnız izin verene. Ticari elektronik ileti
      kuralı (6563). Güvenlik uyarısı izinden bağımsız. */

@@ -116,11 +116,24 @@ export function Bolum({ ad, sayi, children }) {
   )
 }
 
-/** Liste boşken ekranın ortasında duran açıklama. */
-export function Bos({ Icon, baslik, alt }) {
+/* Liste boşken ekranın ortasında duran açıklama.
+
+   ÇİZİM VARSA ÇİZİM, YOKSA SİMGE
+
+   Boş ekran bayinin uygulamayı en çok göreceği hâllerden biri:
+   sabah açtığında iş yoksa, stoğu boşsa. Orada 40 piksellik gri bir
+   simge "burada bir şey yok" demiyor, "ekran yüklenmedi" diyor.
+
+   Çizimler saydam zeminli; koyu temada da aynı duruyorlar. Ölçü
+   260 piksel: ekranın yarısını kaplamadan tanınacak kadar büyük. */
+export function Bos({ Icon, gorsel, baslik, alt }) {
   return (
     <div className="bos">
-      {Icon && <Icon size={40} />}
+      {gorsel ? (
+        <img className="bos__gorsel" src={gorsel} alt="" />
+      ) : (
+        Icon && <Icon size={40} />
+      )}
       <strong>{baslik}</strong>
       {alt && <p>{alt}</p>}
     </div>
