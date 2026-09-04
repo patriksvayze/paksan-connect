@@ -41,6 +41,7 @@
         "value": "bounce",
         "createdAt": "2026-09-04T15:03:01.549Z",
         "reason": "Ad eslesmesi, yanlis pozitif. styles.css:2594 destek asistaninin yaziyor gostergesi (uc nokta). Ortada zipplayan bir yumusatma yok: animasyon `bounce 1.1s infinite`, zamanlama fonksiyonu belirtilmemis, yani varsayilan `ease`. Kare dizisi de 0 > -5px > 0, dinlenme noktasini hic asmiyor. Kural gercek elastik egrileri (cubic-bezier tasmali) hedefliyor; burada yalnizca animasyonun ADI bounce."
+      }
     ]
   }
 }
