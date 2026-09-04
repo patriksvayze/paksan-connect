@@ -3,6 +3,13 @@ import { talepKapat, talepNotEkle, talepPlanla } from '../../backoffice/veri'
 import { parcaAdedi, stokDus } from '../../lib/bayiStok'
 import { Sayfa } from '../Kabuk'
 import {
+  extractYear,
+  formatSerial,
+  matchProduct,
+  warrantyStatus,
+  GARANTI_YIL,
+} from '../../lib/serial'
+import {
   IconBook,
   IconCalendar,
   IconCheckCircle,
@@ -80,7 +87,7 @@ export function TalepDetay({ talep, bayiAd, bayiId, onKapat, onDestekIste }) {
           ad="Konum"
           deger={talep.ilce ? `${talep.ilce} / ${talep.il}` : talep.il}
         />
-        {talep.makine?.serial && <Satir ad="Makine" deger={talep.makine.serial} />}
+        {talep.makine?.serial && <Makine makine={talep.makine} />}
         {talep.durum && <Satir ad="Makinenin durumu" deger={talep.durum} />}
         {talep.belirtiler?.length > 0 && (
           <Satir ad="Belirtiler" deger={talep.belirtiler.join(', ')} />
@@ -91,6 +98,25 @@ export function TalepDetay({ talep, bayiAd, bayiId, onKapat, onDestekIste }) {
         {talep.aciklama && <Satir ad="Müşterinin anlattığı" deger={talep.aciklama} />}
         {talep.ulasim && <Satir ad="Aranma tercihi" deger={talep.ulasim} />}
       </div>
+
+      {/* RANDEVU ALINMIŞ TALEP AYNI EKRANI GÖSTERMEMELİ.
+
+          Randevu verildikten sonra talep bayi tarafında yine "bekleyen"
+          listesinde duruyor (doğrusu da bu, iş bitmedi) ama detayı yeni
+          gelmiş bir taleple birebir aynı görünüyordu: bayi randevu
+          verdiğini unutup ikinci kez veriyordu. */}
+      {talep.plan && !kapali && (
+        <div className="not not--mavi">
+          <IconCalendar size={19} />
+          <div>
+            <strong>Randevu verildi · {talep.plan.tarihYazi}</strong>
+            <p>
+              {talep.plan.is}
+              {talep.plan.gorusuldu ? ' · müşteriyle görüşüldü' : ''}
+            </p>
+          </div>
+        </div>
+      )}
 
       {paksanda && talep.devir && (
         <div className="not not--mavi">
@@ -119,7 +145,7 @@ export function TalepDetay({ talep, bayiAd, bayiId, onKapat, onDestekIste }) {
           {talep.tur === 'servis' && (
             <button className="secenek__dg" onClick={() => setPencere('randevu')}>
               <IconCalendar size={19} />
-              Randevu ver
+              {talep.plan ? 'Randevuyu değiştir' : 'Randevu'}
               <IconRight size={17} />
             </button>
           )}
@@ -175,6 +201,44 @@ function Satir({ ad, deger }) {
     <div style={{ marginTop: 10 }}>
       <div className="kucuk sonuk">{ad}</div>
       <div>{deger}</div>
+    </div>
+  )
+}
+
+/* MAKİNE VE GARANTİ.
+
+   Bayinin ilk sorduğu şey bu: iş garanti kapsamında mı, ücret alacak mı?
+   Eskiden yalnız seri numarası yazıyordu, bayi yılı kafasından
+   hesaplıyordu.
+
+   Yıl ve model seri numarasından çıkıyor (bkz. lib/serial.js), ayrıca
+   bir yere kaydedilmesi gerekmiyor. Etiket burada Türkçe yazılı çünkü
+   bayi paneli tek dilli; `warrantyStatus` sözlük anahtarı döndürüyor ve
+   bu tarafta sözlük yok. Metinler `i18n/tr.js` içindekilerle birebir
+   aynı tutuluyor: müşteri ve bayi aynı makineye baktığında aynı şeyi
+   okumalı. */
+const GARANTI_YAZI = {
+  bilinmiyor: () => 'Garanti bilgisi yok',
+  devam: (kalan) => `Garanti devam ediyor · ${kalan} yıl`,
+  son: () => 'Garantinin son yılı',
+  bitti: () => 'Garanti süresi doldu',
+}
+
+function Makine({ makine }) {
+  const yil = extractYear(makine.serial)
+  const durum = warrantyStatus(yil)
+  const kalan = yil ? yil + GARANTI_YIL - new Date().getFullYear() : 0
+  const model = matchProduct(makine.serial)?.product?.name
+
+  return (
+    <div style={{ marginTop: 10 }}>
+      <div className="kucuk sonuk">Makine</div>
+      <div className="mono">{formatSerial(makine.serial)}</div>
+      {model && <div className="kucuk">{model}</div>}
+      <div className={'garanti garanti--' + durum.state}>
+        {(GARANTI_YAZI[durum.state] || GARANTI_YAZI.bilinmiyor)(kalan)}
+        {yil ? ` · ${yil} üretimi` : ''}
+      </div>
     </div>
   )
 }
@@ -237,21 +301,40 @@ function Pencere({ baslik, children, onKapat }) {
   )
 }
 
+/* "Ne yapılacak" alanı kaldırıldı; yerine türden çıkarılıyor.
+
+   O alan müşterinin bildirimine gidiyor (bkz. talepPlanla → plan.is).
+   Boş bırakılamazdı, ama bayiden ayrıca yazmasını istemek gereksizdi:
+   yapılacak iş zaten talebin türü. Müşteri de "servis ziyareti" diye
+   okuyor, bayinin yazdığı serbest metni değil. */
+const PLAN_ISI = {
+  servis: 'Servis ziyareti',
+  parca: 'Parça teslimi',
+  satinalma: 'Görüşme',
+}
+
 function Randevu({ talep, bayiAd, onKapat, onBitti }) {
-  const [tarih, setTarih] = useState('')
-  const [is, setIs] = useState('')
+  /* Var olan randevu varsa kutular onunla doluyor: bayi tarihi
+     değiştirmek için baştan yazmıyor. */
+  const [tarih, setTarih] = useState(() =>
+    talep.plan?.tarih ? new Date(talep.plan.tarih).toISOString().slice(0, 10) : '',
+  )
+  const [onay, setOnay] = useState(false)
   const [hata, setHata] = useState('')
+  const degisiklik = Boolean(talep.plan)
 
   function kaydet() {
     if (!tarih) return setHata('Gideceğiniz tarihi seçin.')
-    if (is.trim().length < 3) return setHata('Ne yapılacağını kısaca yazın.')
+    /* Backoffice'teki kuralın aynısı: randevu müşteriyle konuşulmadan
+       kaydedilmiyor. Müşteri o gün tarlada olmayabilir. */
+    if (!onay) return setHata('Randevuyu kaydetmeden önce müşteriyle görüşün.')
     const g = new Date(tarih)
     talepPlanla(
       talep,
       {
         tarih: g.getTime(),
         tarihYazi: g.toLocaleDateString('tr-TR'),
-        is: is.trim(),
+        is: PLAN_ISI[talep.tur] || 'Ziyaret',
         gorusuldu: true,
       },
       bayiAd,
@@ -260,21 +343,23 @@ function Randevu({ talep, bayiAd, onKapat, onBitti }) {
   }
 
   return (
-    <Pencere baslik="Randevu ver" onKapat={onKapat}>
+    <Pencere baslik={degisiklik ? 'Randevuyu değiştir' : 'Randevu'} onKapat={onKapat}>
       <label className="alan">
         <span className="alan__ad">Gideceğiniz tarih</span>
         <input className="gir" type="date" value={tarih} onChange={(e) => setTarih(e.target.value)} />
       </label>
-      <label className="alan">
-        <span className="alan__ad">Ne yapılacak</span>
-        <input
-          className="gir"
-          value={is}
-          onChange={(e) => setIs(e.target.value)}
-          placeholder="Örnek: Düğüm atıcı kontrolü"
-        />
+
+      <label className="secim">
+        <input type="checkbox" checked={onay} onChange={(e) => setOnay(e.target.checked)} />
+        <span>Müşteriden randevu onayı alındı</span>
       </label>
+
       {hata && <div className="uyari">{hata}</div>}
+
+      <p className="kucuk sonuk" style={{ margin: '4px 0 14px' }}>
+        Bu tarih müşterinin bildirimlerine aynen gidiyor.
+      </p>
+
       <div className="satir">
         <button className="dg dg--ana" onClick={kaydet}>Kaydet</button>
         <button className="dg" onClick={onKapat}>Vazgeç</button>

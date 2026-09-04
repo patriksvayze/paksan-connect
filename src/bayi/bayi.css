@@ -430,6 +430,32 @@
   color: var(--kirmizi);
 }
 
+.is__isaret--plan {
+  color: var(--mavi-rz);
+}
+
+/* Garanti durumu — bayinin "ücret alacak mıyım" sorusunun cevabı.
+   Renk tek başına anlam taşımıyor, yazının kendisi de aynı şeyi
+   söylüyor (renk körlüğü). */
+.garanti {
+  margin-top: var(--bosluk-1);
+  font-size: var(--yazi-2);
+  font-weight: 700;
+}
+
+.garanti--devam {
+  color: var(--yesil);
+}
+
+.garanti--son,
+.garanti--bitti {
+  color: var(--turuncu);
+}
+
+.garanti--bilinmiyor {
+  color: var(--murekkep-2);
+}
+
 /* Geciken işin sol kenarında kırmızı şerit — listeye bakınca hangi
    işin beklediği kaydırmadan görülüyor. */
 .is--gec {
@@ -661,6 +687,13 @@
 /* Tam genişlik düğme. Telefonda asıl işlemler böyle: parmağın
    nişan alması gerekmiyor. */
 .dg--blok {
+  /* `display` BURADA GEREKLİ.
+
+     `.dg` inline-flex; inline öğede `margin: 0 auto` ortalamıyor. Geniş
+     ekranda `.uyg__dip > *` kuralı düğmeyi 720 piksele sınırlayıp
+     ortalamaya çalışıyordu ama düğme sola yapışık kalıyordu. Blok
+     seviyesine çıkınca auto kenar boşluğu çalışıyor. */
+  display: flex;
   width: 100%;
   height: var(--dokunma-genis);
   font-size: var(--yazi-3);

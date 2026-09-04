@@ -388,6 +388,13 @@ function TalepKarti({ talep, onAc }) {
 
         {/* İki uyarı da satır hâlinde altta: kartın üst kısmı her
             talepte aynı yerde dursun, göz alışsın. */}
+        {/* Randevu listede de görünüyor: bayi hangi işe gün verdiğini
+            karta girmeden biliyor. */}
+        {talep.plan && (
+          <div className="is__isaret is__isaret--plan">
+            Randevu · {talep.plan.tarihYazi}
+          </div>
+        )}
         {gecikti && <div className="is__isaret is__isaret--gec">48 saati geçti</div>}
         {paksanda && talep.devir && (
           <div className="is__isaret">PAKSAN destek veriyor</div>

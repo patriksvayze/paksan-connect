@@ -45,7 +45,9 @@ function Cubuk({ baslik, alt, onGeri, islem }) {
       </div>
       {/* İşlem varsa marka yerini ona bırakıyor: çubuk iki satıra
           taşmasın. Marka zaten giriş ekranında tam hâliyle duruyor. */}
-      {islem || <PaksanLogo height={15} sadeceYazi beyaz />}
+      {/* 30 piksel: 15'ti, okunmuyordu. Marka çubuğun sağında tek
+          başına duruyor, yer var. */}
+      {islem || <PaksanLogo height={30} sadeceYazi beyaz />}
     </header>
   )
 }
