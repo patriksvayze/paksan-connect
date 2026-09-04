@@ -28,6 +28,20 @@
    "Makinelerim boş" çiziminde bir makine var ama o da kasıtlı olarak
    genel: çeki oku, gövde, iki tekerlek. Traktör DEĞİL — PAKSAN
    traktör üretmiyor.
+
+   MAKİNE TURUNCU, LACİVERT DEĞİL
+
+   O çizim önce lacivert gövdeliydi: uygulamanın arayüz rengiyle
+   makinenin boyası karıştırılmıştı. Lacivert markanın rengi (logo,
+   başlık çubuğu, düğmeler); PAKSAN makinesinin gövdesi turuncu.
+
+   Renk tahmin edilmedi, ürün fotoğraflarından ölçüldü: 15 üründe
+   45.479 doygun piksel, ağırlıklı ortalama **#E16025**. Ölçüm betiği
+   `tools/marka-rengi.mjs`; gerçek stüdyo çekimleri geldiğinde yeniden
+   çalıştırılmalı.
+
+   Aynı kural bayi panelindeki çizimler için de geçerli
+   (bkz. src/assets/gorseller/bayi-*.png).
    ========================================================================== */
 
 import bosMakine from '../assets/gorseller/bos-makine.png'

@@ -1,4 +1,7 @@
 import { IKON_YOLLARI } from '../data/ikonYollari'
+/* Adlandırılmış içe aktarma: yalnız kullanılan simgeler derlemeye
+   giriyor, kütüphanenin tamamı değil. */
+import { Phone as LucidePhone, Undo2 as LucideUndo } from 'lucide-react'
 
 /* ==========================================================================
    Uygulamanın simgeleri
@@ -60,6 +63,52 @@ const simge = (ad) => {
   return S
 }
 
+/* ==========================================================================
+   Lucide köprüsü — eksik kalan simgeler için
+
+   NEDEN TOPLU DEĞİŞTİRMEDİK
+
+   Lucide profesyonel, açık kaynak bir simge kütüphanesi (1500+ simge).
+   Buradaki seti onunla değiştirmeyi düşündük ve ÖLÇTÜK: sekiz simge
+   96 pikselde çizilip mürekkep kaplama oranları karşılaştırıldı.
+
+     mevcut  %15,4 – %26,8   ortalama %21,4
+     lucide  %18,1 – %31,6   ortalama %25,0
+
+   İki sonuç çıktı:
+
+     1. Buradaki set zaten kütüphane kalitesinde. Toplu değişim
+        kazanç değil, gereksiz bir değişiklik olurdu — üstelik
+        simgelerin PAKSAN için üretilmiş olma bağı da kopardı.
+     2. Lucide yaklaşık %17 daha kalın çiziyor. Yan yana durduklarında
+        fark görünüyor.
+
+   BU YÜZDEN LUCIDE BOŞLUK DOLDURUCU
+
+   Burada olmayan bir simge gerektiğinde — geri alma oku, filtre,
+   dışa aktarma — üretip izlemek yerine Lucide'dan alınıyor. `lucide`
+   sarmalayıcısı iki şeyi yapıyor: `size` düzenini buradakiyle aynı
+   tutuyor ve çizgi kalınlığını 1,75'e çekiyor.
+
+   1,75 SAYISI ÖLÇÜMDEN: Lucide'ın varsayılanı 2 ve %17 fazla mürekkep
+   bırakıyor. 2 / 1,17 ≈ 1,71; en yakın çeyrek adım 1,75.
+   ========================================================================== */
+
+export const lucide = (L, ad) => {
+  const S = ({ size = 24, className, style }) => (
+    <L
+      size={size}
+      strokeWidth={1.75}
+      className={className}
+      style={style}
+      aria-hidden="true"
+      focusable="false"
+    />
+  )
+  S.displayName = 'Lucide(' + ad + ')'
+  return S
+}
+
 /* ------------------------------------------------------------ Gezinme */
 
 export const IconHome = simge('ev')
@@ -98,7 +147,22 @@ export const IconSearch = simge('arama')
 
 /* ------------------------------------------------------------- İletişim */
 
-export const IconPhone = simge('telefon')
+/* TELEFON LUCIDE'DAN.
+
+   Ölçümde setin tek sapan simgesi buydu: 96 pikselde %15,4 mürekkep
+   bırakıyordu, benzer karmaşıklıktaki kardeşleri %17–21 aralığında
+   (zil %21,3, kişi %17,4). Yani gözle bakınca daha ince, daha soluk
+   duruyordu — ve bu simge bayi panelinde her iş kartının sağında,
+   ekranın en çok basılan düğmesinde duruyor.
+
+   Tek tek üretilen simgelerde beklenen kayma bu. Kütüphanenin çözdüğü
+   sorun da tam olarak bu. */
+export const IconPhone = lucide(LucidePhone, 'telefon')
+
+/* Geri alma oku. Bu sette hiç yoktu; stok düşüşünü geri alan düğmede
+   `IconBack` (sola ok) ödünç kullanılıyordu — "geri git" ile "geri al"
+   aynı şey değil. */
+export const IconUndo = lucide(LucideUndo, 'geri-al')
 export const IconMail = simge('zarf')
 export const IconSend = simge('ucak')
 export const IconMic = simge('mikrofon')

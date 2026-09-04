@@ -348,21 +348,33 @@ function Isler({ oturum, bekleyen, biten, onAc }) {
 
       <BayiDuyurulari oturum={oturum} />
 
-      {bekleyen.length === 0 && biten.length === 0 && (
-        <Bos
-          gorsel={bosIsGorseli}
-          baslik="Şu an size düşen iş yok"
-          alt="Bölgenizden bir talep geldiğinde burada görünecek."
-        />
-      )}
+      {/* BEKLEYEN BÖLÜMÜ İŞ YOKKEN DE ÇIKIYOR.
 
-      {bekleyen.length > 0 && (
-        <Bolum ad="Bekleyen" sayi={bekleyen.length}>
-          {bekleyen.map((t) => (
+          Önce yalnız iş varsa çiziliyordu. Sonuç: tamamlanmış işi olan
+          bir bayi ekranı açtığında yalnız "TAMAMLANAN" görüyordu ve
+          bekleyen işinin olup olmadığı hiçbir yerde yazmıyordu.
+          Bilginin yokluğu, bilgi değil — "acaba yüklenmedi mi?" diye
+          düşündürüyor.
+
+          Şimdi bölüm her zaman duruyor; boşken çizimiyle birlikte
+          "bekleyen iş yok" diyor. Bayi baktığı anda cevabını alıyor. */}
+      <Bolum ad="Bekleyen" sayi={bekleyen.length}>
+        {bekleyen.length > 0 ? (
+          bekleyen.map((t) => (
             <TalepKarti key={t.id} talep={t} onAc={() => onAc(t)} />
-          ))}
-        </Bolum>
-      )}
+          ))
+        ) : (
+          <Bos
+            gorsel={bosIsGorseli}
+            baslik="Bekleyen işiniz yok"
+            alt={
+              biten.length > 0
+                ? 'Hepsini tamamladınız. Bölgenizden yeni bir talep geldiğinde burada görünecek.'
+                : 'Bölgenizden bir talep geldiğinde burada görünecek.'
+            }
+          />
+        )}
+      </Bolum>
 
       {biten.length > 0 && (
         <Bolum ad="Tamamlanan" sayi={biten.length}>

@@ -13,9 +13,7 @@ import { islemYaz } from '../../backoffice/veri'
 import { PARCA_FIYAT } from '../../data/parcaFiyat'
 import { PRODUCTS } from '../../data/products'
 import { Bolum, Bos } from '../Kabuk'
-/* Geri alma için ayrı bir simge üretilmedi: `IconBack` zaten sola
-   dönen ok ve anlattığı şey birebir bu. */
-import { IconPlus, IconMinus, IconRight, IconBack } from '../../components/Icons'
+import { IconPlus, IconMinus, IconRight, IconUndo } from '../../components/Icons'
 import bosStokGorseli from '../../assets/gorseller/bayi-bos-stok.png'
 
 /* ==========================================================================
@@ -267,7 +265,7 @@ function StokSatiri({ kalem, bayiId, tazele, onDus, onGeriAl }) {
 
       {geri && (
         <button className="stok-geri" onClick={() => onGeriAl(geri)}>
-          <IconBack size={16} />
+          <IconUndo size={16} />
           Son düşüşü geri al · {geri.kalemler?.[0]?.adet} adet
         </button>
       )}
