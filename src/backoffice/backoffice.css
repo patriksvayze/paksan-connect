@@ -925,11 +925,32 @@ tbody tr.secili {
   transition: border-color 0.14s ease;
 }
 
+/* ODAK DIŞ ÇİZGİSİ BASTIRILMIYOR.
+
+   Burada `outline: none` vardı ve yerine yalnız kenar rengi
+   değişiyordu. Ölçüldüğünde yetmediği görüldü:
+
+     odaklı/odaksız kenar farkı   1,46      (gereken 3,0)
+     odak kenarı zemine karşı     2,43      (gereken 3,0)
+     kenar kalınlığı              1 piksel  (gereken 2)
+
+   Yani klavyeyle gezen personel hangi alanda olduğunu göremiyordu.
+   WCAG 2.2 · 2.4.11 odak göstergesi için 3:1 istiyor.
+
+   Saydam bir halka denendi ve HİÇBİR değerde geçmedi: --mavi-acik
+   %50 saydamlıkta bile 2,15'te kalıyor. Geçen tek şey tam opak dış
+   çizgi — o da zaten dosyanın başındaki `:focus-visible` kuralında
+   duruyordu, buradaki `outline: none` onu öldürüyordu.
+
+   Ölçülen yeni değer (2 piksel `--mavi-acik`, 2 piksel boşluk):
+   açık temada 4,65 · koyu temada 4,63.
+
+   Kenar rengi değişimi kalıyor: fareyle tıklayan için yumuşak bir
+   işaret, dış çizginin yerine değil yanında. */
 .gir:focus,
 .sec:focus,
 .metin:focus {
   border-color: var(--mavi);
-  outline: none;
 }
 
 .metin {
@@ -1510,8 +1531,10 @@ select.sec {
   background-repeat: no-repeat;
 }
 
+/* Açılır listede yumuşak halka kalıyor ama dış çizgi bastırılmıyor —
+   gerekçe yukarıdaki `.gir:focus` bloğunda. Halka tek başına 1,35
+   ölçüyordu; artık göstergenin kendisi değil, süsü. */
 .sec:focus {
-  outline: none;
   border-color: var(--mavi);
   box-shadow: 0 0 0 3px var(--mavi-z);
 }

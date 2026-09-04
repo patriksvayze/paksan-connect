@@ -1303,6 +1303,20 @@ p {
   display: block;
 }
 
+/* ODAK DIŞ ÇİZGİSİ BASTIRILMIYOR.
+
+   Burada `outline: none` vardı. Yerine `.input:focus` bir halka
+   çiziyordu ama halka `--pk-blue-soft` ile, yani %8 saydamlıkta:
+   zemine karşı ölçülen kontrast açık temada 1,14 · koyu temada 1,31.
+   Görünmüyor demek. WCAG 2.2 · 2.4.11 odak göstergesi için 3:1
+   istiyor.
+
+   Bu kural dosyanın 440. satırındaki `:focus-visible` kuralıyla aynı
+   özgüllükte ve ondan SONRA geldiği için onu eziyordu. `outline: none`
+   kalkınca turuncu dış çizgi geri geliyor: açık temada 3,35 · koyu
+   temada 4,88.
+
+   Halka kalıyor — göstergenin kendisi değil, yumuşak katmanı. */
 .input,
 .textarea,
 .select {
@@ -1312,7 +1326,6 @@ p {
   border: 1px solid var(--line-strong);
   background: var(--surface);
   padding: 14px 16px;
-  outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -1348,6 +1361,21 @@ p {
   background: var(--surface);
   overflow: hidden;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Telefon ve şifre kutuları BİRLEŞİK alan: dışta sarmalayıcı, içte
+   çıplak bir input. İçteki `outline: none` doğru — dış çizgi kutunun
+   içinde değil, kutunun kendisinde olmalı. Ama gösterge yalnız %8
+   saydamlıktaki halkaydı (ölçülen 1,14 · 1,31) ve görünmüyordu.
+
+   Dış çizgi buraya, sarmalayıcıya konuyor; ölçüsü ve rengi dosyanın
+   başındaki `:focus-visible` kuralıyla aynı. Metin alanları her
+   koşulda `:focus-visible` saydığı için `:focus-within` ile aynı
+   sonucu veriyor. */
+.tel-kutu:focus-within,
+.sifre-kutu:focus-within {
+  outline: 3px solid var(--pk-orange);
+  outline-offset: 2px;
 }
 
 .tel-kutu:focus-within {
