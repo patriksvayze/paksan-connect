@@ -1,5 +1,15 @@
 <!doctype html>
-<html lang="tr">
+<!-- data-giris="mobil": DÜZEN GENİŞLİĞE DEĞİL GİRİŞE BAKIYOR.
+
+     İki giriş aynı kodu yüklüyor ve düzen yalnız ekran genişliğine
+     bakıyordu. Sonuç: bu adres masaüstü tarayıcıda açıldığında panelin
+     birebir aynısı görünüyordu — çünkü pencere 760 pikselden geniş.
+     Oysa bu adres APK'nın içine giren sürüm; tarayıcıda önizlenirken de
+     UYGULAMA gibi görünmeli.
+
+     Bu belirteç varken geniş ekran kuralları uygulanmıyor: sekmeler
+     altta kalıyor, içerik telefon genişliğinde bir sütuna oturuyor. -->
+<html lang="tr" data-giris="mobil">
   <head>
     <meta charset="UTF-8" />
     <!-- Telefona kurulan sürüm: kullanıcı yakınlaştırma yapamasın,
