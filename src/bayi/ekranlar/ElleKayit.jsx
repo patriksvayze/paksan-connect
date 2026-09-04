@@ -4,7 +4,7 @@ import { talepNo } from '../../lib/talep'
 import { ILLER, ilceleriGetir } from '../../data/iller'
 import { normalizeSerial, validateSerial } from '../../lib/serial'
 import { bayiMakineKaydi } from '../../lib/makineKaydi'
-import { musterileriGetir } from '../../backoffice/veri'
+import { islemYaz, musterileriGetir } from '../../backoffice/veri'
 import { PARCA_FIYAT } from '../../data/parcaFiyat'
 import { Bolum } from '../Kabuk'
 import { IconCheckCircle } from '../../components/Icons'
@@ -149,6 +149,17 @@ export function ElleKayit({ oturum, onKaydedildi }) {
     }
 
     save('requests', [talep, ...load('requests', [])])
+
+    /* Bayinin elle açtığı talep de İşlem Kaydı'na düşüyor: uygulamadan
+       gelen talep kaydediliyor, bayininki kaydedilmiyordu. Rol alanını
+       `islemYaz` çalışan derlemeden çıkarıyor (bkz. src/lib/urun.js). */
+    islemYaz({
+      tur: 'talep',
+      ozet: `${talep.no} · elle açıldı · ${talep.ad}${
+        eslesen ? ' · kayıtlı müşteri' : ''
+      }`,
+      personel: oturum.ad,
+    })
 
     if (makine) {
       bayiMakineKaydi({

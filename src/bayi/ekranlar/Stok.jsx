@@ -7,6 +7,7 @@ import {
   siparisAc,
   stokKullan,
 } from '../../lib/bayiSiparis'
+import { islemYaz } from '../../backoffice/veri'
 import { PARCA_FIYAT } from '../../data/parcaFiyat'
 import { PRODUCTS } from '../../data/products'
 import { Bolum, Bos } from '../Kabuk'
@@ -69,13 +70,22 @@ export function Stok({ oturum }) {
   const bosMu = !parcalar.length && !makineler.length
 
   function dus(kalem) {
-    stokKullan(
+    const sonuc = stokKullan(
       oturum.bayiId,
       kalem,
       1,
       'Müşteriye verildi veya serviste kullanıldı',
       oturum.ad,
     )
+    if (sonuc.hata) return
+    /* Stok hareketi bayinin kendi ekranında zaten duruyor; İşlem
+       Kaydı'na da düşüyor ki PAKSAN "bu bayi stoğunu ne zaman
+       kullanıyor" sorusuna tek yerden bakabilsin. */
+    islemYaz({
+      tur: 'stok',
+      ozet: `${kalem.ad} · 1 adet düşüldü · kalan ${sonuc.kalan}`,
+      personel: oturum.ad,
+    })
     setTazele((x) => x + 1)
   }
 
@@ -233,6 +243,12 @@ function SiparisVer({ oturum, onKapat, onVerildi }) {
       not,
     })
     if (sonuc.hata) return setHata(sonuc.hata)
+    const adet = secili.reduce((t, k) => t + k.adet, 0)
+    islemYaz({
+      tur: 'siparis',
+      ozet: `${sonuc.siparis.no} · sipariş verildi · ${secili.length} kalem, ${adet} adet`,
+      personel: oturum.ad,
+    })
     onVerildi()
   }
 

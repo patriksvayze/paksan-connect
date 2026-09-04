@@ -6,7 +6,7 @@ import {
   siparisleriGetir,
 } from '../../lib/bayiSiparis'
 import { tarihYaz } from './ortak'
-import { izinli } from '../veri'
+import { islemYaz, izinli } from '../veri'
 
 /* ==========================================================================
    Bayi Siparişleri — PAKSAN tarafı
@@ -104,16 +104,29 @@ function SiparisSatiri({ siparis, acik, onAc, yetkili, personel, onDegisti }) {
   const sonraki = SONRAKI[siparis.durum]
   const adet = siparis.kalemler.reduce((t, k) => t + Number(k.adet), 0)
 
+  /* Sipariş hareketleri İşlem Kaydı'na da yazılıyor: stoğu değiştiren
+     tek adım gönderim ve "bu bayinin stoğu neden arttı" sorusunun
+     cevabı denetlenebilir bir yerde durmalı. */
+  function yaz(ozet) {
+    islemYaz({ tur: 'siparis', ozet: `${siparis.no} · ${siparis.bayiAd} · ${ozet}`, personel })
+  }
+
   function ilerlet() {
     const kargo = siparis.durum === 'hazirlaniyor' ? { firma, takipNo: takip } : undefined
     const sonuc = siparisDurumu(siparis.id, sonraki.durum, personel, kargo)
     if (sonuc.hata) return setHata(sonuc.hata)
+    yaz(
+      sonraki.durum === 'gonderildi'
+        ? `gönderildi · stok işlendi${takip ? ' · ' + (firma || 'kargo') + ' ' + takip : ''}`
+        : SIPARIS_DURUM[sonraki.durum].ad.toLocaleLowerCase('tr-TR'),
+    )
     onDegisti()
   }
 
   function iptal() {
     const sonuc = siparisDurumu(siparis.id, 'iptal', personel)
     if (sonuc.hata) return setHata(sonuc.hata)
+    yaz('iptal edildi')
     onDegisti()
   }
 

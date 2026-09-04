@@ -24,7 +24,13 @@ import '../styles/olcu.css'
 import '../backoffice/backoffice.css'
 import './bayi.css'
 
+import { urunAyarla } from '../lib/urun'
 import { temayiUygula } from '../backoffice/Tema'
+
+/* Paylaşılan dosyalara hangi derlemenin çalıştığı burada bildiriliyor
+   (bkz. src/lib/urun.js). Görünüm tercihi ve işlem kaydının rolü buna
+   bakıyor; ikisi de backoffice'inkinden ayrı tutuluyor. */
+urunAyarla('bayi')
 
 /* Kayıtlı görünüm tercihi ilk çizimden ÖNCE uygulanıyor. */
 temayiUygula()

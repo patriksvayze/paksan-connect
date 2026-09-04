@@ -17,7 +17,12 @@ import '@fontsource/roboto/latin-ext-900.css'
 /* Ortak ölçü sistemi (bkz. src/styles/olcu.css) — üç ürün de paylaşıyor. */
 import '../styles/olcu.css'
 import './backoffice.css'
+import { urunAyarla } from '../lib/urun'
 import { temayiUygula } from './Tema'
+
+/* Paylaşılan dosyalara hangi derlemenin çalıştığı bildiriliyor
+   (bkz. src/lib/urun.js). */
+urunAyarla('backoffice')
 
 /* Kayıtlı görünüm tercihi ilk çizimden ÖNCE uygulanıyor; koyu seçmiş
    personel bir an beyaz ekran görmesin. */

@@ -45,6 +45,8 @@ const TURLER = [
     alt: 'Kampanya, yeni ürün, etkinlik',
     kime: 'Yalnız ticari ileti izni veren müşterilere gider.',
     ton: 'mavi',
+    /* Kampanya metni son kullanıcıya yazılıyor; bayide gürültü olur. */
+    varsayilanKime: 'musteri',
   },
   {
     id: 'uyari',
@@ -52,8 +54,34 @@ const TURLER = [
     alt: 'Güvenlik uyarısı, geri çağırma',
     kime: 'Tüm müşterilere gider — hizmete ilişkin bildirim, izin gerektirmez.',
     ton: 'turuncu',
+    /* Geri çağırma ve güvenlik uyarısı bayiye de gitmeli: makineyi
+       elinde tutan, servisi veren, müşteriyi arayacak olan o. */
+    varsayilanKime: 'ikisi',
   },
 ]
+
+/* ==========================================================================
+   Kime gidecek
+
+   BU SEÇİM AÇILIR PANELİN İÇİNDEYDİ, ARTIK FORMDA DURUYOR
+
+   Alıcı kitlesi "Seç" düğmesinin arkasında, il ve model süzgeçleriyle
+   aynı kutuda duruyordu; özet satırı da hedef seçilmemişken "Herkese
+   gidecek" yazıyordu. Oysa varsayılan yalnız müşterilerdi — yayınlanan
+   duyuru bayi ekranlarına hiç düşmüyordu ve ekran bunun tersini
+   söylüyordu.
+
+   İl ve model bir SÜZGEÇ (kitleyi daraltır), alıcı kitlesi ise bir
+   KARAR. İkisi aynı kutuda durmamalı.
+   ========================================================================== */
+
+const KIMLER = [
+  { id: 'musteri', ad: 'Müşterilere', alt: 'PAKSAN Connect kullanan çiftçiler' },
+  { id: 'bayi', ad: 'Bayilere', alt: 'Bayi paneli ve bayi uygulaması' },
+  { id: 'ikisi', ad: 'İkisine de', alt: 'Hem müşteri hem bayi ekranları' },
+]
+
+const KIME_ADI = Object.fromEntries(KIMLER.map((k) => [k.id, k.ad]))
 
 /* ==========================================================================
    Hedefleme
@@ -82,45 +110,24 @@ function HedefSecici({ hedef, onDegis, bayiler }) {
     })
   }
 
-  const sinirVar =
-    hedef.kime !== 'musteri' ||
-    hedef.iller.length ||
-    hedef.bayiler.length ||
-    hedef.urunler.length
+  const sinirVar = hedef.iller.length || hedef.bayiler.length || hedef.urunler.length
 
   return (
     <div className="alan">
       <div className="satir" style={{ alignItems: 'center' }}>
-        <span className="alan__ad" style={{ margin: 0 }}>Kimlere Gidecek</span>
+        <span className="alan__ad" style={{ margin: 0 }}>Daraltma</span>
         <button className="dg" style={{ marginLeft: 'auto' }} onClick={() => setAcik(!acik)}>
           {acik ? 'Kapat' : 'Seç'}
         </button>
       </div>
       <p className="kucuk sonuk" style={{ margin: '4px 0 0' }}>
-        {sinirVar ? ozetle(hedef, bayiler) : 'Herkese gidecek.'}
+        {sinirVar
+          ? ozetle(hedef, bayiler)
+          : `${KIME_ADI[hedef.kime]} sınırsız gidecek — il, bayi ve model süzgeci yok.`}
       </p>
 
       {acik && (
         <div className="kart" style={{ padding: 12, marginTop: 8 }}>
-          <div className="alan">
-            <span className="alan__ad">Kime</span>
-            <div className="suzgec">
-              {[
-                { id: 'musteri', ad: 'Müşterilere' },
-                { id: 'bayi', ad: 'Bayilere' },
-                { id: 'ikisi', ad: 'İkisine de' },
-              ].map((x) => (
-                <button
-                  key={x.id}
-                  className={'cip' + (hedef.kime === x.id ? ' cip--on' : '')}
-                  onClick={() => onDegis({ ...hedef, kime: x.id })}
-                >
-                  {x.ad}
-                </button>
-              ))}
-            </div>
-          </div>
-
           <div className="alan">
             <span className="alan__ad">İller · boş bırakılırsa tüm iller</span>
             <div className="suzgec" style={{ maxHeight: 140, overflow: 'auto' }}>
@@ -175,6 +182,21 @@ function HedefSecici({ hedef, onDegis, bayiler }) {
       )}
     </div>
   )
+}
+
+/* Yayınlamadan önceki son cümle. Alıcı kitlesi burada da yazıyor:
+   yanlış kitleye giden duyuru geri alınamıyor, kaldırılsa bile
+   görülmüş oluyor. */
+function onayMetni(tur, baslik, kime) {
+  const alici =
+    kime === 'bayi' ? 'yalnız bayilere'
+      : kime === 'ikisi' ? 'hem müşterilere hem bayilere'
+        : 'müşterilere'
+
+  if (tur === 'uyari') {
+    return `“${baslik}” başlıklı uyarı ${alici} gidecek. Ekranlarını açtıklarında pencere olarak görecekler; bu bildirim izin gerektirmiyor.`
+  }
+  return `“${baslik}” başlıklı duyuru ${alici} gidecek. Müşteri tarafında yalnız ticari ileti izni verenlere ulaşır; bayilerde böyle bir izin aranmaz.`
 }
 
 function ozetle(hedef, bayiler) {
@@ -247,7 +269,12 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
                   <button
                     key={x.id}
                     className={'cip' + (tur === x.id ? ' cip--on' : '')}
-                    onClick={() => setTur(x.id)}
+                    onClick={() => {
+                      setTur(x.id)
+                      /* Alıcı kitlesi türe göre başlıyor; personel
+                         isterse aşağıdan değiştiriyor. */
+                      setHedef((h) => ({ ...h, kime: x.varsayilanKime }))
+                    }}
                   >
                     {x.ad}
                   </button>
@@ -258,6 +285,26 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
 
             <div className={'uyari'} style={{ marginTop: 12 }}>
               <span>{secili.kime}</span>
+            </div>
+
+            {/* ALICI KİTLESİ FORMDA, AÇILIR PANELDE DEĞİL. Gerekçesi
+                KIMLER tanımının başında yazılı. */}
+            <div className="alan" style={{ marginTop: 14 }}>
+              <span className="alan__ad">Kimlere Gidecek</span>
+              <div className="suzgec" style={{ marginBottom: 4 }}>
+                {KIMLER.map((x) => (
+                  <button
+                    key={x.id}
+                    className={'cip' + (hedef.kime === x.id ? ' cip--on' : '')}
+                    onClick={() => setHedef({ ...hedef, kime: x.id })}
+                  >
+                    {x.ad}
+                  </button>
+                ))}
+              </div>
+              <span className="kucuk sonuk">
+                {KIMLER.find((x) => x.id === hedef.kime)?.alt}
+              </span>
             </div>
 
             <label className="alan">
@@ -359,11 +406,7 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
       {onay && (
         <Pencere
           baslik="Duyuruyu yayınla"
-          metin={
-            tur === 'uyari'
-              ? `"${baslik}" başlıklı uyarı TÜM müşterilere gidecek. Uygulamayı açtıklarında pencere olarak görecekler.`
-              : `"${baslik}" başlıklı duyuru, ticari ileti izni veren müşterilere gidecek. Uygulamayı açtıklarında pencere olarak görecekler.`
-          }
+          metin={onayMetni(tur, baslik, hedef.kime)}
           onayYazi="Yayınla"
           onOnayla={yayinla}
           onVazgec={() => setOnay(false)}

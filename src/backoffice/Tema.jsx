@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { urun } from '../lib/urun'
 
 /* ==========================================================================
    Backoffice görünüm ayarı — açık / koyu
@@ -12,9 +13,21 @@ import { useEffect, useState } from 'react'
 
    Ayar profil penceresinde duruyor. Kendi başına bir menü satırı
    açmaya değmez; personelin günde bir kez dokunacağı bir şey.
+
+   BAYİ PANELİ BU DOSYAYI PAYLAŞIYOR AMA TERCİHİ PAYLAŞMIYOR
+
+   Bayi paneli aynı bileşeni kullanıyor; ikisi de aynı tarayıcıda aynı
+   adresten açıldığı için tek bir anahtar yazıldığında tercih öteki
+   ürüne de sıçrıyordu. Bayinin telefonundaki görünüm tercihiyle
+   PAKSAN personelinin bilgisayarındaki tercihin birbiriyle ilgisi yok.
+
+   Anahtar hangi derlemenin çalıştığına göre seçiliyor; kararı giriş
+   dosyası veriyor (bkz. src/lib/urun.js).
    ========================================================================== */
 
-const ANAHTAR = 'paksan.backofficeTema'
+function anahtar() {
+  return urun() === 'bayi' ? 'paksan.bayiTema' : 'paksan.backofficeTema'
+}
 
 export const TEMALAR = [
   { kod: 'acik', ad: 'Açık' },
@@ -23,7 +36,7 @@ export const TEMALAR = [
 
 function oku() {
   try {
-    return localStorage.getItem(ANAHTAR) || 'acik'
+    return localStorage.getItem(anahtar()) || 'acik'
   } catch {
     return 'acik'
   }
@@ -52,7 +65,7 @@ export function TemaSecici() {
           onClick={() => {
             if (x.kod === tema) return
             try {
-              localStorage.setItem(ANAHTAR, x.kod)
+              localStorage.setItem(anahtar(), x.kod)
             } catch {
               /* Depolama kapalıysa tercih bu oturumda geçerli olsun. */
             }

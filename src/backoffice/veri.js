@@ -10,6 +10,7 @@ import { load, save, uid } from '../lib/storage'
 import { sifreHazirla, sifreDogruMu, sifreGecerliMi } from '../lib/hesap'
 import { yeniNo } from '../lib/numara'
 import { SIRKET } from '../config'
+import { urun } from '../lib/urun'
 import { bayileriGetir } from '../data/bayiler.js'
 
 export const ANAHTAR = {
@@ -1366,14 +1367,24 @@ export function islemKaydiGetir() {
 }
 
 export function islemYaz({ tur, ozet, personel, rol }) {
-  const oturum = load(ANAHTAR.oturum, null)
+  /* ROL AÇIKÇA YAZILMADIYSA ÇALIŞAN DERLEMEYE BAKILIYOR.
+
+     Önce yalnız backoffice oturumuna bakılıyordu. Bayi panelinde öyle
+     bir oturum yok: bayinin randevusu, kapattığı iş ve eklediği not
+     rolsüz kaydediliyor, İşlem Kaydı ekranında "—" görünüyordu. Aynı
+     tarayıcıda personel de backoffice'e girmişse rol daha da yanlış
+     oluyordu — bayinin işlemi personelin rolüyle yazılıyordu.
+
+     Karar tarayıcıya değil, çalışan derlemeye ait (src/lib/urun.js). */
+  const bayide = urun() === 'bayi'
+  const oturum = load(bayide ? ANAHTAR.bayiOturum : ANAHTAR.oturum, null)
   const kayit = {
     id: uid(),
     tarih: Date.now(),
     tur,
     ozet,
-    personel: personel || '—',
-    rol: rol || oturum?.rol || null,
+    personel: personel || oturum?.ad || '—',
+    rol: rol || (bayide ? 'bayi' : oturum?.rol) || null,
   }
   save(ANAHTAR.islemKaydi, [kayit, ...islemKaydiGetir()].slice(0, 500))
   return kayit

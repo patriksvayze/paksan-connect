@@ -30,16 +30,23 @@ const TURLER = [
   { deger: 'talep', ad: 'Talep' },
   { deger: 'durum', ad: 'Talep durumu' },
   { deger: 'not', ad: 'Talep notu' },
+  { deger: 'odeme', ad: 'Ödeme onayı' },
   { deger: 'makine', ad: 'Makine kaydı' },
   { deger: 'numara', ad: 'Numara değişikliği' },
   { deger: 'musteri', ad: 'Müşteri kaydı' },
   { deger: 'geribildirim', ad: 'Geri bildirim' },
+  { deger: 'duyuru', ad: 'Duyuru' },
   { deger: 'personel', ad: 'Personel' },
   { deger: 'sifre', ad: 'Şifre' },
   { deger: 'bayi', ad: 'Bayi listesi' },
+  /* Bayi tarafından gelen üç işlem. Sipariş ve stok bayi panelinde
+     doğuyor, devir de bayinin PAKSAN'dan destek istemesi. */
+  { deger: 'siparis', ad: 'Bayi siparişi' },
+  { deger: 'stok', ad: 'Bayi stoğu' },
+  { deger: 'devir', ad: 'PAKSAN’a devir' },
   { deger: 'excel', ad: 'Excel aktarımı' },
   { deger: 'demo', ad: 'Demo verisi' },
-  { deger: 'oturum', ad: 'Backoffice girişi' },
+  { deger: 'oturum', ad: 'Giriş / çıkış' },
 ]
 
 const TUR_ADI = Object.fromEntries(TURLER.map((t) => [t.deger, t.ad]))
@@ -47,8 +54,29 @@ const TUR_ADI = Object.fromEntries(TURLER.map((t) => [t.deger, t.ad]))
 /* Müşteri verisine veya hesaplara dokunan işlemler listede ayırt edilsin. */
 const ONEMLI = ['numara', 'musteri', 'personel']
 
+/* Kaydı kimin yazdığı.
+
+   `rol` alanı PAKSAN rollerini tutuyordu; bayi paneli açıldığında
+   oraya 'bayi' de yazılmaya başladı. `rolBilgi()` tanımadığı rolde
+   listenin üçüncü satırını (Servis) döndürüyor — bayinin işlemi
+   "Servis" görünürdü. Bayi ayrı ele alınıyor.
+
+   Süzgeç de bunun üstüne kuruldu: "bayiler bu hafta ne yaptı" tek
+   soruyla cevaplanabilsin. */
+const KAYNAKLAR = [
+  { deger: 'hepsi', ad: 'Herkes' },
+  { deger: 'paksan', ad: 'PAKSAN personeli' },
+  { deger: 'bayi', ad: 'Bayiler' },
+]
+
+function rolYazi(rol) {
+  if (rol === 'bayi') return 'Bayi'
+  return rol ? rolBilgi(rol).ad : '—'
+}
+
 export function IslemKaydi({ surum }) {
   const [tur, setTur] = useState('hepsi')
+  const [kaynak, setKaynak] = useState('hepsi')
   const [aralik, setAralik] = useState(BOS_ARALIK)
   const [ara, setAra] = useState('')
   const [sorgu, setSorgu] = useState('')
@@ -61,7 +89,8 @@ export function IslemKaydi({ surum }) {
 
   /* Süzgeç ya arama ya tarih aralığıyla açılıyor; ikisi de boşken
      liste getirilmiyor. */
-  const suzgecVar = Boolean(sorgu) || aralik.tur !== 'hepsi' || tur !== 'hepsi'
+  const suzgecVar =
+    Boolean(sorgu) || aralik.tur !== 'hepsi' || tur !== 'hepsi' || kaynak !== 'hepsi'
 
   const { siralama, cevir } = useSiralama('tarih', 'azalan')
 
@@ -81,12 +110,14 @@ export function IslemKaydi({ surum }) {
 
     return veri.kayit.filter((k) => {
       if (tur !== 'hepsi' && k.tur !== tur) return false
+      if (kaynak === 'bayi' && k.rol !== 'bayi') return false
+      if (kaynak === 'paksan' && k.rol === 'bayi') return false
       if (!araliktaMi(k.tarih, aralik)) return false
       if (!q) return true
       if (kisi) return k.personel === kisi.ad
       return `${k.ozet} ${k.personel}`.toLocaleLowerCase('tr-TR').includes(q)
     })
-  }, [veri, suzgecVar, sorgu, tur, aralik])
+  }, [veri, suzgecVar, sorgu, tur, kaynak, aralik])
 
   /* Süzgeç yokken liste hiç getirilmiyor (null); sıralama da o zaman
      çalışmıyor. */
@@ -96,7 +127,7 @@ export function IslemKaydi({ surum }) {
       siraliListe(suzulmus, siralama, {
         tarih: (k) => k.tarih,
         personel: (k) => k.personel,
-        rol: (k) => k.rol,
+        rol: (k) => rolYazi(k.rol),
         tur: (k) => k.tur,
         ozet: (k) => k.ozet,
       }),
@@ -109,6 +140,14 @@ export function IslemKaydi({ surum }) {
 
       <SuzgecCubugu>
         <Secim ad="İşlem" deger={tur} onDegis={setTur} secenekler={TURLER} genislik={175} />
+
+        <Secim
+          ad="Kim"
+          deger={kaynak}
+          onDegis={setKaynak}
+          secenekler={KAYNAKLAR}
+          genislik={165}
+        />
 
         <TarihAraligi aralik={aralik} onDegis={setAralik} />
 
@@ -194,7 +233,7 @@ export function IslemKaydi({ surum }) {
                   <tr key={k.id}>
                     <td className="kucuk sonuk mono">{tarihYaz(k.tarih)}</td>
                     <td>{k.personel}</td>
-                    <td className="kucuk sonuk">{k.rol ? rolBilgi(k.rol).ad : '—'}</td>
+                    <td className="kucuk sonuk">{rolYazi(k.rol)}</td>
                     <td>
                       <span className={'rz rz--' + (ONEMLI.includes(k.tur) ? 'turuncu' : 'gri')}>
                         {TUR_ADI[k.tur] || k.tur}
