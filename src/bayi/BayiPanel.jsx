@@ -260,7 +260,7 @@ function Uygulama({ oturum, onCikis }) {
 
   const BASLIK = {
     isler: { baslik: 'İşlerim', alt: oturum.ad },
-    stok: { baslik: 'Stoğum', alt: 'Elinizdeki sayıyı yazın' },
+    stok: { baslik: 'Stoğum', alt: 'Eldeki mal ve PAKSAN siparişleri' },
     kayit: { baslik: 'Yeni Kayıt', alt: 'Size gelen bir müşteri için talep açın' },
     hesap: { baslik: 'Hesap', alt: oturum.no + ' · ' + oturum.il },
   }

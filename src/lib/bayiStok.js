@@ -1,15 +1,21 @@
 /* ==========================================================================
-   Bayi stoğu
+   Bayi stoğu — okuma ve azaltma
 
-   Bayinin elindeki yedek parça ve makine sayısı. Bayinin KENDİ ticari
-   bilgisi; PAKSAN backoffice'inde gösterilmiyor, bayiden PAKSAN'a
-   raporlanması da istenmiyor.
+   Bayinin elindeki yedek parça ve makine sayısı.
 
-   NE İŞE YARIYOR
+   BAYİ STOĞUNU ARTIRAMAZ.
 
-   Yedek parça talebi geldiğinde bayi "bu parça bende var mı" sorusunu
-   panelde görüyor. Stokta varsa gönderiyor, yoksa PAKSAN'dan destek
-   istiyor.
+   Elindeki mal, PAKSAN'dan satın aldığı kadardır. Artış tek yoldan
+   oluyor: bayi sipariş verir, PAKSAN gönderir, gönderim işaretlendiğinde
+   stok artar (bkz. `bayiSiparis.js`). Bu dosyada artırma fonksiyonu
+   bilerek yok.
+
+   Önce ekran bayiye sayı kutusu veriyor ve bayi istediği sayıyı
+   yazabiliyordu; stok bayinin kendi defterine dönüşüyordu. PAKSAN'ın
+   gönderdiğiyle bayinin yazdığı tutmayınca rakam hiçbir şey anlatmıyor.
+
+   AZALTMA BAYİDE. Müşteriye sattığı ya da serviste kullandığı parçayı
+   bayi kendi düşüyor; bunun onaya gerek yok.
 
    ENGELLEME YOK
 
@@ -34,27 +40,15 @@
    Sunucu geldiğinde bu dosyanın içi sunucu çağrısıyla değişecek.
    ========================================================================== */
 
-import { load, save } from './storage.js'
+import { load } from './storage.js'
+import { stokKullan } from './bayiSiparis.js'
 
 const ANAHTAR = 'bayiStok'
 
-function tumu() {
-  return load(ANAHTAR, {})
-}
-
 /** Bir bayinin stok kaydı. Yoksa boş kayıt döner. */
 export function stokGetir(bayiId) {
-  const k = tumu()[bayiId]
+  const k = load(ANAHTAR, {})[bayiId]
   return { parca: k?.parca || {}, makine: k?.makine || {} }
-}
-
-/** Bayinin stok kaydını topluca yazar. */
-export function stokYaz(bayiId, stok) {
-  const hepsi = tumu()
-  save(ANAHTAR, {
-    ...hepsi,
-    [bayiId]: { parca: stok.parca || {}, makine: stok.makine || {} },
-  })
 }
 
 /**
@@ -69,18 +63,23 @@ export function parcaAdedi(bayiId, parcaAdi) {
 }
 
 /**
- * Gönderilen parçaları stoktan düşer.
+ * Talep kapanırken gönderilen parçaları stoktan düşer.
+ *
  * Girilmemiş parçaya dokunmuyor: bayi o parçayı takip etmiyor demektir,
  * eksi değere düşürmek yanlış bilgi üretir.
+ *
+ * Her düşüş hareket kaydına sebebiyle yazılıyor — stoğun neden
+ * değiştiği sorulabilsin diye.
  */
-export function stokDus(bayiId, parcalar = [], adetler = {}) {
-  const s = stokGetir(bayiId)
-  const yeni = { ...s.parca }
+export function stokDus(bayiId, parcalar = [], adetler = {}, talepNo, kim) {
   for (const ad of parcalar) {
-    if (yeni[ad] === undefined) continue
-    const dusulecek = Number(adetler[ad]) || 1
-    yeni[ad] = Math.max(0, Number(yeni[ad]) - dusulecek)
+    stokKullan(
+      bayiId,
+      { tur: 'parca', anahtar: ad, ad },
+      Number(adetler[ad]) || 1,
+      talepNo ? `${talepNo} · müşteriye gönderildi` : 'Müşteriye gönderildi',
+      kim,
+    )
   }
-  stokYaz(bayiId, { ...s, parca: yeni })
-  return yeni
+  return stokGetir(bayiId).parca
 }

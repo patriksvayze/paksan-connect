@@ -673,6 +673,79 @@
   color: var(--murekkep-2);
 }
 
+/* --------------------------------------------------------------- Stok
+
+   ARTI DÜĞMESİ YOK — bayi stoğunu artıramıyor, artış yalnız PAKSAN
+   sevkiyatıyla oluyor. Satırda yalnız eksi var. */
+
+.stok-satir {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  padding: var(--bosluk-2) 0;
+  border-bottom: 1px solid var(--cizgi);
+}
+
+.stok-satir:last-child {
+  border-bottom: 0;
+}
+
+.stok-adet {
+  flex: none;
+  min-width: 36px;
+  text-align: right;
+  font-size: var(--yazi-4);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.stok-adet--yok {
+  color: var(--murekkep-3);
+}
+
+.stok-dus {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--dokunma);
+  height: var(--dokunma);
+  border: 1px solid var(--cizgi-koyu);
+  border-radius: var(--r-2);
+  background: var(--yuzey);
+  color: var(--murekkep);
+  cursor: pointer;
+}
+
+.stok-dus:active {
+  background: var(--yuzey-2);
+}
+
+.stok-dus:disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* Sipariş kartı — bayinin PAKSAN'a verdiği sipariş. */
+.siparis {
+  padding: var(--bosluk-3) var(--bosluk-4);
+  margin-bottom: var(--bosluk-2);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-3);
+  background: var(--yuzey);
+}
+
+.siparis:last-child {
+  margin-bottom: 0;
+}
+
+.siparis__ust {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--bosluk-1);
+}
+
 /* ------------------------------------------------------------- Ortak */
 
 /* Ekranın ne işe yaradığını anlatan tek satır. Başlığın altında,

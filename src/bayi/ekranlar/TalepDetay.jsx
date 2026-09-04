@@ -378,7 +378,9 @@ function Kapanis({ talep, bayiAd, bayiId, parca, onKapat, onBitti }) {
       return setHata(parca ? 'Ne gönderdiğinizi yazın.' : 'Yaptığınız işi yazın.')
     }
     talepKapat(talep, { ozet: ozet.trim() }, bayiAd)
-    if (parca && dus) stokDus(bayiId, talep.parcalar || [], talep.parcaAdet || {})
+    if (parca && dus) {
+      stokDus(bayiId, talep.parcalar || [], talep.parcaAdet || {}, talep.no, bayiAd)
+    }
     onBitti()
   }
 

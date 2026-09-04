@@ -2279,6 +2279,24 @@ select.sec {
 
 /* Dosya seçme düğmesi görünüşte düğme, aslında etiket: gizli bir
    <input type=file> sarıyor. */
+/* Bayi siparişinin başlık satırı — tıklayınca kalemler açılıyor. */
+.siparis-bas {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  background: transparent;
+  border: 0;
+  color: var(--murekkep);
+  text-align: left;
+  cursor: pointer;
+}
+
+.siparis-bas:hover {
+  background: var(--yuzey-2);
+}
+
 .dg--dosya {
   display: inline-flex;
   align-items: center;

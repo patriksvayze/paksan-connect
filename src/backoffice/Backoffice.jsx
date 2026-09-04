@@ -12,6 +12,7 @@ import { TemaSecici } from './Tema'
 import {
   IconPano, IconTalep, IconUser, IconPin, IconMail, IconRapor,
   IconChat, IconBell, IconPhone, IconPersonel, IconKayit, IconMachine,
+  IconCart,
 } from '../components/Icons'
 
 import { Ozet } from './ekranlar/Ozet'
@@ -25,6 +26,8 @@ import { Personel } from './ekranlar/Personel'
 import { GeriBildirimler } from './ekranlar/GeriBildirimler'
 import { Bayiler } from './ekranlar/Bayiler'
 import { Makineler } from './ekranlar/Makineler'
+import { BayiSiparisleri } from './ekranlar/BayiSiparisleri'
+import { ACIK_DURUMLAR, siparisleriGetir } from '../lib/bayiSiparis'
 import { IslemKaydi } from './ekranlar/IslemKaydi'
 
 /* PAKSAN Backoffice — uygulamanın arka ofisi.
@@ -62,6 +65,12 @@ const MENU = [
   { id: 'musteriler', ad: 'Müşteriler', izin: 'musteriler', Ikon: IconUser },
   { id: 'makineler', ad: 'Kayıtlı Makineler', izin: 'musteriler', Ikon: IconMachine },
   { id: 'bayiler', ad: 'Bayiler', izin: 'bayiler', Ikon: IconPin },
+  /* Bayi stoğunun tek artış yolu bu ekran: bayi sipariş veriyor, PAKSAN
+     burada onaylayıp gönderiyor, gönderim işaretlenince stok artıyor. */
+  {
+    id: 'siparisler', ad: 'Bayi Siparişleri', izin: 'bayiler',
+    sayac: 'siparis', Ikon: IconCart,
+  },
   {
     id: 'geribildirim', ad: 'Geri Bildirimler', izin: 'geribildirim',
     sayac: 'gorus', Ikon: IconMail,
@@ -113,6 +122,8 @@ export function Backoffice() {
       ).length,
       gorus: geriBildirimGetir().filter((g) => !g.okundu).length,
       numara: numaraTalepleriGetir().filter((t) => t.durum === 'bekliyor').length,
+      /* Bayi bekliyor: siparişi karşılanmadan stoğu artmıyor. */
+      siparis: siparisleriGetir().filter((s) => ACIK_DURUMLAR.includes(s.durum)).length,
     }
   }, [surum, oturum])
 
@@ -203,6 +214,7 @@ export function Backoffice() {
         {acik === 'musteriler' && <Musteriler {...ortak} />}
         {acik === 'makineler' && <Makineler {...ortak} />}
         {acik === 'bayiler' && <Bayiler {...ortak} />}
+        {acik === 'siparisler' && <BayiSiparisleri {...ortak} />}
         {acik === 'geribildirim' && <GeriBildirimler {...ortak} />}
         {acik === 'numara' && <NumaraTalepleri {...ortak} />}
         {acik === 'personel' && <Personel {...ortak} />}
