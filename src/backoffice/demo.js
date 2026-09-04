@@ -19,6 +19,7 @@ import { ekYaz } from '../lib/ekler'
 import { sifreHazirla } from '../lib/hesap'
 import { yeniNo } from '../lib/numara'
 import { talepNo } from '../lib/talep'
+import { normalizeSerial } from '../lib/serial'
 import { ANAHTAR, islemYaz, personelGetir } from './veri'
 import { MAKINE_DURUMU, PARCA_ACELE, ULASIM_ZAMANI } from '../data/talepAlanlari'
 import { PRODUCTS } from '../data/products'
@@ -209,9 +210,19 @@ function telUret() {
   return `5${tamsayi(30, 59)} ${tamsayi(100, 999)} ${tamsayi(10, 99)} ${tamsayi(10, 99)}`
 }
 
+/* Önek ürünün KENDİ model kodundan geliyor (`serialPrefix`), ürün
+   kimliğinden değil.
+
+   Önce kimliğin ilk altı harfi kullanılıyordu: `diamond-...` ürünü
+   `DIAMON2023...` gibi bir numara üretiyordu. Böyle bir önek
+   `products.js` içinde yok, dolayısıyla `matchProduct` eşleşmiyor;
+   demo verisinde model bulunamıyor, üretim yılı çıkarılamıyor,
+   garanti "bilinmiyor" görünüyor ve numara ekranda tiresiz
+   yazılıyordu. Gerçek seri numaralarında bunların hiçbiri olmuyor —
+   yani demo, olmayan bir hatayı taklit ediyordu. */
 function seriUret(urun) {
   const yil = tamsayi(2019, 2025)
-  const onek = String(urun.id).toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6)
+  const onek = normalizeSerial(urun.serialPrefix)
   return `${onek}${yil}${String(tamsayi(1, 9999)).padStart(5, '0')}`
 }
 

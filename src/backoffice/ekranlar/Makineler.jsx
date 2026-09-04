@@ -1,13 +1,13 @@
 import { useMemo, useState } from 'react'
-import { makineKayitlariGetir } from '../veri'
+import { durumBilgi, makineKayitlariGetir, talepleriGetir } from '../veri'
 import { useVeri } from '../kanca'
 import {
-  Baslik, BeklemeKart, Bos, siraliListe, SiraliBaslik, tarihSaat, useSiralama,
+  Baslik, BeklemeKart, Bos, siraliListe, SiraliBaslik, tarihSaat, tarihYaz, useSiralama,
 } from './ortak'
 import { DisaAktar } from './aktar'
 import { araliktaMi, BOS_ARALIK, Secim, SuzgecCubugu, TarihAraligi } from './suzgec'
 import { getProduct } from '../../data/products'
-import { formatSerial } from '../../lib/serial'
+import { extractYear, formatSerial, warrantyStatus, GARANTI_YIL } from '../../lib/serial'
 
 /* ==========================================================================
    Kayıtlı Makineler
@@ -35,6 +35,22 @@ import { formatSerial } from '../../lib/serial'
    BUGÜN BAYİ ALANI ÇOĞUNLUKLA BOŞ: LOGO kapalı (src/lib/logo.js) ve
    müşterinin kendi kaydında bayi bilgisi yok. Bayinin elle açtığı
    kayıtlarda dolu geliyor.
+
+   MAKİNENİN GEÇMİŞİ
+
+   Liste bir satırın kim olduğunu söylüyordu ama başına ne geldiğini
+   söylemiyordu. Bir seri numarası sorulduğunda asıl merak edilen bu:
+   makine hangi bayiden çıktı, kime gitti, kaç kez servise girdi, ne
+   yapıldı, garantisi sürüyor mu.
+
+   Cevabın parçaları iki ayrı deftere dağılmıştı — kayıt defteri ve
+   talepler — ve ikisini birleştiren bir ekran yoktu. Satıra
+   dokunulduğunda açılan pencere ikisini seri numarası üzerinden
+   birleştiriyor.
+
+   Seri numaraları karşılaştırılırken tire ve boşluk atılıyor: aynı
+   makine kayıtta `ORK1270-2024-00157`, talepte `ORK1270202400157`
+   olabiliyor.
    ========================================================================== */
 
 const KAYNAK_ADI = {
@@ -43,14 +59,31 @@ const KAYNAK_ADI = {
   logo: 'Logo',
 }
 
+const temiz = (s) => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '')
+
+/* Garanti metinleri uygulamadakiyle aynı cümleler (bkz. i18n/tr.js):
+   personel ve müşteri aynı makineye baktığında aynı şeyi okumalı.
+   Rozet tonu backoffice'in kendi `rz` kalıbından; `garanti` sınıfı
+   yalnız bayi panelinin CSS'inde var, burada yok. */
+const GARANTI_YAZI = {
+  bilinmiyor: { ton: 'gri', yaz: () => 'Garanti bilgisi yok' },
+  devam: { ton: 'yesil', yaz: (kalan) => `Garanti devam ediyor · ${kalan} yıl` },
+  son: { ton: 'turuncu', yaz: () => 'Garantinin son yılı' },
+  bitti: { ton: 'gri', yaz: () => 'Garanti süresi doldu' },
+}
+
+const TUR_ADI = { servis: 'Servis', parca: 'Yedek Parça', satinalma: 'Fiyat Teklifi' }
+
 export function Makineler({ personel, surum }) {
   const [ara, setAra] = useState('')
   const [aralik, setAralik] = useState(BOS_ARALIK)
   const [il, setIl] = useState('hepsi')
   const [bayi, setBayi] = useState('hepsi')
   const [kaynak, setKaynak] = useState('hepsi')
+  const [secili, setSecili] = useState(null)
 
   const { veri: kayitlar, yukleniyor } = useVeri(() => makineKayitlariGetir(), [surum], [])
+  const { veri: talepler } = useVeri(() => talepleriGetir(), [surum], [])
   const { siralama, cevir } = useSiralama('tarih', 'azalan')
 
   const suzulmus = useMemo(() => {
@@ -173,6 +206,16 @@ export function Makineler({ personel, surum }) {
         <span className="suzgec-cubugu__sayi">{liste.length} kayıt</span>
       </SuzgecCubugu>
 
+      {/* Satırın tıklanabilir olduğu yazıyor: fare imleci ve vurgu
+          ancak satırın üstüne gelince görünüyor, aranan şey de
+          çoğunlukla listede değil o pencerede. */}
+      {liste.length > 0 && (
+        <p className="kucuk sonuk" style={{ margin: '0 0 12px' }}>
+          Bir satıra dokunun: makinenin bayisi, faturası ve servis
+          geçmişi tek pencerede açılır.
+        </p>
+      )}
+
       {liste.length === 0 ? (
         <div className="kart">
           <Bos
@@ -201,7 +244,13 @@ export function Makineler({ personel, surum }) {
                 {liste.map((k) => {
                   const urun = getProduct(k.productId)
                   return (
-                    <tr key={k.id}>
+                    <tr
+                      key={k.id}
+                      className="tiklanir"
+                      onClick={() => setSecili(k)}
+                      tabIndex={0}
+                      onKeyDown={(e) => e.key === 'Enter' && setSecili(k)}
+                    >
                       <td className="mono kucuk">{formatSerial(k.seri)}</td>
                       <td className="kucuk">{urun?.name || '—'}</td>
                       <td className="kucuk">
@@ -224,7 +273,152 @@ export function Makineler({ personel, surum }) {
           </div>
         </div>
       )}
+
+      {secili && (
+        <MakineGecmisi
+          kayit={secili}
+          talepler={talepler}
+          onKapat={() => setSecili(null)}
+        />
+      )}
     </>
+  )
+}
+
+/* ==========================================================================
+   Makinenin geçmişi
+
+   Kayıt defteri "bu makine kimde" diyor, talepler "başına ne geldi"
+   diyor; ikisi seri numarasıyla birleşiyor.
+
+   AYNI SERİ BİRDEN FAZLA KAYITTA OLABİLİR: makine el değiştirdiğinde
+   yeni sahibi de uygulamaya kaydediyor. Sahiplik zinciri o yüzden
+   ayrı bir bölüm — "önceki sahibi kim" sorusunun cevabı da burada.
+   ========================================================================== */
+
+function MakineGecmisi({ kayit, talepler, onKapat }) {
+  const anahtar = temiz(kayit.seri)
+  const urun = getProduct(kayit.productId)
+  /* Yıl SERİ NUMARASINDAN çıkıyor, LOGO'nun üretim tarihinden değil.
+     Müşteri de garantisini seri numarasından görüyor; iki taraf aynı
+     makineye bakıp farklı yıl okursa hangisinin doğru olduğu
+     tartışılır. LOGO'nun tarihi aşağıda ayrı satırda duruyor. */
+  const yil = extractYear(kayit.seri)
+  const durum = warrantyStatus(yil)
+  const kalan = yil ? yil + GARANTI_YIL - new Date().getFullYear() : 0
+  const garanti = GARANTI_YAZI[durum.state] || GARANTI_YAZI.bilinmiyor
+
+  const gecmis = (talepler || []).filter((t) => temiz(t.makine?.serial) === anahtar)
+
+  return (
+    <div className="pencere" onClick={(e) => e.target === e.currentTarget && onKapat()}>
+      <div className="kart pencere__kart" style={{ maxWidth: 720 }}>
+        <div className="kart__tepe">
+          <h2>{urun?.name || 'Makine'}</h2>
+          <span className="mono kucuk sonuk">{formatSerial(kayit.seri)}</span>
+          <button className="dg" style={{ marginLeft: 'auto' }} onClick={onKapat}>
+            Kapat
+          </button>
+        </div>
+
+        <div className="kart__ic">
+          <div className="satir" style={{ gap: 10, alignItems: 'center', marginBottom: 16 }}>
+            <span className={'rz rz--' + garanti.ton}>{garanti.yaz(kalan)}</span>
+            {yil > 0 && <span className="kucuk sonuk">{yil} üretimi</span>}
+          </div>
+
+          <div className="ikili">
+            <div>
+              <Bilgi ad="Sahibi" deger={kayit.musteriAd} alt={kayit.musteriNo} />
+              <Bilgi
+                ad="Konum"
+                deger={kayit.ilce ? `${kayit.ilce} / ${kayit.il}` : kayit.il}
+              />
+              <Bilgi
+                ad="Kayıt"
+                deger={tarihSaat(kayit.tarih)[0]}
+                alt={KAYNAK_ADI[kayit.kaynak || 'musteri'] + ' kaydetti'}
+              />
+            </div>
+            <div>
+              <Bilgi ad="Satan bayi" deger={kayit.bayiAd} />
+              <Bilgi
+                ad="Fatura tarihi"
+                deger={
+                  kayit.faturaTarihi
+                    ? new Date(kayit.faturaTarihi).toLocaleDateString('tr-TR')
+                    : ''
+                }
+                /* LOGO cevap vermediyse "fatura yok" değil "bilinmiyor"
+                   demek doğru; ikisi ayrı şeyler. */
+                alt={kayit.logoBildi ? 'Logo faturasından' : 'Logo bu seriyi tanımıyor'}
+              />
+              <Bilgi
+                ad="Üretim tarihi"
+                deger={
+                  kayit.uretimTarihi
+                    ? new Date(kayit.uretimTarihi).toLocaleDateString('tr-TR')
+                    : ''
+                }
+              />
+            </div>
+          </div>
+
+          <h3 style={{ margin: '20px 0 8px', fontSize: 14 }}>
+            Servis Geçmişi{gecmis.length ? ` · ${gecmis.length} kayıt` : ''}
+          </h3>
+
+          {gecmis.length === 0 ? (
+            <Bos metin="Bu makine için açılmış talep yok." />
+          ) : (
+            <div className="tablo-sar">
+              <table>
+                <thead>
+                  <tr>
+                    <th style={{ width: 130 }}>Tarih</th>
+                    <th style={{ width: 110 }}>Tür</th>
+                    <th style={{ width: 130 }}>Durum</th>
+                    <th>Kim ilgilendi / ne yapıldı</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {gecmis.map((t) => (
+                    <tr key={t.id}>
+                      <td className="kucuk sonuk">
+                        {tarihYaz(t.createdAt, false)}
+                        <div className="kucuk sonuk mono">{t.no}</div>
+                      </td>
+                      <td className="kucuk">{TUR_ADI[t.tur] || t.tur}</td>
+                      <td>
+                        <span className={'rz rz--' + durumBilgi(t.status).ton}>
+                          {durumBilgi(t.status).ad}
+                        </span>
+                      </td>
+                      <td className="kucuk">
+                        {t.bayi?.ad || 'PAKSAN'}
+                        {t.cozum?.ozet && (
+                          <div className="kucuk sonuk">{t.cozum.ozet}</div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function Bilgi({ ad, deger, alt }) {
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <div className="kucuk sonuk">{ad}</div>
+      <div>{deger || <span className="sonuk">—</span>}</div>
+      {alt && <div className="kucuk sonuk">{alt}</div>}
+    </div>
   )
 }
 

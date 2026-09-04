@@ -559,6 +559,69 @@
   color: var(--yesil);
 }
 
+/* Turuncu = "dikkat et, ama iş durmuyor". Kayıtlı olmayan müşteri
+   uyarısı bunu kullanıyor: talep yine açılıyor, bayiden yalnız bir
+   şey söylemesi isteniyor. */
+.not--turuncu {
+  border-left: 4px solid var(--turuncu);
+}
+
+.not--turuncu > svg {
+  color: var(--turuncu);
+}
+
+/* ---------------------------------------------------- Makine seçimi
+
+   Kayıtlı müşterinin makineleri. Satırın tamamı dokunma hedefi:
+   tarlada, eldivenle, küçük bir radyo yuvarlağına isabet ettirmek
+   gerçekçi değil. Yükseklik ölçü sisteminden geliyor. */
+
+.makine-sec {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  width: 100%;
+  min-height: var(--dokunma-genis);
+  padding: var(--bosluk-3);
+  margin-bottom: var(--bosluk-2);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-2);
+  background: var(--yuzey);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.makine-sec--on {
+  border-color: var(--mavi);
+  background: var(--mavi-z);
+}
+
+.makine-sec--on > svg {
+  flex: none;
+  color: var(--mavi-rz);
+}
+
+/* Tek makine varsa düğme kapalı: seçilecek bir şey yok. Solgun
+   göstermiyor — bilgi hâlâ okunacak. */
+.makine-sec:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+/* Müşteriye gidecek metnin önizlemesi. Bayi göndermeden önce ne
+   yazdığını görüyor; SMS'i telefon gönderdiği için geri alınamıyor. */
+.alinti {
+  padding: var(--bosluk-3);
+  border-left: 3px solid var(--cizgi);
+  background: var(--yuzey-2);
+  border-radius: var(--r-1);
+  font-size: var(--yazi-2);
+  line-height: 1.6;
+  color: var(--murekkep-2);
+  word-break: break-word;
+}
+
 /* -------------------------------------------------------- Seçenek dizisi
 
    Talep detayındaki ikincil işlemler. Ayrı ayrı düğmeler yerine tek

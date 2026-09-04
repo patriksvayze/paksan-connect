@@ -37,6 +37,18 @@ export const SURUM = '0.9.12'
    burası, capacitor.config.json ve android/.../values/strings.xml */
 export const UYGULAMA = 'PAKSAN Connect'
 
+/* Müşteriye gönderilen indirme adresi.
+
+   Bayi, uygulamayı kullanmayan bir müşteri için talep açtığında ona
+   SMS ile bu adresi yollayabiliyor (bkz. src/bayi/ekranlar/ElleKayit.jsx).
+
+   Adres uygulama kimliğinden çıkıyor ve kimlik sabit: mağazaya bir kez
+   yüklendikten sonra `com.paksanmakina.app` değiştirilemiyor. Yayına
+   çıkılana kadar bu adres açılmıyor — denemede boş sayfa görünmesi
+   normal. */
+export const INDIRME_ADRESI =
+  'https://play.google.com/store/apps/details?id=com.paksanmakina.app'
+
 export const SIRKET = {
   ad: 'PAKSAN Makina',
   unvan: 'PAKSAN MAKİNA SANAYİ VE TİCARET A.Ş.',

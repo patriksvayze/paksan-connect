@@ -1084,10 +1084,13 @@ export function bayileriGetirBackoffice() {
   return load(ANAHTAR.icerik, {}).bayiler || null
 }
 
-export function bayileriYaz(liste, personel, ozet) {
+/* `tur` genelde 'bayi' (liste değişikliği). Şifre işlemleri kendi
+   türünü veriyor: bayi kendi şifresini değiştirdiğinde kayıt "Bayi
+   listesi" başlığı altında görünüyordu, oysa listeye dokunulmuyor. */
+export function bayileriYaz(liste, personel, ozet, tur = 'bayi') {
   const mevcut = load(ANAHTAR.icerik, {})
   save(ANAHTAR.icerik, { ...mevcut, bayiler: liste })
-  islemYaz({ tur: 'bayi', ozet, personel })
+  islemYaz({ tur, ozet, personel })
 }
 
 export function bayileriSifirla(personel) {
@@ -1263,6 +1266,7 @@ export async function bayiSifresiniDegistir(bayiId, yeniSifre, eskiSifre) {
     liste.map((b) => (b.id === bayiId ? { ...b, sifre: hazir, ilkGiris: false } : b)),
     hedef.ad,
     `${hedef.ad} panel şifresini değiştirdi`,
+    'sifre',
   )
   const o = bayiOturumuGetir()
   if (o?.bayiId === bayiId) save(ANAHTAR.bayiOturum, { ...o, ilkGiris: false })

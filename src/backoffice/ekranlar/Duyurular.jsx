@@ -123,7 +123,7 @@ function HedefSecici({ hedef, onDegis, bayiler }) {
       <p className="kucuk sonuk" style={{ margin: '4px 0 0' }}>
         {sinirVar
           ? ozetle(hedef, bayiler)
-          : `${KIME_ADI[hedef.kime]} sınırsız gidecek — il, bayi ve model süzgeci yok.`}
+          : `${KIME_ADI[hedef.kime]} sınırsız gönderilecek — il, bayi ve model süzgeci yok.`}
       </p>
 
       {acik && (
@@ -190,13 +190,13 @@ function HedefSecici({ hedef, onDegis, bayiler }) {
 function onayMetni(tur, baslik, kime) {
   const alici =
     kime === 'bayi' ? 'yalnız bayilere'
-      : kime === 'ikisi' ? 'hem müşterilere hem bayilere'
+      : kime === 'ikisi' ? 'hem müşterilere hem de bayilere'
         : 'müşterilere'
 
   if (tur === 'uyari') {
-    return `“${baslik}” başlıklı uyarı ${alici} gidecek. Ekranlarını açtıklarında pencere olarak görecekler; bu bildirim izin gerektirmiyor.`
+    return `“${baslik}” başlıklı uyarı ${alici} gidecek. Ekranlarını açtıklarında pencere olarak görecekler; bu bildirim için izin gerekmiyor.`
   }
-  return `“${baslik}” başlıklı duyuru ${alici} gidecek. Müşteri tarafında yalnız ticari ileti izni verenlere ulaşır; bayilerde böyle bir izin aranmaz.`
+  return `“${baslik}” başlıklı duyuru ${alici} gidecek. Müşteri tarafında yalnızca ticari ileti izni verenlere ulaşır; bayilerde böyle bir izin aranmaz.`
 }
 
 function ozetle(hedef, bayiler) {

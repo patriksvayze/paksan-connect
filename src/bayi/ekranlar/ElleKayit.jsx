@@ -1,13 +1,15 @@
 import { useMemo, useState } from 'react'
 import { load, save, uid } from '../../lib/storage'
 import { talepNo } from '../../lib/talep'
+import { INDIRME_ADRESI } from '../../config'
 import { ILLER, ilceleriGetir } from '../../data/iller'
-import { normalizeSerial, validateSerial } from '../../lib/serial'
+import { extractYear, formatSerial, normalizeSerial, validateSerial } from '../../lib/serial'
 import { bayiMakineKaydi } from '../../lib/makineKaydi'
 import { islemYaz, musterileriGetir } from '../../backoffice/veri'
 import { PARCA_FIYAT } from '../../data/parcaFiyat'
+import { getProduct } from '../../data/products'
 import { Bolum } from '../Kabuk'
-import { IconCheckCircle } from '../../components/Icons'
+import { IconAlert, IconCheckCircle, IconSend } from '../../components/Icons'
 
 /* ==========================================================================
    Bayi paneli — elle kayıt
@@ -38,6 +40,31 @@ import { IconCheckCircle } from '../../components/Icons'
    şekilde işlenemiyordu. Parça listesi uygulamadakiyle aynı kaynaktan
    (`parcaFiyat.js`) geliyor.
 
+   MAKİNE YAZILMIYOR, SEÇİLİYOR
+
+   Kayıtlı müşteri bulunduğunda seri numarası kutusu kapanıyor ve
+   yerine o müşterinin kayıtlı makineleri geliyor. Tek makinesi varsa
+   seçili başlıyor, birden fazlaysa bayi seçiyor.
+
+   Sebebi elle yazmanın burada işe yaramaması: seri numarası zaten
+   sistemde duruyor, bayi onu müşteriden telefonda okuyup yazınca tek
+   yaptığı şey hata riski eklemek oluyordu. Yanlış yazılan bir hane
+   makineyi bulunamaz yapıyor, garanti de yanlış hesaplanıyor.
+
+   Müşteri kayıtlı ama hiç makinesi yoksa kutu geri geliyor; o zaman
+   elle yazmak tek yol.
+
+   KAYITLI OLMAYAN MÜŞTERİ
+
+   Talep yine açılıyor — bayi müşteriyi kapıdan çeviremez. Ama iki şey
+   ekleniyor: formda bayiye uygulamayı anlatması söyleniyor, kayıt
+   bitince de müşteriye indirme bağlantısını SMS ile yollayabiliyor.
+
+   SMS'İ TELEFONUN KENDİSİ GÖNDERİYOR. Sunucu yok ve API anahtarı
+   uygulamaya konmuyor; `sms:` bağlantısı bayinin mesaj uygulamasını
+   numarayla ve hazır metinle açıyor, göndermeye bayi karar veriyor.
+   Sunucu geldiğinde toplu gönderime çevrilebilir.
+
    YENİ BİR MÜŞTERİ VARLIĞI TANIMLANMIYOR. Kayıtlı olmayan kişi için ad
    ve telefon düz metin alanı olarak kalıyor; uygulama hesabı
    açılmıyor. Hesap açmak müşterinin kendi işi, bayinin değil.
@@ -45,7 +72,8 @@ import { IconCheckCircle } from '../../components/Icons'
    SERİ NUMARASI GİRİLİRSE makine kayıt defterine de bir satır
    yazılıyor ve `bayiId` DOLU geçiyor. O alan LOGO için tasarlanmıştı
    ve bugün hep boş; bayinin elle açtığı kayıt onu bugünden doldurmaya
-   başlıyor.
+   başlıyor. Kayıtlı müşterinin listeden seçilen makinesi için satır
+   AÇILMIYOR: o makine defterde zaten var.
    ========================================================================== */
 
 const TURLER = [
@@ -62,12 +90,17 @@ export function ElleKayit({ oturum, onKaydedildi }) {
   const [tur, setTur] = useState('servis')
   const [tel, setTel] = useState('')
   const [ad, setAd] = useState('')
+  /* Adı bayi mi yazdı, biz mi doldurduk — bkz. `telYaz`. */
+  const [adElle, setAdElle] = useState(false)
   const [il, setIl] = useState(oturum.il || '')
   const [ilce, setIlce] = useState('')
   const [seri, setSeri] = useState('')
+  const [makineId, setMakineId] = useState('')
   const [parcalar, setParcalar] = useState({})
   const [aciklama, setAciklama] = useState('')
   const [hata, setHata] = useState('')
+  /* Kayıt bitince kayıtlı olmayan müşteri için gösterilen ekran. */
+  const [bitti, setBitti] = useState(null)
 
   /* Kayıtlı müşteriler numaraya göre aranıyor. Sunucu gelene kadar bu
      liste yalnız bu cihazdakileri görüyor; arama biçimi değişmeyecek,
@@ -79,16 +112,43 @@ export function ElleKayit({ oturum, onKaydedildi }) {
     return musteriler.find((m) => rakamlar(m.tel) === n) || null
   }, [tel, musteriler])
 
-  /* Eşleşme bulununca alanlar bir kez dolduruluyor; bayi isterse
-     üzerine yazabiliyor (müşteri taşınmış olabilir). */
+  /* Numara tamamlandı ama kimse bulunamadı: uyarı ancak bu durumda
+     çıkıyor, yarım yazılmış numarada değil. */
+  const tamNumara = rakamlar(tel).length === 10
+  const yabanci = tamNumara && !eslesen
+
+  const makineler = eslesen?.makineler || []
+
+  /* Tek makine kendiliğinden seçili: bayiye sorulacak bir şey yok.
+     Birden fazlaysa seçim bekleniyor. */
+  const secilenMakine =
+    makineler.find((m) => m.id === makineId) ||
+    (makineler.length === 1 ? makineler[0] : null)
+
+  /* Eşleşme bulununca alanlar dolduruluyor; bayi isterse üzerine
+     yazabiliyor (müşteri taşınmış olabilir).
+
+     AD DA GÜNCELLENİYOR — ama bayi kendi yazdıysa dokunulmuyor.
+
+     Önce ad yalnız boşken dolduruluyordu. Bayi numarayı yanlış yazıp
+     düzeltince ekran şunu gösteriyordu: uyarıda ve il alanında yeni
+     müşteri, ad alanında eskisi. Talep de o yanlış adla, ama yeni
+     müşterinin hesabına bağlı olarak kaydediliyordu.
+
+     `adElle` ayrımı bunu çözüyor: kendi doldurduğumuz adı
+     değiştirebiliriz, bayinin yazdığını değiştiremeyiz. */
   function telYaz(v) {
     setTel(v)
     setHata('')
+    setMakineId('')
     const n = rakamlar(v)
-    if (n.length < 10) return
-    const m = musteriler.find((x) => rakamlar(x.tel) === n)
-    if (!m) return
-    if (!ad.trim()) setAd(m.ad || '')
+    const m = n.length === 10 ? musteriler.find((x) => rakamlar(x.tel) === n) : null
+    if (!m) {
+      /* Eşleşme kalmadıysa bizim doldurduğumuz ad da kalkıyor. */
+      if (!adElle) setAd('')
+      return
+    }
+    if (!adElle) setAd(m.ad || '')
     if (m.il) setIl(m.il)
     if (m.ilce) setIlce(m.ilce)
   }
@@ -106,16 +166,30 @@ export function ElleKayit({ oturum, onKaydedildi }) {
       return setHata('En az bir parça seçin.')
     }
 
-    /* validateSerial başarıda { ok, product, serial, year } döndürüyor,
-       hatada { ok: false, hata }. Modeli de o dönüyor, ayrıca
-       matchProduct çağırmaya gerek yok. */
+    /* Kayıtlı müşterinin makinesi listeden seçildiyse doğrulanacak bir
+       şey yok: o seri numarası zaten sistemde. Talebe uygulamadan gelen
+       talebin taşıdığı şeklin aynısı yazılıyor. */
     let makine = null
-    if (seri.trim()) {
+    let yeniKayit = false
+
+    if (secilenMakine) {
+      makine = {
+        id: secilenMakine.id,
+        serial: secilenMakine.serial,
+        productId: secilenMakine.productId,
+      }
+    } else if (seri.trim()) {
+      /* validateSerial başarıda { ok, product, serial, year } döndürüyor,
+         hatada { ok: false, hata }. Modeli de o dönüyor, ayrıca
+         matchProduct çağırmaya gerek yok. */
       const sonuc = validateSerial(normalizeSerial(seri))
       if (!sonuc.ok) {
         return setHata('Seri numarası tanınmadı. Boş bırakabilirsiniz.')
       }
       makine = { id: uid(), serial: sonuc.serial, productId: sonuc.product?.id || null }
+      yeniKayit = true
+    } else if (makineler.length > 1) {
+      return setHata('Hangi makine için geldiğini seçin.')
     }
 
     const talep = {
@@ -161,7 +235,10 @@ export function ElleKayit({ oturum, onKaydedildi }) {
       personel: oturum.ad,
     })
 
-    if (makine) {
+    /* Kayıt defterine YALNIZ elle yazılan seri için satır açılıyor.
+       Listeden seçilen makine defterde zaten var; ikinci satır aynı
+       makineyi iki kez göstermek olurdu. */
+    if (yeniKayit) {
       bayiMakineKaydi({
         seri: makine.serial,
         productId: makine.productId,
@@ -174,7 +251,14 @@ export function ElleKayit({ oturum, onKaydedildi }) {
       })
     }
 
-    onKaydedildi(talep)
+    /* Kayıtlı müşteri için ekran hemen kapanıyor: söylenecek bir şey
+       yok. Kayıtlı olmayan müşteride SMS adımı gösteriliyor. */
+    if (eslesen) return onKaydedildi(talep)
+    setBitti(talep)
+  }
+
+  if (bitti) {
+    return <Davet talep={bitti} onBitti={() => onKaydedildi(bitti)} />
   }
 
   return (
@@ -229,9 +313,37 @@ export function ElleKayit({ oturum, onKaydedildi }) {
           </div>
         )}
 
+        {/* KAYITLI DEĞİLSE BAYİYE SÖYLENİYOR.
+
+            Talep yine açılıyor; bayi müşteriyi kapıdan çeviremez. Ama
+            bu müşteri talebinin durumunu göremeyecek, bildirim
+            alamayacak ve garantisini takip edemeyecek — bunu ona
+            söyleyebilecek tek kişi karşısındaki bayi. */}
+        {yabanci && (
+          <div className="not not--turuncu" style={{ marginTop: 0, marginBottom: 14 }}>
+            <IconAlert size={19} />
+            <div>
+              <strong>Bu numara PAKSAN Connect’te kayıtlı değil.</strong>
+              <p>
+                Müşteriye uygulamayı indirmesini söyleyin: talebinin
+                durumunu kendi telefonundan takip eder, makinesini
+                kaydeder ve garantisini görür. Kaydı bitirdiğinizde
+                indirme bağlantısını SMS ile yollayabilirsiniz.
+              </p>
+            </div>
+          </div>
+        )}
+
         <label className="alan">
           <span className="alan__ad">Müşterinin Adı</span>
-          <input className="gir" value={ad} onChange={(e) => setAd(e.target.value)} />
+          <input
+            className="gir"
+            value={ad}
+            onChange={(e) => {
+              setAd(e.target.value)
+              setAdElle(e.target.value.trim().length > 0)
+            }}
+          />
         </label>
 
         <div className="esit">
@@ -255,19 +367,44 @@ export function ElleKayit({ oturum, onKaydedildi }) {
           </label>
         </div>
 
-        <label className="alan">
-          <span className="alan__ad">Makine Seri Numarası (varsa)</span>
-          <input
-            className="gir mono"
-            value={seri}
-            onChange={(e) => setSeri(e.target.value)}
-            placeholder="ORK1270-2024-00157"
-          />
-          <span className="kucuk sonuk">
-            Yazarsanız makine sizin kaydınıza bağlanır. Model seri
-            numarasından bulunuyor.
-          </span>
-        </label>
+        {/* MAKİNE: kayıtlı müşteride SEÇİLİYOR, ötekinde yazılıyor.
+            Gerekçesi dosyanın başında. */}
+        {makineler.length > 0 ? (
+          <div className="alan">
+            <span className="alan__ad">
+              {makineler.length === 1 ? 'Müşterinin Makinesi' : 'Hangi Makine'}
+            </span>
+            {makineler.map((m) => (
+              <MakineSecim
+                key={m.id}
+                makine={m}
+                secili={secilenMakine?.id === m.id}
+                tekli={makineler.length === 1}
+                onSec={() => { setMakineId(m.id); setHata('') }}
+              />
+            ))}
+            <span className="kucuk sonuk">
+              {makineler.length === 1
+                ? 'Müşterinin kayıtlı tek makinesi bu.'
+                : 'Müşterinin kayıtlı makineleri. Hangisi için geldiyse onu seçin.'}
+            </span>
+          </div>
+        ) : (
+          <label className="alan">
+            <span className="alan__ad">Makine Seri Numarası (varsa)</span>
+            <input
+              className="gir mono"
+              value={seri}
+              onChange={(e) => setSeri(e.target.value)}
+              placeholder="ORK1270-2024-00157"
+            />
+            <span className="kucuk sonuk">
+              {eslesen
+                ? 'Bu müşterinin kayıtlı makinesi yok. Seri numarasını elle yazabilirsiniz.'
+                : 'Yazarsanız makine sizin kaydınıza bağlanır. Model seri numarasından bulunuyor.'}
+            </span>
+          </label>
+        )}
 
         <label className="alan">
           <span className="alan__ad">Müşteri ne anlattı</span>
@@ -315,6 +452,91 @@ export function ElleKayit({ oturum, onKaydedildi }) {
       <div className="yapisik">
         <button className="dg dg--ana dg--blok" onClick={kaydet}>
           Talebi Aç
+        </button>
+      </div>
+    </>
+  )
+}
+
+/* Makine satırı.
+
+   Tek makinede de aynı satır kullanılıyor ama dokunmaya gerek yok:
+   zaten seçili. Model adı ve üretim yılı seri numarasından çıkıyor,
+   bayi hangi makineye baktığını numaradan değil addan anlıyor. */
+function MakineSecim({ makine, secili, tekli, onSec }) {
+  const model = getProduct(makine.productId)?.name
+  const yil = extractYear(makine.serial)
+
+  return (
+    <button
+      className={'makine-sec' + (secili ? ' makine-sec--on' : '')}
+      onClick={onSec}
+      aria-pressed={secili}
+      disabled={tekli}
+    >
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div>{model || 'Makine'}</div>
+        <div className="kucuk sonuk mono">{formatSerial(makine.serial)}</div>
+        {yil && <div className="kucuk sonuk">{yil} üretimi</div>}
+      </div>
+      {secili && <IconCheckCircle size={20} />}
+    </button>
+  )
+}
+
+/* ==========================================================================
+   Uygulamaya davet
+
+   Kayıtlı olmayan müşteri için talep açıldıktan sonra çıkıyor.
+
+   SMS'İ TELEFONUN KENDİ MESAJ UYGULAMASI GÖNDERİYOR. Sunucu yok,
+   PAKSAN'ın SMS sağlayıcısı yok ve API anahtarı uygulamaya konmuyor.
+   `sms:` bağlantısı numarayı ve metni hazır getiriyor; göndermeye bayi
+   karar veriyor. Gönderilip gönderilmediğini uygulama BİLMİYOR — bu
+   yüzden hiçbir yere "gönderildi" yazılmıyor.
+
+   Sunucu geldiğinde bu adım kendiliğinden gönderime çevrilebilir;
+   metin ve adres zaten burada.
+   ========================================================================== */
+
+function Davet({ talep, onBitti }) {
+  const numara = String(talep.tel || '').replace(/[^\d+]/g, '')
+  const metin =
+    `Merhaba ${talep.ad}, PAKSAN Makina. Talebiniz alındı: ${talep.no}. ` +
+    `PAKSAN Connect’i indirin; talebinizin durumunu takip eder, ` +
+    `makinenizi kaydeder ve garantinizi görürsünüz: ${INDIRME_ADRESI}`
+
+  return (
+    <>
+      <div className="not not--yesil" style={{ marginTop: 0 }}>
+        <IconCheckCircle size={19} />
+        <div>
+          <strong>Talep açıldı · {talep.no}</strong>
+          <p>{talep.ad} için kaydedildi. İşlerim listenizde görünecek.</p>
+        </div>
+      </div>
+
+      <Bolum ad="Müşteriyi Uygulamaya Çağırın">
+        <div className="kart" style={{ padding: 16 }}>
+          <p className="kucuk sonuk" style={{ marginTop: 0 }}>
+            Aşağıdaki düğme telefonunuzun mesaj uygulamasını hazır
+            metinle açar. Mesajı siz gönderirsiniz.
+          </p>
+          <div className="alinti">{metin}</div>
+          <a
+            className="dg dg--ana dg--blok"
+            style={{ marginTop: 14 }}
+            href={`sms:${numara}?body=${encodeURIComponent(metin)}`}
+          >
+            <IconSend size={19} />
+            SMS ile davet gönder
+          </a>
+        </div>
+      </Bolum>
+
+      <div className="yapisik">
+        <button className="dg dg--blok" onClick={onBitti}>
+          Bitir
         </button>
       </div>
     </>
