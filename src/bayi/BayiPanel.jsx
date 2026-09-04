@@ -364,12 +364,15 @@ function Isler({ oturum, bekleyen, biten, onAc }) {
             <TalepKarti key={t.id} talep={t} onAc={() => onAc(t)} />
           ))
         ) : (
+          /* Altında "Tamamlanan" varsa küçük boy: o bölüm ekranın
+             dışına düşmemeli. Ekran tamamen boşsa büyük boy. */
           <Bos
+            kucuk={biten.length > 0}
             gorsel={bosIsGorseli}
             baslik="Bekleyen işiniz yok"
             alt={
               biten.length > 0
-                ? 'Hepsini tamamladınız. Bölgenizden yeni bir talep geldiğinde burada görünecek.'
+                ? 'Hepsini tamamladınız.'
                 : 'Bölgenizden bir talep geldiğinde burada görünecek.'
             }
           />

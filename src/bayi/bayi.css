@@ -770,6 +770,32 @@
   margin-bottom: var(--bosluk-2);
 }
 
+/* KÜÇÜK BOY — altında başka bölüm varken.
+
+   Ölçüm: 375 pikselli telefonda çubuk (64) ve sekmeler (66) düşünce
+   537 piksel içerik kalıyor. Büyük boy blok 370 piksel tutuyordu ve
+   altındaki "Tamamlanan" başlığını ekran dışına itiyordu.
+
+   Küçük boyda çizim 140 piksel, dolgu 7'den 4'e iniyor; blok ~185
+   piksele düşüyor ve alttaki bölümün ilk kartı ekranda kalıyor. */
+.bos--kucuk {
+  padding: var(--bosluk-4) var(--bosluk-5);
+  gap: var(--bosluk-1);
+}
+
+.bos--kucuk .bos__gorsel {
+  max-width: 140px;
+  margin-bottom: 0;
+}
+
+.bos--kucuk strong {
+  font-size: var(--yazi-3);
+}
+
+.bos--kucuk p {
+  font-size: var(--yazi-2);
+}
+
 /* ------------------------------------------------------------- Hesap */
 
 .kimlik {

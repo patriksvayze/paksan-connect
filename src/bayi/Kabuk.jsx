@@ -116,7 +116,7 @@ export function Bolum({ ad, sayi, children }) {
   )
 }
 
-/* Liste boşken ekranın ortasında duran açıklama.
+/* Liste boşken duran açıklama.
 
    ÇİZİM VARSA ÇİZİM, YOKSA SİMGE
 
@@ -124,15 +124,25 @@ export function Bolum({ ad, sayi, children }) {
    sabah açtığında iş yoksa, stoğu boşsa. Orada 40 piksellik gri bir
    simge "burada bir şey yok" demiyor, "ekran yüklenmedi" diyor.
 
-   Çizimler saydam zeminli; koyu temada da aynı duruyorlar. Ölçü
-   260 piksel: ekranın yarısını kaplamadan tanınacak kadar büyük. */
-export function Bos({ Icon, gorsel, baslik, alt }) {
+   Çizimler saydam zeminli; koyu temada da aynı duruyorlar.
+
+   İKİ BOY VAR VE SEBEBİ YER
+
+   Boş bölümün ALTINDA başka bölüm varsa çizim küçülüyor (`kucuk`).
+   Gerekçe ölçüldü: 375 pikselli bir telefonda çubuk ve sekmeler
+   düştükten sonra 537 piksel içerik alanı kalıyor. Büyük boy blok
+   370 piksel tutuyordu; altındaki "Tamamlanan" başlığı ekranın
+   dışında kalıyor, bayi tamamladığı işleri göremiyordu.
+
+   Ekranda başka hiçbir şey yoksa büyük boy doğru: orada çizimin
+   kaplayacağı yer zaten boş. */
+export function Bos({ Icon, gorsel, baslik, alt, kucuk }) {
   return (
-    <div className="bos">
+    <div className={'bos' + (kucuk ? ' bos--kucuk' : '')}>
       {gorsel ? (
         <img className="bos__gorsel" src={gorsel} alt="" />
       ) : (
-        Icon && <Icon size={40} />
+        Icon && <Icon size={kucuk ? 28 : 40} />
       )}
       <strong>{baslik}</strong>
       {alt && <p>{alt}</p>}
