@@ -154,6 +154,16 @@ export const en = {
     bildirimSonra: 'Not now',
     bildirimNot: 'You can turn this on or off later in your phone settings.',
     bildirimDemo: 'This device does not support notifications',
+    /* Once notifications are refused, neither the phone nor the browser
+       opens the prompt again; the button did nothing and the screen
+       moved on as if permission had been given. */
+    bildirimEngelBaslik: 'Notifications appear to be blocked',
+    bildirimEngelTarayici:
+      'This site has not been given notification permission. Tap the lock icon in your browser address bar, allow notifications, then try again.',
+    bildirimEngelTelefon:
+      'Notifications are turned off in your phone settings. Open Settings > Apps > PAKSAN Connect > Notifications, turn them on, then try again.',
+    bildirimTekrarDene: 'Try Again',
+    bildirimEngelDevam: 'Continue without notifications',
     bildirimOrnekBaslik: 'PAKSAN notifications are on',
     bildirimOrnekMetin: 'Your requests, service appointments and PAKSAN announcements will arrive here from now on.',
   },

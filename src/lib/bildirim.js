@@ -42,6 +42,17 @@ export const BILDIRIM = {
   REDDEDILDI: 'reddedildi',
   SORULMADI: 'sorulmadi',
   DESTEKLENMIYOR: 'desteklenmiyor',
+  /* SİSTEM SORMAYI REDDEDİYOR — "kullanıcı az önce hayır dedi" değil.
+
+     Hem tarayıcı hem Android, izin bir kez reddedildikten sonra bir
+     daha PENCEREYİ AÇMIYOR: `requestPermission()` hiçbir şey
+     göstermeden anında "denied" dönüyor. Kullanıcının gördüğü şey
+     "izin ver" düğmesine bastım, hiçbir şey olmadı.
+
+     İkisi `REDDEDILDI` altında toplanınca ekran ikisini de aynı
+     şekilde geçiştiriyordu. Ayrıldı: bu durumda kullanıcıya izni
+     nereden geri açacağı söyleniyor. */
+  ENGELLI: 'engelli',
 }
 
 /* Telefondaki uygulama mı, tarayıcı mı? */
@@ -122,6 +133,7 @@ export async function izinIste() {
         await kanaliKur()
         return BILDIRIM.VERILDI
       }
+      if (onceki.display === 'denied') return BILDIRIM.ENGELLI
 
       const sonuc = await LocalNotifications.requestPermissions()
       if (sonuc.display === 'granted') await kanaliKur()
@@ -131,8 +143,12 @@ export async function izinIste() {
     }
   }
 
+  /* Tarayıcıda da aynısı: karar zaten varsa pencere açılmıyor. Daha
+     önce reddedilmişse bunu ENGELLI olarak söylüyoruz, yoksa ekran
+     "kullanıcı şimdi hayır dedi" sanıp sessizce geçiyordu. */
   const simdiki = await mevcutIzin()
-  if (simdiki !== BILDIRIM.SORULMADI) return simdiki
+  if (simdiki === BILDIRIM.VERILDI) return BILDIRIM.VERILDI
+  if (simdiki === BILDIRIM.REDDEDILDI) return BILDIRIM.ENGELLI
 
   try {
     const sonuc = await Notification.requestPermission()
@@ -140,6 +156,16 @@ export async function izinIste() {
   } catch {
     return BILDIRIM.REDDEDILDI
   }
+}
+
+/**
+ * İzin engellendiğinde kullanıcıya ne yapacağını anlatan metin.
+ * Ekranlar bunu doğrudan gösteriyor; sözlük anahtarı değil çünkü
+ * içeriği çalışılan ortama göre değişiyor.
+ * @returns {{tarayici: boolean}} hangi ortamda olduğumuz
+ */
+export function engelNerede() {
+  return { tarayici: !telefonda() }
 }
 
 /* Her bildirimin ayrı bir numarası olmalı; aynı numara verilirse

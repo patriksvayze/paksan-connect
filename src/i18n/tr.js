@@ -148,6 +148,15 @@ export const tr = {
     bildirimSonra: 'Şimdi değil',
     bildirimNot: 'İzni sonradan telefonunuzun ayarlarından açıp kapatabilirsiniz.',
     bildirimDemo: 'Bu cihaz bildirimleri desteklemiyor.',
+    /* İzin bir kez reddedildiyse ne telefon ne tarayıcı pencereyi bir
+       daha açıyor; düğmeye basılıyor ve hiçbir şey olmuyordu. */
+    bildirimEngelBaslik: 'Bildirim izni kapalı görünüyor',
+    bildirimEngelTarayici:
+      'Bu siteye daha önce bildirim izni verilmemiş. Tarayıcınızın adres çubuğundaki kilit simgesine dokunup bildirimlere izin verdikten sonra tekrar deneyin.',
+    bildirimEngelTelefon:
+      'Bildirimler telefon ayarlarından kapatılmış. Ayarlar > Uygulamalar > PAKSAN Connect > Bildirimler yolundan açtıktan sonra tekrar deneyin.',
+    bildirimTekrarDene: 'Tekrar Dene',
+    bildirimEngelDevam: 'Bildirimsiz devam et',
     /* İzin verildiği anda telefonun bildirim perdesine düşen ilk
        bildirim. İki işi birden görüyor: iznin gerçekten çalıştığını
        gösteriyor ve PAKSAN bildiriminin nasıl göründüğünü tanıtıyor. */

@@ -7,7 +7,7 @@ import { AYDINLATMA, ACIK_RIZA, TICARI_ILETI, KVKK_SURUM, metinDilde } from '../
 import { telGecerliMi } from '../lib/tel'
 import { adTemizle } from '../lib/ad'
 import { alanaGit } from '../lib/formOdak'
-import { izinIste, bildirimGoster, BILDIRIM } from '../lib/bildirim'
+import { izinIste, bildirimGoster, engelNerede, BILDIRIM } from '../lib/bildirim'
 import { konumIzniIste, KONUM } from '../lib/konum'
 import { mevcutHesap, sifreHazirla, sifreGecerliMi, SIFRE_HANE } from '../lib/hesap'
 import { VARSAYILAN_ULKE } from '../data/ulkeler'
@@ -48,6 +48,9 @@ export default function Register() {
   /* Bildirim izninin sonucu konum adımına geçilirken elde tutuluyor;
      kayıt iki iznin de cevabı alındıktan sonra bir kerede yazılıyor. */
   const [bildirimSonuc, setBildirimSonuc] = useState(BILDIRIM.SORULMADI)
+  /* İzin sistem tarafından engellenmişse ekran ilerlemiyor; kullanıcı
+     ne olduğunu ve nereden açacağını okuyor. */
+  const [bildirimEngeli, setBildirimEngeli] = useState(false)
   const [ad, setAd] = useState('')
   const [soyad, setSoyad] = useState('')
   const [ulke, setUlke] = useState(VARSAYILAN_ULKE)
@@ -188,6 +191,18 @@ export default function Register() {
     }
 
     setBildirimSonuc(sonuc)
+
+    /* İZİN ENGELLİYSE EKRAN İLERLEMİYOR.
+
+       Daha önce bir kez reddedilmiş izin için ne tarayıcı ne Android
+       pencereyi açıyor; düğmeye basılıyor ve hiçbir şey olmuyordu.
+       Ekran sonraki adıma geçince kullanıcı izin verdiğini sanıyordu.
+       Artık burada kalıyor ve izni nereden geri açacağını okuyor. */
+    if (sonuc === BILDIRIM.ENGELLI) {
+      setBildirimEngeli(true)
+      return
+    }
+
     setAdim('konum')
   }
 
@@ -414,18 +429,31 @@ export default function Register() {
             )}
           </div>
 
+          {bildirimEngeli && (
+            <div className="uyari-kart" style={{ marginTop: 22 }}>
+              <strong>{t('kayit.bildirimEngelBaslik')}</strong>
+              <p style={{ margin: '6px 0 0' }}>
+                {t(
+                  engelNerede().tarayici
+                    ? 'kayit.bildirimEngelTarayici'
+                    : 'kayit.bildirimEngelTelefon',
+                )}
+              </p>
+            </div>
+          )}
+
           <div className="stack" style={{ gap: 10, marginTop: 28 }}>
             <button className="btn btn--orange btn--lg" onClick={bildirimeIzinVer}>
-              {t('kayit.bildirimIzin')}
+              {bildirimEngeli ? t('kayit.bildirimTekrarDene') : t('kayit.bildirimIzin')}
             </button>
             <button
               className="btn btn--soft"
               onClick={() => {
-                setBildirimSonuc(BILDIRIM.SORULMADI)
+                if (!bildirimEngeli) setBildirimSonuc(BILDIRIM.SORULMADI)
                 setAdim('konum')
               }}
             >
-              {t('kayit.bildirimSonra')}
+              {bildirimEngeli ? t('kayit.bildirimEngelDevam') : t('kayit.bildirimSonra')}
             </button>
           </div>
 
