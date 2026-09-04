@@ -31,6 +31,9 @@ export const ANAHTAR = {
   personel: 'personel',
   numaraTalepleri: 'numaraTalepleri',
   sifreTalepleri: 'sifreTalepleri',
+  /* Bayinin "şifremi unuttum" kaydı. Personelinkinden ayrı: bayide
+     e-posta yok, akış telefonla yürüyor. */
+  bayiSifreTalep: 'bayiSifreTalep',
   destekLog: 'destekLog',
 
   /* Demo kayıtları uygulamanın kendi kayıtlarından ayrı duruyor:
@@ -1231,13 +1234,28 @@ export function bayiOturumuKapat(o) {
 }
 
 /** Bayi ilk girişte kendi şifresini belirliyor. */
-export async function bayiSifresiniDegistir(bayiId, yeniSifre) {
+export async function bayiSifresiniDegistir(bayiId, yeniSifre, eskiSifre) {
   if (!sifreGecerliMi(yeniSifre)) {
     return { hata: `Şifre ${BACKOFFICE_SIFRE_HANE} rakamdan oluşmalı.` }
   }
   const liste = bayileriGetir()
   const hedef = liste.find((b) => b.id === bayiId)
   if (!hedef) return { hata: 'Bayi bulunamadı.' }
+
+  /* ESKİ ŞİFRE YALNIZ İSTEYEREK DEĞİŞTİRİRKEN SORULUYOR.
+
+     İlk giriş akışında sorulmuyor ve sorulmamalı: bayi zaten geçici
+     şifreyle o an giriş yaptı, kimliği kanıtlandı. Hesap ekranından
+     kendi isteğiyle değiştirirken ise açık oturumun sahibi olmak
+     yetmiyor — telefon başkasının elinde kalmış olabilir. */
+  if (eskiSifre !== undefined) {
+    if (!(await sifreDogruMu(eskiSifre, hedef.sifre))) {
+      return { hata: 'Mevcut şifreniz yanlış.' }
+    }
+    if (await sifreDogruMu(yeniSifre, hedef.sifre)) {
+      return { hata: 'Yeni şifre eskisiyle aynı olamaz.' }
+    }
+  }
 
   const hazir = await sifreHazirla(yeniSifre)
   bayileriYaz(
@@ -1248,6 +1266,77 @@ export async function bayiSifresiniDegistir(bayiId, yeniSifre) {
   const o = bayiOturumuGetir()
   if (o?.bayiId === bayiId) save(ANAHTAR.bayiOturum, { ...o, ilkGiris: false })
   return { tamam: true }
+}
+
+/* ------------------------------------------------- Bayi şifre talepleri
+
+   BAYİ ŞİFRESİNİ KENDİ SIFIRLAYAMIYOR.
+
+   Personelin şifre sıfırlaması e-postayla çalışıyor (bkz.
+   `sifreTalebiOlustur`). Bayide e-posta yok: hesabı PAKSAN açıyor,
+   iletişim telefonla yürüyor. Kendi kendine sıfırlayan bir akış
+   kurmak, bayinin kullanıcı adını bilen herkese hesabı açardı.
+
+   Bunun yerine bayi TALEP bırakıyor, PAKSAN backoffice'te görüyor ve
+   bayiyi arayıp geçici şifre veriyor. Bayi o şifreyle girince
+   `ilkGiris` akışı kendi şifresini belirletiyor — zaten var olan yol.
+
+   Hesap silme ve numara değişikliğinde uygulanan kuralın aynısı:
+   hesabın kendisine dair kararlar PAKSAN'da.                          */
+
+export function bayiSifreTalepleriGetir() {
+  return load(ANAHTAR.bayiSifreTalep, []).sort((a, b) => b.tarih - a.tarih)
+}
+
+/** Bayi giriş ekranından "şifremi unuttum" der. */
+export function bayiSifreTalebiAc(kullanici) {
+  const ad = String(kullanici || '').trim().toLocaleLowerCase('tr-TR')
+  if (!ad) return { hata: 'Önce kullanıcı adınızı yazın.' }
+
+  const kayit = bayileriGetir().find((b) => b.kullanici === ad)
+
+  /* Kullanıcı adı bulunamasa da AYNI cevap dönüyor: "böyle bir bayi
+     yok" demek, deneme yanılmayla kullanıcı adı bulmayı kolaylaştırır.
+     Kayıt yalnız gerçek bayi için yazılıyor. */
+  if (kayit) {
+    const acikVar = load(ANAHTAR.bayiSifreTalep, []).some(
+      (t) => t.bayiId === kayit.id && t.durum === 'bekliyor',
+    )
+    if (!acikVar) {
+      save(ANAHTAR.bayiSifreTalep, [
+        {
+          id: uid(),
+          bayiId: kayit.id,
+          bayiAd: kayit.ad,
+          bayiNo: kayit.no,
+          kullanici: ad,
+          durum: 'bekliyor',
+          tarih: Date.now(),
+        },
+        ...load(ANAHTAR.bayiSifreTalep, []),
+      ])
+      islemYaz({
+        tur: 'sifre',
+        ozet: `${kayit.ad} panel şifresi için yardım istedi`,
+        rol: 'bayi',
+      })
+    }
+  }
+  return { tamam: true }
+}
+
+/** PAKSAN talebi kapatır (bayiyi aradı, geçici şifreyi verdi). */
+export function bayiSifreTalebiKapat(talepId, personel) {
+  const liste = load(ANAHTAR.bayiSifreTalep, [])
+  save(
+    ANAHTAR.bayiSifreTalep,
+    liste.map((t) =>
+      t.id === talepId
+        ? { ...t, durum: 'kapandi', kapatan: personel, kapanis: Date.now() }
+        : t,
+    ),
+  )
+  islemYaz({ tur: 'sifre', ozet: 'Bayi şifre talebi kapatıldı', personel })
 }
 
 /* --------------------------------------------------------- Makine kayıtları

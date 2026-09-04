@@ -1,10 +1,18 @@
-import { useState } from 'react'
-import { bayileriGetirBackoffice, bayileriSifirla, bayileriYaz, izinli, kullaniciAdiOner } from '../veri'
+import { useMemo, useState } from 'react'
+import {
+  bayiSifreTalebiKapat,
+  bayiSifreTalepleriGetir,
+  bayileriGetirBackoffice,
+  bayileriSifirla,
+  bayileriYaz,
+  izinli,
+  kullaniciAdiOner,
+} from '../veri'
 import { sifreHazirla } from '../../lib/hesap'
 import { useVeri } from '../kanca'
 import { BAYILER, YETKILER } from '../../data/bayiler'
 import { ILLER, ilceleriGetir } from '../../data/iller'
-import { Baslik, Bekleme, Bos, siraliListe, SiraliBaslik, useSiralama } from './ortak'
+import { Baslik, Bekleme, Bos, siraliListe, SiraliBaslik, tarihYaz, useSiralama } from './ortak'
 import { Secim, SuzgecCubugu } from './suzgec'
 import { DisaAktar, IceAktar } from './aktar'
 import { uid } from '../../lib/storage'
@@ -22,6 +30,54 @@ import { yeniNo, sayaciEnAz } from '../../lib/numara'
 const BOS_BAYI = {
   ad: '', il: '', ilce: '', adres: '', tel: '', telYazi: '',
   enlem: '', boylam: '', yetki: ['satis'], bolge: [],
+}
+
+/* Bayinin bıraktığı şifre yardımı talebi.
+
+   Bayi kendi sıfırlayamıyor: e-postası yok ve kullanıcı adını bilen
+   herkese hesabı açardı. Talep bırakıyor, PAKSAN arıyor, geçici şifre
+   veriyor. Bayi o şifreyle girince `ilkGiris` akışı kendi şifresini
+   belirletiyor. */
+function SifreYardimi({ personel, tazele, surum }) {
+  const liste = useMemo(() => {
+    void surum
+    return bayiSifreTalepleriGetir().filter((t) => t.durum === 'bekliyor')
+  }, [surum])
+
+  if (!liste.length) return null
+
+  return (
+    <div className="kart" style={{ marginBottom: 14, borderLeft: '3px solid var(--turuncu)' }}>
+      <div className="kart__tepe">
+        <h2>Şifre Yardımı Bekleyen Bayi ({liste.length})</h2>
+      </div>
+      <div className="kart__ic">
+        {liste.map((t) => (
+          <div key={t.id} className="satir" style={{ alignItems: 'center', gap: 10, padding: '8px 0' }}>
+            <div style={{ flex: 1 }}>
+              <strong>{t.bayiAd}</strong>
+              <div className="kucuk sonuk mono">
+                {t.bayiNo} · {t.kullanici} · {tarihYaz(t.tarih)}
+              </div>
+            </div>
+            <button
+              className="dg"
+              onClick={() => {
+                bayiSifreTalebiKapat(t.id, personel)
+                tazele()
+              }}
+            >
+              Arandı, kapat
+            </button>
+          </div>
+        ))}
+        <p className="kucuk sonuk" style={{ marginTop: 8 }}>
+          Bayiyi arayıp aşağıdaki listeden "Şifre sıfırla" ile geçici şifre
+          verin. Bayi o şifreyle girdiğinde kendi şifresini belirleyecek.
+        </p>
+      </div>
+    </div>
+  )
 }
 
 export function Bayiler({ personel, rol, bildir, tazele, surum }) {
@@ -96,6 +152,11 @@ export function Bayiler({ personel, rol, bildir, tazele, surum }) {
 
   return (
     <>
+      {/* Şifre yardımı isteyen bayiler en üstte: bayi giremiyor demek,
+          bekleyen bir talebi de olabilir. Bayi kendi sıfırlayamıyor —
+          gerekçesi veri.js'te yazılı. */}
+      {duzenleyebilir && <SifreYardimi personel={personel} tazele={tazele} surum={surum} />}
+
       <Baslik
         ad="Bayiler"
         sag={

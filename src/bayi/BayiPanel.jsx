@@ -4,6 +4,7 @@ import {
   bayiOturumuGetir,
   bayiOturumuKapat,
   bayiSifresiniDegistir,
+  bayiSifreTalebiAc,
   bayininTalepleri,
   destekTalepEt,
   gecikmisMi,
@@ -22,6 +23,7 @@ import {
   IconUser,
   IconBell,
   IconPhone,
+  IconShield,
 } from '../components/Icons'
 import { PaksanLogo } from '../components/Marka'
 import { TalepDetay } from './ekranlar/TalepDetay'
@@ -84,6 +86,7 @@ function Giris({ onGiris }) {
   const [sifre, setSifre] = useState('')
   const [hata, setHata] = useState('')
   const [bekliyor, setBekliyor] = useState(false)
+  const [yardim, setYardim] = useState(false)
 
   async function gir(e) {
     e.preventDefault()
@@ -133,9 +136,40 @@ function Giris({ onGiris }) {
         </label>
 
         {hata && <div className="uyari">{hata}</div>}
+        {yardim && (
+          <div className="not not--mavi" style={{ marginTop: 0 }}>
+            <IconShield size={19} />
+            <div>
+              <strong>PAKSAN sizi arayacak</strong>
+              <p>
+                Talebiniz iletildi. PAKSAN yetkilisi size geçici bir şifre
+                verecek; o şifreyle girdiğinizde kendi şifrenizi
+                belirleyeceksiniz.
+              </p>
+            </div>
+          </div>
+        )}
 
         <button className="dg dg--ana dg--blok" type="submit" disabled={bekliyor}>
           {bekliyor ? 'Kontrol ediliyor…' : 'Gir'}
+        </button>
+
+        {/* ŞİFREMİ UNUTTUM E-POSTA GÖNDERMİYOR.
+
+            Personelin sıfırlaması e-postayla çalışıyor; bayide e-posta
+            yok, iletişim telefonla yürüyor. Kendi kendine sıfırlayan bir
+            akış, kullanıcı adını bilen herkese hesabı açardı. Bayi talep
+            bırakıyor, PAKSAN arıyor. */}
+        <button
+          type="button"
+          className="giris__yardim"
+          onClick={() => {
+            bayiSifreTalebiAc(kullanici)
+            setHata('')
+            setYardim(true)
+          }}
+        >
+          Şifremi unuttum
         </button>
 
         <p className="giris__dip">
@@ -480,6 +514,10 @@ function Hesap({ oturum, onCikis }) {
         </div>
       </Bolum>
 
+      <Bolum ad="Güvenlik">
+        <SifreDegistir oturum={oturum} />
+      </Bolum>
+
       <Bolum ad="Oturum">
         <button
           className="dg dg--blok"
@@ -495,6 +533,104 @@ function Hesap({ oturum, onCikis }) {
         </p>
       </Bolum>
     </>
+  )
+}
+
+/* Şifre değiştirme.
+
+   Mevcut şifre SORULUYOR. Açık oturumun sahibi olmak yetmiyor: telefon
+   birinin elinde kalmış olabilir ve bayi paneli müşteri bilgisi
+   taşıyor. İlk giriş akışında sorulmuyor, sebebi veri.js'te yazılı. */
+function SifreDegistir({ oturum }) {
+  const [acik, setAcik] = useState(false)
+  const [eski, setEski] = useState('')
+  const [yeni, setYeni] = useState('')
+  const [tekrar, setTekrar] = useState('')
+  const [hata, setHata] = useState('')
+  const [oldu, setOldu] = useState(false)
+
+  const rakam = (v) => v.replace(/\D/g, '')
+
+  async function kaydet() {
+    if (yeni.length !== BACKOFFICE_SIFRE_HANE) {
+      return setHata(`Yeni şifre ${BACKOFFICE_SIFRE_HANE} rakamdan oluşmalı.`)
+    }
+    if (yeni !== tekrar) return setHata('Yeni şifreler eşleşmiyor.')
+    const sonuc = await bayiSifresiniDegistir(oturum.bayiId, yeni, eski)
+    if (sonuc.hata) return setHata(sonuc.hata)
+    setEski('')
+    setYeni('')
+    setTekrar('')
+    setHata('')
+    setOldu(true)
+    setAcik(false)
+  }
+
+  if (!acik) {
+    return (
+      <>
+        <button className="dg dg--blok" onClick={() => { setAcik(true); setOldu(false) }}>
+          Şifremi değiştir
+        </button>
+        {oldu && (
+          <p className="kucuk" style={{ marginTop: 10, color: 'var(--yesil)' }}>
+            Şifreniz değiştirildi.
+          </p>
+        )}
+      </>
+    )
+  }
+
+  return (
+    <div className="kart" style={{ padding: 16 }}>
+      <label className="alan">
+        <span className="alan__ad">Mevcut Şifre</span>
+        <input
+          className="gir gir--kod"
+          type="password"
+          inputMode="numeric"
+          maxLength={BACKOFFICE_SIFRE_HANE}
+          value={eski}
+          onChange={(e) => setEski(rakam(e.target.value))}
+          autoComplete="current-password"
+        />
+      </label>
+      <label className="alan">
+        <span className="alan__ad">Yeni Şifre</span>
+        <input
+          className="gir gir--kod"
+          type="password"
+          inputMode="numeric"
+          maxLength={BACKOFFICE_SIFRE_HANE}
+          value={yeni}
+          onChange={(e) => setYeni(rakam(e.target.value))}
+          autoComplete="new-password"
+        />
+      </label>
+      <label className="alan">
+        <span className="alan__ad">Yeni Şifre (tekrar)</span>
+        <input
+          className="gir gir--kod"
+          type="password"
+          inputMode="numeric"
+          maxLength={BACKOFFICE_SIFRE_HANE}
+          value={tekrar}
+          onChange={(e) => setTekrar(rakam(e.target.value))}
+          autoComplete="new-password"
+        />
+      </label>
+
+      {hata && <div className="uyari">{hata}</div>}
+
+      <button className="dg dg--ana dg--blok" onClick={kaydet}>Kaydet</button>
+      <button
+        className="dg dg--blok"
+        style={{ marginTop: 8 }}
+        onClick={() => { setAcik(false); setHata('') }}
+      >
+        Vazgeç
+      </button>
+    </div>
   )
 }
 

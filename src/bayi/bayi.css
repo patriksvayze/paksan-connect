@@ -794,6 +794,20 @@
   min-height: var(--dokunma);
 }
 
+/* "Şifremi unuttum" — ikincil, ama kaybolmayacak kadar görünür. */
+.giris__yardim {
+  display: block;
+  width: 100%;
+  min-height: var(--dokunma);
+  margin-top: var(--bosluk-2);
+  background: transparent;
+  border: 0;
+  color: var(--mavi-rz);
+  font-size: var(--yazi-2);
+  font-weight: 700;
+  cursor: pointer;
+}
+
 /* --------------------------------------------------- Geniş ekran (panel)
 
    Alt sekme çubuğu geniş ekranda yanlış duruyor: fare ekranın alt
