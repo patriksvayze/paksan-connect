@@ -17,6 +17,10 @@ import '@fontsource/roboto/latin-ext-900.css'
    Renk token'ları bu projede elle senkron tutuluyor ve iki dosyayı
    eşit tutmak zaten bakım yükü; üçüncüsü onu katlardı.
    bayi.css yalnız bu panele özel düzen ekliyor, kendi :root'u yok. */
+/* Ortak ölçü sistemi (bkz. src/styles/olcu.css) — üç ürün de paylaşıyor.
+   Bayi uygulaması buradaki ölçüleri en çok kullanan taraf: tarlada,
+   güneş altında, çoğu zaman eldivenle açılıyor. */
+import '../styles/olcu.css'
 import '../backoffice/backoffice.css'
 import './bayi.css'
 

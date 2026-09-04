@@ -1,0 +1,74 @@
+/* ==========================================================================
+   PAKSAN — ortak ölçü sistemi
+
+   ÜÇ ÜRÜNÜN DE PAYLAŞTIĞI TEK DOSYA. Kopyası yok, elle senkron yok.
+
+   NEDEN RENK YOK BURADA
+
+   Ölçüldü: `styles.css` 96, `backoffice.css` 72 renk değişkeni tanımlıyor
+   ve ortak olan yalnız 6 isim (`--dolgu`, `--dolgu-koyu`, `--r` ve üç tür
+   rengi). Yani iki kopya palet yok, iki AYRI isim sistemi var; müşteri
+   uygulamasının rengiyle personel panelinin rengi zaten farklı olmalı.
+   O 6 ismi `npm run dogrula` denetliyor, yeterli.
+
+   Eksik olan renk değil ÖLÇÜYDÜ: iki dosyada boşluk, yazı boyu ve
+   dokunma hedefi için tek bir token yoktu — `--r: 10px` dışında. Her
+   ekranda 13 mü 13,5 mi, 14 boşluk mu 16 mı elle karar veriliyordu.
+
+   NASIL KULLANILIR
+
+   Yeni ve değişen kodda buradaki basamaklar kullanılır. Var olan
+   5141 + 2311 satırı toplu çevirmek riskli ve karşılığı düşük; dosyalar
+   dokundukça yaklaşır.
+
+   ÖLÇÜLER NEREDEN GELİYOR
+
+   Rakamlar keyfî değil, bayi uygulamasının kullanıldığı yerden:
+   tarla, güneş, çoğu zaman eldiven, tek el.
+
+     · Dokunma hedefi 48px — Material Design'ın eldivenli kullanım için
+       verdiği alt sınır. Apple 44 diyor; ikisinin büyüğü alındı.
+     · Gövde yazısı 16px — Apple HIG gövde için 17pt öneriyor. 13px
+       telefonda güneş altında okunmuyor.
+     · Kontrast hedefi 7:1 (AAA), 4,5 değil. Dışarıda ekran parlaması
+       gerçek kontrastı düşürüyor; 4,5 içeride yeter, tarlada yetmez.
+       Bu bir token değil, ölçüm kuralı — QA'da buna bakılıyor.
+   ========================================================================== */
+
+:root {
+  /* ------------------------------------------------------------ Boşluk
+
+     Dörder dörder. Ara değer kullanılmıyor: "14px olsun" diye başlayan
+     her ekran kendi ölçüsünü uyduruyordu. */
+  --bosluk-1: 4px;
+  --bosluk-2: 8px;
+  --bosluk-3: 12px;
+  --bosluk-4: 16px;
+  --bosluk-5: 24px;
+  --bosluk-6: 32px;
+  --bosluk-7: 48px;
+
+  /* -------------------------------------------------------- Yazı boyu
+
+     --yazi-3 GÖVDEDİR. Ekranda okunan asıl metin bu; altındakiler
+     yardımcı, üstündekiler başlık. Yardımcı metin --yazi-2'nin altına
+     inmiyor. */
+  --yazi-1: 12px; /* rozet, kod, en küçük etiket */
+  --yazi-2: 14px; /* yardımcı satır — alt sınır */
+  --yazi-3: 16px; /* GÖVDE */
+  --yazi-4: 19px; /* ekran başlığı */
+  --yazi-5: 24px; /* büyük başlık */
+
+  /* --------------------------------------------------------- Yarıçap */
+  --r-1: 8px;
+  --r-2: 12px;
+  --r-3: 16px;
+  --r-tam: 999px;
+
+  /* --------------------------------------------------- Dokunma hedefi
+
+     --dokunma her yerde geçerli alt sınır. --dokunma-genis parmağın
+     asıl gideceği yerler için: ekranın asıl işlemi, alt sekmeler. */
+  --dokunma: 48px;
+  --dokunma-genis: 56px;
+}

@@ -3,22 +3,28 @@
 
    BU DOSYADA `:root` BLOĞU YOK ve olmayacak.
 
-   Renk token'ları backoffice.css'ten geliyor. Bu projede token'lar elle
-   senkron tutuluyor (styles.css ile backoffice.css arasında zaten iki
-   kopya var); üçüncü bir kök o yükü katlardı. `npm run dogrula` bu
-   kuralı denetliyor.
+   Renk token'ları backoffice.css'ten, ölçü token'ları
+   src/styles/olcu.css'ten geliyor. `npm run dogrula` bu kuralı
+   denetliyor.
 
-   Buradaki ölçü değişkenleri (`--bar`, `--tabs`) renk değil, yalnız bu
-   kabuğun kendi yükseklikleri. `.uyg` üzerinde duruyorlar, kökte değil;
-   senkron tutulacak bir listeye eklenmiyorlar.
+   ÖLÇÜLER NEREYE GÖRE
 
-   NE DEĞİŞTİ
+   Bu uygulama tarlada açılıyor: güneş, çoğu zaman eldiven, tek el.
+   Backoffice'in ölçüleri bilgisayar başındaki personele göre; buraya
+   olduğu gibi taşınamaz. Araştırmadan çıkan üç sayı:
 
-   Panel önce backoffice'in sayfa düzeniyle çiziliyordu: başlıkla aynı
-   satırda dizilmiş düğmeler, altında uzayıp giden bir liste. Telefonda
-   bir web sayfası gibi duruyordu. Burada uygulamaların düzeni var —
-   sabit üst çubuk, alt sekmeler, tam ekran alt sayfalar, dibe yapışık
-   asıl işlem düğmesi.
+     · Dokunma hedefi 48px — Material Design'ın eldivenli kullanım
+       için verdiği alt sınır (Apple 44 diyor, büyüğü alındı).
+     · Gövde yazısı 16px — Apple HIG gövde için 17pt öneriyor.
+       Buradaki metinler 13–13,5 pikseldeydi.
+     · Kontrast hedefi 7:1 (AAA), 4,5 değil: dışarıda ekran parlaması
+       gerçek kontrastı düşürüyor. ÖLÇÜLEN: asıl metin (müşteri adı,
+       başlıklar) 11,9–17,4 ile hedefin üstünde. Yardımcı satırlar
+       (konum, zaman, açıklama) 6,2'de kaldı — AA'nın rahat üstünde,
+       AAA'nın az altında. Daha koyusu için `--murekkep-2` token'ını
+       değiştirmek gerekirdi; o token backoffice'in de metin rengi,
+       bayi için tek başına koyulaştırılamaz. Bayinin asıl okuduğu
+       bilgi zaten üst gruptaki metin.
 
    TEK KOD, İKİ GÖRÜNÜM. Dar ekranda sekmeler altta (parmak orada
    duruyor), geniş ekranda üste çıkıp çubuğun altına yerleşiyor (fare
@@ -33,8 +39,8 @@
      aşağıdan başlıyor, o yüzden değerin GERÇEK olması gerekiyor:
      `.uyg__bar` orada `min-height` değil `height` alıyor ve başlıklar
      zaten tek satıra kırpılıyor, yükseklik kaymıyor. */
-  --bar: 64px;
-  --tabs: 62px;
+  --bar: 68px;
+  --tabs: 66px;
   /* Çentik ve ev çubuğu payları. `bayi-mobil.html` içinde
      `viewport-fit=cover` var: içerik ekranın en tepesine kadar
      çıkıyor. Bu paylar olmasa başlık çentiğin, sekmeler de ev
@@ -56,10 +62,10 @@
   z-index: 20;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--bosluk-3);
   min-height: var(--bar);
-  padding: 10px 16px;
-  padding-top: calc(10px + var(--ust));
+  padding: var(--bosluk-3) var(--bosluk-4);
+  padding-top: calc(var(--bosluk-3) + var(--ust));
   background: var(--lacivert);
   color: #fff;
 }
@@ -71,7 +77,7 @@
 
 .uyg__ad h1 {
   margin: 0;
-  font-size: 19px;
+  font-size: var(--yazi-4);
   font-weight: 900;
   letter-spacing: -0.01em;
   line-height: 1.2;
@@ -81,27 +87,27 @@
   white-space: nowrap;
 }
 
-/* Alt satır beyazın %72'si: başlıkla arasında sıra farkı olsun ama
-   koyu zeminde okunaklı kalsın (kontrast 9,3). */
+/* Alt satır beyazın %82'si. Önce %72'ydi; koyu zeminde okunuyordu ama
+   güneş altında ilk kaybolacak metin bu. */
 .uyg__ad p {
   margin: 2px 0 0;
-  font-size: 12.5px;
-  color: rgba(255, 255, 255, 0.72);
+  font-size: var(--yazi-2);
+  color: rgba(255, 255, 255, 0.82);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* 44×44: dokunma hedefinin alt sınırı. Görsel olarak ok daha küçük
+/* 48×48: dokunma hedefinin alt sınırı. Görsel olarak ok daha küçük
    duruyor, basılabilir alan kutunun tamamı. */
 .uyg__geri {
   flex: none;
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
-  margin-left: -11px;
-  border-radius: 10px;
+  width: var(--dokunma);
+  height: var(--dokunma);
+  margin-left: calc(var(--bosluk-3) * -1);
+  border-radius: var(--r-2);
   background: transparent;
   border: 0;
   color: #fff;
@@ -116,14 +122,14 @@
 
 .uyg__ic {
   flex: 1;
-  padding: 16px;
+  padding: var(--bosluk-4);
   /* Alt sekme çubuğu içeriğin üstüne biniyor; son kart onun altında
      kalmasın diye kadar boşluk bırakılıyor. */
-  padding-bottom: calc(24px + var(--tabs) + var(--dip));
+  padding-bottom: calc(var(--bosluk-5) + var(--tabs) + var(--dip));
 }
 
 .uyg--sayfa .uyg__ic {
-  padding-bottom: calc(24px + var(--dip));
+  padding-bottom: calc(var(--bosluk-5) + var(--dip));
 }
 
 /* Dibe yapışık asıl işlem — alt sayfalarda sekme çubuğu yok, onun
@@ -131,8 +137,8 @@
 .uyg__dip {
   position: sticky;
   bottom: 0;
-  padding: 12px 16px;
-  padding-bottom: calc(12px + var(--dip));
+  padding: var(--bosluk-3) var(--bosluk-4);
+  padding-bottom: calc(var(--bosluk-3) + var(--dip));
   background: var(--yuzey);
   border-top: 1px solid var(--cizgi);
 }
@@ -142,8 +148,8 @@
 .yapisik {
   position: sticky;
   bottom: calc(var(--tabs) + var(--dip));
-  margin: 4px -16px 0;
-  padding: 12px 16px;
+  margin: var(--bosluk-1) calc(var(--bosluk-4) * -1) 0;
+  padding: var(--bosluk-3) var(--bosluk-4);
   background: var(--zemin);
   border-top: 1px solid var(--cizgi);
 }
@@ -169,12 +175,11 @@
   align-items: center;
   justify-content: center;
   gap: 3px;
-  /* Dokunma hedefi 44 pikselin altına düşmüyor. */
   min-height: var(--tabs);
-  padding: 8px 2px;
+  padding: var(--bosluk-2) 2px;
   background: transparent;
   border: 0;
-  color: var(--murekkep-3);
+  color: var(--murekkep-2);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -188,7 +193,7 @@
 }
 
 .uyg__tab-ad {
-  font-size: 11px;
+  font-size: var(--yazi-1);
   font-weight: 700;
   letter-spacing: -0.01em;
 }
@@ -212,22 +217,76 @@
   position: absolute;
   top: -3px;
   right: -6px;
-  min-width: 17px;
-  height: 17px;
+  min-width: 18px;
+  height: 18px;
   padding: 0 4px;
-  border-radius: 999px;
+  border-radius: var(--r-tam);
   background: var(--kirmizi);
   color: var(--rozet-yazi);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 800;
-  line-height: 17px;
+  line-height: 18px;
   text-align: center;
+}
+
+/* ------------------------------------------------------------ Gün özeti
+
+   Bayi uygulamayı açtığında ilk sorusu "bugün ne var". Cevabı kartları
+   sayarak buluyordu. */
+
+.ozet {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  padding: var(--bosluk-4);
+  margin-bottom: var(--bosluk-4);
+  border-radius: var(--r-3);
+  background: var(--lacivert);
+  /* Karanlık temada `--lacivert` sayfa zeminine çok yaklaşıyor
+     (ölçülen ayrım 1,08) ve kart düz bir leke gibi duruyordu.
+     Kartlar çizgileriyle ayrılıyor, bunun çizgisi yoktu. Beyazın
+     saydamı iki temada da işe yarıyor: aydınlıkta lacivertin üstünde
+     ince bir iç kenar, karanlıkta zeminden ayıran sınır. */
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+.ozet strong {
+  font-size: var(--yazi-3);
+  font-weight: 700;
+}
+
+.ozet p {
+  margin: var(--bosluk-1) 0 0;
+  font-size: var(--yazi-2);
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.ozet__sayi {
+  flex: none;
+  display: grid;
+  place-items: center;
+  min-width: var(--dokunma);
+  height: var(--dokunma);
+  padding: 0 var(--bosluk-2);
+  border-radius: var(--r-2);
+  background: rgba(255, 255, 255, 0.14);
+  font-size: var(--yazi-5);
+  font-weight: 900;
+  line-height: 1;
+}
+
+/* Geciken iş varsa sayı kutusu kırmızıya dönüyor — özet kartı da
+   listedeki şeritle aynı dili konuşuyor. */
+.ozet--gec .ozet__sayi {
+  background: var(--kirmizi);
+  color: var(--rozet-yazi);
 }
 
 /* ---------------------------------------------------------- Bölüm başı */
 
 .bolum {
-  margin-bottom: 22px;
+  margin-bottom: var(--bosluk-5);
 }
 
 .bolum:last-child {
@@ -237,45 +296,43 @@
 .bolum__ad {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: 0 0 10px 2px;
-  font-size: 13px;
+  gap: var(--bosluk-2);
+  margin: 0 0 var(--bosluk-3) 2px;
+  font-size: var(--yazi-2);
   font-weight: 800;
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  /* `--murekkep-3` bu zeminde 4,48'de kalıyordu, eşik 4,5. Küçük
-     ve büyük harfli bir başlık için sınırın altı. */
+  /* `--murekkep-3` bu zeminde 4,48'de kalıyordu, eşik 4,5. */
   color: var(--murekkep-2);
 }
 
 .bolum__sayi {
-  min-width: 20px;
-  padding: 1px 6px;
-  border-radius: 999px;
+  min-width: 22px;
+  padding: 1px var(--bosluk-2);
+  border-radius: var(--r-tam);
   background: var(--cizgi);
   color: var(--murekkep-2);
-  font-size: 11.5px;
+  font-size: var(--yazi-1);
   font-weight: 800;
   text-align: center;
   letter-spacing: 0;
 }
 
-/* ------------------------------------------------------------ İş kartı */
+/* ------------------------------------------------------------ İş kartı
+
+   Kart iki kardeşten oluşuyor: soldaki alan detayı açıyor, sağdaki
+   bağlantı müşteriyi arıyor. İç içe düğme geçerli değil, o yüzden
+   kartın kendisi düğme değil. */
 
 .is {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  text-align: left;
-  padding: 13px 12px 13px 14px;
-  margin-bottom: 8px;
+  align-items: stretch;
+  margin-bottom: var(--bosluk-2);
   border: 1px solid var(--cizgi);
-  border-radius: 14px;
+  border-radius: var(--r-3);
   background: var(--yuzey);
-  color: var(--murekkep);
   box-shadow: var(--golge);
-  cursor: pointer;
+  overflow: hidden;
   transition: transform 0.1s ease, border-color 0.13s ease;
 }
 
@@ -293,39 +350,51 @@
   transform: scale(0.985);
 }
 
-.is__ic {
+.is__ac {
   flex: 1;
   min-width: 0;
+  text-align: left;
+  padding: var(--bosluk-3) var(--bosluk-2) var(--bosluk-3) var(--bosluk-4);
+  background: transparent;
+  border: 0;
+  color: var(--murekkep);
+  cursor: pointer;
 }
 
-.is > svg {
+/* Arama düğmesi kartın tam boyunca uzanıyor: hedef 48 pikselin
+   altına düşmüyor, kısa kartta bile parmak rahat oturuyor. */
+.is__ara {
   flex: none;
-  color: var(--murekkep-3);
+  display: grid;
+  place-items: center;
+  width: var(--dokunma-genis);
+  border-left: 1px solid var(--cizgi);
+  background: var(--yuzey-2);
+  color: var(--mavi-rz);
+}
+
+.is__ara:active {
+  background: var(--mavi-z);
 }
 
 .is__ust {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--bosluk-2);
   flex-wrap: wrap;
-  margin-bottom: 5px;
+  margin-bottom: var(--bosluk-1);
 }
 
-.is__no {
-  font-size: 12px;
-  color: var(--murekkep-3);
-}
-
-/* Zaman en sağda: göz önce türe ve numaraya, sonra tarihe gidiyor. */
+/* Zaman en sağda: göz önce türe, sonra tarihe gidiyor. */
 .is__zaman {
   margin-left: auto;
-  font-size: 12px;
-  color: var(--murekkep-3);
+  font-size: var(--yazi-2);
+  color: var(--murekkep-2);
   white-space: nowrap;
 }
 
 .is__ad {
-  font-size: 15.5px;
+  font-size: var(--yazi-3);
   font-weight: 800;
   letter-spacing: -0.01em;
   overflow: hidden;
@@ -335,18 +404,24 @@
 
 .is__alt {
   margin-top: 2px;
-  font-size: 13px;
+  font-size: var(--yazi-2);
   color: var(--murekkep-2);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+/* Talep numarası konumun ARDINDA, kendi satırında değil. Bayi numarayı
+   nadiren okuyor; müşterinin adı ve nerede olduğu asıl bilgi. */
+.is__no {
+  color: var(--murekkep-3);
+}
+
 /* İşaret satırı: kartın alt kenarında, kendi rengiyle. Üst kısım her
    talepte aynı yerde dursun diye buraya alındı. */
 .is__isaret {
-  margin-top: 7px;
-  font-size: 12.5px;
+  margin-top: var(--bosluk-2);
+  font-size: var(--yazi-2);
   font-weight: 700;
   color: var(--murekkep-2);
 }
@@ -358,18 +433,17 @@
 /* Geciken işin sol kenarında kırmızı şerit — listeye bakınca hangi
    işin beklediği kaydırmadan görülüyor. */
 .is--gec {
-  border-left: 3px solid var(--kirmizi);
-  padding-left: 12px;
+  border-left: 4px solid var(--kirmizi);
 }
 
 /* ------------------------------------------------------------- Duyuru */
 
 .duyuru {
-  padding: 14px;
-  margin-bottom: 14px;
+  padding: var(--bosluk-4);
+  margin-bottom: var(--bosluk-4);
   border: 1px solid var(--cizgi);
-  border-left: 3px solid var(--turuncu);
-  border-radius: 14px;
+  border-left: 4px solid var(--turuncu);
+  border-radius: var(--r-3);
   background: var(--yuzey);
   box-shadow: var(--golge);
 }
@@ -377,9 +451,9 @@
 .duyuru__ust {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--bosluk-2);
   color: var(--turuncu);
-  font-size: 14.5px;
+  font-size: var(--yazi-3);
 }
 
 .duyuru__ust svg {
@@ -387,11 +461,30 @@
 }
 
 .duyuru__metin {
-  margin: 6px 0 12px;
-  font-size: 13.5px;
+  margin: var(--bosluk-2) 0 var(--bosluk-3);
+  font-size: var(--yazi-3);
   line-height: 1.55;
   color: var(--murekkep-2);
   white-space: pre-wrap;
+}
+
+/* Detaydaki telefon satırı — listedeki arama düğmesinin karşılığı.
+   Numara düz yazı olduğu sürece bayi onu ezberleyip tuşluyordu. */
+.ara-satir {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  min-height: var(--dokunma);
+  margin-left: calc(var(--bosluk-3) * -1);
+  padding: 0 var(--bosluk-3);
+  border-radius: var(--r-2);
+  color: var(--mavi-rz);
+  font-size: var(--yazi-3);
+  font-weight: 700;
+}
+
+.ara-satir:active {
+  background: var(--mavi-z);
 }
 
 /* --------------------------------------------------------------- Not
@@ -403,13 +496,13 @@
 .not {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  margin-top: 14px;
-  padding: 13px 14px;
+  gap: var(--bosluk-3);
+  margin-top: var(--bosluk-4);
+  padding: var(--bosluk-4);
   border: 1px solid var(--cizgi);
-  border-radius: 14px;
+  border-radius: var(--r-3);
   background: var(--yuzey);
-  font-size: 14px;
+  font-size: var(--yazi-3);
 }
 
 .not > svg {
@@ -418,14 +511,14 @@
 }
 
 .not p {
-  margin: 4px 0 0;
-  font-size: 13px;
+  margin: var(--bosluk-1) 0 0;
+  font-size: var(--yazi-2);
   line-height: 1.55;
   color: var(--murekkep-2);
 }
 
 .not--mavi {
-  border-left: 3px solid var(--mavi);
+  border-left: 4px solid var(--mavi);
 }
 
 .not--mavi > svg {
@@ -433,7 +526,7 @@
 }
 
 .not--yesil {
-  border-left: 3px solid var(--yesil);
+  border-left: 4px solid var(--yesil);
 }
 
 .not--yesil > svg {
@@ -446,9 +539,9 @@
    bir liste: hepsi aynı ağırlıkta, asıl işlem ise dipte tek başına. */
 
 .secenek {
-  margin-top: 14px;
+  margin-top: var(--bosluk-4);
   border: 1px solid var(--cizgi);
-  border-radius: 14px;
+  border-radius: var(--r-3);
   background: var(--yuzey);
   overflow: hidden;
 }
@@ -456,15 +549,15 @@
 .secenek__dg {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--bosluk-3);
   width: 100%;
-  min-height: 50px;
-  padding: 12px 14px;
+  min-height: var(--dokunma-genis);
+  padding: var(--bosluk-3) var(--bosluk-4);
   background: transparent;
   border: 0;
   border-bottom: 1px solid var(--cizgi);
   color: var(--murekkep);
-  font-size: 14.5px;
+  font-size: var(--yazi-3);
   font-weight: 600;
   text-align: left;
   cursor: pointer;
@@ -497,22 +590,23 @@
 .bos {
   display: grid;
   justify-items: center;
-  gap: 6px;
-  padding: 54px 24px;
+  gap: var(--bosluk-2);
+  padding: var(--bosluk-7) var(--bosluk-5);
   text-align: center;
   color: var(--murekkep-3);
 }
 
 .bos strong {
-  font-size: 15.5px;
-  color: var(--murekkep-2);
+  font-size: var(--yazi-4);
+  color: var(--murekkep);
 }
 
 .bos p {
   margin: 0;
-  font-size: 13.5px;
+  font-size: var(--yazi-3);
   max-width: 30ch;
   line-height: 1.55;
+  color: var(--murekkep-2);
 }
 
 /* ------------------------------------------------------------- Hesap */
@@ -520,11 +614,11 @@
 .kimlik {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 16px;
-  margin-bottom: 22px;
+  gap: var(--bosluk-4);
+  padding: var(--bosluk-4);
+  margin-bottom: var(--bosluk-5);
   border: 1px solid var(--cizgi);
-  border-radius: 14px;
+  border-radius: var(--r-3);
   background: var(--yuzey);
   box-shadow: var(--golge);
 }
@@ -533,23 +627,23 @@
   flex: none;
   display: grid;
   place-items: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 999px;
+  width: var(--dokunma-genis);
+  height: var(--dokunma-genis);
+  border-radius: var(--r-tam);
   background: var(--lacivert);
   color: #fff;
-  font-size: 22px;
+  font-size: var(--yazi-5);
   font-weight: 900;
 }
 
 .kimlik__ad {
-  font-size: 16px;
+  font-size: var(--yazi-4);
   font-weight: 800;
   letter-spacing: -0.01em;
 }
 
 .kimlik__alt {
-  font-size: 13px;
+  font-size: var(--yazi-2);
   color: var(--murekkep-2);
 }
 
@@ -558,33 +652,40 @@
 /* Ekranın ne işe yaradığını anlatan tek satır. Başlığın altında,
    kartlardan önce. */
 .ipucu {
-  margin: 0 2px 18px;
-  font-size: 13.5px;
+  margin: 0 2px var(--bosluk-5);
+  font-size: var(--yazi-3);
   line-height: 1.55;
   color: var(--murekkep-2);
 }
 
 /* Tam genişlik düğme. Telefonda asıl işlemler böyle: parmağın
-   nişan alması gerekmiyor. 46 piksel, dokunma alt sınırının üstünde. */
+   nişan alması gerekmiyor. */
 .dg--blok {
   width: 100%;
-  height: 46px;
-  font-size: 15px;
-  border-radius: 12px;
+  height: var(--dokunma-genis);
+  font-size: var(--yazi-3);
+  border-radius: var(--r-2);
 }
 
 /* PAYLAŞILAN ÖLÇÜLER PARMAĞA GÖRE BÜYÜTÜLÜYOR.
 
    `.dg` 36, `.gir` 41 piksel yüksekliğinde: backoffice bilgisayarda
-   açılıyor, fare için yeterli. Bayi uygulaması telefonda; 44 pikselin
-   altındaki hedefe parmakla isabet ettirmek zor.
+   açılıyor, fare için yeterli. Bayi uygulaması tarlada; 48 pikselin
+   altındaki hedefe eldivenli parmakla isabet ettirmek zor.
 
    Kural yalnız `.uyg` içinde geçerli — backoffice'in kendi ölçüleri
    olduğu gibi kalıyor, ortak dosyaya dokunulmuyor. `min-height`
    `height`i geçtiği için ikisini de yeniden yazmaya gerek yok. */
 .uyg .dg,
 .uyg .gir {
-  min-height: 44px;
+  min-height: var(--dokunma);
+  font-size: var(--yazi-3);
+}
+
+/* Giriş ekranı kabuğun dışında; ölçüler oraya da geçerli. */
+.giris .dg,
+.giris .gir {
+  min-height: var(--dokunma);
 }
 
 /* --------------------------------------------------- Geniş ekran (panel)
@@ -598,7 +699,7 @@
   .uyg__bar {
     height: var(--bar);
     padding-block: 0;
-    padding-inline: 24px;
+    padding-inline: var(--bosluk-5);
   }
 
   /* Sekmeler DOM'da içerikten SONRA geliyor; `sticky` ile yukarı
@@ -609,8 +710,8 @@
     top: calc(var(--bar) + var(--ust));
     bottom: auto;
     justify-content: center;
-    gap: 4px;
-    padding: 6px 16px;
+    gap: var(--bosluk-1);
+    padding: var(--bosluk-2) var(--bosluk-4);
     border-top: 0;
     border-bottom: 1px solid var(--cizgi);
   }
@@ -618,12 +719,11 @@
   .uyg__tab {
     flex: none;
     flex-direction: row;
-    gap: 9px;
-    /* Geniş ekranda da 44: panel tablette de açılıyor, orada da
-       parmakla basılıyor. */
-    min-height: 44px;
-    padding: 0 16px;
-    border-radius: 10px;
+    gap: var(--bosluk-2);
+    /* Geniş ekranda da 48: panel tablette de açılıyor. */
+    min-height: var(--dokunma);
+    padding: 0 var(--bosluk-4);
+    border-radius: var(--r-2);
   }
 
   .uyg__tab:hover {
@@ -635,29 +735,28 @@
   }
 
   .uyg__tab-ad {
-    font-size: 13.5px;
+    font-size: var(--yazi-2);
   }
 
   .uyg__ic {
     width: 100%;
     max-width: 720px;
     margin: 0 auto;
-    /* Üstteki sekme çubuğu (44 + 12 dolgu + 1 çizgi = 57) kadar
-       boşluk, üstüne 24 nefes payı. */
-    padding: 81px 16px 24px;
+    /* Üstteki sekme çubuğu (48 + 16 dolgu + 1 çizgi = 65) kadar
+       boşluk, üstüne nefes payı. */
+    padding: 89px var(--bosluk-4) var(--bosluk-5);
   }
 
   /* Alt sayfada sekme çubuğu yok; içerik doğrudan çubuğun altından
      başlıyor. */
   .uyg--sayfa .uyg__ic {
-    padding-top: 24px;
+    padding-top: var(--bosluk-5);
   }
 
   .yapisik {
     /* Sekmeler yukarı taşındı; kaydet düğmesi artık ekranın
        dibinde duruyor. */
     bottom: 0;
-    border-radius: 0 0 12px 12px;
   }
 
   .uyg__dip {

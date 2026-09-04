@@ -6,6 +6,7 @@ import {
   IconBook,
   IconCalendar,
   IconCheckCircle,
+  IconPhone,
   IconRight,
   IconShield,
 } from '../../components/Icons'
@@ -64,7 +65,17 @@ export function TalepDetay({ talep, bayiAd, bayiId, onKapat, onDestekIste }) {
           </span>
         </div>
 
-        <Satir ad="Telefon" deger={talep.tel} />
+        {/* Numara dokunulabilir: bayi ezberleyip tuşlamıyor. Listedeki
+            arama düğmesinin aynısı, burada satır hâlinde. */}
+        {talep.tel && (
+          <div style={{ marginTop: 10 }}>
+            <div className="kucuk sonuk">Telefon</div>
+            <a className="ara-satir" href={'tel:' + String(talep.tel).replace(/\D/g, '')}>
+              <IconPhone size={19} />
+              <span className="mono">{talep.tel}</span>
+            </a>
+          </div>
+        )}
         <Satir
           ad="Konum"
           deger={talep.ilce ? `${talep.ilce} / ${talep.il}` : talep.il}

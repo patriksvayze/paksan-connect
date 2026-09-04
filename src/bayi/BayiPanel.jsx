@@ -15,7 +15,14 @@ import { TemaSecici } from '../backoffice/Tema'
 import { load, save } from '../lib/storage'
 import { duyuruGecerliMi } from '../lib/duyuruHedef'
 import { Kabuk, Bolum, Bos } from './Kabuk'
-import { IconWrench, IconParca, IconPlus, IconUser, IconRight, IconBell } from '../components/Icons'
+import {
+  IconWrench,
+  IconParca,
+  IconPlus,
+  IconUser,
+  IconBell,
+  IconPhone,
+} from '../components/Icons'
 import { PaksanLogo } from '../components/Marka'
 import { TalepDetay } from './ekranlar/TalepDetay'
 import { Stok } from './ekranlar/Stok'
@@ -291,8 +298,29 @@ function Uygulama({ oturum, onCikis }) {
 /* ---------------------------------------------------------------- İşler */
 
 function Isler({ oturum, bekleyen, biten, onAc }) {
+  const geciken = bekleyen.filter(gecikmisMi).length
+
   return (
     <>
+      {/* Günün durumu listenin ÜSTÜNDE.
+
+          Bayi uygulamayı açtığında ilk sorusu "bugün ne var" oluyor;
+          cevabı kartları sayarak bulmak zorundaydı. Geciken iş varsa
+          ayrıca yazılıyor: listede kırmızı şeritle de görünüyor ama
+          o şerit ancak o karta bakınca fark ediliyor. */}
+      {bekleyen.length > 0 && (
+        <div className={'ozet' + (geciken ? ' ozet--gec' : '')}>
+          <div className="ozet__sayi">{bekleyen.length}</div>
+          <div>
+            <strong>iş sizi bekliyor</strong>
+            {/* Sayı yazılmıyor: Codex tekil/çoğul kalıbı yerine bunu
+                verdi ve kaç tane olduğu zaten listede kırmızı şeritli
+                kartlardan görülüyor. */}
+            {geciken > 0 && <p>48 saati aşan işlere önce bakın.</p>}
+          </div>
+        </div>
+      )}
+
       <BayiDuyurulari oturum={oturum} />
 
       {bekleyen.length === 0 && biten.length === 0 && (
@@ -324,18 +352,30 @@ function Isler({ oturum, bekleyen, biten, onAc }) {
 
 const TUR_ADI = { servis: 'Servis', parca: 'Yedek Parça', satinalma: 'Fiyat Teklifi' }
 
+/* ARAMA DÜĞMESİ KARTIN ÜSTÜNDE.
+
+   Bayinin bu listede yaptığı ilk iş müşteriyi aramak: nerede olduğunu,
+   makinenin ne yaptığını telefonda soruyor. Numara eskiden kartın alt
+   satırında düz yazıydı; bayi ezberleyip tuşluyordu.
+
+   Yol tarifi düğmesi EKLENMEDİ. Talepte koordinat yok, yalnız il ve
+   ilçe var (bkz. KonumAlani.jsx); düğme bayiyi ilçe merkezine
+   götürürdü, tarlaya değil. Adresi telefonda öğreniyor.
+
+   Kart iç içe düğme DEĞİL: soldaki alan detayı açıyor, sağdaki bağlantı
+   arıyor. İkisi kardeş — `<button>` içine `<button>` geçerli değil. */
 function TalepKarti({ talep, onAc }) {
   const paksanda = (talep.sahip || 'paksan') === 'paksan'
   const gecikti = gecikmisMi(talep)
+  const tel = String(talep.tel || '').replace(/\D/g, '')
 
   return (
-    <button className={'is' + (gecikti ? ' is--gec' : '')} onClick={onAc}>
-      <div className="is__ic">
+    <div className={'is' + (gecikti ? ' is--gec' : '')}>
+      <button className="is__ac" onClick={onAc}>
         <div className="is__ust">
           <span className={'tur tur--' + talep.tur}>
             {TUR_ADI[talep.tur] || talep.tur}
           </span>
-          <span className="is__no mono">{talep.no}</span>
           <span className="is__zaman">{gecenSure(talep.createdAt || talep.tarih)}</span>
         </div>
 
@@ -343,7 +383,7 @@ function TalepKarti({ talep, onAc }) {
 
         <div className="is__alt">
           {talep.ilce ? `${talep.ilce} / ${talep.il}` : talep.il || '—'}
-          {talep.tel ? ` · ${talep.tel}` : ''}
+          <span className="is__no mono"> · {talep.no}</span>
         </div>
 
         {/* İki uyarı da satır hâlinde altta: kartın üst kısmı her
@@ -352,9 +392,18 @@ function TalepKarti({ talep, onAc }) {
         {paksanda && talep.devir && (
           <div className="is__isaret">PAKSAN destek veriyor</div>
         )}
-      </div>
-      <IconRight size={18} />
-    </button>
+      </button>
+
+      {tel && (
+        <a
+          className="is__ara"
+          href={'tel:' + tel}
+          aria-label={(talep.ad || 'Müşteriyi') + ' ara'}
+        >
+          <IconPhone size={21} />
+        </a>
+      )}
+    </div>
   )
 }
 

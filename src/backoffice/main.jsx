@@ -14,6 +14,8 @@ import '@fontsource/roboto/latin-ext-400.css'
 import '@fontsource/roboto/latin-ext-500.css'
 import '@fontsource/roboto/latin-ext-700.css'
 import '@fontsource/roboto/latin-ext-900.css'
+/* Ortak ölçü sistemi (bkz. src/styles/olcu.css) — üç ürün de paylaşıyor. */
+import '../styles/olcu.css'
 import './backoffice.css'
 import { temayiUygula } from './Tema'
 

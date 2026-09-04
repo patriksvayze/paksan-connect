@@ -11,6 +11,10 @@ import '@fontsource/roboto/latin-ext-400.css'
 import '@fontsource/roboto/latin-ext-500.css'
 import '@fontsource/roboto/latin-ext-700.css'
 import '@fontsource/roboto/latin-ext-900.css'
+/* Ortak ölçü sistemi — boşluk, yazı boyu, yarıçap, dokunma hedefi.
+   Üç ürün de aynı dosyayı kullanıyor; renk burada değil, sebebi
+   dosyanın başında yazılı. */
+import './styles/olcu.css'
 import './styles.css'
 
 import App from './App'

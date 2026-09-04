@@ -68,12 +68,21 @@ tarayıcıda ölçülen JS (kontrast, taşma, dokunma hedefi).
 ## Standing kurallar (kullanıcıdan)
 
 - APK: yalnız istendiğinde derle, her sürümü ayrı dosyada sakla, üzerine yazma
-- Her değişiklik iki dilde birden yapılır (Türkçe + İngilizce)
-- **Türkçe metin yazımı ve dil doğruluk kontrolü artık Codex plugin'i
-  üzerinden yapılır** — Claude kendi başına Türkçe taslak yazmaz veya
-  onaylamaz
+- **Dil: yalnız PAKSAN Connect (müşteri uygulaması) iki dilli.** Orada her
+  değişiklik Türkçe VE İngilizce yapılır. Backoffice ve bayi paneli tek
+  dilli, yalnız Türkçe — kullanıcıları PAKSAN personeli ve Türkiye'deki
+  bayiler. Bu ekranlarda `t()` ve sözlük aranmaz.
+- **Türkçe CÜMLELER Codex'ten geçer**, kısa arayüz etiketleri geçmez.
+  Ayrım: kullanıcıya bir şey anlatan cümle, paragraf, hata ve bilgi
+  metni → Codex. Sekme adı, düğme yazısı, bölüm başlığı, alan etiketi
+  gibi bir-iki kelimelik etiketler → Claude yazar. Emin değilse Codex'e
+  gönderir.
 - API anahtarları asla uygulamaya gömülmez (sunucu tarafında kalır)
 - Hesap silme / numara değişikliği yalnız PAKSAN yetkilisi tarafından yapılır
+- Görsel içerik üretilecekse Higgsfield kullanılır — hesapta kredi var,
+  elle çizilmiş zayıf görselle idare edilmez
+- Tasarım referansı için kullanıcıya sorulmaz: tarayıcı açılır, benzer
+  uygulamalara bakılır, karar gerekçesiyle yazılır
 
 ## Değişiklik sonrası kontrol listesi
 
@@ -81,8 +90,9 @@ Bir değişikliği "bitti" demeden önce:
 
 1. Renk/tema değişikliği yaptıysan → `styles.css` ve `backoffice.css`
    token'ları hâlâ eşit mi, elle kontrol et
-2. Metin ekledi/değiştirdiysen → `tr.js` VE `en.js` ikisi de güncellendi mi
-   (anahtar sayıları eşit mi: `grep -c` ile hızlı sayılabilir)
+2. **Müşteri uygulamasında** metin ekledi/değiştirdiysen → `tr.js` VE
+   `en.js` ikisi de güncellendi mi (anahtar sayıları eşit mi).
+   Backoffice ve bayi paneli tek dilli, orada bu adım yok.
 3. Görsel bir değişiklikse → `ekran-dogrulama` subagent'ı ile ekran
    görüntülerini tazele, `ui-dogrulama` subagent'ı ile son QA turu yap
 4. Yeni/değişen ikon varsa → `ikon-uretici` subagent'ını kullan, ikonu elle
@@ -104,6 +114,11 @@ Genel diff incelemesi için `/code-review` komutu kullanılır.
 
 - **KALICI KURAL:** Codex’in bu projedeki rolü yalnızca Türkçe metin yazımı ve dil doğruluk kontrolüdür.
 - Başka hiçbir iş Codex’e devredilmez.
+- **Rolün sınırı CÜMLELERDİR.** Kullanıcıya bir şey anlatan her cümle,
+  paragraf, hata ve bilgi metni Codex'ten geçer. Sekme adı, düğme
+  yazısı, bölüm başlığı, alan etiketi gibi bir-iki kelimelik etiketleri
+  Claude yazar; metin tasarımın malzemesi ve her etiket için gidip
+  gelmek düzen çalışmasını gereksiz yavaşlatıyordu. Tereddütte gönderilir.
 - İş devredilirken gereken efor açıkça belirtilir; `codex exec` için `-c model_reasoning_effort` kullanılır.
 - Türkçe metin yazımı ve dil doğruluk kontrolü için efor seviyesi `low` olarak belirlenir.
 - Devredilen iş sessizce başarısız olabilir; sonucu görülmeden iş tamamlanmış sayılmaz.
