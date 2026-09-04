@@ -6,6 +6,11 @@ müşterilere nasıl açacağız?**
 `PRODA-CIKIS.md` "neler eksik" diyor. Bu belge "ne satın alacağız, kimi
 işe alacağız, hangi sırayla ne yapacağız" diyor.
 
+> **Teknik tarafı merak ediyorsanız:** sunucu nedir, veritabanı nasıl
+> kurulur, kod oraya nasıl gider — hepsi sıfırdan
+> `SUNUCU-VE-VERITABANI.md` içinde anlatılıyor. Yazılım bilgisi
+> gerektirmiyor.
+
 Yazılım bilmeyen biri için yazıldı. Teknik terim geçtiği yerde ne
 demek olduğu da yazıyor.
 
