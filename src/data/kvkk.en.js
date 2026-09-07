@@ -1,4 +1,4 @@
-import { SIRKET } from '../config'
+import { SIRKET } from '../marka'
 
 /* ==========================================================================
    KVKK metinlerinin İngilizcesi

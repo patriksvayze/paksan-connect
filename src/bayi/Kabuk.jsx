@@ -1,4 +1,4 @@
-import { PaksanLogo } from '../components/Marka'
+import { Logo } from '../marka'
 import { IconBack, IconPhone } from '../components/Icons'
 
 /* ==========================================================================
@@ -47,7 +47,7 @@ function Cubuk({ baslik, alt, onGeri, islem }) {
           taşmasın. Marka zaten giriş ekranında tam hâliyle duruyor. */}
       {/* 30 piksel: 15'ti, okunmuyordu. Marka çubuğun sağında tek
           başına duruyor, yer var. */}
-      {islem || <PaksanLogo height={30} sadeceYazi beyaz />}
+      {islem || <Logo height={30} sadeceYazi beyaz />}
     </header>
   )
 }

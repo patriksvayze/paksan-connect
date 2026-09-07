@@ -1,20 +1,25 @@
 /* ==========================================================================
-   PAKSAN uygulaması — ayarlar
+   KURULUM AYARLARI
 
-   Destek asistanını PAKSAN'ın kendi yapay zekâ servisine bağlamak için
-   yalnızca aşağıdaki AI bloğunu doldurmak yeterli. Başka hiçbir dosyaya
-   dokunmaya gerek yok.
+   Sunucu adresleri ve açma/kapama anahtarları. Bunlar da yeni firmada
+   doldurulacak ama MARKA DEĞİL, kurulum ayarı: aynı firma için test ve
+   canlı ortamda farklı olabiliyorlar.
+
+   Firmanın kimliği — adı, unvanı, iletişimi, logosu, renkleri, banka
+   hesapları — burada değil, `src/marka/` içinde
+   (bkz. MARKA-DEVIR.md).
    ========================================================================== */
 
 export const AI = {
-  /* PAKSAN LLM servisi hazır olduğunda true yapın */
+  /* Destek asistanını firmanın kendi yapay zekâ servisine bağlamak için
+     bu bloğu doldurmak yeterli; başka hiçbir dosyaya dokunulmuyor. */
   aktif: false,
 
   /* Uygulamanın soru göndereceği adres.
-     Örnek: 'https://destek.paksanmakina.com.tr/api/sor'
+     Örnek: 'https://destek.ornekfirma.com.tr/api/sor'
 
      ÖNEMLİ: API anahtarı ASLA uygulamanın içine konmaz. Anahtar
-     PAKSAN'ın sunucusunda durur; uygulama sadece bu adrese soru yollar. */
+     firmanın sunucusunda durur; uygulama sadece bu adrese soru yollar. */
   endpoint: '',
 
   /* Cevap bu süre içinde gelmezse çevrimdışı yedeğe geçilir (milisaniye).
@@ -24,107 +29,6 @@ export const AI = {
   /* İnternet yoksa veya servise ulaşılamazsa, cihaz üzerindeki
      temel arıza rehberiyle cevap verilsin mi? */
   cevrimdisiYedek: true,
-}
-
-/* Şirket bilgileri — adres ve telefonlar paksanmakina.com.tr'den,
-   resmî unvan şirketten alındı. `unvan` KVKK metninde veri sorumlusu
-   olarak kullanılıyor; `ad` ekranlarda görünen kısa addır. */
-export const SURUM = '0.9.12'
-
-/* Uygulamanın adı — telefonun ekranında ikonun altında yazan ad da bu.
-   Şirket adından ayrı tutuluyor: şirket "PAKSAN Makina", uygulama
-   "PAKSAN Connect". Ad değişirse üç yerde birden değişmeli:
-   burası, capacitor.config.json ve android/.../values/strings.xml */
-export const UYGULAMA = 'PAKSAN Connect'
-
-/* Müşteriye gönderilen indirme adresi.
-
-   Bayi, uygulamayı kullanmayan bir müşteri için talep açtığında ona
-   SMS ile bu adresi yollayabiliyor (bkz. src/bayi/ekranlar/ElleKayit.jsx).
-
-   Adres uygulama kimliğinden çıkıyor ve kimlik sabit: mağazaya bir kez
-   yüklendikten sonra `com.paksanmakina.app` değiştirilemiyor. Yayına
-   çıkılana kadar bu adres açılmıyor — denemede boş sayfa görünmesi
-   normal. */
-export const INDIRME_ADRESI =
-  'https://play.google.com/store/apps/details?id=com.paksanmakina.app'
-
-export const SIRKET = {
-  ad: 'PAKSAN Makina',
-  unvan: 'PAKSAN MAKİNA SANAYİ VE TİCARET A.Ş.',
-
-  telefon: '444 9 725',
-  telefonHam: '4449725',
-  telefon2: '+90 266 733 90 90',
-  telefon2Ham: '+902667339090',
-  faks: '+90 266 733 90 99',
-  eposta: 'paksan@paksanmakina.com.tr',
-  site: 'https://www.paksanmakina.com.tr',
-
-  /* İki tesis var; KVKK metninde ikisi de yazılı */
-  adres: 'Bandırma – Bursa Karayolu 10. km, Bandırma / Balıkesir',
-  adres2: 'Taştepe, Deri Organize Sanayi Bölgesi, 10900 Gönen / Balıkesir',
-
-  garantiYil: 2,
-
-  /* Karşılama ekranında kullanılıyor */
-  kurulus: 1970,
-  slogan: 'Yarım asırlık tecrübe, geniş servis ağı, 6 kıtaya ihracat',
-  kita: 6,
-}
-
-/* ==========================================================================
-   İHRACAT — yurtdışından gelen talepler
-
-   PAKSAN altı kıtaya ihracat yapıyor ve yurtdışındaki iş Türkiye'deki
-   işten başka yürüyor: servisi yerel distribütör veriyor, parça
-   gümrükten geçiyor, fiyat ihracat listesinden veriliyor.
-
-   Bu yüzden konumu Türkiye dışında olan müşterinin talebi BACKOFFICE’E
-   DÜŞMÜYOR; ihracat ekibinin e-postasına gidiyor ve kayda geçiyor
-   (bkz. src/lib/ihracat.js).
-
-   ⚠ E-POSTA ADRESLERİ DOLDURULMADI. Gerçek ihracat ekibi adresleri
-     yazılmalı. Liste boşken talep yine işaretleniyor ve backoffice’ten
-     gizleniyor, e-posta sunucu bağlanınca gidecek.
-   ========================================================================== */
-export const IHRACAT = {
-  aktif: true,
-
-  /* Talebin düşeceği adresler */
-  epostalar: [
-    // 'export@paksanmakina.com.tr',
-  ],
-}
-
-/* ==========================================================================
-   BANKA HESAPLARI — yedek parça ödemesi
-
-   Müşteri yedek parça bedelini bu hesaplara gönderiyor ve dekontunu
-   uygulamadan yüklüyor. Hesap bilgileri uygulamanın içinde duruyor:
-   ödeme ekranı tarlada internetsiz de açılabilmeli, müşteri IBAN'ı
-   görüp bankacılık uygulamasına geçebilmeli.
-
-   ⚠ AŞAĞIDAKİ BİLGİLER DOLDURULMADI. Yayına çıkmadan önce PAKSAN
-     muhasebesinden alınan gerçek IBAN'lar buraya yazılmalı. `aktif`
-     false olduğu sürece ödeme ekranı IBAN göstermiyor, "hesap bilgisi
-     için bizi arayın" diyor — yanlış IBAN göstermektense hiç
-     göstermemek doğru.
-   ========================================================================== */
-export const BANKA = {
-  aktif: false,
-
-  /* Faturayı kesen tüzel kişi; dekontun açıklamasına da bu yazılıyor */
-  unvan: 'PAKSAN MAKİNA SANAYİ VE TİCARET A.Ş.',
-
-  /* Her satır: { banka, sube, iban } */
-  hesaplar: [
-    // { banka: '', sube: '', iban: 'TR00 0000 0000 0000 0000 0000 00' },
-  ],
-
-  /* Müşteri havale açıklamasına ne yazsın — talep numarası şart,
-     yoksa muhasebe hangi ödemenin hangi talep olduğunu bulamıyor. */
-  aciklamaKalibi: '{no} · {ad}',
 }
 
 /* ==========================================================================
@@ -180,4 +84,3 @@ export const SUNUCU = {
      Tarlada şebeke zayıf olabiliyor, bu yüzden geniş tutuldu. */
   zamanAsimi: 30000,
 }
-

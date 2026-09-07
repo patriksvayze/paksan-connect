@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppState'
-import { PaksanRozet } from '../components/Marka'
+import { Rozet } from '../marka'
 import { TelefonAlani } from '../components/TelefonAlani'
 import { SifreAlani } from '../components/SifreAlani'
 import { telGecerliMi } from '../lib/tel'
@@ -70,7 +70,7 @@ export default function Login() {
             {t('ortak.geri')}
           </button>
           <div className="spacer" />
-          <PaksanRozet />
+          <Rozet />
         </div>
         <div className="topbar__titles">
           <h1>{t('giris.baslik')}</h1>

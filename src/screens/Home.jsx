@@ -1,9 +1,9 @@
-﻿import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppState'
 import { useDil } from '../i18n'
 import { TabBar } from '../components/Chrome'
 import { useKaydirildi } from '../lib/kaydirma'
-import { PaksanRozet } from '../components/Marka'
+import { Rozet } from '../marka'
 import { UrunFoto } from '../components/Gorsel'
 import { MachineCard } from './Machines'
 import { PRODUCTS, urunDilde } from '../data/products'
@@ -38,7 +38,7 @@ export default function Home() {
       {/* Başlık: renkli çubuk yok — logo solda, profil sağda yuvarlak buton */}
       <header className={'topbar' + (kaydirildi ? ' topbar--scrolled' : '')}>
         <div className="topbar__row" style={{ minHeight: 50 }}>
-          <PaksanRozet />
+          <Rozet />
           <div className="spacer" />
           {/* Profil alt menüye taşındı; bu köşe bildirimlere ayrıldı.
               Okunmamış varsa düğmenin üstünde sayı duruyor. */}

@@ -13,7 +13,7 @@ import { bayileriGetir } from '../data/bayiler'
 import { PARA_BIRIMI } from '../data/parcaFiyat'
 import { talepTuru } from '../lib/talep'
 import { ekAdresi } from '../lib/ekler'
-import { SIRKET } from '../config'
+import { SIRKET } from '../marka'
 import { araProps } from '../lib/tel'
 import {
   IconCalendar, IconCheckCircle, IconClose, IconCart, IconMic,
@@ -393,7 +393,7 @@ export default function RequestDetail() {
             </div>
           )}
           <a className="btn btn--soft" {...araProps(SIRKET.telefonHam, SIRKET.telefon, showToast)}>
-            <IconPhone size={20} /> {t('talepDetay.paksaniAra')}
+            <IconPhone size={20} /> {t('talepDetay.markayiAra')}
           </a>
         </div>
       </div>

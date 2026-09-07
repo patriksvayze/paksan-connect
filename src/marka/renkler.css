@@ -1,0 +1,43 @@
+/* ==========================================================================
+   MARKA RENKLERİ — tek kaynak
+
+   Firmanın ham renkleri. Üç ürünün üçü de bunları kendi anlamsal
+   token'larına çeviriyor; ham değer başka hiçbir yerde yazılı değil.
+
+   NEDEN AYRI DOSYA
+
+   Aynı lacivert ve turuncu iki ayrı CSS kökünde (`src/styles.css` ve
+   `src/backoffice/backoffice.css`) elle senkron tutuluyordu. Marka
+   rengini değiştirmek iki dosyada arama yapmak demekti; biri unutulursa
+   iki ürün farklı renkte açılıyordu.
+
+   Artık ham renk burada, anlamsal token'lar yerinde. Bu ayrım
+   kasıtlı: `--pk-blue-soft` ya da `--mavi-z` gibi türev tonlar her
+   ürünün kendi zemin ve tema kararına bağlı, marka kararı değil.
+
+   ÖLÇÜM
+
+   Turuncu, makine gövde renginden ölçüldü (bkz. tools/marka-rengi.mjs).
+   Mavi logo dosyasından; lacivert arayüz zemininden.
+
+   KARANLIK TEMA BURADA YOK. Karanlık temada marka rengi değişmiyor;
+   değişen, o rengin üstüne binen yazı ve zemin tonları. Onlar her
+   ürünün kendi kökünde, ölçüm gerekçeleriyle birlikte duruyor.
+   ========================================================================== */
+
+:root {
+  /* Kurumsal mavi — logodan */
+  --marka-mavi: #1848a8;
+
+  /* Koyu lacivert — üst çubuk, alt menü, koyu zeminler */
+  --marka-lacivert: #0a1a33;
+
+  /* Makine gövde turuncusu ve yakın tonları */
+  --marka-turuncu: #e8641a;
+  --marka-turuncu-acik: #ff8a3d;
+  --marka-turuncu-koyu: #b8480a;
+
+  /* Düğme dolgusu — düz turuncunun üstündeki beyaz yazı eşiği
+     geçmiyordu, bu ton onun için koyulaştırıldı. */
+  --marka-turuncu-dugme: #c7490a;
+}

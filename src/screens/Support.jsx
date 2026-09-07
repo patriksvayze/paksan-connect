@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useApp } from '../context/AppState'
 import { TopBar, TabBar, Sheet } from '../components/Chrome'
-import { PaksanAmblem } from '../components/Marka'
+import { Amblem } from '../marka'
 import { useDil } from '../i18n'
 import { load, save } from '../lib/storage'
 import { destekOlay, destekOturumu } from '../lib/destekLog'
@@ -425,7 +425,7 @@ function Balon({ mesaj, dil, t }) {
           kurmuş oluyor. */}
       {bot && !genis && (
         <span className="msg-ava">
-          <PaksanAmblem size={22} />
+          <Amblem size={22} />
         </span>
       )}
 

@@ -31,7 +31,7 @@ import {
   IconUndo,
 } from '../components/Icons'
 import { altBilgi } from '../data/duyuruTurleri'
-import { PaksanLogo } from '../components/Marka'
+import { Logo } from '../marka'
 /* Çizimler Higgsfield ile üretildi, uygulamanın kendi görsel diline
    (kalın lacivert kontur, düz dolgu, sınırlı palet) referans verilerek.
    Küçültme ve sıkıştırma: tools/gorsel-hazirla.mjs */
@@ -128,7 +128,7 @@ function Giris({ onGiris }) {
             uygulamanın ilk izlenimi ve tek kimliği logo değil: bayi
             burada ne işi olduğunu da görüyor. */}
         <img className="giris__serit" src={girisGorseli} alt="" />
-        <PaksanLogo height={26} style={{ marginBottom: 14 }} />
+        <Logo height={26} style={{ marginBottom: 14 }} />
         <div className="giris__baslik">Bayi Girişi</div>
         <div className="giris__cizgi" />
 
@@ -227,7 +227,7 @@ function IlkSifre({ oturum, onBitti }) {
   return (
     <div className="giris">
       <form className="giris__kart" onSubmit={kaydet}>
-        <PaksanLogo height={26} style={{ marginBottom: 14 }} />
+        <Logo height={26} style={{ marginBottom: 14 }} />
         <div className="giris__baslik">Şifrenizi Belirleyin</div>
         <div className="giris__cizgi" />
         <p className="kucuk sonuk" style={{ marginTop: 0 }}>

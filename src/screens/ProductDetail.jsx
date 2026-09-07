@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useApp } from '../context/AppState'
 import { useDil } from '../i18n'
@@ -10,7 +10,7 @@ import {
   getProduct, getCategory, productsByCategory, urunDilde, kategoriDilde,
 } from '../data/products'
 import { araProps } from '../lib/tel'
-import { SIRKET } from '../config'
+import { SIRKET } from '../marka'
 import {
   IconMachine, IconPlay, IconCart, IconPhone, IconRight, IconBook, IconPlus,
 } from '../components/Icons'

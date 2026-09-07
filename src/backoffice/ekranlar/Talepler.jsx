@@ -20,7 +20,7 @@ import { Dekont, Ekler } from './Ekler'
 import { getProduct } from '../../data/products'
 import { formatSerial, warrantyStatus } from '../../lib/serial'
 import { makineDurumAdi } from '../../data/talepAlanlari'
-import { BANKA } from '../../config'
+import { BANKA } from '../../marka'
 import { bayileriGetir, talebinBayileri, yetkiAdi } from '../../data/bayiler'
 import { PARA_BIRIMI, parcaToplami, paraYaz } from '../../data/parcaFiyat'
 

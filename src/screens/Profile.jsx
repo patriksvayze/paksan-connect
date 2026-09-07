@@ -1,4 +1,4 @@
-﻿import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppState'
 import { TopBar, TabBar, Sheet } from '../components/Chrome'
@@ -19,7 +19,7 @@ import { SifreAlani } from '../components/SifreAlani'
 import { DilSecici } from '../components/DilSecici'
 import { TemaSecici } from '../components/TemaSecici'
 import { useDil } from '../i18n'
-import { SIRKET, SURUM, UYGULAMA } from '../config'
+import { SIRKET, SURUM, UYGULAMA } from '../marka'
 import {
   IconUser, IconBaler, IconMachine, IconWrench, IconRight, IconPin, IconCheckCircle,
   IconGorunum, IconParca, IconLock, IconPhone, IconMic, IconGlobe, IconMail, IconSend,

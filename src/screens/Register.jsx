@@ -11,7 +11,7 @@ import { izinIste, bildirimGoster, engelNerede, BILDIRIM } from '../lib/bildirim
 import { konumIzniIste, KONUM } from '../lib/konum'
 import { mevcutHesap, sifreHazirla, sifreGecerliMi, SIFRE_HANE } from '../lib/hesap'
 import { VARSAYILAN_ULKE } from '../data/ulkeler'
-import { PaksanRozet } from '../components/Marka'
+import { Rozet } from '../marka'
 import { TelefonAlani } from '../components/TelefonAlani'
 import { SifreAlani } from '../components/SifreAlani'
 import { Metin, OnayKutusu } from '../components/Metin'
@@ -235,7 +235,7 @@ export default function Register() {
             <span />
           )}
           <div className="spacer" />
-          <PaksanRozet />
+          <Rozet />
         </div>
         <div className="topbar__titles">
           <h1>

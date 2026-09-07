@@ -6,7 +6,7 @@ import { yetkiAdi, yakindanUzaga, ileGore } from '../data/bayiler'
 import { araProps } from '../lib/tel'
 import { konumOku, konumDestekleniyorMu, KONUM } from '../lib/konum'
 import { BayiHarita } from '../components/BayiHarita'
-import { SIRKET } from '../config'
+import { SIRKET } from '../marka'
 import {
   IconPin, IconPhone, IconRight, IconAlert, IconCheck, IconMail,
 } from '../components/Icons'

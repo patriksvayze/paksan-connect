@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppState'
 import { useDil } from '../i18n'
-import { PaksanRozet } from '../components/Marka'
+import { Rozet } from '../marka'
 import { TelefonAlani } from '../components/TelefonAlani'
 import { SifreAlani } from '../components/SifreAlani'
 import { telGecerliMi, telGoster } from '../lib/tel'
@@ -120,7 +120,7 @@ export default function SifreSifirla() {
             {t('ortak.geri')}
           </button>
           <div className="spacer" />
-          <PaksanRozet />
+          <Rozet />
         </div>
         <div className="topbar__titles">
           <h1>

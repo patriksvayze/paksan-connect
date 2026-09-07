@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useDil } from '../i18n'
-import { PaksanRozet } from '../components/Marka'
+import { Rozet } from '../marka'
 import { NumaraTalepFormu } from '../components/NumaraTalepFormu'
 import { IconBack } from '../components/Icons'
 
@@ -44,7 +44,7 @@ export default function NumaraDegisikligi() {
             {t('ortak.geri')}
           </button>
           <div className="spacer" />
-          <PaksanRozet />
+          <Rozet />
         </div>
         <div className="topbar__titles">
           <h1>{t('numara.baslik')}</h1>

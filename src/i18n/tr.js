@@ -154,14 +154,14 @@ export const tr = {
     bildirimEngelTarayici:
       'Bu siteye daha önce bildirim izni verilmemiş. Tarayıcınızın adres çubuğundaki kilit simgesine dokunup bildirimlere izin verdikten sonra tekrar deneyin.',
     bildirimEngelTelefon:
-      'Bildirimler telefon ayarlarından kapatılmış. Ayarlar > Uygulamalar > PAKSAN Connect > Bildirimler yolundan açtıktan sonra tekrar deneyin.',
+      'Bildirimler telefon ayarlarından kapatılmış. Ayarlar > Uygulamalar > {uygulama} > Bildirimler yolundan açtıktan sonra tekrar deneyin.',
     bildirimTekrarDene: 'Tekrar Dene',
     bildirimEngelDevam: 'Bildirimsiz devam et',
     /* İzin verildiği anda telefonun bildirim perdesine düşen ilk
        bildirim. İki işi birden görüyor: iznin gerçekten çalıştığını
-       gösteriyor ve PAKSAN bildiriminin nasıl göründüğünü tanıtıyor. */
-    bildirimOrnekBaslik: 'PAKSAN bildirimleri açık',
-    bildirimOrnekMetin: 'Talepleriniz, servis randevularınız ve PAKSAN duyuruları bundan sonra burada görünecek.',
+       gösteriyor ve {marka} bildiriminin nasıl göründüğünü tanıtıyor. */
+    bildirimOrnekBaslik: '{marka} bildirimleri açık',
+    bildirimOrnekMetin: 'Talepleriniz, servis randevularınız ve {marka} duyuruları bundan sonra burada görünecek.',
   },
 
   sifre: {
@@ -291,7 +291,7 @@ export const tr = {
     durum_gonderildi: 'Parçanız kargoya verildi.',
     durum_kapandi: 'Talebiniz tamamlandı. İyi çalışmalar dileriz.',
     durum_iptal: 'Talebiniz kapatıldı. Yanlışlık olduğunu düşünüyorsanız bizi arayın.',
-    notBaslik: '{no} · PAKSAN Bilgilendirmesi',
+    notBaslik: '{no} · {marka} Bilgilendirmesi',
     iptalBaslik: '{no} · Talebiniz İptal Edildi',
     iptalMetin: 'Sebep: {neden}',
     teklifBaslik: '{no} · Teklifiniz Hazır',
@@ -317,8 +317,8 @@ export const tr = {
     talepAlindi: '{tur} alındı',
     talepAlindiAlt: 'Talebiniz ekibimize ulaştı. En kısa sürede sizi arayacağız.',
     bosBaslik: 'Henüz Bildiriminiz Yok',
-    bosAlt: 'Talep oluşturduğunuzda ve PAKSAN bir duyuru yaptığında bildirimleriniz burada görünür.',
-    demoNot: 'Talebinizin durumu değiştiğinde ve PAKSAN duyuru yaptığında bildirimler buraya düşer. Telefona anlık bildirim gönderme henüz kurulmadı; şimdilik uygulamayı açtığınızda görüyorsunuz.',
+    bosAlt: 'Talep oluşturduğunuzda ve {marka} bir duyuru yaptığında bildirimleriniz burada görünür.',
+    demoNot: 'Talebinizin durumu değiştiğinde ve {marka} duyuru yaptığında bildirimler buraya düşer. Telefona anlık bildirim gönderme henüz kurulmadı; şimdilik uygulamayı açtığınızda görüyorsunuz.',
   },
   profil: {
     hesabim: 'Hesabım',
@@ -355,13 +355,13 @@ export const tr = {
     sifreDegistirAlt: 'Girişte kullandığınız 6 rakamlı şifre',
     sifreYokAlt: 'Hesabınızda henüz şifre yok, şimdi belirleyin',
     telefonDegisti: 'Telefon numaram değişti',
-    telefonDegistiAlt: 'Giriş numarasını PAKSAN güncelliyor',
+    telefonDegistiAlt: 'Giriş numarasını {marka} güncelliyor',
     bayiIletisim: 'Bayi ve iletişim',
-    bayiIletisimAlt: 'Size en yakın PAKSAN bayisi',
+    bayiIletisimAlt: 'Size en yakın {marka} bayisi',
     cikis: 'Çıkış Yap',
     cikisSor: 'Çıkış Yapılsın mı?',
     cikisAciklama: 'Oturumunuz kapatılacaktır. Makine kayıtlarınız ve talepleriniz silinmeyecektir.',
-    hesapSilme: 'Hesabınızın ve kayıtlarınızın tamamen silinmesini istiyorsanız {eposta} adresine yazın; talebiniz PAKSAN tarafından işleme alınır.',
+    hesapSilme: 'Hesabınızın ve kayıtlarınızın tamamen silinmesini istiyorsanız {eposta} adresine yazın; talebiniz {marka} tarafından işleme alınır.',
     kvkkBaglanti: 'KVKK | Açık Rıza Metni | İzinler',
     talepSilSor: 'Talep Silinsin mi?',
     talepSilAciklama: '{no} numaralı {tur} kaydınız silinecek. Bu işlem geri alınamaz.',
@@ -510,9 +510,9 @@ export const tr = {
     parcalar: 'İstenen parçalar',
     aranmaTercihi: 'Aranma tercihi',
     gecmis: 'Talebin Geçmişi',
-    notlar: 'PAKSAN Bilgilendirmesi',
+    notlar: '{marka} Bilgilendirmesi',
     bayiyiAra: 'Bayinizi Ara',
-    paksaniAra: 'PAKSAN Ara',
+    markayiAra: '{marka} Ara',
     iptalBaslik: 'İptal Sebebi',
     yanlislikVar: 'Yanlışlık olduğunu düşünüyorum',
     teklifBaslik: 'Verilen Teklif',
@@ -572,7 +572,7 @@ export const tr = {
     adresIpucu: 'Mahalle, cadde, sokak, kapı no ve tarif',
     adresAciklama: 'Kargo bu adrese teslim edilecek. Köy veya mezra ise tarif de yazın.',
     adresEksik: 'Teslimat adresini açık yazın; kargo bu adrese gidecek.',
-    hesapBaslik: 'PAKSAN Hesap Bilgileri',
+    hesapBaslik: '{marka} Hesap Bilgileri',
     hesapYok: 'Hesap bilgilerimiz için bizi arayın: {tel}',
     hesapNot: 'Ödemeyi yaptıktan sonra dekontunuzu aşağıya yükleyin. Dekont kontrol edildikten sonra parçanız hazırlanır.',
     alici: 'Alıcı',
@@ -596,7 +596,7 @@ export const tr = {
 
   /* ------------------------------------------------ Duyuru penceresi */
   duyuru: {
-    baslik: 'PAKSAN Duyurusu',
+    baslik: '{marka} Duyurusu',
     uyariBaslik: 'Önemli Uyarı',
     anladim: 'Anladım',
     sonraki: 'Sonraki',
@@ -621,7 +621,7 @@ export const tr = {
     hataKisa: 'Seri numarası eksik görünüyor. Etiketteki numaranın tamamını yazın.',
     hataBulunamadi: 'Bu seri numarasını sistemimizde bulamadık. Numarayı kontrol edin veya bize ulaşın; biz sizin için bakalım.',
     zatenKayitli: 'Bu makine zaten kayıtlı. Makinelerim sayfasından görebilirsiniz.',
-    garantiTahmin: 'Bu, üretim yılına göre yapılmış bir tahmindir. Garanti kapsamının son kararını PAKSAN yetkilisi verir.',
+    garantiTahmin: 'Bu, üretim yılına göre yapılmış bir tahmindir. Garanti kapsamının son kararını {marka} yetkilisi verir.',
     notYardim: 'Aynı modelden birden fazla makineniz varsa ayırt etmenize yarar. Makinenin adı her zaman {ad} olarak görünür.',
     seriNeredeYazar: 'Seri numarası makinenizin üzerindeki metal etikette yazar. Kaydettiğinizde kılavuz, video ve destek hizmetlerimiz açılır.',
     etiketKirli: 'Etiket kirlendiyse ıslak bezle silin. Okunmuyorsa veya etiket düşmüşse bizi arayın, faturanızdan bulalım.',
@@ -690,7 +690,7 @@ export const tr = {
     baslik: 'Güvenlik Kuralları',
     girisAlt: 'Beş kullanım kılavuzunun güvenlik bölümü',
     uyariBaslik: 'Bu Kurallar Hayat Kurtarır',
-    giris: 'Aşağıdaki {n} kural PAKSAN balya makinelerinin kullanım kılavuzlarındaki güvenlik bölümlerinden derlendi. Kılavuzlarda aynı kural birden çok kez geçtiği için burada bir kez yazıldı; hiçbir kural atlanmadı.',
+    giris: 'Aşağıdaki {n} kural {marka} balya makinelerinin kullanım kılavuzlarındaki güvenlik bölümlerinden derlendi. Kılavuzlarda aynı kural birden çok kez geçtiği için burada bir kez yazıldı; hiçbir kural atlanmadı.',
 
     /* Öbekler işin sırasına göre: hazırlık, bağlama, kuyruk mili,
        çalışma, yol, park ve bakım (bkz. src/data/guvenlik.js). */
@@ -710,9 +710,9 @@ export const tr = {
     videoBulamadin: 'Aradığınız videoyu bulamadınız mı? Destek bölümünden sorun, size adım adım anlatalım.',
     videoYakinda: 'Bu video yakında eklenecek',
     bakimNot: 'Yaptığınız bakımı işaretleyin. Bakım kaydı tutmak garanti işlemlerinde işinizi kolaylaştırır.',
-    garantiMetni: 'PAKSAN makineleri teslim tarihinden itibaren {yil} yıl garantilidir. Aşınma parçaları (bıçak, ip, parmak, kayış, emniyet cıvatası) garanti kapsamı dışındadır. Bakımların zamanında yapılması garanti şartıdır.',
+    garantiMetni: '{marka} makineleri teslim tarihinden itibaren {yil} yıl garantilidir. Aşınma parçaları (bıçak, ip, parmak, kayış, emniyet cıvatası) garanti kapsamı dışındadır. Bakımların zamanında yapılması garanti şartıdır.',
     garantiBitis: 'Garanti bitiş yılı: {yil}',
-    garantiNot: 'Buradaki bilgi yol göstericidir. Kapsamın son kararını her zaman PAKSAN yetkilisi verir.',
+    garantiNot: 'Buradaki bilgi yol göstericidir. Kapsamın son kararını her zaman {marka} yetkilisi verir.',
     sorunVar: 'Sorun mu var? Destek alın',
     destekAl: 'Destek alın',
     kilavuz: 'Kılavuz',
@@ -730,7 +730,7 @@ export const tr = {
     teknikTumu: 'Tüm teknik özellikler',
     teknikGenel: 'Genel',
     teknikModel: 'Hangi modelin özelliklerini görmek istiyorsunuz?',
-    teknikKaynak: 'Bilgiler paksanmakina.com.tr adresindeki ürün sayfalarından alınmıştır.',
+    teknikKaynak: 'Bilgiler {site} adresindeki ürün sayfalarından alınmıştır.',
     garanti: 'Garanti',
     kayitSil: 'Makine Kaydını Sil',
     silinmis: 'Bu makine kaydı silinmiş olabilir.',
@@ -840,7 +840,7 @@ export const tr = {
 
   numara: {
     baslik: 'Numara Değişikliği',
-    kart: 'Bu değişikliği PAKSAN yapıyor',
+    kart: 'Bu değişikliği {marka} yapıyor',
     formBaslik: 'Talep Bilgileri',
     eskiNumara: 'Hesabınızdaki Numara',
     yeniNumara: 'Yeni telefon numaranız',
@@ -850,7 +850,7 @@ export const tr = {
     gonderiliyor: 'Gönderiliyor…',
     alindi: 'Talebiniz alındı',
     bekleyen: 'Talebiniz inceleniyor',
-    girisUyarisi: 'Talebiniz onaylanırsa PAKSAN Connect uygulamasına güncel telefon numaranızla giriş yapmanız gerektiğini unutmayın.',
+    girisUyarisi: 'Talebiniz onaylanırsa {uygulama} uygulamasına güncel telefon numaranızla giriş yapmanız gerektiğini unutmayın.',
     alindiMetin: 'Ekibimiz bilgileri kontrol edip numaranızı değiştirecek. Sonucu bildirimler ekranında göreceksiniz.',
     hataNumara: 'Yeni telefon numaranızı yazın.',
     hataAyni: 'Yeni numara, hesabınızdaki numarayla aynı.',

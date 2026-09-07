@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { load, save, uid } from '../../lib/storage'
 import { talepNo } from '../../lib/talep'
-import { INDIRME_ADRESI } from '../../config'
+import { INDIRME_ADRESI } from '../../marka'
 import { ILLER, ilceleriGetir } from '../../data/iller'
 import { extractYear, formatSerial, normalizeSerial, validateSerial } from '../../lib/serial'
 import { bayiMakineKaydi } from '../../lib/makineKaydi'

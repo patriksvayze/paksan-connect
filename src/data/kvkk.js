@@ -14,7 +14,7 @@
    birlikte saklanıyor, böylece kimin hangi metni onayladığı belli oluyor.
    ========================================================================== */
 
-import { SIRKET } from '../config'
+import { SIRKET } from '../marka'
 import { KVKK_EN, ASIL_METIN_NOTU } from './kvkk.en'
 
 export const KVKK_SURUM = '1.0'

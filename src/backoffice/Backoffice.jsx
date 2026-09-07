@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import logo from '../assets/marka/paksan-logo.png'
+import { LOGO_DOSYASI as logo, SIRKET } from '../marka'
 /* Giriş şeridi Higgsfield ile üretildi, uygulamanın kendi görsel
    diline referans verilerek (bkz. tools/gorsel-hazirla.mjs). */
 import girisGorseli from '../assets/gorseller/backoffice-giris.png'
@@ -10,7 +10,6 @@ import {
   BACKOFFICE_SIFRE_HANE,
 } from './veri'
 import { bildirimGonder, izinDurumu, izinIste, sayiliBaslik } from './bildirim'
-import { SIRKET } from '../config'
 import { TemaSecici } from './Tema'
 import {
   IconPano, IconTalep, IconUser, IconPin, IconMail, IconRapor,
@@ -201,7 +200,7 @@ export function Backoffice() {
     <div className="duzen">
       <nav className="yan">
         <div className="yan__marka">
-          <img src={logo} alt="PAKSAN" />
+          <img src={logo} alt={SIRKET.ad} />
         </div>
 
         {menu.map(dugme)}
@@ -500,7 +499,7 @@ function Giris({ onGiris }) {
         {/* Şerit kartın üstünde. Backoffice'in kendi resmi yoktu;
             personel günde bir kez de olsa bu ekrandan geçiyor. */}
         <img className="giris__serit" src={girisGorseli} alt="" />
-        <img className="giris__logo" src={logo} alt="PAKSAN" />
+        <img className="giris__logo" src={logo} alt={SIRKET.ad} />
         <div className="giris__baslik">Backoffice</div>
         <div className="giris__cizgi" />
 
@@ -568,7 +567,7 @@ function SifreTalebi({ onKapat }) {
   return (
     <div className="giris">
       <form className="giris__kart" onSubmit={gonder}>
-        <img className="giris__logo" src={logo} alt="PAKSAN" />
+        <img className="giris__logo" src={logo} alt={SIRKET.ad} />
         <div className="giris__baslik">Şifre Değiştirme</div>
         <div className="giris__cizgi" />
 
@@ -644,7 +643,7 @@ function SifreDegistir({ jeton, onBitti }) {
   return (
     <div className="giris">
       <form className="giris__kart" onSubmit={kaydet}>
-        <img className="giris__logo" src={logo} alt="PAKSAN" />
+        <img className="giris__logo" src={logo} alt={SIRKET.ad} />
         <div className="giris__baslik">Şifre Değiştirme</div>
         <div className="giris__cizgi" />
 

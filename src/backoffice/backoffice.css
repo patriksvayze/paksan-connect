@@ -1,3 +1,5 @@
+@import '../marka/renkler.css';
+
 /* ==========================================================================
    PAKSAN Backoffice
 
@@ -11,17 +13,17 @@
    ========================================================================== */
 
 :root {
-  --lacivert: #0a1a33;
+  --lacivert: var(--marka-lacivert);
   /* Aydınlıkta dolu eylemler lacivert; karanlıkta ayrışıyorlar,
      sebebi --dolgu-koyu'nun yanında yazılı. */
   --dolgu: var(--lacivert);
   --lacivert-2: #12294a;
-  --mavi: #1848a8;
+  --mavi: var(--marka-mavi);
   /* Mavi rozetin YAZI hâli. Aydınlıkta --mavi ile aynı; ayrım karanlık
      temada işe yarıyor (bkz. --mavi-rz-koyu). */
-  --mavi-rz: #1848a8;
+  --mavi-rz: var(--marka-mavi);
   --mavi-acik: #2f6fe4;
-  --turuncu: #c7490a;
+  --turuncu: var(--marka-turuncu-dugme);
 
   --zemin: #eef1f6;
   --yuzey: #ffffff;
@@ -153,7 +155,7 @@
   --mavi-acik-koyu: #4b86ee;
 
   /* Yazı ve rozet renkleri koyu zeminde okunacak şekilde açık */
-  --turuncu-koyu: #ff8a3d;
+  --turuncu-koyu: var(--marka-turuncu-acik);
   --turuncu-d-koyu: #f0a53c;
   /* Kendi soluk zemini üstünde 4,43'te kalıyordu; bu tonda 4,62.
      Mor da aynı sebeple bir tık açıldı (4,15 → 4,64). */

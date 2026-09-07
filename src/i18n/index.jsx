@@ -28,6 +28,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo } from 'react'
 import { tr } from './tr'
 import { en } from './en'
+import { SIRKET, UYGULAMA } from '../marka'
 
 export const DILLER = [
   { kod: 'tr', ad: 'Türkçe', kisa: 'TR' },
@@ -53,14 +54,36 @@ function bul(sozluk, anahtar) {
   return anahtar.split('.').reduce((o, p) => (o == null ? undefined : o[p]), sozluk)
 }
 
+/* ==========================================================================
+   MARKA ADLARI SÖZLÜKTE SABİT YAZILMIYOR
+
+   Ekran metinlerinde firma adı 40'tan fazla yerde geçiyordu: "PAKSAN
+   Duyurusu", "PAKSAN Ara", "en yakın PAKSAN bayisi". Başka bir firmaya
+   geçerken iki sözlük dosyasında tek tek aranması gerekiyordu ve
+   İngilizcesinin unutulması işten değildi.
+
+   Artık sözlükte yer tutucu duruyor ({marka}, {uygulama}) ve değeri
+   burada kendiliğinden geçiyor. Çağıran taraf hiçbir şey yapmıyor —
+   yüzlerce `t()` çağrısına değer eklemek gerekmiyor.
+
+   Çağıranın verdiği değerler sonra uygulanıyor: aynı adı taşıyan bir
+   değer gönderirse onunki geçerli oluyor.
+   ========================================================================== */
+const MARKA_DEGERLER = {
+  marka: SIRKET.kisaAd,
+  sirket: SIRKET.ad,
+  uygulama: UYGULAMA,
+  site: SIRKET.siteKisa,
+}
+
 /** Anahtardan metni bulur; İngilizcesi yoksa Türkçesine düşer. */
 export function ceviri(dil, anahtar, degerler) {
   let metin = bul(SOZLUK[dil] || tr, anahtar)
   if (metin == null && dil !== 'tr') metin = bul(tr, anahtar)
   if (metin == null) metin = anahtar /* hiç yoksa anahtarı göster ki fark edilsin */
 
-  if (degerler && typeof metin === 'string') {
-    for (const [k, v] of Object.entries(degerler)) {
+  if (typeof metin === 'string') {
+    for (const [k, v] of Object.entries({ ...MARKA_DEGERLER, ...degerler })) {
       metin = metin.replaceAll(`{${k}}`, v)
     }
   }

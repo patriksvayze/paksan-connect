@@ -16,7 +16,7 @@ import { cevapsizlar, cozuldu, konular, sorular, yonlendirme } from './DestekKay
 import { DisaAktar } from './aktar'
 import { getProduct } from '../../data/products'
 import { formatSerial } from '../../lib/serial'
-import { SIRKET } from '../../config'
+import { SIRKET } from '../../marka'
 import { parcaToplami } from '../../data/parcaFiyat'
 
 /* ==========================================================================

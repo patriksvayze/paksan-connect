@@ -1,5 +1,16 @@
-/* PAKSAN kurumsal kimlik parçaları.
-   Logo ve amblem paksanmakina.com.tr'den alınan gerçek dosyalar.
+/* ==========================================================================
+   MARKA İŞARETİ
+
+   Firmanın logosu, amblemi ve bunların ekrandaki kullanım biçimleri.
+   Yeni firmada bu dosyanın içi değişir; dışa verdiği adlar (`Logo`,
+   `Rozet`, `RozetMini`, `Amblem`) ve aldıkları özellikler değişmez —
+   ekranlar onlara göre yazıldı.
+
+   Adlar bilerek marka içermiyor. Önce `PaksanLogo`, `PaksanRozet` diye
+   yazılmıştı; başka bir firmaya geçerken sekiz ekranda bileşen adı
+   değiştirmek gerekiyordu.
+
+   BUGÜNKÜ LOGONUN ÖZELLİĞİ
 
    Logo dosyası (225x69) iki parçadan oluşuyor:
      0 – 48 px  → kalkan amblemi
@@ -10,22 +21,31 @@
      · koyu zeminlerde → yalnızca yazı (beyaza çevrilir, temiz durur)
      · açık zeminlerde → tam logo, orijinal mavi
      · marka anı gereken yerlerde → amblem, beyaz daire içinde tam renkli
+
+   Başka bir logoda bu bölünme olmayabilir; o zaman `sadeceYazi`
+   seçeneği tam logoyu döndürecek şekilde sadeleştirilir.
    ========================================================================== */
 
-import logo from '../assets/marka/paksan-logo.png'
-import amblem from '../assets/marka/paksan-amblem.png'
+import logo from './varliklar/paksan-logo.png'
+import amblem from './varliklar/paksan-amblem.png'
 import { MARKA_YAZI_YOLU, MARKA_YAZI_W, MARKA_YAZI_H } from '../data/markaYollari'
+import { SIRKET } from './kimlik'
 
 const TAM_W = 225
 const TAM_H = 69
 const YAZI_X = 54 // yazının başladığı piksel
 const YAZI_W = TAM_W - YAZI_X
 
+/* Yazı SVG'sinin rengi. Logo dosyasından ölçüldü (#1d50a0). Marka
+   rengi olduğu için tema belirteci değil, sabit değer — aynı ham renk
+   `renkler.css` içinde de duruyor. */
+const MARKA_MAVI = '#1d50a0'
+
 /**
- * Paksan logosu.
+ * Firma logosu.
  * @param {{height?: number, beyaz?: boolean, sadeceYazi?: boolean}} props
  */
-export function PaksanLogo({
+export function Logo({
   height = 22, beyaz = false, sadeceYazi = false, style, className,
 }) {
   const filtre = beyaz ? 'brightness(0) invert(1)' : 'none'
@@ -34,7 +54,7 @@ export function PaksanLogo({
     return (
       <img
         src={logo}
-        alt="PAKSAN"
+        alt={SIRKET.ad}
         className={className}
         style={{
           height,
@@ -62,14 +82,12 @@ export function PaksanLogo({
   return (
     <svg
       role="img"
-      aria-label="PAKSAN"
+      aria-label={SIRKET.ad}
       className={className}
       viewBox={`0 0 ${MARKA_YAZI_W} ${MARKA_YAZI_H}`}
       width={YAZI_W * olcek}
       height={height}
-      /* Kurumsal mavi logo dosyasından ölçüldü (#1d50a0). Marka
-         rengi olduğu için tema belirteci değil, sabit değer. */
-      style={{ display: 'block', color: beyaz ? '#fff' : '#1d50a0', ...style }}
+      style={{ display: 'block', color: beyaz ? '#fff' : MARKA_MAVI, ...style }}
     >
       <path d={MARKA_YAZI_YOLU} fill="currentColor" />
     </svg>
@@ -81,24 +99,24 @@ export function PaksanLogo({
  * kendi kurumsal mavisiyle, kutusuz durur.
  * (Koyu zemin gereken tek yer karşılama ekranı; orada `.brandchip` kullanılır.)
  */
-export function PaksanRozet({ height = 38, style }) {
-  return <PaksanLogo height={height} style={{ flex: 'none', ...style }} />
+export function Rozet({ height = 38, style }) {
+  return <Logo height={height} style={{ flex: 'none', ...style }} />
 }
 
 /**
  * Dar alanlar için sıkışık marka — yalnızca kalkan amblemi.
  * Başlıkta ayrıca bir işlem butonu varken logonun yerini alır.
  */
-export function PaksanRozetMini({ size = 36, style }) {
+export function RozetMini({ size = 36, style }) {
   return (
     <span style={{ display: 'inline-flex', flex: 'none', ...style }}>
-      <PaksanAmblem size={size} />
+      <Amblem size={size} />
     </span>
   )
 }
 
 /** Kalkan amblem. Koyu zeminde beyaz daire içinde tam renkli gösterilir. */
-export function PaksanAmblem({ size = 40, cerceve = false }) {
+export function Amblem({ size = 40, cerceve = false }) {
   const img = (
     <img
       src={amblem}

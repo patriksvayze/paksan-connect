@@ -9,7 +9,7 @@
 import { load, save, uid } from '../lib/storage'
 import { sifreHazirla, sifreDogruMu, sifreGecerliMi } from '../lib/hesap'
 import { yeniNo } from '../lib/numara'
-import { SIRKET } from '../config'
+import { SIRKET } from '../marka'
 import { urun } from '../lib/urun'
 import { bayileriGetir } from '../data/bayiler.js'
 import { icerikListe, icerikTazele } from '../lib/icerikDeposu.js'

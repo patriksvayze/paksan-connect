@@ -26,7 +26,7 @@ import { useGeriYakala } from '../lib/geriYakala'
 import { numaraMetni } from '../data/numaraDegisikligi'
 import { NumaraTalepFormu } from '../components/NumaraTalepFormu'
 import { useDil } from '../i18n'
-import { BANKA, SIRKET } from '../config'
+import { BANKA, SIRKET } from '../marka'
 import {
   IconCheckCircle, IconPin, IconRight, IconLock, IconCheck, IconAlert,
   IconPlus, IconMinus, IconCart, IconInfo,

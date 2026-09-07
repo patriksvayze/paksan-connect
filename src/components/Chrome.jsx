@@ -3,7 +3,7 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppState'
 import { useKaydirildi } from '../lib/kaydirma'
 import { useDil } from '../i18n'
-import { PaksanRozet, PaksanRozetMini } from './Marka'
+import { Rozet, RozetMini } from '../marka'
 import { IconHome, IconBaler, IconChat, IconGrid, IconBack, IconUser } from './Icons'
 
 /* -------------------------------------------------------------- Üst bar
@@ -46,10 +46,10 @@ export function TopBar({ title, sub, back, right }) {
   const marka = right ? (
     <>
       {right}
-      <PaksanRozetMini />
+      <RozetMini />
     </>
   ) : (
-    <PaksanRozet />
+    <Rozet />
   )
 
   const basliklar = (

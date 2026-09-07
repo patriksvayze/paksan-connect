@@ -1,4 +1,4 @@
-﻿import { useState, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppState'
 import { CIZIM } from '../data/cizimler'
@@ -9,7 +9,7 @@ import {
   CATEGORIES, PRODUCTS, productsByCategory, siralanmisUrunler,
   urunDilde, kategoriDilde,
 } from '../data/products'
-import { SIRKET } from '../config'
+import { SIRKET } from '../marka'
 import { araProps } from '../lib/tel'
 import { norm } from '../lib/arama'
 import { IconSearch, IconCart, IconPhone, IconClose } from '../components/Icons'

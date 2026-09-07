@@ -1,3 +1,5 @@
+@import './marka/renkler.css';
+
 /* ==========================================================================
    PAKSAN — Tasarım sistemi v3
 
@@ -33,18 +35,18 @@
 
 :root {
   /* ---- Marka ------------------------------------------------------------ */
-  --pk-blue: #1848a8;
+  --pk-blue: var(--marka-mavi);
   --pk-blue-bright: #2f6fe4;
   --pk-blue-800: #103070;
   --pk-blue-900: #0a1f4d;
-  --pk-navy: #0a1a33; /* yüzen menü ve koyu kartlar */
+  --pk-navy: var(--marka-lacivert); /* yüzen menü ve koyu kartlar */
   --pk-blue-soft: rgba(24, 72, 168, 0.08);
   --pk-blue-soft-2: rgba(24, 72, 168, 0.14);
 
-  --pk-orange: #e8641a;
-  --pk-orange-light: #ff8a3d;
-  --pk-orange-deep: #b8480a;
-  --pk-orange-btn: #c7490a;
+  --pk-orange: var(--marka-turuncu);
+  --pk-orange-light: var(--marka-turuncu-acik);
+  --pk-orange-deep: var(--marka-turuncu-koyu);
+  --pk-orange-btn: var(--marka-turuncu-dugme);
   --pk-orange-soft: rgba(232, 100, 26, 0.12);
   --pk-orange-ink: #8f3a00;
 
@@ -62,7 +64,7 @@
 
      Aydınlık modda bu değerler ana renklerle birebir aynı — ekranda
      hiçbir fark yok. Ayrım yalnız karanlık modda işe yarıyor. */
-  --pk-blue-yazi: #1848a8;
+  --pk-blue-yazi: var(--marka-mavi);
 
   /* Dolu eylem zemini: birincil düğme, seçili seçenek, seçili hap,
      kullanıcı baloncuğu. Karanlık modda lacivert kart yüzeyinden
@@ -230,7 +232,7 @@
   --pk-green-yazi-koyu: #3fbf74;
   /* Eski ton kart yüzeyinde 4,43'te kalıyordu; bu değerle 4,62. */
   --pk-red-yazi-koyu: #f17975;
-  --pk-orange-ink-koyu: #ff8a3d;
+  --pk-orange-ink-koyu: var(--marka-turuncu-acik);
   --tur-servis-yazi-koyu: #f0a53c;
   --tur-parca-yazi-koyu: #c9a9f5;
 

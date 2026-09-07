@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { PaksanLogo, PaksanAmblem } from './Marka'
+import { Logo, Amblem } from '../marka'
 import tarla from '../assets/gorseller/karsilama-tarla.png'
 
 /* ==========================================================================
@@ -85,7 +85,7 @@ export function Safak({ children }) {
  *
  * AMBLEM BEYAZ DAİRE İÇİNDE. Kalkan amblemi çok renkli; koyu gökyüzünde
  * beyaza çevrilirse ayrıntıları kaybolup düz bir leke oluyor
- * (bkz. src/components/Marka.jsx). Beyaz daire hem amblemi kendi
+ * (bkz. src/marka/logo.jsx). Beyaz daire hem amblemi kendi
  * renkleriyle bırakıyor hem güneşin doğduğu yerde duran bir madalyon
  * gibi duruyor.
  */
@@ -96,10 +96,10 @@ export function SafakLogo() {
           gelseydi tek bir blok gibi kayarlardı. Arada boşluk olunca
           önce marka işareti, sonra adı beliriyor. */}
       <span className="safak__amblem">
-        <PaksanAmblem size={64} cerceve />
+        <Amblem size={64} cerceve />
       </span>
       <span className="safak__yazi">
-        <PaksanLogo height={50} sadeceYazi beyaz />
+        <Logo height={50} sadeceYazi beyaz />
       </span>
     </div>
   )
