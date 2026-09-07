@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   rolEkle, rolGuncelle, rolleriGetir, rolSil, rolunPersoneli,
 } from '../veri'
@@ -33,6 +33,28 @@ import { TALEP_TURU_SECENEKLERI, YETKI_KATALOG } from '../../data/yetkiler'
 
 const BOS = { ad: '', aciklama: '', talepTuru: null, izinler: [] }
 
+/* Rol kaydından form taslağı. */
+function taslakYap(r) {
+  return {
+    ad: r.ad,
+    aciklama: r.aciklama || '',
+    talepTuru: r.talepTuru || null,
+    izinler: [...(r.izinler || [])],
+  }
+}
+
+/* Taslak kayıttan farklı mı? Sıra önemsiz: yetkiler işaretlenme
+   sırasına göre diziliyor; aynı küme farklı sırada gelebilir. */
+function degistiMi(taslak, kayit) {
+  if (!kayit) return Boolean(taslak.ad.trim() || taslak.aciklama.trim() || taslak.izinler.length)
+  return (
+    taslak.ad !== kayit.ad ||
+    taslak.aciklama !== (kayit.aciklama || '') ||
+    (taslak.talepTuru || null) !== (kayit.talepTuru || null) ||
+    [...taslak.izinler].sort().join() !== [...(kayit.izinler || [])].sort().join()
+  )
+}
+
 export function Roller({ personel, bildir, tazele, surum }) {
   const { veri: roller, yukleniyor } = useVeri(rolleriGetir, [surum], [])
 
@@ -41,23 +63,33 @@ export function Roller({ personel, bildir, tazele, surum }) {
   const [taslak, setTaslak] = useState(BOS)
   const [hata, setHata] = useState('')
   const [silinecek, setSilinecek] = useState(null)
+  /* Kaydedilmemiş değişiklik varken başka role geçilmek istendi —
+     hangi role gidileceği burada bekliyor. */
+  const [gecisOnayi, setGecisOnayi] = useState(null)
 
   const acik = secili === 'yeni' ? null : roller.find((r) => r.id === secili)
 
-  /* Seçim değişince form o rolün bilgileriyle dolduruluyor. Yoksa bir
-     rolde yapılan yarım değişiklik ötekine taşınıyordu. */
+  /* TASLAK YALNIZ ROL DEĞİŞİNCE YÜKLENİYOR.
+
+     Önce bağımlılık `[secili, roller]` idi. `roller` her tazelemede
+     yeniden okunuyor; arka planda çalışan yeni iş kontrolü 15 saniyede
+     bir `tazele()` çağırabiliyor (bkz. Backoffice.jsx → useYeniIsHaberi).
+     Aradaki bir tazeleme kullanıcının yarım kalan düzenlemesini
+     sessizce silerdi. Bugün silmiyor çünkü liste aynı referansı
+     döndürüyor — ama bu bir tesadüftü; kurala dönüştürüldü.
+
+     Hangi rolün yüklendiği `yuklenen` ile tutuluyor; aynı roldeyken
+     taslağa dokunulmuyor. */
+  const yuklenen = useRef(null)
+
   useEffect(() => {
+    if (yuklenen.current === secili) return
     setHata('')
+    yuklenen.current = secili
     if (secili === 'yeni') return setTaslak(BOS)
     const r = roller.find((x) => x.id === secili)
-    if (r) {
-      setTaslak({
-        ad: r.ad,
-        aciklama: r.aciklama || '',
-        talepTuru: r.talepTuru || null,
-        izinler: r.izinler || [],
-      })
-    }
+    if (r) setTaslak(taslakYap(r))
+    else yuklenen.current = null /* liste henüz gelmedi, tekrar denensin */
   }, [secili, roller])
 
   /* Silinen rol seçiliyken listede kalmasın */
@@ -68,6 +100,16 @@ export function Roller({ personel, bildir, tazele, surum }) {
   }, [roller, secili])
 
   const kilitli = Boolean(acik?.sistem)
+  const kaydedilmemis = !kilitli && degistiMi(taslak, acik)
+
+  /* Rol değiştirmeden önce kaydedilmemiş değişiklik varsa soruluyor.
+     Önce sessizce atılıyordu: kullanıcı yaptığı düzenlemenin
+     kaybolduğunu ancak geri dönünce anlıyordu. */
+  function rolSec(id) {
+    if (id === secili) return
+    if (kaydedilmemis) return setGecisOnayi(id)
+    setSecili(id)
+  }
 
   function cevir(izin) {
     setTaslak((t) => ({
@@ -86,9 +128,21 @@ export function Roller({ personel, bildir, tazele, surum }) {
 
     if (sonuc.hata) return setHata(sonuc.hata)
     setHata('')
-    if (secili === 'yeni') setSecili(sonuc.rol.id)
+
+    /* TASLAK KAYDIN SON HÂLİYLE EŞİTLENİYOR.
+
+       Veri katmanı adı kırpıyor ve katalogda olmayan yetkiyi atıyor;
+       taslak kırpılmamış hâlde kalırsa "Kaydedilmedi" rozeti kaydettikten
+       sonra da yanmaya devam ederdi. Yükleme kaydı da elle
+       güncelleniyor — yeni rolde `secili` hemen değişiyor ama liste
+       henüz tazelenmemiş oluyor. */
+    const yeni = secili === 'yeni'
+    setTaslak(taslakYap(sonuc.rol))
+    yuklenen.current = sonuc.rol.id
+    if (yeni) setSecili(sonuc.rol.id)
+
     tazele()
-    bildir(secili === 'yeni' ? `${sonuc.rol.ad} rolü oluşturuldu` : 'Rol güncellendi')
+    bildir(yeni ? `${sonuc.rol.ad} rolü oluşturuldu` : 'Rol güncellendi')
   }
 
   if (yukleniyor) {
@@ -121,10 +175,13 @@ export function Roller({ personel, bildir, tazele, surum }) {
                 <button
                   key={r.id}
                   className={'rol-satir' + (secili === r.id ? ' rol-satir--secili' : '')}
-                  onClick={() => setSecili(r.id)}
+                  onClick={() => rolSec(r.id)}
                 >
                   <span className="rol-satir__ad">{r.ad}</span>
                   {r.sistem && <span className="rz rz--gri">Kilitli</span>}
+                  {secili === r.id && kaydedilmemis && (
+                    <span className="rz rz--turuncu">Kaydedilmedi</span>
+                  )}
                   <span className="kucuk sonuk" style={{ marginLeft: 'auto' }}>
                     {kisi} kişi
                   </span>
@@ -135,7 +192,7 @@ export function Roller({ personel, bildir, tazele, surum }) {
             <button
               className={'dg dg--blok' + (secili === 'yeni' ? ' dg--ana' : '')}
               style={{ marginTop: 12 }}
-              onClick={() => setSecili('yeni')}
+              onClick={() => rolSec('yeni')}
             >
               Yeni Rol
             </button>
@@ -224,6 +281,13 @@ export function Roller({ personel, bildir, tazele, surum }) {
 
             {hata && <div className="uyari">{hata}</div>}
 
+            {!kilitli && kaydedilmemis && (
+              <p className="kucuk sonuk" style={{ margin: '0 0 10px' }}>
+                Değişiklikler kaydedilmedi. Kaydet düğmesine basana kadar hiçbir şey
+                yazılmaz.
+              </p>
+            )}
+
             {!kilitli && (
               <div className="satir" style={{ gap: 8 }}>
                 <button className="dg dg--ana" onClick={kaydet}>
@@ -249,8 +313,8 @@ export function Roller({ personel, bildir, tazele, surum }) {
           rol={silinecek}
           roller={roller}
           onKapat={() => setSilinecek(null)}
-          onSil={(yeniRol) => {
-            const sonuc = rolSil(silinecek.id, yeniRol, personel)
+          onSil={(tasima) => {
+            const sonuc = rolSil(silinecek.id, tasima, personel)
             if (sonuc.hata) return sonuc.hata
             setSilinecek(null)
             tazele()
@@ -263,6 +327,41 @@ export function Roller({ personel, bildir, tazele, surum }) {
           }}
         />
       )}
+
+      {/* Kaydedilmemiş değişiklikle başka role geçiliyor. */}
+      {gecisOnayi && (
+        <div
+          className="pencere"
+          onClick={(e) => e.target === e.currentTarget && setGecisOnayi(null)}
+        >
+          <div className="kart pencere__kart" style={{ maxWidth: 440 }}>
+            <div className="kart__tepe">
+              <h2>Kaydedilmemiş değişiklik var</h2>
+            </div>
+            <div className="kart__ic">
+              <p style={{ margin: '0 0 18px', lineHeight: 1.6 }}>
+                {acik ? `${acik.ad} rolünde` : 'Yeni rolde'} yaptığınız değişiklikler
+                kaydedilmedi. Başka bir role geçerseniz bu değişiklikler kaybolur.
+              </p>
+              <div className="satir">
+                <button
+                  className="dg dg--ana"
+                  onClick={() => {
+                    setGecisOnayi(null)
+                    setSecili(gecisOnayi)
+                  }}
+                  autoFocus
+                >
+                  Değişiklikleri At
+                </button>
+                <button className="dg" onClick={() => setGecisOnayi(null)}>
+                  Vazgeç
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
@@ -274,17 +373,39 @@ export function Roller({ personel, bildir, tazele, surum }) {
    yapılmıyor; hangi role geçecekleri aynı pencerede soruluyor ve iki iş
    tek işlemde tamamlanıyor. Ayrı adımlar olsaydı araya giren bir hata
    kişileri var olmayan bir rolde bırakırdı.
+
+   HERKES AYNI ROLE GİTMİYOR. Önce tek bir açılır liste vardı ve roldeki
+   herkes aynı yere taşınmak zorundaydı. Dört kişilik bir ekip
+   dağılırken ikisi servise, ikisi satışa geçebilir. Artık her kişinin
+   kendi seçimi var.
+
+   ÜSTTE "HEPSİ" SATIRI, çünkü çoğu zaman gerçekten hepsi aynı yere
+   gidiyor: tek dokunuşla hepsi ayarlanıyor, sonra ayrılacak kişi tek
+   tek değiştiriliyor. Kişi sayısı ikiden fazlaysa çıkıyor; iki kişide
+   iki listeyi elle seçmek zaten daha hızlı.
    ========================================================================== */
 
 function SilPenceresi({ rol, roller, onKapat, onSil }) {
   const kisiler = rolunPersoneli(rol.id)
   const secenekler = roller.filter((r) => r.id !== rol.id)
-  const [yeniRol, setYeniRol] = useState(secenekler[0]?.id || '')
+
+  /* VARSAYILAN ADMİN OLAMAZ. Liste admin ile başlıyor; hazır gelen
+     seçimi değiştirmeden "Sil ve Taşı" diyen kişi bütün ekibi admin
+     yapardı. Varsayılan ilk sıradaki yetkisiz rol; admin seçilebiliyor
+     ama isteyerek seçiliyor. */
+  const ilk = (secenekler.find((r) => !r.sistem) || secenekler[0])?.id || ''
+
+  /* { personelId: yeniRolId } — `rolSil` bu haritayı bekliyor. */
+  const [tasima, setTasima] = useState(() =>
+    Object.fromEntries(kisiler.map((k) => [k.id, ilk])),
+  )
   const [hata, setHata] = useState('')
+
+  const hepsiAyni = new Set(Object.values(tasima)).size <= 1
 
   return (
     <div className="pencere" onClick={(e) => e.target === e.currentTarget && onKapat()}>
-      <div className="kart pencere__kart" style={{ maxWidth: 480 }}>
+      <div className="kart pencere__kart" style={{ maxWidth: 520 }}>
         <div className="kart__tepe">
           <h2>Rolü Sil · {rol.ad}</h2>
         </div>
@@ -296,31 +417,54 @@ function SilPenceresi({ rol, roller, onKapat, onSil }) {
             </p>
           ) : (
             <>
-              <p style={{ margin: '0 0 12px', lineHeight: 1.6 }}>
-                Bu rolde {kisiler.length} kişi var: {kisiler.map((k) => k.ad).join(', ')}.
-                Rol silinince hangi role geçsinler?
+              <p style={{ margin: '0 0 14px', lineHeight: 1.6 }}>
+                {rol.ad} rolü silinecek. Bu roldeki {kisiler.length} kişinin her biri
+                için yeni bir rol seçin.
               </p>
-              <label className="alan">
-                <span className="alan__ad">Yeni Rol</span>
-                <select
-                  className="sec"
-                  value={yeniRol}
-                  onChange={(e) => setYeniRol(e.target.value)}
-                >
-                  {secenekler.map((r) => (
-                    <option key={r.id} value={r.id}>{r.ad}</option>
-                  ))}
-                </select>
-              </label>
+
+              {kisiler.length > 2 && (
+                <label className="tasima tasima--hepsi">
+                  <span className="tasima__ad">Hepsi</span>
+                  <select
+                    className="sec"
+                    value={hepsiAyni ? Object.values(tasima)[0] || ilk : ''}
+                    onChange={(e) =>
+                      setTasima(
+                        Object.fromEntries(kisiler.map((k) => [k.id, e.target.value])),
+                      )
+                    }
+                  >
+                    {!hepsiAyni && <option value="">Karışık</option>}
+                    {secenekler.map((r) => (
+                      <option key={r.id} value={r.id}>{r.ad}</option>
+                    ))}
+                  </select>
+                </label>
+              )}
+
+              {kisiler.map((k) => (
+                <label className="tasima" key={k.id}>
+                  <span className="tasima__ad">{k.ad}</span>
+                  <select
+                    className="sec"
+                    value={tasima[k.id] || ''}
+                    onChange={(e) => setTasima({ ...tasima, [k.id]: e.target.value })}
+                  >
+                    {secenekler.map((r) => (
+                      <option key={r.id} value={r.id}>{r.ad}</option>
+                    ))}
+                  </select>
+                </label>
+              ))}
             </>
           )}
 
           {hata && <div className="uyari">{hata}</div>}
 
-          <div className="satir">
+          <div className="satir" style={{ marginTop: 14 }}>
             <button
               className="dg dg--ana"
-              onClick={() => setHata(onSil(kisiler.length ? yeniRol : null) || '')}
+              onClick={() => setHata(onSil(kisiler.length ? tasima : null) || '')}
             >
               {kisiler.length ? 'Sil ve Taşı' : 'Sil'}
             </button>

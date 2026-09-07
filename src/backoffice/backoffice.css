@@ -792,8 +792,14 @@ tbody tr.secili {
 
    Seçili satırda rozet, yarı saydam dolgu yerine kendi rengiyle
    çerçeveleniyor; zemin opak bir yüzeye dönüşüyor ve yarı saydam
-   renkler üst üste binmiyor. Ölçüm sonrası en düşük değer 5,72. */
-tbody tr.secili .rz {
+   renkler üst üste binmiyor. Ölçüm sonrası en düşük değer 5,72.
+
+   ROLLER EKRANINDAKİ SEÇİLİ SATIR DA AYNI. Orada da satırın zemini
+   --mavi-z; "Kaydedilmedi" rozeti aydınlıkta 4,30, karanlıkta 4,48
+   ölçüldü. Kural aynı olduğu için seçici buraya eklendi, ikinci bir
+   blok yazılmadı. */
+tbody tr.secili .rz,
+.rol-satir--secili .rz {
   background: var(--yuzey);
   box-shadow: inset 0 0 0 1px currentColor;
 }
@@ -1368,6 +1374,37 @@ tbody tr.secili .rz {
 }
 
 .rol-satir__ad {
+  font-weight: 700;
+}
+
+/* Rol silinirken kişi başına taşıma satırı: solda ad, sağda hedef rol.
+   Adlar farklı uzunlukta olduğu için açılır listeler sabit genişlikte
+   ve sağa yaslı — göz tek sütunu tarayabiliyor. */
+.tasima {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 0;
+}
+
+.tasima__ad {
+  font-size: 14px;
+}
+
+.tasima .sec {
+  width: 190px;
+  margin-left: auto;
+  flex: none;
+}
+
+/* "Hepsi" satırı ötekilerden ayrılıyor: bir kısayol, kişi değil. */
+.tasima--hepsi {
+  border-bottom: 1px solid var(--cizgi);
+  padding-bottom: 12px;
+  margin-bottom: 6px;
+}
+
+.tasima--hepsi .tasima__ad {
   font-weight: 700;
 }
 

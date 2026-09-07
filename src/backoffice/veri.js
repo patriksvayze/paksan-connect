@@ -173,25 +173,32 @@ export function rolGuncelle(id, degisiklik, personel) {
 }
 
 /**
- * Rolü siler ve o roldeki personeli başka role taşır.
+ * Rolü siler ve o roldeki personeli başka rollere taşır.
  *
- * PERSONEL ROLSÜZ BIRAKILMIYOR: rolde kişi varsa `yeniRol` şart.
- * Ekran bunu silme penceresinde soruyor.
+ * PERSONEL ROLSÜZ BIRAKILMIYOR: rolde kişi varsa her biri için hedef
+ * rol şart. Ekran bunu silme penceresinde soruyor.
  *
+ * HERKES AYNI ROLE GİTMEK ZORUNDA DEĞİL. Önce tek bir hedef rol
+ * alınıyordu; dört kişilik bir rol silinirken dördü de aynı yere gitmek
+ * zorundaydı. Oysa bir ekip dağılırken ikisi servise, ikisi satışa
+ * geçebilir. Taşıma artık kişi başına.
+ *
+ * @param {Object<string,string>} tasima { personelId: yeniRolId }
  * @returns {{silinen, tasinan}|{hata}}
  */
-export function rolSil(id, yeniRol, personel) {
+export function rolSil(id, tasima, personel) {
   const liste = rolleriGetir()
   const rol = liste.find((r) => r.id === id)
   if (!rol) return { hata: 'Rol bulunamadı.' }
   if (rol.sistem) return { hata: 'Admin rolü silinemez.' }
 
   const kisiler = rolunPersoneli(id)
-  if (kisiler.length) {
-    if (!yeniRol || yeniRol === id) {
-      return { hata: 'Bu roldeki kişilerin geçeceği rolü seçin.' }
-    }
-    if (!liste.some((r) => r.id === yeniRol)) return { hata: 'Seçilen rol bulunamadı.' }
+  const harita = tasima || {}
+
+  for (const k of kisiler) {
+    const hedef = harita[k.id]
+    if (!hedef || hedef === id) return { hata: `${k.ad} için yeni bir rol seçin.` }
+    if (!liste.some((r) => r.id === hedef)) return { hata: 'Seçilen rol bulunamadı.' }
   }
 
   const kalan = liste.filter((r) => r.id !== id)
@@ -203,19 +210,26 @@ export function rolSil(id, yeniRol, personel) {
      araya giren bir hata kişileri var olmayan bir rolde bırakırdı. */
   if (kisiler.length) {
     personelYaz(
-      personelGetir().map((p) => (p.rol === id ? { ...p, rol: yeniRol } : p)),
+      personelGetir().map((p) => (p.rol === id ? { ...p, rol: harita[p.id] } : p)),
     )
   }
 
-  const yeniAdi = liste.find((r) => r.id === yeniRol)?.ad
-  rolleriYaz(
-    kalan,
-    personel,
-    kisiler.length
-      ? `${rol.ad} rolü silindi · ${kisiler.length} kişi ${yeniAdi} rolüne taşındı`
-      : `${rol.ad} rolü silindi`,
-  )
+  rolleriYaz(kalan, personel, silmeOzeti(rol, kisiler, harita, liste))
   return { silinen: rol, tasinan: kisiler.length }
+}
+
+/* İşlem kaydı satırı. Herkes aynı role gittiyse tek cümle; dağıldıysa
+   hangi role kaç kişinin gittiği yazıyor — "3 kişi taşındı" demek,
+   sonradan bakıldığında kimin nereye gittiğini söylemiyordu. */
+function silmeOzeti(rol, kisiler, harita, liste) {
+  if (!kisiler.length) return `${rol.ad} rolü silindi`
+
+  const sayac = {}
+  for (const k of kisiler) sayac[harita[k.id]] = (sayac[harita[k.id]] || 0) + 1
+
+  const adi = (rolId) => liste.find((r) => r.id === rolId)?.ad || rolId
+  const parcalar = Object.entries(sayac).map(([rolId, n]) => `${n} kişi ${adi(rolId)}`)
+  return `${rol.ad} rolü silindi · ${parcalar.join(', ')} rolüne taşındı`
 }
 
 /** Katalogda olmayan izin kaydedilmiyor; ekran dışından gelen çöp durmasın. */
