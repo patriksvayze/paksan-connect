@@ -484,18 +484,6 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
     return s >= 0 && h >= 0 && h < s
   }
 
-  /* Akıştaki bir sonraki aşama.
-
-     Çiplerin beşi de aynı görünüyordu; personel her talepte hangisine
-     basacağını yeniden okuyordu. Oysa sıradaki adım bellidir ve
-     neredeyse her zaman seçilen odur. İPTAL ÖNE ÇIKARILMIYOR: o bir
-     kaçış yolu, akışın adımı değil. */
-  const siradakiAsama = (() => {
-    const sira = talepDurumlari(talep.tur).filter((d) => d.id !== 'iptal')
-    const i = sira.findIndex((d) => d.id === suanki)
-    return i >= 0 && i < sira.length - 1 ? sira[i + 1].id : null
-  })()
-
   /* Bazı durumlar tek tıkla değişmiyor: arkalarında müşteriye giden
      bir bilgi var ve o bilgi olmadan bildirim boş kalıyor.
 
@@ -583,15 +571,13 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
         <div className="suzgec" style={{ marginBottom: kilitli ? 8 : 20 }}>
           {talepDurumlari(talep.tur).map((d) => {
             const engel = parcaIlerlemeEngeli(talep, d.id)
-            const ileri = !kilitli && !engel && d.id === siradakiAsama
             return (
               <button
                 key={d.id}
                 className={
                   'cip' +
                   (suanki === d.id ? ' cip--on' : '') +
-                  (engel ? ' cip--kilitli' : '') +
-                  (ileri ? ' cip--ileri' : '')
+                  (engel ? ' cip--kilitli' : '')
                 }
                 onClick={() => durumaGec(d.id)}
                 disabled={suanki === d.id || kilitli}

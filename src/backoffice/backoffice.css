@@ -1061,12 +1061,21 @@ tbody tr.secili .rz {
   overscroll-behavior: contain;
 }
 
-/* Liste uzun; liste kaydırıldıkça sütun başlıkları yukarıda kalıyor. */
-.ikili .tablo-sar thead th {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-}
+/* YAPIŞKAN SÜTUN BAŞLIĞI DENENDİ, KALDIRILDI.
+
+   Buraya `position: sticky` konmuştu ama hiç çalışmadı: `.tablo-sar`
+   yatay taşma için `overflow-x: auto` taşıyor, bu da dikey ekseni
+   `auto` yapıp kutuyu kaydırma kabına çeviriyor. Kutu dikeyde hiç
+   kaymadığı (yüksekliği içeriğine eşit), sayfanın kendisi kaydığı
+   için başlığın tutunacağı yer yoktu.
+
+   Görünen tek etkisi zarardı: kurala verilen `z-index: 1`, başlık
+   satırını talebi kapatma penceresinin üstüne çıkarıyordu. Sağ panel
+   yapışkan olduğu için kendi yığın bağlamını açıyor ve içindeki
+   pencere o bağlamın seviyesiyle sınırlı kalıyor.
+
+   Çalışması için listenin kendi dikey kaydırmasına geçmesi gerekir;
+   bu, sayfanın kaydırma düzenini baştan değiştirmek demek. */
 
 /* Geniş ekranda detaya yer açılıyor.
 
@@ -2299,22 +2308,6 @@ select.sec {
   color: var(--murekkep-3);
 }
 
-/* Sıradaki aşama.
-
-   Beş çip aynı görünüyordu ve personel her talepte hangisine
-   basacağını yeniden okuyordu; oysa akışta bir sonraki adım belli.
-   O adım maviyle çerçeveleniyor — seçili çiple (dolu) karışmıyor,
-   "buradasın" ile "sıradaki bu" ayrı kalıyor.
-
-   --mavi DEĞİL, --mavi-rz: --mavi karanlık temada dolgu rengi olarak
-   koyu kalıyor ve koyu yüzeyin üstünde 2,43 değerinde okunmuyordu
-   (ölçüldü). Rozetlerde de aynı tuzağa düşülmüş ve sorun aynı token
-   ile çözülmüş (bkz. .rz--mavi). */
-.cip--ileri {
-  border-color: var(--mavi-rz);
-  color: var(--mavi-rz);
-  box-shadow: inset 0 0 0 1px var(--mavi-rz);
-}
 
 
 
