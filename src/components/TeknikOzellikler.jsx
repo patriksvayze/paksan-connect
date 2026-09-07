@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useDil } from '../i18n'
-import { TEKNIK } from '../data/teknikOzellikler'
-import { bolumDilde, varyantlarDilde } from '../data/teknikSozluk'
+import { TEKNIK } from '../marka/icerik/teknikOzellikler'
+import { bolumDilde, varyantlarDilde } from '../marka/icerik/teknikSozluk'
 import { IconChevronDown } from './Icons'
 
 /* ==========================================================================

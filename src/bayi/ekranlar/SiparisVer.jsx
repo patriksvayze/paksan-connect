@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
 import { siparisAc } from '../../lib/bayiSiparis'
 import { islemYaz } from '../../backoffice/veri'
-import { bayileriGetir } from '../../data/bayiler'
-import { KDV_ORANI, PARA_BIRIMI, PARCA_FIYAT, paraYaz } from '../../data/parcaFiyat'
-import { PRODUCTS } from '../../data/products'
+import { bayileriGetir } from '../../marka'
+import { KDV_ORANI, PARA_BIRIMI, PARCA_FIYAT, paraYaz } from '../../marka'
+import { PRODUCTS } from '../../marka'
 import { makineFiyati, parcaBayiFiyati } from '../../lib/bayiFiyat'
 import { Bolum } from '../Kabuk'
 import {

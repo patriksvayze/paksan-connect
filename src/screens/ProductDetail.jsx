@@ -8,7 +8,7 @@ import { TeknikOzellikler } from '../components/TeknikOzellikler'
 import { VideoOynatici, videoTuru, VideoSure } from '../components/Video'
 import {
   getProduct, getCategory, productsByCategory, urunDilde, kategoriDilde,
-} from '../data/products'
+} from '../marka'
 import { araProps } from '../lib/tel'
 import { SIRKET } from '../marka'
 import {

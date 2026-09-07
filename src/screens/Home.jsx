@@ -6,9 +6,9 @@ import { useKaydirildi } from '../lib/kaydirma'
 import { Rozet } from '../marka'
 import { UrunFoto } from '../components/Gorsel'
 import { MachineCard } from './Machines'
-import { PRODUCTS, urunDilde } from '../data/products'
-import { bayileriGetir } from '../data/bayiler'
-import { rehberListesi } from '../data/rehber'
+import { PRODUCTS, urunDilde } from '../marka'
+import { bayileriGetir } from '../marka'
+import { rehberListesi } from '../marka/icerik/rehber'
 import { bildirimListesi, okunmamisSayisi } from '../lib/bildirimler'
 import {
   IconBook, IconWrench, IconCart, IconPlus, IconParca,

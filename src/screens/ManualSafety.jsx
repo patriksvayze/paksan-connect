@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { TopBar, TabBar } from '../components/Chrome'
 import { useDil } from '../i18n'
-import { guvenlikObekleri, guvenlikMaddeSayisi } from '../data/guvenlik'
+import { guvenlikObekleri, guvenlikMaddeSayisi } from '../marka/icerik/guvenlik'
 import { IconAlert } from '../components/Icons'
 
 /* ==========================================================================

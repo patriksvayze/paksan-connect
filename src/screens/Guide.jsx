@@ -3,10 +3,10 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useApp } from '../context/AppState'
 import { TopBar, TabBar } from '../components/Chrome'
 import { useDil } from '../i18n'
-import { getRehber, guvenlikMetni } from '../data/rehber'
+import { getRehber, guvenlikMetni } from '../marka/icerik/rehber'
 import { bakimCizimi } from '../data/bakimCizimleri'
-import { getProduct, supportGroup, urunDilde } from '../data/products'
-import { rehberListesi } from '../data/rehber'
+import { getProduct, supportGroup, urunDilde } from '../marka'
+import { rehberListesi } from '../marka/icerik/rehber'
 import {
   bolumuSifirla, isaretiCevir, isaretleriGetir, maddeAnahtari,
 } from '../lib/rehberIsaret'

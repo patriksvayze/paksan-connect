@@ -24,7 +24,7 @@
    ========================================================================== */
 
 import { readFileSync, existsSync, readdirSync } from 'node:fs'
-import { join } from 'node:path'
+import { join, sep as SEP } from 'node:path'
 
 const KOK = process.cwd()
 let sorun = 0
@@ -229,6 +229,40 @@ for (const a of AYRIMLAR) {
   else for (const b of bulunan) bildir(b)
 }
 
+/* ------------------------------------------------ 5. Marka sınırı
+
+   Firmaya ait olan her şey `src/marka/` içinde; motor oraya TEK
+   KAPIDAN bakıyor (`src/marka/index.js`). Bu ayrım belgeyle
+   korunmuyor, burada korunuyor: derinden import eden bir dosya
+   eklenirse kontrol düşüyor ve marka klasörünün iç düzeni bir daha
+   serbestçe değiştirilemez hâle gelir.
+
+   TEK İSTİSNA `src/marka/icerik/`. Arıza bilgi tabanı, teknik
+   özellikler ve kılavuz paketi ağır dosyalar — kılavuz paketi tek
+   başına 1,7 MB. Kapıdan verilselerdi `../marka` yazan her dosya
+   onları da paketine çekerdi; bayi paneli arıza bilgi tabanını hiç
+   kullanmadığı hâlde taşırdı. İçerik bu yüzden doğrudan, yalnız
+   çizildiği ekrandan import ediliyor. */
+
+baslik('5. Marka sınırı')
+
+const DERIN = /from\s+'[^']*\/marka\/(?!icerik\/)[^']*'/
+const derinler = []
+for (const d of dosyalar(join(KOK, 'src'), ['.js', '.jsx'])) {
+  if (d.includes(`${SEP}marka${SEP}`)) continue /* kendi içi serbest */
+  for (const [i, satir] of readFileSync(d, 'utf8').split('\n').entries()) {
+    if (DERIN.test(satir)) {
+      derinler.push(`${d.split(/[\\/]/).pop()}:${i + 1} ${satir.trim()}`)
+    }
+  }
+}
+
+if (!derinler.length) {
+  tamam('motor marka klasörüne yalnız kapıdan bakıyor')
+} else {
+  for (const x of derinler) bildir(`marka klasörüne derin import: ${x}`)
+}
+
 /* ------------------------------------------------------------- Sonuç */
 
 console.log('')
@@ -236,4 +270,4 @@ if (sorun) {
   console.log(`SONUÇ: ${sorun} sorun bulundu.`)
   process.exit(1)
 }
-console.log('SONUÇ: dört kontrol de temiz.')
+console.log('SONUÇ: beş kontrol de temiz.')

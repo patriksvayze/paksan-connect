@@ -44,14 +44,14 @@
    (bkz. src/assets/gorseller/bayi-*.png).
    ========================================================================== */
 
-import bosMakine from '../assets/gorseller/bos-makine.png'
-import bosBildirim from '../assets/gorseller/bos-bildirim.png'
-import bosArama from '../assets/gorseller/bos-arama.png'
-import karsilama from '../assets/gorseller/karsilama.png'
-import guvenlikKuyruk from '../assets/gorseller/guvenlik-kuyruk.png'
-import guvenlikAnahtar from '../assets/gorseller/guvenlik-anahtar.png'
-import guvenlikBekle from '../assets/gorseller/guvenlik-bekle.png'
-import guvenlikDestek from '../assets/gorseller/guvenlik-destek.png'
+import bosMakine from '../../assets/gorseller/bos-makine.png'
+import bosBildirim from '../../assets/gorseller/bos-bildirim.png'
+import bosArama from '../../assets/gorseller/bos-arama.png'
+import karsilama from '../../assets/gorseller/karsilama.png'
+import guvenlikKuyruk from '../../assets/gorseller/guvenlik-kuyruk.png'
+import guvenlikAnahtar from '../../assets/gorseller/guvenlik-anahtar.png'
+import guvenlikBekle from '../../assets/gorseller/guvenlik-bekle.png'
+import guvenlikDestek from '../../assets/gorseller/guvenlik-destek.png'
 
 export const CIZIM = {
   bosMakine,

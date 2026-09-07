@@ -6,9 +6,9 @@ import { Amblem } from '../marka'
 import { useDil } from '../i18n'
 import { load, save } from '../lib/storage'
 import { destekOlay, destekOturumu } from '../lib/destekLog'
-import { PRODUCTS, getProduct, supportGroup, urunDilde } from '../data/products'
-import { DESTEK, GUVENLIK, ZORLUK } from '../data/destekVerisi'
-import { GUVENLIK_CIZIMLERI } from '../data/cizimler'
+import { PRODUCTS, getProduct, supportGroup, urunDilde } from '../marka'
+import { DESTEK, GUVENLIK, ZORLUK } from '../marka/icerik/destekVerisi'
+import { GUVENLIK_CIZIMLERI } from '../marka/icerik/cizimler'
 import {
   IconAlert, IconCheckCircle, IconMachine, IconParca, IconRight, IconWrench,
 } from '../components/Icons'

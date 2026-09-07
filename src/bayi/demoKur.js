@@ -24,10 +24,10 @@
 
 import { load, save } from '../lib/storage'
 import { ANAHTAR, bayiHesabiYaz, bayileriYaz } from '../backoffice/veri'
-import { bayileriGetir, talebinBayileri } from '../data/bayiler'
+import { bayileriGetir, talebinBayileri } from '../marka'
 import { demoVarMi, demoYukle } from '../backoffice/demo'
-import { PARCA_FIYAT } from '../data/parcaFiyat'
-import { PRODUCTS } from '../data/products'
+import { PARCA_FIYAT } from '../marka'
+import { PRODUCTS } from '../marka'
 import { makineFiyati } from '../lib/bayiFiyat'
 import { teklifAc, teklifKapat } from '../lib/bayiTeklif'
 import { DEMO_HESAP } from './demoKimlik'

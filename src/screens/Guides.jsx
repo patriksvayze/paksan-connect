@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { TopBar, TabBar } from '../components/Chrome'
-import { rehberListesi, mevsimRehberi } from '../data/rehber'
+import { rehberListesi, mevsimRehberi } from '../marka/icerik/rehber'
 import { useDil } from '../i18n'
 import { IconCalendar, IconRight } from '../components/Icons'
 

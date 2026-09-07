@@ -22,9 +22,9 @@ import { talepNo } from '../lib/talep'
 import { normalizeSerial } from '../lib/serial'
 import { ANAHTAR, islemYaz, personelGetir, rolleriGetir } from './veri'
 import { MAKINE_DURUMU, ULASIM_ZAMANI } from '../data/talepAlanlari'
-import { PRODUCTS } from '../data/products'
-import { PARCA_FIYAT } from '../data/parcaFiyat'
-import { BAYILER } from '../data/bayiler'
+import { PRODUCTS } from '../marka'
+import { PARCA_FIYAT } from '../marka'
+import { BAYILER } from '../marka'
 
 /* ------------------------------------------------------------ Malzemeler */
 

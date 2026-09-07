@@ -4,21 +4,21 @@
    Fotoğraflar beyaz/açık zeminli stüdyo çekimleri olduğu için
    arayüzde daima açık yüzeylerin üzerinde gösteriliyor. */
 
-import orkinos1270 from '../assets/urunler/orkinos-1270.jpg'
-import orkinos870 from '../assets/urunler/orkinos-870.jpg'
-import orka870 from '../assets/urunler/orka-870.jpg'
-import albatros870 from '../assets/urunler/albatros-870.jpg'
-import kucukBalya from '../assets/urunler/kucuk-balya.jpg'
-import hammer from '../assets/urunler/hammer.jpg'
-import ipakRulo from '../assets/urunler/ipak-rulo.jpg'
-import pelican from '../assets/urunler/pelican-yatay.jpg'
-import diamond from '../assets/urunler/diamond-dikey.jpg'
-import scorpion from '../assets/urunler/scorpion-silaj.jpg'
-import silajPaketleme from '../assets/urunler/silaj-paketleme.jpg'
-import yengec from '../assets/urunler/yengec-cayir.jpg'
-import kirlangic from '../assets/urunler/kirlangic.jpg'
-import rotovator from '../assets/urunler/rotovator.jpg'
-import tesviye from '../assets/urunler/tesviye-kuregi.jpg'
+import orkinos1270 from '../varliklar/urunler/orkinos-1270.jpg'
+import orkinos870 from '../varliklar/urunler/orkinos-870.jpg'
+import orka870 from '../varliklar/urunler/orka-870.jpg'
+import albatros870 from '../varliklar/urunler/albatros-870.jpg'
+import kucukBalya from '../varliklar/urunler/kucuk-balya.jpg'
+import hammer from '../varliklar/urunler/hammer.jpg'
+import ipakRulo from '../varliklar/urunler/ipak-rulo.jpg'
+import pelican from '../varliklar/urunler/pelican-yatay.jpg'
+import diamond from '../varliklar/urunler/diamond-dikey.jpg'
+import scorpion from '../varliklar/urunler/scorpion-silaj.jpg'
+import silajPaketleme from '../varliklar/urunler/silaj-paketleme.jpg'
+import yengec from '../varliklar/urunler/yengec-cayir.jpg'
+import kirlangic from '../varliklar/urunler/kirlangic.jpg'
+import rotovator from '../varliklar/urunler/rotovator.jpg'
+import tesviye from '../varliklar/urunler/tesviye-kuregi.jpg'
 
 export const URUN_GORSELI = {
   'orkinos-1270': orkinos1270,

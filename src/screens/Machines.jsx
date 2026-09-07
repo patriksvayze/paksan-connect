@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useApp } from '../context/AppState'
-import { CIZIM } from '../data/cizimler'
+import { CIZIM } from '../marka/icerik/cizimler'
 import { useDil } from '../i18n'
 import { TopBar, TabBar } from '../components/Chrome'
 import { UrunFoto } from '../components/Gorsel'
-import { getProduct, urunDilde } from '../data/products'
+import { getProduct, urunDilde } from '../marka'
 import { formatSerial, warrantyStatus } from '../lib/serial'
 import { IconMachine, IconPlus, IconRight, IconCheckCircle } from '../components/Icons'
 

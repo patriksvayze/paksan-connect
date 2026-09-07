@@ -6,7 +6,7 @@ import { TeknikOzellikler } from '../components/TeknikOzellikler'
 import { TopBar, TabBar, DataRow, Sheet } from '../components/Chrome'
 import { UrunFoto } from '../components/Gorsel'
 import { VideoOynatici, videoTuru, VideoSure } from '../components/Video'
-import { getProduct, urunDilde } from '../data/products'
+import { getProduct, urunDilde } from '../marka'
 import { formatSerial, warrantyStatus } from '../lib/serial'
 import { SIRKET } from '../marka'
 import {

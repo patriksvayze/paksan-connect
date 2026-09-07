@@ -10,7 +10,7 @@ import {
 } from '../veri'
 import { sifreHazirla } from '../../lib/hesap'
 import { useVeri } from '../kanca'
-import { BAYILER, YETKILER } from '../../data/bayiler'
+import { BAYILER, YETKILER } from '../../marka'
 import { ILLER, ilceleriGetir } from '../../data/iller'
 import { Baslik, Bekleme, Bos, siraliListe, SiraliBaslik, tarihYaz, useSiralama } from './ortak'
 import { Secim, SuzgecCubugu } from './suzgec'

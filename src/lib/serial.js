@@ -1,4 +1,4 @@
-﻿/* ==========================================================================
+/* ==========================================================================
    Seri numarası çözümleme
 
    Paksan seri no biçimi (uygulama için varsayılan):
@@ -13,7 +13,7 @@
    değiştirilir, uygulamanın kalanı aynı kalır.
    ========================================================================== */
 
-import { PRODUCTS } from '../data/products'
+import { PRODUCTS } from '../marka'
 
 /** Girilen seri numarasını sadeleştirir: büyük harf, sadece harf+rakam */
 export function normalizeSerial(raw) {

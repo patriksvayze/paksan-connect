@@ -9,8 +9,8 @@ import {
   stokKullan,
 } from '../../lib/bayiSiparis'
 import { islemYaz } from '../../backoffice/veri'
-import { PARA_BIRIMI, PARCA_FIYAT, paraYaz } from '../../data/parcaFiyat'
-import { PRODUCTS } from '../../data/products'
+import { PARA_BIRIMI, PARCA_FIYAT, paraYaz } from '../../marka'
+import { PRODUCTS } from '../../marka'
 import { makineFiyati, parcaBayiFiyati } from '../../lib/bayiFiyat'
 import { Bolum, Bos } from '../Kabuk'
 import { SiparisVer } from './SiparisVer'

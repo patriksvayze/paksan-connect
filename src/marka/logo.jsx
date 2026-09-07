@@ -28,7 +28,7 @@
 
 import logo from './varliklar/paksan-logo.png'
 import amblem from './varliklar/paksan-amblem.png'
-import { MARKA_YAZI_YOLU, MARKA_YAZI_W, MARKA_YAZI_H } from '../data/markaYollari'
+import { MARKA_YAZI_YOLU, MARKA_YAZI_W, MARKA_YAZI_H } from './markaYollari'
 import { SIRKET } from './kimlik'
 
 const TAM_W = 225

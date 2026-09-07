@@ -8,7 +8,7 @@ import { useVeri } from '../kanca'
 import { Baslik, Bekleme } from './ortak'
 import { Deger, Halka, RenkAnahtari, SutunGrafik, YatayBar, YiginBar } from './grafik'
 import { BOS_ARALIK, Secim } from './suzgec'
-import { getProduct } from '../../data/products'
+import { getProduct } from '../../marka'
 
 /* Dashboard — yöneticinin monitörü.
 

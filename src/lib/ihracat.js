@@ -1,6 +1,6 @@
 import { IHRACAT } from '../marka'
 import { ulkeAdi } from '../data/ulkeler'
-import { getProduct } from '../data/products'
+import { getProduct } from '../marka'
 import { TALEP_TURLERI } from './talep'
 
 /* ==========================================================================

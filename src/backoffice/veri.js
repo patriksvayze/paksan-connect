@@ -11,7 +11,7 @@ import { sifreHazirla, sifreDogruMu, sifreGecerliMi } from '../lib/hesap'
 import { yeniNo } from '../lib/numara'
 import { SIRKET } from '../marka'
 import { urun } from '../lib/urun'
-import { bayileriGetir } from '../data/bayiler.js'
+import { bayileriGetir } from '../marka'
 import { icerikListe, icerikTazele } from '../lib/icerikDeposu.js'
 import { altBilgi } from '../data/duyuruTurleri.js'
 import {

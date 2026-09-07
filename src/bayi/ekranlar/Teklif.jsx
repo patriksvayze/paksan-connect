@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
-import { PRODUCTS, getProduct } from '../../data/products'
+import { PRODUCTS, getProduct } from '../../marka'
 import { ILLER, ilceleriGetir } from '../../data/iller'
-import { PARA_BIRIMI, paraYaz } from '../../data/parcaFiyat'
+import { PARA_BIRIMI, paraYaz } from '../../marka'
 import { makineFiyati } from '../../lib/bayiFiyat'
-import { bayileriGetir } from '../../data/bayiler'
+import { bayileriGetir } from '../../marka'
 import {
   HATIRLATMA_GUN,
   TEKLIF_GUN,

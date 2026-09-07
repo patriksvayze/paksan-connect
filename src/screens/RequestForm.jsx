@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useApp } from '../context/AppState'
 import { TopBar, TabBar, Sheet } from '../components/Chrome'
-import { getProduct, PRODUCTS, supportGroup, urunDilde } from '../data/products'
+import { getProduct, PRODUCTS, supportGroup, urunDilde } from '../marka'
 import { GonderButonu } from '../components/GonderButonu'
 import { alanaGit } from '../lib/formOdak'
 import {
@@ -12,7 +12,7 @@ import {
 } from '../data/talepAlanlari'
 import {
   KDV_ORANI, PARA_BIRIMI, PARCA_FIYAT_AKTIF, parcaFiyatBilgisi, parcaToplami, paraYaz,
-} from '../data/parcaFiyat'
+} from '../marka'
 import { formatSerial } from '../lib/serial'
 import { telKullanici } from '../lib/tel'
 import { SesKaydi } from '../components/SesKaydi'

@@ -3,7 +3,7 @@ import { useApp } from '../context/AppState'
 import { useDil } from '../i18n'
 import { TopBar, TabBar } from '../components/Chrome'
 import { UrunFoto } from '../components/Gorsel'
-import { getProduct, kilavuzSirasiyla, PRODUCTS, urunDilde } from '../data/products'
+import { getProduct, kilavuzSirasiyla, PRODUCTS, urunDilde } from '../marka'
 import { kilavuzBelgesi, kilavuzVarMi } from '../lib/kilavuzVeri'
 import { IconRight, IconAlert } from '../components/Icons'
 

@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppState'
-import { CIZIM } from '../data/cizimler'
+import { CIZIM } from '../marka/icerik/cizimler'
 import { useDil } from '../i18n'
 import { TopBar, TabBar } from '../components/Chrome'
 import { talepTuru } from '../lib/talep'

@@ -1,4 +1,4 @@
-import paket from '../data/mobile_support_package.json'
+import paket from '../marka/icerik/mobile_support_package.json'
 import { MobileSupportRuntime } from './mobile_support_runtime'
 
 /* ==========================================================================

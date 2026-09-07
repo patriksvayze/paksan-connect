@@ -14,10 +14,10 @@ import {
 } from './suzgec'
 import { cevapsizlar, cozuldu, konular, sorular, yonlendirme } from './DestekKayitlari'
 import { DisaAktar } from './aktar'
-import { getProduct } from '../../data/products'
+import { getProduct } from '../../marka'
 import { formatSerial } from '../../lib/serial'
 import { SIRKET } from '../../marka'
-import { parcaToplami } from '../../data/parcaFiyat'
+import { parcaToplami } from '../../marka'
 
 /* ==========================================================================
    Raporlar — yönetici ekranı

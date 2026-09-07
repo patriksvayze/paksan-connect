@@ -17,12 +17,12 @@ import { DisaAktar } from './aktar'
 import { boyutYaz, ekAdresi, ekYaz } from '../../lib/ekler'
 import { araliktaMi, BOS_ARALIK, Secim, SuzgecCubugu, TarihAraligi } from './suzgec'
 import { Dekont, Ekler } from './Ekler'
-import { getProduct } from '../../data/products'
+import { getProduct } from '../../marka'
 import { formatSerial, warrantyStatus } from '../../lib/serial'
 import { makineDurumAdi } from '../../data/talepAlanlari'
 import { BANKA } from '../../marka'
-import { bayileriGetir, talebinBayileri, yetkiAdi } from '../../data/bayiler'
-import { PARA_BIRIMI, parcaToplami, paraYaz } from '../../data/parcaFiyat'
+import { bayileriGetir, talebinBayileri, yetkiAdi } from '../../marka'
+import { PARA_BIRIMI, parcaToplami, paraYaz } from '../../marka'
 
 /* Talepler.
 

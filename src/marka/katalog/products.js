@@ -1,5 +1,5 @@
 import { URUN_EN, KATEGORI_EN, SPEC_EN, SPEC_DEGER_EN, VIDEO_EN, DESC_EN, BAKIM_EN } from './products.en'
-import orkinosTanitim from '../assets/videolar/orkinos-1270-tanitim.mp4'
+import orkinosTanitim from '../varliklar/videolar/orkinos-1270-tanitim.mp4'
 
 /* ==========================================================================
    PAKSAN ürün kataloğu

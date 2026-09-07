@@ -6,7 +6,7 @@ import { uygulamaKaydi } from '../lib/kayit'
 import { talepNo } from '../lib/talep'
 import { sunucuyaGonder } from '../lib/sunucu'
 import { ihracatPostasi, talepUlkesi, yurtdisiTalepMi } from '../lib/ihracat'
-import { talebinBayileri } from '../data/bayiler.js'
+import { talebinBayileri } from '../marka'
 import { SUNUCU } from '../config'
 import { cihazDili, DilSaglayici } from '../i18n'
 

@@ -1,4 +1,4 @@
-import { urunGorseli } from '../data/gorseller'
+import { urunGorseli } from '../marka'
 import { IconMachine } from './Icons'
 
 /**

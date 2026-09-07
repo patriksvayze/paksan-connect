@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useApp } from '../context/AppState'
 import { TopBar, TabBar } from '../components/Chrome'
 import { useDil } from '../i18n'
-import { getProduct, urunDilde } from '../data/products'
+import { getProduct, urunDilde } from '../marka'
 import { yaz } from '../lib/destek'
 import {
   genelGuvenlik, kilavuzBelgesi, kilavuzGuvenlik, kilavuzKartlari,

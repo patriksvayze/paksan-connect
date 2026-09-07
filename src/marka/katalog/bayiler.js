@@ -17,8 +17,8 @@
      yetki   → bayinin verdiği hizmetler
    ========================================================================== */
 
-import { icerikListe } from '../lib/icerikDeposu.js'
-import { ilKoordinati } from './ilKoordinat.js'
+import { icerikListe } from '../../lib/icerikDeposu.js'
+import { ilKoordinati } from '../../data/ilKoordinat.js'
 
 export const YETKILER = {
   satis: 'Satış',

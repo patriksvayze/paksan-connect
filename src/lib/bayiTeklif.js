@@ -37,7 +37,7 @@
    ========================================================================== */
 
 import { load, save, uid } from './storage.js'
-import { KDV_ORANI } from '../data/parcaFiyat.js'
+import { KDV_ORANI } from '../marka'
 
 const ANAHTAR = 'bayiTeklif'
 

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { parcalariGetir, PARCA_DIGER } from '../../data/talepAlanlari'
-import { supportGroup } from '../../data/products'
+import { supportGroup } from '../../marka'
 import { extractYear, matchProduct, warrantyStatus, GARANTI_YIL } from '../../lib/serial'
 import { parcaAdedi } from '../../lib/bayiStok'
 import { siparisAc } from '../../lib/bayiSiparis'

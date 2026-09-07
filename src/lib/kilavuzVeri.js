@@ -1,5 +1,5 @@
 import { PAKET, yaz } from './destek'
-import { kunyeEtiket, kunyeDeger } from '../data/teknikEtiketler'
+import { kunyeEtiket, kunyeDeger } from '../marka/icerik/teknikEtiketler'
 
 /* ==========================================================================
    Kılavuz içeriği — gerçek kullanım kılavuzlarından

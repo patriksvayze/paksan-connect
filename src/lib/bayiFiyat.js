@@ -25,8 +25,8 @@ import {
   MAKINE_FIYAT,
   MAKINE_FIYAT_AKTIF,
   PARCA_BAYI_ISKONTO,
-} from '../data/makineFiyat.js'
-import { parcaFiyatBilgisi } from '../data/parcaFiyat.js'
+} from '../marka'
+import { parcaFiyatBilgisi } from '../marka'
 
 /** Süresi geçmemiş kampanyalar. */
 export function acikKampanyalar(simdi = Date.now()) {

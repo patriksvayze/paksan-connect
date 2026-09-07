@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { TEKLIF_SONUC, kalanGun, teklifleriGetir } from '../../lib/bayiTeklif'
-import { PARA_BIRIMI, paraYaz } from '../../data/parcaFiyat'
+import { PARA_BIRIMI, paraYaz } from '../../marka'
 import { tarihYaz } from './ortak'
 
 /* ==========================================================================

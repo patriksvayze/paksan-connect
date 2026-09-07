@@ -7,8 +7,8 @@ import {
 } from '../../backoffice/veri'
 import { parcaAdedi, stokDus } from '../../lib/bayiStok'
 import { makineDurumAdi } from '../../data/talepAlanlari'
-import { getProduct } from '../../data/products'
-import { PARA_BIRIMI, paraYaz } from '../../data/parcaFiyat'
+import { getProduct } from '../../marka'
+import { PARA_BIRIMI, paraYaz } from '../../marka'
 import { ServisKapanisi } from './ServisKapanisi'
 import { Sayfa } from '../Kabuk'
 import {
