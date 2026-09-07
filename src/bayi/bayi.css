@@ -124,12 +124,18 @@
   flex: 1;
   padding: var(--bosluk-4);
   /* Alt sekme çubuğu içeriğin üstüne biniyor; son kart onun altında
-     kalmasın diye kadar boşluk bırakılıyor. */
+     kalmasın diye çubuk kadar boşluk bırakılıyor. */
   padding-bottom: calc(var(--bosluk-5) + var(--tabs) + var(--dip));
 }
 
 .uyg--sayfa .uyg__ic {
   padding-bottom: calc(var(--bosluk-5) + var(--dip));
+}
+
+/* Dip çubuğu içeriğin üstüne biniyor; son bölüm onun altında
+   kalmasın diye çubuk yüksekliği kadar boşluk bırakılıyor. */
+.uyg--dipli .uyg__ic {
+  padding-bottom: calc(var(--bosluk-5) + var(--dokunma) + var(--bosluk-4) + var(--dip));
 }
 
 /* Dibe yapışık asıl işlem — alt sayfalarda sekme çubuğu yok, onun
@@ -253,6 +259,18 @@
   background: var(--lacivert);
   border: 1px solid rgba(255, 255, 255, 0.14);
   color: #fff;
+
+  /* GECİKME RENGİ BURAYA ÖZEL.
+
+     `--turuncu-d` kullanılıyordu ve YANLIŞTI. O ton (#9b5208) kendi
+     soluk turuncu zemini için ölçülmüş bir rozet yazısı rengi;
+     lacivertin üstünde ölçülen kontrast 2,98 — eşik 4,5. Ekranda
+     okunur duruyordu ama tarlada güneş altında okunmuyor.
+
+     Bu ton aynı zeminde 8,73 veriyor. Değer yerel bir belirteç:
+     iki CSS kökünün paylaştığı bir renk değil, yalnız bu koyu
+     kartın içinde geçerli. */
+  --bugun-uyari: #f2a94b;
 }
 
 .bugun__ust {
@@ -296,9 +314,9 @@
 }
 
 /* Tarihi geçmiş randevu turuncu: bayi o gün gitmemiş ve gitmeli.
-   `--turuncu-d` koyu zeminde okunması için ayrılmış olan ton. */
+   Ton `.bugun` içinde tanımlı; gerekçesi orada yazılı. */
 .bugun__satir--gec .bugun__saat {
-  color: var(--turuncu-d);
+  color: var(--bugun-uyari);
 }
 
 .bugun__ad {
@@ -325,25 +343,33 @@
 }
 
 /* Sayılar altta ve küçük: randevu somut bir plan, bunlar hatırlatma.
-   Aynı ağırlıkta durmamaları gerekiyor. */
+   Aynı ağırlıkta durmamaları gerekiyor.
+
+   ÖNCE DOLU ROZETLERDİ VE İKİSİ KIRMIZIYDI. Yan yana dizilip üç satıra
+   sarıyor, bloğun yarısını kaplıyordu; randevuların kendisinden daha
+   çok yer tutan bir hatırlatma listesi. Üstelik "geciken iş" demo
+   verisinde neredeyse her kartta çıkıyor — her şey kırmızıysa hiçbir
+   şey kırmızı değildir.
+
+   Şimdi alt alta sönük satırlar, üstlerinde ince bir ayırıcı. Renk
+   yalnız gecikmiş işte; o da dolgu değil, yazı rengi. */
 .bugun__sayilar {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--bosluk-2);
+  flex-direction: column;
+  gap: 3px;
   margin-top: var(--bosluk-3);
+  padding-top: var(--bosluk-3);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .bugun__rozet {
-  padding: 4px 10px;
-  border-radius: var(--r-tam);
-  background: rgba(255, 255, 255, 0.14);
-  font-size: var(--yazi-1);
-  font-weight: 700;
+  font-size: var(--yazi-2);
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .bugun__rozet--gec {
-  background: var(--kirmizi);
-  color: var(--rozet-yazi);
+  font-weight: 700;
+  color: var(--bugun-uyari);
 }
 
 /* ---------------------------------------------------------- Bölüm başı */
@@ -424,7 +450,7 @@
   cursor: pointer;
 }
 
-/* Arama düğmesi kartın tam boyunca uzanıyor: hedef 48 pikselin
+/* Arama düğmesi kartın yüksekliği boyunca uzanıyor: hedef 48 pikselin
    altına düşmüyor, kısa kartta bile parmak rahat oturuyor. */
 .is__ara {
   flex: none;
@@ -440,6 +466,7 @@
   background: var(--mavi-z);
 }
 
+/* Yalnız talep detayında kaldı: tür rozetini taşıyan sarmalayıcı. */
 .is__ust {
   display: flex;
   align-items: center;
@@ -448,15 +475,20 @@
   margin-bottom: var(--bosluk-1);
 }
 
-/* Zaman en sağda: göz önce türe, sonra tarihe gidiyor. */
-.is__zaman {
-  margin-left: auto;
-  font-size: var(--yazi-2);
-  color: var(--murekkep-2);
-  white-space: nowrap;
+/* 1. satır: ad solda, tür rozeti sağda.
+
+   Rozet `align-self: flex-start` ile yukarı yaslı: ad iki satıra
+   taşarsa rozet ortada asılı kalmıyor. `flex: none` de gerekiyor,
+   yoksa uzun adın yanında rozet eziliyordu. */
+.is__bas {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--bosluk-2);
 }
 
 .is__ad {
+  flex: 1;
+  min-width: 0;
   font-size: var(--yazi-3);
   font-weight: 800;
   letter-spacing: -0.01em;
@@ -465,6 +497,13 @@
   white-space: nowrap;
 }
 
+.is__bas .tur {
+  flex: none;
+  margin-top: 1px;
+}
+
+/* 2. satır: künye. Yer ve numara sönük, tek satır, taşarsa kesiliyor —
+   bayi kartı adından buluyor, numarayı detayda okuyor. */
 .is__alt {
   margin-top: 2px;
   font-size: var(--yazi-2);
@@ -474,27 +513,47 @@
   white-space: nowrap;
 }
 
-/* Talep numarası konumun ARDINDA, kendi satırında değil. Bayi numarayı
-   nadiren okuyor; müşterinin adı ve nerede olduğu asıl bilgi. */
-.is__no {
-  color: var(--murekkep-3);
-}
-
-/* İşaret satırı: kartın alt kenarında, kendi rengiyle. Üst kısım her
-   talepte aynı yerde dursun diye buraya alındı. */
-.is__isaret {
+/* 3. satır: solda yapılacak iş, sağda zaman. İki yaka da her kartta
+   aynı yerde; göz listeyi tararken sağ kenarda tek sütun okuyor. */
+.is__durum {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--bosluk-2);
   margin-top: var(--bosluk-2);
   font-size: var(--yazi-2);
-  font-weight: 700;
-  color: var(--murekkep-2);
 }
 
-.is__isaret--gec {
+.is__sol {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+  color: var(--mavi-rz);
+}
+
+.is__sag {
+  flex: none;
+  color: var(--murekkep-2);
+  white-space: nowrap;
+}
+
+.is__sag--gec {
+  font-weight: 700;
   color: var(--kirmizi);
 }
 
-.is__isaret--plan {
-  color: var(--mavi-rz);
+/* Tutar durum satırının solunda ve mürekkep renginde: teklifte bayinin
+   baktığı ilk sayı bu, renkli bir işaret değil bir değer. */
+.is__tutar {
+  font-size: var(--yazi-3);
+  font-weight: 800;
+  color: var(--murekkep);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Garanti durumu — bayinin "ücret alacak mıyım" sorusunun cevabı.
@@ -579,7 +638,7 @@
 /* --------------------------------------------------------------- Not
 
    Talebin durumunu anlatan bilgi kutusu. Rengi bilginin cinsini
-   söylüyor; yazının kendisi zaten aynı şeyi yazdığı için renk tek
+   söylüyor; metin zaten aynı bilgiyi verdiği için renk tek
    başına anlam taşımıyor (renk körlüğü). */
 
 .not {
@@ -836,7 +895,7 @@
 
 /* --------------------------------------------------------------- Stok
 
-   ARTI DÜĞMESİ YOK — bayi stoğunu artıramıyor, artış yalnız PAKSAN
+   ARTI DÜĞMESİ YOK — bayi stokunu artıramıyor, artış yalnız PAKSAN
    sevkiyatıyla oluyor. Satırda yalnız eksi var. */
 
 .stok-satir {
@@ -927,6 +986,31 @@
   grid-area: giris;
   width: 72px;
   text-align: right;
+}
+
+/* Sütun başlıkları listenin başında bir kez. Izgaraya kendileri
+   giriyorlar (`grid-area`), böylece altlarındaki sayıyla hep aynı
+   hizada duruyorlar. */
+.stok-satir--baslik {
+  padding: var(--bosluk-2) 0 var(--bosluk-1);
+}
+
+.stok-basi {
+  font-size: var(--yazi-1);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  text-align: right;
+  color: var(--murekkep-2);
+}
+
+.stok-basi--adet {
+  grid-area: adet;
+}
+
+.stok-basi--giris {
+  grid-area: giris;
+  width: 72px;
 }
 
 /* Geri alma. Kalıcı bir düğme gibi durmamalı — on dakikalık bir
@@ -1073,7 +1157,7 @@
   font-size: var(--yazi-3);
 }
 
-/* Giriş ekranı kabuğun dışında; ölçüler oraya da geçerli. */
+/* Giriş ekranı kabuğun dışında; ölçüler orada da geçerli. */
 .giris .dg,
 .giris .gir {
   min-height: var(--dokunma);
@@ -1091,6 +1175,961 @@
   font-size: var(--yazi-2);
   font-weight: 700;
   cursor: pointer;
+}
+
+/* ------------------------------------------------------- Başlıktaki hesap
+
+   Hesap alt sekmeden çıkıp buraya geldi. Alt çubuktaki dört yer
+   günlük işe ayrıldı; ayda bir açılan bir bölüm orada yer tutuyordu.
+   Harf dairesi marka yazısının yerini alıyor — ikisi birden çubuğu
+   iki satıra taşırırdı.                                              */
+
+/* Daire 34 piksel görünüyor ama basılabilir alan 48: dokunma hedefinin
+   alt sınırı. Dolgu içeriden veriliyor, `background-clip` zemini yalnız
+   iç kutuya çiziyor — geri okundaki çözümün aynısı. */
+.uyg__hesap {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--dokunma);
+  height: var(--dokunma);
+  padding: 7px;
+  border: 0;
+  border-radius: var(--r-tam);
+  background: rgba(255, 255, 255, 0.16);
+  background-clip: content-box;
+  color: #fff;
+  font-size: var(--yazi-3);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.uyg__hesap:active {
+  background: rgba(255, 255, 255, 0.3);
+  background-clip: content-box;
+}
+
+
+/* ------------------------------------------------------------------ Arama */
+
+.ara-kutu {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  margin-bottom: var(--bosluk-3);
+  padding-left: var(--bosluk-3);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-2);
+  background: var(--yuzey);
+  color: var(--murekkep-2);
+}
+
+.ara-kutu:focus-within {
+  border-color: var(--mavi-rz);
+}
+
+.ara-kutu .gir {
+  border: 0;
+  background: transparent;
+}
+
+.ara-kutu .gir:focus {
+  outline: 0;
+}
+
+/* ------------------------------------------------------------ Ürün kartı
+
+   Düzen müşteri uygulamasındaki `MachineCard`'ın aynısı: fotoğraf,
+   model adı, alt başlık, rozetler, ok. Bayi listesi önce yalnız
+   yazıydı; yirmi satırlık bir model listesinde göz aradığını okuyarak
+   buluyordu.                                                         */
+
+.urun {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  width: 100%;
+  padding: var(--bosluk-3);
+  margin-bottom: var(--bosluk-2);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-3);
+  background: var(--yuzey);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.urun:active {
+  background: var(--mavi-z);
+}
+
+.urun__govde {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+/* Ad solda, kampanya rozeti sağda — liste kartındaki kuralın aynısı. */
+.urun__bas {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--bosluk-2);
+}
+
+.urun__ad {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--yazi-3);
+  font-weight: 700;
+}
+
+.urun__bas .rozet {
+  flex: none;
+}
+
+.urun__alt {
+  font-size: var(--yazi-1);
+  color: var(--murekkep-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Stoktan teslim tek olumlu bilgi: yeşil ama dolgusuz. Kartta dolu
+   rozet yalnız kampanyanın. */
+.urun__stok {
+  font-weight: 700;
+  color: var(--yesil);
+}
+
+.urun__fiyat {
+  margin-top: 4px;
+  font-size: var(--yazi-3);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.urun__fiyat small {
+  font-size: var(--yazi-1);
+  font-weight: 400;
+  color: var(--murekkep-2);
+}
+
+.urun__ok {
+  flex: none;
+  color: var(--murekkep-2);
+}
+
+/* Ürün fotoğrafı. Müşteri uygulamasındaki `.photo` kurallarının bayi
+   karşılığı; bileşen (`components/Gorsel.jsx`) paylaşılıyor, stil
+   kökleri ayrı olduğu için sınıflar burada tekrar tanımlanıyor. */
+.photo {
+  border-radius: var(--r-2);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(168deg, #ffffff 0%, #eef2f8 100%);
+}
+
+.photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.photo--thumb {
+  flex: none;
+  width: 88px;
+  height: 58px;
+}
+
+.photo--hero {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+}
+
+.photo--bos {
+  color: var(--murekkep-2);
+}
+
+.urun-hero {
+  margin: calc(var(--bosluk-4) * -1) calc(var(--bosluk-4) * -1) 0;
+}
+
+.urun-kart {
+  position: relative;
+  z-index: 1;
+  margin: -26px 0 var(--bosluk-4);
+  padding: var(--bosluk-4);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-3);
+  background: var(--yuzey);
+  box-shadow: var(--golge-2);
+}
+
+.urun-kart__satir {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--bosluk-3);
+  padding: var(--bosluk-2) 0;
+  border-bottom: 1px solid var(--cizgi);
+  font-size: var(--yazi-2);
+  color: var(--murekkep-2);
+}
+
+.urun-kart__satir:last-of-type {
+  border-bottom: 0;
+}
+
+/* Rakam bölünmüyor: "3.120.000" ile "TL" iki satıra düşünce satır iki
+   katına çıkıyor ve tutar okunmuyordu. Etiket sarılabilir, rakam
+   sarılamaz. */
+.urun-kart__satir strong {
+  flex: none;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: var(--murekkep);
+}
+
+/* Düğme görünümlü bağlantılar: `.dg` sınıfı `<button>` için yazılmıştı;
+   `<a>` üzerinde tarayıcının alt çizgisi kalıyordu. */
+.uyg a.dg,
+.uyg__dip a.dg {
+  text-decoration: none;
+}
+
+.urun-kart__satir--vurgu {
+  font-size: var(--yazi-3);
+}
+
+.urun-kart__satir--vurgu strong {
+  font-size: var(--yazi-5);
+  font-weight: 800;
+}
+
+.urun-kart__satir--yesil strong {
+  color: var(--yesil);
+}
+
+.urun-kart__dip {
+  padding-top: var(--bosluk-3);
+  border-top: 1px solid var(--cizgi);
+  font-size: var(--yazi-1);
+  color: var(--murekkep-2);
+}
+
+.rozet {
+  padding: 2px 8px;
+  border-radius: var(--r-tam);
+  background: var(--yuzey-2);
+  font-size: var(--yazi-1);
+  font-weight: 700;
+  color: var(--murekkep-2);
+}
+
+.rozet--kampanya {
+  background: var(--turuncu-z);
+  color: var(--turuncu-d);
+}
+
+/* -------------------------------------------------- Sipariş onay ekranı
+
+   Sipariş önce tek adımdı: kutuya rakam yazılıyor, "Gönder"e
+   basılıyordu. Bir buçuk milyonluk makine siparişi böyle veriliyordu.
+   Şimdi araya özet ekranı giriyor — kalem, adet, birim fiyat, satır
+   tutarı ve teslim bilgisi görülmeden sipariş çıkmıyor.               */
+
+.fiyat-kart {
+  margin-bottom: var(--bosluk-4);
+  padding: var(--bosluk-4);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-3);
+  background: var(--yuzey);
+}
+
+.ozet-kalem {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  padding: var(--bosluk-3) 0;
+  border-bottom: 1px solid var(--cizgi);
+}
+
+.ozet-kalem:last-child {
+  border-bottom: 0;
+}
+
+.ozet-kalem__ad {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--yazi-2);
+}
+
+.ozet-kalem__tutar {
+  flex: none;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.ozet-kalem__sil {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--dokunma);
+  height: var(--dokunma);
+  margin-right: calc(var(--bosluk-3) * -1);
+  border: 0;
+  border-radius: var(--r-2);
+  background: transparent;
+  color: var(--kirmizi);
+  cursor: pointer;
+}
+
+.ozet-kalem__sil:active {
+  background: var(--kirmizi-z);
+}
+
+/* Seçilen satır listede işaretli kalıyor: yirmi satır arasında hangi
+   kaleme rakam yazdığı kaybolmasın. */
+.stok-satir--secili {
+  background: var(--mavi-z);
+  margin-inline: calc(var(--bosluk-3) * -1);
+  padding-inline: var(--bosluk-3);
+  border-radius: var(--r-2);
+}
+
+.satir-tutar {
+  margin-top: 2px;
+  color: var(--mavi-rz);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.siparis-sonuc {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--bosluk-5) var(--bosluk-4);
+  color: var(--murekkep-2);
+}
+
+.siparis-sonuc > svg {
+  color: var(--yesil);
+}
+
+.siparis-sonuc h2 {
+  margin: var(--bosluk-3) 0 var(--bosluk-2);
+  font-size: var(--yazi-4);
+  color: var(--murekkep);
+}
+
+.siparis-sonuc__no {
+  margin: 0 0 var(--bosluk-3);
+  padding: 6px 14px;
+  border-radius: var(--r-tam);
+  background: var(--yesil-z);
+  color: var(--yesil);
+  font-size: var(--yazi-3);
+  font-weight: 800;
+}
+
+.siparis-sonuc p {
+  margin: 0 0 var(--bosluk-2);
+  max-width: 34ch;
+}
+
+.siparis-sonuc .dg {
+  margin-top: var(--bosluk-4);
+  width: 100%;
+  max-width: 320px;
+}
+
+/* ---------------------------------------------------------------- Teklif
+
+   Satırda üç kutu var: ürün, adet, birim fiyat. Fiyatın altında liste
+   ve alış fiyatı ile o satırın kârı duruyor — bayi indirim yaparken
+   ne verdiğini görüyor. Pazarlıkta ihtiyaç duyduğu tek sayı bu.      */
+
+.teklif-satir {
+  padding: var(--bosluk-3);
+  margin-bottom: var(--bosluk-3);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-3);
+  background: var(--yuzey);
+}
+
+.teklif-satir__ust {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+}
+
+.teklif-satir__ust .gir {
+  flex: 1;
+  min-width: 0;
+}
+
+.teklif-satir__alt {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: var(--bosluk-3);
+  margin-top: var(--bosluk-2);
+}
+
+.teklif-satir__alt .alan {
+  margin-bottom: 0;
+}
+
+.teklif-satir__bilgi {
+  margin-top: var(--bosluk-2);
+  padding-top: var(--bosluk-2);
+  border-top: 1px solid var(--cizgi);
+  font-size: var(--yazi-1);
+  color: var(--murekkep-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.teklif-satir__bilgi .kazanc {
+  color: var(--yesil);
+}
+
+.teklif-satir__bilgi .zarar {
+  color: var(--kirmizi);
+}
+
+.urun-kart__satir--kirmizi strong {
+  color: var(--kirmizi);
+}
+
+/* ============================================================== İş kartı
+
+   TAM EKRAN KATMAN
+
+   İş kartı öbür alt sayfalarla aynı kabuğu kullanıyor (`Sayfa`) ama
+   talep detayının ÜSTÜNDE açılıyor. Katman bunun için: sabitlenmiş,
+   sayfanın zeminini taşıyan ve altındaki ekranı tamamen örten bir
+   yüzey. Ayrı bir başlık düzeni yazılmadı — bayi aynı geri okunu
+   aynı yerde buluyor. */
+.katman {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  overflow: auto;
+  background: var(--zemin);
+}
+
+/* Çoklu seçim hapları.
+
+   Belirti, yapılan iş ve süre listeden seçiliyor; kutuya yazılmıyor.
+   Hedef yüksekliği 48 piksel — bayi kartı işin sonunda, çoğu zaman
+   eldivenle dolduruyor. Seçili hap yalnız renkle değil kenarıyla da
+   ayrılıyor (renk körlüğü). */
+.hap-liste {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bosluk-2);
+}
+
+.hap {
+  min-height: var(--dokunma);
+  padding: 0 var(--bosluk-4);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-tam);
+  background: var(--yuzey);
+  color: var(--murekkep);
+  font: inherit;
+  font-size: var(--yazi-2);
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.hap--on {
+  border-color: var(--mavi-rz);
+  background: var(--mavi-z);
+  color: var(--mavi-rz);
+}
+
+.hap:active {
+  transform: scale(0.97);
+}
+
+/* Büyük cevap düğmesi.
+
+   Kapanış ekranında her soruya cevaplar tam genişlikte satırlar
+   hâlinde duruyor. Panelin kullanıcısı bayi personeli; açılır kutu,
+   onay kutusu ve radyo düğmesi karışıyordu. Tek etkileşim biçimi
+   var: dokunmak.
+
+   Yükseklik 60 piksel — 48'lik alt sınırın üstünde, çünkü bu
+   düğmeler ekranın asıl işi ve tarlada eldivenle basılıyor. */
+.buyuk-sec {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  min-height: 60px;
+  padding: var(--bosluk-3) var(--bosluk-4);
+  border: 0;
+  border-bottom: 1px solid var(--cizgi);
+  background: var(--yuzey);
+  color: var(--murekkep);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.buyuk-sec:last-child {
+  border-bottom: 0;
+}
+
+.buyuk-sec:active {
+  background: var(--mavi-z);
+}
+
+/* Seçili cevap yalnız renkle değil sol kenarındaki şeritle de
+   ayrılıyor (renk körlüğü). */
+.buyuk-sec--on {
+  background: var(--mavi-z);
+  box-shadow: inset 4px 0 0 var(--mavi-rz);
+}
+
+.buyuk-sec__ad {
+  font-size: var(--yazi-3);
+  font-weight: 700;
+}
+
+.buyuk-sec__alt {
+  font-size: var(--yazi-2);
+  color: var(--murekkep-2);
+}
+
+/* Parça satırı. Açılır kutu yok: liste duruyor, bayi kullandığına
+   dokunuyor. Seçilince altında adet düğmeleri beliriyor.
+
+   Adet düğmelerinin yanında "Adet" yazıyor: artı ve eksi simgeleri
+   tek başına ne sayıldığını söylemiyor. */
+.parca-satir {
+  margin-bottom: var(--bosluk-2);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-2);
+  background: var(--yuzey);
+  overflow: hidden;
+}
+
+.parca-satir--on {
+  border-color: var(--mavi-rz);
+}
+
+.parca-satir__ac {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  width: 100%;
+  min-height: var(--dokunma);
+  padding: var(--bosluk-2) var(--bosluk-3);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.parca-satir--on .parca-satir__ac {
+  background: var(--mavi-z);
+}
+
+.parca-satir__ad {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--yazi-3);
+  font-weight: 700;
+}
+
+.parca-satir__stok {
+  flex: none;
+  font-size: var(--yazi-2);
+  color: var(--murekkep-2);
+}
+
+.parca-satir__adet {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  padding: var(--bosluk-2) var(--bosluk-3);
+  border-top: 1px solid var(--cizgi);
+}
+
+.parca-satir__etiket {
+  flex: 1;
+  font-size: var(--yazi-2);
+  font-weight: 700;
+  color: var(--murekkep-2);
+}
+
+.parca-satir__sayi {
+  min-width: 32px;
+  text-align: center;
+  font-size: var(--yazi-4);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Çekilen fotoğrafın önizlemesi. Bayi neyi gönderdiğini görüyor. */
+.foto-onizleme {
+  display: block;
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  margin-bottom: var(--bosluk-3);
+  border-radius: var(--r-2);
+}
+
+/* ------------------------------------------------------- Gidecek SMS
+
+   Bayi düğmeye basmadan önce müşterinin okuyacağı metni ve mesajın kaç
+   SMS tutacağını görüyor. Tek amacı şeffaflık: teklif bayinin adıyla
+   gidiyor ve ücretini bayi ödüyor.
+
+   Metin `pre-wrap`: satır sonları SMS'in kendi satır sonları,
+   korunmaları gerekiyor. */
+.sms {
+  margin-top: var(--bosluk-3);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-2);
+  background: var(--yuzey-2);
+  overflow: hidden;
+}
+
+.sms__ust {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--bosluk-2);
+  padding: var(--bosluk-2) var(--bosluk-3);
+  border-bottom: 1px solid var(--cizgi);
+  font-size: var(--yazi-1);
+  font-weight: 700;
+  color: var(--murekkep-2);
+}
+
+.sms__adet {
+  color: var(--murekkep-3);
+}
+
+.sms__metin {
+  padding: var(--bosluk-3);
+  font-size: var(--yazi-2);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  color: var(--murekkep);
+}
+
+/* İki düğme yan yana: dükkâna gelen müşteri için kayıt açmak ve fiyat
+   vermek. İkisi de listenin başında duruyor.
+
+   Backoffice'in `.ikili` sınıfı KULLANILMADI: o sınıf ancak geniş
+   ekranda iki sütuna geçiyor, telefonda düğmeler alt alta düşüyordu.
+   Buradaki iki düğme dar ekranda da yan yana durmalı — ekranın en
+   değerli yerini iki satır kaplamamalı. */
+.baslangic {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--bosluk-2);
+  margin-bottom: var(--bosluk-4);
+}
+
+.baslangic .dg {
+  gap: 6px;
+  padding-inline: var(--bosluk-2);
+}
+
+/* -------------------------------------------------------------- Kampanya */
+
+/* ZEMİN İKİ KAT: soluk turuncu, ONUN ALTINDA kart yüzeyi.
+
+   Tek kat verildiğinde soluk turuncu (%12 saydam) sayfanın gri
+   zeminine karışıyor, üstündeki `--turuncu-d` yazı 4,46'ya düşüyordu —
+   eşik 4,5. O ton backoffice'te kendi soluk zemininin BEYAZ üstünde
+   durduğu varsayılarak ölçülmüş (4,65). İki katlı zemin o varsayımı
+   sayfanın zemininden bağımsız hâle getiriyor: ölçülen 4,65. */
+.kampanya {
+  margin-bottom: var(--bosluk-3);
+  padding: var(--bosluk-3) var(--bosluk-4);
+  border: 1px solid var(--turuncu-d);
+  border-radius: var(--r-3);
+  background: linear-gradient(var(--turuncu-z), var(--turuncu-z)), var(--yuzey);
+}
+
+.kampanya__ust {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  color: var(--turuncu-d);
+}
+
+.kampanya__oran {
+  margin-left: auto;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.kampanya__metin {
+  margin: var(--bosluk-2) 0 0;
+  font-size: var(--yazi-2);
+}
+
+.kampanya__son {
+  margin-top: var(--bosluk-2);
+  font-size: var(--yazi-1);
+  color: var(--murekkep-2);
+}
+
+/* --------------------------------------------------------- Sipariş toplamı */
+
+.siparis-toplam {
+  display: flex;
+  align-items: baseline;
+  gap: var(--bosluk-2);
+  margin-top: var(--bosluk-3);
+  padding: var(--bosluk-3) var(--bosluk-4);
+  border-radius: var(--r-3);
+  background: var(--mavi-z);
+  color: var(--mavi-rz);
+  font-size: var(--yazi-2);
+  font-weight: 700;
+}
+
+.siparis-toplam strong {
+  margin-left: auto;
+  font-size: var(--yazi-4);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.siparis-toplam small {
+  flex-basis: 100%;
+  font-size: var(--yazi-1);
+  font-weight: 400;
+  color: var(--murekkep-2);
+}
+
+/* ------------------------------------------------------------ İç sekmeler
+
+   Makine detayında üç bölüm var ve üçü de aynı makineye ait. Ayrı
+   sayfalara bölmek geri-ileri gezinme demekti; usta arızaya bakarken
+   teknik değere de bakıyor.                                          */
+
+.ic-sekme {
+  display: flex;
+  gap: var(--bosluk-2);
+  margin-bottom: var(--bosluk-4);
+  overflow-x: auto;
+}
+
+.ic-sekme__dg {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  min-height: var(--dokunma);
+  padding: 0 var(--bosluk-4);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-tam);
+  background: var(--yuzey);
+  color: var(--murekkep-2);
+  font-size: var(--yazi-2);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ic-sekme__dg--on {
+  border-color: transparent;
+  background: var(--lacivert);
+  color: #fff;
+}
+
+/* --------------------------------------------------------------- Arıza */
+
+.guvenlik-liste {
+  margin: var(--bosluk-2) 0 0;
+  padding-left: 18px;
+  font-size: var(--yazi-2);
+}
+
+.guvenlik-liste li + li {
+  margin-top: 4px;
+}
+
+.belirti {
+  border-bottom: 1px solid var(--cizgi);
+}
+
+.belirti:last-child {
+  border-bottom: 0;
+}
+
+.belirti__ac {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  width: 100%;
+  min-height: var(--dokunma);
+  padding: var(--bosluk-3) 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font-size: var(--yazi-3);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.belirti__ac > span {
+  flex: 1;
+}
+
+.belirti__ac > svg {
+  flex: none;
+  color: var(--murekkep-2);
+  transition: transform 0.15s ease;
+}
+
+.belirti--on .belirti__ac > svg {
+  transform: rotate(180deg);
+}
+
+.belirti__ic {
+  padding-bottom: var(--bosluk-3);
+}
+
+.sebep {
+  margin-bottom: var(--bosluk-3);
+  padding: var(--bosluk-3);
+  border-radius: var(--r-2);
+  background: var(--yuzey-2);
+}
+
+.sebep__ust {
+  display: flex;
+  align-items: baseline;
+  gap: var(--bosluk-2);
+  margin-bottom: var(--bosluk-2);
+}
+
+.sebep__ust strong {
+  flex: 1;
+  font-size: var(--yazi-2);
+}
+
+.zorluk {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: var(--r-tam);
+  background: var(--yesil-z);
+  color: var(--yesil);
+  font-size: var(--yazi-1);
+  font-weight: 700;
+}
+
+.zorluk--orta {
+  background: var(--turuncu-z);
+  color: var(--turuncu-d);
+}
+
+.zorluk--servis {
+  background: var(--kirmizi-z);
+  color: var(--kirmizi);
+}
+
+.sebep__satir {
+  margin: 0 0 6px;
+  font-size: var(--yazi-2);
+}
+
+.sebep__satir > span {
+  display: block;
+  font-size: var(--yazi-1);
+  font-weight: 700;
+  color: var(--murekkep-2);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.sebep__satir:last-child {
+  margin-bottom: 0;
+}
+
+.belirti__parca {
+  padding: var(--bosluk-2) var(--bosluk-3);
+  border-radius: var(--r-2);
+  background: var(--mavi-z);
+  color: var(--mavi-rz);
+  font-size: var(--yazi-1);
+  font-weight: 700;
+}
+
+/* ------------------------------------------------------- Teknik ve bakım */
+
+.ozet-satir {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--bosluk-3);
+  padding: var(--bosluk-2) 0;
+  border-bottom: 1px solid var(--cizgi);
+  font-size: var(--yazi-2);
+  color: var(--murekkep-2);
+}
+
+.ozet-satir:last-child {
+  border-bottom: 0;
+}
+
+.ozet-satir strong {
+  text-align: right;
+  color: var(--murekkep);
+}
+
+.bakim-satir {
+  display: flex;
+  gap: var(--bosluk-3);
+  padding: var(--bosluk-3) 0;
+  border-bottom: 1px solid var(--cizgi);
+}
+
+.bakim-satir:last-child {
+  border-bottom: 0;
+}
+
+.bakim-satir__saat {
+  flex: none;
+  min-width: 52px;
+  padding: 2px 8px;
+  height: fit-content;
+  border-radius: var(--r-tam);
+  background: var(--mavi-z);
+  color: var(--mavi-rz);
+  font-size: var(--yazi-1);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.bakim-satir strong {
+  display: block;
+  font-size: var(--yazi-2);
+}
+
+.bakim-satir p {
+  margin: 4px 0 0;
+  font-size: var(--yazi-2);
+  color: var(--murekkep-2);
 }
 
 /* --------------------------------------------------- Geniş ekran (panel)

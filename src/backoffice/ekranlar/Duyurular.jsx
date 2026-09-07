@@ -196,7 +196,13 @@ function onayMetni(tur, baslik, kime) {
   if (tur === 'uyari') {
     return `“${baslik}” başlıklı uyarı ${alici} gidecek. Ekranlarını açtıklarında pencere olarak görecekler; bu bildirim için izin gerekmiyor.`
   }
-  return `“${baslik}” başlıklı duyuru ${alici} gidecek. Müşteri tarafında yalnızca ticari ileti izni verenlere ulaşır; bayilerde böyle bir izin aranmaz.`
+  /* Ticari ileti izni YALNIZ müşteri tarafında aranıyor. Duyuru
+     yalnız bayilere gidiyorsa o cümle konuyla ilgisiz kalıyordu:
+     personel, duyuruyu almayacak kitlenin izin kuralını okuyordu. */
+  if (kime === 'bayi') {
+    return `“${baslik}” başlıklı duyuru ${alici} gidecek. Bayilerde ticari ileti izni aranmaz.`
+  }
+  return `“${baslik}” başlıklı duyuru ${alici} gidecek. Müşteri tarafında yalnızca ticari ileti izni verenlere ulaşır${kime === 'ikisi' ? '; bayilerde böyle bir izin aranmaz' : ''}.`
 }
 
 function ozetle(hedef, bayiler) {
@@ -332,7 +338,14 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
                 style={{ minHeight: 140 }}
                 value={metin}
                 onChange={(e) => setMetin(e.target.value)}
-                placeholder="Müşterinin okuyacağı metin. Ne olduğunu ve ne yapması gerektiğini yazın."
+                /* İpucu alıcıya göre değişiyor: hedef "bayilere"
+                   seçilmişken "müşterinin okuyacağı metin" demek,
+                   personeli yanlış kitleye yazmaya yönlendiriyordu. */
+                placeholder={
+                  hedef.kime === 'bayi'
+                    ? 'Bayinin okuyacağı metin. Ne olduğunu ve ne yapması gerektiğini yazın.'
+                    : 'Müşterinin okuyacağı metin. Ne olduğunu ve ne yapması gerektiğini yazın.'
+                }
               />
             </label>
 
@@ -341,12 +354,19 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
             <HedefSecici hedef={hedef} onDegis={setHedef} bayiler={bayiListesi} />
 
             {/* Metin çevrilmiyor: personelin yazdığı cümleyi uygulama
-                çeviremez. Yurtdışı müşterisi de varsa iki dilde ayrı
-                duyuru yayınlanmalı. */}
-            <p className="kucuk sonuk" style={{ margin: '0 0 14px' }}>
-              Yazdığınız metin müşteriye <b>aynen</b> gider; uygulama çeviri yapmaz.
-              Yurtdışındaki müşteriler için ayrıca İngilizce bir duyuru yayınlayın.
-            </p>
+                çeviremez. Yurt dışında müşteri de varsa iki dilde ayrı
+                duyuru yayınlanmalı.
+
+                YALNIZ BAYİLERE GİDEN DUYURUDA BU NOT ÇIKMIYOR: bayi
+                paneli tek dilli ve bütün bayiler Türkiye'de. Orada
+                "İngilizce bir duyuru da yayınlayın" demek, yapılması
+                imkânsız bir iş öneriyordu. */}
+            {hedef.kime !== 'bayi' && (
+              <p className="kucuk sonuk" style={{ margin: '0 0 14px' }}>
+                Yazdığınız metin müşteriye <b>aynen</b> gider; uygulama çeviri yapmaz.
+                Yurt dışındaki müşteriler için ayrıca İngilizce bir duyuru yayınlayın.
+              </p>
+            )}
 
             {hata && <div className="uyari">{hata}</div>}
 

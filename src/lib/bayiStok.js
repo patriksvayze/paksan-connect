@@ -1,9 +1,9 @@
 /* ==========================================================================
-   Bayi stoğu — okuma ve azaltma
+   Bayi stoku — okuma ve azaltma
 
    Bayinin elindeki yedek parça ve makine sayısı.
 
-   BAYİ STOĞUNU ARTIRAMAZ.
+   BAYİ STOKUNU ARTIRAMAZ.
 
    Elindeki mal, PAKSAN'dan satın aldığı kadardır. Artış tek yoldan
    oluyor: bayi sipariş verir, PAKSAN gönderir, gönderim işaretlendiğinde
@@ -15,7 +15,7 @@
    gönderdiğiyle bayinin yazdığı tutmayınca rakam hiçbir şey anlatmıyor.
 
    AZALTMA BAYİDE. Müşteriye sattığı ya da serviste kullandığı parçayı
-   bayi kendi düşüyor; bunun onaya gerek yok.
+   bayi kendi düşüyor; bunun için onaya gerek yok.
 
    ENGELLEME YOK
 
@@ -52,7 +52,7 @@ export function stokGetir(bayiId) {
 }
 
 /**
- * Parça adı için stokta kaç adet var?
+ * Bu parçadan stokta kaç adet var?
  * Hiç girilmemişse `null` dönüyor — "sıfır" ile "bilinmiyor" farklı
  * şeyler ve ekran ikisini ayrı yazıyor.
  */
@@ -68,16 +68,26 @@ export function parcaAdedi(bayiId, parcaAdi) {
  * Girilmemiş parçaya dokunmuyor: bayi o parçayı takip etmiyor demektir,
  * eksi değere düşürmek yanlış bilgi üretir.
  *
- * Her düşüş hareket kaydına sebebiyle yazılıyor — stoğun neden
+ * Her düşüş hareket kaydına sebebiyle yazılıyor — stokun neden
  * değiştiği sorulabilsin diye.
  */
-export function stokDus(bayiId, parcalar = [], adetler = {}, talepNo, kim) {
+export function stokDus(
+  bayiId,
+  parcalar = [],
+  adetler = {},
+  talepNo,
+  kim,
+  /* Hareket kaydına yazılacak sebep. Varsayılan yedek parça
+     gönderimi; servis kapanışı kendi sebebini veriyor ("serviste
+     kullanıldı"). Stok neden değişti sorusunun cevabı bu alan. */
+  sebep = 'Müşteriye gönderildi',
+) {
   for (const ad of parcalar) {
     stokKullan(
       bayiId,
       { tur: 'parca', anahtar: ad, ad },
       Number(adetler[ad]) || 1,
-      talepNo ? `${talepNo} · müşteriye gönderildi` : 'Müşteriye gönderildi',
+      talepNo ? `${talepNo} · ${sebep}` : sebep,
       kim,
       /* Talepten gelen düşüş stok ekranından geri ALINAMIYOR: talep
          kapandı ve "gönderildi" diyor. Gerekçesi bayiSiparis.js'te. */

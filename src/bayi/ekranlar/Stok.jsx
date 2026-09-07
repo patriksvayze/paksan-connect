@@ -5,24 +5,25 @@ import {
   SIPARIS_DURUM,
   bayininSiparisleri,
   geriAlinabilir,
-  siparisAc,
   stokGeriAl,
   stokKullan,
 } from '../../lib/bayiSiparis'
 import { islemYaz } from '../../backoffice/veri'
-import { PARCA_FIYAT } from '../../data/parcaFiyat'
+import { PARA_BIRIMI, PARCA_FIYAT, paraYaz } from '../../data/parcaFiyat'
 import { PRODUCTS } from '../../data/products'
+import { makineFiyati, parcaBayiFiyati } from '../../lib/bayiFiyat'
 import { Bolum, Bos } from '../Kabuk'
+import { SiparisVer } from './SiparisVer'
 import { IconPlus, IconMinus, IconRight, IconUndo } from '../../components/Icons'
 import bosStokGorseli from '../../assets/gorseller/bayi-bos-stok.png'
 
 /* ==========================================================================
    Bayi paneli — stok
 
-   BAYİ STOĞUNU ARTIRAMAZ.
+   BAYİ STOKUNU ARTIRAMAZ.
 
    Ekran önce her kaleme bir sayı kutusu veriyordu; bayi istediği sayıyı
-   yazıyordu. Bu, stoğu bayinin kendi defterine çeviriyordu ve PAKSAN'ın
+   yazıyordu. Bu, stoku bayinin kendi defterine çeviriyordu ve PAKSAN'ın
    gönderdiğiyle tutmayınca rakam hiçbir şey anlatmıyordu.
 
    Doğrusu şu: bayinin elindeki mal, PAKSAN'dan satın aldığı kadardır.
@@ -44,11 +45,18 @@ import bosStokGorseli from '../../assets/gorseller/bayi-bos-stok.png'
      3. Onay penceresi ne düşeceğini ve kaç kalacağını gösteriyor
 
    Onaydan sonra da satırda "Geri al" çıkıyor. Ne zaman çıktığı ve
-   neden sınırlı olduğu `bayiSiparis.js` içinde yazılı: yanlış rakam
+   neden sınırlı olduğu `bayiSiparis.js` içinde yazılı: yanlış rakamı
    düzeltmek için var, stok artırma yolu değil.
 
    ÜÇ BÖLÜM: elindeki stok, verdiği siparişler, sipariş verme.
    ========================================================================== */
+
+/** Kalemin bayi fiyatı; makinede iskonto bayiye göre değişiyor. */
+function kalemFiyati(kalem, oturum) {
+  return kalem.tur === 'makine'
+    ? makineFiyati(kalem.anahtar, oturum)
+    : parcaBayiFiyati(kalem.anahtar)
+}
 
 export function Stok({ oturum }) {
   const [ekran, setEkran] = useState('stok') // 'stok' | 'siparis'
@@ -101,7 +109,7 @@ export function Stok({ oturum }) {
     setOnay(null)
     if (sonuc.hata) return
     /* Stok hareketi bayinin kendi ekranında zaten duruyor; İşlem
-       Kaydı'na da düşüyor ki PAKSAN "bu bayi stoğunu ne zaman
+       Kaydı'na da düşüyor ki PAKSAN "bu bayi stokunu ne zaman
        kullanıyor" sorusuna tek yerden bakabilsin. */
     islemYaz({
       tur: 'stok',
@@ -126,9 +134,9 @@ export function Stok({ oturum }) {
   return (
     <>
       <p className="ipucu">
-        Stoğunuz PAKSAN’dan gelen sevkiyatlarla artıyor. Müşteriye
+        Stokunuz PAKSAN’dan gelen sevkiyatlarla artıyor. Müşteriye
         verdiğiniz veya serviste kullandığınız parçayı eksi düğmesiyle
-        düşün.
+        düşürün.
       </p>
 
       {acikSiparis.length > 0 && (
@@ -142,18 +150,20 @@ export function Stok({ oturum }) {
       {bosMu ? (
         <Bos
           gorsel={bosStokGorseli}
-          baslik="Stoğunuz boş görünüyor"
-          alt="PAKSAN’a sipariş verdiğinizde, gönderim yapıldığı anda buraya işlenecek."
+          baslik="Stokunuz Boş Görünüyor"
+          alt="PAKSAN’a verdiğiniz siparişler sevk edildiğinde stokunuza işlenecek."
         />
       ) : (
         <>
           {parcalar.length > 0 && (
             <Bolum ad="Yedek Parça">
               <div className="kart" style={{ padding: '4px 16px' }}>
+                <StokBasliklari />
                 {parcalar.map((k) => (
                   <StokSatiri
                     key={k.anahtar}
                     kalem={k}
+                    fiyat={kalemFiyati(k, oturum)}
                     bayiId={oturum.bayiId}
                     tazele={tazele}
                     onDus={(adet) => setOnay({ kalem: k, adet })}
@@ -171,6 +181,7 @@ export function Stok({ oturum }) {
                   <StokSatiri
                     key={k.anahtar}
                     kalem={k}
+                    fiyat={kalemFiyati(k, oturum)}
                     bayiId={oturum.bayiId}
                     tazele={tazele}
                     onDus={(adet) => setOnay({ kalem: k, adet })}
@@ -213,12 +224,30 @@ export function Stok({ oturum }) {
   )
 }
 
+/* SÜTUN BAŞLIKLARI.
+
+   Satırda başlıksız iki sayı yan yana duruyordu: kalın bir "12", onun
+   yanında içi boş bir kutu, onun yanında eksi düğmesi. Hangisinin
+   eldeki stok, hangisinin yazılacak adet olduğu yalnız deneyerek
+   anlaşılıyordu. İki kelime, ekranın tamamını okunur yapıyor.
+
+   Listenin başında bir kez yazılıyor, her satırda değil: on kalemlik
+   bir listede on kez tekrarlanan etiket gürültüdür. */
+function StokBasliklari() {
+  return (
+    <div className="stok-satir stok-satir--dus stok-satir--baslik">
+      <span className="stok-basi stok-basi--adet">Elinizde</span>
+      <span className="stok-basi stok-basi--giris">Düşülecek</span>
+    </div>
+  )
+}
+
 /* Eldeki sayı solda, düşülecek adet sağda. Artı düğmesi YOK — bayi
-   stoğunu artıramıyor, artış yalnız PAKSAN sevkiyatıyla oluyor.
+   stokunu artıramıyor, artış yalnız PAKSAN sevkiyatıyla oluyor.
 
    Adet kutusu boşken düğme kapalı: boş kutuyla basılan bir düşüş "bir
    adet mi, hiç mi" belirsizliği yaratıyordu. */
-function StokSatiri({ kalem, bayiId, tazele, onDus, onGeriAl }) {
+function StokSatiri({ kalem, fiyat, bayiId, tazele, onDus, onGeriAl }) {
   const [adet, setAdet] = useState('')
   const yok = Number(kalem.adet) <= 0
   const sayi = Number(adet)
@@ -237,7 +266,11 @@ function StokSatiri({ kalem, bayiId, tazele, onDus, onGeriAl }) {
     <div className="stok-satir stok-satir--dus">
       <div className="stok-satir__ad">
         <div>{kalem.ad}</div>
-        {kalem.alt && <div className="kucuk sonuk mono">{kalem.alt}</div>}
+        <div className="kucuk sonuk">
+          {kalem.alt && <span className="mono">{kalem.alt}</span>}
+          {kalem.alt && fiyat ? ' · ' : ''}
+          {fiyat ? `${paraYaz(fiyat.alis)} ${PARA_BIRIMI}` : ''}
+        </div>
       </div>
 
       <span className={'stok-adet' + (yok ? ' stok-adet--yok' : '')}>
@@ -258,7 +291,7 @@ function StokSatiri({ kalem, bayiId, tazele, onDus, onGeriAl }) {
         className="stok-dus"
         onClick={() => { onDus(sayi); setAdet('') }}
         disabled={!gecerli}
-        aria-label={kalem.ad + ' stoğundan düş'}
+        aria-label={kalem.ad + ' stokundan düş'}
       >
         <IconMinus size={19} />
       </button>
@@ -266,7 +299,7 @@ function StokSatiri({ kalem, bayiId, tazele, onDus, onGeriAl }) {
       {geri && (
         <button className="stok-geri" onClick={() => onGeriAl(geri)}>
           <IconUndo size={16} />
-          Son düşüşü geri al · {geri.kalemler?.[0]?.adet} adet
+          Geri Al · {geri.kalemler?.[0]?.adet} adet
         </button>
       )}
     </div>
@@ -283,9 +316,9 @@ function DusOnayi({ kalem, adet, onOnayla, onVazgec }) {
   return (
     <div className="pencere-bayi" onClick={(e) => e.target === e.currentTarget && onVazgec()}>
       <div className="pencere-bayi__kart">
-        <h2>Stoktan düş</h2>
+        <h2>Stoktan Düşür</h2>
         <p>
-          <b>{kalem.ad}</b> stoğunuzdan <b>{adet} adet</b> düşülecek.
+          <b>{kalem.ad}</b> stokunuzdan <b>{adet} adet</b> düşülecek.
         </p>
         <div className="dus-ozet">
           <span>{kalem.adet}</span>
@@ -328,141 +361,3 @@ function SiparisKarti({ siparis }) {
   )
 }
 
-/* ------------------------------------------------------- Sipariş verme */
-
-function SiparisVer({ oturum, onKapat, onVerildi }) {
-  const [adetler, setAdetler] = useState({})
-  const [not, setNot] = useState('')
-  const [hata, setHata] = useState('')
-
-  const kalemler = [
-    ...Object.entries(PARCA_FIYAT).map(([ad, b]) => ({
-      tur: 'parca',
-      anahtar: ad,
-      ad,
-      alt: b.kod,
-    })),
-    ...PRODUCTS.map((u) => ({
-      tur: 'makine',
-      anahtar: u.id,
-      ad: u.name,
-      alt: u.short || '',
-    })),
-  ]
-
-  const secili = kalemler
-    .map((k) => ({ ...k, adet: Number(adetler[k.tur + ':' + k.anahtar]) || 0 }))
-    .filter((k) => k.adet > 0)
-
-  function yaz(k, deger) {
-    const temiz = String(deger).replace(/\D/g, '')
-    setAdetler((a) => ({ ...a, [k.tur + ':' + k.anahtar]: temiz }))
-    setHata('')
-  }
-
-  function gonder() {
-    const sonuc = siparisAc({
-      bayiId: oturum.bayiId,
-      bayiAd: oturum.ad,
-      bayiNo: oturum.no,
-      kalemler: secili,
-      not,
-    })
-    if (sonuc.hata) return setHata(sonuc.hata)
-    const adet = secili.reduce((t, k) => t + k.adet, 0)
-    islemYaz({
-      tur: 'siparis',
-      ozet: `${sonuc.siparis.no} · sipariş verildi · ${secili.length} kalem, ${adet} adet`,
-      personel: oturum.ad,
-    })
-    onVerildi()
-  }
-
-  return (
-    <>
-      <p className="ipucu">
-        İstediğiniz adetleri yazın. Siparişiniz PAKSAN’a iletilecek;
-        onaylanıp gönderildiğinde stoğunuza işlenecek.
-      </p>
-
-      <Bolum ad="Yedek Parça">
-        <div className="kart" style={{ padding: '4px 16px' }}>
-          {kalemler
-            .filter((k) => k.tur === 'parca')
-            .map((k) => (
-              <SiparisSatiri
-                key={k.anahtar}
-                kalem={k}
-                deger={adetler[k.tur + ':' + k.anahtar]}
-                onDegis={(v) => yaz(k, v)}
-              />
-            ))}
-        </div>
-      </Bolum>
-
-      <Bolum ad="Makine">
-        <div className="kart" style={{ padding: '4px 16px' }}>
-          {kalemler
-            .filter((k) => k.tur === 'makine')
-            .map((k) => (
-              <SiparisSatiri
-                key={k.anahtar}
-                kalem={k}
-                deger={adetler[k.tur + ':' + k.anahtar]}
-                onDegis={(v) => yaz(k, v)}
-              />
-            ))}
-        </div>
-      </Bolum>
-
-      <Bolum ad="Not">
-        <label className="alan">
-          <textarea
-            className="gir"
-            rows={3}
-            value={not}
-            onChange={(e) => setNot(e.target.value)}
-            placeholder="PAKSAN’a iletmek istediğiniz bir şey varsa yazın"
-          />
-        </label>
-      </Bolum>
-
-      {hata && <div className="uyari">{hata}</div>}
-
-      <div className="yapisik">
-        <button className="dg dg--ana dg--blok" onClick={gonder}>
-          {secili.length
-            ? `Siparişi Gönder · ${secili.length} kalem`
-            : 'Siparişi Gönder'}
-        </button>
-        <button
-          className="dg dg--blok"
-          style={{ marginTop: 8 }}
-          onClick={onKapat}
-        >
-          Vazgeç
-        </button>
-      </div>
-    </>
-  )
-}
-
-function SiparisSatiri({ kalem, deger, onDegis }) {
-  return (
-    <div className="stok-satir">
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div>{kalem.ad}</div>
-        {kalem.alt && <div className="kucuk sonuk mono">{kalem.alt}</div>}
-      </div>
-      <input
-        className="gir mono"
-        style={{ width: 82, textAlign: 'right' }}
-        inputMode="numeric"
-        value={deger || ''}
-        onChange={(e) => onDegis(e.target.value)}
-        placeholder="0"
-        aria-label={kalem.ad + ' sipariş adedi'}
-      />
-    </div>
-  )
-}

@@ -299,6 +299,8 @@ export const en = {
     teklifBaslik: '{no} · Your Quote Is Ready',
     teklifMetin: 'Quoted price: {tutar}. Tap your request for details.',
     teklifMetinGecerlilik: 'Quoted price: {tutar} · Valid: {gecerlilik}',
+    bayiTeklifBaslik: 'Quote From Your Dealer',
+    bayiTeklifMetin: '{bayi} sent you a quote of {tutar}. Valid until {gecerlilik}.',
     odemeBaslik: '{no} · Payment Received',
     odemeMetin: 'Your receipt has been checked. Your parts are being prepared.',
     gonderildiBaslik: '{no} · Your Parts Are on the Way',
@@ -358,6 +360,7 @@ export const en = {
     aranmaTercihi: 'Preferred call time',
     gecmis: 'Request History',
     notlar: 'Messages from PAKSAN',
+    bayiyiAra: 'Call Your Dealer',
     paksaniAra: 'Call PAKSAN',
     iptalBaslik: 'Reason for Cancellation',
     yanlislikVar: 'I think this is a mistake',
@@ -513,11 +516,13 @@ export const en = {
 
   talep: {
     destektenGeldi: 'This fault was discussed on the Support screen: {ariza}',
+    listeDisiParca: 'The Support screen also pointed to these parts: {parcalar}',
 
     gonderilemedi: 'The request could not be sent. Please check your internet connection and try again — what you wrote is still here.',
     dahaFazla: '+ {n} more options',
     servis: {
       baslik: 'Service Request',
+    adi: 'Service request',
       buton: 'Send Service Request',
       aciklamaLabel: 'Describe the Problem',
       aciklamaPlaceholder:
@@ -525,6 +530,7 @@ export const en = {
     },
     parca: {
       baslik: 'Spare Part Request',
+    adi: 'Spare part request',
       buton: 'Send Spare Part Request',
       aciklamaLabel: 'Description',
       aciklamaPlaceholder:
@@ -532,6 +538,7 @@ export const en = {
     },
     satinalma: {
       baslik: 'Request a Quote',
+    adi: 'Price quote request',
       buton: 'Send Quote Request',
       aciklamaLabel: 'Anything You Would Like to Add?',
       aciklamaPlaceholder:
@@ -564,7 +571,6 @@ export const en = {
     aramaAciklamasi: 'We will get in touch if it turns out to be necessary.',
     durumSecin: 'Please mark the current state of the machine.',
     belirtiSecin: 'Please mark what is happening. If it is not listed, choose “Other” and describe it.',
-    aceleSecin: 'Please mark how urgent the part is.',
     aciklamaKisa:
       'Please tell us a little more; if you would rather not type, you can leave a voice message.',
     ilSecin: 'Please select your province.',

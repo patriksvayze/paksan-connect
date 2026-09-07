@@ -15,16 +15,18 @@ import { gecenSure } from '../backoffice/ekranlar/ortak'
 import { TemaSecici } from '../backoffice/Tema'
 import { load, save } from '../lib/storage'
 import { duyuruGecerliMi } from '../lib/duyuruHedef'
-import { Kabuk, Bolum, Bos } from './Kabuk'
+import { Kabuk, Sayfa, Bolum, Bos, ListeKarti } from './Kabuk'
+import { DEMO_HESAP, demoAPKmi } from './demoKimlik'
 import {
   IconWrench,
   IconParca,
   IconPlus,
-  IconUser,
   IconBell,
   IconCalendar,
   IconPhone,
   IconShield,
+  IconMachine,
+  IconTag,
 } from '../components/Icons'
 import { PaksanLogo } from '../components/Marka'
 /* Çizimler Higgsfield ile üretildi, uygulamanın kendi görsel diline
@@ -35,6 +37,9 @@ import girisGorseli from '../assets/gorseller/bayi-giris.png'
 import { TalepDetay } from './ekranlar/TalepDetay'
 import { Stok } from './ekranlar/Stok'
 import { ElleKayit } from './ekranlar/ElleKayit'
+import { Urunler, UrunDetay } from './ekranlar/Urunler'
+import { TeklifDetay, TeklifKarti, TeklifYap } from './ekranlar/Teklif'
+import { HATIRLATMA_GUN, bayininTeklifleri, kalanGun } from '../lib/bayiTeklif'
 
 /* ==========================================================================
    PAKSAN Bayi
@@ -53,7 +58,7 @@ import { ElleKayit } from './ekranlar/ElleKayit'
 
    DÖRT SEKME
 
-   Bayinin işi dört başlıkta topluyor: bekleyen işleri, elindeki stok,
+   Bayinin işi dört başlıkta toplanıyor: bekleyen işleri, elindeki stok,
    dükkâna gelen müşteri için yeni kayıt, bir de kendi hesabı. Dördü de
    alt çubuktan tek dokunuşla açılıyor; ekranlar birbirinin üstünü
    kapatmıyor. Kabuk `Kabuk.jsx` içinde, gerekçesiyle yazılı.
@@ -88,8 +93,12 @@ export function BayiPanel() {
 /* ------------------------------------------------------------------ Giriş */
 
 function Giris({ onGiris }) {
-  const [kullanici, setKullanici] = useState('')
-  const [sifre, setSifre] = useState('')
+  /* Demo APK'sında alanlar dolu geliyor: hesabı uygulamanın kendisi
+     açtı, kullanıcının bilmediği bir kullanıcı adını tahmin etmesi
+     beklenemez. Tarayıcı panelinde alanlar boş. */
+  const demo = demoAPKmi()
+  const [kullanici, setKullanici] = useState(demo ? DEMO_HESAP.kullanici : '')
+  const [sifre, setSifre] = useState(demo ? DEMO_HESAP.sifre : '')
   const [hata, setHata] = useState('')
   const [bekliyor, setBekliyor] = useState(false)
   const [yardim, setYardim] = useState(false)
@@ -179,11 +188,13 @@ function Giris({ onGiris }) {
             setYardim(true)
           }}
         >
-          Şifremi unuttum
+          Şifremi Unuttum
         </button>
 
         <p className="giris__dip">
-          PAKSAN Makina · Hesabınız yoksa PAKSAN yetkilinize başvurun.
+          {demo
+            ? `Demo sürümü · Kullanıcı adı ${DEMO_HESAP.kullanici} · Şifre ${DEMO_HESAP.sifre}`
+            : 'PAKSAN Makina · Hesabınız yoksa PAKSAN yetkilinize başvurun.'}
         </p>
       </form>
     </div>
@@ -260,11 +271,24 @@ const KAPALI = ['kapandi', 'iptal']
 function Uygulama({ oturum, onCikis }) {
   const [sekme, setSekme] = useState('isler')
   const [acik, setAcik] = useState(null)
+  /* Sekmelerin üstüne tam ekran açılan alt sayfa: 'kayit' | 'hesap'. */
+  const [alt, setAlt] = useState(null)
+  /* Açık ürün detayı.
+
+     TAM EKRAN AÇILAN HER ŞEY BURADAN AÇILIYOR. Detay ekranları bir ara
+     kendi sekmelerinin içinde açılıyordu; `Sayfa` kendi üst çubuğunu
+     çizdiği için iki başlık üst üste biniyordu. */
+  const [urun, setUrun] = useState(null)
+  /* Teklif: 'yeni' ise hazırlama ekranı, nesne ise o teklifin detayı.
+     Hazırlama ekranına bir üründen girilmiş olabilir; o da burada. */
+  const [teklif, setTeklif] = useState(null)
   const [tazele, setTazele] = useState(0)
   const [talepler, setTalepler] = useState([])
+  const [teklifler, setTeklifler] = useState([])
 
   useEffect(() => {
     setTalepler(bayininTalepleri(talepleriGetir(), oturum.bayiId))
+    setTeklifler(bayininTeklifleri(oturum.bayiId))
   }, [oturum.bayiId, tazele])
 
   const [bekleyen, biten] = useMemo(
@@ -280,6 +304,7 @@ function Uygulama({ oturum, onCikis }) {
     return (
       <TalepDetay
         talep={acik}
+        oturum={oturum}
         bayiAd={oturum.ad}
         bayiId={oturum.bayiId}
         onKapat={() => {
@@ -291,27 +316,129 @@ function Uygulama({ oturum, onCikis }) {
           setAcik(null)
           setTazele((x) => x + 1)
         }}
+        /* Müşterinin fiyat sorusu bayinin kendi teklif ekranını
+           açıyor; müşteri ve ürün oradan dolu geliyor. */
+        onTeklifHazirla={(t) => {
+          setAcik(null)
+          setTeklif({ yeni: true, talep: t })
+        }}
       />
     )
   }
 
+  /* YENİ KAYIT VE HESAP ARTIK SEKME DEĞİL.
+
+     Alt çubukta dört yer var ve dördü de bayinin günlük işine
+     ayrılmalı. "Yeni Kayıt" günde birkaç kez, "Hesap" ayda bir
+     açılıyordu; ikisi de satış ve makine bilgisi gibi her gün
+     bakılan bölümlerin yerini tutuyordu.
+
+     Yeni Kayıt İşlerim'in başındaki düğmeye taşındı — zaten oradan
+     bakılan bir listenin devamı. Hesap başlıktaki isme geçti. */
+  if (teklif === 'yeni' || teklif?.yeni) {
+    return (
+      <TeklifYap
+        oturum={oturum}
+        urun={teklif?.urun || null}
+        talep={teklif?.talep || null}
+        onKapat={() => setTeklif(null)}
+        onKaydedildi={(t) => {
+          setTazele((x) => x + 1)
+          setTeklif(t)
+        }}
+      />
+    )
+  }
+
+  if (teklif) {
+    return (
+      <TeklifDetay
+        teklif={teklif}
+        oturum={oturum}
+        onKapat={() => setTeklif(null)}
+        onDegisti={() => {
+          setTeklif(null)
+          setTazele((x) => x + 1)
+        }}
+      />
+    )
+  }
+
+  if (urun) {
+    return (
+      <UrunDetay
+        urun={urun}
+        oturum={oturum}
+        onKapat={() => setUrun(null)}
+        onTeklif={() => {
+          setTeklif({ yeni: true, urun })
+          setUrun(null)
+        }}
+      />
+    )
+  }
+
+  if (alt === 'kayit') {
+    return (
+      <Sayfa
+        baslik="Yeni Kayıt"
+        alt="Size gelen bir müşteri için talep açın"
+        onGeri={() => setAlt(null)}
+      >
+        <ElleKayit
+          oturum={oturum}
+          onKaydedildi={() => {
+            setAlt(null)
+            setSekme('isler')
+            setTazele((x) => x + 1)
+          }}
+        />
+      </Sayfa>
+    )
+  }
+
+  if (alt === 'hesap') {
+    return (
+      <Sayfa
+        baslik="Hesap"
+        alt={oturum.no + ' · ' + oturum.il}
+        onGeri={() => setAlt(null)}
+      >
+        <Hesap oturum={oturum} onCikis={onCikis} />
+      </Sayfa>
+    )
+  }
+
+  /* ÜÇ SEKME.
+
+     Dört sekme vardı ve ikisi ("Satış", "Makine") aynı yirmi ürünü
+     listeliyordu. "Satış" adı da kimin satışı olduğunu söylemiyordu.
+     Tek liste kaldı: bayi ürüne dokunuyor, fiyatını, teslim süresini,
+     arızasını ve teknik değerlerini aynı sayfada buluyor. */
   const sekmeler = [
     { id: 'isler', ad: 'İşlerim', Icon: IconWrench, rozet: bekleyen.length },
-    { id: 'stok', ad: 'Stoğum', Icon: IconParca },
-    { id: 'kayit', ad: 'Yeni Kayıt', Icon: IconPlus },
-    { id: 'hesap', ad: 'Hesap', Icon: IconUser },
+    { id: 'urunler', ad: 'Ürünler', Icon: IconMachine },
+    { id: 'parca', ad: 'Parça', Icon: IconParca },
   ]
 
   const BASLIK = {
     isler: { baslik: 'İşlerim', alt: oturum.ad },
-    stok: { baslik: 'Stoğum', alt: 'Eldeki mal ve PAKSAN siparişleri' },
-    kayit: { baslik: 'Yeni Kayıt', alt: 'Size gelen bir müşteri için talep açın' },
-    hesap: { baslik: 'Hesap', alt: oturum.no + ' · ' + oturum.il },
+    urunler: { baslik: 'Ürünler', alt: 'PAKSAN fiyat listesi ve ürün bilgileri' },
+    parca: { baslik: 'Parça', alt: 'Stokunuz ve PAKSAN siparişleri' },
   }
 
   return (
     <Kabuk
       {...BASLIK[sekme]}
+      islem={
+        <button
+          className="uyg__hesap"
+          onClick={() => setAlt('hesap')}
+          aria-label="Hesap"
+        >
+          {(oturum.ad || '?').charAt(0)}
+        </button>
+      }
       sekmeler={sekmeler}
       sekme={sekme}
       onSekme={setSekme}
@@ -321,32 +448,60 @@ function Uygulama({ oturum, onCikis }) {
           oturum={oturum}
           bekleyen={bekleyen}
           biten={biten}
+          teklifler={teklifler}
           onAc={setAcik}
+          onTeklif={setTeklif}
+          onYeniKayit={() => setAlt('kayit')}
+          onYeniTeklif={() => setTeklif('yeni')}
         />
       )}
-      {sekme === 'stok' && <Stok oturum={oturum} />}
-      {sekme === 'kayit' && (
-        <ElleKayit
-          oturum={oturum}
-          onKaydedildi={() => {
-            setSekme('isler')
-            setTazele((x) => x + 1)
-          }}
-        />
-      )}
-      {sekme === 'hesap' && <Hesap oturum={oturum} onCikis={onCikis} />}
+      {sekme === 'urunler' && <Urunler oturum={oturum} onAc={setUrun} />}
+      {sekme === 'parca' && <Stok oturum={oturum} />}
     </Kabuk>
   )
 }
 
 /* ---------------------------------------------------------------- İşler */
 
-function Isler({ oturum, bekleyen, biten, onAc }) {
+function Isler({
+  oturum,
+  bekleyen,
+  biten,
+  teklifler,
+  onAc,
+  onTeklif,
+  onYeniKayit,
+  onYeniTeklif,
+}) {
+  const acikTeklif = teklifler.filter((t) => t.durum === 'acik')
+
   return (
     <>
-      <Bugun bekleyen={bekleyen} onAc={onAc} />
+      <Bugun bekleyen={bekleyen} teklifler={teklifler} onAc={onAc} />
+
+      {/* Bayinin iki başlangıç işi yan yana: dükkâna gelen müşteri için
+          kayıt açmak ve fiyat vermek. İkisi de uygulamadan düşen talebi
+          beklemiyor; bayinin günü çoğunlukla buradan başlıyor. */}
+      <div className="baslangic">
+        <button className="dg dg--blok" onClick={onYeniKayit}>
+          <IconPlus size={19} />
+          Yeni Kayıt
+        </button>
+        <button className="dg dg--blok" onClick={onYeniTeklif}>
+          <IconTag size={19} />
+          Fiyat Teklifi
+        </button>
+      </div>
 
       <BayiDuyurulari oturum={oturum} />
+
+      {acikTeklif.length > 0 && (
+        <Bolum ad="Açık Teklifler" sayi={acikTeklif.length}>
+          {acikTeklif.map((t) => (
+            <TeklifKarti key={t.id} teklif={t} onAc={() => onTeklif(t)} />
+          ))}
+        </Bolum>
+      )}
 
       {/* BEKLEYEN BÖLÜMÜ İŞ YOKKEN DE ÇIKIYOR.
 
@@ -369,7 +524,7 @@ function Isler({ oturum, bekleyen, biten, onAc }) {
           <Bos
             kucuk={biten.length > 0}
             gorsel={bosIsGorseli}
-            baslik="Bekleyen işiniz yok"
+            baslik="Bekleyen İşiniz Yok"
             alt={
               biten.length > 0
                 ? 'Hepsini tamamladınız.'
@@ -422,9 +577,31 @@ function gunBasi(t = Date.now()) {
   return new Date(t).setHours(0, 0, 0, 0)
 }
 
-function Bugun({ bekleyen, onAc }) {
+/* Randevu gün ve saat olarak; yıl yazılmıyor. "03.09.2026 20:11"
+   satırın üçte birini kaplıyor ve bayinin randevusu bu hafta içinde:
+   yıl hiçbir soruya cevap vermiyor.
+
+   Tarih elle kuruluyor: `toLocaleString` yıl istenmediğinde Türkçe
+   yerelde bile eğik çizgi veriyor ("05/09"), oysa Türkçe tarih
+   noktayla yazılıyor. */
+function randevuYazi(plan) {
+  if (!plan?.tarih) return plan?.tarihYazi || ''
+  const d = new Date(plan.tarih)
+  const iki = (n) => String(n).padStart(2, '0')
+  const saat = d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
+  return `${iki(d.getDate())}.${iki(d.getMonth() + 1)} · ${saat}`
+}
+
+function Bugun({ bekleyen, teklifler, onAc }) {
   const bugun = gunBasi()
   const yarin = bugun + 86400000
+
+  /* Süresi dolmak üzere olan teklif de bugünün işi: bayinin müşteriyi
+     arayıp cevabını alması gerekiyor. Teklifin kendisi listede aşağıda
+     duruyor; buradaki yalnız hatırlatma. */
+  const yaklasan = (teklifler || []).filter(
+    (t) => t.durum === 'acik' && kalanGun(t) <= HATIRLATMA_GUN,
+  )
 
   const randevulu = bekleyen
     .filter((t) => t.plan?.tarih)
@@ -439,7 +616,7 @@ function Bugun({ bekleyen, onAc }) {
   const geciken = bekleyen.filter((t) => !t.plan && gecikmisMi(t))
   const sirada = bekleyen.filter((t) => !t.plan && !gecikmisMi(t))
 
-  if (!bekleyen.length) return null
+  if (!bekleyen.length && !yaklasan.length) return null
 
   return (
     <div className="bugun">
@@ -468,7 +645,7 @@ function Bugun({ bekleyen, onAc }) {
                 onClick={() => onAc(t)}
               >
                 <span className="bugun__saat">
-                  {gecti ? t.plan.tarihYazi : 'bugün'}
+                  {gecti ? randevuYazi(t.plan) : 'bugün'}
                 </span>
                 <span className="bugun__ad">{t.ad || '—'}</span>
                 <span className="bugun__yer">{t.ilce || t.il || ''}</span>
@@ -485,7 +662,7 @@ function Bugun({ bekleyen, onAc }) {
 
       {/* Sayılar altta, tek satırda. Randevu somut bir plan; bunlar
           hatırlatma. Aynı ağırlıkta gösterilmemeleri gerekiyor. */}
-      {(geciken.length > 0 || sirada.length > 0) && (
+      {(geciken.length > 0 || sirada.length > 0 || yaklasan.length > 0) && (
         <div className="bugun__sayilar">
           {geciken.length > 0 && (
             <span className="bugun__rozet bugun__rozet--gec">
@@ -499,6 +676,11 @@ function Bugun({ bekleyen, onAc }) {
               {sirada.length} işe gün verilmedi
             </span>
           )}
+          {yaklasan.length > 0 && (
+            <span className="bugun__rozet bugun__rozet--gec">
+              {yaklasan.length} teklifin süresi doluyor
+            </span>
+          )}
         </div>
       )}
     </div>
@@ -507,65 +689,47 @@ function Bugun({ bekleyen, onAc }) {
 
 const TUR_ADI = { servis: 'Servis', parca: 'Yedek Parça', satinalma: 'Fiyat Teklifi' }
 
-/* ARAMA DÜĞMESİ KARTIN ÜSTÜNDE.
-
-   Bayinin bu listede yaptığı ilk iş müşteriyi aramak: nerede olduğunu,
-   makinenin ne yaptığını telefonda soruyor. Numara eskiden kartın alt
-   satırında düz yazıydı; bayi ezberleyip tuşluyordu.
+/* Talep kartı. İskeleti `ListeKarti` (Kabuk.jsx) veriyor; burada
+   yalnız talebin hangi alanının hangi yuvaya gireceği yazıyor.
 
    Yol tarifi düğmesi EKLENMEDİ. Talepte koordinat yok, yalnız il ve
    ilçe var (bkz. KonumAlani.jsx); düğme bayiyi ilçe merkezine
-   götürürdü, tarlaya değil. Adresi telefonda öğreniyor.
-
-   Kart iç içe düğme DEĞİL: soldaki alan detayı açıyor, sağdaki bağlantı
-   arıyor. İkisi kardeş — `<button>` içine `<button>` geçerli değil. */
+   götürürdü, tarlaya değil. Adresi telefonda öğreniyor. */
 function TalepKarti({ talep, onAc }) {
   const paksanda = (talep.sahip || 'paksan') === 'paksan'
   const gecikti = gecikmisMi(talep)
   const tel = String(talep.tel || '').replace(/\D/g, '')
+  const yer = talep.ilce ? `${talep.ilce} / ${talep.il}` : talep.il || '—'
 
   return (
-    <div className={'is' + (gecikti ? ' is--gec' : '')}>
-      <button className="is__ac" onClick={onAc}>
-        <div className="is__ust">
-          <span className={'tur tur--' + talep.tur}>
-            {TUR_ADI[talep.tur] || talep.tur}
-          </span>
-          <span className="is__zaman">{gecenSure(talep.createdAt || talep.tarih)}</span>
-        </div>
-
-        <div className="is__ad">{talep.ad || '—'}</div>
-
-        <div className="is__alt">
-          {talep.ilce ? `${talep.ilce} / ${talep.il}` : talep.il || '—'}
-          <span className="is__no mono"> · {talep.no}</span>
-        </div>
-
-        {/* İki uyarı da satır hâlinde altta: kartın üst kısmı her
-            talepte aynı yerde dursun, göz alışsın. */}
-        {/* Randevu listede de görünüyor: bayi hangi işe gün verdiğini
-            karta girmeden biliyor. */}
-        {talep.plan && (
-          <div className="is__isaret is__isaret--plan">
-            Randevu · {talep.plan.tarihYazi}
-          </div>
-        )}
-        {gecikti && <div className="is__isaret is__isaret--gec">48 saati geçti</div>}
-        {paksanda && talep.devir && (
-          <div className="is__isaret">PAKSAN destek veriyor</div>
-        )}
-      </button>
-
-      {tel && (
-        <a
-          className="is__ara"
-          href={'tel:' + tel}
-          aria-label={(talep.ad || 'Müşteriyi') + ' ara'}
-        >
-          <IconPhone size={21} />
-        </a>
-      )}
-    </div>
+    <ListeKarti
+      ad={talep.ad || '—'}
+      tur={talep.tur}
+      turAdi={TUR_ADI[talep.tur] || talep.tur}
+      kunye={
+        <>
+          {yer} · <span className="mono">{talep.no}</span>
+        </>
+      }
+      /* Randevu listede de görünüyor: bayi hangi işe gün verdiğini
+         karta girmeden biliyor. Randevu yoksa yerini PAKSAN'ın devraldığı
+         bilgisi alıyor — ikisi birden olmuyor. */
+      sol={
+        talep.plan ? (
+          <>
+            <IconCalendar size={14} /> {randevuYazi(talep.plan)}
+          </>
+        ) : paksanda && talep.devir ? (
+          'PAKSAN destek veriyor'
+        ) : null
+      }
+      sag={gecikti ? '48 saati geçti' : gecenSure(talep.createdAt || talep.tarih)}
+      sagGec={gecikti}
+      gec={gecikti}
+      onAc={onAc}
+      tel={tel}
+      telAd={(talep.ad || 'Müşteriyi') + ' ara'}
+    />
   )
 }
 
@@ -647,7 +811,7 @@ function Hesap({ oturum, onCikis }) {
             onCikis()
           }}
         >
-          Çıkış yap
+          Çıkış Yap
         </button>
         <p className="kucuk sonuk" style={{ marginTop: 10 }}>
           Şifrenizi unutursanız PAKSAN yetkilinize başvurun.
@@ -691,7 +855,7 @@ function SifreDegistir({ oturum }) {
     return (
       <>
         <button className="dg dg--blok" onClick={() => { setAcik(true); setOldu(false) }}>
-          Şifremi değiştir
+          Şifremi Değiştir
         </button>
         {oldu && (
           <p className="kucuk" style={{ marginTop: 10, color: 'var(--yesil)' }}>
@@ -754,4 +918,3 @@ function SifreDegistir({ oturum }) {
     </div>
   )
 }
-

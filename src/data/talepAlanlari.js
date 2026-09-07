@@ -6,7 +6,7 @@
    TALEBİ İŞE YARAR HÂLE GETİREN sorular kondu:
 
      · Servis  → makine ne durumda, belirti ne
-     · Parça   → hangi parça, ne kadar acil
+     · Parça   → hangi parça gerekiyor
      · Teklif  → ne balyalayacak, kaç dönüm, traktörü kaç beygir
 
    Böylece Paksan tarafına gelen talep, telefon açmadan önce okunup
@@ -21,7 +21,7 @@
    ========================================================================== */
 
 import {
-  ULASIM_ZAMANI_EN, MAKINE_DURUMU_EN, PARCA_ACELE_EN, URUN_TIPI_EN,
+  ULASIM_ZAMANI_EN, MAKINE_DURUMU_EN, URUN_TIPI_EN,
   ARAZI_EN, TRAKTOR_EN, ORTAK_BELIRTI_EN, BELIRTILER_EN,
   ORTAK_PARCA_EN, PARCALAR_EN, DIGER_EN,
 } from './talepAlanlari.en'
@@ -109,12 +109,6 @@ const BELIRTILER = {
 
 /* --------------------------------------------------------- Yedek parça */
 
-export const PARCA_ACELE = [
-  { id: 'hemen', ad: 'Makine durdu, hemen lazım', alt: 'İş bekliyor' },
-  { id: 'hafta', ad: 'Bu hafta içinde lazım', alt: 'Sıkışık ama iş sürüyor' },
-  { id: 'yedek', ad: 'Acelesi yok', alt: 'Yedekte dursun' },
-]
-
 const ORTAK_PARCA = [
   'Rulman',
   'Kayış',
@@ -173,6 +167,20 @@ export const TRAKTOR = [
 
 /* --------------------------------------------------------- Yardımcılar */
 
+/* KİMLİK DEĞİL, OKUNUR KARŞILIK.
+
+   Makinenin durumu talebe KİMLİKLE yazılıyor ("sorunlu"); ekranda o
+   kimliğin karşılığı görünmeli. Bu yardımcı önce yalnız backoffice'in
+   içindeydi ve bayi paneli aynı hatayı tekrarlıyordu: bayi ekranında
+   "sorunlu" yazıyordu. Excel çıktısına da ham kimlik aktarılıyordu.
+
+   Kimlikler burada tanımlandığı için karşılıkları da burada duruyor;
+   üç taraf da aynı yerden okuyor. */
+export function makineDurumAdi(id) {
+  if (!id) return ''
+  return MAKINE_DURUMU.find((d) => d.id === id)?.ad || id
+}
+
 /* Makine grubuna göre belirti listesi. Grup bilinmiyorsa (kullanıcı
    henüz makine kaydetmemişse) yalnızca ortak belirtiler gösteriliyor —
    yem karma makinesi olmayana "helezon sıkışıyor" sormanın anlamı yok. */
@@ -221,16 +229,11 @@ export function traktorSecenekleri(dil = 'tr') {
   return eslestir(TRAKTOR, TRAKTOR_EN, dil)
 }
 
-/* Durum ve aciliyet zaten kimlikle (id) saklanıyor; yalnız görünen
-   yazıları değişiyor. */
+/* Durum zaten kimlikle (id) saklanıyor; yalnız görünen metni
+   değişiyor. */
 export function makineDurumu(dil = 'tr') {
   if (dil === 'tr') return MAKINE_DURUMU
   return MAKINE_DURUMU.map((d) => ({ ...d, ...(MAKINE_DURUMU_EN[d.id] || {}) }))
-}
-
-export function parcaAcele(dil = 'tr') {
-  if (dil === 'tr') return PARCA_ACELE
-  return PARCA_ACELE.map((a) => ({ ...a, ...(PARCA_ACELE_EN[a.id] || {}) }))
 }
 
 export function belirtiSecenekleri(grup, dil = 'tr') {
@@ -289,6 +292,14 @@ function sozlukKur() {
   /* Eski talepler bu seçenekle açılmış olabilir; kayıt bozulmasın
      diye karşılığı sözlükte duruyor. Yeni taleplerde çıkmıyor. */
   s['Bilmiyorum, siz bakın'] = 'I am not sure, please check'
+  /* Talebin kapanış sonuçları da kayda Türkçe yazılıyor (backoffice ve
+     bayi paneli tek dilli). Müşteri uygulaması iki dilli olduğu için
+     karşılıkları burada duruyor; yoksa İngilizce ekranda "Satış oldu"
+     görünüyordu. */
+  s['Satış oldu'] = 'Sale completed'
+  s['Müşteri vazgeçti'] = 'Customer declined'
+  s['Rakibe gitti'] = 'Lost to a competitor'
+  s['Ulaşılamadı'] = 'Could not be reached'
   for (const grup of Object.keys(BELIRTILER)) {
     ekle(BELIRTILER[grup], BELIRTILER_EN[grup] || [])
   }

@@ -78,6 +78,11 @@
 
   /* Servis rozetinin yazı rengi; sabit değer olarak gömülüydü. */
   --tur-servis-yazi: #8f5200;
+  /* Yedek parça rozetinin yazı rengi. Servis rozetine ayrı bir yazı
+     rengi verilirken parça rozeti genel `--pk-mor` ile bırakılmıştı;
+     karanlık temada mor zeminin üstünde 3,86'da kalıyordu (eşik 4,5).
+     Aydınlıkta değer değişmiyor, karanlıkta açılıyor: ölçülen 5,74. */
+  --tur-parca-yazi: #6d3fa8;
 
   /* Fiyat teklifi aşaması. Mavi ve yeşil zaten "devam ediyor" ve
      "bitti" demek; teklifin beklemesi ikisi de değil — kendi rengi
@@ -227,6 +232,7 @@
   --pk-red-yazi-koyu: #f17975;
   --pk-orange-ink-koyu: #ff8a3d;
   --tur-servis-yazi-koyu: #f0a53c;
+  --tur-parca-yazi-koyu: #c9a9f5;
 
   /* Soluk zeminler ters çevriliyor: aydınlıkta koyu rengin çok düşük
      saydamlığı, karanlıkta AÇIK rengin daha yükseği. */
@@ -281,6 +287,7 @@
   --pk-red-yazi: var(--pk-red-yazi-koyu);
   --pk-orange-ink: var(--pk-orange-ink-koyu);
   --tur-servis-yazi: var(--tur-servis-yazi-koyu);
+  --tur-parca-yazi: var(--tur-parca-yazi-koyu);
   --pk-blue-soft: var(--pk-blue-soft-koyu);
   --pk-blue-soft-2: var(--pk-blue-soft-2-koyu);
   --pk-orange-soft: var(--pk-orange-soft-koyu);
@@ -323,6 +330,7 @@
     --pk-red-yazi: var(--pk-red-yazi-koyu);
     --pk-orange-ink: var(--pk-orange-ink-koyu);
     --tur-servis-yazi: var(--tur-servis-yazi-koyu);
+  --tur-parca-yazi: var(--tur-parca-yazi-koyu);
     --pk-blue-soft: var(--pk-blue-soft-koyu);
     --pk-blue-soft-2: var(--pk-blue-soft-2-koyu);
     --pk-orange-soft: var(--pk-orange-soft-koyu);
@@ -4175,7 +4183,7 @@ p {
 .badge--parca {
   background: var(--tur-parca-soft);
   border-color: transparent;
-  color: var(--pk-mor);
+  color: var(--tur-parca-yazi);
 }
 
 .badge--satinalma {

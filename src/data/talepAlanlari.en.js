@@ -24,12 +24,6 @@ export const MAKINE_DURUMU_EN = {
   kontrol: { ad: 'It runs, but please check it' },
 }
 
-export const PARCA_ACELE_EN = {
-  hemen: { ad: 'The machine is down, I need it now', alt: 'Work is waiting' },
-  hafta: { ad: 'I need it this week', alt: 'Tight, but work continues' },
-  yedek: { ad: 'Not urgent', alt: 'To keep as a spare' },
-}
-
 export const URUN_TIPI_EN = [
   'Alfalfa',
   'Straw / wheat',

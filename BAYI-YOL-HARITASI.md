@@ -1,5 +1,64 @@
 # Bayi Sistemi — Sıradaki Dört İş
 
+## Temel: Vericiler ve Alıcılar
+
+Bundan sonra bayiler için yapılacak her iş bu temele dayanıyor.
+
+Hizmet akışında üç taraf var ve rolleri eşit değil:
+
+| Taraf | Alır | Verir |
+|---|---|---|
+| **PAKSAN** | — | Ürün, fiyat, teknik bilgi, garanti, müşteri |
+| **Bayi** | PAKSAN'dan | Müşteriye |
+| **Müşteri** | Bayiden ve PAKSAN'dan | — |
+
+Bayi ayrı bir şirket ve kendi menfaati dışında bir şey yapmaz. Bu bir
+kusur değil, tanım: iki ayrı şirket arasındaki ilişki karşılıklılıkla
+yürür.
+
+Buradan tek bir tasarım kuralı çıkıyor:
+
+> **Bayiden istenen her alan için tek soru sorulur: Bayi bunu
+> doldurduğu anda ne alıyor? Cevap yoksa alan istenmez.**
+
+Karşılıksız istenen veri ya hiç girilmez ya geçiştirilir.
+Geçiştirilmiş veri, verinin olmamasından daha kötüdür — çünkü tablo
+dolu görünür ve PAKSAN ona bakıp karar alır.
+
+### Bu Kural Neyi Bozdu, Neyi Kurdu?
+
+İlk yazılan "iş kartı" bu kuralı çiğniyordu: servis işini kapatmak
+için belirti, yapılan iş, parça, süre ve usta adı soruluyordu ve
+bayi bunların karşılığında hiçbir şey almıyordu. Sonucu tahmin
+edilebilirdi: bayi ilk seçeneğe basıp geçerdi.
+
+Yerine geçen kurgu, kapanışı bayinin ne aldığına göre üçe ayırıyor:
+
+| Seçenek | Bayi Ne Alıyor? | Ne Soruluyor? |
+|---|---|---|
+| **Parça Değişmedi** | Müşterinin uygulamasında görünen kayıt — bayinin kendi vitrini | Tek dokunuş: ne yapıldı? |
+| **Parçayı Müşteri Ödedi** | Stok azalıyor; parça bitince sipariş öneriliyor, bayi malsız kalmıyor | Hangi parça, kaç adet |
+| **Garantiden Parça İste** | PAKSAN'dan bedelsiz parça | Ayrıntı — çünkü form bir rapor değil, talebin kendisi |
+
+Üçüncü seçenekte doğruluğun bekçisi iyi niyet değil, bayinin kendi cebi.
+Kalite verisi de en doğru hâliyle oradan geliyor.
+
+### Hüküm Sorulmuyor, Gözlem Soruluyor
+
+Garanti talebinde bayiye "Üretim hatası mı, kullanım hatası mı?" diye
+sorulmuyor. Sorulsaydı her talepte "üretim hatası" yazardı; talebin
+kabulü ona bağlı. Bayi yalnız gördüğünü yazıyor: kırıldı, aşındı,
+kaçırıyor. Eski parça eline geçtiğinde hükmü PAKSAN veriyor.
+
+### Bugün Kullanılamayan Kaldıraç
+
+Garanti işçiliği ödenmiyor. Ödendiği gün servis kaydı hak ediş
+belgesine dönüşür ve bayi parasını almak için kaydı doğru doldurur. Süre ve
+işi yapan alanları bugün garanti formunda **isteğe bağlı** duruyor;
+o gün zorunlu olacak, veri düzeni değişmeyecek.
+
+---
+
 Dört soru soruldu, dördü de "planla ve sun" dendi. Sırayla cevap:
 
 1. Makine satışı bayi paneline nasıl gelmeli

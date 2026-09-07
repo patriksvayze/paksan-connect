@@ -293,8 +293,27 @@ function TalepFormu() {
     const gecerli = destekParcalari.filter((x) =>
       parcaListesi.some((y) => y.deger === x)
     )
-    if (gecerli.length) {
+    /* LİSTEDE OLMAYAN PARÇA SESSİZCE KAYBOLMUYOR.
+
+       Destek ekranı arıza bilgi tabanından geliyor ve orada sipariş
+       listesinden daha geniş bir parça sözlüğü var. Eşleşmeyen ad
+       yalnız eleniyordu: müşteriye "şu parça gerekebilir" deniyor,
+       talep formunda o parça hiç görünmüyordu. Artık açıklamaya
+       yazılıyor — hem müşteri unutmuyor hem PAKSAN ne istendiğini
+       görüyor. */
+    const eslesmeyen = destekParcalari.filter(
+      (x) => !parcaListesi.some((y) => y.deger === x)
+    )
+    if (eslesmeyen.length) {
+      setAciklama((eski) => {
+        const satir = t('talep.listeDisiParca', { parcalar: eslesmeyen.join(', ') })
+        return eski ? `${eski}\n${satir}` : satir
+      })
+    }
+    if (gecerli.length || eslesmeyen.length) {
       parcaBaslatildi.current = true
+    }
+    if (gecerli.length) {
       setParcalar(gecerli)
       setParcaAdet(Object.fromEntries(gecerli.map((x) => [x, 1])))
     }

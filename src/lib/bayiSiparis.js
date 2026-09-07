@@ -3,9 +3,9 @@
 
    NEDEN VAR
 
-   Bayi stoğunu kendi artıramaz. Elindeki parça ve makine, PAKSAN'dan
+   Bayi stokunu kendi artıramaz. Elindeki parça ve makine, PAKSAN'dan
    satın aldığı kadardır. Önce stok ekranı bayiye sayı kutusu veriyordu
-   ve bayi istediği sayıyı yazabiliyordu; bu, stoğu bayinin kendi
+   ve bayi istediği sayıyı yazabiliyordu; bu, stoku bayinin kendi
    defterine çeviriyordu. PAKSAN'ın gönderdiğiyle bayinin yazdığı
    tutmayınca da rakam hiçbir şey anlatmıyordu.
 
@@ -13,14 +13,14 @@
 
      bayi sipariş verir  →  PAKSAN onaylar  →  hazırlar  →  gönderir
                                                               ↓
-                                                    bayi stoğu ARTAR
+                                                    bayi stoku ARTAR
 
    Stok yalnızca "gönderildi" adımında artıyor; onay ya da hazırlık
    adımında artmıyor, çünkü parça henüz bayide değil.
 
    AZALTMA BAYİDE
 
-   Bayi stoğunu kendi azaltabiliyor: müşteriye sattığı ya da serviste
+   Bayi stokunu kendi azaltabiliyor: müşteriye sattığı ya da serviste
    kullandığı parça. Bunun onaya gerek yok, PAKSAN'ı ilgilendirmiyor.
 
    HAREKET KAYDI
@@ -33,7 +33,7 @@
 
      · Kısmi sevkiyat yok: sipariş bütün hâlinde gönderiliyor. Gerçek
        hayatta bölünüyor; sunucu geldiğinde kalem bazlı duruma geçilir.
-     · Rezervasyon yok: sipariş verilen parça bayi stoğunda görünmüyor,
+     · Rezervasyon yok: sipariş verilen parça bayi stokunda görünmüyor,
        gelene kadar yok sayılıyor.
      · Fiyat ve fatura yok: bu ekran sipariş alıyor, muhasebe LOGO'da.
    ========================================================================== */
@@ -77,14 +77,46 @@ function siparisleriYaz(liste) {
   save(ANAHTAR, liste)
 }
 
+/* Siparişin türü.
+
+   GARANTİ TALEBİ AYRI BİR SİSTEM DEĞİL. Akış birebir aynı: bayi
+   ister, PAKSAN onaylar, hazırlar, gönderir, stok artar. Ayrı bir
+   depo ve ayrı bir ekran açmak, aynı işin iki yerde yürümesi
+   demekti. Fark üç yerde: parayla mı bedelsiz mi, nereden doğduğu
+   (garanti talebi bir servis işinden doğuyor) ve taşıdığı kanıt. */
+export const SIPARIS_TURU = {
+  satinalma: 'Satın alma',
+  garanti: 'Garanti talebi',
+}
+
 /**
  * Bayi sipariş açar.
- * @param {{bayiId, bayiAd, bayiNo, kalemler, not}} veri
- *        kalemler: [{ tur: 'parca'|'makine', anahtar, ad, adet }]
+ *
+ * `teslimat`, `istenenTarih` ve `tutar` SONRADAN EKLENDİ. Sipariş
+ * ekranı önce yalnız adet alıyordu: bir buçuk milyonluk makine
+ * siparişi, kutuya "1" yazıp düğmeye basmakla veriliyordu. Nereye
+ * gideceği, ne zaman istendiği ve ne tuttuğu yazılı değildi — bunlar
+ * B2B siparişinde telefonla konuşulan ve sonra unutulan bilgiler.
+ *
+ * @param {{bayiId, bayiAd, bayiNo, kalemler, not, teslimat,
+ *          istenenTarih, tutar, tur, garanti}} veri
+ *        kalemler: [{ tur: 'parca'|'makine', anahtar, ad, adet, birimFiyat }]
+ *        garanti: { talepNo, seri, parcaDurumu, foto, iade, sureDk, kim }
  */
-export function siparisAc({ bayiId, bayiAd, bayiNo, kalemler, not }) {
+export function siparisAc({
+  bayiId,
+  bayiAd,
+  bayiNo,
+  kalemler,
+  not,
+  teslimat,
+  istenenTarih,
+  tutar,
+  tur = 'satinalma',
+  garanti = null,
+}) {
   const temiz = (kalemler || []).filter((k) => Number(k.adet) > 0)
-  if (!temiz.length) return { hata: 'En az bir kalem seçin.' }
+  if (!temiz.length) return { hata: 'En az bir ürün seçin.' }
 
   const siparis = {
     id: uid(),
@@ -92,8 +124,19 @@ export function siparisAc({ bayiId, bayiAd, bayiNo, kalemler, not }) {
     bayiId,
     bayiAd,
     bayiNo,
+    tur,
+    /* Garanti talebinin dayanağı ve kanıtı. Dayanağı bir iş olmayan
+       garanti talebi, PAKSAN'ın neyin karşılığında parça gönderdiğini
+       bilmemesi demek. */
+    garanti,
     kalemler: temiz.map((k) => ({ ...k, adet: Number(k.adet) })),
     not: (not || '').trim(),
+    teslimat: (teslimat || '').trim(),
+    istenenTarih: istenenTarih || null,
+    /* Sipariş anındaki tutar kaydediliyor. Fiyat listesi sonradan
+       değişince "bu siparişi hangi fiyattan verdim" sorusunun cevabı
+       kalsın. */
+    tutar: Number(tutar) || 0,
     durum: 'yeni',
     tarih: Date.now(),
     gecmis: [{ durum: 'yeni', tarih: Date.now(), kim: bayiAd }],
@@ -104,14 +147,14 @@ export function siparisAc({ bayiId, bayiAd, bayiNo, kalemler, not }) {
 
 /**
  * PAKSAN siparişin durumunu ilerletir.
- * `gonderildi` adımında bayi stoğu ARTIYOR — tek artış yolu bu.
+ * `gonderildi` adımında bayi stoku ARTIYOR — tek artış yolu bu.
  */
 export function siparisDurumu(siparisId, durum, personel, kargo) {
   const liste = load(ANAHTAR, [])
   const s = liste.find((x) => x.id === siparisId)
   if (!s) return { hata: 'Sipariş bulunamadı.' }
   if (s.durum === 'gonderildi' || s.durum === 'iptal') {
-    return { hata: 'Bu sipariş kapandı, durumu değişmiyor.' }
+    return { hata: 'Bu sipariş kapandı, durumu değiştirilemez.' }
   }
 
   const guncel = {
@@ -146,7 +189,7 @@ function hareketYaz(kayit) {
   save(HAREKET, [kayit, ...load(HAREKET, [])].slice(0, 300))
 }
 
-/** Siparişin kalemlerini bayi stoğuna ekler. Yalnız bu dosya çağırıyor. */
+/** Siparişin kalemlerini bayi stokuna ekler. Yalnız bu dosya çağırıyor. */
 function stokEkle(bayiId, kalemler, sebep, kim) {
   const hepsi = load('bayiStok', {})
   const k = hepsi[bayiId] || { parca: {}, makine: {} }
@@ -173,7 +216,7 @@ function stokEkle(bayiId, kalemler, sebep, kim) {
 }
 
 /**
- * Bayi kendi stoğundan düşer: müşteriye verdiği ya da serviste
+ * Bayi kendi stokundan düşer: müşteriye verdiği ya da serviste
  * kullandığı parça.
  *
  * `kaynak` düşüşün nereden geldiğini söylüyor ve geri alınıp
@@ -183,7 +226,7 @@ function stokEkle(bayiId, kalemler, sebep, kim) {
  *   'talep' bir talep kapanırken düşüldü      → geri ALINAMAZ
  *
  * İkincisinin sebebi: o talep kapandı ve "parça gönderildi" diyor.
- * Stoğu tek başına geri almak, kaydın söylediğiyle sayının söylediğini
+ * Stoku tek başına geri almak, kaydın söylediğiyle sayının söylediğini
  * ayırırdı. Yanlışsa talep üzerinden düzeltilir.
  */
 export function stokKullan(bayiId, kalem, adet, sebep, kim, kaynak = 'elle') {
@@ -193,7 +236,7 @@ export function stokKullan(bayiId, kalem, adet, sebep, kim, kaynak = 'elle') {
   const mevcut = Number(k[bolum]?.[kalem.anahtar])
 
   if (!Number.isFinite(mevcut) || mevcut <= 0) {
-    return { hata: 'Bu kalemde düşülecek stok yok.' }
+    return { hata: 'Bu ürün stokta yok.' }
   }
   const istenen = Number(adet)
   if (!Number.isFinite(istenen) || istenen < 1) {
@@ -227,7 +270,7 @@ export function stokKullan(bayiId, kalem, adet, sebep, kim, kaynak = 'elle') {
    NEDEN SINIRLI
 
    Geri alma, "yanlış rakam girdim" için. Genel bir stok artırma aracı
-   OLAMAZ — olsaydı kapattığımız deliği yeniden açardı: bayi stoğunu
+   OLAMAZ — olsaydı kapattığımız deliği yeniden açardı: bayi stokunu
    kendi artıramıyor, artışın tek yolu PAKSAN sevkiyatı.
 
    Bu yüzden dört kapı var. Dördü birden açık değilse düğme çıkmıyor:
@@ -266,7 +309,7 @@ export function geriAlinabilir(bayiId, kalem) {
   return son
 }
 
-/** Geri alır: stoğu iade eder, hareketi işaretler, karşı kayıt yazar. */
+/** Geri alır: stoku iade eder, hareketi işaretler, karşı kayıt yazar. */
 export function stokGeriAl(bayiId, hareketId, kim) {
   const liste = load(HAREKET, [])
   const h = liste.find((x) => x.id === hareketId && x.bayiId === bayiId)

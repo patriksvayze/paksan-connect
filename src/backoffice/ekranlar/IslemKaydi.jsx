@@ -39,10 +39,13 @@ const TURLER = [
   { deger: 'personel', ad: 'Personel' },
   { deger: 'sifre', ad: 'Şifre' },
   { deger: 'bayi', ad: 'Bayi listesi' },
-  /* Bayi tarafından gelen üç işlem. Sipariş ve stok bayi panelinde
-     doğuyor, devir de bayinin PAKSAN'dan destek istemesi. */
+  /* Bayi tarafından gelen dört işlem. Sipariş, stok ve fiyat teklifi
+     bayi panelinde doğuyor, devir de bayinin PAKSAN'dan destek
+     istemesi. Teklif süzgeci sonradan eklendi: kayıtlar yazılıyordu
+     ama listede ham "teklif" kelimesiyle çıkıp süzülemiyordu. */
   { deger: 'siparis', ad: 'Bayi siparişi' },
-  { deger: 'stok', ad: 'Bayi stoğu' },
+  { deger: 'stok', ad: 'Bayi stoku' },
+  { deger: 'teklif', ad: 'Bayi fiyat teklifi' },
   { deger: 'devir', ad: 'PAKSAN’a devir' },
   { deger: 'excel', ad: 'Excel aktarımı' },
   { deger: 'demo', ad: 'Demo verisi' },
@@ -189,7 +192,7 @@ export function IslemKaydi({ surum }) {
         {yukleniyor ? (
           <Bekleme satir={4} />
         ) : !liste ? (
-          <Bos metin="Personel, talep, müşteri veya bayi numarası yazıp arayın; ya da tarih aralığı seçin." />
+          <Bos metin="Personel, talep, müşteri veya bayi numarası yazıp arayın ya da tarih aralığı seçin." />
         ) : liste.length === 0 ? (
           <Bos metin="Bu süzgeçle kayıt bulunamadı." />
         ) : (

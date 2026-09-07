@@ -26,6 +26,7 @@ import './bayi.css'
 
 import { urunAyarla } from '../lib/urun'
 import { temayiUygula } from '../backoffice/Tema'
+import { demoAPKmi } from './demoKimlik'
 
 /* Paylaşılan dosyalara hangi derlemenin çalıştığı burada bildiriliyor
    (bkz. src/lib/urun.js). Görünüm tercihi ve işlem kaydının rolü buna
@@ -35,8 +36,23 @@ urunAyarla('bayi')
 /* Kayıtlı görünüm tercihi ilk çizimden ÖNCE uygulanıyor. */
 temayiUygula()
 
-createRoot(document.getElementById('bayi')).render(
-  <StrictMode>
-    <BayiPanel />
-  </StrictMode>
-)
+/* DEMO APK'SI KENDİ VERİSİNİ KURUYOR.
+
+   Telefona kurulan sürüm boş bir hafızayla açılıyor: kayıtlı hesap
+   yok, girilecek bir şey yok. Kurulum `demoKur.js` içinde, gerekçesiyle
+   yazılı. Tarayıcı paneli bu dosyayı yüklemiyor bile — `import()`
+   ayrı bir parça üretiyor, koşul sağlanmazsa indirilmiyor.
+
+   Kurulum bitmeden çizilmiyor: ekran önce boş giriş, sonra dolu ekran
+   diye iki kez değişirdi. */
+const hazir = demoAPKmi()
+  ? import('./demoKur').then((m) => m.demoKur())
+  : Promise.resolve()
+
+hazir.then(() => {
+  createRoot(document.getElementById('bayi')).render(
+    <StrictMode>
+      <BayiPanel />
+    </StrictMode>
+  )
+})

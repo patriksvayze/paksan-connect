@@ -1,5 +1,5 @@
 import { PaksanLogo } from '../components/Marka'
-import { IconBack } from '../components/Icons'
+import { IconBack, IconPhone } from '../components/Icons'
 
 /* ==========================================================================
    Bayi uygulamasının kabuğu
@@ -93,7 +93,10 @@ export function Kabuk({ baslik, alt, islem, sekmeler, sekme, onSekme, children }
  */
 export function Sayfa({ baslik, alt, onGeri, islem, dip, children }) {
   return (
-    <div className="uyg uyg--sayfa">
+    /* Dip çubuğu varken gövdeye ek boşluk gerekiyor: çubuk ekranın
+       altına yapışık duruyor ve sayfa aşağı kaydırılırken içeriğin son
+       satırını örtüyordu. */
+    <div className={'uyg uyg--sayfa' + (dip ? ' uyg--dipli' : '')}>
       <Cubuk baslik={baslik} alt={alt} onGeri={onGeri} islem={islem} />
       <main className="uyg__ic">{children}</main>
       {/* Dip: sayfanın asıl işlemi. Ekranın altına yapışık duruyor ki
@@ -116,12 +119,91 @@ export function Bolum({ ad, sayi, children }) {
   )
 }
 
+/* ==========================================================================
+   Liste kartı — İşlerim'deki her satırın ortak iskeleti
+
+   ÖNCEKİ KART BEŞ SATIRDI VE HEPSİ AYNI AĞIRLIKTAYDI
+
+   Üstte tür rozeti ve tarih, altında ad, altında yer ve numara, altında
+   randevu, altında "48 saati geçti". Beş satırın ilki tamamen künye
+   bilgisiydi; bayinin listede aradığı MÜŞTERİ ADI ikinci sıraya
+   düşüyordu. Alt iki satır ayrı ayrı renkliydi ve kartın altı tırtıklı
+   bitiyordu. Sekiz kartlık bir listede ekranda on altı renkli işaret
+   oluyordu — hepsi acil görünüyor, hiçbiri öne çıkmıyordu.
+
+   ÜÇ SATIR, TEK RENKLİ İŞARET
+
+     1. AD — kartın çapası. Türü sağda, kendi rozetinde.
+     2. KÜNYE — yer ve numara, sönük, tek satır.
+     3. DURUM — solda bayinin yapacağı iş (randevu ya da tutar),
+        sağda zaman. İkisi de her kartta aynı yerde.
+
+   ZAMAN İLE GECİKME AYNI YUVADA. Gecikmiş bir işte hem "7 gün önce"
+   hem "48 saati geçti" yazıyordu; ikisi aynı şeyi söylüyor. Gecikmişse
+   gecikme yazıyor, değilse süre.
+
+   TEK İSKELET, İKİ İÇERİK. Aynı kartı hem talep hem teklif
+   kullanıyor; ikisi İşlerim'de art arda duruyor ve ayrı düzenlerde
+   çizilince liste dağılıyordu.
+
+   Kart iç içe düğme DEĞİL: soldaki alan detayı açıyor, sağdaki
+   bağlantı müşteriyi arıyor. İkisi kardeş — `<button>` içine
+   `<button>` geçerli değil.
+   ========================================================================== */
+
+/**
+ * @param {{ad, tur, turAdi, kunye, sol, sag, sagGec, gec, onAc, tel, telAd}} p
+ *        sol/sag: durum satırının iki yakası · sagGec: sağdaki yazı uyarı
+ *        rengine geçiyor · gec: kartın sol kenarında kırmızı şerit
+ */
+export function ListeKarti({
+  ad,
+  tur,
+  turAdi,
+  kunye,
+  sol,
+  sag,
+  sagGec,
+  gec,
+  onAc,
+  tel,
+  telAd,
+}) {
+  return (
+    <div className={'is' + (gec ? ' is--gec' : '')}>
+      <button className="is__ac" onClick={onAc}>
+        <div className="is__bas">
+          <div className="is__ad">{ad}</div>
+          <span className={'tur tur--' + tur}>{turAdi}</span>
+        </div>
+
+        <div className="is__alt">{kunye}</div>
+
+        {(sol || sag) && (
+          <div className="is__durum">
+            <span className="is__sol">{sol}</span>
+            <span className={'is__sag' + (sagGec ? ' is__sag--gec' : '')}>
+              {sag}
+            </span>
+          </div>
+        )}
+      </button>
+
+      {tel && (
+        <a className="is__ara" href={'tel:' + tel} aria-label={telAd}>
+          <IconPhone size={21} />
+        </a>
+      )}
+    </div>
+  )
+}
+
 /* Liste boşken duran açıklama.
 
    ÇİZİM VARSA ÇİZİM, YOKSA SİMGE
 
    Boş ekran bayinin uygulamayı en çok göreceği hâllerden biri:
-   sabah açtığında iş yoksa, stoğu boşsa. Orada 40 piksellik gri bir
+   sabah açtığında iş yoksa, stoku boşsa. Orada 40 piksellik gri bir
    simge "burada bir şey yok" demiyor, "ekran yüklenmedi" diyor.
 
    Çizimler saydam zeminli; koyu temada da aynı duruyorlar.

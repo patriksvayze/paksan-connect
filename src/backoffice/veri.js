@@ -12,6 +12,7 @@ import { yeniNo } from '../lib/numara'
 import { SIRKET } from '../config'
 import { urun } from '../lib/urun'
 import { bayileriGetir } from '../data/bayiler.js'
+import { icerikTazele } from '../lib/icerikDeposu.js'
 
 export const ANAHTAR = {
   kullanici: 'user',
@@ -515,8 +516,12 @@ export function talepNotEkle(talep, metin, personel, { musteriye = false } = {})
    Metin değil ANAHTAR saklanıyor: backoffice Türkçe ama müşteri uygulamayı
    İngilizce kullanıyor olabilir. Anahtar saklanınca yazı müşterinin
    kendi dilinde çıkıyor. Personelin elle yazdığı cevaplarda `metin`
-   doğrudan gidiyor — o cümleyi çeviremeyiz. */
-function musteriyeBildir(bildirim) {
+   doğrudan gidiyor — o cümleyi çeviremeyiz.
+
+   Dışa açık: bayi paneli de aynı kapıdan yazıyor (fiyat teklifi
+   gönderildiğinde). İkinci bir bildirim deposu açmak, müşterinin
+   ekranında iki ayrı liste demekti. */
+export function musteriyeBildir(bildirim) {
   save(ANAHTAR.duyurular, [
     { id: uid(), tarih: Date.now(), ...bildirim },
     ...load(ANAHTAR.duyurular, []),
@@ -1090,6 +1095,9 @@ export function bayileriGetirBackoffice() {
 export function bayileriYaz(liste, personel, ozet, tur = 'bayi') {
   const mevcut = load(ANAHTAR.icerik, {})
   save(ANAHTAR.icerik, { ...mevcut, bayiler: liste })
+  /* Okuyan taraf listeyi bellekte tutuyor; tazelenmezse aynı sayfada
+     eski liste okunmaya devam ediyor (bkz. icerikDeposu.js). */
+  icerikTazele()
   islemYaz({ tur, ozet, personel })
 }
 
@@ -1097,6 +1105,7 @@ export function bayileriSifirla(personel) {
   const mevcut = { ...load(ANAHTAR.icerik, {}) }
   delete mevcut.bayiler
   save(ANAHTAR.icerik, mevcut)
+  icerikTazele()
   islemYaz({ tur: 'bayi', ozet: 'Bayi listesi koddaki listeye döndürüldü', personel })
 }
 

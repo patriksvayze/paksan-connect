@@ -234,9 +234,13 @@ function yaz(t, b, dil, hangi) {
   if (!anahtar) return ''
   const d = b.degerler || {}
   const turAnahtar = d.tur || d.talepTur
+  /* `baslik` FORMUN EKRAN BAŞLIĞI, talebin adı değil: fiyat
+     teklifinde "Fiyat Teklifi İste" yazıyor ve cümleye konunca
+     "Fiyat teklifi iste alındı" çıkıyordu. Bildirimde talebin ADI
+     kullanılıyor. */
   return t(anahtar, {
     ...d,
-    tur: turAnahtar ? cumleBasi(t(`talep.${turAnahtar}.baslik`), dil) : '',
+    tur: turAnahtar ? cumleBasi(t(`talep.${turAnahtar}.adi`), dil) : '',
   })
 }
 

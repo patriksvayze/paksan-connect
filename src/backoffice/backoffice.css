@@ -781,6 +781,23 @@ tbody tr.secili {
   background: var(--mavi-z);
 }
 
+/* SEÇİLİ SATIRDA ROZET OKUNMUYORDU.
+
+   Rozetlerin zemini yarı saydam bir renk tonu; seçili satırın zemini
+   de öyle. İkisi üst üste binince rozetin altındaki renk değişiyor ve
+   yazı sönükleşiyordu. Altı tonun hepsinde ölçüm yapıldı: aydınlık
+   temada en düşük değer 4,29, karanlık temada 3,52 — eşik 4,5.
+
+   Üstelik bu, personelin O AN OKUDUĞU satır.
+
+   Seçili satırda rozet, yarı saydam dolgu yerine kendi rengiyle
+   çerçeveleniyor; zemin opak bir yüzeye dönüşüyor ve yarı saydam
+   renkler üst üste binmiyor. Ölçüm sonrası en düşük değer 5,72. */
+tbody tr.secili .rz {
+  background: var(--yuzey);
+  box-shadow: inset 0 0 0 1px currentColor;
+}
+
 /* Tek font ailesi kullanılıyor; "mono" yalnız rakamları eşit genişlikte
    yazıyor. Ayrı bir yazı tipi yüklemek backoffice’te iki farklı font gibi
    duruyordu. */
@@ -1021,14 +1038,59 @@ tbody tr.secili {
 
 .ikili {
   display: grid;
-  grid-template-columns: 1fr 400px;
+  grid-template-columns: minmax(0, 1fr) 400px;
   gap: 16px;
   align-items: start;
+}
+
+/* SAĞ PANEL EKRANDA KALIYOR.
+
+   Önce sağ panel sayfayla birlikte kayıyordu. Liste 70 kayıtta 7600
+   piksel oluyordu; altlardaki bir talebe tıklandığında detay ekranın
+   5566 piksel YUKARISINDA açılıyordu (ölçüldü). Personel tıklıyor,
+   ekranda hiçbir şey olmuyordu.
+
+   Panel artık yapışkan: kendi içinde kayıyor, listede nereye inilirse
+   inilsin görünür kalıyor. Yüksekliği ekranı aşmıyor; yoksa yapışma
+   çalışmazdı. */
+.ikili > .kart:last-child {
+  position: sticky;
+  top: 16px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Liste uzun; liste kaydırıldıkça sütun başlıkları yukarıda kalıyor. */
+.ikili .tablo-sar thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+/* Geniş ekranda detaya yer açılıyor.
+
+   İş sağ panelde yapılıyor ama dar olan da oydu: 1600 piksellik
+   ekranda liste 804, detay 400 piksel yer kaplıyordu. Liste yalnızca
+   seçim için; fatura, ödeme, kapanış ve notlar sağda okunuyor. 80
+   piksel listeden detaya geçti, toplam genişlik değişmedi. */
+@media (min-width: 1400px) {
+  .ikili {
+    grid-template-columns: minmax(0, 1fr) 480px;
+  }
 }
 
 @media (max-width: 1100px) {
   .ikili {
     grid-template-columns: 1fr;
+  }
+
+  /* Tek sütuna düşünce yapışkanlık anlamını yitiriyor: panel listenin
+     altında, kendi sırasında duruyor. */
+  .ikili > .kart:last-child {
+    position: static;
+    max-height: none;
+    overflow-y: visible;
   }
 }
 
@@ -1494,9 +1556,13 @@ tbody tr.secili {
   gap: 4px;
 }
 
+/* Arama kutusu tek başına 963 piksele kadar büyüyordu (ölçüldü);
+   yanındaki "Makine" süzgeci 249 pikselde kalıyordu. Büyümesi
+   sınırlandı, artan yer kayıt sayısına bırakıldı. */
 .secim-alan--genis {
   flex: 1 1 240px;
   min-width: 200px;
+  max-width: 340px;
 }
 
 .secim-alan__ad {
@@ -2231,6 +2297,23 @@ select.sec {
 .cip--kilitli {
   border-style: dashed;
   color: var(--murekkep-3);
+}
+
+/* Sıradaki aşama.
+
+   Beş çip aynı görünüyordu ve personel her talepte hangisine
+   basacağını yeniden okuyordu; oysa akışta bir sonraki adım belli.
+   O adım maviyle çerçeveleniyor — seçili çiple (dolu) karışmıyor,
+   "buradasın" ile "sıradaki bu" ayrı kalıyor.
+
+   --mavi DEĞİL, --mavi-rz: --mavi karanlık temada dolgu rengi olarak
+   koyu kalıyor ve koyu yüzeyin üstünde 2,43 değerinde okunmuyordu
+   (ölçüldü). Rozetlerde de aynı tuzağa düşülmüş ve sorun aynı token
+   ile çözülmüş (bkz. .rz--mavi). */
+.cip--ileri {
+  border-color: var(--mavi-rz);
+  color: var(--mavi-rz);
+  box-shadow: inset 0 0 0 1px var(--mavi-rz);
 }
 
 

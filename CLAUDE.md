@@ -65,6 +65,57 @@ Karanlık/aydınlık tema `data-tema='koyu'/'acik'` attribute'u ile uygulanıyor
 Unit/e2e test yok. Doğrulama: manuel + `tools/ekran-goruntusu.mjs` +
 tarayıcıda ölçülen JS (kontrast, taşma, dokunma hedefi).
 
+## Bayi Ekosisteminin Temeli — Vericiler ve Alıcılar
+
+Hizmet akışında üç taraf var ve rolleri eşit değil:
+
+- **PAKSAN** sadece verir, hiçbir şey almaz
+- **Bayi** hem alır (PAKSAN'dan) hem verir (müşteriye) — aradaki tek taraf
+- **Müşteri** sadece alır
+
+Bayi ayrı bir şirket ve **kendi menfaati dışında bir şey yapmaz.**
+Yalnız PAKSAN'a yarayan bir veri girişi ya hiç yapılmaz ya
+geçiştirilir; geçiştirilmiş veri, verinin olmamasından daha kötüdür —
+PAKSAN ona bakıp karar alır.
+
+**Kural:** Bayiden istenen her alan için tek soru sorulur:
+*Bayi bunu doldurduğu anda ne alıyor?* Cevap yoksa alan istenmez.
+Veri, bayinin kendi çıkarı için yaptığı işin **yan ürünü** olmalı;
+ayrı bir iş olarak istenmemeli.
+
+Bugün sunulan somut karşılıklar: garanti kapsamındaki bedelsiz
+parça (talep formu zaten o parçayı istemenin tek yolu), stok bitince
+sipariş önerisi, müşterinin uygulamasında görünen servis kaydı.
+En güçlü ticari kaldıraç PAKSAN'ın elinde: garanti işçiliği bugün
+ödenmiyor; ödendiği gün iş kaydı hak ediş belgesine dönüşür.
+
+## Üç Ürün Birlikte Çalışır
+
+Bayi panelinde doğan veriyi okuyan ekran yoksa iş bitmemiştir. Bir
+özellik "bitti" sayılmadan önce üç tarafta da yeri olmalı:
+
+- **Bayi Paneli** — veriyi üreten ekran
+- **Backoffice** — PAKSAN'ın o veriyi göreceği ekran
+- **PAKSAN Connect** — müşteriyi ilgilendiren kısmı
+
+Ortak biçimleri yeniden icat etme: talep kapanışı `cozum` nesnesiyle
+yürüyor (`yapilanIs`, `parcalar`, `ucret`, `ozet`) ve üç taraf da onu
+okuyor. Bildirimler `duyurular` deposundan geçiyor. Paralel bir depo
+açmak, iki tarafın birbirini görmemesi demek.
+
+## Bayi Panelinin Kullanıcısı
+
+Bayi personelinin teknoloji bilgisi yüksek olmayabilir. Ekranı
+tarlada, işin sonunda, çoğu zaman ayakta açıyor. **Görsel kalite
+hiçbir üründe düşmez; sorulan soru sayısı düşer.**
+
+- Tek ekranda tek soru; cevaplar tam genişlikte düğmelerle sunulur
+- Gizli etkileşim yok: kaydırarak silme, uzun basma, çift dokunma yok
+- İkon tek başına anlam taşımaz; yanında yazı olur
+- Terim yok: "iskonto", "kapsam", "künye", "hak ediş" ekranda geçmez
+- Onay penceresi ne olacağını açıklar; "Emin misiniz?" demez
+- Boş ekran çıkmaz sokak olmaz; ne yapılacağını açıklar
+
 ## Standing kurallar (kullanıcıdan)
 
 - APK: yalnız istendiğinde derle, her sürümü ayrı dosyada sakla, üzerine yazma
@@ -72,11 +123,11 @@ tarayıcıda ölçülen JS (kontrast, taşma, dokunma hedefi).
   değişiklik Türkçe VE İngilizce yapılır. Backoffice ve bayi paneli tek
   dilli, yalnız Türkçe — kullanıcıları PAKSAN personeli ve Türkiye'deki
   bayiler. Bu ekranlarda `t()` ve sözlük aranmaz.
-- **Türkçe CÜMLELER Codex'ten geçer**, kısa arayüz etiketleri geçmez.
-  Ayrım: kullanıcıya bir şey anlatan cümle, paragraf, hata ve bilgi
-  metni → Codex. Sekme adı, düğme yazısı, bölüm başlığı, alan etiketi
-  gibi bir-iki kelimelik etiketler → Claude yazar. Emin değilse Codex'e
-  gönderir.
+- **TÜRKÇE HER ŞEY CODEX'TEN GEÇER.** Cümle, paragraf, hata metni,
+  sekme adı, düğme yazısı, bölüm başlığı, alan etiketi, rozet — ayrım
+  yok. Claude Türkçe metin yazmaz; taslağı Codex'e verir, dönen metni
+  kullanır. (6 Eylül 2026: "kısa etiketleri Claude yazar" istisnası
+  kaldırıldı — "Stoklu model" gibi etiketler kötü çıkıyordu.)
 - API anahtarları asla uygulamaya gömülmez (sunucu tarafında kalır)
 - Hesap silme / numara değişikliği yalnız PAKSAN yetkilisi tarafından yapılır
 - Görsel içerik üretilecekse Higgsfield kullanılır — hesapta kredi var,
@@ -114,11 +165,14 @@ Genel diff incelemesi için `/code-review` komutu kullanılır.
 
 - **KALICI KURAL:** Codex’in bu projedeki rolü yalnızca Türkçe metin yazımı ve dil doğruluk kontrolüdür.
 - Başka hiçbir iş Codex’e devredilmez.
-- **Rolün sınırı CÜMLELERDİR.** Kullanıcıya bir şey anlatan her cümle,
-  paragraf, hata ve bilgi metni Codex'ten geçer. Sekme adı, düğme
-  yazısı, bölüm başlığı, alan etiketi gibi bir-iki kelimelik etiketleri
-  Claude yazar; metin tasarımın malzemesi ve her etiket için gidip
-  gelmek düzen çalışmasını gereksiz yavaşlatıyordu. Tereddütte gönderilir.
+- **Rolün sınırı YOK: ekranda görünen her Türkçe kelime Codex'ten
+  geçer.** Cümle, paragraf, hata metni, sekme adı, düğme yazısı, bölüm
+  başlığı, alan etiketi, rozet — hepsi. Bir-iki kelimelik etiketleri
+  Claude'un yazması denendi ve geri alındı: kısa etiketler tam da
+  ekranın ne anlattığını belirleyen yer ve orada üretilen Türkçe kötü
+  çıkıyordu ("Stoklu model" gibi).
+- Yeni ekran yazıldığında, İÇİNDEKİ BÜTÜN TÜRKÇE metinler tek seferde
+  Codex'e verilir — yalnız uzun cümleler değil.
 - İş devredilirken gereken efor açıkça belirtilir; `codex exec` için `-c model_reasoning_effort` kullanılır.
 - Türkçe metin yazımı ve dil doğruluk kontrolü için efor seviyesi `low` olarak belirlenir.
 - Devredilen iş sessizce başarısız olabilir; sonucu görülmeden iş tamamlanmış sayılmaz.

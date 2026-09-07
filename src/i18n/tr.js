@@ -297,6 +297,8 @@ export const tr = {
     teklifBaslik: '{no} · Teklifiniz Hazır',
     teklifMetin: 'Teklif tutarı: {tutar}. Ayrıntı için talebinize dokunun.',
     teklifMetinGecerlilik: 'Teklif tutarı: {tutar} · Geçerlilik: {gecerlilik}',
+    bayiTeklifBaslik: 'Bayinizden Fiyat Teklifi',
+    bayiTeklifMetin: '{bayi} size {tutar} tutarında fiyat teklifi gönderdi. Son geçerlilik tarihi: {gecerlilik}.',
     odemeBaslik: '{no} · Ödemeniz Alındı',
     odemeMetin: 'Dekontunuz kontrol edildi. Parçanız hazırlanıyor.',
     gonderildiBaslik: '{no} · Parçanız Yola Çıktı',
@@ -386,11 +388,13 @@ export const tr = {
 
   talep: {
     destektenGeldi: 'Destek ekranında şu arıza üzerinde konuşuldu: {ariza}',
+    listeDisiParca: 'Destek ekranında şu parçalar da belirtildi: {parcalar}',
 
     gonderilemedi: 'Talep gönderilemedi. İnternet bağlantınızı kontrol edip tekrar deneyin — yazdıklarınız duruyor.',
     dahaFazla: '+ {n} seçenek daha',
     servis: {
       baslik: 'Servis Talebi',
+    adi: 'Servis talebi',
       buton: 'Servis Talebi Gönder',
       aciklamaLabel: 'Sorunu Anlatın',
       aciklamaPlaceholder:
@@ -398,6 +402,7 @@ export const tr = {
     },
     parca: {
       baslik: 'Yedek Parça Talebi',
+    adi: 'Yedek parça talebi',
       buton: 'Yedek Parça Talebi Gönder',
       aciklamaLabel: 'Açıklama',
       aciklamaPlaceholder:
@@ -405,6 +410,7 @@ export const tr = {
     },
     satinalma: {
       baslik: 'Fiyat Teklifi İste',
+    adi: 'Fiyat teklifi talebi',
       buton: 'Teklif Talebi Gönder',
       aciklamaLabel: 'Eklemek İstediğiniz Bir Şey Var mı?',
       aciklamaPlaceholder:
@@ -434,7 +440,6 @@ export const tr = {
     durumSecin: 'Makinenin şu anki durumunu işaretleyin.',
     belirtiSecin: 'Ne olduğunu işaretleyin. Listede yoksa “Diğer” seçip anlatın.',
     parcaSecin: 'Hangi parçaya ihtiyacınız olduğunu işaretleyin.',
-    aceleSecin: 'Parçanın ne kadar acil olduğunu işaretleyin.',
     aciklamaKisa:
       'Lütfen talebinizi biraz daha açıklayın; yazmak istemezseniz ses kaydı bırakabilirsiniz.',
     ilSecin: 'Lütfen ilinizi seçin.',
@@ -506,6 +511,7 @@ export const tr = {
     aranmaTercihi: 'Aranma tercihi',
     gecmis: 'Talebin Geçmişi',
     notlar: 'PAKSAN Bilgilendirmesi',
+    bayiyiAra: 'Bayinizi Ara',
     paksaniAra: 'PAKSAN Ara',
     iptalBaslik: 'İptal Sebebi',
     yanlislikVar: 'Yanlışlık olduğunu düşünüyorum',

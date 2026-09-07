@@ -16,6 +16,7 @@ import {
   IconPano, IconTalep, IconUser, IconPin, IconMail, IconRapor,
   IconChat, IconBell, IconPhone, IconPersonel, IconKayit, IconMachine,
   IconCart,
+  IconTag,
 } from '../components/Icons'
 
 import { Ozet } from './ekranlar/Ozet'
@@ -30,6 +31,7 @@ import { GeriBildirimler } from './ekranlar/GeriBildirimler'
 import { Bayiler } from './ekranlar/Bayiler'
 import { Makineler } from './ekranlar/Makineler'
 import { BayiSiparisleri } from './ekranlar/BayiSiparisleri'
+import { BayiTeklifleri } from './ekranlar/BayiTeklifleri'
 import { ACIK_DURUMLAR, siparisleriGetir } from '../lib/bayiSiparis'
 import { IslemKaydi } from './ekranlar/IslemKaydi'
 
@@ -68,12 +70,16 @@ const MENU = [
   { id: 'musteriler', ad: 'Müşteriler', izin: 'musteriler', Ikon: IconUser },
   { id: 'makineler', ad: 'Kayıtlı Makineler', izin: 'musteriler', Ikon: IconMachine },
   { id: 'bayiler', ad: 'Bayiler', izin: 'bayiler', Ikon: IconPin },
-  /* Bayi stoğunun tek artış yolu bu ekran: bayi sipariş veriyor, PAKSAN
+  /* Bayi stokunun tek artış yolu bu ekran: bayi sipariş veriyor, PAKSAN
      burada onaylayıp gönderiyor, gönderim işaretlenince stok artıyor. */
   {
     id: 'siparisler', ad: 'Bayi Siparişleri', izin: 'bayiler',
     sayac: 'siparis', Ikon: IconCart,
   },
+  /* Bayinin çiftçiye verdiği fiyat teklifleri. PAKSAN bugüne kadar
+     yalnız satılanı görüyordu; satılamayan — hangi modelin rakibe
+     gittiği — fiyat kararının asıl dayanağı. */
+  { id: 'teklifler', ad: 'Bayi Teklifleri', izin: 'bayiler', Ikon: IconTag },
   {
     id: 'geribildirim', ad: 'Geri Bildirimler', izin: 'geribildirim',
     sayac: 'gorus', Ikon: IconMail,
@@ -125,7 +131,7 @@ export function Backoffice() {
       ).length,
       gorus: geriBildirimGetir().filter((g) => !g.okundu).length,
       numara: numaraTalepleriGetir().filter((t) => t.durum === 'bekliyor').length,
-      /* Bayi bekliyor: siparişi karşılanmadan stoğu artmıyor. */
+      /* Bayi bekliyor: siparişi karşılanmadan stoku artmıyor. */
       siparis: siparisleriGetir().filter((s) => ACIK_DURUMLAR.includes(s.durum)).length,
     }
   }, [surum, oturum])
@@ -218,6 +224,7 @@ export function Backoffice() {
         {acik === 'makineler' && <Makineler {...ortak} />}
         {acik === 'bayiler' && <Bayiler {...ortak} />}
         {acik === 'siparisler' && <BayiSiparisleri {...ortak} />}
+        {acik === 'teklifler' && <BayiTeklifleri {...ortak} />}
         {acik === 'geribildirim' && <GeriBildirimler {...ortak} />}
         {acik === 'numara' && <NumaraTalepleri {...ortak} />}
         {acik === 'personel' && <Personel {...ortak} />}
@@ -303,7 +310,7 @@ function Profil({ oturum, onKapat }) {
         </div>
 
         <div className="kart__ic">
-        <ProfilSatir k="Personel numarası" v={kisi.no} mono />
+        <ProfilSatir k="Personel Numarası" v={kisi.no} mono />
           <ProfilSatir k="Kullanıcı Adı" v={oturum.kullanici} mono />
           <ProfilSatir k="E-posta" v={kisi.eposta} />
           <ProfilSatir k="Telefon" v={kisi.tel} mono />
@@ -345,7 +352,7 @@ function Profil({ oturum, onKapat }) {
                 Şifrenizi değiştirmek için e-posta adresinize bağlantı gönderilir.
               </p>
               {hata && <div className="uyari">{hata}</div>}
-              <button className="dg dg--ana" onClick={sifreDegistir}>Şifre değiştir</button>
+              <button className="dg dg--ana" onClick={sifreDegistir}>Şifre Değiştir</button>
             </>
           )}
         </div>
@@ -386,7 +393,7 @@ function BildirimSeridi() {
     <div className="serit">
       <span>Yeni talep ve geri bildirimlerde haber almak ister misiniz?</span>
       <button className="dg dg--ana" onClick={async () => setDurum(await izinIste())}>
-        Bildirimlere izin ver
+        Bildirimlere İzin Ver
       </button>
     </div>
   )
@@ -524,7 +531,7 @@ function Giris({ onGiris }) {
         </button>
 
         <button className="giris__bag" type="button" onClick={() => setUnuttum(true)}>
-          Şifremi unuttum
+          Şifremi Unuttum
         </button>
 
         <div className="giris__dip">
@@ -573,7 +580,7 @@ function SifreTalebi({ onKapat }) {
             </div>
 
             <button className="dg dg--ana dg--lg" type="button" onClick={onKapat}>
-              Giriş ekranına dön
+              Giriş Ekranına Dön
             </button>
           </>
         ) : (
@@ -639,14 +646,14 @@ function SifreDegistir({ jeton, onBitti }) {
           <>
             <p className="giris__yazi">Bağlantı geçersiz veya süresi dolmuş.</p>
             <button className="dg dg--ana dg--lg" type="button" onClick={onBitti}>
-              Giriş ekranına dön
+              Giriş Ekranına Dön
             </button>
           </>
         ) : bitti ? (
           <>
           <p className="giris__yazi">Şifreniz değiştirildi.</p>
             <button className="dg dg--ana dg--lg" type="button" onClick={onBitti}>
-              Giriş yap
+              Giriş Yap
             </button>
           </>
         ) : (

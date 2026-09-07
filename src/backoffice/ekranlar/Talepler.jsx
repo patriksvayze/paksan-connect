@@ -19,9 +19,9 @@ import { araliktaMi, BOS_ARALIK, Secim, SuzgecCubugu, TarihAraligi } from './suz
 import { Dekont, Ekler } from './Ekler'
 import { getProduct } from '../../data/products'
 import { formatSerial, warrantyStatus } from '../../lib/serial'
-import { MAKINE_DURUMU, PARCA_ACELE } from '../../data/talepAlanlari'
+import { makineDurumAdi } from '../../data/talepAlanlari'
 import { BANKA } from '../../config'
-import { talebinBayileri, yetkiAdi } from '../../data/bayiler'
+import { bayileriGetir, talebinBayileri, yetkiAdi } from '../../data/bayiler'
 import { PARA_BIRIMI, parcaToplami, paraYaz } from '../../data/parcaFiyat'
 
 /* Talepler.
@@ -52,6 +52,10 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
     setIl(sorgu.il ?? 'hepsi')
     setIlce('hepsi')
     setMakine(sorgu.makine ?? 'hepsi')
+    /* Sahiplik de sıfırlanıyor. Açık kalmış "Bayide" süzgeci
+       dashboard'dan gelen sayıyla listeyi uyumsuz hâle getiriyordu:
+       kutuda 35 yazıyor, listede 12 kayıt çıkıyordu. */
+    setSahiplik(sorgu.sahiplik ?? 'hepsi')
     setAra(sorgu.ara ?? '')
     setSecili(null)
   }, [sorgu])
@@ -154,8 +158,17 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
       /* Parça arama: telefonun son 6 hanesi, talep numarasının bir
          bölümü, seri numarasının sonu — hepsi bulunmalı. Rakamlar
          ayrıca boşluksuz hâliyle de karşılaştırılıyor, yoksa
-         "1415057" araması "549 141 50 57" numarasını bulamıyordu. */
-      const alanlar = [t.no, t.ad, t.tel, t.il, t.ilce, t.makine?.serial, t.aciklama]
+         "1415057" araması "549 141 50 57" numarasını bulamıyordu.
+
+         FATURA ADI VE BAYİ ADI DA ARANIYOR. Yedek parça faturası
+         çoğu zaman şirkete kesiliyor ve o unvan uygulamayı kullanan
+         kişinin adından farklı; "Öztürk Tarım" araması hiçbir şey
+         bulmuyordu. Bayi adı da aynı sebeple burada: personel
+         "Konya bayisindeki işler" diye arıyor. */
+      const alanlar = [
+        t.no, t.ad, t.tel, t.il, t.ilce, t.makine?.serial, t.aciklama,
+        t.fatura?.ad, t.fatura?.unvan, t.bayi?.ad,
+      ]
       if (alanlar.filter(Boolean).some((x) => String(x).toLocaleLowerCase('tr-TR').includes(q))) {
         return true
       }
@@ -453,7 +466,35 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
      haber alan kişiye "yeniden açıldı" demek kafa karıştırır. */
   const kapali = KAPALI_DURUMLAR.includes(suanki)
   const kilitli = kapali && rol !== 'admin'
-  const sessiz = kapali /* admin geri açıyor: bildirim yok */
+
+  /* Müşteriye bildirim gitmeyecek iki hâl:
+
+       1) Kapanmış talebi yönetici yeniden açıyor (yukarıdaki gerekçe).
+
+       2) DURUM GERİYE ALINIYOR. "Planlandı" iken "Yeni"ye dönmek
+          müşteriye ikinci kez "Talebiniz alındı." bildirimini gönderiyordu —
+          günler sonra, hiçbir şey olmamışken. Geriye alma personelin
+          yanlış tıklamasını düzeltmesidir; müşteri açısından olmuş bir
+          şey yok. Aşama sırası türün kendi akışından okunuyor. */
+  function bildirimsizMi(hedef) {
+    if (kapali) return true
+    const sira = talepDurumlari(talep.tur).map((d) => d.id)
+    const s = sira.indexOf(suanki)
+    const h = sira.indexOf(hedef)
+    return s >= 0 && h >= 0 && h < s
+  }
+
+  /* Akıştaki bir sonraki aşama.
+
+     Çiplerin beşi de aynı görünüyordu; personel her talepte hangisine
+     basacağını yeniden okuyordu. Oysa sıradaki adım bellidir ve
+     neredeyse her zaman seçilen odur. İPTAL ÖNE ÇIKARILMIYOR: o bir
+     kaçış yolu, akışın adımı değil. */
+  const siradakiAsama = (() => {
+    const sira = talepDurumlari(talep.tur).filter((d) => d.id !== 'iptal')
+    const i = sira.findIndex((d) => d.id === suanki)
+    return i >= 0 && i < sira.length - 1 ? sira[i + 1].id : null
+  })()
 
   /* Bazı durumlar tek tıkla değişmiyor: arkalarında müşteriye giden
      bir bilgi var ve o bilgi olmadan bildirim boş kalıyor.
@@ -483,6 +524,7 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
   }
 
   function onayla() {
+    const sessiz = bildirimsizMi(onay)
     talepDurumDegistir(talep, onay, personel, { bildirme: sessiz })
     const ad = durumBilgi(onay).ad
     setOnay(null)
@@ -541,10 +583,16 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
         <div className="suzgec" style={{ marginBottom: kilitli ? 8 : 20 }}>
           {talepDurumlari(talep.tur).map((d) => {
             const engel = parcaIlerlemeEngeli(talep, d.id)
+            const ileri = !kilitli && !engel && d.id === siradakiAsama
             return (
               <button
                 key={d.id}
-                className={'cip' + (suanki === d.id ? ' cip--on' : '') + (engel ? ' cip--kilitli' : '')}
+                className={
+                  'cip' +
+                  (suanki === d.id ? ' cip--on' : '') +
+                  (engel ? ' cip--kilitli' : '') +
+                  (ileri ? ' cip--ileri' : '')
+                }
                 onClick={() => durumaGec(d.id)}
                 disabled={suanki === d.id || kilitli}
                 title={engel ? 'Önce ödemeyi onaylayın' : undefined}
@@ -568,6 +616,8 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
           <S k="Konum" v={talep.ilce ? `${talep.ilce} / ${talep.il}` : talep.il} />
           <S k="Aranma Tercihi" v={talep.ulasim} />
         </Bolum>
+
+        <BayiDurumu talep={talep} />
 
         {/* Müşterinin öteki talepleri.
 
@@ -636,10 +686,6 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
           <S k="Makinenin Durumu" v={makineDurumAdi(talep.durum)} />
           <S k="Belirtiler" v={talep.belirtiler?.join(' · ')} />
           <S k="İstenen Parçalar" v={parcaYazisi(talep)} />
-          {/* Aciliyet artık sorulmuyor — herkes "hemen" diyordu, soru
-              sıralamaya katkı vermiyordu. Eski taleplerde yazılı
-              olduğu için satır duruyor, boşsa görünmüyor. */}
-          <S k="Aciliyet" v={aceleAdi(talep.acele)} />
           <S k="Balyalanacak ürün" v={talep.urunTipi} />
           <S k="Arazi" v={talep.arazi} />
           <S k="Traktör Gücü" v={talep.traktor} />
@@ -715,7 +761,8 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
             <S k="Fatura Tipi" v={talep.fatura.tuzel ? 'Tüzel kişi' : 'Gerçek kişi'} />
             {talep.fatura.tuzel ? (
               <>
-                <S k="Ünvan" v={talep.fatura.unvan} />
+                {/* TDK'ye göre "unvan"; etikette "Ünvan" yazıyordu. */}
+                <S k="Unvan" v={talep.fatura.unvan} />
                 <S k="Vergi numarası" v={talep.fatura.vergiNo} mono />
               </>
             ) : (
@@ -803,12 +850,18 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
             Satış personelinin "bunu kime yollayacağım" sorusunun
             cevabı burada, talebin içinde yazılı — başka bir ekrana
             gidip il seçerek aramaya gerek yok. */}
-        {talep.tur === 'satinalma' && <TalepBayileri talep={talep} />}
+        {/* Bayi ZATEN EŞLEŞMİŞSE aday listesi çıkmıyor. Bu bölüm
+            konumdan üç aday hesaplıyor; talebin düştüğü bayi bunlardan
+            biri olmayabilir (bayi listesi değişmiş ya da talep bayinin
+            kendi kaydından açılmış olabilir). İkisi birden ekranda
+            durunca personel yanlış bayiyi arıyordu. Eşleşme varsa
+            yukarıdaki "Bayi" bölümü zaten doğrusunu yazıyor. */}
+        {talep.tur === 'satinalma' && !talep.bayi && <TalepBayileri talep={talep} />}
 
         {/* Verilen teklif — müşterinin cevabı beklenirken burada duruyor */}
         {talep.teklif && (
           <Bolum ad="Verilen Teklif">
-            <S k="Teklif tutarı" v={talep.teklif.tutar} />
+            <S k="Teklif tutarı" v={paraliYaz(talep.teklif.tutar)} />
             <S k="Geçerlilik" v={talep.teklif.gecerlilik} />
             {talep.teklif.not && (
               <p style={{ whiteSpace: 'pre-wrap', margin: '8px 0 0' }}>{talep.teklif.not}</p>
@@ -857,7 +910,7 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
 
         {talep.cozum && (
           <Bolum ad={talep.tur === 'satinalma' ? 'Teklif sonucu' : 'Yapılan iş'}>
-            {KAPANIS_ALANLARI[talep.tur].map((a) =>
+            {(KAPANIS_ALANLARI[talep.tur] || KAPANIS_ALANLARI.servis).map((a) =>
               a.uzun ? (
                 talep.cozum[a.ad] ? (
                   <p key={a.ad} style={{ whiteSpace: 'pre-wrap', margin: '0 0 8px' }}>
@@ -865,9 +918,38 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
                   </p>
                 ) : null
               ) : (
-                <S key={a.ad} k={a.etiket} v={talep.cozum[a.ad]} />
+                <S
+                  key={a.ad}
+                  k={a.etiket}
+                  v={a.para ? paraliYaz(talep.cozum[a.ad]) : talep.cozum[a.ad]}
+                />
               )
             )}
+
+            {/* KAPANIŞ ÖZETİ — BOŞ KUTUYA KARŞI.
+
+                Bayinin kapattığı yedek parça talebi yalnız `ozet`
+                alanına yazılıyordu; backoffice'in okuduğu alanların
+                hiçbiri dolu değildi. Sonuç: kapanmış talepte "Yapılan
+                iş" başlığı ve altında yalnız imza satırı görünüyordu.
+                Bayinin yazdığı kargo takip numarası dâhil hiçbir şey
+                okunmuyordu.
+
+                Bayi tarafı düzeltildi ve artık ortak alanı yazıyor.
+                Bu satır ESKİ kayıtlar için duruyor: alanların hepsi
+                boşsa özet gösteriliyor, kayıt kaybolmuyor. */}
+            {kapanisBos(talep) && talep.cozum.ozet && (
+              <p style={{ whiteSpace: 'pre-wrap', margin: '0 0 8px' }}>{talep.cozum.ozet}</p>
+            )}
+
+            {/* Kapanışta PAKSAN'a bedelsiz parça faturası çıkarıldıysa
+                numarası burada: talebin karşılığı olan garanti
+                siparişi, Bayi Siparişleri ekranında bu numarayla
+                aranıyor. */}
+            {talep.cozum.garantiNo && (
+              <S k="Garanti talebi" v={talep.cozum.garantiNo} mono />
+            )}
+
             {/* Servis fişi. Kapanışta yüklendiyse burada duruyor;
                 garanti tartışmasında ya da müşteri itirazında
                 gösterilecek belge bu. */}
@@ -937,9 +1019,11 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
           <Onay
             baslik="Durumu değiştir"
             metin={
-              sessiz
+              kapali
                 ? `${talep.no} kapanmış bir talep. Durumu "${durumBilgi(onay).ad}" olarak değişecek; müşteriye bildirim GÖNDERİLMEYECEK.`
-                : `${talep.no} talebinin durumu "${durumBilgi(onay).ad}" olarak değişecek ve müşteriye bildirim gidecek.`
+                : bildirimsizMi(onay)
+                  ? `${talep.no} talebi bir önceki aşamaya, "${durumBilgi(onay).ad}" durumuna alınacak. Geriye alma bir düzeltmedir; müşteriye bildirim GÖNDERİLMEYECEK.`
+                  : `${talep.no} talebinin durumu "${durumBilgi(onay).ad}" olarak değişecek ve müşteriye bildirim gidecek.`
             }
             onVazgec={() => setOnay(null)}
             onOnayla={onayla}
@@ -1147,7 +1231,8 @@ const AKTAR_SUTUNLARI = [
   },
 
   /* ------------------------------------------------------ Servis tarafı */
-  { ad: 'Makinenin durumu', deger: (t) => t.durum || '', gizli: ['satis'] },
+  /* Kimlik değil okunur karşılık: Excel'e "sorunlu" gidiyordu. */
+  { ad: 'Makinenin durumu', deger: (t) => makineDurumAdi(t.durum), gizli: ['satis'] },
   {
     ad: 'Belirtiler',
     deger: (t) => (t.belirtiler || []).join(' · '),
@@ -1193,6 +1278,32 @@ const AKTAR_SUTUNLARI = [
     ad: 'Ödeme onayı',
     deger: (t) => (t.odemeOnay ? tarihYaz(t.odemeOnay.tarih, false) : ''),
     gizli: ['satis'],
+  },
+
+  /* --------------------------------------------------- Kapanış ve bayi
+
+     YAPILAN İŞ EXCEL'E HİÇ GİTMİYORDU. Oysa kapanış kaydı bu projedeki
+     en değerli veri: hangi modelde hangi parça kaçıncı yılda
+     bozuluyor sorusunun cevabı orada birikiyor. Ekranda görünüyor,
+     dosyaya inmiyordu — yani hiçbir yerde toplanamıyordu.
+
+     Bayi sütunu da aynı sebeple burada: talebin kimde olduğu listede
+     yazıyor, dosyada yazmıyordu. */
+  {
+    ad: 'Yapılan iş',
+    deger: (t) =>
+      t.cozum ? t.cozum.yapilanIs || t.cozum.ozet || '' : '',
+    gizli: ['satis'],
+  },
+  { ad: 'Kapanış notu', deger: (t) => t.cozum?.not || '' },
+  {
+    ad: 'Kapanış tarihi',
+    deger: (t) => (t.cozum?.tarih ? tarihYaz(t.cozum.tarih, false) : ''),
+  },
+  { ad: 'Bayi', deger: (t) => t.bayi?.ad || '' },
+  {
+    ad: 'Talep kimde',
+    deger: (t) => (t.bayi ? ((t.sahip || 'paksan') === 'bayi' ? 'Bayide' : 'PAKSAN’da') : 'PAKSAN’da'),
   },
 
   { ad: 'İptal sebebi', deger: (t) => t.iptalBilgi?.neden || '' },
@@ -1296,6 +1407,25 @@ function parcaYazisi(talep) {
     .join(' · ')
 }
 
+/* Tutarın yanına para birimi.
+
+   Aynı panelde "4.200 TL" ile "1.850.000" yan yana duruyordu; ikincisi
+   birim taşımıyordu. Servis ücreti her zaman sayı olmadığı için
+   ("Garanti kapsamında") yalnız rakamlardan oluşan değere ekleniyor.
+   Müşteri uygulamasındaki kuralın aynısı (bkz. screens/RequestDetail). */
+function paraliYaz(deger) {
+  const s = String(deger ?? '').trim()
+  if (!s) return ''
+  return /^[\d.\s]+$/.test(s) ? `${s} ${PARA_BIRIMI}` : s
+}
+
+/* Kapanış alanlarının hepsi boş mu? Boşsa `cozum.ozet` gösteriliyor —
+   gerekçesi kapanış bölümünde yazılı. */
+function kapanisBos(talep) {
+  const alanlar = KAPANIS_ALANLARI[talep.tur] || KAPANIS_ALANLARI.servis
+  return alanlar.every((a) => !String(talep.cozum?.[a.ad] ?? '').trim())
+}
+
 /* Talebin makinesinin üretim yılı; seri numarasından okunuyor. */
 function makineYili(talep) {
   const yil = String(talep.makine?.serial || '').match(/(20[0-9]{2})/)
@@ -1321,6 +1451,12 @@ const KAPANIS_ALANLARI = {
       ipucu: 'Örnek: düğüm ipi mekanizması ayarlandı, pikap dişi değişti' },
     { ad: 'parcalar', etiket: 'Değişen parça', ipucu: 'Pikap dişi, düğüm ipi' },
     { ad: 'ucret', etiket: 'Ücret', para: true, ipucu: 'Garanti kapsamında / 1250' },
+    /* NOT ALANI BACKOFFICE'TE YOKTU. Bayi servis kapanışında not
+       yazabiliyor (bkz. lib/bayiServis.js) ve o not müşterinin
+       uygulamasında görünüyordu; PAKSAN'ın ekranında görünmüyordu.
+       Müşterinin okuduğu bir şeyi üreticinin okuyamaması. */
+    { ad: 'not', etiket: 'Not', uzun: true,
+      ipucu: 'Müşteriyle konuşulanlar, sonraki bakımda dikkat edilecekler' },
   ],
   /* Yedek parça kapanışında TUTAR SORULMUYOR.
 
@@ -1340,7 +1476,12 @@ const KAPANIS_ALANLARI = {
      yazıyor (`oto` alanı: okunur, yazılmaz). Fazladan bir şey
      yapıldıysa altındaki isteğe bağlı nota yazılıyor. */
   parca: [
-    { ad: 'yapilanIs', etiket: 'Yapılan iş', oto: (talep) => parcaYazisi(talep) },
+    /* `uzun` yalnız OKUMA tarafını etkiliyor: talep detayında etiketsiz
+       paragraf oluyor, çünkü bölüm başlığı zaten "Yapılan iş" diyordu
+       ve etiket aynı kelimeyi ikinci kez yazıyordu. Formda `oto` önce
+       geldiği için alan yine okunur kutu olarak çıkıyor. Servis
+       tarafındaki aynı alan zaten böyle. */
+    { ad: 'yapilanIs', etiket: 'Yapılan iş', uzun: true, oto: (talep) => parcaYazisi(talep) },
     { ad: 'not', etiket: 'Not', uzun: true,
       ipucu: 'Fazladan bir şey yapıldıysa yazın — eksik gönderim, değişen parça, müşteriyle konuşulan' },
   ],
@@ -1422,17 +1563,63 @@ function SahiplikEtiketi({ talep }) {
   )
 }
 
-/* Uygulamada makinenin durumu ve aciliyet KİMLİKLE saklanıyor
-   ("durdu", "hemen"). Backoffice’te okunur karşılığı gösterilmeli; yoksa
-   ekranda "durdu" yazıyordu. */
-function makineDurumAdi(id) {
-  if (!id) return ''
-  return MAKINE_DURUMU.find((d) => d.id === id)?.ad || id
-}
+/* ==========================================================================
+   Talebe bakan bayi
 
-function aceleAdi(id) {
-  if (!id) return ''
-  return PARCA_ACELE.find((d) => d.id === id)?.ad || id
+   BU BÖLÜM DETAYDA HİÇ YOKTU. Listede satırın altında "Bayide · X"
+   yazıyordu ama personelin çalıştığı yer sağ paneldi; talebi açınca
+   hangi bayinin ilgilendiği, telefonu, ne zaman düştüğü kayboluyordu.
+   Bayiyi aramak için listeye geri dönmek gerekiyordu.
+
+   DEVİR SEBEBİ DE BURADA. Bayi "bunu ben çözemiyorum" deyip talebi
+   PAKSAN'a bıraktığında sebebini yazıyor (bkz. veri.js →
+   destekTalepEt). O sebep bayi panelinde görünüyordu, backoffice'te
+   hiçbir yerde görünmüyordu — devir süzgeci vardı ama içeriği yoktu.
+   Oysa devrin tek anlamı o cümlede.
+
+   Telefon TIKLANABİLİR DEĞİL; gerekçesi TalepBayileri'nde yazılı.
+   ========================================================================== */
+function BayiDurumu({ talep }) {
+  if (!talep.bayi) return null
+
+  const kayit = bayileriGetir().find((b) => b.id === talep.bayi.id) || null
+  const paksanda = (talep.sahip || 'paksan') === 'paksan'
+
+  return (
+    <Bolum ad="Bayi">
+      {/* Ad ile rozet aynı satırda: bölüm başlığı zaten "Bayi" diyor,
+          altına bir de "Bayi" etiketi koymak aynı kelimeyi iki kez
+          yazmak demekti. Rozet, talebin ŞU AN kimde olduğunu
+          söylüyor. */}
+      <div className="satir" style={{ gap: 10, alignItems: 'center', marginBottom: 8 }}>
+        <b>{talep.bayi.ad}</b>
+        <span
+          className={'rz rz--' + (paksanda ? 'turuncu' : 'mavi')}
+          style={{ marginLeft: 'auto' }}
+        >
+          {paksanda ? "PAKSAN'da" : 'Bayide'}
+        </span>
+      </div>
+
+      {kayit && <S k="Konum" v={[kayit.ilce, kayit.il].filter(Boolean).join(' / ')} />}
+      {kayit && <S k="Telefon" v={kayit.telYazi || kayit.tel} mono />}
+      <S k="Bayiye düştü" v={talep.bayi.tarih ? tarihYaz(talep.bayi.tarih) : ''} />
+
+      {talep.devir && (
+        <div className="uyari" style={{ marginTop: 12, marginBottom: 0, display: 'block' }}>
+          <b>Bayi bu talep için PAKSAN'dan destek istedi.</b>
+          {talep.devir.neden && (
+            <p style={{ whiteSpace: 'pre-wrap', margin: '8px 0 0' }}>{talep.devir.neden}</p>
+          )}
+          <div className="kucuk" style={{ marginTop: 8 }}>
+            {[talep.devir.bayiAd, talep.devir.tarih ? tarihYaz(talep.devir.tarih) : '']
+              .filter(Boolean)
+              .join(' · ')}
+          </div>
+        </div>
+      )}
+    </Bolum>
+  )
 }
 
 /* Onay penceresi — durum değişikliği müşteriye bildirim gönderdiği için

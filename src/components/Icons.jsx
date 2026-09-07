@@ -1,7 +1,11 @@
 import { IKON_YOLLARI } from '../data/ikonYollari'
 /* Adlandırılmış içe aktarma: yalnız kullanılan simgeler derlemeye
    giriyor, kütüphanenin tamamı değil. */
-import { Phone as LucidePhone, Undo2 as LucideUndo } from 'lucide-react'
+import {
+  Phone as LucidePhone,
+  Tag as LucideTag,
+  Undo2 as LucideUndo,
+} from 'lucide-react'
 
 /* ==========================================================================
    Uygulamanın simgeleri
@@ -163,6 +167,8 @@ export const IconPhone = lucide(LucidePhone, 'telefon')
    `IconBack` (sola ok) ödünç kullanılıyordu — "geri git" ile "geri al"
    aynı şey değil. */
 export const IconUndo = lucide(LucideUndo, 'geri-al')
+/* Fiyat etiketi — bayi fiyat listesi ve kampanya. Sette karşılığı yoktu. */
+export const IconTag = lucide(LucideTag, 'etiket')
 export const IconMail = simge('zarf')
 export const IconSend = simge('ucak')
 export const IconMic = simge('mikrofon')

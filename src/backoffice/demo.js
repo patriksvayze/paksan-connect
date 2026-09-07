@@ -21,7 +21,7 @@ import { yeniNo } from '../lib/numara'
 import { talepNo } from '../lib/talep'
 import { normalizeSerial } from '../lib/serial'
 import { ANAHTAR, islemYaz, personelGetir } from './veri'
-import { MAKINE_DURUMU, PARCA_ACELE, ULASIM_ZAMANI } from '../data/talepAlanlari'
+import { MAKINE_DURUMU, ULASIM_ZAMANI } from '../data/talepAlanlari'
 import { PRODUCTS } from '../data/products'
 import { PARCA_FIYAT } from '../data/parcaFiyat'
 import { BAYILER } from '../data/bayiler'
@@ -541,7 +541,6 @@ export async function demoYukle() {
         belirtiler: tur === 'servis' ? secBirkac(SERVIS_BELIRTI, 1, 3) : [],
         parcalar,
         parcaAdet: tur === 'parca' ? parcaAdet : null,
-        acele: tur === 'parca' ? sec(PARCA_ACELE).id : null,
         urunTipi: tur === 'satinalma' ? sec(['Saman', 'Kuru ot', 'Silaj']) : '',
         arazi: tur === 'satinalma' ? sec(['Düz', 'Hafif eğimli', 'Engebeli']) : '',
         traktor: tur === 'satinalma' ? sec(['50-75 HP', '75-100 HP', '100 HP üzeri']) : '',

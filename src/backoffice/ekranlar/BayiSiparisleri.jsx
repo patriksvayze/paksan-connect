@@ -1,33 +1,42 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   ACIK_DURUMLAR,
   SIPARIS_DURUM,
   siparisDurumu,
   siparisleriGetir,
 } from '../../lib/bayiSiparis'
+import { ekAdresi } from '../../lib/ekler'
+import { formatSerial } from '../../lib/serial'
 import { tarihYaz } from './ortak'
 import { islemYaz, izinli } from '../veri'
 
 /* ==========================================================================
    Bayi Siparişleri — PAKSAN tarafı
 
-   Bayi stoğunu kendi artıramıyor; artışın tek yolu bu ekran. Bayi
+   Bayi stokunu kendi artıramıyor; artışın tek yolu bu ekran. Bayi
    sipariş veriyor, PAKSAN burada ilerletiyor:
 
      PAKSAN'a iletildi → Onaylandı → Hazırlanıyor → Gönderildi
 
-   "Gönderildi" işaretlendiği anda bayinin stoğu artıyor. Onay ve
+   "Gönderildi" işaretlendiği anda bayinin stoku artıyor. Onay ve
    hazırlık adımlarında artmıyor — parça henüz bayide değil. Kargo
    bilgisi burada giriliyor, bayi panelinde görünüyor.
 
    İPTAL GERİ ALINMIYOR. Kapanmış sipariş (gönderildi/iptal) bir daha
    değişmiyor; yanlışlık olursa yeni sipariş açılıyor. Gönderilmiş
-   siparişi geri almak stoğu da geri almak demek, o da bayinin elindeki
+   siparişi geri almak stoku da geri almak demek, o da bayinin elindeki
    gerçek malı yok saymak olurdu.
    ========================================================================== */
 
+/* GARANTİ TALEBİ AYRI SÜZGEÇTE.
+
+   Garanti talebi de bir sipariş — akış birebir aynı ilerliyor. Ama
+   PAKSAN'ın orada verdiği karar farklı: parayla satılan bir siparişi
+   onaylamakla, bedelsiz parça göndermeyi kabul etmek aynı iş değil.
+   İkisi tek listede karışınca garanti talepleri gözden kaçıyordu. */
 const SUZGECLER = [
   { id: 'acik', ad: 'Bekleyen' },
+  { id: 'garanti', ad: 'Garanti Talepleri' },
   { id: 'kapali', ad: 'Kapanan' },
   { id: 'hepsi', ad: 'Hepsi' },
 ]
@@ -40,6 +49,7 @@ export function BayiSiparisleri({ rol, personel }) {
   const liste = useMemo(() => {
     const hepsi = siparisleriGetir()
     if (suzgec === 'acik') return hepsi.filter((s) => ACIK_DURUMLAR.includes(s.durum))
+    if (suzgec === 'garanti') return hepsi.filter((s) => s.tur === 'garanti')
     if (suzgec === 'kapali') return hepsi.filter((s) => !ACIK_DURUMLAR.includes(s.durum))
     return hepsi
   }, [suzgec, tazele])
@@ -88,12 +98,81 @@ export function BayiSiparisleri({ rol, personel }) {
   )
 }
 
+/* ==========================================================================
+   Garanti talebinin dayanağı
+
+   Bayi bu talebi bir servis işinin sonunda açıyor; talep boşluktan
+   doğmuyor. Dayanağı olmayan bir garanti talebi, PAKSAN'ın neyin
+   karşılığında parça gönderdiğini bilmemesi demek — o yüzden burada
+   hangi işten doğduğu, hangi makine olduğu ve parçanın nesi olduğu
+   yazıyor.
+
+   PARÇANIN NESİ VAR — BAYİNİN VERDİĞİ HÜKÜM DEĞİL
+
+   Bayiye "üretim hatası mı, kullanım hatası mı" diye sorulmuyor;
+   sorulsaydı her talepte "üretim hatası" yazardı, çünkü talebinin
+   kabulü ona bağlı. Bayi yalnız GÖZLEDİĞİNİ yazıyor: kırıldı,
+   aşındı, kaçırıyor. Hükmü PAKSAN veriyor — eski parça eline
+   geçtiğinde.
+   ========================================================================== */
+
+function GarantiBilgisi({ garanti }) {
+  const [adres, setAdres] = useState('')
+
+  useEffect(() => {
+    if (!garanti.foto?.id) return
+    let iptal = false
+    ekAdresi(garanti.foto.id).then((a) => {
+      if (!iptal) setAdres(a || '')
+    })
+    return () => {
+      iptal = true
+    }
+  }, [garanti.foto?.id])
+
+  return (
+    <div className="not not--turuncu" style={{ marginBottom: 14 }}>
+      <div>
+        <strong>Garanti Talebi</strong>
+        <p className="kucuk">
+          Servis işi <span className="mono">{garanti.talepNo}</span>
+          {garanti.seri && (
+            <>
+              {' · '}
+              Makine <span className="mono">{formatSerial(garanti.seri)}</span>
+            </>
+          )}
+        </p>
+        <p className="kucuk">
+          Parçanın durumu: <b>{garanti.parcaDurumu || '—'}</b>
+          {garanti.sureDk ? ` · Süre: ${garanti.sureDk} dakika` : ''}
+          {garanti.kim ? ` · İşi yapan: ${garanti.kim}` : ''}
+        </p>
+        <p className="kucuk">
+          {garanti.iade
+            ? 'Bayi eski parçayı geri gönderecek.'
+            : 'Eski parça geri gönderilmeyecek.'}
+        </p>
+        {adres && (
+          <a href={adres} target="_blank" rel="noreferrer">
+            <img
+              src={adres}
+              alt="Eski parça"
+              style={{ maxWidth: 220, borderRadius: 8, marginTop: 8 }}
+            />
+          </a>
+        )}
+      </div>
+    </div>
+  )
+}
+
 /* Sıradaki adım tek düğme: personel "şimdi ne olacak" diye durum
    listesinden seçmiyor, akış zaten tek yönlü. */
 const SONRAKI = {
   yeni: { durum: 'onaylandi', ad: 'Onayla' },
-  onaylandi: { durum: 'hazirlaniyor', ad: 'Hazırlığa al' },
-  hazirlaniyor: { durum: 'gonderildi', ad: 'Gönderildi olarak işaretle' },
+  onaylandi: { durum: 'hazirlaniyor', ad: 'Hazırlığa Al' },
+  hazirlaniyor: { durum: 'gonderildi', ad: 'Gönderildi Olarak İşaretle' },
 }
 
 function SiparisSatiri({ siparis, acik, onAc, yetkili, personel, onDegisti }) {
@@ -104,8 +183,8 @@ function SiparisSatiri({ siparis, acik, onAc, yetkili, personel, onDegisti }) {
   const sonraki = SONRAKI[siparis.durum]
   const adet = siparis.kalemler.reduce((t, k) => t + Number(k.adet), 0)
 
-  /* Sipariş hareketleri İşlem Kaydı'na da yazılıyor: stoğu değiştiren
-     tek adım gönderim ve "bu bayinin stoğu neden arttı" sorusunun
+  /* Sipariş hareketleri İşlem Kaydı'na da yazılıyor: stoku değiştiren
+     tek adım gönderim ve "bu bayinin stoku neden arttı" sorusunun
      cevabı denetlenebilir bir yerde durmalı. */
   function yaz(ozet) {
     islemYaz({ tur: 'siparis', ozet: `${siparis.no} · ${siparis.bayiAd} · ${ozet}`, personel })
@@ -138,6 +217,7 @@ function SiparisSatiri({ siparis, acik, onAc, yetkili, personel, onDegisti }) {
         aria-expanded={acik}
       >
         <span className={'rz rz--' + d.ton}>{d.ad}</span>
+        {siparis.tur === 'garanti' && <span className="rz rz--turuncu">Garanti</span>}
         <strong>{siparis.bayiAd}</strong>
         <span className="mono kucuk sonuk">{siparis.no}</span>
         <span className="kucuk sonuk" style={{ marginLeft: 'auto' }}>
@@ -147,6 +227,8 @@ function SiparisSatiri({ siparis, acik, onAc, yetkili, personel, onDegisti }) {
 
       {acik && (
         <div className="kart__ic">
+          {siparis.garanti && <GarantiBilgisi garanti={siparis.garanti} />}
+
           <table>
             <thead>
               <tr>
@@ -168,7 +250,7 @@ function SiparisSatiri({ siparis, acik, onAc, yetkili, personel, onDegisti }) {
 
           {siparis.not && (
             <p style={{ marginTop: 12 }}>
-              <span className="kucuk sonuk">Bayinin notu</span>
+              <span className="kucuk sonuk">Bayinin Notu</span>
               <br />
               {siparis.not}
             </p>
@@ -195,7 +277,7 @@ function SiparisSatiri({ siparis, acik, onAc, yetkili, personel, onDegisti }) {
               {siparis.durum === 'hazirlaniyor' && (
                 <div className="esit" style={{ marginTop: 14 }}>
                   <label className="alan">
-                    <span className="alan__ad">Kargo firması</span>
+                    <span className="alan__ad">Kargo Firması</span>
                     <input
                       className="gir"
                       value={firma}
@@ -204,7 +286,7 @@ function SiparisSatiri({ siparis, acik, onAc, yetkili, personel, onDegisti }) {
                     />
                   </label>
                   <label className="alan">
-                    <span className="alan__ad">Takip numarası</span>
+                    <span className="alan__ad">Takip Numarası</span>
                     <input
                       className="gir mono"
                       value={takip}
@@ -221,13 +303,13 @@ function SiparisSatiri({ siparis, acik, onAc, yetkili, personel, onDegisti }) {
                   {sonraki.ad}
                 </button>
                 <button className="dg" onClick={iptal}>
-                  Siparişi iptal et
+                  Siparişi İptal Et
                 </button>
               </div>
 
               {siparis.durum === 'hazirlaniyor' && (
                 <p className="kucuk sonuk" style={{ marginTop: 8 }}>
-                  Gönderildi işaretlendiğinde bu kalemler bayinin stoğuna
+                  Gönderildi olarak işaretlenince ürünler bayinin stokuna
                   eklenecek.
                 </p>
               )}

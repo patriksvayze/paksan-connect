@@ -9,6 +9,8 @@ import { eklemeOlustur, eklemeleri, eklemeYapilabilir } from '../lib/talepEkleme
 import { getProduct, urunDilde } from '../data/products'
 import { alanEtiketi } from '../data/talepAlanlari'
 import { formatSerial } from '../lib/serial'
+import { bayileriGetir } from '../data/bayiler'
+import { PARA_BIRIMI } from '../data/parcaFiyat'
 import { talepTuru } from '../lib/talep'
 import { ekAdresi } from '../lib/ekler'
 import { SIRKET } from '../config'
@@ -37,6 +39,19 @@ import {
    kişi zaten ne sorduğunu biliyor; bilmediği şey cevabı.
    ========================================================================== */
 
+/* TUTARIN YANINDA PARA BİRİMİ.
+
+   Teklif tutarı ve satış fiyatı backoffice'te binlik ayraçlı yazı
+   olarak saklanıyor ("2.600.000") ve müşterinin ekranında birimsiz
+   çıkıyordu: "Satış fiyatı 2.600.000". Sayı tek başına para tutarını
+   belirtmiyor. Yalnız sayıdan oluşan değerlere birim ekleniyor;
+   "Garanti kapsamında" gibi yazılara dokunulmuyor. */
+function paraliYaz(deger) {
+  const s = String(deger ?? '').trim()
+  if (!s) return ''
+  return /^[\d.\s]+$/.test(s) ? `${s} ${PARA_BIRIMI}` : s
+}
+
 export default function RequestDetail() {
   const { id } = useParams()
   const nav = useNavigate()
@@ -52,6 +67,14 @@ export default function RequestDetail() {
 
   const r = requests.find((x) => x.id === id)
   const yerel = dil === 'tr' ? 'tr-TR' : 'en-GB'
+
+  /* Talebi yürüten bayi. Talepte yalnız kimliği ve adı yazıyor;
+     telefonu bayi listesinden okunuyor — o liste zaten uygulamanın
+     içinde (bkz. Dealers ekranı). */
+  const bayi =
+    r?.sahip === 'bayi' && r?.bayi?.id
+      ? bayileriGetir().find((b) => b.id === r.bayi.id) || null
+      : null
 
   const sonrakiler = eklemeleri(r)
 
@@ -108,7 +131,11 @@ export default function RequestDetail() {
 
   return (
     <div className="app">
-      <TopBar title={tur.ad} sub={r.no} back="auto" />
+      {/* Başlık SÖZLÜKTEN geliyor. `talepTuru(...).ad` Türkçe sabit;
+          İngilizce kullanan müşteri ekranın tepesinde "Servis talebi"
+          görüyordu. Renk (`ton`) dilden bağımsız olduğu için o hâlâ
+          oradan alınıyor. */}
+      <TopBar title={t(`talep.${r.tur}.adi`)} sub={r.no} back="auto" />
 
       <div className="screen wrap fade-in" style={{ paddingTop: 16 }}>
         {/* ------------------------------------------------ Şu anki hâli */}
@@ -147,7 +174,7 @@ export default function RequestDetail() {
 
         {r.teklif && (
           <Kutu ad={t('talepDetay.teklifBaslik')} ton="mor">
-            <Satir k={t('talepDetay.teklifTutar')} v={r.teklif.tutar} vurgu />
+            <Satir k={t('talepDetay.teklifTutar')} v={paraliYaz(r.teklif.tutar)} vurgu />
             <Satir k={t('talepDetay.gecerlilik')} v={r.teklif.gecerlilik} />
             {r.teklif.not && <p className="detay-metin">{r.teklif.not}</p>}
             <Imza personel={r.teklif.personel} tarih={tarihYaz(r.teklif.tarih)} />
@@ -171,8 +198,12 @@ export default function RequestDetail() {
             {r.cozum.yapilanIs && <p className="detay-metin">{r.cozum.yapilanIs}</p>}
             <Satir k={t('talepDetay.degisenParca')} v={r.cozum.parcalar} />
             <Satir k={t('talepDetay.ucret')} v={r.cozum.ucret} vurgu />
-            <Satir k={t('talepDetay.sonuc')} v={r.cozum.sonuc} />
-            <Satir k={t('talepDetay.satisFiyati')} v={r.cozum.satisFiyati} vurgu />
+            {/* Seçenekler kayda HER ZAMAN Türkçe yazılıyor (bkz.
+                data/talepAlanlari.js); ekranda kullanıcının dilinde
+                görünmeleri gerekiyor. Belirtiler ve parçalar zaten
+                çevriliyordu, bu üç alan atlanmıştı. */}
+            <Satir k={t('talepDetay.sonuc')} v={alanEtiketi(r.cozum.sonuc, dil)} />
+            <Satir k={t('talepDetay.satisFiyati')} v={paraliYaz(r.cozum.satisFiyati)} vurgu />
             {r.cozum.not && <p className="detay-metin">{r.cozum.not}</p>}
             <Imza personel={r.cozum.personel} tarih={tarihYaz(r.cozum.tarih)} />
           </Kutu>
@@ -250,7 +281,7 @@ export default function RequestDetail() {
             v={(r.belirtiler || []).map((x) => alanEtiketi(x, dil)).join(' · ')}
           />
           <Satir k={t('talepDetay.parcalar')} v={parcaYazisi(r, dil)} />
-          <Satir k={t('talepDetay.aranmaTercihi')} v={r.ulasim} />
+          <Satir k={t('talepDetay.aranmaTercihi')} v={alanEtiketi(r.ulasim, dil)} />
           {r.aciklama && <p className="detay-metin">{r.aciklama}</p>}
           {r.ses?.veri && (
             <div className="row small muted" style={{ gap: 5, marginTop: 8 }}>
@@ -337,7 +368,30 @@ export default function RequestDetail() {
           </>
         )}
 
+        {/* ARAMA DÜĞMESİ ÖNCE HEP PAKSAN'I ARIYORDU.
+
+            Oysa talep bayiye düştüyse işi yapan bayi: randevuyu o
+            veriyor, makineye o gidiyor, kapanışı o yazıyor. Müşteriye
+            "PAKSAN Ara" demek, işi yapanı atlayıp merkeze yönlendirmek
+            demekti. Şimdi talep bayideyken önce bayi çıkıyor; PAKSAN
+            üst basamak olarak altında duruyor.
+
+            Talep PAKSAN'a devredilmişse (`sahip: 'paksan'`) bayi
+            düğmesi çıkmıyor — o işi artık bayi yürütmüyor. */}
         <div className="stack" style={{ marginTop: 22 }}>
+          {bayi?.telYazi && (
+            <a
+              className="btn btn--soft"
+              {...araProps(bayi.tel, bayi.telYazi, showToast)}
+            >
+              <IconPhone size={20} /> {t('talepDetay.bayiyiAra')}
+            </a>
+          )}
+          {bayi?.ad && (
+            <div className="small muted" style={{ textAlign: 'center' }}>
+              {bayi.ad}
+            </div>
+          )}
           <a className="btn btn--soft" {...araProps(SIRKET.telefonHam, SIRKET.telefon, showToast)}>
             <IconPhone size={20} /> {t('talepDetay.paksaniAra')}
           </a>
