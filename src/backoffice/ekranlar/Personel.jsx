@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import {
   izinli, kullaniciAdiOner, personelEkle, personelGetir, personelGuncelle,
-  personelSil, ROLLER, rolBilgi, BACKOFFICE_SIFRE_HANE,
+  personelSil, rolleriGetir, rolBilgi, BACKOFFICE_SIFRE_HANE,
 } from '../veri'
 import { useVeri } from '../kanca'
 import {
@@ -298,7 +298,7 @@ function Form({ kayit, onKapat, onKaydet }) {
           <div className="alan">
             <span className="alan__ad">Rol</span>
             <div className="suzgec">
-              {ROLLER.map((r) => (
+              {rolleriGetir().map((r) => (
                 <button
                   key={r.id}
                   type="button"
@@ -309,7 +309,12 @@ function Form({ kayit, onKapat, onKaydet }) {
                 </button>
               ))}
             </div>
-            <p className="kucuk sonuk" style={{ margin: '6px 0 0' }}>{ROL_ACIKLAMA[d.rol]}</p>
+            {/* Açıklama artık rolün kendi kaydından geliyor; ayrı bir
+                ROL_ACIKLAMA tablosu tutulmuyordu, yeni açılan rolde boş
+                kalıyordu (bkz. data/yetkiler.js). */}
+            <p className="kucuk sonuk" style={{ margin: '6px 0 0' }}>
+              {rolBilgi(d.rol).aciklama}
+            </p>
           </div>
 
           <div className="esit">
@@ -360,14 +365,6 @@ function Form({ kayit, onKapat, onKaydet }) {
       </div>
     </div>
   )
-}
-
-const ROL_ACIKLAMA = {
-  admin: 'Her şeyi görür; personel açar, müşteri bilgisi düzeltir, numara değişikliğini onaylar.',
-  yonetici: 'Tüm talepleri ve kayıtları görür; personel listesini görür ancak değiştiremez.',
-  servis: 'Yalnız servis taleplerini görür.',
-  parca: 'Yalnız yedek parça taleplerini görür.',
-  satis: 'Yalnız fiyat teklifi taleplerini görür.',
 }
 
 /* ----------------------------------------------------------- Excel aktarımı

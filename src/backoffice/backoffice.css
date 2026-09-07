@@ -1339,6 +1339,83 @@ tbody tr.secili .rz {
   background: var(--mavi);
 }
 
+/* ================================================== Roller ve yetkiler
+
+   Soldaki rol listesi ve sağdaki onay kutusu öbekleri. Yeni bir düzen
+   dili kurulmadı: kart, çip ve alan sınıfları olduğu gibi kullanılıyor,
+   burada yalnız bu iki liste var. */
+
+.rol-satir {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 12px;
+  border-radius: var(--r);
+  border: 1px solid transparent;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rol-satir:hover {
+  background: var(--yuzey-2);
+}
+
+.rol-satir--secili {
+  background: var(--mavi-z);
+  border-color: var(--mavi-rz);
+}
+
+.rol-satir__ad {
+  font-weight: 700;
+}
+
+/* Onay kutuları tek sütunda alt alta: yan yana dizilince hangi yazının
+   hangi kutuya ait olduğu dar ekranda karışıyordu. */
+.yetki-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.yetki {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 4px;
+  border-radius: var(--r-2, 8px);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.yetki:hover {
+  background: var(--yuzey-2);
+}
+
+.yetki input {
+  width: 17px;
+  height: 17px;
+  flex: none;
+  accent-color: var(--dolgu);
+  cursor: pointer;
+}
+
+/* Kilitli rolde (admin) kutular soluk ama okunabilir kalıyor: neyin açık
+   olduğu görülebilmeli. */
+.yetki input:disabled {
+  cursor: default;
+}
+
+.yetki:has(input:disabled) {
+  cursor: default;
+  color: var(--murekkep-2);
+}
+
+.yetki:has(input:disabled):hover {
+  background: none;
+}
+
 /* ------------------------------------------------------------- Uyarı */
 
 .uyari {

@@ -20,7 +20,7 @@ import { sifreHazirla } from '../lib/hesap'
 import { yeniNo } from '../lib/numara'
 import { talepNo } from '../lib/talep'
 import { normalizeSerial } from '../lib/serial'
-import { ANAHTAR, islemYaz, personelGetir } from './veri'
+import { ANAHTAR, islemYaz, personelGetir, rolleriGetir } from './veri'
 import { MAKINE_DURUMU, ULASIM_ZAMANI } from '../data/talepAlanlari'
 import { PRODUCTS } from '../data/products'
 import { PARCA_FIYAT } from '../data/parcaFiyat'
@@ -130,7 +130,20 @@ const GORUSLER = [
   'Bayi listesinde bize en yakın nokta yanlış görünüyor.',
 ]
 
-const ROLLER_DEMO = ['yonetici', 'servis', 'servis', 'parca', 'parca', 'satis']
+/* Demo personelinin rolleri YÜRÜRLÜKTEKİ listeden alınıyor.
+
+   Önceden sabit bir kimlik dizisiydi. Roller
+   backoffice'ten silinebildiği için o kimlikler var olmayan rolleri
+   gösterebiliyordu; demo yüklenince personel tanımsız bir rolde
+   kalabiliyordu.
+
+   Admin hariç: demo personeli admin yetkisiyle oluşturulmamalı. Admin
+   rolü yoksa (silinemiyor ama) listenin tamamı kullanılıyor. */
+function demoRolleri() {
+  const liste = rolleriGetir()
+  const adminsiz = liste.filter((r) => !r.sistem)
+  return (adminsiz.length ? adminsiz : liste).map((r) => r.id)
+}
 
 /* Destek ekranında seçilen konular ve sorular. Gerçek bilgi tabanındaki
    başlıklarla aynı dilde yazıldı; backoffice'te "en çok sorulan" listesi
@@ -269,6 +282,7 @@ export async function demoYukle() {
   /* ---- Personel: admin dışında rastgele roller */
   const mevcut = personelGetir()
   const yeniPersonel = []
+  const demoRol = demoRolleri()
 
   for (let i = 0; i < 10; i++) {
     const ad = `${sec(ADLAR)} ${sec(SOYADLAR)}`
@@ -290,7 +304,7 @@ export async function demoYukle() {
       no: yeniNo('personel'),
       ad,
       kullanici: benzer ? `${kullanici}${benzer + 1}` : kullanici,
-      rol: ROLLER_DEMO[i % ROLLER_DEMO.length],
+      rol: demoRol[i % demoRol.length],
       eposta: `${kullanici}@paksanmakina.com.tr`,
       tel: '0' + telUret(),
       aktif: i !== 9, /* biri kapalı — kapalı hesap nasıl görünüyor */

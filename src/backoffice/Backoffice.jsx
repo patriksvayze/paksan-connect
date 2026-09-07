@@ -17,6 +17,7 @@ import {
   IconChat, IconBell, IconPhone, IconPersonel, IconKayit, IconMachine,
   IconCart,
   IconTag,
+  IconShield,
 } from '../components/Icons'
 
 import { Ozet } from './ekranlar/Ozet'
@@ -27,6 +28,7 @@ import { Talepler } from './ekranlar/Talepler'
 import { NumaraTalepleri } from './ekranlar/NumaraTalepleri'
 import { Musteriler } from './ekranlar/Musteriler'
 import { Personel } from './ekranlar/Personel'
+import { Roller } from './ekranlar/Roller'
 import { GeriBildirimler } from './ekranlar/GeriBildirimler'
 import { Bayiler } from './ekranlar/Bayiler'
 import { Makineler } from './ekranlar/Makineler'
@@ -92,6 +94,9 @@ const MENU = [
     sayac: 'numara', Ikon: IconPhone,
   },
   { id: 'personel', ad: 'Personel', izin: 'personel', Ikon: IconPersonel },
+  /* Rol ve yetki düzenleme. `rolYonetimi` yetkisi varsayılan olarak yalnız
+     admin rolünde; başka bir rolde bu satır menüde hiç görünmüyor. */
+  { id: 'roller', ad: 'Roller ve Yetkiler', izin: 'rolYonetimi', Ikon: IconShield },
   { id: 'kayit', ad: 'İşlem Kaydı', izin: 'kayit', Ikon: IconKayit },
 ]
 
@@ -228,6 +233,7 @@ export function Backoffice() {
         {acik === 'geribildirim' && <GeriBildirimler {...ortak} />}
         {acik === 'numara' && <NumaraTalepleri {...ortak} />}
         {acik === 'personel' && <Personel {...ortak} />}
+        {acik === 'roller' && <Roller {...ortak} />}
         {acik === 'kayit' && <IslemKaydi {...ortak} />}
       </main>
 

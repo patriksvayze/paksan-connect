@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   DURUMLAR, durumBilgi, gecikmisMi, gonderimGecikti, gonderimGecikmeSaati,
-  KAPALI_DURUMLAR, musterininDigerTalepleri,
+  izinli, KAPALI_DURUMLAR, musterininDigerTalepleri,
   odemeOnayla, parcaIlerlemeEngeli, rolBilgi, rolunTalepleri, TALEP_ADI,
   talepDurumDegistir,
   talepDurumlari, talepIptal, talepKapat, talepleriGetir,
@@ -464,8 +464,11 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
      bildirimi gitti. Yanlışlıkla kapatıldıysa yalnız admin geri
      açabiliyor ve o açılış müşteriye bildirilmiyor — kapandı diye
      haber alan kişiye "yeniden açıldı" demek kafa karıştırır. */
+  /* Kapanmış talebi geri açma yetkisi ROL KİMLİĞİNE bağlıydı
+     (`rol !== 'admin'`). Roller ekrandan açılabildiği için yetkiye
+     taşındı; hangi rolün açabileceği Roller ekranından işaretleniyor. */
   const kapali = KAPALI_DURUMLAR.includes(suanki)
-  const kilitli = kapali && rol !== 'admin'
+  const kilitli = kapali && !izinli(rol, 'talepGeriAc')
 
   /* Müşteriye bildirim gitmeyecek iki hâl:
 
@@ -1179,19 +1182,22 @@ function S({ k, v, mono }) {
    numarası "İl" sütununda görünür. Artık her sütun kendi adını ve
    kendi değerini birlikte taşıyor.
 
-   ROLE GÖRE SÜZME
+   TALEP TÜRÜNE GÖRE SÜZME
 
    Bir rolün hiç bakmadığı sütunlar dosyaya girmiyor. Bunlar zaten o
    rolün gördüğü taleplerde boş kalan sütunlar; satış personelinin
-   Excel'inde "Kargo takip no" diye boş bir sütun taşımanın anlamı yok.
+   Excel'inde "Ödeme onayı" diye boş bir sütun taşımanın anlamı yok.
 
-     satış   → makine durumu, belirtiler, istenen parçalar ve parça
-               tarafındaki fatura / ödeme / kargo sütunları
-     parça   → teklif ve satış tarafındaki sütunlar
-     servis  → istenen parçalar, teklif ve satış tarafındaki sütunlar
+   SÜZGEÇ ROL KİMLİĞİNE DEĞİL, TALEP TÜRÜNE BAKIYOR. Önceden her sütun
+   hangi rollerden gizleneceğini kimlikleriyle listeliyordu. Roller
+   ekrandan oluşturulabildiği için o liste eksik kalıyordu: yeni
+   oluşturulan bir rol bütün sütunları alıyordu ve kimse fark
+   etmiyordu.
 
-   Admin ve yönetici bütün sütunları görüyor; ikisi de türler arası
-   karşılaştırma yapıyor.
+   Artık sütun hangi talep türleri için ANLAMLI olduğunu belirtiyor;
+   rolün gördüğü tür bununla karşılaştırılıyor. Bütün türleri gören rol —
+   admin, yönetici ya da sonradan açılan bir rol — bütün sütunları
+   alıyor.
 
    "AÇIKLAMA" HİÇBİR ROLDEN GİZLENMİYOR. Müşterinin kendi yazdığı metin
    her türde dolu ve her role lazım: satış talebinde "ne balyalayacağım,
@@ -1218,15 +1224,15 @@ const AKTAR_SUTUNLARI = [
 
   /* ------------------------------------------------------ Servis tarafı */
   /* Kimlik değil okunur karşılık: Excel'e "sorunlu" gidiyordu. */
-  { ad: 'Makinenin durumu', deger: (t) => makineDurumAdi(t.durum), gizli: ['satis'] },
+  { ad: 'Makinenin durumu', deger: (t) => makineDurumAdi(t.durum), turler: ['servis', 'parca'] },
   {
     ad: 'Belirtiler',
     deger: (t) => (t.belirtiler || []).join(' · '),
-    gizli: ['satis'],
+    turler: ['servis', 'parca'],
   },
 
   /* ------------------------------------------------ Yedek parça tarafı */
-  { ad: 'İstenen parçalar', deger: (t) => parcaYazisi(t), gizli: ['satis', 'servis'] },
+  { ad: 'İstenen parçalar', deger: (t) => parcaYazisi(t), turler: ['parca'] },
 
   { ad: 'Açıklama', deger: (t) => t.aciklama || '' },
   { ad: 'Aranma tercihi', deger: (t) => t.ulasim || '' },
@@ -1236,34 +1242,34 @@ const AKTAR_SUTUNLARI = [
   },
 
   /* ------------------------------------------- Fiyat teklifi ve satış */
-  { ad: 'Teklif tutarı', deger: (t) => t.teklif?.tutar || '', gizli: ['parca', 'servis'] },
+  { ad: 'Teklif tutarı', deger: (t) => t.teklif?.tutar || '', turler: ['satinalma'] },
   {
     ad: 'Teklif tarihi',
     deger: (t) => (t.teklif?.tarih ? tarihYaz(t.teklif.tarih, false) : ''),
-    gizli: ['parca', 'servis'],
+    turler: ['satinalma'],
   },
-  { ad: 'Sonuç', deger: (t) => t.cozum?.sonuc || '', gizli: ['parca', 'servis'] },
+  { ad: 'Sonuç', deger: (t) => t.cozum?.sonuc || '', turler: ['satinalma'] },
   {
     ad: 'Satış fiyatı',
     deger: (t) => t.cozum?.satisFiyati || '',
-    gizli: ['parca', 'servis'],
+    turler: ['satinalma'],
   },
 
   /* ------------------------------- Ödeme ve gönderim (yedek parçada) */
   {
     ad: 'Fatura tipi',
     deger: (t) => (t.fatura ? (t.fatura.tuzel ? 'Tüzel' : 'Gerçek') : ''),
-    gizli: ['satis'],
+    turler: ['servis', 'parca'],
   },
   {
     ad: 'Fatura adı',
     deger: (t) => (t.fatura ? (t.fatura.tuzel ? t.fatura.unvan : t.fatura.ad) || '' : ''),
-    gizli: ['satis'],
+    turler: ['servis', 'parca'],
   },
   {
     ad: 'Ödeme onayı',
     deger: (t) => (t.odemeOnay ? tarihYaz(t.odemeOnay.tarih, false) : ''),
-    gizli: ['satis'],
+    turler: ['servis', 'parca'],
   },
 
   /* --------------------------------------------------- Kapanış ve bayi
@@ -1279,7 +1285,7 @@ const AKTAR_SUTUNLARI = [
     ad: 'Yapılan iş',
     deger: (t) =>
       t.cozum ? t.cozum.yapilanIs || t.cozum.ozet || '' : '',
-    gizli: ['satis'],
+    turler: ['servis', 'parca'],
   },
   { ad: 'Kapanış notu', deger: (t) => t.cozum?.not || '' },
   {
@@ -1295,9 +1301,12 @@ const AKTAR_SUTUNLARI = [
   { ad: 'İptal sebebi', deger: (t) => t.iptalBilgi?.neden || '' },
 ]
 
-/** Rolün göreceği sütunlar. */
+/** Rolün göreceği sütunlar; rolün gördüğü talep türüne göre süzülüyor. */
 export function aktarSutunlari(rol) {
-  return AKTAR_SUTUNLARI.filter((x) => !(x.gizli || []).includes(rol))
+  const tur = rolBilgi(rol).talepTuru
+  /* Bütün türleri gören rolde süzme yok. */
+  if (!tur) return AKTAR_SUTUNLARI
+  return AKTAR_SUTUNLARI.filter((x) => !x.turler || x.turler.includes(tur))
 }
 
 /* Kapanışta yüklenen servis fişi.

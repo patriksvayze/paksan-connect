@@ -37,6 +37,9 @@ const TURLER = [
   { deger: 'geribildirim', ad: 'Geri bildirim' },
   { deger: 'duyuru', ad: 'Duyuru' },
   { deger: 'personel', ad: 'Personel' },
+  /* Rol ve yetki değişikliği güvenlik olayı: kimin neyi görebildiğini
+     değiştiriyor, kaydı tutulmadan yapılmıyor. */
+  { deger: 'rol', ad: 'Rol ve yetki' },
   { deger: 'sifre', ad: 'Şifre' },
   { deger: 'bayi', ad: 'Bayi listesi' },
   /* Bayi tarafından gelen dört işlem. Sipariş, stok ve fiyat teklifi
@@ -55,7 +58,7 @@ const TURLER = [
 const TUR_ADI = Object.fromEntries(TURLER.map((t) => [t.deger, t.ad]))
 
 /* Müşteri verisine veya hesaplara dokunan işlemler listede ayırt edilsin. */
-const ONEMLI = ['numara', 'musteri', 'personel']
+const ONEMLI = ['numara', 'musteri', 'personel', 'rol']
 
 /* Kaydı kimin yazdığı.
 

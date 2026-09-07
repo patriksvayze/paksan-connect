@@ -12,8 +12,11 @@ import { yeniNo } from '../lib/numara'
 import { SIRKET } from '../config'
 import { urun } from '../lib/urun'
 import { bayileriGetir } from '../data/bayiler.js'
-import { icerikTazele } from '../lib/icerikDeposu.js'
+import { icerikListe, icerikTazele } from '../lib/icerikDeposu.js'
 import { altBilgi } from '../data/duyuruTurleri.js'
+import {
+  rolKimligi, TUM_IZINLER, VARSAYILAN_ROLLER, YETKISIZ_ROL,
+} from '../data/yetkiler.js'
 
 export const ANAHTAR = {
   kullanici: 'user',
@@ -51,50 +54,178 @@ export const ANAHTAR = {
    bakıyor. Backoffice’e giren kişi bölümünü kendisi seçmiyor — hesabı admin
    açarken hangi rolde olduğu belirleniyor.
 
-   Admin ve yönetici bütün talepleri görüyor. Aralarındaki fark yetkide:
-   personel hesabı açmak, müşteri bilgisi değiştirmek ve numara
-   değişikliği onaylamak yalnız adminde.                                 */
+   ROLLER ARTIK KODDA SABİT DEĞİL. Tanımları ve yetkileri backoffice'ten
+   düzenleniyor (bkz. ekranlar/Roller.jsx); bu dosya yalnız depoyu
+   yönetiyor. Varsayılan liste ve yetki kataloğu src/data/yetkiler.js
+   içinde, gerekçeleriyle birlikte.                                     */
 
-export const ROLLER = [
-  { id: 'admin', ad: 'Admin', talepTuru: null },
-  { id: 'yonetici', ad: 'Yönetici', talepTuru: null },
-  { id: 'servis', ad: 'Servis', talepTuru: 'servis' },
-  { id: 'parca', ad: 'Yedek Parça', talepTuru: 'parca' },
-  { id: 'satis', ad: 'Satış', talepTuru: 'satinalma' },
-]
-
-export function rolBilgi(id) {
-  return ROLLER.find((r) => r.id === id) || ROLLER[2]
+/** Yürürlükteki rol listesi — düzenlenmediyse koddaki varsayılan. */
+export function rolleriGetir() {
+  return icerikListe('roller', VARSAYILAN_ROLLER)
 }
 
-const IZINLER = {
-  admin: [
-    'talepler', 'numara', 'musteriler', 'bayiler', 'personel', 'geribildirim',
-    'raporlar', 'kayit', 'duyurular', 'destek',
-    'personelDuzenle', 'musteriDuzenle', 'bayiDuzenle',
-  ],
-  yonetici: [
-    'talepler', 'musteriler', 'bayiler', 'personel', 'geribildirim',
-    'raporlar', 'kayit', 'duyurular', 'destek', 'bayiDuzenle',
-  ],
-  /* Geri bildirimler ekibe kapalı: orası uygulamanın gelişimi için,
-     günlük işin parçası değil. */
-  servis: ['talepler', 'musteriler', 'bayiler'],
-  parca: ['talepler', 'musteriler', 'bayiler'],
-  /* Satış personeli bayinin sorumluluk bölgesini değiştirebilmeli:
-     bayi ağını tanıyan, hangi bayinin nereye baktığını bilen o. */
-  satis: ['talepler', 'musteriler', 'bayiler', 'bayiDuzenle'],
+/* Rolün kaydı.
+
+   TANINMAYAN ROL YETKİSİZ DÖNÜYOR. Önce listenin üçüncü satırı (Servis)
+   dönüyordu; rolü silinen kişi Servis yetkisiyle çalışmaya başlardı.
+   Gerekçesi yetkiler.js → YETKISIZ_ROL. */
+export function rolBilgi(id) {
+  return rolleriGetir().find((r) => r.id === id) || YETKISIZ_ROL
 }
 
 /** Bu roldeki kişi bu işi yapabiliyor mu? */
 export function izinli(rol, is) {
-  return (IZINLER[rol] || []).includes(is)
+  return (rolBilgi(rol).izinler || []).includes(is)
 }
 
-/** Rolün göreceği talepler; admin ve yöneticide hepsi. */
+/** Rolün göreceği talepler; talep türü seçilmemişse hepsi. */
 export function rolunTalepleri(liste, rol) {
   const tur = rolBilgi(rol).talepTuru
   return tur ? liste.filter((t) => t.tur === tur) : liste
+}
+
+/* -------------------------------------------------- Rol listesini yazmak
+
+   Bayi listesiyle aynı yol: depoya yazılıyor, okuyan tarafın belleği
+   tazeleniyor, işlem kaydına satır düşüyor. Rol değişikliği bir güvenlik
+   olayı — kaydı tutulmadan yapılmıyor.                                  */
+
+function rolleriYaz(liste, personel, ozet) {
+  const mevcut = load(ANAHTAR.icerik, {})
+  save(ANAHTAR.icerik, { ...mevcut, roller: liste })
+  icerikTazele()
+  islemYaz({ tur: 'rol', ozet, personel })
+}
+
+/** Rolde kaç kişi var? Silme ve son admin kontrolü buna bakıyor. */
+export function rolunPersoneli(rolId) {
+  return personelGetir().filter((p) => p.rol === rolId)
+}
+
+/**
+ * Yeni rol açar.
+ *
+ * @returns {{rol}|{hata}}
+ */
+export function rolEkle({ ad, aciklama, talepTuru, izinler }, personel) {
+  const temizAd = String(ad || '').trim()
+  if (temizAd.length < 2) return { hata: 'Rol adını yazın.' }
+
+  const id = rolKimligi(temizAd)
+  if (!id) return { hata: 'Rol adı en az bir harf içermeli.' }
+
+  const liste = rolleriGetir()
+  if (liste.some((r) => r.id === id)) return { hata: 'Bu adda bir rol zaten var.' }
+
+  const rol = {
+    id,
+    ad: temizAd,
+    aciklama: String(aciklama || '').trim(),
+    talepTuru: talepTuru || null,
+    izinler: temizIzinler(izinler),
+  }
+  rolleriYaz([...liste, rol], personel, `${rol.ad} rolü oluşturuldu`)
+  return { rol }
+}
+
+/**
+ * Rolün adını, açıklamasını, gördüğü talep türünü ve yetkilerini yazar.
+ *
+ * ADMIN DEĞİŞTİRİLEMİYOR: yetkisini kaldıran admin ekranı bir daha
+ * açamaz ve geri dönüş yolu yoktur (bkz. yetkiler.js).
+ *
+ * @returns {{rol}|{hata}}
+ */
+export function rolGuncelle(id, degisiklik, personel) {
+  const liste = rolleriGetir()
+  const mevcut = liste.find((r) => r.id === id)
+  if (!mevcut) return { hata: 'Rol bulunamadı.' }
+  if (mevcut.sistem) return { hata: 'Admin rolü değiştirilemez.' }
+
+  const temizAd = String(degisiklik.ad ?? mevcut.ad).trim()
+  if (temizAd.length < 2) return { hata: 'Rol adını yazın.' }
+
+  const izinler = temizIzinler(degisiklik.izinler ?? mevcut.izinler)
+
+  /* SON YÖNETİCİ KORUMASI.
+
+     Personel hesabı açma yetkisini hiç kimsede bırakmayacak bir değişiklik
+     engelleniyor. Admin rolü kilitli olduğu için bu normalde
+     olamıyor — ama admin rolündeki tek kişi silinmişse
+     (`personelSil` onu da engelliyor) ikinci bir kapı olarak duruyor. */
+  const yeni = liste.map((r) =>
+    r.id === id
+      ? {
+          ...r,
+          ad: temizAd,
+          aciklama: String(degisiklik.aciklama ?? r.aciklama ?? '').trim(),
+          talepTuru: degisiklik.talepTuru !== undefined ? degisiklik.talepTuru : r.talepTuru,
+          izinler,
+        }
+      : r,
+  )
+  if (!yonetimKaliyorMu(yeni)) {
+    return { hata: 'Personel hesabı açabilecek hiçbir rol kalmıyor. Bu değişiklik yapılamaz.' }
+  }
+
+  rolleriYaz(yeni, personel, `${temizAd} rolünün yetkileri güncellendi`)
+  return { rol: yeni.find((r) => r.id === id) }
+}
+
+/**
+ * Rolü siler ve o roldeki personeli başka role taşır.
+ *
+ * PERSONEL ROLSÜZ BIRAKILMIYOR: rolde kişi varsa `yeniRol` şart.
+ * Ekran bunu silme penceresinde soruyor.
+ *
+ * @returns {{silinen, tasinan}|{hata}}
+ */
+export function rolSil(id, yeniRol, personel) {
+  const liste = rolleriGetir()
+  const rol = liste.find((r) => r.id === id)
+  if (!rol) return { hata: 'Rol bulunamadı.' }
+  if (rol.sistem) return { hata: 'Admin rolü silinemez.' }
+
+  const kisiler = rolunPersoneli(id)
+  if (kisiler.length) {
+    if (!yeniRol || yeniRol === id) {
+      return { hata: 'Bu roldeki kişilerin geçeceği rolü seçin.' }
+    }
+    if (!liste.some((r) => r.id === yeniRol)) return { hata: 'Seçilen rol bulunamadı.' }
+  }
+
+  const kalan = liste.filter((r) => r.id !== id)
+  if (!yonetimKaliyorMu(kalan)) {
+    return { hata: 'Personel hesabı açabilecek hiçbir rol kalmıyor. Bu rol silinemez.' }
+  }
+
+  /* Önce personel taşınıyor, sonra rol siliniyor. Ters sırada olsaydı
+     araya giren bir hata kişileri var olmayan bir rolde bırakırdı. */
+  if (kisiler.length) {
+    personelYaz(
+      personelGetir().map((p) => (p.rol === id ? { ...p, rol: yeniRol } : p)),
+    )
+  }
+
+  const yeniAdi = liste.find((r) => r.id === yeniRol)?.ad
+  rolleriYaz(
+    kalan,
+    personel,
+    kisiler.length
+      ? `${rol.ad} rolü silindi · ${kisiler.length} kişi ${yeniAdi} rolüne taşındı`
+      : `${rol.ad} rolü silindi`,
+  )
+  return { silinen: rol, tasinan: kisiler.length }
+}
+
+/** Katalogda olmayan izin kaydedilmiyor; ekran dışından gelen çöp durmasın. */
+function temizIzinler(izinler) {
+  return (izinler || []).filter((x) => TUM_IZINLER.includes(x))
+}
+
+/** Personel hesabı açabilecek en az bir rol kaldı mı? */
+function yonetimKaliyorMu(liste) {
+  return liste.some((r) => (r.izinler || []).includes('personelDuzenle'))
 }
 
 /* ---------------------------------------------------------------- Personel
@@ -277,6 +408,15 @@ export function oturumGetir() {
   /* Eski biçimdeki oturum kayıtlarında rol yok; yetkisi
      belirsiz biriyle backoffice açılmasın, yeniden giriş istensin. */
   if (!o?.rol || !o?.personelId) return null
+
+  /* ROLÜ SİLİNMİŞ KİŞİNİN OTURUMU KAPANIYOR.
+
+     Roller silinebiliyor; açık bir sekmenin oturumu, artık var olmayan
+     bir rolü taşıyor olabilir. Kişinin rolü silinirken başka bir role
+     taşınıyor (bkz. rolSil) ama oturumdaki kopya eski kimliği tutuyor.
+     Yeniden giriş isteniyor; girişte güncel rol okunuyor. */
+  if (!rolleriGetir().some((r) => r.id === o.rol)) return null
+
   return o
 }
 

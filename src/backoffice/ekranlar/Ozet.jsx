@@ -40,10 +40,14 @@ const TUR_RENK = {
 export function Ozet({ rol, git, surum }) {
   const [pencere, setPencere] = useState('14')
 
-  /* Yönetici gözü — admin ve yönetici. Şirketin bütününe bakan
-     sayılar (müşteri adedi, görüşler, tür dağılımı) yalnız onlarda;
-     ekipler kendi işini görüyor. */
-  const yonetim = rol === 'admin' || rol === 'yonetici'
+  /* Yönetici gözü. Şirketin bütününe bakan sayılar (müşteri adedi,
+     görüşler, tür dağılımı) yalnız bu yetkidekilerde; ekipler kendi
+     işini görüyor.
+
+     ÖNCE ROL KİMLİĞİNE BAKILIYORDU (`rol === 'admin' || 'yonetici'`).
+     Roller ekrandan açılabildiği için yeni bir yönetici rolü bu
+     sayıları hiç göremezdi. Artık yetkiye bağlı. */
+  const yonetim = izinli(rol, 'yonetimOzeti')
 
   const { veri: v, yukleniyor } = useVeri(
     () => hesapla(rol, Number(pencere)),
@@ -90,8 +94,12 @@ export function Ozet({ rol, git, surum }) {
             bir iş: orada kimse bakmadı, burada bakıldı ve cevap
             bekleniyor. İkisi ayrı kutuda olmalı. */}
         {/* Bekleyen teklif satış ekibinin işi. Servisçinin ekranında
-            hiçbir zaman sayı göstermeyecek bir kutu duruyordu. */}
-        {(rol === 'satis' || yonetim) && (
+            hiçbir zaman sayı göstermeyecek bir kutu duruyordu.
+
+            Rol kimliği yerine ROLÜN GÖRDÜĞÜ TALEP TÜRÜ soruluyor: fiyat
+            teklifi görmeyen rolde bu kutu zaten hep sıfır çıkar. Yeni
+            bir satış rolü açıldığında kendiliğinden doğru çalışıyor. */}
+        {(rolBilgi(rol).talepTuru === null || rolBilgi(rol).talepTuru === 'satinalma') && (
           <Sayi
             deger={v.teklifBekleyen}
             ad="Cevap Beklenen Teklif"
