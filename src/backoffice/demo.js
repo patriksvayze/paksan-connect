@@ -155,26 +155,55 @@ const DESTEK_CEVAPSIZ = [
   'Tartı sistemi yanlış tartıyor',
 ]
 
+/* Beş alt türün hepsinden en az bir örnek var: ekranlar boş bir
+   listeyle değil, gerçek çeşitlilikle deneniyor. Hedefi olanlar
+   `hedef` taşıyor — geri çağırma yalnız bayiye gidiyor
+   (bkz. src/data/duyuruTurleri.js). */
 const DUYURULAR = [
   {
     tur: 'duyuru',
+    alt: 'kampanya',
     baslik: 'Sezon öncesi bakım kampanyası',
     metin: 'Nisan sonuna kadar yetkili servislerimizde sezon öncesi bakım işçiliğinde %20 indirim uygulanıyor. Randevu için bayinizle görüşebilirsiniz.',
   },
   {
     tur: 'duyuru',
+    alt: 'yeniUrun',
+    baslik: 'Orkinos 1290 satışa çıktı',
+    metin: 'Orkinos serisinin yeni modeli Orkinos 1290 satışa sunuldu. Teknik özellikler ve fiyat teklifi için bayinizle görüşebilirsiniz.',
+    hedef: { kime: 'ikisi' },
+  },
+  {
+    tur: 'duyuru',
+    alt: 'etkinlik',
+    baslik: 'Konya Tarım Fuarı’nda sizi bekliyoruz',
+    metin: 'Konya Tarım Fuarı’nda B salonundaki 214 numaralı standımızdayız. Bütün modellerimizi yerinde görebilir, ekibimizle görüşebilirsiniz.',
+    hedef: { kime: 'ikisi' },
+  },
+  {
+    tur: 'duyuru',
+    alt: 'kampanya',
     baslik: 'Yeni yedek parça fiyat listesi',
     metin: '2026 yedek parça fiyat listesi yürürlüğe girdi. Güncel fiyatları uygulamadaki yedek parça talebi ekranından görebilirsiniz.',
   },
   {
     tur: 'uyari',
+    alt: 'guvenlik',
     baslik: 'Kuyruk mili koruma kapağı kontrolü',
     metin: 'Kuyruk mili koruma kapağı hasarlıysa makineyi çalıştırmayın. Kapağı hasarlı müşterilerimiz, ücretsiz değişim için bayilerine başvurabilir.',
   },
   {
     tur: 'uyari',
+    alt: 'guvenlik',
     baslik: 'Sıcak havada balya deposu kontrolü',
     metin: 'Yüksek sıcaklıkta nemli ot balyalandığında depoda yanma riski oluşur. Balya nemini kontrol etmeden depolamayın.',
+  },
+  {
+    tur: 'uyari',
+    alt: 'geriCagirma',
+    baslik: 'ORK1270-2024 serisi düğüm atıcı kontrolü',
+    metin: 'ORK1270-2024 seri numaralı makinelerin düğüm atıcı yayında üretim kaynaklı kırılma görüldü. Bu makineleri kullanan müşterilerinizi arayıp servise çağırın. Değişim bedelsizdir; yay stoku bayilere gönderildi.',
+    hedef: { kime: 'bayi' },
   },
 ]
 
@@ -709,12 +738,14 @@ export async function demoYukle() {
     id: uid(),
     tarih: gunOnce(tamsayi(1, 40) + i),
     tur: x.tur,
+    alt: x.alt,
     baslik: x.baslik,
     metin: x.metin,
     gorsel: null,
     personel: sec(yeniPersonel).ad,
     pencere: i === 0,
     demo: true,
+    ...(x.hedef ? { hedef: x.hedef } : {}),
   }))
   save(ANAHTAR.duyurular, [...duyurular, ...load(ANAHTAR.duyurular, [])])
 

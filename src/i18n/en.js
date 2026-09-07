@@ -448,6 +448,14 @@ export const en = {
     tumBildirimler: 'All My Notifications',
   },
 
+  duyuruTuru: {
+    kampanya: 'Campaign',
+    yeniUrun: 'New Product',
+    etkinlik: 'Event',
+    guvenlik: 'Safety Notice',
+    geriCagirma: 'Recall',
+  },
+
   profil: {
     detayGor: 'Tap for details',
     hesabim: 'My Account',

@@ -6,6 +6,7 @@ import { bayileriGetir } from '../../data/bayiler.js'
 import { useVeri } from '../kanca'
 import { Baslik, Bekleme, Bos, tarihYaz } from './ortak'
 import { boyutYaz, ekAdresi, ekSil, ekYaz, fotoKucult } from '../../lib/ekler'
+import { altBilgi, altTurler, DUYURU_UST } from '../../data/duyuruTurleri'
 
 /* ==========================================================================
    Duyurular
@@ -23,42 +24,25 @@ import { boyutYaz, ekAdresi, ekSil, ekYaz, fotoKucult } from '../../lib/ekler'
    listesinde kalıcı duruyor. Yalnız listede dursaydı kimse görmezdi;
    yalnız pencere olsaydı kapatan kişi bir daha ulaşamazdı.
 
-   İKİ TÜR — VE ARALARINDAKİ FARK HUKUKİ
+   İKİ ÜST TÜR — VE ARALARINDAKİ FARK HUKUKİ
 
-     DUYURU  kampanya, yeni ürün, bayi etkinliği. Ticari elektronik
-             ileti sayılıyor: 6563 sayılı kanun gereği YALNIZ izin
-             veren müşteriye gidiyor. İzin kayıt sırasında alınıyor
-             ve profilden geri çekilebiliyor.
+     DUYURU  Ticari elektronik ileti sayılıyor: 6563 sayılı kanun
+             gereği YALNIZ izin veren müşteriye gidiyor. İzin kayıt
+             sırasında alınıyor ve profilden geri çekilebiliyor.
 
-     UYARI   güvenlik uyarısı, geri çağırma, kullanım hatası. Hizmete
-             ilişkin bildirim; ticari ileti değil, herkese gidiyor.
-             Zaten görülmemesi tehlikeli olan şey bu.
+     UYARI   Hizmete ilişkin bildirim; ticari ileti değil, herkese
+             gidiyor. Zaten görülmemesi tehlikeli olan şey bu.
+
+   BEŞ ALT TÜR — VE ARALARINDAKİ FARK GÖRSEL
+
+   Kampanya ile yeni ürün duyurusu hukuken aynı sınıfta ama okuyan
+   için aynı şey değil; güvenlik uyarısı ile geri çağırma da öyle.
+   Alt tür ekranda hangi temanın çıkacağını belirliyor ve üç üründe de
+   aynı tablodan okunuyor (bkz. src/data/duyuruTurleri.js).
 
    Yanlış türü seçmek hukuki sonuç doğurduğu için ekranda kaç kişiye
    gideceği yayınlamadan önce yazıyor.
    ========================================================================== */
-
-const TURLER = [
-  {
-    id: 'duyuru',
-    ad: 'Duyuru',
-    alt: 'Kampanya, yeni ürün, etkinlik',
-    kime: 'Yalnız ticari ileti izni veren müşterilere gider.',
-    ton: 'mavi',
-    /* Kampanya metni son kullanıcıya yazılıyor; bayide gürültü olur. */
-    varsayilanKime: 'musteri',
-  },
-  {
-    id: 'uyari',
-    ad: 'Önemli uyarı',
-    alt: 'Güvenlik uyarısı, geri çağırma',
-    kime: 'Tüm müşterilere gider — hizmete ilişkin bildirim, izin gerektirmez.',
-    ton: 'turuncu',
-    /* Geri çağırma ve güvenlik uyarısı bayiye de gitmeli: makineyi
-       elinde tutan, servisi veren, müşteriyi arayacak olan o. */
-    varsayilanKime: 'ikisi',
-  },
-]
 
 /* ==========================================================================
    Kime gidecek
@@ -187,22 +171,31 @@ function HedefSecici({ hedef, onDegis, bayiler }) {
 /* Yayınlamadan önceki son cümle. Alıcı kitlesi burada da yazıyor:
    yanlış kitleye giden duyuru geri alınamıyor, kaldırılsa bile
    görülmüş oluyor. */
-function onayMetni(tur, baslik, kime) {
+function onayMetni(alt, baslik, kime) {
+  const bilgi = altBilgi({ alt })
+  const tur = bilgi.ust
+  const adKucuk = bilgi.ad.toLocaleLowerCase('tr-TR')
   const alici =
     kime === 'bayi' ? 'yalnız bayilere'
       : kime === 'ikisi' ? 'hem müşterilere hem de bayilere'
         : 'müşterilere'
 
+  /* Geri çağırmanın kendi cümlesi var: alıcı kitlesi seçilebilir bir
+     şey değil, kuralın kendisi. */
+  if (alt === 'geriCagirma') {
+    return `“${baslik}” başlıklı geri çağırma yalnızca bayilere gidecek. Müşteriye doğrudan bildirim gitmeyecek; makine sahiplerini bayi arayacak.`
+  }
+
   if (tur === 'uyari') {
-    return `“${baslik}” başlıklı uyarı ${alici} gidecek. Ekranlarını açtıklarında pencere olarak görecekler; bu bildirim için izin gerekmiyor.`
+    return `“${baslik}” başlıklı ${adKucuk} ${alici} gidecek. Ekranlarını açtıklarında pencere olarak görecekler; bu bildirim için izin gerekmiyor.`
   }
   /* Ticari ileti izni YALNIZ müşteri tarafında aranıyor. Duyuru
      yalnız bayilere gidiyorsa o cümle konuyla ilgisiz kalıyordu:
      personel, duyuruyu almayacak kitlenin izin kuralını okuyordu. */
   if (kime === 'bayi') {
-    return `“${baslik}” başlıklı duyuru ${alici} gidecek. Bayilerde ticari ileti izni aranmaz.`
+    return `“${baslik}” başlıklı ${adKucuk} duyurusu ${alici} gidecek. Bayilerde ticari ileti izni aranmaz.`
   }
-  return `“${baslik}” başlıklı duyuru ${alici} gidecek. Müşteri tarafında yalnızca ticari ileti izni verenlere ulaşır${kime === 'ikisi' ? '; bayilerde böyle bir izin aranmaz' : ''}.`
+  return `“${baslik}” başlıklı ${adKucuk} duyurusu ${alici} gidecek. Müşteri tarafında yalnızca ticari ileti izni verenlere ulaşır${kime === 'ikisi' ? '; bayilerde böyle bir izin aranmaz' : ''}.`
 }
 
 function ozetle(hedef, bayiler) {
@@ -224,7 +217,7 @@ function ozetle(hedef, bayiler) {
 }
 
 export function Duyurular({ personel, bildir, tazele, surum }) {
-  const [tur, setTur] = useState('duyuru')
+  const [alt, setAlt] = useState('kampanya')
   const [baslik, setBaslik] = useState('')
   const [metin, setMetin] = useState('')
   const [gorsel, setGorsel] = useState(null)
@@ -236,7 +229,21 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
   const { veri: liste, yukleniyor } = useVeri(duyurulariGetir, [surum], [])
   const bayiListesi = bayileriGetir()
 
-  const secili = TURLER.find((x) => x.id === tur)
+  const secili = altBilgi({ alt })
+  const tur = secili.ust
+  const ustBilgi = DUYURU_UST.find((x) => x.id === tur)
+  /* Geri çağırmada alıcı kitlesi seçilmiyor; gerekçesi
+     data/duyuruTurleri.js içinde yazılı. */
+  const kilitliKime = secili.kilitliKime || null
+
+  /* Tür değişince alıcı kitlesi o türün varsayılanına dönüyor.
+     Kilitli türde seçim zorlanıyor: personel önce "ikisine de"
+     seçip sonra geri çağırmaya geçerse kayıt yanlış kitleye gitmez. */
+  function turSec(id) {
+    const bilgi = altBilgi({ alt: id })
+    setAlt(id)
+    setHedef((h) => ({ ...h, kime: bilgi.kilitliKime || bilgi.varsayilanKime }))
+  }
 
   function kontrolEt() {
     if (baslik.trim().length < 4) return setHata('Duyuru başlığını yazın.')
@@ -246,14 +253,17 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
   }
 
   function yayinla() {
-    duyuruYayinla({ tur, baslik, metin, gorsel, hedef }, personel)
+    /* Kilit son anda bir kez daha uygulanıyor: hedef başka bir yoldan
+       değişmiş olabilir. */
+    const gidecek = kilitliKime ? { ...hedef, kime: kilitliKime } : hedef
+    duyuruYayinla({ tur, alt, baslik, metin, gorsel, hedef: gidecek }, personel)
     setBaslik('')
     setMetin('')
     setGorsel(null)
-    setHedef(BOS_HEDEF)
+    setHedef({ ...BOS_HEDEF, kime: secili.varsayilanKime })
     setOnay(false)
     tazele()
-    bildir('Duyuru yayınlandı')
+    bildir(`${secili.ad} yayınlandı`)
   }
 
   return (
@@ -268,29 +278,34 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
           </div>
 
           <div className="kart__ic">
-            <div className="alan">
-              <span className="alan__ad">Tür</span>
-              <div className="suzgec" style={{ marginBottom: 4 }}>
-                {TURLER.map((x) => (
-                  <button
-                    key={x.id}
-                    className={'cip' + (tur === x.id ? ' cip--on' : '')}
-                    onClick={() => {
-                      setTur(x.id)
-                      /* Alıcı kitlesi türe göre başlıyor; personel
-                         isterse aşağıdan değiştiriyor. */
-                      setHedef((h) => ({ ...h, kime: x.varsayilanKime }))
-                    }}
-                  >
-                    {x.ad}
-                  </button>
-                ))}
-              </div>
-              <span className="kucuk sonuk">{secili.alt}</span>
-            </div>
+            {/* TÜR SEÇİMİ İKİ ÖBEK.
 
-            <div className={'uyari'} style={{ marginTop: 12 }}>
-              <span>{secili.kime}</span>
+                Beş çip tek sırada dizilince kampanya ile geri çağırma
+                yan yana ve eşit görünüyordu; oysa aralarındaki fark
+                hukuki. Öbek başlıkları hangi hukuki sınıfta
+                olunduğunu okumadan gösteriyor. */}
+            {DUYURU_UST.map((ust) => (
+              <div className="alan" key={ust.id}>
+                <span className="alan__ad">{ust.ad}</span>
+                <div className="suzgec" style={{ marginBottom: 4 }}>
+                  {altTurler(ust.id).map((x) => (
+                    <button
+                      key={x.id}
+                      className={'cip duyuru-cip' + (alt === x.id ? ' cip--on' : '')}
+                      onClick={() => turSec(x.id)}
+                    >
+                      <span className={'duyuru-nokta duyuru-nokta--' + x.ton} aria-hidden="true" />
+                      {x.ad}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            <p className="kucuk sonuk" style={{ margin: '0 0 12px' }}>{secili.alt}</p>
+
+            <div className="uyari" style={{ marginTop: 0 }}>
+              <span>{ustBilgi.kime}</span>
             </div>
 
             {/* ALICI KİTLESİ FORMDA, AÇILIR PANELDE DEĞİL. Gerekçesi
@@ -301,7 +316,12 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
                 {KIMLER.map((x) => (
                   <button
                     key={x.id}
-                    className={'cip' + (hedef.kime === x.id ? ' cip--on' : '')}
+                    className={
+                      'cip' +
+                      (hedef.kime === x.id ? ' cip--on' : '') +
+                      (kilitliKime && kilitliKime !== x.id ? ' cip--kilitli' : '')
+                    }
+                    disabled={Boolean(kilitliKime) && kilitliKime !== x.id}
                     onClick={() => setHedef({ ...hedef, kime: x.id })}
                   >
                     {x.ad}
@@ -309,7 +329,9 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
                 ))}
               </div>
               <span className="kucuk sonuk">
-                {KIMLER.find((x) => x.id === hedef.kime)?.alt}
+                {kilitliKime
+                  ? 'Geri çağırmayı bayi yürütür: makineyi satan, servis hizmetini veren ve müşteriyi arayacak olan odur. Bu yüzden yalnızca bayilere gönderilebiliyor.'
+                  : KIMLER.find((x) => x.id === hedef.kime)?.alt}
               </span>
             </div>
 
@@ -319,11 +341,10 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
                 className="gir"
                 value={baslik}
                 onChange={(e) => setBaslik(e.target.value)}
-                placeholder={
-                  tur === 'uyari'
-                    ? 'Örnek: Orkinos 1270 · düğüm atıcı kontrolü'
-                    : 'Örnek: Sezon öncesi yedek parça kampanyası'
-                }
+                /* İpucu alt türe göre: "Örnek: Sezon öncesi kampanyası"
+                   yazısı geri çağırma seçiliyken yanlış yönlendiriyordu
+                   (bkz. data/duyuruTurleri.js → ipucu). */
+                placeholder={secili.ipucu}
                 maxLength={70}
               />
               <span className="kucuk sonuk">
@@ -352,6 +373,15 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
             <GorselAlani gorsel={gorsel} onDegis={setGorsel} />
 
             <HedefSecici hedef={hedef} onDegis={setHedef} bayiler={bayiListesi} />
+
+            {/* ÖNİZLEME.
+
+                Her alt türün kendi teması var ve personel yayınlamadan
+                önce hangi temayla çıkacağını göremiyordu. Yayınlanan
+                duyuru geri alınamıyor — kaldırılsa bile görülmüş
+                oluyor. Önizleme, müşterinin ekranında çıkan pencerenin
+                aynı renk ve ikonuyla duruyor. */}
+            <Onizleme alt={alt} baslik={baslik} metin={metin} gorsel={gorsel} />
 
             {/* Metin çevrilmiyor: personelin yazdığı cümleyi uygulama
                 çeviremez. Yurt dışında müşteri de varsa iki dilde ayrı
@@ -399,8 +429,11 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
                   }}
                 >
                   <div className="satir" style={{ gap: 10, alignItems: 'center' }}>
-                    <span className={'rz rz--' + (d.tur === 'uyari' ? 'turuncu' : 'mavi')}>
-                      {d.tur === 'uyari' ? 'Uyarı' : 'Duyuru'}
+                    {/* Rozette artık alt tür yazıyor. "Duyuru" ve "Uyarı",
+                        beş türü iki kutuya sıkıştırıyordu; listede hangi
+                        duyurunun kaldırıldığı anlaşılmıyordu. */}
+                    <span className={'duyuru-rz duyuru-rz--' + altBilgi(d).ton}>
+                      {altBilgi(d).ad}
                     </span>
                     <b>{d.baslik}</b>
                     <button
@@ -414,7 +447,11 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
                   {d.gorsel && <DuyuruGorseli gorsel={d.gorsel} />}
                   <p style={{ whiteSpace: 'pre-wrap', margin: '8px 0 0' }}>{d.metin}</p>
                   <div className="kucuk sonuk" style={{ marginTop: 6 }}>
-                    {d.personel} · {tarihYaz(d.tarih)}
+                    {/* Kimin gördüğü listede yazmıyordu: aynı başlıkla
+                        bayiye ve müşteriye ayrı duyuru gönderilebiliyor. */}
+                    {[d.personel, tarihYaz(d.tarih), KIME_ADI[d.hedef?.kime || 'musteri']]
+                      .filter(Boolean)
+                      .join(' · ')}
                   </div>
                 </div>
               ))
@@ -426,7 +463,7 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
       {onay && (
         <Pencere
           baslik="Duyuruyu yayınla"
-          metin={onayMetni(tur, baslik, hedef.kime)}
+          metin={onayMetni(alt, baslik, kilitliKime || hedef.kime)}
           onayYazi="Yayınla"
           onOnayla={yayinla}
           onVazgec={() => setOnay(false)}
@@ -448,6 +485,48 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
         />
       )}
     </>
+  )
+}
+
+/* ==========================================================================
+   Önizleme
+
+   Yayımlanan duyuru geri alınamıyor: kaldırılsa bile görülmüş oluyor.
+   Personel, yazdığı şeyin karşı tarafta nasıl görüneceğini görmeden
+   yayımlıyordu — hangi renk, hangi ikon, başlık görselin altında mı
+   üstünde mi?
+
+   BİREBİR AYNI SINIFLARI KULLANIYOR. Ayrı bir "önizleme görünümü"
+   yazılmadı; müşteri uygulamasındaki pencere hangi sınıflarla
+   çiziliyorsa burada da onlar var (bkz. styles.css → .duyuru-kutu).
+   Ayrı yazılsaydı ikisi zamanla ayrışır ve önizleme yanıltıcı olurdu.
+   Renkler backoffice kökünde ayrıca tanımlı — token'lar paylaşılmıyor
+   (bkz. CLAUDE.md).
+   ========================================================================== */
+function Onizleme({ alt, baslik, metin, gorsel }) {
+  const bilgi = altBilgi({ alt })
+
+  return (
+    <div className="alan">
+      <span className="alan__ad">Önizleme</span>
+      <div className={'duyuru-kutu duyuru-kutu--' + bilgi.ton}>
+        <div className="duyuru-kutu__tepe">
+          <span className="duyuru-kutu__etiket">{bilgi.ad}</span>
+        </div>
+        <div className="duyuru-kutu__ic">
+          {gorsel && <DuyuruGorseli gorsel={gorsel} />}
+          <h3 className="duyuru-kutu__baslik">
+            {baslik.trim() || 'Başlık buraya gelecek'}
+          </h3>
+          <p className="duyuru-kutu__metin">
+            {metin.trim() || 'Metin buraya gelecek.'}
+          </p>
+        </div>
+      </div>
+      <span className="kucuk sonuk">
+        Müşteri ve bayi ekranlarında bu renk ve başlıkla görünecek.
+      </span>
+    </div>
   )
 }
 

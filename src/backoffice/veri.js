@@ -13,6 +13,7 @@ import { SIRKET } from '../config'
 import { urun } from '../lib/urun'
 import { bayileriGetir } from '../data/bayiler.js'
 import { icerikTazele } from '../lib/icerikDeposu.js'
+import { altBilgi } from '../data/duyuruTurleri.js'
 
 export const ANAHTAR = {
   kullanici: 'user',
@@ -804,7 +805,13 @@ export function duyurulariGetir() {
   return load(ANAHTAR.duyurular, []).filter((d) => d.tur === 'duyuru' || d.tur === 'uyari')
 }
 
-export function duyuruYayinla({ tur, baslik, metin, gorsel, hedef }, personel) {
+/**
+ * @param {string} alt duyuru alt türü — kampanya, yeniUrun, etkinlik,
+ *   guvenlik, geriCagirma (bkz. src/data/duyuruTurleri.js). Ekranda
+ *   hangi temanın çıkacağını bu belirliyor. `tur` yerini ALMIYOR:
+ *   ticari ileti izni ve bütün eski süzgeçler hâlâ ona bakıyor.
+ */
+export function duyuruYayinla({ tur, alt, baslik, metin, gorsel, hedef }, personel) {
   /* Hedef boşsa alan hiç yazılmıyor: yokluk "herkese" demek
      (bkz. src/lib/duyuruHedef.js). Boş dizilerle dolu bir nesne
      yazmak da aynı sonucu verirdi ama kayıt gereksiz şişerdi. */
@@ -815,6 +822,7 @@ export function duyuruYayinla({ tur, baslik, metin, gorsel, hedef }, personel) {
     id: uid(),
     tarih: Date.now(),
     tur,
+    ...(alt ? { alt } : {}),
     baslik: baslik.trim(),
     metin: metin.trim(),
     /* Görselin kendisi IndexedDB'de, burada yalnız kimliği —
@@ -828,7 +836,9 @@ export function duyuruYayinla({ tur, baslik, metin, gorsel, hedef }, personel) {
   save(ANAHTAR.duyurular, [kayit, ...load(ANAHTAR.duyurular, [])])
   islemYaz({
     tur: 'duyuru',
-    ozet: `${tur === 'uyari' ? 'Uyarı' : 'Duyuru'} yayınlandı · ${kayit.baslik}`,
+    /* İşlem kaydına alt tür yazılıyor: "Duyuru yayınlandı" satırı
+       hangi duyurudan söz ettiğini söylemiyordu. */
+    ozet: `${altBilgi(kayit).ad} yayınlandı · ${kayit.baslik}`,
     personel,
   })
   return kayit

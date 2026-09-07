@@ -586,11 +586,14 @@
 
 /* ------------------------------------------------------------- Duyuru */
 
+/* Sol kenardaki renkli şerit alt türden geliyor; varsayılan turuncu
+   yalnız `alt` taşımayan eski kayıtlar için duruyor. Renklerin tanımı
+   src/data/duyuruTurleri.js, karşılıkları aşağıda. */
 .duyuru {
   padding: var(--bosluk-4);
   margin-bottom: var(--bosluk-4);
   border: 1px solid var(--cizgi);
-  border-left: 4px solid var(--turuncu);
+  border-left: 4px solid var(--duyuru-renk, var(--turuncu));
   border-radius: var(--r-3);
   background: var(--yuzey);
   box-shadow: var(--golge);
@@ -600,12 +603,46 @@
   display: flex;
   align-items: center;
   gap: var(--bosluk-2);
-  color: var(--turuncu);
+  color: var(--duyuru-renk, var(--turuncu));
   font-size: var(--yazi-3);
 }
 
 .duyuru__ust svg {
   flex: none;
+}
+
+/* Türün adı başlığın ÜSTÜNDE, kendi renginde. Bayi ekranı açtığında
+   "bu ne" sorusunu başlığı okumadan cevaplıyor: kampanya mı, geri
+   çağırma mı. */
+.duyuru__tur {
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: var(--yazi-4);
+}
+
+.duyuru__baslik {
+  display: block;
+  margin-top: var(--bosluk-2);
+  font-size: var(--yazi-2);
+  line-height: 1.35;
+}
+
+/* Alt tür renkleri. Bayi paneli backoffice.css'i paylaşıyor ama kendi
+   `ton` karşılıklarını burada tanımlıyor; token'lar paylaşılmıyor
+   (bkz. CLAUDE.md). Değerler backoffice rozetleriyle aynı çiftlerden. */
+.duyuru--kampanya { --duyuru-renk: var(--turuncu-d); }
+.duyuru--yeniUrun { --duyuru-renk: var(--mavi-rz); }
+.duyuru--etkinlik { --duyuru-renk: var(--mor); }
+.duyuru--guvenlik { --duyuru-renk: var(--kirmizi); }
+
+/* Geri çağırma yalnızca bayiye gidiyor ve yürütülecek bir iş: kırmızı
+   şerit kalınlaşıyor, kart da kendi rengiyle çerçeveleniyor. Panelde
+   başka hiçbir kart böyle görünmüyor. */
+.duyuru--geriCagirma {
+  --duyuru-renk: var(--kirmizi);
+  border-color: var(--kirmizi);
+  border-left-width: 6px;
 }
 
 .duyuru__metin {

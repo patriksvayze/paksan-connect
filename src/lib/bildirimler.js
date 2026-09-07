@@ -112,6 +112,10 @@ export function bildirimListesi({ requests = [], user = null, makineler = [] } =
       baslik: d.baslik,
       metin: d.metin,
       gorsel: d.gorsel || null,
+      /* Alt tür ekrana kadar taşınıyor: bildirim satırının ikonu ve
+         rengi ona göre çıkıyor (bkz. screens/Notifications.jsx).
+         Duyuru olmayan kayıtlarda yok ve olmaması doğru. */
+      alt: d.alt || null,
       baslikAnahtar: d.baslikAnahtar,
       metinAnahtar: d.metinAnahtar,
       degerler: d.degerler,

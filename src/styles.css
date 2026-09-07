@@ -4186,6 +4186,162 @@ p {
   color: var(--tur-parca-yazi);
 }
 
+/* ==========================================================================
+   Duyuru alt türleri
+
+   Beş alt tür, beş renk. Tanımı src/data/duyuruTurleri.js içinde; burada
+   yalnız o tablodaki `ton` değerlerinin müşteri uygulamasındaki
+   karşılıkları var. Backoffice ve bayi paneli aynı `ton` adlarını kendi
+   kökünde ayrıca tanımlıyor — token'lar paylaşılmıyor (bkz. CLAUDE.md).
+
+   ÖNCEKİ HÂLİ TÜRÜ ANLATMIYORDU. Bütün duyurular aynı mavi/turuncu
+   ikonla çıkıyordu; kampanya ile güvenlik uyarısı hem pencerede hem
+   listede birbirinin aynısıydı.
+
+   Renkler mevcut marka çiftlerinden alınıyor, hepsinin karanlık tema
+   karşılığı zaten tanımlı. Yeni bir renk uydurulmadı.
+
+   GERİ ÇAĞIRMA güvenlik uyarısıyla aynı kırmızıyı kullanıyor ama
+   çerçeveli: dolu kırmızı zemin karanlık temada açılıyor ve üstündeki
+   yazı okunmaz hâle geliyordu. Çerçeve iki temada da kendiliğinden
+   çalışıyor.
+   ========================================================================== */
+
+/* Zemin --surface, --surface-2 DEĞİL. Şeridin yarı saydam tinti kutu
+   zemininin üstüne biniyor; --surface-2 karanlık temada daha açık
+   olduğu için kırmızı şeritteki yazı 4,19'a düşüyordu (ölçüldü,
+   eşik 4,5). --surface üzerinde 4,64. Kutu, sayfa zeminiyle
+   karışmasın diye kenarlık alıyor. */
+.duyuru-kutu {
+  border-radius: var(--r-lg, 14px);
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.duyuru-kutu__tepe {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 14px;
+}
+
+.duyuru-kutu__etiket {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.duyuru-kutu__ic {
+  padding: 14px;
+}
+
+.duyuru-kutu__baslik {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+/* Görsel varsa başlığın üstünde, kutunun içinde nefes payıyla. */
+.duyuru-kutu__ic .duyuru-gorsel {
+  margin-bottom: 12px;
+}
+
+.duyuru-kutu__metin {
+  margin: 8px 0 0;
+  white-space: pre-wrap;
+  line-height: 1.7;
+}
+
+.duyuru-kutu--kampanya .duyuru-kutu__tepe {
+  background: var(--pk-orange-soft);
+  color: var(--pk-orange-ink);
+}
+
+.duyuru-kutu--yeniUrun .duyuru-kutu__tepe {
+  background: var(--pk-blue-soft);
+  color: var(--pk-blue-yazi);
+}
+
+.duyuru-kutu--etkinlik .duyuru-kutu__tepe {
+  background: var(--tur-parca-soft);
+  color: var(--tur-parca-yazi);
+}
+
+.duyuru-kutu--guvenlik .duyuru-kutu__tepe {
+  background: var(--pk-red-soft);
+  color: var(--pk-red-yazi);
+}
+
+.duyuru-kutu--geriCagirma .duyuru-kutu__tepe {
+  background: var(--pk-red-soft);
+  color: var(--pk-red-yazi);
+  box-shadow: inset 0 -2px 0 currentColor;
+}
+
+/* ---------------------------------------- Bildirim listesindeki satır */
+
+/* Yuvarlak ikon kutusu — listitem__icon'un tür rengini alan hâli. */
+.duyuru-ikon--kampanya {
+  background: var(--pk-orange-soft);
+  color: var(--pk-orange-ink);
+}
+
+.duyuru-ikon--yeniUrun {
+  background: var(--pk-blue-soft);
+  color: var(--pk-blue-yazi);
+}
+
+.duyuru-ikon--etkinlik {
+  background: var(--tur-parca-soft);
+  color: var(--tur-parca-yazi);
+}
+
+.duyuru-ikon--guvenlik,
+.duyuru-ikon--geriCagirma {
+  background: var(--pk-red-soft);
+  color: var(--pk-red-yazi);
+}
+
+/* Satırdaki tür etiketi. Talep numarası rozetiyle aynı ölçüde ki
+   yan yana durduklarında satır dalgalanmasın. */
+.duyuru-etiket {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.duyuru-etiket--kampanya {
+  background: var(--pk-orange-soft);
+  color: var(--pk-orange-ink);
+}
+
+.duyuru-etiket--yeniUrun {
+  background: var(--pk-blue-soft);
+  color: var(--pk-blue-yazi);
+}
+
+.duyuru-etiket--etkinlik {
+  background: var(--tur-parca-soft);
+  color: var(--tur-parca-yazi);
+}
+
+.duyuru-etiket--guvenlik {
+  background: var(--pk-red-soft);
+  color: var(--pk-red-yazi);
+}
+
+.duyuru-etiket--geriCagirma {
+  background: var(--pk-red-soft);
+  color: var(--pk-red-yazi);
+  box-shadow: inset 0 0 0 1.5px currentColor;
+}
+
 .badge--satinalma {
   background: var(--tur-satis-soft);
   border-color: transparent;

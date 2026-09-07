@@ -10,7 +10,9 @@ import {
 } from '../lib/bildirimler'
 import {
   IconBell, IconCheckCircle, IconAlert, IconRight, IconCalendar,
+  IconMachine, IconTag, IconUndo,
 } from '../components/Icons'
+import { altBilgi } from '../data/duyuruTurleri'
 
 /* Bildirimler.
 
@@ -33,6 +35,16 @@ const IKONLAR = {
   [BILDIRIM_TURU.UYARI]: IconAlert,
 }
 
+/* Duyuru alt türlerinin ikonları — tablodaki `ikon` adı burada
+   bileşene bağlanıyor (bkz. src/data/duyuruTurleri.js). */
+const ALT_IKONLAR = {
+  etiket: IconTag,
+  makine: IconMachine,
+  takvim: IconCalendar,
+  uyari: IconAlert,
+  geri: IconUndo,
+}
+
 /* Marka renginin YAZI hâli kullanılıyor (--pk-x-yazi), ana rengi değil:
    ana renkler karanlık temada değişmiyor ve koyu kart üstünde
    okunmuyorlar (ölçüm: mavi 1,85 · yeşil 2,47). */
@@ -41,6 +53,16 @@ const RENKLER = {
   [BILDIRIM_TURU.RANDEVU]: { zemin: 'var(--pk-orange-soft)', renk: 'var(--pk-orange-ink)' },
   [BILDIRIM_TURU.DUYURU]: { zemin: 'var(--pk-blue-soft)', renk: 'var(--pk-blue-yazi)' },
   [BILDIRIM_TURU.UYARI]: { zemin: 'var(--pk-orange-soft)', renk: 'var(--pk-orange-ink)' },
+}
+
+/* PAKSAN duyurusu mu, uygulamanın kendi bildirimi mi?
+
+   Duyuru ve uyarı satırları alt türün rengiyle çıkıyor: kampanya ile
+   güvenlik uyarısı listede aynı görünüyordu, ikisi de "duyuru" ikonu
+   taşıyordu. Talep ve randevu bildirimleri kendi renklerinde kalıyor —
+   onların alt türü yok. */
+function duyuruSatiri(b) {
+  return b.tur === BILDIRIM_TURU.DUYURU || b.tur === BILDIRIM_TURU.UYARI
 }
 
 export default function Notifications() {
@@ -150,7 +172,11 @@ export default function Notifications() {
               </div>
               <div className="stack">
                 {obekler[ad].map((b) => {
-                  const Ikon = IKONLAR[b.tur] || IconBell
+                  const duyurusu = duyuruSatiri(b)
+                  const bilgi = duyurusu ? altBilgi(b) : null
+                  const Ikon = bilgi
+                    ? ALT_IKONLAR[bilgi.ikon] || IconBell
+                    : IKONLAR[b.tur] || IconBell
                   const renk = RENKLER[b.tur] || RENKLER[BILDIRIM_TURU.DUYURU]
                   const okundu = okunanSet.has(b.id)
                   return (
@@ -164,8 +190,10 @@ export default function Notifications() {
                       }}
                     >
                       <div
-                        className="listitem__icon"
-                        style={{ background: renk.zemin, color: renk.renk }}
+                        className={
+                          'listitem__icon' + (bilgi ? ' duyuru-ikon duyuru-ikon--' + bilgi.ton : '')
+                        }
+                        style={bilgi ? undefined : { background: renk.zemin, color: renk.renk }}
                       >
                         <Ikon size={22} />
                       </div>
@@ -183,6 +211,15 @@ export default function Notifications() {
                           {b.metin || yaz(t, b, dil, 'metinAnahtar')}
                         </div>
                         <div className="row" style={{ gap: 8, marginTop: 7 }}>
+                          {/* Türün adı satırda yazıyor. İkon rengi tek
+                              başına yetmiyordu: renk körlüğü bir yana,
+                              müşteri "Kampanya mı, uyarı mı?" sorusunu
+                              metni okumadan cevaplayabilmeli. */}
+                          {bilgi && (
+                            <span className={'duyuru-etiket duyuru-etiket--' + bilgi.ton}>
+                              {t(bilgi.anahtar)}
+                            </span>
+                          )}
                           {(b.degerler?.no || b.talepNo) && (
                             <span
                               className={

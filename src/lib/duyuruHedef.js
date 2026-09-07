@@ -95,6 +95,16 @@ export function duyuruGecerliMi(
      görünmesiydi: başkasının bildirimi. */
   if (!personelDuyurusuMu(d)) return !bayi
 
+  /* GERİ ÇAĞIRMA YALNIZ BAYİYE.
+
+     Yayınlama ekranında alıcı kitlesi zaten kilitli, ama kural iki
+     yerde birden duruyor. Ekranı atlayan bir kayıt — elle yazılmış,
+     içe aktarılmış ya da ileride sunucudan gelen — çiftçinin
+     telefonunda "makinenizi kullanmayın" penceresi açardı. Kararı
+     veren PAKSAN'dı: geri çağırmayı bayi yürütür, müşteriyi bayi
+     arar (bkz. data/duyuruTurleri.js). */
+  if (d.alt === 'geriCagirma' && !bayi) return false
+
   /* Kampanya duyurusu yalnız izin verene. Ticari elektronik ileti
      kuralı (6563). Güvenlik uyarısı izinden bağımsız. */
   if (d.tur === 'duyuru' && !bayi && !user?.onaylar?.kampanya) return false

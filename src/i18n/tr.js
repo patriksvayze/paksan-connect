@@ -603,6 +603,18 @@ export const tr = {
     tumBildirimler: 'Tüm Bildirimlerim',
   },
 
+  /* Duyuru alt türlerinin ekranda görünen adları. Tanım
+     src/data/duyuruTurleri.js içinde; oradaki Türkçe adlar backoffice
+     ve bayi paneli için, buradakiler müşteri uygulaması iki dilli
+     olduğu için. */
+  duyuruTuru: {
+    kampanya: 'Kampanya',
+    yeniUrun: 'Yeni Ürün',
+    etkinlik: 'Etkinlik',
+    guvenlik: 'Güvenlik Uyarısı',
+    geriCagirma: 'Geri Çağırma',
+  },
+
 
   ekle: {
     hataBos: 'Lütfen makinenizin seri numarasını yazın.',

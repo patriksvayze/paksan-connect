@@ -27,7 +27,10 @@ import {
   IconShield,
   IconMachine,
   IconTag,
+  IconAlert,
+  IconUndo,
 } from '../components/Icons'
+import { altBilgi } from '../data/duyuruTurleri'
 import { PaksanLogo } from '../components/Marka'
 /* Çizimler Higgsfield ile üretildi, uygulamanın kendi görsel diline
    (kalın lacivert kontur, düz dolgu, sınırlı palet) referans verilerek.
@@ -733,46 +736,109 @@ function TalepKarti({ talep, onAc }) {
   )
 }
 
-/* PAKSAN'ın bayilere yönelttiği duyurular.
+/* ==========================================================================
+   PAKSAN'ın bayilere yönelttiği duyurular
 
-   Ayrı bir bildirim listesi kurulmadı: aynı duyuru deposu okunuyor,
+   Ayrı bir bildirim deposu kurulmadı: aynı duyuru deposu okunuyor,
    kime gideceğine duyuruHedef.js karar veriyor. Bayiye ulaşması için
    duyurunun hedefinde "bayilere" ya da "ikisine de" seçilmiş olması
-   gerekiyor; hedefsiz duyuru müşteriye gider, bayiye değil. */
+   gerekiyor; hedefsiz duyuru müşteriye gider, bayiye değil.
+
+   "ANLADIM" ARTIK SİLMİYOR
+
+   Önceden okunan duyuru ekrandan tamamen kayboluyordu ve geri getirmenin
+   yolu yoktu. Müşteri uygulamasında duyuru Bildirimler listesinde
+   kalıyordu, bayi panelinde karşılığı hiç yoktu.
+
+   Geri çağırma yalnızca bayiye gidiyor (bkz. data/duyuruTurleri.js):
+   yanlışlıkla "Anladım" denilen bir geri çağırma, o makineleri servise
+   çağıracak tek kişinin elinden çıkmış oluyordu. Okunanlar artık
+   "Geçmiş duyurular" başlığının altında duruyor.
+
+   TÜRÜN KENDİ RENGİ VAR. Bütün duyurular aynı zilli kutuda çıkıyordu;
+   kampanya ile geri çağırma ayırt edilemiyordu.
+   ========================================================================== */
+
+/* Tablodaki `ikon` adının bayi panelindeki karşılığı. */
+const DUYURU_IKON = {
+  etiket: IconTag,
+  makine: IconMachine,
+  takvim: IconCalendar,
+  uyari: IconAlert,
+  geri: IconUndo,
+}
+
+function DuyuruKarti({ duyuru, okunmamis, onKapat }) {
+  const bilgi = altBilgi(duyuru)
+  const Ikon = DUYURU_IKON[bilgi.ikon] || IconBell
+
+  return (
+    <div className={'duyuru duyuru--' + bilgi.ton}>
+      <div className="duyuru__ust">
+        <Ikon size={17} />
+        <span className="duyuru__tur">{bilgi.ad}</span>
+      </div>
+      <strong className="duyuru__baslik">{duyuru.baslik}</strong>
+      <p className="duyuru__metin">{duyuru.metin}</p>
+      {okunmamis && (
+        <button className="dg dg--kucuk" onClick={onKapat}>
+          Anladım
+        </button>
+      )}
+    </div>
+  )
+}
+
 function BayiDuyurulari({ oturum }) {
-  const [liste, setListe] = useState([])
+  const [hepsi, setHepsi] = useState([])
+  const [gorulen, setGorulen] = useState(() => new Set(load(GORULEN, [])))
+  const [gecmisAcik, setGecmisAcik] = useState(false)
 
   useEffect(() => {
-    const gorulen = new Set(load(GORULEN, []))
-    setListe(
+    setHepsi(
       load('duyurular', [])
         .filter((d) => duyuruGecerliMi(d, { bayi: oturum }))
-        .filter((d) => !gorulen.has(d.id))
         .sort((a, b) => b.tarih - a.tarih),
     )
   }, [oturum])
 
   function kapat(id) {
-    save(GORULEN, [...new Set([...load(GORULEN, []), id])])
-    setListe((l) => l.filter((d) => d.id !== id))
+    const yeni = [...new Set([...load(GORULEN, []), id])]
+    save(GORULEN, yeni)
+    setGorulen(new Set(yeni))
   }
 
-  if (!liste.length) return null
+  const yeniler = hepsi.filter((d) => !gorulen.has(d.id))
+  const gecmis = hepsi.filter((d) => gorulen.has(d.id))
+
+  if (!hepsi.length) return null
 
   return (
     <>
-      {liste.map((d) => (
-        <div key={d.id} className="duyuru">
-          <div className="duyuru__ust">
-            <IconBell size={17} />
-            <strong>{d.baslik}</strong>
-          </div>
-          <p className="duyuru__metin">{d.metin}</p>
-          <button className="dg dg--kucuk" onClick={() => kapat(d.id)}>
-            Anladım
-          </button>
-        </div>
+      {yeniler.map((d) => (
+        <DuyuruKarti key={d.id} duyuru={d} okunmamis onKapat={() => kapat(d.id)} />
       ))}
+
+      {/* Geçmiş kapalı başlıyor: bayinin ekranı bugünkü işi göstermeli,
+          okunmuş duyuru yığınını değil. Tek dokunuşla açılıyor ve kaç
+          tane olduğu düğmenin üzerinde yazıyor. */}
+      {gecmis.length > 0 && (
+        <>
+          <button
+            className="dg dg--blok"
+            onClick={() => setGecmisAcik((x) => !x)}
+          >
+            <IconBell size={18} />
+            {gecmisAcik
+              ? 'Geçmiş duyuruları gizle'
+              : `Geçmiş duyurular · ${gecmis.length}`}
+          </button>
+          {gecmisAcik &&
+            gecmis.map((d) => (
+              <DuyuruKarti key={d.id} duyuru={d} okunmamis={false} />
+            ))}
+        </>
+      )}
     </>
   )
 }

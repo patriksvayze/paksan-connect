@@ -94,5 +94,37 @@ bak(
   'başka bayiye hedeflenmiş duyuru gelmez',
 )
 
+/* 10. Geri çağırma YALNIZ bayiye.
+
+       Kural iki yerde birden duruyor: yayınlama ekranında alıcı
+       kitlesi kilitli, burada da okuma tarafında kapı var. Buradaki
+       kapı, ekranı atlayan bir kayıt için — çiftçinin telefonunda
+       "makinenizi kullanmayın" penceresi açılmasın. */
+const geriCagirma = { id: 'g1', tur: 'uyari', alt: 'geriCagirma', baslik: 'Geri çağırma' }
+bak(duyuruGecerliMi(geriCagirma, { bayi }), false, 'hedefsiz geri çağırma bayiye de gitmez')
+bak(
+  duyuruGecerliMi({ ...geriCagirma, hedef: { kime: 'bayi' } }, { bayi }),
+  true,
+  'bayiye hedeflenmiş geri çağırma bayiye gider',
+)
+bak(
+  duyuruGecerliMi({ ...geriCagirma, hedef: { kime: 'ikisi' } }, { user: izinsiz }),
+  false,
+  'geri çağırma müşteriye ikisi seçilse bile gitmez',
+)
+bak(
+  duyuruGecerliMi({ ...geriCagirma, hedef: { kime: 'musteri' } }, { user: izinli }),
+  false,
+  'geri çağırma müşteriye doğrudan hedeflense bile gitmez',
+)
+
+/* 11. Öteki uyarı alt türü müşteriye gitmeye devam ediyor: kapı
+       yalnız geri çağırmaya konuldu. */
+bak(
+  duyuruGecerliMi({ ...uyari, alt: 'guvenlik' }, { user: izinsiz }),
+  true,
+  'güvenlik uyarısı müşteriye gider',
+)
+
 console.log(`${n} durumun hepsi doğru.`)
 console.log('\nSONUÇ: duyuru hedeflemesi çalışıyor.')

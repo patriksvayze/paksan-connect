@@ -7,7 +7,20 @@ import { ekAdresi } from '../lib/ekler'
 import { duyuruGecerliMi, personelDuyurusuMu } from '../lib/duyuruHedef'
 import { yurtdisiTalepMi } from '../lib/ihracat'
 import { Sheet } from './Chrome'
-import { IconAlert, IconBell } from './Icons'
+import { altBilgi } from '../data/duyuruTurleri'
+import {
+  IconAlert, IconBell, IconCalendar, IconMachine, IconTag, IconUndo,
+} from './Icons'
+
+/* Alt türün ikonu. Tablodaki `ikon` adı burada bileşene bağlanıyor —
+   veri dosyası JSX taşımıyor, üç ürün de kendi ikon setini kullanıyor. */
+const IKONLAR = {
+  etiket: IconTag,
+  makine: IconMachine,
+  takvim: IconCalendar,
+  uyari: IconAlert,
+  geri: IconUndo,
+}
 
 /* ==========================================================================
    Duyuru penceresi
@@ -89,43 +102,67 @@ export function Duyuru() {
   const acik = duyurular[sira]
   if (!acik) return null
 
-  const uyari = acik.tur === 'uyari'
+  /* ------------------------------------------------------------- Tasarım
 
+     ÖNCEKİ HÂLİ TÜRÜ ANLATMIYORDU. Bütün duyurular aynı kutuda,
+     yuvarlak ikonla ve tek başlıkla görünüyordu; kampanya ile güvenlik
+     uyarısı arasındaki tek fark ikonun rengiydi. Okuyan kişi neyle
+     karşılaştığını başlığı okuyana kadar bilmiyordu.
+
+     Şimdi türün kendi şeridi var: renk, ikon ve türün adı en üstte.
+     Renkli şerit, ekranın en üstünde ve metinden önce görülüyor —
+     kampanya turuncu, güvenlik uyarısı kırmızı.
+
+     Sınıf adları backoffice önizlemesiyle birebir aynı
+     (bkz. backoffice/ekranlar/Duyurular.jsx → Onizleme); personelin
+     yayınlamadan önce gördüğü kutu ile müşterinin gördüğü kutu
+     ayrışmasın diye. */
+  const bilgi = altBilgi(acik)
+  const Ikon = IKONLAR[bilgi.ikon] || IconBell
+  const sonuncu = sira >= duyurular.length - 1
+
+  /* Pencere başlığı ÜST türü söylüyor, şerit alt türü. İkisi de alt
+     türü yazınca "Kampanya" iki kez okunuyordu. Üstte hukuki sınıf,
+     altta ne olduğu: "PAKSAN Duyurusu" › KAMPANYA. */
   return (
-    <Sheet open onClose={kapat} title={uyari ? t('duyuru.uyariBaslik') : t('duyuru.baslik')}>
-      <div className="stack" style={{ gap: 16 }}>
-        <div className="row" style={{ gap: 12, alignItems: 'flex-start' }}>
-          <span
-            className="listitem__icon"
-            style={
-              uyari
-                ? { background: 'var(--pk-orange-soft)', color: 'var(--pk-orange-ink)' }
-                : { background: 'var(--pk-blue-soft)', color: 'var(--pk-blue-yazi)' }
-            }
-          >
-            {uyari ? <IconAlert size={22} /> : <IconBell size={22} />}
-          </span>
-          <h2 style={{ fontSize: 18, lineHeight: 1.4, margin: 0, flex: 1 }}>{acik.baslik}</h2>
+    <Sheet
+      open
+      onClose={kapat}
+      title={bilgi.ust === 'uyari' ? t('duyuru.uyariBaslik') : t('duyuru.baslik')}
+    >
+      <div className={'duyuru-kutu duyuru-kutu--' + bilgi.ton}>
+        <div className="duyuru-kutu__tepe">
+          <Ikon size={18} />
+          <span className="duyuru-kutu__etiket">{t(bilgi.anahtar)}</span>
         </div>
 
-        {/* Görsel varsa metnin üstünde, tam genişlikte. `contain` ile:
-            kampanya görselinin üzerindeki yazı kırpılmasın. */}
-        {acik.gorsel && <DuyuruGorseli gorsel={acik.gorsel} />}
+        <div className="duyuru-kutu__ic">
+          {/* Görsel varsa metnin üstünde, tam genişlikte. `contain` ile:
+              kampanya görselinin üzerindeki yazı kırpılmasın. */}
+          {acik.gorsel && <DuyuruGorseli gorsel={acik.gorsel} />}
 
-        <p style={{ lineHeight: 1.7, whiteSpace: 'pre-wrap', margin: 0 }}>{acik.metin}</p>
+          <h2 className="duyuru-kutu__baslik">{acik.baslik}</h2>
+          <p className="duyuru-kutu__metin">{acik.metin}</p>
+        </div>
+      </div>
 
+      <div className="stack" style={{ gap: 10, marginTop: 16 }}>
         <button className="btn btn--primary btn--lg" onClick={ilerle}>
-          {sira < duyurular.length - 1 ? t('duyuru.sonraki') : t('duyuru.anladim')}
+          {sonuncu ? t('duyuru.anladim') : t('duyuru.sonraki')}
         </button>
-        <button
-          className="btn btn--soft"
-          onClick={() => {
-            kapat()
-            nav('/bildirimler')
-          }}
-        >
-          {t('duyuru.tumBildirimler')}
-        </button>
+        {/* Sıradaki duyuru varken listeye gitme düğmesi görünmüyor:
+            arkada bekleyen duyuru okunmadan kapanırdı. */}
+        {sonuncu && (
+          <button
+            className="btn btn--soft"
+            onClick={() => {
+              kapat()
+              nav('/bildirimler')
+            }}
+          >
+            {t('duyuru.tumBildirimler')}
+          </button>
+        )}
       </div>
     </Sheet>
   )
