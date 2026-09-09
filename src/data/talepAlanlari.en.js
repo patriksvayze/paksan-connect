@@ -22,6 +22,7 @@ export const MAKINE_DURUMU_EN = {
   durdu: { ad: 'The machine will not run at all' },
   sorunlu: { ad: 'It runs but there is a problem' },
   kontrol: { ad: 'It runs, but please check it' },
+  kurulum: { ad: 'It needs its first set-up' },
 }
 
 export const URUN_TIPI_EN = [

@@ -7,7 +7,7 @@ import { GonderButonu } from '../components/GonderButonu'
 import { alanaGit } from '../lib/formOdak'
 import {
   ULASIM_ZAMANI, PARCA_DIGER,
-  makineDurumu, ulasimSecenekleri, urunTipiSecenekleri,
+  makineDurumu, ulasimSecenekleri, urunTipiSecenekleri, ARIZA_DURUMLARI,
   araziSecenekleri, traktorSecenekleri, belirtiSecenekleri, parcaSecenekleri,
 } from '../data/talepAlanlari'
 import {
@@ -192,10 +192,23 @@ function TalepFormu() {
 
      Ses kaydı bırakıldıysa yazı zorunluluğu düşüyor — ikisi de aynı
      işi görüyor. */
+  /* KURULUM TALEBİNDE ARIZA SORULMUYOR.
+
+     "İlk kurulum yapılacak" seçildiğinde ortada bir arıza yok:
+     makine yeni geldi, kurulup çalıştırılacak. Belirti listesi ve
+     açıklama kutusu bu yüzden kapanıyor; ikisi de "neyin bozuk
+     olduğunu" soruyor ve cevabı yok. Zorunluluklar da onlarla
+     birlikte düşüyor (bkz. `gonder`). */
+  /* Henüz seçim yapılmamışken (`durum === ''`) form arıza kipinde
+     duruyor: kullanıcı daha bir şey söylemedi, alanları saklamak için
+     sebep yok. Yalnız arıza ANLATMAYAN bir durum seçildiğinde
+     kapanıyorlar. */
+  const arizaVar = !durum || ARIZA_DURUMLARI.includes(durum)
+
   const aciklamaZorunlu =
     !ses &&
     ((tur === 'parca' && parcalar.includes(PARCA_DIGER)) ||
-      (tur === 'servis' && belirtiler.includes('Diğer')))
+      (tur === 'servis' && arizaVar && belirtiler.includes('Diğer')))
   /* Talebe hangi bayinin bakacağını ilçe belirliyor; onay penceresinde
      boş geçilemiyor.
 
@@ -341,7 +354,7 @@ function TalepFormu() {
 
     if (tur === 'servis' && !durum)
       return sorunlu('durum', t('talep.durumSecin'))
-    if (tur === 'servis' && belirtiler.length === 0)
+    if (tur === 'servis' && arizaVar && belirtiler.length === 0)
       return sorunlu('belirti', t('talep.belirtiSecin'))
     if (tur === 'parca' && parcalar.length === 0)
       return sorunlu('parca', t('talep.parcaSecin'))
@@ -1057,10 +1070,19 @@ function TalepFormu() {
                     const pr = urunDilde(getProduct(m.productId), dil)
                     return (
                       <option key={m.id} value={m.id}>
-                        {pr?.name +
-                          (m.nickname ? ` (${m.nickname})` : '') +
-                          ' · ' +
-                          formatSerial(m.serial)}
+                        {/* ÜRÜN TANINMAZSA ADI HİÇ YAZILMIYOR.
+
+                            Önce `pr?.name + ' · ' + seri` yazılıyordu:
+                            `pr` boş olduğunda satır ekranda
+                            "undefined · SYNS-2023-00891" diye
+                            görünüyordu. Seri numarası tek başına
+                            makineyi zaten ayırt ediyor. */}
+                        {[
+                          pr?.name && pr.name + (m.nickname ? ` (${m.nickname})` : ''),
+                          formatSerial(m.serial),
+                        ]
+                          .filter(Boolean)
+                          .join(' · ')}
                       </option>
                     )
                   })}
@@ -1091,7 +1113,17 @@ function TalepFormu() {
                     <button
                       key={d.id}
                       className={'durum' + (durum === d.id ? ' durum--on' : '')}
-                      onClick={() => setDurum(d.id)}
+                      onClick={() => {
+                        setDurum(d.id)
+                        /* Arızadan kuruluma geçildiğinde eski seçimler
+                           kalmıyor: gizlenen bir alan hâlâ dolu olsaydı
+                           kurulum talebi "İp kopuyor" belirtisiyle
+                           gidiyordu. */
+                        if (!ARIZA_DURUMLARI.includes(d.id)) {
+                          setBelirtiler([])
+                          setAciklama('')
+                        }
+                      }}
                     >
                       <span className="durum__isaret" />
                       <span className="durum__ad">{d.ad}</span>
@@ -1100,6 +1132,7 @@ function TalepFormu() {
                 </div>
               </div>
 
+              {arizaVar && (
               <div className="field" data-alan="belirti">
                 <span className="field__label">
                   {t('talep.sorunNedir')}
@@ -1122,6 +1155,7 @@ function TalepFormu() {
                   )}
                 </div>
               </div>
+              )}
             </>
           )}
 
@@ -1328,7 +1362,13 @@ function TalepFormu() {
           )}
 
           {/* Açıklama — ya yazarak ya da sesle. İkisi de aynı işi
-              görüyor; hangisi kolayına geliyorsa kullanıcı onu seçiyor. */}
+              görüyor; hangisi kolayına geliyorsa kullanıcı onu seçiyor.
+
+              KURULUM TALEBİNDE SORULMUYOR: alanın sorduğu şey "sorunu
+              anlatın" ve kurulumda anlatılacak bir sorun yok. Ek ve ses
+              de onunla birlikte kalkıyor — hepsi aynı kutunun içinde,
+              hepsi arızayı anlatmak için. */}
+          {(tur !== 'servis' || arizaVar) && (
           <div className="field" data-alan="aciklama">
             <label>
               <span className="field__label">
@@ -1349,6 +1389,7 @@ function TalepFormu() {
                 müşterinin elinde değil, gösterecek bir şey yok. */}
             {tur !== 'satinalma' && <EkAlani ekler={ekler} onDegis={setEkler} />}
           </div>
+          )}
 
           {/* Çiftçi gün boyu tarlada; ne zaman ulaşılabildiğini
               söylerse boşa arama sayısı düşer.

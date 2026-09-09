@@ -48,11 +48,23 @@ export const ULASIM_ZAMANI = [
    ALT AÇIKLAMA YOK. Üç seçeneğin altında birer açıklama satırı vardı
    ("İş tamamen durdu", "Acelesi yok"). Başlıklar zaten açık; açıklama
    aynı şeyi ikinci kez söyleyip seçenekleri gereksiz yere büyütüyordu. */
+/* DÖRDÜNCÜSÜ ARIZA DEĞİL, KURULUM.
+
+   İlk üçü bir arızayı anlatıyor ve altlarında "sorun nedir" diye
+   sorulmasının sebebi bu. Dördüncüsü bambaşka bir iş: makine yeni
+   geldi, kurulup çalıştırılacak. Orada sorulacak bir sorun yok —
+   seçildiğinde belirti ve açıklama bölümleri kapanıyor
+   (bkz. screens/RequestForm.jsx). */
 export const MAKINE_DURUMU = [
   { id: 'durdu', ad: 'Makine hiç çalışmıyor' },
   { id: 'sorunlu', ad: 'Çalışıyor ama sorun var' },
   { id: 'kontrol', ad: 'Çalışıyor, kontrol edilsin' },
+  { id: 'kurulum', ad: 'İlk kurulum yapılacak' },
 ]
+
+/* Arıza anlatan durumlar. Bu kümenin dışındaki seçim, formun
+   arıza sorularını kapatıyor. */
+export const ARIZA_DURUMLARI = ['durdu', 'sorunlu', 'kontrol']
 
 const ORTAK_BELIRTI = [
   'Anormal ses geliyor',

@@ -2421,11 +2421,26 @@ select.sec {
 .tablo--talepler th:nth-child(3),
 .tablo--talepler td:nth-child(3) { width: 16%; }
 .tablo--talepler th:nth-child(4),
-.tablo--talepler td:nth-child(4) { width: 15%; }
+.tablo--talepler td:nth-child(4) { width: 14%; }
 .tablo--talepler th:nth-child(5),
-.tablo--talepler td:nth-child(5) { width: 16%; }
+.tablo--talepler td:nth-child(5) { width: 13.5%; }
 .tablo--talepler th:nth-child(6),
-.tablo--talepler td:nth-child(6) { width: 15%; }
+.tablo--talepler td:nth-child(6) { width: 18.5%; }
+
+/* DURUM SÜTUNU 15'TEN 18,5'E ÇIKTI — servis kaydı iki yeni durum
+   getirdi ve ikisi de listedeki en uzun etiketler.
+
+   Ölçüm (1600 piksel pencere, tablo 722 piksel): "Parça Bekleniyor"
+   rozeti 105 piksel, hücre dolgusuyla birlikte 133 piksel istiyor;
+   sütun 108 pikseldi ve rozet 11 piksel taşıyordu. Rozet `nowrap`
+   olduğu için taşma kırpılma olarak görünüyordu.
+
+   Fark iki sütundan alındı, ikisi de ÖLÇÜLEN boşluktan:
+     Tarih / saat   116 piksel yer kaplıyor, içeriği 91 istiyor  → 25 boş
+     Telefon        108 piksel yer kaplıyor, içeriği  99 istiyor →  9 boş
+   Yeni dağılımda üçü de ihtiyacının üstünde: telefon 101/99,
+   tarih 97/91, durum 134/133. Talep, müşteri ve makine sütunlarına
+   dokunulmadı — onların boşluğu 5 pikselin altındaydı. */
 
 /* Talep numarası tek satırda kalıyor; taşarsa üç nokta ile kısalıyor
    ama satır kırılmıyor. */

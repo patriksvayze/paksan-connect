@@ -85,7 +85,27 @@ export function TalepDetay({
      bitmedi, sıra karşı tarafta (bkz. lib/servisKaydi.js). */
   const onayda = talep.status === 'onayBekliyor'
   const parcada = talep.status === 'parcaBekliyor'
+
+  /* İKİ AYRI YETKİ VAR VE KARIŞTIRILMAMALI.
+
+     `islemVar`    servis kaydını açma yetkisi. Kayıt bir kez
+                   gönderildikten sonra kapanıyor: aynı iş için ikinci
+                   kayıt açılmaz, sıra karşı tarafta.
+
+     `sesiVar`     not yazma, randevu verme, destek isteme. Talep AÇIK
+                   olduğu ve hâlâ servisin üstünde durduğu sürece açık.
+
+   İKİSİ BİR SÜRE AYNI BAYRAKTI VE BU BİR HATAYDI. Parça bekleyen
+   talepte servisin tek düğmesi "Parçayı Taktım" oluyordu: yanlış parça
+   geldiyse, kutu hasarlıysa ya da makinede başka bir şey çıktıysa
+   söyleyecek yeri yoktu — ya işi kapatacaktı ya telefon edecekti.
+   Onay beklerken de aynısıydı: PAKSAN kayıtla ilgili bir şey sorsa
+   servis cevabını uygulamadan yazamıyordu.
+
+   Talep PAKSAN'a devredildiyse (`paksanda`) ikisi de kapalı: muhatap
+   artık PAKSAN, servis izliyor. */
   const islemVar = !kapali && !paksanda && !onayda && !parcada
+  const sesiVar = !kapali && !paksanda
   /* Yalnız müşteriye gönderilmiş notlar; iç notlar servise gitmiyor. */
   const musteriNotlari = (talep.notlar || []).filter((n) => n.musteriye)
 
@@ -449,7 +469,7 @@ export function TalepDetay({
         </div>
       )}
 
-      {islemVar && (
+      {sesiVar && (
         <div className="secenek">
           {talep.tur === 'servis' && (
             <button className="secenek__dg" onClick={() => setPencere('randevu')}>
