@@ -197,6 +197,14 @@ Genel diff incelemesi için `/code-review` komutu kullanılır.
   çıkıyordu ("Stoklu model" gibi).
 - Yeni ekran yazıldığında, İÇİNDEKİ BÜTÜN TÜRKÇE metinler tek seferde
   Codex'e verilir — yalnız uzun cümleler değil.
+- **Brief'e EV KURALLARI da yazılır.** Codex bu projenin yazım
+  düzenini bilmiyor; söylenmezse kendi tercihine göre değiştiriyor:
+  - Düğme yazıları **Başlık Düzeninde**: "Devam Et", "Talebimi Gör",
+    "Sorun Devam Ediyor". Etiket ve açıklama cümleleri normal.
+  - Marka adı yer tutucuyla geçer (`{marka}`, `{markaYi}`, …);
+    Codex'ten bunları değiştirmemesi istenir.
+  - Terim yasağı (iskonto, kapsam, künye, hak ediş) müşteri ve servis
+    ekranları için geçerli, backoffice'te değil.
 - İş devredilirken gereken efor açıkça belirtilir; `codex exec` için `-c model_reasoning_effort` kullanılır.
 - Türkçe metin yazımı ve dil doğruluk kontrolü için efor seviyesi `low` olarak belirlenir.
 - Devredilen iş sessizce başarısız olabilir; sonucu görülmeden iş tamamlanmış sayılmaz.
