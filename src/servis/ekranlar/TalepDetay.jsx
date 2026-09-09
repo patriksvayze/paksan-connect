@@ -19,6 +19,7 @@ import {
   GARANTI_YIL,
 } from '../../lib/serial'
 import {
+  IconAlert,
   IconBook,
   IconCalendar,
   IconCheckCircle,
@@ -27,6 +28,7 @@ import {
   IconShield,
   IconTag,
 } from '../../components/Icons'
+import { gecenSure } from '../../backoffice/ekranlar/ortak'
 
 /* ==========================================================================
    Servis paneli — talep detayı
@@ -135,6 +137,34 @@ export function TalepDetay({
       onGeri={onKapat}
       dip={asilIslem}
     >
+      {/* ================================== Sorun devam ediyor
+
+          Bu iş bir kez kapandı ve müşteri "hâlâ aynı" dedi. Servisin
+          bunu KAPIDAN ÖNCE bilmesi gerekiyor: aynı arızaya ikinci kez
+          gidiyor, ilk seferde ne yaptığı aşağıda yazılı. Ekranın en
+          üstünde duruyor, çünkü altındaki her şey ilk ziyaretin
+          bilgisi. */}
+      {(talep.tekrar || []).length > 0 && (
+        <div className="not not--turuncu">
+          <IconAlert size={19} />
+          <div>
+            <strong>
+              Müşteri sorunun devam ettiğini bildirdi
+              {talep.tekrar.length > 1 ? ` · ${talep.tekrar.length} kez` : ''}
+            </strong>
+            {talep.tekrar
+              .slice()
+              .reverse()
+              .map((x, i) => (
+                <p key={i} style={{ margin: '6px 0 0' }}>
+                  {x.aciklama || 'Açıklama yazılmadı.'}
+                  <span className="kucuk sonuk"> · {gecenSure(x.tarih)}</span>
+                </p>
+              ))}
+          </div>
+        </div>
+      )}
+
       <div className="kart" style={{ padding: 16 }}>
         <div className="is__ust">
           <span className={'tur tur--' + talep.tur}>

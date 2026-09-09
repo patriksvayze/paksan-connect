@@ -280,6 +280,7 @@ export const en = {
     teklif: 'Your quote is ready',
     kapandi: 'Completed',
     iptal: 'Cancelled',
+    bayide: 'With the dealer',
   },
 
   bildirimler: {
@@ -320,6 +321,8 @@ export const en = {
     bosBaslik: 'You Have No Notifications Yet',
     bosAlt: 'When you create a request and when {marka} makes an announcement, your notifications appear here.',
     demoNot: 'When the status of your request changes and when {marka} makes an announcement, the notification arrives here. Push notifications to your phone are not set up yet; for now you see them when you open the app.',
+    bayiBaslik: '{no} · Your request has gone to our dealer',
+    bayiMetin: '{bayi} will prepare your quote and call you.',
   },
 
   /* ------------------------------------------------ Spare part prices */
@@ -378,6 +381,18 @@ export const en = {
     odemeBekliyor: 'Your payment is being checked',
     faturaAdi: 'Invoice to',
     teslimatAdresi: 'Delivery address',
+    bayiBaslik: 'Your request has gone to our dealer',
+    bayiAlt: 'This dealer will prepare your quote and call you.',
+    devamBaslik: 'Is the problem still there?',
+    devamAlt: 'If the job is closed but your machine is still doing the same thing, tell us. The request reopens where it was and the service arrives knowing what was already done.',
+    devamDugme: 'The Problem Continues',
+    devamAciklama: 'The request will reopen and go back to your service. Writing what is still happening helps them come prepared, but it is not required.',
+    devamNot: 'What is still happening? (optional)',
+    devamNotIpucu: 'Example: It ties the knot but still drops the twine.',
+    devamGonder: 'Reopen the Request',
+    devamAlindi: 'We have your message — the request is open again.',
+    devamBildirildi: 'The problem continues',
+    eklemeKapaliServis: 'This request is closed, so nothing more can be added to it. If the problem is still there, reopen it with the button below — the service will arrive knowing what was already done.',
   },
 
   /* --------------------------------- Spare parts: invoice and payment */

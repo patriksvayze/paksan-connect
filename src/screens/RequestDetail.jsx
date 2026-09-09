@@ -17,7 +17,7 @@ import { SIRKET } from '../marka'
 import { araProps, telFirma } from '../lib/tel'
 import {
   IconCalendar, IconCheckCircle, IconClose, IconCart, IconMic,
-  IconPhone, IconWrench, IconInfo, IconPlus,
+  IconPhone, IconWrench, IconInfo, IconPlus, IconAlert,
 } from '../components/Icons'
 
 /* ==========================================================================
@@ -64,6 +64,9 @@ export default function RequestDetail() {
   const [yeniSes, setYeniSes] = useState(null)
   const [yeniEkler, setYeniEkler] = useState([])
   const [eklemeHata, setEklemeHata] = useState('')
+  /* "Sorun devam ediyor" penceresi ve içindeki açıklama. */
+  const [devamPenceresi, setDevamPenceresi] = useState(false)
+  const [devamNot, setDevamNot] = useState('')
 
   const r = requests.find((x) => x.id === id)
   const yerel = dil === 'tr' ? 'tr-TR' : 'en-GB'
@@ -169,6 +172,27 @@ export default function RequestDetail() {
             >
               <IconPhone size={18} /> {t('talepDetay.yanlislikVar')}
             </a>
+          </Kutu>
+        )}
+
+        {/* ---------------------------------------------- Talebi alan bayi
+
+            Fiyat teklifi bayiye atandığında müşterinin bilmesi gereken
+            tek şey: kim arayacak ve numarası ne. Tanımadığı bir
+            numaradan gelen aramayı beklemesin. */}
+        {r.bayi && (
+          <Kutu ad={t('talepDetay.bayiBaslik')} ton="mor">
+            <div style={{ fontWeight: 800, fontSize: 16 }}>{r.bayi.ad}</div>
+            <p className="detay-metin">{t('talepDetay.bayiAlt')}</p>
+            {r.bayi.tel && (
+              <a
+                className="btn btn--soft btn--sm"
+                style={{ marginTop: 10 }}
+                {...araProps(r.bayi.tel, telFirma(r.bayi.tel), showToast)}
+              >
+                <IconPhone size={18} /> {telFirma(r.bayi.tel)}
+              </a>
+            )}
           </Kutu>
         )}
 
@@ -335,8 +359,15 @@ export default function RequestDetail() {
             <IconPlus size={18} /> {t('talepDetay.eklemeYap')}
           </button>
         ) : (
+          /* Kapanmış SERVİS talebinde "yeni talep açın" demek artık
+             yanlış: aşağıda aynı talebi geri açan bir düğme var ve
+             doğru yol o. İki yazı birbiriyle çelişmemeli. */
           <p className="small muted" style={{ marginTop: 16, lineHeight: 1.6 }}>
-            {t('talepDetay.eklemeKapali')}
+            {t(
+              r.tur === 'servis' && durum === 'kapandi'
+                ? 'talepDetay.eklemeKapaliServis'
+                : 'talepDetay.eklemeKapali',
+            )}
           </p>
         )}
 
@@ -378,6 +409,51 @@ export default function RequestDetail() {
 
             Talep PAKSAN'a devredilmişse (`sahip: 'paksan'`) servis
             düğmesi çıkmıyor — o işi artık servis yürütmüyor. */}
+        {/* ================================= Sorun devam ediyor
+
+            KAPANAN İŞ HER ZAMAN BİTMİŞ İŞ DEĞİL. Servis geliyor,
+            yapıyor, talebi kapatıyor; makine ertesi gün aynı şeyi
+            yapıyor. Bugüne kadar çiftçinin tek yolu sıfırdan yeni bir
+            talep açmaktı ve o talep ilk işle bağlantısız oluyordu:
+            servis aynı arızaya ikinci kez ilk kez bakıyormuş gibi
+            gidiyordu.
+
+            Düğme AYNI TALEBİ geri açıyor. Yapılan iş, değişen parça ve
+            servis geçmişi olduğu yerde kalıyor; üstüne "sorun devam
+            ediyor" satırı yazılıyor. Servis ne yaptığını görerek
+            gidiyor.
+
+            YALNIZ SERVİS TALEBİNDE VE YALNIZ KAPANDIYSA. İptal edilmiş
+            talepte yapılmış bir iş yok; parça talebinde de "sorun"
+            diye bir şey yok, parça geldi ya da gelmedi. */}
+        {r.tur === 'servis' && durum === 'kapandi' && (
+          <div className="card" style={{ marginTop: 22, padding: 16 }}>
+            <div className="card__title">{t('talepDetay.devamBaslik')}</div>
+            <div className="card__sub" style={{ marginTop: 4, lineHeight: 1.6 }}>
+              {t('talepDetay.devamAlt')}
+            </div>
+            <button
+              className="btn btn--orange"
+              style={{ marginTop: 14 }}
+              onClick={() => setDevamPenceresi(true)}
+            >
+              <IconAlert size={20} /> {t('talepDetay.devamDugme')}
+            </button>
+          </div>
+        )}
+
+        {/* Geri açıldıysa en son ne yazıldığı burada duruyor. */}
+        {(r.tekrar || []).length > 0 && durum !== 'kapandi' && (
+          <Kutu ad={t('talepDetay.devamBildirildi')} ton="turuncu">
+            {r.tekrar.map((x, i) => (
+              <div key={i} style={{ marginBottom: 8 }}>
+                {x.aciklama && <p className="detay-metin">{x.aciklama}</p>}
+                <div className="small muted">{tarihYaz(x.tarih)}</div>
+              </div>
+            ))}
+          </Kutu>
+        )}
+
         <div className="stack" style={{ marginTop: 22 }}>
           {servis?.tel && (
             <a
@@ -451,6 +527,50 @@ export default function RequestDetail() {
             }}
           >
             {t('talepDetay.eklemeGonder')}
+          </button>
+        </div>
+      </Sheet>
+
+      {/* --------------------------------- Sorun devam ediyor penceresi
+
+          Açıklama İSTEĞE BAĞLI. Zorunlu tutmak, yazmak istemeyen
+          çiftçiyi bildirimden vazgeçiriyor; boş bir bildirim bile
+          servise "bu iş bitmedi" demeye yetiyor. */}
+      <Sheet
+        open={devamPenceresi}
+        onClose={() => setDevamPenceresi(false)}
+        title={t('talepDetay.devamBaslik')}
+      >
+        <div className="stack" style={{ gap: 16 }}>
+          <p className="small muted" style={{ margin: 0, lineHeight: 1.6 }}>
+            {t('talepDetay.devamAciklama')}
+          </p>
+
+          <label className="field">
+            <span className="field__label">{t('talepDetay.devamNot')}</span>
+            <textarea
+              className="textarea"
+              value={devamNot}
+              onChange={(e) => setDevamNot(e.target.value)}
+              placeholder={t('talepDetay.devamNotIpucu')}
+            />
+          </label>
+
+          <button
+            className="btn btn--orange"
+            onClick={() => {
+              const kayit = { tarih: Date.now(), aciklama: devamNot.trim() }
+              updateRequest(r.id, {
+                status: 'yeni',
+                tekrar: [...(r.tekrar || []), kayit],
+                gecmis: [...(r.gecmis || []), { durum: 'yeni', tarih: kayit.tarih }],
+              })
+              setDevamNot('')
+              setDevamPenceresi(false)
+              showToast(t('talepDetay.devamAlindi'))
+            }}
+          >
+            {t('talepDetay.devamGonder')}
           </button>
         </div>
       </Sheet>

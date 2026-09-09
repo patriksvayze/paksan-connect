@@ -278,6 +278,7 @@ export const tr = {
     teklif: 'Teklifiniz hazırlandı',
     kapandi: 'Tamamlandı',
     iptal: 'İptal edildi',
+    bayide: 'Bayide',
   },
 
   bildirimler: {
@@ -318,6 +319,8 @@ export const tr = {
     bosBaslik: 'Henüz Bildiriminiz Yok',
     bosAlt: 'Talep oluşturduğunuzda ve {marka} bir duyuru yaptığında bildirimleriniz burada görünür.',
     demoNot: 'Talebinizin durumu değiştiğinde ve {marka} duyuru yaptığında bildirimler buraya düşer. Telefona anlık bildirim gönderme henüz kurulmadı; şimdilik uygulamayı açtığınızda görüyorsunuz.',
+    bayiBaslik: '{no} · Talebiniz bayimize iletildi',
+    bayiMetin: 'Fiyat teklifinizi {bayi} hazırlayacak ve sizi arayacak.',
   },
   profil: {
     hesabim: 'Hesabım',
@@ -533,6 +536,18 @@ export const tr = {
     odemeBekliyor: 'Ödemeniz kontrol ediliyor',
     faturaAdi: 'Fatura',
     teslimatAdresi: 'Teslimat adresi',
+    bayiBaslik: 'Talebiniz bayimize iletildi',
+    bayiAlt: 'Fiyat teklifinizi bu bayi hazırlayıp sizi arayacak.',
+    devamBaslik: 'Sorun devam ediyor mu?',
+    devamAlt: 'İş kapandı ama makineniz hâlâ aynı şeyi yapıyorsa bize bildirin; talep aynı yerden yeniden açılır ve servis ne yapıldığını görerek gelir.',
+    devamDugme: 'Sorun Devam Ediyor',
+    devamAciklama: 'Talep yeniden açılacak ve servisinize düşecek. Neyin devam ettiğini yazarsanız servis hazırlıklı gelir; yazmak zorunda değilsiniz.',
+    devamNot: 'Ne devam ediyor? (isteğe bağlı)',
+    devamNotIpucu: 'Örnek: Düğüm atıyor ama ipi yine bırakıyor.',
+    devamGonder: 'Talebi Yeniden Aç',
+    devamAlindi: 'Bildiriminiz alındı, talebiniz yeniden açıldı.',
+    devamBildirildi: 'Sorun devam ediyor',
+    eklemeKapaliServis: 'Bu talep kapandı; üzerine ekleme yapılamıyor. Sorun devam ediyorsa aşağıdaki düğmeyle talebi yeniden açın — servis ilk gelişinde ne yaptığını görerek gelir.',
   },
 
   /* --------------------------------- Yedek parça: fatura ve ödeme */

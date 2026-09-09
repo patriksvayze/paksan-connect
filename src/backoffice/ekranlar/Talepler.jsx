@@ -6,7 +6,7 @@ import {
   talepDurumDegistir,
   talepDurumlari, talepIptal, talepKapat, talepleriGetir,
   talepNotEkle, talepPlanla, talepTeklifVer, teklifBeklemeGunu, teklifBekliyorMu,
-  TEKLIF_BEKLEME_GUN,
+  TEKLIF_BEKLEME_GUN, talebiBayiyeAta, bayiAtamasiniKaldir,
 } from '../veri'
 import { useVeri } from '../kanca'
 import {
@@ -21,7 +21,7 @@ import { getProduct, markaEk } from '../../marka'
 import { formatSerial, warrantyStatus } from '../../lib/serial'
 import { makineDurumAdi } from '../../data/talepAlanlari'
 import { BANKA } from '../../marka'
-import { servisleriGetir } from '../../marka'
+import { servisleriGetir, bayileriGetir, MARKA } from '../../marka'
 import { PARA_BIRIMI, parcaToplami, paraYaz } from '../../marka'
 import { telFirma } from '../../lib/tel'
 
@@ -149,6 +149,7 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
       if (ilce !== 'hepsi' && t.ilce !== ilce) return false
       if (sahiplik === 'servis' && (t.sahip || 'paksan') !== 'servis') return false
       if (sahiplik === 'paksan' && (t.sahip || 'paksan') !== 'paksan') return false
+      if (sahiplik === 'bayi' && (t.sahip || 'paksan') !== 'bayi') return false
       if (sahiplik === 'devredilen' && !t.devir) return false
       if (makine !== 'hepsi') {
         const ad = t.makine ? getProduct(t.makine.productId)?.name : null
@@ -298,6 +299,7 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
           secenekler={[
             { deger: 'hepsi', ad: 'Hepsi' },
             { deger: 'servis', ad: 'Serviste' },
+            { deger: 'bayi', ad: 'Bayide' },
             { deger: 'paksan', ad: markaEk('da') },
             { deger: 'devredilen', ad: 'Devredilenler' },
           ]}
@@ -600,6 +602,31 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
           </p>
         )}
 
+        {/* MÜŞTERİ "SORUN DEVAM EDİYOR" DEDİ.
+
+            Kapanmış bir servis talebini müşteri kendi uygulamasından
+            yeniden açabiliyor (bkz. screens/RequestDetail.jsx). Aynı
+            arızaya ikinci kez gidiliyor demek; PAKSAN'ın da servisin
+            de bunu görmesi gerekiyor, yoksa iş yeni bir talep gibi
+            okunuyor ve ilk ziyarette ne yapıldığı kaybolıyor. */}
+        {(talep.tekrar || []).length > 0 && (
+          <div className="uyari" style={{ marginBottom: 16, display: 'block' }}>
+            <b>
+              Müşteri sorunun devam ettiğini bildirdi
+              {talep.tekrar.length > 1 ? ` · ${talep.tekrar.length} kez` : ''}
+            </b>
+            {talep.tekrar
+              .slice()
+              .reverse()
+              .map((x, i) => (
+                <p key={i} style={{ whiteSpace: 'pre-wrap', margin: '8px 0 0' }}>
+                  {x.aciklama || 'Açıklama yazılmadı.'}
+                  <span className="kucuk"> · {tarihYaz(x.tarih)}</span>
+                </p>
+              ))}
+          </div>
+        )}
+
         <Bolum ad="Müşteri">
           <S k="Ad Soyad" v={talep.ad} />
           <S k="Telefon" v={talep.tel} mono />
@@ -608,6 +635,16 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
         </Bolum>
 
         <ServisDurumu talep={talep} />
+
+        {talep.tur === 'satinalma' && (
+          <BayiAtama
+            talep={talep}
+            personel={personel}
+            geriAlabilir={izinli(rol, 'talepGeriAc')}
+            tazele={tazele}
+            bildir={bildir}
+          />
+        )}
 
         {/* Müşterinin öteki talepleri.
 
@@ -1290,9 +1327,12 @@ const AKTAR_SUTUNLARI = [
   { ad: 'Servis', deger: (t) => t.servis?.ad || '' },
   {
     ad: 'Talep kimde',
-    deger: (t) =>
-      t.servis && (t.sahip || 'paksan') === 'servis' ? 'Serviste' : markaEk('da'),
+    deger: (t) => {
+      if (t.bayi) return 'Bayide'
+      return t.servis && (t.sahip || 'paksan') === 'servis' ? 'Serviste' : markaEk('da')
+    },
   },
+  { ad: 'Bayi', deger: (t) => t.bayi?.ad || '' },
 
   { ad: 'İptal sebebi', deger: (t) => t.iptalBilgi?.neden || '' },
 ]
@@ -1545,6 +1585,15 @@ function TurEtiket({ tur }) {
    Servisi olmayan talepte hiçbir şey yazmıyor: satırda gereksiz gürültü
    olmasın, "PAKSAN'da" zaten varsayılan durum. */
 function SahiplikEtiketi({ talep }) {
+  /* Fiyat teklifi bayiye atandıysa satırda bayinin adı yazıyor: o
+     talebi artık PAKSAN yürütmüyor, "kimde" sorusunun cevabı bayi. */
+  if (talep.bayi) {
+    return (
+      <div className="kucuk sonuk" style={{ marginTop: 2 }}>
+        Bayide · {talep.bayi.ad}
+      </div>
+    )
+  }
   if (!talep.servis) return null
   const devredildi = (talep.sahip || 'paksan') === 'paksan'
   return (
@@ -1573,6 +1622,98 @@ function SahiplikEtiketi({ talep }) {
    seçme penceresi açıyor. Numara okunacak ve masadaki telefondan
    aranacak.
    ========================================================================== */
+/* ==========================================================================
+   Fiyat teklifini bayiye atama
+
+   Satış personelinin bu talepteki tek işi: doğru bayiyi seçmek.
+   Teklifi bayi hazırlıyor, müşteriyi bayi arıyor, kendi payını kendi
+   koyuyor. Atamadan sonra talep PAKSAN'ın kuyruğundan çıkıyor
+   (bkz. veri.js → talebiBayiyeAta).
+
+   BAYİLER MÜŞTERİYE YAKINLIĞA GÖRE SIRALI ve sıra ekranda yazılı:
+   aynı ilçe, aynı il, sonra kalanlar. Personel istediğini seçebiliyor —
+   sıralama bir kolaylık, kısıt değil.
+
+   PAKSAN KENDİSİ İLGİLENECEKSE ATAMA YAPILMIYOR. O zaman talep her
+   zamanki akışta kalıyor: teklif veriliyor, kapanıyor. Bu yüzden
+   bölüm bir zorunluluk gibi değil, bir seçenek gibi duruyor.
+   ========================================================================== */
+function BayiAtama({ talep, personel, geriAlabilir, tazele, bildir }) {
+  const [secim, setSecim] = useState('')
+
+  /* Müşterinin ilçesi, sonra ili, sonra kalanlar. */
+  const bayiler = useMemo(() => {
+    const hepsi = bayileriGetir()
+    const puan = (b) => (b.ilce === talep.ilce && b.il === talep.il ? 0 : b.il === talep.il ? 1 : 2)
+    return [...hepsi].sort((a, b) => puan(a) - puan(b) || a.ad.localeCompare(b.ad, 'tr'))
+  }, [talep.il, talep.ilce])
+
+  if (talep.bayi) {
+    return (
+      <Bolum ad="Bayi">
+        <div className="satir" style={{ gap: 10, alignItems: 'center', marginBottom: 8 }}>
+          <b>{talep.bayi.ad}</b>
+          <span className="rz rz--mor" style={{ marginLeft: 'auto' }}>Bayide</span>
+        </div>
+        <S k="Telefon" v={telFirma(talep.bayi.tel)} mono />
+        <S k="Atandı" v={talep.bayi.tarih ? tarihYaz(talep.bayi.tarih) : ''} />
+        <p className="kucuk sonuk" style={{ margin: '8px 0 0' }}>
+          {`Teklifi bayi hazırlıyor ve müşteriyi bayi arıyor. ${MARKA} bu talepte bir iş yapmıyor.`}
+        </p>
+        {geriAlabilir && (
+          <button
+            className="dg"
+            style={{ marginTop: 10 }}
+            onClick={() => {
+              if (!confirm(`Atama kaldırılacak, talep ${markaEk('a')} dönecek. Emin misiniz?`)) return
+              bayiAtamasiniKaldir(talep, personel)
+              tazele()
+              bildir('Bayi ataması kaldırıldı')
+            }}
+          >
+            Atamayı kaldır
+          </button>
+        )}
+      </Bolum>
+    )
+  }
+
+  return (
+    <Bolum ad="Bayiye Ata">
+      <p className="kucuk sonuk" style={{ margin: '0 0 10px' }}>
+        {`Teklifi bayi verecekse buradan atayın; atandığında talep ${markaEk('in')} bekleyen işleri arasından çıkar. ${MARKA} kendisi ilgilenecekse atama yapmayın.`}
+      </p>
+
+      <div className="satir" style={{ gap: 8, alignItems: 'flex-end' }}>
+        <label className="alan" style={{ flex: 1, marginBottom: 0 }}>
+          <span className="alan__ad">Bayi</span>
+          <select className="gir" value={secim} onChange={(e) => setSecim(e.target.value)}>
+            <option value="">Seçin</option>
+            {bayiler.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.ad} · {b.ilce} / {b.il}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          className="dg dg--ana"
+          disabled={!secim}
+          onClick={() => {
+            const b = bayiler.find((x) => x.id === secim)
+            const sonuc = talebiBayiyeAta(talep, b, personel)
+            if (sonuc.hata) return bildir(sonuc.hata)
+            tazele()
+            bildir(`Talep ${b.ad} bayisine atandı`)
+          }}
+        >
+          Ata
+        </button>
+      </div>
+    </Bolum>
+  )
+}
+
 function ServisDurumu({ talep }) {
   if (!talep.servis) return null
 
