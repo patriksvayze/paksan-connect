@@ -336,9 +336,12 @@ export function TalepDetay({
           <IconCalendar size={19} />
           <div>
             <strong>Randevu verildi · {talep.plan.tarihYazi}</strong>
+            {/* İş adı boşken satır "· müşteriyle görüşüldü" diye
+                başlıyordu; ayraç yalnız iki yanı da doluyken çıkıyor. */}
             <p>
-              {talep.plan.is}
-              {talep.plan.gorusuldu ? ' · müşteriyle görüşüldü' : ''}
+              {[talep.plan.is, talep.plan.gorusuldu && 'müşteriyle görüşüldü']
+                .filter(Boolean)
+                .join(' · ')}
             </p>
           </div>
         </div>

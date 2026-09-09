@@ -161,6 +161,7 @@ export function ListeKarti({
   tur,
   turAdi,
   kunye,
+  uyari,
   sol,
   sag,
   sagGec,
@@ -178,6 +179,11 @@ export function ListeKarti({
         </div>
 
         <div className="is__alt">{kunye}</div>
+
+        {/* Kartın tek kırmızı satırı: bu iş bir kez kapandı, müşteri
+            "hâlâ aynı" dedi. Servis listeye bakarken hangi işe ikinci
+            kez gittiğini bilmeli. */}
+        {uyari && <div className="is__uyari">{uyari}</div>}
 
         {(sol || sag) && (
           <div className="is__durum">

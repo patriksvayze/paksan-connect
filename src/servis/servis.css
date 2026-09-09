@@ -2040,6 +2040,135 @@
   color: var(--murekkep-2);
 }
 
+
+
+/* Uzun uyarı metni üç satırda kesiliyor; gerekçesi ServisPanel.jsx
+   içinde DuyuruKarti başlığında yazılı. */
+.duyuru__metin--kisa {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Alt satır: solda "Tamamını oku", sağda "Anladım". */
+.duyuru__dip {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  margin-top: 2px;
+}
+
+.duyuru__dip > .dg {
+  margin-left: auto;
+}
+
+.duyuru__daha {
+  min-height: var(--dokunma);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: var(--yazi-2);
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   Katlanır bölüm başlığı
+
+   Ekranı işin önüne geçmeyen ama kaybolmayan şeyler için: okunmuş
+   uyarılar, PAKSAN duyuruları, tamamlanan işler. Üçü de bir dokunuş
+   uzakta ama kapalı duruyor.
+
+   Yükseklik dokunma hedefinin altına düşmüyor: ekran tarlada,
+   çoğu zaman eldivenle açılıyor.
+   ========================================================================== */
+
+.katla {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  width: 100%;
+  min-height: var(--dokunma);
+  margin-bottom: var(--bosluk-3);
+  padding: 0 var(--bosluk-4);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-2);
+  background: var(--yuzey);
+  color: var(--murekkep-2);
+  font: inherit;
+  font-size: var(--yazi-2);
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.katla:hover {
+  background: var(--yuzey-2);
+}
+
+/* Sayı ile ok arasındaki boşluğu sayı yiyor: ok her zaman en sağda,
+   göz onu sabit bir yerde arıyor. */
+.katla__sayi {
+  margin-left: auto;
+  min-width: 22px;
+  padding: 1px 7px;
+  border-radius: var(--r-tam);
+  background: var(--mavi-z);
+  color: var(--mavi);
+  font-size: var(--yazi-1);
+  font-weight: 800;
+  text-align: center;
+}
+
+.katla > svg:last-child {
+  flex: none;
+  transition: transform 0.15s ease;
+}
+
+.katla__ok--acik {
+  transform: rotate(180deg);
+}
+
+/* Üst çubuktaki iki düğme: "+" ve hesap. */
+.uyg__islemler {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-1);
+  margin-left: auto;
+}
+
+.uyg__ekle {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--dokunma);
+  height: var(--dokunma);
+  padding: 7px;
+  border: 0;
+  border-radius: var(--r-tam);
+  background: rgba(255, 255, 255, 0.16);
+  background-clip: content-box;
+  color: #fff;
+  cursor: pointer;
+}
+
+.uyg__ekle:hover {
+  background: rgba(255, 255, 255, 0.28);
+  background-clip: content-box;
+}
+
+/* Kartın tek kırmızı satırı — ikinci kez gidilen iş. */
+.is__uyari {
+  margin-top: var(--bosluk-2);
+  font-size: var(--yazi-2);
+  font-weight: 700;
+  color: var(--kirmizi);
+}
+
 /* ------------------------------------------- Geniş ekranda önizleme
 
    Uygulama telefonda çalışıyor; bu blok yalnız geliştirme sırasında

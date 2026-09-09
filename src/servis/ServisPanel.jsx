@@ -23,15 +23,15 @@ import {
   IconPlus,
   IconBell,
   IconCalendar,
-  IconPhone,
   IconShield,
   IconMachine,
   IconTag,
   IconAlert,
   IconUndo,
+  IconChevronDown as IconChevron,
 } from '../components/Icons'
 import { altBilgi } from '../data/duyuruTurleri'
-import { Logo, MARKA, SIRKET } from '../marka'
+import { Logo, MARKA, SIRKET, getProduct } from '../marka'
 /* Çizimler Higgsfield ile üretildi, uygulamanın kendi görsel diline
    (kalın lacivert kontur, düz dolgu, sınırlı palet) referans verilerek.
    Küçültme ve sıkıştırma: tools/gorsel-hazirla.mjs */
@@ -382,13 +382,34 @@ function Uygulama({ oturum, onCikis }) {
     <Kabuk
       {...BASLIK[sekme]}
       islem={
-        <button
-          className="uyg__hesap"
-          onClick={() => setAlt('hesap')}
-          aria-label="Hesap"
-        >
-          {(oturum.ad || '?').charAt(0)}
-        </button>
+        /* İKİ DÜĞME, İKİ AYRI İŞ.
+
+           "+" günde birkaç kez basılan bir iş: dükkâna gelen ya da
+           telefonla çağıran müşteri için kayıt açmak. Ekranın gövdesinde
+           tam genişlikte bir düğme olarak duruyordu ve bekleyen işlerin
+           listesini aşağı itiyordu — servisin sabah baktığı tek şeyin
+           önüne geçmiş oluyordu. Toplantı notundaki tarif de zaten
+           "ekrandaki + butonu".
+
+           Hesap ayda bir açılıyor; harf rozetiyle en sağda. */
+        <div className="uyg__islemler">
+          {sekme === 'isler' && (
+            <button
+              className="uyg__ekle"
+              onClick={() => setAlt('kayit')}
+              aria-label="Yeni kayıt"
+            >
+              <IconPlus size={22} />
+            </button>
+          )}
+          <button
+            className="uyg__hesap"
+            onClick={() => setAlt('hesap')}
+            aria-label="Hesap"
+          >
+            {(oturum.ad || '?').charAt(0)}
+          </button>
+        </div>
       }
       sekmeler={sekmeler}
       sekme={sekme}
@@ -411,22 +432,40 @@ function Uygulama({ oturum, onCikis }) {
 
 /* ---------------------------------------------------------------- İşler */
 
+/* ==========================================================================
+   İşlerim — ekranın sırası
+
+   ÖNCEKİ SIRA İŞİ EN ALTA İTİYORDU
+
+   Bugün bloğu · Yeni Kayıt düğmesi · üç duyuru kartı · bekleyen işler.
+   Servis sabah uygulamayı açtığında ekranda fuar duyurusu ve yeni
+   model tanıtımı görüyor, gideceği işi görmek için iki ekran boyu
+   aşağı kaydırıyordu. Bir saha uygulamasında ilk ekranda duracak tek
+   şey vardır: BUGÜN NEREYE GİDİLECEK.
+
+   YENİ SIRA
+
+     1. Bugünün planı — yalnız plan varken. Randevu da gecikme de
+        yoksa blok hiç çizilmiyor; "randevunuz yok" demek için koca
+        bir kutu ayırmak, boşluğu bilgi diye sunmak.
+     2. ACİL duyurular — geri çağırma ve uyarı. Bunlar duyuru değil
+        iş emri: "bu makineleri arayıp servise çağırın" diyor.
+     3. Bekleyen işler — asıl liste.
+     4. Öteki duyurular — tek satırın ardında (kampanya, fuar, yeni
+        ürün). Okunmayı hak ediyorlar ama işin önünde değil.
+     5. Tamamlananlar — tek satırın ardında. Biten iş bir kayıt,
+        bir görev değil.
+
+   "Yeni Kayıt" gövdeden çıktı, üst çubuktaki "+" düğmesine taşındı.
+   ========================================================================== */
 function Isler({ oturum, bekleyen, biten, onAc, onYeniKayit }) {
+  const [bitenAcik, setBitenAcik] = useState(false)
+
   return (
     <>
       <Bugun bekleyen={bekleyen} onAc={onAc} />
 
-      {/* Servisin kendi başlattığı iş: uygulamadan düşen talebi
-          beklemeden, telefonla gelen ya da kendi gittiği işi kaydetmek.
-          İlk kurulum ve çalıştırma da buradan giriliyor. */}
-      <div className="baslangic">
-        <button className="dg dg--ana dg--blok" onClick={onYeniKayit}>
-          <IconPlus size={19} />
-          Yeni Kayıt
-        </button>
-      </div>
-
-      <ServisDuyurulari oturum={oturum} />
+      <ServisDuyurulari oturum={oturum} acil />
 
       {/* BEKLEYEN BÖLÜMÜ İŞ YOKKEN DE ÇIKIYOR.
 
@@ -434,37 +473,46 @@ function Isler({ oturum, bekleyen, biten, onAc, onYeniKayit }) {
           bir servis ekranı açtığında yalnız "TAMAMLANAN" görüyordu ve
           bekleyen işinin olup olmadığı hiçbir yerde yazmıyordu.
           Bilginin yokluğu, bilgi değil — "acaba yüklenmedi mi?" diye
-          düşündürüyor.
-
-          Şimdi bölüm her zaman duruyor; boşken çizimiyle birlikte
-          "bekleyen iş yok" diyor. Servis baktığı anda cevabını alıyor. */}
+          düşündürüyor. */}
       <Bolum ad="Bekleyen" sayi={bekleyen.length}>
         {bekleyen.length > 0 ? (
           bekleyen.map((t) => (
             <TalepKarti key={t.id} talep={t} onAc={() => onAc(t)} />
           ))
         ) : (
-          /* Altında "Tamamlanan" varsa küçük boy: o bölüm ekranın
-             dışına düşmemeli. Ekran tamamen boşsa büyük boy. */
           <Bos
-            kucuk={biten.length > 0}
             gorsel={bosIsGorseli}
             baslik="Bekleyen İşiniz Yok"
             alt={
               biten.length > 0
-                ? 'Hepsini tamamladınız.'
-                : 'Bölgenizden bir talep geldiğinde burada görünecek.'
+                ? 'Hepsini tamamladınız. Dükkâna gelen bir müşteri için üstteki + ile kayıt açabilirsiniz.'
+                : 'Size bir talep düştüğünde burada görünecek. Dükkâna gelen müşteri için üstteki + ile kayıt açın.'
             }
           />
         )}
       </Bolum>
 
+      <ServisDuyurulari oturum={oturum} />
+
+      {/* Tamamlananlar kapalı başlıyor: biten iş bir kayıt, bir görev
+          değil. Açık dururken bekleyen işlerle aynı ağırlıkta
+          görünüyor ve listeyi uzatıyordu. */}
       {biten.length > 0 && (
-        <Bolum ad="Tamamlanan" sayi={biten.length}>
-          {biten.map((t) => (
-            <TalepKarti key={t.id} talep={t} onAc={() => onAc(t)} />
-          ))}
-        </Bolum>
+        <div className="bolum">
+          <button
+            className="katla"
+            onClick={() => setBitenAcik((x) => !x)}
+            aria-expanded={bitenAcik}
+          >
+            <span>Tamamlanan işler</span>
+            <span className="katla__sayi">{biten.length}</span>
+            <IconChevron size={18} className={bitenAcik ? 'katla__ok--acik' : ''} />
+          </button>
+          {bitenAcik &&
+            biten.map((t) => (
+              <TalepKarti key={t.id} talep={t} onAc={() => onAc(t)} />
+            ))}
+        </div>
       )}
     </>
   )
@@ -525,16 +573,21 @@ function Bugun({ bekleyen, onAc }) {
     .filter((t) => t.plan?.tarih)
     .sort((a, b) => a.plan.tarih - b.plan.tarih)
 
-  const bugunku = randevulu.filter((t) => {
-    const g = gunBasi(t.plan.tarih)
-    return g <= bugun
-  })
+  const bugunku = randevulu.filter((t) => gunBasi(t.plan.tarih) <= bugun)
   const yarinki = randevulu.filter((t) => gunBasi(t.plan.tarih) === yarin)
-
   const geciken = bekleyen.filter((t) => !t.plan && gecikmisMi(t))
-  const sirada = bekleyen.filter((t) => !t.plan && !gecikmisMi(t))
 
-  if (!bekleyen.length) return null
+  /* BLOK GÜNÜN PLANIDIR; PLAN YOKSA ÇIKMIYOR.
+
+     Önceden bekleyen iş varsa hep çiziliyor ve çoğu sabah "Bugün için
+     verilmiş randevunuz yok" yazan koca bir kutu oluyordu. Bir kutu
+     bir şeyin olduğunu söylemek için vardır; olmadığını söylemek için
+     ekranın en değerli yerini tutmaz.
+
+     Gecikme özeti de blok zaten çıkıyorsa yazılıyor. Tek başına bir
+     kutuya değmiyor: gecikmiş işin kartında kendi kırmızı satırı
+     duruyor ve liste hemen altında. */
+  if (!bugunku.length && !yarinki.length) return null
 
   return (
     <div className="bugun">
@@ -550,7 +603,7 @@ function Bugun({ bekleyen, onAc }) {
         </span>
       </div>
 
-      {bugunku.length > 0 ? (
+      {bugunku.length > 0 && (
         <div className="bugun__liste">
           {bugunku.map((t) => {
             /* Tarihi geçmiş randevu da bu listede: servis o işe gitmedi
@@ -571,29 +624,21 @@ function Bugun({ bekleyen, onAc }) {
             )
           })}
         </div>
-      ) : (
+      )}
+
+      {!bugunku.length && yarinki.length > 0 && (
         <p className="bugun__bos">
-          Bugün için verilmiş randevunuz yok.
-          {yarinki.length > 0 && ` Yarın ${yarinki.length} randevunuz var.`}
+          Bugün randevunuz yok; yarın {yarinki.length} randevunuz var.
         </p>
       )}
 
-      {/* Sayılar altta, tek satırda. Randevu somut bir plan; bunlar
+      {/* Gecikme altta ve tek satır: randevu somut bir plan, bu bir
           hatırlatma. Aynı ağırlıkta gösterilmemeleri gerekiyor. */}
-      {(geciken.length > 0 || sirada.length > 0) && (
+      {geciken.length > 0 && (
         <div className="bugun__sayilar">
-          {geciken.length > 0 && (
-            <span className="bugun__rozet bugun__rozet--gec">
-              {geciken.length} işin üzerinden 48 saat geçti
-            </span>
-          )}
-          {/* "gün bekliyor" iki türlü okunuyordu — "günlerdir bekliyor"
-              da anlaşılabiliyordu. Kastedilen: randevusu verilmemiş. */}
-          {sirada.length > 0 && (
-            <span className="bugun__rozet">
-              {sirada.length} işe gün verilmedi
-            </span>
-          )}
+          <span className="bugun__rozet bugun__rozet--gec">
+            {geciken.length} işin üzerinden 48 saat geçti
+          </span>
         </div>
       )}
     </div>
@@ -615,15 +660,22 @@ function TalepKarti({ talep, onAc }) {
   const gecikti = gecikmisMi(talep)
   const tel = String(talep.tel || '').replace(/\D/g, '')
   const yer = talep.ilce ? `${talep.ilce} / ${talep.il}` : talep.il || '—'
+  /* MAKİNE ADI KÜNYEDE. Servis yola çıkmadan hangi makineye gittiğini
+     bilmek zorunda: alet çantası ve yedek parça ona göre hazırlanıyor.
+     Bu bilgi talebin içinde vardı, listede yoktu. */
+  const makine = talep.makine ? getProduct(talep.makine.productId)?.name : null
+  const tekrar = (talep.tekrar || []).length > 0
 
   return (
     <ListeKarti
       ad={talep.ad || '—'}
       tur={talep.tur}
       turAdi={TUR_ADI[talep.tur] || talep.tur}
+      uyari={tekrar ? 'Sorun devam ediyor' : null}
       kunye={
         <>
-          {yer} · <span className="mono">{talep.no}</span>
+          {makine ? `${makine} · ` : ''}
+          {yer}
         </>
       }
       /* Randevu listede de görünüyor: servis hangi işe gün verdiğini
@@ -680,9 +732,20 @@ const DUYURU_IKON = {
   geri: IconUndo,
 }
 
+/* METİN ÜÇ SATIRDA KESİLİYOR.
+
+   Geri çağırma metni beş paragraf olabiliyor ve kart 250 pikseli
+   geçince bekleyen işler ekranın dışına düşüyordu. Servisin sabah
+   göreceği ilk şey gideceği iş olmalı; uyarı onun üstünde ama
+   önünde değil.
+
+   Başlık hiç kesilmiyor — uyarının ne olduğu ilk satırda yazılı.
+   "Tamamını oku" tek dokunuş, metnin tamamı açılıyor. */
 function DuyuruKarti({ duyuru, okunmamis, onKapat }) {
   const bilgi = altBilgi(duyuru)
   const Ikon = DUYURU_IKON[bilgi.ikon] || IconBell
+  const [tam, setTam] = useState(false)
+  const uzun = (duyuru.metin || '').length > 150
 
   return (
     <div className={'duyuru duyuru--' + bilgi.ton}>
@@ -691,20 +754,49 @@ function DuyuruKarti({ duyuru, okunmamis, onKapat }) {
         <span className="duyuru__tur">{bilgi.ad}</span>
       </div>
       <strong className="duyuru__baslik">{duyuru.baslik}</strong>
-      <p className="duyuru__metin">{duyuru.metin}</p>
-      {okunmamis && (
-        <button className="dg dg--kucuk" onClick={onKapat}>
-          Anladım
-        </button>
+      <p className={'duyuru__metin' + (uzun && !tam ? ' duyuru__metin--kisa' : '')}>
+        {duyuru.metin}
+      </p>
+      {/* İki düğme tek satırda: alt alta dizildiklerinde kart 96
+          piksel daha uzuyor ve bekleyen işler ekranın dışına
+          düşüyordu. */}
+      {(uzun || okunmamis) && (
+        <div className="duyuru__dip">
+          {uzun && (
+            <button className="duyuru__daha" onClick={() => setTam((x) => !x)}>
+              {tam ? 'Kısalt' : 'Tamamını oku'}
+            </button>
+          )}
+          {okunmamis && (
+            <button className="dg dg--kucuk" onClick={onKapat}>
+              Anladım
+            </button>
+          )}
+        </div>
       )}
     </div>
   )
 }
 
-function ServisDuyurulari({ oturum }) {
+/* ACİL DUYURU İŞ EMRİDİR, DUYURU DEĞİL.
+
+   Geri çağırma ve uyarı, servisten BİR ŞEY YAPMASINI istiyor: "bu
+   makineleri kullanan müşterilerinizi arayıp servise çağırın". Fuar
+   duyurusuyla ya da yeni model tanıtımıyla aynı yığında durmaları,
+   ikisini de okunmaz yapıyordu.
+
+   Acil olanlar bekleyen işlerin ÜSTÜNDE, açık hâlde; ötekiler
+   listenin ALTINDA, tek satırın ardında.
+
+   Ayrım duyurunun ÜST TÜRÜNDEN çıkıyor: 'uyari' (güvenlik uyarısı ve
+   geri çağırma) acil, 'duyuru' (kampanya, yeni ürün, etkinlik) değil.
+   Bu ayrım zaten backoffice formunda da var — orada da izin kuralı
+   üst türe bakıyor (bkz. data/duyuruTurleri.js → DUYURU_UST). */
+
+function ServisDuyurulari({ oturum, acil = false }) {
   const [hepsi, setHepsi] = useState([])
   const [gorulen, setGorulen] = useState(() => new Set(load(GORULEN, [])))
-  const [gecmisAcik, setGecmisAcik] = useState(false)
+  const [acikMi, setAcikMi] = useState(false)
 
   useEffect(() => {
     setHepsi(
@@ -720,38 +812,64 @@ function ServisDuyurulari({ oturum }) {
     setGorulen(new Set(yeni))
   }
 
-  const yeniler = hepsi.filter((d) => !gorulen.has(d.id))
-  const gecmis = hepsi.filter((d) => gorulen.has(d.id))
+  const bolum = hepsi.filter((d) => (altBilgi(d).ust === 'uyari') === acil)
+  if (!bolum.length) return null
 
-  if (!hepsi.length) return null
+  /* Acil bölümde okunmamışlar açık duruyor; okunanlar tek satıra
+     iniyor. "Anladım" denen bir geri çağırma ekrandan tamamen
+     kaybolmuyor — geri getirmenin yolu olmalı. */
+  const yeniler = bolum.filter((d) => !gorulen.has(d.id))
+  const okunmus = bolum.filter((d) => gorulen.has(d.id))
+
+  if (acil) {
+    return (
+      <>
+        {yeniler.map((d) => (
+          <DuyuruKarti key={d.id} duyuru={d} okunmamis onKapat={() => kapat(d.id)} />
+        ))}
+        {okunmus.length > 0 && (
+          <>
+            <button
+              className="katla"
+              onClick={() => setAcikMi((x) => !x)}
+              aria-expanded={acikMi}
+            >
+              <span>Okuduğunuz uyarılar</span>
+              <span className="katla__sayi">{okunmus.length}</span>
+              <IconChevron size={18} className={acikMi ? 'katla__ok--acik' : ''} />
+            </button>
+            {acikMi &&
+              okunmus.map((d) => (
+                <DuyuruKarti key={d.id} duyuru={d} okunmamis={false} />
+              ))}
+          </>
+        )}
+      </>
+    )
+  }
 
   return (
-    <>
-      {yeniler.map((d) => (
-        <DuyuruKarti key={d.id} duyuru={d} okunmamis onKapat={() => kapat(d.id)} />
-      ))}
-
-      {/* Geçmiş kapalı başlıyor: servisin ekranı bugünkü işi göstermeli,
-          okunmuş duyuru yığınını değil. Tek dokunuşla açılıyor ve kaç
-          tane olduğu düğmenin üzerinde yazıyor. */}
-      {gecmis.length > 0 && (
-        <>
-          <button
-            className="dg dg--blok"
-            onClick={() => setGecmisAcik((x) => !x)}
-          >
-            <IconBell size={18} />
-            {gecmisAcik
-              ? 'Geçmiş duyuruları gizle'
-              : `Geçmiş duyurular · ${gecmis.length}`}
-          </button>
-          {gecmisAcik &&
-            gecmis.map((d) => (
-              <DuyuruKarti key={d.id} duyuru={d} okunmamis={false} />
-            ))}
-        </>
-      )}
-    </>
+    <div className="bolum">
+      <button
+        className="katla"
+        onClick={() => setAcikMi((x) => !x)}
+        aria-expanded={acikMi}
+      >
+        <IconBell size={18} />
+        <span>{MARKA} duyuruları</span>
+        {yeniler.length > 0 && <span className="katla__sayi">{yeniler.length}</span>}
+        <IconChevron size={18} className={acikMi ? 'katla__ok--acik' : ''} />
+      </button>
+      {acikMi &&
+        bolum.map((d) => (
+          <DuyuruKarti
+            key={d.id}
+            duyuru={d}
+            okunmamis={!gorulen.has(d.id)}
+            onKapat={() => kapat(d.id)}
+          />
+        ))}
+    </div>
   )
 }
 
