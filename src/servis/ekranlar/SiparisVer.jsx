@@ -209,7 +209,7 @@ function Secim({
   return (
     <>
       <p className="ipucu">
-        Almak istediğiniz kalemlerin adedini yazın. Bir sonraki adımda
+        Almak istediğiniz parçaların adedini yazın. Bir sonraki adımda
         özeti göreceksiniz; sipariş oradan gönderiliyor.
       </p>
 
@@ -220,7 +220,7 @@ function Secim({
           value={arama}
           onChange={(e) => onArama(e.target.value)}
           placeholder="Parça ara"
-          aria-label="Kalem ara"
+          aria-label="Parça ara"
         />
       </div>
 
@@ -240,14 +240,14 @@ function Secim({
       )}
 
       {!parcalar.length && (
-        <p className="kucuk sonuk">“{arama}” ile eşleşen kalem yok.</p>
+        <p className="kucuk sonuk">“{arama}” ile eşleşen parça yok.</p>
       )}
 
       <div className="yapisik">
         {secili.length > 0 && (
           <div className="siparis-toplam">
             <span>
-              {secili.length} kalem ·{' '}
+              {secili.length} parça türü ·{' '}
               {secili.reduce((t, k) => t + k.adet, 0)} adet
             </span>
             <strong>
@@ -338,7 +338,7 @@ function Onay({
                 <div className="kucuk sonuk">
                   {k.adet} ×{' '}
                   {k.birimFiyat === null
-                    ? 'fiyat yok'
+                    ? 'Fiyat bilgisi yok'
                     : `${paraYaz(k.birimFiyat)} ${PARA_BIRIMI}`}
                 </div>
               </div>
@@ -377,7 +377,7 @@ function Onay({
           </div>
           {hesap.eksik && (
             <div className="urun-kart__dip">
-              Fiyatı listede olmayan kalem var; tutar eksik hesaplandı.
+              Fiyatı listede olmayan parça var; gösterilen toplam eksik.
             </div>
           )}
         </div>

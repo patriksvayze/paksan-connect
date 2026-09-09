@@ -785,7 +785,32 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
 
             Ödeme onayı parçanın hazırlanmasının önkoşulu; bu yüzden
             burada, düğmesiyle birlikte duruyor. */}
-        {talep.tur === 'parca' && talep.fatura && (
+        {/* SERVİS SİPARİŞİNDE FATURA BÖLÜMÜ AÇILMIYOR.
+
+            Aşağıdaki bölüm son müşteri için yazıldı: fatura tipi, T.C.
+            kimlik numarası, dekont, ödeme onayı. Servis cari hesaplı bir
+            iş ortağı — hiçbiri onun için sorulmuyor ve sorulsaydı ekran
+            boş kutularla, doldurulamayacak bir "Ödemeyi onayla"
+            düğmesiyle dolardı. Servisin siparişinde bakılacak üç şey
+            var: ne istedi, nereye gidecek, ne zaman istiyor. */}
+        {talep.servisSiparisi && (
+          <Bolum ad="Servis Siparişi">
+            <S k="Servis" v={talep.servis?.ad} />
+            <S k="Sipariş tutarı" v={talep.tutar ? paraYaz(talep.tutar) + ' ' + PARA_BIRIMI : ''} />
+            <S
+              k="İstenen tarih"
+              v={talep.istenenTarih ? tarihYaz(talep.istenenTarih, false) : ''}
+            />
+            <div className="alan__ad" style={{ marginTop: 14, marginBottom: 6 }}>
+              Teslimat adresi
+            </div>
+            <p style={{ whiteSpace: 'pre-wrap', margin: 0 }}>
+              {talep.fatura?.adres || '—'}
+            </p>
+          </Bolum>
+        )}
+
+        {talep.tur === 'parca' && talep.fatura && !talep.servisSiparisi && (
           <Bolum ad="Fatura ve Teslimat">
             <S k="Fatura Tipi" v={talep.fatura.tuzel ? 'Tüzel kişi' : 'Gerçek kişi'} />
             {talep.fatura.tuzel ? (
@@ -1914,21 +1939,21 @@ function ServisKaydiBolumu({
         </span>
       }
     >
-      <S k="Garanti durumu" v={KAPI[k.kapi]} />
-      <S k="Yapılan iş" v={k.yapilanIs} />
+      <S k="Garanti Durumu" v={KAPI[k.kapi]} />
+      <S k="Yapılan İş" v={k.yapilanIs} />
       {k.sonuc && (
         <p style={{ whiteSpace: 'pre-wrap', margin: '0 0 8px' }}>{k.sonuc}</p>
       )}
-      <S k="Değişen parça" v={kayitParcaYazisi(k.parcalar)} />
-      <S k="Parçanın durumu" v={k.parcaDurumu} />
-      <S k="Gidilen yol" v={k.km ? k.km + ' km' : ''} />
+      <S k="Değişen Parça" v={kayitParcaYazisi(k.parcalar)} />
+      <S k="Parçanın Durumu" v={k.parcaDurumu} />
+      <S k="Gidilen Yol" v={k.km ? k.km + ' km' : ''} />
       <S k="İşçilik" v={k.iscilik ? paraYaz(k.iscilik) + ' ' + PARA_BIRIMI : ''} />
 
       {h && (
         <>
-          <S k="Hak ediş" v={paraYaz(h.toplam) + ' ' + PARA_BIRIMI} />
+          <S k="Ödeme Tutarı" v={paraYaz(h.toplam) + ' ' + PARA_BIRIMI} />
           <S k="Durumu" v={HAKKEDIS_DURUM[h.durum] || h.durum} />
-          {h.red?.neden && <S k="Red gerekçesi" v={h.red.neden} />}
+          {h.red?.neden && <S k="Kabul Etmeme Gerekçesi" v={h.red.neden} />}
         </>
       )}
 
@@ -2026,7 +2051,7 @@ function HakkedisFormu({ talep, onKapat, onKaydet }) {
     <div className="pencere" onClick={(e) => e.target === e.currentTarget && onKapat()}>
       <div className="kart pencere__kart" style={{ maxWidth: 520 }}>
         <div className="kart__tepe">
-          <h2>Servis kaydını düzelt</h2>
+          <h2>Servis Kaydını Düzelt</h2>
         </div>
         <div className="kart__ic">
           <p className="kucuk sonuk" style={{ margin: '0 0 14px' }}>
@@ -2035,7 +2060,7 @@ function HakkedisFormu({ talep, onKapat, onKaydet }) {
           </p>
 
           <label className="alan">
-            <span className="alan__ad">Gidilen yol (km)</span>
+            <span className="alan__ad">Gidilen Yol (km)</span>
             <input
               className="gir"
               inputMode="numeric"
@@ -2079,7 +2104,7 @@ function HakkedisFormu({ talep, onKapat, onKaydet }) {
           )}
 
           <label className="alan">
-            <span className="alan__ad">Düzeltme gerekçesi</span>
+            <span className="alan__ad">Düzeltme Gerekçesi</span>
             <textarea
               className="gir"
               rows={3}
@@ -2111,7 +2136,7 @@ function RedFormu({ talep, onKapat, onKaydet }) {
     <div className="pencere" onClick={(e) => e.target === e.currentTarget && onKapat()}>
       <div className="kart pencere__kart" style={{ maxWidth: 440 }}>
         <div className="kart__tepe">
-          <h2>Hak edişi kabul etme</h2>
+          <h2>Hak Edişi Kabul Etme</h2>
         </div>
         <div className="kart__ic">
           <p className="kucuk sonuk" style={{ margin: '0 0 14px' }}>
@@ -2161,7 +2186,7 @@ function SevkFormu({ talep, onKapat, onKaydet }) {
     <div className="pencere" onClick={(e) => e.target === e.currentTarget && onKapat()}>
       <div className="kart pencere__kart" style={{ maxWidth: 440 }}>
         <div className="kart__tepe">
-          <h2>Parçayı gönder</h2>
+          <h2>Parçayı Gönder</h2>
         </div>
         <div className="kart__ic">
           <p className="kucuk sonuk" style={{ margin: '0 0 14px' }}>
@@ -2169,11 +2194,11 @@ function SevkFormu({ talep, onKapat, onKaydet }) {
             kapanmayacak; servis parçayı taktıktan sonra kendisi kapatacak.
           </p>
           <label className="alan">
-            <span className="alan__ad">Kargo firması</span>
+            <span className="alan__ad">Kargo Firması</span>
             <input className="gir" value={firma} onChange={(e) => setFirma(e.target.value)} />
           </label>
           <label className="alan">
-            <span className="alan__ad">Takip numarası</span>
+            <span className="alan__ad">Takip Numarası</span>
             <input
               className="gir"
               value={takipNo}

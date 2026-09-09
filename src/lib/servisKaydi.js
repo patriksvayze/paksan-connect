@@ -51,9 +51,9 @@ import { MARKA, markaEk } from '../marka'
 
 /** Kaydın üç kapısı. Ekrandaki düğme yazıları da bunlar. */
 export const KAPI = {
-  garanti: 'Garanti kapsamında',
-  eldeParca: 'Garanti dışı · parçayı ben taktım',
-  parcaIste: `Garanti dışı · parçayı ${MARKA} göndersin`,
+  garanti: 'Garanti Kapsamında',
+  eldeParca: 'Garanti Dışı · Parçayı Ben Taktım',
+  parcaIste: `Garanti Dışı · Parçayı ${MARKA} Göndersin`,
 }
 
 /* Servisin gözlediği şey soruluyor, hüküm değil.
@@ -65,11 +65,11 @@ export const PARCA_DURUMU = ['Kırıldı', 'Aşındı', 'Çalışmıyor', 'Kaç�
 
 /** Sahada yapılan iş — tek dokunuş. */
 export const YAPILAN_IS = [
-  'İlk kurulum ve çalıştırma',
-  'Ayar yapıldı',
-  'Bakım yapıldı',
-  'Parça değişti',
-  'Arıza bulunamadı',
+  'İlk Kurulum ve Çalıştırma',
+  'Ayar Yapıldı',
+  'Bakım Yapıldı',
+  'Parça Değişti',
+  'Arıza Bulunamadı',
 ]
 
 /* ==========================================================================
@@ -154,7 +154,7 @@ export function kaydiDogrula(kayit) {
 
   if (kayit.kapi === 'garanti') {
     if (!parcalar.length && !Number(kayit.km) && !Number(kayit.iscilik)) {
-      return 'Garanti kaydında en az bir kalem olmalı: parça, yol ya da işçilik.'
+      return 'Değişen parçayı, gidilen yolu veya işçilik tutarını yazın.'
     }
     if (parcalar.length && !kayit.parcaDurumu) {
       return 'Parçadaki sorunu seçin.'
@@ -168,7 +168,7 @@ export function kaydiDogrula(kayit) {
     return 'Taktığınız parçayı seçin.'
   }
 
-  if (Number(kayit.km) < 0) return 'Yol kilometresi eksi olamaz.'
+  if (Number(kayit.km) < 0) return 'Toplam kilometreyi sıfır veya daha büyük yazın.'
   return null
 }
 

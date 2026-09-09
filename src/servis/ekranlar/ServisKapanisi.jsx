@@ -575,7 +575,7 @@ function Hakkedis({ km, iscilik, hakkedis, onKm, onIscilik }) {
             Hesaplanan tutar: {paraYaz(hakkedis.toplam)} {PARA_BIRIMI}
           </strong>
           <p>
-            {hakkedis.kalemler.map((k) => k.ad).join(' · ') || 'Henüz kalem yok.'}
+            {hakkedis.kalemler.map((k) => k.ad).join(' · ') || 'Henüz tutar girilmedi.'}
           </p>
         </div>
       </div>
@@ -709,7 +709,7 @@ function Ozet({ talep, ad, yapilanIs, kapi, parcalar, hakkedis }) {
     garanti: {
       ton: 'yesil',
       baslik: `Kayıt ${markaEk('a')} onaya gidiyor.`,
-      metin: `Onaylandığında ${paraYaz(hakkedis.toplam)} ${PARA_BIRIMI} cari hesabınıza alacak yazılacak.`,
+      metin: `Onaylandığında ${paraYaz(hakkedis.toplam)} ${PARA_BIRIMI} ödeme hesabınıza eklenecek.`,
     },
     eldeParca: {
       ton: 'yesil',
@@ -741,7 +741,7 @@ function Ozet({ talep, ad, yapilanIs, kapi, parcalar, hakkedis }) {
         <Dolu ad="Parça" deger={parcalar.map((p) => `${p.ad} × ${p.adet}`).join(', ')} />
         {kapi === 'garanti' && (
           <Dolu
-            ad="Hak Ediş"
+            ad="Ödeme Tutarı"
             deger={`${paraYaz(hakkedis.toplam)} ${PARA_BIRIMI}`}
           />
         )}

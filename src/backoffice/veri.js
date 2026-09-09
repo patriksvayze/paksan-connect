@@ -1063,6 +1063,14 @@ export function odemeOnayla(talep, personel, not) {
    @returns {string|null} engel varsa sebebi, yoksa null */
 export function parcaIlerlemeEngeli(talep, yeniDurum) {
   if (talep.tur !== 'parca') return null
+  /* SERVİSİN KENDİ SİPARİŞİ ÖN ÖDEMEYE TABİ DEĞİL.
+
+     Bu kural son müşteri için var: parasını almadan parça
+     göndermemek. Servis ise cari hesaplı bir iş ortağı — ödemesi
+     ay sonunda hesaplaşmayla yürüyor. Buradan geçseydi her servis
+     siparişi "dekont bekleniyor" diye kilitlenirdi ve yükleyecek bir
+     dekont hiç olmayacaktı. */
+  if (talep.servisSiparisi) return null
   if (yeniDurum === 'yeni' || yeniDurum === 'iptal') return null
   if (talep.odemeOnay) return null
   if (!talep.fatura && !talep.dekont) return null /* eski talepler */
@@ -1621,7 +1629,10 @@ export function hakkedisOnayla(talep, personel) {
       servisAd: talep.servis?.ad,
       tur: 'alacak',
       tutar: hakkedis.toplam,
-      aciklama: `${talep.no} · hak ediş`,
+      /* SERVİSİN GÖRDÜĞÜ SATIR. Kendi ekranında "hak ediş" terimi
+         geçmiyor (bkz. servis/ekranlar/Hakkedis.jsx); defterdeki
+         açıklama da aynı dili konuşuyor. */
+      aciklama: `${talep.no} · servis ödemesi`,
       talepNo: talep.no,
       personel,
     })

@@ -60,7 +60,7 @@ export function Hakkedis({ oturum, onAc }) {
         <IconCheckCircle size={19} />
         <div>
           <strong>
-            {MARKA} bakiyeniz: {paraYaz(bakiye)} {PARA_BIRIMI}
+            Hesabınızdaki Tutar: {paraYaz(bakiye)} {PARA_BIRIMI}
           </strong>
           <p>
             {bakiye > 0
@@ -94,7 +94,7 @@ export function Hakkedis({ oturum, onAc }) {
       {hareketler.length === 0 ? (
         <Bos
           gorsel={bosIsGorseli}
-          baslik="Henüz hak edişiniz yok"
+          baslik="Henüz ödemeniz yok"
           alt="Garanti kapsamında tamamladığınız işler onaylandığında burada görünür."
           kucuk={bekleyen.length > 0}
         />
@@ -124,8 +124,8 @@ export function Hakkedis({ oturum, onAc }) {
           yoksa servis telefon ediyor; telefon eden servis, ekranın
           işe yaramadığı anlamına geliyor. */}
       <p className="ipucu">
-        Ödemeler {MARKA} muhasebesi tarafından cari hesabınıza yapılır.
-        Bakiyenizle ilgili bir sorunuz varsa servis personeline yazın.
+        Ödemeler {MARKA} muhasebesi tarafından hesabınıza yapılır.
+        Hesabınızla ilgili bir sorunuz varsa servis personeline yazın.
       </p>
     </>
   )

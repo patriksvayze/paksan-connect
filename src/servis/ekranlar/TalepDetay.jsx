@@ -595,7 +595,7 @@ function ServisKaydi({ talep }) {
       {h && (
         <>
           <Satir
-            ad="Hak Ediş"
+            ad="Ödeme Tutarı"
             deger={paraYaz(h.toplam) + ' ' + PARA_BIRIMI}
           />
           <div className={'not not--' + durum.ton} style={{ marginTop: 12 }}>
