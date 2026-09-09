@@ -148,7 +148,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
       return setHata('Telefon numarasını eksiksiz yazın.')
     }
     if (eksik.includes('seri') && seri.trim() && !validateSerial(normalizeSerial(seri)).ok) {
-      return setHata('Şase numarası tanınmadı. Yazdığınızı kontrol edin.')
+      return setHata('Şase numarasını kontrol edip yeniden yazın.')
     }
     if (ariza.trim().length < 5) return setHata('Arızayı bir cümleyle yazın.')
     if (sonuc.trim().length < 5) return setHata('Ne yaptığınızı bir cümleyle yazın.')
