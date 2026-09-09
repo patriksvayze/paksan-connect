@@ -4,27 +4,27 @@ import {
   SIPARIS_DURUM,
   siparisDurumu,
   siparisleriGetir,
-} from '../../lib/bayiSiparis'
+} from '../../lib/servisSiparis'
 import { ekAdresi } from '../../lib/ekler'
 import { formatSerial } from '../../lib/serial'
 import { tarihYaz } from './ortak'
 import { islemYaz, izinli } from '../veri'
 
 /* ==========================================================================
-   Bayi Siparişleri — PAKSAN tarafı
+   Servis Siparişleri — PAKSAN tarafı
 
-   Bayi stokunu kendi artıramıyor; artışın tek yolu bu ekran. Bayi
+   Servis stokunu kendi artıramıyor; artışın tek yolu bu ekran. Servis
    sipariş veriyor, PAKSAN burada ilerletiyor:
 
      PAKSAN'a iletildi → Onaylandı → Hazırlanıyor → Gönderildi
 
-   "Gönderildi" işaretlendiği anda bayinin stoku artıyor. Onay ve
-   hazırlık adımlarında artmıyor — parça henüz bayide değil. Kargo
-   bilgisi burada giriliyor, bayi panelinde görünüyor.
+   "Gönderildi" işaretlendiği anda servisin stoku artıyor. Onay ve
+   hazırlık adımlarında artmıyor — parça henüz serviste değil. Kargo
+   bilgisi burada giriliyor, servis panelinde görünüyor.
 
    İPTAL GERİ ALINMIYOR. Kapanmış sipariş (gönderildi/iptal) bir daha
    değişmiyor; yanlışlık olursa yeni sipariş açılıyor. Gönderilmiş
-   siparişi geri almak stoku da geri almak demek, o da bayinin elindeki
+   siparişi geri almak stoku da geri almak demek, o da servisin elindeki
    gerçek malı yok saymak olurdu.
    ========================================================================== */
 
@@ -41,7 +41,7 @@ const SUZGECLER = [
   { id: 'hepsi', ad: 'Hepsi' },
 ]
 
-export function BayiSiparisleri({ rol, personel }) {
+export function ServisSiparisleri({ rol, personel }) {
   const [suzgec, setSuzgec] = useState('acik')
   const [tazele, setTazele] = useState(0)
   const [acik, setAcik] = useState(null)
@@ -54,14 +54,14 @@ export function BayiSiparisleri({ rol, personel }) {
     return hepsi
   }, [suzgec, tazele])
 
-  /* Yalnız bayi kaydını düzenleyebilen personel siparişi ilerletebiliyor:
+  /* Yalnız servis kaydını düzenleyebilen personel siparişi ilerletebiliyor:
      sevkiyat kararı ticari bir karar, her rolün işi değil. */
-  const yetkili = izinli(rol, 'bayiDuzenle')
+  const yetkili = izinli(rol, 'servisDuzenle')
 
   return (
     <>
       <div className="kart__tepe">
-        <h2>Bayi Siparişleri</h2>
+        <h2>Servis Siparişleri</h2>
         <div className="suzgec" style={{ marginLeft: 'auto' }}>
           {SUZGECLER.map((s) => (
             <button
@@ -101,7 +101,7 @@ export function BayiSiparisleri({ rol, personel }) {
 /* ==========================================================================
    Garanti talebinin dayanağı
 
-   Bayi bu talebi bir servis işinin sonunda açıyor; talep boşluktan
+   Servis bu talebi bir servis işinin sonunda açıyor; talep boşluktan
    doğmuyor. Dayanağı olmayan bir garanti talebi, PAKSAN'ın neyin
    karşılığında parça gönderdiğini bilmemesi demek — o yüzden burada
    hangi işten doğduğu, hangi makine olduğu ve parçanın nesi olduğu
@@ -109,9 +109,9 @@ export function BayiSiparisleri({ rol, personel }) {
 
    PARÇANIN NESİ VAR — BAYİNİN VERDİĞİ HÜKÜM DEĞİL
 
-   Bayiye "üretim hatası mı, kullanım hatası mı" diye sorulmuyor;
+   Servise "üretim hatası mı, kullanım hatası mı" diye sorulmuyor;
    sorulsaydı her talepte "üretim hatası" yazardı, çünkü talebinin
-   kabulü ona bağlı. Bayi yalnız GÖZLEDİĞİNİ yazıyor: kırıldı,
+   kabulü ona bağlı. Servis yalnız GÖZLEDİĞİNİ yazıyor: kırıldı,
    aşındı, kaçırıyor. Hükmü PAKSAN veriyor — eski parça eline
    geçtiğinde.
    ========================================================================== */
@@ -150,7 +150,7 @@ function GarantiBilgisi({ garanti }) {
         </p>
         <p className="kucuk">
           {garanti.iade
-            ? 'Bayi eski parçayı geri gönderecek.'
+            ? 'Servis eski parçayı geri gönderecek.'
             : 'Eski parça geri gönderilmeyecek.'}
         </p>
         {adres && (
@@ -184,10 +184,10 @@ function SiparisSatiri({ siparis, acik, onAc, yetkili, personel, onDegisti }) {
   const adet = siparis.kalemler.reduce((t, k) => t + Number(k.adet), 0)
 
   /* Sipariş hareketleri İşlem Kaydı'na da yazılıyor: stoku değiştiren
-     tek adım gönderim ve "bu bayinin stoku neden arttı" sorusunun
+     tek adım gönderim ve "bu servisin stoku neden arttı" sorusunun
      cevabı denetlenebilir bir yerde durmalı. */
   function yaz(ozet) {
-    islemYaz({ tur: 'siparis', ozet: `${siparis.no} · ${siparis.bayiAd} · ${ozet}`, personel })
+    islemYaz({ tur: 'siparis', ozet: `${siparis.no} · ${siparis.servisAd} · ${ozet}`, personel })
   }
 
   function ilerlet() {
@@ -218,7 +218,7 @@ function SiparisSatiri({ siparis, acik, onAc, yetkili, personel, onDegisti }) {
       >
         <span className={'rz rz--' + d.ton}>{d.ad}</span>
         {siparis.tur === 'garanti' && <span className="rz rz--turuncu">Garanti</span>}
-        <strong>{siparis.bayiAd}</strong>
+        <strong>{siparis.servisAd}</strong>
         <span className="mono kucuk sonuk">{siparis.no}</span>
         <span className="kucuk sonuk" style={{ marginLeft: 'auto' }}>
           {siparis.kalemler.length} kalem · {adet} adet · {tarihYaz(siparis.tarih, false)}
@@ -250,7 +250,7 @@ function SiparisSatiri({ siparis, acik, onAc, yetkili, personel, onDegisti }) {
 
           {siparis.not && (
             <p style={{ marginTop: 12 }}>
-              <span className="kucuk sonuk">Bayinin Notu</span>
+              <span className="kucuk sonuk">Servisin Notu</span>
               <br />
               {siparis.not}
             </p>
@@ -309,7 +309,7 @@ function SiparisSatiri({ siparis, acik, onAc, yetkili, personel, onDegisti }) {
 
               {siparis.durum === 'hazirlaniyor' && (
                 <p className="kucuk sonuk" style={{ marginTop: 8 }}>
-                  Gönderildi olarak işaretlenince ürünler bayinin stokuna
+                  Gönderildi olarak işaretlenince ürünler servisin stokuna
                   eklenecek.
                 </p>
               )}
@@ -318,7 +318,7 @@ function SiparisSatiri({ siparis, acik, onAc, yetkili, personel, onDegisti }) {
 
           {!yetkili && (
             <p className="kucuk sonuk" style={{ marginTop: 12 }}>
-              Siparişi ilerletmek için bayi düzenleme yetkisi gerekiyor.
+              Siparişi ilerletmek için servis düzenleme yetkisi gerekiyor.
             </p>
           )}
         </div>

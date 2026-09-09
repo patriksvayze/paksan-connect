@@ -1,16 +1,16 @@
 import { useMemo, useState } from 'react'
 import {
-  bayiSifreTalebiKapat,
-  bayiSifreTalepleriGetir,
-  bayileriGetirBackoffice,
-  bayileriSifirla,
-  bayileriYaz,
+  servisSifreTalebiKapat,
+  servisSifreTalepleriGetir,
+  servisleriGetirBackoffice,
+  servisleriSifirla,
+  servisleriYaz,
   izinli,
   kullaniciAdiOner,
 } from '../veri'
 import { sifreHazirla } from '../../lib/hesap'
 import { useVeri } from '../kanca'
-import { BAYILER, YETKILER } from '../../marka'
+import { SERVISLER, YETKILER } from '../../marka'
 import { ILLER, ilceleriGetir } from '../../data/iller'
 import { Baslik, Bekleme, Bos, siraliListe, SiraliBaslik, tarihYaz, useSiralama } from './ortak'
 import { Secim, SuzgecCubugu } from './suzgec'
@@ -18,30 +18,30 @@ import { DisaAktar, IceAktar } from './aktar'
 import { uid } from '../../lib/storage'
 import { yeniNo, sayaciEnAz } from '../../lib/numara'
 
-/* Bayiler.
+/* Servisler.
 
-   Uygulamadaki bayi listesi buradan yönetiliyor. Liste değiştirilirse
+   Uygulamadaki servis listesi buradan yönetiliyor. Liste değiştirilirse
    uygulama artık bu listeyi gösteriyor; dokunulmazsa koddaki liste
    geçerli kalıyor.
 
-   Enlem/boylam, bayinin haritada doğru yönde çıkması için gerekli.
+   Enlem/boylam, servisin haritada doğru yönde çıkması için gerekli.
    Bilinmiyorsa il merkezinin koordinatı yeterli. */
 
-const BOS_BAYI = {
+const BOS_SERVIS = {
   ad: '', il: '', ilce: '', adres: '', tel: '', telYazi: '',
   enlem: '', boylam: '', yetki: ['satis'], bolge: [],
 }
 
-/* Bayinin bıraktığı şifre yardımı talebi.
+/* Servisin bıraktığı şifre yardımı talebi.
 
-   Bayi kendi sıfırlayamıyor: e-postası yok ve kullanıcı adını bilen
+   Servis kendi sıfırlayamıyor: e-postası yok ve kullanıcı adını bilen
    herkese hesabı açardı. Talep bırakıyor, PAKSAN arıyor, geçici şifre
-   veriyor. Bayi o şifreyle girince `ilkGiris` akışı kendi şifresini
+   veriyor. Servis o şifreyle girince `ilkGiris` akışı kendi şifresini
    belirletiyor. */
 function SifreYardimi({ personel, tazele, surum }) {
   const liste = useMemo(() => {
     void surum
-    return bayiSifreTalepleriGetir().filter((t) => t.durum === 'bekliyor')
+    return servisSifreTalepleriGetir().filter((t) => t.durum === 'bekliyor')
   }, [surum])
 
   if (!liste.length) return null
@@ -49,21 +49,21 @@ function SifreYardimi({ personel, tazele, surum }) {
   return (
     <div className="kart" style={{ marginBottom: 14, borderLeft: '3px solid var(--turuncu)' }}>
       <div className="kart__tepe">
-        <h2>Şifre Yardımı Bekleyen Bayi ({liste.length})</h2>
+        <h2>Şifre Yardımı Bekleyen Servis ({liste.length})</h2>
       </div>
       <div className="kart__ic">
         {liste.map((t) => (
           <div key={t.id} className="satir" style={{ alignItems: 'center', gap: 10, padding: '8px 0' }}>
             <div style={{ flex: 1 }}>
-              <strong>{t.bayiAd}</strong>
+              <strong>{t.servisAd}</strong>
               <div className="kucuk sonuk mono">
-                {t.bayiNo} · {t.kullanici} · {tarihYaz(t.tarih)}
+                {t.servisNo} · {t.kullanici} · {tarihYaz(t.tarih)}
               </div>
             </div>
             <button
               className="dg"
               onClick={() => {
-                bayiSifreTalebiKapat(t.id, personel)
+                servisSifreTalebiKapat(t.id, personel)
                 tazele()
               }}
             >
@@ -72,16 +72,16 @@ function SifreYardimi({ personel, tazele, surum }) {
           </div>
         ))}
         <p className="kucuk sonuk" style={{ marginTop: 8 }}>
-          Bayiyi arayıp aşağıdaki listeden "Şifre sıfırla" ile geçici şifre
-          verin. Bayi o şifreyle girdiğinde kendi şifresini belirleyecek.
+          Servisi arayıp aşağıdaki listeden "Şifre sıfırla" ile geçici şifre
+          verin. Servis o şifreyle girdiğinde kendi şifresini belirleyecek.
         </p>
       </div>
     </div>
   )
 }
 
-export function Bayiler({ personel, rol, bildir, tazele, surum }) {
-  const duzenleyebilir = izinli(rol, 'bayiDuzenle')
+export function Servisler({ personel, rol, bildir, tazele, surum }) {
+  const duzenleyebilir = izinli(rol, 'servisDuzenle')
   /* Toplu yükleme yalnız adminde: bir dosya bütün listeyi değiştirebiliyor. */
   const yonetici = izinli(rol, 'personelDuzenle')
   const [duzenlenen, setDuzenlenen] = useState(null)
@@ -91,29 +91,29 @@ export function Bayiler({ personel, rol, bildir, tazele, surum }) {
   const [hizmet, setHizmet] = useState('hepsi')
   const [ara, setAra] = useState('')
 
-  const { veri: kayitli, yukleniyor } = useVeri(() => bayileriGetirBackoffice(), [surum], null)
+  const { veri: kayitli, yukleniyor } = useVeri(() => servisleriGetirBackoffice(), [surum], null)
 
-  const tumBayiler = yerel || kayitli || BAYILER
+  const tumServisler = yerel || kayitli || SERVISLER
 
-  const iller = [...new Set(tumBayiler.map((b) => b.il).filter(Boolean))].sort((a, b) =>
+  const iller = [...new Set(tumServisler.map((b) => b.il).filter(Boolean))].sort((a, b) =>
     a.localeCompare(b, 'tr')
   )
   const ilceler = [
     ...new Set(
-      tumBayiler.filter((b) => il === 'hepsi' || b.il === il).map((b) => b.ilce).filter(Boolean)
+      tumServisler.filter((b) => il === 'hepsi' || b.il === il).map((b) => b.ilce).filter(Boolean)
     ),
   ].sort((a, b) => a.localeCompare(b, 'tr'))
 
-  /* Bayi adına göre arama.
+  /* Servis adına göre arama.
 
      İl ve ilçe süzgeçleri "bu bölgede kim var" sorusunu
-     cevaplıyordu ama günlük iş çoğu zaman tersi: elde bir bayi adı
+     cevaplıyordu ama günlük iş çoğu zaman tersi: elde bir servis adı
      var, telefonu ya da yetkisi aranıyor. Listede yüz kayıt varken
-     adı bilinen bayiyi il seçerek bulmak dolambaçlı yoldu.
+     adı bilinen servisi il seçerek bulmak dolambaçlı yoldu.
 
      Arama ada bakıyor; il, ilçe ve telefon da eşleşiyor ki
      "Bandırma" ya da numaranın son haneleri de bulsun. */
-  const suzulmus = tumBayiler.filter((b) => {
+  const suzulmus = tumServisler.filter((b) => {
     if (il !== 'hepsi' && b.il !== il) return false
     if (ilce !== 'hepsi' && b.ilce !== ilce) return false
     if (hizmet !== 'hepsi' && !(b.yetki || []).includes(hizmet)) return false
@@ -146,24 +146,24 @@ export function Bayiler({ personel, rol, bildir, tazele, surum }) {
      görünen alt küme değil. */
   function kaydet(yeniListe) {
     setYerel(yeniListe)
-    bayileriYaz(yeniListe, personel, `Bayi listesi güncellendi (${yeniListe.length} bayi)`)
+    servisleriYaz(yeniListe, personel, `Servis listesi güncellendi (${yeniListe.length} servis)`)
     tazele()
   }
 
   return (
     <>
-      {/* Şifre yardımı isteyen bayiler en üstte: bayi giremiyor demek,
-          bekleyen bir talebi de olabilir. Bayi kendi sıfırlayamıyor —
+      {/* Şifre yardımı isteyen servisler en üstte: servis giremiyor demek,
+          bekleyen bir talebi de olabilir. Servis kendi sıfırlayamıyor —
           gerekçesi veri.js'te yazılı. */}
       {duzenleyebilir && <SifreYardimi personel={personel} tazele={tazele} surum={surum} />}
 
       <Baslik
-        ad="Bayiler"
+        ad="Servisler"
         sag={
           duzenleyebilir && (
           <>
             <DisaAktar
-              ad="Bayiler"
+              ad="Servisler"
               basliklar={AKTAR_BASLIK}
               satirlar={liste.map(aktarSatiri)}
               personel={personel}
@@ -171,7 +171,7 @@ export function Bayiler({ personel, rol, bildir, tazele, surum }) {
 
             {yonetici && (
               <IceAktar
-                ad="Bayiler"
+                ad="Servisler"
                 basliklar={AKTAR_BASLIK}
                 ornek={ORNEK_SATIR}
                 bildir={bildir}
@@ -186,7 +186,7 @@ export function Bayiler({ personel, rol, bildir, tazele, surum }) {
                 className="dg"
                 onClick={() => {
                   if (!confirm('Koddaki temsilî listeye geri dönülecek. Emin misiniz?')) return
-                  bayileriSifirla(personel)
+                  servisleriSifirla(personel)
                   setYerel(null)
                   tazele()
                   bildir('Fabrika ayarına dönüldü')
@@ -197,9 +197,9 @@ export function Bayiler({ personel, rol, bildir, tazele, surum }) {
             )}
             <button
               className="dg dg--ana"
-              onClick={() => setDuzenlenen({ ...BOS_BAYI, id: uid(), yeni: true })}
+              onClick={() => setDuzenlenen({ ...BOS_SERVIS, id: uid(), yeni: true })}
             >
-              Bayi ekle
+              Servis ekle
             </button>
           </>
           )
@@ -249,18 +249,18 @@ export function Bayiler({ personel, rol, bildir, tazele, surum }) {
             className="sec"
             value={ara}
             onChange={(e) => setAra(e.target.value)}
-            placeholder="Bayi adı, il/ilçe, telefon"
+            placeholder="Servis adı, il/ilçe, telefon"
           />
         </label>
 
-        <span className="suzgec-cubugu__sayi">{liste.length} bayi</span>
+        <span className="suzgec-cubugu__sayi">{liste.length} servis</span>
       </SuzgecCubugu>
 
       <div className="kart">
         {yukleniyor ? (
           <Bekleme satir={5} />
         ) : liste.length === 0 ? (
-          <Bos metin="Bu süzgeçle bayi bulunamadı." />
+          <Bos metin="Bu süzgeçle servis bulunamadı." />
         ) : (
           <div className="tablo-sar">
             <table>
@@ -273,7 +273,7 @@ export function Bayiler({ personel, rol, bildir, tazele, surum }) {
                     onSirala={cevir}
                     genislik={90}
                   />
-                  <SiraliBaslik ad="Bayi" alan="ad" siralama={siralama} onSirala={cevir} />
+                  <SiraliBaslik ad="Servis" alan="ad" siralama={siralama} onSirala={cevir} />
                   <SiraliBaslik ad="Konum" alan="konum" siralama={siralama} onSirala={cevir} />
                   <SiraliBaslik ad="Telefon" alan="tel" siralama={siralama} onSirala={cevir} />
                   <SiraliBaslik ad="Hizmet" alan="hizmet" siralama={siralama} onSirala={cevir} />
@@ -306,7 +306,7 @@ export function Bayiler({ personel, rol, bildir, tazele, surum }) {
                             onClick={() => {
                               if (!confirm(`"${b.ad}" listeden çıkarılacak.`)) return
                               kaydet(liste.filter((x) => x.id !== b.id))
-                              bildir('Bayi çıkarıldı')
+                              bildir('Servis çıkarıldı')
                             }}
                           >
                             Sil
@@ -324,13 +324,13 @@ export function Bayiler({ personel, rol, bildir, tazele, surum }) {
 
       {duzenlenen && (
         <Form
-          bayi={duzenlenen}
+          servis={duzenlenen}
           onKapat={() => setDuzenlenen(null)}
           onKaydet={async (b) => {
-            sayaciEnAz('bayi', liste.length)
+            sayaciEnAz('servis', liste.length)
             const temiz = {
               ...b,
-              no: b.no || yeniNo('bayi'),
+              no: b.no || yeniNo('servis'),
               enlem: Number(b.enlem) || 0,
               boylam: Number(b.boylam) || 0,
             }
@@ -353,7 +353,7 @@ export function Bayiler({ personel, rol, bildir, tazele, surum }) {
               : liste.map((x) => (x.id === b.id ? temiz : x))
             kaydet(yeni)
             setDuzenlenen(null)
-            bildir(b.yeni ? 'Bayi eklendi' : 'Bayi güncellendi')
+            bildir(b.yeni ? 'Servis eklendi' : 'Servis güncellendi')
           }}
         />
       )}
@@ -364,7 +364,7 @@ export function Bayiler({ personel, rol, bildir, tazele, surum }) {
 /* ==========================================================================
    Sorumluluk bölgesi seçici
 
-   Bayinin hangi yerlerden gelen talebe bakacağını satış personeli
+   Servisin hangi yerlerden gelen talebe bakacağını satış personeli
    burada tanımlıyor.
 
    İl eklenince varsayılan olarak TÜM İL sorumluluğu geliyor. İlçe
@@ -406,8 +406,8 @@ function BolgeSecici({ bolge, onDegis }) {
     <div className="alan">
       <span className="alan__ad">Sorumluluk Bölgesi</span>
       <p className="kucuk sonuk" style={{ margin: '0 0 8px' }}>
-        Bu bayiye hangi yerlerden gelen talepler düşecek? İlçe seçmezseniz
-        bayi ilin tamamından sorumlu olur.
+        Bu servise hangi yerlerden gelen talepler düşecek? İlçe seçmezseniz
+        servis ilin tamamından sorumlu olur.
       </p>
 
       {bolge.length === 0 && (
@@ -463,13 +463,13 @@ function BolgeSecici({ bolge, onDegis }) {
   )
 }
 
-function Form({ bayi, onKapat, onKaydet }) {
-  const [d, setD] = useState(bayi)
+function Form({ servis, onKapat, onKaydet }) {
+  const [d, setD] = useState(servis)
   const [hata, setHata] = useState('')
   const yaz = (k) => (e) => setD({ ...d, [k]: e.target.value })
 
   function kaydet() {
-    if (d.ad.trim().length < 2) return setHata('Bayi adını yazın.')
+    if (d.ad.trim().length < 2) return setHata('Servis adını yazın.')
     if (!d.il.trim()) return setHata('İl adını yazın.')
     if (!d.tel.replace(/\D/g, '')) return setHata('Telefon numarasını yazın.')
     if (!(d.yetki || []).length) return setHata('En az bir hizmet seçin.')
@@ -500,12 +500,12 @@ function Form({ bayi, onKapat, onKaydet }) {
     >
       <div className="kart" style={{ width: '100%', maxWidth: 640, maxHeight: '90vh', overflow: 'auto' }}>
         <div className="kart__tepe">
-          <h2>{bayi.yeni ? 'Yeni bayi' : 'Bayiyi düzenle'}</h2>
+          <h2>{servis.yeni ? 'Yeni servis' : 'Servisi düzenle'}</h2>
           <button className="dg" style={{ marginLeft: 'auto' }} onClick={onKapat}>Kapat</button>
         </div>
         <div className="kart__ic">
           <label className="alan">
-            <span className="alan__ad">Bayi Adı</span>
+            <span className="alan__ad">Servis Adı</span>
             <input className="gir" value={d.ad} onChange={yaz('ad')} autoFocus />
           </label>
 
@@ -566,7 +566,7 @@ function Form({ bayi, onKapat, onKaydet }) {
             </label>
           </div>
           <p className="kucuk sonuk" style={{ marginTop: -6 }}>
-            Koordinat, bayinin haritada doğru yönde çıkması için. Bilinmiyorsa
+            Koordinat, servisin haritada doğru yönde çıkması için. Bilinmiyorsa
             il merkezinin koordinatı yeterli.
           </p>
 
@@ -597,17 +597,17 @@ function Form({ bayi, onKapat, onKaydet }) {
 
           {/* ==================================================== Panel girişi
 
-              Bayi kaydı ile bayi hesabı aynı şey; ikiye bölmek iki yerde
+              Servis kaydı ile servis hesabı aynı şey; ikiye bölmek iki yerde
               senkron tutulacak liste demek olurdu.
 
-              Hesabı PAKSAN açıyor, bayi kendi kaydını oluşturamıyor.
+              Hesabı PAKSAN açıyor, servis kendi kaydını oluşturamıyor.
               Şifresini unutursa da PAKSAN'ı arıyor — hesap silme ve
               numara değişikliğindeki kuralın aynısı. */}
           <div className="alan" style={{ marginTop: 18 }}>
             <span className="alan__ad">Panel Girişi</span>
             <p className="kucuk sonuk" style={{ margin: '0 0 8px' }}>
-              Bayi, kendi panelinde yalnızca kendi bölgesine düşen talepleri
-              görür. Kullanıcı adı boşsa bayinin panel erişimi yoktur.
+              Servis, kendi panelinde yalnızca kendi bölgesine düşen talepleri
+              görür. Kullanıcı adı boşsa servisin panel erişimi yoktur.
             </p>
             <div className="esit">
               <label className="alan">
@@ -616,7 +616,7 @@ function Form({ bayi, onKapat, onKaydet }) {
                   className="gir mono"
                   value={d.kullanici || ''}
                   onChange={yaz('kullanici')}
-                  placeholder={kullaniciAdiOner(d.ad) || 'bayi.adi'}
+                  placeholder={kullaniciAdiOner(d.ad) || 'servis.adi'}
                 />
               </label>
               <label className="alan">
@@ -663,7 +663,7 @@ function Form({ bayi, onKapat, onKaydet }) {
    hizmet yazılacaksa araya virgül konuyor. */
 
 const AKTAR_BASLIK = [
-  'Bayi Adı', 'İl', 'İlçe', 'Adres', 'Telefon (tuşlanacak)',
+  'Servis Adı', 'İl', 'İlçe', 'Adres', 'Telefon (tuşlanacak)',
   'Telefon (görünen)', 'Enlem', 'Boylam', 'Hizmetler',
 ]
 
@@ -698,12 +698,12 @@ function aktarSatiri(b) {
 function iceAl(kayitlar, mevcut, kaydet) {
   const hatalar = []
   const yeniler = []
-  sayaciEnAz('bayi', mevcut.length)
+  sayaciEnAz('servis', mevcut.length)
 
   kayitlar.forEach((k, i) => {
     const satir = i + 2
-    const ad = k['Bayi Adı']
-    if (!ad) return hatalar.push(`${satir}. satır: bayi adı boş, atlandı.`)
+    const ad = k['Servis Adı']
+    if (!ad) return hatalar.push(`${satir}. satır: servis adı boş, atlandı.`)
     if (!k['İl']) return hatalar.push(`${satir}. satır (${ad}): il boş, atlandı.`)
 
     const yetki = String(k['Hizmetler'] || '')
@@ -717,7 +717,7 @@ function iceAl(kayitlar, mevcut, kaydet) {
 
     yeniler.push({
       id: uid(),
-      no: yeniNo('bayi'),
+      no: yeniNo('servis'),
       ad,
       il: k['İl'],
       ilce: k['İlçe'] || '',

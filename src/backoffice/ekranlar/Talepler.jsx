@@ -21,7 +21,7 @@ import { getProduct, markaEk } from '../../marka'
 import { formatSerial, warrantyStatus } from '../../lib/serial'
 import { makineDurumAdi } from '../../data/talepAlanlari'
 import { BANKA } from '../../marka'
-import { bayileriGetir, talebinBayileri, yetkiAdi } from '../../marka'
+import { servisleriGetir } from '../../marka'
 import { PARA_BIRIMI, parcaToplami, paraYaz } from '../../marka'
 
 /* Talepler.
@@ -52,7 +52,7 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
     setIl(sorgu.il ?? 'hepsi')
     setIlce('hepsi')
     setMakine(sorgu.makine ?? 'hepsi')
-    /* Sahiplik de sıfırlanıyor. Açık kalmış "Bayide" süzgeci
+    /* Sahiplik de sıfırlanıyor. Açık kalmış "Serviste" süzgeci
        dashboard'dan gelen sayıyla listeyi uyumsuz hâle getiriyordu:
        kutuda 35 yazıyor, listede 12 kayıt çıkıyordu. */
     setSahiplik(sorgu.sahiplik ?? 'hepsi')
@@ -146,7 +146,7 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
       if (!araliktaMi(t.createdAt, aralik)) return false
       if (il !== 'hepsi' && t.il !== il) return false
       if (ilce !== 'hepsi' && t.ilce !== ilce) return false
-      if (sahiplik === 'bayi' && (t.sahip || 'paksan') !== 'bayi') return false
+      if (sahiplik === 'servis' && (t.sahip || 'paksan') !== 'servis') return false
       if (sahiplik === 'paksan' && (t.sahip || 'paksan') !== 'paksan') return false
       if (sahiplik === 'devredilen' && !t.devir) return false
       if (makine !== 'hepsi') {
@@ -163,11 +163,11 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
          FATURA ADI VE BAYİ ADI DA ARANIYOR. Yedek parça faturası
          çoğu zaman şirkete kesiliyor ve o unvan uygulamayı kullanan
          kişinin adından farklı; "Öztürk Tarım" araması hiçbir şey
-         bulmuyordu. Bayi adı da aynı sebeple burada: personel
-         "Konya bayisindeki işler" diye arıyor. */
+         bulmuyordu. Servis adı da aynı sebeple burada: personel
+         "Konya servisindeki işler" diye arıyor. */
       const alanlar = [
         t.no, t.ad, t.tel, t.il, t.ilce, t.makine?.serial, t.aciklama,
-        t.fatura?.ad, t.fatura?.unvan, t.bayi?.ad,
+        t.fatura?.ad, t.fatura?.unvan, t.servis?.ad,
       ]
       if (alanlar.filter(Boolean).some((x) => String(x).toLocaleLowerCase('tr-TR').includes(q))) {
         return true
@@ -288,7 +288,7 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
           genislik={170}
         />
 
-        {/* Talep bayiye düşse de PAKSAN listesinden çıkmıyor; bu
+        {/* Talep servise düşse de PAKSAN listesinden çıkmıyor; bu
             süzgeç "şu an kim ilgileniyor" sorusunu cevaplıyor. */}
         <Secim
           ad="Sahiplik"
@@ -296,7 +296,7 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
           onDegis={setSahiplik}
           secenekler={[
             { deger: 'hepsi', ad: 'Hepsi' },
-            { deger: 'bayi', ad: 'Bayide' },
+            { deger: 'servis', ad: 'Serviste' },
             { deger: 'paksan', ad: markaEk('da') },
             { deger: 'devredilen', ad: 'Devredilenler' },
           ]}
@@ -606,7 +606,7 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
           <S k="Aranma Tercihi" v={talep.ulasim} />
         </Bolum>
 
-        <BayiDurumu talep={talep} />
+        <ServisDurumu talep={talep} />
 
         {/* Müşterinin öteki talepleri.
 
@@ -830,22 +830,16 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
           </Bolum>
         )}
 
-        {/* -------------------------------------- Bu talebe bakacak bayi
+        {/* FİYAT TEKLİFİNE ADAY LİSTESİ ŞİMDİLİK YOK.
 
-            Makineleri bayiye satıyoruz, son kullanıcıya bayi satıyor.
-            Uygulamadan gelen fiyat teklifi talebini doğrudan
-            cevaplamak, bayiyi kendi müşterisinde atlamak olur.
+            Burada, fiyat teklifi talebinin altında üç aday listeleniyordu.
+            Aday olarak SERVİS gösteriliyordu; oysa makineyi satan taraf
+            bayi, servis satış yapmıyor. Satış personeline yanlış listeyi
+            göstermektense hiç göstermemek doğru.
 
-            Satış personelinin "bunu kime yollayacağım" sorusunun
-            cevabı burada, talebin içinde yazılı — başka bir ekrana
-            gidip il seçerek aramaya gerek yok. */}
-        {/* Bayi ZATEN EŞLEŞMİŞSE aday listesi çıkmıyor. Bu bölüm
-            konumdan üç aday hesaplıyor; talebin düştüğü bayi bunlardan
-            biri olmayabilir (bayi listesi değişmiş ya da talep bayinin
-            kendi kaydından açılmış olabilir). İkisi birden ekranda
-            durunca personel yanlış bayiyi arıyordu. Eşleşme varsa
-            yukarıdaki "Bayi" bölümü zaten doğrusunu yazıyor. */}
-        {talep.tur === 'satinalma' && !talep.bayi && <TalepBayileri talep={talep} />}
+            Bayi kaydı ayrı bir varlığa çıktığında buraya bayi önerisi
+            gelecek (bkz. planın 1b adımı). O gün "bunu kime
+            yollayacağım" sorusunun cevabı yine talebin içinde yazacak. */}
 
         {/* Verilen teklif — müşterinin cevabı beklenirken burada duruyor */}
         {talep.teklif && (
@@ -917,14 +911,14 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
 
             {/* KAPANIŞ ÖZETİ — BOŞ KUTUYA KARŞI.
 
-                Bayinin kapattığı yedek parça talebi yalnız `ozet`
+                Servisin kapattığı yedek parça talebi yalnız `ozet`
                 alanına yazılıyordu; backoffice'in okuduğu alanların
                 hiçbiri dolu değildi. Sonuç: kapanmış talepte "Yapılan
                 iş" başlığı ve altında yalnız imza satırı görünüyordu.
-                Bayinin yazdığı kargo takip numarası dâhil hiçbir şey
+                Servisin yazdığı kargo takip numarası dâhil hiçbir şey
                 okunmuyordu.
 
-                Bayi tarafı düzeltildi ve artık ortak alanı yazıyor.
+                Servis tarafı düzeltildi ve artık ortak alanı yazıyor.
                 Bu satır ESKİ kayıtlar için duruyor: alanların hepsi
                 boşsa özet gösteriliyor, kayıt kaybolmuyor. */}
             {kapanisBos(talep) && talep.cozum.ozet && (
@@ -933,7 +927,7 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
 
             {/* Kapanışta PAKSAN'a bedelsiz parça faturası çıkarıldıysa
                 numarası burada: talebin karşılığı olan garanti
-                siparişi, Bayi Siparişleri ekranında bu numarayla
+                siparişi, Servis Siparişleri ekranında bu numarayla
                 aranıyor. */}
             {talep.cozum.garantiNo && (
               <S k="Garanti talebi" v={talep.cozum.garantiNo} mono />
@@ -1272,14 +1266,14 @@ const AKTAR_SUTUNLARI = [
     turler: ['servis', 'parca'],
   },
 
-  /* --------------------------------------------------- Kapanış ve bayi
+  /* --------------------------------------------------- Kapanış ve servis
 
      YAPILAN İŞ EXCEL'E HİÇ GİTMİYORDU. Oysa kapanış kaydı bu projedeki
      en değerli veri: hangi modelde hangi parça kaçıncı yılda
      bozuluyor sorusunun cevabı orada birikiyor. Ekranda görünüyor,
      dosyaya inmiyordu — yani hiçbir yerde toplanamıyordu.
 
-     Bayi sütunu da aynı sebeple burada: talebin kimde olduğu listede
+     Servis sütunu da aynı sebeple burada: talebin kimde olduğu listede
      yazıyor, dosyada yazmıyordu. */
   {
     ad: 'Yapılan iş',
@@ -1292,11 +1286,11 @@ const AKTAR_SUTUNLARI = [
     ad: 'Kapanış tarihi',
     deger: (t) => (t.cozum?.tarih ? tarihYaz(t.cozum.tarih, false) : ''),
   },
-  { ad: 'Bayi', deger: (t) => t.bayi?.ad || '' },
+  { ad: 'Servis', deger: (t) => t.servis?.ad || '' },
   {
     ad: 'Talep kimde',
     deger: (t) =>
-      t.bayi && (t.sahip || 'paksan') === 'bayi' ? 'Bayide' : markaEk('da'),
+      t.servis && (t.sahip || 'paksan') === 'servis' ? 'Serviste' : markaEk('da'),
   },
 
   { ad: 'İptal sebebi', deger: (t) => t.iptalBilgi?.neden || '' },
@@ -1447,8 +1441,8 @@ const KAPANIS_ALANLARI = {
       ipucu: 'Örnek: düğüm ipi mekanizması ayarlandı, pikap dişi değişti' },
     { ad: 'parcalar', etiket: 'Değişen parça', ipucu: 'Pikap dişi, düğüm ipi' },
     { ad: 'ucret', etiket: 'Ücret', para: true, ipucu: 'Garanti kapsamında / 1250' },
-    /* NOT ALANI BACKOFFICE'TE YOKTU. Bayi servis kapanışında not
-       yazabiliyor (bkz. lib/bayiServis.js) ve o not müşterinin
+    /* NOT ALANI BACKOFFICE'TE YOKTU. Servis servis kapanışında not
+       yazabiliyor (bkz. lib/servisKapanis.js) ve o not müşterinin
        uygulamasında görünüyordu; PAKSAN'ın ekranında görünmüyordu.
        Müşterinin okuduğu bir şeyi üreticinin okuyamaması. */
     { ad: 'not', etiket: 'Not', uzun: true,
@@ -1542,73 +1536,76 @@ function TurEtiket({ tur }) {
 
 /* Talebin şu an kimde olduğunu gösteren satır.
 
-   Talep bayiye düşse de bu listeden çıkmıyor; personel her talebi
+   Talep servise düşse de bu listeden çıkmıyor; personel her talebi
    görüyor. Bu etiket "buna kim bakıyor" sorusunu cevaplıyor, yoksa
-   personel bayinin ilgilendiği talebe de aynı anda dokunur ve müşteri
+   personel servisin ilgilendiği talebe de aynı anda dokunur ve müşteri
    iki yerden aranır.
 
-   Bayisi olmayan talepte hiçbir şey yazmıyor: satırda gereksiz gürültü
+   Servisi olmayan talepte hiçbir şey yazmıyor: satırda gereksiz gürültü
    olmasın, "PAKSAN'da" zaten varsayılan durum. */
 function SahiplikEtiketi({ talep }) {
-  if (!talep.bayi) return null
+  if (!talep.servis) return null
   const devredildi = (talep.sahip || 'paksan') === 'paksan'
   return (
     <div className="kucuk sonuk" style={{ marginTop: 2 }}>
-      {devredildi ? `Devredildi · ${talep.bayi.ad}` : `Bayide · ${talep.bayi.ad}`}
+      {devredildi ? `Devredildi · ${talep.servis.ad}` : `Serviste · ${talep.servis.ad}`}
     </div>
   )
 }
 
 /* ==========================================================================
-   Talebe bakan bayi
+   Talebe bakan servis
 
-   BU BÖLÜM DETAYDA HİÇ YOKTU. Listede satırın altında "Bayide · X"
+   BU BÖLÜM DETAYDA HİÇ YOKTU. Listede satırın altında "Serviste · X"
    yazıyordu ama personelin çalıştığı yer sağ paneldi; talebi açınca
-   hangi bayinin ilgilendiği, telefonu, ne zaman düştüğü kayboluyordu.
-   Bayiyi aramak için listeye geri dönmek gerekiyordu.
+   hangi servisin ilgilendiği, telefonu, ne zaman düştüğü kayboluyordu.
+   Servisi aramak için listeye geri dönmek gerekiyordu.
 
-   DEVİR SEBEBİ DE BURADA. Bayi "bunu ben çözemiyorum" deyip talebi
+   DEVİR SEBEBİ DE BURADA. Servis "bunu ben çözemiyorum" deyip talebi
    PAKSAN'a bıraktığında sebebini yazıyor (bkz. veri.js →
-   destekTalepEt). O sebep bayi panelinde görünüyordu, backoffice'te
+   destekTalepEt). O sebep servis panelinde görünüyordu, backoffice'te
    hiçbir yerde görünmüyordu — devir süzgeci vardı ama içeriği yoktu.
    Oysa devrin tek anlamı o cümlede.
 
-   Telefon TIKLANABİLİR DEĞİL; gerekçesi TalepBayileri'nde yazılı.
+   TELEFON TIKLANABİLİR DEĞİL. Backoffice masaüstü tarayıcıda açılıyor;
+   oradan arama başlatmak işe yaramıyor, en iyi ihtimalle bir uygulama
+   seçme penceresi açıyor. Numara okunacak ve masadaki telefondan
+   aranacak.
    ========================================================================== */
-function BayiDurumu({ talep }) {
-  if (!talep.bayi) return null
+function ServisDurumu({ talep }) {
+  if (!talep.servis) return null
 
-  const kayit = bayileriGetir().find((b) => b.id === talep.bayi.id) || null
+  const kayit = servisleriGetir().find((b) => b.id === talep.servis.id) || null
   const paksanda = (talep.sahip || 'paksan') === 'paksan'
 
   return (
-    <Bolum ad="Bayi">
-      {/* Ad ile rozet aynı satırda: bölüm başlığı zaten "Bayi" diyor,
-          altına bir de "Bayi" etiketi koymak aynı kelimeyi iki kez
+    <Bolum ad="Servis">
+      {/* Ad ile rozet aynı satırda: bölüm başlığı zaten "Servis" diyor,
+          altına bir de "Servis" etiketi koymak aynı kelimeyi iki kez
           yazmak demekti. Rozet, talebin ŞU AN kimde olduğunu
           söylüyor. */}
       <div className="satir" style={{ gap: 10, alignItems: 'center', marginBottom: 8 }}>
-        <b>{talep.bayi.ad}</b>
+        <b>{talep.servis.ad}</b>
         <span
           className={'rz rz--' + (paksanda ? 'turuncu' : 'mavi')}
           style={{ marginLeft: 'auto' }}
         >
-          {paksanda ? markaEk('da') : 'Bayide'}
+          {paksanda ? markaEk('da') : 'Serviste'}
         </span>
       </div>
 
       {kayit && <S k="Konum" v={[kayit.ilce, kayit.il].filter(Boolean).join(' / ')} />}
       {kayit && <S k="Telefon" v={kayit.telYazi || kayit.tel} mono />}
-      <S k="Bayiye düştü" v={talep.bayi.tarih ? tarihYaz(talep.bayi.tarih) : ''} />
+      <S k="Servise düştü" v={talep.servis.tarih ? tarihYaz(talep.servis.tarih) : ''} />
 
       {talep.devir && (
         <div className="uyari" style={{ marginTop: 12, marginBottom: 0, display: 'block' }}>
-          <b>Bayi bu talep için {markaEk('dan')} destek istedi.</b>
+          <b>Servis bu talep için {markaEk('dan')} destek istedi.</b>
           {talep.devir.neden && (
             <p style={{ whiteSpace: 'pre-wrap', margin: '8px 0 0' }}>{talep.devir.neden}</p>
           )}
           <div className="kucuk" style={{ marginTop: 8 }}>
-            {[talep.devir.bayiAd, talep.devir.tarih ? tarihYaz(talep.devir.tarih) : '']
+            {[talep.devir.servisAd, talep.devir.tarih ? tarihYaz(talep.devir.tarih) : '']
               .filter(Boolean)
               .join(' · ')}
           </div>
@@ -2114,68 +2111,6 @@ function IptalFormu({ talep, onKapat, onKaydet }) {
    gidiyor: çiftçi kargonun nerede olduğunu uygulamadan görsün, santrali
    aramasın.
    ========================================================================== */
-/* ==========================================================================
-   Talebe bakacak bayi listesi
-
-   Üç kademe var ve hangisinde olduğumuz ekranda yazıyor: müşterinin
-   ilçesindeki bayi ile "en yakın bayi" arasındaki fark, satış
-   personelinin bilmesi gereken bir fark.
-   ========================================================================== */
-
-const KADEME_YAZI = {
-  ilce: 'Müşterinin ilçesindeki satış bayisi',
-  il: 'Müşterinin ilindeki satış bayisi',
-  yakin: 'İlinde satış bayisi yok — en yakın bayiler',
-}
-
-function TalepBayileri({ talep }) {
-  const { kademe, bayiler } = talebinBayileri(talep.il, talep.ilce)
-
-  return (
-    <Bolum ad="İlgili Bayi">
-      <p className="kucuk sonuk" style={{ margin: '0 0 10px' }}>
-        {KADEME_YAZI[kademe]}
-      </p>
-
-      {bayiler.length === 0 ? (
-        <div className="uyari" style={{ marginBottom: 0 }}>
-          <span>
-            Bu konum için bayi eşleştirilemedi. Talebi hangi bayiye yönlendireceğinizi
-            Bayiler ekranından belirleyin.
-          </span>
-        </div>
-      ) : (
-        bayiler.map((b) => (
-          <div
-            key={b.id}
-            style={{ borderTop: '1px solid var(--cizgi)', padding: '10px 0 4px' }}
-          >
-            <div className="satir" style={{ gap: 10, alignItems: 'baseline' }}>
-              <b>{b.ad}</b>
-              {b.km !== undefined && (
-                <span className="kucuk sonuk">~{b.km} km (kuş uçuşu)</span>
-              )}
-            </div>
-            <div className="kucuk sonuk">
-              {[b.ilce, b.il].filter(Boolean).join(' / ')}
-              {b.adres ? ' · ' + b.adres : ''}
-            </div>
-            {/* Telefon TIKLANABİLİR DEĞİL. Backoffice masaüstü tarayıcıda
-                açılıyor; oradan arama başlatmak işe yaramıyor, en
-                iyi ihtimalle bir uygulama seçme penceresi açıyor.
-                Numara okunacak ve masadaki telefondan aranacak. */}
-            <div className="satir" style={{ gap: 10, marginTop: 6, alignItems: 'center' }}>
-              <span className="mono">{b.telYazi || b.tel}</span>
-              <span className="kucuk sonuk">
-                {(b.yetki || []).map((y) => yetkiAdi(y)).join(' · ')}
-              </span>
-            </div>
-          </div>
-        ))
-      )}
-    </Bolum>
-  )
-}
 
 /* Talepteki parçaların liste fiyatı üzerinden tutarı.
 

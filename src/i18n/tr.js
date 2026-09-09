@@ -832,7 +832,7 @@ export const tr = {
     konumKullan: 'Konumumu kullan',
     konumAraniyor: 'Konumunuz alınıyor…',
     konumRed: 'Konum izni verilmedi. Liste kayıtlı ilinize göre sıralandı.',
-    bayiler: 'Bayiler',
+    servisler: 'Bayiler',
     merkezAlt: 'Bayinize ulaşamadığınızda doğrudan bizi arayabilirsiniz.',
     temsili: 'Bu bayi listesi temsilidir.',
     temsiliAlt: 'Gerçek bayi bilgileri geldiğinde buraya işlenecek. Şimdilik yolculuğa çıkmadan önce merkezden teyit alın.',

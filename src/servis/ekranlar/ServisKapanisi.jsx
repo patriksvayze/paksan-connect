@@ -2,8 +2,8 @@ import { useMemo, useState } from 'react'
 import { parcalariGetir, PARCA_DIGER } from '../../data/talepAlanlari'
 import { supportGroup, MARKA, markaEk } from '../../marka'
 import { extractYear, matchProduct, warrantyStatus, GARANTI_YIL } from '../../lib/serial'
-import { parcaAdedi } from '../../lib/bayiStok'
-import { siparisAc } from '../../lib/bayiSiparis'
+import { parcaAdedi } from '../../lib/servisStok'
+import { siparisAc } from '../../lib/servisSiparis'
 import {
   ODEME,
   PARCA_DURUMU,
@@ -11,7 +11,7 @@ import {
   YAPILAN_IS,
   parcaYazisi,
   servisKapat,
-} from '../../lib/bayiServis'
+} from '../../lib/servisKapanis'
 import { ekYaz, fotoKucult } from '../../lib/ekler'
 import { islemYaz, talepKapat } from '../../backoffice/veri'
 import { Bolum, Sayfa } from '../Kabuk'
@@ -30,7 +30,7 @@ import {
    TEK EKRANDA TEK SORU
 
    Bu ekran önce kaydırılan altı bölümlük bir formdu: belirti, iş,
-   parça, ücret, süre, kayıt. Panelin kullanıcısı bayi personeli —
+   parça, ücret, süre, kayıt. Panelin kullanıcısı servis personeli —
    teknoloji bilgisi yüksek olmayabilir, ekranı tarlada, işin sonunda,
    çoğu zaman ayakta açıyor. Altı bölümlük bir form orada
    doldurulmuyor; doldurulursa da geçiştiriliyor.
@@ -46,8 +46,8 @@ import {
 
    NE SORULACAĞINA TEŞVİK KARAR VERİYOR
 
-   Hangi kapıda ne sorulduğunun gerekçesi `lib/bayiServis.js` başında
-   yazılı: bayiden karşılıksız veri istenmiyor. Garanti kapısında
+   Hangi kapıda ne sorulduğunun gerekçesi `lib/servisKapanis.js` başında
+   yazılı: servisten karşılıksız veri istenmiyor. Garanti kapısında
    ayrıntı sorulabiliyor çünkü form bir rapor değil, bedelsiz parçayı
    almanın kendisi.
 
@@ -84,15 +84,15 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
   )
   /* ELİNDEKİ PARÇA ÖNCE.
 
-     Liste on üç satır ve bayi kullandığı parçayı arıyor. Kullandığı
+     Liste on üç satır ve servis kullandığı parçayı arıyor. Kullandığı
      parça, elinde olan parçadır — stokta duranlar başa alınıyor.
      Sıralama içinde eski sıra korunuyor (`sort` kararlı). */
   const parcaSecenekleri = useMemo(() => {
     const liste = parcalariGetir(supportGroup(urun)).filter((p) => p !== PARCA_DIGER)
     return [...liste].sort(
-      (a, b) => (parcaAdedi(oturum.bayiId, b) > 0) - (parcaAdedi(oturum.bayiId, a) > 0),
+      (a, b) => (parcaAdedi(oturum.servisId, b) > 0) - (parcaAdedi(oturum.servisId, a) > 0),
     )
-  }, [urun, oturum.bayiId])
+  }, [urun, oturum.servisId])
 
   /* "son" = garantinin SON YILI, yani garanti hâlâ sürüyor. Önce
      `!== 'devam'` diye bakılıyordu ve son yılındaki makinede "garanti
@@ -134,9 +134,9 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
 
   function bitir() {
     const sonuc = servisKapat({
-      bayiId: oturum.bayiId,
-      bayiAd: oturum.ad,
-      bayiNo: oturum.no,
+      servisId: oturum.servisId,
+      servisAd: oturum.ad,
+      servisNo: oturum.no,
       talep,
       yapilanIs,
       odeme,
@@ -159,13 +159,13 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
       })
     }
 
-    /* SİPARİŞ ÖNERİSİ — bayinin kapıdan aldığı şey.
+    /* SİPARİŞ ÖNERİSİ — servisin kapıdan aldığı şey.
 
-       Stok düşünce kalem bitmiş olabilir. Bayi bunu kendi fark edip
+       Stok düşünce kalem bitmiş olabilir. Servis bunu kendi fark edip
        sipariş ekranına gitmiyor; ekran soruyor. Stokun doğru olması
-       bayinin işine burada yarıyor: malsız kalmıyor. */
+       servisin işine burada yarıyor: malsız kalmıyor. */
     const bitenler = (sonuc.parcalar || []).filter(
-      (p) => parcaAdedi(oturum.bayiId, p.ad) === 0,
+      (p) => parcaAdedi(oturum.servisId, p.ad) === 0,
     )
     if (odeme === 'musteri' && bitenler.length) {
       return setBiten(bitenler.map((p) => ({ ad: p.ad, adet: p.adet })))
@@ -175,9 +175,9 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
 
   function siparisVer() {
     const sonuc = siparisAc({
-      bayiId: oturum.bayiId,
-      bayiAd: oturum.ad,
-      bayiNo: oturum.no,
+      servisId: oturum.servisId,
+      servisAd: oturum.ad,
+      servisNo: oturum.no,
       kalemler: biten.map((p) => ({
         tur: 'parca',
         anahtar: p.ad,
@@ -271,7 +271,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
               <ParcaSecimi
                 secenekler={parcaSecenekleri}
                 secili={parcalar}
-                bayiId={oturum.bayiId}
+                servisId={oturum.servisId}
                 stokGoster={odeme === 'musteri'}
                 onCevir={parcaCevir}
                 onAdet={adetDegistir}
@@ -283,9 +283,9 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
                 {/* GARANTİ GEÇERLİLİĞİ TALEP AÇILMADAN SÖYLENİYOR.
 
                     Süresi dolmuş makine için açılan talep PAKSAN'da
-                    reddedilecek; bayi bunu haftalar sonra değil
+                    reddedilecek; servis bunu haftalar sonra değil
                     burada öğrenmeli. Düğme kapatılmıyor: seri
-                    numarası yanlış okunmuş olabilir ve bayiyi kendi
+                    numarası yanlış okunmuş olabilir ve servisi kendi
                     kaydının hatasına hapsetmek doğru değil. */}
                 {!garantiVar && (
                   <div className="not not--turuncu">
@@ -403,15 +403,15 @@ function Secenekler({ secenekler, secili, onSec }) {
   )
 }
 
-/* Parça seçimi. Açılır kutu YOK: liste hâlinde duruyor, bayi
+/* Parça seçimi. Açılır kutu YOK: liste hâlinde duruyor, servis
    kullandığına dokunuyor. Tek etkileşim biçimi var — dokunmak.
    Seçilen satırda adet düğmeleri beliriyor. */
-function ParcaSecimi({ secenekler, secili, bayiId, stokGoster, onCevir, onAdet }) {
+function ParcaSecimi({ secenekler, secili, servisId, stokGoster, onCevir, onAdet }) {
   return (
     <Bolum ad="Değişen Parça" sayi={secili.length}>
       {secenekler.map((ad) => {
         const secim = secili.find((p) => p.ad === ad)
-        const stok = parcaAdedi(bayiId, ad)
+        const stok = parcaAdedi(servisId, ad)
         return (
           <div key={ad} className={'parca-satir' + (secim ? ' parca-satir--on' : '')}>
             <button className="parca-satir__ac" onClick={() => onCevir(ad)}>

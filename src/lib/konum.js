@@ -2,8 +2,8 @@
    Konum
 
    İzin kayıt akışının sonunda bir kez isteniyor; verilirse hesaba
-   yazılıyor. "Bayi ve iletişim" ekranı açıldığında izin verilmişse konum
-   sessizce alınıp bayiler yakından uzağa sıralanıyor — kullanıcı bir
+   yazılıyor. "Servis ve iletişim" ekranı açıldığında izin verilmişse konum
+   sessizce alınıp servisler yakından uzağa sıralanıyor — kullanıcı bir
    daha hiçbir şeye dokunmuyor.
 
    KONUMUN KENDİSİ SAKLANMIYOR, yalnızca izin durumu. Sebep: koordinat
@@ -40,7 +40,7 @@ export function konumOku() {
     navigator.geolocation.getCurrentPosition(
       (p) => coz({ enlem: p.coords.latitude, boylam: p.coords.longitude }),
       hata,
-      /* Yüksek hassasiyet gerekmiyor: bayi sıralaması için kilometre
+      /* Yüksek hassasiyet gerekmiyor: servis sıralaması için kilometre
          yeter. Kapalı tutmak hem pili hem beklemeyi azaltıyor. */
       { enableHighAccuracy: false, timeout: 12000, maximumAge: 600000 }
     )

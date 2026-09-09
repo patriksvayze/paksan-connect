@@ -2,7 +2,7 @@ import { Logo } from '../marka'
 import { IconBack, IconPhone } from '../components/Icons'
 
 /* ==========================================================================
-   Bayi uygulamasının kabuğu
+   Servis uygulamasının kabuğu
 
    NEDEN AYRI BİR KABUK VAR
 
@@ -16,15 +16,15 @@ import { IconBack, IconPhone } from '../components/Icons'
 
      · Üstte sabit bir çubuk — sayfa kaysa da yerinde duruyor,
        bulunulan yerin adını yazıyor.
-     · Altta sekmeler — parmağın doğal olarak durduğu yer. Bayinin
+     · Altta sekmeler — parmağın doğal olarak durduğu yer. Servisin
        dört işi var, dördü de tek dokunuş uzakta.
      · Alt sayfalar tam ekran açılıyor ve geri oku ile kapanıyor.
 
    TEK KOD, İKİ GÖRÜNÜM. Aynı kabuk tarayıcıda da çalışıyor: geniş
-   ekranda alt sekmeler üste, çubuğun altına geçiyor (bkz. bayi.css).
-   Bayi panelinin ve bayi uygulamasının iki ayrı kopyası yok.
+   ekranda alt sekmeler üste, çubuğun altına geçiyor (bkz. servis.css).
+   Servis panelinin ve servis uygulamasının iki ayrı kopyası yok.
 
-   ÇENTİK VE EV ÇUBUĞU. `bayi-mobil.html` içinde `viewport-fit=cover`
+   ÇENTİK VE EV ÇUBUĞU. `servis-mobil.html` içinde `viewport-fit=cover`
    var; içerik ekranın en tepesine kadar çıkıyor. Güvenli alan payları
    bu yüzden CSS'te `env(safe-area-inset-*)` ile veriliyor, yoksa
    başlık çentiğin, sekmeler de ev çubuğunun altında kalırdı.
@@ -126,7 +126,7 @@ export function Bolum({ ad, sayi, children }) {
 
    Üstte tür rozeti ve tarih, altında ad, altında yer ve numara, altında
    randevu, altında "48 saati geçti". Beş satırın ilki tamamen künye
-   bilgisiydi; bayinin listede aradığı MÜŞTERİ ADI ikinci sıraya
+   bilgisiydi; servisin listede aradığı MÜŞTERİ ADI ikinci sıraya
    düşüyordu. Alt iki satır ayrı ayrı renkliydi ve kartın altı tırtıklı
    bitiyordu. Sekiz kartlık bir listede ekranda on altı renkli işaret
    oluyordu — hepsi acil görünüyor, hiçbiri öne çıkmıyordu.
@@ -135,7 +135,7 @@ export function Bolum({ ad, sayi, children }) {
 
      1. AD — kartın çapası. Türü sağda, kendi rozetinde.
      2. KÜNYE — yer ve numara, sönük, tek satır.
-     3. DURUM — solda bayinin yapacağı iş (randevu ya da tutar),
+     3. DURUM — solda servisin yapacağı iş (randevu ya da tutar),
         sağda zaman. İkisi de her kartta aynı yerde.
 
    ZAMAN İLE GECİKME AYNI YUVADA. Gecikmiş bir işte hem "7 gün önce"
@@ -202,7 +202,7 @@ export function ListeKarti({
 
    ÇİZİM VARSA ÇİZİM, YOKSA SİMGE
 
-   Boş ekran bayinin uygulamayı en çok göreceği hâllerden biri:
+   Boş ekran servisin uygulamayı en çok göreceği hâllerden biri:
    sabah açtığında iş yoksa, stoku boşsa. Orada 40 piksellik gri bir
    simge "burada bir şey yok" demiyor, "ekran yüklenmedi" diyor.
 
@@ -214,7 +214,7 @@ export function ListeKarti({
    Gerekçe ölçüldü: 375 pikselli bir telefonda çubuk ve sekmeler
    düştükten sonra 537 piksel içerik alanı kalıyor. Büyük boy blok
    370 piksel tutuyordu; altındaki "Tamamlanan" başlığı ekranın
-   dışında kalıyor, bayi tamamladığı işleri göremiyordu.
+   dışında kalıyor, servis tamamladığı işleri göremiyordu.
 
    Ekranda başka hiçbir şey yoksa büyük boy doğru: orada çizimin
    kaplayacağı yer zaten boş. */

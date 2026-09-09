@@ -40,8 +40,8 @@
    `tools/marka-rengi.mjs`; gerçek stüdyo çekimleri geldiğinde yeniden
    çalıştırılmalı.
 
-   Aynı kural bayi panelindeki çizimler için de geçerli
-   (bkz. src/assets/gorseller/bayi-*.png).
+   Aynı kural servis panelindeki çizimler için de geçerli
+   (bkz. src/assets/gorseller/servis-*.png).
    ========================================================================== */
 
 import bosMakine from '../../assets/gorseller/bos-makine.png'

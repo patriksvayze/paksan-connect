@@ -69,19 +69,19 @@ bak(duyuruGecerliMi(orkinosa, { user: izinli, makineler: [] }), false, 'makinesi
 const seriye = { ...duyuru, hedef: { seriler: ['ork1270202400157'] } }
 bak(duyuruGecerliMi(seriye, { user: izinli, makineler }), true, 'seri biçimden bağımsız eşleşir')
 
-/* 9. Bayi tarafı: hedefsiz duyuru bayiye GİTMEZ, çünkü varsayılan
+/* 9. Servis tarafı: hedefsiz duyuru servise GİTMEZ, çünkü varsayılan
       kime 'musteri'. */
-const bayi = { bayiId: 'konya-merkez', il: 'Konya' }
-bak(duyuruGecerliMi(duyuru, { bayi }), false, 'hedefsiz duyuru bayiye gitmez')
+const servis = { servisId: 'konya-merkez', il: 'Konya' }
+bak(duyuruGecerliMi(duyuru, { servis }), false, 'hedefsiz duyuru servise gitmez')
 bak(
-  duyuruGecerliMi({ ...duyuru, hedef: { kime: 'bayi' } }, { bayi }),
+  duyuruGecerliMi({ ...duyuru, hedef: { kime: 'servis' } }, { servis }),
   true,
-  'bayilere hedeflenmiş duyuru bayiye gider',
+  'servislere hedeflenmiş duyuru servise gider',
 )
 bak(
-  duyuruGecerliMi({ ...duyuru, hedef: { kime: 'bayi' } }, { user: izinli }),
+  duyuruGecerliMi({ ...duyuru, hedef: { kime: 'servis' } }, { user: izinli }),
   false,
-  'yalnız bayilere olan duyuru müşteriye gitmez',
+  'yalnız servislere olan duyuru müşteriye gitmez',
 )
 bak(
   duyuruGecerliMi({ ...duyuru, hedef: { kime: 'ikisi' } }, { user: izinli }),
@@ -89,23 +89,23 @@ bak(
   'ikisine de olan duyuru müşteriye gider',
 )
 bak(
-  duyuruGecerliMi({ ...duyuru, hedef: { kime: 'bayi', bayiler: ['izmir'] } }, { bayi }),
+  duyuruGecerliMi({ ...duyuru, hedef: { kime: 'servis', servisler: ['izmir'] } }, { servis }),
   false,
-  'başka bayiye hedeflenmiş duyuru gelmez',
+  'başka servise hedeflenmiş duyuru gelmez',
 )
 
-/* 10. Geri çağırma YALNIZ bayiye.
+/* 10. Geri çağırma YALNIZ servise.
 
        Kural iki yerde birden duruyor: yayınlama ekranında alıcı
        kitlesi kilitli, burada da okuma tarafında kapı var. Buradaki
        kapı, ekranı atlayan bir kayıt için — çiftçinin telefonunda
        "makinenizi kullanmayın" penceresi açılmasın. */
 const geriCagirma = { id: 'g1', tur: 'uyari', alt: 'geriCagirma', baslik: 'Geri çağırma' }
-bak(duyuruGecerliMi(geriCagirma, { bayi }), false, 'hedefsiz geri çağırma bayiye de gitmez')
+bak(duyuruGecerliMi(geriCagirma, { servis }), false, 'hedefsiz geri çağırma servise de gitmez')
 bak(
-  duyuruGecerliMi({ ...geriCagirma, hedef: { kime: 'bayi' } }, { bayi }),
+  duyuruGecerliMi({ ...geriCagirma, hedef: { kime: 'servis' } }, { servis }),
   true,
-  'bayiye hedeflenmiş geri çağırma bayiye gider',
+  'servise hedeflenmiş geri çağırma servise gider',
 )
 bak(
   duyuruGecerliMi({ ...geriCagirma, hedef: { kime: 'ikisi' } }, { user: izinsiz }),

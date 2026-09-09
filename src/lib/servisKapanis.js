@@ -1,40 +1,40 @@
 /* ==========================================================================
-   Bayi servis kapanışı
+   Servis servis kapanışı
 
    BAYİDEN KARŞILIKSIZ VERİ İSTENMEZ
 
-   Bayi ayrı bir şirket ve kendi menfaati dışında bir şey yapmaz.
+   Servis ayrı bir şirket ve kendi menfaati dışında bir şey yapmaz.
    Yalnız PAKSAN'a yarayan bir form ya doldurulmaz ya geçiştirilir;
    geçiştirilmiş veri, verinin olmamasından beterdir — PAKSAN ona
    bakıp karar alır.
 
-   Kural şu: bayiden istenen her alan için tek soru sorulur —
+   Kural şu: servisten istenen her alan için tek soru sorulur —
    BAYİ BUNU DOLDURDUĞU AN NE ALIYOR? Cevap yoksa alan sorulmaz.
 
-   Buradan üç kapı çıkıyor ve her kapı bayinin aldığı şeye göre soru
+   Buradan üç kapı çıkıyor ve her kapı servisin aldığı şeye göre soru
    soruyor:
 
      PARÇA DEĞİŞMEDİ
-       Bayi PAKSAN'dan bir şey almıyor. Tek soru "ne yapıldı" ve o da
+       Servis PAKSAN'dan bir şey almıyor. Tek soru "ne yapıldı" ve o da
        tek dokunuş — karşılığı müşterinin uygulamasında görünen kayıt,
-       yani bayinin kendi vitrini.
+       yani servisin kendi vitrini.
 
      MÜŞTERİ ÖDEDİ
-       Bayi parçayı kendi stokundan verdi. Aldığı şey: stok düşüyor ve
-       kalem bitince "sipariş vereyim mi" diye soruluyor. Bayi stokunu
+       Servis parçayı kendi stokundan verdi. Aldığı şey: stok düşüyor ve
+       kalem bitince "sipariş vereyim mi" diye soruluyor. Servis stokunu
        PAKSAN için değil, malsız kalmamak için tutmaya başlıyor.
 
      GARANTİ — PAKSAN'DAN İSTİYORUM
-       Bayi bedelsiz parça alacak. Ayrıntı BURADA sorulabilir, çünkü
-       form bir rapor değil TALEBİN KENDİSİ: bayi onu PAKSAN'a rapor
+       Servis bedelsiz parça alacak. Ayrıntı BURADA sorulabilir, çünkü
+       form bir rapor değil TALEBİN KENDİSİ: servis onu PAKSAN'a rapor
        vermek için değil, parçayı almak için dolduruyor. Doğruluğun
-       bekçisi iyi niyet değil, bayinin kendi cebi.
+       bekçisi iyi niyet değil, servisin kendi cebi.
 
    VERDİKT SORULMUYOR
 
-   "Üretim hatası mı, kullanım hatası mı" diye sorulsa bayi her zaman
+   "Üretim hatası mı, kullanım hatası mı" diye sorulsa servis her zaman
    "üretim hatası" der — talebinin kabul edilmesi ona bağlı. Bu yüzden
-   bayiye YALNIZ GÖZLEDİĞİ ŞEY soruluyor: parça kırılmış mı, aşınmış
+   servise YALNIZ GÖZLEDİĞİ ŞEY soruluyor: parça kırılmış mı, aşınmış
    mı, kaçırıyor mu. Yalan söylemesinin bir kazancı yok, veri de daha
    doğru çıkıyor. Kararı PAKSAN, eski parça eline geçtiğinde veriyor.
 
@@ -43,17 +43,17 @@
    `talepKapat` çağrısına giden `cozum` nesnesi backoffice'in kendi
    kapanış formuyla AYNI alanları taşıyor (bkz. Talepler.jsx
    `KAPANIS_ALANLARI`): `yapilanIs`, `parcalar`, `ucret`, `ozet`.
-   Böylece bayinin kapattığı iş, PAKSAN'ın kendi kapattığı işle aynı
+   Böylece servisin kapattığı iş, PAKSAN'ın kendi kapattığı işle aynı
    yerde ve aynı biçimde görünüyor; müşteri de kendi uygulamasında
-   okuyor (bkz. screens/RequestDetail.jsx). Bayiye özel ikinci bir
+   okuyor (bkz. screens/RequestDetail.jsx). Servise özel ikinci bir
    depo AÇILMADI — açılsaydı iki taraf da birbirini göremezdi.
    ========================================================================== */
 
-import { siparisAc } from './bayiSiparis.js'
-import { stokDus } from './bayiStok.js'
+import { siparisAc } from './servisSiparis.js'
+import { stokDus } from './servisStok.js'
 
 /* Yapılan iş — tek dokunuş. Liste kısa: dört madde bir servis
-   ziyaretinin gerçekten ayrıldığı öbekler. Uzun listede bayi
+   ziyaretinin gerçekten ayrıldığı öbekler. Uzun listede servis
    aradığını bulamıyor ve en üsttekini seçiyor. */
 export const YAPILAN_IS = [
   'Ayar yapıldı',
@@ -64,7 +64,7 @@ export const YAPILAN_IS = [
 
 /* Ödemeyi kim yaptı — kapanışın tek asıl sorusu.
 
-   Bunlar DÜĞMEDE yazan cevaplar; bayiye ne olacağını söylüyorlar. */
+   Bunlar DÜĞMEDE yazan cevaplar; servise ne olacağını söylüyorlar. */
 export const ODEME = {
   yok: 'Parça değişmedi',
   musteri: 'Parçanın ücretini müşteri ödedi',
@@ -83,7 +83,7 @@ export const UCRET_YAZI = {
   garanti: 'Garanti kapsamında',
 }
 
-/* Bayiye "hata kimin" diye sorulmuyor; NE GÖRDÜĞÜ soruluyor.
+/* Servise "hata kimin" diye sorulmuyor; NE GÖRDÜĞÜ soruluyor.
    Gerekçesi dosyanın başında. */
 export const PARCA_DURUMU = [
   'Kırıldı',
@@ -99,7 +99,7 @@ export const PARCA_DURUMU = [
    GARANTİ İŞÇİLİĞİ BUGÜN ÖDENMİYOR, o yüzden süre ve usta adı
    İSTEĞE BAĞLI ve yalnız garanti kapısında soruluyor. Ödendiği gün
    bu iki satır hakediş belgesinin dayanağı olacak ve zorunluya
-   çevrilecek; bayi parasını almak için doğru yazacak. Veri düzeni o
+   çevrilecek; servis parasını almak için doğru yazacak. Veri düzeni o
    gün değişmeyecek şekilde bugünden kuruldu. */
 export const SURELER = [
   { dk: 30, ad: '30 dakika' },
@@ -124,9 +124,9 @@ export function parcaYazisi(parcalar = []) {
  *
  * `talepKapat`'ı ÇAĞIRMIYOR — onu ekran çağırıyor. Sebebi katman:
  *  bu dosya `lib/`, `talepKapat` backoffice veri katmanında; ikisi
- *  arasında bağ kurulmuyor (bkz. bayiSiparis.js, bayiStok.js).
+ *  arasında bağ kurulmuyor (bkz. servisSiparis.js, servisStok.js).
  *
- * @param {{bayiId, bayiAd, bayiNo, talep, yapilanIs, odeme, parcalar,
+ * @param {{servisId, servisAd, servisNo, talep, yapilanIs, odeme, parcalar,
  *          parcaDurumu, foto, iade, not, sureDk, kim}} veri
  *        parcalar: [{ ad, adet }]
  * @returns {{cozum} | {hata}}
@@ -150,13 +150,13 @@ export function servisKapat(veri) {
   let garantiSiparis = null
 
   /* Garanti talebi AYRI BİR SİSTEM DEĞİL: mevcut sipariş akışının bir
-     türü. Bayi ister, PAKSAN onaylar, hazırlar, gönderir, stok artar —
+     türü. Servis ister, PAKSAN onaylar, hazırlar, gönderir, stok artar —
      hepsi aynı yoldan. Fark yalnız türünde ve taşıdığı kanıtta. */
   if (odeme === 'garanti') {
     const sonuc = siparisAc({
-      bayiId: veri.bayiId,
-      bayiAd: veri.bayiAd,
-      bayiNo: veri.bayiNo,
+      servisId: veri.servisId,
+      servisAd: veri.servisAd,
+      servisNo: veri.servisNo,
       tur: 'garanti',
       kalemler: parcalar.map((p) => ({
         tur: 'parca',
@@ -179,16 +179,16 @@ export function servisKapat(veri) {
     garantiSiparis = sonuc.siparis
   }
 
-  /* Müşterinin ödediği parça bayinin kendi malı: stoktan düşüyor.
-     Garantide düşmüyor — o parçayı PAKSAN gönderecek, bayi kendi
+  /* Müşterinin ödediği parça servisin kendi malı: stoktan düşüyor.
+     Garantide düşmüyor — o parçayı PAKSAN gönderecek, servis kendi
      stokundan verdiyse zaten yerine yenisi gelecek. */
   if (odeme === 'musteri' && parcalar.length) {
     stokDus(
-      veri.bayiId,
+      veri.servisId,
       parcalar.map((p) => p.ad),
       Object.fromEntries(parcalar.map((p) => [p.ad, p.adet])),
       talep.no,
-      veri.bayiAd,
+      veri.servisAd,
       'Serviste kullanıldı',
     )
   }

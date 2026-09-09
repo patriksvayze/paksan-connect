@@ -27,26 +27,26 @@ export function makineKayitlari() {
   return load(ANAHTAR, [])
 }
 
-/* Bayinin elle açtığı kayıt.
+/* Servisin elle açtığı kayıt.
 
    `makineKaydet` müşteri akışı için yazıldı: Logo'ya sorup faturayı
-   öğreniyor ve `bayiId`'yi oradan dolduruyor. Logo kapalı olduğu için
+   öğreniyor ve `servisId`'yi oradan dolduruyor. Logo kapalı olduğu için
    o alan bugün hep boş kalıyor.
 
-   Bayi elle kayıt açtığında bayiyi zaten BİLİYORUZ — sormaya gerek
-   yok. Bu fonksiyon aynı deftere aynı biçimde yazıyor, farkı bayi
+   Servis elle kayıt açtığında bayiyi zaten BİLİYORUZ — sormaya gerek
+   yok. Bu fonksiyon aynı deftere aynı biçimde yazıyor, farkı servis
    alanını doğrudan doldurması ve Logo'yu beklememesi.
 
-   `kaynak` alanı satırın nereden geldiğini söylüyor: 'bayi' elle
+   `kaynak` alanı satırın nereden geldiğini söylüyor: 'servis' elle
    açılmış, 'musteri' uygulamadan gelmiş, 'logo' faturadan. */
-export function bayiMakineKaydi({
+export function servisMakineKaydi({
   seri,
   productId,
   musteriAd = '',
   il = '',
   ilce = '',
-  bayiId,
-  bayiAd = '',
+  servisId,
+  servisAd = '',
 }) {
   const kayit = {
     id: uid(),
@@ -58,13 +58,13 @@ export function bayiMakineKaydi({
     musteriAd,
     il,
     ilce,
-    bayiId,
-    bayiAd,
+    servisId,
+    servisAd,
     uretimTarihi: null,
     faturaTarihi: null,
     logoBildi: false,
     yeniSatis: false,
-    kaynak: 'bayi',
+    kaynak: 'servis',
   }
   save(ANAHTAR, [kayit, ...makineKayitlari()].slice(0, 500))
   return kayit
@@ -76,7 +76,7 @@ export function bayiMakineKaydi({
  * @returns {Promise<{kayit: object, kutlama: boolean}>}
  */
 export async function makineKaydet(makine, user) {
-  /* Logo kapalıysa null dönüyor; kayıt yine yazılıyor ama bayi ve
+  /* Logo kapalıysa null dönüyor; kayıt yine yazılıyor ama servis ve
      fatura alanları boş kalıyor. */
   const logo = await seriBilgisi(makine.serial)
   const kutlama = yeniSatisMi(logo)
@@ -95,8 +95,8 @@ export async function makineKaydet(makine, user) {
     ilce: user?.ilce || '',
 
     /* Logo'dan gelenler */
-    bayiId: logo?.bayiId || null,
-    bayiAd: logo?.bayiAd || '',
+    servisId: logo?.servisId || null,
+    servisAd: logo?.servisAd || '',
     uretimTarihi: logo?.uretimTarihi || null,
     faturaTarihi: logo?.faturaTarihi || null,
 

@@ -1,12 +1,12 @@
 /* ==========================================================================
    Kayıt numaraları
 
-   Müşteri, bayi, geri bildirim ve personel kayıtlarının her birinin
+   Müşteri, servis, geri bildirim ve personel kayıtlarının her birinin
    telefonda okunabilir bir numarası var. Amaç, telefonda konuşurken
    "hangi kayıt" sorusunun tek cümlede cevaplanabilmesi:
 
        MST000148   müşteri
-       BAY014      bayi
+       SRV014      servis
        GBD000032   geri bildirim
        PRS007      personel
 
@@ -14,7 +14,9 @@
    fazladan iş çıkarıyor.
 
    Talep numaraları burada değil, `talep.js` içinde üretiliyor; onlar
-   tarih de taşıyor (SRV2608184821).
+   tarih de taşıyor (SRV2608184821). Aynı önek iki yerde geçiyor ama
+   karışmıyor: kayıt numarası üç haneli ve tarihsiz (SRV014), talep
+   numarası tarihli ve uzun.
 
    Sayaç telefonun/tarayıcının hafızasında tutuluyor. Sunucu geldiğinde
    numarayı sunucu verecek — iki cihazın aynı numarayı üretmemesi için
@@ -27,7 +29,7 @@ const SAYAC = 'sayaclar'
 
 export const NUMARA_TURU = {
   musteri: { onek: 'MST', hane: 6 },
-  bayi: { onek: 'BAY', hane: 3 },
+  servis: { onek: 'SRV', hane: 3 },
   geribildirim: { onek: 'GBD', hane: 6 },
   personel: { onek: 'PRS', hane: 3 },
 }

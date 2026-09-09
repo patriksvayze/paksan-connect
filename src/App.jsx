@@ -122,7 +122,7 @@ function Yonlendirme() {
       <Route path="/talebim/:id" element={<RequestDetail />} />
       <Route path="/profil" element={<Profile />} />
       <Route path="/bildirimler" element={<Notifications />} />
-      <Route path="/bayiler" element={<Dealers />} />
+      <Route path="/servisler" element={<Dealers />} />
       <Route path="/bakim" element={<Guides />} />
       <Route path="/bakim/:rehberId" element={<Guide />} />
       {/* Numara değişikliği oturum açıkken de açılabiliyor: profildeki

@@ -18,7 +18,7 @@ import { MARKA, markaEk } from '../../marka'
    Kayıt binlerce satıra çıkıyor; ekran açılır açılmaz hepsini
    getirmiyor. Arama kutusuna yazılan her şey aranıyor: personel adı,
    personel numarası (PRS003), talep numarası (SRV2608184821), müşteri
-   numarası (MST000001), bayi adı… Satırda geçen her bilgi bulunuyor.
+   numarası (MST000001), servis adı… Satırda geçen her bilgi bulunuyor.
 
    Tarih aralığı seçilirse arama olmadan da liste geliyor: "1 Ağustos'tan
    bugüne ne oldu" sorusu sık soruluyor.
@@ -42,14 +42,14 @@ const TURLER = [
      değiştiriyor, kaydı tutulmadan yapılmıyor. */
   { deger: 'rol', ad: 'Rol ve yetki' },
   { deger: 'sifre', ad: 'Şifre' },
-  { deger: 'bayi', ad: 'Bayi listesi' },
-  /* Bayi tarafından gelen dört işlem. Sipariş, stok ve fiyat teklifi
-     bayi panelinde doğuyor, devir de bayinin PAKSAN'dan destek
+  { deger: 'servis', ad: 'Servis listesi' },
+  /* Servis tarafından gelen dört işlem. Sipariş, stok ve fiyat teklifi
+     servis panelinde doğuyor, devir de servisin PAKSAN'dan destek
      istemesi. Teklif süzgeci sonradan eklendi: kayıtlar yazılıyordu
      ama listede ham "teklif" kelimesiyle çıkıp süzülemiyordu. */
-  { deger: 'siparis', ad: 'Bayi siparişi' },
-  { deger: 'stok', ad: 'Bayi stoku' },
-  { deger: 'teklif', ad: 'Bayi fiyat teklifi' },
+  { deger: 'siparis', ad: 'Servis siparişi' },
+  { deger: 'stok', ad: 'Servis stoku' },
+  { deger: 'teklif', ad: 'Servis fiyat teklifi' },
   { deger: 'devir', ad: `${markaEk('a')} devir` },
   { deger: 'excel', ad: 'Excel aktarımı' },
   { deger: 'demo', ad: 'Demo verisi' },
@@ -63,21 +63,21 @@ const ONEMLI = ['numara', 'musteri', 'personel', 'rol']
 
 /* Kaydı kimin yazdığı.
 
-   `rol` alanı PAKSAN rollerini tutuyordu; bayi paneli açıldığında
-   oraya 'bayi' de yazılmaya başladı. `rolBilgi()` tanımadığı rolde
-   listenin üçüncü satırını (Servis) döndürüyor — bayinin işlemi
-   "Servis" görünürdü. Bayi ayrı ele alınıyor.
+   `rol` alanı PAKSAN rollerini tutuyordu; servis paneli açıldığında
+   oraya 'servis' de yazılmaya başladı. `rolBilgi()` tanımadığı rolde
+   listenin üçüncü satırını (Servis) döndürüyor — servisin işlemi
+   "Servis" görünürdü. Servis ayrı ele alınıyor.
 
-   Süzgeç de bunun üstüne kuruldu: "bayiler bu hafta ne yaptı" tek
+   Süzgeç de bunun üstüne kuruldu: "servisler bu hafta ne yaptı" tek
    soruyla cevaplanabilsin. */
 const KAYNAKLAR = [
   { deger: 'hepsi', ad: 'Herkes' },
   { deger: 'paksan', ad: `${MARKA} personeli` },
-  { deger: 'bayi', ad: 'Bayiler' },
+  { deger: 'servis', ad: 'Servisler' },
 ]
 
 function rolYazi(rol) {
-  if (rol === 'bayi') return 'Bayi'
+  if (rol === 'servis') return 'Servis'
   return rol ? rolBilgi(rol).ad : '—'
 }
 
@@ -117,8 +117,8 @@ export function IslemKaydi({ surum }) {
 
     return veri.kayit.filter((k) => {
       if (tur !== 'hepsi' && k.tur !== tur) return false
-      if (kaynak === 'bayi' && k.rol !== 'bayi') return false
-      if (kaynak === 'paksan' && k.rol === 'bayi') return false
+      if (kaynak === 'servis' && k.rol !== 'servis') return false
+      if (kaynak === 'paksan' && k.rol === 'servis') return false
       if (!araliktaMi(k.tarih, aralik)) return false
       if (!q) return true
       if (kisi) return k.personel === kisi.ad
@@ -196,7 +196,7 @@ export function IslemKaydi({ surum }) {
         {yukleniyor ? (
           <Bekleme satir={4} />
         ) : !liste ? (
-          <Bos metin="Personel, talep, müşteri veya bayi numarası yazıp arayın ya da tarih aralığı seçin." />
+          <Bos metin="Personel, talep, müşteri veya servis numarası yazıp arayın ya da tarih aralığı seçin." />
         ) : liste.length === 0 ? (
           <Bos metin="Bu süzgeçle kayıt bulunamadı." />
         ) : (

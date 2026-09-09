@@ -3,8 +3,8 @@
 
    İki ayrı APK üretiliyor:
 
-     PAKSAN Connect  müşteri uygulaması   dist/       android/
-     PAKSAN Bayi     bayi paneli          dist-bayi/  android-bayi/
+     PAKSAN Connect  müşteri uygulaması   dist/         android/
+     PAKSAN Servis   servis paneli        dist-servis/  android-servis/
 
    Capacitor tek bir `capacitor.config.json` okuyor. `.ts` ve `.js`
    yapılandırma da tanıyor ama ikisi de bu projede çalışmıyor: `.js`
@@ -19,9 +19,9 @@
    KULLANIM
 
      node tools/cap-hedef.mjs app     müşteri uygulamasına çevir
-     node tools/cap-hedef.mjs bayi    bayi paneline çevir
+     node tools/cap-hedef.mjs servis  servis paneline çevir
 
-   `npm run apk:bayi` işini bitirince hedefi app'e geri alıyor;
+   `npm run apk:servis` işini bitirince hedefi app'e geri alıyor;
    böylece depodaki dosya daima aynı hâlde duruyor ve `git status`
    kirlenmiyor.
    ========================================================================== */
@@ -37,11 +37,11 @@ const HEDEFLER = {
     webDir: 'dist',
     androidPath: 'android',
   },
-  bayi: {
-    appId: 'com.paksanmakina.bayi',
-    appName: 'PAKSAN Bayi',
-    webDir: 'dist-bayi',
-    androidPath: 'android-bayi',
+  servis: {
+    appId: 'com.paksanmakina.servis',
+    appName: 'PAKSAN Servis',
+    webDir: 'dist-servis',
+    androidPath: 'android-servis',
   },
 }
 
@@ -49,7 +49,7 @@ const istenen = process.argv[2]
 const hedef = HEDEFLER[istenen]
 
 if (!hedef) {
-  console.error('Kullanım: node tools/cap-hedef.mjs app|bayi')
+  console.error('Kullanım: node tools/cap-hedef.mjs app|servis')
   process.exit(2)
 }
 

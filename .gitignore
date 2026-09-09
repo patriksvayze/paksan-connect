@@ -1,7 +1,7 @@
 node_modules
 dist
 dist-backoffice
-dist-bayi
+dist-servis
 PAKSAN_CONNECT_SUNUM.zip
 tools/ses-metni-kuyruk.json
 
@@ -14,10 +14,10 @@ android/build
 
 # Bayi APK projesi. Müşteri projesiyle aynı kural: kaynak izleniyor,
 # derleme çıktısı ve bilgisayara özel SDK yolu izlenmiyor.
-android-bayi/local.properties
-android-bayi/.gradle
-android-bayi/app/build
-android-bayi/build
+android-servis/local.properties
+android-servis/.gradle
+android-servis/app/build
+android-servis/build
 
 # Derlenmiş APK'lar — kaynak koddan yeniden üretilebilir, ikili dosya
 # olduğu için git'te yalnız yer kaplar, karşılaştırma değeri yok.

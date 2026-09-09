@@ -16,9 +16,9 @@ import { urun } from '../lib/urun'
 
    BAYİ PANELİ BU DOSYAYI PAYLAŞIYOR AMA TERCİHİ PAYLAŞMIYOR
 
-   Bayi paneli aynı bileşeni kullanıyor; ikisi de aynı tarayıcıda aynı
+   Servis paneli aynı bileşeni kullanıyor; ikisi de aynı tarayıcıda aynı
    adresten açıldığı için tek bir anahtar yazıldığında tercih öteki
-   ürüne de sıçrıyordu. Bayinin telefonundaki görünüm tercihiyle
+   ürüne de sıçrıyordu. Servisin telefonundaki görünüm tercihiyle
    PAKSAN personelinin bilgisayarındaki tercihin birbiriyle ilgisi yok.
 
    Anahtar hangi derlemenin çalıştığına göre seçiliyor; kararı giriş
@@ -26,7 +26,7 @@ import { urun } from '../lib/urun'
    ========================================================================== */
 
 function anahtar() {
-  return urun() === 'bayi' ? 'paksan.bayiTema' : 'paksan.backofficeTema'
+  return urun() === 'servis' ? 'paksan.servisTema' : 'paksan.backofficeTema'
 }
 
 export const TEMALAR = [

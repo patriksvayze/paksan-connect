@@ -1,26 +1,26 @@
 /* ==========================================================================
-   Bayi stoku — okuma ve azaltma
+   Servis stoku — okuma ve azaltma
 
-   Bayinin elindeki yedek parça ve makine sayısı.
+   Servisin elindeki yedek parça ve makine sayısı.
 
    BAYİ STOKUNU ARTIRAMAZ.
 
    Elindeki mal, PAKSAN'dan satın aldığı kadardır. Artış tek yoldan
-   oluyor: bayi sipariş verir, PAKSAN gönderir, gönderim işaretlendiğinde
-   stok artar (bkz. `bayiSiparis.js`). Bu dosyada artırma fonksiyonu
+   oluyor: servis sipariş verir, PAKSAN gönderir, gönderim işaretlendiğinde
+   stok artar (bkz. `servisSiparis.js`). Bu dosyada artırma fonksiyonu
    bilerek yok.
 
-   Önce ekran bayiye sayı kutusu veriyor ve bayi istediği sayıyı
-   yazabiliyordu; stok bayinin kendi defterine dönüşüyordu. PAKSAN'ın
-   gönderdiğiyle bayinin yazdığı tutmayınca rakam hiçbir şey anlatmıyor.
+   Önce ekran servise sayı kutusu veriyor ve servis istediği sayıyı
+   yazabiliyordu; stok servisin kendi defterine dönüşüyordu. PAKSAN'ın
+   gönderdiğiyle servisin yazdığı tutmayınca rakam hiçbir şey anlatmıyor.
 
    AZALTMA BAYİDE. Müşteriye sattığı ya da serviste kullandığı parçayı
-   bayi kendi düşüyor; bunun için onaya gerek yok.
+   servis kendi düşüyor; bunun için onaya gerek yok.
 
    ENGELLEME YOK
 
    Stok sıfır ya da hiç girilmemişse ekran bunu yazıyor ama düğmeleri
-   kapatmıyor. Bayiyi kendi stok kaydının doğruluğuna hapsetmek, ilk
+   kapatmıyor. Servisi kendi stok kaydının doğruluğuna hapsetmek, ilk
    yanlış sayımda paneli kullanılmaz yapardı. Sayı bir bilgi, kilit
    değil.
 
@@ -41,13 +41,13 @@
    ========================================================================== */
 
 import { load } from './storage.js'
-import { stokKullan } from './bayiSiparis.js'
+import { stokKullan } from './servisSiparis.js'
 
-const ANAHTAR = 'bayiStok'
+const ANAHTAR = 'servisStok'
 
-/** Bir bayinin stok kaydı. Yoksa boş kayıt döner. */
-export function stokGetir(bayiId) {
-  const k = load(ANAHTAR, {})[bayiId]
+/** Bir servisin stok kaydı. Yoksa boş kayıt döner. */
+export function stokGetir(servisId) {
+  const k = load(ANAHTAR, {})[servisId]
   return { parca: k?.parca || {}, makine: k?.makine || {} }
 }
 
@@ -56,8 +56,8 @@ export function stokGetir(bayiId) {
  * Hiç girilmemişse `null` dönüyor — "sıfır" ile "bilinmiyor" farklı
  * şeyler ve ekran ikisini ayrı yazıyor.
  */
-export function parcaAdedi(bayiId, parcaAdi) {
-  const s = stokGetir(bayiId)
+export function parcaAdedi(servisId, parcaAdi) {
+  const s = stokGetir(servisId)
   const v = s.parca[parcaAdi]
   return v === undefined ? null : Number(v) || 0
 }
@@ -65,14 +65,14 @@ export function parcaAdedi(bayiId, parcaAdi) {
 /**
  * Talep kapanırken gönderilen parçaları stoktan düşer.
  *
- * Girilmemiş parçaya dokunmuyor: bayi o parçayı takip etmiyor demektir,
+ * Girilmemiş parçaya dokunmuyor: servis o parçayı takip etmiyor demektir,
  * eksi değere düşürmek yanlış bilgi üretir.
  *
  * Her düşüş hareket kaydına sebebiyle yazılıyor — stokun neden
  * değiştiği sorulabilsin diye.
  */
 export function stokDus(
-  bayiId,
+  servisId,
   parcalar = [],
   adetler = {},
   talepNo,
@@ -84,15 +84,15 @@ export function stokDus(
 ) {
   for (const ad of parcalar) {
     stokKullan(
-      bayiId,
+      servisId,
       { tur: 'parca', anahtar: ad, ad },
       Number(adetler[ad]) || 1,
       talepNo ? `${talepNo} · ${sebep}` : sebep,
       kim,
       /* Talepten gelen düşüş stok ekranından geri ALINAMIYOR: talep
-         kapandı ve "gönderildi" diyor. Gerekçesi bayiSiparis.js'te. */
+         kapandı ve "gönderildi" diyor. Gerekçesi servisSiparis.js'te. */
       'talep',
     )
   }
-  return stokGetir(bayiId).parca
+  return stokGetir(servisId).parca
 }

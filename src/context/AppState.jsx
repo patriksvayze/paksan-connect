@@ -6,16 +6,19 @@ import { uygulamaKaydi } from '../lib/kayit'
 import { talepNo } from '../lib/talep'
 import { sunucuyaGonder } from '../lib/sunucu'
 import { ihracatPostasi, talepUlkesi, yurtdisiTalepMi } from '../lib/ihracat'
-import { talebinBayileri } from '../marka'
+import { talebinServisleri } from '../marka'
 import { SUNUCU } from '../config'
 import { cihazDili, DilSaglayici } from '../i18n'
 
-/* Talep türü hangi bayi yetkisini gerektiriyor. Servis talebini satış
-   bayisine, parça talebini servis bayisine yollamanın anlamı yok. */
+/* Talep türü hangi servis yetkisini gerektiriyor.
+
+   FİYAT TEKLİFİ BURADA YOK VE OLMAYACAK. Makineyi satan taraf bayi;
+   servis satış yapmıyor. Fiyat teklifi talebi hiçbir servise
+   atanmıyor, PAKSAN'da kalıyor ve satış ekibi yürütüyor.
+   Listede karşılığı olmayan tür atanmadan geçiyor. */
 const TUR_YETKI = {
   servis: 'servis',
   parca: 'parca',
-  satinalma: 'satis',
 }
 
 const Ctx = createContext(null)
@@ -215,19 +218,21 @@ export function AppProvider({ children }) {
          BURADA veriliyor ki her talep ekranı aynı davransın. */
       const ihracat = yurtdisiTalepMi(user)
 
-      /* Talep önce BAYİYE düşüyor. PAKSAN makinelerini bayilerine
-         satıyor, son kullanıcıya satan bayi; talebin ilk muhatabı da
-         bayi olmalı. PAKSAN personeli talebi görmeye ve gerektiğinde
+      /* Talep önce SERVİSE düşüyor. Makineyi kuran, tamir eden ve
+         parçayı değiştiren taraf servis; talebin ilk muhatabı da o
+         olmalı. PAKSAN personeli talebi görmeye ve gerektiğinde
          müdahale etmeye devam ediyor — görünürlük hiç kapanmıyor.
 
-         Yurtdışı talebi bayiye düşmüyor: bayi ağı Türkiye içinde.
+         Yurtdışı talebi servise düşmüyor: servis ağı Türkiye içinde.
+         Fiyat teklifi de düşmüyor (bkz. TUR_YETKI).
 
-         Bayi eşleşmezse (bölgesi tanımsız, o yetkide bayi yok) talep
-         PAKSAN'da kalıyor. Boşta talep kalmıyor. */
-      const bayiEslesme = ihracat
+         Servis eşleşmezse (bölgesi tanımsız, o yetkide servis yok)
+         talep PAKSAN'da kalıyor. Boşta talep kalmıyor. */
+      const gerekenYetki = TUR_YETKI[data.tur]
+      const servisEslesme = ihracat || !gerekenYetki
         ? null
-        : talebinBayileri(data.il, data.ilce, 1, TUR_YETKI[data.tur] || 'satis')
-      const bayi = bayiEslesme?.bayiler?.[0] || null
+        : talebinServisleri(data.il, data.ilce, 1, gerekenYetki)
+      const servis = servisEslesme?.servisler?.[0] || null
 
       const r = {
         id: uid(),
@@ -236,10 +241,10 @@ export function AppProvider({ children }) {
         status: 'yeni',
         ulke: talepUlkesi(user),
         ihracat,
-        bayi: bayi
-          ? { id: bayi.id, ad: bayi.ad, kademe: bayiEslesme.kademe, tarih: Date.now() }
+        servis: servis
+          ? { id: servis.id, ad: servis.ad, kademe: servisEslesme.kademe, tarih: Date.now() }
           : null,
-        sahip: bayi ? 'bayi' : 'paksan',
+        sahip: servis ? 'servis' : 'paksan',
         ...data,
       }
 
@@ -258,7 +263,7 @@ export function AppProvider({ children }) {
         'talep',
         `${r.no} açıldı · ${r.ad}` +
           (ihracat ? ' · ihracat (' + r.ulke + ')' : '') +
-          (r.bayi ? ' · ' + r.bayi.ad : '')
+          (r.servis ? ' · ' + r.servis.ad : '')
       )
 
       return r

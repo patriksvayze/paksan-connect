@@ -5,7 +5,7 @@ import {
   talepNotEkle,
   talepPlanla,
 } from '../../backoffice/veri'
-import { parcaAdedi, stokDus } from '../../lib/bayiStok'
+import { parcaAdedi, stokDus } from '../../lib/servisStok'
 import { makineDurumAdi } from '../../data/talepAlanlari'
 import { getProduct, MARKA, markaEk } from '../../marka'
 import { PARA_BIRIMI, paraYaz } from '../../marka'
@@ -29,9 +29,9 @@ import {
 } from '../../components/Icons'
 
 /* ==========================================================================
-   Bayi paneli — talep detayı
+   Servis paneli — talep detayı
 
-   DURUM ADI GEÇMİYOR. Bayi "incelemede", "planlandı" gibi kelimeler
+   DURUM ADI GEÇMİYOR. Servis "incelemede", "planlandı" gibi kelimeler
    görmüyor; yaptığı işi anlatan düğmelere basıyor. Durum arka planda
    mevcut model üzerinden ilerliyor, böylece raporlar ve müşteri
    bildirimleri değişmeden çalışıyor.
@@ -41,7 +41,7 @@ import {
      Parçayı gönderdim    → talepKapat()    → kapandi
      PAKSAN'dan destek    → destekTalepEt() → sahiplik PAKSAN'a geçer
 
-   Talep PAKSAN'a devredildiyse bayi işlem yapmıyor ama takip ediyor:
+   Talep PAKSAN'a devredildiyse servis işlem yapmıyor ama takip ediyor:
    müşteri hâlâ onun müşterisi.
 
    KAPANIŞ TÜRE GÖRE DEĞİŞİYOR
@@ -53,7 +53,7 @@ import {
      satinalma  → satış sonucu; ortada yapılmış bir iş yok
 
    Üçü de aynı biçimde yazıyor: `cozum` nesnesi backoffice'in kendi
-   kapanış formuyla aynı alanları taşıyor (bkz. lib/bayiServis.js).
+   kapanış formuyla aynı alanları taşıyor (bkz. lib/servisKapanis.js).
    ========================================================================== */
 
 const TUR_ADI = { servis: 'Servis', parca: 'Yedek Parça', satinalma: 'Fiyat Teklifi' }
@@ -61,8 +61,8 @@ const TUR_ADI = { servis: 'Servis', parca: 'Yedek Parça', satinalma: 'Fiyat Tek
 export function TalepDetay({
   talep,
   oturum,
-  bayiAd,
-  bayiId,
+  servisAd,
+  servisId,
   onKapat,
   onDestekIste,
   onTeklifHazirla,
@@ -89,14 +89,14 @@ export function TalepDetay({
   /* ASIL İŞLEM EKRANIN DİBİNE YAPIŞIK.
 
      Dört düğme yan yana dururken hangisinin asıl iş olduğu belli
-     değildi. Bayinin bu ekranda yapacağı tek şey var: işi bitirmek.
+     değildi. Servisin bu ekranda yapacağı tek şey var: işi bitirmek.
      O düğme altta, parmağın durduğu yerde ve tek başına; ötekiler
      detayın içinde, sırası gelince bakılan seçenekler. */
   /* ÖDEME ONAYI BAYİ TARAFINDA DA KİLİT.
 
      Parça bedeli önden alınıyor ve dekontu PAKSAN kontrol ediyor.
      Backoffice bu kuralı zaten uyguluyordu (`parcaIlerlemeEngeli`)
-     ama bayi paneli uygulamıyordu: bayi, ödemesi onaylanmamış bir
+     ama servis paneli uygulamıyordu: servis, ödemesi onaylanmamış bir
      talebi "gönderdim" diye kapatabiliyor ve müşteriye "Parçanız Yola
      Çıktı" bildirimi gidiyordu. Aynı kural iki tarafta da geçerli. */
   const odemeEngeli = parcaIlerlemeEngeli(talep, 'kapandi')
@@ -110,7 +110,7 @@ export function TalepDetay({
 
      Alan adları backoffice'in kendi kapanış formuyla aynı
      (bkz. Talepler.jsx `KAPANIS_ALANLARI`), böylece PAKSAN ve müşteri
-     bayinin kapattığı işi kendi ekranlarında okuyor. */
+     servisin kapattığı işi kendi ekranlarında okuyor. */
   const KAPANIS = {
     parca: { pencere: 'gonderdim', ad: 'Parçayı Gönderdim' },
     servis: { pencere: 'kapanis', ad: 'İşi Tamamla' },
@@ -142,7 +142,7 @@ export function TalepDetay({
           </span>
         </div>
 
-        {/* Numara dokunulabilir: bayi ezberleyip tuşlamıyor. Listedeki
+        {/* Numara dokunulabilir: servis ezberleyip tuşlamıyor. Listedeki
             arama düğmesinin aynısı, burada satır hâlinde. */}
         {talep.tel && (
           <div style={{ marginTop: 10 }}>
@@ -175,7 +175,7 @@ export function TalepDetay({
 
             Bu üç soru, satış ekibinin telefonda ilk sorduğu üç soru
             olduğu için forma kondu: cevapları önden gelirse fiyat ilk
-            aramada verilebiliyor. Satışı yapan bayi olduğu hâlde
+            aramada verilebiliyor. Satışı yapan servis olduğu hâlde
             cevapları yalnız backoffice görüyordu. */}
         {talep.urunTipi && <Satir ad="Balya İçeriği" deger={talep.urunTipi} />}
         {talep.arazi && <Satir ad="Arazi Büyüklüğü" deger={talep.arazi} />}
@@ -188,11 +188,11 @@ export function TalepDetay({
           <Satir ad="Belirtiler" deger={talep.belirtiler.join(', ')} />
         )}
         {talep.parcalar?.length > 0 && (
-          <ParcaDurumu talep={talep} bayiId={bayiId} />
+          <ParcaDurumu talep={talep} servisId={servisId} />
         )}
         {/* TESLİMAT ADRESİ BAYİDE GÖRÜNMÜYORDU.
 
-            Bayiden "Parçayı Gönderdim" demesi isteniyor ama parçanın
+            Servisten "Parçayı Gönderdim" demesi isteniyor ama parçanın
             nereye gideceği ekranda yazmıyordu: yalnız il ve ilçe
             vardı. Müşteri adresi talebin fatura bilgisinde duruyor ve
             kargo oraya çıkacak. */}
@@ -214,11 +214,11 @@ export function TalepDetay({
 
       {/* RANDEVU ALINMIŞ TALEP AYNI EKRANI GÖSTERMEMELİ.
 
-          Randevu verildikten sonra talep bayi tarafında yine "bekleyen"
+          Randevu verildikten sonra talep servis tarafında yine "bekleyen"
           listesinde duruyor (doğrusu da bu, iş bitmedi) ama detayı yeni
-          gelmiş bir taleple birebir aynı görünüyordu: bayi randevu
+          gelmiş bir taleple birebir aynı görünüyordu: servis randevu
           verdiğini unutup ikinci kez veriyordu. */}
-      {/* Ödemenin durumu bayinin de bilmesi gereken bilgi: parçayı
+      {/* Ödemenin durumu servisin de bilmesi gereken bilgi: parçayı
           hazırlamaya başlayıp başlamayacağına buna bakarak karar
           veriyor. */}
       {talep.tur === 'parca' && !kapali && talep.fatura && (
@@ -274,7 +274,7 @@ export function TalepDetay({
         </div>
       )}
 
-      {/* Kapanış kaydı: bayi aylar sonra "Burada ne yapmıştık?" diye
+      {/* Kapanış kaydı: servis aylar sonra "Burada ne yapmıştık?" diye
           baktığında cevap burada. Alanlar backoffice'in kendi kapanış
           formuyla aynı; müşteri de bunları kendi uygulamasında
           okuyor. */}
@@ -294,9 +294,9 @@ export function TalepDetay({
         <div className="secenek">
           {/* MÜŞTERİNİN FİYAT SORUSU, BAYİNİN FİYAT EKRANINA BAĞLANIYOR.
 
-              Müşteri "Bu makine kaça?" diye sordu; bayinin elinde zaten
+              Müşteri "Bu makine kaça?" diye sordu; servisin elinde zaten
               liste fiyatını, kendi alış fiyatını ve kârını gösteren bir
-              teklif ekranı var. İkisi birbirinden habersizdi: bayi
+              teklif ekranı var. İkisi birbirinden habersizdi: servis
               talebi okuyup teklif ekranını ayrıca açıyor, müşteriyi ve
               ürünü elle yeniden giriyordu. */}
           {talep.tur === 'satinalma' && onTeklifHazirla && (
@@ -329,7 +329,7 @@ export function TalepDetay({
       {pencere === 'randevu' && (
         <Randevu
           talep={talep}
-          bayiAd={bayiAd}
+          servisAd={servisAd}
           onKapat={() => setPencere(null)}
           onBitti={onKapat}
         />
@@ -337,7 +337,7 @@ export function TalepDetay({
       {pencere === 'sonuc' && (
         <SatisSonucu
           talep={talep}
-          bayiAd={bayiAd}
+          servisAd={servisAd}
           onKapat={() => setPencere(null)}
           onBitti={onKapat}
         />
@@ -345,8 +345,8 @@ export function TalepDetay({
       {pencere === 'gonderdim' && (
         <Kapanis
           talep={talep}
-          bayiAd={bayiAd}
-          bayiId={bayiId}
+          servisAd={servisAd}
+          servisId={servisId}
           onKapat={() => setPencere(null)}
           onBitti={onKapat}
         />
@@ -354,7 +354,7 @@ export function TalepDetay({
       {pencere === 'not' && (
         <Not
           talep={talep}
-          bayiAd={bayiAd}
+          servisAd={servisAd}
           onKapat={() => setPencere(null)}
           onBitti={onKapat}
         />
@@ -378,15 +378,15 @@ function Satir({ ad, deger }) {
 
 /* MAKİNE VE GARANTİ.
 
-   Bayinin ilk sorduğu şey bu: iş garanti kapsamında mı, ücret alacak mı?
-   Eskiden yalnız seri numarası yazıyordu, bayi yılı kafasından
+   Servisin ilk sorduğu şey bu: iş garanti kapsamında mı, ücret alacak mı?
+   Eskiden yalnız seri numarası yazıyordu, servis yılı kafasından
    hesaplıyordu.
 
    Yıl ve model seri numarasından çıkıyor (bkz. lib/serial.js), ayrıca
    bir yere kaydedilmesi gerekmiyor. Etiket burada Türkçe yazılı çünkü
-   bayi paneli tek dilli; `warrantyStatus` sözlük anahtarı döndürüyor ve
+   servis paneli tek dilli; `warrantyStatus` sözlük anahtarı döndürüyor ve
    bu tarafta sözlük yok. Metinler `i18n/tr.js` içindekilerle birebir
-   aynı tutuluyor: müşteri ve bayi aynı makineye baktığında aynı şeyi
+   aynı tutuluyor: müşteri ve servis aynı makineye baktığında aynı şeyi
    okumalı. */
 const GARANTI_YAZI = {
   bilinmiyor: () => 'Garanti bilgisi yok',
@@ -414,20 +414,20 @@ function Makine({ makine }) {
   )
 }
 
-/* İstenen parçaların yanında bayinin kendi stoku.
+/* İstenen parçaların yanında servisin kendi stoku.
 
    Sayı bir BİLGİ, kilit değil: stok sıfır olsa da "Parçayı gönderdim"
-   düğmesi açık kalıyor. Bayiyi kendi stok kaydının doğruluğuna
+   düğmesi açık kalıyor. Servisi kendi stok kaydının doğruluğuna
    hapsetmek, ilk yanlış sayımda paneli kullanılmaz yapardı.
 
    "Girilmedi" ile "0" ayrı yazılıyor: biri "ben bu parçayı takip
    etmiyorum", diğeri "bende yok". */
-function ParcaDurumu({ talep, bayiId }) {
+function ParcaDurumu({ talep, servisId }) {
   return (
     <div style={{ marginTop: 10 }}>
       <div className="kucuk sonuk">İstenen Parçalar</div>
       {talep.parcalar.map((ad) => {
-        const adet = parcaAdedi(bayiId, ad)
+        const adet = parcaAdedi(servisId, ad)
         const istenen = Number(talep.parcaAdet?.[ad]) || 1
         return (
           <div key={ad} className="satir" style={{ gap: 8, alignItems: 'baseline' }}>
@@ -475,17 +475,17 @@ function Pencere({ baslik, children, onKapat }) {
 /* "Ne yapılacak" alanı kaldırıldı; yapılacak iş türden çıkarılıyor.
 
    O alan müşterinin bildirimine gidiyor (bkz. talepPlanla → plan.is).
-   Boş bırakılamazdı, ama bayiden ayrıca yazmasını istemek gereksizdi:
+   Boş bırakılamazdı, ama servisten ayrıca yazmasını istemek gereksizdi:
    yapılacak iş zaten talebin türü. Müşteri de "servis ziyareti" diye
-   okuyor, bayinin yazdığı serbest metni değil. */
+   okuyor, servisin yazdığı serbest metni değil. */
 const PLAN_ISI = {
   servis: 'Servis ziyareti',
   parca: 'Parça teslimi',
   satinalma: 'Görüşme',
 }
 
-function Randevu({ talep, bayiAd, onKapat, onBitti }) {
-  /* Kayıtlı randevu varsa kutular onunla doluyor: bayi tarihi
+function Randevu({ talep, servisAd, onKapat, onBitti }) {
+  /* Kayıtlı randevu varsa kutular onunla doluyor: servis tarihi
      değiştirmek için baştan yazmıyor. */
   const [tarih, setTarih] = useState(() =>
     talep.plan?.tarih ? new Date(talep.plan.tarih).toISOString().slice(0, 10) : '',
@@ -508,7 +508,7 @@ function Randevu({ talep, bayiAd, onKapat, onBitti }) {
         is: PLAN_ISI[talep.tur] || 'Ziyaret',
         gorusuldu: true,
       },
-      bayiAd,
+      servisAd,
     )
     onBitti()
   }
@@ -555,7 +555,7 @@ const SATIS_SONUCLARI = [
   'Ulaşılamadı',
 ]
 
-function SatisSonucu({ talep, bayiAd, onKapat, onBitti }) {
+function SatisSonucu({ talep, servisAd, onKapat, onBitti }) {
   const [sonuc, setSonuc] = useState('')
   const [fiyat, setFiyat] = useState('')
   const [not, setNot] = useState('')
@@ -577,7 +577,7 @@ function SatisSonucu({ talep, bayiAd, onKapat, onBitti }) {
         sonuc +
         (sonuc === 'Satış oldu' ? ` · ${paraYaz(Number(fiyat))} ${PARA_BIRIMI}` : ''),
     }
-    talepKapat(talep, cozum, bayiAd)
+    talepKapat(talep, cozum, servisAd)
     onBitti()
   }
 
@@ -634,7 +634,7 @@ function SatisSonucu({ talep, bayiAd, onKapat, onBitti }) {
 
 /* Yedek parça talebinin kapanışı. Servis işi bu pencereden çıktı;
    burada yapılan iş bir onarım değil, bir gönderim. */
-function Kapanis({ talep, bayiAd, bayiId, onKapat, onBitti }) {
+function Kapanis({ talep, servisAd, servisId, onKapat, onBitti }) {
   const [ozet, setOzet] = useState('')
   const [dus, setDus] = useState(true)
   const [hata, setHata] = useState('')
@@ -647,15 +647,15 @@ function Kapanis({ talep, bayiAd, bayiId, onKapat, onBitti }) {
        satır; talebi OKUYAN iki ekran ona bakmıyor. Backoffice
        `yapilanIs` alanını okuyor (bkz. Talepler.jsx →
        KAPANIS_ALANLARI.parca), müşteri uygulaması da aynı alanı
-       (bkz. screens/RequestDetail.jsx). Sonuç: bayi kargo takip
+       (bkz. screens/RequestDetail.jsx). Sonuç: servis kargo takip
        numarasını yazıyordu ve iki tarafta da boş bir kutu görünüyordu.
 
        Aynı metin iki alana yazılıyor: `yapilanIs` okunan alan,
        `ozet` işlem kaydının satırı. */
     const yazi = ozet.trim()
-    talepKapat(talep, { yapilanIs: yazi, ozet: yazi }, bayiAd)
+    talepKapat(talep, { yapilanIs: yazi, ozet: yazi }, servisAd)
     if (dus) {
-      stokDus(bayiId, talep.parcalar || [], talep.parcaAdet || {}, talep.no, bayiAd)
+      stokDus(servisId, talep.parcalar || [], talep.parcaAdet || {}, talep.no, servisAd)
     }
     onBitti()
   }
@@ -672,7 +672,7 @@ function Kapanis({ talep, bayiAd, bayiId, onKapat, onBitti }) {
           placeholder="Örnek: 2 adet düğüm bıçağı kargoya verildi"
         />
       </label>
-      {/* Varsayılan açık ama kaldırılabilir: bayi stok tutmuyorsa ya da
+      {/* Varsayılan açık ama kaldırılabilir: servis stok tutmuyorsa ya da
           parçayı başka yerden getirttiyse düşmemeli. */}
       <label className="satir" style={{ gap: 8, alignItems: 'center' }}>
         <input type="checkbox" checked={dus} onChange={(e) => setDus(e.target.checked)} />
@@ -687,13 +687,13 @@ function Kapanis({ talep, bayiAd, bayiId, onKapat, onBitti }) {
   )
 }
 
-function Not({ talep, bayiAd, onKapat, onBitti }) {
+function Not({ talep, servisAd, onKapat, onBitti }) {
   const [metin, setMetin] = useState('')
   const [hata, setHata] = useState('')
 
   function kaydet() {
     if (metin.trim().length < 3) return setHata('Notunuzu yazın.')
-    talepNotEkle(talep, metin.trim(), bayiAd)
+    talepNotEkle(talep, metin.trim(), servisAd)
     onBitti()
   }
 

@@ -11,8 +11,8 @@
     "build:backoffice": "vite build --config vite.backoffice.config.js",
     "dogrula": "node tools/dogrula.mjs",
     "graf": "node tools/graf.mjs",
-    "build:bayi": "vite build --config vite.bayi.config.js",
-    "apk:bayi": "npm run build:bayi && node tools/cap-hedef.mjs bayi && npx cap sync android && node tools/cap-hedef.mjs app"
+    "build:servis": "vite build --config vite.servis.config.js",
+    "apk:servis": "npm run build:servis && node tools/cap-hedef.mjs servis && npx cap sync android && node tools/cap-hedef.mjs app"
   },
   "dependencies": {
     "@capacitor/android": "^6.2.1",

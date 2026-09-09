@@ -9,7 +9,7 @@
    sürüm demekti.
 
    Artık roller backoffice'ten düzenleniyor (bkz. ekranlar/Roller.jsx) ve
-   bayi listesiyle aynı yolu kullanıyor: koddaki liste varsayılan,
+   servis listesiyle aynı yolu kullanıyor: koddaki liste varsayılan,
    backoffice yazdıysa o geçerli (bkz. lib/icerikDeposu.js).
 
    YETKİ ROL BAZLI
@@ -21,7 +21,7 @@
 
    KATALOG NEDEN VAR
 
-   Yetkiler yalnızca dizelerdi ('talepler', 'bayiDuzenle'). Ekranın onay
+   Yetkiler yalnızca dizelerdi ('talepler', 'servisDuzenle'). Ekranın onay
    kutusu çizebilmesi için her yetkinin okunabilir bir adı ve bir öbeği
    olmalı. Katalog aynı zamanda tek doğruluk kaynağı: admin rolünün
    yetkisi buradan üretiliyor, yeni yetki eklendiğinde admin onu
@@ -47,10 +47,10 @@ export const YETKI_KATALOG = [
     ],
   },
   {
-    grup: 'Bayiler',
+    grup: 'Servisler',
     izinler: [
-      { id: 'bayiler', ad: 'Bayileri, siparişleri ve teklifleri görür' },
-      { id: 'bayiDuzenle', ad: 'Bayi kaydını ve sorumluluk bölgesini değiştirir' },
+      { id: 'servisler', ad: 'Servisleri, siparişleri ve teklifleri görür' },
+      { id: 'servisDuzenle', ad: 'Servis kaydını ve sorumluluk bölgesini değiştirir' },
     ],
   },
   {
@@ -136,7 +136,7 @@ export const VARSAYILAN_ROLLER = [
     aciklama: 'Tüm talepleri ve raporları görür; personel listesini görür ancak değiştiremez.',
     talepTuru: null,
     izinler: [
-      'talepler', 'musteriler', 'bayiler', 'bayiDuzenle', 'personel',
+      'talepler', 'musteriler', 'servisler', 'servisDuzenle', 'personel',
       'geribildirim', 'raporlar', 'yonetimOzeti', 'kayit', 'duyurular', 'destek',
     ],
   },
@@ -145,31 +145,31 @@ export const VARSAYILAN_ROLLER = [
     ad: 'Servis',
     aciklama: 'Yalnız servis taleplerini görür.',
     talepTuru: 'servis',
-    izinler: ['talepler', 'musteriler', 'bayiler'],
+    izinler: ['talepler', 'musteriler', 'servisler'],
   },
   {
     id: 'parca',
     ad: 'Yedek Parça',
     aciklama: 'Yalnız yedek parça taleplerini görür.',
     talepTuru: 'parca',
-    izinler: ['talepler', 'musteriler', 'bayiler'],
+    izinler: ['talepler', 'musteriler', 'servisler'],
   },
   {
     id: 'satis',
     ad: 'Satış',
-    aciklama: 'Yalnız fiyat teklifi taleplerini görür; bayi bölgelerini düzenleyebilir.',
+    aciklama: 'Yalnız fiyat teklifi taleplerini görür; servis bölgelerini düzenleyebilir.',
     talepTuru: 'satinalma',
-    /* Satış personeli bayinin sorumluluk bölgesini değiştirebiliyor:
-       bayi ağını tanıyan, hangi bayinin nereye baktığını bilen o. */
-    izinler: ['talepler', 'musteriler', 'bayiler', 'bayiDuzenle'],
+    /* Satış personeli servisin sorumluluk bölgesini değiştirebiliyor:
+       servis ağını tanıyan, hangi servisin nereye baktığını bilen o. */
+    izinler: ['talepler', 'musteriler', 'servisler', 'servisDuzenle'],
   },
 ]
 
 /* Rolü silinmiş ya da tanınmayan bir kimlikle gelen kişi için.
 
    Önceki hâlinde `rolBilgi()`, tanımadığı bir kimlik için listenin
-   ÜÇÜNCÜ satırını (Servis) döndürüyordu. Bu zaten yanlıştı — bayi
-   panelinin yazdığı 'bayi' rolü işlem kaydında "Servis" olarak
+   ÜÇÜNCÜ satırını (Servis) döndürüyordu. Bu zaten yanlıştı — servis
+   panelinin yazdığı 'servis' rolü işlem kaydında "Servis" olarak
    görünüyordu — ama roller silinebilir olunca tehlikeye dönüşüyor:
    rolü silinen kişi Servis yetkisiyle çalışmaya başlar.
 

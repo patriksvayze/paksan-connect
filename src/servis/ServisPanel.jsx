@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  bayiGirisi,
-  bayiOturumuGetir,
-  bayiOturumuKapat,
-  bayiSifresiniDegistir,
-  bayiSifreTalebiAc,
-  bayininTalepleri,
+  servisGirisi,
+  servisOturumuGetir,
+  servisOturumuKapat,
+  servisSifresiniDegistir,
+  servisSifreTalebiAc,
+  servisinTalepleri,
   destekTalepEt,
   gecikmisMi,
   talepleriGetir,
@@ -35,25 +35,23 @@ import { Logo, MARKA, SIRKET } from '../marka'
 /* Çizimler Higgsfield ile üretildi, uygulamanın kendi görsel diline
    (kalın lacivert kontur, düz dolgu, sınırlı palet) referans verilerek.
    Küçültme ve sıkıştırma: tools/gorsel-hazirla.mjs */
-import bosIsGorseli from '../assets/gorseller/bayi-bos-is.png'
-import girisGorseli from '../assets/gorseller/bayi-giris.png'
+import bosIsGorseli from '../assets/gorseller/servis-bos-is.png'
+import girisGorseli from '../assets/gorseller/servis-giris.png'
 import { TalepDetay } from './ekranlar/TalepDetay'
 import { Stok } from './ekranlar/Stok'
 import { ElleKayit } from './ekranlar/ElleKayit'
 import { Urunler, UrunDetay } from './ekranlar/Urunler'
-import { TeklifDetay, TeklifKarti, TeklifYap } from './ekranlar/Teklif'
-import { HATIRLATMA_GUN, bayininTeklifleri, kalanGun } from '../lib/bayiTeklif'
 
 /* ==========================================================================
-   PAKSAN Bayi
+   PAKSAN Servis
 
    NEDEN BACKOFFICE GİBİ DEĞİL
 
-   Bayiler PAKSAN personeli değil. Talep durumlarını takip etmiyorlar,
+   Servisler PAKSAN personeli değil. Talep durumlarını takip etmiyorlar,
    statülerle ilgilenmiyorlar, günleri bunu yapmakla geçmiyor. Backoffice
-   ekranlarını bayiye vermek, kullanılmayan bir panel üretirdi.
+   ekranlarını servise vermek, kullanılmayan bir panel üretirdi.
 
-   Bu yüzden panelde DURUM ADI HİÇ GEÇMİYOR. Bayi "incelemede" ya da
+   Bu yüzden panelde DURUM ADI HİÇ GEÇMİYOR. Servis "incelemede" ya da
    "planlandı" diye bir şey görmüyor; yaptığı işi anlatan düğmelere
    basıyor, durum arka planda mevcut modelle ilerliyor. Böylece
    raporlar, müşteri bildirimleri ve Excel çıktısı tek satır
@@ -61,7 +59,7 @@ import { HATIRLATMA_GUN, bayininTeklifleri, kalanGun } from '../lib/bayiTeklif'
 
    DÖRT SEKME
 
-   Bayinin işi dört başlıkta toplanıyor: bekleyen işleri, elindeki stok,
+   Servisin işi dört başlıkta toplanıyor: bekleyen işleri, elindeki stok,
    dükkâna gelen müşteri için yeni kayıt, bir de kendi hesabı. Dördü de
    alt çubuktan tek dokunuşla açılıyor; ekranlar birbirinin üstünü
    kapatmıyor. Kabuk `Kabuk.jsx` içinde, gerekçesiyle yazılı.
@@ -72,14 +70,14 @@ import { HATIRLATMA_GUN, bayininTeklifleri, kalanGun } from '../lib/bayiTeklif'
 
    BUGÜNKÜ SINIR
 
-   Veri tarayıcının kendi hafızasında. Bayi paneli ayrı bir cihazda
+   Veri tarayıcının kendi hafızasında. Servis paneli ayrı bir cihazda
    açıldığında müşterinin telefonunda oluşan talebi göremiyor. Ekranlar
    ve veri düzeni hazır; sunucu bağlandığında yalnız veri katmanı
    değişecek, buraya dokunulmayacak.
    ========================================================================== */
 
-export function BayiPanel() {
-  const [oturum, setOturum] = useState(() => bayiOturumuGetir())
+export function ServisPanel() {
+  const [oturum, setOturum] = useState(() => servisOturumuGetir())
 
   if (!oturum) return <Giris onGiris={setOturum} />
   if (oturum.ilkGiris) {
@@ -115,7 +113,7 @@ function Giris({ onGiris }) {
     }
     setHata('')
     setBekliyor(true)
-    const sonuc = await bayiGirisi(kullanici, sifre)
+    const sonuc = await servisGirisi(kullanici, sifre)
     setBekliyor(false)
     if (sonuc.hata) return setHata(sonuc.hata)
     onGiris(sonuc.oturum)
@@ -125,11 +123,11 @@ function Giris({ onGiris }) {
     <div className="giris">
       <form className="giris__kart" onSubmit={gir}>
         {/* Şerit kartın en üstünde, tam genişlikte. Giriş ekranı
-            uygulamanın ilk izlenimi ve tek kimliği logo değil: bayi
+            uygulamanın ilk izlenimi ve tek kimliği logo değil: servis
             burada ne işi olduğunu da görüyor. */}
         <img className="giris__serit" src={girisGorseli} alt="" />
         <Logo height={26} style={{ marginBottom: 14 }} />
-        <div className="giris__baslik">Bayi Girişi</div>
+        <div className="giris__baslik">Servis Girişi</div>
         <div className="giris__cizgi" />
 
         <label className="alan">
@@ -138,7 +136,7 @@ function Giris({ onGiris }) {
             className="gir"
             value={kullanici}
             onChange={(e) => setKullanici(e.target.value)}
-            placeholder="bayi.adi"
+            placeholder="servis.adi"
             autoComplete="username"
             autoFocus
           />
@@ -178,15 +176,15 @@ function Giris({ onGiris }) {
 
         {/* ŞİFREMİ UNUTTUM E-POSTA GÖNDERMİYOR.
 
-            Personelin sıfırlaması e-postayla çalışıyor; bayide e-posta
+            Personelin sıfırlaması e-postayla çalışıyor; serviste e-posta
             yok, iletişim telefonla yürüyor. Kendi kendine sıfırlayan bir
-            akış, kullanıcı adını bilen herkese hesabı açardı. Bayi talep
+            akış, kullanıcı adını bilen herkese hesabı açardı. Servis talep
             bırakıyor, PAKSAN arıyor. */}
         <button
           type="button"
           className="giris__yardim"
           onClick={() => {
-            bayiSifreTalebiAc(kullanici)
+            servisSifreTalebiAc(kullanici)
             setHata('')
             setYardim(true)
           }}
@@ -207,7 +205,7 @@ function Giris({ onGiris }) {
 /* İlk girişte şifre değiştirme.
 
    PAKSAN hesabı açarken geçici bir şifre belirliyor; o şifreyi hesabı
-   açan personel de biliyor. Bayi kendi şifresini burada koyuyor. */
+   açan personel de biliyor. Servis kendi şifresini burada koyuyor. */
 function IlkSifre({ oturum, onBitti }) {
   const [sifre, setSifre] = useState('')
   const [tekrar, setTekrar] = useState('')
@@ -219,7 +217,7 @@ function IlkSifre({ oturum, onBitti }) {
       return setHata('Şifre 6 rakamdan oluşmalı.')
     }
     if (sifre !== tekrar) return setHata('Şifreler eşleşmiyor.')
-    const sonuc = await bayiSifresiniDegistir(oturum.bayiId, sifre)
+    const sonuc = await servisSifresiniDegistir(oturum.servisId, sifre)
     if (sonuc.hata) return setHata(sonuc.hata)
     onBitti()
   }
@@ -282,17 +280,12 @@ function Uygulama({ oturum, onCikis }) {
      kendi sekmelerinin içinde açılıyordu; `Sayfa` kendi üst çubuğunu
      çizdiği için iki başlık üst üste biniyordu. */
   const [urun, setUrun] = useState(null)
-  /* Teklif: 'yeni' ise hazırlama ekranı, nesne ise o teklifin detayı.
-     Hazırlama ekranına bir üründen girilmiş olabilir; o da burada. */
-  const [teklif, setTeklif] = useState(null)
   const [tazele, setTazele] = useState(0)
   const [talepler, setTalepler] = useState([])
-  const [teklifler, setTeklifler] = useState([])
 
   useEffect(() => {
-    setTalepler(bayininTalepleri(talepleriGetir(), oturum.bayiId))
-    setTeklifler(bayininTeklifleri(oturum.bayiId))
-  }, [oturum.bayiId, tazele])
+    setTalepler(servisinTalepleri(talepleriGetir(), oturum.servisId))
+  }, [oturum.servisId, tazele])
 
   const [bekleyen, biten] = useMemo(
     () => [
@@ -308,8 +301,8 @@ function Uygulama({ oturum, onCikis }) {
       <TalepDetay
         talep={acik}
         oturum={oturum}
-        bayiAd={oturum.ad}
-        bayiId={oturum.bayiId}
+        servisAd={oturum.ad}
+        servisId={oturum.servisId}
         onKapat={() => {
           setAcik(null)
           setTazele((x) => x + 1)
@@ -319,66 +312,21 @@ function Uygulama({ oturum, onCikis }) {
           setAcik(null)
           setTazele((x) => x + 1)
         }}
-        /* Müşterinin fiyat sorusu bayinin kendi teklif ekranını
-           açıyor; müşteri ve ürün oradan dolu geliyor. */
-        onTeklifHazirla={(t) => {
-          setAcik(null)
-          setTeklif({ yeni: true, talep: t })
-        }}
       />
     )
   }
 
   /* YENİ KAYIT VE HESAP ARTIK SEKME DEĞİL.
 
-     Alt çubukta dört yer var ve dördü de bayinin günlük işine
+     Alt çubukta dört yer var ve dördü de servisin günlük işine
      ayrılmalı. "Yeni Kayıt" günde birkaç kez, "Hesap" ayda bir
      açılıyordu; ikisi de satış ve makine bilgisi gibi her gün
      bakılan bölümlerin yerini tutuyordu.
 
      Yeni Kayıt İşlerim'in başındaki düğmeye taşındı — zaten oradan
      bakılan bir listenin devamı. Hesap başlıktaki isme geçti. */
-  if (teklif === 'yeni' || teklif?.yeni) {
-    return (
-      <TeklifYap
-        oturum={oturum}
-        urun={teklif?.urun || null}
-        talep={teklif?.talep || null}
-        onKapat={() => setTeklif(null)}
-        onKaydedildi={(t) => {
-          setTazele((x) => x + 1)
-          setTeklif(t)
-        }}
-      />
-    )
-  }
-
-  if (teklif) {
-    return (
-      <TeklifDetay
-        teklif={teklif}
-        oturum={oturum}
-        onKapat={() => setTeklif(null)}
-        onDegisti={() => {
-          setTeklif(null)
-          setTazele((x) => x + 1)
-        }}
-      />
-    )
-  }
-
   if (urun) {
-    return (
-      <UrunDetay
-        urun={urun}
-        oturum={oturum}
-        onKapat={() => setUrun(null)}
-        onTeklif={() => {
-          setTeklif({ yeni: true, urun })
-          setUrun(null)
-        }}
-      />
-    )
+    return <UrunDetay urun={urun} oturum={oturum} onKapat={() => setUrun(null)} />
   }
 
   if (alt === 'kayit') {
@@ -416,7 +364,7 @@ function Uygulama({ oturum, onCikis }) {
 
      Dört sekme vardı ve ikisi ("Satış", "Makine") aynı yirmi ürünü
      listeliyordu. "Satış" adı da kimin satışı olduğunu söylemiyordu.
-     Tek liste kaldı: bayi ürüne dokunuyor, fiyatını, teslim süresini,
+     Tek liste kaldı: servis ürüne dokunuyor, fiyatını, teslim süresini,
      arızasını ve teknik değerlerini aynı sayfada buluyor. */
   const sekmeler = [
     { id: 'isler', ad: 'İşlerim', Icon: IconWrench, rozet: bekleyen.length },
@@ -426,7 +374,7 @@ function Uygulama({ oturum, onCikis }) {
 
   const BASLIK = {
     isler: { baslik: 'İşlerim', alt: oturum.ad },
-    urunler: { baslik: 'Ürünler', alt: `${MARKA} fiyat listesi ve ürün bilgileri` },
+    urunler: { baslik: 'Ürünler', alt: 'Arıza, bakım ve makine bilgileri' },
     parca: { baslik: 'Parça', alt: `Stokunuz ve ${MARKA} siparişleri` },
   }
 
@@ -451,11 +399,8 @@ function Uygulama({ oturum, onCikis }) {
           oturum={oturum}
           bekleyen={bekleyen}
           biten={biten}
-          teklifler={teklifler}
           onAc={setAcik}
-          onTeklif={setTeklif}
           onYeniKayit={() => setAlt('kayit')}
-          onYeniTeklif={() => setTeklif('yeni')}
         />
       )}
       {sekme === 'urunler' && <Urunler oturum={oturum} onAc={setUrun} />}
@@ -466,56 +411,33 @@ function Uygulama({ oturum, onCikis }) {
 
 /* ---------------------------------------------------------------- İşler */
 
-function Isler({
-  oturum,
-  bekleyen,
-  biten,
-  teklifler,
-  onAc,
-  onTeklif,
-  onYeniKayit,
-  onYeniTeklif,
-}) {
-  const acikTeklif = teklifler.filter((t) => t.durum === 'acik')
-
+function Isler({ oturum, bekleyen, biten, onAc, onYeniKayit }) {
   return (
     <>
-      <Bugun bekleyen={bekleyen} teklifler={teklifler} onAc={onAc} />
+      <Bugun bekleyen={bekleyen} onAc={onAc} />
 
-      {/* Bayinin iki başlangıç işi yan yana: dükkâna gelen müşteri için
-          kayıt açmak ve fiyat vermek. İkisi de uygulamadan düşen talebi
-          beklemiyor; bayinin günü çoğunlukla buradan başlıyor. */}
+      {/* Servisin kendi başlattığı iş: uygulamadan düşen talebi
+          beklemeden, telefonla gelen ya da kendi gittiği işi kaydetmek.
+          İlk kurulum ve çalıştırma da buradan giriliyor. */}
       <div className="baslangic">
-        <button className="dg dg--blok" onClick={onYeniKayit}>
+        <button className="dg dg--ana dg--blok" onClick={onYeniKayit}>
           <IconPlus size={19} />
           Yeni Kayıt
         </button>
-        <button className="dg dg--blok" onClick={onYeniTeklif}>
-          <IconTag size={19} />
-          Fiyat Teklifi
-        </button>
       </div>
 
-      <BayiDuyurulari oturum={oturum} />
-
-      {acikTeklif.length > 0 && (
-        <Bolum ad="Açık Teklifler" sayi={acikTeklif.length}>
-          {acikTeklif.map((t) => (
-            <TeklifKarti key={t.id} teklif={t} onAc={() => onTeklif(t)} />
-          ))}
-        </Bolum>
-      )}
+      <ServisDuyurulari oturum={oturum} />
 
       {/* BEKLEYEN BÖLÜMÜ İŞ YOKKEN DE ÇIKIYOR.
 
           Önce yalnız iş varsa çiziliyordu. Sonuç: tamamlanmış işi olan
-          bir bayi ekranı açtığında yalnız "TAMAMLANAN" görüyordu ve
+          bir servis ekranı açtığında yalnız "TAMAMLANAN" görüyordu ve
           bekleyen işinin olup olmadığı hiçbir yerde yazmıyordu.
           Bilginin yokluğu, bilgi değil — "acaba yüklenmedi mi?" diye
           düşündürüyor.
 
           Şimdi bölüm her zaman duruyor; boşken çizimiyle birlikte
-          "bekleyen iş yok" diyor. Bayi baktığı anda cevabını alıyor. */}
+          "bekleyen iş yok" diyor. Servis baktığı anda cevabını alıyor. */}
       <Bolum ad="Bekleyen" sayi={bekleyen.length}>
         {bekleyen.length > 0 ? (
           bekleyen.map((t) => (
@@ -559,7 +481,7 @@ function Isler({
 
    Saha uygulamalarında o alanın karşılığı bellidir: teknisyen
    uygulamayı açtığında GÜNÜN PROGRAMINI görür, iş sayısını değil.
-   Bayinin sabah sorduğu soru "kaç işim var" değil, "bugün nereye
+   Servisin sabah sorduğu soru "kaç işim var" değil, "bugün nereye
    gideceğim".
 
    Bu yüzden blok üç şeyi bu sırayla söylüyor:
@@ -572,7 +494,7 @@ function Isler({
    iniyor. Hiç iş yoksa hiç çıkmıyor — boş bir kutu, boşluğun
    kendisinden daha kötü.
 
-   YARINI DA GÖSTERİYOR: randevu bugün yoksa ama yarın varsa, bayi bunu
+   YARINI DA GÖSTERİYOR: randevu bugün yoksa ama yarın varsa, servis bunu
    akşamdan bilmek istiyor.
    ========================================================================== */
 
@@ -581,7 +503,7 @@ function gunBasi(t = Date.now()) {
 }
 
 /* Randevu gün ve saat olarak; yıl yazılmıyor. "03.09.2026 20:11"
-   satırın üçte birini kaplıyor ve bayinin randevusu bu hafta içinde:
+   satırın üçte birini kaplıyor ve servisin randevusu bu hafta içinde:
    yıl hiçbir soruya cevap vermiyor.
 
    Tarih elle kuruluyor: `toLocaleString` yıl istenmediğinde Türkçe
@@ -595,16 +517,9 @@ function randevuYazi(plan) {
   return `${iki(d.getDate())}.${iki(d.getMonth() + 1)} · ${saat}`
 }
 
-function Bugun({ bekleyen, teklifler, onAc }) {
+function Bugun({ bekleyen, onAc }) {
   const bugun = gunBasi()
   const yarin = bugun + 86400000
-
-  /* Süresi dolmak üzere olan teklif de bugünün işi: bayinin müşteriyi
-     arayıp cevabını alması gerekiyor. Teklifin kendisi listede aşağıda
-     duruyor; buradaki yalnız hatırlatma. */
-  const yaklasan = (teklifler || []).filter(
-    (t) => t.durum === 'acik' && kalanGun(t) <= HATIRLATMA_GUN,
-  )
 
   const randevulu = bekleyen
     .filter((t) => t.plan?.tarih)
@@ -619,7 +534,7 @@ function Bugun({ bekleyen, teklifler, onAc }) {
   const geciken = bekleyen.filter((t) => !t.plan && gecikmisMi(t))
   const sirada = bekleyen.filter((t) => !t.plan && !gecikmisMi(t))
 
-  if (!bekleyen.length && !yaklasan.length) return null
+  if (!bekleyen.length) return null
 
   return (
     <div className="bugun">
@@ -638,7 +553,7 @@ function Bugun({ bekleyen, teklifler, onAc }) {
       {bugunku.length > 0 ? (
         <div className="bugun__liste">
           {bugunku.map((t) => {
-            /* Tarihi geçmiş randevu da bu listede: bayi o işe gitmedi
+            /* Tarihi geçmiş randevu da bu listede: servis o işe gitmedi
                ve gitmesi gerekiyor. Sessizce düşerse unutuluyor. */
             const gecti = gunBasi(t.plan.tarih) < bugun
             return (
@@ -665,7 +580,7 @@ function Bugun({ bekleyen, teklifler, onAc }) {
 
       {/* Sayılar altta, tek satırda. Randevu somut bir plan; bunlar
           hatırlatma. Aynı ağırlıkta gösterilmemeleri gerekiyor. */}
-      {(geciken.length > 0 || sirada.length > 0 || yaklasan.length > 0) && (
+      {(geciken.length > 0 || sirada.length > 0) && (
         <div className="bugun__sayilar">
           {geciken.length > 0 && (
             <span className="bugun__rozet bugun__rozet--gec">
@@ -677,11 +592,6 @@ function Bugun({ bekleyen, teklifler, onAc }) {
           {sirada.length > 0 && (
             <span className="bugun__rozet">
               {sirada.length} işe gün verilmedi
-            </span>
-          )}
-          {yaklasan.length > 0 && (
-            <span className="bugun__rozet bugun__rozet--gec">
-              {yaklasan.length} teklifin süresi doluyor
             </span>
           )}
         </div>
@@ -696,7 +606,7 @@ const TUR_ADI = { servis: 'Servis', parca: 'Yedek Parça', satinalma: 'Fiyat Tek
    yalnız talebin hangi alanının hangi yuvaya gireceği yazıyor.
 
    Yol tarifi düğmesi EKLENMEDİ. Talepte koordinat yok, yalnız il ve
-   ilçe var (bkz. KonumAlani.jsx); düğme bayiyi ilçe merkezine
+   ilçe var (bkz. KonumAlani.jsx); düğme servisi ilçe merkezine
    götürürdü, tarlaya değil. Adresi telefonda öğreniyor. */
 function TalepKarti({ talep, onAc }) {
   const paksanda = (talep.sahip || 'paksan') === 'paksan'
@@ -714,7 +624,7 @@ function TalepKarti({ talep, onAc }) {
           {yer} · <span className="mono">{talep.no}</span>
         </>
       }
-      /* Randevu listede de görünüyor: bayi hangi işe gün verdiğini
+      /* Randevu listede de görünüyor: servis hangi işe gün verdiğini
          karta girmeden biliyor. Randevu yoksa yerini PAKSAN'ın devraldığı
          bilgisi alıyor — ikisi birden olmuyor. */
       sol={
@@ -737,20 +647,20 @@ function TalepKarti({ talep, onAc }) {
 }
 
 /* ==========================================================================
-   PAKSAN'ın bayilere yönelttiği duyurular
+   PAKSAN'ın servislere yönelttiği duyurular
 
    Ayrı bir bildirim deposu kurulmadı: aynı duyuru deposu okunuyor,
-   kime gideceğine duyuruHedef.js karar veriyor. Bayiye ulaşması için
-   duyurunun hedefinde "bayilere" ya da "ikisine de" seçilmiş olması
-   gerekiyor; hedefsiz duyuru müşteriye gider, bayiye değil.
+   kime gideceğine duyuruHedef.js karar veriyor. Servise ulaşması için
+   duyurunun hedefinde "servislere" ya da "ikisine de" seçilmiş olması
+   gerekiyor; hedefsiz duyuru müşteriye gider, servise değil.
 
    "ANLADIM" ARTIK SİLMİYOR
 
    Önceden okunan duyuru ekrandan tamamen kayboluyordu ve geri getirmenin
    yolu yoktu. Müşteri uygulamasında duyuru Bildirimler listesinde
-   kalıyordu, bayi panelinde karşılığı hiç yoktu.
+   kalıyordu, servis panelinde karşılığı hiç yoktu.
 
-   Geri çağırma yalnızca bayiye gidiyor (bkz. data/duyuruTurleri.js):
+   Geri çağırma yalnızca servise gidiyor (bkz. data/duyuruTurleri.js):
    yanlışlıkla "Anladım" denilen bir geri çağırma, o makineleri servise
    çağıracak tek kişinin elinden çıkmış oluyordu. Okunanlar artık
    "Geçmiş duyurular" başlığının altında duruyor.
@@ -759,7 +669,7 @@ function TalepKarti({ talep, onAc }) {
    kampanya ile geri çağırma ayırt edilemiyordu.
    ========================================================================== */
 
-/* Tablodaki `ikon` adının bayi panelindeki karşılığı. */
+/* Tablodaki `ikon` adının servis panelindeki karşılığı. */
 const DUYURU_IKON = {
   etiket: IconTag,
   makine: IconMachine,
@@ -789,7 +699,7 @@ function DuyuruKarti({ duyuru, okunmamis, onKapat }) {
   )
 }
 
-function BayiDuyurulari({ oturum }) {
+function ServisDuyurulari({ oturum }) {
   const [hepsi, setHepsi] = useState([])
   const [gorulen, setGorulen] = useState(() => new Set(load(GORULEN, [])))
   const [gecmisAcik, setGecmisAcik] = useState(false)
@@ -797,7 +707,7 @@ function BayiDuyurulari({ oturum }) {
   useEffect(() => {
     setHepsi(
       load('duyurular', [])
-        .filter((d) => duyuruGecerliMi(d, { bayi: oturum }))
+        .filter((d) => duyuruGecerliMi(d, { servis: oturum }))
         .sort((a, b) => b.tarih - a.tarih),
     )
   }, [oturum])
@@ -819,7 +729,7 @@ function BayiDuyurulari({ oturum }) {
         <DuyuruKarti key={d.id} duyuru={d} okunmamis onKapat={() => kapat(d.id)} />
       ))}
 
-      {/* Geçmiş kapalı başlıyor: bayinin ekranı bugünkü işi göstermeli,
+      {/* Geçmiş kapalı başlıyor: servisin ekranı bugünkü işi göstermeli,
           okunmuş duyuru yığınını değil. Tek dokunuşla açılıyor ve kaç
           tane olduğu düğmenin üzerinde yazıyor. */}
       {gecmis.length > 0 && (
@@ -843,7 +753,7 @@ function BayiDuyurulari({ oturum }) {
   )
 }
 
-const GORULEN = 'gorulenDuyurularBayi'
+const GORULEN = 'gorulenDuyurularServis'
 
 /* ---------------------------------------------------------------- Hesap */
 
@@ -873,7 +783,7 @@ function Hesap({ oturum, onCikis }) {
         <button
           className="dg dg--blok"
           onClick={() => {
-            bayiOturumuKapat(oturum)
+            servisOturumuKapat(oturum)
             onCikis()
           }}
         >
@@ -890,7 +800,7 @@ function Hesap({ oturum, onCikis }) {
 /* Şifre değiştirme.
 
    Mevcut şifre SORULUYOR. Açık oturumun sahibi olmak yetmiyor: telefon
-   birinin elinde kalmış olabilir ve bayi paneli müşteri bilgisi
+   birinin elinde kalmış olabilir ve servis paneli müşteri bilgisi
    taşıyor. İlk giriş akışında sorulmuyor, sebebi veri.js'te yazılı. */
 function SifreDegistir({ oturum }) {
   const [acik, setAcik] = useState(false)
@@ -907,7 +817,7 @@ function SifreDegistir({ oturum }) {
       return setHata(`Yeni şifre ${BACKOFFICE_SIFRE_HANE} rakamdan oluşmalı.`)
     }
     if (yeni !== tekrar) return setHata('Yeni şifreler eşleşmiyor.')
-    const sonuc = await bayiSifresiniDegistir(oturum.bayiId, yeni, eski)
+    const sonuc = await servisSifresiniDegistir(oturum.servisId, yeni, eski)
     if (sonuc.hata) return setHata(sonuc.hata)
     setEski('')
     setYeni('')

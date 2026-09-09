@@ -1,6 +1,6 @@
-/* Backoffice’ten girilen bayi listesi.
+/* Backoffice’ten girilen servis listesi.
 
-   Uygulama kendi `bayiler.js` dosyasını okumaya devam ediyor; backoffice’ten
+   Uygulama kendi `servisler.js` dosyasını okumaya devam ediyor; backoffice’ten
    gerçek liste girilmişse onu kullanıyor. Backoffice bu listeye
    dokunmadığı sürece koddaki liste geçerli.
 
@@ -22,11 +22,11 @@ function depo() {
 /* YAZDIKTAN SONRA ÇAĞRILMASI ŞART.
 
    Bellek bir kez dolduruluyordu ve hiç boşalmıyordu. Sonuç: backoffice
-   bayi listesini kaydettiği anda, aynı sayfada okuyan her yer hâlâ eski
-   listeyi görüyordu. Yeni açılan bir bayi hesabı, sayfa yenilenmeden
+   servis listesini kaydettiği anda, aynı sayfada okuyan her yer hâlâ eski
+   listeyi görüyordu. Yeni açılan bir servis hesabı, sayfa yenilenmeden
    giriş yapamıyordu — kayıt diskte vardı, bellekte yoktu.
 
-   Depoya yazan tek yer `bayileriYaz` (veri.js); tazelemeyi o çağırıyor. */
+   Depoya yazan tek yer `servisleriYaz` (veri.js); tazelemeyi o çağırıyor. */
 export function icerikTazele() {
   bellek = null
 }

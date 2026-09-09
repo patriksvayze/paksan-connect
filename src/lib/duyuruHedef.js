@@ -21,10 +21,10 @@
    HEDEF ALANI
 
      hedef: {
-       kime:    'musteri' | 'bayi' | 'ikisi',   yoksa 'musteri'
+       kime:    'musteri' | 'servis' | 'ikisi',   yoksa 'musteri'
        iller:   ['Konya', 'Karaman'],           boş/yok = tüm iller
        ilceler: ['Ereğli'],                     boş/yok = ilin tamamı
-       bayiler: ['konya-merkez'],               kime 'bayi' iken
+       servisler: ['konya-merkez'],               kime 'servis' iken
        urunler: ['orkinos-1270'],               model VE tip buradan
        seriler: ['ORK1270-2024-00157'],
      }
@@ -64,20 +64,20 @@ function kapsiyorMu(dizi, deger) {
  *
  * @param {object} d duyuru kaydı
  * @param {object} baglam
- * @param {object} baglam.user      müşteri hesabı (bayi tarafında null)
+ * @param {object} baglam.user      müşteri hesabı (servis tarafında null)
  * @param {Array}  baglam.makineler kullanıcının makineleri
- * @param {object} baglam.bayi      bayi oturumu (müşteri tarafında null)
+ * @param {object} baglam.servis      servis oturumu (müşteri tarafında null)
  * @param {boolean} baglam.yurtdisi kullanıcı Türkiye dışında mı
  *                  (çağıran `yurtdisiTalepMi` ile hesaplıyor)
  */
 export function duyuruGecerliMi(
   d,
-  { user = null, makineler = [], bayi = null, yurtdisi = false } = {},
+  { user = null, makineler = [], servis = null, yurtdisi = false } = {},
 ) {
   /* KİŞİYE ÖZEL BİLDİRİM.
 
-     `musteriId` taşıyan kayıt yalnız o hesaba gidiyor. Bayi panelinden
-     gönderilen fiyat teklifi böyle: bayi kendi müşterisine yazıyor,
+     `musteriId` taşıyan kayıt yalnız o hesaba gidiyor. Servis panelinden
+     gönderilen fiyat teklifi böyle: servis kendi müşterisine yazıyor,
      bildirim başkasının ekranında görünmemeli. Alanı taşımayan eski
      kayıtlar (talep durumu, numara değişikliği) tek hesaplı cihazda
      üretildikleri için buradan geçmiyor. */
@@ -87,13 +87,13 @@ export function duyuruGecerliMi(
      onlar zaten kişiye özel üretiliyor.
 
      BAYİ TARAFI HARİÇ. Bu kayıtlar bir MÜŞTERİNİN kendi bildirimi:
-     "talebiniz alındı", "numaranız değişti". Bayi paneline hiçbir
-     koşulda düşmemeleri gerekiyor. Düşüyorlardı da: bayi ekranında
+     "talebiniz alındı", "numaranız değişti". Servis paneline hiçbir
+     koşulda düşmemeleri gerekiyor. Düşüyorlardı da: servis ekranında
      içi boş, yalnız "Anladım" düğmesi olan kutular çıkıyordu — çünkü
-     o kayıtlarda `baslik`/`metin` yok, sözlük anahtarı var ve bayi
+     o kayıtlarda `baslik`/`metin` yok, sözlük anahtarı var ve servis
      tarafında sözlük yok. Kutu boş görünüyordu ama asıl sorun
      görünmesiydi: başkasının bildirimi. */
-  if (!personelDuyurusuMu(d)) return !bayi
+  if (!personelDuyurusuMu(d)) return !servis
 
   /* GERİ ÇAĞIRMA YALNIZ BAYİYE.
 
@@ -101,37 +101,37 @@ export function duyuruGecerliMi(
      yerde birden duruyor. Ekranı atlayan bir kayıt — elle yazılmış,
      içe aktarılmış ya da ileride sunucudan gelen — çiftçinin
      telefonunda "makinenizi kullanmayın" penceresi açardı. Kararı
-     veren PAKSAN'dı: geri çağırmayı bayi yürütür, müşteriyi bayi
+     veren PAKSAN'dı: geri çağırmayı servis yürütür, müşteriyi servis
      arar (bkz. data/duyuruTurleri.js). */
-  if (d.alt === 'geriCagirma' && !bayi) return false
+  if (d.alt === 'geriCagirma' && !servis) return false
 
   /* Kampanya duyurusu yalnız izin verene. Ticari elektronik ileti
      kuralı (6563). Güvenlik uyarısı izinden bağımsız. */
-  if (d.tur === 'duyuru' && !bayi && !user?.onaylar?.kampanya) return false
+  if (d.tur === 'duyuru' && !servis && !user?.onaylar?.kampanya) return false
 
   /* Yurt dışındaki kullanıcıya Türkçe duyuru gösterilmiyor.
      `dil: 'en'` ileride açılacak ayrı kanal için. */
-  if (!bayi && yurtdisi && d.dil !== 'en') return false
+  if (!servis && yurtdisi && d.dil !== 'en') return false
 
   const hedef = d.hedef
 
   /* KİME KAPISI HEDEFTEN ÖNCE.
 
-     Varsayılan alıcı müşteri. Hedefi olmayan duyuru bayi paneline
-     DÜŞMÜYOR: bayiye ulaşması için "bayilere" ya da "ikisine de"
+     Varsayılan alıcı müşteri. Hedefi olmayan duyuru servis paneline
+     DÜŞMÜYOR: servise ulaşması için "servislere" ya da "ikisine de"
      seçilmiş olması gerekiyor.
 
-     İki sebebi var. Son kullanıcıya yazılmış bir kampanya metni bayide
-     gürültüdür. Ayrıca ticari ileti izni müşteriden alınıyor; bayiyle
+     İki sebebi var. Son kullanıcıya yazılmış bir kampanya metni serviste
+     gürültüdür. Ayrıca ticari ileti izni müşteriden alınıyor; servisle
      ilişki başka bir zeminde. */
   const kime = hedef?.kime || 'musteri'
-  if (bayi) {
+  if (servis) {
     if (kime === 'musteri') return false
-    if (!kapsiyorMu(hedef?.bayiler, bayi.bayiId)) return false
-    if (!kapsiyorMu(hedef?.iller, bayi.il)) return false
+    if (!kapsiyorMu(hedef?.servisler, servis.servisId)) return false
+    if (!kapsiyorMu(hedef?.iller, servis.il)) return false
     return true
   }
-  if (kime === 'bayi') return false
+  if (kime === 'servis') return false
 
   if (!hedef) return true
 

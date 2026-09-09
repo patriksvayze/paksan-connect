@@ -162,14 +162,14 @@ const ayrisan = ortak.filter(
 
 /* Üçüncü bir CSS kökü açılmadığının denetimi.
 
-   Bayi paneli backoffice.css'i paylaşıyor; src/bayi/ altında kendi
+   Servis paneli backoffice.css'i paylaşıyor; src/servis/ altında kendi
    :root bloğu olsaydı elle senkron tutulacak üçüncü bir renk listesi
    doğardı. Bu kural koda yazılı olmasa unutulur. */
-const bayiCss = join(KOK, 'src/bayi')
-if (existsSync(bayiCss)) {
-  for (const d of dosyalar(bayiCss, ['.css'])) {
+const servisCss = join(KOK, 'src/servis')
+if (existsSync(servisCss)) {
+  for (const d of dosyalar(servisCss, ['.css'])) {
     if (/^\s*:root\s*\{/m.test(readFileSync(d, 'utf8'))) {
-      bildir(`${d.split(/[\\/]/).pop()} içinde :root var — bayi paneli backoffice.css'i paylaşmalı`)
+      bildir(`${d.split(/[\\/]/).pop()} içinde :root var — servis paneli backoffice.css'i paylaşmalı`)
     }
   }
 }
@@ -192,19 +192,19 @@ baslik('4. Derleme ayrımı')
 /* Üç ayrı derleme var ve her birinin içine girmemesi gereken şeyler
    farklı:
 
-     dist/       müşterinin telefonuna kurulan APK. Ne personel ne bayi
-                 kodu girmeli.
-     dist-bayi/  bayinin cihazı. PAKSAN'ın iç ekranları girmemeli. */
+     dist/         müşterinin telefonuna kurulan APK. Ne personel ne
+                   servis kodu girmeli.
+     dist-servis/  servisin cihazı. PAKSAN'ın iç ekranları girmemeli. */
 const AYRIMLAR = [
   {
     klasor: 'dist/assets',
     ad: 'dist/',
-    izler: ['Backoffice', 'panelOturum', 'BayiPanel', 'bayiOturum'],
-    aciklama: 'personel ve bayi kodu',
+    izler: ['Backoffice', 'panelOturum', 'ServisPanel', 'servisOturum'],
+    aciklama: 'personel ve servis kodu',
   },
   {
-    klasor: 'dist-bayi/assets',
-    ad: 'dist-bayi/',
+    klasor: 'dist-servis/assets',
+    ad: 'dist-servis/',
     izler: ['IslemKaydi', 'Raporlar', 'sifreTalepleri'],
     aciklama: "PAKSAN'ın iç ekranları",
   },
@@ -240,7 +240,7 @@ for (const a of AYRIMLAR) {
    TEK İSTİSNA `src/marka/icerik/`. Arıza bilgi tabanı, teknik
    özellikler ve kılavuz paketi ağır dosyalar — kılavuz paketi tek
    başına 1,7 MB. Kapıdan verilselerdi `../marka` yazan her dosya
-   onları da paketine çekerdi; bayi paneli arıza bilgi tabanını hiç
+   onları da paketine çekerdi; servis paneli arıza bilgi tabanını hiç
    kullanmadığı hâlde taşırdı. İçerik bu yüzden doğrudan, yalnız
    çizildiği ekrandan import ediliyor. */
 
@@ -322,6 +322,66 @@ if (!sizintilar.length) {
   for (const x of sizintilar) bildir(`marka adı kodda: ${x}`)
 }
 
+/* -------------------------------------------------- 7. Bayi kalıntısı
+
+   BAYİ VE SERVİS AYRI TARAFLAR.
+
+     bayi   = makineyi satan firma. Kaydı var; hesabı ve paneli YOK.
+     servis = işi yapan taraf. Hesabı ve paneli VAR.
+
+   Panel bir zamanlar bayi için yazılmıştı ve servise devredildi
+   (bkz. 08.09.2026 toplantı kararı). Böyle bir devirde asıl tehlike
+   yarım kalmasıdır: bir yerde `bayi`, bir yerde `servis` denir ve
+   altı ay sonra hangisinin ne demek olduğu kimseye belli olmaz.
+
+   İKİ KURAL
+
+     1. Servis panelinde `bayi` kelimesi hiç geçmez. Panel bayiyi
+        tanımıyor; servis–bayi bağı backoffice tarafında kuruluyor.
+
+     2. Hiçbir depolama anahtarı `bayi` ile başlamaz. Anahtar adı
+        veriyi kimin ürettiğini söylüyor ve o taraf artık servis.
+
+   `bayileriGetir`, `bayiDuzenle` gibi adlar KURAL DIŞI DEĞİL — onlar
+   gerçekten bayi varlığını yönetiyor ve bayi varlığı yaşıyor. Kural
+   yalnız servis klasörünü ve depolama anahtarlarını bağlıyor.
+
+   MÜŞTERİ UYGULAMASI HENÜZ KAPSAMDA DEĞİL: `src/screens/`,
+   `src/i18n/` ve `src/components/BayiHarita.jsx` bilerek dışarıda.
+   Orası planın 5. aşaması; o iş bitince buraya eklenecek. */
+
+baslik('7. Bayi kalıntısı')
+
+const kalintilar = []
+
+/* 1. kural — servis panelinde bayi geçmiyor */
+const servisKlasor = join(KOK, 'src', 'servis')
+if (existsSync(servisKlasor)) {
+  for (const d of dosyalar(servisKlasor, ['.js', '.jsx', '.css'])) {
+    readFileSync(d, 'utf8')
+      .split(/\r?\n/)
+      .forEach((s, i) => {
+        if (/bayi/i.test(s)) {
+          kalintilar.push(`${d.split(/[\\/]/).pop()}:${i + 1} ${s.trim().slice(0, 90)}`)
+        }
+      })
+  }
+}
+
+/* 2. kural — depolama anahtarı bayi ile başlamıyor */
+const ANAHTAR_KALIP = /(load|save|sil)\(\s*'(bayi[A-Za-z]*)'/g
+for (const d of dosyalar(join(KOK, 'src'), ['.js', '.jsx'])) {
+  for (const e of readFileSync(d, 'utf8').matchAll(ANAHTAR_KALIP)) {
+    kalintilar.push(`${d.split(/[\\/]/).pop()} depolama anahtarı: '${e[2]}'`)
+  }
+}
+
+if (!kalintilar.length) {
+  tamam('servis panelinde bayi kalıntısı yok')
+} else {
+  for (const x of kalintilar) bildir(`bayi kalıntısı: ${x}`)
+}
+
 /* ------------------------------------------------------------- Sonuç */
 
 console.log('')
@@ -329,4 +389,4 @@ if (sorun) {
   console.log(`SONUÇ: ${sorun} sorun bulundu.`)
   process.exit(1)
 }
-console.log('SONUÇ: altı kontrol de temiz.')
+console.log('SONUÇ: yedi kontrol de temiz.')

@@ -29,11 +29,10 @@ import { Musteriler } from './ekranlar/Musteriler'
 import { Personel } from './ekranlar/Personel'
 import { Roller } from './ekranlar/Roller'
 import { GeriBildirimler } from './ekranlar/GeriBildirimler'
-import { Bayiler } from './ekranlar/Bayiler'
+import { Servisler } from './ekranlar/Servisler'
 import { Makineler } from './ekranlar/Makineler'
-import { BayiSiparisleri } from './ekranlar/BayiSiparisleri'
-import { BayiTeklifleri } from './ekranlar/BayiTeklifleri'
-import { ACIK_DURUMLAR, siparisleriGetir } from '../lib/bayiSiparis'
+import { ServisSiparisleri } from './ekranlar/ServisSiparisleri'
+import { ACIK_DURUMLAR, siparisleriGetir } from '../lib/servisSiparis'
 import { IslemKaydi } from './ekranlar/IslemKaydi'
 
 /* PAKSAN Backoffice — uygulamanın arka ofisi.
@@ -70,17 +69,14 @@ const MENU = [
   { id: 'talepler', ad: 'Talepler', izin: 'talepler', sayac: 'talep', Ikon: IconTalep },
   { id: 'musteriler', ad: 'Müşteriler', izin: 'musteriler', Ikon: IconUser },
   { id: 'makineler', ad: 'Kayıtlı Makineler', izin: 'musteriler', Ikon: IconMachine },
-  { id: 'bayiler', ad: 'Bayiler', izin: 'bayiler', Ikon: IconPin },
-  /* Bayi stokunun tek artış yolu bu ekran: bayi sipariş veriyor, PAKSAN
-     burada onaylayıp gönderiyor, gönderim işaretlenince stok artıyor. */
+  { id: 'servisler', ad: 'Servisler', izin: 'servisler', Ikon: IconPin },
+  /* Servis stokunun tek artış yolu bu ekran: servis sipariş veriyor,
+     PAKSAN burada onaylayıp gönderiyor, gönderim işaretlenince stok
+     artıyor. */
   {
-    id: 'siparisler', ad: 'Bayi Siparişleri', izin: 'bayiler',
+    id: 'siparisler', ad: 'Servis Siparişleri', izin: 'servisler',
     sayac: 'siparis', Ikon: IconCart,
   },
-  /* Bayinin çiftçiye verdiği fiyat teklifleri. PAKSAN bugüne kadar
-     yalnız satılanı görüyordu; satılamayan — hangi modelin rakibe
-     gittiği — fiyat kararının asıl dayanağı. */
-  { id: 'teklifler', ad: 'Bayi Teklifleri', izin: 'bayiler', Ikon: IconTag },
   {
     id: 'geribildirim', ad: 'Geri Bildirimler', izin: 'geribildirim',
     sayac: 'gorus', Ikon: IconMail,
@@ -135,7 +131,7 @@ export function Backoffice() {
       ).length,
       gorus: geriBildirimGetir().filter((g) => !g.okundu).length,
       numara: numaraTalepleriGetir().filter((t) => t.durum === 'bekliyor').length,
-      /* Bayi bekliyor: siparişi karşılanmadan stoku artmıyor. */
+      /* Servis bekliyor: siparişi karşılanmadan stoku artmıyor. */
       siparis: siparisleriGetir().filter((s) => ACIK_DURUMLAR.includes(s.durum)).length,
     }
   }, [surum, oturum])
@@ -226,9 +222,8 @@ export function Backoffice() {
         {acik === 'duyurular' && <Duyurular {...ortak} />}
         {acik === 'musteriler' && <Musteriler {...ortak} />}
         {acik === 'makineler' && <Makineler {...ortak} />}
-        {acik === 'bayiler' && <Bayiler {...ortak} />}
-        {acik === 'siparisler' && <BayiSiparisleri {...ortak} />}
-        {acik === 'teklifler' && <BayiTeklifleri {...ortak} />}
+        {acik === 'servisler' && <Servisler {...ortak} />}
+        {acik === 'siparisler' && <ServisSiparisleri {...ortak} />}
         {acik === 'geribildirim' && <GeriBildirimler {...ortak} />}
         {acik === 'numara' && <NumaraTalepleri {...ortak} />}
         {acik === 'personel' && <Personel {...ortak} />}

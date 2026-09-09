@@ -1,10 +1,7 @@
 import { useMemo, useState } from 'react'
-import { CATEGORIES, PRODUCTS, supportGroup, MARKA } from '../../marka'
+import { CATEGORIES, PRODUCTS, supportGroup } from '../../marka'
 import { TEKNIK } from '../../marka/icerik/teknikOzellikler'
 import { DESTEK, GUVENLIK, ZORLUK } from '../../marka/icerik/destekVerisi'
-import { KDV_ORANI, PARA_BIRIMI, paraYaz } from '../../marka'
-import { MAKINE_FIYAT_AKTIF } from '../../marka'
-import { acikKampanyalar, makineFiyati } from '../../lib/bayiFiyat'
 import { UrunFoto } from '../../components/Gorsel'
 import { Bolum, Sayfa } from '../Kabuk'
 import {
@@ -14,42 +11,37 @@ import {
   IconRight,
   IconSearch,
   IconShield,
-  IconTag,
   IconWrench,
 } from '../../components/Icons'
 
 /* ==========================================================================
-   Bayi paneli — Ürünler
+   Servis paneli — Ürünler
 
-   ÖNCE İKİ AYRI SEKMEYDİ VE İKİSİ DE ANLAŞILMADI
+   NE İŞE YARIYOR
 
-   "Satış" adında bir fiyat listesi, "Makine" adında bir teknik
-   kütüphane vardı. İkisi de aynı yirmi ürünü listeliyordu. Sonuç:
-   sekmenin adı ekranın ne yaptığını anlatmıyordu — "Satış" bayinin
-   yaptığı satış mı, PAKSAN'ın bayiye yaptığı satış mı belli değildi.
+   Servis ürüne dokunuyor, o ürünle ilgili bilmesi gereken her şeyi
+   orada buluyor: arızası, teknik değerleri, bakım programı. Müşteri
+   uygulamasındaki "Makinelerim" akışının aynısı — orada da makineye
+   dokunulup her şey tek sayfada açılıyor.
 
-   Tek liste kaldı. Bayi ürüne dokunuyor, o ürünle ilgili her şeyi
-   orada buluyor: fiyatı, teslim süresi, arızası, teknik değerleri,
-   bakım programı. Müşteri uygulamasındaki "Makinelerim" akışının
-   aynısı — orada da makineye dokunulup her şey tek sayfada açılıyor.
+   MAKİNE FİYATI BURADA YOK
+
+   Ekran bir zamanlar makine fiyat listesiydi: liste fiyatı, iskonto,
+   alış fiyatı, kâr, kampanya. Makineyi satan tarafın paneli yok; bu
+   paneli kullanan servis ise makine satmıyor. Fiyat bölümleri bu
+   yüzden kaldırıldı, teknik içerik kaldı — servisin en çok ihtiyaç
+   duyduğu kısım zaten oydu.
 
    FOTOĞRAF VAR
 
    Ürün fotoğrafları müşteri uygulamasında zaten kullanılıyor
-   (`src/data/gorseller.js`). Bayi listesi yazıdan ibaretti; yirmi
+   (bkz. src/marka/katalog/gorseller.js). Liste yazıdan ibaretti; yirmi
    satırlık bir model listesinde göz aradığını yazıyı okuyarak
    buluyordu.
-
-   FİYATTA ÜÇ SATIR VAR, DÖRT DEĞİL
-
-   Bir ara hem "Liste fiyatı" hem "Tavsiye satış fiyatı" ayrı satır
-   olarak yazılıyordu ve ikisi de aynı sayıydı. Tavsiye fiyatı liste
-   fiyatına eşit tutuluyor; iki kez yazmak kartı okunmaz yapıyordu.
    ========================================================================== */
 
-export function Urunler({ oturum, onAc }) {
+export function Urunler({ onAc }) {
   const [arama, setArama] = useState('')
-  const kampanyalar = useMemo(() => acikKampanyalar(), [])
 
   const bulunan = useMemo(() => {
     const q = arama.trim().toLocaleLowerCase('tr-TR')
@@ -64,28 +56,6 @@ export function Urunler({ oturum, onAc }) {
 
   return (
     <>
-      {kampanyalar.length > 0 && (
-        <Bolum ad="Kampanya" sayi={kampanyalar.length}>
-          {kampanyalar.map((k) => (
-            <div key={k.id} className="kampanya">
-              <div className="kampanya__ust">
-                <IconTag size={17} />
-                <strong>{k.ad}</strong>
-                <span className="kampanya__oran">
-                  +%{Math.round(k.ekIskonto * 100)}
-                </span>
-              </div>
-              <p className="kampanya__metin">{k.aciklama}</p>
-              {k.biter && (
-                <div className="kampanya__son">
-                  Son gün: {new Date(k.biter).toLocaleDateString('tr-TR')}
-                </div>
-              )}
-            </div>
-          ))}
-        </Bolum>
-      )}
-
       <div className="ara-kutu">
         <IconSearch size={18} />
         <input
@@ -103,12 +73,7 @@ export function Urunler({ oturum, onAc }) {
         return (
           <Bolum key={kat.id} ad={kat.short} sayi={liste.length}>
             {liste.map((u) => (
-              <UrunKarti
-                key={u.id}
-                urun={u}
-                oturum={oturum}
-                onAc={() => onAc(u)}
-              />
+              <UrunKarti key={u.id} urun={u} onAc={() => onAc(u)} />
             ))}
           </Bolum>
         )
@@ -122,16 +87,8 @@ export function Urunler({ oturum, onAc }) {
 }
 
 /* Kart müşteri uygulamasındaki `MachineCard` düzenini izliyor:
-   fotoğraf, model adı, alt başlık, ok.
-
-   KARTTA TEK ROZET VAR. Önce iki rozet yan yanaydı — teslim ve
-   kampanya. Dar ekranda sığmayıp alt alta düşüyor, kartı iki satır
-   uzatıyor ve fotoğrafın yanını rozet yığınına çeviriyordu. Teslim
-   bilgisi düz yazıya indi; rozet yalnız kampanyada kaldı, o da adın
-   sağında. Aynı kural liste kartında da geçerli (bkz. Kabuk.jsx). */
-function UrunKarti({ urun, oturum, onAc }) {
-  const f = makineFiyati(urun.id, oturum)
-
+   fotoğraf, model adı, alt başlık, ok. */
+function UrunKarti({ urun, onAc }) {
   return (
     <button className="urun" onClick={onAc}>
       <UrunFoto urunId={urun.id} ad={urun.name} tip="thumb" ikonBoyut={28} />
@@ -139,38 +96,14 @@ function UrunKarti({ urun, oturum, onAc }) {
       <span className="urun__govde">
         <span className="urun__bas">
           <span className="urun__ad">{urun.name}</span>
-          {f?.kampanya && <span className="rozet rozet--kampanya">Kampanyalı</span>}
         </span>
         <span className="urun__alt">{urun.tagline}</span>
-        <span className="urun__alt">
-          <Teslim fiyat={f} />
-        </span>
-        {f && (
-          <span className="urun__fiyat">
-            {paraYaz(f.alis)} {PARA_BIRIMI} <small>bayi alış</small>
-          </span>
-        )}
       </span>
 
       <span className="urun__ok">
         <IconRight size={20} />
       </span>
     </button>
-  )
-}
-
-/* Modelin bayide durup durmadığını değil, MÜŞTERİYE NE ZAMAN TESLİM
-   EDİLECEĞİNİ söylüyor. Bayinin müşteriden aldığı soru bu. */
-function Teslim({ fiyat }) {
-  if (!fiyat) return null
-  if (fiyat.tedarik === 'stok') {
-    return <span className="urun__stok">Hemen teslim</span>
-  }
-  return (
-    <>
-      Sipariş üzerine
-      {fiyat.teslimGun ? ` · ${fiyat.teslimGun} gün` : ''}
-    </>
   )
 }
 
@@ -182,81 +115,14 @@ const SEKMELER = [
   { id: 'bakim', ad: 'Bakım', Icon: IconShield },
 ]
 
-export function UrunDetay({ urun, oturum, onKapat, onTeklif }) {
+export function UrunDetay({ urun, onKapat }) {
   const [sekme, setSekme] = useState('ariza')
-  const f = makineFiyati(urun.id, oturum)
 
   return (
-    <Sayfa
-      baslik={urun.name}
-      alt={urun.tagline}
-      onGeri={onKapat}
-      /* Fiyata bakan bayinin bir sonraki işi teklif vermek. Düğme
-         ekranın dibinde: uzun bir arıza listesinin sonuna kadar
-         kaydırmak gerekmesin. */
-      dip={
-        onTeklif && (
-          <button className="dg dg--ana dg--blok" onClick={onTeklif}>
-            <IconTag size={19} /> Bu Ürüne Teklif Hazırla
-          </button>
-        )
-      }
-    >
-      {/* Fotoğraf ve üstüne binen fiyat kartı: müşteri uygulamasındaki
-          makine detayının aynı düzeni. */}
+    <Sayfa baslik={urun.name} alt={urun.tagline} onGeri={onKapat}>
       <div className="urun-hero">
         <UrunFoto urunId={urun.id} ad={urun.name} tip="hero" ikonBoyut={64} />
       </div>
-
-      <div className="urun-kart">
-        {MAKINE_FIYAT_AKTIF && f ? (
-          <>
-            <Satir ad="Müşteri Fiyatı" deger={paraYaz(f.liste)} />
-            <Satir
-              ad={'İskontonuz' + (f.kampanya ? ' (Kampanyalı)' : '')}
-              deger={'%' + Math.round(f.iskonto * 100)}
-            />
-            <Satir ad="Bayi Alış Fiyatı" deger={paraYaz(f.alis)} vurgu />
-            <Satir ad="Kârınız" deger={paraYaz(f.liste - f.alis)} yesil />
-            <div className="urun-kart__dip">
-              Fiyatlar KDV hariçtir. Müşteri fiyatı KDV dâhil{' '}
-              {paraYaz(Math.round(f.liste * (1 + KDV_ORANI)))} {PARA_BIRIMI}.
-            </div>
-          </>
-        ) : (
-          <p className="kucuk sonuk" style={{ margin: 0 }}>
-            Bu ürünün fiyatı listede yok. {MARKA} satış birimine danışın.
-          </p>
-        )}
-      </div>
-
-      {f?.kampanya && (
-        <div className="not not--yesil">
-          <IconTag size={19} />
-          <div>
-            <strong>{f.kampanya.ad}</strong>
-            <p>{f.kampanya.aciklama}</p>
-          </div>
-        </div>
-      )}
-
-      {f && (
-        <div className="not not--mavi">
-          <IconTag size={19} />
-          <div>
-            <strong>
-              {f.tedarik === 'stok' ? 'Hemen Teslim' : 'Sipariş Üzerine'}
-            </strong>
-            <p>
-              {f.tedarik === 'stok'
-                ? 'Bu model stokunuzdaysa müşteriye hemen teslim edebilirsiniz.'
-                : `Bu model müşteri siparişiyle üretiliyor.${
-                    f.teslimGun ? ` Tahmini teslim süresi ${f.teslimGun} gün.` : ''
-                  }`}
-            </p>
-          </div>
-        </div>
-      )}
 
       <div className="ic-sekme">
         {SEKMELER.map(({ id, ad, Icon }) => (
@@ -279,32 +145,17 @@ export function UrunDetay({ urun, oturum, onKapat, onTeklif }) {
   )
 }
 
-function Satir({ ad, deger, vurgu, yesil }) {
-  return (
-    <div
-      className={
-        'urun-kart__satir' +
-        (vurgu ? ' urun-kart__satir--vurgu' : '') +
-        (yesil ? ' urun-kart__satir--yesil' : '')
-      }
-    >
-      <span>{ad}</span>
-      <strong>{deger}</strong>
-    </div>
-  )
-}
-
 /* --------------------------------------------------------------- Arıza
 
    İÇERİK ZATEN YAZILMIŞTI, BAYİYE VERİLMİYORDU.
 
    Arıza bilgi tabanı, teknik özellikler ve bakım programı müşteri
    uygulamasında var ve yalnız çiftçiye gösteriliyordu. Oysa makineyi
-   açan, arızayı bulan ve parçayı değiştiren kişi bayinin ustası.
+   açan, arızayı bulan ve parçayı değiştiren kişi servisin ustası.
 
    VERİ PAYLAŞILIYOR, EKRAN PAYLAŞILMIYOR. Müşteri uygulamasının
    ekranları (`Support.jsx`, `Manual.jsx`) `styles.css` köküne ve iki
-   dilli sözlüğe bağlı; ikisi de bayi derlemesinde yok. Alınan şey
+   dilli sözlüğe bağlı; ikisi de servis derlemesinde yok. Alınan şey
    `src/data/` altındaki veri.                                        */
 
 /* Güvenlik uyarısı listenin üstünde ve kapatılamıyor. Müşteri

@@ -1,36 +1,35 @@
 import { useMemo, useState } from 'react'
-import { stokGetir } from '../../lib/bayiStok'
+import { stokGetir } from '../../lib/servisStok'
 import {
   ACIK_DURUMLAR,
   SIPARIS_DURUM,
-  bayininSiparisleri,
+  servisinSiparisleri,
   geriAlinabilir,
   stokGeriAl,
   stokKullan,
-} from '../../lib/bayiSiparis'
+} from '../../lib/servisSiparis'
 import { islemYaz } from '../../backoffice/veri'
 import { PARA_BIRIMI, PARCA_FIYAT, paraYaz, markaEk } from '../../marka'
-import { PRODUCTS } from '../../marka'
-import { makineFiyati, parcaBayiFiyati } from '../../lib/bayiFiyat'
+import { parcaServisFiyati } from '../../lib/servisFiyat'
 import { Bolum, Bos } from '../Kabuk'
 import { SiparisVer } from './SiparisVer'
 import { IconPlus, IconMinus, IconRight, IconUndo } from '../../components/Icons'
-import bosStokGorseli from '../../assets/gorseller/bayi-bos-stok.png'
+import bosStokGorseli from '../../assets/gorseller/servis-bos-stok.png'
 
 /* ==========================================================================
-   Bayi paneli — stok
+   Servis paneli — stok
 
    BAYİ STOKUNU ARTIRAMAZ.
 
-   Ekran önce her kaleme bir sayı kutusu veriyordu; bayi istediği sayıyı
-   yazıyordu. Bu, stoku bayinin kendi defterine çeviriyordu ve PAKSAN'ın
+   Ekran önce her kaleme bir sayı kutusu veriyordu; servis istediği sayıyı
+   yazıyordu. Bu, stoku servisin kendi defterine çeviriyordu ve PAKSAN'ın
    gönderdiğiyle tutmayınca rakam hiçbir şey anlatmıyordu.
 
-   Doğrusu şu: bayinin elindeki mal, PAKSAN'dan satın aldığı kadardır.
+   Doğrusu şu: servisin elindeki mal, PAKSAN'dan satın aldığı kadardır.
 
      sipariş ver  →  PAKSAN onaylar  →  hazırlar  →  gönderir  →  stok artar
 
-   Bayi yalnız AZALTIYOR: müşteriye verdiği ya da serviste kullandığı
+   Servis yalnız AZALTIYOR: müşteriye verdiği ya da serviste kullandığı
    parça.
 
    DÜŞÜŞ ÜÇ ADIMDA
@@ -40,23 +39,16 @@ import bosStokGorseli from '../../assets/gorseller/bayi-bos-stok.png'
    düşürmek on kez basmak demekti; ellinci dokunuşta kaçıncı olduğunu
    kimse bilmiyordu.
 
-     1. Bayi adedi yazıyor (1, 5, 10…)
+     1. Servis adedi yazıyor (1, 5, 10…)
      2. Düşür düğmesine basıyor
      3. Onay penceresi ne düşeceğini ve kaç kalacağını gösteriyor
 
    Onaydan sonra da satırda "Geri al" çıkıyor. Ne zaman çıktığı ve
-   neden sınırlı olduğu `bayiSiparis.js` içinde yazılı: yanlış rakamı
+   neden sınırlı olduğu `servisSiparis.js` içinde yazılı: yanlış rakamı
    düzeltmek için var, stok artırma yolu değil.
 
    ÜÇ BÖLÜM: elindeki stok, verdiği siparişler, sipariş verme.
    ========================================================================== */
-
-/** Kalemin bayi fiyatı; makinede iskonto bayiye göre değişiyor. */
-function kalemFiyati(kalem, oturum) {
-  return kalem.tur === 'makine'
-    ? makineFiyati(kalem.anahtar, oturum)
-    : parcaBayiFiyati(kalem.anahtar)
-}
 
 export function Stok({ oturum }) {
   const [ekran, setEkran] = useState('stok') // 'stok' | 'siparis'
@@ -64,10 +56,10 @@ export function Stok({ oturum }) {
   /* Onay bekleyen düşüş: { kalem, adet } */
   const [onay, setOnay] = useState(null)
 
-  const stok = useMemo(() => stokGetir(oturum.bayiId), [oturum.bayiId, tazele])
+  const stok = useMemo(() => stokGetir(oturum.servisId), [oturum.servisId, tazele])
   const siparisler = useMemo(
-    () => bayininSiparisleri(oturum.bayiId),
-    [oturum.bayiId, tazele],
+    () => servisinSiparisleri(oturum.servisId),
+    [oturum.servisId, tazele],
   )
   const acikSiparis = siparisler.filter((s) => ACIK_DURUMLAR.includes(s.durum))
 
@@ -87,20 +79,12 @@ export function Stok({ oturum }) {
   const parcalar = Object.entries(PARCA_FIYAT)
     .map(([ad, bilgi]) => ({ tur: 'parca', anahtar: ad, ad, alt: bilgi.kod, adet: stok.parca[ad] }))
     .filter((k) => k.adet !== undefined)
-  const makineler = PRODUCTS.map((u) => ({
-    tur: 'makine',
-    anahtar: u.id,
-    ad: u.name,
-    alt: u.short || '',
-    adet: stok.makine[u.id],
-  })).filter((k) => k.adet !== undefined)
-
-  const bosMu = !parcalar.length && !makineler.length
+  const bosMu = !parcalar.length
 
   function dus() {
     const { kalem, adet } = onay
     const sonuc = stokKullan(
-      oturum.bayiId,
+      oturum.servisId,
       kalem,
       adet,
       'Müşteriye verildi veya serviste kullanıldı',
@@ -108,8 +92,8 @@ export function Stok({ oturum }) {
     )
     setOnay(null)
     if (sonuc.hata) return
-    /* Stok hareketi bayinin kendi ekranında zaten duruyor; İşlem
-       Kaydı'na da düşüyor ki PAKSAN "bu bayi stokunu ne zaman
+    /* Stok hareketi servisin kendi ekranında zaten duruyor; İşlem
+       Kaydı'na da düşüyor ki PAKSAN "bu servis stokunu ne zaman
        kullanıyor" sorusuna tek yerden bakabilsin. */
     islemYaz({
       tur: 'stok',
@@ -120,7 +104,7 @@ export function Stok({ oturum }) {
   }
 
   function geriAl(hareket, kalem) {
-    const sonuc = stokGeriAl(oturum.bayiId, hareket.id, oturum.ad)
+    const sonuc = stokGeriAl(oturum.servisId, hareket.id, oturum.ad)
     if (sonuc.hata) return
     const adet = hareket.kalemler?.[0]?.adet || 0
     islemYaz({
@@ -154,44 +138,22 @@ export function Stok({ oturum }) {
           alt={`${markaEk('a')} verdiğiniz siparişler sevk edildiğinde stokunuza işlenecek.`}
         />
       ) : (
-        <>
-          {parcalar.length > 0 && (
-            <Bolum ad="Yedek Parça">
-              <div className="kart" style={{ padding: '4px 16px' }}>
-                <StokBasliklari />
-                {parcalar.map((k) => (
-                  <StokSatiri
-                    key={k.anahtar}
-                    kalem={k}
-                    fiyat={kalemFiyati(k, oturum)}
-                    bayiId={oturum.bayiId}
-                    tazele={tazele}
-                    onDus={(adet) => setOnay({ kalem: k, adet })}
-                    onGeriAl={(h) => geriAl(h, k)}
-                  />
-                ))}
-              </div>
-            </Bolum>
-          )}
-
-          {makineler.length > 0 && (
-            <Bolum ad="Makine">
-              <div className="kart" style={{ padding: '4px 16px' }}>
-                {makineler.map((k) => (
-                  <StokSatiri
-                    key={k.anahtar}
-                    kalem={k}
-                    fiyat={kalemFiyati(k, oturum)}
-                    bayiId={oturum.bayiId}
-                    tazele={tazele}
-                    onDus={(adet) => setOnay({ kalem: k, adet })}
-                    onGeriAl={(h) => geriAl(h, k)}
-                  />
-                ))}
-              </div>
-            </Bolum>
-          )}
-        </>
+        <Bolum ad="Yedek Parça">
+          <div className="kart" style={{ padding: '4px 16px' }}>
+            <StokBasliklari />
+            {parcalar.map((k) => (
+              <StokSatiri
+                key={k.anahtar}
+                kalem={k}
+                fiyat={parcaServisFiyati(k.anahtar)}
+                servisId={oturum.servisId}
+                tazele={tazele}
+                onDus={(adet) => setOnay({ kalem: k, adet })}
+                onGeriAl={(h) => geriAl(h, k)}
+              />
+            ))}
+          </div>
+        </Bolum>
       )}
 
       {siparisler.length > acikSiparis.length && (
@@ -242,12 +204,12 @@ function StokBasliklari() {
   )
 }
 
-/* Eldeki sayı solda, düşülecek adet sağda. Artı düğmesi YOK — bayi
+/* Eldeki sayı solda, düşülecek adet sağda. Artı düğmesi YOK — servis
    stokunu artıramıyor, artış yalnız PAKSAN sevkiyatıyla oluyor.
 
    Adet kutusu boşken düğme kapalı: boş kutuyla basılan bir düşüş "bir
    adet mi, hiç mi" belirsizliği yaratıyordu. */
-function StokSatiri({ kalem, fiyat, bayiId, tazele, onDus, onGeriAl }) {
+function StokSatiri({ kalem, fiyat, servisId, tazele, onDus, onGeriAl }) {
   const [adet, setAdet] = useState('')
   const yok = Number(kalem.adet) <= 0
   const sayi = Number(adet)
@@ -258,8 +220,8 @@ function StokSatiri({ kalem, fiyat, bayiId, tazele, onDus, onGeriAl }) {
      ekranda duran bir düğmenin bir dakika fazla durması sorun değil,
      basıldığında zaten süre yeniden denetleniyor. */
   const geri = useMemo(
-    () => geriAlinabilir(bayiId, kalem),
-    [bayiId, kalem.anahtar, kalem.tur, tazele],
+    () => geriAlinabilir(servisId, kalem),
+    [servisId, kalem.anahtar, kalem.tur, tazele],
   )
 
   return (
@@ -310,12 +272,12 @@ function StokSatiri({ kalem, fiyat, bayiId, tazele, onDus, onGeriAl }) {
 
    Stok geri alınabiliyor ama yalnız on dakika ve yalnız bir kez; asıl
    koruma burada, kalıcı olmadan önce. Pencere ne düşeceğini VE kaç
-   kalacağını yazıyor — bayinin kafasındaki hesabı ekranda görmesi için. */
+   kalacağını yazıyor — servisin kafasındaki hesabı ekranda görmesi için. */
 function DusOnayi({ kalem, adet, onOnayla, onVazgec }) {
   const kalan = Number(kalem.adet) - adet
   return (
-    <div className="pencere-bayi" onClick={(e) => e.target === e.currentTarget && onVazgec()}>
-      <div className="pencere-bayi__kart">
+    <div className="pencere-servis" onClick={(e) => e.target === e.currentTarget && onVazgec()}>
+      <div className="pencere-servis__kart">
         <h2>Stoktan Düşür</h2>
         <p>
           <b>{kalem.ad}</b> stokunuzdan <b>{adet} adet</b> düşülecek.

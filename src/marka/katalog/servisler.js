@@ -1,20 +1,20 @@
 /* ==========================================================================
-   PAKSAN bayi ağı
+   PAKSAN servis ağı
 
    ÖNEMLİ — BU LİSTE GERÇEK DEĞİL.
    Ekranın çalıştığını görebilmek için Türkiye geneline dağıtılmış 20
-   temsili bayi yazıldı. İsimler, adresler ve telefonlar uydurmadır.
-   Gerçek bayi listesi geldiğinde YALNIZCA bu dosya değiştirilir;
+   temsili servis yazıldı. İsimler, adresler ve telefonlar uydurmadır.
+   Gerçek servis listesi geldiğinde YALNIZCA bu dosya değiştirilir;
    ekranların hiçbirine dokunmaya gerek yoktur.
 
    Her kayıt:
      id      → benzersiz kısa ad
-     ad      → bayi ticari adı
+     ad      → servis ticari adı
      il/ilce → adres
      tel     → tuşlanacak numara (boşluksuz)
      telYazi → ekranda görünecek hâli
      enlem/boylam → konuma göre sıralama için (il merkezi koordinatı)
-     yetki   → bayinin verdiği hizmetler
+     yetki   → servisin verdiği hizmetler
    ========================================================================== */
 
 import { icerikListe } from '../../lib/icerikDeposu.js'
@@ -32,16 +32,16 @@ const YETKILER_EN = {
   parca: 'Spare parts',
 }
 
-/** Bayinin verdiği hizmetin seçili dildeki adı. */
+/** Servisin verdiği hizmetin seçili dildeki adı. */
 export function yetkiAdi(kod, dil = 'tr') {
   return (dil === 'tr' ? YETKILER : YETKILER_EN)[kod] || kod
 }
 
-export const BAYILER = [
+export const SERVISLER = [
   {
     id: 'konya-merkez',
     no: 'BAY001',
-    ad: 'PAKSAN Konya Ana Bayi',
+    ad: 'PAKSAN Konya Ana Servis',
     il: 'Konya',
     ilce: 'Selçuklu',
     adres: 'Ankara Yolu 12. km, Tarım Makineleri Sitesi',
@@ -301,7 +301,7 @@ export const BAYILER = [
 ]
 
 /* İki nokta arası kuş uçuşu kilometre (Haversine).
-   Bayi sıralamasında "hangisi daha yakın" sorusuna yeter; yol mesafesi
+   Servis sıralamasında "hangisi daha yakın" sorusuna yeter; yol mesafesi
    değildir, ekranda da "kuş uçuşu" diye yazılır. */
 export function mesafeKm(enlem1, boylam1, enlem2, boylam2) {
   const R = 6371
@@ -314,23 +314,23 @@ export function mesafeKm(enlem1, boylam1, enlem2, boylam2) {
   return Math.round(2 * R * Math.asin(Math.sqrt(a)))
 }
 
-/* Backoffice'ten gerçek bayi listesi girildiyse o geçerli; yoksa
+/* Backoffice'ten gerçek servis listesi girildiyse o geçerli; yoksa
    yukarıdaki temsilî liste. Ekranlar bu fonksiyonu çağırıyor, doğrudan
-   BAYILER'i değil. */
-export function bayileriGetir() {
-  return icerikListe('bayiler', BAYILER)
+   SERVISLER'i değil. */
+export function servisleriGetir() {
+  return icerikListe('servisler', SERVISLER)
 }
 
-/** Bayileri verilen konuma göre yakından uzağa sıralar. */
+/** Servisleri verilen konuma göre yakından uzağa sıralar. */
 export function yakindanUzaga(enlem, boylam) {
-  return bayileriGetir()
+  return servisleriGetir()
     .map((b) => ({ ...b, km: mesafeKm(enlem, boylam, b.enlem, b.boylam) }))
     .sort((a, b) => a.km - b.km)
 }
 
-/** Konum yoksa, kullanıcının kayıtlı ilindeki bayiler önce gelsin. */
+/** Konum yoksa, kullanıcının kayıtlı ilindeki servisler önce gelsin. */
 export function ileGore(il) {
-  const liste = bayileriGetir()
+  const liste = servisleriGetir()
   if (!il) return liste
   return [...liste].sort((a, b) => (b.il === il) - (a.il === il))
 }
@@ -338,7 +338,7 @@ export function ileGore(il) {
 /* ==========================================================================
    Sorumluluk bölgesi
 
-   Bayi kaydındaki `bolge` alanı, satış personelinin backoffice'ten
+   Servis kaydındaki `bolge` alanı, satış personelinin backoffice'ten
    tanımladığı sorumluluk alanı:
 
      bolge: [
@@ -352,90 +352,90 @@ export function ileGore(il) {
    geliyor ve eşleştirme eski üç kademeye düşüyor.
    ========================================================================== */
 
-/** Bayinin sorumluluk bölgesi bu il/ilçeyi kapsıyor mu? */
-export function bolgeKapsiyorMu(bayi, il, ilce) {
+/** Servisin sorumluluk bölgesi bu il/ilçeyi kapsıyor mu? */
+export function bolgeKapsiyorMu(servis, il, ilce) {
   if (!il) return false
-  return (bayi.bolge || []).some(
+  return (servis.bolge || []).some(
     (b) =>
       b.il === il && (!b.ilceler || !b.ilceler.length || b.ilceler.includes(ilce)),
   )
 }
 
 /** Kapsama ilçe adı yazılarak mı kuruldu, yoksa tüm il olduğu için mi? */
-function bolgeIlceyeOzelMi(bayi, il, ilce) {
+function bolgeIlceyeOzelMi(servis, il, ilce) {
   if (!ilce) return false
-  return (bayi.bolge || []).some(
+  return (servis.bolge || []).some(
     (b) => b.il === il && (b.ilceler || []).includes(ilce),
   )
 }
 
 /* ==========================================================================
-   Talebe bakacak bayi
+   Talebe bakacak servis
 
-   Makineleri bayiye satıyoruz, son kullanıcıya bayi satıyor. Bu yüzden
+   Makineleri bayiye satıyoruz, son kullanıcıya servis satıyor. Bu yüzden
    uygulamadan gelen fiyat teklifi talebi doğrudan cevaplanmıyor: doğru
-   bayiye yönlendiriliyor. Satış personelinin talebi açtığında "bunu
+   servise yönlendiriliyor. Satış personelinin talebi açtığında "bunu
    kime yollayacağım" sorusunun cevabı ekranda yazılı olmalı.
 
    DÖRT KADEME, sırayla:
 
-     0. Sorumluluk bölgesi talebi kapsayan bayi — satış personelinin
+     0. Sorumluluk bölgesi talebi kapsayan servis — satış personelinin
         elle tanımladığı bölge. Tanımlıysa en doğru cevap budur.
-     1. Aynı ilçedeki yetkili bayi.
-     2. Aynı ildeki yetkili bayi.
-     3. İlinde bayi yoksa, il merkezine kuş uçuşu en yakın bayiler.
+     1. Aynı ilçedeki yetkili servis.
+     2. Aynı ildeki yetkili servis.
+     3. İlinde servis yoksa, il merkezine kuş uçuşu en yakın servisler.
 
-   0. kademe bölge tanımı girilmiş bayiler için çalışıyor; hiçbir
-   bayiye bölge tanımlanmamışsa fonksiyon eskisi gibi 1-3 ile
+   0. kademe bölge tanımı girilmiş servisler için çalışıyor; hiçbir
+   servise bölge tanımlanmamışsa fonksiyon eskisi gibi 1-3 ile
    sonuçlanıyor. Böylece bölge tanımlanmadan da sistem çalışmaya
    devam ediyor.
 
    YETKİ: hangi yetkinin arandığı talebin türüne göre değişiyor.
-   Yedek parça bayisine makine teklifi yollamanın anlamı yok; servis
+   Yedek parça servisine makine teklifi yollamanın anlamı yok; servis
    talebini de satış bayisine yollamamak gerekiyor.
 
    @param {string} il
    @param {string} ilce
-   @param {number} adet en fazla kaç bayi
+   @param {number} adet en fazla kaç servis
    @param {'satis'|'servis'|'parca'} gerekenYetki
-   @returns {{kademe: 'bolge'|'ilce'|'il'|'yakin', bayiler: Array}}
+   @returns {{kademe: 'bolge'|'ilce'|'il'|'yakin', servisler: Array}}
    ========================================================================== */
-export function talebinBayileri(il, ilce, adet = 3, gerekenYetki = 'satis') {
-  const satisBayileri = bayileriGetir().filter((b) =>
+export function talebinServisleri(il, ilce, adet = 3, gerekenYetki = 'satis') {
+  const satisServisleri = servisleriGetir().filter((b) =>
     (b.yetki || []).includes(gerekenYetki),
   )
 
   /* 0. kademe — sorumluluk bölgesi.
-     İlçesi açıkça yazılmış bayi, tüm ilden sorumlu olana tercih
+     İlçesi açıkça yazılmış servis, tüm ilden sorumlu olana tercih
      ediliyor: daha dar tanım daha bilinçli bir atamadır. */
-  const bolgeliler = satisBayileri.filter((b) => bolgeKapsiyorMu(b, il, ilce))
+  const bolgeliler = satisServisleri.filter((b) => bolgeKapsiyorMu(b, il, ilce))
   if (bolgeliler.length) {
     const ilceyeOzel = bolgeliler.filter((b) => bolgeIlceyeOzelMi(b, il, ilce))
     const secilen = ilceyeOzel.length ? ilceyeOzel : bolgeliler
-    return { kademe: 'bolge', bayiler: secilen.slice(0, adet) }
+    return { kademe: 'bolge', servisler: secilen.slice(0, adet) }
   }
 
   if (il) {
-    const ildekiler = satisBayileri.filter((b) => b.il === il)
+    const ildekiler = satisServisleri.filter((b) => b.il === il)
 
     if (ildekiler.length) {
       const ilcedekiler = ilce ? ildekiler.filter((b) => b.ilce === ilce) : []
       if (ilcedekiler.length) {
-        return { kademe: 'ilce', bayiler: ilcedekiler.slice(0, adet) }
+        return { kademe: 'ilce', servisler: ilcedekiler.slice(0, adet) }
       }
-      return { kademe: 'il', bayiler: ildekiler.slice(0, adet) }
+      return { kademe: 'il', servisler: ildekiler.slice(0, adet) }
     }
   }
 
   /* İlinde satış bayisi yok — en yakınları göster. Koordinat
      bilinmiyorsa mesafe hesaplanamıyor; uydurmak yerine boş dönüyoruz
-     ve ekran "bayi eşleştirilemedi" diyor. */
+     ve ekran "servis eşleştirilemedi" diyor. */
   const konum = ilKoordinati(il)
-  if (!konum) return { kademe: 'yakin', bayiler: [] }
+  if (!konum) return { kademe: 'yakin', servisler: [] }
 
   return {
     kademe: 'yakin',
-    bayiler: satisBayileri
+    servisler: satisServisleri
       .map((b) => ({ ...b, km: mesafeKm(konum.enlem, konum.boylam, b.enlem, b.boylam) }))
       .sort((a, b) => a.km - b.km)
       .slice(0, adet),

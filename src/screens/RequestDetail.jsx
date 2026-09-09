@@ -9,7 +9,7 @@ import { eklemeOlustur, eklemeleri, eklemeYapilabilir } from '../lib/talepEkleme
 import { getProduct, urunDilde } from '../marka'
 import { alanEtiketi } from '../data/talepAlanlari'
 import { formatSerial } from '../lib/serial'
-import { bayileriGetir } from '../marka'
+import { servisleriGetir } from '../marka'
 import { PARA_BIRIMI } from '../marka'
 import { talepTuru } from '../lib/talep'
 import { ekAdresi } from '../lib/ekler'
@@ -72,8 +72,8 @@ export default function RequestDetail() {
      telefonu bayi listesinden okunuyor — o liste zaten uygulamanın
      içinde (bkz. Dealers ekranı). */
   const bayi =
-    r?.sahip === 'bayi' && r?.bayi?.id
-      ? bayileriGetir().find((b) => b.id === r.bayi.id) || null
+    r?.sahip === 'servis' && r?.bayi?.id
+      ? servisleriGetir().find((b) => b.id === r.bayi.id) || null
       : null
 
   const sonrakiler = eklemeleri(r)

@@ -89,7 +89,7 @@ export function BeklemeKart({ satir = 4 }) {
 
    Backoffice’te bir liste hep aynı sırada geliyordu ve başka bir sıra
    gerektiğinde yapılacak bir şey yoktu: "en eski bekleyen talep
-   hangisi", "hangi bayide en çok makine var", "kim en çok talep
+   hangisi", "hangi serviste en çok makine var", "kim en çok talep
    kapatmış" sorularının cevabı ekrandaydı ama bulunması gözle tarama
    gerektiriyordu.
 

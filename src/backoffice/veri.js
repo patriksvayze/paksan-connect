@@ -11,7 +11,7 @@ import { sifreHazirla, sifreDogruMu, sifreGecerliMi } from '../lib/hesap'
 import { yeniNo } from '../lib/numara'
 import { SIRKET, MARKA, markaEk } from '../marka'
 import { urun } from '../lib/urun'
-import { bayileriGetir } from '../marka'
+import { servisleriGetir } from '../marka'
 import { icerikListe, icerikTazele } from '../lib/icerikDeposu.js'
 import { altBilgi } from '../data/duyuruTurleri.js'
 import {
@@ -28,18 +28,18 @@ export const ANAHTAR = {
   duyurular: 'duyurular',
   /* İki anahtar hâlâ eski adıyla: 'panel' → 'backoffice' değişikliğinde
      bunlar bilerek dokunulmadı. Anahtar değişse tarayıcıda duran oturum
-     kapanır ve girilmiş bayi listesi kaybolur. Sunucuya geçilirken bu
+     kapanır ve girilmiş servis listesi kaybolur. Sunucuya geçilirken bu
      veriler taşınacağı için o zaman düzeltilecek. */
   icerik: 'panelIcerik',
   islemKaydi: 'islemKaydi',
   oturum: 'panelOturum',
-  bayiOturum: 'bayiOturum',
+  servisOturum: 'servisOturum',
   personel: 'personel',
   numaraTalepleri: 'numaraTalepleri',
   sifreTalepleri: 'sifreTalepleri',
-  /* Bayinin "şifremi unuttum" kaydı. Personelinkinden ayrı: bayide
+  /* Servisin "şifremi unuttum" kaydı. Personelinkinden ayrı: serviste
      e-posta yok, akış telefonla yürüyor. */
-  bayiSifreTalep: 'bayiSifreTalep',
+  servisSifreTalep: 'servisSifreTalep',
   destekLog: 'destekLog',
 
   /* Demo kayıtları uygulamanın kendi kayıtlarından ayrı duruyor:
@@ -86,7 +86,7 @@ export function rolunTalepleri(liste, rol) {
 
 /* -------------------------------------------------- Rol listesini yazmak
 
-   Bayi listesiyle aynı yol: depoya yazılıyor, okuyan tarafın belleği
+   Servis listesiyle aynı yol: depoya yazılıyor, okuyan tarafın belleği
    tazeleniyor, işlem kaydına satır düşüyor. Rol değişikliği bir güvenlik
    olayı — kaydı tutulmadan yapılmıyor.                                  */
 
@@ -673,7 +673,7 @@ export function talepNotEkle(talep, metin, personel, { musteriye = false } = {})
    kendi dilinde çıkıyor. Personelin elle yazdığı cevaplarda `metin`
    doğrudan gidiyor — o cümleyi çeviremeyiz.
 
-   Dışa açık: bayi paneli de aynı kapıdan yazıyor (fiyat teklifi
+   Dışa açık: servis paneli de aynı kapıdan yazıyor (fiyat teklifi
    gönderildiğinde). İkinci bir bildirim deposu açmak, müşterinin
    ekranında iki ayrı liste demekti. */
 export function musteriyeBildir(bildirim) {
@@ -1247,114 +1247,114 @@ export function geriBildirimOkundu(id, personel) {
   return liste
 }
 
-/* ----------------------------------------------------------------- Bayiler */
+/* ----------------------------------------------------------------- Servisler */
 
-export function bayileriGetirBackoffice() {
-  return load(ANAHTAR.icerik, {}).bayiler || null
+export function servisleriGetirBackoffice() {
+  return load(ANAHTAR.icerik, {}).servisler || null
 }
 
-/* `tur` genelde 'bayi' (liste değişikliği). Şifre işlemleri kendi
-   türünü veriyor: bayi kendi şifresini değiştirdiğinde kayıt "Bayi
+/* `tur` genelde 'servis' (liste değişikliği). Şifre işlemleri kendi
+   türünü veriyor: servis kendi şifresini değiştirdiğinde kayıt "Servis
    listesi" başlığı altında görünüyordu, oysa listeye dokunulmuyor. */
-export function bayileriYaz(liste, personel, ozet, tur = 'bayi') {
+export function servisleriYaz(liste, personel, ozet, tur = 'servis') {
   const mevcut = load(ANAHTAR.icerik, {})
-  save(ANAHTAR.icerik, { ...mevcut, bayiler: liste })
+  save(ANAHTAR.icerik, { ...mevcut, servisler: liste })
   /* Okuyan taraf listeyi bellekte tutuyor; tazelenmezse aynı sayfada
      eski liste okunmaya devam ediyor (bkz. icerikDeposu.js). */
   icerikTazele()
   islemYaz({ tur, ozet, personel })
 }
 
-export function bayileriSifirla(personel) {
+export function servisleriSifirla(personel) {
   const mevcut = { ...load(ANAHTAR.icerik, {}) }
-  delete mevcut.bayiler
+  delete mevcut.servisler
   save(ANAHTAR.icerik, mevcut)
   icerikTazele()
-  islemYaz({ tur: 'bayi', ozet: 'Bayi listesi koddaki listeye döndürüldü', personel })
+  islemYaz({ tur: 'servis', ozet: 'Servis listesi koddaki listeye döndürüldü', personel })
 }
 
-/* ------------------------------------------------------- Bayi ve sahiplik
+/* ------------------------------------------------------- Servis ve sahiplik
 
-   Talep oluşurken bir bayiye yazılıyor (bkz. AppState.jsx). İki alan
+   Talep oluşurken bir servise yazılıyor (bkz. AppState.jsx). İki alan
    var ve ikisi farklı soruları cevaplıyor:
 
-     talep.bayi   → hangi bayinin müşterisi. BİR DAHA DEĞİŞMİYOR.
-     talep.sahip  → şu an kim ilgileniyor: 'bayi' veya 'paksan'.
+     talep.servis   → hangi servisin müşterisi. BİR DAHA DEĞİŞMİYOR.
+     talep.sahip  → şu an kim ilgileniyor: 'servis' veya 'paksan'.
 
-   Bayi yetersiz kalıp PAKSAN'dan destek istediğinde yalnız `sahip`
-   değişiyor. `bayi` sabit kaldığı için bayi, PAKSAN'ın attığı adımları
+   Servis yetersiz kalıp PAKSAN'dan destek istediğinde yalnız `sahip`
+   değişiyor. `servis` sabit kaldığı için servis, PAKSAN'ın attığı adımları
    görmeye devam ediyor — müşteri onun müşterisi olmaya devam ediyor.
 
-   PAKSAN personeli talep bayideyken de görüyor ve müdahale edebiliyor.
-   Müdahale ettiğinde `gecmis[]`'e düşüyor, bayi de görüyor. Yetki
+   PAKSAN personeli talep servisteyken de görüyor ve müdahale edebiliyor.
+   Müdahale ettiğinde `gecmis[]`'e düşüyor, servis de görüyor. Yetki
    kilidi konmadı: iş tanımı "PAKSAN izler ve gerektiğinde yönlendirir"
    diyor, kilit kimsenin istemediği bir engel olurdu.                 */
 
-/** Bu bayiye düşen talepler. */
-export function bayininTalepleri(liste, bayiId) {
-  return liste.filter((t) => t.bayi?.id === bayiId)
+/** Bu servise düşen talepler. */
+export function servisinTalepleri(liste, servisId) {
+  return liste.filter((t) => t.servis?.id === servisId)
 }
 
-/** Bayi PAKSAN'dan destek istiyor; sorumluluk PAKSAN'a geçiyor. */
-export function destekTalepEt(talep, neden, bayiAd) {
+/** Servis PAKSAN'dan destek istiyor; sorumluluk PAKSAN'a geçiyor. */
+export function destekTalepEt(talep, neden, servisAd) {
   /* Talep hâlâ "yeni" ise incelemeye alınıyor: PAKSAN'ın yeni talep
      kutusunda çakılı kalmasın, personel bildirimi düşsün. Ödeme
      onayındaki kalıbın aynısı. */
   const durum = talep.status === 'yeni' ? 'incelemede' : talep.status
   talepYaz(talep.id, {
     sahip: 'paksan',
-    devir: { tarih: Date.now(), neden: neden || '', bayiAd },
+    devir: { tarih: Date.now(), neden: neden || '', servisAd },
     status: durum,
-    gecmis: [...(talep.gecmis || []), { durum, tarih: Date.now(), personel: bayiAd }],
+    gecmis: [...(talep.gecmis || []), { durum, tarih: Date.now(), personel: servisAd }],
   })
   islemYaz({
     tur: 'devir',
-    ozet: `${talep.no} · ${bayiAd} ${markaEk('dan')} destek istedi`,
-    personel: bayiAd,
-    rol: 'bayi',
+    ozet: `${talep.no} · ${servisAd} ${markaEk('dan')} destek istedi`,
+    personel: servisAd,
+    rol: 'servis',
   })
   /* Müşteriye bildirim gitmiyor: onun açısından değişen bir şey yok,
-     muhatabı hâlâ bayi. */
+     muhatabı hâlâ servis. */
 }
 
-/* ------------------------------------------------------------- Bayi girişi
+/* ------------------------------------------------------------- Servis girişi
 
-   Bayi paneli ayrı bir derleme ama bayi kaydı ayrı bir varlık değil:
-   bayi kaydı ile bayi hesabı aynı şey. İkiye bölmek, iki yerde senkron
+   Servis paneli ayrı bir derleme ama servis kaydı ayrı bir varlık değil:
+   servis kaydı ile servis hesabı aynı şey. İkiye bölmek, iki yerde senkron
    tutulacak liste demek olurdu.
 
-   Hesabı PAKSAN açıyor. Bayi kendi kaydını oluşturamıyor, şifresini
+   Hesabı PAKSAN açıyor. Servis kendi kaydını oluşturamıyor, şifresini
    unutursa da PAKSAN'ı arıyor — hesap silme ve numara değişikliğinde
    uygulanan kuralın aynısı.
 
    `ILK_ADMIN` kalıbı burada TEKRARLANMIYOR: bilinen kullanıcı adı ve
-   şifreyle kendiliğinden açılan hesap yok. Hesabı olmayan bayi
+   şifreyle kendiliğinden açılan hesap yok. Hesabı olmayan servis
    giremiyor.                                                         */
 
-/** Bayiye panel hesabı tanımlar veya şifresini yeniler. */
-export async function bayiHesabiYaz(bayiId, { kullanici, sifre }, personel) {
+/** Servise panel hesabı tanımlar veya şifresini yeniler. */
+export async function servisHesabiYaz(servisId, { kullanici, sifre }, personel) {
   const ad = String(kullanici || '').trim().toLocaleLowerCase('tr-TR')
   if (!ad) return { hata: 'Kullanıcı adı boş olamaz.' }
   if (sifre && !sifreGecerliMi(sifre)) {
     return { hata: `Şifre ${BACKOFFICE_SIFRE_HANE} rakamdan oluşmalı.` }
   }
 
-  const liste = bayileriGetir()
-  const hedef = liste.find((b) => b.id === bayiId)
-  if (!hedef) return { hata: 'Bayi bulunamadı.' }
+  const liste = servisleriGetir()
+  const hedef = liste.find((b) => b.id === servisId)
+  if (!hedef) return { hata: 'Servis bulunamadı.' }
 
-  const cakisma = liste.find((b) => b.id !== bayiId && b.kullanici === ad)
+  const cakisma = liste.find((b) => b.id !== servisId && b.kullanici === ad)
   if (cakisma) return { hata: `Bu kullanıcı adı ${cakisma.ad} için zaten kullanılıyor.` }
 
   const yeniSifre = sifre ? await sifreHazirla(sifre) : hedef.sifre
   if (!yeniSifre) return { hata: 'İlk hesap açılışında şifre gereklidir.' }
 
   const yeni = liste.map((b) =>
-    b.id === bayiId
+    b.id === servisId
       ? { ...b, kullanici: ad, sifre: yeniSifre, panelAktif: true, ilkGiris: Boolean(sifre) }
       : b,
   )
-  bayileriYaz(
+  servisleriYaz(
     yeni,
     personel,
     `${hedef.ad} için panel hesabı ${hedef.kullanici ? 'güncellendi' : 'açıldı'}`,
@@ -1362,22 +1362,22 @@ export async function bayiHesabiYaz(bayiId, { kullanici, sifre }, personel) {
   return { tamam: true }
 }
 
-/** Bayinin panel hesabını kapatır; kayıt ve geçmiş duruyor. */
-export function bayiHesabiKapat(bayiId, personel) {
-  const liste = bayileriGetir()
-  const hedef = liste.find((b) => b.id === bayiId)
-  if (!hedef) return { hata: 'Bayi bulunamadı.' }
-  bayileriYaz(
-    liste.map((b) => (b.id === bayiId ? { ...b, panelAktif: false } : b)),
+/** Servisin panel hesabını kapatır; kayıt ve geçmiş duruyor. */
+export function servisHesabiKapat(servisId, personel) {
+  const liste = servisleriGetir()
+  const hedef = liste.find((b) => b.id === servisId)
+  if (!hedef) return { hata: 'Servis bulunamadı.' }
+  servisleriYaz(
+    liste.map((b) => (b.id === servisId ? { ...b, panelAktif: false } : b)),
     personel,
     `${hedef.ad} için panel hesabı kapatıldı`,
   )
   return { tamam: true }
 }
 
-export async function bayiGirisi(kullanici, sifre) {
+export async function servisGirisi(kullanici, sifre) {
   const ad = String(kullanici || '').trim().toLocaleLowerCase('tr-TR')
-  const kayit = bayileriGetir().find((b) => b.kullanici === ad)
+  const kayit = servisleriGetir().find((b) => b.kullanici === ad)
 
   if (!kayit) return { hata: 'Kullanıcı adı veya şifre yanlış.' }
   if (kayit.panelAktif === false) {
@@ -1388,40 +1388,40 @@ export async function bayiGirisi(kullanici, sifre) {
   }
 
   const oturum = {
-    bayiId: kayit.id,
+    servisId: kayit.id,
     no: kayit.no,
     ad: kayit.ad,
     il: kayit.il,
     ilkGiris: Boolean(kayit.ilkGiris),
     giris: Date.now(),
   }
-  save(ANAHTAR.bayiOturum, oturum)
-  islemYaz({ tur: 'oturum', ozet: 'Bayi paneline giriş', personel: kayit.ad, rol: 'bayi' })
+  save(ANAHTAR.servisOturum, oturum)
+  islemYaz({ tur: 'oturum', ozet: 'Servis paneline giriş', personel: kayit.ad, rol: 'servis' })
   return { oturum }
 }
 
-export function bayiOturumuGetir() {
-  const o = load(ANAHTAR.bayiOturum, null)
-  return o?.bayiId ? o : null
+export function servisOturumuGetir() {
+  const o = load(ANAHTAR.servisOturum, null)
+  return o?.servisId ? o : null
 }
 
-export function bayiOturumuKapat(o) {
-  islemYaz({ tur: 'oturum', ozet: 'Bayi panelinden çıkış', personel: o?.ad, rol: 'bayi' })
-  save(ANAHTAR.bayiOturum, null)
+export function servisOturumuKapat(o) {
+  islemYaz({ tur: 'oturum', ozet: 'Servis panelinden çıkış', personel: o?.ad, rol: 'servis' })
+  save(ANAHTAR.servisOturum, null)
 }
 
-/** Bayi ilk girişte kendi şifresini belirliyor. */
-export async function bayiSifresiniDegistir(bayiId, yeniSifre, eskiSifre) {
+/** Servis ilk girişte kendi şifresini belirliyor. */
+export async function servisSifresiniDegistir(servisId, yeniSifre, eskiSifre) {
   if (!sifreGecerliMi(yeniSifre)) {
     return { hata: `Şifre ${BACKOFFICE_SIFRE_HANE} rakamdan oluşmalı.` }
   }
-  const liste = bayileriGetir()
-  const hedef = liste.find((b) => b.id === bayiId)
-  if (!hedef) return { hata: 'Bayi bulunamadı.' }
+  const liste = servisleriGetir()
+  const hedef = liste.find((b) => b.id === servisId)
+  if (!hedef) return { hata: 'Servis bulunamadı.' }
 
   /* ESKİ ŞİFRE YALNIZ İSTEYEREK DEĞİŞTİRİRKEN SORULUYOR.
 
-     İlk giriş akışında sorulmuyor ve sorulmamalı: bayi zaten geçici
+     İlk giriş akışında sorulmuyor ve sorulmamalı: servis zaten geçici
      şifreyle o an giriş yaptı, kimliği kanıtlandı. Hesap ekranından
      kendi isteğiyle değiştirirken ise açık oturumun sahibi olmak
      yetmiyor — telefon başkasının elinde kalmış olabilir. */
@@ -1435,93 +1435,93 @@ export async function bayiSifresiniDegistir(bayiId, yeniSifre, eskiSifre) {
   }
 
   const hazir = await sifreHazirla(yeniSifre)
-  bayileriYaz(
-    liste.map((b) => (b.id === bayiId ? { ...b, sifre: hazir, ilkGiris: false } : b)),
+  servisleriYaz(
+    liste.map((b) => (b.id === servisId ? { ...b, sifre: hazir, ilkGiris: false } : b)),
     hedef.ad,
     `${hedef.ad} panel şifresini değiştirdi`,
     'sifre',
   )
-  const o = bayiOturumuGetir()
-  if (o?.bayiId === bayiId) save(ANAHTAR.bayiOturum, { ...o, ilkGiris: false })
+  const o = servisOturumuGetir()
+  if (o?.servisId === servisId) save(ANAHTAR.servisOturum, { ...o, ilkGiris: false })
   return { tamam: true }
 }
 
-/* ------------------------------------------------- Bayi şifre talepleri
+/* ------------------------------------------------- Servis şifre talepleri
 
    BAYİ ŞİFRESİNİ KENDİ SIFIRLAYAMIYOR.
 
    Personelin şifre sıfırlaması e-postayla çalışıyor (bkz.
-   `sifreTalebiOlustur`). Bayide e-posta yok: hesabı PAKSAN açıyor,
+   `sifreTalebiOlustur`). Serviste e-posta yok: hesabı PAKSAN açıyor,
    iletişim telefonla yürüyor. Kendi kendine sıfırlayan bir akış
-   kurmak, bayinin kullanıcı adını bilen herkese hesabı açardı.
+   kurmak, servisin kullanıcı adını bilen herkese hesabı açardı.
 
-   Bunun yerine bayi TALEP bırakıyor, PAKSAN backoffice'te görüyor ve
-   bayiyi arayıp geçici şifre veriyor. Bayi o şifreyle girince
+   Bunun yerine servis TALEP bırakıyor, PAKSAN backoffice'te görüyor ve
+   servisi arayıp geçici şifre veriyor. Servis o şifreyle girince
    `ilkGiris` akışı kendi şifresini belirletiyor — zaten var olan yol.
 
    Hesap silme ve numara değişikliğinde uygulanan kuralın aynısı:
    hesabın kendisine dair kararlar PAKSAN'da.                          */
 
-export function bayiSifreTalepleriGetir() {
-  return load(ANAHTAR.bayiSifreTalep, []).sort((a, b) => b.tarih - a.tarih)
+export function servisSifreTalepleriGetir() {
+  return load(ANAHTAR.servisSifreTalep, []).sort((a, b) => b.tarih - a.tarih)
 }
 
-/** Bayi giriş ekranından "şifremi unuttum" der. */
-export function bayiSifreTalebiAc(kullanici) {
+/** Servis giriş ekranından "şifremi unuttum" der. */
+export function servisSifreTalebiAc(kullanici) {
   const ad = String(kullanici || '').trim().toLocaleLowerCase('tr-TR')
   if (!ad) return { hata: 'Önce kullanıcı adınızı yazın.' }
 
-  const kayit = bayileriGetir().find((b) => b.kullanici === ad)
+  const kayit = servisleriGetir().find((b) => b.kullanici === ad)
 
-  /* Kullanıcı adı bulunamasa da AYNI cevap dönüyor: "böyle bir bayi
+  /* Kullanıcı adı bulunamasa da AYNI cevap dönüyor: "böyle bir servis
      yok" demek, deneme yanılmayla kullanıcı adı bulmayı kolaylaştırır.
-     Kayıt yalnız gerçek bayi için yazılıyor. */
+     Kayıt yalnız gerçek servis için yazılıyor. */
   if (kayit) {
-    const acikVar = load(ANAHTAR.bayiSifreTalep, []).some(
-      (t) => t.bayiId === kayit.id && t.durum === 'bekliyor',
+    const acikVar = load(ANAHTAR.servisSifreTalep, []).some(
+      (t) => t.servisId === kayit.id && t.durum === 'bekliyor',
     )
     if (!acikVar) {
-      save(ANAHTAR.bayiSifreTalep, [
+      save(ANAHTAR.servisSifreTalep, [
         {
           id: uid(),
-          bayiId: kayit.id,
-          bayiAd: kayit.ad,
-          bayiNo: kayit.no,
+          servisId: kayit.id,
+          servisAd: kayit.ad,
+          servisNo: kayit.no,
           kullanici: ad,
           durum: 'bekliyor',
           tarih: Date.now(),
         },
-        ...load(ANAHTAR.bayiSifreTalep, []),
+        ...load(ANAHTAR.servisSifreTalep, []),
       ])
       islemYaz({
         tur: 'sifre',
         ozet: `${kayit.ad} panel şifresi için yardım istedi`,
-        rol: 'bayi',
+        rol: 'servis',
       })
     }
   }
   return { tamam: true }
 }
 
-/** PAKSAN talebi kapatır (bayiyi aradı, geçici şifreyi verdi). */
-export function bayiSifreTalebiKapat(talepId, personel) {
-  const liste = load(ANAHTAR.bayiSifreTalep, [])
+/** PAKSAN talebi kapatır (servisi aradı, geçici şifreyi verdi). */
+export function servisSifreTalebiKapat(talepId, personel) {
+  const liste = load(ANAHTAR.servisSifreTalep, [])
   save(
-    ANAHTAR.bayiSifreTalep,
+    ANAHTAR.servisSifreTalep,
     liste.map((t) =>
       t.id === talepId
         ? { ...t, durum: 'kapandi', kapatan: personel, kapanis: Date.now() }
         : t,
     ),
   )
-  islemYaz({ tur: 'sifre', ozet: 'Bayi şifre talebi kapatıldı', personel })
+  islemYaz({ tur: 'sifre', ozet: 'Servis şifre talebi kapatıldı', personel })
 }
 
 /* --------------------------------------------------------- Makine kayıtları
 
    Müşteri makinesini uygulamaya kaydettiğinde buraya bir satır düşüyor.
-   Logo bağlıysa satırda faturanın kesildiği bayi de yazıyor; bağlı
-   değilse bayi alanı boş kalıyor (bkz. src/lib/logo.js).             */
+   Logo bağlıysa satırda faturanın kesildiği servis de yazıyor; bağlı
+   değilse servis alanı boş kalıyor (bkz. src/lib/logo.js).             */
 
 export function makineKayitlariGetir() {
   return load(ANAHTAR.makineKayitlari, [])
@@ -1546,22 +1546,22 @@ export function islemKaydiGetir() {
 export function islemYaz({ tur, ozet, personel, rol }) {
   /* ROL AÇIKÇA YAZILMADIYSA ÇALIŞAN DERLEMEYE BAKILIYOR.
 
-     Önce yalnız backoffice oturumuna bakılıyordu. Bayi panelinde öyle
-     bir oturum yok: bayinin randevusu, kapattığı iş ve eklediği not
+     Önce yalnız backoffice oturumuna bakılıyordu. Servis panelinde öyle
+     bir oturum yok: servisin randevusu, kapattığı iş ve eklediği not
      rolsüz kaydediliyor, İşlem Kaydı ekranında "—" görünüyordu. Aynı
      tarayıcıda personel de backoffice'e girmişse rol daha da yanlış
-     oluyordu — bayinin işlemi personelin rolüyle yazılıyordu.
+     oluyordu — servisin işlemi personelin rolüyle yazılıyordu.
 
      Karar tarayıcıya değil, çalışan derlemeye ait (src/lib/urun.js). */
-  const bayide = urun() === 'bayi'
-  const oturum = load(bayide ? ANAHTAR.bayiOturum : ANAHTAR.oturum, null)
+  const serviste = urun() === 'servis'
+  const oturum = load(serviste ? ANAHTAR.servisOturum : ANAHTAR.oturum, null)
   const kayit = {
     id: uid(),
     tarih: Date.now(),
     tur,
     ozet,
     personel: personel || oturum?.ad || '—',
-    rol: rol || (bayide ? 'bayi' : oturum?.rol) || null,
+    rol: rol || (serviste ? 'servis' : oturum?.rol) || null,
   }
   save(ANAHTAR.islemKaydi, [kayit, ...islemKaydiGetir()].slice(0, 500))
   return kayit

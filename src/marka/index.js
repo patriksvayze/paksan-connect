@@ -2,7 +2,7 @@
    MARKA KATMANI — motorun gördüğü tek kapı
 
    Bu paket bir firmaya özel yazılmadı: seri numaralı makine, garanti,
-   servis, yedek parça, bayi ağı ve duyuru üzerine kurulu genel bir
+   servis, yedek parça, servis ağı ve duyuru üzerine kurulu genel bir
    altyapı. Firmaya ait olan her şey `src/marka/` içinde duruyor.
 
    MOTOR BU KLASÖRÜN İÇİNE BAKMIYOR
@@ -17,7 +17,7 @@
 
    Arıza bilgi tabanı, teknik özellikler ve kılavuz paketi ağır
    dosyalar — kılavuz paketi tek başına 1,7 MB. Bu kapıdan verilselerdi
-   `../marka` yazan HER dosya onları da paketine çekerdi; bayi paneli
+   `../marka` yazan HER dosya onları da paketine çekerdi; servis paneli
    arıza bilgi tabanını hiç kullanmadığı hâlde taşırdı.
 
    Onlar bu yüzden doğrudan import ediliyor ve bunu yapan yalnız
@@ -28,7 +28,7 @@
    YENİ FİRMA NE DOLDURACAK
 
    Ayrıntısı MARKA-DEVIR.md içinde. Özet: Kimlik, logo, renkler, ürün
-   kataloğu ve bayi listesi zorunlu; teknik özellikler, arıza bilgi
+   kataloğu ve servis listesi zorunlu; teknik özellikler, arıza bilgi
    tabanı, kılavuzlar ve fiyat listeleri olmadan da uygulama çalışıyor,
    ilgili ekranlar boş görünüyor.
    ========================================================================== */
@@ -77,14 +77,11 @@ export {
   parcaFiyatBilgisi, fiyatliMi, parcaToplami, paraYaz,
 } from './katalog/parcaFiyat.js'
 
-export {
-  MAKINE_FIYAT_AKTIF, BAYI_ISKONTO, PARCA_BAYI_ISKONTO,
-  MAKINE_FIYAT, KAMPANYALAR,
-} from './katalog/makineFiyat.js'
+export { PARCA_SERVIS_ISKONTO } from './katalog/makineFiyat.js'
 
-/* --------------------------------------------------------------- Bayiler */
+/* --------------------------------------------------------------- Servisler */
 
 export {
-  YETKILER, yetkiAdi, BAYILER, mesafeKm, bayileriGetir,
-  yakindanUzaga, ileGore, bolgeKapsiyorMu, talebinBayileri,
-} from './katalog/bayiler.js'
+  YETKILER, yetkiAdi, SERVISLER, mesafeKm, servisleriGetir,
+  yakindanUzaga, ileGore, bolgeKapsiyorMu, talebinServisleri,
+} from './katalog/servisler.js'

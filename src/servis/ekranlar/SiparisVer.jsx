@@ -1,10 +1,9 @@
 import { useMemo, useState } from 'react'
-import { siparisAc } from '../../lib/bayiSiparis'
+import { siparisAc } from '../../lib/servisSiparis'
 import { islemYaz } from '../../backoffice/veri'
-import { bayileriGetir, MARKA, markaEk } from '../../marka'
+import { servisleriGetir, MARKA, markaEk } from '../../marka'
 import { KDV_ORANI, PARA_BIRIMI, PARCA_FIYAT, paraYaz } from '../../marka'
-import { PRODUCTS } from '../../marka'
-import { makineFiyati, parcaBayiFiyati } from '../../lib/bayiFiyat'
+import { parcaServisFiyati } from '../../lib/servisFiyat'
 import { Bolum } from '../Kabuk'
 import {
   IconCheckCircle,
@@ -14,11 +13,11 @@ import {
 } from '../../components/Icons'
 
 /* ==========================================================================
-   Bayi paneli — PAKSAN'a sipariş
+   Servis paneli — PAKSAN'a sipariş
 
    ÖNCEKİ AKIŞ FAZLA BASİTTİ.
 
-   Yirmi küsur kalem alt alta diziliyor, bayi kutuya bir sayı yazıyor ve
+   Yirmi küsur kalem alt alta diziliyor, servis kutuya bir sayı yazıyor ve
    "Gönder" diyordu. Bir buçuk milyon liralık makine siparişi böyle
    veriliyordu. Eksik olanlar sıradan değildi:
 
@@ -37,7 +36,7 @@ import {
      2. ONAY    satır satır özet, tutar, teslim yeri ve tarihi
      3. SONUÇ   sipariş numarası
 
-   Onay adımı ayrı bir ekran, aynı sayfanın altı değil. Bayi ne
+   Onay adımı ayrı bir ekran, aynı sayfanın altı değil. Servis ne
    gönderdiğini gördükten sonra gönderiyor; gördüğü şey de siparişin
    kendisi — kalem, adet, birim fiyat, satır tutarı.
 
@@ -53,43 +52,35 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
   const [hata, setHata] = useState('')
   const [siparis, setSiparis] = useState(null)
 
-  const bayi = useMemo(
-    () => bayileriGetir().find((b) => b.id === oturum.bayiId) || null,
-    [oturum.bayiId],
+  const servis = useMemo(
+    () => servisleriGetir().find((b) => b.id === oturum.servisId) || null,
+    [oturum.servisId],
   )
 
-  /* Teslim adresi bayinin kayıtlı adresiyle doluyor ama kilitli değil:
+  /* Teslim adresi servisin kayıtlı adresiyle doluyor ama kilitli değil:
      sevkiyat bazen doğrudan müşterinin tarlasına gidiyor. */
   const [teslimat, setTeslimat] = useState(() =>
-    bayi ? [bayi.adres, bayi.ilce, bayi.il].filter(Boolean).join(', ') : '',
+    servis ? [servis.adres, servis.ilce, servis.il].filter(Boolean).join(', ') : '',
   )
   const [istenenTarih, setIstenenTarih] = useState('')
 
-  const kalemler = useMemo(() => {
-    const parcalar = Object.entries(PARCA_FIYAT).map(([ad, b]) => ({
-      tur: 'parca',
-      anahtar: ad,
-      ad,
-      alt: b.kod,
-    }))
-    const makineler = PRODUCTS.map((u) => ({
-      tur: 'makine',
-      anahtar: u.id,
-      ad: u.name,
-      alt: u.tagline || '',
-    }))
-    return [...parcalar, ...makineler]
-  }, [])
+  const kalemler = useMemo(
+    () =>
+      Object.entries(PARCA_FIYAT).map(([ad, b]) => ({
+        tur: 'parca',
+        anahtar: ad,
+        ad,
+        alt: b.kod,
+      })),
+    [],
+  )
 
   const secili = useMemo(
     () =>
       kalemler
         .map((k) => {
           const adet = Number(adetler[k.tur + ':' + k.anahtar]) || 0
-          const f =
-            k.tur === 'makine'
-              ? makineFiyati(k.anahtar, oturum)
-              : parcaBayiFiyati(k.anahtar)
+          const f = parcaServisFiyati(k.anahtar)
           return {
             ...k,
             adet,
@@ -122,9 +113,9 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
     if (!teslimat.trim()) return setHata('Teslim adresini yazın.')
 
     const sonuc = siparisAc({
-      bayiId: oturum.bayiId,
-      bayiAd: oturum.ad,
-      bayiNo: oturum.no,
+      servisId: oturum.servisId,
+      servisAd: oturum.ad,
+      servisNo: oturum.no,
       kalemler: secili,
       not,
       teslimat,
@@ -209,8 +200,7 @@ function Secim({
         )
       : liste
 
-  const parcalar = suz(kalemler.filter((k) => k.tur === 'parca'))
-  const makineler = suz(kalemler.filter((k) => k.tur === 'makine'))
+  const parcalar = suz(kalemler)
 
   return (
     <>
@@ -225,7 +215,7 @@ function Secim({
           className="gir"
           value={arama}
           onChange={(e) => onArama(e.target.value)}
-          placeholder="Parça veya makine ara"
+          placeholder="Parça ara"
           aria-label="Kalem ara"
         />
       </div>
@@ -237,7 +227,6 @@ function Secim({
               <SecimSatiri
                 key={k.anahtar}
                 kalem={k}
-                oturum={oturum}
                 deger={adetler[k.tur + ':' + k.anahtar]}
                 onDegis={(v) => onAdet(k, v)}
               />
@@ -246,23 +235,7 @@ function Secim({
         </Bolum>
       )}
 
-      {makineler.length > 0 && (
-        <Bolum ad="Makine" sayi={makineler.length}>
-          <div className="kart" style={{ padding: '4px 16px' }}>
-            {makineler.map((k) => (
-              <SecimSatiri
-                key={k.anahtar}
-                kalem={k}
-                oturum={oturum}
-                deger={adetler[k.tur + ':' + k.anahtar]}
-                onDegis={(v) => onAdet(k, v)}
-              />
-            ))}
-          </div>
-        </Bolum>
-      )}
-
-      {!parcalar.length && !makineler.length && (
+      {!parcalar.length && (
         <p className="kucuk sonuk">“{arama}” ile eşleşen kalem yok.</p>
       )}
 
@@ -294,11 +267,8 @@ function Secim({
   )
 }
 
-function SecimSatiri({ kalem, oturum, deger, onDegis }) {
-  const f =
-    kalem.tur === 'makine'
-      ? makineFiyati(kalem.anahtar, oturum)
-      : parcaBayiFiyati(kalem.anahtar)
+function SecimSatiri({ kalem, deger, onDegis }) {
+  const f = parcaServisFiyati(kalem.anahtar)
   const adet = Number(deger) || 0
 
   return (
@@ -306,7 +276,7 @@ function SecimSatiri({ kalem, oturum, deger, onDegis }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         <div>{kalem.ad}</div>
         <div className="kucuk sonuk">
-          {kalem.alt && <span className={kalem.tur === 'parca' ? 'mono' : ''}>{kalem.alt}</span>}
+          {kalem.alt && <span className="mono">{kalem.alt}</span>}
           {kalem.alt && f ? ' · ' : ''}
           {f ? `${paraYaz(f.alis)} ${PARA_BIRIMI}` : ''}
         </div>

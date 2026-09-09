@@ -878,7 +878,7 @@ tbody tr.secili .rz,
 
    Beş alt tür, beş renk. Tanımı src/data/duyuruTurleri.js içinde; burada
    yalnız o tablodaki `ton` değerlerinin backoffice karşılıkları var.
-   Müşteri uygulaması ve bayi paneli aynı `ton` adlarını kendi kökünde
+   Müşteri uygulaması ve servis paneli aynı `ton` adlarını kendi kökünde
    ayrıca tanımlıyor — token'lar paylaşılmıyor (bkz. CLAUDE.md).
 
    Renkler mevcut rozet çiftlerinden alınıyor; hepsi ölçülmüş ve iki
@@ -2663,7 +2663,7 @@ select.sec {
 
 /* Dosya seçme düğmesi görünüşte düğme, aslında etiket: gizli bir
    <input type=file> sarıyor. */
-/* Bayi siparişinin başlık satırı — tıklayınca kalemler açılıyor. */
+/* Servis siparişinin başlık satırı — tıklayınca kalemler açılıyor. */
 .siparis-bas {
   display: flex;
   align-items: center;

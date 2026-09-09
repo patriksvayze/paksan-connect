@@ -171,7 +171,7 @@ export const TRAKTOR = [
 
    Makinenin durumu talebe KİMLİKLE yazılıyor ("sorunlu"); ekranda o
    kimliğin karşılığı görünmeli. Bu yardımcı önce yalnız backoffice'in
-   içindeydi ve bayi paneli aynı hatayı tekrarlıyordu: bayi ekranında
+   içindeydi ve servis paneli aynı hatayı tekrarlıyordu: servis ekranında
    "sorunlu" yazıyordu. Excel çıktısına da ham kimlik aktarılıyordu.
 
    Kimlikler burada tanımlandığı için karşılıkları da burada duruyor;
@@ -293,7 +293,7 @@ function sozlukKur() {
      diye karşılığı sözlükte duruyor. Yeni taleplerde çıkmıyor. */
   s['Bilmiyorum, siz bakın'] = 'I am not sure, please check'
   /* Talebin kapanış sonuçları da kayda Türkçe yazılıyor (backoffice ve
-     bayi paneli tek dilli). Müşteri uygulaması iki dilli olduğu için
+     servis paneli tek dilli). Müşteri uygulaması iki dilli olduğu için
      karşılıkları burada duruyor; yoksa İngilizce ekranda "Satış oldu"
      görünüyordu. */
   s['Satış oldu'] = 'Sale completed'

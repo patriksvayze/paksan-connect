@@ -7,7 +7,7 @@ import { Rozet } from '../marka'
 import { UrunFoto } from '../components/Gorsel'
 import { MachineCard } from './Machines'
 import { PRODUCTS, VITRIN, urunDilde } from '../marka'
-import { bayileriGetir } from '../marka'
+import { servisleriGetir } from '../marka'
 import { rehberListesi } from '../marka/icerik/rehber'
 import { bildirimListesi, okunmamisSayisi } from '../lib/bildirimler'
 import {
@@ -83,7 +83,7 @@ export default function Home() {
                    aradığı yeri kendisi aramasın. */
                 onClick={() => nav('/profil', { state: { odak: 'talepler' } })}
               />
-              <Stat v={bayileriGetir().length} k={t('anasayfa.bayiServis')} onClick={() => nav('/bayiler')} />
+              <Stat v={servisleriGetir().length} k={t('anasayfa.bayiServis')} onClick={() => nav('/bayiler')} />
             </div>
           </div>
         )}

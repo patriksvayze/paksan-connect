@@ -10,7 +10,7 @@ uygulama içi tüm metin ve yorumlar sade Türkçe.
 - `src/screens/` — müşteri uygulaması ekranları (22 dosya)
 - `src/backoffice/` — personel paneli, `ekranlar/` alt klasöründe ekranlar (16 dosya)
 - `src/components/` — paylaşılan bileşenler
-- `src/marka/` — firmaya ait her şey: kimlik, logo, renkler, ürün kataloğu, bayi listesi, fiyatlar, arıza bilgi tabanı, kılavuz paketi. Motor buraya yalnızca `src/marka/index.js` kapısından bakar (bkz. MARKA-DEVIR.md)
+- `src/marka/` — firmaya ait her şey: kimlik, logo, renkler, ürün kataloğu, servis listesi, fiyatlar, arıza bilgi tabanı, kılavuz paketi. Motor buraya yalnızca `src/marka/index.js` kapısından bakar (bkz. MARKA-DEVIR.md)
 - `src/data/` — ülkeye ve motora ait statik içerik: il listesi, KVKK metinleri, talep alanları, duyuru türleri, yetki kataloğu
 - `src/lib/` — yardımcı modüller (depolama, bildirim, PDF/Excel dışa aktarım)
 - `src/i18n/` — `tr.js`/`en.js` (663 anahtar, eşit tutuluyor ama build'de zorlanmıyor) + `index.jsx`
@@ -20,36 +20,36 @@ uygulama içi tüm metin ve yorumlar sade Türkçe.
 
 - `vite.config.js` → `dist/` → APK'ya giren **müşteri uygulaması**
 - `vite.backoffice.config.js` → `dist-backoffice/` → **backoffice personel paneli**
-- `vite.bayi.config.js` → `dist-bayi/` → **bayi paneli**
+- `vite.servis.config.js` → `dist-servis/` → **servis paneli**
 
-Backoffice ve bayi kodu müşteri APK'sının içine GİRMEMELİ.
+Backoffice ve servis kodu müşteri APK'sının içine GİRMEMELİ.
 
 - `npm run build` → müşteri uygulaması
 - `npm run build:backoffice` → backoffice
-- `npm run build:bayi` → bayi paneli
+- `npm run build:servis` → servis paneli
 
 İki ayrı APK üretiliyor:
 
 - `npm run apk` → müşteri APK'sı
-- `npm run apk:bayi` → bayi APK'sı
+- `npm run apk:servis` → servis APK'sı
 
-İkisi tek `capacitor.config.json` dosyasını paylaşır. `tools/cap-hedef.mjs` hedefi değiştirir; bayi derlemesi bitince hedefi müşteriye geri alır. Böylece depodaki dosya değişmez.
+İkisi tek `capacitor.config.json` dosyasını paylaşır. `tools/cap-hedef.mjs` hedefi değiştirir; servis derlemesi bitince hedefi müşteriye geri alır. Böylece depodaki dosya değişmez.
 
-### Bayi tarafında iki giriş
+### Servis tarafında iki giriş
 
-- Bayi derlemesinin iki girişi vardır, ancak tek uygulamadır:
-  - `bayi-panel.html`: Tarayıcıdan açılan panel.
-  - `bayi-mobil.html`: Telefona kurulan sürüm.
-- İkisi de aynı `src/bayi/` kodunu yükler.
+- Servis derlemesinin iki girişi vardır, ancak tek uygulamadır:
+  - `servis-panel.html`: Tarayıcıdan açılan panel.
+  - `servis-mobil.html`: Telefona kurulan sürüm.
+- İkisi de aynı `src/servis/` kodunu yükler.
 - Mobil sürüm, panelin ayrı bir kopyası değil, aynı panelin telefona sarılmış hâlidir.
 - Ayrı tutulmalarının nedeni geliştirme sırasında karışmamalarıdır: İki ayrı adres ve sekme başlığı kullanılır.
 - Aralarındaki tek fark HTML tarafındadır; mobil sürüm yakınlaştırmayı kapatır.
 - Mobil giriş derlemede `index.html` adıyla çıkar; Capacitor `webDir` klasöründe bu adı arar.
-- Adı `bayi-mobil.html` kalsaydı APK boş ekran açardı.
+- Adı `servis-mobil.html` kalsaydı APK boş ekran açardı.
 
-Bayi paneli kendi CSS kökünü açmaz, `backoffice.css` dosyasını paylaşır. `npm run dogrula` bu kuralı denetler.
+Servis paneli kendi CSS kökünü açmaz, `backoffice.css` dosyasını paylaşır. `npm run dogrula` bu kuralı denetler.
 
-İlk bayi APK'sında `android-bayi` klasörü henüz üretilmedi; ilk çalıştırmada oluşur.
+İlk servis APK'sında `android-servis` klasörü henüz üretilmedi; ilk çalıştırmada oluşur.
 
 ## CSS — iki ayrı kök, elle senkron
 
@@ -66,54 +66,58 @@ Karanlık/aydınlık tema `data-tema='koyu'/'acik'` attribute'u ile uygulanıyor
 Unit/e2e test yok. Doğrulama: manuel + `tools/ekran-goruntusu.mjs` +
 tarayıcıda ölçülen JS (kontrast, taşma, dokunma hedefi).
 
-## Bayi Ekosisteminin Temeli — Vericiler ve Alıcılar
+## Ekosistemin Temeli — Dört Taraf, Eşit Değil
 
-Hizmet akışında üç taraf var ve rolleri eşit değil:
+Bayi ve servis AYRI taraflardır. Bayilerin çoğunun kendi servisi yoktur;
+anlaştıkları bağımsız servislere yönlendirirler.
 
-- **PAKSAN** sadece verir, hiçbir şey almaz
-- **Bayi** hem alır (PAKSAN'dan) hem verir (müşteriye) — aradaki tek taraf
-- **Müşteri** sadece alır
+- **PAKSAN** makineyi bayiye satar, servise parça gönderir ve
+  servisin hak edişini öder
+- **Bayi** makineyi müşteriye satar. Paneli yoktur; sistemde kaydı vardır
+- **Servis** kurulumu, bakımı ve tamiri yapar. İşini bayiye değil,
+  doğrudan PAKSAN'a raporlar; parasını PAKSAN'dan alır
+- **Müşteri** makineyi bayiden, hizmeti servisten alır
 
-Bayi ayrı bir şirket ve **kendi menfaati dışında bir şey yapmaz.**
-Yalnız PAKSAN'a yarayan bir veri girişi ya hiç yapılmaz ya
-geçiştirilir; geçiştirilmiş veri, verinin olmamasından daha kötüdür —
-PAKSAN ona bakıp karar alır.
+Servis ayrı bir şirket ya da şahıstır ve **kendi menfaati dışında bir
+şey yapmaz.** Yalnızca PAKSAN'a yarayan bir veri girişi ya hiç yapılmaz
+ya da geçiştirilir; geçiştirilmiş veri, verinin olmamasından daha
+kötüdür — PAKSAN ona bakarak karar alır.
 
-**Kural:** Bayiden istenen her alan için tek soru sorulur:
-*Bayi bunu doldurduğu anda ne alıyor?* Cevap yoksa alan istenmez.
-Veri, bayinin kendi çıkarı için yaptığı işin **yan ürünü** olmalı;
-ayrı bir iş olarak istenmemeli.
+**Kural:** Servisten istenen her alan için tek soru sorulur:
+*Servis bunu doldurduğu anda ne alıyor?* Cevap yoksa alan istenmez.
+Veri, servisin kendi çıkarı için yaptığı işin **yan ürünü** olmalı;
+ayrı bir iş olarak istenmemelidir.
 
-Bugün sunulan somut karşılıklar: garanti kapsamındaki bedelsiz
-parça (talep formu zaten o parçayı istemenin tek yolu), stok bitince
+Bugün sunulan somut karşılıklar: garanti kapsamındaki bedelsiz parça
+(talep formu zaten o parçayı istemenin tek yoludur), stok bitince
 sipariş önerisi, müşterinin uygulamasında görünen servis kaydı.
-En güçlü ticari kaldıraç PAKSAN'ın elinde: garanti işçiliği bugün
-ödenmiyor; ödendiği gün iş kaydı hak ediş belgesine dönüşür.
+En güçlü kaldıraç ise hak ediştir: Servis, işini kaydetmeden parasını
+alamaz; bu yüzden kaydı kendi çıkarı için doğru doldurur.
 
 ## Üç Ürün Birlikte Çalışır
 
-Bayi panelinde doğan veriyi okuyan ekran yoksa iş bitmemiştir. Bir
-özellik "bitti" sayılmadan önce üç tarafta da yeri olmalı:
+Servis panelinde oluşturulan veriyi okuyan ekran yoksa iş bitmemiştir.
+Bir özellik "bitti" sayılmadan önce üç tarafta da yeri olmalıdır:
 
-- **Bayi Paneli** — veriyi üreten ekran
+- **Servis Paneli** — veriyi üreten ekran
 - **Backoffice** — PAKSAN'ın o veriyi göreceği ekran
-- **PAKSAN Connect** — müşteriyi ilgilendiren kısmı
+- **PAKSAN Connect** — verinin müşteriyi ilgilendiren kısmı
 
-Ortak biçimleri yeniden icat etme: talep kapanışı `cozum` nesnesiyle
+Ortak biçimleri yeniden icat etme: Talep kapanışı `cozum` nesnesiyle
 yürüyor (`yapilanIs`, `parcalar`, `ucret`, `ozet`) ve üç taraf da onu
 okuyor. Bildirimler `duyurular` deposundan geçiyor. Paralel bir depo
-açmak, iki tarafın birbirini görmemesi demek.
+açmak, iki tarafın birbirini görmemesi demektir.
 
-## Bayi Panelinin Kullanıcısı
+## Servis Panelinin Kullanıcısı
 
-Bayi personelinin teknoloji bilgisi yüksek olmayabilir. Ekranı
-tarlada, işin sonunda, çoğu zaman ayakta açıyor. **Görsel kalite
+Servis personelinin teknoloji bilgisi yüksek olmayabilir. Ekranı
+tarlada, işin sonunda, çoğu zaman ayakta açar. **Görsel kalite
 hiçbir üründe düşmez; sorulan soru sayısı düşer.**
 
 - Tek ekranda tek soru; cevaplar tam genişlikte düğmelerle sunulur
-- Gizli etkileşim yok: kaydırarak silme, uzun basma, çift dokunma yok
+- Gizli etkileşim yok: Kaydırarak silme, uzun basma, çift dokunma yok
 - İkon tek başına anlam taşımaz; yanında yazı olur
-- Terim yok: "iskonto", "kapsam", "künye", "hak ediş" ekranda geçmez
+- Terim yok: "İskonto", "kapsam", "künye", "hak ediş" ekranda geçmez
 - Onay penceresi ne olacağını açıklar; "Emin misiniz?" demez
 - Boş ekran çıkmaz sokak olmaz; ne yapılacağını açıklar
 
@@ -121,7 +125,7 @@ hiçbir üründe düşmez; sorulan soru sayısı düşer.**
 
 - APK: yalnız istendiğinde derle, her sürümü ayrı dosyada sakla, üzerine yazma
 - **Dil: yalnız PAKSAN Connect (müşteri uygulaması) iki dilli.** Orada her
-  değişiklik Türkçe VE İngilizce yapılır. Backoffice ve bayi paneli tek
+  değişiklik Türkçe VE İngilizce yapılır. Backoffice ve servis paneli tek
   dilli, yalnız Türkçe — kullanıcıları PAKSAN personeli ve Türkiye'deki
   bayiler. Bu ekranlarda `t()` ve sözlük aranmaz.
 - **TÜRKÇE HER ŞEY CODEX'TEN GEÇER.** Cümle, paragraf, hata metni,
@@ -144,7 +148,7 @@ Bir değişikliği "bitti" demeden önce:
    token'ları hâlâ eşit mi, elle kontrol et
 2. **Müşteri uygulamasında** metin ekledi/değiştirdiysen → `tr.js` VE
    `en.js` ikisi de güncellendi mi (anahtar sayıları eşit mi).
-   Backoffice ve bayi paneli tek dilli, orada bu adım yok.
+   Backoffice ve servis paneli tek dilli, orada bu adım yok.
 3. Görsel bir değişiklikse → `ekran-dogrulama` subagent'ı ile ekran
    görüntülerini tazele, `ui-dogrulama` subagent'ı ile son QA turu yap
 4. Yeni/değişen ikon varsa → `ikon-uretici` subagent'ını kullan, ikonu elle
@@ -184,16 +188,24 @@ Genel diff incelemesi için `/code-review` komutu kullanılır.
 
     npm run dogrula
 
-Altı şeye bakıyor: `tr.js`/`en.js` anahtar eşitliği, kodda kullanılan
-`t('...')` anahtarlarının sözlükteki karşılığı, iki CSS dosyasındaki
-token'ların uyumu, `dist/` içine backoffice kodunun sızıp sızmadığı,
-motorun marka klasörüne yalnızca kapıdan bakıp bakmadığı ve motor
-kodunda marka adının düz yazıyla geçip geçmediği.
+Yedi şeye bakıyor: `tr.js`/`en.js` anahtar eşitliği, kodda kullanılan
+`t('...')` anahtarlarının sözlükteki karşılıkları, iki CSS
+dosyasındaki token'ların uyumu, `dist/` içine backoffice kodunun
+sızıp sızmadığı, motorun marka klasörüne yalnızca kapıdan bakıp
+bakmadığı, motor kodunda marka adının düz yazıyla geçip geçmediği
+ve servis panelinde bayi kalıntısı kalıp kalmadığı.
 
-Son iki kontrol marka sınırını koruyor: ürünün başka bir firmaya
-kurulabilmesi buna bağlı. Yorumlar altıncı kontrolün dışında;
-oralarda firmanın iş kuralını anlatan gerekçeler var.
-Sorun bulursa çıkış kodu 1.
+5. ve 6. kontroller marka sınırını koruyor: ürünün başka bir firmaya
+kurulabilmesi buna bağlı. 7. kontrol ise bayi–servis ayrımını
+koruyor: panel bayiden servise devredildi; yarım kalan bir devir,
+altı ay sonra hangi adın ne anlama geldiğini belirsizleştirir.
+Yorumlar altıncı kontrolün dışında; oralarda firmanın iş kuralını
+anlatan gerekçeler var. Sorun bulursa çıkış kodu 1.
+
+**bayi ≠ servis.** Bayi makineyi satan firma: kaydı var, paneli yok.
+Servis işi yapan taraf: hesabı ve paneli var. `src/servis/` içinde
+`bayi` kelimesi geçmez; `bayileriGetir` gibi adlar ise gerçekten bayi
+varlığını yönettiği için yerinde kalır.
 
 Bazı CSS token'ları **bilerek** ayrı (backoffice'te beyaz yazı için koyu
 ton gerekiyor). Bunlar `tools/dogrula.mjs` içinde gerekçesiyle listeli —

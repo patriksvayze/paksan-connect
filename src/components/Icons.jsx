@@ -156,7 +156,7 @@ export const IconSearch = simge('arama')
    Ölçümde setin tek sapan simgesi buydu: 96 pikselde %15,4 mürekkep
    bırakıyordu, benzer karmaşıklıktaki kardeşleri %17–21 aralığında
    (zil %21,3, kişi %17,4). Yani gözle bakınca daha ince, daha soluk
-   duruyordu — ve bu simge bayi panelinde her iş kartının sağında,
+   duruyordu — ve bu simge servis panelinde her iş kartının sağında,
    ekranın en çok basılan düğmesinde duruyor.
 
    Tek tek üretilen simgelerde beklenen kayma bu. Kütüphanenin çözdüğü
@@ -167,7 +167,7 @@ export const IconPhone = lucide(LucidePhone, 'telefon')
    `IconBack` (sola ok) ödünç kullanılıyordu — "geri git" ile "geri al"
    aynı şey değil. */
 export const IconUndo = lucide(LucideUndo, 'geri-al')
-/* Fiyat etiketi — bayi fiyat listesi ve kampanya. Sette karşılığı yoktu. */
+/* Fiyat etiketi — servis fiyat listesi ve kampanya. Sette karşılığı yoktu. */
 export const IconTag = lucide(LucideTag, 'etiket')
 export const IconMail = simge('zarf')
 export const IconSend = simge('ucak')

@@ -3,19 +3,19 @@
 
    Üç ayrı derleme var ve üçü de aynı kaynak dosyaların bir kısmını
    paylaşıyor: müşteri uygulaması (`app`), personel paneli
-   (`backoffice`), bayi paneli ve uygulaması (`bayi`).
+   (`backoffice`), servis paneli ve uygulaması (`servis`).
 
    Paylaşılan bir dosya bazen "beni kim çalıştırıyor" bilmek zorunda
    kalıyor. İki yerde oldu:
 
-     · Görünüm tercihi (src/backoffice/Tema.jsx). Bayi paneli aynı
-       bileşeni kullanıyor; tek anahtar yazılınca bayinin telefonunda
+     · Görünüm tercihi (src/backoffice/Tema.jsx). Servis paneli aynı
+       bileşeni kullanıyor; tek anahtar yazılınca servisin telefonunda
        seçilen koyu tema PAKSAN personelinin ekranına da geçiyordu.
 
      · İşlem kaydının rol alanı (src/backoffice/veri.js → islemYaz).
-       Rol yazılmadığında backoffice oturumundan okunuyordu; bayi
+       Rol yazılmadığında backoffice oturumundan okunuyordu; servis
        tarafında öyle bir oturum yok, ama personel aynı tarayıcıda
-       backoffice'e girmişse bayinin işlemi onun rolüyle kaydediliyordu.
+       backoffice'e girmişse servisin işlemi onun rolüyle kaydediliyordu.
 
    İkisinde de tarayıcıya bakarak karar vermek yanlış sonuç veriyor:
    aynı tarayıcıda iki ürün birden açık olabiliyor. Doğru cevabı yalnız

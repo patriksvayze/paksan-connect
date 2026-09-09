@@ -3,14 +3,14 @@
 
    NEDEN VAR
 
-   Fiyat teklifi talebi geldiğinde backoffice’te "bu müşteriye hangi bayi
+   Fiyat teklifi talebi geldiğinde backoffice’te "bu müşteriye hangi servis
    bakacak" sorusunun cevabı yazılı olmalı. Talebin içinde il ve ilçe
-   var ama koordinat yok; bayi listesinde ise koordinat var
-   (bkz. src/data/bayiler.js). İkisini bağlayan halka bu tablo.
+   var ama koordinat yok; servis listesinde ise koordinat var
+   (bkz. src/data/servisler.js). İkisini bağlayan halka bu tablo.
 
-   Müşterinin ilinde bayi varsa zaten ada göre eşleşiyor ve buraya
-   ihtiyaç kalmıyor. Tablo, ilinde bayi OLMAYAN müşteri için gerekli:
-   "en yakın bayi hangisi" ancak koordinatla cevaplanabiliyor.
+   Müşterinin ilinde servis varsa zaten ada göre eşleşiyor ve buraya
+   ihtiyaç kalmıyor. Tablo, ilinde servis OLMAYAN müşteri için gerekli:
+   "en yakın servis hangisi" ancak koordinatla cevaplanabiliyor.
 
    Değerler il merkezlerinin yaklaşık koordinatları. Kuş uçuşu mesafe
    hesabı için fazlasıyla yeterli — amaç sıralama, navigasyon değil.

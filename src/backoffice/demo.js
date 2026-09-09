@@ -24,7 +24,7 @@ import { ANAHTAR, islemYaz, personelGetir, rolleriGetir } from './veri'
 import { MAKINE_DURUMU, ULASIM_ZAMANI } from '../data/talepAlanlari'
 import { PRODUCTS, SIRKET } from '../marka'
 import { PARCA_FIYAT } from '../marka'
-import { BAYILER } from '../marka'
+import { SERVISLER } from '../marka'
 
 /* ------------------------------------------------------------ Malzemeler */
 
@@ -40,8 +40,8 @@ const SOYADLAR = [
   'Koç', 'Kurt', 'Özkan', 'Şimşek', 'Polat', 'Korkmaz', 'Bulut', 'Erdoğan',
 ]
 
-/* İl ve ilçeler bayi listesindeki illerden seçiliyor ki harita ve
-   "en yakın bayi" sıralaması anlamlı çıksın. */
+/* İl ve ilçeler servis listesindeki illerden seçiliyor ki harita ve
+   "en yakın servis" sıralaması anlamlı çıksın. */
 const YERLER = [
   ['Konya', 'Selçuklu'], ['Konya', 'Çumra'], ['Aksaray', 'Merkez'],
   ['Ankara', 'Polatlı'], ['Eskişehir', 'Alpu'], ['Balıkesir', 'Bandırma'],
@@ -95,7 +95,7 @@ const MUSTERI_NOTLARI = [
 ]
 
 const IPTAL_NEDEN = [
-  'Müşteri vazgeçti', 'Ulaşılamadı', 'Yanlış talep', 'Bayiye yönlendirildi',
+  'Müşteri vazgeçti', 'Ulaşılamadı', 'Yanlış talep', 'Servise yönlendirildi',
 ]
 
 const SATIS_SONUC = ['Satış oldu', 'Müşteri vazgeçti', 'Rakibe gitti', 'Ulaşılamadı']
@@ -127,7 +127,7 @@ const GORUSLER = [
   'Bakım rehberi işime yaradı, teşekkürler.',
   'Yedek parça isimlerini bulmakta zorlandım.',
   'Bildirimlerin telefona da gelmesi iyi olur.',
-  'Bayi listesinde bize en yakın nokta yanlış görünüyor.',
+  'Servis listesinde bize en yakın nokta yanlış görünüyor.',
 ]
 
 /* Demo personelinin rolleri YÜRÜRLÜKTEKİ listeden alınıyor.
@@ -170,14 +170,14 @@ const DESTEK_CEVAPSIZ = [
 
 /* Beş alt türün hepsinden en az bir örnek var: ekranlar boş bir
    listeyle değil, gerçek çeşitlilikle deneniyor. Hedefi olanlar
-   `hedef` taşıyor — geri çağırma yalnız bayiye gidiyor
+   `hedef` taşıyor — geri çağırma yalnız servise gidiyor
    (bkz. src/data/duyuruTurleri.js). */
 const DUYURULAR = [
   {
     tur: 'duyuru',
     alt: 'kampanya',
     baslik: 'Sezon öncesi bakım kampanyası',
-    metin: 'Nisan sonuna kadar yetkili servislerimizde sezon öncesi bakım işçiliğinde %20 indirim uygulanıyor. Randevu için bayinizle görüşebilirsiniz.',
+    metin: 'Nisan sonuna kadar yetkili servislerimizde sezon öncesi bakım işçiliğinde %20 indirim uygulanıyor. Randevu için servisinizle görüşebilirsiniz.',
   },
   {
     tur: 'duyuru',
@@ -203,7 +203,7 @@ const DUYURULAR = [
     tur: 'uyari',
     alt: 'guvenlik',
     baslik: 'Kuyruk mili koruma kapağı kontrolü',
-    metin: 'Kuyruk mili koruma kapağı hasarlıysa makineyi çalıştırmayın. Kapağı hasarlı müşterilerimiz, ücretsiz değişim için bayilerine başvurabilir.',
+    metin: 'Kuyruk mili koruma kapağı hasarlıysa makineyi çalıştırmayın. Kapağı hasarlı müşterilerimiz, ücretsiz değişim için servislerine başvurabilir.',
   },
   {
     tur: 'uyari',
@@ -215,8 +215,8 @@ const DUYURULAR = [
     tur: 'uyari',
     alt: 'geriCagirma',
     baslik: 'ORK1270-2024 serisi düğüm atıcı kontrolü',
-    metin: 'ORK1270-2024 seri numaralı makinelerin düğüm atıcı yayında üretim kaynaklı kırılma görüldü. Bu makineleri kullanan müşterilerinizi arayıp servise çağırın. Değişim bedelsizdir; yay stoku bayilere gönderildi.',
-    hedef: { kime: 'bayi' },
+    metin: 'ORK1270-2024 seri numaralı makinelerin düğüm atıcı yayında üretim kaynaklı kırılma görüldü. Bu makineleri kullanan müşterilerinizi arayıp servise çağırın. Değişim bedelsizdir; yay stoku servislere gönderildi.',
+    hedef: { kime: 'servis' },
   },
 ]
 
@@ -353,7 +353,7 @@ export async function demoYukle() {
       konumUlke: 'TR',
       il,
       ilce,
-      satici: sec(BAYILER).ad,
+      satici: sec(SERVISLER).ad,
       onaylar: {
         aydinlatma: true,
         acikRiza: true,
@@ -377,7 +377,7 @@ export async function demoYukle() {
      makineleri vardı ama defter boş kalıyordu: pano 30 müşteri ve
      0 kayıtlı makine gösteriyordu.
 
-     Logo alanları (bayi, fatura) burada dolduruluyor çünkü gerçek
+     Logo alanları (servis, fatura) burada dolduruluyor çünkü gerçek
      kayıtta da Logo'dan geliyorlar; bir kısmı bilerek boş bırakıldı —
      Logo her seri numarasını bilmiyor, backoffice o durumu da
      gösterebilmeli. */
@@ -385,7 +385,7 @@ export async function demoYukle() {
   for (const m of musteriler) {
     for (const mk of m.makineler) {
       const logoBildi = Math.random() > 0.15
-      const bayi = logoBildi ? sec(BAYILER) : null
+      const servis = logoBildi ? sec(SERVISLER) : null
       makineKayitlari.push({
         id: uid(),
         tarih: mk.addedAt,
@@ -396,8 +396,8 @@ export async function demoYukle() {
         musteriAd: m.ad,
         il: m.il,
         ilce: m.ilce,
-        bayiId: bayi?.id || null,
-        bayiAd: bayi?.ad || '',
+        servisId: servis?.id || null,
+        servisAd: servis?.ad || '',
         uretimTarihi: logoBildi ? gunOnce(tamsayi(400, 2000)) : null,
         faturaTarihi: logoBildi ? gunOnce(tamsayi(10, 800)) : null,
         logoBildi,

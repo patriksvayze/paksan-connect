@@ -23,7 +23,7 @@ import { useDil } from '../i18n'
    yeterli, burası kendiliğinden seçim kutusuna döner.
 
    VERİ MODELİ DEĞİŞMİYOR: `il` alanı bölge/eyaleti, `ilce` alanı şehri
-   tutuyor. Böylece talepler, bayi eşleştirmesi ve profil aynı kalıyor.
+   tutuyor. Böylece talepler, servis eşleştirmesi ve profil aynı kalıyor.
    ========================================================================== */
 
 export function KonumAlani({

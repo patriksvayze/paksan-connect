@@ -25,8 +25,8 @@ export const SURUM = '0.9.12'
 
 /* Müşteriye gönderilen indirme adresi.
 
-   Bayi, uygulamayı kullanmayan bir müşteri için talep açtığında ona
-   SMS ile bu adresi yollayabiliyor (bkz. src/bayi/ekranlar/ElleKayit.jsx).
+   Servis, uygulamayı kullanmayan bir müşteri için talep açtığında ona
+   SMS ile bu adresi yollayabiliyor (bkz. src/servis/ekranlar/ElleKayit.jsx).
 
    Adres uygulama kimliğinden çıkıyor ve kimlik sabit: mağazaya bir kez
    yüklendikten sonra `com.paksanmakina.app` değiştirilemiyor. Yayına

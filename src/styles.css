@@ -18,7 +18,7 @@
    PAKSAN uyarlaması: zemin açık olduğu için logo kendi kurumsal mavisiyle,
    tam boy ve rozetsiz duruyor.
 
-   Kullanıcı çiftçi ve bayi: büyük dokunma alanı, yüksek kontrast.
+   Kullanıcı çiftçi ve servis: büyük dokunma alanı, yüksek kontrast.
 
    YAZI TİPİ — TEK KURAL
    Uygulamanın tamamında yalnızca Roboto kullanılır. Logo bir görsel
@@ -1088,7 +1088,7 @@ p {
   padding: 18px;
 }
 
-/* Haritadan seçilen bayi listede de belli olsun */
+/* Haritadan seçilen servis listede de belli olsun */
 .card--vurgulu {
   box-shadow: var(--sh-1), inset 0 0 0 2px var(--pk-orange);
 }
@@ -3473,7 +3473,7 @@ p {
   box-shadow: 0 0 0 2px var(--bg);
 }
 
-/* ---------------------------------------------------------- Bayi haritası
+/* ---------------------------------------------------------- Servis haritası
 
    Telefonun içinde çizilen yön/mesafe haritası — internet, anahtar ve
    ücret gerektirmiyor. Bkz. src/components/BayiHarita.jsx              */
@@ -4193,7 +4193,7 @@ p {
 
    Beş alt tür, beş renk. Tanımı src/data/duyuruTurleri.js içinde; burada
    yalnız o tablodaki `ton` değerlerinin müşteri uygulamasındaki
-   karşılıkları var. Backoffice ve bayi paneli aynı `ton` adlarını kendi
+   karşılıkları var. Backoffice ve servis paneli aynı `ton` adlarını kendi
    kökünde ayrıca tanımlıyor — token'lar paylaşılmıyor (bkz. CLAUDE.md).
 
    ÖNCEKİ HÂLİ TÜRÜ ANLATMIYORDU. Bütün duyurular aynı mavi/turuncu

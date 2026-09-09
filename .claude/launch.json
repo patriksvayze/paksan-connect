@@ -4,10 +4,7 @@
     {
       "name": "paksan-denetim",
       "runtimeExecutable": "npm",
-      "runtimeArgs": [
-        "run",
-        "dev"
-      ],
+      "runtimeArgs": ["run", "dev"],
       "autoPort": true
     }
   ]

@@ -64,8 +64,8 @@ export const LOGO = {
  *     "seri": "1270240001",
  *     "uretimTarihi": "2024-03-11",
  *     "faturaTarihi": "2024-05-02",
- *     "bayiId": "konya-merkez",
- *     "bayiAd": "Paksan Konya Ana Bayi",
+ *     "servisId": "konya-merkez",
+ *     "servisAd": "Paksan Konya Ana Servis",
  *     "model": "orkinos-1270"
  *   }
  *

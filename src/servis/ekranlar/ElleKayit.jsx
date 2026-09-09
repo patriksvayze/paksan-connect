@@ -4,7 +4,7 @@ import { talepNo } from '../../lib/talep'
 import { INDIRME_ADRESI, uygulamaEk, UYGULAMA, SIRKET } from '../../marka'
 import { ILLER, ilceleriGetir } from '../../data/iller'
 import { extractYear, formatSerial, normalizeSerial, validateSerial } from '../../lib/serial'
-import { bayiMakineKaydi } from '../../lib/makineKaydi'
+import { servisMakineKaydi } from '../../lib/makineKaydi'
 import { islemYaz, musterileriGetir } from '../../backoffice/veri'
 import { PARCA_FIYAT } from '../../marka'
 import { getProduct } from '../../marka'
@@ -12,9 +12,9 @@ import { Bolum } from '../Kabuk'
 import { IconAlert, IconCheckCircle, IconSend } from '../../components/Icons'
 
 /* ==========================================================================
-   Bayi paneli — elle kayıt
+   Servis paneli — elle kayıt
 
-   Bayiye doğrudan gelen müşteri için. Uygulamayı kullanmayan, telefonla
+   Servise doğrudan gelen müşteri için. Uygulamayı kullanmayan, telefonla
    arayan ya da dükkâna gelen çiftçinin talebi de sistemde dursun.
 
    TELEFON İLK SIRADA — ekranın çalışma biçimi bu.
@@ -29,7 +29,7 @@ import { IconAlert, IconCheckCircle, IconSend } from '../../components/Icons'
    talebi kendi uygulamasında görüyor, durum bildirimleri ona düşüyor,
    PAKSAN da aynı kişinin iki ayrı kaydı olarak görmüyor.
 
-   Önce ad soruluyordu; bayi adı yazdıktan sonra numarayı giriyordu ve
+   Önce ad soruluyordu; servis adı yazdıktan sonra numarayı giriyordu ve
    kayıtlı müşteri de olsa her seferinde yeni bir yabancı kayıt
    doğuyordu.
 
@@ -44,10 +44,10 @@ import { IconAlert, IconCheckCircle, IconSend } from '../../components/Icons'
 
    Kayıtlı müşteri bulunduğunda seri numarası kutusu kapanıyor ve
    yerine o müşterinin kayıtlı makineleri geliyor. Tek makinesi varsa
-   seçili başlıyor, birden fazlaysa bayi seçiyor.
+   seçili başlıyor, birden fazlaysa servis seçiyor.
 
    Sebebi elle yazmanın burada işe yaramaması: seri numarası zaten
-   sistemde duruyor, bayi onu müşteriden telefonda okuyup yazınca tek
+   sistemde duruyor, servis onu müşteriden telefonda okuyup yazınca tek
    yaptığı şey hata riski eklemek oluyordu. Yanlış yazılan bir hane
    makineyi bulunamaz yapıyor, garanti de yanlış hesaplanıyor.
 
@@ -58,41 +58,41 @@ import { IconAlert, IconCheckCircle, IconSend } from '../../components/Icons'
 
    Kısa süre buradaydı ve yanlıştı. Talep türleri MÜŞTERİ
    uygulamasından geliyor: çiftçi PAKSAN'a servis, parça ya da fiyat
-   sorabiliyor, soru bölgesindeki bayiye düşüyor. Üçü de oradan
+   sorabiliyor, soru bölgesindeki servise düşüyor. Üçü de oradan
    bakınca doğru.
 
-   Ama bayi elle kayıt açtığında durum tersine dönüyor: FİYATI VEREN
+   Ama servis elle kayıt açtığında durum tersine dönüyor: FİYATI VEREN
    ZATEN BAYİ. Dükkânına gelip "Orkinos 1270 kaça?" diye soran
-   müşteriye bayi cevabı kendi veriyor; PAKSAN'a bir talep açıp
+   müşteriye servis cevabı kendi veriyor; PAKSAN'a bir talep açıp
    beklemiyor. Kendi kendine teklif istemek gibi bir şey oluyordu.
 
-   Bayi tarafında fiyat teklifi talepleri YİNE GÖRÜNÜYOR — uygulamadan
-   gelenler. Kaldırılan yalnız bayinin kendi eliyle açması.
+   Servis tarafında fiyat teklifi talepleri YİNE GÖRÜNÜYOR — uygulamadan
+   gelenler. Kaldırılan yalnız servisin kendi eliyle açması.
 
-   BUNUN GERÇEK BİR KOMŞUSU VAR ama henüz yapılamaz: bayinin PAKSAN'dan
+   BUNUN GERÇEK BİR KOMŞUSU VAR ama henüz yapılamaz: servisin PAKSAN'dan
    ÖZEL FİYAT ONAYI istemesi (filo alımı, taşımadığı model, ihracat).
    O bir "müşteri talebi" değil, iskonto onayıdır ve sistemde henüz
    fiyat yok — onaylanacak bir şey yok. Fiyat listesi geldiğinde
-   ayrı bir akış olarak düşünülmeli (bkz. BAYI-YOL-HARITASI.md).
+   ayrı bir akış olarak düşünülmeli (bkz. SERVIS-YOL-HARITASI.md).
 
    KAYITLI OLMAYAN MÜŞTERİ
 
-   Talep yine açılıyor — bayi müşteriyi kapıdan çeviremez. Ama iki şey
-   ekleniyor: formda bayiye uygulamayı anlatması söyleniyor, kayıt
+   Talep yine açılıyor — servis müşteriyi kapıdan çeviremez. Ama iki şey
+   ekleniyor: formda servise uygulamayı anlatması söyleniyor, kayıt
    bitince de müşteriye indirme bağlantısını SMS ile yollayabiliyor.
 
    SMS'İ TELEFONUN KENDİSİ GÖNDERİYOR. Sunucu yok ve API anahtarı
-   uygulamaya konmuyor; `sms:` bağlantısı bayinin mesaj uygulamasını
-   numarayla ve hazır metinle açıyor, göndermeye bayi karar veriyor.
+   uygulamaya konmuyor; `sms:` bağlantısı servisin mesaj uygulamasını
+   numarayla ve hazır metinle açıyor, göndermeye servis karar veriyor.
    Sunucu geldiğinde toplu gönderime çevrilebilir.
 
    YENİ BİR MÜŞTERİ VARLIĞI TANIMLANMIYOR. Kayıtlı olmayan kişi için ad
    ve telefon düz metin alanı olarak kalıyor; uygulama hesabı
-   açılmıyor. Hesap açmak müşterinin kendi işi, bayinin değil.
+   açılmıyor. Hesap açmak müşterinin kendi işi, servisin değil.
 
    SERİ NUMARASI GİRİLİRSE makine kayıt defterine de bir satır
-   yazılıyor ve `bayiId` DOLU geçiyor. O alan LOGO için tasarlanmıştı
-   ve bugün hep boş; bayinin elle açtığı kayıt onu bugünden doldurmaya
+   yazılıyor ve `servisId` DOLU geçiyor. O alan LOGO için tasarlanmıştı
+   ve bugün hep boş; servisin elle açtığı kayıt onu bugünden doldurmaya
    başlıyor. Kayıtlı müşterinin listeden seçilen makinesi için satır
    AÇILMIYOR: o makine defterde zaten var.
    ========================================================================== */
@@ -103,14 +103,14 @@ const TURLER = [
 ]
 
 /* Numaranın yalnız rakamları karşılaştırılıyor: müşteri "0532 111 22 33"
-   yazmış olabilir, bayi "532 111 22 33". */
+   yazmış olabilir, servis "532 111 22 33". */
 const rakamlar = (v) => String(v || '').replace(/\D/g, '').slice(-10)
 
 export function ElleKayit({ oturum, onKaydedildi }) {
   const [tur, setTur] = useState('servis')
   const [tel, setTel] = useState('')
   const [ad, setAd] = useState('')
-  /* Adı bayi mi yazdı, biz mi doldurduk — bkz. `telYaz`. */
+  /* Adı servis mi yazdı, biz mi doldurduk — bkz. `telYaz`. */
   const [adElle, setAdElle] = useState(false)
   const [il, setIl] = useState(oturum.il || '')
   const [ilce, setIlce] = useState('')
@@ -140,24 +140,24 @@ export function ElleKayit({ oturum, onKaydedildi }) {
   /* Her iki türde de soru aynı: "hangi makinesi için geldi". */
   const makineler = eslesen?.makineler || []
 
-  /* Tek makine kendiliğinden seçili: bayiye sorulacak bir şey yok.
+  /* Tek makine kendiliğinden seçili: servise sorulacak bir şey yok.
      Birden fazlaysa seçim bekleniyor. */
   const secilenMakine =
     makineler.find((m) => m.id === makineId) ||
     (makineler.length === 1 ? makineler[0] : null)
 
-  /* Eşleşme bulununca alanlar dolduruluyor; bayi isterse üzerine
+  /* Eşleşme bulununca alanlar dolduruluyor; servis isterse üzerine
      yazabiliyor (müşteri taşınmış olabilir).
 
-     AD DA GÜNCELLENİYOR — ama bayi kendi yazdıysa dokunulmuyor.
+     AD DA GÜNCELLENİYOR — ama servis kendi yazdıysa dokunulmuyor.
 
-     Önce ad yalnız boşken dolduruluyordu. Bayi numarayı yanlış yazıp
+     Önce ad yalnız boşken dolduruluyordu. Servis numarayı yanlış yazıp
      düzeltince ekran şunu gösteriyordu: uyarıda ve il alanında yeni
      müşteri, ad alanında eskisi. Talep de o yanlış adla, ama yeni
      müşterinin hesabına bağlı olarak kaydediliyordu.
 
      `adElle` ayrımı bunu çözüyor: kendi doldurduğumuz adı
-     değiştirebiliriz, bayinin yazdığını değiştiremeyiz. */
+     değiştirebiliriz, servisin yazdığını değiştiremeyiz. */
   function telYaz(v) {
     setTel(v)
     setHata('')
@@ -232,8 +232,8 @@ export function ElleKayit({ oturum, onKaydedildi }) {
       /* Kayıtlı müşteriyse talep onun hesabına bağlanıyor: kendi
          uygulamasında görüyor, bildirimleri ona düşüyor. */
       musteriId: eslesen?.id || null,
-      sahip: 'bayi',
-      bayi: { id: oturum.bayiId, ad: oturum.ad, kademe: 'elle', tarih: Date.now() },
+      sahip: 'servis',
+      servis: { id: oturum.servisId, ad: oturum.ad, kademe: 'elle', tarih: Date.now() },
     }
 
     /* Parça talebi uygulamadan gelenle aynı şekli taşıyor; böylece
@@ -245,8 +245,8 @@ export function ElleKayit({ oturum, onKaydedildi }) {
 
     save('requests', [talep, ...load('requests', [])])
 
-    /* Bayinin elle açtığı talep de İşlem Kaydı'na düşüyor: uygulamadan
-       gelen talep kaydediliyor, bayininki kaydedilmiyordu. Rol alanını
+    /* Servisin elle açtığı talep de İşlem Kaydı'na düşüyor: uygulamadan
+       gelen talep kaydediliyor, servisinki kaydedilmiyordu. Rol alanını
        `islemYaz` çalışan derlemeden çıkarıyor (bkz. src/lib/urun.js). */
     islemYaz({
       tur: 'talep',
@@ -260,15 +260,15 @@ export function ElleKayit({ oturum, onKaydedildi }) {
        Listeden seçilen makine defterde zaten var; ikinci satır aynı
        makineyi iki kez göstermek olurdu. */
     if (yeniKayit) {
-      bayiMakineKaydi({
+      servisMakineKaydi({
         seri: makine.serial,
         productId: makine.productId,
         musteriId: eslesen?.id || null,
         musteriAd: talep.ad,
         il,
         ilce,
-        bayiId: oturum.bayiId,
-        bayiAd: oturum.ad,
+        servisId: oturum.servisId,
+        servisAd: oturum.ad,
       })
     }
 
@@ -336,10 +336,10 @@ export function ElleKayit({ oturum, onKaydedildi }) {
 
         {/* KAYITLI DEĞİLSE BAYİYE SÖYLENİYOR.
 
-            Talep yine açılıyor; bayi müşteriyi kapıdan çeviremez. Ama
+            Talep yine açılıyor; servis müşteriyi kapıdan çeviremez. Ama
             bu müşteri talebinin durumunu göremeyecek, bildirim
             alamayacak ve garantisini takip edemeyecek — bunu ona
-            söyleyebilecek tek kişi karşısındaki bayi. */}
+            söyleyebilecek tek kişi karşısındaki servis. */}
         {yabanci && (
           <div className="not not--turuncu" style={{ marginTop: 0, marginBottom: 14 }}>
             <IconAlert size={19} />
@@ -483,7 +483,7 @@ export function ElleKayit({ oturum, onKaydedildi }) {
 
    Tek makinede de aynı satır kullanılıyor ama dokunmaya gerek yok:
    zaten seçili. Model adı ve üretim yılı seri numarasından çıkıyor,
-   bayi hangi makineye baktığını numaradan değil addan anlıyor. */
+   servis hangi makineye baktığını numaradan değil addan anlıyor. */
 function MakineSecim({ makine, secili, tekli, onSec }) {
   const model = getProduct(makine.productId)?.name
   const yil = extractYear(makine.serial)
@@ -512,7 +512,7 @@ function MakineSecim({ makine, secili, tekli, onSec }) {
 
    SMS'İ TELEFONUN KENDİ MESAJ UYGULAMASI GÖNDERİYOR. Sunucu yok,
    PAKSAN'ın SMS sağlayıcısı yok ve API anahtarı uygulamaya konmuyor.
-   `sms:` bağlantısı numarayı ve metni hazır getiriyor; göndermeye bayi
+   `sms:` bağlantısı numarayı ve metni hazır getiriyor; göndermeye servis
    karar veriyor. Gönderilip gönderilmediğini uygulama BİLMİYOR — bu
    yüzden hiçbir yere "gönderildi" yazılmıyor.
 

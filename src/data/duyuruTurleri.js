@@ -22,7 +22,7 @@
 
    ÜÇ ÜRÜN AYNI TABLODAN OKUYOR
 
-   Backoffice yayınlıyor, müşteri uygulaması ve bayi paneli okuyor.
+   Backoffice yayınlıyor, müşteri uygulaması ve servis paneli okuyor.
    Türkçe adlar burada; müşteri uygulaması iki dilli olduğu için orada
    `anahtar` ile sözlükten geçiyor (bkz. i18n/tr.js → duyuruTuru).
 
@@ -39,7 +39,7 @@ export const DUYURU_ALT = [
     anahtar: 'duyuruTuru.kampanya',
     ton: 'kampanya',
     ikon: 'etiket',
-    /* Kampanya metni son kullanıcıya yazılıyor; bayide gürültü olur. */
+    /* Kampanya metni son kullanıcıya yazılıyor; serviste gürültü olur. */
     varsayilanKime: 'musteri',
     ipucu: 'Örnek: Sezon öncesi yedek parça kampanyası',
   },
@@ -59,7 +59,7 @@ export const DUYURU_ALT = [
     id: 'etkinlik',
     ust: 'duyuru',
     ad: 'Etkinlik',
-    alt: 'Fuar, tarla günü, bayi toplantısı, eğitim',
+    alt: 'Fuar, tarla günü, servis toplantısı, eğitim',
     anahtar: 'duyuruTuru.etkinlik',
     ton: 'etkinlik',
     ikon: 'takvim',
@@ -74,7 +74,7 @@ export const DUYURU_ALT = [
     anahtar: 'duyuruTuru.guvenlik',
     ton: 'guvenlik',
     ikon: 'uyari',
-    /* Makineyi elinde tutan müşteri, servisi veren bayi: ikisi de. */
+    /* Makineyi elinde tutan müşteri, servisi veren servis: ikisi de. */
     varsayilanKime: 'ikisi',
     ipucu: 'Örnek: Çalıştırmadan önce kuyruk mili koruma kapağını kontrol edin',
   },
@@ -89,17 +89,17 @@ export const DUYURU_ALT = [
     /* GERİ ÇAĞIRMA YALNIZCA BAYİYE GİDİYOR.
 
        Kararı PAKSAN verdi. Dayanağı ekosistemin kendisi: makineyi
-       satan, servisini veren ve müşteriyi arayacak olan bayi. Geri
+       satan, servisini veren ve müşteriyi arayacak olan servis. Geri
        çağırma bir kampanya duyurusu değil, yürütülecek bir iş —
-       çiftçiye "makinenizi kullanmayın" yazısı düşmesi değil, bayinin
+       çiftçiye "makinenizi kullanmayın" yazısı düşmesi değil, servisin
        o çiftçiyi araması gerekiyor.
 
        Ekranda seçim de kapalı: alıcı kitlesi kilitli
        (bkz. kilitliKime) ve okuma tarafında ikinci bir kapı var
        (bkz. lib/duyuruHedef.js). Tek yerde kalsaydı, kural ekranı
        atlayan bir kayıtta işlemezdi. */
-    varsayilanKime: 'bayi',
-    kilitliKime: 'bayi',
+    varsayilanKime: 'servis',
+    kilitliKime: 'servis',
     ipucu: 'Örnek: ORK1270-2024 serisi düğüm atıcı kontrolü',
   },
 ]

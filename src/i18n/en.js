@@ -809,7 +809,7 @@ export const en = {
     konumKullan: 'Use my location',
     konumAraniyor: 'Getting your location…',
     konumRed: 'Location permission was not granted. The list is sorted by your registered province.',
-    bayiler: 'Dealers',
+    servisler: 'Dealers',
     merkezAlt: 'If you cannot reach your dealer, you can call us directly.',
     temsili: 'This dealer list is a placeholder.',
     temsiliAlt: 'Real dealer details will be entered here once we have them. For now, confirm with head office before setting out.',

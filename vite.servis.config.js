@@ -1,22 +1,22 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-/* PAKSAN Bayi Paneli — üçüncü ayrı derleme.
+/* PAKSAN Servis Paneli — üçüncü ayrı derleme.
 
-   Bayi paneli bayinin kendi bilgisayarında veya telefonunda açılıyor.
-   Ne müşterinin APK'sına ne de PAKSAN personelinin backoffice'ine
-   girmeli: üçü de ayrı çıktı klasörüne derleniyor.
+   Servis paneli servisin kendi bilgisayarında veya telefonunda
+   açılıyor. Ne müşterinin APK'sına ne de PAKSAN personelinin
+   backoffice'ine girmeli: üçü de ayrı çıktı klasörüne derleniyor.
 
      vite.config.js            → dist/            müşteri uygulaması (APK)
      vite.backoffice.config.js → dist-backoffice/ PAKSAN personeli
-     vite.bayi.config.js       → dist-bayi/       BAYİ
+     vite.servis.config.js     → dist-servis/     SERVİS
 
    İKİ GİRİŞ, TEK UYGULAMA
 
-     bayi-panel.html  tarayıcıdan açılan panel
-     bayi-mobil.html  telefona kurulan sürüm (APK bunu sarıyor)
+     servis-panel.html  tarayıcıdan açılan panel
+     servis-mobil.html  telefona kurulan sürüm (APK bunu sarıyor)
 
-   İkisi de aynı kodu (`src/bayi/`) yüklüyor. Uygulama sürümü panelin
+   İkisi de aynı kodu (`src/servis/`) yüklüyor. Uygulama sürümü panelin
    ayrı bir kopyası değil, aynı panelin telefona sarılmış hâli.
    Ayrı durmalarının sebebi geliştirmede karışmamaları: tarayıcıda iki
    ayrı adres, iki ayrı sekme başlığı.
@@ -28,26 +28,26 @@ import react from '@vitejs/plugin-react'
    NEDEN MOBİL GİRİŞ `index.html` OLARAK ÇIKIYOR
 
    Capacitor, `webDir` klasöründe `index.html` arıyor
-   (node_modules/@capacitor/cli → doctor.js). `bayi-mobil.html` adıyla
+   (node_modules/@capacitor/cli → doctor.js). `servis-mobil.html` adıyla
    çıksaydı APK boş ekran açardı. Aşağıdaki eklenti derleme sonunda
    dosyanın adını değiştiriyor.
 
-   Derlemek için:  npm run build:bayi
+   Derlemek için:  npm run build:servis
 
-   SUNUCU GELENE KADAR: veri tarayıcının kendi hafızasında. Bayi paneli
-   ayrı bir cihazda çalıştığı için müşterinin telefonunda oluşan talebi
-   bugün göremiyor. Ekranlar ve veri düzeni hazır; sunucu bağlandığında
-   yalnız veri katmanı değişecek. */
+   SUNUCU GELENE KADAR: veri tarayıcının kendi hafızasında. Servis
+   paneli ayrı bir cihazda çalıştığı için müşterinin telefonunda oluşan
+   talebi bugün göremiyor. Ekranlar ve veri düzeni hazır; sunucu
+   bağlandığında yalnız veri katmanı değişecek. */
 
 /** Mobil girişi `index.html` olarak yeniden adlandırır. */
 function mobilGirisiIndexYap() {
   return {
-    name: 'paksan-bayi-mobil-index',
+    name: 'paksan-servis-mobil-index',
     enforce: 'post',
     generateBundle(_ayar, paket) {
-      const kaynak = paket['bayi-mobil.html']
+      const kaynak = paket['servis-mobil.html']
       if (!kaynak) return
-      delete paket['bayi-mobil.html']
+      delete paket['servis-mobil.html']
       kaynak.fileName = 'index.html'
       paket['index.html'] = kaynak
     },
@@ -58,10 +58,10 @@ export default defineConfig({
   plugins: [react(), mobilGirisiIndexYap()],
   base: './',
   build: {
-    outDir: 'dist-bayi',
+    outDir: 'dist-servis',
     emptyOutDir: true,
     rollupOptions: {
-      input: ['bayi-panel.html', 'bayi-mobil.html'],
+      input: ['servis-panel.html', 'servis-mobil.html'],
     },
   },
 })

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { duyurulariGetir, duyuruSil, duyuruYayinla } from '../veri'
 import { ILLER } from '../../data/iller'
 import { PRODUCTS, UYGULAMA } from '../../marka'
-import { bayileriGetir } from '../../marka'
+import { servisleriGetir } from '../../marka'
 import { useVeri } from '../kanca'
 import { Baslik, Bekleme, Bos, tarihYaz } from './ortak'
 import { boyutYaz, ekAdresi, ekSil, ekYaz, fotoKucult } from '../../lib/ekler'
@@ -52,7 +52,7 @@ import { altBilgi, altTurler, DUYURU_UST } from '../../data/duyuruTurleri'
    Alıcı kitlesi "Seç" düğmesinin arkasında, il ve model süzgeçleriyle
    aynı kutuda duruyordu; özet satırı da hedef seçilmemişken "Herkese
    gidecek" yazıyordu. Oysa varsayılan yalnız müşterilerdi — yayınlanan
-   duyuru bayi ekranlarına hiç düşmüyordu ve ekran bunun tersini
+   duyuru servis ekranlarına hiç düşmüyordu ve ekran bunun tersini
    söylüyordu.
 
    İl ve model bir SÜZGEÇ (kitleyi daraltır), alıcı kitlesi ise bir
@@ -61,8 +61,8 @@ import { altBilgi, altTurler, DUYURU_UST } from '../../data/duyuruTurleri'
 
 const KIMLER = [
   { id: 'musteri', ad: 'Müşterilere', alt: `${UYGULAMA} kullanan çiftçiler` },
-  { id: 'bayi', ad: 'Bayilere', alt: 'Bayi paneli ve bayi uygulaması' },
-  { id: 'ikisi', ad: 'İkisine de', alt: 'Hem müşteri hem bayi ekranları' },
+  { id: 'servis', ad: 'Servislere', alt: 'Servis paneli ve servis uygulaması' },
+  { id: 'ikisi', ad: 'İkisine de', alt: 'Hem müşteri hem servis ekranları' },
 ]
 
 const KIME_ADI = Object.fromEntries(KIMLER.map((k) => [k.id, k.ad]))
@@ -79,9 +79,9 @@ const KIME_ADI = Object.fromEntries(KIMLER.map((k) => [k.id, k.ad]))
    liste karşılaştırması kalıyor.
    ========================================================================== */
 
-const BOS_HEDEF = { kime: 'musteri', iller: [], bayiler: [], urunler: [] }
+const BOS_HEDEF = { kime: 'musteri', iller: [], servisler: [], urunler: [] }
 
-function HedefSecici({ hedef, onDegis, bayiler }) {
+function HedefSecici({ hedef, onDegis, servisler }) {
   const [acik, setAcik] = useState(false)
 
   const cevir = (alan, deger) => {
@@ -94,7 +94,7 @@ function HedefSecici({ hedef, onDegis, bayiler }) {
     })
   }
 
-  const sinirVar = hedef.iller.length || hedef.bayiler.length || hedef.urunler.length
+  const sinirVar = hedef.iller.length || hedef.servisler.length || hedef.urunler.length
 
   return (
     <div className="alan">
@@ -106,8 +106,8 @@ function HedefSecici({ hedef, onDegis, bayiler }) {
       </div>
       <p className="kucuk sonuk" style={{ margin: '4px 0 0' }}>
         {sinirVar
-          ? ozetle(hedef, bayiler)
-          : `${KIME_ADI[hedef.kime]} sınırsız gönderilecek — il, bayi ve model süzgeci yok.`}
+          ? ozetle(hedef, servisler)
+          : `${KIME_ADI[hedef.kime]} sınırsız gönderilecek — il, servis ve model süzgeci yok.`}
       </p>
 
       {acik && (
@@ -129,13 +129,13 @@ function HedefSecici({ hedef, onDegis, bayiler }) {
 
           {hedef.kime !== 'musteri' && (
             <div className="alan">
-              <span className="alan__ad">Bayiler · boş bırakılırsa tüm bayiler</span>
+              <span className="alan__ad">Servisler · boş bırakılırsa tüm servisler</span>
               <div className="suzgec" style={{ maxHeight: 120, overflow: 'auto' }}>
-                {bayiler.map((b) => (
+                {servisler.map((b) => (
                   <button
                     key={b.id}
-                    className={'cip' + (hedef.bayiler.includes(b.id) ? ' cip--on' : '')}
-                    onClick={() => cevir('bayiler', b.id)}
+                    className={'cip' + (hedef.servisler.includes(b.id) ? ' cip--on' : '')}
+                    onClick={() => cevir('servisler', b.id)}
                   >
                     {b.ad}
                   </button>
@@ -176,36 +176,36 @@ function onayMetni(alt, baslik, kime) {
   const tur = bilgi.ust
   const adKucuk = bilgi.ad.toLocaleLowerCase('tr-TR')
   const alici =
-    kime === 'bayi' ? 'yalnız bayilere'
-      : kime === 'ikisi' ? 'hem müşterilere hem de bayilere'
+    kime === 'servis' ? 'yalnız servislere'
+      : kime === 'ikisi' ? 'hem müşterilere hem de servislere'
         : 'müşterilere'
 
   /* Geri çağırmanın kendi cümlesi var: alıcı kitlesi seçilebilir bir
      şey değil, kuralın kendisi. */
   if (alt === 'geriCagirma') {
-    return `“${baslik}” başlıklı geri çağırma yalnızca bayilere gidecek. Müşteriye doğrudan bildirim gitmeyecek; makine sahiplerini bayi arayacak.`
+    return `“${baslik}” başlıklı geri çağırma yalnızca servislere gidecek. Müşteriye doğrudan bildirim gitmeyecek; makine sahiplerini servis arayacak.`
   }
 
   if (tur === 'uyari') {
     return `“${baslik}” başlıklı ${adKucuk} ${alici} gidecek. Ekranlarını açtıklarında pencere olarak görecekler; bu bildirim için izin gerekmiyor.`
   }
   /* Ticari ileti izni YALNIZ müşteri tarafında aranıyor. Duyuru
-     yalnız bayilere gidiyorsa o cümle konuyla ilgisiz kalıyordu:
+     yalnız servislere gidiyorsa o cümle konuyla ilgisiz kalıyordu:
      personel, duyuruyu almayacak kitlenin izin kuralını okuyordu. */
-  if (kime === 'bayi') {
-    return `“${baslik}” başlıklı ${adKucuk} duyurusu ${alici} gidecek. Bayilerde ticari ileti izni aranmaz.`
+  if (kime === 'servis') {
+    return `“${baslik}” başlıklı ${adKucuk} duyurusu ${alici} gidecek. Servislerde ticari ileti izni aranmaz.`
   }
-  return `“${baslik}” başlıklı ${adKucuk} duyurusu ${alici} gidecek. Müşteri tarafında yalnızca ticari ileti izni verenlere ulaşır${kime === 'ikisi' ? '; bayilerde böyle bir izin aranmaz' : ''}.`
+  return `“${baslik}” başlıklı ${adKucuk} duyurusu ${alici} gidecek. Müşteri tarafında yalnızca ticari ileti izni verenlere ulaşır${kime === 'ikisi' ? '; servislerde böyle bir izin aranmaz' : ''}.`
 }
 
-function ozetle(hedef, bayiler) {
+function ozetle(hedef, servisler) {
   const parcalar = []
-  if (hedef.kime === 'bayi') parcalar.push('Yalnız bayilere')
-  else if (hedef.kime === 'ikisi') parcalar.push('Müşteri ve bayilere')
+  if (hedef.kime === 'servis') parcalar.push('Yalnız servislere')
+  else if (hedef.kime === 'ikisi') parcalar.push('Müşteri ve servislere')
   if (hedef.iller.length) parcalar.push(hedef.iller.join(', '))
-  if (hedef.bayiler.length) {
+  if (hedef.servisler.length) {
     parcalar.push(
-      hedef.bayiler.map((id) => bayiler.find((b) => b.id === id)?.ad || id).join(', ')
+      hedef.servisler.map((id) => servisler.find((b) => b.id === id)?.ad || id).join(', ')
     )
   }
   if (hedef.urunler.length) {
@@ -227,7 +227,7 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
   const [hedef, setHedef] = useState(BOS_HEDEF)
 
   const { veri: liste, yukleniyor } = useVeri(duyurulariGetir, [surum], [])
-  const bayiListesi = bayileriGetir()
+  const servisListesi = servisleriGetir()
 
   const secili = altBilgi({ alt })
   const tur = secili.ust
@@ -330,7 +330,7 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
               </div>
               <span className="kucuk sonuk">
                 {kilitliKime
-                  ? 'Geri çağırmayı bayi yürütür: makineyi satan, servis hizmetini veren ve müşteriyi arayacak olan odur. Bu yüzden yalnızca bayilere gönderilebiliyor.'
+                  ? 'Geri çağırmayı servis yürütür: makineyi kuran, servis hizmetini veren ve müşteriyi arayacak olan odur. Bu yüzden yalnızca servislere gönderilebiliyor.'
                   : KIMLER.find((x) => x.id === hedef.kime)?.alt}
               </span>
             </div>
@@ -359,12 +359,12 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
                 style={{ minHeight: 140 }}
                 value={metin}
                 onChange={(e) => setMetin(e.target.value)}
-                /* İpucu alıcıya göre değişiyor: hedef "bayilere"
+                /* İpucu alıcıya göre değişiyor: hedef "servislere"
                    seçilmişken "müşterinin okuyacağı metin" demek,
                    personeli yanlış kitleye yazmaya yönlendiriyordu. */
                 placeholder={
-                  hedef.kime === 'bayi'
-                    ? 'Bayinin okuyacağı metin. Ne olduğunu ve ne yapması gerektiğini yazın.'
+                  hedef.kime === 'servis'
+                    ? 'Servisin okuyacağı metin. Ne olduğunu ve ne yapması gerektiğini yazın.'
                     : 'Müşterinin okuyacağı metin. Ne olduğunu ve ne yapması gerektiğini yazın.'
                 }
               />
@@ -372,7 +372,7 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
 
             <GorselAlani gorsel={gorsel} onDegis={setGorsel} />
 
-            <HedefSecici hedef={hedef} onDegis={setHedef} bayiler={bayiListesi} />
+            <HedefSecici hedef={hedef} onDegis={setHedef} servisler={servisListesi} />
 
             {/* ÖNİZLEME.
 
@@ -387,11 +387,11 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
                 çeviremez. Yurt dışında müşteri de varsa iki dilde ayrı
                 duyuru yayınlanmalı.
 
-                YALNIZ BAYİLERE GİDEN DUYURUDA BU NOT ÇIKMIYOR: bayi
-                paneli tek dilli ve bütün bayiler Türkiye'de. Orada
+                YALNIZ BAYİLERE GİDEN DUYURUDA BU NOT ÇIKMIYOR: servis
+                paneli tek dilli ve bütün servisler Türkiye'de. Orada
                 "İngilizce bir duyuru da yayınlayın" demek, yapılması
                 imkânsız bir iş öneriyordu. */}
-            {hedef.kime !== 'bayi' && (
+            {hedef.kime !== 'servis' && (
               <p className="kucuk sonuk" style={{ margin: '0 0 14px' }}>
                 Yazdığınız metin müşteriye <b>aynen</b> gider; uygulama çeviri yapmaz.
                 Yurt dışındaki müşteriler için ayrıca İngilizce bir duyuru yayınlayın.
@@ -448,7 +448,7 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
                   <p style={{ whiteSpace: 'pre-wrap', margin: '8px 0 0' }}>{d.metin}</p>
                   <div className="kucuk sonuk" style={{ marginTop: 6 }}>
                     {/* Kimin gördüğü listede yazmıyordu: aynı başlıkla
-                        bayiye ve müşteriye ayrı duyuru gönderilebiliyor. */}
+                        servise ve müşteriye ayrı duyuru gönderilebiliyor. */}
                     {[d.personel, tarihYaz(d.tarih), KIME_ADI[d.hedef?.kime || 'musteri']]
                       .filter(Boolean)
                       .join(' · ')}
@@ -524,7 +524,7 @@ function Onizleme({ alt, baslik, metin, gorsel }) {
         </div>
       </div>
       <span className="kucuk sonuk">
-        Müşteri ve bayi ekranlarında bu renk ve başlıkla görünecek.
+        Müşteri ve servis ekranlarında bu renk ve başlıkla görünecek.
       </span>
     </div>
   )

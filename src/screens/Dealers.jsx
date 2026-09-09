@@ -182,7 +182,7 @@ export default function Dealers() {
         </div>
 
         <div className="sectionhead">
-          <h2>{t('bayi.bayiler')}</h2>
+          <h2>{t('bayi.servisler')}</h2>
           <span className="sectionhead__count">{bayiler.length}</span>
         </div>
 

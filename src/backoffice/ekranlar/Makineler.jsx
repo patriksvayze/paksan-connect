@@ -12,8 +12,8 @@ import { extractYear, formatSerial, warrantyStatus, GARANTI_YIL } from '../../li
 /* ==========================================================================
    Kayıtlı Makineler
 
-   Uygulamaya kaydedilen ve bayinin elle açtığı makinelerin tek listesi.
-   "Bu seri numarası kimde, hangi bayide, ne zaman kaydedilmiş"
+   Uygulamaya kaydedilen ve servisin elle açtığı makinelerin tek listesi.
+   "Bu seri numarası kimde, hangi serviste, ne zaman kaydedilmiş"
    sorusunun cevabı.
 
    VERİ ZATEN VARDI, EKRAN YOKTU. `makineKayitlari` defteri
@@ -23,7 +23,7 @@ import { extractYear, formatSerial, warrantyStatus, GARANTI_YIL } from '../../li
    KAYNAK ALANI ÜÇ DEĞER ALIYOR:
 
      musteri  müşteri uygulamadan kaydetti
-     bayi     bayi panelden elle açtı — bayi alanı DOLU
+     servis     servis panelden elle açtı — servis alanı DOLU
      logo     faturadan geldi (LOGO bağlandığında)
 
    LOGO ARAMASI AYRI EKRAN DEĞİL. Personel seri numarası yazarken
@@ -33,7 +33,7 @@ import { extractYear, formatSerial, warrantyStatus, GARANTI_YIL } from '../../li
    arama kutusuyla çalışacak.
 
    BUGÜN BAYİ ALANI ÇOĞUNLUKLA BOŞ: LOGO kapalı (src/lib/logo.js) ve
-   müşterinin kendi kaydında bayi bilgisi yok. Bayinin elle açtığı
+   müşterinin kendi kaydında servis bilgisi yok. Servisin elle açtığı
    kayıtlarda dolu geliyor.
 
    MAKİNENİN GEÇMİŞİ
@@ -55,7 +55,7 @@ import { extractYear, formatSerial, warrantyStatus, GARANTI_YIL } from '../../li
 
 const KAYNAK_ADI = {
   musteri: 'Müşteri',
-  bayi: 'Bayi',
+  servis: 'Servis',
   logo: 'Logo',
 }
 
@@ -64,7 +64,7 @@ const temiz = (s) => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '')
 /* Garanti metinleri uygulamadakiyle aynı cümleler (bkz. i18n/tr.js):
    personel ve müşteri aynı makineye baktığında aynı şeyi okumalı.
    Rozet tonu backoffice'in kendi `rz` kalıbından; `garanti` sınıfı
-   yalnız bayi panelinin CSS'inde var, burada yok. */
+   yalnız servis panelinin CSS'inde var, burada yok. */
 const GARANTI_YAZI = {
   bilinmiyor: { ton: 'gri', yaz: () => 'Garanti bilgisi yok' },
   devam: { ton: 'yesil', yaz: (kalan) => `Garanti devam ediyor · ${kalan} yıl` },
@@ -78,7 +78,7 @@ export function Makineler({ personel, surum }) {
   const [ara, setAra] = useState('')
   const [aralik, setAralik] = useState(BOS_ARALIK)
   const [il, setIl] = useState('hepsi')
-  const [bayi, setBayi] = useState('hepsi')
+  const [servis, setServis] = useState('hepsi')
   const [kaynak, setKaynak] = useState('hepsi')
   const [secili, setSecili] = useState(null)
 
@@ -93,12 +93,12 @@ export function Makineler({ personel, surum }) {
     return kayitlar.filter((k) => {
       if (!araliktaMi(k.tarih, aralik)) return false
       if (il !== 'hepsi' && k.il !== il) return false
-      if (bayi !== 'hepsi' && (k.bayiAd || '') !== bayi) return false
+      if (servis !== 'hepsi' && (k.servisAd || '') !== servis) return false
       if (kaynak !== 'hepsi' && (k.kaynak || 'musteri') !== kaynak) return false
       if (!q) return true
 
       const urun = getProduct(k.productId)?.name
-      const alanlar = [k.seri, k.bayiAd, k.il, k.ilce, k.musteriAd, k.musteriNo, urun]
+      const alanlar = [k.seri, k.servisAd, k.il, k.ilce, k.musteriAd, k.musteriNo, urun]
       if (alanlar.filter(Boolean).some((x) => String(x).toLocaleLowerCase('tr-TR').includes(q))) {
         return true
       }
@@ -110,14 +110,14 @@ export function Makineler({ personel, surum }) {
         .filter(Boolean)
         .some((x) => String(x).replace(/\D/g, '').includes(qRakam))
     })
-  }, [kayitlar, ara, aralik, il, bayi, kaynak])
+  }, [kayitlar, ara, aralik, il, servis, kaynak])
 
   const liste = useMemo(
     () =>
       siraliListe(suzulmus, siralama, {
         seri: (k) => k.seri,
         model: (k) => getProduct(k.productId)?.name || '',
-        bayi: (k) => k.bayiAd || '',
+        servis: (k) => k.servisAd || '',
         konum: (k) => k.il || '',
         musteri: (k) => k.musteriAd || '',
         tarih: (k) => k.tarih,
@@ -128,7 +128,7 @@ export function Makineler({ personel, surum }) {
   const iller = [...new Set(kayitlar.map((k) => k.il).filter(Boolean))].sort((a, b) =>
     a.localeCompare(b, 'tr')
   )
-  const bayiler = [...new Set(kayitlar.map((k) => k.bayiAd).filter(Boolean))].sort((a, b) =>
+  const servisler = [...new Set(kayitlar.map((k) => k.servisAd).filter(Boolean))].sort((a, b) =>
     a.localeCompare(b, 'tr')
   )
 
@@ -168,12 +168,12 @@ export function Makineler({ personel, surum }) {
         />
 
         <Secim
-          ad="Bayi"
-          deger={bayi}
-          onDegis={setBayi}
+          ad="Servis"
+          deger={servis}
+          onDegis={setServis}
           secenekler={[
-            { deger: 'hepsi', ad: 'Tüm bayiler' },
-            ...bayiler.map((x) => ({ deger: x, ad: x })),
+            { deger: 'hepsi', ad: 'Tüm servisler' },
+            ...servisler.map((x) => ({ deger: x, ad: x })),
           ]}
           genislik={190}
         />
@@ -185,7 +185,7 @@ export function Makineler({ personel, surum }) {
           secenekler={[
             { deger: 'hepsi', ad: 'Hepsi' },
             { deger: 'musteri', ad: 'Müşteri kaydetti' },
-            { deger: 'bayi', ad: 'Bayi açtı' },
+            { deger: 'servis', ad: 'Servis açtı' },
             { deger: 'logo', ad: 'Logo faturası' },
           ]}
           genislik={165}
@@ -199,7 +199,7 @@ export function Makineler({ personel, surum }) {
             className="sec"
             value={ara}
             onChange={(e) => setAra(e.target.value)}
-            placeholder="Seri numarası, bayi, il, müşteri adı veya numarası"
+            placeholder="Seri numarası, servis, il, müşteri adı veya numarası"
           />
         </label>
 
@@ -234,7 +234,7 @@ export function Makineler({ personel, surum }) {
                 <tr>
                   <SiraliBaslik ad="Seri No" alan="seri" siralama={siralama} onSirala={cevir} genislik={190} />
                   <SiraliBaslik ad="Model" alan="model" siralama={siralama} onSirala={cevir} />
-                  <SiraliBaslik ad="Bayi" alan="bayi" siralama={siralama} onSirala={cevir} />
+                  <SiraliBaslik ad="Servis" alan="servis" siralama={siralama} onSirala={cevir} />
                   <SiraliBaslik ad="Konum" alan="konum" siralama={siralama} onSirala={cevir} />
                   <SiraliBaslik ad="Müşteri" alan="musteri" siralama={siralama} onSirala={cevir} />
                   <SiraliBaslik ad="Kayıt" alan="tarih" siralama={siralama} onSirala={cevir} genislik={120} />
@@ -254,7 +254,7 @@ export function Makineler({ personel, surum }) {
                       <td className="mono kucuk">{formatSerial(k.seri)}</td>
                       <td className="kucuk">{urun?.name || '—'}</td>
                       <td className="kucuk">
-                        {k.bayiAd || <span className="sonuk">—</span>}
+                        {k.servisAd || <span className="sonuk">—</span>}
                         <div className="kucuk sonuk">
                           {KAYNAK_ADI[k.kaynak || 'musteri']}
                         </div>
@@ -341,7 +341,7 @@ function MakineGecmisi({ kayit, talepler, onKapat }) {
               />
             </div>
             <div>
-              <Bilgi ad="Satan bayi" deger={kayit.bayiAd} />
+              <Bilgi ad="Satan servis" deger={kayit.servisAd} />
               <Bilgi
                 ad="Fatura tarihi"
                 deger={
@@ -395,7 +395,7 @@ function MakineGecmisi({ kayit, talepler, onKapat }) {
                         </span>
                       </td>
                       <td className="kucuk">
-                        {t.bayi?.ad || MARKA}
+                        {t.servis?.ad || MARKA}
                         {t.cozum?.ozet && (
                           <div className="kucuk sonuk">{t.cozum.ozet}</div>
                         )}
@@ -423,7 +423,7 @@ function Bilgi({ ad, deger, alt }) {
 }
 
 const AKTAR_BASLIK = [
-  'Seri numarası', 'Model', 'Bayi', 'Kaynak', 'İl', 'İlçe',
+  'Seri numarası', 'Model', 'Servis', 'Kaynak', 'İl', 'İlçe',
   'Müşteri', 'Müşteri numarası', 'Kayıt tarihi', 'Kayıt saati',
   'Fatura tarihi', 'Logo bildi mi',
 ]
@@ -432,7 +432,7 @@ function aktarSatiri(k) {
   return [
     formatSerial(k.seri),
     getProduct(k.productId)?.name || '',
-    k.bayiAd || '',
+    k.servisAd || '',
     KAYNAK_ADI[k.kaynak || 'musteri'],
     k.il || '',
     k.ilce || '',
