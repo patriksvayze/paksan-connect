@@ -760,8 +760,8 @@ const URETICILER = {
     const garantili = servis.filter((t) => paraOku(t.cozum?.ucret) === null)
 
     const satirlar = [
-      ['Bayiye devredilen', String(bayideler.length), '—',
-        'Teklifi bayi hazırlıyor; tutar bayinin kendi fiyatı'],
+      ['Bayiye devredilenler', String(bayideler.length), '—',
+        'Teklifi bayi hazırlıyor; tutarı bayi belirliyor.'],
       ['Hunideki teklif', String(hunide.length), paraYaz(hunideTutar),
         'Teklif verildi, müşterinin yanıtı bekleniyor'],
       ['Satışa dönen', String(kazanilan.length), paraYaz(kazanilanTutar),

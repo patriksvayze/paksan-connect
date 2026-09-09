@@ -482,11 +482,11 @@ function Isler({ oturum, bekleyen, biten, onAc, onYeniKayit }) {
         ) : (
           <Bos
             gorsel={bosIsGorseli}
-            baslik="Bekleyen İşiniz Yok"
+            baslik="Bekleyen işiniz yok"
             alt={
               biten.length > 0
-                ? 'Hepsini tamamladınız. Dükkâna gelen bir müşteri için üstteki + ile kayıt açabilirsiniz.'
-                : 'Size bir talep düştüğünde burada görünecek. Dükkâna gelen müşteri için üstteki + ile kayıt açın.'
+                ? 'Tüm işleri tamamladınız. Dükkâna gelen bir müşteri için üstteki + düğmesine dokunarak kayıt açabilirsiniz.'
+                : 'Size bir talep geldiğinde burada görünecek. Dükkâna gelen bir müşteri için üstteki + düğmesine dokunarak kayıt açın.'
             }
           />
         )}

@@ -433,16 +433,16 @@ function BolgeSecici({ bolge, onDegis }) {
 
   return (
     <div className="alan">
-      <span className="alan__ad">Sorumluluk Bölgesi (zorunlu değil)</span>
+      <span className="alan__ad">Sorumluluk bölgesi (isteğe bağlı)</span>
       <p className="kucuk sonuk" style={{ margin: '0 0 8px' }}>
-        Servis bu yerlere bakıyorsa, makineye servis atanırken listenin
-        başında çıkar. İlçe seçmezseniz ilin tamamı sayılır.
+        Servis bu bölgelere bakıyorsa makineye servis atanırken listenin
+        başında görünür. İlçe seçilmezse ilin tamamı geçerli sayılır.
       </p>
 
       {bolge.length === 0 && (
         <p className="kucuk sonuk" style={{ margin: '0 0 8px' }}>
-          Bölge girilmedi. Servis yine de atanabilir; listede il ve
-          ilçesine göre çıkar.
+          Bölge girilmedi. Servis yine de atanabilir; kayıtlı il ve
+          ilçesine göre listelenir.
         </p>
       )}
 
@@ -581,14 +581,14 @@ function CariHesap({ cari, tur, onDegis }) {
       <span className="alan__ad">Cari Hesap (ödeme bilgileri)</span>
       <p className="kucuk sonuk" style={{ margin: '0 0 8px' }}>
         {dolu
-          ? 'Hak ediş ödemesi bu bilgilere göre yapılacak.'
-          : 'Şimdi doldurmak zorunlu değil; ödeme yapılacağı gün gerekecek.'}
+          ? 'Hak ediş ödemesi bu bilgilere göre yapılır.'
+          : 'Şimdi doldurmanız gerekmez. Bu bilgiler ödeme yapılacağı zaman gerekir.'}
       </p>
 
       <div className="esit">
         <label className="alan">
           <span className="alan__ad">
-            {tur === 'sahis' ? 'Ad Soyad' : 'Ticari Unvan'}
+            {tur === 'sahis' ? 'Ad Soyad' : 'Ticaret unvanı'}
           </span>
           <input className="gir" value={cari.unvan || ''} onChange={yaz('unvan')} />
         </label>
@@ -692,8 +692,9 @@ function Form({ servis, onKapat, onKaydet }) {
             </label>
           </div>
           <p className="kucuk sonuk" style={{ marginTop: -6 }}>
-            Tür yalnız muhasebe içindir; talep akışını değiştirmez. Hak ediş
-            ödemesi şahsa gider pusulasıyla, tüzel kişiye faturayla yapılır.
+            Tür yalnızca muhasebe içindir; talebin ilerleyişini değiştirmez.
+            Hak ediş ödemesi gerçek kişiye gider pusulasıyla, tüzel kişiye
+            faturayla yapılır.
           </p>
 
           {/* İl ve ilçe elle yazılıyordu. Bölge eşleştirmesi il adının

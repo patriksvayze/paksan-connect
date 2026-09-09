@@ -237,7 +237,7 @@ export function ServisSiparisleri({ rol, personel, surum }) {
               onDegisti={() => setTazele((x) => x + 1)}
             />
           ) : (
-            <Bos metin="Soldan sipariş seçin." />
+            <Bos metin="Soldaki listeden bir sipariş seçin." />
           )}
         </div>
       </div>
@@ -350,7 +350,7 @@ function Detay({ siparis, yetkili, personel, onDegisti }) {
   }
 
   function iptal() {
-    if (!confirm(`${siparis.no} iptal edilecek. Emin misiniz?`)) return
+    if (!confirm(`${siparis.no} numaralı sipariş iptal edilecek.`)) return
     const sonuc = siparisDurumu(siparis.id, 'iptal', personel)
     if (sonuc.hata) return setHata(sonuc.hata)
     yaz('iptal edildi')

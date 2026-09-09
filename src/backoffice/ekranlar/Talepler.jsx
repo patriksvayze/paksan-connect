@@ -726,12 +726,12 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
           {talep.ses && (
             <div style={{ marginTop: 12 }}>
               <div className="alan__ad">
-                Sesli Not{talep.ses?.sure ? ' · ' + talep.ses.sure + ' sn' : ''}
+                Sesli not{talep.ses?.sure ? ' · ' + talep.ses.sure + ' sn' : ''}
               </div>
               {talep.ses?.veri ? (
                 <audio controls src={talep.ses.veri} style={{ width: '100%' }} />
               ) : (
-                <div className="kucuk sonuk">Ses kaydı bu kayıtta saklanmıyor.</div>
+                <div className="kucuk sonuk">Ses kaydı saklanmıyor.</div>
               )}
 
             </div>
@@ -740,7 +740,7 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
           <Ekler ekler={talep.ekler} />
         </Bolum>
 
-        {/* ------------------------------------- Müşterinin sonradan eklediği
+        {/* ------------------------------------- Müşterinin sonradan eklediği not
 
             Talep gönderildikten SONRA müşterinin uygulamadan eklediği
             not, ses ve dosyalar. İlk gönderimin ekleriyle karışmasın
@@ -1658,14 +1658,14 @@ function BayiAtama({ talep, personel, geriAlabilir, tazele, bildir }) {
         <S k="Telefon" v={telFirma(talep.bayi.tel)} mono />
         <S k="Atandı" v={talep.bayi.tarih ? tarihYaz(talep.bayi.tarih) : ''} />
         <p className="kucuk sonuk" style={{ margin: '8px 0 0' }}>
-          {`Teklifi bayi hazırlıyor ve müşteriyi bayi arıyor. ${MARKA} bu talepte bir iş yapmıyor.`}
+          {`Teklifi bayi hazırlar ve müşteriyi arar. ${MARKA} bu taleple ilgilenmez.`}
         </p>
         {geriAlabilir && (
           <button
             className="dg"
             style={{ marginTop: 10 }}
             onClick={() => {
-              if (!confirm(`Atama kaldırılacak, talep ${markaEk('a')} dönecek. Emin misiniz?`)) return
+              if (!confirm(`Atama kaldırılacak ve talep ${markaEk('a')} dönecek.`)) return
               bayiAtamasiniKaldir(talep, personel)
               tazele()
               bildir('Bayi ataması kaldırıldı')
@@ -1679,9 +1679,9 @@ function BayiAtama({ talep, personel, geriAlabilir, tazele, bildir }) {
   }
 
   return (
-    <Bolum ad="Bayiye Ata">
+    <Bolum ad="Bayiye ata">
       <p className="kucuk sonuk" style={{ margin: '0 0 10px' }}>
-        {`Teklifi bayi verecekse buradan atayın; atandığında talep ${markaEk('in')} bekleyen işleri arasından çıkar. ${MARKA} kendisi ilgilenecekse atama yapmayın.`}
+        {`Teklifi bayi verecekse talebi buradan bayiye atayın. Atandığında talep ${markaEk('in')} bekleyen işlerinden çıkar. ${MARKA} ilgilenecekse atama yapmayın.`}
       </p>
 
       <div className="satir" style={{ gap: 8, alignItems: 'flex-end' }}>

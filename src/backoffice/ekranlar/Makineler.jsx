@@ -243,7 +243,7 @@ export function Makineler({ personel, rol, bildir, tazele, surum }) {
             className="sec"
             value={ara}
             onChange={(e) => setAra(e.target.value)}
-            placeholder="Seri numarası, bayi, servis, il, müşteri adı veya numarası"
+            placeholder="Seri numarası, bayi, servis, il, müşteri adı veya telefon numarası"
           />
         </label>
 
@@ -262,14 +262,14 @@ export function Makineler({ personel, rol, bildir, tazele, surum }) {
           style={{ marginBottom: 14, borderLeft: '3px solid var(--turuncu)' }}
         >
           <div className="kart__ic">
-            <strong>{eksik} makinenin servisi atanmamış.</strong>
+            <strong>{eksik} makineye servis atanmamış.</strong>
             <p className="kucuk sonuk" style={{ margin: '6px 0 10px' }}>
               Bu makinelerin sahipleri uygulamadan servis talebi açamıyor.
-              Satıra dokunup servis atayın; bayisi girilirse servis
-              bayiden de gelir.
+              Satıra tıklayıp servis atayın. Bayi bilgisi girilirse bayinin
+              servisi de atanır.
             </p>
             <button className="dg" onClick={() => setServis('yok')}>
-              Atanmamışları göster
+              Atanmayanları göster
             </button>
           </div>
         </div>
@@ -280,8 +280,9 @@ export function Makineler({ personel, rol, bildir, tazele, surum }) {
           çoğunlukla listede değil o pencerede. */}
       {liste.length > 0 && (
         <p className="kucuk sonuk" style={{ margin: '0 0 12px' }}>
-          Bir satıra dokunun: makinenin bayisi, servisi, faturası ve
-          servis geçmişi tek pencerede açılır; atama da oradan yapılır.
+          Bir satıra tıklayın. Makinenin bayisi, servisi, fatura bilgileri
+          ve servis geçmişi tek pencerede açılır. Servis ataması da buradan
+          yapılır.
         </p>
       )}
 
@@ -427,7 +428,7 @@ function Atama({ kayit, onAta }) {
         <h3 style={{ margin: '0 0 4px', fontSize: 14 }}>Atama</h3>
         <p className="kucuk sonuk" style={{ margin: '0 0 12px' }}>
           Servisi atanmayan makinenin sahibi uygulamadan servis talebi
-          açamıyor.
+          açamaz.
         </p>
 
         <div className="esit">
@@ -471,7 +472,7 @@ function Atama({ kayit, onAta }) {
               }}
             >
               <option value="">
-                {bayiServisi ? `Bayisinden: ${bayiServisi.ad}` : 'Atanmadı'}
+                {bayiServisi ? `Bayinin servisi: ${bayiServisi.ad}` : 'Atanmadı'}
               </option>
               {servisler.oneri.length > 0 && (
                 <optgroup label="Bu bölgeye bakanlar">
@@ -493,7 +494,7 @@ function Atama({ kayit, onAta }) {
           {kayit.servisId
             ? 'Servis doğrudan atandı; bayi değişse de bu servis kalır.'
             : bayiServisi
-              ? 'Servis bayiden geliyor. Bayi değişirse servis de değişir.'
+              ? 'Servis bayiden atanıyor. Bayi değişirse servis de değişir.'
               : 'Servis atanmadı. Bayi girerseniz bayinin servisi geçerli olur.'}
         </p>
       </div>

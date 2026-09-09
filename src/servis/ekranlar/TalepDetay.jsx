@@ -240,12 +240,12 @@ export function TalepDetay({
         {talep.ses && (
           <div style={{ marginTop: 12 }}>
             <div className="kucuk sonuk">
-              Sesli Not{talep.ses.sure ? ' · ' + talep.ses.sure + ' sn' : ''}
+              Sesli not{talep.ses.sure ? ' · ' + talep.ses.sure + ' sn' : ''}
             </div>
             {talep.ses.veri ? (
               <audio controls src={talep.ses.veri} style={{ width: '100%', marginTop: 6 }} />
             ) : (
-              <div className="kucuk sonuk">Ses kaydı bu kayıtta saklanmıyor.</div>
+              <div className="kucuk sonuk">Ses kaydı saklanmıyor.</div>
             )}
           </div>
         )}
@@ -253,7 +253,7 @@ export function TalepDetay({
         <Ekler ekler={talep.ekler} />
       </div>
 
-      {/* ------------------------------- Müşterinin sonradan eklediği
+      {/* ------------------------------- Müşterinin sonradan eklediği not
 
           Talep gönderildikten SONRA müşterinin uygulamadan eklediği
           not, ses ve fotoğraflar. Servis yola çıkmadan önce bakması
@@ -263,7 +263,7 @@ export function TalepDetay({
       {talep.eklemeler?.length > 0 && (
         <div className="kart" style={{ padding: 16 }}>
           <div className="kucuk sonuk" style={{ marginBottom: 10 }}>
-            Müşterinin sonradan eklediği · {talep.eklemeler.length}
+            Müşterinin sonradan eklediği not · {talep.eklemeler.length}
           </div>
           {[...talep.eklemeler]
             .sort((a, b) => b.tarih - a.tarih)
