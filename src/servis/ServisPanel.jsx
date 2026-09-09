@@ -38,9 +38,9 @@ import { Logo, MARKA, SIRKET, getProduct } from '../marka'
 import bosIsGorseli from '../assets/gorseller/servis-bos-is.png'
 import girisGorseli from '../assets/gorseller/servis-giris.png'
 import { TalepDetay } from './ekranlar/TalepDetay'
-import { Stok } from './ekranlar/Stok'
+import { Parca } from './ekranlar/Parca'
+import { Hakkedis } from './ekranlar/Hakkedis'
 import { ElleKayit } from './ekranlar/ElleKayit'
-import { Urunler, UrunDetay } from './ekranlar/Urunler'
 
 /* ==========================================================================
    PAKSAN Servis
@@ -274,12 +274,6 @@ function Uygulama({ oturum, onCikis }) {
   const [acik, setAcik] = useState(null)
   /* Sekmelerin üstüne tam ekran açılan alt sayfa: 'kayit' | 'hesap'. */
   const [alt, setAlt] = useState(null)
-  /* Açık ürün detayı.
-
-     TAM EKRAN AÇILAN HER ŞEY BURADAN AÇILIYOR. Detay ekranları bir ara
-     kendi sekmelerinin içinde açılıyordu; `Sayfa` kendi üst çubuğunu
-     çizdiği için iki başlık üst üste biniyordu. */
-  const [urun, setUrun] = useState(null)
   const [tazele, setTazele] = useState(0)
   const [talepler, setTalepler] = useState([])
 
@@ -287,13 +281,19 @@ function Uygulama({ oturum, onCikis }) {
     setTalepler(servisinTalepleri(talepleriGetir(), oturum.servisId))
   }, [oturum.servisId, tazele])
 
-  const [bekleyen, biten] = useMemo(
-    () => [
-      talepler.filter((t) => !KAPALI.includes(t.status)),
-      talepler.filter((t) => KAPALI.includes(t.status)),
-    ],
-    [talepler],
-  )
+  /* SERVİSİN KENDİ SİPARİŞİ "İŞ" DEĞİL.
+
+     Servisin PAKSAN'dan ısmarladığı parça da bir talep ve servisin
+     üstünde duruyor; ama bir müşteri işi değil, kendi satın alması.
+     İşlerim listesinde görünseydi sabah bakılan liste, yapılacak iş
+     olmayan satırlarla dolardı. Onlar Parça sekmesinde. */
+  const [bekleyen, biten] = useMemo(() => {
+    const isler = talepler.filter((t) => !t.servisSiparisi)
+    return [
+      isler.filter((t) => !KAPALI.includes(t.status)),
+      isler.filter((t) => KAPALI.includes(t.status)),
+    ]
+  }, [talepler])
 
   /* Talep detayı sekmelerin üstüne tam ekran açılıyor. */
   if (acik) {
@@ -302,7 +302,6 @@ function Uygulama({ oturum, onCikis }) {
         talep={acik}
         oturum={oturum}
         servisAd={oturum.ad}
-        servisId={oturum.servisId}
         onKapat={() => {
           setAcik(null)
           setTazele((x) => x + 1)
@@ -325,10 +324,6 @@ function Uygulama({ oturum, onCikis }) {
 
      Yeni Kayıt İşlerim'in başındaki düğmeye taşındı — zaten oradan
      bakılan bir listenin devamı. Hesap başlıktaki isme geçti. */
-  if (urun) {
-    return <UrunDetay urun={urun} oturum={oturum} onKapat={() => setUrun(null)} />
-  }
-
   if (alt === 'kayit') {
     return (
       <Sayfa
@@ -360,22 +355,28 @@ function Uygulama({ oturum, onCikis }) {
     )
   }
 
-  /* ÜÇ SEKME.
+  /* ÜÇ SEKME VE ÜÇÜ DE SERVİSİN KENDİ İŞİ.
 
-     Dört sekme vardı ve ikisi ("Satış", "Makine") aynı yirmi ürünü
-     listeliyordu. "Satış" adı da kimin satışı olduğunu söylemiyordu.
-     Tek liste kaldı: servis ürüne dokunuyor, fiyatını, teslim süresini,
-     arızasını ve teknik değerlerini aynı sayfada buluyor. */
+     "Ürünler" sekmesi kaldırıldı: yirmi makinenin kataloğunu
+     listeliyordu ve servis makine satmıyor. Yerine hak ediş geldi —
+     servisin bu uygulamada en çok merak ettiği şey.
+
+     "Parça" sekmesi stok defteri tutuyordu; o da kaldırıldı, çünkü
+     rakam hiçbir zaman gerçeğe uymuyordu (gerekçe ekranlar/Parca.jsx
+     başında). Geriye ekranın işe yarayan tek parçası kaldı: sipariş.
+
+     Kalan üçü servisin gününü anlatıyor: bekleyen işleri, ısmarladığı
+     parçalar, alacağı para. */
   const sekmeler = [
     { id: 'isler', ad: 'İşlerim', Icon: IconWrench, rozet: bekleyen.length },
-    { id: 'urunler', ad: 'Ürünler', Icon: IconMachine },
     { id: 'parca', ad: 'Parça', Icon: IconParca },
+    { id: 'hakkedis', ad: 'Hak Ediş', Icon: IconTag },
   ]
 
   const BASLIK = {
     isler: { baslik: 'İşlerim', alt: oturum.ad },
-    urunler: { baslik: 'Ürünler', alt: 'Arıza, bakım ve makine bilgileri' },
-    parca: { baslik: 'Parça', alt: `Stokunuz ve ${MARKA} siparişleri` },
+    parca: { baslik: 'Parça', alt: `${MARKA} siparişleriniz` },
+    hakkedis: { baslik: 'Hak Ediş', alt: `${MARKA} ile hesabınız` },
   }
 
   return (
@@ -424,8 +425,8 @@ function Uygulama({ oturum, onCikis }) {
           onYeniKayit={() => setAlt('kayit')}
         />
       )}
-      {sekme === 'urunler' && <Urunler oturum={oturum} onAc={setUrun} />}
-      {sekme === 'parca' && <Stok oturum={oturum} />}
+      {sekme === 'parca' && <Parca oturum={oturum} onAc={setAcik} />}
+      {sekme === 'hakkedis' && <Hakkedis oturum={oturum} onAc={setAcik} />}
     </Kabuk>
   )
 }

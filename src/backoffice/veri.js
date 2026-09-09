@@ -9,8 +9,10 @@
 import { load, save, uid } from '../lib/storage'
 import { sifreHazirla, sifreDogruMu, sifreGecerliMi } from '../lib/hesap'
 import { yeniNo } from '../lib/numara'
-import { SIRKET, MARKA, markaEk } from '../marka'
+import { talepNo } from '../lib/talep'
+import { SIRKET, MARKA, markaEk, PARA_BIRIMI } from '../marka'
 import { urun } from '../lib/urun'
+import { kaydiDogrula, kaydiCozume, kapininSonucu } from '../lib/servisKaydi.js'
 import { servisleriGetir } from '../marka'
 import { icerikListe, icerikTazele } from '../lib/icerikDeposu.js'
 import { altBilgi } from '../data/duyuruTurleri.js'
@@ -41,6 +43,10 @@ export const ANAHTAR = {
      e-posta yok, akış telefonla yürüyor. */
   servisSifreTalep: 'servisSifreTalep',
   destekLog: 'destekLog',
+
+  /* Servisin PAKSAN'daki cari hesap hareketleri. Hak ediş onaylandıkça
+     alacak, ödeme yapıldıkça borç yazılıyor. */
+  cari: 'cariHareket',
 
   /* Demo kayıtları uygulamanın kendi kayıtlarından ayrı duruyor:
      backoffice’te görünüyor ama müşterinin telefonuna karışmıyor. */
@@ -78,10 +84,38 @@ export function izinli(rol, is) {
   return (rolBilgi(rol).izinler || []).includes(is)
 }
 
-/** Rolün göreceği talepler; talep türü seçilmemişse hepsi. */
+/* ==========================================================================
+   Rolün göreceği talepler
+
+   İki kapı var ve ikisi de gerekli:
+
+     1. KENDİ TÜRÜ — servis rolü servis taleplerini, yedek parça rolü
+        parça taleplerini görüyor. Talep türü seçilmemiş rol (admin,
+        yönetici) hepsini görüyor.
+
+     2. MASASINDA BEKLEYEN — türü başka olsa bile şu an o masanın
+        önünde duran talep.
+
+   İKİNCİ KAPI NEDEN VAR
+
+   Servis sahada iş bitirip garanti dışı bir parça istediğinde, o
+   parçayı hazırlayacak kişi yedek parça personeli. Ama talebin türü
+   `servis`; birinci kapı onu yedek parçaya hiç göstermezdi.
+
+   Alternatifi aynı iş için ikinci bir talep açmaktı — yani bir işin
+   listede iki satır olması. Tam da kaçınılan şey o: talebi bölmek
+   yerine, talebi bekleyen masaya gösteriyoruz. İş tek, satır tek,
+   kimin sırası olduğu `masa` alanında yazılı.
+
+   `masa` alanı rolün `talepTuru` ile AYNI SÖZLÜĞÜ kullanıyor
+   ('servis' | 'parca'). Böylece yönlendirme tek karşılaştırma
+   kalıyor ve üçüncü bir eşleme tablosu doğmuyor.                    */
+
+/** Rolün göreceği talepler: kendi türü + şu an masasında bekleyenler. */
 export function rolunTalepleri(liste, rol) {
   const tur = rolBilgi(rol).talepTuru
-  return tur ? liste.filter((t) => t.tur === tur) : liste
+  if (!tur) return liste
+  return liste.filter((t) => t.tur === tur || t.masa === tur)
 }
 
 /* -------------------------------------------------- Rol listesini yazmak
@@ -552,6 +586,24 @@ export const DURUMLAR = [
      `talep.bayi` dolu, `sahip: 'bayi'`, listede "Bayide · <bayi adı>"
      yazıyor ve Sahiplik süzgecinde kendi seçeneği var. Bilgi
      kaybolmuyor, yalnız iki yerde birden durmuyor. */
+  /* SERVİS KAYDININ ÜRETTİĞİ İKİ AŞAMA.
+
+     Servis sahada işi bitirip kaydı gönderdiğinde talep kapanmıyor:
+     PAKSAN'da yapılacak bir iş kalıyor ve o iş bu iki durumda
+     görünüyor (bkz. lib/servisKaydi.js → kapininSonucu).
+
+       onayBekliyor    garanti kaydı PAKSAN servis personelinin
+                       onayında. Yol, işçilik ve parçalar inceleniyor;
+                       onaylanınca servisin cari hesabına alacak
+                       yazılıyor.
+       parcaBekliyor   parça hazırlanıyor ya da yolda. Servis parçayı
+                       takınca talebi kendisi kapatıyor.
+
+     İkisi de AÇIK durum: PAKSAN'ın kuyruğunda bekliyorlar ve gecikme
+     ünlemi alıyorlar. Kapalı sayılsalardı iki tarafın da unuttuğu
+     işler olurdu. */
+  { id: 'onayBekliyor', ad: 'Onay Bekliyor', ton: 'mor' },
+  { id: 'parcaBekliyor', ad: 'Parça Bekleniyor', ton: 'turuncu' },
   { id: 'kapandi', ad: 'Kapandı', ton: 'yesil' },
   { id: 'iptal', ad: 'İptal', ton: 'gri' },
 ]
@@ -575,11 +627,21 @@ export function durumBilgi(id) {
    verilip müşterinin cevabının beklendiği uzun bir aşama var; o aşama
    "Teklif Verildi". Yedek parçada kargoya verme ayrı bir aşama değil,
    kapanışın kendisi. */
+/* ONAY BEKLİYOR ve PARÇA BEKLENİYOR bu listede yok — bilerek.
+
+   İkisini de servisin gönderdiği kayıt doğuruyor, personel elle
+   seçmiyor (bkz. servisKaydiGonder, hakkedisOnayla). Açılır listede
+   dursalardı personel "onay bekliyor" seçip kaydı hiç görmeden talebi
+   bekletebilirdi; durum ile arkasındaki kayıt birbirinden kopardı.
+   Rozette ve süzgeçte görünüyorlar, elle seçilemiyorlar. */
+const ELLE_SECILMEZ = ['onayBekliyor', 'parcaBekliyor']
+
 export function talepDurumlari(tur) {
+  const liste = DURUMLAR.filter((d) => !ELLE_SECILMEZ.includes(d.id))
   if (tur === 'satinalma') {
-    return DURUMLAR.filter((d) => d.id !== 'planlandi')
+    return liste.filter((d) => d.id !== 'planlandi')
   }
-  return DURUMLAR.filter((d) => d.id !== 'teklif')
+  return liste.filter((d) => d.id !== 'teklif')
 }
 
 export const TALEP_ADI = {
@@ -1410,6 +1472,314 @@ export function destekTalepEt(talep, neden, servisAd) {
   })
   /* Müşteriye bildirim gitmiyor: onun açısından değişen bir şey yok,
      muhatabı hâlâ servis. */
+}
+
+/* ==========================================================================
+   SERVİS KAYDI AKIŞI
+
+   Servis sahada işi bitirip kaydı gönderiyor; kayıt talebin üstüne
+   yazılıyor ve talep içeriğine göre doğru masaya düşüyor. Kapıların
+   gerekçesi lib/servisKaydi.js başında.
+
+   BURADA YAZAN, ORADA HESAPLAYAN. `lib/servisKaydi.js` saf: doğruluyor
+   ve hesaplıyor, hiçbir şeye yazmıyor. Depoya yazan tek yer burası —
+   `talepYaz` bu dosyaya özel ve öyle kalmalı.
+   ========================================================================== */
+
+/** Servis sahadaki işi bitirdi, kaydı gönderiyor. */
+export function servisKaydiGonder(talep, kayit, servisAd) {
+  const hata = kaydiDogrula(kayit)
+  if (hata) return { hata }
+
+  const { cozum, hakkedis, parcalar } = kaydiCozume(kayit)
+  const sonuc = kapininSonucu(kayit)
+  const simdi = Date.now()
+
+  const yama = {
+    status: sonuc.durum,
+    masa: sonuc.masa,
+    /* Kayıt talebin üstünde duruyor; `cozum` eskisi gibi korunuyor
+       çünkü müşteri uygulaması ve raporlar onu okuyor. */
+    servisKaydi: { ...kayit, parcalar, tarih: simdi, servisAd },
+    cozum: { ...cozum, tarih: simdi, personel: servisAd },
+    gecmis: [...(talep.gecmis || []), { durum: sonuc.durum, tarih: simdi, personel: servisAd }],
+  }
+
+  /* SERVİSİN DOLDURDUĞU EKSİK, TALEBİN KENDİSİNE DE İŞLENİYOR.
+
+     Müşteri telefonla aradıysa talebin adı, telefonu, adresi ve
+     makinesi boş açılıyor; o bilgiler ilk kez servis kaydında
+     öğreniliyor. Yalnız kayıtta kalsalardı backoffice'in müşteri
+     listesi, arama ve Excel çıktısı boş satırı görmeye devam
+     ederdi. DOLU ALANIN ÜSTÜNE YAZILMIYOR: müşterinin kendi girdiği
+     bilgi, servisin sahada duyduğundan önce gelir. */
+  if (!talep.ad?.trim() && kayit.musteri?.ad) yama.ad = kayit.musteri.ad
+  if (!talep.tel && kayit.musteri?.tel) {
+    yama.tel = kayit.musteri.tel
+    yama.telHam = kayit.musteri.tel.replace(/\D/g, '')
+  }
+  if (!talep.adres && kayit.musteri?.adres) yama.adres = kayit.musteri.adres
+  if (!talep.makine?.serial && kayit.makine?.serial) {
+    yama.makine = { ...(talep.makine || {}), ...kayit.makine }
+  }
+  if (!talep.aciklama?.trim() && kayit.ariza) yama.aciklama = kayit.ariza
+
+  /* Hak ediş yalnız garanti kapısında doğuyor; garanti dışı işin
+     parasını müşteri servise ödüyor, PAKSAN'ı ilgilendirmiyor. */
+  if (kayit.kapi === 'garanti') {
+    yama.hakkedis = { ...hakkedis, durum: 'bekliyor', olusma: simdi }
+  }
+
+  talepYaz(talep.id, yama)
+  islemYaz({
+    tur: 'servisKaydi',
+    ozet: `${talep.no} · ${servisAd} servis kaydını gönderdi · ${cozum.ozet}`,
+    personel: servisAd,
+    rol: 'servis',
+  })
+
+  if (sonuc.durum === 'kapandi') {
+    musteriyeBildir({
+      tur: 'talep',
+      baslikAnahtar: 'bildirimler.durumBaslik',
+      metinAnahtar: 'bildirimler.durum_kapandi',
+      degerler: { no: talep.no, durum: 'kapandi', talepTur: talep.tur },
+      talepNo: talep.no,
+    })
+  }
+  return { kayit: yama.servisKaydi, hakkedis: yama.hakkedis || null }
+}
+
+/* PAKSAN personeli servisin girdiği rakamı düzeltiyor.
+
+   DÜZELTME GİZLİ DEĞİL. Servis uygulamasında "siz şunu yazdınız,
+   PAKSAN şuna çevirdi" satırı ve gerekçesi duruyor. Para konusunda
+   sessiz değişiklik güveni bitirir; ayrıca servis neyi yanlış
+   girdiğini ancak böyle öğreniyor. */
+export function hakkedisDuzelt(talep, yeniKayit, neden, personel) {
+  const hata = kaydiDogrula(yeniKayit)
+  if (hata) return { hata }
+  if (!neden?.trim()) return { hata: 'Düzeltme gerekçesini yazın.' }
+
+  const onceki = talep.servisKaydi || {}
+  const { cozum, hakkedis, parcalar } = kaydiCozume(yeniKayit)
+  const simdi = Date.now()
+
+  const kayit = {
+    ...onceki,
+    ...yeniKayit,
+    parcalar,
+    duzeltmeler: [
+      ...(onceki.duzeltmeler || []),
+      {
+        tarih: simdi,
+        personel,
+        neden: neden.trim(),
+        onceki: { km: onceki.km, iscilik: onceki.iscilik, parcalar: onceki.parcalar },
+        yeni: { km: yeniKayit.km, iscilik: yeniKayit.iscilik, parcalar },
+      },
+    ],
+  }
+
+  talepYaz(talep.id, {
+    servisKaydi: kayit,
+    cozum: { ...(talep.cozum || {}), ...cozum },
+    hakkedis: { ...(talep.hakkedis || {}), ...hakkedis, durum: 'bekliyor' },
+  })
+  islemYaz({
+    tur: 'hakkedis',
+    ozet: `${talep.no} · servis kaydı düzeltildi · ${neden.trim()}`,
+    personel,
+  })
+  return { kayit }
+}
+
+/* Hak edişi onaylıyor: servisin cari hesabına alacak yazılıyor.
+
+   Parça istendiyse talep KAPANMIYOR — parça yola çıkacak, servis
+   takacak, sonra kendisi kapatacak. Talebin açık kalması kasıtlı:
+   parçanın nerede olduğu o talebin üstünde görünüyor. */
+export function hakkedisOnayla(talep, personel) {
+  if (talep.status !== 'onayBekliyor') return { hata: 'Bu talep onay beklemiyor.' }
+
+  const kayit = talep.servisKaydi || {}
+  const hakkedis = { ...(talep.hakkedis || {}), durum: 'onaylandi', onay: { personel, tarih: Date.now() } }
+  const parcaVar = (kayit.parcalar || []).length > 0
+  const durum = parcaVar ? 'parcaBekliyor' : 'kapandi'
+  const masa = parcaVar ? 'parca' : null
+
+  talepYaz(talep.id, {
+    hakkedis,
+    status: durum,
+    masa,
+    gecmis: [...(talep.gecmis || []), { durum, tarih: Date.now(), personel }],
+  })
+
+  if (hakkedis.toplam > 0) {
+    cariHareketEkle({
+      servisId: talep.servis?.id,
+      servisAd: talep.servis?.ad,
+      tur: 'alacak',
+      tutar: hakkedis.toplam,
+      aciklama: `${talep.no} · hak ediş`,
+      talepNo: talep.no,
+      personel,
+    })
+  }
+
+  islemYaz({
+    tur: 'hakkedis',
+    ozet: `${talep.no} · hak ediş onaylandı · ${hakkedis.toplam} ${PARA_BIRIMI}`,
+    personel,
+  })
+  return { hakkedis, durum }
+}
+
+/** Hak edişi reddeder; gerekçe servise görünüyor. */
+export function hakkedisReddet(talep, neden, personel) {
+  if (!neden?.trim()) return { hata: 'Red gerekçesini yazın.' }
+  talepYaz(talep.id, {
+    hakkedis: {
+      ...(talep.hakkedis || {}),
+      durum: 'reddedildi',
+      red: { personel, tarih: Date.now(), neden: neden.trim() },
+    },
+    status: 'kapandi',
+    masa: null,
+    gecmis: [...(talep.gecmis || []), { durum: 'kapandi', tarih: Date.now(), personel }],
+  })
+  islemYaz({ tur: 'hakkedis', ozet: `${talep.no} · hak ediş reddedildi · ${neden.trim()}`, personel })
+  return { tamam: true }
+}
+
+/** Yedek parça personeli parçayı kargoya verdi. */
+export function servisParcasiGonderildi(talep, kargo, personel) {
+  const simdi = Date.now()
+  talepYaz(talep.id, {
+    /* Masa boşalıyor: sıra artık serviste — parçayı takıp talebi
+       kapatacak. Durum açık kalıyor ki iki taraf da unutmasın. */
+    masa: null,
+    parcaSevk: { ...kargo, tarih: simdi, personel },
+    gecmis: [...(talep.gecmis || []), { durum: 'parcaBekliyor', tarih: simdi, personel }],
+  })
+  islemYaz({
+    tur: 'sevk',
+    ozet: `${talep.no} · parça gönderildi${kargo?.takipNo ? ' · ' + (kargo.firma || 'kargo') + ' ' + kargo.takipNo : ''}`,
+    personel,
+  })
+  return { tamam: true }
+}
+
+/* ==========================================================================
+   Servisin kendi parça siparişi
+
+   AYRI BİR SİPARİŞ DEFTERİ YOK.
+
+   Bir dönem vardı (`servisSiparis` + backoffice'te Servis Siparişleri
+   ekranı) ve kaldırıldı: yedek parça personeli günü Talepler ekranında
+   geçiriyor, servisin siparişi oraya hiç düşmüyordu. Her yeni iş türü
+   için yeni bir ekran açmak, sonunda hiçbir ekranın tam resmi
+   göstermemesi demek.
+
+   Servisin siparişi artık NORMAL BİR YEDEK PARÇA TALEBİ. Aynı listede,
+   aynı durumlarda, aynı kapanış formuyla. Tek farkı `servisSiparisi`
+   işareti: müşterisi yok, müşterisi servisin kendisi.
+   ========================================================================== */
+export function servisParcaSiparisi({
+  servisId,
+  servisAd,
+  servisNo,
+  servisTel,
+  il,
+  ilce,
+  kalemler,
+  not,
+  teslimat,
+  istenenTarih,
+  tutar,
+}) {
+  const temiz = (kalemler || []).filter((k) => Number(k.adet) > 0)
+  if (!temiz.length) return { hata: 'En az bir parça seçin.' }
+
+  const simdi = Date.now()
+  const talep = {
+    id: uid(),
+    no: talepNo('parca'),
+    createdAt: simdi,
+    status: 'yeni',
+    tur: 'parca',
+    /* Müşteri alanına servisin kendisi yazılıyor: talebi açan o,
+       parça ona gidecek, telefonu aranacak numara. */
+    ad: servisAd,
+    tel: servisTel || '',
+    telHam: String(servisTel || '').replace(/\D/g, ''),
+    il: il || '',
+    ilce: ilce || '',
+    ulke: 'TR',
+    ihracat: false,
+    musteriId: null,
+    aciklama: (not || '').trim(),
+    parcalar: temiz.map((k) => k.ad),
+    parcaAdet: Object.fromEntries(temiz.map((k) => [k.ad, Number(k.adet)])),
+    fatura: { ad: servisAd, adres: (teslimat || '').trim() },
+    istenenTarih: istenenTarih || null,
+    /* Sipariş anındaki tutar kaydediliyor: fiyat listesi sonradan
+       değişince "bu siparişi hangi fiyattan verdim" sorusunun cevabı
+       kalsın. */
+    tutar: Number(tutar) || 0,
+    servisSiparisi: true,
+    sahip: 'paksan',
+    masa: 'parca',
+    servis: { id: servisId, ad: servisAd, no: servisNo, tarih: simdi },
+    gecmis: [{ durum: 'yeni', tarih: simdi, personel: servisAd }],
+  }
+
+  save(ANAHTAR.talepler, [talep, ...load(ANAHTAR.talepler, [])])
+  islemYaz({
+    tur: 'talep',
+    ozet: `${talep.no} · servis parça siparişi · ${servisAd} · ${temiz.length} kalem`,
+    personel: servisAd,
+  })
+  return { talep }
+}
+
+/** Servisin kendi siparişleri; müşteri işlerinden ayrı listeleniyor. */
+export function servisinSiparisleri(liste, servisId) {
+  return liste.filter((t) => t.servisSiparisi && t.servis?.id === servisId)
+}
+
+/* ==========================================================================
+   Cari hesap
+
+   Servisin PAKSAN'daki bakiyesi. Hak ediş onaylandığında alacak,
+   ödeme yapıldığında borç yazılıyor.
+
+   TEK DEFTER. Servisin uygulamasındaki bakiye ile backoffice'in
+   gördüğü bakiye aynı kayıttan okunuyor; paralel bir depo açmak iki
+   tarafın birbirini görmemesi demekti.
+
+   BUGÜNKÜ SINIR: her şey `localStorage`. Servisin telefonundaki
+   bakiye PAKSAN'ın ekranına ulaşmıyor. Defterin biçimi doğru;
+   sunucu geldiğinde yalnız okuma-yazma katmanı değişecek.
+   ========================================================================== */
+
+export function cariHareketleri(servisId) {
+  const hepsi = load(ANAHTAR.cari, [])
+  return servisId ? hepsi.filter((h) => h.servisId === servisId) : hepsi
+}
+
+export function cariHareketEkle(hareket) {
+  const kayit = { id: uid(), tarih: Date.now(), ...hareket }
+  save(ANAHTAR.cari, [kayit, ...load(ANAHTAR.cari, [])])
+  return kayit
+}
+
+/** Servisin bakiyesi: alacak eksi ödenen. Artı değer PAKSAN'ın borcu. */
+export function cariBakiye(servisId) {
+  return cariHareketleri(servisId).reduce(
+    (t, h) => t + (h.tur === 'alacak' ? h.tutar : -h.tutar),
+    0,
+  )
 }
 
 /* ------------------------------------------------------------- Servis girişi

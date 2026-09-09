@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
-import { siparisAc } from '../../lib/servisSiparis'
-import { islemYaz } from '../../backoffice/veri'
+import { servisParcaSiparisi } from '../../backoffice/veri'
 import { servisleriGetir, MARKA, markaEk } from '../../marka'
 import { KDV_ORANI, PARA_BIRIMI, PARCA_FIYAT, paraYaz } from '../../marka'
 import { parcaServisFiyati } from '../../lib/servisFiyat'
@@ -42,6 +41,14 @@ import {
 
    TUTAR BAĞLAYICI DEĞİL ve bu ekranda yazıyor. Fiyat listesi
    göstergedir; siparişi PAKSAN onaylıyor, fatura LOGO'dan çıkıyor.
+
+   SİPARİŞ AYRI BİR DEFTERE DEĞİL, TALEPLER'E DÜŞÜYOR
+
+   Önce kendi deposu ve backoffice'te kendi ekranı vardı. Kaldırıldı:
+   yedek parça personeli gününü Talepler ekranında geçiriyor ve
+   servisin siparişi oraya hiç düşmüyordu. Artık sipariş normal bir
+   yedek parça talebi — aynı liste, aynı durumlar, aynı kapanış
+   (bkz. backoffice/veri.js → servisParcaSiparisi).
    ========================================================================== */
 
 export function SiparisVer({ oturum, onKapat, onVerildi }) {
@@ -112,10 +119,13 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
   function gonder() {
     if (!teslimat.trim()) return setHata('Teslim adresini yazın.')
 
-    const sonuc = siparisAc({
+    const sonuc = servisParcaSiparisi({
       servisId: oturum.servisId,
       servisAd: oturum.ad,
       servisNo: oturum.no,
+      servisTel: servis?.tel || '',
+      il: servis?.il || '',
+      ilce: servis?.ilce || '',
       kalemler: secili,
       not,
       teslimat,
@@ -124,13 +134,7 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
     })
     if (sonuc.hata) return setHata(sonuc.hata)
 
-    const adet = secili.reduce((t, k) => t + k.adet, 0)
-    islemYaz({
-      tur: 'siparis',
-      ozet: `${sonuc.siparis.no} · sipariş verildi · ${secili.length} kalem, ${adet} adet · ${paraYaz(hesap.araToplam)} ${PARA_BIRIMI}`,
-      personel: oturum.ad,
-    })
-    setSiparis(sonuc.siparis)
+    setSiparis(sonuc.talep)
     setAdim('sonuc')
   }
 
@@ -443,7 +447,7 @@ function Onay({
 /* -------------------------------------------------------------- 3. Sonuç */
 
 function Sonuc({ siparis, hesap, onBitir }) {
-  const adet = siparis.kalemler.reduce((t, k) => t + Number(k.adet), 0)
+  const adet = Object.values(siparis.parcaAdet || {}).reduce((t, n) => t + Number(n), 0)
 
   return (
     <div className="siparis-sonuc">
@@ -451,7 +455,7 @@ function Sonuc({ siparis, hesap, onBitir }) {
       <h2>Siparişiniz {markaEk('a')} İletildi</h2>
       <p className="mono siparis-sonuc__no">{siparis.no}</p>
       <p className="kucuk sonuk">
-        {siparis.kalemler.length} kalem · {adet} adet ·{' '}
+        {(siparis.parcalar || []).length} kalem · {adet} adet ·{' '}
         {paraYaz(hesap.araToplam)} {PARA_BIRIMI} (KDV hariç)
       </p>
       <p className="kucuk sonuk">

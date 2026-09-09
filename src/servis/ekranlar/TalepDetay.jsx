@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import {
   parcaIlerlemeEngeli,
+  talepDurumDegistir,
   talepKapat,
   talepNotEkle,
   talepPlanla,
 } from '../../backoffice/veri'
-import { parcaAdedi, stokDus } from '../../lib/servisStok'
+import { KAPI, parcaYazisi } from '../../lib/servisKaydi'
 import { makineDurumAdi } from '../../data/talepAlanlari'
 import { getProduct, MARKA, markaEk } from '../../marka'
 import { PARA_BIRIMI, paraYaz } from '../../marka'
@@ -74,14 +75,17 @@ export function TalepDetay({
   talep,
   oturum,
   servisAd,
-  servisId,
   onKapat,
   onDestekIste,
 }) {
   const [pencere, setPencere] = useState(null)
   const paksanda = (talep.sahip || 'paksan') === 'paksan'
   const kapali = ['kapandi', 'iptal'].includes(talep.status)
-  const islemVar = !kapali && !paksanda
+  /* Servis kaydının doğurduğu iki bekleme. İkisi de AÇIK talep: iş
+     bitmedi, sıra karşı tarafta (bkz. lib/servisKaydi.js). */
+  const onayda = talep.status === 'onayBekliyor'
+  const parcada = talep.status === 'parcaBekliyor'
+  const islemVar = !kapali && !paksanda && !onayda && !parcada
   /* Yalnız müşteriye gönderilmiş notlar; iç notlar servise gitmiyor. */
   const musteriNotlari = (talep.notlar || []).filter((n) => n.musteriye)
 
@@ -126,18 +130,36 @@ export function TalepDetay({
      servisin kapattığı işi kendi ekranlarında okuyor. */
   const KAPANIS = {
     parca: { pencere: 'gonderdim', ad: 'Parçayı Gönderdim' },
-    servis: { pencere: 'kapanis', ad: 'İşi Tamamla' },
+    servis: { pencere: 'kapanis', ad: 'Servis Kaydını Aç' },
   }
   const kapanis = KAPANIS[talep.tur] || KAPANIS.servis
 
-  const asilIslem = islemVar && (
+  /* PARÇA BEKLEYEN İŞİ SERVİS KAPATIYOR — PAKSAN DEĞİL.
+
+     Parça yola çıktığında PAKSAN'ın işi bitiyor ama iş bitmiyor:
+     parçanın takılması gerekiyor ve onu yalnız serviste olan biri
+     bilebilir. Talep bu yüzden açık kalıyor ve kapatma düğmesi
+     burada duruyor. */
+  const asilIslem = parcada ? (
     <button
       className="dg dg--ana dg--blok"
-      onClick={() => setPencere(kapanis.pencere)}
-      disabled={Boolean(odemeEngeli)}
+      onClick={() => {
+        talepDurumDegistir(talep, 'kapandi', servisAd)
+        onKapat()
+      }}
     >
-      {kapanis.ad}
+      Parçayı Taktım, İşi Kapat
     </button>
+  ) : (
+    islemVar && (
+      <button
+        className="dg dg--ana dg--blok"
+        onClick={() => setPencere(kapanis.pencere)}
+        disabled={Boolean(odemeEngeli)}
+      >
+        {kapanis.ad}
+      </button>
+    )
   )
 
   return (
@@ -207,7 +229,7 @@ export function TalepDetay({
           <Satir ad="Belirtiler" deger={talep.belirtiler.join(', ')} />
         )}
         {talep.parcalar?.length > 0 && (
-          <ParcaDurumu talep={talep} servisId={servisId} />
+          <ParcaDurumu talep={talep} />
         )}
         {/* TESLİMAT ADRESİ BAYİDE GÖRÜNMÜYORDU.
 
@@ -360,6 +382,48 @@ export function TalepDetay({
         </div>
       )}
 
+      {onayda && (
+        <div className="not not--mavi">
+          <IconShield size={19} />
+          <div>
+            <strong>Kaydınız {markaEk('da')} onay bekliyor.</strong>
+            <p>
+              Yol, işçilik ve parçalar inceleniyor. Onaylandığında tutar
+              cari hesabınıza alacak yazılacak.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* PARÇANIN NEREDE OLDUĞU TALEBİN ÜSTÜNDE.
+
+          Parça isteği ayrı bir kayda çıkmıyor; aynı talebin içinde
+          yürüyor. Servis tek yere bakıyor: parça hazırlanıyor mu,
+          yola çıktı mı, takip numarası ne. */}
+      {parcada && (
+        <div className={'not ' + (talep.parcaSevk ? 'not--yesil' : 'not--turuncu')}>
+          <IconAlert size={19} />
+          <div>
+            <strong>
+              {talep.parcaSevk ? 'Parça yola çıktı.' : 'Parça hazırlanıyor.'}
+            </strong>
+            <p>
+              {talep.parcaSevk
+                ? [
+                    talep.parcaSevk.firma,
+                    talep.parcaSevk.takipNo,
+                    gecenSure(talep.parcaSevk.tarih),
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')
+                : `${MARKA} parçayı hazırlıyor. Kargoya verildiğinde takip numarası burada görünecek.`}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {talep.servisKaydi && <ServisKaydi talep={talep} />}
+
       {kapali && (
         <div className="not not--yesil">
           <IconCheckCircle size={19} />
@@ -419,7 +483,6 @@ export function TalepDetay({
         <Kapanis
           talep={talep}
           servisAd={servisAd}
-          servisId={servisId}
           onKapat={() => setPencere(null)}
           onBitti={onKapat}
         />
@@ -487,33 +550,102 @@ function Makine({ makine }) {
   )
 }
 
-/* İstenen parçaların yanında servisin kendi stoku.
+/* ==========================================================================
+   Servisin kendi kaydı
 
-   Sayı bir BİLGİ, kilit değil: stok sıfır olsa da "Parçayı gönderdim"
-   düğmesi açık kalıyor. Servisi kendi stok kaydının doğruluğuna
-   hapsetmek, ilk yanlış sayımda paneli kullanılmaz yapardı.
+   Servis gönderdikten sonra ne yazdığını görebiliyor. Bir hafta sonra
+   "ben kaç kilometre yazmıştım" sorusunun cevabı burada.
 
-   "Girilmedi" ile "0" ayrı yazılıyor: biri "ben bu parçayı takip
-   etmiyorum", diğeri "bende yok". */
-function ParcaDurumu({ talep, servisId }) {
+   PAKSAN'IN DÜZELTMESİ GİZLENMİYOR
+
+   Onaylayan personel yolu ya da işçiliği değiştirebiliyor. Bu
+   değişiklik servise "siz şunu yazdınız, PAKSAN şuna çevirdi" diye
+   GEREKÇESİYLE gösteriliyor. Sessiz değişiklik para konusunda güveni
+   bitirir; ayrıca servis neyi yanlış girdiğini ancak böyle öğrenir.
+   ========================================================================== */
+function ServisKaydi({ talep }) {
+  const k = talep.servisKaydi
+  const h = talep.hakkedis
+  const duzeltmeler = k.duzeltmeler || []
+
+  const DURUM = {
+    bekliyor: { ton: 'mavi', ad: 'Onay bekliyor' },
+    onaylandi: { ton: 'yesil', ad: 'Onaylandı' },
+    reddedildi: { ton: 'turuncu', ad: 'Kabul edilmedi' },
+  }
+  const durum = h ? DURUM[h.durum] || DURUM.bekliyor : null
+
+  return (
+    <div className="kart" style={{ padding: 16 }}>
+      <div className="kucuk sonuk" style={{ marginBottom: 10 }}>
+        Servis Kaydınız · {gecenSure(k.tarih)}
+      </div>
+
+      <Satir ad="Garanti Durumu" deger={KAPI[k.kapi]} />
+      <Satir ad="Yapılan İş" deger={k.yapilanIs} />
+      <Satir ad="Sonuç" deger={k.sonuc} />
+      <Satir ad="Değişen Parça" deger={parcaYazisi(k.parcalar)} />
+      <Satir ad="Parçanın Durumu" deger={k.parcaDurumu} />
+      <Satir ad="Gidilen Yol" deger={k.km ? k.km + ' km' : ''} />
+      <Satir
+        ad="İşçilik"
+        deger={k.iscilik ? paraYaz(k.iscilik) + ' ' + PARA_BIRIMI : ''}
+      />
+
+      {h && (
+        <>
+          <Satir
+            ad="Hak Ediş"
+            deger={paraYaz(h.toplam) + ' ' + PARA_BIRIMI}
+          />
+          <div className={'not not--' + durum.ton} style={{ marginTop: 12 }}>
+            <IconCheckCircle size={19} />
+            <div>
+              <strong>{durum.ad}</strong>
+              {h.red?.neden && <p>{h.red.neden}</p>}
+            </div>
+          </div>
+        </>
+      )}
+
+      {duzeltmeler.map((d, i) => (
+        <div key={i} className="not not--turuncu" style={{ marginTop: 12 }}>
+          <IconAlert size={19} />
+          <div>
+            <strong>{MARKA} kaydı düzeltti</strong>
+            <p>{d.neden}</p>
+            <p className="kucuk sonuk">
+              Yol {d.onceki.km || 0} km → {d.yeni.km || 0} km · İşçilik{' '}
+              {paraYaz(d.onceki.iscilik || 0)} → {paraYaz(d.yeni.iscilik || 0)}{' '}
+              {PARA_BIRIMI}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/* İstenen parçalar.
+
+   YANINDAKİ STOK SÜTUNU KALDIRILDI. Servisin elindeki parça sayısı
+   uygulamada tutuluyordu ve tutmuyordu: PAKSAN'ın gönderdiğiyle
+   servisin kendi eline geçen hiçbir zaman aynı rakam olmadı, servis
+   de kendi defterini burada tutmadı. Yanlış sayı, sayının hiç
+   olmamasından kötü — ekran ona bakıp karar veriyordu.
+
+   Geriye işin kendisi kaldı: hangi parça, kaç adet. */
+function ParcaDurumu({ talep }) {
   return (
     <div style={{ marginTop: 10 }}>
       <div className="kucuk sonuk">İstenen Parçalar</div>
       {talep.parcalar.map((ad) => {
-        const adet = parcaAdedi(servisId, ad)
         const istenen = Number(talep.parcaAdet?.[ad]) || 1
         return (
           <div key={ad} className="satir" style={{ gap: 8, alignItems: 'baseline' }}>
             <span>
               {ad}
               {istenen > 1 && <span className="kucuk sonuk"> × {istenen}</span>}
-            </span>
-            <span className="kucuk sonuk" style={{ marginLeft: 'auto' }}>
-              {adet === null
-                ? 'stok girilmedi'
-                : adet === 0
-                  ? 'stokta yok'
-                  : `stokta ${adet}`}
             </span>
           </div>
         )
@@ -613,9 +745,8 @@ function Randevu({ talep, servisAd, onKapat, onBitti }) {
 
 /* Yedek parça talebinin kapanışı. Servis işi bu pencereden çıktı;
    burada yapılan iş bir onarım değil, bir gönderim. */
-function Kapanis({ talep, servisAd, servisId, onKapat, onBitti }) {
+function Kapanis({ talep, servisAd, onKapat, onBitti }) {
   const [ozet, setOzet] = useState('')
-  const [dus, setDus] = useState(true)
   const [hata, setHata] = useState('')
 
   function kaydet() {
@@ -633,9 +764,6 @@ function Kapanis({ talep, servisAd, servisId, onKapat, onBitti }) {
        `ozet` işlem kaydının satırı. */
     const yazi = ozet.trim()
     talepKapat(talep, { yapilanIs: yazi, ozet: yazi }, servisAd)
-    if (dus) {
-      stokDus(servisId, talep.parcalar || [], talep.parcaAdet || {}, talep.no, servisAd)
-    }
     onBitti()
   }
 
@@ -650,12 +778,6 @@ function Kapanis({ talep, servisAd, servisId, onKapat, onBitti }) {
           onChange={(e) => setOzet(e.target.value)}
           placeholder="Örnek: 2 adet düğüm bıçağı kargoya verildi"
         />
-      </label>
-      {/* Varsayılan açık ama kaldırılabilir: servis stok tutmuyorsa ya da
-          parçayı başka yerden getirttiyse düşmemeli. */}
-      <label className="satir" style={{ gap: 8, alignItems: 'center' }}>
-        <input type="checkbox" checked={dus} onChange={(e) => setDus(e.target.checked)} />
-        <span className="kucuk">Stokumdan düş</span>
       </label>
       {hata && <div className="uyari">{hata}</div>}
       <div className="satir">

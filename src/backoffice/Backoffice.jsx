@@ -32,8 +32,6 @@ import { GeriBildirimler } from './ekranlar/GeriBildirimler'
 import { Servisler } from './ekranlar/Servisler'
 import { Bayiler } from './ekranlar/Bayiler'
 import { Makineler } from './ekranlar/Makineler'
-import { ServisSiparisleri } from './ekranlar/ServisSiparisleri'
-import { ACIK_DURUMLAR, siparisleriGetir } from '../lib/servisSiparis'
 import { IslemKaydi } from './ekranlar/IslemKaydi'
 
 /* PAKSAN Backoffice — uygulamanın arka ofisi.
@@ -74,13 +72,17 @@ const MENU = [
   /* Bayi ayrı bir ekran: kaydı var, paneli yok. Servisin çalıştığı
      bayiler Servisler ekranından bağlanıyor; burası künye. */
   { id: 'bayiler', ad: 'Bayiler', izin: 'servisler', Ikon: IconCart },
-  /* Servis stokunun tek artış yolu bu ekran: servis sipariş veriyor,
-     PAKSAN burada onaylayıp gönderiyor, gönderim işaretlenince stok
-     artıyor. */
-  {
-    id: 'siparisler', ad: 'Servis Siparişleri', izin: 'servisler',
-    sayac: 'siparis', Ikon: IconCart,
-  },
+  /* "SERVİS SİPARİŞLERİ" EKRANI KALDIRILDI.
+
+     Servisin PAKSAN'dan istediği parça kendi deposunda ve kendi
+     ekranında duruyordu. İki sonucu vardı: yedek parça personeli
+     gününü Talepler ekranında geçiriyor ve o siparişleri hiç
+     görmüyordu; ayrıca aynı iş iki ayrı yerde iki satır oluyordu.
+
+     Sipariş artık normal bir yedek parça talebi — aynı listede, aynı
+     durumlarda, aynı kapanışla (bkz. veri.js → servisParcaSiparisi).
+     Yeni iş türü için yeni ekran açmak, sonunda hiçbir ekranın tam
+     resmi göstermemesi demek. */
   {
     id: 'geribildirim', ad: 'Geri Bildirimler', izin: 'geribildirim',
     sayac: 'gorus', Ikon: IconMail,
@@ -135,8 +137,6 @@ export function Backoffice() {
       ).length,
       gorus: geriBildirimGetir().filter((g) => !g.okundu).length,
       numara: numaraTalepleriGetir().filter((t) => t.durum === 'bekliyor').length,
-      /* Servis bekliyor: siparişi karşılanmadan stoku artmıyor. */
-      siparis: siparisleriGetir().filter((s) => ACIK_DURUMLAR.includes(s.durum)).length,
     }
   }, [surum, oturum])
 
@@ -228,7 +228,6 @@ export function Backoffice() {
         {acik === 'makineler' && <Makineler {...ortak} />}
         {acik === 'servisler' && <Servisler {...ortak} />}
         {acik === 'bayiler' && <Bayiler {...ortak} />}
-        {acik === 'siparisler' && <ServisSiparisleri {...ortak} />}
         {acik === 'geribildirim' && <GeriBildirimler {...ortak} />}
         {acik === 'numara' && <NumaraTalepleri {...ortak} />}
         {acik === 'personel' && <Personel {...ortak} />}

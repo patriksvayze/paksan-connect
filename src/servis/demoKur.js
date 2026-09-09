@@ -26,7 +26,6 @@ import { load, save } from '../lib/storage'
 import { ANAHTAR, servisHesabiYaz, servisleriYaz } from '../backoffice/veri'
 import { servisleriGetir, talebinServisleri, MARKA } from '../marka'
 import { demoVarMi, demoYukle } from '../backoffice/demo'
-import { PARCA_FIYAT } from '../marka'
 import { DEMO_HESAP } from './demoKimlik'
 
 /** Hesabı açılan servis (bkz. src/marka/katalog/servisler.js). */
@@ -53,7 +52,6 @@ export async function demoKur() {
 
   talepleriDagit()
   await hesapAc()
-  stokYaz()
 }
 
 /* ---------------------------------------------------------- Talep dağıtımı */
@@ -159,20 +157,6 @@ async function hesapAc() {
   )
 }
 
-/* -------------------------------------------------------------------- Stok */
-
-/* Yalnız yedek parça. Servis makine stoklamıyor; makineyi satan
-   tarafın paneli yok. */
-const PARCA_ADET = [12, 8, 5, 3, 20, 2]
-
-function stokYaz() {
-  const parca = {}
-  Object.keys(PARCA_FIYAT)
-    .slice(0, PARCA_ADET.length)
-    .forEach((ad, i) => {
-      parca[ad] = PARCA_ADET[i]
-    })
-
-  save('servisStok', { ...load('servisStok', {}), [DEMO_SERVIS]: { parca, makine: {} } })
-}
+/* STOK DEMOSU KALDIRILDI. Servisin elindeki parça sayısı artık
+   tutulmuyor; gerekçesi ekranlar/Parca.jsx başında. */
 

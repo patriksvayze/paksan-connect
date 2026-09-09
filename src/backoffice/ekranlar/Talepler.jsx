@@ -7,7 +7,9 @@ import {
   talepDurumlari, talepIptal, talepKapat, talepleriGetir,
   talepNotEkle, talepPlanla, talepTeklifVer, teklifBeklemeGunu, teklifBekliyorMu,
   TEKLIF_BEKLEME_GUN, talebiBayiyeAta, bayiAtamasiniKaldir,
+  hakkedisOnayla, hakkedisDuzelt, hakkedisReddet, servisParcasiGonderildi,
 } from '../veri'
+import { KAPI, parcaYazisi as kayitParcaYazisi, temizParcalar } from '../../lib/servisKaydi'
 import { useVeri } from '../kanca'
 import {
   Baslik, Bekleme, Bos, DurumRozet, saatYaz, siraliListe, SiraliBaslik,
@@ -383,7 +385,7 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
                             <div className="kucuk sonuk mono">{formatSerial(t.makine.serial)}</div>
                           )}
                         </td>
-                        <td className="kucuk mono">{t.tel || '—'}</td>
+                        <td className="kucuk mono">{telFirma(t.tel) || '—'}</td>
                         {/* "3 saat önce" yerine tarih ve saat.
 
                             Göreli süre okunması kolay ama iş görmüyor:
@@ -929,7 +931,29 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
           </Bolum>
         )}
 
-        {talep.cozum && (
+        {talep.servisKaydi && (
+          <ServisKaydiBolumu
+            talep={talep}
+            rol={rol}
+            onDuzelt={() => setForm('hakkedisDuzelt')}
+            onOnayla={() => setForm('hakkedisOnay')}
+            onReddet={() => setForm('hakkedisRed')}
+            onSevk={() => setForm('parcaSevk')}
+          />
+        )}
+
+        {/* SERVİS KAYDI VARSA KAPANIŞ BLOĞU GÖSTERİLMİYOR.
+
+            İkisi aynı işi anlatıyor: `cozum` servis kaydından
+            türetiliyor (bkz. lib/servisKaydi.js → kaydiCozume) ve
+            kaydın taşıdığından azını taşıyor. Yan yana durduklarında
+            personel aynı üç satırı iki kez okuyor ve hangisinin
+            geçerli olduğunu soruyor.
+
+            `cozum` YİNE YAZILIYOR: müşteri uygulaması, Excel çıktısı
+            ve raporlar onu okuyor. Yalnız bu ekranda ikinci kez
+            çizilmiyor. */}
+        {talep.cozum && !talep.servisKaydi && (
           <Bolum ad={talep.tur === 'satinalma' ? 'Teklif sonucu' : 'Yapılan iş'}>
             {(KAPANIS_ALANLARI[talep.tur] || KAPANIS_ALANLARI.servis).map((a) =>
               a.uzun ? (
@@ -1099,6 +1123,72 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
               setForm(null)
               tazele()
               bildir(`${talep.no} iptal edildi · sebep müşteriye gitti`)
+            }}
+          />
+        )}
+
+        {form === 'hakkedisOnay' && (
+          <Onay
+            baslik="Hak edişi onayla"
+            metin={
+              `${talep.no} · ${talep.servis?.ad || 'servis'} için ` +
+              `${paraYaz(talep.hakkedis?.toplam || 0)} ${PARA_BIRIMI} alacak yazılacak.` +
+              ((talep.servisKaydi?.parcalar || []).length
+                ? '\n\nKayıtta parça isteği var: talep kapanmayacak, yedek parçaya geçecek.'
+                : '\n\nParça isteği yok: talep kapanacak.')
+            }
+            onVazgec={() => setForm(null)}
+            onOnayla={() => {
+              const sonuc = hakkedisOnayla(talep, personel)
+              setForm(null)
+              if (sonuc.hata) return bildir(sonuc.hata)
+              tazele()
+              bildir(
+                sonuc.durum === 'parcaBekliyor'
+                  ? `${talep.no} onaylandı · parça hazırlanacak`
+                  : `${talep.no} onaylandı · kapandı`,
+              )
+            }}
+          />
+        )}
+
+        {form === 'hakkedisDuzelt' && (
+          <HakkedisFormu
+            talep={talep}
+            onKapat={() => setForm(null)}
+            onKaydet={({ kayit, neden }) => {
+              const sonuc = hakkedisDuzelt(talep, kayit, neden, personel)
+              if (sonuc.hata) return bildir(sonuc.hata)
+              setForm(null)
+              tazele()
+              bildir(`${talep.no} · kayıt düzeltildi, gerekçe servise görünecek`)
+            }}
+          />
+        )}
+
+        {form === 'hakkedisRed' && (
+          <RedFormu
+            talep={talep}
+            onKapat={() => setForm(null)}
+            onKaydet={(neden) => {
+              const sonuc = hakkedisReddet(talep, neden, personel)
+              if (sonuc.hata) return bildir(sonuc.hata)
+              setForm(null)
+              tazele()
+              bildir(`${talep.no} · hak ediş kabul edilmedi, gerekçe servise gitti`)
+            }}
+          />
+        )}
+
+        {form === 'parcaSevk' && (
+          <SevkFormu
+            talep={talep}
+            onKapat={() => setForm(null)}
+            onKaydet={(kargo) => {
+              servisParcasiGonderildi(talep, kargo, personel)
+              setForm(null)
+              tazele()
+              bildir(`${talep.no} · parça gönderildi, servis takınca kapatacak`)
             }}
           />
         )}
@@ -1595,6 +1685,21 @@ function SahiplikEtiketi({ talep }) {
     )
   }
   if (!talep.servis) return null
+
+  /* SERVİSİN KENDİ SİPARİŞİ DEVİR DEĞİL.
+
+     Servis parça ısmarladığında talep doğrudan PAKSAN'da açılıyor ve
+     `servis` alanı dolu — aşağıdaki kural bunu "devredildi" diye
+     okuyordu. Oysa devredilecek bir şey yok: talebi zaten servis
+     açtı, siparişi veren o. */
+  if (talep.servisSiparisi) {
+    return (
+      <div className="kucuk sonuk" style={{ marginTop: 2 }}>
+        Servis siparişi · {talep.servis.ad}
+      </div>
+    )
+  }
+
   const devredildi = (talep.sahip || 'paksan') === 'paksan'
   return (
     <div className="kucuk sonuk" style={{ marginTop: 2 }}>
@@ -1759,6 +1864,342 @@ function ServisDurumu({ talep }) {
 
 /* Onay penceresi — durum değişikliği müşteriye bildirim gönderdiği için
    yanlış tıklama pahalı. */
+/* ==========================================================================
+   Servis kaydı — PAKSAN'ın gördüğü hâli
+
+   Servis sahada işi bitirip kaydı gönderdiğinde talep kapanmıyor:
+   burada bir iş kalıyor. Yol, işçilik ve parçalar inceleniyor.
+
+   AYRI EKRAN AÇILMADI. Bir dönem servis siparişlerinin kendi ekranı
+   vardı ve personel gününü burada geçirdiği için oraya hiç bakmadı.
+   Kayıt bu yüzden talebin içinde duruyor — personelin zaten baktığı
+   yerde.
+
+   ÜÇ DÜĞME, ÜÇ AYRI SONUÇ
+
+     ONAYLA   servisin cari hesabına alacak yazılıyor. Parça istendiyse
+              talep kapanmıyor, yedek parçaya geçiyor.
+     DÜZELT   rakam değişiyor ve DEĞİŞİKLİK SERVİSE GÖRÜNÜYOR,
+              gerekçesiyle. Para konusunda sessiz değişiklik güveni
+              bitirir; ayrıca servis neyi yanlış girdiğini ancak böyle
+              öğrenir.
+     REDDET   gerekçe zorunlu ve servise gidiyor.
+   ========================================================================== */
+function ServisKaydiBolumu({
+  talep,
+  rol,
+  onDuzelt,
+  onOnayla,
+  onReddet,
+  onSevk,
+}) {
+  const k = talep.servisKaydi
+  const h = talep.hakkedis
+  const yetkili = izinli(rol, 'talepler')
+  const onayda = talep.status === 'onayBekliyor'
+  const parcada = talep.status === 'parcaBekliyor'
+
+  const HAKKEDIS_DURUM = {
+    bekliyor: 'Onay bekliyor',
+    onaylandi: 'Onaylandı',
+    reddedildi: 'Kabul edilmedi',
+  }
+
+  return (
+    <Bolum
+      ad="Servis Kaydı"
+      sag={
+        <span className="kucuk sonuk">
+          {k.servisAd} · {tarihYaz(k.tarih)}
+        </span>
+      }
+    >
+      <S k="Garanti durumu" v={KAPI[k.kapi]} />
+      <S k="Yapılan iş" v={k.yapilanIs} />
+      {k.sonuc && (
+        <p style={{ whiteSpace: 'pre-wrap', margin: '0 0 8px' }}>{k.sonuc}</p>
+      )}
+      <S k="Değişen parça" v={kayitParcaYazisi(k.parcalar)} />
+      <S k="Parçanın durumu" v={k.parcaDurumu} />
+      <S k="Gidilen yol" v={k.km ? k.km + ' km' : ''} />
+      <S k="İşçilik" v={k.iscilik ? paraYaz(k.iscilik) + ' ' + PARA_BIRIMI : ''} />
+
+      {h && (
+        <>
+          <S k="Hak ediş" v={paraYaz(h.toplam) + ' ' + PARA_BIRIMI} />
+          <S k="Durumu" v={HAKKEDIS_DURUM[h.durum] || h.durum} />
+          {h.red?.neden && <S k="Red gerekçesi" v={h.red.neden} />}
+        </>
+      )}
+
+      {/* Eski parçanın fotoğrafı: garanti tartışmasında bakılacak
+          belge bu. */}
+      {k.foto && <Ekler ekler={[k.foto]} />}
+
+      {/* DÜZELTMELER AÇIK YAZIYOR. Servis de aynı satırları kendi
+          uygulamasında görüyor. */}
+      {(k.duzeltmeler || []).map((d, i) => (
+        <div key={i} className="uyari" style={{ marginTop: 10 }}>
+          <strong>Düzeltildi · {d.personel}</strong>
+          <p style={{ margin: '4px 0 0' }}>{d.neden}</p>
+          <p className="kucuk" style={{ margin: '4px 0 0' }}>
+            Yol {d.onceki.km || 0} → {d.yeni.km || 0} km · İşçilik{' '}
+            {paraYaz(d.onceki.iscilik || 0)} → {paraYaz(d.yeni.iscilik || 0)}{' '}
+            {PARA_BIRIMI}
+          </p>
+        </div>
+      ))}
+
+      {/* PARÇA SEVKİYATI AYNI TALEBİN ÜSTÜNDE.
+
+          Parça isteği ikinci bir talep doğurmuyor: aynı satırda
+          yürüyor, servis parçayı takınca kendisi kapatıyor. Böylece
+          "parça nerede" sorusunun cevabı işin kendisiyle aynı yerde
+          duruyor. */}
+      {parcada && (
+        <div
+          className={talep.parcaSevk ? 'not not--yesil' : 'uyari'}
+          style={{ marginTop: 10 }}
+        >
+          <strong>{talep.parcaSevk ? 'Parça gönderildi' : 'Parça bekleniyor'}</strong>
+          <p style={{ margin: '4px 0 0' }}>
+            {talep.parcaSevk
+              ? [
+                  talep.parcaSevk.firma,
+                  talep.parcaSevk.takipNo,
+                  tarihYaz(talep.parcaSevk.tarih),
+                ]
+                  .filter(Boolean)
+                  .join(' · ')
+              : 'Servis parçayı takınca talebi kendisi kapatacak.'}
+          </p>
+        </div>
+      )}
+
+      {yetkili && onayda && (
+        <div className="satir" style={{ marginTop: 12 }}>
+          <button className="dg dg--ana" onClick={onOnayla}>
+            Hak Edişi Onayla
+          </button>
+          <button className="dg" onClick={onDuzelt}>
+            Düzelt
+          </button>
+          <button className="dg" onClick={onReddet}>
+            Kabul Etme
+          </button>
+        </div>
+      )}
+
+      {yetkili && parcada && !talep.parcaSevk && (
+        <div className="satir" style={{ marginTop: 12 }}>
+          <button className="dg dg--ana" onClick={onSevk}>
+            Parçayı Gönderdim
+          </button>
+        </div>
+      )}
+    </Bolum>
+  )
+}
+
+/* Hak ediş düzeltme formu.
+
+   GEREKÇE ZORUNLU. Rakamı değiştiren kişi neden değiştirdiğini
+   yazıyor ve o cümle servisin ekranında duruyor. Gerekçesiz düzeltme,
+   servis açısından "PAKSAN parayı kırptı"dan başka bir şey değil. */
+function HakkedisFormu({ talep, onKapat, onKaydet }) {
+  const k = talep.servisKaydi || {}
+  const [km, setKm] = useState(String(k.km || ''))
+  const [iscilik, setIscilik] = useState(String(k.iscilik || ''))
+  const [parcalar, setParcalar] = useState(() => temizParcalar(k.parcalar))
+  const [neden, setNeden] = useState('')
+  const [hata, setHata] = useState('')
+
+  function kaydet() {
+    if (neden.trim().length < 5) return setHata('Düzeltme gerekçesini yazın.')
+    onKaydet({
+      kayit: { ...k, km: Number(km) || 0, iscilik: Number(iscilik) || 0, parcalar },
+      neden: neden.trim(),
+    })
+  }
+
+  return (
+    <div className="pencere" onClick={(e) => e.target === e.currentTarget && onKapat()}>
+      <div className="kart pencere__kart" style={{ maxWidth: 520 }}>
+        <div className="kart__tepe">
+          <h2>Servis kaydını düzelt</h2>
+        </div>
+        <div className="kart__ic">
+          <p className="kucuk sonuk" style={{ margin: '0 0 14px' }}>
+            {talep.no} · {k.servisAd}. Yaptığınız değişiklik gerekçesiyle
+            birlikte servisin ekranında görünecek.
+          </p>
+
+          <label className="alan">
+            <span className="alan__ad">Gidilen yol (km)</span>
+            <input
+              className="gir"
+              inputMode="numeric"
+              value={km}
+              onChange={(e) => setKm(e.target.value.replace(/\D/g, ''))}
+            />
+          </label>
+
+          <label className="alan">
+            <span className="alan__ad">İşçilik ({PARA_BIRIMI})</span>
+            <input
+              className="gir"
+              inputMode="numeric"
+              value={iscilik}
+              onChange={(e) => setIscilik(e.target.value.replace(/\D/g, ''))}
+            />
+          </label>
+
+          {parcalar.length > 0 && (
+            <div style={{ margin: '12px 0' }}>
+              <div className="kucuk sonuk" style={{ marginBottom: 6 }}>
+                Parçalar
+              </div>
+              {parcalar.map((p, i) => (
+                <div key={p.ad} className="satir" style={{ gap: 8, marginBottom: 6 }}>
+                  <span style={{ flex: 1 }}>{p.ad}</span>
+                  <input
+                    className="gir"
+                    style={{ width: 80 }}
+                    inputMode="numeric"
+                    value={String(p.adet)}
+                    onChange={(e) => {
+                      const adet = Number(e.target.value.replace(/\D/g, '')) || 0
+                      setParcalar((l) => l.map((x, j) => (j === i ? { ...x, adet } : x)))
+                    }}
+                  />
+                </div>
+              ))}
+              <p className="kucuk sonuk">Adedi sıfırlanan parça kayıttan çıkar.</p>
+            </div>
+          )}
+
+          <label className="alan">
+            <span className="alan__ad">Düzeltme gerekçesi</span>
+            <textarea
+              className="gir"
+              rows={3}
+              value={neden}
+              onChange={(e) => setNeden(e.target.value)}
+              placeholder="Örnek: Mesafe haritada 40 km, 120 km yazılmış."
+            />
+          </label>
+
+          {hata && <div className="uyari">{hata}</div>}
+
+          <div className="satir">
+            <button className="dg dg--ana" onClick={kaydet}>Kaydet</button>
+            <button className="dg" onClick={onKapat}>Vazgeç</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* Red formu. Gerekçe zorunlu ve servise gidiyor: reddedilen kaydın
+   sebebini bilmeyen servis aynı hatayı tekrar yapıyor. */
+function RedFormu({ talep, onKapat, onKaydet }) {
+  const [neden, setNeden] = useState('')
+  const [hata, setHata] = useState('')
+
+  return (
+    <div className="pencere" onClick={(e) => e.target === e.currentTarget && onKapat()}>
+      <div className="kart pencere__kart" style={{ maxWidth: 440 }}>
+        <div className="kart__tepe">
+          <h2>Hak edişi kabul etme</h2>
+        </div>
+        <div className="kart__ic">
+          <p className="kucuk sonuk" style={{ margin: '0 0 14px' }}>
+            {talep.no} · Gerekçe servisin ekranında görünecek ve talep kapanacak.
+          </p>
+          <label className="alan">
+            <span className="alan__ad">Gerekçe</span>
+            <textarea
+              className="gir"
+              rows={3}
+              value={neden}
+              onChange={(e) => setNeden(e.target.value)}
+              placeholder="Örnek: Makinenin garantisi 2023 yılında doldu."
+            />
+          </label>
+          {hata && <div className="uyari">{hata}</div>}
+          <div className="satir">
+            <button
+              className="dg dg--ana"
+              onClick={() =>
+                neden.trim().length < 5
+                  ? setHata('Gerekçeyi yazın.')
+                  : onKaydet(neden.trim())
+              }
+            >
+              Kabul Etme
+            </button>
+            <button className="dg" onClick={onKapat}>Vazgeç</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* Parça sevk formu.
+
+   TALEBİ KAPATMIYOR. Parça yola çıkıyor ama iş bitmiyor: takılması
+   gerekiyor ve onu yalnız serviste olan biri bilebilir. Talep açık
+   kalıyor, servis takınca kendisi kapatıyor. */
+function SevkFormu({ talep, onKapat, onKaydet }) {
+  const [firma, setFirma] = useState('')
+  const [takipNo, setTakipNo] = useState('')
+  const [hata, setHata] = useState('')
+
+  return (
+    <div className="pencere" onClick={(e) => e.target === e.currentTarget && onKapat()}>
+      <div className="kart pencere__kart" style={{ maxWidth: 440 }}>
+        <div className="kart__tepe">
+          <h2>Parçayı gönder</h2>
+        </div>
+        <div className="kart__ic">
+          <p className="kucuk sonuk" style={{ margin: '0 0 14px' }}>
+            {talep.no} · {kayitParcaYazisi(talep.servisKaydi?.parcalar)}. Talep
+            kapanmayacak; servis parçayı taktıktan sonra kendisi kapatacak.
+          </p>
+          <label className="alan">
+            <span className="alan__ad">Kargo firması</span>
+            <input className="gir" value={firma} onChange={(e) => setFirma(e.target.value)} />
+          </label>
+          <label className="alan">
+            <span className="alan__ad">Takip numarası</span>
+            <input
+              className="gir"
+              value={takipNo}
+              onChange={(e) => setTakipNo(e.target.value)}
+            />
+          </label>
+          {hata && <div className="uyari">{hata}</div>}
+          <div className="satir">
+            <button
+              className="dg dg--ana"
+              onClick={() =>
+                !firma.trim()
+                  ? setHata('Kargo firmasını yazın.')
+                  : onKaydet({ firma: firma.trim(), takipNo: takipNo.trim() })
+              }
+            >
+              Gönderildi
+            </button>
+            <button className="dg" onClick={onKapat}>Vazgeç</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function Onay({ baslik, metin, onOnayla, onVazgec, onayYazi = 'Onayla' }) {
   return (
     <div className="pencere" onClick={(e) => e.target === e.currentTarget && onVazgec()}>
