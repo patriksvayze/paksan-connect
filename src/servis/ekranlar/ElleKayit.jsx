@@ -54,26 +54,11 @@ import { IconAlert, IconCheckCircle, IconSend } from '../../components/Icons'
    Müşteri kayıtlı ama hiç makinesi yoksa kutu geri geliyor; o zaman
    elle yazmak tek yol.
 
-   FİYAT TEKLİFİ SEKMESİ KALDIRILDI
+   FİYAT TEKLİFİ BURADA YOK
 
-   Kısa süre buradaydı ve yanlıştı. Talep türleri MÜŞTERİ
-   uygulamasından geliyor: çiftçi PAKSAN'a servis, parça ya da fiyat
-   sorabiliyor, soru bölgesindeki servise düşüyor. Üçü de oradan
-   bakınca doğru.
-
-   Ama servis elle kayıt açtığında durum tersine dönüyor: FİYATI VEREN
-   ZATEN BAYİ. Dükkânına gelip "Orkinos 1270 kaça?" diye soran
-   müşteriye servis cevabı kendi veriyor; PAKSAN'a bir talep açıp
-   beklemiyor. Kendi kendine teklif istemek gibi bir şey oluyordu.
-
-   Servis tarafında fiyat teklifi talepleri YİNE GÖRÜNÜYOR — uygulamadan
-   gelenler. Kaldırılan yalnız servisin kendi eliyle açması.
-
-   BUNUN GERÇEK BİR KOMŞUSU VAR ama henüz yapılamaz: servisin PAKSAN'dan
-   ÖZEL FİYAT ONAYI istemesi (filo alımı, taşımadığı model, ihracat).
-   O bir "müşteri talebi" değil, iskonto onayıdır ve sistemde henüz
-   fiyat yok — onaylanacak bir şey yok. Fiyat listesi geldiğinde
-   ayrı bir akış olarak düşünülmeli (bkz. SERVIS-YOL-HARITASI.md).
+   Servis makine satmıyor: kurulumu, bakımı ve tamiri yapıyor. Fiyat
+   teklifi talebi bu uygulamaya hiç düşmüyor, elle de açılamıyor.
+   Kısa bir süre bir sekmesi vardı ve kaldırıldı.
 
    KAYITLI OLMAYAN MÜŞTERİ
 

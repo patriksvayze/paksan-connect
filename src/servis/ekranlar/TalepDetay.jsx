@@ -26,9 +26,9 @@ import {
   IconPhone,
   IconRight,
   IconShield,
-  IconTag,
 } from '../../components/Icons'
 import { gecenSure } from '../../backoffice/ekranlar/ortak'
+import { Ekler } from '../../backoffice/ekranlar/Ekler'
 
 /* ==========================================================================
    Servis paneli — talep detayı
@@ -46,19 +46,29 @@ import { gecenSure } from '../../backoffice/ekranlar/ortak'
    Talep PAKSAN'a devredildiyse servis işlem yapmıyor ama takip ediyor:
    müşteri hâlâ onun müşterisi.
 
-   KAPANIŞ TÜRE GÖRE DEĞİŞİYOR
+   İKİ TALEP TÜRÜ, İKİ KAPANIŞ
 
-   Üç talep türü üç ayrı iş anlatıyor, o yüzden üç ayrı kapanışı var:
+     servis  → adım adım kapanış (bkz. ekranlar/ServisKapanisi.jsx)
+     parca   → gönderim penceresi; yapılan iş bir onarım değil
 
-     servis     → adım adım kapanış (bkz. ekranlar/ServisKapanisi.jsx)
-     parca      → gönderim penceresi; yapılan iş bir onarım değil
-     satinalma  → satış sonucu; ortada yapılmış bir iş yok
-
-   Üçü de aynı biçimde yazıyor: `cozum` nesnesi backoffice'in kendi
+   İkisi de aynı biçimde yazıyor: `cozum` nesnesi backoffice'in kendi
    kapanış formuyla aynı alanları taşıyor (bkz. lib/servisKapanis.js).
+
+   FİYAT TEKLİFİ BURAYA HİÇ DÜŞMÜYOR. Servis makine satmıyor; teklif
+   talebi PAKSAN'a düşüyor ve satışı yürüten tarafa yönlendiriliyor
+   (bkz. backoffice/veri.js). Bu ekranda bir dönem "Fiyat Teklifi
+   Hazırla" ve "Görüşmeyi Sonuçlandır" vardı; ikisi de kaldırıldı,
+   çünkü servise hiç ulaşmayan bir talebin ekranı ölü koddur.
+
+   SERVİS, PAKSAN'IN GÖRDÜĞÜ HER ŞEYİ GÖRÜYOR
+
+   Müşterinin yazdığı, seslendirdiği, fotoğrafladığı ve sonradan
+   eklediği ne varsa burada. Bir dönem yalnız metin alanları vardı:
+   çiftçi kırık parçanın fotoğrafını çekiyor, sahaya giden usta onu
+   hiç görmüyordu.
    ========================================================================== */
 
-const TUR_ADI = { servis: 'Servis', parca: 'Yedek Parça', satinalma: 'Fiyat Teklifi' }
+const TUR_ADI = { servis: 'Servis', parca: 'Yedek Parça' }
 
 export function TalepDetay({
   talep,
@@ -67,12 +77,13 @@ export function TalepDetay({
   servisId,
   onKapat,
   onDestekIste,
-  onTeklifHazirla,
 }) {
   const [pencere, setPencere] = useState(null)
   const paksanda = (talep.sahip || 'paksan') === 'paksan'
   const kapali = ['kapandi', 'iptal'].includes(talep.status)
   const islemVar = !kapali && !paksanda
+  /* Yalnız müşteriye gönderilmiş notlar; iç notlar servise gitmiyor. */
+  const musteriNotlari = (talep.notlar || []).filter((n) => n.musteriye)
 
   /* Kapanış tam ekran açılıyor, pencere olarak değil: her adımda tek
      soru soruluyor; cevaplar geniş düğmelerle sunuluyor. Gerekçesi
@@ -103,12 +114,12 @@ export function TalepDetay({
      Çıktı" bildirimi gidiyordu. Aynı kural iki tarafta da geçerli. */
   const odemeEngeli = parcaIlerlemeEngeli(talep, 'kapandi')
 
-  /* KAPANIŞ TÜRE GÖRE DEĞİŞİYOR — hepsi aynı formla kapanmıyor.
+  /* KAPANIŞ TÜRE GÖRE DEĞİŞİYOR — ikisi aynı formla kapanmıyor.
 
-     Servis kapanışı bir onarımı anlatıyor; yedek parça kapanışı bir
-     gönderimi; fiyat teklifi kapanışı ise bir SATIŞ SONUCUNU. Üçü tek
-     forma sokulunca fiyat teklifi talebi "Ne yapıldı? Ayar yapıldı"
-     diye kapanıyordu — sorulan soru işin kendisiyle ilgisizdi.
+     Servis kapanışı bir onarımı anlatıyor, yedek parça kapanışı bir
+     gönderimi. İkisi tek forma sokulduğunda parça talebi "Ne yapıldı?
+     Ayar yapıldı" diye kapanıyordu; sorulan soru işin kendisiyle
+     ilgisizdi.
 
      Alan adları backoffice'in kendi kapanış formuyla aynı
      (bkz. Talepler.jsx `KAPANIS_ALANLARI`), böylece PAKSAN ve müşteri
@@ -116,7 +127,6 @@ export function TalepDetay({
   const KAPANIS = {
     parca: { pencere: 'gonderdim', ad: 'Parçayı Gönderdim' },
     servis: { pencere: 'kapanis', ad: 'İşi Tamamla' },
-    satinalma: { pencere: 'sonuc', ad: 'Görüşmeyi Sonuçlandır' },
   }
   const kapanis = KAPANIS[talep.tur] || KAPANIS.servis
 
@@ -187,29 +197,8 @@ export function TalepDetay({
           ad="Konum"
           deger={talep.ilce ? `${talep.ilce} / ${talep.il}` : talep.il}
         />
-        {/* FİYAT TEKLİFİNDE ASIL KONU İLGİLENİLEN ÜRÜN.
-
-            Talep hem müşterinin kayıtlı makinesini hem sorduğu ürünü
-            taşıyor. Ekranda yalnız kayıtlı makine görünüyordu ve talep
-            o makineyle ilgiliymiş gibi okunuyordu; oysa müşteri başka
-            bir makinenin fiyatını soruyor. */}
-        {talep.tur === 'satinalma' && talep.urunId && (
-          <Satir
-            ad="İlgilendiği Ürün"
-            deger={getProduct(talep.urunId)?.name || talep.urunId}
-          />
-        )}
         {talep.makine?.serial && <Makine makine={talep.makine} />}
 
-        {/* SATIŞ SORULARININ CEVAPLARI BAYİDE GÖRÜNMÜYORDU.
-
-            Bu üç soru, satış ekibinin telefonda ilk sorduğu üç soru
-            olduğu için forma kondu: cevapları önden gelirse fiyat ilk
-            aramada verilebiliyor. Satışı yapan servis olduğu hâlde
-            cevapları yalnız backoffice görüyordu. */}
-        {talep.urunTipi && <Satir ad="Balya İçeriği" deger={talep.urunTipi} />}
-        {talep.arazi && <Satir ad="Arazi Büyüklüğü" deger={talep.arazi} />}
-        {talep.traktor && <Satir ad="Traktör Gücü" deger={talep.traktor} />}
         {/* Kimlik değil okunur karşılık: ekranda "sorunlu" yazıyordu. */}
         {talep.durum && (
           <Satir ad="Makinenin Durumu" deger={makineDurumAdi(talep.durum)} />
@@ -240,7 +229,80 @@ export function TalepDetay({
         )}
         {talep.aciklama && <Satir ad="Müşterinin Anlattığı" deger={talep.aciklama} />}
         {talep.ulasim && <Satir ad="Aranma Tercihi" deger={talep.ulasim} />}
+
+        {/* SES KAYDI VE FOTOĞRAF SERVİSE HİÇ GÖSTERİLMİYORDU.
+
+            Çiftçi yazmak yerine anlatabiliyor, kırık parçayı
+            fotoğraflayabiliyor, videoya alabiliyor. Bunların hepsi
+            backoffice'te görünüyordu; sahaya giden usta hiçbirini
+            görmüyordu. Arızayı en iyi anlatan şey çoğu zaman
+            fotoğraftı ve tam da o kayboluyordu. */}
+        {talep.ses && (
+          <div style={{ marginTop: 12 }}>
+            <div className="kucuk sonuk">
+              Sesli Not{talep.ses.sure ? ' · ' + talep.ses.sure + ' sn' : ''}
+            </div>
+            {talep.ses.veri ? (
+              <audio controls src={talep.ses.veri} style={{ width: '100%', marginTop: 6 }} />
+            ) : (
+              <div className="kucuk sonuk">Ses kaydı bu kayıtta saklanmıyor.</div>
+            )}
+          </div>
+        )}
+
+        <Ekler ekler={talep.ekler} />
       </div>
+
+      {/* ------------------------------- Müşterinin sonradan eklediği
+
+          Talep gönderildikten SONRA müşterinin uygulamadan eklediği
+          not, ses ve fotoğraflar. Servis yola çıkmadan önce bakması
+          gereken yer burası: talep açıldıktan sonra arıza değişmiş
+          ya da müşteri eksik bıraktığı bir şeyi eklemiş olabilir.
+          En yeni üstte. */}
+      {talep.eklemeler?.length > 0 && (
+        <div className="kart" style={{ padding: 16 }}>
+          <div className="kucuk sonuk" style={{ marginBottom: 10 }}>
+            Müşterinin sonradan eklediği · {talep.eklemeler.length}
+          </div>
+          {[...talep.eklemeler]
+            .sort((a, b) => b.tarih - a.tarih)
+            .map((e) => (
+              <div key={e.id} style={{ marginBottom: 14 }}>
+                <div className="kucuk sonuk">{gecenSure(e.tarih)}</div>
+                {e.not && (
+                  <p style={{ whiteSpace: 'pre-wrap', margin: '4px 0 0' }}>{e.not}</p>
+                )}
+                {e.ses?.veri && (
+                  <audio controls src={e.ses.veri} style={{ width: '100%', marginTop: 8 }} />
+                )}
+                {e.ekler?.length > 0 && <Ekler ekler={e.ekler} />}
+              </div>
+            ))}
+        </div>
+      )}
+
+      {/* PAKSAN'IN MÜŞTERİYE YAZDIKLARI.
+
+          Servis sahaya gittiğinde müşteri "PAKSAN şöyle demişti"
+          diyor ve servisin haberi olmuyordu. Yalnız müşteriye
+          gönderilmiş notlar görünüyor; ekibin kendi arasındaki iç
+          notlar servise gitmiyor. */}
+      {musteriNotlari.length > 0 && (
+        <div className="kart" style={{ padding: 16 }}>
+          <div className="kucuk sonuk" style={{ marginBottom: 10 }}>
+            {MARKA} müşteriye şunları yazdı
+          </div>
+          {musteriNotlari.map((n, i) => (
+            <div key={i} style={{ marginBottom: 12 }}>
+              <p style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{n.metin}</p>
+              <div className="kucuk sonuk" style={{ marginTop: 4 }}>
+                {[n.personel, gecenSure(n.tarih)].filter(Boolean).join(' · ')}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* RANDEVU ALINMIŞ TALEP AYNI EKRANI GÖSTERMEMELİ.
 
@@ -322,20 +384,6 @@ export function TalepDetay({
 
       {islemVar && (
         <div className="secenek">
-          {/* MÜŞTERİNİN FİYAT SORUSU, BAYİNİN FİYAT EKRANINA BAĞLANIYOR.
-
-              Müşteri "Bu makine kaça?" diye sordu; servisin elinde zaten
-              liste fiyatını, kendi alış fiyatını ve kârını gösteren bir
-              teklif ekranı var. İkisi birbirinden habersizdi: servis
-              talebi okuyup teklif ekranını ayrıca açıyor, müşteriyi ve
-              ürünü elle yeniden giriyordu. */}
-          {talep.tur === 'satinalma' && onTeklifHazirla && (
-            <button className="secenek__dg" onClick={() => onTeklifHazirla(talep)}>
-              <IconTag size={19} />
-              Fiyat Teklifi Hazırla
-              <IconRight size={17} />
-            </button>
-          )}
           {talep.tur === 'servis' && (
             <button className="secenek__dg" onClick={() => setPencere('randevu')}>
               <IconCalendar size={19} />
@@ -358,14 +406,6 @@ export function TalepDetay({
 
       {pencere === 'randevu' && (
         <Randevu
-          talep={talep}
-          servisAd={servisAd}
-          onKapat={() => setPencere(null)}
-          onBitti={onKapat}
-        />
-      )}
-      {pencere === 'sonuc' && (
-        <SatisSonucu
           talep={talep}
           servisAd={servisAd}
           onKapat={() => setPencere(null)}
@@ -511,7 +551,6 @@ function Pencere({ baslik, children, onKapat }) {
 const PLAN_ISI = {
   servis: 'Servis ziyareti',
   parca: 'Parça teslimi',
-  satinalma: 'Görüşme',
 }
 
 function Randevu({ talep, servisAd, onKapat, onBitti }) {
@@ -560,99 +599,6 @@ function Randevu({ talep, servisAd, onKapat, onBitti }) {
       <p className="kucuk sonuk" style={{ margin: '4px 0 14px' }}>
         Müşteriye bu tarih için bildirim gönderilecek.
       </p>
-
-      <div className="satir">
-        <button className="dg dg--ana" onClick={kaydet}>Kaydet</button>
-        <button className="dg" onClick={onKapat}>Vazgeç</button>
-      </div>
-    </Pencere>
-  )
-}
-
-/* Fiyat teklifi talebinin kapanışı.
-
-   Müşteri "Bu makine kaça?" diye sordu; kapanışta sorulacak tek şey
-   görüşmenin sonucu. Sonuç listesi backoffice'in kendi kapanış
-   formundaki listeyle birebir aynı: iki taraf aynı işi kapatırken
-   aynı kelimeleri kullanmalı, yoksa rapor iki ayrı sayı üretir.
-
-   SATIŞ OLDUYSA FİYAT ZORUNLU. Rakamsız kapatılan satış, raporda
-   "satış var ama cirosu yok" satırı üretiyor. */
-const SATIS_SONUCLARI = [
-  'Satış oldu',
-  'Müşteri vazgeçti',
-  'Rakibe gitti',
-  'Ulaşılamadı',
-]
-
-function SatisSonucu({ talep, servisAd, onKapat, onBitti }) {
-  const [sonuc, setSonuc] = useState('')
-  const [fiyat, setFiyat] = useState('')
-  const [not, setNot] = useState('')
-  const [hata, setHata] = useState('')
-
-  function kaydet() {
-    if (!sonuc) return setHata('Görüşmenin sonucunu seçin.')
-    if (sonuc === 'Satış oldu' && !Number(fiyat)) {
-      return setHata('Satış fiyatını yazın.')
-    }
-    /* Fiyat BACKOFFICE'TEKİ BİÇİMDE saklanıyor: binlik ayraçlı yazı
-       ("2.600.000"). İki taraf aynı alana iki ayrı biçimde yazarsa
-       rapor ve müşteri ekranı iki ayrı sayı gösterir. */
-    const cozum = {
-      sonuc,
-      satisFiyati: sonuc === 'Satış oldu' ? paraYaz(Number(fiyat)) : '',
-      not: not.trim(),
-      ozet:
-        sonuc +
-        (sonuc === 'Satış oldu' ? ` · ${paraYaz(Number(fiyat))} ${PARA_BIRIMI}` : ''),
-    }
-    talepKapat(talep, cozum, servisAd)
-    onBitti()
-  }
-
-  return (
-    <Pencere baslik="Görüşmeyi Sonuçlandır" onKapat={onKapat}>
-      <div className="secenek">
-        {SATIS_SONUCLARI.map((s) => (
-          <button
-            key={s}
-            className={'makine-sec' + (sonuc === s ? ' makine-sec--on' : '')}
-            onClick={() => {
-              setSonuc(s)
-              setHata('')
-            }}
-          >
-            {s}
-          </button>
-        ))}
-      </div>
-
-      {sonuc === 'Satış oldu' && (
-        <label className="alan" style={{ marginTop: 12 }}>
-          <span className="alan__ad">Satış Fiyatı</span>
-          <input
-            className="gir mono"
-            inputMode="numeric"
-            value={fiyat}
-            onChange={(e) => setFiyat(e.target.value.replace(/\D/g, ''))}
-            placeholder="Örnek: 2600000"
-          />
-        </label>
-      )}
-
-      <label className="alan" style={{ marginTop: 12 }}>
-        <span className="alan__ad">Not</span>
-        <textarea
-          className="gir"
-          rows={2}
-          value={not}
-          onChange={(e) => setNot(e.target.value)}
-          placeholder="Görüşmede konuşulanlar"
-        />
-      </label>
-
-      {hata && <div className="uyari">{hata}</div>}
 
       <div className="satir">
         <button className="dg dg--ana" onClick={kaydet}>Kaydet</button>

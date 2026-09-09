@@ -600,7 +600,9 @@ function Bugun({ bekleyen, onAc }) {
   )
 }
 
-const TUR_ADI = { servis: 'Servis', parca: 'Yedek Parça', satinalma: 'Fiyat Teklifi' }
+/* Fiyat teklifi burada yok: servis makine satmıyor, o talep bu
+   uygulamaya hiç düşmüyor. */
+const TUR_ADI = { servis: 'Servis', parca: 'Yedek Parça' }
 
 /* Talep kartı. İskeleti `ListeKarti` (Kabuk.jsx) veriyor; burada
    yalnız talebin hangi alanının hangi yuvaya gireceği yazıyor.
