@@ -219,6 +219,7 @@ export const tr = {
     bakimRehberi: 'Bakım Rehberi',
     profilim: 'Profilim',
     tumuSayili: 'Tümü ({n})',
+    servisim: 'Servisim',
   },
 
   makine: {
@@ -368,6 +369,7 @@ export const tr = {
     kampanyaAcik: 'Kampanya bildirimleri açıldı',
     kampanyaKapali: 'Kampanya bildirimleri kapatıldı',
     onayTarihi: 'Bu metinleri {tarih} tarihinde onayladınız (sürüm {surum}).',
+    bayiIletisim: 'Bayi ve iletişim',
   },
 
   ses: {
@@ -467,6 +469,9 @@ export const tr = {
     talebiGor: 'Talebimi Gör',
     urunuIncele: '{ad} ürününü incelemek ister misiniz?',
     urunuInceleAlt: 'Teknik özellikler, fotoğraflar ve bakım bilgileri',
+    servisYok: 'Servis atamanız yapılmamış',
+    servisYokAlt: 'Servis talebi açabilmeniz için makinenize bakacak servisin belirlenmiş olması gerekiyor. Atamayı {marka} yapıyor; bizi arayın, hemen halledelim.',
+    servisYokAra: '{markaYi} Ara',
   },
 
   /* ------------------------------------------- Yedek parça fiyatları */
@@ -812,28 +817,20 @@ export const tr = {
     bastanBasla: 'Baştan başla',
   },
 
-  servis: {
-    haritaUzakta: 'Bu görünümde {n} servis menzil dışında. Görmek için − düğmesine dokunun.',
-    yakinlastir: 'Yakınlaştır',
-    uzaklastir: 'Uzaklaştır',
-    kuzey: 'K',
-    haritaAciklama: 'Size en yakın servislerin yön ve mesafe haritası',
-    haritaNot: 'Ortadaki nokta sizsiniz. Servisler gerçek yönlerinde; halkalar mesafeyi gösterir. Bir servise dokunduğunuzda listede açılır.',
-    baslik: 'Servis ve İletişim',
-    yakiniBul: 'Size en yakın servisi bulalım',
-    konumAcikla: 'Konumunuza izin verirseniz listeyi en yakın servisten başlatırız. Konumunuz yalnızca telefonunuzda kullanılır, hiçbir yere gönderilmez.',
-    konumAlindi: 'Konumunuz alındı',
-    konumAlindiAlt: 'Servisler size en yakından uzağa sıralandı',
-    konumRedAlt: 'Konum izni verilmedi. Sorun değil — servisler kayıtlı ilinize göre sıralandı. İzni telefonunuzun ayarlarından açabilirsiniz.',
-    konumYok: 'Bu cihazda konum kullanılamıyor. Servisler kayıtlı ilinize göre sıralandı.',
-    tekrarDene: 'Tekrar dene',
-    konumKullan: 'Konumumu kullan',
-    konumAraniyor: 'Konumunuz alınıyor…',
-    konumRed: 'Konum izni verilmedi. Servisler kayıtlı ilinize göre sıralandı.',
-    servisler: 'Servisler',
-    merkezAlt: 'Servisinize ulaşamadığınızda doğrudan bizi arayabilirsiniz.',
-    temsili: 'Bu servis listesi temsilidir.',
-    temsiliAlt: 'Gerçek servis bilgileri geldiğinde buraya eklenecek. Yola çıkmadan önce merkezden bilgi alın.',
+  servisim: {
+    baslik: 'Servisiniz',
+    yok: 'Servisiniz henüz atanmadı',
+    yokAlt: 'Makinenize bakacak servisi {marka} belirliyor. Bizi arayın, hemen atayalım.',
+    markayiAra: '{markaYi} Ara',
+  },
+  bayi: {
+    baslik: 'Bayi ve İletişim',
+    bayiler: 'Bayiler',
+    benimBayim: 'Makinenizi aldığınız bayi',
+    buradanAldiniz: 'Makineniz buradan alındı',
+    merkezAlt: 'Aradığınız yere ulaşamadığınızda doğrudan bizi arayabilirsiniz.',
+    temsili: 'Bu bayi listesi temsilidir.',
+    temsiliAlt: 'Gerçek bayi bilgileri geldiğinde buraya eklenecek. Yola çıkmadan önce merkezden bilgi alın.',
   },
 
   numara: {

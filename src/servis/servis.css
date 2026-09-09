@@ -41,7 +41,7 @@
      zaten tek satıra kırpılıyor, yükseklik kaymıyor. */
   --bar: 68px;
   --tabs: 66px;
-  /* Çentik ve ev çubuğu payları. `servis-mobil.html` içinde
+  /* Çentik ve ev çubuğu payları. `servis.html` içinde
      `viewport-fit=cover` var: içerik ekranın en tepesine kadar
      çıkıyor. Bu paylar olmasa başlık çentiğin, sekmeler de ev
      çubuğunun altında kalırdı. Tarayıcıda ikisi de 0 geliyor. */
@@ -2040,88 +2040,15 @@
   color: var(--murekkep-2);
 }
 
-/* --------------------------------------------------- Geniş ekran (panel)
+/* ------------------------------------------- Geniş ekranda önizleme
 
-   Alt sekme çubuğu geniş ekranda yanlış duruyor: fare ekranın alt
-   kenarında gezinmiyor ve çubuk 1600 piksel boyunca uzuyor. Sekmeler
-   üste, çubuğun altına geçiyor; içerik ortalanıyor.
-
-   DÜZEN YALNIZ GENİŞLİĞE BAKMIYOR, GİRİŞE DE BAKIYOR.
-
-   Önce yalnız genişliğe bakıyordu ve `servis-mobil.html` masaüstü
-   tarayıcıda açıldığında panelin birebir aynısı görünüyordu — pencere
-   760'tan geniş olduğu için. Oysa o adres APK'nın içine giren sürüm;
-   tarayıcıda önizlenirken de UYGULAMA gibi görünmeli, yoksa telefonda
-   ne çıkacağı görülemiyor.
-
-   `servis-mobil.html` kök etiketine `data-giris="mobil"` yazıyor ve
-   aşağıdaki kurallar orada uygulanmıyor: sekmeler altta kalıyor.
-   Telefonda pencere zaten dar, bu belirtecin orada bir etkisi yok;
-   yalnız masaüstünde önizlerken işe yarıyor.                          */
+   Uygulama telefonda çalışıyor; bu blok yalnız geliştirme sırasında
+   masaüstü tarayıcıda önizlerken içeriğin sayfa boyunca uzamasını
+   engelliyor. Panele ait düzen kuralları (sekmeleri üste alma) burada
+   DURMUYOR: tarayıcı paneli kaldırıldı, telefonda ne çıkacağı burada
+   da aynen görünmeli.                                                */
 
 @media (min-width: 760px) {
-  :root:not([data-giris='mobil']) .uyg__bar {
-    height: var(--bar);
-    padding-block: 0;
-    padding-inline: var(--bosluk-5);
-  }
-
-  /* Sekmeler DOM'da içerikten SONRA geliyor; `sticky` ile yukarı
-     alınamazlar (kendi akış yerlerinin üstüne çıkamazlar). `fixed`
-     ile çubuğun hemen altına oturuyorlar; içeriğe de o kadar üst
-     boşluk veriliyor. */
-  :root:not([data-giris='mobil']) .uyg__tabs {
-    top: calc(var(--bar) + var(--ust));
-    bottom: auto;
-    justify-content: center;
-    gap: var(--bosluk-1);
-    padding: var(--bosluk-2) var(--bosluk-4);
-    border-top: 0;
-    border-bottom: 1px solid var(--cizgi);
-  }
-
-  :root:not([data-giris='mobil']) .uyg__tab {
-    flex: none;
-    flex-direction: row;
-    gap: var(--bosluk-2);
-    /* Geniş ekranda da 48: panel tablette de açılıyor. */
-    min-height: var(--dokunma);
-    padding: 0 var(--bosluk-4);
-    border-radius: var(--r-2);
-  }
-
-  :root:not([data-giris='mobil']) .uyg__tab:hover {
-    background: var(--yuzey-2);
-  }
-
-  :root:not([data-giris='mobil']) .uyg__tab--on {
-    background: var(--mavi-z);
-  }
-
-  :root:not([data-giris='mobil']) .uyg__tab-ad {
-    font-size: var(--yazi-2);
-  }
-
-  :root:not([data-giris='mobil']) .uyg__ic {
-    /* Üstteki sekme çubuğu (48 + 16 dolgu + 1 çizgi = 65) kadar
-       boşluk, üstüne nefes payı. */
-    padding-top: 89px;
-  }
-
-  /* Alt sayfada sekme çubuğu yok; içerik doğrudan çubuğun altından
-     başlıyor. */
-  :root:not([data-giris='mobil']) .uyg--sayfa .uyg__ic {
-    padding-top: var(--bosluk-5);
-  }
-
-  :root:not([data-giris='mobil']) .yapisik {
-    /* Sekmeler yukarı taşındı; kaydet düğmesi artık ekranın
-       dibinde duruyor. */
-    bottom: 0;
-  }
-
-  /* İçerik sütunu iki girişte de ortalanıyor: mobil giriş masaüstünde
-     önizlenirken sayfa boyunca uzamasın. */
   .uyg__ic {
     width: 100%;
     max-width: 720px;

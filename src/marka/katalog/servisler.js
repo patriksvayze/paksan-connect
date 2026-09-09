@@ -41,15 +41,22 @@
 
    Her servis parça tutmuyor; talep yönlendirmesi buna bakıyor.
 
-   SORUMLULUK BÖLGESİ NEDEN HÂLÂ DURUYOR
+   SORUMLULUK BÖLGESİ BİR KISIT DEĞİL
 
-   Doğru yol makineden bayiye, bayiden servise gitmek. Ama LOGO
-   açılana kadar makinenin hangi bayiden çıktığı bilinmiyor; o zamana
-   kadar talep coğrafyaya göre eşleşiyor. `bolge` bunun için.
+   `bolge` alanı, personel bir makineye servis atarken hangi servisi
+   önce göreceğini belirliyor. Bölgesi girilmemiş servis listeden
+   DÜŞMÜYOR; yalnız sırada geride kalıyor. Bölge zorunlu tutulsaydı
+   yeni açılan her servis, kimse ona bölge yazana kadar görünmez
+   olurdu.
+
+   KOORDİNAT YOK
+
+   Kayıtta enlem/boylam tutulmuyor. Tutulduğu dönemde tek işi
+   müşteri uygulamasındaki yön haritasıydı; harita kaldırıldı.
+   Servisin nerede olduğu il, ilçe ve adresle zaten belli.
    ========================================================================== */
 
 import { icerikListe } from '../../lib/icerikDeposu.js'
-import { ilKoordinati } from '../../data/ilKoordinat.js'
 
 /* Servisin verebileceği hizmetler. Talep türü bu tabloya bakarak
    eşleşiyor (bkz. src/context/AppState.jsx → TUR_YETKI). */
@@ -84,9 +91,6 @@ export const SERVISLER = [
     ilce: 'Selçuklu',
     adres: 'Fevzi Çakmak Mahallesi, 10680. Sokak No: 14',
     tel: '03323450014',
-    telYazi: '0332 345 00 14',
-    enlem: 37.8901,
-    boylam: 32.4711,
     bayiler: ['konya-merkez', 'aksaray'],
     hizmet: ['servis', 'parca'],
   },
@@ -99,9 +103,6 @@ export const SERVISLER = [
     ilce: 'Polatlı',
     adres: 'Şentepe Mahallesi, Sanayi Sitesi 6. Blok',
     tel: '03126230211',
-    telYazi: '0312 623 02 11',
-    enlem: 39.5776,
-    boylam: 32.1402,
     bayiler: ['ankara'],
     hizmet: ['servis'],
   },
@@ -114,9 +115,6 @@ export const SERVISLER = [
     ilce: 'Alpu',
     adres: 'Yeni Mahalle, Sanayi Caddesi No: 22',
     tel: '02226110320',
-    telYazi: '0222 611 03 20',
-    enlem: 39.7801,
-    boylam: 30.5148,
     bayiler: ['eskisehir'],
     hizmet: ['servis', 'parca'],
   },
@@ -129,9 +127,6 @@ export const SERVISLER = [
     ilce: 'Bandırma',
     adres: 'Yeni Sanayi Sitesi 9. Blok No: 4',
     tel: '02667330418',
-    telYazi: '0266 733 04 18',
-    enlem: 40.3462,
-    boylam: 27.9691,
     bayiler: ['balikesir', 'bursa'],
     hizmet: ['servis'],
   },
@@ -144,9 +139,6 @@ export const SERVISLER = [
     ilce: 'Torbalı',
     adres: 'Pancar Organize Sanayi, 3. Cadde No: 8',
     tel: '02328560517',
-    telYazi: '0232 856 05 17',
-    enlem: 38.1489,
-    boylam: 27.3662,
     bayiler: ['izmir', 'aydin'],
     hizmet: ['servis', 'parca'],
   },
@@ -159,9 +151,6 @@ export const SERVISLER = [
     ilce: 'Salihli',
     adres: 'Adala Yolu 2. km',
     tel: '02367120633',
-    telYazi: '0236 712 06 33',
-    enlem: 38.4771,
-    boylam: 28.1462,
     bayiler: ['manisa'],
     hizmet: ['servis'],
   },
@@ -174,9 +163,6 @@ export const SERVISLER = [
     ilce: 'Korkuteli',
     adres: 'Bayat Mahallesi, Sanayi Caddesi No: 41',
     tel: '02426430741',
-    telYazi: '0242 643 07 41',
-    enlem: 37.0612,
-    boylam: 30.2033,
     bayiler: ['antalya'],
     hizmet: ['servis'],
   },
@@ -189,9 +175,6 @@ export const SERVISLER = [
     ilce: 'Ceyhan',
     adres: 'Sanayi Mahallesi, 5. Sokak No: 16',
     tel: '03226130816',
-    telYazi: '0322 613 08 16',
-    enlem: 37.0301,
-    boylam: 35.8102,
     bayiler: ['adana'],
     hizmet: ['servis', 'parca'],
   },
@@ -204,9 +187,6 @@ export const SERVISLER = [
     ilce: 'Viranşehir',
     adres: 'Yeni Sanayi Sitesi 12. Blok',
     tel: '04145110927',
-    telYazi: '0414 511 09 27',
-    enlem: 37.2288,
-    boylam: 39.7702,
     bayiler: ['sanliurfa', 'diyarbakir'],
     hizmet: ['servis'],
   },
@@ -219,9 +199,6 @@ export const SERVISLER = [
     ilce: 'Battalgazi',
     adres: 'Çöşnük Mahallesi, Sanayi Caddesi No: 9',
     tel: '04223211009',
-    telYazi: '0422 321 10 09',
-    enlem: 38.3841,
-    boylam: 38.3402,
     bayiler: ['malatya'],
     hizmet: ['servis', 'parca'],
   },
@@ -234,9 +211,6 @@ export const SERVISLER = [
     ilce: 'Develi',
     adres: 'Aşağı Everek Mahallesi, Sanayi Sitesi 3. Blok',
     tel: '03526181122',
-    telYazi: '0352 618 11 22',
-    enlem: 38.3852,
-    boylam: 35.4877,
     bayiler: ['kayseri', 'sivas'],
     hizmet: ['servis', 'parca'],
   },
@@ -249,9 +223,6 @@ export const SERVISLER = [
     ilce: 'Bafra',
     adres: 'Kızılırmak Mahallesi, Sanayi Caddesi No: 30',
     tel: '03625421230',
-    telYazi: '0362 542 12 30',
-    enlem: 41.5602,
-    boylam: 35.9134,
     bayiler: ['samsun', 'corum'],
     hizmet: ['servis'],
   },
@@ -264,9 +235,6 @@ export const SERVISLER = [
     ilce: 'Pasinler',
     adres: 'Hasankale Sanayi Sitesi No: 7',
     tel: '04426611307',
-    telYazi: '0442 661 13 07',
-    enlem: 39.9761,
-    boylam: 41.6702,
     bayiler: ['erzurum'],
     hizmet: ['servis'],
   },
@@ -279,27 +247,10 @@ export const SERVISLER = [
     ilce: 'Malkara',
     adres: 'Camiatik Mahallesi, Keşan Caddesi No: 52',
     tel: '02824271452',
-    telYazi: '0282 427 14 52',
-    enlem: 40.8841,
-    boylam: 26.9062,
     bayiler: ['tekirdag'],
     hizmet: ['servis', 'parca'],
   },
 ]
-
-/* İki nokta arası kuş uçuşu kilometre (Haversine).
-   Servis sıralamasında "hangisi daha yakın" sorusuna yeter; yol mesafesi
-   değildir, ekranda da "kuş uçuşu" diye yazılır. */
-export function mesafeKm(enlem1, boylam1, enlem2, boylam2) {
-  const R = 6371
-  const rad = (d) => (d * Math.PI) / 180
-  const dEnlem = rad(enlem2 - enlem1)
-  const dBoylam = rad(boylam2 - boylam1)
-  const a =
-    Math.sin(dEnlem / 2) ** 2 +
-    Math.cos(rad(enlem1)) * Math.cos(rad(enlem2)) * Math.sin(dBoylam / 2) ** 2
-  return Math.round(2 * R * Math.asin(Math.sqrt(a)))
-}
 
 /* Backoffice'ten gerçek servis listesi girildiyse o geçerli; yoksa
    yukarıdaki temsilî liste. Ekranlar bu fonksiyonu çağırıyor, doğrudan
@@ -308,14 +259,13 @@ export function servisleriGetir() {
   return icerikListe('servisler', SERVISLER)
 }
 
-/** Servisleri verilen konuma göre yakından uzağa sıralar. */
-export function yakindanUzaga(enlem, boylam) {
-  return servisleriGetir()
-    .map((b) => ({ ...b, km: mesafeKm(enlem, boylam, b.enlem, b.boylam) }))
-    .sort((a, b) => a.km - b.km)
+/** Bir servisi kimliğiyle bulur. */
+export function servisGetir(id) {
+  if (!id) return null
+  return servisleriGetir().find((s) => s.id === id) || null
 }
 
-/** Konum yoksa, kullanıcının kayıtlı ilindeki servisler önce gelsin. */
+/** Kullanıcının kayıtlı ilindeki servisler önce gelsin. */
 export function ileGore(il) {
   const liste = servisleriGetir()
   if (!il) return liste
@@ -357,48 +307,56 @@ function bolgeIlceyeOzelMi(servis, il, ilce) {
 }
 
 /* ==========================================================================
-   Talebe bakacak servis
+   Talebe önerilen servis
 
-   Makineyi kuran, bakımını ve tamirini yapan taraf servis. Uygulamadan
-   gelen servis ve yedek parça talebi doğrudan cevaplanmıyor: müşteriyle
-   sahada ilgilenecek servise yönlendiriliyor.
+   BU FONKSİYON ARTIK ATAMA YAPMIYOR, ÖNERİ VERİYOR.
 
-   DOĞRU YOL BURADA DEĞİL — HENÜZ
+   Eskiden müşteri talep açtığı anda burası çalışıyor ve talebi
+   coğrafyaya göre bir servise düşürüyordu. O yol bırakıldı: hangi
+   servisin hangi müşteriye bakacağı PAKSAN'ın kararı, coğrafyanın
+   değil — servis, hak edişini PAKSAN'dan alıyor ve PAKSAN kime iş
+   verdiğini bilmek zorunda.
 
-   Zincirin doğrusu makineden geçiyor:
+   Bugün müşterinin servisi şu zincirden geliyor (bkz. lib/servisAtama.js):
 
-     makine → (LOGO faturası) → bayi → bayinin servisi
+     makine → atanmış servis            elle ya da LOGO ile
+     makine → bayi → bayinin servisi    bayi biliniyorsa
 
-   LOGO açılana kadar makinenin hangi bayiden çıktığı bilinmiyor. O gün
-   gelene kadar coğrafya yedek yol: aşağıdaki dört kademe.
+   Zincir boş dönerse müşteri servis talebi AÇAMIYOR; uygulama
+   PAKSAN'la iletişime geçmesini söylüyor.
 
-   DÖRT KADEME, sırayla:
+   Burası o boşluğu personelin doldurması için: backoffice'te bir
+   makineye ya da talebe servis atanırken "bu il/ilçe için hangi
+   servisler uygun" sorusunun cevabı. Personel listeden seçiyor, karar
+   insanda kalıyor.
 
-     0. Sorumluluk bölgesi talebi kapsayan servis — personelin elle
+   ÜÇ KADEME, sırayla:
+
+     1. Sorumluluk bölgesi talebi kapsayan servis — personelin elle
         tanımladığı bölge. Tanımlıysa en doğru cevap budur.
-     1. Aynı ilçedeki servis.
-     2. Aynı ildeki servis.
-     3. İlinde servis yoksa, il merkezine kuş uçuşu en yakın servisler.
+     2. Aynı ilçedeki servis.
+     3. Aynı ildeki servis.
 
-   0. kademe bölge tanımı girilmiş servisler için çalışıyor; hiçbir
-   servise bölge tanımlanmamışsa fonksiyon 1-3 ile sonuçlanıyor.
-   Böylece bölge tanımlanmadan da sistem çalışmaya devam ediyor.
+   BÖLGESİ OLMAYAN SERVİS ELENMİYOR. Bölge yalnız sıralamayı
+   belirliyor; tanımlanmamış olması servisi listeden düşürmüyor.
+   Hiçbir servise bölge girilmemişse liste 2. ve 3. kademeyle
+   doluyor. Bölge bir kısıt değil, bir tercih.
 
    HİZMET: hangi hizmetin arandığı talebin türüne göre değişiyor. Parça
-   tutmayan servise yedek parça talebi yollamanın anlamı yok.
+   tutmayan servise yedek parça talebi önermenin anlamı yok.
 
    @param {string} il
    @param {string} ilce
    @param {number} adet en fazla kaç servis
    @param {'servis'|'parca'} gerekenHizmet
-   @returns {{kademe: 'bolge'|'ilce'|'il'|'yakin', servisler: Array}}
+   @returns {{kademe: 'bolge'|'ilce'|'il'|'yok', servisler: Array}}
    ========================================================================== */
 export function talebinServisleri(il, ilce, adet = 3, gerekenHizmet = 'servis') {
   const uygunlar = servisleriGetir().filter((b) =>
     (b.hizmet || []).includes(gerekenHizmet),
   )
 
-  /* 0. kademe — sorumluluk bölgesi.
+  /* 1. kademe — sorumluluk bölgesi.
      İlçesi açıkça yazılmış servis, tüm ilden sorumlu olana tercih
      ediliyor: daha dar tanım daha bilinçli bir atamadır. */
   const bolgeliler = uygunlar.filter((b) => bolgeKapsiyorMu(b, il, ilce))
@@ -420,19 +378,9 @@ export function talebinServisleri(il, ilce, adet = 3, gerekenHizmet = 'servis') 
     }
   }
 
-  /* İlinde servis yok — en yakınları göster. Koordinat bilinmiyorsa
-     mesafe hesaplanamıyor; uydurmak yerine boş dönüyoruz ve ekran
-     "servis eşleştirilemedi" diyor. */
-  const konum = ilKoordinati(il)
-  if (!konum) return { kademe: 'yakin', servisler: [] }
-
-  return {
-    kademe: 'yakin',
-    servisler: uygunlar
-      .map((b) => ({ ...b, km: mesafeKm(konum.enlem, konum.boylam, b.enlem, b.boylam) }))
-      .sort((a, b) => a.km - b.km)
-      .slice(0, adet),
-  }
+  /* İlinde servis yok. Uydurulmuş bir öneri, önerisizlikten kötü:
+     personel listeden kendisi seçiyor. */
+  return { kademe: 'yok', servisler: [] }
 }
 
 /* ==========================================================================

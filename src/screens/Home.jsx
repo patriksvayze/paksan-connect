@@ -3,23 +3,28 @@ import { useApp } from '../context/AppState'
 import { useDil } from '../i18n'
 import { TabBar } from '../components/Chrome'
 import { useKaydirildi } from '../lib/kaydirma'
-import { Rozet } from '../marka'
+import { Rozet, SIRKET } from '../marka'
 import { UrunFoto } from '../components/Gorsel'
 import { MachineCard } from './Machines'
 import { PRODUCTS, VITRIN, urunDilde } from '../marka'
-import { servisleriGetir } from '../marka'
 import { rehberListesi } from '../marka/icerik/rehber'
 import { bildirimListesi, okunmamisSayisi } from '../lib/bildirimler'
+import { musterininServisleri } from '../lib/servisAtama'
+import { araProps, telFirma } from '../lib/tel'
 import {
   IconBook, IconWrench, IconCart, IconPlus, IconParca,
-  IconUser, IconCalendar, IconRight, IconBell,
+  IconCalendar, IconRight, IconBell, IconPhone, IconShield,
 } from '../components/Icons'
 
 
 export default function Home() {
   const nav = useNavigate()
   const { t, dil } = useDil()
-  const { user, machines, requests, okunanBildirimler } = useApp()
+  const { user, machines, requests, okunanBildirimler, showToast } = useApp()
+  /* Müşteriye bakan servis. Makineden bayiye, bayiden servise giden
+     zincirin sonucu (bkz. lib/servisAtama.js). Zincir boşsa kart
+     çıkmıyor ve servis talebi de açılamıyor. */
+  const servis = musterininServisleri(machines).ana
   const okunmamis = okunmamisSayisi(
     bildirimListesi({ requests, user, makineler: machines }),
     okunanBildirimler
@@ -83,8 +88,27 @@ export default function Home() {
                    aradığı yeri kendisi aramasın. */
                 onClick={() => nav('/profil', { state: { odak: 'talepler' } })}
               />
-              <Stat v={servisleriGetir().length} k={t('anasayfa.servisDestek')} onClick={() => nav('/servisler')} />
+              <Stat
+                v={machines.length ? (servis ? 1 : 0) : 0}
+                k={t('anasayfa.servisim')}
+                onClick={() => nav('/bayiler')}
+              />
             </div>
+          </div>
+        )}
+
+        {/* ==================================================== Servisim
+
+            Çiftçinin "makineme kim bakıyor" sorusunun cevabı; talep
+            açmasına gerek kalmadan burada duruyor. Telefon numarası
+            doğrudan aramaya gidiyor: sahada yapılan iş bu.
+
+            Servis atanmamışsa kart yine çıkıyor ama farklı: sessizce
+            kaybolsaydı çiftçi eksikliği fark etmezdi, servis talebine
+            bastığında engellendiğinde de nedenini anlamazdı. */}
+        {machines.length > 0 && (
+          <div className="wrap" style={{ marginTop: 16 }}>
+            <ServisimKarti servis={servis} showToast={showToast} t={t} />
           </div>
         )}
 
@@ -218,6 +242,71 @@ function Stat({ v, k, onClick }) {
         <IconRight size={13} />
       </div>
     </button>
+  )
+}
+
+/* Servisim kartı — iki hâli var ve ikisi de bir şey söylüyor.
+
+   ATANMIŞSA: servisin adı, yeri ve tıklanabilir numarası. Numara
+   kartın en büyük düğmesi; bu kartın var oluş sebebi o.
+
+   ATANMAMIŞSA: ne eksik ve ne yapılacağı. "Servis bulunamadı" demek
+   yetmiyor — çiftçi kendi yapabileceği bir şey olup olmadığını
+   bilmeli. Atama PAKSAN'ın işi, o yüzden merkez numarası veriliyor. */
+function ServisimKarti({ servis, showToast, t }) {
+  if (!servis) {
+    return (
+      <div className="card" style={{ background: 'var(--pk-orange-soft)', boxShadow: 'none' }}>
+        <div className="row" style={{ alignItems: 'flex-start' }}>
+          <span style={{ color: 'var(--pk-orange-ink)', flex: 'none' }}>
+            <IconShield size={22} />
+          </span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="card__title">{t('servisim.yok')}</div>
+            <div className="card__sub">{t('servisim.yokAlt')}</div>
+          </div>
+        </div>
+        <a
+          className="btn btn--soft btn--sm"
+          style={{ marginTop: 12 }}
+          {...araProps(SIRKET.telefonHam, SIRKET.telefon, showToast)}
+        >
+          <IconPhone size={19} /> {t('servisim.markayiAra')}
+        </a>
+      </div>
+    )
+  }
+
+  const numara = telFirma(servis.tel)
+
+  return (
+    <div className="card">
+      <div className="row" style={{ alignItems: 'flex-start' }}>
+        <div
+          className="listitem__icon"
+          style={{ background: 'var(--pk-green-soft)', color: 'var(--pk-green-yazi)' }}
+        >
+          <IconWrench size={22} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="card__sub">{t('servisim.baslik')}</div>
+          <div className="card__title" style={{ fontSize: 17 }}>{servis.ad}</div>
+          <div className="card__sub" style={{ marginTop: 2 }}>
+            {[servis.ilce, servis.il].filter(Boolean).join(' / ')}
+          </div>
+        </div>
+      </div>
+
+      {numara && (
+        <a
+          className="btn btn--blue"
+          style={{ marginTop: 12 }}
+          {...araProps(servis.tel, numara, showToast)}
+        >
+          <IconPhone size={20} /> {numara}
+        </a>
+      )}
+    </div>
   )
 }
 

@@ -224,6 +224,7 @@ export const en = {
     bakimRehberi: 'Maintenance Guide',
     profilim: 'My Profile',
     tumuSayili: 'See all ({n})',
+    servisim: 'My service',
   },
 
   makine: {
@@ -504,6 +505,7 @@ export const en = {
     kampanyaAcik: 'Campaign notifications turned on',
     kampanyaKapali: 'Campaign notifications turned off',
     onayTarihi: 'You accepted these texts on {tarih} (version {surum}).',
+    bayiIletisim: 'Dealers and contact',
   },
 
   ses: {
@@ -603,6 +605,9 @@ export const en = {
     uygulamadanBilgi: 'Your request has been received. You will be kept informed at every step through the app.',
     talepNo: 'Request No',
     taleplerimiGor: 'View My Requests',
+    servisYok: 'No service assigned to you',
+    servisYokAlt: 'Before you can open a service request, the service that looks after your machine has to be assigned. {marka} does that — call us and we will sort it out right away.',
+    servisYokAra: 'Call {marka}',
   },
 
   ekle: {
@@ -789,28 +794,20 @@ export const en = {
     bastanBasla: 'Start over',
   },
 
-  servis: {
-    haritaUzakta: '{n} services are outside this range. Tap − to zoom out.',
-    yakinlastir: 'Zoom in',
-    uzaklastir: 'Zoom out',
-    kuzey: 'N',
-    haritaAciklama: 'Direction and distance map of your nearest services',
-    haritaNot: 'The dot in the middle is you. Services are shown in their real direction; the rings show distance. Tap one to find it in the list.',
-    baslik: 'Service and Contact',
-    yakiniBul: 'Let us find your nearest service',
-    konumAcikla: 'If you allow location access, we will start the list from your nearest service. Your location stays on your phone and is not sent anywhere.',
-    konumAlindi: 'We have your location',
-    konumAlindiAlt: 'Services are sorted from nearest to farthest',
-    konumRedAlt: 'Location permission was not granted. No problem — services are sorted by your registered province. You can allow it later in your phone settings.',
-    konumYok: 'Location is not available on this device. Services are sorted by your registered province.',
-    tekrarDene: 'Try again',
-    konumKullan: 'Use my location',
-    konumAraniyor: 'Getting your location…',
-    konumRed: 'Location permission was not granted. Services are sorted by your registered province.',
-    servisler: 'Services',
-    merkezAlt: 'If you cannot reach your service, you can call us directly.',
-    temsili: 'This service list is a placeholder.',
-    temsiliAlt: 'Real service details will be added here once we have them. Check with head office before setting out.',
+  servisim: {
+    baslik: 'Your service',
+    yok: 'No service assigned yet',
+    yokAlt: '{marka} decides which service looks after your machine. Call us and we will assign one.',
+    markayiAra: 'Call {marka}',
+  },
+  bayi: {
+    baslik: 'Dealers and Contact',
+    bayiler: 'Dealers',
+    benimBayim: 'The dealer you bought from',
+    buradanAldiniz: 'Your machine came from here',
+    merkezAlt: 'If you cannot reach them, you can call us directly.',
+    temsili: 'This dealer list is a placeholder.',
+    temsiliAlt: 'Real dealer details will be added here once we have them. Check with head office before setting out.',
   },
 
   numara: {

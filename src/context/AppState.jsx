@@ -6,7 +6,7 @@ import { uygulamaKaydi } from '../lib/kayit'
 import { talepNo } from '../lib/talep'
 import { sunucuyaGonder } from '../lib/sunucu'
 import { ihracatPostasi, talepUlkesi, yurtdisiTalepMi } from '../lib/ihracat'
-import { talebinServisleri } from '../marka'
+import { musterininServisleri } from '../lib/servisAtama'
 import { SUNUCU } from '../config'
 import { cihazDili, DilSaglayici } from '../i18n'
 
@@ -14,7 +14,8 @@ import { cihazDili, DilSaglayici } from '../i18n'
 
    FİYAT TEKLİFİ BURADA YOK VE OLMAYACAK. Makineyi satan taraf bayi;
    servis satış yapmıyor. Fiyat teklifi talebi hiçbir servise
-   atanmıyor, PAKSAN'da kalıyor ve satış ekibi yürütüyor.
+   atanmıyor: PAKSAN'a düşüyor, satış personeli müşteriye en uygun
+   bayiye atıyor (bkz. backoffice/ekranlar/Talepler.jsx → BayiyeAta).
    Listede karşılığı olmayan tür atanmadan geçiyor. */
 const TUR_HIZMET = {
   servis: 'servis',
@@ -218,21 +219,25 @@ export function AppProvider({ children }) {
          BURADA veriliyor ki her talep ekranı aynı davransın. */
       const ihracat = yurtdisiTalepMi(user)
 
-      /* Talep önce SERVİSE düşüyor. Makineyi kuran, tamir eden ve
-         parçayı değiştiren taraf servis; talebin ilk muhatabı da o
-         olmalı. PAKSAN personeli talebi görmeye ve gerektiğinde
-         müdahale etmeye devam ediyor — görünürlük hiç kapanmıyor.
+      /* Talep MÜŞTERİNİN KENDİ SERVİSİNE düşüyor — coğrafyaya değil.
 
-         Yurtdışı talebi servise düşmüyor: servis ağı Türkiye içinde.
-         Fiyat teklifi de düşmüyor (bkz. TUR_YETKI).
+         Servis, makineden bayiye, bayiden servise giden zincirden
+         çıkıyor (bkz. lib/servisAtama.js). Bir zamanlar burada il ve
+         ilçeye bakıp en yakın servis seçiliyordu; o yol bırakıldı.
+         Servis hak edişini PAKSAN'dan alıyor ve PAKSAN kime iş
+         verdiğini bilmek zorunda; "en yakın" bir kayıt değil, tahmin.
 
-         Servis eşleşmezse (bölgesi tanımsız, o yetkide servis yok)
-         talep PAKSAN'da kalıyor. Boşta talep kalmıyor. */
+         Servis talebi zaten servis atanmadan açılamıyor (form o kapıyı
+         tutuyor). Yedek parça talebi ise servis parça tutmuyorsa
+         PAKSAN'da kalıyor: parçası olmayan servise parça talebi
+         yollamak, talebi bir kez daha taşıtmak demek.
+
+         Yurtdışı talebi hiç düşmüyor: servis ağı Türkiye içinde.
+         Fiyat teklifi de düşmüyor (bkz. TUR_HIZMET). */
       const gerekenHizmet = TUR_HIZMET[data.tur]
-      const servisEslesme = ihracat || !gerekenHizmet
+      const servis = ihracat || !gerekenHizmet
         ? null
-        : talebinServisleri(data.il, data.ilce, 1, gerekenHizmet)
-      const servis = servisEslesme?.servisler?.[0] || null
+        : musterininServisleri(machines, gerekenHizmet).ana
 
       const r = {
         id: uid(),
@@ -242,7 +247,7 @@ export function AppProvider({ children }) {
         ulke: talepUlkesi(user),
         ihracat,
         servis: servis
-          ? { id: servis.id, ad: servis.ad, kademe: servisEslesme.kademe, tarih: Date.now() }
+          ? { id: servis.id, ad: servis.ad, tel: servis.tel || '', tarih: Date.now() }
           : null,
         sahip: servis ? 'servis' : 'paksan',
         ...data,
@@ -268,7 +273,7 @@ export function AppProvider({ children }) {
 
       return r
     },
-    [user, requestsGuncelle]
+    [user, machines, requestsGuncelle]
   )
 
   const updateRequest = useCallback((id, patch) => {

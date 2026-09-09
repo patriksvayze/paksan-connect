@@ -71,6 +71,60 @@ export function telKullanici(user) {
   return telGoster(user.ulke || VARSAYILAN_ULKE, user.tel)
 }
 
+/* ==========================================================================
+   Firma numarası — bayi, servis, PAKSAN
+
+   Müşterinin numarası ülke koduyla ayrı ayrı saklanıyor (yukarısı).
+   Firma numarası öyle değil: personel numarayı olduğu gibi yazıyor,
+   çoğu sabit hat ve baştaki sıfırla söyleniyor.
+
+   TEK ALAN VAR. Bir zamanlar iki alan vardı: "tuşlanacak" ve "ekranda
+   görünen". İkisi de aynı numaraydı ve ikincisi yalnız boşlukların
+   nereye konacağını söylüyordu. Personelin bunu yazması gerekmiyor —
+   boşlukları ekran koyar. Kayıtta yalnız `tel` duruyor, biçim
+   gösterildiği yerde hesaplanıyor.
+   ========================================================================== */
+
+/** Alana yazılabilenler: yalnız rakam ve baştaki artı. */
+export function telGiris(ham) {
+  const s = String(ham || '')
+  const arti = s.trimStart().startsWith('+')
+  return (arti ? '+' : '') + s.replace(/\D/g, '')
+}
+
+/**
+ * Firma numarasını okunur biçime çevirir.
+ *   03323210001   → 0332 321 00 01
+ *   +903323210001 → +90 332 321 00 01
+ * Hane sayısı tutmuyorsa numara olduğu gibi gösteriliyor: uydurulmuş
+ * bir boşluk, yanlış numarayı doğru gibi gösterir.
+ */
+export function telFirma(ham) {
+  const s = String(ham || '').trim()
+  if (!s) return ''
+  const arti = s.startsWith('+')
+  let r = s.replace(/\D/g, '')
+  let ulke = ''
+
+  if (arti) {
+    if (r.length <= 10) return '+' + r
+    ulke = r.slice(0, -10)
+    r = r.slice(-10)
+  } else {
+    r = r.replace(/^0+/, '')
+  }
+
+  if (r.length !== 10) return s
+
+  const yazi = `${r.slice(0, 3)} ${r.slice(3, 6)} ${r.slice(6, 8)} ${r.slice(8, 10)}`
+  return ulke ? `+${ulke} ${yazi}` : `0${yazi}`
+}
+
+/** Firma numarası aranabilir mi? En az yedi hane. */
+export function telFirmaGecerliMi(ham) {
+  return telRakam(ham).length >= 7
+}
+
 /* TEK NUMARA VAR.
 
    Kullanıcının bir telefon numarası var ve o numara hem hesabın kimliği

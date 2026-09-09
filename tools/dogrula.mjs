@@ -346,13 +346,17 @@ if (!sizintilar.length) {
 
    1. KURALIN KAPSAMI DOSYA DOSYA YAZILI, klasör kuralı yetmiyor:
 
-     · `src/servis/`         panelin tamamı
+     · `src/servis/`         uygulamanın tamamı
      · `src/lib/servis*.js`  servisin iş mantığı
-     · servisi gösteren iki müşteri ekranı
 
    Kapsam iki kez genişledi ve ikisinde de aynı sebeple: klasör kuralı
    dışında kalan bir dosyada "bayi" kelimesi sessizce kaldı. Yeni bir
    servis dosyası açılırsa buraya EKLENMELİ.
+
+   TEK İSTİSNA: `src/lib/servisAtama.js`. Adı `servis` ile başlıyor
+   ama servis uygulamasının dosyası değil — müşterinin servisini
+   bulan köprü, ve o köprünün orta halkası tam olarak bayi:
+   makine → bayi → bayinin servisi. Bayiden söz etmeden yazılamaz.
 
    BACKOFFICE KAPSAM DIŞINDA ve bilerek: orada iki taraf da var,
    "Servisler" ekranı bayi bağını kuruyor, "Bayiler" ekranı bayiyi
@@ -363,19 +367,23 @@ if (!sizintilar.length) {
    `bayiler` alanı zincirin orta halkası.
 
    Müşteri uygulamasının geri kalanı da dışarıda: `Register.jsx`
-   "makineyi kimden aldınız" diye soruyor ve cevabı bayidir. */
+   "makineyi kimden aldınız" diye soruyor ve cevabı bayidir;
+   `screens/Bayiler.jsx` zaten bayileri listeliyor. */
 
 baslik('7. Bayi kalıntısı')
 
 const kalintilar = []
 
+/* Kapsam dışı tutulan servis dosyaları — gerekçesi yukarıda. */
+const BAYI_GECEBILIR = new Set(['servisAtama.js'])
+
 /* 1. kural — servisi anlatan dosyalarda bayi geçmiyor */
 const SERVIS_TARAFI = [
   join(KOK, 'src', 'servis'),
-  join(KOK, 'src', 'components', 'ServisHarita.jsx'),
-  join(KOK, 'src', 'screens', 'Servisler.jsx'),
-  ...dosyalar(join(KOK, 'src', 'lib'), ['.js']).filter((d) =>
-    /[\\/]servis[A-Za-z]*\.js$/.test(d),
+  ...dosyalar(join(KOK, 'src', 'lib'), ['.js']).filter(
+    (d) =>
+      /[\\/]servis[A-Za-z]*\.js$/.test(d) &&
+      !BAYI_GECEBILIR.has(d.split(/[\\/]/).pop()),
   ),
 ]
 

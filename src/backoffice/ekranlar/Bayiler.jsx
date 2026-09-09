@@ -8,6 +8,7 @@ import { Secim, SuzgecCubugu } from './suzgec'
 import { DisaAktar, IceAktar } from './aktar'
 import { uid } from '../../lib/storage'
 import { yeniNo, sayaciEnAz } from '../../lib/numara'
+import { telFirma, telGiris } from '../../lib/tel'
 
 /* ==========================================================================
    Bayiler — makineyi satan taraf
@@ -34,10 +35,14 @@ import { yeniNo, sayaciEnAz } from '../../lib/numara'
    ve bunun görünmesi gerekiyor.
    ========================================================================== */
 
-const BOS_BAYI = {
-  ad: '', il: '', ilce: '', adres: '', tel: '', telYazi: '',
-  enlem: '', boylam: '',
-}
+/* Koordinat ve ikinci telefon alanı YOK.
+
+   Enlem/boylam tek bir yerde kullanılıyordu: müşteri uygulamasındaki
+   yön haritası. Harita kaldırıldı, alanlar da gitti.
+
+   "Ekranda görünen telefon" da gitti; boşlukları ekran koyuyor
+   (bkz. lib/tel.js → telFirma). */
+const BOS_BAYI = { ad: '', il: '', ilce: '', adres: '', tel: '' }
 
 export function Bayiler({ personel, rol, bildir, tazele, surum }) {
   const duzenleyebilir = izinli(rol, 'servisDuzenle')
@@ -214,7 +219,7 @@ export function Bayiler({ personel, rol, bildir, tazele, surum }) {
                         <div className="kucuk sonuk">{b.adres}</div>
                       </td>
                       <td className="kucuk">{b.ilce} / {b.il}</td>
-                      <td className="kucuk mono">{b.telYazi}</td>
+                      <td className="kucuk mono">{telFirma(b.tel)}</td>
                       <td className="kucuk">
                         {servisler.length ? (
                           servisler.map((s) => <div key={s.id}>{s.ad}</div>)
@@ -261,12 +266,7 @@ export function Bayiler({ personel, rol, bildir, tazele, surum }) {
           onKapat={() => setDuzenlenen(null)}
           onKaydet={(b) => {
             sayaciEnAz('bayi', liste.length)
-            const temiz = {
-              ...b,
-              no: b.no || yeniNo('bayi'),
-              enlem: Number(b.enlem) || 0,
-              boylam: Number(b.boylam) || 0,
-            }
+            const temiz = { ...b, no: b.no || yeniNo('bayi') }
             delete temiz.yeni
             kaydet(b.yeni ? [...liste, temiz] : liste.map((x) => (x.id === b.id ? temiz : x)))
             setDuzenlenen(null)
@@ -288,7 +288,7 @@ function Form({ bayi, onKapat, onKaydet }) {
     if (!d.il.trim()) return setHata('İl adını yazın.')
     if (!d.tel.replace(/\D/g, '')) return setHata('Telefon numarasını yazın.')
     setHata('')
-    onKaydet({ ...d, tel: d.tel.replace(/\D/g, ''), telYazi: d.telYazi.trim() || d.tel })
+    onKaydet(d)
   }
 
   return (
@@ -336,27 +336,16 @@ function Form({ bayi, onKapat, onKaydet }) {
             <input className="gir" value={d.adres} onChange={yaz('adres')} />
           </label>
 
-          <div className="esit">
-            <label className="alan">
-              <span className="alan__ad">Telefon (tuşlanacak)</span>
-              <input className="gir mono" value={d.tel} onChange={yaz('tel')} placeholder="03323210001" />
-            </label>
-            <label className="alan">
-              <span className="alan__ad">Telefon (ekranda görünen)</span>
-              <input className="gir mono" value={d.telYazi} onChange={yaz('telYazi')} placeholder="0332 321 00 01" />
-            </label>
-          </div>
-
-          <div className="esit">
-            <label className="alan">
-              <span className="alan__ad">Enlem</span>
-              <input className="gir mono" value={d.enlem} onChange={yaz('enlem')} placeholder="37.8746" />
-            </label>
-            <label className="alan">
-              <span className="alan__ad">Boylam</span>
-              <input className="gir mono" value={d.boylam} onChange={yaz('boylam')} placeholder="32.4932" />
-            </label>
-          </div>
+          <label className="alan">
+            <span className="alan__ad">Telefon</span>
+            <input
+              className="gir mono"
+              value={telFirma(d.tel)}
+              onChange={(e) => setD({ ...d, tel: telGiris(e.target.value) })}
+              inputMode="tel"
+              placeholder="0332 321 00 01"
+            />
+          </label>
 
           <p className="kucuk sonuk" style={{ marginTop: -6 }}>
             Bayinin panel hesabı yoktur. Servis talebi, parça talebi ve stok
@@ -377,33 +366,18 @@ function Form({ bayi, onKapat, onKaydet }) {
 
 /* ----------------------------------------------------------- Excel aktarımı */
 
-const AKTAR_BASLIK = [
-  'Bayi Adı', 'İl', 'İlçe', 'Adres', 'Telefon (tuşlanacak)',
-  'Telefon (görünen)', 'Enlem', 'Boylam',
-]
+const AKTAR_BASLIK = ['Bayi Adı', 'İl', 'İlçe', 'Adres', 'Telefon']
 
 const ORNEK_SATIR = [
   'Örnek Tarım Makineleri',
   'Konya',
   'Selçuklu',
   'Ankara Yolu 12. km No: 5',
-  '03323210000',
   '0332 321 00 00',
-  '37.8746',
-  '32.4932',
 ]
 
 function aktarSatiri(b) {
-  return [
-    b.ad || '',
-    b.il || '',
-    b.ilce || '',
-    b.adres || '',
-    b.tel || '',
-    b.telYazi || '',
-    String(b.enlem ?? ''),
-    String(b.boylam ?? ''),
-  ]
+  return [b.ad || '', b.il || '', b.ilce || '', b.adres || '', telFirma(b.tel)]
 }
 
 function iceAl(kayitlar, mevcut, kaydet) {
@@ -424,10 +398,7 @@ function iceAl(kayitlar, mevcut, kaydet) {
       il: k['İl'],
       ilce: k['İlçe'] || '',
       adres: k['Adres'] || '',
-      tel: String(k['Telefon (tuşlanacak)'] || '').replace(/\D/g, ''),
-      telYazi: k['Telefon (görünen)'] || k['Telefon (tuşlanacak)'] || '',
-      enlem: Number(String(k['Enlem'] || '').replace(',', '.')) || 0,
-      boylam: Number(String(k['Boylam'] || '').replace(',', '.')) || 0,
+      tel: telGiris(k['Telefon'] || ''),
     })
   })
 

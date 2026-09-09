@@ -9,9 +9,9 @@
 /** Demo APK'sında açık olan servis hesabı. */
 export const DEMO_HESAP = { kullanici: 'konya', sifre: '123456' }
 
-/* Telefona kurulan sürüm `data-giris="mobil"` işaretini taşıyor
-   (bkz. servis-mobil.html). Tarayıcıdan açılan panelde bu işaret yok,
-   demo verisi de kurulmuyor. */
+/* Demo sürümü `data-demo="acik"` işaretini taşıyor (bkz. servis.html).
+   Canlıya çıkarken o satır siliniyor; işaret gidince ne demo verisi
+   kuruluyor ne de giriş alanları dolu geliyor. */
 export function demoAPKmi() {
-  return document.documentElement.dataset.giris === 'mobil'
+  return document.documentElement.dataset.demo === 'acik'
 }

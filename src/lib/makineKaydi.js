@@ -4,7 +4,7 @@
    Müşteri makinesini uygulamaya seri numarasıyla kaydettiğinde buradan
    geçiyor. İki iş yapılıyor:
 
-     1. Kayıt PAKSAN tarafına düşüyor (backoffice’te görünüyor).
+     1. Kayıt PAKSAN tarafına düşüyor (backoffice'te görünüyor).
      2. Logo'ya sorulup bunun YENİ bir satış olup olmadığı öğreniliyor.
 
    İkincisi neden gerekli: seri numarası tek başına "bu makine yeni
@@ -15,6 +15,16 @@
    Bu yüzden hem bayiye satış yazmak hem de müşteriye "hayırlı olsun"
    demek Logo'nun cevabına bağlı. Logo bağlı değilken ikisi de olmuyor —
    yanlış bilgi vermektense hiç vermemek doğru.
+
+   İKİ AYRI ALAN: BAYİ VE SERVİS
+
+     bayiId    makineyi SATAN bayi. Logo'dan gelir; Logo kapalıyken
+               personel backoffice'ten girer.
+     servisId  makineye BAKACAK servis. Personel elle atar. Boşsa
+               bayinin çalıştığı servis geçerli olur.
+
+   İkisi bir dönem tek alanda tutuluyordu ve adı `servisId` idi; Logo'nun
+   verdiği değer ise bayiydi. Ad ile içerik birbirini tutmuyordu.
    ========================================================================== */
 
 import { load, save, uid } from './storage'
@@ -27,10 +37,18 @@ export function makineKayitlari() {
   return load(ANAHTAR, [])
 }
 
+/** Kayıt defterindeki bir satırı günceller (backoffice'ten atama). */
+export function makineKaydiGuncelle(id, yama) {
+  const liste = makineKayitlari()
+  const yeni = liste.map((k) => (k.id === id ? { ...k, ...yama } : k))
+  save(ANAHTAR, yeni)
+  return yeni.find((k) => k.id === id) || null
+}
+
 /* Servisin elle açtığı kayıt.
 
    `makineKaydet` müşteri akışı için yazıldı: Logo'ya sorup faturayı
-   öğreniyor ve `servisId`'yi oradan dolduruyor. Logo kapalı olduğu için
+   öğreniyor ve `bayiId`'yi oradan dolduruyor. Logo kapalı olduğu için
    o alan bugün hep boş kalıyor.
 
    Servis elle kayıt açtığında servisi zaten BİLİYORUZ — sormaya gerek
@@ -58,6 +76,8 @@ export function servisMakineKaydi({
     musteriAd,
     il,
     ilce,
+    bayiId: null,
+    bayiAd: '',
     servisId,
     servisAd,
     uretimTarihi: null,
@@ -76,7 +96,7 @@ export function servisMakineKaydi({
  * @returns {Promise<{kayit: object, kutlama: boolean}>}
  */
 export async function makineKaydet(makine, user) {
-  /* Logo kapalıysa null dönüyor; kayıt yine yazılıyor ama servis ve
+  /* Logo kapalıysa null dönüyor; kayıt yine yazılıyor ama bayi ve
      fatura alanları boş kalıyor. */
   const logo = await seriBilgisi(makine.serial)
   const kutlama = yeniSatisMi(logo)
@@ -94,15 +114,20 @@ export async function makineKaydet(makine, user) {
     il: user?.il || '',
     ilce: user?.ilce || '',
 
-    /* Logo'dan gelenler */
-    servisId: logo?.servisId || null,
-    servisAd: logo?.servisAd || '',
+    /* Logo'dan gelenler — fatura bayiye kesiliyor, gelen değer bayi. */
+    bayiId: logo?.bayiId || null,
+    bayiAd: logo?.bayiAd || '',
     uretimTarihi: logo?.uretimTarihi || null,
     faturaTarihi: logo?.faturaTarihi || null,
+
+    /* Servis ataması personelin işi; Logo bunu bilmiyor. */
+    servisId: null,
+    servisAd: '',
 
     /* Logo cevap verdi mi — "bilmiyoruz" ile "yeni değil" ayrı şeyler */
     logoBildi: Boolean(logo),
     yeniSatis: kutlama,
+    kaynak: 'musteri',
   }
 
   save(ANAHTAR, [kayit, ...makineKayitlari()].slice(0, 500))

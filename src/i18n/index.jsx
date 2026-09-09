@@ -28,7 +28,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo } from 'react'
 import { tr } from './tr'
 import { en } from './en'
-import { SIRKET, UYGULAMA } from '../marka'
+import { SIRKET, UYGULAMA, markaEk } from '../marka'
 
 export const DILLER = [
   { kod: 'tr', ad: 'Türkçe', kisa: 'TR' },
@@ -66,6 +66,19 @@ function bul(sozluk, anahtar) {
    burada kendiliğinden yerine geçiyor. Çağıran taraf hiçbir şey yapmıyor —
    yüzlerce `t()` çağrısına değer eklemek gerekmiyor.
 
+   ÇEKİMLİ HÂLLER DE YER TUTUCU
+
+   Türkçede ek adın son ünlüsüne göre değişiyor: "PAKSAN'ı" ama
+   "ACME'yi". Sözlükte "{marka}'ı" yazmak, yalnız bugünkü ad için
+   doğru olan bir metin demek. Ekler hesaplanıyor
+   (bkz. src/marka/ad.js) ve buraya yer tutucu olarak giriyor:
+
+     {markaYi}   PAKSAN’ı     belirtme
+     {markaya}   PAKSAN’a     yönelme
+     {markadan}  PAKSAN’dan   ayrılma
+     {markada}   PAKSAN’da    bulunma
+     {markanin}  PAKSAN’ın    tamlayan
+
    Çağıranın verdiği değerler daha sonra uygulanıyor: aynı adı taşıyan bir
    değer gönderirse onunki geçerli oluyor.
    ========================================================================== */
@@ -74,6 +87,11 @@ const MARKA_DEGERLER = {
   sirket: SIRKET.ad,
   uygulama: UYGULAMA,
   site: SIRKET.siteKisa,
+  markaYi: markaEk('i'),
+  markaya: markaEk('a'),
+  markadan: markaEk('dan'),
+  markada: markaEk('da'),
+  markanin: markaEk('in'),
 }
 
 /** Anahtardan metni bulur; İngilizcesi yoksa Türkçesine düşer. */

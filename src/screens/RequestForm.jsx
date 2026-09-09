@@ -14,7 +14,8 @@ import {
   KDV_ORANI, PARA_BIRIMI, PARCA_FIYAT_AKTIF, parcaFiyatBilgisi, parcaToplami, paraYaz,
 } from '../marka'
 import { formatSerial } from '../lib/serial'
-import { telKullanici } from '../lib/tel'
+import { araProps, telKullanici } from '../lib/tel'
+import { musterininServisleri } from '../lib/servisAtama'
 import { SesKaydi } from '../components/SesKaydi'
 import { EkAlani } from '../components/EkAlani'
 import { KonumAlani } from '../components/KonumAlani'
@@ -29,7 +30,7 @@ import { useDil } from '../i18n'
 import { BANKA, SIRKET } from '../marka'
 import {
   IconCheckCircle, IconPin, IconRight, IconLock, IconCheck, IconAlert,
-  IconPlus, IconMinus, IconCart, IconInfo,
+  IconPlus, IconMinus, IconCart, IconInfo, IconPhone,
 } from '../components/Icons'
 
 /* Tür başlıkları sözlükte: talep.servis.baslik gibi. Placeholder
@@ -54,6 +55,10 @@ function TalepFormu() {
 
   const tur = TURLER.includes(params.get('tur')) ? params.get('tur') : 'servis'
   const cfg = (a) => t(`talep.${tur}.${a}`)
+
+  /* Müşteriye bakan servis. Yoksa servis talebi açılamıyor; gerekçesi
+     aşağıda, ekranın kendi yerinde yazılı. */
+  const servisim = musterininServisleri(machines).ana
 
   const [makineId, setMakineId] = useState(params.get('makine') || machines[0]?.id || '')
   const [urunId, setUrunId] = useState(params.get('urun') || '')
@@ -521,6 +526,55 @@ function TalepFormu() {
     setOnay(false)
     setSonuc(r)
     window.scrollTo(0, 0)
+  }
+
+  /* ==================================================== Servis atanmamışsa
+
+     SERVİS TALEBİ AÇILAMIYOR VE BU KASITLI.
+
+     Talep, makineye bakan servisin uygulamasına düşüyor. Servis
+     atanmamışsa talebin gideceği yer yok: PAKSAN'da bekler, kimse
+     sahiplenmez, müşteri de bir şey olduğunu sanır. Boşa açılan bir
+     talep, açılmamış talepten kötü.
+
+     Atama PAKSAN'ın kararı (bkz. lib/servisAtama.js). Bu yüzden ekran
+     çiftçiden bir şey yapmasını istemiyor, PAKSAN'ı aramasını
+     söylüyor — tek dokunuşla.
+
+     YALNIZ SERVİS TALEBİNDE. Yedek parça ve fiyat teklifi PAKSAN'da
+     karşılık buluyor; onları engellemenin sebebi yok. */
+  if (tur === 'servis' && !servisim) {
+    return (
+      <div className="app">
+        <TopBar title={cfg('baslik')} back />
+        <div className="screen wrap fade-in" style={{ paddingTop: 24 }}>
+          <div className="card center" style={{ padding: '30px 20px' }}>
+            <div style={{ color: 'var(--pk-orange-ink)' }}>
+              <IconAlert size={46} />
+            </div>
+            <h2 style={{ marginTop: 14 }}>{t('talep.servisYok')}</h2>
+            <p className="muted" style={{ marginTop: 10, lineHeight: 1.6 }}>
+              {t('talep.servisYokAlt')}
+            </p>
+            <a
+              className="btn btn--brand btn--lg"
+              style={{ marginTop: 20 }}
+              {...araProps(SIRKET.telefonHam, SIRKET.telefon, showToast)}
+            >
+              <IconPhone size={21} /> {t('talep.servisYokAra')}
+            </a>
+            <button
+              className="btn btn--soft"
+              style={{ marginTop: 10 }}
+              onClick={() => nav('/')}
+            >
+              {t('ortak.geri')}
+            </button>
+          </div>
+        </div>
+        <TabBar />
+      </div>
+    )
   }
 
   /* --------------------------------------------------- Gönderildi ekranı */

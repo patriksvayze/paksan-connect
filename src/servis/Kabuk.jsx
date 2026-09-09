@@ -24,7 +24,7 @@ import { IconBack, IconPhone } from '../components/Icons'
    ekranda alt sekmeler üste, çubuğun altına geçiyor (bkz. servis.css).
    Servis panelinin ve servis uygulamasının iki ayrı kopyası yok.
 
-   ÇENTİK VE EV ÇUBUĞU. `servis-mobil.html` içinde `viewport-fit=cover`
+   ÇENTİK VE EV ÇUBUĞU. `servis.html` içinde `viewport-fit=cover`
    var; içerik ekranın en tepesine kadar çıkıyor. Güvenli alan payları
    bu yüzden CSS'te `env(safe-area-inset-*)` ile veriliyor, yoksa
    başlık çentiğin, sekmeler de ev çubuğunun altında kalırdı.

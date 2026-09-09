@@ -64,10 +64,15 @@ export const LOGO = {
  *     "seri": "1270240001",
  *     "uretimTarihi": "2024-03-11",
  *     "faturaTarihi": "2024-05-02",
- *     "servisId": "konya-merkez",
- *     "servisAd": "Paksan Konya Ana Servis",
+ *     "bayiId": "konya-merkez",
+ *     "bayiAd": "PAKSAN Konya Ana Bayi",
  *     "model": "orkinos-1270"
  *   }
+ *
+ * LOGO BAYİYİ SÖYLER, SERVİSİ DEĞİL. Fatura bayiye kesiliyor; makineye
+ * hangi servisin bakacağı o bayinin çalıştığı servisten çıkıyor
+ * (bkz. lib/servisAtama.js). Alan bir dönem `servisId` adıyla
+ * duruyordu ve taşıdığı değer yine bayiydi — ad yanlıştı.
  *
  * @returns {Promise<object|null>} Logo kapalıysa veya kayıt yoksa null
  */

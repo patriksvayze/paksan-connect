@@ -23,6 +23,7 @@ import { makineDurumAdi } from '../../data/talepAlanlari'
 import { BANKA } from '../../marka'
 import { servisleriGetir } from '../../marka'
 import { PARA_BIRIMI, parcaToplami, paraYaz } from '../../marka'
+import { telFirma } from '../../lib/tel'
 
 /* Talepler.
 
@@ -1595,7 +1596,7 @@ function ServisDurumu({ talep }) {
       </div>
 
       {kayit && <S k="Konum" v={[kayit.ilce, kayit.il].filter(Boolean).join(' / ')} />}
-      {kayit && <S k="Telefon" v={kayit.telYazi || kayit.tel} mono />}
+      {kayit && <S k="Telefon" v={telFirma(kayit.tel)} mono />}
       <S k="Servise düştü" v={talep.servis.tarih ? tarihYaz(talep.servis.tarih) : ''} />
 
       {talep.devir && (

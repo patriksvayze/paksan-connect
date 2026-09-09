@@ -1,0 +1,33 @@
+<!doctype html>
+<!-- PAKSAN Servis — tek giriş.
+
+     Servis tarafının tarayıcıdan açılan bir paneli YOK. Servis elemanı
+     ekranı tarlada, işin sonunda, çoğu zaman ayakta açıyor; masaüstü
+     bir panel onun çalışma biçiminde karşılığı olmayan bir üründü.
+     Bu dosya derlemede `index.html` adıyla çıkıyor ve APK'nın içine
+     giriyor (bkz. vite.servis.config.js).
+
+     data-demo="acik": DEMO VERİSİ KURULUYOR.
+
+     Sunucu yokken uygulama boş bir hafızayla açılıyor; girilecek hesap
+     bile olmuyor. Bu işaret varken `demoKur.js` örnek servisi ve
+     taleplerini kuruyor. CANLIYA GEÇERKEN BU SATIR SİLİNECEK
+     (bkz. CANLIYA-CIKIS.md). -->
+<html lang="tr" data-demo="acik">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Telefona kurulan sürüm: kullanıcı yakınlaştırma yapamasın,
+         uygulama gibi dursun. viewport-fit=cover çentikli ekranlar için. -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#0a1a33" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>PAKSAN Servis</title>
+  </head>
+  <body>
+    <div id="servis"></div>
+    <script type="module" src="/src/servis/main.jsx"></script>
+  </body>
+</html>

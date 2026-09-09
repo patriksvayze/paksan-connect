@@ -3,9 +3,9 @@
 
    ⚠⚠ BU LİSTE GERÇEK DEĞİL ⚠⚠
 
-   Yirmi temsilî kayıt. Adlar, adresler ve telefonlar uydurmadır;
-   koordinatlar ilçe merkezlerine yakın seçildi. YAYINA ÇIKMADAN ÖNCE
-   PAKSAN'ın gerçek bayi listesi buraya yazılmalı.
+   Yirmi temsilî kayıt. Adlar, adresler ve telefonlar uydurmadır.
+   YAYINA ÇIKMADAN ÖNCE PAKSAN'ın gerçek bayi listesi buraya
+   yazılmalı.
 
    BAYİ NE YAPAR, NE YAPMAZ
 
@@ -32,7 +32,14 @@
      makine → (LOGO faturası) → bayi → bayinin servisi → müşteri
 
    LOGO açılana kadar bu zincirin ilk halkası boş; makinenin hangi
-   bayiden çıktığı bilinmiyor ve servis coğrafyaya göre eşleşiyor.
+   bayiden çıktığı personel tarafından backoffice'ten giriliyor
+   (bkz. backoffice/ekranlar/Makineler.jsx).
+
+   KOORDİNAT YOK
+
+   Kayıtta enlem/boylam tutulmuyor. Tek tüketicisi müşteri
+   uygulamasındaki yön haritasıydı; harita kaldırıldı. Bayinin nerede
+   olduğu il, ilçe ve adresle belli.
    ========================================================================== */
 
 import { icerikListe } from '../../lib/icerikDeposu.js'
@@ -46,9 +53,6 @@ export const BAYILER = [
     ilce: 'Selçuklu',
     adres: 'Ankara Yolu 12. km, Tarım Makineleri Sitesi',
     tel: '03323210001',
-    telYazi: '0332 321 00 01',
-    enlem: 37.8746,
-    boylam: 32.4932,
   },
   {
     id: 'aksaray',
@@ -58,9 +62,6 @@ export const BAYILER = [
     ilce: 'Merkez',
     adres: 'Nevşehir Yolu 3. km No: 44',
     tel: '03822130044',
-    telYazi: '0382 213 00 44',
-    enlem: 38.3687,
-    boylam: 34.037,
   },
   {
     id: 'ankara',
@@ -70,9 +71,6 @@ export const BAYILER = [
     ilce: 'Polatlı',
     adres: 'İstasyon Mahallesi, Sanayi Caddesi No: 18',
     tel: '03126230018',
-    telYazi: '0312 623 00 18',
-    enlem: 39.5842,
-    boylam: 32.1471,
   },
   {
     id: 'eskisehir',
@@ -82,9 +80,6 @@ export const BAYILER = [
     ilce: 'Alpu',
     adres: 'Cumhuriyet Mahallesi, Ankara Caddesi No: 7',
     tel: '02226110007',
-    telYazi: '0222 611 00 07',
-    enlem: 39.7767,
-    boylam: 30.5206,
   },
   {
     id: 'balikesir',
@@ -94,9 +89,6 @@ export const BAYILER = [
     ilce: 'Bandırma',
     adres: 'Sanayi Sitesi 4. Blok No: 12',
     tel: '02667330012',
-    telYazi: '0266 733 00 12',
-    enlem: 40.352,
-    boylam: 27.9767,
   },
   {
     id: 'bursa',
@@ -106,9 +98,6 @@ export const BAYILER = [
     ilce: 'Karacabey',
     adres: 'Bursa Caddesi No: 96',
     tel: '02245760096',
-    telYazi: '0224 576 00 96',
-    enlem: 40.2148,
-    boylam: 28.36,
   },
   {
     id: 'izmir',
@@ -118,9 +107,6 @@ export const BAYILER = [
     ilce: 'Torbalı',
     adres: 'Ayrancılar Mahallesi, Sanayi Caddesi No: 23',
     tel: '02328560023',
-    telYazi: '0232 856 00 23',
-    enlem: 38.1543,
-    boylam: 27.3595,
   },
   {
     id: 'manisa',
@@ -130,9 +116,6 @@ export const BAYILER = [
     ilce: 'Salihli',
     adres: 'Atatürk Mahallesi, İzmir Caddesi No: 61',
     tel: '02367120061',
-    telYazi: '0236 712 00 61',
-    enlem: 38.4818,
-    boylam: 28.1394,
   },
   {
     id: 'aydin',
@@ -142,9 +125,6 @@ export const BAYILER = [
     ilce: 'Söke',
     adres: 'Yeni Sanayi Sitesi 2. Sokak No: 9',
     tel: '02565120009',
-    telYazi: '0256 512 00 09',
-    enlem: 37.7508,
-    boylam: 27.4098,
   },
   {
     id: 'antalya',
@@ -154,9 +134,6 @@ export const BAYILER = [
     ilce: 'Korkuteli',
     adres: 'Antalya Caddesi No: 130',
     tel: '02426430130',
-    telYazi: '0242 643 01 30',
-    enlem: 37.0665,
-    boylam: 30.196,
   },
   {
     id: 'adana',
@@ -166,9 +143,6 @@ export const BAYILER = [
     ilce: 'Ceyhan',
     adres: 'Kurtkulağı Yolu 2. km',
     tel: '03226130002',
-    telYazi: '0322 613 00 02',
-    enlem: 37.0247,
-    boylam: 35.8175,
   },
   {
     id: 'sanliurfa',
@@ -178,9 +152,6 @@ export const BAYILER = [
     ilce: 'Viranşehir',
     adres: 'Mardin Yolu 1. km No: 55',
     tel: '04145110055',
-    telYazi: '0414 511 00 55',
-    enlem: 37.2353,
-    boylam: 39.7639,
   },
   {
     id: 'diyarbakir',
@@ -190,9 +161,6 @@ export const BAYILER = [
     ilce: 'Bismil',
     adres: 'Diyarbakır Caddesi No: 74',
     tel: '04124130074',
-    telYazi: '0412 413 00 74',
-    enlem: 37.8481,
-    boylam: 40.6667,
   },
   {
     id: 'malatya',
@@ -202,9 +170,6 @@ export const BAYILER = [
     ilce: 'Battalgazi',
     adres: 'Sanayi Mahallesi, 12. Sokak No: 3',
     tel: '04223210003',
-    telYazi: '0422 321 00 03',
-    enlem: 38.3895,
-    boylam: 38.3475,
   },
   {
     id: 'kayseri',
@@ -214,9 +179,6 @@ export const BAYILER = [
     ilce: 'Develi',
     adres: 'Yeni Mahalle, Kayseri Caddesi No: 210',
     tel: '03526180210',
-    telYazi: '0352 618 02 10',
-    enlem: 38.3906,
-    boylam: 35.4931,
   },
   {
     id: 'sivas',
@@ -226,9 +188,6 @@ export const BAYILER = [
     ilce: 'Şarkışla',
     adres: 'Kayseri Yolu 1. km',
     tel: '03464120001',
-    telYazi: '0346 412 00 01',
-    enlem: 39.3529,
-    boylam: 36.4083,
   },
   {
     id: 'samsun',
@@ -238,9 +197,6 @@ export const BAYILER = [
     ilce: 'Bafra',
     adres: 'Sinop Caddesi No: 88',
     tel: '03625420088',
-    telYazi: '0362 542 00 88',
-    enlem: 41.5678,
-    boylam: 35.9069,
   },
   {
     id: 'corum',
@@ -250,9 +206,6 @@ export const BAYILER = [
     ilce: 'Sungurlu',
     adres: 'Ankara Caddesi No: 145',
     tel: '03643110145',
-    telYazi: '0364 311 01 45',
-    enlem: 40.1667,
-    boylam: 34.3722,
   },
   {
     id: 'erzurum',
@@ -262,9 +215,6 @@ export const BAYILER = [
     ilce: 'Pasinler',
     adres: 'Erzurum Caddesi No: 26',
     tel: '04426610026',
-    telYazi: '0442 661 00 26',
-    enlem: 39.9808,
-    boylam: 41.6764,
   },
   {
     id: 'tekirdag',
@@ -274,9 +224,6 @@ export const BAYILER = [
     ilce: 'Malkara',
     adres: 'Keşan Yolu 3. km',
     tel: '02824270003',
-    telYazi: '0282 427 00 03',
-    enlem: 40.8894,
-    boylam: 26.9,
   },
 ]
 
@@ -285,7 +232,20 @@ export function bayileriGetir() {
   return icerikListe('bayiler', BAYILER)
 }
 
+/** Bir bayiyi kimliğiyle bulur. */
+export function bayiGetir(id) {
+  if (!id) return null
+  return bayileriGetir().find((b) => b.id === id) || null
+}
+
 /** Bayinin ekranda görünen adı; kayıt yoksa boş. */
 export function bayiAdi(id) {
-  return bayileriGetir().find((b) => b.id === id)?.ad || ''
+  return bayiGetir(id)?.ad || ''
+}
+
+/** Kullanıcının kayıtlı ilindeki bayiler önce gelsin. */
+export function bayiIleGore(il) {
+  const liste = bayileriGetir()
+  if (!il) return liste
+  return [...liste].sort((a, b) => (b.il === il) - (a.il === il))
 }

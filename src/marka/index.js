@@ -82,11 +82,12 @@ export { PARCA_SERVIS_ISKONTO } from './katalog/makineFiyat.js'
 /* --------------------------------------------------------------- Servisler */
 
 export {
-  HIZMETLER, hizmetAdi, SERVIS_TURU, SERVISLER, mesafeKm, servisleriGetir,
-  yakindanUzaga, ileGore, bolgeKapsiyorMu, talebinServisleri,
-  bayininServisleri,
+  HIZMETLER, hizmetAdi, SERVIS_TURU, SERVISLER, servisleriGetir, servisGetir,
+  ileGore, bolgeKapsiyorMu, talebinServisleri, bayininServisleri,
 } from './katalog/servisler.js'
 
 /* Bayi ayrı bir varlık: makineyi satan taraf. Kaydı var, paneli yok
    (bkz. katalog/bayiler.js). */
-export { BAYILER, bayileriGetir, bayiAdi } from './katalog/bayiler.js'
+export {
+  BAYILER, bayileriGetir, bayiGetir, bayiAdi, bayiIleGore,
+} from './katalog/bayiler.js'

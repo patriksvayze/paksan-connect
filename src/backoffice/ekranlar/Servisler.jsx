@@ -17,6 +17,7 @@ import { Secim, SuzgecCubugu } from './suzgec'
 import { DisaAktar, IceAktar } from './aktar'
 import { uid } from '../../lib/storage'
 import { yeniNo, sayaciEnAz } from '../../lib/numara'
+import { telFirma, telGiris } from '../../lib/tel'
 
 /* Servisler.
 
@@ -30,12 +31,19 @@ import { yeniNo, sayaciEnAz } from '../../lib/numara'
    bağ servis kaydında duruyor. Müşteriye hangi servisin bakacağı bu
    bağdan çıkıyor: makine → bayi → bayinin servisi.
 
-   Enlem/boylam, servisin haritada doğru yönde çıkması için gerekli.
-   Bilinmiyorsa il merkezinin koordinatı yeterli. */
+   KOORDİNAT SORULMUYOR. Bir dönem enlem/boylam isteniyordu; tek
+   tüketicisi müşteri uygulamasındaki yön haritasıydı ve o harita
+   kaldırıldı. Servisin nerede olduğu il, ilçe ve adresle belli.
+
+   TELEFON TEK ALAN. "Tuşlanacak" ve "ekranda görünen" diye iki alan
+   vardı; ikisi de aynı numaraydı, ikincisi yalnız boşlukların yerini
+   söylüyordu. Boşluğu ekran koyuyor (bkz. lib/tel.js → telFirma). */
+
+const BOS_CARI = { unvan: '', vergiDairesi: '', vergiNo: '', iban: '', ibanAd: '' }
 
 const BOS_SERVIS = {
-  ad: '', tur: 'tuzel', il: '', ilce: '', adres: '', tel: '', telYazi: '',
-  enlem: '', boylam: '', hizmet: ['servis'], bayiler: [], bolge: [],
+  ad: '', tur: 'tuzel', il: '', ilce: '', adres: '', tel: '',
+  hizmet: ['servis'], bayiler: [], bolge: [], cari: { ...BOS_CARI },
 }
 
 /* Servisin bıraktığı şifre yardımı talebi.
@@ -300,7 +308,7 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
                       </div>
                     </td>
                     <td className="kucuk">{b.ilce} / {b.il}</td>
-                    <td className="kucuk mono">{b.telYazi}</td>
+                    <td className="kucuk mono">{telFirma(b.tel)}</td>
                     <td>
                       <div className="satir" style={{ gap: 4 }}>
                         {(b.hizmet || []).map((y) => (
@@ -349,12 +357,7 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
           onKapat={() => setDuzenlenen(null)}
           onKaydet={async (b) => {
             sayaciEnAz('servis', liste.length)
-            const temiz = {
-              ...b,
-              no: b.no || yeniNo('servis'),
-              enlem: Number(b.enlem) || 0,
-              boylam: Number(b.boylam) || 0,
-            }
+            const temiz = { ...b, no: b.no || yeniNo('servis') }
             delete temiz.yeni
 
             /* Şifre formda düz metin duruyor, kayda özet olarak
@@ -385,12 +388,17 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
 /* ==========================================================================
    Sorumluluk bölgesi seçici
 
-   Servisin hangi yerlerden gelen talebe bakacağını satış personeli
-   burada tanımlıyor.
+   Servisin hangi yerlere baktığını satış personeli burada tanımlıyor.
 
-   İl eklenince varsayılan olarak TÜM İL sorumluluğu geliyor. İlçe
-   seçilirse sorumluluk yalnız o ilçelere daralıyor. Kural tek cümle:
-   ilçe seçilmediyse tüm il.
+   BU BİR KISIT DEĞİL, BİR TERCİH. Bölge, personel bir makineye servis
+   atarken hangi servisin önce görüneceğini belirliyor. Bölgesi
+   girilmemiş servis listeden DÜŞMÜYOR, yalnız sırada geride kalıyor.
+   Zorunlu tutulsaydı yeni açılan her servis, kimse ona bölge yazana
+   kadar görünmez olurdu.
+
+   İl eklenince varsayılan olarak TÜM İL geliyor. İlçe seçilirse
+   yalnız o ilçelere daralıyor. Kural tek cümle: ilçe seçilmediyse
+   tüm il.
    ========================================================================== */
 function BolgeSecici({ bolge, onDegis }) {
   const [acikIl, setAcikIl] = useState('')
@@ -425,16 +433,16 @@ function BolgeSecici({ bolge, onDegis }) {
 
   return (
     <div className="alan">
-      <span className="alan__ad">Sorumluluk Bölgesi</span>
+      <span className="alan__ad">Sorumluluk Bölgesi (zorunlu değil)</span>
       <p className="kucuk sonuk" style={{ margin: '0 0 8px' }}>
-        Bu servise hangi yerlerden gelen talepler düşecek? İlçe seçmezseniz
-        servis ilin tamamından sorumlu olur.
+        Servis bu yerlere bakıyorsa, makineye servis atanırken listenin
+        başında çıkar. İlçe seçmezseniz ilin tamamı sayılır.
       </p>
 
       {bolge.length === 0 && (
         <p className="kucuk sonuk" style={{ margin: '0 0 8px' }}>
-          Bölge tanımlanmadı. Talepler ile, ilçe ve mesafeye göre
-          eşleştirilmeye devam eder.
+          Bölge girilmedi. Servis yine de atanabilir; listede il ve
+          ilçesine göre çıkar.
         </p>
       )}
 
@@ -548,6 +556,85 @@ function BayiSecici({ secili, onDegis }) {
   )
 }
 
+/* ==========================================================================
+   Cari hesap
+
+   Servis işini kapattığında PAKSAN bir hak ediş hesaplıyor ve bunu
+   servisin cari hesabına alacak yazıyor. Ödemeler uzun vadeli:
+   hak edişler birikiyor, sezon sonunda ödeniyor. Ödeme yapılacağı gün
+   muhasebenin buradaki bilgilere ihtiyacı olacak.
+
+   BUGÜN HENÜZ ÇALIŞMIYOR. Hak ediş ve cari hareket defteri sunucu
+   gerektiriyor; servisin telefonundaki bakiye PAKSAN'ın ekranına
+   ulaşmıyor (bkz. lib/storage.js). Alanlar bugünden toplanıyor ki o
+   gün geldiğinde on dört servis tek tek aranmasın.
+
+   ZORUNLU DEĞİL. Boş bırakılan bir cari kaydı servisin çalışmasını
+   engellemiyor; yalnız ödeme sırası geldiğinde eksik görünüyor.
+   ========================================================================== */
+function CariHesap({ cari, tur, onDegis }) {
+  const yaz = (k) => (e) => onDegis({ ...cari, [k]: e.target.value })
+  const dolu = Object.values(cari || {}).some((v) => String(v || '').trim())
+
+  return (
+    <div className="alan" style={{ marginTop: 18 }}>
+      <span className="alan__ad">Cari Hesap (ödeme bilgileri)</span>
+      <p className="kucuk sonuk" style={{ margin: '0 0 8px' }}>
+        {dolu
+          ? 'Hak ediş ödemesi bu bilgilere göre yapılacak.'
+          : 'Şimdi doldurmak zorunlu değil; ödeme yapılacağı gün gerekecek.'}
+      </p>
+
+      <div className="esit">
+        <label className="alan">
+          <span className="alan__ad">
+            {tur === 'sahis' ? 'Ad Soyad' : 'Ticari Unvan'}
+          </span>
+          <input className="gir" value={cari.unvan || ''} onChange={yaz('unvan')} />
+        </label>
+        <label className="alan">
+          <span className="alan__ad">Vergi Dairesi</span>
+          <input className="gir" value={cari.vergiDairesi || ''} onChange={yaz('vergiDairesi')} />
+        </label>
+      </div>
+
+      <div className="esit">
+        <label className="alan">
+          <span className="alan__ad">
+            {tur === 'sahis' ? 'T.C. Kimlik No' : 'Vergi No'}
+          </span>
+          <input
+            className="gir mono"
+            value={cari.vergiNo || ''}
+            onChange={(e) => onDegis({ ...cari, vergiNo: e.target.value.replace(/\D/g, '') })}
+            inputMode="numeric"
+            maxLength={11}
+          />
+        </label>
+        <label className="alan">
+          <span className="alan__ad">Hesap Sahibi</span>
+          <input className="gir" value={cari.ibanAd || ''} onChange={yaz('ibanAd')} />
+        </label>
+      </div>
+
+      <label className="alan">
+        <span className="alan__ad">IBAN</span>
+        <input
+          className="gir mono"
+          value={cari.iban || ''}
+          onChange={(e) =>
+            onDegis({
+              ...cari,
+              iban: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 26),
+            })
+          }
+          placeholder="TR000000000000000000000000"
+        />
+      </label>
+    </div>
+  )
+}
+
 function Form({ servis, onKapat, onKaydet }) {
   const [d, setD] = useState(servis)
   const [hata, setHata] = useState('')
@@ -568,11 +655,7 @@ function Form({ servis, onKapat, onKaydet }) {
       return setHata('Şifre 6 rakamdan oluşmalı.')
     }
     setHata('')
-    onKaydet({
-      ...d,
-      tel: d.tel.replace(/\D/g, ''),
-      telYazi: d.telYazi.trim() || d.tel,
-    })
+    onKaydet(d)
   }
 
   return (
@@ -594,8 +677,10 @@ function Form({ servis, onKapat, onKaydet }) {
               <span className="alan__ad">Servis Adı</span>
               <input className="gir" value={d.ad} onChange={yaz('ad')} autoFocus />
             </label>
-            {/* Hak ediş ödemesi şahsa mı firmaya mı yapılacak — muhasebe
-                bunu bilmek zorunda, sonradan sormak yerine burada
+            {/* Tür bugün hiçbir akışı değiştirmiyor; muhasebe kaydı.
+                Hak ediş ödenmeye başladığında belge tipini bu alan
+                belirleyecek: şahsa gider pusulası, tüzel kişiye
+                fatura. Sonradan tek tek sormak yerine kayıt açılırken
                 soruluyor. */}
             <label className="alan">
               <span className="alan__ad">Servis Türü</span>
@@ -606,6 +691,10 @@ function Form({ servis, onKapat, onKaydet }) {
               </select>
             </label>
           </div>
+          <p className="kucuk sonuk" style={{ marginTop: -6 }}>
+            Tür yalnız muhasebe içindir; talep akışını değiştirmez. Hak ediş
+            ödemesi şahsa gider pusulasıyla, tüzel kişiye faturayla yapılır.
+          </p>
 
           {/* İl ve ilçe elle yazılıyordu. Bölge eşleştirmesi il adının
               birebir tutmasına dayandığı için bir yazım hatası koca bir
@@ -642,31 +731,19 @@ function Form({ servis, onKapat, onKaydet }) {
             <input className="gir" value={d.adres} onChange={yaz('adres')} />
           </label>
 
-          <div className="esit">
-            <label className="alan">
-              <span className="alan__ad">Telefon (tuşlanacak)</span>
-              <input className="gir mono" value={d.tel} onChange={yaz('tel')} placeholder="03323210001" />
-            </label>
-            <label className="alan">
-              <span className="alan__ad">Telefon (ekranda görünen)</span>
-              <input className="gir mono" value={d.telYazi} onChange={yaz('telYazi')} placeholder="0332 321 00 01" />
-            </label>
-          </div>
-
-          <div className="esit">
-            <label className="alan">
-              <span className="alan__ad">Enlem</span>
-              <input className="gir mono" value={d.enlem} onChange={yaz('enlem')} placeholder="37.8746" />
-            </label>
-            <label className="alan">
-              <span className="alan__ad">Boylam</span>
-              <input className="gir mono" value={d.boylam} onChange={yaz('boylam')} placeholder="32.4932" />
-            </label>
-          </div>
-          <p className="kucuk sonuk" style={{ marginTop: -6 }}>
-            Koordinat, servisin haritada doğru yönde çıkması için. Bilinmiyorsa
-            il merkezinin koordinatı yeterli.
-          </p>
+          {/* Tek telefon alanı. Boşluklar yazılırken kendiliğinden
+              geliyor; alana rakam ve baştaki artıdan başka bir şey
+              girilemiyor. */}
+          <label className="alan">
+            <span className="alan__ad">Telefon</span>
+            <input
+              className="gir mono"
+              value={telFirma(d.tel)}
+              onChange={(e) => setD({ ...d, tel: telGiris(e.target.value) })}
+              inputMode="tel"
+              placeholder="0332 321 00 01"
+            />
+          </label>
 
           <div className="alan">
             <span className="alan__ad">Verdiği Hizmetler</span>
@@ -700,6 +777,12 @@ function Form({ servis, onKapat, onKaydet }) {
           <BayiSecici
             secili={d.bayiler || []}
             onDegis={(b) => setD({ ...d, bayiler: b })}
+          />
+
+          <CariHesap
+            cari={d.cari || {}}
+            tur={d.tur || 'tuzel'}
+            onDegis={(c) => setD({ ...d, cari: c })}
           />
 
           {/* ==================================================== Panel girişi
@@ -772,11 +855,14 @@ function Form({ servis, onKapat, onKaydet }) {
    ÇALIŞTIĞI BAYİLER SÜTUNDA YOK. Bayi bağı kimlikle kuruluyor ve
    Excel'de ad yazılırsa iki farklı bayi aynı ada sahip olduğunda
    hangisi olduğu belirsizleşiyor. Toplu yükleme servisin künyesini
-   getiriyor; bayi bağı ekrandan kuruluyor. */
+   getiriyor; bayi bağı ekrandan kuruluyor.
+
+   CARİ HESAP DA SÜTUNDA YOK. IBAN ve vergi numarası tek tek
+   doğrulanması gereken bilgiler; toplu bir dosyadan sessizce
+   yüklenmeleri yanlış hesaba ödeme yapılması demek. */
 
 const AKTAR_BASLIK = [
-  'Servis Adı', 'Servis Türü', 'İl', 'İlçe', 'Adres',
-  'Telefon (tuşlanacak)', 'Telefon (görünen)', 'Enlem', 'Boylam', 'Hizmetler',
+  'Servis Adı', 'Servis Türü', 'İl', 'İlçe', 'Adres', 'Telefon', 'Hizmetler',
 ]
 
 const ORNEK_SATIR = [
@@ -785,10 +871,7 @@ const ORNEK_SATIR = [
   'Konya',
   'Selçuklu',
   'Ankara Yolu 12. km No: 5',
-  '03323210000',
   '0332 321 00 00',
-  '37.8746',
-  '32.4932',
   'Servis ve bakım, Yedek parça',
 ]
 
@@ -806,10 +889,7 @@ function aktarSatiri(b) {
     b.il || '',
     b.ilce || '',
     b.adres || '',
-    b.tel || '',
-    b.telYazi || '',
-    String(b.enlem ?? ''),
-    String(b.boylam ?? ''),
+    telFirma(b.tel),
     (b.hizmet || []).map((y) => HIZMETLER[y] || y).join(', '),
   ]
 }
@@ -844,12 +924,11 @@ function iceAl(kayitlar, mevcut, kaydet) {
       il: k['İl'],
       ilce: k['İlçe'] || '',
       adres: k['Adres'] || '',
-      tel: String(k['Telefon (tuşlanacak)'] || '').replace(/\D/g, ''),
-      telYazi: k['Telefon (görünen)'] || k['Telefon (tuşlanacak)'] || '',
-      enlem: Number(String(k['Enlem'] || '').replace(',', '.')) || 0,
-      boylam: Number(String(k['Boylam'] || '').replace(',', '.')) || 0,
+      tel: telGiris(k['Telefon'] || ''),
       hizmet: [...new Set(hizmet)],
       bayiler: [],
+      bolge: [],
+      cari: { ...BOS_CARI },
     })
   })
 

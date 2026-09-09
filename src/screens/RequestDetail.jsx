@@ -14,7 +14,7 @@ import { PARA_BIRIMI } from '../marka'
 import { talepTuru } from '../lib/talep'
 import { ekAdresi } from '../lib/ekler'
 import { SIRKET } from '../marka'
-import { araProps } from '../lib/tel'
+import { araProps, telFirma } from '../lib/tel'
 import {
   IconCalendar, IconCheckCircle, IconClose, IconCart, IconMic,
   IconPhone, IconWrench, IconInfo, IconPlus,
@@ -379,10 +379,10 @@ export default function RequestDetail() {
             Talep PAKSAN'a devredilmişse (`sahip: 'paksan'`) servis
             düğmesi çıkmıyor — o işi artık servis yürütmüyor. */}
         <div className="stack" style={{ marginTop: 22 }}>
-          {servis?.telYazi && (
+          {servis?.tel && (
             <a
               className="btn btn--soft"
-              {...araProps(servis.tel, servis.telYazi, showToast)}
+              {...araProps(servis.tel, telFirma(servis.tel), showToast)}
             >
               <IconPhone size={20} /> {t('talepDetay.servisiAra')}
             </a>
