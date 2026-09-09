@@ -26,7 +26,7 @@ import RequestForm from './screens/RequestForm'
 import RequestDetail from './screens/RequestDetail'
 import Profile from './screens/Profile'
 import Notifications from './screens/Notifications'
-import Dealers from './screens/Dealers'
+import Servisler from './screens/Servisler'
 import Guide from './screens/Guide'
 import Guides from './screens/Guides'
 import Manuals from './screens/Manuals'
@@ -122,7 +122,7 @@ function Yonlendirme() {
       <Route path="/talebim/:id" element={<RequestDetail />} />
       <Route path="/profil" element={<Profile />} />
       <Route path="/bildirimler" element={<Notifications />} />
-      <Route path="/servisler" element={<Dealers />} />
+      <Route path="/servisler" element={<Servisler />} />
       <Route path="/bakim" element={<Guides />} />
       <Route path="/bakim/:rehberId" element={<Guide />} />
       {/* Numara değişikliği oturum açıkken de açılabiliyor: profildeki

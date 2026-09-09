@@ -7,6 +7,7 @@
 
        MST000148   müşteri
        SRV014      servis
+       BAY003      bayi
        GBD000032   geri bildirim
        PRS007      personel
 
@@ -30,6 +31,7 @@ const SAYAC = 'sayaclar'
 export const NUMARA_TURU = {
   musteri: { onek: 'MST', hane: 6 },
   servis: { onek: 'SRV', hane: 3 },
+  bayi: { onek: 'BAY', hane: 3 },
   geribildirim: { onek: 'GBD', hane: 6 },
   personel: { onek: 'PRS', hane: 3 },
 }

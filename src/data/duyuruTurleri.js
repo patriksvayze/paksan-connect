@@ -86,7 +86,7 @@ export const DUYURU_ALT = [
     anahtar: 'duyuruTuru.geriCagirma',
     ton: 'geriCagirma',
     ikon: 'geri',
-    /* GERİ ÇAĞIRMA YALNIZCA BAYİYE GİDİYOR.
+    /* GERİ ÇAĞIRMA YALNIZCA SERVİSE GİDİYOR.
 
        Kararı PAKSAN verdi. Dayanağı ekosistemin kendisi: makineyi
        satan, servisini veren ve müşteriyi arayacak olan servis. Geri

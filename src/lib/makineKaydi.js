@@ -33,7 +33,7 @@ export function makineKayitlari() {
    öğreniyor ve `servisId`'yi oradan dolduruyor. Logo kapalı olduğu için
    o alan bugün hep boş kalıyor.
 
-   Servis elle kayıt açtığında bayiyi zaten BİLİYORUZ — sormaya gerek
+   Servis elle kayıt açtığında servisi zaten BİLİYORUZ — sormaya gerek
    yok. Bu fonksiyon aynı deftere aynı biçimde yazıyor, farkı servis
    alanını doğrudan doldurması ve Logo'yu beklememesi.
 

@@ -16,7 +16,7 @@ import assert from 'node:assert/strict'
 import { talebinServisleri, bolgeKapsiyorMu, servisleriGetir } from '../src/marka/katalog/servisler.js'
 
 const ilk = servisleriGetir()[0]
-console.log('örnek servis:', ilk.id, '·', ilk.il, ilk.ilce, '·', ilk.yetki.join(','))
+console.log('örnek servis:', ilk.id, '·', ilk.il, ilk.ilce, '·', ilk.hizmet.join(','))
 
 /* 1. Bölge tanımlanmamışken eski üç kademeli davranış korunuyor mu.
       Bu, geriye uyumun kanıtı: bölge alanı girilmeden de sistem
@@ -28,15 +28,15 @@ assert.ok(
 )
 console.log('bölge tanımsız     →', eski.kademe, '·', eski.servisler.length, 'servis')
 
-/* 2. Talep türüne göre yetki süzgeci. Servis talebi yalnız servis
-      yetkisi olan servise gitmeli. */
-for (const yetki of ['satis', 'servis', 'parca']) {
-  const s = talebinServisleri(ilk.il, ilk.ilce, 3, yetki)
+/* 2. Talep türüne göre hizmet süzgeci. Yedek parça talebi yalnız parça
+      hizmeti olan servise gitmeli. */
+for (const hizmet of ['servis', 'parca']) {
+  const s = talebinServisleri(ilk.il, ilk.ilce, 3, hizmet)
   assert.ok(
-    s.servisler.every((b) => b.yetki.includes(yetki)),
-    `${yetki}: dönen servislerin hepsinde bu yetki olmalı`,
+    s.servisler.every((b) => b.hizmet.includes(hizmet)),
+    `${hizmet}: dönen servislerin hepsinde bu hizmet olmalı`,
   )
-  console.log(`yetki ${yetki.padEnd(7)}    →`, s.kademe, '·', s.servisler.length, 'servis')
+  console.log(`hizmet ${hizmet.padEnd(7)}   →`, s.kademe, '·', s.servisler.length, 'servis')
 }
 
 /* 3. Bölge kapsama kuralı: ilçe listesi boşsa tüm il, doluysa yalnız
@@ -65,7 +65,7 @@ console.log('bölge kapsama      →', durumlar.length + 1, 'durumun hepsi doğr
 
 /* 4. Bölgesi tanımlı servis, aynı ildeki bölgesiz servisin önüne geçiyor mu. */
 const liste = servisleriGetir()
-const hedef = liste.find((b) => b.yetki.includes('servis') && b.il !== ilk.il)
+const hedef = liste.find((b) => b.hizmet.includes('servis') && b.il !== ilk.il)
 if (hedef) {
   const sonuc = talebinServisleri(hedef.il, hedef.ilce, 3, 'servis')
   assert.ok(sonuc.servisler.length >= 0, 'eşleştirme çökmeden sonuç döndürmeli')

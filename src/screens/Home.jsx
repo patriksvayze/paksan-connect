@@ -83,7 +83,7 @@ export default function Home() {
                    aradığı yeri kendisi aramasın. */
                 onClick={() => nav('/profil', { state: { odak: 'talepler' } })}
               />
-              <Stat v={servisleriGetir().length} k={t('anasayfa.bayiServis')} onClick={() => nav('/bayiler')} />
+              <Stat v={servisleriGetir().length} k={t('anasayfa.servisDestek')} onClick={() => nav('/servisler')} />
             </div>
           </div>
         )}

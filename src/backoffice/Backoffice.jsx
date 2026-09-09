@@ -30,6 +30,7 @@ import { Personel } from './ekranlar/Personel'
 import { Roller } from './ekranlar/Roller'
 import { GeriBildirimler } from './ekranlar/GeriBildirimler'
 import { Servisler } from './ekranlar/Servisler'
+import { Bayiler } from './ekranlar/Bayiler'
 import { Makineler } from './ekranlar/Makineler'
 import { ServisSiparisleri } from './ekranlar/ServisSiparisleri'
 import { ACIK_DURUMLAR, siparisleriGetir } from '../lib/servisSiparis'
@@ -70,6 +71,9 @@ const MENU = [
   { id: 'musteriler', ad: 'Müşteriler', izin: 'musteriler', Ikon: IconUser },
   { id: 'makineler', ad: 'Kayıtlı Makineler', izin: 'musteriler', Ikon: IconMachine },
   { id: 'servisler', ad: 'Servisler', izin: 'servisler', Ikon: IconPin },
+  /* Bayi ayrı bir ekran: kaydı var, paneli yok. Servisin çalıştığı
+     bayiler Servisler ekranından bağlanıyor; burası künye. */
+  { id: 'bayiler', ad: 'Bayiler', izin: 'servisler', Ikon: IconCart },
   /* Servis stokunun tek artış yolu bu ekran: servis sipariş veriyor,
      PAKSAN burada onaylayıp gönderiyor, gönderim işaretlenince stok
      artıyor. */
@@ -223,6 +227,7 @@ export function Backoffice() {
         {acik === 'musteriler' && <Musteriler {...ortak} />}
         {acik === 'makineler' && <Makineler {...ortak} />}
         {acik === 'servisler' && <Servisler {...ortak} />}
+        {acik === 'bayiler' && <Bayiler {...ortak} />}
         {acik === 'siparisler' && <ServisSiparisleri {...ortak} />}
         {acik === 'geribildirim' && <GeriBildirimler {...ortak} />}
         {acik === 'numara' && <NumaraTalepleri {...ortak} />}

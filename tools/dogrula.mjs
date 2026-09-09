@@ -336,28 +336,53 @@ if (!sizintilar.length) {
 
    İKİ KURAL
 
-     1. Servis panelinde `bayi` kelimesi hiç geçmez. Panel bayiyi
-        tanımıyor; servis–bayi bağı backoffice tarafında kuruluyor.
+     1. SERVİSİ ANLATAN DOSYADA `bayi` kelimesi hiç geçmez. Servis
+        paneli bayiyi tanımıyor; müşteriye servis gösteren ekranlar da
+        bayiden söz etmiyor. Servis–bayi bağı backoffice tarafında
+        kuruluyor.
 
      2. Hiçbir depolama anahtarı `bayi` ile başlamaz. Anahtar adı
         veriyi kimin ürettiğini söylüyor ve o taraf artık servis.
 
-   `bayileriGetir`, `bayiDuzenle` gibi adlar KURAL DIŞI DEĞİL — onlar
-   gerçekten bayi varlığını yönetiyor ve bayi varlığı yaşıyor. Kural
-   yalnız servis klasörünü ve depolama anahtarlarını bağlıyor.
+   1. KURALIN KAPSAMI DOSYA DOSYA YAZILI, klasör kuralı yetmiyor:
 
-   MÜŞTERİ UYGULAMASI HENÜZ KAPSAMDA DEĞİL: `src/screens/`,
-   `src/i18n/` ve `src/components/BayiHarita.jsx` bilerek dışarıda.
-   Orası planın 5. aşaması; o iş bitince buraya eklenecek. */
+     · `src/servis/`         panelin tamamı
+     · `src/lib/servis*.js`  servisin iş mantığı
+     · servisi gösteren iki müşteri ekranı
+
+   Kapsam iki kez genişledi ve ikisinde de aynı sebeple: klasör kuralı
+   dışında kalan bir dosyada "bayi" kelimesi sessizce kaldı. Yeni bir
+   servis dosyası açılırsa buraya EKLENMELİ.
+
+   BACKOFFICE KAPSAM DIŞINDA ve bilerek: orada iki taraf da var,
+   "Servisler" ekranı bayi bağını kuruyor, "Bayiler" ekranı bayiyi
+   yönetiyor. `bayileriGetir`, `bayiDuzenle` gibi adlar da kural dışı
+   değil — onlar gerçekten bayi varlığını yönetiyor.
+
+   `src/marka/katalog/servisler.js` de dışarıda: servis kaydının
+   `bayiler` alanı zincirin orta halkası.
+
+   Müşteri uygulamasının geri kalanı da dışarıda: `Register.jsx`
+   "makineyi kimden aldınız" diye soruyor ve cevabı bayidir. */
 
 baslik('7. Bayi kalıntısı')
 
 const kalintilar = []
 
-/* 1. kural — servis panelinde bayi geçmiyor */
-const servisKlasor = join(KOK, 'src', 'servis')
-if (existsSync(servisKlasor)) {
-  for (const d of dosyalar(servisKlasor, ['.js', '.jsx', '.css'])) {
+/* 1. kural — servisi anlatan dosyalarda bayi geçmiyor */
+const SERVIS_TARAFI = [
+  join(KOK, 'src', 'servis'),
+  join(KOK, 'src', 'components', 'ServisHarita.jsx'),
+  join(KOK, 'src', 'screens', 'Servisler.jsx'),
+  ...dosyalar(join(KOK, 'src', 'lib'), ['.js']).filter((d) =>
+    /[\\/]servis[A-Za-z]*\.js$/.test(d),
+  ),
+]
+
+for (const yol of SERVIS_TARAFI) {
+  if (!existsSync(yol)) continue
+  const liste = yol.endsWith('.js') || yol.endsWith('.jsx') ? [yol] : dosyalar(yol, ['.js', '.jsx', '.css'])
+  for (const d of liste) {
     readFileSync(d, 'utf8')
       .split(/\r?\n/)
       .forEach((s, i) => {

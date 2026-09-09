@@ -488,10 +488,10 @@ export default function Profile() {
           <h2>{t('profil.yardim')}</h2>
         </div>
         <div className="stack">
-          <button className="listitem" onClick={() => nav('/bayiler')}>
+          <button className="listitem" onClick={() => nav('/servisler')}>
             <div className="listitem__icon"><IconPin size={22} /></div>
             <div className="listitem__body">
-              <div className="listitem__title">{t('profil.bayiIletisim')}</div>
+              <div className="listitem__title">{t('profil.servisIletisim')}</div>
             </div>
             <IconRight size={20} />
           </button>

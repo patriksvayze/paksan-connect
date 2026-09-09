@@ -10,13 +10,13 @@ import { talebinServisleri } from '../marka'
 import { SUNUCU } from '../config'
 import { cihazDili, DilSaglayici } from '../i18n'
 
-/* Talep türü hangi servis yetkisini gerektiriyor.
+/* Talep türü hangi servis hizmetini gerektiriyor.
 
    FİYAT TEKLİFİ BURADA YOK VE OLMAYACAK. Makineyi satan taraf bayi;
    servis satış yapmıyor. Fiyat teklifi talebi hiçbir servise
    atanmıyor, PAKSAN'da kalıyor ve satış ekibi yürütüyor.
    Listede karşılığı olmayan tür atanmadan geçiyor. */
-const TUR_YETKI = {
+const TUR_HIZMET = {
   servis: 'servis',
   parca: 'parca',
 }
@@ -228,10 +228,10 @@ export function AppProvider({ children }) {
 
          Servis eşleşmezse (bölgesi tanımsız, o yetkide servis yok)
          talep PAKSAN'da kalıyor. Boşta talep kalmıyor. */
-      const gerekenYetki = TUR_YETKI[data.tur]
-      const servisEslesme = ihracat || !gerekenYetki
+      const gerekenHizmet = TUR_HIZMET[data.tur]
+      const servisEslesme = ihracat || !gerekenHizmet
         ? null
-        : talebinServisleri(data.il, data.ilce, 1, gerekenYetki)
+        : talebinServisleri(data.il, data.ilce, 1, gerekenHizmet)
       const servis = servisEslesme?.servisler?.[0] || null
 
       const r = {

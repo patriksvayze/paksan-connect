@@ -8,8 +8,8 @@
    MAKİNE FİYATI ARTIK BURADA YOK
 
    Dosya bir zamanlar makine fiyatını da hesaplıyordu: liste fiyatı,
-   bayiye özel iskonto, kampanya, kâr. Makineyi satan taraf bayi ve
-   bayinin paneli yok; servis makine almıyor, parça alıyor. Makine
+   satıcıya özel iskonto, kampanya, kâr. Makineyi satan tarafın
+   paneli yok; servis makine almıyor, parça alıyor. Makine
    fiyat katmanı bu yüzden kaldırıldı.
 
    KDV BURADA YOK. Fiyatlar KDV hariç konuşuluyor; KDV'yi gösteren

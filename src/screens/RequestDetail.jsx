@@ -68,12 +68,12 @@ export default function RequestDetail() {
   const r = requests.find((x) => x.id === id)
   const yerel = dil === 'tr' ? 'tr-TR' : 'en-GB'
 
-  /* Talebi yürüten bayi. Talepte yalnız kimliği ve adı yazıyor;
-     telefonu bayi listesinden okunuyor — o liste zaten uygulamanın
-     içinde (bkz. Dealers ekranı). */
-  const bayi =
-    r?.sahip === 'servis' && r?.bayi?.id
-      ? servisleriGetir().find((b) => b.id === r.bayi.id) || null
+  /* Talebi yürüten servis. Talepte yalnız kimliği ve adı yazıyor;
+     telefonu servis listesinden okunuyor — o liste zaten uygulamanın
+     içinde (bkz. Servisler ekranı). */
+  const servis =
+    r?.sahip === 'servis' && r?.servis?.id
+      ? servisleriGetir().find((b) => b.id === r.servis.id) || null
       : null
 
   const sonrakiler = eklemeleri(r)
@@ -370,26 +370,26 @@ export default function RequestDetail() {
 
         {/* ARAMA DÜĞMESİ ÖNCE HEP PAKSAN'I ARIYORDU.
 
-            Oysa talep bayiye düştüyse işi yapan bayi: randevuyu o
+            Oysa talep servise düştüyse işi yapan servis: randevuyu o
             veriyor, makineye o gidiyor, kapanışı o yazıyor. Müşteriye
             "PAKSAN Ara" demek, işi yapanı atlayıp merkeze yönlendirmek
-            demekti. Şimdi talep bayideyken önce bayi çıkıyor; PAKSAN
+            demekti. Şimdi talep servisteyken önce servis çıkıyor; PAKSAN
             üst basamak olarak altında duruyor.
 
-            Talep PAKSAN'a devredilmişse (`sahip: 'paksan'`) bayi
-            düğmesi çıkmıyor — o işi artık bayi yürütmüyor. */}
+            Talep PAKSAN'a devredilmişse (`sahip: 'paksan'`) servis
+            düğmesi çıkmıyor — o işi artık servis yürütmüyor. */}
         <div className="stack" style={{ marginTop: 22 }}>
-          {bayi?.telYazi && (
+          {servis?.telYazi && (
             <a
               className="btn btn--soft"
-              {...araProps(bayi.tel, bayi.telYazi, showToast)}
+              {...araProps(servis.tel, servis.telYazi, showToast)}
             >
-              <IconPhone size={20} /> {t('talepDetay.bayiyiAra')}
+              <IconPhone size={20} /> {t('talepDetay.servisiAra')}
             </a>
           )}
-          {bayi?.ad && (
+          {servis?.ad && (
             <div className="small muted" style={{ textAlign: 'center' }}>
-              {bayi.ad}
+              {servis.ad}
             </div>
           )}
           <a className="btn btn--soft" {...araProps(SIRKET.telefonHam, SIRKET.telefon, showToast)}>

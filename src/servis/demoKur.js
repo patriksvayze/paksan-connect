@@ -27,16 +27,15 @@ import { ANAHTAR, servisHesabiYaz, servisleriYaz } from '../backoffice/veri'
 import { servisleriGetir, talebinServisleri, MARKA } from '../marka'
 import { demoVarMi, demoYukle } from '../backoffice/demo'
 import { PARCA_FIYAT } from '../marka'
-import { PRODUCTS } from '../marka'
 import { DEMO_HESAP } from './demoKimlik'
 
 /** Hesabı açılan servis (bkz. src/marka/katalog/servisler.js). */
-const DEMO_SERVIS = 'konya-merkez'
+const DEMO_SERVIS = 'konya-servis'
 
-/* Talep türü ile servis yetkisi eşlemesi — AppState.jsx'teki tablonun
+/* Talep türü ile servis hizmeti eşlemesi — AppState.jsx'teki tablonun
    aynısı. Orası dışa aktarmıyor; iki satırlık tablo için o dosyayı
    değiştirmek yerine burada tekrarlandı. */
-const TUR_YETKI = { servis: 'servis', parca: 'parca' }
+const TUR_HIZMET = { servis: 'servis', parca: 'parca' }
 
 const KAPALI = ['kapandi', 'iptal']
 
@@ -65,9 +64,9 @@ function talepleriDagit() {
 
   let liste = load(ANAHTAR.demoTalepler, []).map((t) => {
     if (t.servis) return t
-    const gerekenYetki = TUR_YETKI[t.tur]
-    if (!gerekenYetki) return t
-    const es = talebinServisleri(t.il, t.ilce, 1, gerekenYetki)
+    const gerekenHizmet = TUR_HIZMET[t.tur]
+    if (!gerekenHizmet) return t
+    const es = talebinServisleri(t.il, t.ilce, 1, gerekenHizmet)
     const b = es?.servisler?.[0]
     if (!b) return t
     return {
@@ -80,8 +79,8 @@ function talepleriDagit() {
   const bende = (t) => t.servis?.id === DEMO_SERVIS
   const acik = (t) => !KAPALI.includes(t.status)
   /* Fiyat teklifi servise atanmıyor; tamamlama sırasında da
-     seçilmemeli (bkz. TUR_YETKI). */
-  const atanabilir = (t) => Boolean(TUR_YETKI[t.tur])
+     seçilmemeli (bkz. TUR_HIZMET). */
+  const atanabilir = (t) => Boolean(TUR_HIZMET[t.tur])
 
   const eksik = EN_AZ_ACIK_IS - liste.filter((t) => bende(t) && acik(t)).length
   if (eksik > 0) {
@@ -162,8 +161,9 @@ async function hesapAc() {
 
 /* -------------------------------------------------------------------- Stok */
 
+/* Yalnız yedek parça. Servis makine stoklamıyor; makineyi satan
+   tarafın paneli yok. */
 const PARCA_ADET = [12, 8, 5, 3, 20, 2]
-const MAKINE_ADET = [2, 1, 1]
 
 function stokYaz() {
   const parca = {}
@@ -173,11 +173,6 @@ function stokYaz() {
       parca[ad] = PARCA_ADET[i]
     })
 
-  const makine = {}
-  PRODUCTS.slice(0, MAKINE_ADET.length).forEach((u, i) => {
-    makine[u.id] = MAKINE_ADET[i]
-  })
-
-  save('servisStok', { ...load('servisStok', {}), [DEMO_SERVIS]: { parca, makine } })
+  save('servisStok', { ...load('servisStok', {}), [DEMO_SERVIS]: { parca, makine: {} } })
 }
 

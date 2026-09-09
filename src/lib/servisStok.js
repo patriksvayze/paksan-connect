@@ -3,7 +3,7 @@
 
    Servisin elindeki yedek parça ve makine sayısı.
 
-   BAYİ STOKUNU ARTIRAMAZ.
+   SERVİS STOKUNU ARTIRAMAZ.
 
    Elindeki mal, PAKSAN'dan satın aldığı kadardır. Artış tek yoldan
    oluyor: servis sipariş verir, PAKSAN gönderir, gönderim işaretlendiğinde
@@ -14,7 +14,7 @@
    yazabiliyordu; stok servisin kendi defterine dönüşüyordu. PAKSAN'ın
    gönderdiğiyle servisin yazdığı tutmayınca rakam hiçbir şey anlatmıyor.
 
-   AZALTMA BAYİDE. Müşteriye sattığı ya da serviste kullandığı parçayı
+   AZALTMA SERVİSTE. Müşteriye sattığı ya da serviste kullandığı parçayı
    servis kendi düşüyor; bunun için onaya gerek yok.
 
    ENGELLEME YOK

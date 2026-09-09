@@ -1,7 +1,7 @@
 /* ==========================================================================
    Servis servis kapanışı
 
-   BAYİDEN KARŞILIKSIZ VERİ İSTENMEZ
+   SERVİSTEN KARŞILIKSIZ VERİ İSTENMEZ
 
    Servis ayrı bir şirket ve kendi menfaati dışında bir şey yapmaz.
    Yalnız PAKSAN'a yarayan bir form ya doldurulmaz ya geçiştirilir;
@@ -9,7 +9,7 @@
    bakıp karar alır.
 
    Kural şu: servisten istenen her alan için tek soru sorulur —
-   BAYİ BUNU DOLDURDUĞU AN NE ALIYOR? Cevap yoksa alan sorulmaz.
+   SERVİS BUNU DOLDURDUĞU AN NE ALIYOR? Cevap yoksa alan sorulmaz.
 
    Buradan üç kapı çıkıyor ve her kapı servisin aldığı şeye göre soru
    soruyor:

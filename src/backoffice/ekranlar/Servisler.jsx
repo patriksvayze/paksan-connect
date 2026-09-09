@@ -10,7 +10,7 @@ import {
 } from '../veri'
 import { sifreHazirla } from '../../lib/hesap'
 import { useVeri } from '../kanca'
-import { SERVISLER, YETKILER } from '../../marka'
+import { SERVISLER, HIZMETLER, SERVIS_TURU, bayileriGetir } from '../../marka'
 import { ILLER, ilceleriGetir } from '../../data/iller'
 import { Baslik, Bekleme, Bos, siraliListe, SiraliBaslik, tarihYaz, useSiralama } from './ortak'
 import { Secim, SuzgecCubugu } from './suzgec'
@@ -20,16 +20,22 @@ import { yeniNo, sayaciEnAz } from '../../lib/numara'
 
 /* Servisler.
 
-   Uygulamadaki servis listesi buradan yönetiliyor. Liste değiştirilirse
-   uygulama artık bu listeyi gösteriyor; dokunulmazsa koddaki liste
-   geçerli kalıyor.
+   Makineyi kuran, bakımını ve tamirini yapan taraf. Liste buradan
+   yönetiliyor; dokunulmazsa koddaki temsilî liste geçerli kalıyor.
+
+   SERVİS SATIŞ YAPMAZ. Kayıtta satış diye bir hizmet yok; makineyi
+   satan taraf bayi ve onun ayrı bir ekranı var.
+
+   ÇALIŞTIĞI BAYİLER BU EKRANDA GİRİLİYOR. Bayinin paneli olmadığı için
+   bağ servis kaydında duruyor. Müşteriye hangi servisin bakacağı bu
+   bağdan çıkıyor: makine → bayi → bayinin servisi.
 
    Enlem/boylam, servisin haritada doğru yönde çıkması için gerekli.
    Bilinmiyorsa il merkezinin koordinatı yeterli. */
 
 const BOS_SERVIS = {
-  ad: '', il: '', ilce: '', adres: '', tel: '', telYazi: '',
-  enlem: '', boylam: '', yetki: ['satis'], bolge: [],
+  ad: '', tur: 'tuzel', il: '', ilce: '', adres: '', tel: '', telYazi: '',
+  enlem: '', boylam: '', hizmet: ['servis'], bayiler: [], bolge: [],
 }
 
 /* Servisin bıraktığı şifre yardımı talebi.
@@ -116,7 +122,7 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
   const suzulmus = tumServisler.filter((b) => {
     if (il !== 'hepsi' && b.il !== il) return false
     if (ilce !== 'hepsi' && b.ilce !== ilce) return false
-    if (hizmet !== 'hepsi' && !(b.yetki || []).includes(hizmet)) return false
+    if (hizmet !== 'hepsi' && !(b.hizmet || []).includes(hizmet)) return false
 
     const q = ara.trim().toLocaleLowerCase('tr-TR')
     if (!q) return true
@@ -138,7 +144,8 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
     ad: (b) => b.ad,
     konum: (b) => b.il,
     tel: (b) => b.tel,
-    hizmet: (b) => (b.yetki || []).length,
+    hizmet: (b) => (b.hizmet || []).length,
+    bayi: (b) => (b.bayiler || []).length,
   })
   const ozel = Boolean(yerel || kayitli)
 
@@ -238,7 +245,7 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
           onDegis={setHizmet}
           secenekler={[
             { deger: 'hepsi', ad: 'Tüm hizmetler' },
-            ...Object.entries(YETKILER).map(([k, ad]) => ({ deger: k, ad })),
+            ...Object.entries(HIZMETLER).map(([k, ad]) => ({ deger: k, ad })),
           ]}
           genislik={170}
         />
@@ -277,6 +284,7 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
                   <SiraliBaslik ad="Konum" alan="konum" siralama={siralama} onSirala={cevir} />
                   <SiraliBaslik ad="Telefon" alan="tel" siralama={siralama} onSirala={cevir} />
                   <SiraliBaslik ad="Hizmet" alan="hizmet" siralama={siralama} onSirala={cevir} />
+                  <SiraliBaslik ad="Bayi" alan="bayi" siralama={siralama} onSirala={cevir} />
                   {duzenleyebilir && <th style={{ width: 1 }}></th>}
                 </tr>
               </thead>
@@ -286,16 +294,29 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
                     <td className="mono kucuk sonuk">{b.no || '—'}</td>
                     <td>
                       <div style={{ fontWeight: 700 }}>{b.ad}</div>
-                      <div className="kucuk sonuk">{b.adres}</div>
+                      <div className="kucuk sonuk">
+                        {SERVIS_TURU[b.tur] || SERVIS_TURU.tuzel}
+                        {b.adres ? ' · ' + b.adres : ''}
+                      </div>
                     </td>
                     <td className="kucuk">{b.ilce} / {b.il}</td>
                     <td className="kucuk mono">{b.telYazi}</td>
                     <td>
                       <div className="satir" style={{ gap: 4 }}>
-                        {(b.yetki || []).map((y) => (
-                          <span key={y} className="rz rz--mavi">{YETKILER[y] || y}</span>
+                        {(b.hizmet || []).map((y) => (
+                          <span key={y} className="rz rz--mavi">{HIZMETLER[y] || y}</span>
                         ))}
                       </div>
+                    </td>
+                    {/* Bayi bağı kurulmamış servis, talebi yalnız
+                        coğrafyadan alıyor. Listede görünmesi gerekiyor
+                        ki eksik bağ fark edilsin. */}
+                    <td className="kucuk">
+                      {(b.bayiler || []).length ? (
+                        `${b.bayiler.length} bayi`
+                      ) : (
+                        <span className="sonuk">Bağ yok</span>
+                      )}
                     </td>
                     {duzenleyebilir && (
                       <td>
@@ -463,6 +484,70 @@ function BolgeSecici({ bolge, onDegis }) {
   )
 }
 
+/* ==========================================================================
+   Çalıştığı bayiler
+
+   Zincirin orta halkası: müşteri makineyi bayiden alıyor, servisi de
+   o bayinin çalıştığı servis oluyor. Bağ burada kuruluyor çünkü
+   bayinin paneli yok.
+
+   Bir servis birden çok bayiyle çalışabiliyor; sahada olan da bu.
+   Bağ kurulmazsa sistem çalışmaya devam ediyor, talep coğrafyaya göre
+   eşleşiyor — ama o zaman "bu müşteriye kim bakacak" sorusunun cevabı
+   tahmin oluyor.
+   ========================================================================== */
+function BayiSecici({ secili, onDegis }) {
+  const bayiler = useMemo(() => bayileriGetir(), [])
+  const [ara, setAra] = useState('')
+
+  const q = ara.trim().toLocaleLowerCase('tr-TR')
+  const gorunen = q
+    ? bayiler.filter((b) =>
+        [b.ad, b.il, b.ilce].some((x) =>
+          String(x || '').toLocaleLowerCase('tr-TR').includes(q),
+        ),
+      )
+    : bayiler
+
+  function cevir(id) {
+    onDegis(secili.includes(id) ? secili.filter((x) => x !== id) : [...secili, id])
+  }
+
+  return (
+    <div className="alan">
+      <span className="alan__ad">Çalıştığı Bayiler</span>
+      <p className="kucuk sonuk" style={{ margin: '0 0 8px' }}>
+        {secili.length
+          ? `${secili.length} bayi seçili. Bu bayilerden makine alan müşteriye bu servis bakıyor.`
+          : 'Bayi seçilmedi. Talepler yalnız il, ilçe ve mesafeye göre eşleşir.'}
+      </p>
+
+      <input
+        className="gir"
+        value={ara}
+        onChange={(e) => setAra(e.target.value)}
+        placeholder="Bayi adı veya ili"
+        style={{ marginBottom: 8 }}
+      />
+
+      <div className="suzgec" style={{ maxHeight: 180, overflow: 'auto' }}>
+        {gorunen.map((b) => (
+          <button
+            key={b.id}
+            className={'cip' + (secili.includes(b.id) ? ' cip--on' : '')}
+            onClick={() => cevir(b.id)}
+          >
+            {b.ad} · {b.il}
+          </button>
+        ))}
+        {!gorunen.length && (
+          <p className="kucuk sonuk" style={{ margin: 0 }}>Eşleşen bayi yok.</p>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function Form({ servis, onKapat, onKaydet }) {
   const [d, setD] = useState(servis)
   const [hata, setHata] = useState('')
@@ -472,7 +557,7 @@ function Form({ servis, onKapat, onKaydet }) {
     if (d.ad.trim().length < 2) return setHata('Servis adını yazın.')
     if (!d.il.trim()) return setHata('İl adını yazın.')
     if (!d.tel.replace(/\D/g, '')) return setHata('Telefon numarasını yazın.')
-    if (!(d.yetki || []).length) return setHata('En az bir hizmet seçin.')
+    if (!(d.hizmet || []).length) return setHata('En az bir hizmet seçin.')
     /* Kullanıcı adı yazıldıysa şifre de olmalı: şifresiz hesap
        giriş yapamaz, ekranda "hesabı var" görünür ve kimse
        neden giremediğini anlamaz. */
@@ -504,10 +589,23 @@ function Form({ servis, onKapat, onKaydet }) {
           <button className="dg" style={{ marginLeft: 'auto' }} onClick={onKapat}>Kapat</button>
         </div>
         <div className="kart__ic">
-          <label className="alan">
-            <span className="alan__ad">Servis Adı</span>
-            <input className="gir" value={d.ad} onChange={yaz('ad')} autoFocus />
-          </label>
+          <div className="esit">
+            <label className="alan">
+              <span className="alan__ad">Servis Adı</span>
+              <input className="gir" value={d.ad} onChange={yaz('ad')} autoFocus />
+            </label>
+            {/* Hak ediş ödemesi şahsa mı firmaya mı yapılacak — muhasebe
+                bunu bilmek zorunda, sonradan sormak yerine burada
+                soruluyor. */}
+            <label className="alan">
+              <span className="alan__ad">Servis Türü</span>
+              <select className="gir" value={d.tur || 'tuzel'} onChange={yaz('tur')}>
+                {Object.entries(SERVIS_TURU).map(([k, ad]) => (
+                  <option key={k} value={k}>{ad}</option>
+                ))}
+              </select>
+            </label>
+          </div>
 
           {/* İl ve ilçe elle yazılıyordu. Bölge eşleştirmesi il adının
               birebir tutmasına dayandığı için bir yazım hatası koca bir
@@ -572,9 +670,13 @@ function Form({ servis, onKapat, onKaydet }) {
 
           <div className="alan">
             <span className="alan__ad">Verdiği Hizmetler</span>
+            <p className="kucuk sonuk" style={{ margin: '0 0 8px' }}>
+              Her servis parça bulundurmuyor. Yedek parça talebi yalnız
+              parça hizmeti işaretli servislere düşüyor.
+            </p>
             <div className="suzgec">
-              {Object.entries(YETKILER).map(([k, ad]) => {
-                const secili = (d.yetki || []).includes(k)
+              {Object.entries(HIZMETLER).map(([k, ad]) => {
+                const secili = (d.hizmet || []).includes(k)
                 return (
                   <button
                     key={k}
@@ -582,9 +684,9 @@ function Form({ servis, onKapat, onKaydet }) {
                     onClick={() =>
                       setD({
                         ...d,
-                        yetki: secili
-                          ? d.yetki.filter((x) => x !== k)
-                          : [...(d.yetki || []), k],
+                        hizmet: secili
+                          ? d.hizmet.filter((x) => x !== k)
+                          : [...(d.hizmet || []), k],
                       })
                     }
                   >
@@ -594,6 +696,11 @@ function Form({ servis, onKapat, onKaydet }) {
               })}
             </div>
           </div>
+
+          <BayiSecici
+            secili={d.bayiler || []}
+            onDegis={(b) => setD({ ...d, bayiler: b })}
+          />
 
           {/* ==================================================== Panel girişi
 
@@ -659,16 +766,22 @@ function Form({ servis, onKapat, onKaydet }) {
 /* ----------------------------------------------------------- Excel aktarımı
 
    Başlık satırı sütun adlarıyla eşleşiyor; sütunların sırası
-   değişebilir ama adları değişmemeli. Hizmet sütununa birden fazla
-   hizmet yazılacaksa araya virgül konuyor. */
+   değişebilir ama adları değişmemeli. Birden fazla değer yazılacak
+   sütunlarda araya virgül konuyor.
+
+   ÇALIŞTIĞI BAYİLER SÜTUNDA YOK. Bayi bağı kimlikle kuruluyor ve
+   Excel'de ad yazılırsa iki farklı bayi aynı ada sahip olduğunda
+   hangisi olduğu belirsizleşiyor. Toplu yükleme servisin künyesini
+   getiriyor; bayi bağı ekrandan kuruluyor. */
 
 const AKTAR_BASLIK = [
-  'Servis Adı', 'İl', 'İlçe', 'Adres', 'Telefon (tuşlanacak)',
-  'Telefon (görünen)', 'Enlem', 'Boylam', 'Hizmetler',
+  'Servis Adı', 'Servis Türü', 'İl', 'İlçe', 'Adres',
+  'Telefon (tuşlanacak)', 'Telefon (görünen)', 'Enlem', 'Boylam', 'Hizmetler',
 ]
 
 const ORNEK_SATIR = [
-    'Örnek Tarım Makineleri',
+  'Örnek Tarım Servisi',
+  'Tüzel kişi',
   'Konya',
   'Selçuklu',
   'Ankara Yolu 12. km No: 5',
@@ -676,14 +789,20 @@ const ORNEK_SATIR = [
   '0332 321 00 00',
   '37.8746',
   '32.4932',
-  'Satış, Yetkili servis, Yedek parça',
+  'Servis ve bakım, Yedek parça',
 ]
 
-const HIZMET_KOD = { 'satış': 'satis', satis: 'satis', 'yetkili servis': 'servis', servis: 'servis', 'yedek parça': 'parca', parca: 'parca' }
+const HIZMET_KOD = {
+  'servis ve bakım': 'servis', servis: 'servis', bakım: 'servis',
+  'yedek parça': 'parca', parca: 'parca', 'parça': 'parca',
+}
+
+const TUR_KOD = { 'şahıs': 'sahis', sahis: 'sahis', 'tüzel kişi': 'tuzel', 'tüzel': 'tuzel', tuzel: 'tuzel' }
 
 function aktarSatiri(b) {
   return [
     b.ad || '',
+    SERVIS_TURU[b.tur] || SERVIS_TURU.tuzel,
     b.il || '',
     b.ilce || '',
     b.adres || '',
@@ -691,7 +810,7 @@ function aktarSatiri(b) {
     b.telYazi || '',
     String(b.enlem ?? ''),
     String(b.boylam ?? ''),
-    (b.yetki || []).map((y) => YETKILER[y] || y).join(', '),
+    (b.hizmet || []).map((y) => HIZMETLER[y] || y).join(', '),
   ]
 }
 
@@ -706,12 +825,12 @@ function iceAl(kayitlar, mevcut, kaydet) {
     if (!ad) return hatalar.push(`${satir}. satır: servis adı boş, atlandı.`)
     if (!k['İl']) return hatalar.push(`${satir}. satır (${ad}): il boş, atlandı.`)
 
-    const yetki = String(k['Hizmetler'] || '')
+    const hizmet = String(k['Hizmetler'] || '')
       .split(/[,;/]/)
       .map((x) => HIZMET_KOD[x.trim().toLocaleLowerCase('tr-TR')])
       .filter(Boolean)
 
-    if (!yetki.length) {
+    if (!hizmet.length) {
       return hatalar.push(`${satir}. satır (${ad}): hizmet okunamadı, atlandı.`)
     }
 
@@ -719,6 +838,9 @@ function iceAl(kayitlar, mevcut, kaydet) {
       id: uid(),
       no: yeniNo('servis'),
       ad,
+      /* Tür yazılmamışsa tüzel kişi varsayılıyor: servislerin çoğu
+         firma, şahıs olan azınlık. */
+      tur: TUR_KOD[String(k['Servis Türü'] || '').trim().toLocaleLowerCase('tr-TR')] || 'tuzel',
       il: k['İl'],
       ilce: k['İlçe'] || '',
       adres: k['Adres'] || '',
@@ -726,7 +848,8 @@ function iceAl(kayitlar, mevcut, kaydet) {
       telYazi: k['Telefon (görünen)'] || k['Telefon (tuşlanacak)'] || '',
       enlem: Number(String(k['Enlem'] || '').replace(',', '.')) || 0,
       boylam: Number(String(k['Boylam'] || '').replace(',', '.')) || 0,
-      yetki: [...new Set(yetki)],
+      hizmet: [...new Set(hizmet)],
+      bayiler: [],
     })
   })
 

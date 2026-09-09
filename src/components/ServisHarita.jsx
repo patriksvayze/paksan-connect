@@ -3,7 +3,7 @@ import { useDil } from '../i18n'
 import { IconPlus, IconMinus } from './Icons'
 
 /* ==========================================================================
-   Yakınınızdaki bayiler — yön ve mesafe haritası
+   Yakınınızdaki servisler — yön ve mesafe haritası
 
    NEDEN SOKAK HARİTASI DEĞİL:
 
@@ -13,18 +13,18 @@ import { IconPlus, IconMinus } from './Icons'
    kullanım başına ücret istiyor. Bu yüzden buradaki harita telefonun
    içinde çiziliyor: internet gerekmiyor, ücret yok, anahtar yok.
 
-   Ne gösteriyor: ortada kullanıcı, çevresinde bayiler GERÇEK YÖNLERİNDE
+   Ne gösteriyor: ortada kullanıcı, çevresinde servisler GERÇEK YÖNLERİNDE
    ve gerçek mesafe sırasında. Halkalar mesafe ölçeği.
 
-   Ne göstermiyor: yollar. Yol tarifi için bayi kartındaki telefon var.
+   Ne göstermiyor: yollar. Yol tarifi için servis kartındaki telefon var.
 
    YAKINLAŞTIRMA — RADAR MANTIĞI:
 
-   Çizimi büyütmek işe yaramadı: büyütünce bayiler kutunun dışına çıkıyor,
+   Çizimi büyütmek işe yaramadı: büyütünce servisler kutunun dışına çıkıyor,
    ortada yalnız kullanıcının noktası kalıyordu. Onun yerine MENZİL
    daralıyor — en dıştaki halkanın kaç kilometreyi gösterdiği küçülüyor.
-   Yakınlaştıkça yakındaki bayiler tüm daireye yayılıyor, menzil dışında
-   kalanlar düşüyor ve altta "2 bayi daha uzakta" yazılıyor. Radar ve
+   Yakınlaştıkça yakındaki servisler tüm daireye yayılıyor, menzil dışında
+   kalanlar düşüyor ve altta "2 servis daha uzakta" yazılıyor. Radar ve
    balık bulucu ekranları böyle çalışır: hiçbir şey ekranın dışına
    taşmıyor, halka etiketleri de kendiliğinden güncelleniyor.
 
@@ -36,7 +36,7 @@ import { IconPlus, IconMinus } from './Icons'
 const BOY = 300
 const MERKEZ = BOY / 2
 const YARICAP = 118
-/* En yakın bayi bile kullanıcı noktasının üstüne binmesin */
+/* En yakın servis bile kullanıcı noktasının üstüne binmesin */
 const EN_KUCUK = 40
 /* Ölçek yazılarının durduğu yön (sol alt) */
 const OLCEK_ACI = (218 * Math.PI) / 180
@@ -46,8 +46,8 @@ const EN_COK_KAT = 64
 const ADIM = 2
 /* İki nokta merkezi arasında en az bu kadar boşluk kalsın (çizim birimi) */
 const NOKTA_ARASI = 26
-/* Menzil daralsa da en az bu kadar bayi ekranda kalsın */
-const EN_AZ_BAYI = 2
+/* Menzil daralsa da en az bu kadar servis ekranda kalsın */
+const EN_AZ_SERVIS = 2
 
 /* Kuzeyden saat yönünde açı (derece). */
 function yon(enlem1, boylam1, enlem2, boylam2) {
@@ -63,7 +63,7 @@ function yon(enlem1, boylam1, enlem2, boylam2) {
 /* Üst üste binen noktaları iterek ayırır.
 
    Birkaç tur dönüp birbirine çok yakın olan her çifti azar azar
-   uzaklaştırıyor. İtme küçük tutuldu: bayi hâlâ doğru tarafta duruyor,
+   uzaklaştırıyor. İtme küçük tutuldu: servis hâlâ doğru tarafta duruyor,
    yalnız komşusunun üstünde durmuyor. */
 function ayir(noktalar) {
   const n = noktalar.map((p) => ({ ...p }))
@@ -96,19 +96,19 @@ function kmYaz(km) {
   return `${Math.round(km)} km`
 }
 
-export function BayiHarita({ konum, bayiler, secili, onSec }) {
+export function ServisHarita({ konum, servisler, secili, onSec }) {
   const { t } = useDil()
   const [kat, setKat] = useState(1)
   const hareket = useRef(null)
 
-  const yakinlar = bayiler.slice(0, 8)
+  const yakinlar = servisler.slice(0, 8)
   if (!konum || yakinlar.length === 0) return null
 
   const enUzak = Math.max(1, ...yakinlar.map((b) => b.km || 0))
 
   /* Menzil: en dıştaki halkanın kaç kilometreyi gösterdiği. Yakınlaştıkça
-     daralıyor ama en yakın birkaç bayi her zaman içinde kalıyor. */
-  const zorunlu = yakinlar[Math.min(EN_AZ_BAYI, yakinlar.length) - 1]?.km || 0
+     daralıyor ama en yakın birkaç servis her zaman içinde kalıyor. */
+  const zorunlu = yakinlar[Math.min(EN_AZ_SERVIS, yakinlar.length) - 1]?.km || 0
   const menzil = Math.max(enUzak / kat, zorunlu, 0.5)
 
   const icerde = yakinlar.filter((b) => (b.km || 0) <= menzil)
@@ -137,7 +137,7 @@ export function BayiHarita({ konum, bayiler, secili, onSec }) {
     setKat((onceki) => Math.min(EN_COK_KAT, Math.max(EN_AZ_KAT, hesapla(onceki))))
   }
 
-  /* Menzil en yakın bayilerin mesafesine indiyse daha fazla
+  /* Menzil en yakın servislerin mesafesine indiyse daha fazla
      yakınlaşmanın anlamı kalmıyor, düğme sönüyor. */
   const dahaYakinOlur = menzil > zorunlu * 1.02 && kat < EN_COK_KAT
 
@@ -169,7 +169,7 @@ export function BayiHarita({ konum, bayiler, secili, onSec }) {
           viewBox={`0 0 ${BOY} ${BOY}`}
           className="harita__cizim"
           role="img"
-          aria-label={t('bayi.haritaAciklama')}
+          aria-label={t('servis.haritaAciklama')}
           onTouchStart={basla}
           onTouchMove={surukle}
           onTouchEnd={bitir}
@@ -203,10 +203,10 @@ export function BayiHarita({ konum, bayiler, secili, onSec }) {
             textAnchor="middle"
             className="harita__kuzeyYazi"
           >
-            {t('bayi.kuzey')}
+            {t('servis.kuzey')}
           </text>
 
-          {/* Kullanıcıdan bayiye ince çizgiler */}
+          {/* Kullanıcıdan servise ince çizgiler */}
           {noktalar.map((b) => (
             <line
               key={'c' + b.id}
@@ -218,16 +218,16 @@ export function BayiHarita({ konum, bayiler, secili, onSec }) {
             />
           ))}
 
-          {/* Bayiler */}
+          {/* Servisler */}
           {noktalar.map((b, i) => (
             <g
               key={b.id}
-              className={'harita__bayi' + (secili === b.id ? ' harita__bayi--on' : '')}
+              className={'harita__servis' + (secili === b.id ? ' harita__servis--on' : '')}
               onClick={() => onSec?.(b.id)}
             >
               <circle cx={b.x} cy={b.y} r={13} className="harita__dokunma" />
               <circle cx={b.x} cy={b.y} r={i === 0 ? 7 : 5.5} className="harita__nokta" />
-              {/* Ekranda az bayi kaldığında hepsinin adı yazılıyor;
+              {/* Ekranda az servis kaldığında hepsinin adı yazılıyor;
                   kalabalıkken yalnız en yakın üçü. */}
               {(noktalar.length <= 4 || i < 3) && (
                 <text x={b.x} y={b.y - 12} textAnchor="middle" className="harita__etiket">
@@ -249,7 +249,7 @@ export function BayiHarita({ konum, bayiler, secili, onSec }) {
             className="harita__zoomBtn"
             onClick={() => katAyarla((k) => k * ADIM)}
             disabled={!dahaYakinOlur}
-            aria-label={t('bayi.yakinlastir')}
+            aria-label={t('servis.yakinlastir')}
           >
             <IconPlus size={19} />
           </button>
@@ -257,7 +257,7 @@ export function BayiHarita({ konum, bayiler, secili, onSec }) {
             className="harita__zoomBtn"
             onClick={() => katAyarla((k) => k / ADIM)}
             disabled={kat <= EN_AZ_KAT}
-            aria-label={t('bayi.uzaklastir')}
+            aria-label={t('servis.uzaklastir')}
           >
             <IconMinus size={19} />
           </button>
@@ -265,7 +265,7 @@ export function BayiHarita({ konum, bayiler, secili, onSec }) {
       </div>
 
       <p className="harita__not">
-        {disarda > 0 ? t('bayi.haritaUzakta', { n: disarda }) : t('bayi.haritaNot')}
+        {disarda > 0 ? t('servis.haritaUzakta', { n: disarda }) : t('servis.haritaNot')}
       </p>
     </div>
   )

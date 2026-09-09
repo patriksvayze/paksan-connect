@@ -18,7 +18,7 @@
    Stok yalnızca "gönderildi" adımında artıyor; onay ya da hazırlık
    adımında artmıyor, çünkü parça henüz serviste değil.
 
-   AZALTMA BAYİDE
+   AZALTMA SERVİSTE
 
    Servis stokunu kendi azaltabiliyor: müşteriye sattığı ya da serviste
    kullandığı parça. Bunun onaya gerek yok, PAKSAN'ı ilgilendirmiyor.

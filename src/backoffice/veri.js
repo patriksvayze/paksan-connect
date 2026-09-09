@@ -1273,6 +1273,34 @@ export function servisleriSifirla(personel) {
   islemYaz({ tur: 'servis', ozet: 'Servis listesi koddaki listeye döndürüldü', personel })
 }
 
+/* ------------------------------------------------------------------ Bayiler
+
+   Bayi kaydının servis kaydından tek farkı yok denecek kadar azdır ama
+   o fark önemli: bayide hesap yok. Bu yüzden burada şifre, oturum ve
+   panel fonksiyonlarının karşılığı bulunmuyor — bilerek.
+
+   İşlem kaydı türü de ayrı (`bayi`): "servis listesi değişti" ile
+   "bayi listesi değişti" aynı satırda görünmemeli. */
+
+export function bayileriGetirBackoffice() {
+  return load(ANAHTAR.icerik, {}).bayiler || null
+}
+
+export function bayileriYaz(liste, personel, ozet) {
+  const mevcut = load(ANAHTAR.icerik, {})
+  save(ANAHTAR.icerik, { ...mevcut, bayiler: liste })
+  icerikTazele()
+  islemYaz({ tur: 'bayi', ozet, personel })
+}
+
+export function bayileriSifirla(personel) {
+  const mevcut = { ...load(ANAHTAR.icerik, {}) }
+  delete mevcut.bayiler
+  save(ANAHTAR.icerik, mevcut)
+  icerikTazele()
+  islemYaz({ tur: 'bayi', ozet: 'Bayi listesi koddaki listeye döndürüldü', personel })
+}
+
 /* ------------------------------------------------------- Servis ve sahiplik
 
    Talep oluşurken bir servise yazılıyor (bkz. AppState.jsx). İki alan

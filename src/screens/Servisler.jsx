@@ -2,28 +2,28 @@ import { useEffect, useState } from 'react'
 import { useApp } from '../context/AppState'
 import { useDil } from '../i18n'
 import { TopBar, TabBar } from '../components/Chrome'
-import { yetkiAdi, yakindanUzaga, ileGore } from '../marka'
+import { hizmetAdi, yakindanUzaga, ileGore } from '../marka'
 import { araProps } from '../lib/tel'
 import { konumOku, konumDestekleniyorMu, KONUM } from '../lib/konum'
-import { BayiHarita } from '../components/BayiHarita'
+import { ServisHarita } from '../components/ServisHarita'
 import { SIRKET, MARKA } from '../marka'
 import {
   IconPin, IconPhone, IconRight, IconAlert, IconCheck, IconMail,
 } from '../components/Icons'
 
-/* Bayi ve iletişim.
+/* Servis ve iletişim.
 
    İKİ HÂL VAR:
 
    · Kayıt sırasında konuma izin verilmişse (hesapta `konumIzni`), ekran
-     açılınca konum sessizce okunuyor ve bayiler yakından uzağa
+     açılınca konum sessizce okunuyor ve servisler yakından uzağa
      sıralanıyor. Telefon bir şey sormuyor — izin zaten verilmiş.
      Kullanıcı hiçbir şeye dokunmuyor.
 
    · İzin verilmemişse eski davranış: izin ekran açılır açılmaz
      İSTENMEZ. Çiftçi neden sorulduğunu bilmeden izin penceresiyle
      karşılaşmasın diye önce ne işe yaradığı yazılıyor, izni kendisi
-     başlatıyor. Vermezse bayiler kayıtlı iline göre sıralanır.
+     başlatıyor. Vermezse servisler kayıtlı iline göre sıralanır.
 
    İzin sonradan telefon ayarlarından kapatılmış olabilir; o zaman
    sessiz okuma hata veriyor ve ekran kendiliğinden ikinci hâle
@@ -37,7 +37,7 @@ const DURUM = {
   yok: 'yok',
 }
 
-export default function Dealers() {
+export default function Servisler() {
   const { user, showToast } = useApp()
   const { t, dil } = useDil()
   /* Kayıtta izin verildiyse ekran doğrudan "konum aranıyor" hâlinde
@@ -45,7 +45,7 @@ export default function Dealers() {
   const izinVarmis = user?.konumIzni === KONUM.VERILDI && konumDestekleniyorMu()
   const [durum, setDurum] = useState(izinVarmis ? DURUM.bekliyor : DURUM.basta)
   const [konum, setKonum] = useState(null)
-  /* Haritada dokunulan bayi listede de vurgulanıyor */
+  /* Haritada dokunulan servis listede de vurgulanıyor */
   const [secili, setSecili] = useState(null)
 
   useEffect(() => {
@@ -65,7 +65,7 @@ export default function Dealers() {
     return () => { iptal = true }
   }, [izinVarmis])
 
-  const bayiler = konum ? yakindanUzaga(konum.enlem, konum.boylam) : ileGore(user?.il)
+  const servisler = konum ? yakindanUzaga(konum.enlem, konum.boylam) : ileGore(user?.il)
 
   function konumIste() {
     if (!('geolocation' in navigator)) {
@@ -77,7 +77,7 @@ export default function Dealers() {
       (p) => {
         setKonum({ enlem: p.coords.latitude, boylam: p.coords.longitude })
         setDurum(DURUM.tamam)
-        showToast(t('bayi.konumAlindiAlt'))
+        showToast(t('servis.konumAlindiAlt'))
       },
       () => setDurum(DURUM.red),
       { enableHighAccuracy: false, timeout: 12000, maximumAge: 600000 }
@@ -86,7 +86,7 @@ export default function Dealers() {
 
   return (
     <div className="app">
-      <TopBar title={t('bayi.baslik')} back="auto" />
+      <TopBar title={t('servis.baslik')} back="auto" />
 
       <div className="screen wrap fade-in" style={{ paddingTop: 16 }}>
         {/* Konum kutusu */}
@@ -100,10 +100,10 @@ export default function Dealers() {
             </div>
             <div className="listitem__body">
               <div className="listitem__title" style={{ fontSize: 15 }}>
-                {t('bayi.konumAlindi')}
+                {t('servis.konumAlindi')}
               </div>
               <div className="listitem__sub">
-                {t('bayi.konumAlindiAlt')}
+                {t('servis.konumAlindiAlt')}
               </div>
             </div>
           </div>
@@ -114,13 +114,13 @@ export default function Dealers() {
                 <IconPin size={22} />
               </div>
               <div style={{ flex: 1 }}>
-                <div className="card__title">{t('bayi.yakiniBul')}</div>
+                <div className="card__title">{t('servis.yakiniBul')}</div>
                 <div className="card__sub">
                   {durum === DURUM.red
-                    ? t('bayi.konumRedAlt')
+                    ? t('servis.konumRedAlt')
                     : durum === DURUM.yok
-                      ? t('bayi.konumYok')
-                      : t('bayi.konumAcikla')}
+                      ? t('servis.konumYok')
+                      : t('servis.konumAcikla')}
                 </div>
               </div>
             </div>
@@ -134,10 +134,10 @@ export default function Dealers() {
               >
                 <IconPin size={20} />
                 {durum === DURUM.bekliyor
-                  ? t('bayi.konumAraniyor')
+                  ? t('servis.konumAraniyor')
                   : durum === DURUM.red
-                    ? t('bayi.tekrarDene')
-                    : t('bayi.konumKullan')}
+                    ? t('servis.tekrarDene')
+                    : t('servis.konumKullan')}
               </button>
             )}
           </div>
@@ -146,14 +146,14 @@ export default function Dealers() {
         {/* Harita yalnızca konum alındığında. Konum yoksa yön
             hesaplanamıyor, boş bir daire göstermenin anlamı yok. */}
         {konum && (
-          <BayiHarita
+          <ServisHarita
             konum={konum}
-            bayiler={bayiler}
+            servisler={servisler}
             secili={secili}
             onSec={(id) => {
               setSecili(id)
               document
-                .getElementById('bayi-' + id)
+                .getElementById('servis-' + id)
                 ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
             }}
           />
@@ -164,7 +164,7 @@ export default function Dealers() {
             bilgisinin yeri burası. */}
         <div className="card card--brand">
           <div className="card__title" style={{ fontSize: 18 }}>{MARKA}</div>
-          <div className="card__sub">{t('bayi.merkezAlt')}</div>
+          <div className="card__sub">{t('servis.merkezAlt')}</div>
           <a
             className="btn btn--on-dark"
             style={{ marginTop: 14 }}
@@ -182,15 +182,15 @@ export default function Dealers() {
         </div>
 
         <div className="sectionhead">
-          <h2>{t('bayi.servisler')}</h2>
-          <span className="sectionhead__count">{bayiler.length}</span>
+          <h2>{t('servis.servisler')}</h2>
+          <span className="sectionhead__count">{servisler.length}</span>
         </div>
 
         <div className="stack">
-          {bayiler.map((b) => (
-            <BayiKarti
+          {servisler.map((b) => (
+            <ServisKarti
               key={b.id}
-              bayi={b}
+              servis={b}
               showToast={showToast}
               dil={dil}
               vurgulu={secili === b.id}
@@ -208,7 +208,7 @@ export default function Dealers() {
               <IconAlert size={21} />
             </span>
             <p className="small" style={{ lineHeight: 1.6 }}>
-              <strong>{t('bayi.temsili')}</strong> {t('bayi.temsiliAlt')}
+              <strong>{t('servis.temsili')}</strong> {t('servis.temsiliAlt')}
             </p>
           </div>
         </div>
@@ -220,32 +220,32 @@ export default function Dealers() {
   )
 }
 
-function BayiKarti({ bayi, showToast, dil, vurgulu }) {
+function ServisKarti({ servis, showToast, dil, vurgulu }) {
   return (
     <div
       className={'card' + (vurgulu ? ' card--vurgulu' : '')}
-      id={'bayi-' + bayi.id}
+      id={'servis-' + servis.id}
     >
       <div className="row" style={{ alignItems: 'flex-start' }}>
         <div className="listitem__icon">
           <IconPin size={21} />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="card__title">{bayi.ad}</div>
+          <div className="card__title">{servis.ad}</div>
           <div className="card__sub">
-            {bayi.ilce} / {bayi.il}
-            {typeof bayi.km === 'number' && (
-              <> · <strong>{bayi.km} km</strong> (kuş uçuşu)</>
+            {servis.ilce} / {servis.il}
+            {typeof servis.km === 'number' && (
+              <> · <strong>{servis.km} km</strong> (kuş uçuşu)</>
             )}
           </div>
           <div className="card__sub" style={{ marginTop: 2 }}>
-            {bayi.adres}
+            {servis.adres}
           </div>
 
           <div className="row" style={{ marginTop: 9, gap: 6, flexWrap: 'wrap' }}>
-            {bayi.yetki.map((y) => (
+            {(servis.hizmet || []).map((y) => (
               <span key={y} className="badge badge--blue">
-                {yetkiAdi(y, dil)}
+                {hizmetAdi(y, dil)}
               </span>
             ))}
           </div>
@@ -255,9 +255,9 @@ function BayiKarti({ bayi, showToast, dil, vurgulu }) {
       <a
         className="btn btn--soft btn--sm"
         style={{ marginTop: 12 }}
-        {...araProps(bayi.tel, bayi.telYazi, showToast)}
+        {...araProps(servis.tel, servis.telYazi, showToast)}
       >
-        <IconPhone size={19} /> {bayi.telYazi}
+        <IconPhone size={19} /> {servis.telYazi}
         <span className="spacer" />
         <IconRight size={18} />
       </a>

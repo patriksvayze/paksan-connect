@@ -183,7 +183,7 @@ const DUYURULAR = [
     tur: 'duyuru',
     alt: 'yeniUrun',
     baslik: 'Orkinos 1290 satışa çıktı',
-    metin: 'Orkinos serisinin yeni modeli Orkinos 1290 satışa sunuldu. Teknik özellikler ve fiyat teklifi için bayinizle görüşebilirsiniz.',
+    metin: 'Orkinos serisinin yeni modeli Orkinos 1290 satışa sunuldu. Fiyat ve satın alma için bayinize, teknik bilgi ve servis desteği için yetkili servise başvurabilirsiniz.',
     hedef: { kime: 'ikisi' },
   },
   {

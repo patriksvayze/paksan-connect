@@ -86,7 +86,7 @@ export function duyuruGecerliMi(
   /* Talep, numara ve görüş bildirimleri buradan hiç süzülmüyor:
      onlar zaten kişiye özel üretiliyor.
 
-     BAYİ TARAFI HARİÇ. Bu kayıtlar bir MÜŞTERİNİN kendi bildirimi:
+     SERVİS TARAFI HARİÇ. Bu kayıtlar bir MÜŞTERİNİN kendi bildirimi:
      "talebiniz alındı", "numaranız değişti". Servis paneline hiçbir
      koşulda düşmemeleri gerekiyor. Düşüyorlardı da: servis ekranında
      içi boş, yalnız "Anladım" düğmesi olan kutular çıkıyordu — çünkü
@@ -95,7 +95,7 @@ export function duyuruGecerliMi(
      görünmesiydi: başkasının bildirimi. */
   if (!personelDuyurusuMu(d)) return !servis
 
-  /* GERİ ÇAĞIRMA YALNIZ BAYİYE.
+  /* GERİ ÇAĞIRMA YALNIZ SERVİSE.
 
      Yayınlama ekranında alıcı kitlesi zaten kilitli, ama kural iki
      yerde birden duruyor. Ekranı atlayan bir kayıt — elle yazılmış,
