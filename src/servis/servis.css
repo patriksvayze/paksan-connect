@@ -212,6 +212,10 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* SEÇİLİ HAP ARTIK SİMGENİN ARKASINDA.
+   Yazı tamamen kapatıldı; öğe yalnız simge olduğu için hap da
+   simgenin kutusu kadar. Öğeler eşit genişlikte, hiçbiri seçilince
+   büyümüyor — simgeler menüde hep aynı yerde duruyor. */
 .uyg__tab-ikon {
   position: relative;
   display: grid;
@@ -2426,8 +2430,8 @@
 }
 
 .uyg__tab {
-  flex: 1 1 44px;
-  min-width: 44px;
+  flex: 1 1 0;
+  min-width: 48px;
   /* `min-height: var(--tabs)` yukarıdaki temel kuralda duruyor ve
      --tabs artık çubuğun TOPLAM yüksekliği (74 + iki pay = 102).
      Bastırılmazsa hap çubuğun dışına taşıyor. */
@@ -2447,16 +2451,26 @@
 
 .uyg__tab-ikon {
   flex: none;
-  width: 40px;
-  height: 36px;
-  transition: transform 0.18s ease;
+  /* Hap 48x40'tan 58x46'ya çıktı. Öğeye 65 piksel düşüyor ve hap
+     onun ancak üçte ikisini kaplıyordu; yazı kalkınca seçiliyi
+     gösteren tek şey bu ve küçük kalıyordu. İki yanında 3,5
+     piksel nefes payı kalıyor, dokunma hedefi öğenin tamamı. */
+  width: 58px;
+  height: 46px;
+  border-radius: 999px;
+  transition: transform 0.18s ease, background 0.2s ease;
 }
 
 .uyg__tab--on {
-  flex: 0 0 auto;
-  padding: 0 16px 0 10px;
-  background: var(--nav-secili);
+  flex: 1 1 0;
+  padding: 0;
+  background: transparent;
   color: var(--nav-secili-yazi);
+}
+
+.uyg__tab--on .uyg__tab-ikon {
+  background: var(--nav-secili);
+  border-radius: 999px;
 }
 
 .uyg__tab--on .uyg__tab-ikon {
@@ -2473,6 +2487,9 @@
 
 /* Yazı DOM'da kalıyor, yalnız genişliği kapanıyor: düğmenin
    erişilebilir adı ondan geliyor. */
+/* Yazı HİÇ görünmüyor ama DOM'da duruyor: düğmenin erişilebilir adı
+   ondan geliyor, ekran okuyucu beşini de okumaya devam ediyor.
+   `display: none` olsaydı ad da giderdi. */
 .uyg__tab-ad {
   max-width: 0;
   opacity: 0;
@@ -2480,12 +2497,6 @@
   overflow: hidden;
   transition: max-width 0.24s cubic-bezier(0.2, 0.7, 0.3, 1), opacity 0.16s ease,
     margin-left 0.24s ease;
-}
-
-.uyg__tab--on .uyg__tab-ad {
-  max-width: 160px;
-  opacity: 1;
-  margin-left: 7px;
 }
 
 .uyg__rozet {
@@ -2501,30 +2512,21 @@
   }
 }
 
-/* EN DAR CİHAZDA MENÜ TAŞIYORDU.
-
-   Ölçüldü (320 piksel): dört simge 44 piksellik dokunma tabanında,
-   seçili hap 138 — toplam 314, menünün içinde 294 yer var. Öğenin
-   sağ kenarı ekranın 8 piksel dışına çıkıyor ve sayfa yatay
-   kayıyordu.
-
-   Dokunma tabanı düşürülmedi (eldivenli kullanım, bkz. PRODUCT.md).
-   Bunun yerine menü bu genişlikte kenardan boşluk BIRAKMIYOR ve
-   hapın iç payı daralıyor: 312 piksel iç genişlikte 4x44 + 136
-   sığıyor, en uzun etiket ("Makinelerim", 74 piksel) kesilmiyor. */
+/* İKON-ONLY'DE TAŞMA YOK.
+   Yazı kalkınca beş simge 320 pikselde rahat sığıyor (5x48 = 240,
+   iç genişlik 294); menü kenar payını geri aldı. */
 @media (max-width: 360px) {
   .uyg__tabs {
-    width: 100%;
-    padding: 7px 4px;
-    border-radius: 999px;
+    width: calc(100% - 16px);
+    padding: 7px 5px;
   }
 
   .uyg__tab-ikon {
-    width: 36px;
+    width: 52px;
   }
 
-  .uyg__tab--on {
-    padding: 0 10px 0 6px;
+  .uyg__tab {
+    min-width: 44px;
   }
 }
 

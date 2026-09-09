@@ -628,6 +628,24 @@ function ServisKaydi({ talep }) {
         </>
       )}
 
+      {/* Önceki ziyaretler: aynı talebe ikinci kez gidildiyse ilk
+          seferde ne yapıldığı burada duruyor. Servis kapıdan önce
+          okuyor. */}
+      {(talep.oncekiKayitlar || []).length > 0 && (
+        <>
+          <div className="kucuk sonuk" style={{ marginTop: 14, marginBottom: 6 }}>
+            Önceki ziyaretler
+          </div>
+          {talep.oncekiKayitlar.map((o, i) => (
+            <Satir
+              key={i}
+              ad={gecenSure(o.tarih)}
+              deger={[o.yapilanIs, parcaYazisi(o.parcalar)].filter(Boolean).join(' · ')}
+            />
+          ))}
+        </>
+      )}
+
       {duzeltmeler.map((d, i) => (
         <div key={i} className="not not--turuncu" style={{ marginTop: 12 }}>
           <IconAlert size={19} />

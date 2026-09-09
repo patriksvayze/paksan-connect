@@ -665,13 +665,37 @@ export function talepleriGetir() {
 
 /* Talep hangi depodaysa oraya yazılıyor; demo talebi müşterinin kendi
    listesine karışmıyor. */
+/* MASAYI DURUMLA BİRLİKTE TEMİZLEYEN TEK YER BURASI.
+
+   `masa`, talebin ŞU AN hangi PAKSAN masasında beklediğini söylüyor ve
+   yalnız iki kayıt durumunda anlamlı (bkz. lib/servisKaydi.js →
+   kapininSonucu). Durum başka bir şeye geçtiğinde masa da düşmeli;
+   yoksa kapanmış ya da iptal edilmiş bir talep yedek parça
+   personelinin kuyruğunda kalıyor (`rolunTalepleri` masaya bakıyor).
+
+   KURAL NEDEN `talepDurumDegistir`'DE DEĞİL: durumu yazan tek yol o
+   değil. `talepKapat`, `talepIptal`, `talepTeklifVer`, `talepPlanla`
+   ve bayi ataması `status` alanını doğrudan buraya yazıyor. Denetimde
+   ölçüldü: iptal edilen talep `masa: 'parca'` ile kalıyordu. Kural
+   yazma noktasına konunca bugünkü ve yarınki bütün yollar kapsanıyor.
+
+   Yamada `masa` açıkça varsa ona dokunulmuyor — kaydın kendi
+   yönlendirmesi (servisKaydiGonder, hakkedisOnayla) böyle geçiyor. */
+const MASALI_DURUM = ['onayBekliyor', 'parcaBekliyor']
+
 function talepYaz(id, degisiklik) {
   const depo = load(ANAHTAR.talepler, []).some((t) => t.id === id)
     ? ANAHTAR.talepler
     : ANAHTAR.demoTalepler
+
+  const yama = { ...degisiklik }
+  if (yama.status && !('masa' in yama) && !MASALI_DURUM.includes(yama.status)) {
+    yama.masa = null
+  }
+
   save(
     depo,
-    load(depo, []).map((t) => (t.id === id ? { ...t, ...degisiklik } : t))
+    load(depo, []).map((t) => (t.id === id ? { ...t, ...yama } : t))
   )
 }
 
@@ -686,6 +710,7 @@ function talepYaz(id, degisiklik) {
  */
 export function talepDurumDegistir(talep, yeniDurum, personel, { bildirme } = {}) {
   const gecmis = [...(talep.gecmis || []), { durum: yeniDurum, tarih: Date.now(), personel }]
+
   talepYaz(talep.id, { status: yeniDurum, gecmis })
 
   islemYaz({
@@ -1061,6 +1086,36 @@ export function odemeOnayla(talep, personel, not) {
    da ihtiyaç duyulan şey.
 
    @returns {string|null} engel varsa sebebi, yoksa null */
+/* ONAY BEKLEYEN HAK EDİŞ, ELLE DURUM DEĞİŞİKLİĞİNİ KİLİTLER.
+
+   Bulunan boşluk şuydu: `talepDurumDegistir` yalnız `status` ve
+   `gecmis` yazıyor; `hakkedis` ve `masa` alanlarına dokunmuyor.
+   Personel onay bekleyen bir talebi açılır listeden başka bir duruma
+   (ya da kapanış formuna) alınca:
+
+     · `hakkedisOnayla` bir daha çalışmıyor — "Bu talep onay
+       beklemiyor" diyor ve düğmesi de ekrandan kalkıyor,
+     · ama servisin uygulamasında kayıt "Onay Bekleyen" listesinde,
+       tutarıyla birlikte SONSUZA KADAR duruyor (o ekran yalnız
+       `hakkedis.durum === 'bekliyor'` diye bakıyor).
+
+   Sonuç: servise ödeneceği söylenen ve kimsenin onaylayamayacağı bir
+   para. Ürünün bütün kurgusu servisin kaydı doğru doldurmasına, o da
+   bu rakamı görmesine dayanıyor (bkz. lib/servisKaydi.js). Sessizce
+   silmek de olmaz: para kararı görünür olmalı.
+
+   Bu yüzden kapı: onay bekleyen bir hak ediş varken durum elle
+   değişmiyor. Personel ya Onayla ya Kabul Etme diyecek — ikisi de
+   gerekçesiyle kayda geçiyor. Yedek parçadaki ödeme kapısının
+   (`parcaIlerlemeEngeli`) aynısı.
+
+   @returns {string|null} engel varsa sebebi, yoksa null */
+export function hakkedisIlerlemeEngeli(talep, yeniDurum) {
+  if (talep.hakkedis?.durum !== 'bekliyor') return null
+  if (talep.status !== 'onayBekliyor') return null
+  if (yeniDurum === 'onayBekliyor') return null
+  return 'hakkedisOnayiYok'
+}
 export function parcaIlerlemeEngeli(talep, yeniDurum) {
   if (talep.tur !== 'parca') return null
   /* SERVİSİN KENDİ SİPARİŞİ ÖN ÖDEMEYE TABİ DEĞİL.
@@ -1503,12 +1558,33 @@ export function servisKaydiGonder(talep, kayit, servisAd) {
   const sonuc = kapininSonucu(kayit)
   const simdi = Date.now()
 
+  /* ÖNCEKİ KAYIT SİLİNMİYOR, ARŞİVLENİYOR.
+
+     Müşteri kapanmış bir talepte "sorun devam ediyor" diyebiliyor;
+     talep `yeni` durumuna dönüyor ve servis aynı talebe İKİNCİ kez
+     gidiyor. İkinci kaydı gönderdiğinde `servisKaydi` alanı üzerine
+     yazılıyordu: ilk ziyarette ne yapıldığı, hangi parça değiştiği ve
+     ne kadar hak ediş doğduğu kayboluyordu.
+
+     Kaybolan şey tam da bu ürünün en değerli verisi: makinenin arıza
+     geçmişi (bkz. lib/servisKaydi.js başı). Üstelik ikinci ziyaretin
+     sebebi çoğu zaman birincide yapılan iş — karşılaştırılacak kayıt
+     yoksa "aynı arıza tekrar etti mi" sorusu cevapsız kalıyor.
+
+     Artık her yeni kayıt, öncekini `oncekiKayitlar` dizisine itiyor.
+     `servisKaydi` her zaman EN SON kayıt — okuyan ekranlar
+     değişmedi. */
+  const arsiv = talep.servisKaydi
+    ? [...(talep.oncekiKayitlar || []), { ...talep.servisKaydi, hakkedis: talep.hakkedis || null }]
+    : talep.oncekiKayitlar || []
+
   const yama = {
     status: sonuc.durum,
     masa: sonuc.masa,
     /* Kayıt talebin üstünde duruyor; `cozum` eskisi gibi korunuyor
        çünkü müşteri uygulaması ve raporlar onu okuyor. */
     servisKaydi: { ...kayit, parcalar, tarih: simdi, servisAd },
+    ...(arsiv.length ? { oncekiKayitlar: arsiv } : {}),
     cozum: { ...cozum, tarih: simdi, personel: servisAd },
     gecmis: [...(talep.gecmis || []), { durum: sonuc.durum, tarih: simdi, personel: servisAd }],
   }
@@ -1536,6 +1612,10 @@ export function servisKaydiGonder(talep, kayit, servisAd) {
      parasını müşteri servise ödüyor, PAKSAN'ı ilgilendirmiyor. */
   if (kayit.kapi === 'garanti') {
     yama.hakkedis = { ...hakkedis, durum: 'bekliyor', olusma: simdi }
+  } else if (talep.hakkedis) {
+    /* İkinci ziyaret garanti dışıysa eski hak ediş talebin üstünde
+       kalmamalı: arşive taşındı, güncel kayıtta karşılığı yok. */
+    yama.hakkedis = null
   }
 
   talepYaz(talep.id, yama)

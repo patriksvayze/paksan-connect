@@ -69,6 +69,20 @@ kural **sunucuda** tekrar yazılmak zorunda. Yazılmazsa bir bayi,
 tarayıcısının adres çubuğuyla oynayarak bütün müşteri listesini
 görebilir.
 
+**Ölçüldü (10 Eylül 2026 denetimi).** Bu soyut bir risk değil, bugün
+iki adımda yapılabiliyor: tarayıcı konsolunda
+`paksan.panelOturum` kaydındaki `rol` alanını `"admin"` yazıp sayfayı
+yenilemek yetiyor. Yedek parça personeli olarak açılan oturum, tek
+satırla Personel, Roller ve Yetkiler ve İşlem Kaydı ekranlarına
+erişti. Aynısı servis uygulaması (`paksan.servisOturum`) ve müşteri
+uygulaması (`paksan.user`) için de geçerli.
+
+Bu **düzeltilebilecek bir hata değil**: istemci tarafındaki her
+denetim aynı yolla aşılır. Rol sistemi bugün bir arayüz kolaylığı;
+güvenlik sınırına ancak sunucu geldiğinde dönüşür. Sunucu yazılırken
+yetki denetimi HER istekte sunucuda tekrarlanmalı — istemcinin
+gönderdiği role asla güvenilmemeli.
+
 ### 2.2 Sunucuyu kim yazacak — üç yol
 
 **A) Dışarıdan yazılım firması.**

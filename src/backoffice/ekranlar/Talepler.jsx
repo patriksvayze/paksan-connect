@@ -8,6 +8,7 @@ import {
   talepNotEkle, talepPlanla, talepTeklifVer, teklifBeklemeGunu, teklifBekliyorMu,
   TEKLIF_BEKLEME_GUN, talebiBayiyeAta, bayiAtamasiniKaldir,
   hakkedisOnayla, hakkedisDuzelt, hakkedisReddet, servisParcasiGonderildi,
+  hakkedisIlerlemeEngeli,
 } from '../veri'
 import { KAPI, parcaYazisi as kayitParcaYazisi, temizParcalar } from '../../lib/servisKaydi'
 import { useVeri } from '../kanca'
@@ -447,6 +448,8 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
 
   /* Ödeme onaylanmadan ilerlenmeye çalışıldı — hangi durum istendi */
   const [odemeKapisi, setOdemeKapisi] = useState(null)
+  /* Onay bekleyen hak ediş varken durum elle değiştirilmek istendi. */
+  const [hakkedisKapisi, setHakkedisKapisi] = useState(null)
   /* Müşteriye giden not GERİ ALINAMIYOR: bildirim anında telefona
      düşüyor. İki düğme yan yana duruyor ve yanlışına basmak kolay —
      bu yüzden gönderilecek metin onay penceresinde bir kez daha
@@ -511,6 +514,10 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
        siparişi hazırlamaya başlamak, sonradan geri alınması zor bir
        hata. Personel doğrudan ödeme onayına gönderiliyor. */
     if (parcaIlerlemeEngeli(talep, yeni)) return setOdemeKapisi(yeni)
+
+    /* Onay bekleyen hak ediş kilitliyor: para kararı açılır listeden
+       değil, Onayla / Kabul Etme düğmelerinden veriliyor. */
+    if (hakkedisIlerlemeEngeli(talep, yeni)) return setHakkedisKapisi(yeni)
 
     if (!kapali && yeni === 'kapandi') return setForm('kapanis')
     if (!kapali && yeni === 'planlandi') return setForm('plan')
@@ -1228,6 +1235,25 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
               setNotOnay(false)
               notKaydet(true)
             }}
+          />
+        )}
+
+        {hakkedisKapisi && (
+          <Onay
+            baslik="Önce hak edişi sonuçlandırın"
+            metin={
+              `${talep.no} · ${talep.servis?.ad || 'Servis'} bu iş için ` +
+              `${paraYaz(talep.hakkedis?.toplam || 0)} ${PARA_BIRIMI} bekliyor ve ` +
+              `bu tutar servisin ekranında "onay bekliyor" olarak duruyor.` +
+              `
+
+Durum "${durumBilgi(hakkedisKapisi).ad}" yapılırsa kayıt ` +
+              `onaylanamaz hâle gelir ama servis beklemeye devam eder. ` +
+              `Aşağıdaki Hak Edişi Onayla ya da Kabul Etme düğmesini kullanın.`
+            }
+            onayYazi="Tamam"
+            onVazgec={() => setHakkedisKapisi(null)}
+            onOnayla={() => setHakkedisKapisi(null)}
           />
         )}
 
@@ -1998,6 +2024,33 @@ function ServisKaydiBolumu({
                   .join(' · ')
               : 'Servis parçayı takınca talebi kendisi kapatacak.'}
           </p>
+        </div>
+      )}
+
+      {/* ÖNCEKİ ZİYARETLER.
+
+          Müşteri "sorun devam ediyor" dediğinde aynı talebe ikinci kez
+          gidiliyor ve yeni kayıt öncekini arşive itiyor
+          (bkz. veri.js → servisKaydiGonder). PAKSAN'ın sorması gereken
+          soru burada cevaplanıyor: aynı arıza mı tekrar etti, ilk
+          seferde ne yapılmıştı, o iş için ne ödendi. */}
+      {(k.oncekiKayitlar || talep.oncekiKayitlar || []).length > 0 && (
+        <div style={{ marginTop: 12 }}>
+          <div className="alan__ad" style={{ marginBottom: 6 }}>
+            Önceki ziyaretler
+          </div>
+          {(talep.oncekiKayitlar || []).map((o, i) => (
+            <div key={i} className="kv">
+              <span className="kv__ad">{tarihYaz(o.tarih)}</span>
+              <span className="kv__deger">
+                {[o.yapilanIs, kayitParcaYazisi(o.parcalar), o.hakkedis?.toplam
+                  ? paraYaz(o.hakkedis.toplam) + ' ' + PARA_BIRIMI
+                  : null]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </span>
+            </div>
+          ))}
         </div>
       )}
 

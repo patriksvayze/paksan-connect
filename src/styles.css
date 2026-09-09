@@ -654,7 +654,9 @@ p {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  height: 42px;
+  /* 42'ydi; dokunma tabanı 44 (bkz. PRODUCT.md). Denetimde
+     ölçüldü: alt sayfaların hepsinde bu düğme eşiğin altındaydı. */
+  height: 44px;
   padding: 0 17px 0 12px;
   border-radius: 999px;
   background: var(--surface);
@@ -2391,8 +2393,8 @@ p {
    44 piksel dokunma tabanı (bkz. PRODUCT.md) alt sınır olarak duruyor:
    en uzun etiket seçiliyken bile 4x44 + hap sığıyor. */
 .tabbar__item {
-  flex: 1 1 44px;
-  min-width: 44px;
+  flex: 1 1 0;
+  min-width: 48px;
   height: 52px;
   display: flex;
   flex-direction: row;
@@ -2411,21 +2413,35 @@ p {
 
 /* Simge kutusu sabit: seçili sekme büyürken simgeler yerinden
    oynamıyor, göz menüyü hep aynı ritimde okuyor. */
+/* SEÇİLİ HAP ARTIK SİMGENİN ARKASINDA.
+   Yazı tamamen kapatıldı; öğe yalnız simge olduğu için hap da
+   simgenin kutusu kadar. Öğeler eşit genişlikte, hiçbiri seçilince
+   büyümüyor — simgeler menüde hep aynı yerde duruyor. */
 .tabbar__ikon {
   position: relative;
   display: grid;
   place-items: center;
   flex: none;
-  width: 40px;
-  height: 36px;
-  transition: transform 0.18s ease;
+  /* Hap 48x40'tan 58x46'ya çıktı. Öğeye 65 piksel düşüyor ve hap
+     onun ancak üçte ikisini kaplıyordu; yazı kalkınca seçiliyi
+     gösteren tek şey bu ve küçük kalıyordu. İki yanında 3,5
+     piksel nefes payı kalıyor, dokunma hedefi öğenin tamamı. */
+  width: 58px;
+  height: 46px;
+  border-radius: 999px;
+  transition: transform 0.18s ease, background 0.2s ease;
 }
 
 .tabbar__item--on {
-  flex: 0 0 auto;
-  padding: 0 16px 0 10px;
-  background: var(--nav-secili);
+  flex: 1 1 0;
+  padding: 0;
+  background: transparent;
   color: var(--nav-secili-yazi);
+}
+
+.tabbar__item--on .tabbar__ikon {
+  background: var(--nav-secili);
+  border-radius: 999px;
 }
 
 .tabbar__item--on .tabbar__ikon {
@@ -2442,6 +2458,9 @@ p {
 
 /* Kapatılan yazı: genişliği sıfıra iniyor ama DOM'da ve erişilebilirlik
    ağacında duruyor. `display: none` olsaydı bağlantının adı da giderdi. */
+/* Yazı HİÇ görünmüyor ama DOM'da duruyor: düğmenin erişilebilir adı
+   ondan geliyor, ekran okuyucu beşini de okumaya devam ediyor.
+   `display: none` olsaydı ad da giderdi. */
 .tabbar__label {
   max-width: 0;
   opacity: 0;
@@ -2449,12 +2468,6 @@ p {
   transition: max-width 0.24s cubic-bezier(0.2, 0.7, 0.3, 1), opacity 0.16s ease,
     margin-left 0.24s ease;
   margin-left: 0;
-}
-
-.tabbar__item--on .tabbar__label {
-  max-width: 160px;
-  opacity: 1;
-  margin-left: 7px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2467,22 +2480,13 @@ p {
 
 /* Dar ekranda menünün kendi payı daralıyor; punto DÜŞMÜYOR.
    Tek yazı olduğu için buna gerek kalmadı. */
-/* EN DAR CİHAZDA MENÜ TAŞIYORDU.
-
-   Ölçüldü (320 piksel): dört simge 44 piksellik dokunma tabanında,
-   seçili hap 138 — toplam 314, menünün içinde 294 yer var. Öğenin
-   sağ kenarı ekranın 8 piksel dışına çıkıyor ve sayfa yatay
-   kayıyordu.
-
-   Dokunma tabanı düşürülmedi (eldivenli kullanım, bkz. PRODUCT.md).
-   Bunun yerine menü bu genişlikte kenardan boşluk BIRAKMIYOR ve
-   hapın iç payı daralıyor: 312 piksel iç genişlikte 4x44 + 136
-   sığıyor, en uzun etiket ("Makinelerim", 74 piksel) kesilmiyor. */
+/* İKON-ONLY'DE TAŞMA YOK.
+   Yazı kalkınca beş simge 320 pikselde rahat sığıyor (5x48 = 240,
+   iç genişlik 294); menü kenar payını geri aldı. */
 @media (max-width: 360px) {
   .tabbar {
-    width: 100%;
-    padding: 7px 4px;
-    border-radius: 999px;
+    width: calc(100% - 16px);
+    padding: 7px 5px;
   }
 
   .tabbar__item {
@@ -2490,11 +2494,11 @@ p {
   }
 
   .tabbar__ikon {
-    width: 36px;
+    width: 52px;
   }
 
-  .tabbar__item--on {
-    padding: 0 10px 0 6px;
+  .tabbar__item {
+    min-width: 44px;
   }
 }
 
