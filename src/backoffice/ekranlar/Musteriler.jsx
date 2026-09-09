@@ -9,7 +9,8 @@ import { DisaAktar } from './aktar'
 import { araliktaMi, BOS_ARALIK, Secim, SuzgecCubugu, TarihAraligi } from './suzgec'
 import { getProduct } from '../../marka'
 import { formatSerial, warrantyStatus } from '../../lib/serial'
-import { telGoster } from '../../lib/tel'
+import { telFirma, telGoster } from '../../lib/tel'
+import { musterininServisleri } from '../../lib/servisAtama'
 
 /* Müşteriler.
 
@@ -239,6 +240,7 @@ export function Musteriler({ personel, rol, bildir, tazele, surum }) {
 
 function Detay({ musteri, talepler, duzenleyebilir, onDuzenle }) {
   const kendi = talepler.filter((t) => t.telHam === musteri.tel)
+  const servisSatirlari = musterininServisleri(musteri.makineler || []).hepsi
 
   return (
     <>
@@ -266,6 +268,49 @@ function Detay({ musteri, talepler, duzenleyebilir, onDuzenle }) {
           <S k="Bildirim İzni" v={IZIN[musteri.bildirim?.izin]} />
           <S k="Konum İzni" v={IZIN[musteri.konumIzni]} />
           <S k="Kampanya İzni" v={musteri.onaylar?.kampanya ? 'Var' : 'Yok'} />
+        </Bolum>
+
+        {/* ============================================ Servisi
+
+            "Bu müşteriye kim bakıyor" sorusu telefonda en sık sorulan
+            şey ve cevabı bugüne kadar bu ekranda yoktu: personel
+            Kayıtlı Makineler ekranına gidip seri numarası aramak
+            zorunda kalıyordu.
+
+            Cevap makineden geliyor (bkz. lib/servisAtama.js), o yüzden
+            makine listesinin hemen üstünde duruyor. Birden çok makine
+            farklı servislere bağlıysa hepsi yazılıyor — tek satıra
+            indirmek yanlış bilgi olurdu.
+
+            SERVİSİ YOKSA UYARI ÇIKIYOR: o müşteri uygulamadan servis
+            talebi açamıyor ve bunu arayan personelin bilmesi
+            gerekiyor. */}
+        <Bolum ad="Servisi">
+          {servisSatirlari.length === 0 ? (
+            <div className="uyari" style={{ margin: 0, display: 'block' }}>
+              <b>Servis atanmamış.</b>
+              <p className="kucuk" style={{ margin: '6px 0 0' }}>
+                Bu müşteri uygulamadan servis talebi açamıyor. Kayıtlı
+                Makineler ekranından makinesine servis atayın.
+              </p>
+            </div>
+          ) : (
+            servisSatirlari.map((x) => (
+              <div key={x.makine.id} style={{ marginBottom: 10 }}>
+                <div style={{ fontWeight: 700 }}>{x.servis.ad}</div>
+                <div className="kucuk sonuk">
+                  {[x.servis.ilce, x.servis.il].filter(Boolean).join(' / ')}
+                  {' · '}
+                  {telFirma(x.servis.tel)}
+                </div>
+                <div className="kucuk sonuk">
+                  {formatSerial(x.makine.serial)}
+                  {x.kaynak === 'bayi' ? ' · bayisinden' : ' · elle atandı'}
+                  {x.bayi ? ` · ${x.bayi.ad}` : ''}
+                </div>
+              </div>
+            ))
+          )}
         </Bolum>
 
         <Bolum ad={`Makineler · ${musteri.makineler?.length || 0}`}>

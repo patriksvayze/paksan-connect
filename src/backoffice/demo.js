@@ -24,7 +24,7 @@ import { ANAHTAR, islemYaz, personelGetir, rolleriGetir } from './veri'
 import { MAKINE_DURUMU, ULASIM_ZAMANI } from '../data/talepAlanlari'
 import { PRODUCTS, SIRKET } from '../marka'
 import { PARCA_FIYAT } from '../marka'
-import { SERVISLER } from '../marka'
+import { SERVISLER, BAYILER } from '../marka'
 
 /* ------------------------------------------------------------ Malzemeler */
 
@@ -353,7 +353,9 @@ export async function demoYukle() {
       konumUlke: 'TR',
       il,
       ilce,
-      satici: sec(SERVISLER).ad,
+      /* Müşterinin "makineyi kimden aldım" cevabı BAYİ adı; servis
+         adı değil. Servis makine satmıyor. */
+      satici: sec(BAYILER).ad,
       onaylar: {
         aydinlatma: true,
         acikRiza: true,
@@ -377,15 +379,21 @@ export async function demoYukle() {
      makineleri vardı ama defter boş kalıyordu: pano 30 müşteri ve
      0 kayıtlı makine gösteriyordu.
 
-     Logo alanları (servis, fatura) burada dolduruluyor çünkü gerçek
-     kayıtta da Logo'dan geliyorlar; bir kısmı bilerek boş bırakıldı —
-     Logo her seri numarasını bilmiyor, backoffice o durumu da
-     gösterebilmeli. */
+     BAYİ LOGO'DAN, SERVİS ELDEN. Fatura bayiye kesiliyor: Logo'nun
+     verdiği `bayiId`. Hangi servisin bakacağı ise ticari bir karar,
+     faturada yazmıyor — personel backoffice'ten atıyor.
+
+     Bir kısmı bilerek boş bırakıldı: Logo her seri numarasını
+     bilmiyor ve her makineye servis atanmış değil. Backoffice o
+     eksikliği gösterebilmeli, demo da onu göstermeli. */
   const makineKayitlari = []
   for (const m of musteriler) {
     for (const mk of m.makineler) {
       const logoBildi = Math.random() > 0.15
-      const servis = logoBildi ? sec(SERVISLER) : null
+      const bayi = logoBildi ? sec(BAYILER) : null
+      /* Makinelerin bir bölümüne servis elle atanmış; kalanların
+         servisi bayisinden geliyor ya da hiç yok. */
+      const servis = Math.random() > 0.55 ? sec(SERVISLER) : null
       makineKayitlari.push({
         id: uid(),
         tarih: mk.addedAt,
@@ -396,6 +404,8 @@ export async function demoYukle() {
         musteriAd: m.ad,
         il: m.il,
         ilce: m.ilce,
+        bayiId: bayi?.id || null,
+        bayiAd: bayi?.ad || '',
         servisId: servis?.id || null,
         servisAd: servis?.ad || '',
         uretimTarihi: logoBildi ? gunOnce(tamsayi(400, 2000)) : null,
@@ -403,6 +413,7 @@ export async function demoYukle() {
         logoBildi,
         /* Kayıt anıyla fatura tarihi yakınsa yeni satış sayılıyor */
         yeniSatis: logoBildi && Math.random() > 0.7,
+        kaynak: 'musteri',
         demo: true,
       })
     }
