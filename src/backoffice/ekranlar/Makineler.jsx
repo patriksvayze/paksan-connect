@@ -258,8 +258,8 @@ export function Makineler({ personel, rol, bildir, tazele, surum }) {
           çiftçi telefona sarılıyor. */}
       {eksik > 0 && (
         <div
-          className="kart"
-          style={{ marginBottom: 14, borderLeft: '3px solid var(--turuncu)' }}
+          className="kart kart--dikkat"
+          style={{ marginBottom: 14 }}
         >
           <div className="kart__ic">
             <strong>{eksik} makineye servis atanmamış.</strong>

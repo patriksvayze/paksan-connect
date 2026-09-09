@@ -61,7 +61,7 @@ function SifreYardimi({ personel, tazele, surum }) {
   if (!liste.length) return null
 
   return (
-    <div className="kart" style={{ marginBottom: 14, borderLeft: '3px solid var(--turuncu)' }}>
+    <div className="kart kart--dikkat" style={{ marginBottom: 14 }}>
       <div className="kart__tepe">
         <h2>Şifre Yardımı Bekleyen Servis ({liste.length})</h2>
       </div>

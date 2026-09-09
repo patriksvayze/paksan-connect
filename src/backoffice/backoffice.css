@@ -1455,6 +1455,30 @@ tbody tr.secili .rz,
   background: none;
 }
 
+/* Dikkat çeken kart.
+
+   Personelin görmeden geçemeyeceği kartlar için: şifre bekleyen
+   servisler, servisi atanmamış makineler. Bir dönem bunlar kartın
+   soluna 3 piksellik turuncu bir şerit çizerek işaretleniyordu ve
+   ekranın geri kalanında karşılığı olmayan bir biçimdi.
+
+   Şimdi `.uyari` ile aynı renk dilini kullanıyor: yumuşak turuncu
+   zemin. Aynı şeyi anlatan iki öge aynı görünüyor.                 */
+
+.kart--dikkat {
+  background: var(--turuncu-z);
+  border-color: transparent;
+}
+
+.kart--dikkat .kart__tepe {
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+.kart--dikkat .kart__tepe h2,
+.kart--dikkat strong {
+  color: var(--turuncu-d);
+}
+
 /* ------------------------------------------------------------- Uyarı */
 
 .uyari {
