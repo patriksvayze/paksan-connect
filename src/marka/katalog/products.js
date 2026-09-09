@@ -55,7 +55,7 @@ const BAKIM = {
   Müşteri makinenin üzerindeki etiketten okuyup girecek.
   Örn: ORK1270-2024-00157
 */
-export const PRODUCTS = [
+const HAM_URUNLER = [
   /* ------------------------------------------------ BÜYÜK BALYA */
   {
     id: 'orkinos-1270',
@@ -452,6 +452,24 @@ export const PRODUCTS = [
     videos: [{ title: 'Tesviye küreği tanıtım', type: 'tanitim', dur: '1:50', url: null }],
   },
 ]
+
+/* Liste alanları burada garantiye alınıyor.
+
+   Ekranlar `product.videos.filter(...)`, `product.specs.map(...)` diye
+   yazıyor; alan hiç yoksa ekran çöküyor. Bugünkü katalogda üçü de her
+   üründe dolu ama bu kataloğu dolduran kişinin dikkatine bağlı — bir
+   üründe `videos` satırını yazmayı unutmak o makinenin detay ekranını
+   kapatıyor ve hata ancak o makineyi kaydeden müşteride görülüyor.
+
+   Boşluk üç ekranda ayrı ayrı değil, kaynağında bir kez kapatılıyor. */
+const HEPSI_DIZI = (u) => ({
+  ...u,
+  specs: u.specs || [],
+  videos: u.videos || [],
+  bakim: u.bakim || [],
+})
+
+export const PRODUCTS = HAM_URUNLER.map(HEPSI_DIZI)
 
 /* ------------------------------------------------------- Vitrin sırası
 

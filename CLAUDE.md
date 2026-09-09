@@ -10,7 +10,8 @@ uygulama içi tüm metin ve yorumlar sade Türkçe.
 - `src/screens/` — müşteri uygulaması ekranları (22 dosya)
 - `src/backoffice/` — personel paneli, `ekranlar/` alt klasöründe ekranlar (16 dosya)
 - `src/components/` — paylaşılan bileşenler
-- `src/data/` — statik içerik (ürünler, rehberler, güvenlik, teknik özellikler) — çoğu `X.js`/`X.en.js` çifti hâlinde
+- `src/marka/` — firmaya ait her şey: kimlik, logo, renkler, ürün kataloğu, bayi listesi, fiyatlar, arıza bilgi tabanı, kılavuz paketi. Motor buraya yalnızca `src/marka/index.js` kapısından bakar (bkz. MARKA-DEVIR.md)
+- `src/data/` — ülkeye ve motora ait statik içerik: il listesi, KVKK metinleri, talep alanları, duyuru türleri, yetki kataloğu
 - `src/lib/` — yardımcı modüller (depolama, bildirim, PDF/Excel dışa aktarım)
 - `src/i18n/` — `tr.js`/`en.js` (663 anahtar, eşit tutuluyor ama build'de zorlanmıyor) + `index.jsx`
 - `tools/` — otomasyon betikleri (ekran görüntüsü, ikon üretimi, veri doğrulama)
@@ -183,9 +184,15 @@ Genel diff incelemesi için `/code-review` komutu kullanılır.
 
     npm run dogrula
 
-Dört şeye bakıyor: `tr.js`/`en.js` anahtar eşitliği, kodda kullanılan
-`t('...')` anahtarlarının sözlükte karşılığı, iki CSS dosyasındaki
-token'ların uyumu, `dist/` içine backoffice kodu sızıp sızmadığı.
+Altı şeye bakıyor: `tr.js`/`en.js` anahtar eşitliği, kodda kullanılan
+`t('...')` anahtarlarının sözlükteki karşılığı, iki CSS dosyasındaki
+token'ların uyumu, `dist/` içine backoffice kodunun sızıp sızmadığı,
+motorun marka klasörüne yalnızca kapıdan bakıp bakmadığı ve motor
+kodunda marka adının düz yazıyla geçip geçmediği.
+
+Son iki kontrol marka sınırını koruyor: ürünün başka bir firmaya
+kurulabilmesi buna bağlı. Yorumlar altıncı kontrolün dışında;
+oralarda firmanın iş kuralını anlatan gerekçeler var.
 Sorun bulursa çıkış kodu 1.
 
 Bazı CSS token'ları **bilerek** ayrı (backoffice'te beyaz yazı için koyu
