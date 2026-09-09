@@ -5,14 +5,14 @@
    kullanacaksa değiştireceği yer burası; motorun geri kalanına
    dokunmuyor (bkz. MARKA-DEVIR.md).
 
-   Bu dosya kimliği tutuyor: şirketin adı, unvanı, iletişimi, garanti
-   süresi, banka hesapları, ihracat adresleri.
+   Bu dosya kimliği tutuyor: şirketin adı, unvanı, iletişim bilgileri,
+   garanti süresi, banka hesapları, ihracat adresleri.
 
    BURADA OLMAYANLAR
 
    Sunucu adresleri ve açma/kapama anahtarları `src/config.js` içinde.
-   Onlar da yeni firmada doldurulacak ama marka değil kurulum ayarı:
-   aynı firma için test ve canlı ortamda farklı olabiliyorlar.
+   Onlar da yeni firmada doldurulacak ama marka değil, kurulum ayarı:
+   aynı firma için test ve canlı ortamlarda farklı olabiliyorlar.
    ========================================================================== */
 
 /* Uygulamanın adı — telefonun ekranında ikonun altında yazan ad da bu.
@@ -46,8 +46,8 @@ export const SIRKET = {
      "PAKSAN Duyurusu", "en yakın PAKSAN bayisi". Uzun ad cümleye
      sığmıyor — "PAKSAN Makina Ara" kulağı tırmalıyor.
 
-     Sözlükte `{marka}` yer tutucusuyla kullanılıyor ve değeri
-     kendiliğinden geçiyor (bkz. src/i18n/index.jsx). */
+     Sözlükte `{marka}` yer tutucusuyla kullanılıyor ve değer
+     kendiliğinden yerine geçiyor (bkz. src/i18n/index.jsx). */
   kisaAd: 'PAKSAN',
 
   telefon: '444 9 725',
@@ -58,7 +58,7 @@ export const SIRKET = {
   eposta: 'paksan@paksanmakina.com.tr',
   site: 'https://www.paksanmakina.com.tr',
   /* Metin içinde okunan hâli — "paksanmakina.com.tr adresindeki ürün
-     sayfalarından alınmıştır". Adresin başındaki https:// cümlede
+     sayfalarından alınmıştır". Adresin başındaki https://, cümlede
      tuhaf duruyor. */
   siteKisa: 'paksanmakina.com.tr',
 
@@ -85,7 +85,7 @@ export const SIRKET = {
    DÜŞMÜYOR; ihracat ekibinin e-postasına gidiyor ve kayda geçiyor
    (bkz. src/lib/ihracat.js).
 
-   İhracat yapmayan bir firmada `aktif: false` yeterli; ekranlarda
+   İhracat yapmayan bir firma için `aktif: false` yeterli; ekranlarda
    başka bir iş kalmıyor.
 
    ⚠ E-POSTA ADRESLERİ DOLDURULMADI. Gerçek ihracat ekibi adresleri

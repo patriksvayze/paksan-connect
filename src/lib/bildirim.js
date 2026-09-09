@@ -1,5 +1,6 @@
 import { Capacitor } from '@capacitor/core'
 import { LocalNotifications } from '@capacitor/local-notifications'
+import { MARKA } from '../marka'
 
 /* ==========================================================================
    Uygulama bildirimleri
@@ -69,8 +70,8 @@ async function kanaliKur() {
   try {
     await LocalNotifications.createChannel({
       id: KANAL,
-      name: 'PAKSAN duyuruları',
-      description: 'Talep durumu, servis randevusu ve PAKSAN duyuruları',
+      name: `${MARKA} duyuruları`,
+      description: `Talep durumu, servis randevusu ve ${MARKA} duyuruları`,
       importance: 4, // perdede sesli çıkar
       visibility: 1, // kilit ekranında görünür
     })

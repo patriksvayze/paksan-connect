@@ -13,7 +13,7 @@
        "2 Yeni Geri Bildirim — PAKSAN"
    ========================================================================== */
 
-const KUYRUK = 'PAKSAN'
+import { MARKA, LOGO_DOSYASI } from '../marka'
 
 export function bildirimDestekliMi() {
   return typeof window !== 'undefined' && 'Notification' in window
@@ -36,16 +36,20 @@ export async function izinIste() {
 
 /**
  * Bildirim gönderir.
- * @param {string} baslik "Yeni Talep" gibi — sonuna PAKSAN ekleniyor
+ * @param {string} baslik "Yeni Talep" gibi — sonuna marka adı ekleniyor.
  * @param {string} etiket aynı etiketli bildirim üst üste yığılmıyor
  */
 export function bildirimGonder(baslik, etiket) {
   if (izinDurumu() !== 'granted') return false
   try {
-    new Notification(`${baslik} — ${KUYRUK}`, {
+    new Notification(`${baslik} — ${MARKA}`, {
       tag: etiket || baslik,
       renotify: true,
-      icon: '/paksan-logo.png',
+      /* Logo, derlemeye dâhil edilen dosyadan alınıyor. Önceden kök
+         dizinde '/paksan-logo.png' aranıyordu; projede public/ klasörü
+         olmadığı için o adresin hiç karşılığı yoktu ve bildirim
+         ikonsuz çıkıyordu. */
+      icon: LOGO_DOSYASI,
     })
     return true
   } catch {

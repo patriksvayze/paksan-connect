@@ -7,7 +7,7 @@ import {
 } from '../../backoffice/veri'
 import { parcaAdedi, stokDus } from '../../lib/bayiStok'
 import { makineDurumAdi } from '../../data/talepAlanlari'
-import { getProduct } from '../../marka'
+import { getProduct, MARKA, markaEk } from '../../marka'
 import { PARA_BIRIMI, paraYaz } from '../../marka'
 import { ServisKapanisi } from './ServisKapanisi'
 import { Sayfa } from '../Kabuk'
@@ -233,7 +233,7 @@ export function TalepDetay({
             <p>
               {talep.odemeOnay
                 ? 'Parçayı hazırlayıp kargoya verebilirsiniz.'
-                : 'PAKSAN dekontu kontrol ediyor. Onaylanmadan parçayı göndermeyin.'}
+                : `${MARKA} dekontu kontrol ediyor. Onaylanmadan parçayı göndermeyin.`}
             </p>
           </div>
         </div>
@@ -256,9 +256,9 @@ export function TalepDetay({
         <div className="not not--mavi">
           <IconShield size={19} />
           <div>
-            <strong>PAKSAN bu talebe destek veriyor.</strong>
+            <strong>{MARKA} bu talebe destek veriyor.</strong>
             <p>
-              Müşteri hâlâ sizin müşteriniz. PAKSAN'ın attığı adımları
+              Müşteri hâlâ sizin müşteriniz. {markaEk('in')} attığı adımları
               burada görmeye devam edeceksiniz.
             </p>
           </div>
@@ -320,7 +320,7 @@ export function TalepDetay({
           </button>
           <button className="secenek__dg" onClick={() => setPencere('destek')}>
             <IconShield size={19} />
-            PAKSAN'dan Destek İste
+            {markaEk('dan')} Destek İste
             <IconRight size={17} />
           </button>
         </div>
@@ -720,10 +720,10 @@ function Destek({ onKapat, onGonder }) {
   const [hata, setHata] = useState('')
 
   return (
-    <Pencere baslik="PAKSAN'dan Destek İste" onKapat={onKapat}>
+    <Pencere baslik={`${markaEk('dan')} Destek İste`} onKapat={onKapat}>
       <p className="kucuk sonuk" style={{ marginTop: 0 }}>
-        Talep PAKSAN'a geçecek ama müşteri sizin müşteriniz olmaya devam
-        edecek. PAKSAN'ın attığı adımları burada görmeye devam
+        Talep {markaEk('a')} geçecek ama müşteri sizin müşteriniz olmaya devam
+        edecek. {markaEk('in')} attığı adımları burada görmeye devam
         edeceksiniz.
       </p>
       <label className="alan">

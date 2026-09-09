@@ -22,7 +22,7 @@ import { talepNo } from '../lib/talep'
 import { normalizeSerial } from '../lib/serial'
 import { ANAHTAR, islemYaz, personelGetir, rolleriGetir } from './veri'
 import { MAKINE_DURUMU, ULASIM_ZAMANI } from '../data/talepAlanlari'
-import { PRODUCTS } from '../marka'
+import { PRODUCTS, SIRKET } from '../marka'
 import { PARCA_FIYAT } from '../marka'
 import { BAYILER } from '../marka'
 
@@ -305,7 +305,7 @@ export async function demoYukle() {
       ad,
       kullanici: benzer ? `${kullanici}${benzer + 1}` : kullanici,
       rol: demoRol[i % demoRol.length],
-      eposta: `${kullanici}@paksanmakina.com.tr`,
+      eposta: `${kullanici}@${SIRKET.siteKisa}`,
       tel: '0' + telUret(),
       aktif: i !== 9, /* biri kapalı — kapalı hesap nasıl görünüyor */
       createdAt: gunOnce(tamsayi(30, 400)),

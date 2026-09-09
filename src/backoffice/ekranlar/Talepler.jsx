@@ -17,7 +17,7 @@ import { DisaAktar } from './aktar'
 import { boyutYaz, ekAdresi, ekYaz } from '../../lib/ekler'
 import { araliktaMi, BOS_ARALIK, Secim, SuzgecCubugu, TarihAraligi } from './suzgec'
 import { Dekont, Ekler } from './Ekler'
-import { getProduct } from '../../marka'
+import { getProduct, markaEk } from '../../marka'
 import { formatSerial, warrantyStatus } from '../../lib/serial'
 import { makineDurumAdi } from '../../data/talepAlanlari'
 import { BANKA } from '../../marka'
@@ -297,7 +297,7 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
           secenekler={[
             { deger: 'hepsi', ad: 'Hepsi' },
             { deger: 'bayi', ad: 'Bayide' },
-            { deger: 'paksan', ad: "PAKSAN'da" },
+            { deger: 'paksan', ad: markaEk('da') },
             { deger: 'devredilen', ad: 'Devredilenler' },
           ]}
           genislik={150}
@@ -1295,7 +1295,8 @@ const AKTAR_SUTUNLARI = [
   { ad: 'Bayi', deger: (t) => t.bayi?.ad || '' },
   {
     ad: 'Talep kimde',
-    deger: (t) => (t.bayi ? ((t.sahip || 'paksan') === 'bayi' ? 'Bayide' : 'PAKSAN’da') : 'PAKSAN’da'),
+    deger: (t) =>
+      t.bayi && (t.sahip || 'paksan') === 'bayi' ? 'Bayide' : markaEk('da'),
   },
 
   { ad: 'İptal sebebi', deger: (t) => t.iptalBilgi?.neden || '' },
@@ -1592,7 +1593,7 @@ function BayiDurumu({ talep }) {
           className={'rz rz--' + (paksanda ? 'turuncu' : 'mavi')}
           style={{ marginLeft: 'auto' }}
         >
-          {paksanda ? "PAKSAN'da" : 'Bayide'}
+          {paksanda ? markaEk('da') : 'Bayide'}
         </span>
       </div>
 
@@ -1602,7 +1603,7 @@ function BayiDurumu({ talep }) {
 
       {talep.devir && (
         <div className="uyari" style={{ marginTop: 12, marginBottom: 0, display: 'block' }}>
-          <b>Bayi bu talep için PAKSAN'dan destek istedi.</b>
+          <b>Bayi bu talep için {markaEk('dan')} destek istedi.</b>
           {talep.devir.neden && (
             <p style={{ whiteSpace: 'pre-wrap', margin: '8px 0 0' }}>{talep.devir.neden}</p>
           )}

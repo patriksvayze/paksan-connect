@@ -9,7 +9,7 @@
 import { load, save, uid } from '../lib/storage'
 import { sifreHazirla, sifreDogruMu, sifreGecerliMi } from '../lib/hesap'
 import { yeniNo } from '../lib/numara'
-import { SIRKET } from '../marka'
+import { SIRKET, MARKA, markaEk } from '../marka'
 import { urun } from '../lib/urun'
 import { bayileriGetir } from '../marka'
 import { icerikListe, icerikTazele } from '../lib/icerikDeposu.js'
@@ -1309,7 +1309,7 @@ export function destekTalepEt(talep, neden, bayiAd) {
   })
   islemYaz({
     tur: 'devir',
-    ozet: `${talep.no} · ${bayiAd} PAKSAN'dan destek istedi`,
+    ozet: `${talep.no} · ${bayiAd} ${markaEk('dan')} destek istedi`,
     personel: bayiAd,
     rol: 'bayi',
   })
@@ -1381,7 +1381,7 @@ export async function bayiGirisi(kullanici, sifre) {
 
   if (!kayit) return { hata: 'Kullanıcı adı veya şifre yanlış.' }
   if (kayit.panelAktif === false) {
-    return { hata: 'Bu hesap kapalı. PAKSAN yetkilinize başvurun.' }
+    return { hata: `Bu hesap kapalı. ${MARKA} yetkilinize başvurun.` }
   }
   if (!(await sifreDogruMu(sifre, kayit.sifre))) {
     return { hata: 'Kullanıcı adı veya şifre yanlış.' }

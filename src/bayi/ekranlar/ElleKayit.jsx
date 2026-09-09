@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { load, save, uid } from '../../lib/storage'
 import { talepNo } from '../../lib/talep'
-import { INDIRME_ADRESI } from '../../marka'
+import { INDIRME_ADRESI, uygulamaEk, UYGULAMA, SIRKET } from '../../marka'
 import { ILLER, ilceleriGetir } from '../../data/iller'
 import { extractYear, formatSerial, normalizeSerial, validateSerial } from '../../lib/serial'
 import { bayiMakineKaydi } from '../../lib/makineKaydi'
@@ -325,7 +325,7 @@ export function ElleKayit({ oturum, onKaydedildi }) {
           <div className="not not--yesil" style={{ marginTop: 0, marginBottom: 14 }}>
             <IconCheckCircle size={19} />
             <div>
-              <strong>PAKSAN Connect kullanıcısı</strong>
+              <strong>{UYGULAMA} kullanıcısı</strong>
               <p>
                 {eslesen.ad} · bilgileri dolduruldu. Talep bu hesaba
                 bağlanacak; müşteri kendi uygulamasında görecek.
@@ -344,7 +344,7 @@ export function ElleKayit({ oturum, onKaydedildi }) {
           <div className="not not--turuncu" style={{ marginTop: 0, marginBottom: 14 }}>
             <IconAlert size={19} />
             <div>
-              <strong>Bu numara PAKSAN Connect’te kayıtlı değil.</strong>
+              <strong>Bu numara {uygulamaEk('da')} kayıtlı değil.</strong>
               <p>
                 Müşteriye uygulamayı indirmesini söyleyin: talebinin
                 durumunu kendi telefonundan takip eder, makinesini
@@ -523,8 +523,8 @@ function MakineSecim({ makine, secili, tekli, onSec }) {
 function Davet({ talep, onBitti }) {
   const numara = String(talep.tel || '').replace(/[^\d+]/g, '')
   const metin =
-    `Merhaba ${talep.ad}, PAKSAN Makina. Talebiniz alındı: ${talep.no}. ` +
-    `PAKSAN Connect’i indirin; talebinizin durumunu takip eder, ` +
+    `Merhaba ${talep.ad}, ${SIRKET.ad}. Talebiniz alındı: ${talep.no}. ` +
+    `${uygulamaEk('i')} indirin; talebinizin durumunu takip eder, ` +
     `makinenizi kaydeder ve garantinizi görürsünüz: ${INDIRME_ADRESI}`
 
   return (

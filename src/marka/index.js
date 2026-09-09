@@ -9,8 +9,8 @@
 
    Ekranlar ve kütüphaneler `from '../marka'` yazıyor, asla
    `from '../marka/kimlik'` değil. Böylece marka klasörünün iç düzeni
-   değiştiğinde motor dosyalarına dokunulmuyor: yeni firma dosyaları
-   kendi bildiği gibi bölebiliyor, dışarıya aynı adları verdiği sürece
+   değiştiğinde motor dosyalarına dokunulmuyor: yeni firma, dosyaları
+   kendi bildiği gibi bölebiliyor; dışarıya aynı adları verdiği sürece
    uygulama çalışıyor.
 
    TEK İSTİSNA: `src/marka/icerik/`
@@ -22,12 +22,12 @@
 
    Onlar bu yüzden doğrudan import ediliyor ve bunu yapan yalnız
    birkaç ekran var: içeriğin çizildiği yer. Kural `npm run dogrula`
-   ile denetleniyor — `icerik/` dışında derinden import eden bir dosya
-   kalırsa kontrol düşüyor.
+   ile denetleniyor — `icerik/` dışında derinden içe aktarma yapan bir
+   dosya kalırsa kontrol başarısız oluyor.
 
    YENİ FİRMA NE DOLDURACAK
 
-   Ayrıntısı MARKA-DEVIR.md içinde. Özet: kimlik, logo, renkler, ürün
+   Ayrıntısı MARKA-DEVIR.md içinde. Özet: Kimlik, logo, renkler, ürün
    kataloğu ve bayi listesi zorunlu; teknik özellikler, arıza bilgi
    tabanı, kılavuzlar ve fiyat listeleri olmadan da uygulama çalışıyor,
    ilgili ekranlar boş görünüyor.
@@ -39,22 +39,31 @@ export {
   SIRKET, UYGULAMA, SURUM, INDIRME_ADRESI, BANKA, IHRACAT,
 } from './kimlik.js'
 
+/* Ekran metinlerinde geçen kısa marka adı ve Türkçe ekleri.
+
+   "PAKSAN’a Sipariş Ver" gibi bir başlıkta adı değişkene almak
+   yetmiyor: Türkçede ek, adın son ünlüsüne göre değişiyor ve sabit
+   yazılan ek yeni firmada bozuluyor ("ACME’a"). Ek bu yüzden
+   hesaplanıyor — gerekçesi ve sınırı ad.js içinde. */
+export { MARKA, markaEk, uygulamaEk } from './ad.js'
+
 /* -------------------------------------------------------- Marka işareti */
 
 export { Logo, Rozet, RozetMini, Amblem } from './logo.jsx'
 
 /* Logo dosyasının kendisi.
 
-   Backoffice logoyu CSS ile boyutlandırılan düz bir `<img>` olarak
+   Backoffice, logoyu CSS ile boyutlandırılan düz bir `<img>` olarak
    kullanıyor (`.yan__marka img`, `.giris__logo`); bileşen kendi
-   ölçüsünü satır içi yazdığı için orada işe yaramıyor. Dosya yolu
-   marka klasörünün içinde kalsın diye kapıdan veriliyor. */
+   ölçüsünü satır içinde yazdığı için orada işe yaramıyor. Dosya yolu
+   marka klasörünün içinde kalsın diye kapıdan veriliyor — Backoffice,
+   doğrudan varlık klasörüne giriyordu. */
 export { default as LOGO_DOSYASI } from './varliklar/paksan-logo.png'
 
 /* ------------------------------------------------------- Ürün kataloğu */
 
 export {
-  CATEGORIES, PRODUCTS, siralanmisUrunler, kilavuzSirasiyla,
+  CATEGORIES, PRODUCTS, VITRIN, siralanmisUrunler, kilavuzSirasiyla,
   getProduct, getCategory, productsByCategory,
   urunDilde, kategoriDilde, supportGroup,
 } from './katalog/products.js'

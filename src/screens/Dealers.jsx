@@ -6,7 +6,7 @@ import { yetkiAdi, yakindanUzaga, ileGore } from '../marka'
 import { araProps } from '../lib/tel'
 import { konumOku, konumDestekleniyorMu, KONUM } from '../lib/konum'
 import { BayiHarita } from '../components/BayiHarita'
-import { SIRKET } from '../marka'
+import { SIRKET, MARKA } from '../marka'
 import {
   IconPin, IconPhone, IconRight, IconAlert, IconCheck, IconMail,
 } from '../components/Icons'
@@ -163,7 +163,7 @@ export default function Dealers() {
             dibindeydi, kimsenin bakmayacağı bir yerdi; iletişim
             bilgisinin yeri burası. */}
         <div className="card card--brand">
-          <div className="card__title" style={{ fontSize: 18 }}>PAKSAN</div>
+          <div className="card__title" style={{ fontSize: 18 }}>{MARKA}</div>
           <div className="card__sub">{t('bayi.merkezAlt')}</div>
           <a
             className="btn btn--on-dark"

@@ -9,6 +9,7 @@ import {
 } from './ortak'
 import { DisaAktar, IceAktar } from './aktar'
 import { demoTemizle, demoVarMi, demoYukle } from '../demo'
+import { SIRKET } from '../../marka'
 
 /* Personel.
 
@@ -379,7 +380,7 @@ const ORNEK_SATIR = [
   'Ahmet Yılmaz',
   'ahmet.yilmaz',
   'Servis',
-  'ahmet.yilmaz@paksanmakina.com.tr',
+  `ahmet.yilmaz@${SIRKET.siteKisa}`,
   '0532 000 00 00',
 ]
 

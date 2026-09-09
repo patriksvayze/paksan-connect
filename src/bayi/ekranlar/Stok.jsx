@@ -9,7 +9,7 @@ import {
   stokKullan,
 } from '../../lib/bayiSiparis'
 import { islemYaz } from '../../backoffice/veri'
-import { PARA_BIRIMI, PARCA_FIYAT, paraYaz } from '../../marka'
+import { PARA_BIRIMI, PARCA_FIYAT, paraYaz, markaEk } from '../../marka'
 import { PRODUCTS } from '../../marka'
 import { makineFiyati, parcaBayiFiyati } from '../../lib/bayiFiyat'
 import { Bolum, Bos } from '../Kabuk'
@@ -134,7 +134,7 @@ export function Stok({ oturum }) {
   return (
     <>
       <p className="ipucu">
-        Stokunuz PAKSAN’dan gelen sevkiyatlarla artıyor. Müşteriye
+        Stokunuz {markaEk('dan')} gelen sevkiyatlarla artıyor. Müşteriye
         verdiğiniz veya serviste kullandığınız parçayı eksi düğmesiyle
         düşürün.
       </p>
@@ -151,7 +151,7 @@ export function Stok({ oturum }) {
         <Bos
           gorsel={bosStokGorseli}
           baslik="Stokunuz Boş Görünüyor"
-          alt="PAKSAN’a verdiğiniz siparişler sevk edildiğinde stokunuza işlenecek."
+          alt={`${markaEk('a')} verdiğiniz siparişler sevk edildiğinde stokunuza işlenecek.`}
         />
       ) : (
         <>
@@ -208,7 +208,7 @@ export function Stok({ oturum }) {
       <div className="yapisik">
         <button className="dg dg--ana dg--blok" onClick={() => setEkran('siparis')}>
           <IconPlus size={19} />
-          PAKSAN’a Sipariş Ver
+          {markaEk('a')} Sipariş Ver
         </button>
       </div>
 

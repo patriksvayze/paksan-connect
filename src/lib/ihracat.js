@@ -1,4 +1,4 @@
-import { IHRACAT } from '../marka'
+import { IHRACAT, UYGULAMA } from '../marka'
 import { ulkeAdi } from '../data/ulkeler'
 import { getProduct } from '../marka'
 import { TALEP_TURLERI } from './talep'
@@ -126,7 +126,7 @@ export function ihracatPostasi(talep) {
 <html lang="en"><body style="margin:0;background:#eef1f6;padding:24px 12px;font-family:Roboto,Arial,sans-serif">
   <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:10px;overflow:hidden;border:1px solid #e2e7f0">
     <div style="background:#0a1a33;color:#fff;padding:20px 24px">
-      <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.75">PAKSAN Connect · Export</div>
+      <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.75">${kacir(UYGULAMA)} · Export</div>
       <div style="font-size:20px;font-weight:700;margin-top:4px">${kacir(turAdi)}</div>
       <div style="font-size:14px;opacity:.85;margin-top:2px">${kacir(ulke)} · ${kacir(talep.no)}</div>
     </div>
@@ -144,7 +144,7 @@ export function ihracatPostasi(talep) {
       }
 
       <p style="margin:22px 0 0;font-size:13px;line-height:1.6;color:#55617a">
-        This request was submitted from the PAKSAN Connect app by a customer located outside
+        This request was submitted from the ${kacir(UYGULAMA)} app by a customer located outside
         Türkiye. It has been routed to the export team and does not appear in the domestic
         backoffice queue.
       </p>

@@ -14,7 +14,7 @@
    birlikte saklanıyor, böylece kimin hangi metni onayladığı belli oluyor.
    ========================================================================== */
 
-import { SIRKET } from '../marka'
+import { SIRKET, MARKA, markaEk } from '../marka'
 import { KVKK_EN, ASIL_METIN_NOTU } from './kvkk.en'
 
 export const KVKK_SURUM = '1.0'
@@ -115,7 +115,7 @@ export const AYDINLATMA = {
       baslik: 'Nasıl başvurursunuz?',
       paragraflar: [
         `Yukarıdaki haklarınız için ${SIRKET.eposta} adresine yazabilirsiniz. Başvurunuz en geç 30 gün içinde sonuçlandırılır.`,
-        'Hesabınızın ve kayıtlarınızın tamamen silinmesini istiyorsanız da aynı adrese yazmanız yeterli; işlem PAKSAN tarafından yapılır.',
+        `Hesabınızın ve kayıtlarınızın tamamen silinmesini istiyorsanız da aynı adrese yazmanız yeterli; işlem ${MARKA} tarafından yapılır.`,
       ],
     },
   ],
@@ -143,7 +143,7 @@ export const ACIK_RIZA = {
     {
       baslik: 'Sizinle iletişim',
       paragraflar: [
-        'Oluşturduğum taleplerle ilgili olarak PAKSAN’ın veya yönlendirdiği yetkili servisin telefon, SMS ve uygulama bildirimi yoluyla benimle iletişime geçmesine rıza veriyorum.',
+        `Oluşturduğum taleplerle ilgili olarak ${markaEk('in')} veya yönlendirdiği yetkili servisin telefon, SMS ve uygulama bildirimi yoluyla benimle iletişime geçmesine rıza veriyorum.`,
         'Bu kapsamdaki bildirimler yalnızca hizmete ilişkindir: talebimin alındığı, servis randevusu, makinemle ilgili güvenlik uyarısı gibi. Kampanya ve duyuru bildirimleri buna dâhil değildir; onlar için ayrıca izin verilmesi gerekir.',
       ],
     },

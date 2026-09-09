@@ -263,6 +263,65 @@ if (!derinler.length) {
   for (const x of derinler) bildir(`marka klasörüne derin import: ${x}`)
 }
 
+/* ------------------------------------------------ 6. Marka adı sızıntısı
+
+   Sınırı çizmek yetmiyor: Firma adı kodun içine düz yazıyla
+   serpilmişse yeni firma onu tek tek aramak zorunda kalır ve biri
+   mutlaka gözden kaçar.
+
+   BÜYÜK HARF İLE KÜÇÜK HARF AYRI ŞEYLER
+
+   Bu kontrol yalnızca GÖRÜNEN yazıyı arıyor: `PAKSAN`. Küçük harfli
+   `paksan` bir iç anahtar — talebin kimde olduğunu tutan `sahip`
+   alanının değeri, `paksan.` depolama öneki, `paksan-ekler` veri
+   tabanı adı. Bunlar kullanıcıya hiç görünmüyor ve değiştirilirse
+   kurulu cihazlardaki kayıtlar okunamaz hâle gelir. O yüzden
+   dokunulmuyorlar; yeni firmada da anlamsız değil, "üretici tarafı"
+   demek.
+
+   YORUMLAR MUAF
+
+   Yorumlarda firmanın iş kuralını anlatan gerekçeler var ("bayi
+   PAKSAN'dan satın aldığı kadar stok tutar"). Onları silmek bilgi
+   kaybı olur; yeni firma okuyup kendi karşılığını görebilir.
+
+   Adın kendisi kimlik dosyasından okunuyor — kontrol, firmaya değil,
+   kuralın kendisine bağlı. */
+
+baslik('6. Marka adı sızıntısı')
+
+const { SIRKET: SRK } = await import('../src/marka/kimlik.js')
+const AD = SRK.kisaAd
+
+const sizintilar = []
+for (const d of dosyalar(join(KOK, 'src'), ['.js', '.jsx'])) {
+  if (d.includes(`${SEP}marka${SEP}`)) continue /* markanın kendi klasörü */
+  const satirlar = readFileSync(d, 'utf8').split(/\r?\n/)
+  let blokta = false
+  satirlar.forEach((s, i) => {
+    const ac = s.indexOf('/*')
+    const kap = s.indexOf('*/')
+    const oncekiBlokta = blokta
+    if (!blokta && ac >= 0 && kap < ac) blokta = true
+    else if (blokta && kap >= 0) blokta = false
+    if (oncekiBlokta) return
+    const kod = s
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/\/\*.*$/, '')
+      .replace(/^\s*\*.*$/, '')
+      .replace(/\/\/.*$/, '')
+    if (kod.includes(AD)) {
+      sizintilar.push(`${d.split(/[\\/]/).pop()}:${i + 1} ${kod.trim()}`)
+    }
+  })
+}
+
+if (!sizintilar.length) {
+  tamam(`"${AD}" motor kodunda geçmiyor (yorumlar hariç)`)
+} else {
+  for (const x of sizintilar) bildir(`marka adı kodda: ${x}`)
+}
+
 /* ------------------------------------------------------------- Sonuç */
 
 console.log('')
@@ -270,4 +329,4 @@ if (sorun) {
   console.log(`SONUÇ: ${sorun} sorun bulundu.`)
   process.exit(1)
 }
-console.log('SONUÇ: beş kontrol de temiz.')
+console.log('SONUÇ: altı kontrol de temiz.')

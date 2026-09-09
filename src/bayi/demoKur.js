@@ -24,7 +24,7 @@
 
 import { load, save } from '../lib/storage'
 import { ANAHTAR, bayiHesabiYaz, bayileriYaz } from '../backoffice/veri'
-import { bayileriGetir, talebinBayileri } from '../marka'
+import { bayileriGetir, talebinBayileri, MARKA } from '../marka'
 import { demoVarMi, demoYukle } from '../backoffice/demo'
 import { PARCA_FIYAT } from '../marka'
 import { PRODUCTS } from '../marka'
@@ -63,7 +63,7 @@ export async function demoKur() {
 
 function talepleriDagit() {
   const demoBayi = bayileriGetir().find((b) => b.id === DEMO_BAYI)
-  const bayiAdi = demoBayi?.ad || 'PAKSAN Bayisi'
+  const bayiAdi = demoBayi?.ad || `${MARKA} Bayisi`
 
   let liste = load(ANAHTAR.demoTalepler, []).map((t) => {
     if (t.bayi) return t

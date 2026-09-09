@@ -31,7 +31,7 @@ import {
   IconUndo,
 } from '../components/Icons'
 import { altBilgi } from '../data/duyuruTurleri'
-import { Logo } from '../marka'
+import { Logo, MARKA, SIRKET } from '../marka'
 /* Çizimler Higgsfield ile üretildi, uygulamanın kendi görsel diline
    (kalın lacivert kontur, düz dolgu, sınırlı palet) referans verilerek.
    Küçültme ve sıkıştırma: tools/gorsel-hazirla.mjs */
@@ -162,9 +162,9 @@ function Giris({ onGiris }) {
           <div className="not not--mavi" style={{ marginTop: 0 }}>
             <IconShield size={19} />
             <div>
-              <strong>PAKSAN sizi arayacak</strong>
+              <strong>{MARKA} sizi arayacak</strong>
               <p>
-                Talebiniz iletildi. PAKSAN yetkilisi size geçici bir şifre
+                Talebiniz iletildi. {MARKA} yetkilisi size geçici bir şifre
                 verecek; o şifreyle girdiğinizde kendi şifrenizi
                 belirleyeceksiniz.
               </p>
@@ -197,7 +197,7 @@ function Giris({ onGiris }) {
         <p className="giris__dip">
           {demo
             ? `Demo sürümü · Kullanıcı adı ${DEMO_HESAP.kullanici} · Şifre ${DEMO_HESAP.sifre}`
-            : 'PAKSAN Makina · Hesabınız yoksa PAKSAN yetkilinize başvurun.'}
+            : `${SIRKET.ad} · Hesabınız yoksa ${MARKA} yetkilinize başvurun.`}
         </p>
       </form>
     </div>
@@ -231,7 +231,7 @@ function IlkSifre({ oturum, onBitti }) {
         <div className="giris__baslik">Şifrenizi Belirleyin</div>
         <div className="giris__cizgi" />
         <p className="kucuk sonuk" style={{ marginTop: 0 }}>
-          Hesabınız PAKSAN tarafından açıldı. Kendi şifrenizi belirleyin;
+          Hesabınız {MARKA} tarafından açıldı. Kendi şifrenizi belirleyin;
           bundan sonra bu şifreyle gireceksiniz.
         </p>
 
@@ -426,8 +426,8 @@ function Uygulama({ oturum, onCikis }) {
 
   const BASLIK = {
     isler: { baslik: 'İşlerim', alt: oturum.ad },
-    urunler: { baslik: 'Ürünler', alt: 'PAKSAN fiyat listesi ve ürün bilgileri' },
-    parca: { baslik: 'Parça', alt: 'Stokunuz ve PAKSAN siparişleri' },
+    urunler: { baslik: 'Ürünler', alt: `${MARKA} fiyat listesi ve ürün bilgileri` },
+    parca: { baslik: 'Parça', alt: `Stokunuz ve ${MARKA} siparişleri` },
   }
 
   return (
@@ -723,7 +723,7 @@ function TalepKarti({ talep, onAc }) {
             <IconCalendar size={14} /> {randevuYazi(talep.plan)}
           </>
         ) : paksanda && talep.devir ? (
-          'PAKSAN destek veriyor'
+          `${MARKA} destek veriyor`
         ) : null
       }
       sag={gecikti ? '48 saati geçti' : gecenSure(talep.createdAt || talep.tarih)}
@@ -880,7 +880,7 @@ function Hesap({ oturum, onCikis }) {
           Çıkış Yap
         </button>
         <p className="kucuk sonuk" style={{ marginTop: 10 }}>
-          Şifrenizi unutursanız PAKSAN yetkilinize başvurun.
+          Şifrenizi unutursanız {MARKA} yetkilinize başvurun.
         </p>
       </Bolum>
     </>

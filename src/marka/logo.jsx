@@ -6,8 +6,8 @@
    `Rozet`, `RozetMini`, `Amblem`) ve aldıkları özellikler değişmez —
    ekranlar onlara göre yazıldı.
 
-   Adlar bilerek marka içermiyor. Önce `PaksanLogo`, `PaksanRozet` diye
-   yazılmıştı; başka bir firmaya geçerken sekiz ekranda bileşen adı
+   Adlar bilerek marka içermiyor. Önceden `PaksanLogo`, `PaksanRozet` diye
+   yazılmıştı; başka bir firmaya geçerken sekiz ekranda bileşen adını
    değiştirmek gerekiyordu.
 
    BUGÜNKÜ LOGONUN ÖZELLİĞİ
@@ -23,7 +23,7 @@
      · marka anı gereken yerlerde → amblem, beyaz daire içinde tam renkli
 
    Başka bir logoda bu bölünme olmayabilir; o zaman `sadeceYazi`
-   seçeneği tam logoyu döndürecek şekilde sadeleştirilir.
+   seçeneği, tam logoyu döndürecek şekilde sadeleştirilir.
    ========================================================================== */
 
 import logo from './varliklar/paksan-logo.png'

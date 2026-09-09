@@ -1,4 +1,4 @@
-import { SIRKET } from '../marka'
+import { SIRKET, MARKA } from '../marka'
 
 /* ==========================================================================
    KVKK metinlerinin İngilizcesi
@@ -116,7 +116,7 @@ export const KVKK_EN = {
         baslik: 'How do you apply?',
         paragraflar: [
           `For the rights above you can write to ${SIRKET.eposta}. Your application is concluded within 30 days at the latest.`,
-          'If you want your account and records deleted completely, it is enough to write to the same address; the work is carried out by PAKSAN.',
+          `If you want your account and records deleted completely, it is enough to write to the same address; the work is carried out by ${MARKA}.`,
         ],
       },
     ],
@@ -143,7 +143,7 @@ export const KVKK_EN = {
       {
         baslik: 'Contacting you',
         paragraflar: [
-          'I consent to PAKSAN, or the authorised service it directs, contacting me by telephone, SMS and app notification about the requests I have created.',
+          `I consent to ${MARKA}, or the authorised service it directs, contacting me by telephone, SMS and app notification about the requests I have created.`,
           'Notifications in this scope relate solely to the service: that my request has been received, a service appointment, a safety warning about my machine and the like. Campaign and announcement notifications are not included; those require separate permission.',
         ],
       },

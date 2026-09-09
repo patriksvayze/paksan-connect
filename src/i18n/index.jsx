@@ -60,13 +60,13 @@ function bul(sozluk, anahtar) {
    Ekran metinlerinde firma adı 40'tan fazla yerde geçiyordu: "PAKSAN
    Duyurusu", "PAKSAN Ara", "en yakın PAKSAN bayisi". Başka bir firmaya
    geçerken iki sözlük dosyasında tek tek aranması gerekiyordu ve
-   İngilizcesinin unutulması işten değildi.
+   İngilizcesinin unutulması işten bile değildi.
 
-   Artık sözlükte yer tutucu duruyor ({marka}, {uygulama}) ve değeri
-   burada kendiliğinden geçiyor. Çağıran taraf hiçbir şey yapmıyor —
+   Artık sözlükte yer tutucu duruyor ({marka}, {uygulama}) ve değer
+   burada kendiliğinden yerine geçiyor. Çağıran taraf hiçbir şey yapmıyor —
    yüzlerce `t()` çağrısına değer eklemek gerekmiyor.
 
-   Çağıranın verdiği değerler sonra uygulanıyor: aynı adı taşıyan bir
+   Çağıranın verdiği değerler daha sonra uygulanıyor: aynı adı taşıyan bir
    değer gönderirse onunki geçerli oluyor.
    ========================================================================== */
 const MARKA_DEGERLER = {

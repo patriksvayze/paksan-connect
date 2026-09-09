@@ -1,19 +1,19 @@
 /* ==========================================================================
    MARKA RENKLERİ — tek kaynak
 
-   Firmanın ham renkleri. Üç ürünün üçü de bunları kendi anlamsal
-   token'larına çeviriyor; ham değer başka hiçbir yerde yazılı değil.
+   Üç üründe de kullanılan firmanın ham renkleri, kendi anlamsal
+   token'larına dönüştürülüyor; ham değer başka hiçbir yerde yazılı değil.
 
    NEDEN AYRI DOSYA
 
-   Aynı lacivert ve turuncu iki ayrı CSS kökünde (`src/styles.css` ve
-   `src/backoffice/backoffice.css`) elle senkron tutuluyordu. Marka
-   rengini değiştirmek iki dosyada arama yapmak demekti; biri unutulursa
-   iki ürün farklı renkte açılıyordu.
+   Aynı lacivert ve turuncu, iki ayrı CSS kökünde (`src/styles.css` ve
+   `src/backoffice/backoffice.css`) elle senkronize tutuluyordu. Marka
+   rengini değiştirmek, iki dosyada arama yapmak demekti; biri unutulursa
+   iki ürün farklı renklerde açılıyordu.
 
    Artık ham renk burada, anlamsal token'lar yerinde. Bu ayrım
-   kasıtlı: `--pk-blue-soft` ya da `--mavi-z` gibi türev tonlar her
-   ürünün kendi zemin ve tema kararına bağlı, marka kararı değil.
+   kasıtlı: `--pk-blue-soft` ya da `--mavi-z` gibi türev tonlar, her
+   ürünün kendi zemin ve tema kararına bağlı; marka kararı değil.
 
    ÖLÇÜM
 
@@ -37,7 +37,7 @@
   --marka-turuncu-acik: #ff8a3d;
   --marka-turuncu-koyu: #b8480a;
 
-  /* Düğme dolgusu — düz turuncunun üstündeki beyaz yazı eşiği
-     geçmiyordu, bu ton onun için koyulaştırıldı. */
+  /* Düğme dolgusu — düz turuncunun üstündeki beyaz yazı, eşiği
+     geçmiyordu; bu ton onun için koyulaştırıldı. */
   --marka-turuncu-dugme: #c7490a;
 }

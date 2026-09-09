@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { PRODUCTS, getProduct } from '../../marka'
+import { PRODUCTS, getProduct, UYGULAMA } from '../../marka'
 import { ILLER, ilceleriGetir } from '../../data/iller'
 import { PARA_BIRIMI, paraYaz } from '../../marka'
 import { makineFiyati } from '../../lib/bayiFiyat'
@@ -208,7 +208,7 @@ export function TeklifYap({ oturum, urun: ilkUrun, talep, onKapat, onKaydedildi 
             bildirimi de gidiyor. */}
         {eslesen && (
           <p className="kucuk" style={{ color: 'var(--yesil)', marginTop: -4 }}>
-            PAKSAN Connect hesabı bulundu; uygulamaya da bildirim gidecek.
+            {UYGULAMA} hesabı bulundu; uygulamaya da bildirim gidecek.
           </p>
         )}
 
@@ -614,8 +614,8 @@ export function TeklifDetay({ teklif, oturum, onKapat, onDegisti }) {
                 <div>
                   <strong>
                     {kayitli
-                      ? 'Müşterinin PAKSAN Connect hesabı var'
-                      : 'Müşterinin PAKSAN Connect hesabı yok'}
+                      ? `Müşterinin ${UYGULAMA} hesabı var`
+                      : `Müşterinin ${UYGULAMA} hesabı yok`}
                   </strong>
                   <p>
                     {kayitli

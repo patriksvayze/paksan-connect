@@ -477,6 +477,25 @@ function sira(p) {
   return [kat, model === -1 ? 99 : model]
 }
 
+/* Ana ekranın vitrini — karşılamada hangi beş modelin göründüğünü belirler.
+
+   Bu liste kodda değil, burada duruyor çünkü seçim firmanın ticari
+   kararı: Hangi modeli öne çıkardığı, sezona ve stoğa göre değişiyor.
+   Sıra da bilerek sabit — önce balya makineleri, sonra yem karma.
+
+   Ürüne bayrak koymak yerine liste tutuluyor: Bayrak, sırayı
+   taşıyamıyor; vitrinde sıra anlamlı.
+
+   Kimliği katalogda bulunmayan satır sessizce atlanıyor; liste boş
+   bırakılırsa ana ekranda vitrin bölümü hiç çıkmıyor. */
+export const VITRIN = [
+  'super-yunus',
+  'orka-870',
+  'ipak-rulo',
+  'orkinos-1270',
+  'diamond-dikey',
+]
+
 /** Ürünleri vitrin sırasına göre dizer (özgün diziyi bozmadan). */
 export function siralanmisUrunler(liste = PRODUCTS) {
   return [...liste].sort((a, b) => {

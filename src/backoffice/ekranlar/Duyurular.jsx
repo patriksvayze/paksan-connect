@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { duyurulariGetir, duyuruSil, duyuruYayinla } from '../veri'
 import { ILLER } from '../../data/iller'
-import { PRODUCTS } from '../../marka'
+import { PRODUCTS, UYGULAMA } from '../../marka'
 import { bayileriGetir } from '../../marka'
 import { useVeri } from '../kanca'
 import { Baslik, Bekleme, Bos, tarihYaz } from './ortak'
@@ -60,7 +60,7 @@ import { altBilgi, altTurler, DUYURU_UST } from '../../data/duyuruTurleri'
    ========================================================================== */
 
 const KIMLER = [
-  { id: 'musteri', ad: 'Müşterilere', alt: 'PAKSAN Connect kullanan çiftçiler' },
+  { id: 'musteri', ad: 'Müşterilere', alt: `${UYGULAMA} kullanan çiftçiler` },
   { id: 'bayi', ad: 'Bayilere', alt: 'Bayi paneli ve bayi uygulaması' },
   { id: 'ikisi', ad: 'İkisine de', alt: 'Hem müşteri hem bayi ekranları' },
 ]

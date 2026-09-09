@@ -1,5 +1,6 @@
 import { PAKET, yaz } from './destek'
 import { kunyeEtiket, kunyeDeger } from '../marka/icerik/teknikEtiketler'
+import { URUN_KILAVUZU } from '../marka/icerik/kilavuzEslesme'
 
 /* ==========================================================================
    Kılavuz içeriği — gerçek kullanım kılavuzlarından
@@ -36,24 +37,8 @@ import { kunyeEtiket, kunyeDeger } from '../marka/icerik/teknikEtiketler'
    sahibine üç iplinin değerlerini göstermek, hiç göstermemekten kötü.
    ========================================================================== */
 
-/* Uygulamadaki ürün → kılavuzun kapsam kaydı.
-
-   Kapsam kaydı bir kılavuzun kapsadığı bütün modelleri toplayan iç
-   kayıt (bkz. src/lib/destek.js). Güvenlik ve prosedür kayıtları bu
-   kayda bağlı olduğu için eşleştirme kapsam üzerinden yapılıyor. */
-const URUN_KILAVUZU = {
-  hammer: 'MCH_HAMMER_SERIES',
-
-  'super-8002': 'MCH_PAKSAN_BALYA_SUPER',
-  'super-8002e': 'MCH_PAKSAN_BALYA_SUPER',
-  'super-8002e-dual2': 'MCH_PAKSAN_BALYA_SUPER',
-  'super-yunus': 'MCH_PAKSAN_BALYA_SUPER',
-  'super-yunus-dual2': 'MCH_PAKSAN_BALYA_SUPER',
-  'super-yunus-3yabali': 'MCH_PAKSAN_BALYA_SUPER',
-
-  'orka-870': 'MCH_ORKA_870',
-  'ipak-rulo': 'MCH_IPAK_ROUND_BALER',
-}
+/* Ürün → kılavuz eşleşmesi marka klasöründe: Her iki taraf da firmaya
+   ait veri (bkz. src/marka/icerik/kilavuzEslesme.js). */
 
 /* Paksan Balya kılavuzu yedi modeli birden kapsıyor: Süper 8002 ailesi
    ve Yunus ailesi. Ürün Yunus'sa varyant listesinde 8002'leri

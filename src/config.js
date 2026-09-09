@@ -2,11 +2,11 @@
    KURULUM AYARLARI
 
    Sunucu adresleri ve açma/kapama anahtarları. Bunlar da yeni firmada
-   doldurulacak ama MARKA DEĞİL, kurulum ayarı: aynı firma için test ve
-   canlı ortamda farklı olabiliyorlar.
+   doldurulacak ama MARKA DEĞİL, kurulum ayarı: Aynı firma için test ve
+   canlı ortamlarda farklı olabiliyorlar.
 
-   Firmanın kimliği — adı, unvanı, iletişimi, logosu, renkleri, banka
-   hesapları — burada değil, `src/marka/` içinde
+   Firmanın kimliği — adı, unvanı, iletişim bilgileri, logosu, renkleri,
+   banka hesapları — burada değil, `src/marka/` içinde
    (bkz. MARKA-DEVIR.md).
    ========================================================================== */
 

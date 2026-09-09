@@ -39,6 +39,7 @@
    ========================================================================== */
 
 import { load, save, uid } from './storage.js'
+import { MARKA, markaEk } from '../marka'
 
 const ANAHTAR = 'bayiSiparis'
 const HAREKET = 'bayiStokHareket'
@@ -56,7 +57,7 @@ export function siparisNo() {
    PAKSAN'ın gördüğü karşılık — bayi "onaylandı" der, personel
    "onayladım" der. */
 export const SIPARIS_DURUM = {
-  yeni: { ad: 'PAKSAN’a iletildi', ton: 'mavi', sira: 0 },
+  yeni: { ad: `${markaEk('a')} iletildi`, ton: 'mavi', sira: 0 },
   onaylandi: { ad: 'Onaylandı', ton: 'mavi', sira: 1 },
   hazirlaniyor: { ad: 'Hazırlanıyor', ton: 'turuncu', sira: 2 },
   gonderildi: { ad: 'Gönderildi', ton: 'yesil', sira: 3 },
@@ -169,7 +170,7 @@ export function siparisDurumu(siparisId, durum, personel, kargo) {
   /* Stok yalnız burada artıyor. Onay ya da hazırlık adımında artmıyor:
      parça henüz bayide değil. */
   if (durum === 'gonderildi') {
-    stokEkle(s.bayiId, s.kalemler, `${s.no} · PAKSAN gönderdi`, personel)
+    stokEkle(s.bayiId, s.kalemler, `${s.no} · ${MARKA} gönderdi`, personel)
   }
 
   return { siparis: guncel }

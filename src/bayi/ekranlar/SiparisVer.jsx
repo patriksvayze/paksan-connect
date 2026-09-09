@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { siparisAc } from '../../lib/bayiSiparis'
 import { islemYaz } from '../../backoffice/veri'
-import { bayileriGetir } from '../../marka'
+import { bayileriGetir, MARKA, markaEk } from '../../marka'
 import { KDV_ORANI, PARA_BIRIMI, PARCA_FIYAT, paraYaz } from '../../marka'
 import { PRODUCTS } from '../../marka'
 import { makineFiyati, parcaBayiFiyati } from '../../lib/bayiFiyat'
@@ -440,7 +440,7 @@ function Onay({
             rows={3}
             value={not}
             onChange={(e) => onNot(e.target.value)}
-            placeholder="PAKSAN’a iletmek istediğiniz bir şey varsa yazın"
+            placeholder={`${markaEk('a')} iletmek istediğiniz bir şey varsa yazın`}
           />
         </label>
       </Bolum>
@@ -450,7 +450,7 @@ function Onay({
         <div>
           <strong>Tutar bağlayıcı değil</strong>
           <p>
-            Buradaki tutar fiyat listesinden hesaplanıyor. Siparişi PAKSAN
+            Buradaki tutar fiyat listesinden hesaplanıyor. Siparişi {MARKA}{' '}
             onaylayacak; kesin tutar faturada belirlenir.
           </p>
         </div>
@@ -478,14 +478,14 @@ function Sonuc({ siparis, hesap, onBitir }) {
   return (
     <div className="siparis-sonuc">
       <IconCheckCircle size={54} />
-      <h2>Siparişiniz PAKSAN’a İletildi</h2>
+      <h2>Siparişiniz {markaEk('a')} İletildi</h2>
       <p className="mono siparis-sonuc__no">{siparis.no}</p>
       <p className="kucuk sonuk">
         {siparis.kalemler.length} kalem · {adet} adet ·{' '}
         {paraYaz(hesap.araToplam)} {PARA_BIRIMI} (KDV hariç)
       </p>
       <p className="kucuk sonuk">
-        Siparişin durumunu Parça bölümünden takip edebilirsiniz. PAKSAN
+        Siparişin durumunu Parça bölümünden takip edebilirsiniz. {MARKA}{' '}
         onayladığında haberdar olacaksınız.
       </p>
       <button className="dg dg--ana dg--blok" onClick={onBitir}>

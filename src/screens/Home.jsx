@@ -6,7 +6,7 @@ import { useKaydirildi } from '../lib/kaydirma'
 import { Rozet } from '../marka'
 import { UrunFoto } from '../components/Gorsel'
 import { MachineCard } from './Machines'
-import { PRODUCTS, urunDilde } from '../marka'
+import { PRODUCTS, VITRIN, urunDilde } from '../marka'
 import { bayileriGetir } from '../marka'
 import { rehberListesi } from '../marka/icerik/rehber'
 import { bildirimListesi, okunmamisSayisi } from '../lib/bildirimler'
@@ -15,8 +15,6 @@ import {
   IconUser, IconCalendar, IconRight, IconBell,
 } from '../components/Icons'
 
-/* Vitrinde önce balya makineleri, sonra yem karma. Sıra bilerek sabit. */
-const VITRIN = ['super-yunus', 'orka-870', 'ipak-rulo', 'orkinos-1270', 'diamond-dikey']
 
 export default function Home() {
   const nav = useNavigate()
@@ -28,7 +26,10 @@ export default function Home() {
   )
   const kaydirildi = useKaydirildi()
   const ilkAd = user?.ad?.split(' ')[0] || ''
-  const vitrin = VITRIN.map((id) => PRODUCTS.find((p) => p.id === id))
+  /* Katalogda karşılığı olmayan kimlik atlanıyor: Vitrin listesi
+     firmanın elle doldurduğu yer; yanlış yazılan bir model, ana ekranı
+     çökertmemeli. */
+  const vitrin = VITRIN.map((id) => PRODUCTS.find((p) => p.id === id)).filter(Boolean)
     .filter(Boolean)
     .map((p) => urunDilde(p, dil))
   const acikTalep = requests.length

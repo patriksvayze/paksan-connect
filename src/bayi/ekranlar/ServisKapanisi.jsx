@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { parcalariGetir, PARCA_DIGER } from '../../data/talepAlanlari'
-import { supportGroup } from '../../marka'
+import { supportGroup, MARKA, markaEk } from '../../marka'
 import { extractYear, matchProduct, warrantyStatus, GARANTI_YIL } from '../../lib/serial'
 import { parcaAdedi } from '../../lib/bayiStok'
 import { siparisAc } from '../../lib/bayiSiparis'
@@ -212,7 +212,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
         dip={
           biten ? (
             <button className="dg dg--ana dg--blok" onClick={siparisVer}>
-              PAKSAN'a Sipariş Ver
+              {markaEk('a')} Sipariş Ver
             </button>
           ) : adim === 'ozet' ? (
             <button className="dg dg--ana dg--blok" onClick={bitir}>
@@ -257,7 +257,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
                     {
                       deger: 'garanti',
                       ad: ODEME.garanti,
-                      alt: 'PAKSAN’dan bedelsiz parça isteyeceksiniz.',
+                      alt: `${markaEk('dan')} bedelsiz parça isteyeceksiniz.`,
                     },
                   ]}
                   secili={odeme}
@@ -293,7 +293,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
                     <div>
                       <strong>Bu makinenin garantisi görünmüyor.</strong>
                       <p>
-                        Talep yine de açılabilir ama PAKSAN
+                        Talep yine de açılabilir ama {MARKA}{' '}
                         reddedebilir. Seri numarasını kontrol edin.
                       </p>
                     </div>
@@ -318,9 +318,9 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
                 <div className="not not--mavi">
                   <IconShield size={19} />
                   <div>
-                    <strong>Eski parçayı PAKSAN'a geri gönderin.</strong>
+                    <strong>Eski parçayı {markaEk('a')} geri gönderin.</strong>
                     <p>
-                      PAKSAN parçayı inceleyecek. Geri gönderilmezse talep
+                      {MARKA} parçayı inceleyecek. Geri gönderilmezse talep
                       açık kalır.
                     </p>
                   </div>
@@ -541,7 +541,7 @@ function BitenStok({ biten, onVazgec }) {
 
       <Bolum ad="Sipariş">
         <p className="ipucu">
-          Aynı parçadan PAKSAN'a sipariş verelim mi? Aşağıdaki düğme
+          Aynı parçadan {markaEk('a')} sipariş verelim mi? Aşağıdaki düğme
           siparişi hemen açar.
         </p>
         <button className="dg dg--blok" onClick={onVazgec}>

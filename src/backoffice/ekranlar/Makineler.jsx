@@ -6,7 +6,7 @@ import {
 } from './ortak'
 import { DisaAktar } from './aktar'
 import { araliktaMi, BOS_ARALIK, Secim, SuzgecCubugu, TarihAraligi } from './suzgec'
-import { getProduct } from '../../marka'
+import { getProduct, MARKA } from '../../marka'
 import { extractYear, formatSerial, warrantyStatus, GARANTI_YIL } from '../../lib/serial'
 
 /* ==========================================================================
@@ -395,7 +395,7 @@ function MakineGecmisi({ kayit, talepler, onKapat }) {
                         </span>
                       </td>
                       <td className="kucuk">
-                        {t.bayi?.ad || 'PAKSAN'}
+                        {t.bayi?.ad || MARKA}
                         {t.cozum?.ozet && (
                           <div className="kucuk sonuk">{t.cozum.ozet}</div>
                         )}

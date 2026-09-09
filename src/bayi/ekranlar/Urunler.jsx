@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { CATEGORIES, PRODUCTS, supportGroup } from '../../marka'
+import { CATEGORIES, PRODUCTS, supportGroup, MARKA } from '../../marka'
 import { TEKNIK } from '../../marka/icerik/teknikOzellikler'
 import { DESTEK, GUVENLIK, ZORLUK } from '../../marka/icerik/destekVerisi'
 import { KDV_ORANI, PARA_BIRIMI, paraYaz } from '../../marka'
@@ -225,7 +225,7 @@ export function UrunDetay({ urun, oturum, onKapat, onTeklif }) {
           </>
         ) : (
           <p className="kucuk sonuk" style={{ margin: 0 }}>
-            Bu ürünün fiyatı listede yok. PAKSAN satış birimine danışın.
+            Bu ürünün fiyatı listede yok. {MARKA} satış birimine danışın.
           </p>
         )}
       </div>
