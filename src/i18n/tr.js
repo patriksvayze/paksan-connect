@@ -266,6 +266,8 @@ export const tr = {
     incelemede: 'Ekibimiz inceliyor',
     planlandi: 'Randevu verildi',
     teklif: 'Teklifiniz hazırlandı',
+    onayBekliyor: 'Servis kaydınız inceleniyor',
+    parcaBekliyor: 'Makineniz için parça bekleniyor',
     kapandi: 'Tamamlandı',
     iptal: 'İptal edildi',
   },

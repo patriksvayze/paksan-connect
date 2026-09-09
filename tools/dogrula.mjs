@@ -119,6 +119,36 @@ if (!karsiligiYok.length) {
   for (const [k, d] of karsiligiYok) bildir(`sözlükte yok: ${k}  (${d})`)
 }
 
+/* BİRLEŞTİRİLEN ANAHTARLAR — yukarıdaki tarama bunları GÖREMİYOR.
+
+   `t('talepDurum.' + durum)` gibi çağrılar çalışırken birleşiyor;
+   düzenli ifade sabit anahtar arıyor ve bunları atlıyor. Sonucu
+   ekranda görüldü: `DURUMLAR` listesine iki yeni durum eklendi,
+   sözlüklere eklenmedi, müşteri uygulaması talebin durumu olarak
+   ham anahtarı yazdı — "talepDurum.parcaBekliyor".
+
+   Bu yüzden birleştirilen anahtarların KAYNAK LİSTESİ ile sözlük
+   burada karşılaştırılıyor. Yeni bir durum eklendiğinde sözlük
+   unutulursa derleme değil, bu kontrol yakalar. */
+const talepDurumlari = [
+  ...readFileSync(join(KOK, 'src/backoffice/veri.js'), 'utf8')
+    .matchAll(/\{\s*id:\s*'([a-zA-Z]+)',\s*ad:\s*'[^']*',\s*ton:/g),
+].map((e) => e[1])
+
+const durumEksik = []
+for (const d of talepDurumlari) {
+  if (!aTr.has('talepDurum.' + d)) durumEksik.push(`tr.js → talepDurum.${d}`)
+  if (!aEn.has('talepDurum.' + d)) durumEksik.push(`en.js → talepDurum.${d}`)
+}
+
+if (!talepDurumlari.length) {
+  bildir('DURUMLAR listesi okunamadı — desen değişmiş olabilir')
+} else if (durumEksik.length) {
+  for (const x of durumEksik) bildir(`durum karşılığı yok: ${x}`)
+} else {
+  tamam(`${talepDurumlari.length} talep durumunun ikisi de sözlükte var`)
+}
+
 /* ------------------------------------------------- 3. CSS token'ları */
 
 /** :root bloklarındaki --token: değer çiftlerini toplar. */

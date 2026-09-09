@@ -268,6 +268,8 @@ export const en = {
     incelemede: 'Our team is reviewing it',
     planlandi: 'Appointment scheduled',
     teklif: 'Your quote is ready',
+    onayBekliyor: 'The service report is being reviewed',
+    parcaBekliyor: 'A part is on its way for your machine',
     kapandi: 'Completed',
     iptal: 'Cancelled',
   },

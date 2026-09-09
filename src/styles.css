@@ -146,8 +146,13 @@
      Bu iki renkle kontrast 12'nin üstünde. */
   --nav-zemin: var(--pk-navy);
   --nav-kenar: transparent;
-  --nav-secili: #d3e2ff;
-  --nav-secili-ikon: #10254a;
+  /* Seçili sekmenin hapı. Soluk maviydi (#d3e2ff): lacivert menüde
+     kendini duyuruyordu ama güneşte boş simgelerden ayrılmıyordu ve
+     her uygulamanın hazır çıkan hâliydi. Markanın düğme turuncusu
+     oldu — üstündeki beyaz yazı bu tonda ÖLÇÜLDÜ (bkz. renkler.css:
+     düz turuncuda beyaz eşiği geçmiyordu, bu ton onun için var). */
+  --nav-secili: var(--pk-orange-btn);
+  --nav-secili-yazi: #ffffff;
   /* Destek ekranındaki sabit yazı kutusunun yüksekliği (52px kutu +
      2×8px iç boşluk). Sohbetin alt payı buna göre hesaplanıyor. */
   --composer-h: 68px;
@@ -2345,170 +2350,154 @@ p {
   z-index: 40;
 }
 
-/* Her sekme menünün beşte biri. Menü sekme değişince oynamıyor,
-   çünkü genişlikler sabit. */
+/* Sekme.
+
+   SEÇİLİ OLAN YAZISINI TAŞIYOR, ÖTEKİLER TAŞIMIYOR.
+
+   Önce beş sekmenin beşi de yazılıydı ve menü sürekli yer sıkıntısı
+   çekiyordu. Bu dosyanın kendi geçmişi onu anlatıyor: punto 12'den
+   11'e, 320 pikselde 10,5'e indirildi ve yanındaki yorumda
+   "kullanıcıların çoğu yaşlı" yazıyor. Doğru tespit, yanlış çözüm —
+   yer açmak için ana navigasyonun yazısı küçültülüyordu.
+
+   Ölçüldü (375 piksel, Türkçe): sekmeye 65 piksel düşüyor,
+   "Makinelerim" 11 puntoda 61 piksel istiyor. Dört piksel pay.
+   İngilizcede "My Machines" aynı yerde. Yani menü her dilde
+   kesilmenin bir adım uzağındaydı.
+
+   Yazı yalnız SEÇİLİ sekmede duruyor artık; ötekiler simge. Kazanç
+   üç yerde:
+
+     · Yer sıkıntısı ortadan kalkıyor. Beş yazı yerine bir yazı var,
+       o da 13,5 puntoda rahat oturuyor — küçültmek değil BÜYÜTMEK
+       mümkün oldu.
+     · Nerede olduğun güneşte de belli. Soluk mavi kapsül yerine
+       markanın turuncusuyla dolu bir hap; boş simgelerin yanında
+       tereddüt bırakmıyor.
+     · Menü kendi kararı gibi duruyor. Beş küçük yazı + soluk kapsül,
+       her uygulamanın hazır çıkan hâliydi.
+
+   Yazı DOM'dan silinmiyor, yalnız genişliği kapanıyor: bağlantının
+   erişilebilir adı yazıdan geliyor, ekran okuyucu beşini de okumaya
+   devam ediyor. */
+/* ESNEME YÖNÜ: SEÇİLİ SABİT, ÖTEKİLER PAYLAŞIR.
+
+   Önce hepsi `0 0 auto` idi ve seçili hap kırpıldı: dört simge 52,
+   seçili 118, toplam 326 — kutuda 327 yer vardı. Bir piksellik payda
+   yazı `overflow: hidden`e takılıyordu ("Ana Sa|").
+
+   Doğrusu ters: seçili sekme yazısının istediği kadar yer alır ve
+   ASLA daralmaz; simgeler kalanı paylaşır ve önce onlar daralır.
+   44 piksel dokunma tabanı (bkz. PRODUCT.md) alt sınır olarak duruyor:
+   en uzun etiket seçiliyken bile 4x44 + hap sığıyor. */
 .tabbar__item {
-  flex: 1 1 0;
-  min-width: 0;
-  height: 60px;
+  flex: 1 1 44px;
+  min-width: 44px;
+  height: 52px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 0 2px;
-  color: rgba(255, 255, 255, 0.58);
-  font-size: 11.5px;
+  gap: 0;
+  padding: 0;
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 13.5px;
   font-weight: 700;
   letter-spacing: -0.01em;
   white-space: nowrap;
-  transition: color 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease, flex-grow 0.24s ease;
 }
 
-/* SEÇİLİ RENGİ YAZIYI DEĞİL SİMGEYİ SARIYOR.
-
-   Önce mavi hap sekmenin tamamıydı: simge ve yazı birlikte içine
-   alınıyordu. Sekmenin genişliği sabit (menünün beşte biri) ama yazının
-   genişliği değişken — dile, kelimeye ve punto ayarına göre. İkisi
-   birbirine yaklaşınca hap yazıyı sıfır payla sarıyordu.
-
-   Ölçüldü: 279 piksellik ekranda sekme 43, "Ana Sayfa" yazısı 41
-   piksel. Yazının iki yanında BİRER piksel kalıyordu; hap yazıyı
-   kucaklamış gibi duruyor, ucuz görünüyordu.
-
-   Kapsül artık yalnız simgenin arkasında. Genişliği yazıdan bağımsız,
-   her sekmede ve her dilde aynı. Yazı kapsülün dışında, altında; ne
-   kadar uzarsa uzasın kapsüle dokunmuyor. Sorun ayarla değil düzenle
-   çözüldü — bir daha çıkmaz. */
+/* Simge kutusu sabit: seçili sekme büyürken simgeler yerinden
+   oynamıyor, göz menüyü hep aynı ritimde okuyor. */
 .tabbar__ikon {
   position: relative;
   display: grid;
   place-items: center;
-  width: 100%;
-  max-width: 46px;
-  /* Makine simgesi geniş bir çizim olduğu için ötekilerden büyük
-     çiziliyor (bkz. Chrome.jsx → ikonBoyut). Kapsül de onun kutusunu
-     alacak kadar yüksek; yoksa simge kapsülü taşıyordu. */
+  flex: none;
+  width: 40px;
   height: 36px;
-  transition: color 0.2s ease, transform 0.18s ease;
-}
-
-/* SEÇİLİ KAPSÜL AÇIK RENK, SİMGESİ KOYU.
-
-   Önce kapsül koyu maviydi (--pk-blue) ve lacivert menünün üstünde
-   duruyordu. ÖLÇÜLDÜ: aradaki kontrast aydınlık temada 2,09, karanlık
-   temada 1,83. İki koyu mavi üst üste — seçili sekmenin nerede olduğu
-   görünmüyordu. Sorun renk seçimi değil, yönüydü: koyu zeminde
-   gösterge zeminden AÇIK olmalı.
-
-   Kapsül açık maviye, simgesi lacivere döndü; kontrast 12'nin üstüne
-   çıktı. Yazı kapsülün dışında olduğu için beyaz kalıyor.
-
-   Kapsül ayrı bir katman (::before) çünkü ortadan açılarak beliriyor;
-   simgenin kendisi ölçek değiştirmemeli. */
-.tabbar__ikon::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 999px;
-  background: var(--nav-secili);
-  transform: scaleX(0.55);
-  opacity: 0;
-  transition: transform 0.24s cubic-bezier(0.2, 0.7, 0.3, 1),
-    opacity 0.16s ease;
-}
-
-.tabbar__item--on .tabbar__ikon::before {
-  transform: scaleX(1);
-  opacity: 1;
-}
-
-/* Hareketi azaltma isteyen kullanıcıda kapsül açılmadan belirir.
-   Uygulamanın geri kalanında da aynı kural geçerli. */
-@media (prefers-reduced-motion: reduce) {
-  .tabbar__ikon::before {
-    transform: scaleX(1);
-    transition: opacity 0.12s ease;
-  }
+  transition: transform 0.18s ease;
 }
 
 .tabbar__item--on {
-  color: #fff;
+  flex: 0 0 auto;
+  padding: 0 16px 0 10px;
+  background: var(--nav-secili);
+  color: var(--nav-secili-yazi);
 }
 
 .tabbar__item--on .tabbar__ikon {
-  color: var(--nav-secili-ikon);
+  color: inherit;
 }
 
-/* Dokunulduğunda kapsül hafifçe içeri basılıyor — dokunmanın işlediği
-   belli olsun. */
 .tabbar__item:active .tabbar__ikon {
-  transform: scale(0.92);
+  transform: scale(0.9);
 }
 
 .tabbar__item svg {
-  flex: none;
-  /* Kapsülün üstünde kalsın. */
-  position: relative;
-  z-index: 1;
+  display: block;
 }
 
+/* Kapatılan yazı: genişliği sıfıra iniyor ama DOM'da ve erişilebilirlik
+   ağacında duruyor. `display: none` olsaydı bağlantının adı da giderdi. */
 .tabbar__label {
+  max-width: 0;
+  opacity: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
+  transition: max-width 0.24s cubic-bezier(0.2, 0.7, 0.3, 1), opacity 0.16s ease,
+    margin-left 0.24s ease;
+  margin-left: 0;
 }
 
-/* Beş sekmeye çıkınca her sekmeye düşen yer beşte bire indi. Yazıyı
-   kısaltıp üç nokta koymak yerine punto düşürülüyor; en dar cihazlarda
-   yanlardaki boşluk da daraltılıyor. Simgeler yine tam ortada,
-   aralıkları her dilde birebir aynı.
+.tabbar__item--on .tabbar__label {
+  max-width: 160px;
+  opacity: 1;
+  margin-left: 7px;
+}
 
-   PUNTO GEREĞİNDEN FAZLA DÜŞÜRÜLMÜŞTÜ: 10 ve 9,5 punto. Bunlar ana
-   navigasyonun etiketleri ve uygulamayı kullananların çoğu yaşlı.
-   Ölçtüm — 375 pikselde en uzun etiket ("Ana Sayfa", "Machines")
-   12 puntoda 53 piksel yer istiyor, sekmede 61 piksel var. 320
-   pikselde 12 punto taşıyor, 11 punto tam oturuyor.
-
-   Onun için iki eşik de bir üst kademeye çekildi; iki dilde de
-   hiçbir etiket kesilmiyor. */
-@media (max-width: 420px) {
-  .tabbar__item {
-    /* "Makinelerim" ve "My Machines" en uzun etiketler. Ölçüldü: 375
-       piksellik ekranda sekmeye 65 piksel düşüyor, ikisi de 11 puntoda
-       60-65 piksel yer istiyor — sığıyorlar. 12 puntoda taşıyorlardı.
-
-       Yanlardaki pay da kaldırıldı; sekmenin bütün genişliği yazıya
-       kalsın. Simgeler zaten kendi kapsüllerinde ortalı. */
-    font-size: 11px;
-    padding: 0;
+@media (prefers-reduced-motion: reduce) {
+  .tabbar__item,
+  .tabbar__label,
+  .tabbar__ikon {
+    transition: none;
   }
 }
 
-/* EN DAR CİHAZLARDA YAZI KESİLİYORDU.
+/* Dar ekranda menünün kendi payı daralıyor; punto DÜŞMÜYOR.
+   Tek yazı olduğu için buna gerek kalmadı. */
+/* EN DAR CİHAZDA MENÜ TAŞIYORDU.
 
-   Ölçüldü: 320 piksellik ekranda sekmeye 54 piksel düşüyor,
-   "Makinelerim" 10,5 puntoda 58 piksel istiyor — üç nokta ile
-   kesiliyordu.
+   Ölçüldü (320 piksel): dört simge 44 piksellik dokunma tabanında,
+   seçili hap 138 — toplam 314, menünün içinde 294 yer var. Öğenin
+   sağ kenarı ekranın 8 piksel dışına çıkıyor ve sayfa yatay
+   kayıyordu.
 
-   Punto daha da düşürülmedi; kullanıcıların çoğu yaşlı. Bunun yerine
-   menünün kendi kenar payı ve iç boşluğu daraltıldı: sekme 59 piksele
-   çıkıyor, yazı tam oturuyor. Kapsül de biraz küçülüp simgenin iki
-   yanında nefes payı bırakıyor. */
-@media (max-width: 340px) {
+   Dokunma tabanı düşürülmedi (eldivenli kullanım, bkz. PRODUCT.md).
+   Bunun yerine menü bu genişlikte kenardan boşluk BIRAKMIYOR ve
+   hapın iç payı daralıyor: 312 piksel iç genişlikte 4x44 + 136
+   sığıyor, en uzun etiket ("Makinelerim", 74 piksel) kesilmiyor. */
+@media (max-width: 360px) {
   .tabbar {
-    width: calc(100% - 16px);
+    width: 100%;
     padding: 7px 4px;
+    border-radius: 999px;
   }
 
   .tabbar__item {
-    font-size: 10.5px;
+    min-width: 44px;
   }
 
   .tabbar__ikon {
-    max-width: 42px;
+    width: 36px;
+  }
+
+  .tabbar__item--on {
+    padding: 0 10px 0 6px;
   }
 }
+
 
 /* ---------------------------------------------------------------- Sohbet */
 

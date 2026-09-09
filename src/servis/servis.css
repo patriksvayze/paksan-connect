@@ -2263,7 +2263,8 @@
   --mavi-soft-2: rgba(24, 72, 168, 0.14);
   --nav-zemin: var(--lacivert);
   --nav-kenar: rgba(255, 255, 255, 0.06);
-  --nav-secili: #d9e4fb;
+  --nav-secili: var(--marka-turuncu-dugme);
+  --nav-secili-yazi: #ffffff;
   --nav-h: 74px;
   --nav-gap: 14px;
   --tabs: calc(var(--nav-h) + var(--nav-gap) * 2);
@@ -2396,9 +2397,15 @@
 
 /* --------------------------------------------------------- Yüzen menü
 
-   Connect'in .tabbar tarifi. Menü ekranın kenarından ayrılmış lacivert
-   bir hap; seçili sekmenin simgesinin arkasında açık mavi kapsül,
-   yazı kapsülün dışında (yazı uzayınca kapsüle dokunmasın). */
+   Connect'in menüsüyle AYNI tarif: seçili sekme yazısını taşıyan turuncu
+   hap, ötekiler yalnız simge. Gerekçesi src/styles.css içinde uzun uzun
+   yazılı — özeti: beş (burada üç) küçük etiket sürekli yer sıkıntısı
+   yaratıyor ve çözüm olarak punto düşürülüyordu; yazıyı yalnız seçilide
+   tutunca sıkıntı kalmadı, punto düşmek yerine büyüdü.
+
+   Servis tarafında üç sekme var, yani yer daha da bol; buna rağmen aynı
+   düzen kullanılıyor: iki uygulama aynı firmanın ürünü ve alt menü
+   ikisinde de aynı davranmalı. */
 
 .uyg__tabs {
   position: fixed;
@@ -2410,7 +2417,6 @@
   max-width: 460px;
   height: var(--nav-h);
   padding: 7px 8px;
-  padding-bottom: 7px;
   border: 1px solid var(--nav-kenar);
   border-top: 1px solid var(--nav-kenar);
   border-radius: 999px;
@@ -2420,52 +2426,66 @@
 }
 
 .uyg__tab {
-  flex: 1 1 0;
+  flex: 1 1 44px;
+  min-width: 44px;
+  /* `min-height: var(--tabs)` yukarıdaki temel kuralda duruyor ve
+     --tabs artık çubuğun TOPLAM yüksekliği (74 + iki pay = 102).
+     Bastırılmazsa hap çubuğun dışına taşıyor. */
   min-height: 0;
-  height: 60px;
-  gap: 4px;
-  padding: 0 2px;
-  color: rgba(255, 255, 255, 0.58);
-  font-size: 11.5px;
+  height: 52px;
+  flex-direction: row;
+  gap: 0;
+  padding: 0;
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 13.5px;
   font-weight: 700;
   letter-spacing: -0.01em;
-  transition: color 0.2s ease;
-}
-
-.uyg__tab--on {
-  color: #fff;
+  white-space: nowrap;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .uyg__tab-ikon {
-  width: 100%;
-  max-width: 46px;
+  flex: none;
+  width: 40px;
   height: 36px;
-  color: inherit;
+  transition: transform 0.18s ease;
 }
 
-.uyg__tab-ikon::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 999px;
+.uyg__tab--on {
+  flex: 0 0 auto;
+  padding: 0 16px 0 10px;
   background: var(--nav-secili);
-  transform: scaleX(0.55);
-  opacity: 0;
-  transition: transform 0.24s cubic-bezier(0.2, 0.7, 0.3, 1), opacity 0.16s ease;
-}
-
-.uyg__tab--on .uyg__tab-ikon::before {
-  transform: scaleX(1);
-  opacity: 1;
+  color: var(--nav-secili-yazi);
 }
 
 .uyg__tab--on .uyg__tab-ikon {
-  color: var(--lacivert);
+  color: inherit;
 }
 
-.uyg__tab-ikon > svg,
-.uyg__rozet {
-  position: relative;
+.uyg__tab--on .uyg__tab-ikon::before {
+  content: none;
+}
+
+.uyg__tab:active .uyg__tab-ikon {
+  transform: scale(0.9);
+}
+
+/* Yazı DOM'da kalıyor, yalnız genişliği kapanıyor: düğmenin
+   erişilebilir adı ondan geliyor. */
+.uyg__tab-ad {
+  max-width: 0;
+  opacity: 0;
+  margin-left: 0;
+  overflow: hidden;
+  transition: max-width 0.24s cubic-bezier(0.2, 0.7, 0.3, 1), opacity 0.16s ease,
+    margin-left 0.24s ease;
+}
+
+.uyg__tab--on .uyg__tab-ad {
+  max-width: 160px;
+  opacity: 1;
+  margin-left: 7px;
 }
 
 .uyg__rozet {
@@ -2474,9 +2494,37 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .uyg__tab-ikon::before,
-  .uyg__tab {
+  .uyg__tab,
+  .uyg__tab-ad,
+  .uyg__tab-ikon {
     transition: none;
+  }
+}
+
+/* EN DAR CİHAZDA MENÜ TAŞIYORDU.
+
+   Ölçüldü (320 piksel): dört simge 44 piksellik dokunma tabanında,
+   seçili hap 138 — toplam 314, menünün içinde 294 yer var. Öğenin
+   sağ kenarı ekranın 8 piksel dışına çıkıyor ve sayfa yatay
+   kayıyordu.
+
+   Dokunma tabanı düşürülmedi (eldivenli kullanım, bkz. PRODUCT.md).
+   Bunun yerine menü bu genişlikte kenardan boşluk BIRAKMIYOR ve
+   hapın iç payı daralıyor: 312 piksel iç genişlikte 4x44 + 136
+   sığıyor, en uzun etiket ("Makinelerim", 74 piksel) kesilmiyor. */
+@media (max-width: 360px) {
+  .uyg__tabs {
+    width: 100%;
+    padding: 7px 4px;
+    border-radius: 999px;
+  }
+
+  .uyg__tab-ikon {
+    width: 36px;
+  }
+
+  .uyg__tab--on {
+    padding: 0 10px 0 6px;
   }
 }
 
