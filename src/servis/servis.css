@@ -132,10 +132,32 @@
   padding-bottom: calc(var(--bosluk-5) + var(--dip));
 }
 
-/* Dip çubuğu içeriğin üstüne biniyor; son bölüm onun altında
-   kalmasın diye çubuk yüksekliği kadar boşluk bırakılıyor. */
+/* DİP ÇUBUĞU ARTIK İÇERİĞİN ÜSTÜNE BİNMİYOR.
+
+   Önce çubuk `sticky` duruyordu ve gövdeye onun kadar alt boşluk
+   bırakılıyordu: `--dokunma` kadar, yani tek bir düğme boyu. Servis
+   kaydı ekranı çubuğa hak ediş tutarını da koyunca çubuk büyüdü ve
+   sabit sayı yetmez oldu — son seçenek düğmenin altında kalıyordu.
+
+   Sayı büyütmek yerine düzen düzeltildi: sayfa ekran boyu bir sütun,
+   gövde kendi içinde kayıyor, çubuk sütunun son elemanı. Çubuğun
+   yüksekliği ne olursa olsun içerik onun altında kalmıyor ve
+   ayarlanacak bir sayı kalmıyor. */
+.uyg--dipli {
+  height: 100dvh;
+  min-height: 0;
+}
+
 .uyg--dipli .uyg__ic {
-  padding-bottom: calc(var(--bosluk-5) + var(--dokunma) + var(--bosluk-4) + var(--dip));
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: var(--bosluk-5);
+  /* iOS'ta parmak bırakılınca kaydırma sürsün. */
+  -webkit-overflow-scrolling: touch;
+}
+
+.uyg--dipli .uyg__dip {
+  position: static;
 }
 
 /* Dibe yapışık asıl işlem — alt sayfalarda sekme çubuğu yok, onun
@@ -2193,4 +2215,354 @@
     max-width: 720px;
     margin: 0 auto;
   }
+}
+
+/* ==========================================================================
+   GÖRÜNÜM KATMANI — servise özel yüzey ve ölçek
+
+   NEDEN VAR
+
+   Bu uygulama backoffice.css'in token'larını paylaşıyor ve paylaşmaya
+   devam ediyor: marka rengi tek yerde durmalı. Ama backoffice'in
+   YÜZEY ve ÖLÇEK değerleri bilgisayar başındaki personele göre —
+   sık satır, dar boşluk, küçük etiket. Telefonda, tarlada, eldivenle
+   açılan bir uygulamaya olduğu gibi taşınınca ekran "telefona
+   sıkıştırılmış yönetim paneli" gibi duruyordu.
+
+   Aşağıdaki blok bir CSS KÖKÜ DEĞİL, .uyg altında: renk kaynağı hâlâ
+   tek. npm run dogrula üçüncü bir kök açılmadığını denetliyor.
+
+   KARARLAR VE GEREKÇELERİ
+
+   Referans olarak saha servisi uygulamalarına bakıldı (Jobber'ın mobil
+   iş ve iş listesi ekranları). Üçünde de aynı üç şey var ve üçü de
+   burada eksikti:
+
+     1. AÇIK ÇUBUK, KOYU YAZI. Başlık çubuğu lacivert bir blok değil;
+        marka rengi yalnız asıl düğmede ve seçili sekmede duruyor.
+        Lacivert blok 812 piksellik ekranın 68 pikselini alıyor ve
+        altındaki her şeyi gri bir kutuya itiyordu.
+     2. BAŞLIK GERÇEKTEN BÜYÜK. 19 pikselden 24'e. Kol boyu mesafeden,
+        güneş altında okunacak ilk şey o.
+     3. ZEMİN İLE KART AYRIŞIYOR. Zemin #eef1f6, kart beyazdı; aradaki
+        fark çok küçüktü ve liste tek parça gri bir levha gibi
+        okunuyordu.
+
+   Bölüm başlıkları BÜYÜK HARFTEN çıkarıldı: Türkçede büyük harf
+   (İ / I / ı) taranması zor ve 800 ağırlıkta 14 piksel etiket,
+   altındaki asıl içerikle yarışıyordu.
+   ========================================================================== */
+
+.uyg {
+  /* Zemin bir tık açıldı ve ısındı; kart beyazı üstünde net duruyor. */
+  --zemin: #f4f6fa;
+  /* Kart kenarı backoffice'inkinden bir tık koyu: telefonda gölge
+     güneşte görünmüyor, sınırı çizen kenar oluyor. */
+  --cizgi: #dfe4ee;
+}
+
+/* ----------------------------------------------------------- Üst çubuk */
+
+.uyg__bar {
+  background: var(--yuzey);
+  color: var(--murekkep);
+  border-bottom: 1px solid var(--cizgi);
+}
+
+.uyg__ad h1 {
+  font-size: var(--yazi-5);
+  color: var(--murekkep);
+}
+
+.uyg__ad p {
+  font-size: var(--yazi-2);
+  color: var(--murekkep-2);
+}
+
+.uyg__geri {
+  color: var(--murekkep);
+}
+
+.uyg__geri:active {
+  background: var(--cizgi);
+}
+
+/* Başlıktaki iki yuvarlak düğme artık açık zeminde: beyaz saydamlık
+   yerine markanın kendi rengi. "+" dolu, hesap harfi soluk zeminde —
+   biri günde birkaç kez, öteki ayda bir basılıyor. */
+.uyg__ekle {
+  background: var(--dolgu);
+  background-clip: content-box;
+  color: #fff;
+}
+
+.uyg__ekle:hover {
+  background: var(--lacivert-2);
+  background-clip: content-box;
+}
+
+.uyg__hesap {
+  background: var(--mavi-z);
+  background-clip: content-box;
+  color: var(--mavi-rz);
+}
+
+.uyg__hesap:active {
+  background: var(--cizgi);
+  background-clip: content-box;
+}
+
+/* -------------------------------------------------------- Bölüm başlığı */
+
+.uyg .bolum {
+  margin-bottom: var(--bosluk-6);
+}
+
+.uyg .bolum__ad {
+  margin-bottom: var(--bosluk-2);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--murekkep-2);
+}
+
+/* ------------------------------------------------------------- İş kartı */
+
+.uyg .is {
+  margin-bottom: var(--bosluk-3);
+  box-shadow: none;
+}
+
+.uyg .is__ac {
+  padding: var(--bosluk-4) var(--bosluk-3) var(--bosluk-4) var(--bosluk-4);
+}
+
+/* Müşteri adı listedeki en büyük yazı: servis kartı adından buluyor. */
+.uyg .is__ad {
+  font-size: 17px;
+}
+
+.uyg .is__alt {
+  margin-top: var(--bosluk-1);
+}
+
+/* TÜR ETİKETİ DOLGUDAN SOLUK ZEMİNE GEÇTİ.
+
+   Dolu turuncu / mor hap, yanındaki müşteri adıyla aynı görsel ağırlığa
+   sahipti ve göz önce ona gidiyordu. Oysa listede aranan şey ad. Aynı
+   renk, aynı anlam; yalnız ses seviyesi düştü. Yazı rengi kendi soluk
+   zemininde ölçülmüş tonlar (bkz. backoffice.css icindeki --turuncu-d). */
+.uyg .is__bas .tur {
+  padding: 3px 9px;
+  font-size: var(--yazi-1);
+  font-weight: 700;
+}
+
+.uyg .is__bas .tur--servis {
+  background: var(--turuncu-z);
+  color: var(--turuncu-d);
+}
+
+.uyg .is__bas .tur--parca {
+  background: var(--mor-z);
+  color: var(--mor);
+}
+
+.uyg .is__bas .tur--satis {
+  background: var(--mavi-z);
+  color: var(--mavi-rz);
+}
+
+/* ---------------------------------------------------------- Alan ve kutu */
+
+/* Alan etiketi backoffice'te 12,5 piksel; burada gövde ölçeğine
+   yaklaşıyor. Kutunun ne istediğini okuyamayan kullanıcı boş
+   bırakıyor. */
+.uyg .alan {
+  margin-bottom: var(--bosluk-4);
+}
+
+.uyg .alan__ad {
+  margin-bottom: var(--bosluk-2);
+  font-size: var(--yazi-2);
+  font-weight: 700;
+  color: var(--murekkep);
+}
+
+/* Kutunun ALTINDAKİ yardım satırı. Yer tutucu yerine burada duruyor:
+   yer tutucu yazmaya başlayınca kayboluyor ve tam da o an gerekiyor. */
+.uyg .alan__ipucu {
+  display: block;
+  margin-top: 5px;
+  font-size: var(--yazi-2);
+  color: var(--murekkep-2);
+}
+
+.uyg .gir {
+  min-height: var(--dokunma);
+  font-size: var(--yazi-3);
+}
+
+.uyg textarea.gir {
+  min-height: 0;
+  line-height: 1.5;
+}
+
+/* --------------------------------------------------- Okunur bilgi satırı
+
+   Servis kaydında zaten bilinen alanlar (müşterinin adı, şase
+   numarası) kutu olarak değil satır olarak duruyor: doldurulacak bir
+   şey yok, okunacak bir şey var. Boş bir kutu görmek "burayı da ben mi
+   dolduracağım" sorusunu doğuruyordu. */
+.kv {
+  display: flex;
+  align-items: baseline;
+  gap: var(--bosluk-3);
+  padding: var(--bosluk-3) 0;
+  border-bottom: 1px solid var(--cizgi);
+}
+
+.kv:last-child {
+  border-bottom: 0;
+}
+
+.kv__ad {
+  flex: none;
+  font-size: var(--yazi-2);
+  color: var(--murekkep-2);
+}
+
+.kv__deger {
+  flex: 1;
+  min-width: 0;
+  text-align: right;
+  font-size: var(--yazi-3);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* ---------------------------------------------------------------- Hesap
+
+   Yol ve işçilik kalemleri, altında toplam. Servis kaydı gönderilmeden
+   önce rakamın nereden çıktığı görünüyor. */
+.hesap {
+  margin-top: var(--bosluk-3);
+  padding: var(--bosluk-3) var(--bosluk-4);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-2);
+  background: var(--yuzey);
+}
+
+.hesap__satir {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--bosluk-3);
+  padding: var(--bosluk-2) 0;
+  font-size: var(--yazi-3);
+  color: var(--murekkep-2);
+}
+
+.hesap__satir--toplam {
+  margin-top: var(--bosluk-1);
+  padding-top: var(--bosluk-3);
+  border-top: 1px solid var(--cizgi);
+  font-weight: 800;
+  color: var(--murekkep);
+}
+
+/* ----------------------------------------------- Kaydın dibindeki çubuk
+
+   Tutar kaydet düğmesinin ÜSTÜNDE, aynı çubukta. Servis parmağını
+   düğmeye götürürken ne kazanacağını görüyor; sayfayı yukarı
+   kaydırmak gerekmiyor. */
+.kayit-dip__hesap {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--bosluk-3);
+  margin-bottom: var(--bosluk-3);
+  font-size: var(--yazi-3);
+  color: var(--murekkep-2);
+}
+
+.kayit-dip__hesap strong {
+  font-size: var(--yazi-4);
+  font-weight: 800;
+  color: var(--murekkep);
+}
+
+/* ------------------------------------------------------------- Sekmeler */
+
+/* Seçili sekme yalnız renkle değil, simgesinin arkasındaki soluk
+   zeminle de ayrılıyor (renk körlüğü ve güneş altında düşen kontrast). */
+.uyg__tab--on .uyg__tab-ikon::before {
+  content: '';
+  position: absolute;
+  inset: -5px -10px;
+  border-radius: var(--r-tam);
+  background: var(--mavi-z);
+}
+
+.uyg__tab--on .uyg__tab-ikon > * {
+  position: relative;
+}
+
+/* ------------------------------------------------------- Koyu tema payı
+
+   Açık çubuk kararı yalnız aydınlık tema için: koyu temada --yuzey
+   zaten koyu ve yazı açık geliyor, ayrı bir kural gerekmiyor. Burada
+   düzeltilen tek şey başlıktaki artı düğmesi — koyu zeminde lacivert
+   dolgu arkasındaki yüzeyden ayrışmıyordu. */
+[data-tema='koyu'] .uyg__ekle {
+  background: var(--mavi-acik);
+  background-clip: content-box;
+}
+
+/* ------------------------------------------------------ Hesap hareketi
+
+   Ekranın geri kalanı kart diliyle konuşurken bu satırlar düz metin
+   olarak duruyordu. Aynı yüzeye alındı: solda ne olduğu ve ne zaman,
+   sağda tutar. */
+.hareket {
+  display: flex;
+  align-items: baseline;
+  gap: var(--bosluk-3);
+  padding: var(--bosluk-3) var(--bosluk-4);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-2);
+  background: var(--yuzey);
+  margin-bottom: var(--bosluk-2);
+}
+
+.hareket:last-child {
+  margin-bottom: 0;
+}
+
+.hareket__sol {
+  flex: 1;
+  min-width: 0;
+}
+
+.hareket__ad {
+  font-size: var(--yazi-3);
+  font-weight: 600;
+}
+
+.hareket__zaman {
+  margin-top: 2px;
+  font-size: var(--yazi-2);
+  color: var(--murekkep-2);
+}
+
+.hareket__tutar {
+  flex: none;
+  font-size: var(--yazi-3);
+  font-weight: 800;
+  white-space: nowrap;
+  color: var(--murekkep-2);
+}
+
+.hareket__tutar--alacak {
+  color: var(--yesil);
 }

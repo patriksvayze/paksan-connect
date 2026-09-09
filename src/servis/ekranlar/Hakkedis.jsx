@@ -101,14 +101,18 @@ export function Hakkedis({ oturum, onAc }) {
       ) : (
         <Bolum ad="Hesap Hareketleri" sayi={hareketler.length}>
           {hareketler.map((h) => (
-            <div key={h.id} className="satir" style={{ gap: 10, alignItems: 'baseline' }}>
-              <div>
-                <div>{h.aciklama}</div>
-                <div className="kucuk sonuk">{gecenSure(h.tarih)}</div>
+            <div key={h.id} className="hareket">
+              <div className="hareket__sol">
+                <div className="hareket__ad">{h.aciklama}</div>
+                <div className="hareket__zaman">{gecenSure(h.tarih)}</div>
               </div>
+              {/* Alacak artı, ödeme eksi. İşaret rakamın önünde ve renk
+                  tek başına anlam taşımıyor. */}
               <span
-                className={h.tur === 'alacak' ? 'is__sag' : 'is__sag is__sag--gec'}
-                style={{ marginLeft: 'auto' }}
+                className={
+                  'hareket__tutar' +
+                  (h.tur === 'alacak' ? ' hareket__tutar--alacak' : '')
+                }
               >
                 {h.tur === 'alacak' ? '+' : '−'}
                 {paraYaz(h.tutar)} {PARA_BIRIMI}
