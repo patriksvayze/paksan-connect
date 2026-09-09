@@ -717,6 +717,19 @@ const URETICILER = {
     const kaybedilen = teklifler.filter(
       (t) => t.cozum && t.cozum.sonuc && t.cozum.sonuc !== 'Satış oldu'
     )
+    /* BAYİYE DEVREDİLEN TEKLİFLER BU RAPORDA GÖRÜNMEZDİ.
+
+       Fiyat teklifi talebinin çoğu artık bayiye atanıyor ve orada
+       PAKSAN'ın işi bitiyor (bkz. veri.js → talebiBayiyeAta). Bu
+       taleplerin `cozum` alanı hiç dolmuyor; huniye de girmiyorlar,
+       kazanılan/kaybedilen sayısına da. Sayılmayınca rapor "bu ay 3
+       teklif geldi" diyordu, oysa otuz gelmiş ve yirmi yedisi bayiye
+       gitmişti.
+
+       Tutarı YOK ve olmayacak: fiyatı bayi veriyor, kendi payını
+       kendi koyuyor, PAKSAN o rakamı bilmiyor. Adet bilgisi ise
+       satış ekibinin ürettiği işin kendisi. */
+    const bayideler = teklifler.filter((t) => t.bayi)
 
     const hunideTutar = topla(hunide.map((t) => paraOku(t.teklif?.tutar)))
     const kazanilanTutar = topla(
@@ -747,6 +760,8 @@ const URETICILER = {
     const garantili = servis.filter((t) => paraOku(t.cozum?.ucret) === null)
 
     const satirlar = [
+      ['Bayiye devredilen', String(bayideler.length), '—',
+        'Teklifi bayi hazırlıyor; tutar bayinin kendi fiyatı'],
       ['Hunideki teklif', String(hunide.length), paraYaz(hunideTutar),
         'Teklif verildi, müşterinin yanıtı bekleniyor'],
       ['Satışa dönen', String(kazanilan.length), paraYaz(kazanilanTutar),

@@ -19,8 +19,17 @@
      3. CSS token'ları   — styles.css ve backoffice.css aynı değerleri
                            veriyor mu (iki dosya elle senkron tutuluyor)
      4. Derleme ayrımı   — dist/ içine backoffice kodu sızmış mı
+     5. Marka sınırı     — motor marka klasörüne yalnız kapıdan bakıyor mu
+     6. Marka adı        — firma adı motor kodunda düz yazıyla geçiyor mu
+     7. Bayi kalıntısı   — servis uygulamasında bayi kelimesi kalmış mı
+     8. Birim sınamaları — tools/ altındaki üç sınama betiği
 
    4. kontrol yalnız dist/ varsa çalışır; yoksa atlanır.
+
+   8. kontrol tek tek çalıştırılan üç betiği bir araya getiriyor. Ayrı
+   dururken unutuluyorlardı: `bolge-testi.mjs` marka klasörü taşınırken
+   kırıldı ve haftalarca kırık kaldı, çünkü hiçbir komut onu
+   çağırmıyordu. Bir sınama çağrılmıyorsa yoktur.
    ========================================================================== */
 
 import { readFileSync, existsSync, readdirSync } from 'node:fs'
@@ -410,9 +419,46 @@ for (const d of dosyalar(join(KOK, 'src'), ['.js', '.jsx'])) {
 }
 
 if (!kalintilar.length) {
-  tamam('servis panelinde bayi kalıntısı yok')
+  tamam('servis uygulamasında bayi kalıntısı yok')
 } else {
   for (const x of kalintilar) bildir(`bayi kalıntısı: ${x}`)
+}
+
+/* ------------------------------------------------ 8. Birim sınamaları
+
+   Üç betik ayrı ayrı çalıştırılıyordu ve unutuluyorlardı. Şimdi
+   `npm run dogrula` üçünü de çağırıyor; biri düşerse bütün doğrulama
+   düşüyor.
+
+   Ayrı süreçte çalıştırılıyorlar: her biri kendi başına da
+   çalıştırılabilsin ve biri çökerse ötekiler etkilenmesin. */
+
+baslik('8. Birim sınamaları')
+
+const { spawnSync } = await import('node:child_process')
+
+const SINAMALAR = [
+  ['marka-ek-testi.mjs', 'marka adının Türkçe ekleri'],
+  ['bolge-testi.mjs', 'servis bölge eşleştirmesi'],
+  ['duyuru-hedef-testi.mjs', 'duyuru hedeflemesi'],
+]
+
+for (const [dosya, ad] of SINAMALAR) {
+  const yol = join(KOK, 'tools', dosya)
+  if (!existsSync(yol)) {
+    bildir(`${ad}: ${dosya} bulunamadı`)
+    continue
+  }
+  const sonuc = spawnSync(process.execPath, [yol], { encoding: 'utf8' })
+  if (sonuc.status === 0) {
+    tamam(ad)
+  } else {
+    /* Betiğin kendi çıktısı gösteriliyor: hangi durumun düştüğü
+       orada yazıyor, burada tekrarlamanın anlamı yok. */
+    bildir(`${ad} DÜŞTÜ (${dosya})`)
+    const cikti = ((sonuc.stdout || '') + (sonuc.stderr || '')).trim()
+    for (const s of cikti.split(/\r?\n/).slice(-12)) console.log('      ' + s)
+  }
 }
 
 /* ------------------------------------------------------------- Sonuç */
@@ -422,4 +468,4 @@ if (sorun) {
   console.log(`SONUÇ: ${sorun} sorun bulundu.`)
   process.exit(1)
 }
-console.log('SONUÇ: yedi kontrol de temiz.')
+console.log('SONUÇ: sekiz kontrol de temiz.')

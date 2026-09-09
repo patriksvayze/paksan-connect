@@ -104,16 +104,6 @@ export const en = {
   },
 
   kayit: {
-    konumBaslik: 'Last Step',
-    konumUst: 'Let us find your nearest dealer',
-    konumAlt: 'If you allow location access, the dealer list is sorted starting from the closest one.',
-    konum1: 'Your nearest sales and service point appears at the top',
-    konum2: 'Directions open with a single tap',
-    konum3: 'Service requests are routed to the right dealer',
-    konumIzin: 'Allow Location',
-    konumSonra: 'Not now',
-    konumNot: 'Your location is not stored; it is read at the moment it is needed, only to sort dealers. You can withdraw the permission at any time in your phone settings.',
-    konumAlindi: 'Location permission granted',
     baslik: 'Create Account',
     ad: 'First Name',
     soyad: 'Last Name',

@@ -99,16 +99,6 @@ export const tr = {
   },
 
   kayit: {
-    konumBaslik: 'Son Adım',
-    konumUst: 'Size en yakın bayiyi bulalım',
-    konumAlt: 'Konumunuza izin verirseniz bayi listesi en yakından başlayarak sıralanır.',
-    konum1: 'Size en yakın satış ve servis noktası en üstte çıkar',
-    konum2: 'Yol tarifi tek dokunuşla açılır',
-    konum3: 'Servis talebinde doğru bayiye yönlendirilirsiniz',
-    konumIzin: 'Konuma İzin Ver',
-    konumSonra: 'Şimdi değil',
-    konumNot: 'Konumunuz saklanmaz, yalnızca bayileri sıralamak için o an okunur. İzni telefon ayarlarından istediğiniz zaman kapatabilirsiniz.',
-    konumAlindi: 'Konum izni alındı',
     baslik: 'Kayıt Olun',
     ad: 'Ad',
     soyad: 'Soyad',

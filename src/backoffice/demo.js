@@ -364,7 +364,6 @@ export async function demoYukle() {
         tarih: gunOnce(tamsayi(20, 800)),
       },
       bildirim: { izin: sec(['verildi', 'verildi', 'reddedildi', 'sorulmadi']) },
-      konumIzni: sec(['verildi', 'reddedildi', 'sorulmadi']),
       makineler,
       demo: true,
     })

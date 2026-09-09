@@ -1,3 +1,25 @@
+> ## ⚠ BU BELGE GEÇERSİZ — 9 Eylül 2026
+>
+> Belge, tek bir "bayi"nin hem makineyi sattığı hem servis verdiği
+> hem parça tuttuğu varsayımına dayanıyor. 8 Eylül 2026'da Ziya ile
+> yapılan toplantı bu varsayımın yanlış olduğunu gösterdi: **bayi ile
+> servis ayrı taraflar** ve bayilerin çoğunun kendi servisi yok.
+>
+> Panel bayiden servise devredildi. Bugün geçerli olan model
+> `CLAUDE.md` içindeki "Ekosistemin Temeli — Dört Taraf" bölümünde.
+>
+> **Belge silinmedi, çünkü gerekçeleri hâlâ değerli:** "karşılıksız
+> veri istenmez" kuralı aynen geçerli, yalnız muhatabı servis.
+> Dört maddenin bugünkü karşılığı:
+>
+> | Madde | Bugün |
+> |---|---|
+> | §1 Makine satışı panele gelsin | **Düştü** — satan tarafın paneli yok |
+> | §2 Stok güncel tutma | **Servise geçti** — mantık aynı, aktör değişti |
+> | §3 Kendi müşterilerini görme | **Servise geçti** — KVKK sorunu aynen duruyor |
+> | §4 Garanti parça değişimi | **Kaldı** — aktör servis oldu |
+> | §1.4 Garanti satış faturasından | **Aşıldı** — ilk kurulumdan başlayacak |
+
 # Bayi Sistemi — Sıradaki Dört İş
 
 ## Temel: Vericiler ve Alıcılar

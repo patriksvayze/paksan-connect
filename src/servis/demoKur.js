@@ -71,7 +71,7 @@ function talepleriDagit() {
     if (!b) return t
     return {
       ...t,
-      servis: { id: b.id, ad: b.ad, kademe: es.kademe, tarih: t.createdAt },
+      servis: { id: b.id, ad: b.ad, tel: b.tel || '', tarih: t.createdAt },
       sahip: 'servis',
     }
   })
@@ -98,7 +98,7 @@ function talepleriDagit() {
       secilen.has(t.id)
         ? {
             ...t,
-            servis: { id: DEMO_SERVIS, ad: servisAdi, kademe: 'il', tarih: t.createdAt },
+            servis: { id: DEMO_SERVIS, ad: servisAdi, tarih: t.createdAt },
             sahip: 'servis',
           }
         : t,

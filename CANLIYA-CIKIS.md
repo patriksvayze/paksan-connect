@@ -203,6 +203,12 @@ bölümünde. **En kritiği C3b:** şifre sıfırlama kodu şu an ekranda
 yazıyor. O kutu kaldırılmadan canlıya çıkılırsa telefonu eline geçiren
 herkes hesabı ele geçirir.
 
+**Servis uygulamasında tek satır:** `servis.html` kök etiketindeki
+`data-demo="acik"` silinecek. O işaret varken uygulama açılışta örnek
+servisi, taleplerini ve stokunu kuruyor ve giriş alanları dolu geliyor
+(bkz. `src/servis/demoKimlik.js`). Silinmezse gerçek servis, uygulamayı
+açtığında uydurma müşteri adları görür.
+
 ### Aşama 3 — İç test (PAKSAN personeli)
 
 Uygulama Play Store'un **"iç test"** kanalına yüklenir. Bu kanal
@@ -212,13 +218,15 @@ indirebilir. Uygulama mağaza incelemesinden geçmez ve aynı gün yüklenir.
 15-20 kişilik bir grup: servis, yedek parça, satış, muhasebe. En az
 **iki hafta**, gerçek işleriyle.
 
-### Aşama 4 — Bayi testi (en değerli adım)
+### Aşama 4 — Servis testi (en değerli adım)
 
-**Bu adımı atlamayın.** Bayi paneli, bayilerin kullanmayacağı bir şey
-olursa bütün emek boşa gider.
+**Bu adımı atlamayın.** Servis uygulaması, servislerin kullanmayacağı
+bir şey olursa bütün emek boşa gider. (Bayinin paneli yok; bayi
+sistemde yalnız bir kayıt.)
 
-3-5 bayi seçin — biri mutlaka teknolojiyle arası iyi olmayan biri
-olsun. Panelin en zayıf yeri orada görünür. Bir ay kullansınlar.
+3-5 servis seçin — biri mutlaka teknolojiyle arası iyi olmayan biri
+olsun. Uygulamanın en zayıf yeri orada görünür. Bir ay kullansınlar,
+gerçek işleriyle, tarlada.
 
 Sorulacak tek soru: *"Bunu her gün açar mıydınız?"* Cevap "belki" ise
 cevap hayırdır.

@@ -266,7 +266,6 @@ function Detay({ musteri, talepler, duzenleyebilir, onDuzenle }) {
           <S k="Makineyi aldığı yer" v={musteri.satici} />
           <S k="Kayıt Tarihi" v={tarihYaz(musteri.createdAt)} />
           <S k="Bildirim İzni" v={IZIN[musteri.bildirim?.izin]} />
-          <S k="Konum İzni" v={IZIN[musteri.konumIzni]} />
           <S k="Kampanya İzni" v={musteri.onaylar?.kampanya ? 'Var' : 'Yok'} />
         </Bolum>
 

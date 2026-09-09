@@ -8,7 +8,6 @@ import { telGecerliMi } from '../lib/tel'
 import { adTemizle } from '../lib/ad'
 import { alanaGit } from '../lib/formOdak'
 import { izinIste, bildirimGoster, engelNerede, BILDIRIM } from '../lib/bildirim'
-import { konumIzniIste, KONUM } from '../lib/konum'
 import { mevcutHesap, sifreHazirla, sifreGecerliMi, SIFRE_HANE } from '../lib/hesap'
 import { VARSAYILAN_ULKE } from '../data/ulkeler'
 import { Rozet } from '../marka'
@@ -16,7 +15,7 @@ import { TelefonAlani } from '../components/TelefonAlani'
 import { SifreAlani } from '../components/SifreAlani'
 import { Metin, OnayKutusu } from '../components/Metin'
 import { Sheet } from '../components/Chrome'
-import { IconBack, IconCheck, IconBell, IconRight, IconPin, IconAlert } from '../components/Icons'
+import { IconBack, IconCheck, IconBell, IconRight, IconAlert } from '../components/Icons'
 
 /* Kayıt.
 
@@ -44,9 +43,9 @@ export default function Register() {
   const { login, showToast } = useApp()
   const { t, dil } = useDil()
 
-  const [adim, setAdim] = useState('form') // 'form' | 'bildirim' | 'konum'
-  /* Bildirim izninin sonucu konum adımına geçilirken elde tutuluyor;
-     kayıt iki iznin de cevabı alındıktan sonra bir kerede yazılıyor. */
+  const [adim, setAdim] = useState('form') // 'form' | 'bildirim'
+  /* İzin ekranında "şimdi değil" denirse de kayıt tamamlanıyor;
+     bildirimin cevabı hesaba o hâliyle yazılıyor. */
   const [bildirimSonuc, setBildirimSonuc] = useState(BILDIRIM.SORULMADI)
   /* İzin sistem tarafından engellenmişse ekran ilerlemiyor; kullanıcı
      ne olduğunu ve nereden açacağını okuyor. */
@@ -129,8 +128,16 @@ export default function Register() {
     setAdim('bildirim')
   }
 
-  /* Kayıt burada tamamlanıyor: bildirim adımı geçildikten sonra. */
-  async function kaydiBitir(bildirimDurumu, konumDurumu = KONUM.SORULMADI) {
+  /* Kayıt burada tamamlanıyor: bildirim adımı geçildikten sonra.
+
+     KONUM İZNİ ARTIK İSTENMİYOR. Kayıttan sonra bir adım daha vardı ve
+     telefonun konum iznini istiyordu; tek tüketicisi "en yakın bayi"
+     ekranındaki yön haritasıydı. Harita kaldırılınca izin de kalktı:
+     kullanılmayan bir izni istemek çiftçiye bedava bir soru sormak
+     değil, ona hesabını açarken güvenmesi gereken bir şey daha
+     saymak. Bayiler kayıtlı ile göre sıralanıyor, o bilgi zaten
+     formda. */
+  async function kaydiBitir(bildirimDurumu) {
     login({
       /* Ad ve soyad ayrı tutuluyor: veriler işlenirken ayıklamak
          gerekmesin. `ad` alanı ekranlarda tam ad olarak kullanılıyor. */
@@ -159,10 +166,6 @@ export default function Register() {
         izin: bildirimDurumu,
         tarih: Date.now(),
       },
-      /* Konumun kendisi değil, yalnızca izin durumu saklanıyor —
-         koordinat birkaç gün sonra yanlış oluyor ve kişisel veri.
-         Bkz. src/lib/konum.js */
-      konumIzni: konumDurumu,
     })
     nav('/', { replace: true })
   }
@@ -203,18 +206,7 @@ export default function Register() {
       return
     }
 
-    setAdim('konum')
-  }
-
-  /* Konum izni.
-
-     İki izin arka arkaya soruluyor ama ayrı ekranlarda: telefon iki
-     pencereyi üst üste açarsa kullanıcı hangisine ne dediğini bilemez.
-     Her ekran neyi ne için istediğini önce yazıyor. */
-  async function konumaIzinVer() {
-    const sonuc = await konumIzniIste()
-    if (sonuc === KONUM.VERILDI) showToast(t('kayit.konumAlindi'))
-    kaydiBitir(bildirimSonuc, sonuc)
+    kaydiBitir(sonuc)
   }
 
   return (
@@ -239,11 +231,7 @@ export default function Register() {
         </div>
         <div className="topbar__titles">
           <h1>
-            {adim === 'form'
-              ? t('kayit.baslik')
-              : adim === 'bildirim'
-                ? t('kayit.bildirimBaslik')
-                : t('kayit.konumBaslik')}
+            {adim === 'form' ? t('kayit.baslik') : t('kayit.bildirimBaslik')}
           </h1>
         </div>
       </header>
@@ -407,8 +395,12 @@ export default function Register() {
             </p>
           </div>
         </div>
-      ) : adim === 'bildirim' ? (
-        /* ------------------------------------------------- Bildirim adımı */
+      ) : (
+        /* ------------------------------------------------- Bildirim adımı
+
+           İKİ ADIM KALDI. Üçüncü bir adım vardı ve telefonun konum
+           iznini istiyordu; kullanan ekran kaldırılınca o adım da
+           kalktı (bkz. kaydiBitir). */
         <div className="screen screen--nonav wrap fade-in" style={{ paddingTop: 26 }}>
           <div className="center">
             <div className="bildirim__ikon">
@@ -450,7 +442,7 @@ export default function Register() {
               className="btn btn--soft"
               onClick={() => {
                 if (!bildirimEngeli) setBildirimSonuc(BILDIRIM.SORULMADI)
-                setAdim('konum')
+                kaydiBitir(BILDIRIM.SORULMADI)
               }}
             >
               {bildirimEngeli ? t('kayit.bildirimEngelDevam') : t('kayit.bildirimSonra')}
@@ -459,48 +451,6 @@ export default function Register() {
 
           <p className="small muted center" style={{ marginTop: 18, lineHeight: 1.55 }}>
             {t('kayit.bildirimNot')}
-          </p>
-        </div>
-      ) : (
-        /* ---------------------------------------------------- Konum adımı
-
-           Bayiyi bulmak uygulamanın en somut faydalarından biri; izin
-           burada bir kez isteniyor ki müşteri "en yakın bayi" ekranında
-           hiçbir şeye dokunmadan doğru sıralamayı görsün.
-
-           Zorunlu değil: verilmezse bayiler kayıtlı ile göre sıralanıyor
-           ve izin daha sonra bayi ekranından istenebiliyor.            */
-        <div className="screen screen--nonav wrap fade-in" style={{ paddingTop: 26 }}>
-          <div className="center">
-            <div className="bildirim__ikon">
-              <IconPin size={34} />
-            </div>
-            <h2 style={{ fontSize: 21, marginTop: 16 }}>{t('kayit.konumUst')}</h2>
-            <p className="muted" style={{ marginTop: 8, lineHeight: 1.6, fontSize: 15.5 }}>
-              {t('kayit.konumAlt')}
-            </p>
-          </div>
-
-          <div className="stack" style={{ gap: 10, marginTop: 24 }}>
-            <BildirimSatiri metin={t('kayit.konum1')} />
-            <BildirimSatiri metin={t('kayit.konum2')} />
-            <BildirimSatiri metin={t('kayit.konum3')} />
-          </div>
-
-          <div className="stack" style={{ gap: 10, marginTop: 28 }}>
-            <button className="btn btn--orange btn--lg" onClick={konumaIzinVer}>
-              {t('kayit.konumIzin')}
-            </button>
-            <button
-              className="btn btn--soft"
-              onClick={() => kaydiBitir(bildirimSonuc, KONUM.SORULMADI)}
-            >
-              {t('kayit.konumSonra')}
-            </button>
-          </div>
-
-          <p className="small muted center" style={{ marginTop: 18, lineHeight: 1.55 }}>
-            {t('kayit.konumNot')}
           </p>
         </div>
       )}
