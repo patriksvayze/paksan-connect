@@ -268,7 +268,6 @@ export const tr = {
     teklif: 'Teklifiniz hazırlandı',
     kapandi: 'Tamamlandı',
     iptal: 'İptal edildi',
-    bayide: 'Bayide',
   },
 
   bildirimler: {

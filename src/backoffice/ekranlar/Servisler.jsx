@@ -39,7 +39,12 @@ import { telFirma, telGiris } from '../../lib/tel'
    vardı; ikisi de aynı numaraydı, ikincisi yalnız boşlukların yerini
    söylüyordu. Boşluğu ekran koyuyor (bkz. lib/tel.js → telFirma). */
 
-const BOS_CARI = { unvan: '', vergiDairesi: '', vergiNo: '', iban: '', ibanAd: '' }
+/* `adres` yalnız şahıs türünde soruluyor (gider pusulası), `vergiDairesi`
+   yalnız tüzel kişide. Boş kayıt ikisini de taşıyor: tür değiştirilip geri
+   alındığında yazılan değer kaybolmasın. */
+const BOS_CARI = {
+  unvan: '', vergiDairesi: '', vergiNo: '', adres: '', iban: '', ibanAd: '',
+}
 
 const BOS_SERVIS = {
   ad: '', tur: 'tuzel', il: '', ilce: '', adres: '', tel: '',
@@ -571,44 +576,133 @@ function BayiSecici({ secili, onDegis }) {
 
    ZORUNLU DEĞİL. Boş bırakılan bir cari kaydı servisin çalışmasını
    engellemiyor; yalnız ödeme sırası geldiğinde eksik görünüyor.
+
+   ------------------------------------------------------------------
+   ALANLAR TÜRE GÖRE DEĞİŞİYOR — ETİKET DEĞİL, ALANIN KENDİSİ
+
+   Önce iki tür aynı formu paylaşıyor, yalnız etiketler değişiyordu
+   ("Ad Soyad" / "Ticaret unvanı"). Bu yanlıştı: iki türün muhasebesi
+   aynı belgeyle yürümüyor.
+
+     ŞAHIS      PAKSAN **gider pusulası** düzenliyor. Gereken: ad
+                soyad, T.C. kimlik numarası (11 hane) ve adres.
+                Vergi dairesi ile vergi numarası SORULMUYOR — ücretli
+                bir gerçek kişinin ikisi de yok, boş bırakılacak iki
+                kutu koymak "bir şey eksik" hissi veriyor.
+
+     TÜZEL      Servis kendi **faturasını** kesiyor. Gereken: ticaret
+                unvanı, vergi dairesi ve vergi numarası (10 hane).
+                Adres faturanın üstünde zaten var, ayrıca sorulmuyor.
+
+   Ortak olan tek şey banka: hangi tür olursa olsun para bir IBAN'a
+   gidiyor.
+
+   TÜR SEÇİMİ BU BÖLÜMÜN İÇİNDE. Formun en başında, künye alanlarının
+   arasında duruyordu; oysa tek etkisi buradaki alanları belirlemek.
+   Seçimle sonucu arasında bir ekran boyu mesafe olması, personelin
+   neyi neden seçtiğini görmemesi demekti.
    ========================================================================== */
-function CariHesap({ cari, tur, onDegis }) {
+
+const CARI_ALAN = {
+  sahis: ['unvan', 'vergiNo', 'adres'],
+  tuzel: ['unvan', 'vergiDairesi', 'vergiNo'],
+}
+
+function CariHesap({ cari, tur, onDegis, onTur }) {
   const yaz = (k) => (e) => onDegis({ ...cari, [k]: e.target.value })
-  const dolu = Object.values(cari || {}).some((v) => String(v || '').trim())
+  const sahis = tur === 'sahis'
+  /* Doluluk yalnız o türün istediği alanlara bakıyor: tür değişince
+     kalan eski değer "dolu" göstermesin. */
+  const gerekli = CARI_ALAN[sahis ? 'sahis' : 'tuzel']
+  const dolu = gerekli.some((k) => String(cari?.[k] || '').trim())
 
   return (
     <div className="alan" style={{ marginTop: 18 }}>
       <span className="alan__ad">Cari Hesap (ödeme bilgileri)</span>
-      <p className="kucuk sonuk" style={{ margin: '0 0 8px' }}>
+      <p className="kucuk sonuk" style={{ margin: '0 0 10px' }}>
         {dolu
           ? 'Hak ediş ödemesi bu bilgilere göre yapılır.'
           : 'Şimdi doldurmanız gerekmez. Bu bilgiler ödeme yapılacağı zaman gerekir.'}
       </p>
 
-      <div className="esit">
-        <label className="alan">
-          <span className="alan__ad">
-            {tur === 'sahis' ? 'Ad Soyad' : 'Ticaret unvanı'}
-          </span>
-          <input className="gir" value={cari.unvan || ''} onChange={yaz('unvan')} />
-        </label>
-        <label className="alan">
-          <span className="alan__ad">Vergi Dairesi</span>
-          <input className="gir" value={cari.vergiDairesi || ''} onChange={yaz('vergiDairesi')} />
-        </label>
-      </div>
+      {/* Tür önce soruluyor: altındaki alanları o belirliyor. */}
+      <label className="alan">
+        <span className="alan__ad">Servis Türü</span>
+        <select className="gir" value={tur} onChange={(e) => onTur(e.target.value)}>
+          {Object.entries(SERVIS_TURU).map(([k, ad]) => (
+            <option key={k} value={k}>{ad}</option>
+          ))}
+        </select>
+      </label>
+      <p className="kucuk sonuk" style={{ marginTop: -6 }}>
+        {sahis
+          ? 'Gerçek kişi. Ödeme gider pusulasıyla yapılır; vergi dairesi ve vergi numarası sorulmaz.'
+          : 'Tüzel kişi. Servis kendi faturasını keser; vergi dairesi ve vergi numarası gerekir.'}
+      </p>
 
+      {sahis ? (
+        <>
+          <div className="esit">
+            <label className="alan">
+              <span className="alan__ad">Ad Soyad</span>
+              <input className="gir" value={cari.unvan || ''} onChange={yaz('unvan')} />
+            </label>
+            <label className="alan">
+              <span className="alan__ad">T.C. Kimlik No</span>
+              <input
+                className="gir mono"
+                value={cari.vergiNo || ''}
+                onChange={(e) => onDegis({ ...cari, vergiNo: e.target.value.replace(/\D/g, '') })}
+                inputMode="numeric"
+                maxLength={11}
+              />
+            </label>
+          </div>
+          {/* Gider pusulasında adres zorunlu alan. */}
+          <label className="alan">
+            <span className="alan__ad">Adres (gider pusulası için)</span>
+            <input className="gir" value={cari.adres || ''} onChange={yaz('adres')} />
+          </label>
+        </>
+      ) : (
+        <>
+          <label className="alan">
+            <span className="alan__ad">Ticaret Unvanı</span>
+            <input className="gir" value={cari.unvan || ''} onChange={yaz('unvan')} />
+          </label>
+          <div className="esit">
+            <label className="alan">
+              <span className="alan__ad">Vergi Dairesi</span>
+              <input className="gir" value={cari.vergiDairesi || ''} onChange={yaz('vergiDairesi')} />
+            </label>
+            <label className="alan">
+              <span className="alan__ad">Vergi No</span>
+              <input
+                className="gir mono"
+                value={cari.vergiNo || ''}
+                onChange={(e) => onDegis({ ...cari, vergiNo: e.target.value.replace(/\D/g, '') })}
+                inputMode="numeric"
+                maxLength={10}
+              />
+            </label>
+          </div>
+        </>
+      )}
+
+      {/* Banka iki türde de ortak: para bir IBAN'a gidiyor. */}
       <div className="esit">
         <label className="alan">
-          <span className="alan__ad">
-            {tur === 'sahis' ? 'T.C. Kimlik No' : 'Vergi No'}
-          </span>
+          <span className="alan__ad">IBAN</span>
           <input
             className="gir mono"
-            value={cari.vergiNo || ''}
-            onChange={(e) => onDegis({ ...cari, vergiNo: e.target.value.replace(/\D/g, '') })}
-            inputMode="numeric"
-            maxLength={11}
+            value={cari.iban || ''}
+            onChange={(e) =>
+              onDegis({
+                ...cari,
+                iban: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 26),
+              })
+            }
+            placeholder="TR000000000000000000000000"
           />
         </label>
         <label className="alan">
@@ -616,21 +710,6 @@ function CariHesap({ cari, tur, onDegis }) {
           <input className="gir" value={cari.ibanAd || ''} onChange={yaz('ibanAd')} />
         </label>
       </div>
-
-      <label className="alan">
-        <span className="alan__ad">IBAN</span>
-        <input
-          className="gir mono"
-          value={cari.iban || ''}
-          onChange={(e) =>
-            onDegis({
-              ...cari,
-              iban: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 26),
-            })
-          }
-          placeholder="TR000000000000000000000000"
-        />
-      </label>
     </div>
   )
 }
@@ -649,7 +728,7 @@ function Form({ servis, onKapat, onKaydet }) {
        giriş yapamaz, ekranda "hesabı var" görünür ve kimse
        neden giremediğini anlamaz. */
     if (d.kullanici?.trim() && !d.sifre && !d.yeniSifre?.trim()) {
-      return setHata('Panel hesabı için şifre belirleyin.')
+      return setHata('Uygulama hesabı için şifre belirleyin.')
     }
     if (d.yeniSifre?.trim() && !/^\d{6}$/.test(d.yeniSifre.trim())) {
       return setHata('Şifre 6 rakamdan oluşmalı.')
@@ -672,30 +751,16 @@ function Form({ servis, onKapat, onKaydet }) {
           <button className="dg" style={{ marginLeft: 'auto' }} onClick={onKapat}>Kapat</button>
         </div>
         <div className="kart__ic">
-          <div className="esit">
-            <label className="alan">
-              <span className="alan__ad">Servis Adı</span>
-              <input className="gir" value={d.ad} onChange={yaz('ad')} autoFocus />
-            </label>
-            {/* Tür bugün hiçbir akışı değiştirmiyor; muhasebe kaydı.
-                Hak ediş ödenmeye başladığında belge tipini bu alan
-                belirleyecek: şahsa gider pusulası, tüzel kişiye
-                fatura. Sonradan tek tek sormak yerine kayıt açılırken
-                soruluyor. */}
-            <label className="alan">
-              <span className="alan__ad">Servis Türü</span>
-              <select className="gir" value={d.tur || 'tuzel'} onChange={yaz('tur')}>
-                {Object.entries(SERVIS_TURU).map(([k, ad]) => (
-                  <option key={k} value={k}>{ad}</option>
-                ))}
-              </select>
-            </label>
-          </div>
-          <p className="kucuk sonuk" style={{ marginTop: -6 }}>
-            Tür yalnızca muhasebe içindir; talebin ilerleyişini değiştirmez.
-            Hak ediş ödemesi gerçek kişiye gider pusulasıyla, tüzel kişiye
-            faturayla yapılır.
-          </p>
+          {/* SERVİS TÜRÜ BURADA DEĞİL, CARİ HESAP BÖLÜMÜNDE.
+
+              Künye alanlarının arasında duruyordu ama künyeyle ilgisi
+              yok: tek etkisi cari hesapta hangi alanların isteneceği.
+              Seçimle sonucu arasında bir ekran boyu mesafe olması,
+              personelin neyi neden seçtiğini görmemesi demekti. */}
+          <label className="alan">
+            <span className="alan__ad">Servis Adı</span>
+            <input className="gir" value={d.ad} onChange={yaz('ad')} autoFocus />
+          </label>
 
           {/* İl ve ilçe elle yazılıyordu. Bölge eşleştirmesi il adının
               birebir tutmasına dayandığı için bir yazım hatası koca bir
@@ -784,9 +849,10 @@ function Form({ servis, onKapat, onKaydet }) {
             cari={d.cari || {}}
             tur={d.tur || 'tuzel'}
             onDegis={(c) => setD({ ...d, cari: c })}
+            onTur={(t) => setD({ ...d, tur: t })}
           />
 
-          {/* ==================================================== Panel girişi
+          {/* ================================================ Uygulama girişi
 
               Servis kaydı ile servis hesabı aynı şey; ikiye bölmek iki yerde
               senkron tutulacak liste demek olurdu.
@@ -795,10 +861,10 @@ function Form({ servis, onKapat, onKaydet }) {
               Şifresini unutursa da PAKSAN'ı arıyor — hesap silme ve
               numara değişikliğindeki kuralın aynısı. */}
           <div className="alan" style={{ marginTop: 18 }}>
-            <span className="alan__ad">Panel Girişi</span>
+            <span className="alan__ad">Uygulama Girişi</span>
             <p className="kucuk sonuk" style={{ margin: '0 0 8px' }}>
-              Servis, kendi panelinde yalnızca kendi bölgesine düşen talepleri
-              görür. Kullanıcı adı boşsa servisin panel erişimi yoktur.
+              Servis, kendi uygulamasında yalnızca kendisine düşen talepleri
+              görür. Kullanıcı adı boşsa servisin uygulama erişimi yoktur.
             </p>
             <div className="esit">
               <label className="alan">
@@ -830,7 +896,7 @@ function Form({ servis, onKapat, onKaydet }) {
                   checked={d.panelAktif !== false}
                   onChange={(e) => setD({ ...d, panelAktif: e.target.checked })}
                 />
-                <span className="kucuk">Panel girişi açık</span>
+                <span className="kucuk">Uygulama girişi açık</span>
               </label>
             )}
           </div>

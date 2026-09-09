@@ -270,7 +270,6 @@ export const en = {
     teklif: 'Your quote is ready',
     kapandi: 'Completed',
     iptal: 'Cancelled',
-    bayide: 'With the dealer',
   },
 
   bildirimler: {

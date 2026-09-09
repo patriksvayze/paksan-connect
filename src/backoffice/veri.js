@@ -540,25 +540,25 @@ export const DURUMLAR = [
      kargo firması ve takip numarası kapanış formunda soruluyor
      (bkz. Talepler.jsx → KAPANIS_ALANLARI.parca). Müşteriye giden
      bildirim de aynı yerden çıkıyor, takip numarasıyla birlikte. */
-  /* BAYİDE — yalnız fiyat teklifinde.
+  /* "BAYİDE" DİYE AYRI BİR DURUM YOK.
 
-     Makineyi satan taraf bayi. Fiyat teklifi talebi PAKSAN'a düşüyor,
-     satış personeli müşteriye en uygun bayiye atıyor ve orada
-     PAKSAN'ın işi bitiyor: fiyatı bayi veriyor, satışı bayi yapıyor,
-     kendi payını kendi koyuyor.
+     Kısa süre vardı ve kaldırıldı. Sebebi "Gönderildi" durumunun
+     kaldırılma sebebiyle aynı: fiyat teklifi bayiye atandığında
+     PAKSAN'ın o talepte işi biter, yani talep KAPANIR. Ayrı bir durum
+     ikinci bir "bitti" hâli üretiyordu ve personel hangisini
+     seçeceğini bilmiyordu.
 
-     Bu yüzden durum KAPALI sayılıyor — PAKSAN'ın kuyruğunda
-     beklemiyor, gecikme ünlemi almıyor. Ama "Kapandı" da değil:
-     müşterinin uygulamasında hangi bayinin arayacağı yazıyor ve
-     talep listesinde ayırt edilebiliyor. */
-  { id: 'bayide', ad: 'Bayide', ton: 'mor' },
+     Talebin bayide olduğu durumdan değil SAHİPLİKTEN okunuyor:
+     `talep.bayi` dolu, `sahip: 'bayi'`, listede "Bayide · <bayi adı>"
+     yazıyor ve Sahiplik süzgecinde kendi seçeneği var. Bilgi
+     kaybolmuyor, yalnız iki yerde birden durmuyor. */
   { id: 'kapandi', ad: 'Kapandı', ton: 'yesil' },
   { id: 'iptal', ad: 'İptal', ton: 'gri' },
 ]
 
 /* Kapalı = PAKSAN'ın üzerinde iş kalmamış. Not eklemek kapalı talepte
    de serbest. */
-export const KAPALI_DURUMLAR = ['kapandi', 'iptal', 'bayide']
+export const KAPALI_DURUMLAR = ['kapandi', 'iptal']
 
 export function durumBilgi(id) {
   return DURUMLAR.find((d) => d.id === id) || DURUMLAR[0]
@@ -569,21 +569,17 @@ export function durumBilgi(id) {
 
    servis      → yeni · incelemede · planlandı · kapandı · iptal
    parça       → yeni · incelemede · planlandı · kapandı · iptal
-   fiyat teklifi → yeni · incelemede · teklif verildi · bayide · kapandı · iptal
+   fiyat teklifi → yeni · incelemede · teklif verildi · kapandı · iptal
 
    Fiyat teklifinde planlanacak bir iş yok. Buna karşılık teklifin
    verilip müşterinin cevabının beklendiği uzun bir aşama var; o aşama
    "Teklif Verildi". Yedek parçada kargoya verme ayrı bir aşama değil,
-   kapanışın kendisi.
-
-   "Bayide" listeden elle seçilmiyor: bayi atandığında kendiliğinden
-   geliyor (bkz. talebiBayiyeAta). Seçilebilir olsaydı hangi bayi
-   olduğu yazılmadan durum değişebilirdi. */
+   kapanışın kendisi. */
 export function talepDurumlari(tur) {
   if (tur === 'satinalma') {
-    return DURUMLAR.filter((d) => d.id !== 'planlandi' && d.id !== 'bayide')
+    return DURUMLAR.filter((d) => d.id !== 'planlandi')
   }
-  return DURUMLAR.filter((d) => d.id !== 'teklif' && d.id !== 'bayide')
+  return DURUMLAR.filter((d) => d.id !== 'teklif')
 }
 
 export const TALEP_ADI = {
@@ -655,11 +651,15 @@ export function talepDurumDegistir(talep, yeniDurum, personel, { bildirme } = {}
    ama teklifi hazırlayacak, müşteriyi arayacak ve satışı yapacak olan
    bayi. Satış personelinin buradaki işi doğru bayiyi seçmek.
 
-   ATAMADAN SONRA PAKSAN'IN İŞİ BİTİYOR
+   ATAMADAN SONRA PAKSAN'IN İŞİ BİTİYOR — TALEP KAPANIR
 
-   Talep "Bayide" durumuna geçiyor ve KAPALI_DURUMLAR içinde: PAKSAN'ın
-   bekleyen işleri arasında sayılmıyor, gecikme ünlemi almıyor. Bayinin
-   paneli olmadığı için takip PAKSAN'ın ekranında değil telefonda
+   Durum **"Kapandı"** oluyor, ayrı bir "Bayide" durumu yok. Bir dönem
+   vardı ve kaldırıldı: ikinci bir "bitti" hâli üretiyordu ve personel
+   hangisini seçeceğini bilmiyordu. Talebin bayide olduğu bilgisi zaten
+   SAHİPLİKTE duruyor — `sahip: 'bayi'`, listede "Bayide · <bayi adı>",
+   Sahiplik süzgecinde kendi seçeneği.
+
+   Bayinin paneli olmadığı için takip PAKSAN'ın ekranında değil telefonda
    yürüyor; sistemin bunu bekleyen bir iş gibi göstermesi yanlış olurdu.
 
    PAKSAN kendisi ilgilenecekse atama yapılmıyor: talep her zamanki
@@ -673,10 +673,10 @@ export function talebiBayiyeAta(talep, bayi, personel) {
   if (!bayi?.id) return { hata: 'Bayi seçin.' }
 
   const kayit = { id: bayi.id, ad: bayi.ad, tel: bayi.tel || '', tarih: Date.now() }
-  const gecmis = [...(talep.gecmis || []), { durum: 'bayide', tarih: Date.now(), personel }]
-  talepYaz(talep.id, { bayi: kayit, sahip: 'bayi', status: 'bayide', gecmis })
+  const gecmis = [...(talep.gecmis || []), { durum: 'kapandi', tarih: Date.now(), personel }]
+  talepYaz(talep.id, { bayi: kayit, sahip: 'bayi', status: 'kapandi', gecmis })
 
-  islemYaz({ tur: 'durum', ozet: `${talep.no} → Bayide · ${bayi.ad}`, personel })
+  islemYaz({ tur: 'durum', ozet: `${talep.no} → Kapandı · bayiye atandı: ${bayi.ad}`, personel })
 
   musteriyeBildir({
     tur: 'talep',
