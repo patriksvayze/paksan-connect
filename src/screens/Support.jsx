@@ -83,16 +83,29 @@ import {
 
 const SECILI_URUN = 'destekUrun'
 
+/* Seçilen FİZİKSEL makine ayrı saklanıyor.
+
+   Ürün kimliği "hangi model", makine kimliği ise "hangi makine" demek.
+   Aynı modelden iki makinesi olan çiftçi için ikisi farklı şeylerdir: destek
+   içeriği modele göre geliyor ama talep, seri numarası belli olan tek
+   bir makineye açılıyor. */
+const SECILI_MAKINE = 'destekMakine'
+
 export default function Support() {
   const nav = useNavigate()
-  const { machineId } = useParams()
+  /* Adresten gelen makine (/destek/mk1). Aşağıdaki `makineId`
+     durumuyla karışmaması için ayrı adlandırıldı. */
+  const { machineId: adresMakineId } = useParams()
   const [params] = useSearchParams()
   const { user, machines } = useApp()
   const { t, dil } = useDil()
 
   /* Seçilen makine telefonda saklanıyor: çiftçi her açılışta yeniden
-     seçmesin. Uygulamanın ürün kimliği tutuluyor. */
+     seçmesin. İkisi birlikte tutuluyor — ürün destek içeriğini,
+     makine ise açılacak talebin hangi seri numarasına bağlanacağını
+     belirliyor. */
   const [urunId, setUrunId] = useState(() => load(SECILI_URUN, null))
+  const [makineId, setMakineId] = useState(() => load(SECILI_MAKINE, null))
   const [secici, setSecici] = useState(false)
 
   const [mesajlar, setMesajlar] = useState([])
@@ -107,35 +120,56 @@ export default function Support() {
   const bolumler = grup.bolumler
 
   /* Müşterinin uygulamada kayıtlı makineleri en üstte. Artık her
-     makinenin destek karşılığı var, hiçbiri elenmiyor. */
+     makinenin destek karşılığı var, hiçbiri elenmiyor.
+
+     HER MAKİNE AYRI SATIR. Önce aynı modelden olanlar teke
+     indiriliyordu; iki Süper Yunus'u olan çiftçi listede tek satır
+     görüyor, ikinci makinesine hiç ulaşamıyordu. Satırda seri
+     numarası da yazdığı için gösterilen numara ötekinin oluyordu. */
   const benimMakinelerim = useMemo(() => {
-    const gorulen = new Set()
     const liste = []
     for (const m of machines) {
-      if (gorulen.has(m.productId)) continue
-      gorulen.add(m.productId)
       const p = urunDilde(getProduct(m.productId), dil)
       if (!p) continue
-      liste.push({ urunId: m.productId, ad: m.nickname || p.name, alt: m.serial })
+      liste.push({
+        anahtar: m.id,
+        makineId: m.id,
+        urunId: m.productId,
+        ad: m.nickname || p.name,
+        alt: m.serial,
+      })
     }
     return liste
   }, [machines, dil])
 
+  /* Katalogdan seçilen model, kullanıcının kayıtlı makinesi değil:
+     `makineId` yok, talep de bir seri numarasına bağlanmıyor. */
   const digerUrunler = useMemo(() => {
     const benim = new Set(benimMakinelerim.map((m) => m.urunId))
     return PRODUCTS.filter((p) => !benim.has(p.id)).map((p) => ({
+      anahtar: p.id,
+      makineId: null,
       urunId: p.id,
       ad: urunDilde(p, dil).name,
     }))
   }, [benimMakinelerim, dil])
 
+  /* Saklanan makine silinmiş olabilir: kayıt listede yoksa yok
+     sayılıyor. Böylece talebe var olmayan bir makine kimliği
+     taşınmıyor. */
+  const secilenMakine = makineId ? machines.find((m) => m.id === makineId) : null
+
   useEffect(() => {
     if (urunId) save(SECILI_URUN, urunId)
-  }, [urunId])
+    save(SECILI_MAKINE, makineId || null)
+  }, [urunId, makineId])
 
   /* Tek kayıtlı makinesi olan kullanıcıya seçim hiç sorulmuyor. */
   useEffect(() => {
-    if (!urunId && benimMakinelerim.length === 1) setUrunId(benimMakinelerim[0].urunId)
+    if (!urunId && benimMakinelerim.length === 1) {
+      setUrunId(benimMakinelerim[0].urunId)
+      setMakineId(benimMakinelerim[0].makineId)
+    }
   }, [urunId, benimMakinelerim])
 
   useEffect(() => {
@@ -247,14 +281,32 @@ export default function Support() {
     const parca = tur === 'parca' && parcalar?.length
       ? `&parcalar=${encodeURIComponent(parcalar.join('|'))}`
       : ''
-    nav(`/talep?tur=${tur}${belirti}${parca}`)
+    /* KONUŞULAN MAKİNE TALEBE TAŞINIYOR.
+
+       Önce yalnızca belirti ve parçalar taşınıyordu; talep formu makine
+       alanını kullanıcının İLK makinesiyle dolduruyordu. Aynı modelden
+       iki makinesi olan çiftçi, arızayı ikinci makinesi için anlatıp
+       talebi birinci makinesi için açmış oluyordu — servise yanlış seri
+       numarası gidiyordu.
+
+       Katalogdan model seçilmişse kimlik yok; form kendi
+       varsayılanıyla açılıyor. */
+    const makine = secilenMakine
+      ? `&makine=${encodeURIComponent(secilenMakine.id)}`
+      : ''
+    nav(`/talep?tur=${tur}${belirti}${parca}${makine}`)
   }
 
   /* Sohbetin içinden makine seçimi: konuşma kesilmiyor, seçilen
-     makine kullanıcının cevabı olarak baloncuğa yazılıyor. */
-  function makineSec(id, pencereden = false) {
+     makine kullanıcının cevabı olarak baloncuğa yazılıyor.
+
+     Listedeki satırın tamamı geliyor: kayıtlı makinede hem model hem
+     seri numarası belli, katalogdan seçilen modelde ise yalnızca model. */
+  function makineSec(secim, pencereden = false) {
+    const id = secim.urunId
     const p = urunDilde(getProduct(id), dil)
     setUrunId(id)
+    setMakineId(secim.makineId || null)
     setSecici(false)
 
     /* Pencereden seçildiyse ya da konuşma ilerlemişse baştan
@@ -284,11 +336,17 @@ export default function Support() {
     if (kuruldu.current) return
     kuruldu.current = true
 
-    const adrestenGelen = machineId
-      ? machines.find((m) => m.id === machineId)?.productId
+    /* Makine kaydı bulunduysa kimliği de tutuluyor: kullanıcı hangi
+       makineyi kastettiğini adreste zaten söylemiş, talep açarken bir
+       daha sorulmuyor. */
+    const adrestenGelen = adresMakineId
+      ? machines.find((m) => m.id === adresMakineId)
       : null
-    const acilis = adrestenGelen || urunId
-    if (adrestenGelen && adrestenGelen !== urunId) setUrunId(adrestenGelen)
+    const acilis = adrestenGelen?.productId || urunId
+    if (adrestenGelen) {
+      if (adrestenGelen.productId !== urunId) setUrunId(adrestenGelen.productId)
+      setMakineId(adrestenGelen.id)
+    }
 
     const bulunan = acilis && gelen ? belirtiBul(destekGrubu(acilis), gelen) : null
     if (!bulunan) return bastanBasla(acilis)
@@ -367,8 +425,8 @@ export default function Support() {
         <MakineListesi
           benim={benimMakinelerim}
           digerleri={digerUrunler}
-          secili={urunId}
-          onSec={(id) => makineSec(id, true)}
+          secili={makineId || urunId}
+          onSec={(secim) => makineSec(secim, true)}
           t={t}
         />
       </Sheet>
@@ -539,7 +597,7 @@ function Secenekler({
     return (
       <div className="chips chips--dikey">
         {benimMakinelerim.map((m) => (
-          <button key={m.urunId} className="chip" onClick={() => onMakine(m.urunId)}>
+          <button key={m.anahtar} className="chip" onClick={() => onMakine(m)}>
             <IconMachine size={18} /> {m.ad}
           </button>
         ))}
@@ -632,7 +690,7 @@ function MakineListesi({ benim, digerleri, secili, onSec, t }) {
         <>
           <div className="eyebrow">{t('destek.benimMakinelerim')}</div>
           {benim.map((m) => (
-            <Satir key={m.urunId} m={m} secili={secili} onSec={onSec} />
+            <Satir key={m.anahtar} m={m} secili={secili} onSec={onSec} />
           ))}
           <div className="eyebrow" style={{ marginTop: 12 }}>
             {t('destek.digerModeller')}
@@ -640,17 +698,21 @@ function MakineListesi({ benim, digerleri, secili, onSec, t }) {
         </>
       )}
       {digerleri.map((m) => (
-        <Satir key={m.urunId} m={m} secili={secili} onSec={onSec} />
+        <Satir key={m.anahtar} m={m} secili={secili} onSec={onSec} />
       ))}
     </div>
   )
 }
 
+/* Seçim `anahtar` üzerinden işaretleniyor: kayıtlı makinede makine
+   kimliği, katalogdan seçilen modelde ise ürün kimliği. Ürün kimliğine
+   bakılsaydı aynı modelden iki makinenin ikisi birden seçili
+   görünürdü. */
 function Satir({ m, secili, onSec }) {
   return (
     <button
-      className={'listitem' + (secili === m.urunId ? ' listitem--on' : '')}
-      onClick={() => onSec(m.urunId)}
+      className={'listitem' + (secili === m.anahtar ? ' listitem--on' : '')}
+      onClick={() => onSec(m)}
     >
       <div className="listitem__body">
         <div className="listitem__title" style={{ fontSize: 14.5 }}>{m.ad}</div>
