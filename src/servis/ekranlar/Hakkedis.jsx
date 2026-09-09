@@ -55,20 +55,27 @@ export function Hakkedis({ oturum, onAc }) {
 
   return (
     <>
-      {/* TEK RAKAM, EN ÜSTTE. Servis ekranı bunun için açıyor. */}
-      <div className={'not ' + (bakiye > 0 ? 'not--yesil' : 'not--mavi')}>
-        <IconCheckCircle size={19} />
-        <div>
-          <strong>
-            Hesabınızdaki Tutar: {paraYaz(bakiye)} {PARA_BIRIMI}
-          </strong>
-          <p>
+      {/* TEK RAKAM, EN ÜSTTE. Servis ekranı bunun için açıyor.
+
+          Connect'in "Servisiniz" kartıyla aynı anatomi: soluk turuncu
+          simge karesi, küçük etiket, büyük lacivert rakam. */}
+      <section className="bakiye">
+        <div className="bakiye__ikon">
+          <IconCheckCircle size={22} />
+        </div>
+        <div className="bakiye__govde">
+          <div className="bakiye__etiket">Hesabınızdaki Tutar</div>
+          <div className="bakiye__tutar">
+            {paraYaz(bakiye)}
+            <small>{PARA_BIRIMI}</small>
+          </div>
+          <p className="bakiye__aciklama">
             {bakiye > 0
               ? 'Onaylanan işlerinizin tutarı. Ödeme yapıldıkça buradan düşer.'
               : 'Onaylanmış ve ödenmemiş işiniz görünmüyor.'}
           </p>
         </div>
-      </div>
+      </section>
 
       {bekleyen.length > 0 && (
         <Bolum ad="Onay Bekleyen" sayi={bekleyen.length}>

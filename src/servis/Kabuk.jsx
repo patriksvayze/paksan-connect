@@ -30,25 +30,32 @@ import { IconBack, IconPhone } from '../components/Icons'
    başlık çentiğin, sekmeler de ev çubuğunun altında kalırdı.
    ========================================================================== */
 
-/** Üst çubuk. Geri oku verilirse başlığın soluna geçiyor. */
+/* Üst çubuk — Connect'in üst düzeni.
+
+   Koyu çubuk yok. Ana sekmelerde solda tam renkli logo, sağda eylemler;
+   alt sayfada solda beyaz "Geri" pili, ortada logo. Başlık çubuğun
+   içinde sıkışmıyor, altında büyük ve dost duruyor — müşteri
+   uygulamasındaki "Merhaba Onur" gibi. */
 function Cubuk({ baslik, alt, onGeri, islem }) {
   return (
-    <header className="uyg__bar">
-      {onGeri && (
-        <button className="uyg__geri" onClick={onGeri} aria-label="Geri">
-          <IconBack size={22} />
-        </button>
-      )}
-      <div className="uyg__ad">
+    <>
+      <header className={'uyg__bar' + (onGeri ? ' uyg__bar--alt' : '')}>
+        {onGeri ? (
+          <button className="uyg__geri" onClick={onGeri}>
+            <IconBack size={18} />
+            Geri
+          </button>
+        ) : (
+          <Logo height={26} />
+        )}
+        {onGeri && <Logo height={24} className="uyg__logo-orta" />}
+        {islem ? <div className="uyg__islemler">{islem}</div> : <span />}
+      </header>
+      <div className="uyg__baslik">
         <h1>{baslik}</h1>
         {alt && <p>{alt}</p>}
       </div>
-      {/* İşlem varsa marka yerini ona bırakıyor: çubuk iki satıra
-          taşmasın. Marka zaten giriş ekranında tam hâliyle duruyor. */}
-      {/* 30 piksel: 15'ti, okunmuyordu. Marka çubuğun sağında tek
-          başına duruyor, yer var. */}
-      {islem || <Logo height={30} sadeceYazi beyaz />}
-    </header>
+    </>
   )
 }
 

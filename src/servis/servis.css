@@ -2218,190 +2218,597 @@
 }
 
 /* ==========================================================================
-   GÖRÜNÜM KATMANI — servise özel yüzey ve ölçek
+   GÖRÜNÜM KATMANI — PAKSAN Connect'in kardeşi
 
-   NEDEN VAR
+   TEK KAYNAK: MÜŞTERİ UYGULAMASININ İMZASI. Bu uygulama bir dönem
+   backoffice'in yoğun panelini telefona sıkıştırılmış hâliyle, sonra
+   da icat edilmiş bir "makine livresi"yle çizildi. İkisi de geri
+   alındı. Firmanın müşteriye verdiği uygulamanın oturmuş bir imzası var
+   ve servise verdiği uygulama onun kardeşi olmalı — servis de, müşteri
+   de aynı firmanın iki ürününü elinde tutuyor.
 
-   Bu uygulama backoffice.css'in token'larını paylaşıyor ve paylaşmaya
-   devam ediyor: marka rengi tek yerde durmalı. Ama backoffice'in
-   YÜZEY ve ÖLÇEK değerleri bilgisayar başındaki personele göre —
-   sık satır, dar boşluk, küçük etiket. Telefonda, tarlada, eldivenle
-   açılan bir uygulamaya olduğu gibi taşınınca ekran "telefona
-   sıkıştırılmış yönetim paneli" gibi duruyordu.
+   Aşağıdaki değerler src/styles.css'ten ÖLÇÜLEREK alındı, uydurulmadı:
 
-   Aşağıdaki blok bir CSS KÖKÜ DEĞİL, .uyg altında: renk kaynağı hâlâ
-   tek. npm run dogrula üçüncü bir kök açılmadığını denetliyor.
+     zemin #f1f4f9 · kart köşesi 24px · kart gölgesi --sh-1
+     ana çağrı: turuncu #c7490a, köşe 18px, 60px, turuncu gölge
+     ikincil eylem: kurumsal mavi #1848a8, köşe 16px
+     yüzen menü: lacivert hap, 999px köşe, --sh-3, seçili simgenin
+       arkasında açık mavi kapsül
+     başlık: Roboto 700 / 30px · bölüm başlığı 20px / 700
+     seçenek satırı: beyaz, 15px köşe, solda 22px yuvarlak işaret
+     koyu üst çubuk YOK; alt sayfada beyaz "Geri" pili ve ortada logo
 
-   KARARLAR VE GEREKÇELERİ
-
-   Referans olarak saha servisi uygulamalarına bakıldı (Jobber'ın mobil
-   iş ve iş listesi ekranları). Üçünde de aynı üç şey var ve üçü de
-   burada eksikti:
-
-     1. AÇIK ÇUBUK, KOYU YAZI. Başlık çubuğu lacivert bir blok değil;
-        marka rengi yalnız asıl düğmede ve seçili sekmede duruyor.
-        Lacivert blok 812 piksellik ekranın 68 pikselini alıyor ve
-        altındaki her şeyi gri bir kutuya itiyordu.
-     2. BAŞLIK GERÇEKTEN BÜYÜK. 19 pikselden 24'e. Kol boyu mesafeden,
-        güneş altında okunacak ilk şey o.
-     3. ZEMİN İLE KART AYRIŞIYOR. Zemin #eef1f6, kart beyazdı; aradaki
-        fark çok küçüktü ve liste tek parça gri bir levha gibi
-        okunuyordu.
-
-   Bölüm başlıkları BÜYÜK HARFTEN çıkarıldı: Türkçede büyük harf
-   (İ / I / ı) taranması zor ve 800 ağırlıkta 14 piksel etiket,
-   altındaki asıl içerikle yarışıyordu.
+   Renk token'ları backoffice.css ve marka/renkler.css'ten geliyor
+   (aynı ham marka renkleri); Connect'e özgü yüzey değerleri burada
+   .uyg altında. Bu bir CSS kökü değil; npm run dogrula denetliyor.
    ========================================================================== */
 
 .uyg {
-  /* Zemin bir tık açıldı ve ısındı; kart beyazı üstünde net duruyor. */
-  --zemin: #f4f6fa;
-  /* Kart kenarı backoffice'inkinden bir tık koyu: telefonda gölge
-     güneşte görünmüyor, sınırı çizen kenar oluyor. */
-  --cizgi: #dfe4ee;
+  --zemin: #f1f4f9;
+  --yuzey-2: #f5f7fb;
+  --cizgi: #e6eaf2;
+  --cizgi-koyu: #d6dde9;
+  --murekkep-3: #646f82;
+  --r-kart: 24px;
+  --r-sm: 14px;
+  --sh-1: 0 1px 2px rgba(10, 26, 51, 0.04), 0 2px 8px rgba(10, 26, 51, 0.04);
+  --sh-2: 0 4px 10px rgba(10, 26, 51, 0.05), 0 12px 28px rgba(10, 26, 51, 0.07);
+  --sh-3: 0 12px 30px rgba(10, 26, 51, 0.13), 0 30px 60px rgba(10, 26, 51, 0.16);
+  --sh-turuncu: 0 6px 18px rgba(199, 73, 10, 0.28);
+  --sh-mavi: 0 6px 18px rgba(24, 72, 168, 0.3);
+  --turuncu-dugme: var(--marka-turuncu-dugme);
+  --turuncu-yazi: #8f3a00;
+  --turuncu-soft: rgba(232, 100, 26, 0.12);
+  --mavi-soft: rgba(24, 72, 168, 0.08);
+  --mavi-soft-2: rgba(24, 72, 168, 0.14);
+  --nav-zemin: var(--lacivert);
+  --nav-kenar: rgba(255, 255, 255, 0.06);
+  --nav-secili: #d9e4fb;
+  --nav-h: 74px;
+  --nav-gap: 14px;
+  --tabs: calc(var(--nav-h) + var(--nav-gap) * 2);
+  font-family: Roboto, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* ----------------------------------------------------------- Üst çubuk */
+[data-tema='koyu'] .uyg {
+  --zemin: #0f1622;
+  --yuzey-2: #172033;
+  --cizgi: #263141;
+  --cizgi-koyu: #34425a;
+  --murekkep-3: #9aa6b8;
+  --turuncu-soft: rgba(232, 100, 26, 0.18);
+  --mavi-soft: rgba(96, 140, 230, 0.14);
+  --mavi-soft-2: rgba(96, 140, 230, 0.22);
+  --sh-1: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --sh-2: 0 4px 12px rgba(0, 0, 0, 0.38);
+  --sh-3: 0 12px 32px rgba(0, 0, 0, 0.5);
+  --sh-turuncu: 0 6px 18px rgba(0, 0, 0, 0.45);
+  --sh-mavi: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+
+/* ------------------------------------------------------------- Üst çubuk
+
+   Koyu çubuk yok. Connect'te olduğu gibi: ana sekmelerde solda tam
+   renkli logo, sağda eylemler; alt sayfada solda beyaz "Geri" pili,
+   ortada logo. Başlık çubuğun içinde değil, altında — büyük ve dost. */
 
 .uyg__bar {
-  background: var(--yuzey);
+  min-height: 60px;
+  padding: calc(10px + var(--ust)) var(--bosluk-4) 6px;
+  background: var(--zemin);
   color: var(--murekkep);
-  border-bottom: 1px solid var(--cizgi);
+  border-bottom: 0;
+  box-shadow: none;
 }
 
-.uyg__ad h1 {
-  font-size: var(--yazi-5);
-  color: var(--murekkep);
+.uyg__bar--alt {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
 }
 
-.uyg__ad p {
-  font-size: var(--yazi-2);
-  color: var(--murekkep-2);
+.uyg__logo-orta {
+  justify-self: center;
 }
 
 .uyg__geri {
+  width: auto;
+  height: 48px;
+  margin-left: 0;
+  padding: 0 14px 0 10px;
+  gap: 4px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: var(--yuzey);
+  box-shadow: var(--sh-1);
   color: var(--murekkep);
+  font-size: 14.5px;
+  font-weight: 700;
+  justify-self: start;
 }
 
 .uyg__geri:active {
-  background: var(--cizgi);
+  transform: scale(0.97);
+  background: var(--yuzey);
 }
 
-/* Başlıktaki iki yuvarlak düğme artık açık zeminde: beyaz saydamlık
-   yerine markanın kendi rengi. "+" dolu, hesap harfi soluk zeminde —
-   biri günde birkaç kez, öteki ayda bir basılıyor. */
+.uyg__baslik {
+  padding: 4px var(--bosluk-4) 12px;
+}
+
+.uyg__baslik h1 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--murekkep);
+}
+
+.uyg__baslik p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--murekkep-2);
+}
+
+/* Sağ üst eylemler: "+" mavi dolu daire (Connect'teki bildirim
+   düğmesiyle aynı yapı), hesap harfi beyaz kartta. */
+.uyg__islemler {
+  justify-self: end;
+}
+
+.uyg__ekle,
+.uyg__hesap {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 999px;
+  background-clip: border-box;
+}
+
 .uyg__ekle {
-  background: var(--dolgu);
-  background-clip: content-box;
+  background: var(--mavi);
   color: #fff;
+  box-shadow: var(--sh-mavi);
 }
 
-.uyg__ekle:hover {
-  background: var(--lacivert-2);
-  background-clip: content-box;
+.uyg__ekle:hover,
+.uyg__ekle:active {
+  background: var(--mavi-acik);
+  background-clip: border-box;
 }
 
 .uyg__hesap {
-  background: var(--mavi-z);
-  background-clip: content-box;
+  background: var(--yuzey);
+  box-shadow: var(--sh-1);
   color: var(--mavi-rz);
+  font-size: 15px;
+  font-weight: 800;
 }
 
 .uyg__hesap:active {
-  background: var(--cizgi);
-  background-clip: content-box;
+  background: var(--mavi-soft);
+  background-clip: border-box;
 }
 
-/* -------------------------------------------------------- Bölüm başlığı */
+/* --------------------------------------------------------- Yüzen menü
+
+   Connect'in .tabbar tarifi. Menü ekranın kenarından ayrılmış lacivert
+   bir hap; seçili sekmenin simgesinin arkasında açık mavi kapsül,
+   yazı kapsülün dışında (yazı uzayınca kapsüle dokunmasın). */
+
+.uyg__tabs {
+  position: fixed;
+  left: 50%;
+  right: auto;
+  bottom: calc(var(--nav-gap) + var(--dip));
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 460px;
+  height: var(--nav-h);
+  padding: 7px 8px;
+  padding-bottom: 7px;
+  border: 1px solid var(--nav-kenar);
+  border-top: 1px solid var(--nav-kenar);
+  border-radius: 999px;
+  background: var(--nav-zemin);
+  box-shadow: var(--sh-3);
+  z-index: 40;
+}
+
+.uyg__tab {
+  flex: 1 1 0;
+  min-height: 0;
+  height: 60px;
+  gap: 4px;
+  padding: 0 2px;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  transition: color 0.2s ease;
+}
+
+.uyg__tab--on {
+  color: #fff;
+}
+
+.uyg__tab-ikon {
+  width: 100%;
+  max-width: 46px;
+  height: 36px;
+  color: inherit;
+}
+
+.uyg__tab-ikon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: var(--nav-secili);
+  transform: scaleX(0.55);
+  opacity: 0;
+  transition: transform 0.24s cubic-bezier(0.2, 0.7, 0.3, 1), opacity 0.16s ease;
+}
+
+.uyg__tab--on .uyg__tab-ikon::before {
+  transform: scaleX(1);
+  opacity: 1;
+}
+
+.uyg__tab--on .uyg__tab-ikon {
+  color: var(--lacivert);
+}
+
+.uyg__tab-ikon > svg,
+.uyg__rozet {
+  position: relative;
+}
+
+.uyg__rozet {
+  background: var(--kirmizi);
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .uyg__tab-ikon::before,
+  .uyg__tab {
+    transition: none;
+  }
+}
+
+/* Gövde, yüzen menünün altında kalmasın. */
+.uyg__ic {
+  padding-bottom: calc(var(--bosluk-5) + var(--tabs) + var(--dip));
+}
+
+/* ------------------------------------------------------ Bölüm başlığı
+
+   Connect'in .sectionhead'i: büyük, kalın, cümle düzeni; sayı sağda
+   sönük. Büyük harfli küçük etiket backoffice diliydi, burada yok. */
 
 .uyg .bolum {
   margin-bottom: var(--bosluk-6);
 }
 
 .uyg .bolum__ad {
-  margin-bottom: var(--bosluk-2);
-  font-size: 13px;
+  margin: 0 0 12px;
+  font-size: 20px;
   font-weight: 700;
-  letter-spacing: 0;
+  letter-spacing: -0.015em;
   text-transform: none;
-  color: var(--murekkep-2);
+  color: var(--murekkep);
 }
 
-/* ------------------------------------------------------------- İş kartı */
+.uyg .bolum__sayi {
+  margin-left: auto;
+  padding: 0;
+  min-width: 0;
+  background: transparent;
+  color: var(--murekkep-3);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* ------------------------------------------------------------ İş kartı
+
+   Connect'in makine kartı: beyaz, 24px köşe, --sh-1; başlık kalın,
+   künye sönük, sağda eylem. Arama düğmesi mavi dolu daire — Connect'te
+   telefon her yerde mavi. */
 
 .uyg .is {
-  margin-bottom: var(--bosluk-3);
-  box-shadow: none;
+  margin-bottom: 12px;
+  border: 0;
+  border-radius: var(--r-kart);
+  background: var(--yuzey);
+  box-shadow: var(--sh-1);
+}
+
+.uyg .is:hover {
+  border-color: transparent;
+}
+
+.uyg .is:active {
+  transform: scale(0.985);
+  box-shadow: var(--sh-2);
+}
+
+.uyg .is--gec {
+  box-shadow: var(--sh-1), inset 0 0 0 2px var(--marka-turuncu);
 }
 
 .uyg .is__ac {
-  padding: var(--bosluk-4) var(--bosluk-3) var(--bosluk-4) var(--bosluk-4);
+  padding: 16px 8px 16px 18px;
 }
 
-/* Müşteri adı listedeki en büyük yazı: servis kartı adından buluyor. */
 .uyg .is__ad {
   font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--murekkep);
 }
 
 .uyg .is__alt {
-  margin-top: var(--bosluk-1);
+  margin-top: 3px;
+  font-size: 13.5px;
+  color: var(--murekkep-2);
 }
 
-/* TÜR ETİKETİ DOLGUDAN SOLUK ZEMİNE GEÇTİ.
+.uyg .is__durum {
+  margin-top: 10px;
+  font-size: 13.5px;
+}
 
-   Dolu turuncu / mor hap, yanındaki müşteri adıyla aynı görsel ağırlığa
-   sahipti ve göz önce ona gidiyordu. Oysa listede aranan şey ad. Aynı
-   renk, aynı anlam; yalnız ses seviyesi düştü. Yazı rengi kendi soluk
-   zemininde ölçülmüş tonlar (bkz. backoffice.css icindeki --turuncu-d). */
-.uyg .is__bas .tur {
-  padding: 3px 9px;
-  font-size: var(--yazi-1);
+.uyg .is__sol {
+  color: var(--mavi-rz);
   font-weight: 700;
 }
 
-.uyg .is__bas .tur--servis {
-  background: var(--turuncu-z);
-  color: var(--turuncu-d);
+.uyg .is__sag {
+  color: var(--murekkep-2);
+  font-weight: 500;
 }
 
-.uyg .is__bas .tur--parca {
+.uyg .is__sag--gec {
+  color: var(--turuncu-yazi);
+  font-weight: 700;
+}
+
+.uyg .is__uyari {
+  color: var(--turuncu-yazi);
+}
+
+.uyg .is__ara {
+  width: 64px;
+  border-left: 0;
+  background: transparent;
+  color: #fff;
+}
+
+.uyg .is__ara > svg {
+  box-sizing: content-box;
+  padding: 12px;
+  border-radius: 999px;
+  background: var(--mavi);
+  box-shadow: var(--sh-mavi);
+}
+
+.uyg .is__ara:active > svg {
+  background: var(--mavi-acik);
+}
+
+/* Tür rozeti: Connect'teki soluk zeminli hap (aynı renk çiftleri). */
+.uyg .tur {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.uyg .tur--servis {
+  background: var(--turuncu-z);
+  color: #8f5200;
+}
+
+.uyg .tur--parca {
   background: var(--mor-z);
   color: var(--mor);
 }
 
-.uyg .is__bas .tur--satis {
+.uyg .tur--satis {
   background: var(--mavi-z);
   color: var(--mavi-rz);
 }
 
-/* ---------------------------------------------------------- Alan ve kutu */
-
-/* Alan etiketi backoffice'te 12,5 piksel; burada gövde ölçeğine
-   yaklaşıyor. Kutunun ne istediğini okuyamayan kullanıcı boş
-   bırakıyor. */
-.uyg .alan {
-  margin-bottom: var(--bosluk-4);
+[data-tema='koyu'] .uyg .tur--servis {
+  color: #ffb26b;
 }
 
-.uyg .alan__ad {
-  margin-bottom: var(--bosluk-2);
-  font-size: var(--yazi-2);
+/* ---------------------------------------------------------------- Düğme
+
+   Connect'in .btn ailesi: ana çağrı turuncu ve 18px köşe, ikincil
+   mavi, üçüncül beyaz kart. Basınca hafifçe içeri gidiyor. */
+
+.uyg .dg {
+  min-height: var(--dokunma);
+  padding: 0 18px;
+  border: 0;
+  border-radius: 16px;
+  font-family: inherit;
+  font-size: 16.5px;
   font-weight: 700;
+  letter-spacing: -0.015em;
+  transition: transform 0.13s ease, filter 0.13s ease;
+}
+
+.uyg .dg:active {
+  transform: scale(0.975);
+  filter: brightness(0.94);
+}
+
+.uyg .dg--ana {
+  background: var(--turuncu-dugme);
+  color: #fff;
+  border-radius: 18px;
+  box-shadow: var(--sh-turuncu);
+}
+
+.uyg .dg--blok {
+  min-height: 60px;
+}
+
+.uyg .dg:not(.dg--ana) {
+  background: var(--yuzey);
+  color: var(--murekkep);
+  border: 1px solid var(--cizgi-koyu);
+}
+
+.uyg .dg--mavi {
+  background: var(--mavi);
+  color: #fff;
+  border: 0;
+  box-shadow: var(--sh-mavi);
+}
+
+/* Detaydaki eylem satırları (Randevu, Not Ekle, Destek İste) —
+   Connect'in .tile'ı: beyaz kart, 24px köşe, ok sağda. */
+.uyg .secenek {
+  border: 0;
+  background: transparent;
+  overflow: visible;
+}
+
+.uyg .secenek__dg {
+  margin-bottom: 10px;
+  padding: 15px 16px;
+  border: 0;
+  border-radius: var(--r-kart);
+  background: var(--yuzey);
+  box-shadow: var(--sh-1);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
   color: var(--murekkep);
 }
 
-/* Kutunun ALTINDAKİ yardım satırı. Yer tutucu yerine burada duruyor:
-   yer tutucu yazmaya başlayınca kayboluyor ve tam da o an gerekiyor. */
+.uyg .secenek__dg:active {
+  transform: scale(0.985);
+}
+
+/* ------------------------------------------------------------ Seçenek
+
+   Connect'in .durum satırı: beyaz, 15px köşe, ince kenar, solda 22px
+   yuvarlak işaret; seçilince mavi kenar, soluk mavi zemin, dolu nokta. */
+
+.uyg .buyuk-sec {
+  position: relative;
+  min-height: 56px;
+  margin-bottom: 10px;
+  padding: 14px 15px 14px 50px;
+  border: 1px solid var(--cizgi-koyu);
+  border-radius: 15px;
+  background: var(--yuzey);
+  transition: background 0.14s ease, border-color 0.14s ease, transform 0.14s ease;
+}
+
+.uyg .buyuk-sec:last-child {
+  border-bottom: 1px solid var(--cizgi-koyu);
+}
+
+.uyg .buyuk-sec::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  width: 22px;
+  height: 22px;
+  margin-top: -11px;
+  border-radius: 50%;
+  border: 2px solid var(--cizgi-koyu);
+  background: var(--yuzey);
+}
+
+.uyg .buyuk-sec:active {
+  transform: scale(0.985);
+  background: var(--yuzey);
+}
+
+.uyg .buyuk-sec--on {
+  border-color: var(--mavi-rz);
+  background: var(--mavi-soft);
+  box-shadow: none;
+}
+
+.uyg .buyuk-sec--on::before {
+  border-color: var(--mavi-rz);
+  box-shadow: inset 0 0 0 3.5px var(--yuzey);
+  background: var(--mavi);
+}
+
+.uyg .buyuk-sec__ad {
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.uyg .buyuk-sec__alt {
+  font-size: 13px;
+  color: var(--murekkep-2);
+}
+
+.uyg .parca-satir {
+  border-radius: 15px;
+  border-color: var(--cizgi-koyu);
+}
+
+.uyg .parca-satir--on {
+  border-color: var(--mavi-rz);
+  background: var(--mavi-soft);
+}
+
+/* ----------------------------------------------------------- Alan, kutu */
+
+.uyg .alan {
+  margin-bottom: 16px;
+}
+
+.uyg .alan__ad {
+  margin-bottom: 7px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--murekkep);
+}
+
 .uyg .alan__ipucu {
   display: block;
-  margin-top: 5px;
-  font-size: var(--yazi-2);
+  margin-top: 6px;
+  font-size: 13px;
   color: var(--murekkep-2);
 }
 
 .uyg .gir {
   min-height: var(--dokunma);
-  font-size: var(--yazi-3);
+  padding: 12px 16px;
+  border: 1px solid var(--cizgi-koyu);
+  border-radius: var(--r-sm);
+  background: var(--yuzey);
+  color: var(--murekkep);
+  font-family: inherit;
+  font-size: 16px;
+}
+
+.uyg .gir:focus {
+  outline: 0;
+  border-color: var(--mavi-rz);
+  box-shadow: 0 0 0 3px var(--mavi-soft-2);
 }
 
 .uyg textarea.gir {
@@ -2409,17 +2816,12 @@
   line-height: 1.5;
 }
 
-/* --------------------------------------------------- Okunur bilgi satırı
-
-   Servis kaydında zaten bilinen alanlar (müşterinin adı, şase
-   numarası) kutu olarak değil satır olarak duruyor: doldurulacak bir
-   şey yok, okunacak bir şey var. Boş bir kutu görmek "burayı da ben mi
-   dolduracağım" sorusunu doğuruyordu. */
+/* Okunur satır (kayıtta zaten bilinen alanlar). */
 .kv {
   display: flex;
   align-items: baseline;
-  gap: var(--bosluk-3);
-  padding: var(--bosluk-3) 0;
+  gap: 12px;
+  padding: 12px 0;
   border-bottom: 1px solid var(--cizgi);
 }
 
@@ -2429,7 +2831,8 @@
 
 .kv__ad {
   flex: none;
-  font-size: var(--yazi-2);
+  font-size: 13.5px;
+  font-weight: 500;
   color: var(--murekkep-2);
 }
 
@@ -2437,106 +2840,172 @@
   flex: 1;
   min-width: 0;
   text-align: right;
-  font-size: var(--yazi-3);
-  font-weight: 600;
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--murekkep);
   overflow-wrap: anywhere;
 }
 
-/* ---------------------------------------------------------------- Hesap
+/* --------------------------------------------------------------- Kart
 
-   Yol ve işçilik kalemleri, altında toplam. Servis kaydı gönderilmeden
-   önce rakamın nereden çıktığı görünüyor. */
-.hesap {
-  margin-top: var(--bosluk-3);
-  padding: var(--bosluk-3) var(--bosluk-4);
-  border: 1px solid var(--cizgi);
-  border-radius: var(--r-2);
+   Detay ve kayıt ekranındaki bilgi kutuları da Connect kartı. */
+.uyg .kart {
+  border: 0;
+  border-radius: var(--r-kart);
   background: var(--yuzey);
+  box-shadow: var(--sh-1);
+}
+
+/* ------------------------------------------------------------------ Not
+
+   Yumuşak renkli kart: Connect'in bilgi kutuları gibi, köşe 18. */
+.uyg .not {
+  border: 0;
+  border-radius: 18px;
+  background: var(--mavi-soft);
+  color: var(--murekkep);
+}
+
+.uyg .not--yesil { background: rgba(26, 131, 72, 0.12); }
+.uyg .not--turuncu { background: var(--turuncu-soft); }
+.uyg .not--mavi { background: var(--mavi-soft); }
+
+/* --------------------------------------------------------------- Bakiye
+
+   Connect'in "Servisiniz" kartı anatomisi: soluk turuncu simge karesi,
+   küçük etiket, büyük lacivert rakam. Servisin ekranı açma sebebi bu
+   rakam; ekrandaki en büyük şey o. */
+
+.bakiye {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  padding: 18px;
+  border-radius: var(--r-kart);
+  background: var(--yuzey);
+  box-shadow: var(--sh-1);
+}
+
+.bakiye__ikon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: var(--turuncu-soft);
+  color: var(--turuncu-yazi);
+}
+
+.bakiye__govde {
+  flex: 1;
+  min-width: 0;
+}
+
+.bakiye__etiket {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--murekkep-2);
+}
+
+.bakiye__tutar {
+  margin-top: 2px;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--murekkep);
+  font-variant-numeric: tabular-nums;
+}
+
+.bakiye__tutar small {
+  margin-left: 4px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--murekkep-3);
+}
+
+.bakiye__aciklama {
+  margin: 8px 0 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--murekkep-2);
+}
+
+/* ------------------------------------------------------------------ Hesap */
+
+.hesap {
+  margin-top: 12px;
+  padding: 4px 18px;
+  border-radius: 18px;
+  background: var(--yuzey);
+  box-shadow: var(--sh-1);
 }
 
 .hesap__satir {
   display: flex;
   justify-content: space-between;
-  gap: var(--bosluk-3);
-  padding: var(--bosluk-2) 0;
-  font-size: var(--yazi-3);
-  color: var(--murekkep-2);
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--cizgi);
+  font-size: 15px;
+  color: var(--murekkep-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.hesap__satir:last-child {
+  border-bottom: 0;
 }
 
 .hesap__satir--toplam {
-  margin-top: var(--bosluk-1);
-  padding-top: var(--bosluk-3);
-  border-top: 1px solid var(--cizgi);
-  font-weight: 800;
+  font-size: 16px;
+  font-weight: 700;
   color: var(--murekkep);
 }
 
-/* ----------------------------------------------- Kaydın dibindeki çubuk
+/* --------------------------------------------- Kaydın dibindeki çubuk */
 
-   Tutar kaydet düğmesinin ÜSTÜNDE, aynı çubukta. Servis parmağını
-   düğmeye götürürken ne kazanacağını görüyor; sayfayı yukarı
-   kaydırmak gerekmiyor. */
+.uyg .uyg__dip {
+  background: var(--yuzey);
+  border-top: 1px solid var(--cizgi);
+  box-shadow: 0 -8px 24px rgba(10, 26, 51, 0.06);
+}
+
 .kayit-dip__hesap {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--bosluk-3);
-  margin-bottom: var(--bosluk-3);
-  font-size: var(--yazi-3);
-  color: var(--murekkep-2);
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.kayit-dip__hesap span {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--murekkep-3);
 }
 
 .kayit-dip__hesap strong {
-  font-size: var(--yazi-4);
-  font-weight: 800;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   color: var(--murekkep);
+  font-variant-numeric: tabular-nums;
 }
 
-/* ------------------------------------------------------------- Sekmeler */
+/* ------------------------------------------------------ Hesap hareketi */
 
-/* Seçili sekme yalnız renkle değil, simgesinin arkasındaki soluk
-   zeminle de ayrılıyor (renk körlüğü ve güneş altında düşen kontrast). */
-.uyg__tab--on .uyg__tab-ikon::before {
-  content: '';
-  position: absolute;
-  inset: -5px -10px;
-  border-radius: var(--r-tam);
-  background: var(--mavi-z);
-}
-
-.uyg__tab--on .uyg__tab-ikon > * {
-  position: relative;
-}
-
-/* ------------------------------------------------------- Koyu tema payı
-
-   Açık çubuk kararı yalnız aydınlık tema için: koyu temada --yuzey
-   zaten koyu ve yazı açık geliyor, ayrı bir kural gerekmiyor. Burada
-   düzeltilen tek şey başlıktaki artı düğmesi — koyu zeminde lacivert
-   dolgu arkasındaki yüzeyden ayrışmıyordu. */
-[data-tema='koyu'] .uyg__ekle {
-  background: var(--mavi-acik);
-  background-clip: content-box;
-}
-
-/* ------------------------------------------------------ Hesap hareketi
-
-   Ekranın geri kalanı kart diliyle konuşurken bu satırlar düz metin
-   olarak duruyordu. Aynı yüzeye alındı: solda ne olduğu ve ne zaman,
-   sağda tutar. */
 .hareket {
   display: flex;
   align-items: baseline;
-  gap: var(--bosluk-3);
-  padding: var(--bosluk-3) var(--bosluk-4);
-  border: 1px solid var(--cizgi);
-  border-radius: var(--r-2);
+  gap: 12px;
+  margin-bottom: 10px;
+  padding: 14px 18px;
+  border-radius: 18px;
   background: var(--yuzey);
-  margin-bottom: var(--bosluk-2);
-}
-
-.hareket:last-child {
-  margin-bottom: 0;
+  box-shadow: var(--sh-1);
 }
 
 .hareket__sol {
@@ -2545,24 +3014,123 @@
 }
 
 .hareket__ad {
-  font-size: var(--yazi-3);
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--murekkep);
 }
 
 .hareket__zaman {
   margin-top: 2px;
-  font-size: var(--yazi-2);
+  font-size: 13px;
   color: var(--murekkep-2);
 }
 
 .hareket__tutar {
   flex: none;
-  font-size: var(--yazi-3);
-  font-weight: 800;
+  font-size: 16px;
+  font-weight: 700;
   white-space: nowrap;
-  color: var(--murekkep-2);
+  color: var(--murekkep-3);
+  font-variant-numeric: tabular-nums;
 }
 
 .hareket__tutar--alacak {
   color: var(--yesil);
+}
+
+/* ---------------------------------------------------------- Duyuru kartı
+
+   Connect kartı; tür etiketi kendi renginde küçük, geri çağırma
+   soluk kırmızı zemin. Kalın renkli çerçeve yok. */
+
+.uyg .duyuru {
+  border: 0;
+  border-left: 0;
+  border-radius: var(--r-kart);
+  background: var(--yuzey);
+  box-shadow: var(--sh-1);
+  padding: 18px;
+}
+
+.uyg .duyuru__tur {
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.uyg .duyuru__ust {
+  font-size: 13px;
+}
+
+.uyg .duyuru__baslik {
+  margin-top: 6px;
+  font-size: 16.5px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--murekkep);
+}
+
+.uyg .duyuru__metin {
+  font-size: 15px;
+}
+
+.uyg .duyuru--geriCagirma {
+  border: 0;
+  background: var(--kirmizi-z);
+}
+
+/* ------------------------------------------------------------- İpucu */
+
+.uyg .ipucu {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--murekkep-2);
+}
+
+.uyg .bos {
+  border-radius: var(--r-kart);
+}
+
+/* ------------------------------------------------ Dokunma hedefi tabanı
+
+   Sweep üç küçük hedef yakaladı: Yeni Kayıt'taki tür seçici çipleri
+   32 px, Hesap'taki tema düğmeleri 30 px, Geri pili 40 px. Kural 48
+   (eldivenli kullanım, bkz. PRODUCT.md). Görünüm değişmeden yükseklik
+   tabana çekildi; hap dili Connect'in çipleriyle aynı. */
+/* Tür seçici çipleri (.cip): Connect'in çip dili — hap, seçilince
+   lacivert dolu ve beyaz yazı. */
+.uyg .cip {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 14.5px;
+}
+
+.uyg .cip--on {
+  background: var(--dolgu);
+  color: #fff;
+  border-color: var(--dolgu);
+}
+
+.uyg .tema-secici__dg {
+  min-height: 44px;
+  padding: 0 16px;
+}
+
+/* ------------------------------------------ Alt sayfada yapışık düğme
+
+   `.yapisik` sekmeli ekranlar için yazıldı: sekme çubuğunun üstüne
+   oturur. Alt sayfada (Yeni Kayıt) sekme yok; aynı kural düğmeyi
+   boşlukta, içeriğin üstünde yüzer bırakıyordu. Alt sayfada dibe
+   yapışıyor ve Connect'in dip çubuğu gibi beyaz zeminde duruyor. */
+.uyg--sayfa .yapisik {
+  bottom: var(--dip);
+  margin-top: 8px;
+  padding: 12px var(--bosluk-4);
+  padding-bottom: calc(12px + var(--dip));
+  background: var(--yuzey);
+  border-top: 1px solid var(--cizgi);
+  box-shadow: 0 -8px 24px rgba(10, 26, 51, 0.06);
 }
