@@ -12,7 +12,7 @@ import { yeniNo } from '../lib/numara'
 import { talepNo } from '../lib/talep'
 import { SIRKET, MARKA, markaEk, PARA_BIRIMI } from '../marka'
 import { urun } from '../lib/urun'
-import { kaydiDogrula, kaydiCozume, kapininSonucu } from '../lib/servisKaydi.js'
+import { ASAMA, kaydiDogrula, kaydiCozume, kapininSonucu } from '../lib/servisKaydi.js'
 import { servisleriGetir } from '../marka'
 import { icerikListe, icerikTazele } from '../lib/icerikDeposu.js'
 import { altBilgi } from '../data/duyuruTurleri.js'
@@ -911,6 +911,29 @@ export function talepKapat(talep, cozum, personel) {
     personel,
   })
 
+  /* SERVİSİN HAK EDİŞİNDEN DÜŞÜLECEK SİPARİŞ.
+
+     Servis siparişi verirken bedelin hak edişinden düşülmesini
+     istemiş olabiliyor (bkz. servisParcaSiparisi → odeme). Düşüm o an
+     yapılmıyor: sipariş henüz onaylanmamış, tutar da bağlayıcı değil.
+     Parça kargoya verildiğinde iş kesinleşiyor ve borç deftere o
+     zaman yazılıyor.
+
+     Tutar sipariş anındaki fiyattan; sunucu geldiğinde faturanın
+     kendi tutarı gelecek ve değişecek tek şey bu satır olacak. */
+  const dusulecek = Number(talep.tutarKdvli) || Number(talep.tutar) || 0
+  if (talep.servisSiparisi && talep.odeme === 'bakiye' && dusulecek > 0) {
+    cariHareketEkle({
+      servisId: talep.servis?.id,
+      servisAd: talep.servis?.ad,
+      tur: 'borc',
+      tutar: dusulecek,
+      aciklama: `${talep.no} · parça siparişi`,
+      talepNo: talep.no,
+      personel,
+    })
+  }
+
   /* YEDEK PARÇADA KAPANIŞ = KARGOYA VERİLDİ.
 
      Bildirim de ona göre yazılıyor: takip numarası girildiyse
@@ -1157,7 +1180,7 @@ export function duyurulariGetir() {
  *   hangi temanın çıkacağını bu belirliyor. `tur` yerini ALMIYOR:
  *   ticari ileti izni ve bütün eski süzgeçler hâlâ ona bakıyor.
  */
-export function duyuruYayinla({ tur, alt, baslik, metin, gorsel, hedef }, personel) {
+export function duyuruYayinla({ tur, alt, baslik, metin, gorsel, hedef, gun }, personel) {
   /* Hedef boşsa alan hiç yazılmıyor: yokluk "herkese" demek
      (bkz. src/lib/duyuruHedef.js). Boş dizilerle dolu bir nesne
      yazmak da aynı sonucu verirdi ama kayıt gereksiz şişerdi. */
@@ -1177,6 +1200,18 @@ export function duyuruYayinla({ tur, alt, baslik, metin, gorsel, hedef }, person
     personel,
     /* Uygulamada açılışta pencere olarak çıksın */
     pencere: true,
+    /* DUYURUNUN SON GÜNÜ.
+
+       Yoktu ve her duyuru sonsuza kadar ekranda kalıyordu: geçen
+       yılın fuar duyurusu, biten kampanya, tarihi geçmiş bakım
+       hatırlatması. Personel elle silmedikçe hiçbiri düşmüyordu ve
+       elle silmek kimsenin görevi değildi.
+
+       `gun` verilmezse `bitis` hiç yazılmıyor ve duyuru süresiz
+       kalıyor — geri çağırma gibi süresi olmayan uyarılar için
+       gereken davranış bu. Eski kayıtlarda alan yok; yokluk yine
+       "süresiz" demek, taşıma gerekmiyor. */
+    ...(Number(gun) > 0 ? { bitis: Date.now() + Number(gun) * 86400000 } : {}),
     ...(doluHedef ? { hedef } : {}),
   }
   save(ANAHTAR.duyurular, [kayit, ...load(ANAHTAR.duyurular, [])])
@@ -1574,16 +1609,28 @@ export function servisKaydiGonder(talep, kayit, servisAd) {
      Artık her yeni kayıt, öncekini `oncekiKayitlar` dizisine itiyor.
      `servisKaydi` her zaman EN SON kayıt — okuyan ekranlar
      değişmedi. */
-  const arsiv = talep.servisKaydi
-    ? [...(talep.oncekiKayitlar || []), { ...talep.servisKaydi, hakkedis: talep.hakkedis || null }]
-    : talep.oncekiKayitlar || []
+  /* AYNI ZİYARETİN İKİNCİ AŞAMASI ARŞİVE GİTMİYOR.
+
+     Garanti işinde servis önce parçayı istiyor, parça gelince takıp
+     "Parçayı Taktım" diyor. İkincisi YENİ BİR ZİYARET DEĞİL, aynı
+     kaydın tamamlanması: arşivlenseydi tek iş, geçmişte iki ayrı
+     ziyaret gibi görünürdü. Üstüne yazılıyor ve 1. aşamada girilen
+     arıza, teşhis ve parça korunuyor. */
+  const devam = talep.servisKaydi?.asama === ASAMA.parca && kayit.asama !== ASAMA.parca
+
+  const arsiv =
+    talep.servisKaydi && !devam
+      ? [...(talep.oncekiKayitlar || []), { ...talep.servisKaydi, hakkedis: talep.hakkedis || null }]
+      : talep.oncekiKayitlar || []
 
   const yama = {
     status: sonuc.durum,
     masa: sonuc.masa,
     /* Kayıt talebin üstünde duruyor; `cozum` eskisi gibi korunuyor
        çünkü müşteri uygulaması ve raporlar onu okuyor. */
-    servisKaydi: { ...kayit, parcalar, tarih: simdi, servisAd },
+    servisKaydi: devam
+      ? { ...talep.servisKaydi, ...kayit, parcalar, tarih: simdi, servisAd }
+      : { ...kayit, parcalar, tarih: simdi, servisAd },
     ...(arsiv.length ? { oncekiKayitlar: arsiv } : {}),
     cozum: { ...cozum, tarih: simdi, personel: servisAd },
     gecmis: [...(talep.gecmis || []), { durum: sonuc.durum, tarih: simdi, personel: servisAd }],
@@ -1608,11 +1655,15 @@ export function servisKaydiGonder(talep, kayit, servisAd) {
   }
   if (!talep.aciklama?.trim() && kayit.ariza) yama.aciklama = kayit.ariza
 
-  /* Hak ediş yalnız garanti kapısında doğuyor; garanti dışı işin
-     parasını müşteri servise ödüyor, PAKSAN'ı ilgilendirmiyor. */
-  if (kayit.kapi === 'garanti') {
+  /* HAK EDİŞ İŞ BİTTİĞİNDE DOĞUYOR, İSTENDİĞİNDE DEĞİL.
+
+     Yalnız garanti kapısında doğuyor — garanti dışı işin parasını
+     müşteri servise ödüyor, PAKSAN'ı ilgilendirmiyor. Ayrıca yalnız
+     2. aşamada: parça istenirken yol ve işçilik daha sorulmadı,
+     ortada ödenecek bir tutar yok. */
+  if (kayit.kapi === 'garanti' && kayit.asama !== ASAMA.parca) {
     yama.hakkedis = { ...hakkedis, durum: 'bekliyor', olusma: simdi }
-  } else if (talep.hakkedis) {
+  } else if (talep.hakkedis && !devam) {
     /* İkinci ziyaret garanti dışıysa eski hak ediş talebin üstünde
        kalmamalı: arşive taşındı, güncel kayıtta karşılığı yok. */
     yama.hakkedis = null
@@ -1684,22 +1735,22 @@ export function hakkedisDuzelt(talep, yeniKayit, neden, personel) {
 
 /* Hak edişi onaylıyor: servisin cari hesabına alacak yazılıyor.
 
-   Parça istendiyse talep KAPANMIYOR — parça yola çıkacak, servis
-   takacak, sonra kendisi kapatacak. Talebin açık kalması kasıtlı:
-   parçanın nerede olduğu o talebin üstünde görünüyor. */
+   ONAY ARTIK SON ADIM. Bir dönem parça istenmişse talep onaydan sonra
+   `parcaBekliyor` durumuna geçiyordu: parça hazırlanması onaya bağlıydı
+   ve servis, işini bitirmeden parasını almış oluyordu. Sıra tersine
+   çevrildi — parça önce hazırlanıyor, servis takıyor, kayıt ondan sonra
+   onaya geliyor (bkz. lib/servisKaydi.js başı). Onay bu yüzden hep
+   talebi kapatıyor. */
 export function hakkedisOnayla(talep, personel) {
   if (talep.status !== 'onayBekliyor') return { hata: 'Bu talep onay beklemiyor.' }
 
-  const kayit = talep.servisKaydi || {}
   const hakkedis = { ...(talep.hakkedis || {}), durum: 'onaylandi', onay: { personel, tarih: Date.now() } }
-  const parcaVar = (kayit.parcalar || []).length > 0
-  const durum = parcaVar ? 'parcaBekliyor' : 'kapandi'
-  const masa = parcaVar ? 'parca' : null
+  const durum = 'kapandi'
 
   talepYaz(talep.id, {
     hakkedis,
     status: durum,
-    masa,
+    masa: null,
     gecmis: [...(talep.gecmis || []), { durum, tarih: Date.now(), personel }],
   })
 
@@ -1717,6 +1768,20 @@ export function hakkedisOnayla(talep, personel) {
       personel,
     })
   }
+
+  /* MÜŞTERİ ARTIK HABER ALIYOR.
+
+     Onay talebi kapatan adım oldu; kapanan her talepte müşteriye
+     bildirim gidiyor (bkz. talepKapat). Burada gitmiyordu: garanti
+     işi tamamlanıyor, müşterinin uygulamasında talep sessizce
+     kapanıyordu. */
+  musteriyeBildir({
+    tur: 'talep',
+    baslikAnahtar: 'bildirimler.durumBaslik',
+    metinAnahtar: 'bildirimler.durum_kapandi',
+    degerler: { no: talep.no, durum: 'kapandi', talepTur: talep.tur },
+    talepNo: talep.no,
+  })
 
   islemYaz({
     tur: 'hakkedis',
@@ -1786,8 +1851,9 @@ export function servisParcaSiparisi({
   kalemler,
   not,
   teslimat,
-  istenenTarih,
+  odeme,
   tutar,
+  tutarKdvli,
 }) {
   const temiz = (kalemler || []).filter((k) => Number(k.adet) > 0)
   if (!temiz.length) return { hata: 'En az bir parça seçin.' }
@@ -1813,11 +1879,26 @@ export function servisParcaSiparisi({
     parcalar: temiz.map((k) => k.ad),
     parcaAdet: Object.fromEntries(temiz.map((k) => [k.ad, Number(k.adet)])),
     fatura: { ad: servisAd, adres: (teslimat || '').trim() },
-    istenenTarih: istenenTarih || null,
+    /* İSTENEN TESLİM TARİHİ KALDIRILDI.
+
+       Soruluyordu ve hiçbir şeye bağlanmıyordu: ne sevkiyat planına
+       ne kapanış formuna giriyordu. Cevabı olmayan bir soru, formu
+       uzatmaktan başka bir iş yapmaz.
+
+       ÖDEME BİÇİMİ ONUN YERİNE GELDİ. Servis cari hesaplı çalışıyor;
+       bu siparişin bedelinin hak edişinden düşülmesini isteyebiliyor.
+       Karar burada kaydediliyor, PARA BURADA İŞLENMİYOR: tutar
+       bağlayıcı değil ve sipariş henüz onaylanmadı. Düşüm, parça
+       gönderilip talep kapandığında yapılıyor (bkz. talepKapat). */
+    odeme: odeme === 'bakiye' ? 'bakiye' : 'fatura',
     /* Sipariş anındaki tutar kaydediliyor: fiyat listesi sonradan
        değişince "bu siparişi hangi fiyattan verdim" sorusunun cevabı
        kalsın. */
     tutar: Number(tutar) || 0,
+    /* Hak edişten düşülecek tutar KDV dâhil olan. `tutar` alanı KDV
+       hariç ve listelerde o görünüyor; ikisini tek alana sıkıştırmak,
+       bir yerde eksik bir yerde fazla rakam demekti. */
+    tutarKdvli: Number(tutarKdvli) || Number(tutar) || 0,
     servisSiparisi: true,
     sahip: 'paksan',
     masa: 'parca',

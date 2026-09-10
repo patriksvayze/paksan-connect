@@ -113,6 +113,60 @@ export function Sayfa({ baslik, alt, onGeri, islem, dip, children }) {
   )
 }
 
+/* ==========================================================================
+   Onay yaprağı — geri alınamayan işlemden önce
+
+   NEDEN VAR
+
+   "Kaydı Tamamla" ve "Parçayı Taktım" basıldığı anda iş bitiyordu:
+   talep durum değiştiriyor, PAKSAN'a düşüyor, müşteriye bildirim
+   gidiyor. Sahada eldivenle, güneşte, tek elle kullanılan bir ekranda
+   yanlış basmanın geri dönüşü yok.
+
+   "EMİN MİSİNİZ?" DEMİYOR. Ne olacağını yazıyor — proje kuralı bu
+   (bkz. CLAUDE.md, Servis Panelinin Kullanıcısı). Böylece onay bir
+   engel değil, son bir özet oluyor.
+
+   Ekranın DİBİNDEN açılıyor, ortasından değil: parmak orada duruyor
+   ve giriş ekranındaki kâğıtla aynı dili konuşuyor.
+   ========================================================================== */
+
+/**
+ * @param {{baslik, metin, kalemler, dugme, onOnayla, onVazgec}} p
+ *        kalemler: [{ad, deger}] — onaylanacak şeyin özeti
+ */
+export function Onay({ baslik, metin, kalemler = [], dugme, onOnayla, onVazgec }) {
+  return (
+    <div
+      className="onay-perde"
+      onClick={(e) => e.target === e.currentTarget && onVazgec()}
+    >
+      <div className="onay" role="dialog" aria-label={baslik}>
+        <h2 className="onay__baslik">{baslik}</h2>
+        {metin && <p className="onay__metin">{metin}</p>}
+
+        {kalemler.length > 0 && (
+          <div className="onay__liste">
+            {kalemler.map((x) => (
+              <div key={x.ad} className="onay__satir">
+                <span>{x.ad}</span>
+                <strong>{x.deger}</strong>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <button className="dg dg--ana dg--blok" onClick={onOnayla}>
+          {dugme}
+        </button>
+        <button className="dg dg--blok onay__vazgec" onClick={onVazgec}>
+          Vazgeç
+        </button>
+      </div>
+    </div>
+  )
+}
+
 /** Ekran içi bölüm başlığı. Sayı verilirse adın yanında duruyor. */
 export function Bolum({ ad, sayi, children }) {
   return (
@@ -168,6 +222,7 @@ export function ListeKarti({
   tur,
   turAdi,
   kunye,
+  ozet,
   uyari,
   sol,
   sag,
@@ -186,6 +241,17 @@ export function ListeKarti({
         </div>
 
         <div className="is__alt">{kunye}</div>
+
+        {/* ARIZANIN KENDİSİ.
+
+            Kart bir dönem yalnız kim, nerede, ne zaman diyordu;
+            servisin gerçekten merak ettiği "ne olmuş" ancak kartı
+            açınca görünüyordu. Sekiz işlik bir listede sekiz kartı
+            tek tek açmak, listeyi listelikten çıkarıyor.
+
+            Tek satırda kesiliyor: kart üç satırdan uzarsa liste yine
+            okunmaz olur. */}
+        {ozet && <div className="is__ozet">{ozet}</div>}
 
         {/* Kartın tek kırmızı satırı: bu iş bir kez kapandı, müşteri
             "hâlâ aynı" dedi. Servis listeye bakarken hangi işe ikinci

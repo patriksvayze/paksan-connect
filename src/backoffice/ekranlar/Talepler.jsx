@@ -22,6 +22,7 @@ import { araliktaMi, BOS_ARALIK, Secim, SuzgecCubugu, TarihAraligi } from './suz
 import { Dekont, Ekler } from './Ekler'
 import { getProduct, markaEk } from '../../marka'
 import { formatSerial, warrantyStatus } from '../../lib/serial'
+import { ileriTarihMi, simdiGirdi } from '../../lib/tarih'
 import { makineDurumAdi } from '../../data/talepAlanlari'
 import { BANKA } from '../../marka'
 import { servisleriGetir, bayileriGetir, MARKA } from '../../marka'
@@ -1162,12 +1163,18 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
         {form === 'hakkedisOnay' && (
           <Onay
             baslik="Hak edişi onayla"
+            /* ONAY SON ADIM: PARÇA ZATEN TAKILMIŞ.
+
+               Burada "kayıtta parça isteği var, talep kapanmayacak,
+               yedek parçaya geçecek" yazıyordu. Akış tersine
+               çevrildikten sonra doğru değil: parça onaydan ÖNCE
+               hazırlanıp gönderiliyor, servis takıyor ve kaydı ancak
+               ondan sonra onaya gönderiyor. Onay her hâlükârda
+               talebi kapatıyor (bkz. veri.js → hakkedisOnayla). */
             metin={
-              `${talep.no} · ${talep.servis?.ad || 'servis'} için ` +
+              `${talep.no} · ${talep.servis?.ad || 'servis'} hesabına ` +
               `${paraYaz(talep.hakkedis?.toplam || 0)} ${PARA_BIRIMI} alacak yazılacak.` +
-              ((talep.servisKaydi?.parcalar || []).length
-                ? '\n\nKayıtta parça isteği var: talep kapanmayacak, yedek parçaya geçecek.'
-                : '\n\nParça isteği yok: talep kapanacak.')
+              '\n\nTalep kapanacak ve müşteriye bildirim gidecek.'
             }
             onVazgec={() => setForm(null)}
             onOnayla={() => {
@@ -1175,11 +1182,7 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
               setForm(null)
               if (sonuc.hata) return bildir(sonuc.hata)
               tazele()
-              bildir(
-                sonuc.durum === 'parcaBekliyor'
-                  ? `${talep.no} onaylandı · parça hazırlanacak`
-                  : `${talep.no} onaylandı · kapandı`,
-              )
+              bildir(`${talep.no} onaylandı · kapandı`)
             }}
           />
         )}
@@ -1983,8 +1986,10 @@ function ServisKaydiBolumu({
         </>
       )}
 
-      {/* Eski parçanın fotoğrafı: garanti tartışmasında bakılacak
-          belge bu. */}
+      {/* Değişen parçanın fotoğrafı: garanti tartışmasında bakılacak
+          belge bu. PARÇANIN KENDİSİ İSTENMİYOR — servisten arızalı
+          parçayı geri göndermesi beklenmiyor, karar bu fotoğrafa
+          bakılarak veriliyor. */}
       {k.foto && <Ekler ekler={[k.foto]} />}
 
       {/* DÜZELTMELER AÇIK YAZIYOR. Servis de aynı satırları kendi
@@ -2328,6 +2333,7 @@ function PlanFormu({ talep, onKapat, onKaydet }) {
             <input
               className="gir"
               type="datetime-local"
+              min={simdiGirdi()}
               value={tarih}
               onChange={(e) => setTarih(e.target.value)}
               autoFocus
@@ -2372,6 +2378,15 @@ function PlanFormu({ talep, onKapat, onKaydet }) {
               className="dg dg--ana"
               onClick={() => {
                 if (!tarih) return setHata('Planlanan tarih ve saati seçin.')
+                /* GEÇMİŞ ZAMAN KAYDEDİLEMİYOR. Kutudaki `min` yalnız
+                   takvimin denetimi; elle yazılan değer geçiyordu ve
+                   geçmişte duran bir randevu hem müşteriye yanlış
+                   bildirim gönderiyor hem de hatırlatma zincirini
+                   bozuyordu. Saatli sorulduğu için bugünün geçmiş
+                   saati de geçersiz. */
+                if (!ileriTarihMi(tarih, { saatli: true })) {
+                  return setHata('Geçmiş bir tarih veya saat seçilemez.')
+                }
                 if (is.trim().length < 5) return setHata('Planlanan işi yazın.')
                 if (gorusmeSart && !gorusuldu) {
                   return setHata('Randevuyu kaydetmeden önce müşteriyle görüşün.')

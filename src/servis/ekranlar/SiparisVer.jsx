@@ -1,38 +1,25 @@
 import { useMemo, useState } from 'react'
-import { servisParcaSiparisi } from '../../backoffice/veri'
+import { cariBakiye, servisParcaSiparisi } from '../../backoffice/veri'
 import { servisleriGetir, MARKA, markaEk } from '../../marka'
 import { KDV_ORANI, PARA_BIRIMI, PARCA_FIYAT, paraYaz } from '../../marka'
 import { parcaServisFiyati } from '../../lib/servisFiyat'
-import { Bolum } from '../Kabuk'
+import { Bolum, Onay } from '../Kabuk'
 import {
+  IconCheck,
   IconCheckCircle,
-  IconInfo,
+  IconMinus,
+  IconPlus,
   IconSearch,
   IconTrash,
 } from '../../components/Icons'
 
 /* ==========================================================================
-   Servis paneli — PAKSAN'a sipariş
-
-   ÖNCEKİ AKIŞ FAZLA BASİTTİ.
-
-   Yirmi küsur kalem alt alta diziliyor, servis kutuya bir sayı yazıyor ve
-   "Gönder" diyordu. Bir buçuk milyon liralık makine siparişi böyle
-   veriliyordu. Eksik olanlar sıradan değildi:
-
-     · Ne kadar tuttuğu görünmüyordu
-     · Nereye gönderileceği yazılı değildi
-     · Ne zaman istendiği sorulmuyordu
-     · Gönderilmeden önce özet gösterilmiyordu
-     · Yanlış basılan bir rakamın döneceği yer yoktu
-
-   B2B siparişinde bunlar telefonda konuşulup sonra unutulan
-   bilgilerdir; siparişin kendisinde durmaları gerekiyor.
+   Servis uygulaması — PAKSAN'a sipariş
 
    ÜÇ ADIM
 
      1. SEÇİM   kalemler ve adetler
-     2. ONAY    satır satır özet, tutar, teslim yeri ve tarihi
+     2. ONAY    satır satır özet, tutar, teslim yeri, ödeme
      3. SONUÇ   sipariş numarası
 
    Onay adımı ayrı bir ekran, aynı sayfanın altı değil. Servis ne
@@ -41,6 +28,32 @@ import {
 
    TUTAR BAĞLAYICI DEĞİL ve bu ekranda yazıyor. Fiyat listesi
    göstergedir; siparişi PAKSAN onaylıyor, fatura LOGO'dan çıkıyor.
+
+   ADET KUTUYA YAZILMIYOR, DÜĞMEYLE SAYILIYOR
+
+   Her satırın sağında bir yazı kutusu vardı ve servis oraya rakam
+   yazıyordu. Tarlada, eldivenle, tek elle kullanılan bir uygulamada
+   sayı klavyesi açıp "2" yazmak, iki dokunuşluk bir işi beş dokunuşa
+   çıkarıyordu. Satırlar da seçili olup olmadıklarını söylemiyordu.
+   Şimdi servis kaydındaki parça seçimiyle aynı kalıp kullanılıyor:
+   kutucuk, ad, artı-eksi.
+
+   İSTENEN TESLİM TARİHİ KALDIRILDI
+
+   Soruluyordu ve hiçbir yere bağlanmıyordu — ne sevkiyat planına ne
+   kapanış formuna giriyordu. Cevabı hiçbir şeyi değiştirmeyen bir
+   soru, formu uzatmaktan başka iş yapmaz.
+
+   YERİNE ÖDEME BİÇİMİ GELDİ
+
+   Servis cari hesaplı bir iş ortağı: PAKSAN ona hak ediş borçlu.
+   Bakiyesi siparişi karşılıyorsa bedelin oradan düşülmesini
+   isteyebiliyor. Yetmiyorsa seçenek kapalı ve KAÇ LİRA EKSİK OLDUĞU
+   yazıyor — kapalı bir düğme sebebini söylemeden durmaz.
+
+   Para bu ekranda işlenmiyor: sipariş henüz onaylanmadı ve tutar
+   bağlayıcı değil. Düşüm, parça kargoya verilip talep kapandığında
+   yapılıyor (bkz. backoffice/veri.js → talepKapat).
 
    SİPARİŞ AYRI BİR DEFTERE DEĞİL, TALEPLER'E DÜŞÜYOR
 
@@ -56,7 +69,9 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
   const [adetler, setAdetler] = useState({})
   const [arama, setArama] = useState('')
   const [not, setNot] = useState('')
+  const [odeme, setOdeme] = useState('fatura')
   const [hata, setHata] = useState('')
+  const [onay, setOnay] = useState(false)
   const [siparis, setSiparis] = useState(null)
 
   const servis = useMemo(
@@ -64,20 +79,20 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
     [oturum.servisId],
   )
 
+  const bakiye = useMemo(() => cariBakiye(oturum.servisId), [oturum.servisId, adim])
+
   /* Teslim adresi servisin kayıtlı adresiyle doluyor ama kilitli değil:
      sevkiyat bazen doğrudan müşterinin tarlasına gidiyor. */
   const [teslimat, setTeslimat] = useState(() =>
     servis ? [servis.adres, servis.ilce, servis.il].filter(Boolean).join(', ') : '',
   )
-  const [istenenTarih, setIstenenTarih] = useState('')
 
   const kalemler = useMemo(
     () =>
       Object.entries(PARCA_FIYAT).map(([ad, b]) => ({
-        tur: 'parca',
         anahtar: ad,
         ad,
-        alt: b.kod,
+        kod: b.kod,
       })),
     [],
   )
@@ -86,7 +101,7 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
     () =>
       kalemler
         .map((k) => {
-          const adet = Number(adetler[k.tur + ':' + k.anahtar]) || 0
+          const adet = Number(adetler[k.anahtar]) || 0
           const f = parcaServisFiyati(k.anahtar)
           return {
             ...k,
@@ -96,7 +111,7 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
           }
         })
         .filter((k) => k.adet > 0),
-    [kalemler, adetler, oturum],
+    [kalemler, adetler],
   )
 
   const hesap = useMemo(() => {
@@ -110,13 +125,22 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
     return { araToplam, kdv, toplam: araToplam + kdv, eksik }
   }, [secili])
 
-  function adetYaz(k, deger) {
-    const temiz = String(deger).replace(/\D/g, '')
-    setAdetler((a) => ({ ...a, [k.tur + ':' + k.anahtar]: temiz }))
+  /* Bakiye siparişin KDV dâhil tutarını karşılıyor mu? Karşılamıyorsa
+     seçenek kapalı ve farkı yazıyor. */
+  const bakiyeYeter = bakiye >= hesap.toplam && hesap.toplam > 0
+  const eksikTutar = Math.max(0, hesap.toplam - bakiye)
+
+  function adetDegistir(anahtar, fark) {
+    setAdetler((a) => {
+      const simdiki = Number(a[anahtar]) || 0
+      const yeni = Math.max(0, simdiki + fark)
+      return { ...a, [anahtar]: yeni || '' }
+    })
     setHata('')
   }
 
   function gonder() {
+    setOnay(false)
     if (!teslimat.trim()) return setHata('Teslim adresini yazın.')
 
     const sonuc = servisParcaSiparisi({
@@ -129,8 +153,9 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
       kalemler: secili,
       not,
       teslimat,
-      istenenTarih: istenenTarih ? new Date(istenenTarih).getTime() : null,
+      odeme: bakiyeYeter ? odeme : 'fatura',
       tutar: hesap.araToplam,
+      tutarKdvli: hesap.toplam,
     })
     if (sonuc.hata) return setHata(sonuc.hata)
 
@@ -144,23 +169,53 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
 
   if (adim === 'onay') {
     return (
-      <Onay
-        secili={secili}
-        hesap={hesap}
-        teslimat={teslimat}
-        onTeslimat={setTeslimat}
-        istenenTarih={istenenTarih}
-        onTarih={setIstenenTarih}
-        not={not}
-        onNot={setNot}
-        hata={hata}
-        onGeri={() => {
-          setAdim('secim')
-          setHata('')
-        }}
-        onGonder={gonder}
-        onSil={(k) => adetYaz(k, '')}
-      />
+      <>
+        <Ozet
+          secili={secili}
+          hesap={hesap}
+          teslimat={teslimat}
+          onTeslimat={setTeslimat}
+          not={not}
+          onNot={setNot}
+          odeme={bakiyeYeter ? odeme : 'fatura'}
+          onOdeme={setOdeme}
+          bakiye={bakiye}
+          bakiyeYeter={bakiyeYeter}
+          eksikTutar={eksikTutar}
+          hata={hata}
+          onGeri={() => {
+            setAdim('secim')
+            setHata('')
+          }}
+          onVer={() => {
+            if (!teslimat.trim()) return setHata('Teslim adresini yazın.')
+            setHata('')
+            setOnay(true)
+          }}
+          onSil={(k) => setAdetler((a) => ({ ...a, [k.anahtar]: '' }))}
+        />
+
+        {onay && (
+          <Onay
+            baslik={`Sipariş ${markaEk('a')} gidecek`}
+            metin={`${MARKA} yedek parça birimi siparişi görecek ve hazırlayacak. Tutar fiyat listesinden hesaplandı; kesin tutar faturada belirlenir.`}
+            kalemler={[
+              { ad: 'Parça', deger: `${secili.length} tür · ${secili.reduce((t, k) => t + k.adet, 0)} adet` },
+              { ad: 'Tutar', deger: `${paraYaz(hesap.toplam)} ${PARA_BIRIMI}` },
+              {
+                ad: 'Ödeme',
+                deger:
+                  bakiyeYeter && odeme === 'bakiye'
+                    ? 'Bakiyemden düşülsün'
+                    : 'Faturayla',
+              },
+            ]}
+            dugme="Sipariş Ver"
+            onOnayla={gonder}
+            onVazgec={() => setOnay(false)}
+          />
+        )}
+      </>
     )
   }
 
@@ -170,10 +225,9 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
       adetler={adetler}
       arama={arama}
       onArama={setArama}
-      onAdet={adetYaz}
+      onAdet={adetDegistir}
       secili={secili}
       hesap={hesap}
-      oturum={oturum}
       onKapat={onKapat}
       onDevam={() => setAdim('onay')}
     />
@@ -190,27 +244,31 @@ function Secim({
   onAdet,
   secili,
   hesap,
-  oturum,
   onKapat,
   onDevam,
 }) {
   const q = arama.trim().toLocaleLowerCase('tr-TR')
-  const suz = (liste) =>
-    q
-      ? liste.filter(
-          (k) =>
-            k.ad.toLocaleLowerCase('tr-TR').includes(q) ||
-            (k.alt || '').toLocaleLowerCase('tr-TR').includes(q),
-        )
-      : liste
+  const suzulmus = q
+    ? kalemler.filter(
+        (k) =>
+          k.ad.toLocaleLowerCase('tr-TR').includes(q) ||
+          (k.kod || '').toLocaleLowerCase('tr-TR').includes(q),
+      )
+    : kalemler
 
-  const parcalar = suz(kalemler)
+  /* Seçilenler listenin başında: sepette ne olduğu, sepette olmayanın
+     arasında aranmıyor. */
+  const secilenAnahtarlar = secili.map((k) => k.anahtar)
+  const sirali = [
+    ...suzulmus.filter((k) => secilenAnahtarlar.includes(k.anahtar)),
+    ...suzulmus.filter((k) => !secilenAnahtarlar.includes(k.anahtar)),
+  ]
 
   return (
     <>
       <p className="ipucu">
-        Almak istediğiniz parçaların adedini yazın. Bir sonraki adımda
-        özeti göreceksiniz; sipariş oradan gönderiliyor.
+        Almak istediğiniz parçaları seçin. Bir sonraki adımda özeti
+        görecek ve siparişi vereceksiniz.
       </p>
 
       <div className="ara-kutu">
@@ -224,22 +282,20 @@ function Secim({
         />
       </div>
 
-      {parcalar.length > 0 && (
-        <Bolum ad="Yedek Parça" sayi={parcalar.length}>
-          <div className="kart" style={{ padding: '4px 16px' }}>
-            {parcalar.map((k) => (
+      {sirali.length > 0 ? (
+        <Bolum ad="Yedek Parça" sayi={secili.length}>
+          <div className="parca-liste">
+            {sirali.map((k) => (
               <SecimSatiri
                 key={k.anahtar}
                 kalem={k}
-                deger={adetler[k.tur + ':' + k.anahtar]}
-                onDegis={(v) => onAdet(k, v)}
+                adet={Number(adetler[k.anahtar]) || 0}
+                onAdet={(fark) => onAdet(k.anahtar, fark)}
               />
             ))}
           </div>
         </Bolum>
-      )}
-
-      {!parcalar.length && (
+      ) : (
         <p className="kucuk sonuk">“{arama}” ile eşleşen parça yok.</p>
       )}
 
@@ -271,68 +327,83 @@ function Secim({
   )
 }
 
-function SecimSatiri({ kalem, deger, onDegis }) {
+/* Satırın tamamı dokunma hedefi: seçilmemişken bir kez dokunmak bir
+   adet ekliyor. Servis kaydındaki parça satırıyla aynı iskelet. */
+function SecimSatiri({ kalem, adet, onAdet }) {
   const f = parcaServisFiyati(kalem.anahtar)
-  const adet = Number(deger) || 0
+  const secili = adet > 0
 
   return (
-    <div className={'stok-satir' + (adet > 0 ? ' stok-satir--secili' : '')}>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div>{kalem.ad}</div>
-        <div className="kucuk sonuk">
-          {kalem.alt && <span className="mono">{kalem.alt}</span>}
-          {kalem.alt && f ? ' · ' : ''}
-          {f ? `${paraYaz(f.alis)} ${PARA_BIRIMI}` : ''}
+    <div className={'parca-satir' + (secili ? ' parca-satir--on' : '')}>
+      <button
+        className="parca-satir__ac"
+        onClick={() => onAdet(secili ? -adet : 1)}
+        aria-pressed={secili}
+      >
+        <span className="parca-kutucuk">{secili && <IconCheck size={15} />}</span>
+        <span className="parca-satir__ad">
+          {kalem.ad}
+          <span className="parca-satir__fiyat">
+            {kalem.kod && <span className="mono">{kalem.kod}</span>}
+            {kalem.kod && f ? ' · ' : ''}
+            {f ? `${paraYaz(f.alis)} ${PARA_BIRIMI}` : 'Fiyat bilgisi yok'}
+          </span>
+        </span>
+      </button>
+
+      {secili && (
+        <div className="parca-satir__adet">
+          <button
+            className="stok-dus"
+            onClick={() => onAdet(-1)}
+            aria-label={kalem.ad + ' adedini azalt'}
+          >
+            <IconMinus size={19} />
+          </button>
+          <span className="parca-satir__sayi">{adet}</span>
+          <button
+            className="stok-dus"
+            onClick={() => onAdet(1)}
+            aria-label={kalem.ad + ' adedini artır'}
+          >
+            <IconPlus size={19} />
+          </button>
         </div>
-        {adet > 0 && f && (
-          <div className="kucuk satir-tutar">
-            {adet} × {paraYaz(f.alis)} = {paraYaz(f.alis * adet)} {PARA_BIRIMI}
-          </div>
-        )}
-      </div>
-      <input
-        className="gir mono"
-        style={{ width: 82, textAlign: 'right' }}
-        inputMode="numeric"
-        value={deger || ''}
-        onChange={(e) => onDegis(e.target.value)}
-        placeholder="0"
-        aria-label={kalem.ad + ' sipariş adedi'}
-      />
+      )}
     </div>
   )
 }
 
-/* --------------------------------------------------------------- 2. Onay */
+/* --------------------------------------------------------------- 2. Özet */
 
-function Onay({
+function Ozet({
   secili,
   hesap,
   teslimat,
   onTeslimat,
-  istenenTarih,
-  onTarih,
   not,
   onNot,
+  odeme,
+  onOdeme,
+  bakiye,
+  bakiyeYeter,
+  eksikTutar,
   hata,
   onGeri,
-  onGonder,
+  onVer,
   onSil,
 }) {
-  /* Bugünden önceki bir tarih istenemiyor. */
-  const enErken = new Date().toISOString().slice(0, 10)
-
   return (
     <>
       <p className="ipucu">
-        Siparişinizi göndermeden önce kontrol edin. Satırı kaldırmak
-        için çöp kutusuna dokunun.
+        Siparişinizi vermeden önce kontrol edin. Satırı kaldırmak için
+        çöp kutusuna dokunun.
       </p>
 
       <Bolum ad="Sipariş Özeti" sayi={secili.length}>
         <div className="kart" style={{ padding: '4px 16px' }}>
           {secili.map((k) => (
-            <div key={k.tur + k.anahtar} className="ozet-kalem">
+            <div key={k.anahtar} className="ozet-kalem">
               <div className="ozet-kalem__ad">
                 <div>{k.ad}</div>
                 <div className="kucuk sonuk">
@@ -375,11 +446,49 @@ function Onay({
               {paraYaz(hesap.toplam)} {PARA_BIRIMI}
             </strong>
           </div>
-          {hesap.eksik && (
-            <div className="urun-kart__dip">
-              Fiyatı listede olmayan parça var; gösterilen toplam eksik.
-            </div>
-          )}
+          <div className="urun-kart__dip">
+            {hesap.eksik
+              ? 'Fiyatı listede olmayan parça var; gösterilen toplam eksik. '
+              : ''}
+            Tutar fiyat listesinden hesaplandı; kesin tutar faturada belirlenir.
+          </div>
+        </div>
+      </Bolum>
+
+      {/* ÖDEME BİÇİMİ.
+
+          Bakiye yetmiyorsa seçenek kapalı ve farkı yazıyor. Kapalı
+          düğmenin yanında sebebi yoksa kullanıcı ona bir daha
+          dokunuyor ve hiçbir şey olmuyor. */}
+      <Bolum ad="Ödeme">
+        <div className="secenek">
+          <button
+            className={'buyuk-sec' + (odeme === 'fatura' ? ' buyuk-sec--on' : '')}
+            onClick={() => onOdeme('fatura')}
+          >
+            <span className="buyuk-sec__ad">Faturayla</span>
+            <span className="buyuk-sec__alt">
+              {MARKA} faturayı gönderecek. Ödeme ay sonu hesaplaşmasında
+              yapılacak.
+            </span>
+          </button>
+
+          <button
+            className={
+              'buyuk-sec' +
+              (odeme === 'bakiye' ? ' buyuk-sec--on' : '') +
+              (bakiyeYeter ? '' : ' buyuk-sec--kapali')
+            }
+            disabled={!bakiyeYeter}
+            onClick={() => onOdeme('bakiye')}
+          >
+            <span className="buyuk-sec__ad">Bakiyemden Düşülsün</span>
+            <span className="buyuk-sec__alt">
+              {bakiyeYeter
+                ? `Bakiyeniz ${paraYaz(bakiye)} ${PARA_BIRIMI}. Parça gönderildiğinde tutar bakiyenizden düşülecek.`
+                : `Bakiyeniz ${paraYaz(bakiye)} ${PARA_BIRIMI}; ${paraYaz(eksikTutar)} ${PARA_BIRIMI} eksik.`}
+            </span>
+          </button>
         </div>
       </Bolum>
 
@@ -394,21 +503,14 @@ function Onay({
             placeholder="Sevkiyatın gideceği adres"
           />
         </label>
-
-        <label className="alan">
-          <span className="alan__ad">İstenen Teslim Tarihi</span>
-          <input
-            className="gir"
-            type="date"
-            min={enErken}
-            value={istenenTarih}
-            onChange={(e) => onTarih(e.target.value)}
-          />
-        </label>
       </Bolum>
 
+      {/* NOT ZORUNLU DEĞİL ve bunu etiketin kendisi söylüyor. Boş
+          bırakılabileceği yazmıyorsa kullanıcı doldurmak zorunda
+          olduğunu sanıyor. */}
       <Bolum ad="Not">
         <label className="alan">
+          <span className="alan__ad">Not (isteğe bağlı)</span>
           <textarea
             className="gir"
             rows={3}
@@ -419,22 +521,11 @@ function Onay({
         </label>
       </Bolum>
 
-      <div className="not not--mavi">
-        <IconInfo size={19} />
-        <div>
-          <strong>Tutar bağlayıcı değil</strong>
-          <p>
-            Buradaki tutar fiyat listesinden hesaplanıyor. Siparişi {MARKA}{' '}
-            onaylayacak; kesin tutar faturada belirlenir.
-          </p>
-        </div>
-      </div>
-
       {hata && <div className="uyari">{hata}</div>}
 
       <div className="yapisik">
-        <button className="dg dg--ana dg--blok" onClick={onGonder}>
-          Siparişi Gönder
+        <button className="dg dg--ana dg--blok" onClick={onVer}>
+          Sipariş Ver
         </button>
         <button className="dg dg--blok" style={{ marginTop: 8 }} onClick={onGeri}>
           Geri

@@ -223,6 +223,20 @@ servisi, taleplerini ve stokunu kuruyor ve giriş alanları dolu geliyor
 (bkz. `src/servis/demoKimlik.js`). Silinmezse gerçek servis, uygulamayı
 açtığında uydurma müşteri adları görür.
 
+**Kod açıklamaları teslimden önce temizlenecek.** Kaynak kodda her
+kararın gerekçesi yazılı: neyin neden denendiği, neyin geri alındığı,
+hangi ölçümün hangi sayıyı verdiği. Bunlar geliştirme boyunca değerli
+— aynı hatanın altı ay sonra tekrar yapılmasını engelliyorlar — ama
+teslim edilen kodda durmayacaklar.
+
+Nasıl yapılacağı önemli: açıklamalar **elle silinmeyecek**. Derleme
+sırasında (Vite → esbuild / terser) `legalComments: 'none'` ile
+düşürülür; kaynak deposunda oldukları gibi kalır. Elle silinmiş bir
+kod tabanı geri alınamaz ve depodaki gerekçeler de kaybolur.
+
+> Bu bir teslim adımı, geliştirme kuralı değil. Yeni yazılan kodda
+> gerekçe yazılmaya devam ediyor.
+
 ### Aşama 3 — İç test (PAKSAN personeli)
 
 Uygulama Play Store'un **"iç test"** kanalına yüklenir. Bu kanal

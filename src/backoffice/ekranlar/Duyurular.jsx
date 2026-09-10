@@ -216,6 +216,19 @@ function ozetle(hedef, servisler) {
   return parcalar.join(' · ')
 }
 
+/* Duyurunun ekranda kalacağı süre. Gün cinsinden; 0 = süresiz.
+
+   Rakamlar keyfî değil: bir hafta kısa duyuru (bir günlük fuar,
+   hafta sonu kampanyası), bir ay çoğu kampanyanın süresi, üç ay
+   sezonluk duyuru. Süresiz yalnız güvenlik uyarısı ve geri çağırma
+   için — onların düşeceği bir gün yok. */
+const SURELER = [
+  { gun: 7, ad: '1 hafta' },
+  { gun: 30, ad: '1 ay' },
+  { gun: 90, ad: '3 ay' },
+  { gun: 0, ad: 'Süresiz' },
+]
+
 export function Duyurular({ personel, bildir, tazele, surum }) {
   const [alt, setAlt] = useState('kampanya')
   const [baslik, setBaslik] = useState('')
@@ -225,6 +238,10 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
   const [onay, setOnay] = useState(false)
   const [silinecek, setSilinecek] = useState(null)
   const [hedef, setHedef] = useState(BOS_HEDEF)
+  /* Kaç gün ekranda kalacağı. Varsayılan 30 gün: kampanya ve fuar
+     duyurularının çoğu bir ayı geçmiyor. Süresiz seçeneği ayrıca
+     var ve tıklanarak seçiliyor. */
+  const [gun, setGun] = useState(30)
 
   const { veri: liste, yukleniyor } = useVeri(duyurulariGetir, [surum], [])
   const servisListesi = servisleriGetir()
@@ -256,7 +273,7 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
     /* Kilit son anda bir kez daha uygulanıyor: hedef başka bir yoldan
        değişmiş olabilir. */
     const gidecek = kilitliKime ? { ...hedef, kime: kilitliKime } : hedef
-    duyuruYayinla({ tur, alt, baslik, metin, gorsel, hedef: gidecek }, personel)
+    duyuruYayinla({ tur, alt, baslik, metin, gorsel, hedef: gidecek, gun }, personel)
     setBaslik('')
     setMetin('')
     setGorsel(null)
@@ -332,6 +349,40 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
                 {kilitliKime
                   ? 'Geri çağırmayı servis yürütür: makineyi kuran, servis hizmetini veren ve müşteriyi arayacak olan odur. Bu yüzden yalnızca servislere gönderilebiliyor.'
                   : KIMLER.find((x) => x.id === hedef.kime)?.alt}
+              </span>
+            </div>
+
+            {/* ==================================================== Süre
+
+                DUYURULARIN SONU YOKTU.
+
+                Yayınlanan her duyuru sonsuza kadar kalıyordu: geçen
+                yılın fuarı, biten kampanya, tarihi geçmiş bakım
+                çağrısı. Elle silinmesi bekleniyordu ve kimsenin
+                görevi değildi; ekran zamanla arşive dönüyordu.
+
+                SÜRESİZ SEÇENEĞİ DURUYOR ve bilerek: geri çağırma bir
+                kampanya değil, makine güvenliğiyle ilgili bir uyarı.
+                Onun ekrandan düşeceği bir gün yok. */}
+            <div className="alan">
+              <span className="alan__ad">Ne Kadar Kalsın</span>
+              <div className="suzgec" style={{ marginBottom: 4 }}>
+                {SURELER.map((x) => (
+                  <button
+                    key={x.gun}
+                    className={'cip' + (gun === x.gun ? ' cip--on' : '')}
+                    onClick={() => setGun(x.gun)}
+                  >
+                    {x.ad}
+                  </button>
+                ))}
+              </div>
+              <span className="kucuk sonuk">
+                {gun > 0
+                  ? `Süre dolunca duyuru kendiliğinden yayından kalkar. ${tarihYaz(
+                      Date.now() + gun * 86400000
+                    )} tarihine kadar görünür.`
+                  : 'Duyuru siz silene kadar ekranda kalır. Geri çağırma ve güvenlik uyarıları için doğru seçim budur.'}
               </span>
             </div>
 

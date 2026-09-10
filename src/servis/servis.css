@@ -1897,17 +1897,61 @@
   color: var(--murekkep-2);
 }
 
-/* Parça satırı. Açılır kutu yok: liste duruyor, servis kullandığına
-   dokunuyor. Seçilince altında adet düğmeleri beliriyor.
+/* ==========================================================================
+   Parça satırı
 
-   Adet düğmelerinin yanında "Adet" yazıyor: artı ve eksi simgeleri
-   tek başına ne sayıldığını söylemiyor. */
+   ÖNCE ON TANE BOŞ BEYAZ KUTUYDU. Her parça tam genişlikte, çerçeveli,
+   içi boş bir satırdı; dokunulabilir olduğunu söyleyen hiçbir şey
+   yoktu ve yazı kutusu sanılıyordu. Seçilenler de seçilmeyenlerin
+   arasında kayboluyordu.
+
+   Şimdi her satırın bir KUTUCUĞU var — satır seçilebilir olduğunu ilk
+   bakışta söylüyor. Dokunma hedefi yine satırın tamamı: eldivenli
+   parmak 22 piksellik bir kareye isabet ettiremez.
+
+   ADET SATIRIN SAĞINDA, ALTINDA DEĞİL. Altındayken seçilen her parça
+   satırı iki kat uzatıyor ve liste ekrandan taşıyordu. Yanında "Adet"
+   yazısı da kalktı: sayı iki düğmenin ortasında duruyor ve neyi
+   saydığı satırın kendisinden belli.
+   ========================================================================== */
+
+.parca-liste {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bosluk-2);
+}
+
+/* Bölüm başlığı ile listenin arasındaki tek satırlık açıklama. */
+.parca-ipucu {
+  margin: calc(-1 * var(--bosluk-1)) 0 var(--bosluk-3);
+}
+
 .parca-satir {
-  margin-bottom: var(--bosluk-2);
+  display: flex;
+  align-items: center;
   border: 1px solid var(--cizgi);
   border-radius: var(--r-2);
   background: var(--yuzey);
   overflow: hidden;
+}
+
+/* Kutucuk. İşaretliyken markanın mavisiyle doluyor; işaretsizken
+   yalnız çerçeve — iki hâl renkten bağımsız olarak da ayrılıyor
+   (renk körlüğü). */
+.parca-kutucuk {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--cizgi-koyu);
+  border-radius: 6px;
+  color: #fff;
+}
+
+.parca-satir--on .parca-kutucuk {
+  border-color: var(--mavi-rz);
+  background: var(--mavi-rz);
 }
 
 .parca-satir--on {
@@ -1915,10 +1959,11 @@
 }
 
 .parca-satir__ac {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: var(--bosluk-3);
-  width: 100%;
   min-height: var(--dokunma);
   padding: var(--bosluk-2) var(--bosluk-3);
   border: 0;
@@ -1940,25 +1985,12 @@
   font-weight: 700;
 }
 
-.parca-satir__stok {
-  flex: none;
-  font-size: var(--yazi-2);
-  color: var(--murekkep-2);
-}
-
 .parca-satir__adet {
+  flex: none;
   display: flex;
   align-items: center;
-  gap: var(--bosluk-3);
-  padding: var(--bosluk-2) var(--bosluk-3);
-  border-top: 1px solid var(--cizgi);
-}
-
-.parca-satir__etiket {
-  flex: 1;
-  font-size: var(--yazi-2);
-  font-weight: 700;
-  color: var(--murekkep-2);
+  gap: var(--bosluk-2);
+  padding-right: var(--bosluk-2);
 }
 
 .parca-satir__sayi {
@@ -2016,10 +2048,18 @@
 
 /* --------------------------------------------------------- Sipariş toplamı */
 
+/* SATIR DEĞİL, İKİ SÜTUN.
+
+   Üç öğe tek satırda `flex` ile diziliyordu ve 375 piksellik telefonda
+   üçü de sarıyordu: "2 parça türü · 2 adet" iki satıra, tutar ayrı bir
+   satıra düşüyor, kutu dört satır oluyordu. Şimdi solda kalem sayısı,
+   sağda tutar ve altındaki "KDV hariç" — ikisi kendi sütununda ve
+   sarmaları gerekmiyor. */
 .siparis-toplam {
   display: flex;
-  align-items: baseline;
-  gap: var(--bosluk-2);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--bosluk-4);
   margin-top: var(--bosluk-3);
   padding: var(--bosluk-3) var(--bosluk-4);
   border-radius: var(--r-3);
@@ -2029,18 +2069,29 @@
   font-weight: 700;
 }
 
+.siparis-toplam > span {
+  min-width: 0;
+}
+
 .siparis-toplam strong {
-  margin-left: auto;
+  flex: none;
   font-size: var(--yazi-4);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
+/* "KDV hariç" tutarın altında ve sağa dayalı: hangi rakamı
+   nitelediği yerinden belli. */
 .siparis-toplam small {
-  flex-basis: 100%;
+  order: 3;
+  flex: none;
+  width: 100%;
+  margin-top: -4px;
   font-size: var(--yazi-1);
   font-weight: 400;
   color: var(--murekkep-2);
+  text-align: right;
 }
 
 /* ------------------------------------------------------------ İç sekmeler
@@ -3373,4 +3424,176 @@
   background: var(--yuzey);
   border-top: 1px solid var(--cizgi);
   box-shadow: 0 -8px 24px rgba(10, 26, 51, 0.06);
+}
+
+/* ==========================================================================
+   Onay yaprağı
+
+   Ekranın dibinden açılıyor. Ortada duran bir kutu masaüstü kalıbı;
+   telefonda parmak altta ve asıl düğmenin oraya gelmesi gerekiyor.
+   Gerekçesi Kabuk.jsx içinde.
+   ========================================================================== */
+
+.onay-perde {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background: rgba(10, 26, 51, 0.5);
+}
+
+.onay {
+  padding: var(--bosluk-5) var(--bosluk-5)
+    calc(var(--bosluk-5) + env(safe-area-inset-bottom, 0px));
+  border-radius: var(--r-3) var(--r-3) 0 0;
+  background: var(--yuzey);
+  max-height: 86dvh;
+  overflow: auto;
+}
+
+.onay__baslik {
+  margin: 0;
+  font-size: var(--yazi-4);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--murekkep);
+}
+
+.onay__metin {
+  margin: var(--bosluk-2) 0 0;
+  font-size: var(--yazi-3);
+  line-height: 1.55;
+  color: var(--murekkep-2);
+}
+
+/* Onaylanacak şeyin özeti. Tutar en altta ve kalın: servisin son
+   baktığı rakam o. */
+.onay__liste {
+  margin: var(--bosluk-4) 0 0;
+  padding: var(--bosluk-3) var(--bosluk-4);
+  border-radius: var(--r-2);
+  background: var(--yuzey-2);
+}
+
+.onay__satir {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--bosluk-4);
+  padding: 7px 0;
+  font-size: var(--yazi-3);
+  color: var(--murekkep-2);
+}
+
+.onay__satir strong {
+  color: var(--murekkep);
+  text-align: right;
+}
+
+.onay .dg--ana {
+  margin-top: var(--bosluk-5);
+}
+
+.onay__vazgec {
+  margin-top: var(--bosluk-2);
+}
+
+/* Geniş ekran yalnız geliştirme içindir; yaprak telefon genişliğinde
+   ortalanıyor. */
+@media (min-width: 640px) {
+  .onay-perde {
+    align-items: center;
+  }
+
+  .onay {
+    width: 100%;
+    max-width: 420px;
+  }
+}
+
+/* Dipteki düğmenin altındaki tek satırlık açıklama. Düğme kapalıysa
+   nedenini söylüyor; kapalı bir düğme sebebini söylemeden durmaz. */
+.uyg__dip-not {
+  margin: var(--bosluk-2) 0 0;
+  font-size: var(--yazi-2);
+  line-height: 1.5;
+  color: var(--murekkep-2);
+  text-align: center;
+}
+
+/* Kartta arızanın kendisi. Tek satır ve kesiliyor: bilgi kartı
+   zenginleştirmeli, listeyi uzatmamalı. */
+.is__ozet {
+  margin-top: var(--bosluk-2);
+  font-size: var(--yazi-2);
+  line-height: 1.45;
+  color: var(--murekkep-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Çalışılan firma satırı. İskeleti talep kartının küçük hâli:
+   solda simge, ortada ad ve yer, sağda arama düğmesi. Numara
+   dokunulabilir — servis ezberleyip tuşlamıyor. */
+.calisilan {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  margin-bottom: var(--bosluk-2);
+  padding: var(--bosluk-3);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-2);
+  background: var(--yuzey);
+}
+
+.calisilan__ikon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-1);
+  background: var(--mavi-z);
+  color: var(--mavi-rz);
+}
+
+.calisilan__bilgi {
+  flex: 1;
+  min-width: 0;
+}
+
+.calisilan__ad {
+  font-size: var(--yazi-3);
+  font-weight: 700;
+}
+
+.calisilan__ara {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--dokunma);
+  height: var(--dokunma);
+  border-radius: var(--r-tam);
+  background: var(--mavi-z);
+  color: var(--mavi-rz);
+}
+
+/* Parça satırında adın altındaki kod ve fiyat. Sipariş ekranında
+   servis neyi hangi fiyattan aldığını satırın kendisinde görüyor. */
+.parca-satir__fiyat {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--yazi-2);
+  font-weight: 400;
+  color: var(--murekkep-2);
+}
+
+/* Kapalı seçenek. Soluk ama okunur: yanındaki açıklama neden kapalı
+   olduğunu yazıyor ve o yazının okunması gerekiyor. */
+.buyuk-sec--kapali {
+  opacity: 0.72;
+  cursor: not-allowed;
 }

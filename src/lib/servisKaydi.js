@@ -17,22 +17,42 @@
    Şimdi kayıt bir TALEBİN üstünde duruyor ve talep, içeriğine göre
    doğru masaya düşüyor.
 
-   ÜÇ KAPI, ÜÇ AYRI SONUÇ
+   GARANTİ KAPSAMINDA İŞ İKİ AŞAMADA YÜRÜYOR
 
-     GARANTİ KAPSAMINDA
-       Servis kararı veriyor. Kayıt PAKSAN servis personeline düşüyor:
-       yol, işçilik ve parçalar incelenip onaylanıyor. Onaylanınca
-       servisin cari hesabına alacak yazılıyor. Parça istendiyse talep
-       kapanmıyor — parça yola çıkıyor, servis takıyor, sonra kapatıyor.
+   ÖNCE BÖYLE DEĞİLDİ ve yanlıştı: servis sahada bir kerede her şeyi
+   yazıyordu — arıza, gereken parça, yol, işçilik — kayıt onaya
+   gidiyordu, PAKSAN onaylayınca servisin hesabına para yazılıyordu ve
+   parça ANCAK ONDAN SONRA hazırlanıyordu. İki sonucu vardı:
 
-     GARANTİ DIŞI · PARÇA ELDE
-       PAKSAN'a iş düşmüyor. Servis parayı müşteriden alıyor, talebi
-       kapatıyor. Kayıt yine tutuluyor: makinenin arıza geçmişi
-       imalatçının en değerli verisi.
+     · Servis, işini bitirmeden parasını almış oluyordu. Parça daha
+       yola çıkmamışken hak ediş hesaba geçiyordu.
+     · Parça, onay sırası beklediği için gecikiyordu. Oysa parçanın
+       hazırlanması onaya bağlı bir şey değil; makine tarlada duruyor.
 
-     GARANTİ DIŞI · PARÇA PAKSAN'DAN
-       Bir satın alma. Yedek parça personeline düşüyor, hak ediş
-       doğmuyor.
+   ŞİMDİKİ SIRA
+
+     1. AŞAMA · PARÇA   Servis sahada arızayı buluyor ve gereken
+        parçayı istiyor. Para sorulmuyor. Talep yedek parça masasına
+        düşüyor, parça hazırlanıp servise gönderiliyor.
+
+     2. AŞAMA · İŞ BİTTİ   Parça eline geçen servis takıyor ve
+        uygulamada "Parçayı Taktım" diyor. Yapılan iş, yol ve işçilik
+        BURADA soruluyor. Kayıt onaya gidiyor; PAKSAN onaylayınca
+        hesaba alacak yazılıyor ve talep kapanıyor.
+
+   Parça gerekmeyen garanti işi (ayar, bakım, arıza bulunamadı) tek
+   ziyarette bitiyor: 1. aşama hiç doğmuyor, kayıt doğrudan 2. aşama
+   olarak gönderiliyor.
+
+   GARANTİ DIŞINDA İKİ KAPI VAR VE İKİSİ DE TEK AŞAMA
+
+     PARÇA ELDE   PAKSAN'a iş düşmüyor. Servis parayı müşteriden
+       alıyor, talebi kapatıyor. Kayıt yine tutuluyor: makinenin arıza
+       geçmişi imalatçının en değerli verisi.
+
+     PARÇA PAKSAN'DAN   Bir satın alma. Yedek parça personeline
+       düşüyor, hak ediş doğmuyor. Parça gelince servis takıp talebi
+       kendisi kapatıyor.
 
    NEDEN BU KADAR ÇOK ALAN SORULUYOR
 
@@ -48,6 +68,17 @@
    ========================================================================== */
 
 import { MARKA, markaEk } from '../marka'
+
+/* KAYDIN AŞAMASI.
+
+   `parca`  parça istendi, iş bitmedi. Yol ve işçilik sorulmadı,
+            hak ediş doğmadı.
+   `bitti`  iş bitti. Yapılan iş, yol ve işçilik yazılı; garanti
+            kapısındaysa hak ediş doğuyor.
+
+   Aşama kaydın kendi alanı; ekran hangi aşamada olduğunu buradan
+   okuyor ve talebin durumu da buna göre belirleniyor. */
+export const ASAMA = { parca: 'parca', bitti: 'bitti' }
 
 /** Kaydın üç kapısı. Ekrandaki düğme yazıları da bunlar. */
 export const KAPI = {
@@ -142,15 +173,28 @@ export function eksikAlanlar(talep) {
 /* ==========================================================================
    Doğrulama
 
-   Kapıya göre değişiyor: garanti kapısında ayrıntı isteniyor çünkü
-   kayıt bir rapor değil, ödemenin dayanağı. Garanti dışı kapıda
-   yalnız ne yapıldığı soruluyor.
+   AŞAMAYA VE KAPIYA GÖRE DEĞİŞİYOR.
+
+   1. aşamada iş henüz bitmedi: ne yapıldığı, yol ve işçilik
+   sorulmuyor, sorulması da yanlış olurdu. Orada tek soru var —
+   hangi parça, neden.
+
+   2. aşamada kayıt bir rapor değil, ödemenin dayanağı; garanti
+   kapısında ayrıntı isteniyor. Garanti dışı kapıda yalnız ne
+   yapıldığı soruluyor.
    ========================================================================== */
 export function kaydiDogrula(kayit) {
   if (!KAPI[kayit?.kapi]) return 'Garanti durumunu seçin.'
-  if (!kayit.yapilanIs) return 'Ne yapıldığını seçin.'
 
   const parcalar = temizParcalar(kayit.parcalar)
+
+  if (kayit?.asama === ASAMA.parca) {
+    if (!parcalar.length) return 'Gereken parçayı seçin.'
+    if (!kayit.parcaDurumu) return 'Parçadaki sorunu seçin.'
+    return null
+  }
+
+  if (!kayit.yapilanIs) return 'Ne yapıldığını seçin.'
 
   if (kayit.kapi === 'garanti') {
     if (!parcalar.length && !Number(kayit.km) && !Number(kayit.iscilik)) {
@@ -234,10 +278,19 @@ export function kaydiCozume(kayit) {
 export function kapininSonucu(kayit) {
   const parcaVar = temizParcalar(kayit.parcalar).length > 0
 
+  /* 1. AŞAMA — hangi kapı olursa olsun sıra yedek parçada.
+
+     Garanti kaydı ONAYA GİTMİYOR artık. Onay, işin bitmesini
+     bekliyor: para ancak parça takıldıktan sonra doğuyor. Önce
+     onaya gidiyordu ve servis işini bitirmeden parasını alıyordu. */
+  if (kayit.asama === ASAMA.parca) {
+    return { durum: 'parcaBekliyor', masa: 'parca' }
+  }
+
   if (kayit.kapi === 'garanti') {
-    /* Garanti kaydı önce ONAYA gidiyor: parça da hak ediş de PAKSAN'ın
-       kararına bağlı. Onaydan sonra parça istendiyse yedek parçaya
-       geçiyor (bkz. veri.js → hakkedisOnayla). */
+    /* İş bitti; sıra PAKSAN servis masasında. Yol, işçilik ve
+       parçalar inceleniyor, onaylanınca hesaba alacak yazılıyor ve
+       talep kapanıyor (bkz. veri.js → hakkedisOnayla). */
     return { durum: 'onayBekliyor', masa: 'servis' }
   }
   if (kayit.kapi === 'parcaIste') {

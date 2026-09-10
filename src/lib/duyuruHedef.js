@@ -95,6 +95,19 @@ export function duyuruGecerliMi(
      görünmesiydi: başkasının bildirimi. */
   if (!personelDuyurusuMu(d)) return !servis
 
+  /* SÜRESİ DOLMUŞ DUYURU GÖSTERİLMİYOR.
+
+     Duyuruların bitiş tarihi yoktu ve hiçbiri kendiliğinden düşmüyordu:
+     geçen yılın fuar duyurusu, biten kampanya, tarihi geçmiş bakım
+     çağrısı ekranda kalıyordu. Personelin elle silmesi bekleniyordu ve
+     kimsenin görevi değildi.
+
+     `bitis` YOKSA SÜRESİZ. Geri çağırma ve güvenlik uyarısı gibi
+     süresi olmayan kayıtlar tarih almadan yayınlanıyor; eski
+     kayıtlarda da alan yok ve geriye uyum bedava (bkz. veri.js →
+     duyuruYayinla). */
+  if (d.bitis && Date.now() > d.bitis) return false
+
   /* GERİ ÇAĞIRMA YALNIZ SERVİSE.
 
      Yayınlama ekranında alıcı kitlesi zaten kilitli, ama kural iki

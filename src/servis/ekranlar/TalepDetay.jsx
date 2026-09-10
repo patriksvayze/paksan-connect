@@ -6,12 +6,13 @@ import {
   talepNotEkle,
   talepPlanla,
 } from '../../backoffice/veri'
-import { KAPI, parcaYazisi } from '../../lib/servisKaydi'
+import { ASAMA, KAPI, parcaYazisi } from '../../lib/servisKaydi'
+import { bugunGirdi, ileriTarihMi } from '../../lib/tarih'
 import { makineDurumAdi } from '../../data/talepAlanlari'
 import { getProduct, MARKA, markaEk } from '../../marka'
 import { PARA_BIRIMI, paraYaz } from '../../marka'
 import { ServisKapanisi } from './ServisKapanisi'
-import { Sayfa } from '../Kabuk'
+import { Onay, Sayfa } from '../Kabuk'
 import {
   extractYear,
   formatSerial,
@@ -106,6 +107,18 @@ export function TalepDetay({
    artık PAKSAN, servis izliyor. */
   const islemVar = !kapali && !paksanda && !onayda && !parcada
   const sesiVar = !kapali && !paksanda
+
+  /* RANDEVU YALNIZ ZİYARETTEN ÖNCE.
+
+     `sesiVar` ile birlikte açılıyordu; sonuç şuydu: servis kaydını
+     göndermiş, parça istemiş, hatta onay bekleyen bir talepte hâlâ
+     "Randevu" düğmesi duruyordu. Randevu ziyaret öncesi bir şey —
+     servis müşteriyle konuşup gün veriyor. Ziyaret olmuş, kayıt
+     yazılmışsa verilecek bir gün kalmamıştır.
+
+     Parça bekleyen işte de çıkmıyor: sıra parçanın gelmesinde, gün
+     verilecek olan o değil. */
+  const randevuVar = sesiVar && !talep.servisKaydi && !onayda && !parcada
   /* Yalnız müşteriye gönderilmiş notlar; iç notlar servise gitmiyor. */
   const musteriNotlari = (talep.notlar || []).filter((n) => n.musteriye)
 
@@ -159,17 +172,38 @@ export function TalepDetay({
      Parça yola çıktığında PAKSAN'ın işi bitiyor ama iş bitmiyor:
      parçanın takılması gerekiyor ve onu yalnız serviste olan biri
      bilebilir. Talep bu yüzden açık kalıyor ve kapatma düğmesi
-     burada duruyor. */
+     burada duruyor.
+
+     GARANTİ İŞİNDE BU DÜĞME TALEBİ KAPATMIYOR, KAYDIN İKİNCİ
+     AŞAMASINI AÇIYOR. Parça takıldıktan sonra sorulacak üç şey var:
+     ne yapıldı, kaç kilometre gidildi, ne kadar işçilik alındı.
+     Hak ediş bunlardan doğuyor ve kayıt ondan sonra onaya gidiyor
+     (bkz. lib/servisKaydi.js başı). Garanti dışı parça isteğinde
+     sorulacak bir şey yok: parası müşteriden alındı, talep kapanıyor.
+
+     DÜĞME PARÇA YOLA ÇIKMADAN AÇILMIYOR. `parcaSevk` yedek parça
+     personelinin "gönderdim" kaydı; o yokken servis parçayı takmış
+     olamaz. Açık bırakılsaydı iş, parça daha hazırlanmadan
+     kapatılabilirdi. */
+  const kayitAsamasi = talep.servisKaydi?.asama
+  const ikinciAsama = parcada && kayitAsamasi === ASAMA.parca
+  const parcaYolda = Boolean(talep.parcaSevk)
+
   const asilIslem = parcada ? (
-    <button
-      className="dg dg--ana dg--blok"
-      onClick={() => {
-        talepDurumDegistir(talep, 'kapandi', servisAd)
-        onKapat()
-      }}
-    >
-      Parçayı Taktım, İşi Kapat
-    </button>
+    <>
+      <button
+        className="dg dg--ana dg--blok"
+        disabled={!parcaYolda}
+        onClick={() => (ikinciAsama ? setPencere('kapanis') : setPencere('parcaKapat'))}
+      >
+        Parçayı Taktım
+      </button>
+      {!parcaYolda && (
+        <p className="uyg__dip-not">
+          Parça hazırlanıyor. Yola çıktığında bu düğme açılacak.
+        </p>
+      )}
+    </>
   ) : (
     islemVar && (
       <button
@@ -471,7 +505,7 @@ export function TalepDetay({
 
       {sesiVar && (
         <div className="secenek">
-          {talep.tur === 'servis' && (
+          {talep.tur === 'servis' && randevuVar && (
             <button className="secenek__dg" onClick={() => setPencere('randevu')}>
               <IconCalendar size={19} />
               {talep.plan ? 'Randevuyu Değiştir' : 'Randevu'}
@@ -517,6 +551,22 @@ export function TalepDetay({
       )}
       {pencere === 'destek' && (
         <Destek onKapat={() => setPencere(null)} onGonder={onDestekIste} />
+      )}
+      {pencere === 'parcaKapat' && (
+        <Onay
+          baslik="Talep kapanacak"
+          metin="Parçayı taktığınızı bildiriyorsunuz. Talep kapanacak ve müşteriye bildirim gidecek."
+          kalemler={[
+            { ad: 'Talep', deger: talep.no },
+            { ad: 'Gönderilen parça', deger: (talep.parcalar || []).join(', ') || '—' },
+          ]}
+          dugme="Parçayı Taktım"
+          onOnayla={() => {
+            talepDurumDegistir(talep, 'kapandi', servisAd)
+            onKapat()
+          }}
+          onVazgec={() => setPencere(null)}
+        />
       )}
     </Sayfa>
   )
@@ -738,6 +788,13 @@ function Randevu({ talep, servisAd, onKapat, onBitti }) {
 
   function kaydet() {
     if (!tarih) return setHata('Gideceğiniz tarihi seçin.')
+    /* GEÇMİŞ TARİH KAYDEDİLEMİYOR.
+
+       Kutuya `min` verildi ama o yalnız takvimin kendi denetimi;
+       elle yazılan değer geçiyordu. Geçmiş tarihli randevu hem
+       müşteriye yanlış bildirim gönderiyor hem de "bugünün planı"
+       bloğunda gidilmemiş iş gibi görünüyordu. */
+    if (!ileriTarihMi(tarih)) return setHata('Geçmiş bir gün seçilemez.')
     /* Backoffice'teki kuralın aynısı: randevu müşteriyle konuşulmadan
        kaydedilmiyor. Müşteri o gün tarlada olmayabilir. */
     if (!onay) return setHata('Randevuyu kaydetmeden önce müşteriyle görüşün.')
@@ -759,7 +816,13 @@ function Randevu({ talep, servisAd, onKapat, onBitti }) {
     <Pencere baslik={degisiklik ? 'Randevuyu Değiştir' : 'Randevu'} onKapat={onKapat}>
       <label className="alan">
         <span className="alan__ad">Gideceğiniz Tarih</span>
-        <input className="gir" type="date" value={tarih} onChange={(e) => setTarih(e.target.value)} />
+        <input
+          className="gir"
+          type="date"
+          min={bugunGirdi()}
+          value={tarih}
+          onChange={(e) => setTarih(e.target.value)}
+        />
       </label>
 
       <label className="secim">

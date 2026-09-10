@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   servisGirisi,
   servisOturumuGetir,
@@ -31,6 +31,8 @@ import {
   IconChevronDown as IconChevron,
 } from '../components/Icons'
 import { altBilgi } from '../data/duyuruTurleri'
+import { makineDurumAdi } from '../data/talepAlanlari'
+import { useBildirimIzni, useServisHaberi } from './haber'
 import { Logo, MARKA, SIRKET, getProduct } from '../marka'
 /* Çizimler Higgsfield ile üretildi, uygulamanın kendi görsel diline
    (kalın lacivert kontur, düz dolgu, sınırlı palet) referans verilerek.
@@ -39,6 +41,8 @@ import bosIsGorseli from '../assets/gorseller/servis-bos-is.png'
 import girisGorseli from '../assets/gorseller/servis-giris.png'
 import { TalepDetay } from './ekranlar/TalepDetay'
 import { Parca } from './ekranlar/Parca'
+import { Bayilerim } from './ekranlar/Bayilerim'
+import { SiparisVer } from './ekranlar/SiparisVer'
 import { Hakkedis } from './ekranlar/Hakkedis'
 import { ElleKayit } from './ekranlar/ElleKayit'
 
@@ -312,6 +316,11 @@ function Uygulama({ oturum, onCikis }) {
     setTalepler(servisinTalepleri(talepleriGetir(), oturum.servisId))
   }, [oturum.servisId, tazele])
 
+  /* Yeni iş, yola çıkan parça ve onaylanan hak ediş telefonun
+     bildirim perdesine düşüyor (bkz. haber.js). */
+  const yenile = useCallback(() => setTazele((x) => x + 1), [])
+  useServisHaberi(oturum, yenile)
+
   /* SERVİSİN KENDİ SİPARİŞİ "İŞ" DEĞİL.
 
      Servisin PAKSAN'dan ısmarladığı parça da bir talep ve servisin
@@ -362,11 +371,45 @@ function Uygulama({ oturum, onCikis }) {
         alt="Size gelen bir müşteri için talep açın"
         onGeri={() => setAlt(null)}
       >
+        {/* KAYIT AÇILINCA DOĞRUDAN O TALEBE GİDİLİYOR.
+
+            Önce listeye dönülüyordu: servis açtığı kaydı listede
+            bulmak, doğru satır olduğundan emin olmak ve açmak
+            zorundaydı. Oysa kayıt açmanın hemen ardından yapılacak iş
+            belli — randevu vermek, not eklemek ya da doğrudan servis
+            kaydını doldurmak. */}
         <ElleKayit
           oturum={oturum}
-          onKaydedildi={() => {
+          onKaydedildi={(talep) => {
             setAlt(null)
             setSekme('isler')
+            setTazele((x) => x + 1)
+            if (talep) setAcik(talep)
+          }}
+        />
+      </Sayfa>
+    )
+  }
+
+  /* SİPARİŞ EKRANI ARTIK ÜST ÇUBUKTAKİ "+" DÜĞMESİNDEN AÇILIYOR.
+
+     Parça sekmesinin en üstünde tam genişlikte bir "Sipariş Ver"
+     düğmesi duruyordu ve altındaki sipariş listesini aşağı itiyordu.
+     Aynı sorun İşlerim'de de vardı ve aynı şekilde çözülmüştü:
+     ekranın gövdesi LİSTEDİR, yeni kayıt açmak üst çubuğun işi.
+     İki sekme artık aynı yerden, aynı düğmeyle iş açıyor. */
+  if (alt === 'siparis') {
+    return (
+      <Sayfa
+        baslik="Sipariş Ver"
+        alt={`${MARKA} yedek parça birimine`}
+        onGeri={() => setAlt(null)}
+      >
+        <SiparisVer
+          oturum={oturum}
+          onKapat={() => setAlt(null)}
+          onVerildi={() => {
+            setAlt(null)
             setTazele((x) => x + 1)
           }}
         />
@@ -425,11 +468,11 @@ function Uygulama({ oturum, onCikis }) {
 
            Hesap ayda bir açılıyor; harf rozetiyle en sağda. */
         <div className="uyg__islemler">
-          {sekme === 'isler' && (
+          {(sekme === 'isler' || sekme === 'parca') && (
             <button
               className="uyg__ekle"
-              onClick={() => setAlt('kayit')}
-              aria-label="Yeni kayıt"
+              onClick={() => setAlt(sekme === 'parca' ? 'siparis' : 'kayit')}
+              aria-label={sekme === 'parca' ? 'Sipariş ver' : 'Yeni kayıt'}
             >
               <IconPlus size={22} />
             </button>
@@ -456,7 +499,14 @@ function Uygulama({ oturum, onCikis }) {
           onYeniKayit={() => setAlt('kayit')}
         />
       )}
-      {sekme === 'parca' && <Parca oturum={oturum} onAc={setAcik} />}
+      {sekme === 'parca' && (
+        <Parca
+          oturum={oturum}
+          onAc={setAcik}
+          onSiparis={() => setAlt('siparis')}
+          surum={tazele}
+        />
+      )}
       {sekme === 'hakkedis' && <Hakkedis oturum={oturum} onAc={setAcik} />}
     </Kabuk>
   )
@@ -495,9 +545,24 @@ function Isler({ oturum, bekleyen, biten, onAc, onYeniKayit }) {
 
   return (
     <>
+      <BildirimIzni />
+
       <Bugun bekleyen={bekleyen} onAc={onAc} />
 
       <ServisDuyurulari oturum={oturum} acil />
+
+      {/* İKİ DUYURU AÇILIRI ALT ALTA.
+
+          "PAKSAN duyuruları" bekleyen işlerin ALTINDA duruyordu;
+          "Okuduğunuz uyarılar" üstünde. İkisi de tek satırlık kapalı
+          bir başlık ve ikisi de aynı şeyi barındırıyor — okunmayı
+          bekleyen ama işin önüne geçmeyen duyurular. Ekranın iki ayrı
+          ucunda durmaları için sebep yoktu; ayrıca aradaki liste
+          uzadıkça alttaki hiç görünmüyordu.
+
+          Sıra korunuyor: acil olanlar hâlâ kart hâlinde ve en üstte.
+          Kapalı iki satır bekleyen işleri 96 piksel aşağı itmiyor. */}
+      <ServisDuyurulari oturum={oturum} />
 
       {/* BEKLEYEN BÖLÜMÜ İŞ YOKKEN DE ÇIKIYOR.
 
@@ -524,8 +589,6 @@ function Isler({ oturum, bekleyen, biten, onAc, onYeniKayit }) {
         )}
       </Bolum>
 
-      <ServisDuyurulari oturum={oturum} />
-
       {/* Tamamlananlar kapalı başlıyor: biten iş bir kayıt, bir görev
           değil. Açık dururken bekleyen işlerle aynı ağırlıkta
           görünüyor ve listeyi uzatıyordu. */}
@@ -547,6 +610,52 @@ function Isler({ oturum, bekleyen, biten, onAc, onYeniKayit }) {
         </div>
       )}
     </>
+  )
+}
+
+/* İzin şeridi. Karar verilmişse hiç çıkmıyor; verilmediyse ne için
+   izin istendiğini yazıyor. "Bildirimlere izin verin" tek başına bir
+   şey anlatmıyor — servis neyi kaçırdığını bilmeli. */
+function BildirimIzni() {
+  const { durum, destekli, iste, BILDIRIM: B } = useBildirimIzni()
+
+  if (!destekli || durum === null) return null
+  if (durum === B.VERILDI || durum === B.DESTEKLENMIYOR) return null
+
+  if (durum === B.ENGELLI || durum === B.REDDEDILDI) {
+    return (
+      <div className="not not--mavi">
+        <IconBell size={19} />
+        <div>
+          <strong>Bildirimler kapalı</strong>
+          <p>
+            Yeni işlerden ve yola çıkan parçalardan haber alamıyorsunuz.
+            Telefonunuzun ayarlarından bu uygulamaya bildirim izni
+            verebilirsiniz.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="not not--mavi">
+      <IconBell size={19} />
+      <div>
+        <strong>Yeni iş geldiğinde haberiniz olsun</strong>
+        <p>
+          Size bir iş düştüğünde, istediğiniz parça yola çıktığında ve
+          kaydınız onaylandığında telefonunuza bildirim gelir.
+        </p>
+        <button
+          className="dg dg--ana dg--blok"
+          style={{ marginTop: 12 }}
+          onClick={iste}
+        >
+          Bildirimlere İzin Ver
+        </button>
+      </div>
+    </div>
   )
 }
 
@@ -698,6 +807,30 @@ function TalepKarti({ talep, onAc }) {
   const makine = talep.makine ? getProduct(talep.makine.productId)?.name : null
   const tekrar = (talep.tekrar || []).length > 0
 
+  /* ARIZA KARTTA. Servis listeye bakarken "ne olmuş" sorusunun
+     cevabını görmek istiyor; o bilgi talebin içinde vardı ama kartta
+     yoktu ve sekiz kartı tek tek açmak gerekiyordu.
+
+     Kaynak sırası müşterinin ne kadar anlattığına göre: belirti
+     seçtiyse onlar, yazdıysa yazdığı, ikisi de yoksa makinenin
+     durumu. */
+  const ozet =
+    (talep.belirtiler || []).join(', ') ||
+    (talep.aciklama || '').trim() ||
+    (talep.durum ? makineDurumAdi(talep.durum) : '')
+
+  /* BEKLEYEN İŞİN NEYİ BEKLEDİĞİ. Parça bekleyen ve onay bekleyen
+     talepler listede öteki işlerle aynı görünüyordu; servis hangisine
+     gidebileceğini ancak açınca anlıyordu. */
+  const bekleme =
+    talep.status === 'parcaBekliyor'
+      ? talep.parcaSevk
+        ? 'Parça yolda'
+        : 'Parça hazırlanıyor'
+      : talep.status === 'onayBekliyor'
+        ? `${MARKA} kaydı inceliyor`
+        : null
+
   return (
     <ListeKarti
       ad={talep.ad || '—'}
@@ -710,11 +843,16 @@ function TalepKarti({ talep, onAc }) {
           {yer}
         </>
       }
+      ozet={ozet}
       /* Randevu listede de görünüyor: servis hangi işe gün verdiğini
          karta girmeden biliyor. Randevu yoksa yerini PAKSAN'ın devraldığı
          bilgisi alıyor — ikisi birden olmuyor. */
+      /* Bekleme durumu randevunun önünde: parça beklerken verilmiş
+         bir randevunun anlamı yok, servis o gün gidemez. */
       sol={
-        talep.plan ? (
+        bekleme ? (
+          bekleme
+        ) : talep.plan ? (
           <>
             <IconCalendar size={14} /> {randevuYazi(talep.plan)}
           </>
@@ -722,7 +860,14 @@ function TalepKarti({ talep, onAc }) {
           `${MARKA} destek veriyor`
         ) : null
       }
-      sag={gecikti ? '48 saati geçti' : gecenSure(talep.createdAt || talep.tarih)}
+      /* GECİKME YAZIYLA DA SÖYLENMİYOR ARTIK.
+
+         Gecikmiş kartta sağda "48 saati geçti" yazıyordu. Kartın sol
+         kenarındaki kırmızı şerit zaten aynı şeyi söylüyor ve yazı,
+         servisin gerçekten kullandığı bilgiyi — işin ne kadar
+         beklediğini — ekrandan siliyordu. Şerit uyarıyor, yazı
+         süreyi veriyor; ikisi aynı yuvada yarışmıyor. */
+      sag={gecenSure(talep.createdAt || talep.tarih)}
       sagGec={gecikti}
       gec={gecikti}
       onAc={onAc}
@@ -920,6 +1065,8 @@ function Hesap({ oturum, onCikis }) {
           <div className="kimlik__alt">{oturum.il}</div>
         </div>
       </div>
+
+      <Bayilerim oturum={oturum} />
 
       <Bolum ad="Görünüm">
         <div className="kart" style={{ padding: 14 }}>

@@ -69,7 +69,7 @@ const KARGO = ['Aras Kargo', 'Yurtiçi Kargo', 'MNG Kargo', 'Sürat Kargo']
 const PARCA_KAPANIS_NOTU = [
   'Stokta olmayan parça için bir gün beklendi, müşteri bilgilendirildi.',
   'Müşteri talebi üzerine iki parça aynı pakete konuldu.',
-  'Eski parça iade alınacak, kargo görevlisine teslim edilmesi söylendi.',
+  'Kargo firması değiştirildi, teslimat bir gün öne alındı.',
   'Müşteriyle telefonda görüşüldü, adres teyit edildi.',
 ]
 

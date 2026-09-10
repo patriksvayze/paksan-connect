@@ -413,8 +413,26 @@ baslik('7. Bayi kalıntısı')
 
 const kalintilar = []
 
-/* Kapsam dışı tutulan servis dosyaları — gerekçesi yukarıda. */
-const BAYI_GECEBILIR = new Set(['servisAtama.js'])
+/* Kapsam dışı tutulan dosyalar — gerekçesi yukarıda.
+
+   `Bayilerim.jsx` ikinci istisna ve sebebi ilkiyle aynı: orada da
+   gerçekten BAYİ VARLIĞINDAN söz ediliyor. Servisin hangi bayilerle
+   çalıştığını PAKSAN backoffice'ten belirliyor (Servisler ekranı →
+   `bayiler` alanı) ve servis kendi uygulamasında bunu göremiyordu.
+   Ekran bayiyi servisin kendisi gibi değil, AYRI BİR TARAF olarak
+   gösteriyor; kuralın koruduğu kimlik karışması burada doğmuyor.
+
+   İstisna DOSYA ADINA yazılı, klasöre değil: `src/servis/` içinde
+   yazılacak yeni bir dosya yine kurala giriyor. */
+const BAYI_GECEBILIR = new Set(['servisAtama.js', 'Bayilerim.jsx'])
+
+/* O dosyanın ADI da öteki dosyalarda geçiyor: `ServisPanel.jsx` onu
+   içe aktarıyor ve bir satır çiziyor. Bileşen adını uydurma bir
+   eşanlamlıya çevirmek ("SatisNoktalari" gibi) kuralı değil, yalnız
+   denetimi kandırırdı — ve kuralın asıl derdi zaten adların
+   belirsizleşmesi. Bu yüzden tam olarak bu ad serbest bırakılıyor;
+   satırda BAŞKA bir `bayi` geçerse yine yakalanıyor. */
+const BAYI_SERBEST = /Bayilerim/g
 
 /* 1. kural — servisi anlatan dosyalarda bayi geçmiyor */
 const SERVIS_TARAFI = [
@@ -428,12 +446,14 @@ const SERVIS_TARAFI = [
 
 for (const yol of SERVIS_TARAFI) {
   if (!existsSync(yol)) continue
-  const liste = yol.endsWith('.js') || yol.endsWith('.jsx') ? [yol] : dosyalar(yol, ['.js', '.jsx', '.css'])
+  const liste = (
+    yol.endsWith('.js') || yol.endsWith('.jsx') ? [yol] : dosyalar(yol, ['.js', '.jsx', '.css'])
+  ).filter((d) => !BAYI_GECEBILIR.has(d.split(/[\\/]/).pop()))
   for (const d of liste) {
     readFileSync(d, 'utf8')
       .split(/\r?\n/)
       .forEach((s, i) => {
-        if (/bayi/i.test(s)) {
+        if (/bayi/i.test(s.replace(BAYI_SERBEST, ''))) {
           kalintilar.push(`${d.split(/[\\/]/).pop()}:${i + 1} ${s.trim().slice(0, 90)}`)
         }
       })
