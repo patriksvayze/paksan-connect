@@ -87,12 +87,20 @@ export const KAPI = {
   parcaIste: `Garanti Dışı · Parçayı ${MARKA} Göndersin`,
 }
 
-/* Servisin gözlediği şey soruluyor, hüküm değil.
+/* PARÇANIN NESİ VAR? DİYE SORULMUYOR.
 
-   "Üretim hatası mı" diye sorulsaydı her kayıtta "üretim hatası"
-   yazardı — talebin kabulü ona bağlı. Kararı PAKSAN veriyor, eski
-   parça eline geçtiğinde. */
-export const PARCA_DURUMU = ['Kırıldı', 'Aşındı', 'Çalışmıyor', 'Kaçırıyor', 'Eğildi']
+   Bir dönem soruluyordu (Kırıldı · Aşındı · Çalışmıyor · Kaçırıyor ·
+   Eğildi) ve kaldırıldı. Cevabın karşılığı yoktu:
+
+     · PAKSAN parçayı bu cevaba bakarak hazırlamıyor; hangi parçanın
+       istendiği kodla zaten yazılı.
+     · Garanti kararını da bu cevap vermiyor. Kararı PAKSAN veriyor
+       ve eski parça iade edilmediği için tek dayanak fotoğraf.
+     · Servise karşılığı olmayan bir soru sorulursa geçiştirilerek
+       doldurulur. Geçiştirilmiş veri, verinin olmamasından kötüdür —
+       PAKSAN ona bakarak karar alıyor.
+
+   Fotoğraf duruyor: garanti tartışmasında bakılacak tek şey o. */
 
 /** Sahada yapılan iş — tek dokunuş. */
 export const YAPILAN_IS = [
@@ -190,7 +198,6 @@ export function kaydiDogrula(kayit) {
 
   if (kayit?.asama === ASAMA.parca) {
     if (!parcalar.length) return 'Gereken parçayı seçin.'
-    if (!kayit.parcaDurumu) return 'Parçadaki sorunu seçin.'
     return null
   }
 
@@ -199,9 +206,6 @@ export function kaydiDogrula(kayit) {
   if (kayit.kapi === 'garanti') {
     if (!parcalar.length && !Number(kayit.km) && !Number(kayit.iscilik)) {
       return 'Değişen parçayı, gidilen yolu veya işçilik tutarını yazın.'
-    }
-    if (parcalar.length && !kayit.parcaDurumu) {
-      return 'Parçadaki sorunu seçin.'
     }
   }
 

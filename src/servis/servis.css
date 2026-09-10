@@ -255,7 +255,7 @@
   border-radius: var(--r-tam);
   background: var(--kirmizi);
   color: var(--rozet-yazi);
-  font-size: 11px;
+  font-size: var(--y-mini);
   font-weight: 800;
   line-height: 18px;
   text-align: center;
@@ -281,7 +281,9 @@
 .bugun {
   padding: var(--bosluk-4);
   margin-bottom: var(--bosluk-4);
-  border-radius: var(--r-3);
+  /* Kart yarıçapı uygulamanın kendi değeri; `--r-3` (16px) genel
+     ölçü dosyasından geliyordu ve yanındaki kartlarla tutmuyordu. */
+  border-radius: var(--r-kart);
   background: var(--lacivert);
   border: 1px solid rgba(255, 255, 255, 0.14);
   color: #fff;
@@ -2363,11 +2365,11 @@
   margin-bottom: var(--bosluk-3);
   padding: 0 var(--bosluk-4);
   border: 1px solid var(--cizgi);
-  border-radius: var(--r-2);
+  border-radius: var(--r-sm);
   background: var(--yuzey);
   color: var(--murekkep-2);
   font: inherit;
-  font-size: var(--yazi-2);
+  font-size: var(--y-alt);
   font-weight: 700;
   text-align: left;
   cursor: pointer;
@@ -2488,12 +2490,42 @@
    .uyg altında. Bu bir CSS kökü değil; npm run dogrula denetliyor.
    ========================================================================== */
 
+/* --------------------------------------------------- ÖLÇÜ MERDİVENİ
+
+   NEDEN TOKEN
+
+   Ölçüldü: bu uygulamada TEK EKRANDA 13 ayrı yazı boyu vardı — 11,
+   12, 12,5, 13, 13,5, 14, 14,5, 15, 15,5, 16, 16,5, 17, 20. Yarım
+   piksellik farklar hiyerarşi kurmuyor; ekranın rastgele
+   dizildiği izlenimini veriyor. Köşe yarıçapında da dört ayrı
+   "kart" değeri vardı (24, 18, 16, 15) ve yan yana duran üç kutu üç
+   ayrı yuvarlaklıkta çiziliyordu.
+
+   Basamaklar UYDURULMADI: `src/styles.css`ten, yani müşteri
+   uygulamasından ölçülerek alındı — servis uygulaması onun kardeşi.
+   Bu yüzden `olcu.css`teki genel basamaklarla birebir aynı değiller
+   (orada gövde 16, ekran başlığı 19; Connect 30 ve 20 kullanıyor).
+
+   YENİ VE DEĞİŞEN KODDA PİKSEL YAZILMAZ, BU İSİMLER KULLANILIR. */
 .uyg {
   --zemin: #f1f4f9;
   --yuzey-2: #f5f7fb;
   --cizgi: #e6eaf2;
   --cizgi-koyu: #d6dde9;
   --murekkep-3: #646f82;
+
+  --y-baslik: 30px; /* ekran başlığı — Connect'teki "Merhaba …" */
+  --y-bolum: 20px;  /* bölüm başlığı */
+  --y-kart: 17px;   /* kart başlığı, listedeki müşteri adı */
+  --y-govde: 16px;  /* gövde, düğme, giriş kutusu */
+  --y-alt: 14px;    /* yardımcı satır — alt sınır, altına inilmiyor */
+  --y-mini: 12px;   /* rozet ve en küçük etiket */
+  --y-tutar: 24px;  /* satır içindeki para tutarı */
+  --y-rakam: 32px;  /* ekranın tek konusu olan tutar (bakiye) */
+
+  /* Köşe: kart 24, kartın içindeki satır ve giriş 14, hap 999.
+     Düğmelerin kendi merdiveni var (ana 18, ikincil 16) ve o da
+     Connect'ten geliyor. */
   --r-kart: 24px;
   --r-sm: 14px;
   --sh-1: 0 1px 2px rgba(10, 26, 51, 0.04), 0 2px 8px rgba(10, 26, 51, 0.04);
@@ -2514,6 +2546,15 @@
   --nav-gap: 14px;
   --tabs: calc(var(--nav-h) + var(--nav-gap) * 2);
   font-family: Roboto, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* GÖVDE YAZISI BURADA VERİLİYOR.
+
+     `body` 14,5 piksel diyor ve o değer BACKOFFICE'İN — masa başında,
+     bilgisayar ekranında okunan bir panel. Bu uygulama tarlada,
+     güneş altında, çoğu zaman eldivenle açılıyor; kendi ölçü
+     dosyamızın gövde için yazdığı değer 16 piksel (bkz.
+     styles/olcu.css). Ölçüldü: sınıfı olmayan her metin — liste
+     satırları, kart içi yazılar — 14,5 pikselle çiziliyordu. */
+  font-size: var(--y-govde);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -2563,14 +2604,14 @@
   height: 48px;
   margin-left: 0;
   padding: 0 14px 0 10px;
-  gap: 4px;
+  gap: var(--bosluk-1);
   display: inline-flex;
   align-items: center;
   border-radius: 999px;
   background: var(--yuzey);
   box-shadow: var(--sh-1);
   color: var(--murekkep);
-  font-size: 14.5px;
+  font-size: var(--y-alt);
   font-weight: 700;
   justify-self: start;
 }
@@ -2586,7 +2627,7 @@
 
 .uyg__baslik h1 {
   margin: 0;
-  font-size: 30px;
+  font-size: var(--y-baslik);
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.15;
@@ -2595,7 +2636,7 @@
 
 .uyg__baslik p {
   margin: 4px 0 0;
-  font-size: 14px;
+  font-size: var(--y-alt);
   font-weight: 500;
   color: var(--murekkep-2);
 }
@@ -2631,7 +2672,7 @@
   background: var(--yuzey);
   box-shadow: var(--sh-1);
   color: var(--mavi-rz);
-  font-size: 15px;
+  font-size: var(--y-govde);
   font-weight: 800;
 }
 
@@ -2661,7 +2702,7 @@
   width: calc(100% - 32px);
   max-width: 460px;
   height: var(--nav-h);
-  padding: 7px 8px;
+  padding: var(--bosluk-2);
   border: 1px solid var(--nav-kenar);
   border-top: 1px solid var(--nav-kenar);
   border-radius: 999px;
@@ -2683,7 +2724,7 @@
   padding: 0;
   border-radius: 999px;
   color: rgba(255, 255, 255, 0.72);
-  font-size: 13.5px;
+  font-size: var(--y-alt);
   font-weight: 700;
   letter-spacing: -0.01em;
   white-space: nowrap;
@@ -2759,7 +2800,7 @@
 @media (max-width: 360px) {
   .uyg__tabs {
     width: calc(100% - 16px);
-    padding: 7px 5px;
+    padding: var(--bosluk-2) var(--bosluk-1);
   }
 
   .uyg__tab-ikon {
@@ -2781,13 +2822,38 @@
    Connect'in .sectionhead'i: büyük, kalın, cümle düzeni; sayı sağda
    sönük. Büyük harfli küçük etiket backoffice diliydi, burada yok. */
 
+/* ------------------------------------------------ Gövdenin dikey ritmi
+
+   ÖLÇÜLDÜ: İşlerim ekranında üst üste duran beş blok arasındaki
+   boşluk sırasıyla 0, 16, 16 ve 32 pikseldi. İlk iki kart birbirine
+   YAPIŞIYORDU — ne biri alt boşluk veriyordu ne öteki üst. Her blok
+   kendi marjını kendi taşıdığı için de aradaki mesafe, o blokun
+   hangi ekranda yazıldığına göre değişiyordu.
+
+   Aralık artık gövdenin kendi kuralı:
+
+     kart ile kart arası   16px
+     bölüm ile bölüm arası 32px  (başlıklı bölüm daha büyük nefes ister)
+     son blokun altı       0     (dip çubuğu payı `uyg__ic`te zaten var)
+
+   Bloklar kendi `margin-bottom` değerlerini de taşımaya devam
+   ediyor; komşu marjlar birleştiği için ikisinden büyük olan
+   geçerli oluyor ve toplanma olmuyor. */
+.uyg__ic > * {
+  margin-bottom: var(--bosluk-4);
+}
+
+.uyg__ic > :last-child {
+  margin-bottom: 0;
+}
+
 .uyg .bolum {
   margin-bottom: var(--bosluk-6);
 }
 
 .uyg .bolum__ad {
   margin: 0 0 12px;
-  font-size: 20px;
+  font-size: var(--y-bolum);
   font-weight: 700;
   letter-spacing: -0.015em;
   text-transform: none;
@@ -2800,7 +2866,7 @@
   min-width: 0;
   background: transparent;
   color: var(--murekkep-3);
-  font-size: 15px;
+  font-size: var(--y-govde);
   font-weight: 700;
 }
 
@@ -2811,7 +2877,7 @@
    telefon her yerde mavi. */
 
 .uyg .is {
-  margin-bottom: 12px;
+  margin-bottom: var(--bosluk-3);
   border: 0;
   border-radius: var(--r-kart);
   background: var(--yuzey);
@@ -2832,11 +2898,11 @@
 }
 
 .uyg .is__ac {
-  padding: 16px 8px 16px 18px;
+  padding: var(--bosluk-4) var(--bosluk-2) var(--bosluk-4) var(--bosluk-4);
 }
 
 .uyg .is__ad {
-  font-size: 17px;
+  font-size: var(--y-kart);
   font-weight: 700;
   letter-spacing: -0.015em;
   color: var(--murekkep);
@@ -2844,13 +2910,13 @@
 
 .uyg .is__alt {
   margin-top: 3px;
-  font-size: 13.5px;
+  font-size: var(--y-alt);
   color: var(--murekkep-2);
 }
 
 .uyg .is__durum {
-  margin-top: 10px;
-  font-size: 13.5px;
+  margin-top: var(--bosluk-3);
+  font-size: var(--y-alt);
 }
 
 .uyg .is__sol {
@@ -2881,7 +2947,7 @@
 
 .uyg .is__ara > svg {
   box-sizing: content-box;
-  padding: 12px;
+  padding: var(--bosluk-3);
   border-radius: 999px;
   background: var(--mavi);
   box-shadow: var(--sh-mavi);
@@ -2893,10 +2959,10 @@
 
 /* Tür rozeti: Connect'teki soluk zeminli hap (aynı renk çiftleri). */
 .uyg .tur {
-  padding: 4px 10px;
+  padding: var(--bosluk-1) var(--bosluk-3);
   border-radius: 999px;
   border: 0;
-  font-size: 12px;
+  font-size: var(--y-mini);
   font-weight: 700;
   letter-spacing: 0;
   text-transform: none;
@@ -2932,7 +2998,7 @@
   border: 0;
   border-radius: 16px;
   font-family: inherit;
-  font-size: 16.5px;
+  font-size: var(--y-govde);
   font-weight: 700;
   letter-spacing: -0.015em;
   transition: transform 0.13s ease, filter 0.13s ease;
@@ -2976,14 +3042,14 @@
 }
 
 .uyg .secenek__dg {
-  margin-bottom: 10px;
-  padding: 15px 16px;
+  margin-bottom: var(--bosluk-3);
+  padding: var(--bosluk-4);
   border: 0;
   border-radius: var(--r-kart);
   background: var(--yuzey);
   box-shadow: var(--sh-1);
   font-family: inherit;
-  font-size: 16px;
+  font-size: var(--y-govde);
   font-weight: 700;
   letter-spacing: -0.015em;
   color: var(--murekkep);
@@ -3001,10 +3067,10 @@
 .uyg .buyuk-sec {
   position: relative;
   min-height: 56px;
-  margin-bottom: 10px;
-  padding: 14px 15px 14px 50px;
+  margin-bottom: var(--bosluk-3);
+  padding: var(--bosluk-4) var(--bosluk-4) var(--bosluk-4) 50px;
   border: 1px solid var(--cizgi-koyu);
-  border-radius: 15px;
+  border-radius: var(--r-sm);
   background: var(--yuzey);
   transition: background 0.14s ease, border-color 0.14s ease, transform 0.14s ease;
 }
@@ -3044,18 +3110,18 @@
 }
 
 .uyg .buyuk-sec__ad {
-  font-size: 15.5px;
+  font-size: var(--y-govde);
   font-weight: 700;
   letter-spacing: -0.015em;
 }
 
 .uyg .buyuk-sec__alt {
-  font-size: 13px;
+  font-size: var(--y-alt);
   color: var(--murekkep-2);
 }
 
 .uyg .parca-satir {
-  border-radius: 15px;
+  border-radius: var(--r-sm);
   border-color: var(--cizgi-koyu);
 }
 
@@ -3067,12 +3133,12 @@
 /* ----------------------------------------------------------- Alan, kutu */
 
 .uyg .alan {
-  margin-bottom: 16px;
+  margin-bottom: var(--bosluk-4);
 }
 
 .uyg .alan__ad {
-  margin-bottom: 7px;
-  font-size: 14px;
+  margin-bottom: var(--bosluk-2);
+  font-size: var(--y-alt);
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--murekkep);
@@ -3080,20 +3146,20 @@
 
 .uyg .alan__ipucu {
   display: block;
-  margin-top: 6px;
-  font-size: 13px;
+  margin-top: var(--bosluk-2);
+  font-size: var(--y-alt);
   color: var(--murekkep-2);
 }
 
 .uyg .gir {
   min-height: var(--dokunma);
-  padding: 12px 16px;
+  padding: var(--bosluk-3) var(--bosluk-4);
   border: 1px solid var(--cizgi-koyu);
   border-radius: var(--r-sm);
   background: var(--yuzey);
   color: var(--murekkep);
   font-family: inherit;
-  font-size: 16px;
+  font-size: var(--y-govde);
 }
 
 .uyg .gir:focus {
@@ -3111,7 +3177,7 @@
 .kv {
   display: flex;
   align-items: baseline;
-  gap: 12px;
+  gap: var(--bosluk-3);
   padding: 12px 0;
   border-bottom: 1px solid var(--cizgi);
 }
@@ -3122,7 +3188,7 @@
 
 .kv__ad {
   flex: none;
-  font-size: 13.5px;
+  font-size: var(--y-alt);
   font-weight: 500;
   color: var(--murekkep-2);
 }
@@ -3131,7 +3197,7 @@
   flex: 1;
   min-width: 0;
   text-align: right;
-  font-size: 15.5px;
+  font-size: var(--y-govde);
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--murekkep);
@@ -3153,7 +3219,7 @@
    Yumuşak renkli kart: Connect'in bilgi kutuları gibi, köşe 18. */
 .uyg .not {
   border: 0;
-  border-radius: 18px;
+  border-radius: var(--r-kart);
   background: var(--mavi-soft);
   color: var(--murekkep);
 }
@@ -3170,10 +3236,12 @@
 
 .bakiye {
   display: flex;
-  gap: 14px;
+  gap: var(--bosluk-4);
   align-items: flex-start;
-  margin-bottom: 20px;
-  padding: 18px;
+  /* Kartlar arası tek aralık: 16. Bu kart 24 kullanıyordu ve
+     ekranın ritmini kendi başına bozuyordu. */
+  margin-bottom: var(--bosluk-4);
+  padding: var(--bosluk-4);
   border-radius: var(--r-kart);
   background: var(--yuzey);
   box-shadow: var(--sh-1);
@@ -3183,9 +3251,9 @@
   flex: none;
   display: grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 16px;
+  width: var(--dokunma);
+  height: var(--dokunma);
+  border-radius: var(--r-sm);
   background: var(--turuncu-soft);
   color: var(--turuncu-yazi);
 }
@@ -3196,14 +3264,14 @@
 }
 
 .bakiye__etiket {
-  font-size: 13px;
+  font-size: var(--y-alt);
   font-weight: 500;
   color: var(--murekkep-2);
 }
 
 .bakiye__tutar {
   margin-top: 2px;
-  font-size: 32px;
+  font-size: var(--y-rakam);
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.02em;
@@ -3213,14 +3281,14 @@
 
 .bakiye__tutar small {
   margin-left: 4px;
-  font-size: 16px;
+  font-size: var(--y-govde);
   font-weight: 700;
   color: var(--murekkep-3);
 }
 
 .bakiye__aciklama {
   margin: 8px 0 0;
-  font-size: 13.5px;
+  font-size: var(--y-alt);
   line-height: 1.45;
   color: var(--murekkep-2);
 }
@@ -3228,9 +3296,9 @@
 /* ------------------------------------------------------------------ Hesap */
 
 .hesap {
-  margin-top: 12px;
-  padding: 4px 18px;
-  border-radius: 18px;
+  margin-top: var(--bosluk-3);
+  padding: var(--bosluk-1) var(--bosluk-4);
+  border-radius: var(--r-kart);
   background: var(--yuzey);
   box-shadow: var(--sh-1);
 }
@@ -3238,10 +3306,10 @@
 .hesap__satir {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--bosluk-3);
   padding: 11px 0;
   border-bottom: 1px solid var(--cizgi);
-  font-size: 15px;
+  font-size: var(--y-govde);
   color: var(--murekkep-3);
   font-variant-numeric: tabular-nums;
 }
@@ -3251,7 +3319,7 @@
 }
 
 .hesap__satir--toplam {
-  font-size: 16px;
+  font-size: var(--y-govde);
   font-weight: 700;
   color: var(--murekkep);
 }
@@ -3268,18 +3336,18 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
+  gap: var(--bosluk-3);
+  margin-bottom: var(--bosluk-3);
 }
 
 .kayit-dip__hesap span {
-  font-size: 14px;
+  font-size: var(--y-alt);
   font-weight: 500;
   color: var(--murekkep-3);
 }
 
 .kayit-dip__hesap strong {
-  font-size: 24px;
+  font-size: var(--y-tutar);
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--murekkep);
@@ -3291,10 +3359,10 @@
 .hareket {
   display: flex;
   align-items: baseline;
-  gap: 12px;
-  margin-bottom: 10px;
-  padding: 14px 18px;
-  border-radius: 18px;
+  gap: var(--bosluk-3);
+  margin-bottom: var(--bosluk-3);
+  padding: var(--bosluk-4);
+  border-radius: var(--r-kart);
   background: var(--yuzey);
   box-shadow: var(--sh-1);
 }
@@ -3305,7 +3373,7 @@
 }
 
 .hareket__ad {
-  font-size: 15px;
+  font-size: var(--y-govde);
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--murekkep);
@@ -3313,13 +3381,13 @@
 
 .hareket__zaman {
   margin-top: 2px;
-  font-size: 13px;
+  font-size: var(--y-alt);
   color: var(--murekkep-2);
 }
 
 .hareket__tutar {
   flex: none;
-  font-size: 16px;
+  font-size: var(--y-govde);
   font-weight: 700;
   white-space: nowrap;
   color: var(--murekkep-3);
@@ -3341,29 +3409,29 @@
   border-radius: var(--r-kart);
   background: var(--yuzey);
   box-shadow: var(--sh-1);
-  padding: 18px;
+  padding: var(--bosluk-4);
 }
 
 .uyg .duyuru__tur {
-  font-size: 12.5px;
+  font-size: var(--y-mini);
   font-weight: 800;
   letter-spacing: 0.02em;
 }
 
 .uyg .duyuru__ust {
-  font-size: 13px;
+  font-size: var(--y-alt);
 }
 
 .uyg .duyuru__baslik {
-  margin-top: 6px;
-  font-size: 16.5px;
+  margin-top: var(--bosluk-1);
+  font-size: var(--y-govde);
   font-weight: 700;
   letter-spacing: -0.015em;
   color: var(--murekkep);
 }
 
 .uyg .duyuru__metin {
-  font-size: 15px;
+  font-size: var(--y-govde);
 }
 
 .uyg .duyuru--geriCagirma {
@@ -3373,14 +3441,40 @@
 
 /* ------------------------------------------------------------- İpucu */
 
+/* SOL HİZA. Ölçüldü: bu paragraf 18 pikselden başlıyordu, üstündeki
+   ve altındaki her blok 16'dan. Sebebi temel kuraldaki `0 2px` yan
+   payı — masaüstü panelde göze çarpmıyor, telefonda tek sütunda
+   çarpıyor. Gövdenin sol kenarı tek çizgi olmalı. */
 .uyg .ipucu {
-  font-size: 14px;
+  margin-left: 0;
+  margin-right: 0;
+  font-size: var(--y-alt);
   line-height: 1.5;
   color: var(--murekkep-2);
 }
 
+/* BACKOFFICE'TEN GELEN İKİ ÖLÇÜ BU UYGULAMADA GEÇERLİ DEĞİL.
+
+   `backoffice.css` paylaşılıyor ve oradaki bazı değerler masa
+   başındaki panele göre seçilmiş. Telefonda tarlada okunacak
+   metinde karşılığı yok:
+
+     .kucuk  12,5px  → yardımcı satırın alt sınırı 14 (`--y-alt`).
+                       Ekranda etiketlerin çoğu bu sınıfı taşıyor;
+                       "Telefon", "Konum", "Adres" hepsi 12,5
+                       pikselle çiziliyordu.
+     .bos strong 19px → bu uygulamanın başlık basamağı 20
+                       (`--y-bolum`). Tek piksellik fark hiyerarşi
+                       kurmuyor, dağınıklık üretiyor. */
+.uyg .kucuk {
+  font-size: var(--y-alt);
+}
 .uyg .bos {
   border-radius: var(--r-kart);
+}
+
+.uyg .bos strong {
+  font-size: var(--y-bolum);
 }
 
 /* ------------------------------------------------ Dokunma hedefi tabanı
@@ -3396,7 +3490,7 @@
   padding: 0 16px;
   border-radius: 999px;
   font-weight: 700;
-  font-size: 14.5px;
+  font-size: var(--y-alt);
 }
 
 .uyg .cip--on {
@@ -3418,7 +3512,7 @@
    yapışıyor ve Connect'in dip çubuğu gibi beyaz zeminde duruyor. */
 .uyg--sayfa .yapisik {
   bottom: var(--dip);
-  margin-top: 8px;
+  margin-top: var(--bosluk-2);
   padding: 12px var(--bosluk-4);
   padding-bottom: calc(12px + var(--dip));
   background: var(--yuzey);
@@ -3455,7 +3549,7 @@
 
 .onay__baslik {
   margin: 0;
-  font-size: var(--yazi-4);
+  font-size: var(--y-bolum);
   font-weight: 800;
   letter-spacing: -0.01em;
   color: var(--murekkep);
@@ -3463,7 +3557,7 @@
 
 .onay__metin {
   margin: var(--bosluk-2) 0 0;
-  font-size: var(--yazi-3);
+  font-size: var(--y-govde);
   line-height: 1.55;
   color: var(--murekkep-2);
 }
@@ -3483,7 +3577,7 @@
   justify-content: space-between;
   gap: var(--bosluk-4);
   padding: 7px 0;
-  font-size: var(--yazi-3);
+  font-size: var(--y-govde);
   color: var(--murekkep-2);
 }
 
@@ -3517,7 +3611,7 @@
    nedenini söylüyor; kapalı bir düğme sebebini söylemeden durmaz. */
 .uyg__dip-not {
   margin: var(--bosluk-2) 0 0;
-  font-size: var(--yazi-2);
+  font-size: var(--y-alt);
   line-height: 1.5;
   color: var(--murekkep-2);
   text-align: center;
@@ -3527,7 +3621,7 @@
    zenginleştirmeli, listeyi uzatmamalı. */
 .is__ozet {
   margin-top: var(--bosluk-2);
-  font-size: var(--yazi-2);
+  font-size: var(--y-alt);
   line-height: 1.45;
   color: var(--murekkep-2);
   overflow: hidden;
@@ -3566,7 +3660,7 @@
 }
 
 .calisilan__ad {
-  font-size: var(--yazi-3);
+  font-size: var(--y-govde);
   font-weight: 700;
 }
 
@@ -3586,7 +3680,7 @@
 .parca-satir__fiyat {
   display: block;
   margin-top: 2px;
-  font-size: var(--yazi-2);
+  font-size: var(--y-alt);
   font-weight: 400;
   color: var(--murekkep-2);
 }
@@ -3633,18 +3727,18 @@
 .montaj__ad {
   flex: 1;
   min-width: 0;
-  font-size: var(--yazi-3);
+  font-size: var(--y-govde);
   font-weight: 700;
 }
 
 .montaj__sayi {
   flex: none;
   min-width: 30px;
-  padding: 2px 8px;
+  padding: 2px var(--bosluk-2);
   border-radius: var(--r-tam);
   background: var(--mavi-z);
   color: var(--mavi-rz);
-  font-size: var(--yazi-2);
+  font-size: var(--y-alt);
   font-weight: 800;
   text-align: center;
   font-variant-numeric: tabular-nums;
@@ -3711,7 +3805,7 @@
 }
 
 .parca-kart__resimsiz {
-  font-size: var(--yazi-1);
+  font-size: var(--y-mini);
   color: var(--murekkep-3);
 }
 
@@ -3730,12 +3824,12 @@
 }
 
 .parca-kart__kod {
-  font-size: var(--yazi-1);
+  font-size: var(--y-mini);
   color: var(--murekkep-3);
 }
 
 .parca-kart__ad {
-  font-size: var(--yazi-2);
+  font-size: var(--y-alt);
   font-weight: 700;
   line-height: 1.3;
   color: var(--murekkep);
@@ -3743,7 +3837,7 @@
 
 .parca-kart__fiyat {
   margin-top: 2px;
-  font-size: var(--yazi-3);
+  font-size: var(--y-govde);
   font-weight: 800;
   color: var(--turuncu);
   font-variant-numeric: tabular-nums;
@@ -3761,7 +3855,7 @@
 
 .iskelet-satir {
   height: 10px;
-  margin-top: 6px;
+  margin-top: var(--bosluk-1);
   border-radius: var(--r-tam);
   background: var(--yuzey-2);
 }
@@ -3787,7 +3881,7 @@
 .secili-parca__kod {
   display: block;
   margin-top: 2px;
-  font-size: var(--yazi-1);
+  font-size: var(--y-mini);
   font-weight: 400;
   color: var(--murekkep-3);
 }

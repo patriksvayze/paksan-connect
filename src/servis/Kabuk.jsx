@@ -1,5 +1,6 @@
 import { Logo } from '../marka'
 import { IconBack, IconPhone } from '../components/Icons'
+import { ParcaTablosu } from '../components/ParcaTablosu'
 
 /* ==========================================================================
    Servis uygulamasının kabuğu
@@ -134,8 +135,20 @@ export function Sayfa({ baslik, alt, onGeri, islem, dip, children }) {
 /**
  * @param {{baslik, metin, kalemler, dugme, onOnayla, onVazgec}} p
  *        kalemler: [{ad, deger}] — onaylanacak şeyin özeti
+ *        parcalar: [{kod, ad, adet}] — üç sütunlu tablo olarak çiziliyor
  */
-export function Onay({ baslik, metin, kalemler = [], dugme, onOnayla, onVazgec }) {
+export function Onay({
+  baslik,
+  metin,
+  kalemler = [],
+  /* Parça listesi metin olarak değil TABLO olarak geçiyor: kod, ad ve
+     adet ayrı sütunlarda. Virgülle birleştirilmiş satır üç parçadan
+     sonra okunmuyordu (bkz. components/ParcaTablosu.jsx). */
+  parcalar = [],
+  dugme,
+  onOnayla,
+  onVazgec,
+}) {
   return (
     <div
       className="onay-perde"
@@ -144,6 +157,12 @@ export function Onay({ baslik, metin, kalemler = [], dugme, onOnayla, onVazgec }
       <div className="onay" role="dialog" aria-label={baslik}>
         <h2 className="onay__baslik">{baslik}</h2>
         {metin && <p className="onay__metin">{metin}</p>}
+
+        {parcalar.length > 0 && (
+          <div className="onay__parca">
+            <ParcaTablosu parcalar={parcalar} />
+          </div>
+        )}
 
         {kalemler.length > 0 && (
           <div className="onay__liste">

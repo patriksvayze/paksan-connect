@@ -581,6 +581,12 @@ export const en = {
     neKadarArazi: 'How Much Land Do You Work?',
     traktorGucu: 'How Powerful Is Your Tractor?',
     traktorIpucu: 'We need to know whether the machine suits your tractor.',
+    servisAdres: 'Where the machine is located',
+    servisAdresAciklama:
+      'The service technician will come to this address. Include the village, area, and directions; a map pin may not be enough.',
+    servisAdresIpucu: 'Example: Çumra, Alibeyhüyüğü village, behind the cooperative',
+    servisAdresEksik:
+      'Please describe the address in a little more detail so the service technician can find you.',
     neZamanArayalim: 'When Are You Usually Available During the Day?',
     aramaAciklamasi: 'We will get in touch if it turns out to be necessary.',
     durumSecin: 'Please mark the current state of the machine.',

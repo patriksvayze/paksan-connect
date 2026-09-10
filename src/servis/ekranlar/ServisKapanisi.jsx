@@ -12,17 +12,16 @@ import {
 import { telGiris } from '../../lib/tel'
 import {
   ASAMA,
-  PARCA_DURUMU,
   TARIFE,
   YAPILAN_IS,
   eksikAlanlar,
   hakkedisHesapla,
-  parcaYazisi,
   temizParcalar,
 } from '../../lib/servisKaydi'
 import { ekYaz, fotoKucult } from '../../lib/ekler'
 import { servisKaydiGonder } from '../../backoffice/veri'
 import { Bolum, Onay, Sayfa } from '../Kabuk'
+import { ParcaTablosu } from '../../components/ParcaTablosu'
 import { ParcaSec } from './ParcaSec'
 import {
   IconAlert,
@@ -105,11 +104,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
   const [yapilanIs, setYapilanIs] = useState(onceki?.yapilanIs || '')
   const [sonuc, setSonuc] = useState(onceki?.sonuc || '')
   const [kapi, setKapi] = useState(onceki?.kapi || '')
-  /* İkinci aşamada parça gerekliliği geçmişte kaldı: 1. aşamada
-     "evet" denmiş. Birinci aşamada soru henüz cevaplanmadı. */
-  const [parcaGerek, setParcaGerek] = useState(ikinci ? 'evet' : '')
   const [parcalar, setParcalar] = useState(onceki?.parcalar || [])
-  const [parcaDurumu, setParcaDurumu] = useState(onceki?.parcaDurumu || '')
   const [foto, setFoto] = useState(onceki?.foto || null)
   const [km, setKm] = useState(onceki?.km ? String(onceki.km) : '')
   const [iscilik, setIscilik] = useState(onceki?.iscilik ? String(onceki.iscilik) : '')
@@ -124,32 +119,51 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
   const garantiDurumu = warrantyStatus(extractYear(seriDegeri)).state
   const garantiVar = garantiDurumu === 'devam' || garantiDurumu === 'son'
 
-  /* AŞAMAYI EKRAN BELİRLİYOR, KOD TAHMİN ETMİYOR.
+  const secilenler = temizParcalar(parcalar)
 
-     Garanti kapısında "Parça gerekiyor mu?" diye açıkça soruluyor;
-     cevabı "evet" ise bu kayıt bir parça isteği, iş henüz bitmedi.
-     Öteki iki kapı tek aşamalı: parça elde varsa iş bitti, garanti
-     dışı parça isteniyorsa hak ediş zaten doğmuyor. */
-  const parcaIstegi = !ikinci && kapi === 'garanti' && parcaGerek === 'evet'
+  /* AŞAMAYI SEÇİLEN PARÇA BELİRLİYOR, AYRI BİR SORU DEĞİL.
+
+     Burada "Parça gerekiyor mu?" diye bir soru vardı ve kaldırıldı.
+     Cevabı zaten ekranda duruyordu: servis parça seçtiyse parça
+     gerekiyor demektir. Aynı şeyi iki kez sormak, ikisinin
+     birbirini tutmadığı bir kayıt ihtimali açıyordu — "hayır"
+     denip parça seçilmiş bir kayıt gibi.
+
+     GARANTİDE PARÇAYI HER ZAMAN PAKSAN GÖNDERİYOR. Servisin
+     elindeki parçayı takması garanti kapısında seçenek değil;
+     "Parçayı Ben Taktım" yalnız garanti dışında var. Bu yüzden
+     garanti kapısında seçilen her parça bir PARÇA İSTEĞİDİR:
+     kayıt 1. aşamada duruyor, hak ediş doğmuyor, iş parça
+     takıldığında bitiyor.
+
+     Garanti işinde hiç parça gerekmiyorsa (yalnız ayar yapıldıysa)
+     liste boş kalıyor ve kayıt bugün kapanıyor. */
+  const parcaIstegi = !ikinci && kapi === 'garanti' && secilenler.length > 0
   const asama = parcaIstegi ? ASAMA.parca : ASAMA.bitti
 
-  /* Parça bölümü hangi kapıda açılıyor: garantide soruya "evet"
-     dendiğinde ya da "hayır" dendiğinde (kendi parçasını takmış
-     olabilir), garanti dışı iki kapıda her zaman. */
-  const parcaBolumu = ikinci
-    ? false
-    : kapi === 'eldeParca' || kapi === 'parcaIste' || (kapi === 'garanti' && Boolean(parcaGerek))
+  /* Parça bölümü üç kapıda da açık: garantide istenecek parça,
+     garanti dışında takılan ya da istenen parça. */
+  const parcaBolumu = !ikinci && Boolean(kapi)
+
+  /* BÖLÜM ADI KAPIDAN OKUNUYOR, SEÇİMDEN DEĞİL.
+
+     Bir aralık `parcaIstegi` bakılıyordu ve o ancak parça
+     seçildikten sonra doğru oluyordu: garanti kapısında liste
+     boşken başlık "Değiştirilen Parça" yazıyordu, yani servis
+     parçayı isteyeceğini değil değiştirmiş olduğunu okuyordu.
+     Kapı zaten neyin isteneceğini söylüyor. */
+  const parcaBaslik = ikinci
+    ? { ad: 'Değiştirilen Parça', ipucu: 'Taktığınız parça listede yazılı; değiştiyse düzeltin.' }
+    : kapi === 'garanti'
+      ? { ad: 'Gereken Parça', ipucu: `${MARKA} seçtiğiniz parçaları hazırlayıp size gönderecek. Parça gerekmiyorsa boş bırakın.` }
+      : kapi === 'parcaIste'
+        ? { ad: 'İstenen Parça', ipucu: `${MARKA} parçayı hazırlayıp gönderecek; ücretini müşteriden alırsınız.` }
+        : { ad: 'Taktığınız Parça', ipucu: 'Bu ziyarette taktığınız parçaları katalogdan seçin.' }
 
   /* İş bittiğinde sorulanlar: ne yapıldı, yol, işçilik. Parça
      isteğinde hiçbiri sorulmuyor — henüz olmamış bir işin parası
-     yazılamaz.
-
-     GARANTİDE SORU CEVAPLANMADAN AÇILMIYOR. Kapı seçilir seçilmez
-     açılıyordu: servis "Garanti Kapsamında" der demez ekranda hem
-     "Parça gerekiyor mu?" hem de yol ve işçilik kutuları beliriyordu.
-     İkisi birden görününce soru, cevabı zaten belliymiş gibi
-     duruyordu. */
-  const isBitti = ikinci || (kapi === 'garanti' ? parcaGerek === 'hayir' : Boolean(kapi))
+     yazılamaz. */
+  const isBitti = ikinci || (Boolean(kapi) && !parcaIstegi)
   const paraSorulur = isBitti && (ikinci || kapi === 'garanti')
 
   const kayit = {
@@ -158,13 +172,11 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
     yapilanIs,
     sonuc,
     parcalar,
-    parcaDurumu,
     foto,
     km: Number(km) || 0,
     iscilik: Number(iscilik) || 0,
   }
   const hakkedis = hakkedisHesapla(kayit)
-  const secilenler = temizParcalar(parcalar)
 
   function adetDegistir(kod, fark) {
     setParcalar((l) =>
@@ -189,8 +201,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
         return 'Şase numarasını kontrol edip yeniden yazın.'
       }
       if (ariza.trim().length < 5) return 'Arızayı bir cümleyle yazın.'
-      if (!kapi) return 'Ücreti kimin ödeyeceğini seçin.'
-      if (kapi === 'garanti' && !parcaGerek) return 'Parça gerekip gerekmediğini seçin.'
+      if (!kapi) return 'Hizmetin kapsamını seçin.'
     }
     if (sonuc.trim().length < 5) {
       return parcaIstegi ? 'Ne bulduğunuzu bir cümleyle yazın.' : 'Ne yaptığınızı bir cümleyle yazın.'
@@ -231,18 +242,17 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
     ? {
         baslik: 'Parça isteğiniz gönderilecek',
         metin: `${MARKA} yedek parça birimi parçayı hazırlayıp size gönderecek. Parça elinize geçtiğinde bu talebi açıp "Parçayı Taktım" düğmesine dokunacaksınız. Yol ve işçilik bilgileri o zaman sorulacak.`,
-        kalemler: [{ ad: 'İstenen parça', deger: parcaYazisi(secilenler) }],
-        dugme: 'Parçayı İste',
+        parcalar: secilenler,
+        kalemler: [],
+        dugme: 'Parça Talebini Gönder',
       }
     : kapi === 'garanti' || ikinci
       ? {
           baslik: `Kayıt ${markaEk('a')} onaya gidecek`,
           metin: `${MARKA} yolu, işçiliği ve parçaları inceleyecek. Onaylandığında tutar hesabınıza eklenecek ve talep kapanacak.`,
+          parcalar: secilenler,
           kalemler: [
             { ad: 'Yapılan iş', deger: yapilanIs || '—' },
-            ...(secilenler.length
-              ? [{ ad: 'Parça', deger: parcaYazisi(secilenler) }]
-              : []),
             { ad: 'Hesabınıza eklenecek tutar', deger: `${paraYaz(hakkedis.toplam)} ${PARA_BIRIMI}` },
           ],
           dugme: 'Kaydı Gönder',
@@ -250,17 +260,19 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
       : {
           baslik: 'Talep kapanacak',
           metin: 'Kayıt müşterinin uygulamasında görünecek ve müşteriye bildirim gidecek.',
+          parcalar: secilenler,
           kalemler: [
             { ad: 'Yapılan iş', deger: yapilanIs || '—' },
-            ...(secilenler.length
-              ? [{ ad: 'Parça', deger: parcaYazisi(secilenler) }]
-              : []),
             { ad: 'Ücret', deger: 'Müşteri ödedi' },
           ],
           dugme: 'Kaydı Gönder',
         }
 
-  const dugmeYazi = parcaIstegi ? 'Parçayı İste' : ikinci ? 'İşi Tamamla' : 'Kaydı Tamamla'
+  const dugmeYazi = parcaIstegi
+    ? 'Parça Talebini Gönder'
+    : ikinci
+      ? 'İşi Tamamla'
+      : 'Kaydı Tamamla'
 
   /* KATALOG TAM EKRAN AÇILIYOR, PENCERE OLARAK DEĞİL.
 
@@ -357,14 +369,13 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
           </Bolum>
         )}
 
-        {/* --------------------------------------------------------- Arıza
+        {/* --------------------------------------------- Servis talebi nedeni
 
-            BÖLÜM ADI ve ALAN ADI ÜST ÜSTE YAZMIYOR. Tek alanlı bölümde
-            "Arıza" başlığının altında "Müşteri Ne Anlattı?" etiketi
-            aynı şeyi iki kez söylüyordu; bölüm adı sorunun kendisi
-            oldu. */}
+            BÖLÜM ADI ve ALAN ADI ÜST ÜSTE YAZMIYOR: tek alanlı bölümde
+            başlığın altına ikinci bir etiket konmuyor, bölüm adı
+            sorunun kendisi oluyor. */}
         {!ikinci && (
-          <Bolum ad="Müşteri Ne Anlattı?">
+          <Bolum ad="Servis Talebi Nedeni">
             <Kutu
               deger={ariza}
               onDegis={setAriza}
@@ -380,7 +391,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
 
         {/* ---------------------------------------------------------- Kapı */}
         {!ikinci && (
-          <Bolum ad="Ücreti Kim Ödüyor?">
+          <Bolum ad="Hizmet Kapsamı">
             {seriDegeri && <Garanti seri={seriDegeri} urun={urun} />}
             <Secenekler
               secenekler={[
@@ -410,38 +421,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
           </Bolum>
         )}
 
-        {/* GARANTİDE TEK BİR SORU AKIŞI İKİYE AYIRIYOR.
-
-            Cevap "evet" ise bu kayıt bir parça isteği: iş bitmedi,
-            para sorulmuyor. "Hayır" ise iş bu ziyarette bitti ve
-            kayıt doğrudan onaya gidiyor. Soru sorulmasaydı akış
-            "parça seçildi mi" gibi örtük bir şeyden okunurdu; servis
-            neyi seçtiğinde ne olacağını bilemezdi. */}
-        {!ikinci && kapi === 'garanti' && (
-          <Bolum ad="Parça Gerekiyor mu?">
-            <Secenekler
-              secenekler={[
-                {
-                  deger: 'evet',
-                  ad: `Evet, ${MARKA} göndersin`,
-                  alt: 'Parça hazırlanıp size gönderilecek; takınca işi tamamlarsınız.',
-                },
-                {
-                  deger: 'hayir',
-                  ad: 'Hayır, iş bitti',
-                  alt: 'Kayıt bugün kapanacak; yol ve işçilik bilgilerini aşağıda gireceksiniz.',
-                },
-              ]}
-              secili={parcaGerek}
-              onSec={(v) => {
-                setParcaGerek(v)
-                setHata('')
-              }}
-            />
-          </Bolum>
-        )}
-
-        {!ikinci && kapi === 'garanti' && parcaGerek && !garantiVar && (
+        {!ikinci && kapi === 'garanti' && !garantiVar && (
           <div className="not not--turuncu">
             <IconAlert size={19} />
             <div>
@@ -458,74 +438,82 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
         {parcaBolumu && (
           <>
             <SecilenParcalar
-              ad={parcaIstegi ? 'Gerekli Parça' : 'Değiştirilen Parça'}
-              ipucu={
-                parcaIstegi
-                  ? `${MARKA} bu parçaları hazırlayıp size gönderecek.`
-                  : 'Değiştirdiğiniz parça varsa katalogdan seçin.'
-              }
+              ad={parcaBaslik.ad}
+              ipucu={parcaBaslik.ipucu}
               secili={parcalar}
               onAdet={adetDegistir}
               onCikar={parcaCikar}
               onKatalog={() => setKatalogAcik(true)}
             />
 
+            {/* SEÇİMİN SONUCU AYNI YERDE YAZIYOR.
+
+                "Parça gerekiyor mu?" sorusu kalktı; yerine sorulacak
+                bir şey konmadı ama ne olacağı söylenmeden de
+                bırakılmadı. Garanti kapısında parça seçildiği anda iş
+                bu ziyarette bitmiyor, kayıt parça isteğine dönüyor ve
+                yol/işçilik kutuları kapanıyor. Kutuların sebepsiz
+                kaybolması yerine sebebi burada yazılı. */}
+            {parcaIstegi && (
+              <div className="not not--mavi">
+                <IconAlert size={19} />
+                <div>
+                  <strong>Bu kayıt bir parça isteği olarak gidecek.</strong>
+                  <p>
+                    {MARKA} parçayı hazırlayıp size gönderecek. Parçayı
+                    taktığınızda bu talebe dönüp işi tamamlayacaksınız; yol ve
+                    işçilik bilgileri o zaman sorulacak.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* FOTOĞRAF İSTEĞE BAĞLI VE ESKİ PARÇA GERİ İSTENMİYOR.
+
+                Burada "eski parçayı PAKSAN'a geri gönderin, yoksa
+                kayıt açık kalır" yazan bir kutu vardı; böyle bir kural
+                yok. Yanında da "Parçanın nesi var?" diye bir soru
+                vardı, o da kaldırıldı (gerekçesi lib/servisKaydi.js).
+                Fotoğraf kaldı: garanti tartışmasında bakılacak tek
+                şey o. */}
             {secilenler.length > 0 && (kapi === 'garanti' || ikinci) && (
-              <>
-                <Bolum ad="Parçanın Nesi Var?">
-                  <Secenekler
-                    secenekler={PARCA_DURUMU.map((x) => ({ deger: x, ad: x }))}
-                    secili={parcaDurumu}
-                    onSec={(v) => {
-                      setParcaDurumu(v)
-                      setHata('')
-                    }}
-                  />
-                </Bolum>
-
-                {/* FOTOĞRAF İSTEĞE BAĞLI VE PARÇA GERİ İSTENMİYOR.
-
-                    Burada "eski parçayı PAKSAN'a geri gönderin, yoksa
-                    kayıt açık kalır" yazan bir kutu vardı. Böyle bir
-                    kural yok: PAKSAN arızalı parçanın iadesini
-                    istemiyor. Kutu kaldırıldı; fotoğraf kaldı, çünkü
-                    garanti tartışmasında bakılacak tek şey o. */}
-                <Bolum ad="Parçanın Fotoğrafı">
-                  <Fotograf foto={foto} onFoto={setFoto} />
-                </Bolum>
-              </>
+              <Bolum ad="Parçanın Fotoğrafı">
+                <Fotograf foto={foto} onFoto={setFoto} />
+              </Bolum>
             )}
           </>
         )}
 
         {/* --------------------------------------------------- Yapılan iş */}
-        {isBitti && (
-          <>
-            <Bolum ad="Ne Yapıldı?">
-              <Secenekler
-                secenekler={YAPILAN_IS.map((x) => ({ deger: x, ad: x }))}
-                secili={yapilanIs}
-                onSec={(v) => {
-                  setYapilanIs(v)
-                  setHata('')
-                }}
-              />
-            </Bolum>
+        {/* İKİ BÖLÜM BİRLEŞTİ.
 
-            <Bolum ad="Ne Buldunuz, Ne Yaptınız?">
-              <Kutu
-                deger={sonuc}
-                onDegis={setSonuc}
-                satir={3}
-                ipucu="Örnek: Düğüm bıçağı aşınmıştı, değiştirildi ve ayar yapıldı"
-              />
-            </Bolum>
-          </>
+            Üstte "Ne Yapıldı?", altında "Ne Buldunuz, Ne Yaptınız?"
+            duruyordu. İkisi aynı soruyu iki kez soruyor gibiydi;
+            listeden seçilen ise cümlenin başlığı. Tek bölüm oldu:
+            önce liste, altında ayrıntı. */}
+        {isBitti && (
+          <Bolum ad="Yapılan İş">
+            <Secenekler
+              secenekler={YAPILAN_IS.map((x) => ({ deger: x, ad: x }))}
+              secili={yapilanIs}
+              onSec={(v) => {
+                setYapilanIs(v)
+                setHata('')
+              }}
+            />
+            <Kutu
+              ad="Ayrıntı"
+              deger={sonuc}
+              onDegis={setSonuc}
+              satir={3}
+              ipucu="Örnek: Düğüm bıçağı aşınmıştı, değiştirildi ve ayar yapıldı"
+            />
+          </Bolum>
         )}
 
         {/* 1. aşamada iş bitmedi; sorulan tek şey ne bulunduğu. */}
         {parcaIstegi && (
-          <Bolum ad="Ne Buldunuz?">
+          <Bolum ad="Tespitiniz">
             <Kutu
               deger={sonuc}
               onDegis={setSonuc}
@@ -581,6 +569,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
         <Onay
           baslik={onayBilgisi.baslik}
           metin={onayBilgisi.metin}
+          parcalar={onayBilgisi.parcalar}
           kalemler={onayBilgisi.kalemler}
           dugme={onayBilgisi.dugme}
           onOnayla={gonder}
@@ -602,9 +591,9 @@ function IlkAsama({ kayit }) {
       <div className="kart" style={{ padding: 16 }}>
         <Satir ad="Müşterinin Anlattığı" deger={kayit.ariza} />
         <Satir ad="Bulduğunuz" deger={kayit.sonuc} />
-        <Satir ad="İstediğiniz Parça" deger={parcaYazisi(kayit.parcalar)} />
-        <Satir ad="Parçanın Durumu" deger={kayit.parcaDurumu} />
       </div>
+      <p className="alan__ipucu parca-ipucu">İstediğiniz parça</p>
+      <ParcaTablosu parcalar={temizParcalar(kayit.parcalar)} />
     </Bolum>
   )
 }

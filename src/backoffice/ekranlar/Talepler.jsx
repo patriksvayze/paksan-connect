@@ -4,7 +4,7 @@ import {
   izinli, KAPALI_DURUMLAR, musterininDigerTalepleri,
   odemeOnayla, parcaIlerlemeEngeli, rolBilgi, rolunTalepleri, TALEP_ADI,
   talepDurumDegistir,
-  talepDurumlari, talepIptal, talepKapat, talepleriGetir,
+  elleSecilebilirDurumlar, talepDurumlari, talepIptal, talepKapat, talepleriGetir,
   talepNotEkle, talepPlanla, talepTeklifVer, teklifBeklemeGunu, teklifBekliyorMu,
   TEKLIF_BEKLEME_GUN, talebiBayiyeAta, bayiAtamasiniKaldir,
   hakkedisOnayla, hakkedisDuzelt, hakkedisReddet, servisParcasiGonderildi,
@@ -13,6 +13,7 @@ import {
 /* Kodlu biçim: yedek parça personeli 538 parçalık katalogta hangi
    kaydı hazırlayacağını addan çıkaramıyor. */
 import { KAPI, parcaYazisiKodlu as kayitParcaYazisi, temizParcalar } from '../../lib/servisKaydi'
+import { ParcaTablosu } from '../../components/ParcaTablosu'
 import { useVeri } from '../kanca'
 import {
   Baslik, Bekleme, Bos, DurumRozet, saatYaz, siraliListe, SiraliBaslik,
@@ -542,13 +543,26 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
     )
   }
 
-  /* @param {boolean} musteriye not müşterinin uygulamasına da düşsün mü */
-  function notKaydet(musteriye) {
+  /* Notun üç muhatabı var: yalnız PAKSAN (iç not), müşteri ve servis.
+     @param {'ic'|'musteri'|'servis'} hedef */
+  function notKaydet(hedef) {
     if (not.trim().length < 2) return
-    talepNotEkle(talep, not.trim(), personel, { musteriye })
+    talepNotEkle(talep, not.trim(), personel, {
+      musteriye: hedef === 'musteri',
+      servise: hedef === 'servis',
+    })
     setNot('')
     tazele()
-    bildir(musteriye ? 'Not müşteriye gönderildi' : 'İç not eklendi')
+    bildir(
+      hedef === 'musteri'
+        ? 'Not müşteriye gönderildi'
+        : hedef === 'servis'
+          ? /* Servis adına yönelme eki gerekiyor ("… Servisine") ve ek,
+               adın son hecesine göre değişiyor. Genel ifade hem doğru
+               hem de kısa; muhatabı zaten belli. */
+            'Not servise gönderildi'
+          : 'İç not eklendi',
+    )
   }
 
 
@@ -587,7 +601,7 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
         )}
 
         <div className="suzgec" style={{ marginBottom: kilitli ? 8 : 20 }}>
-          {talepDurumlari(talep.tur).map((d) => {
+          {elleSecilebilirDurumlar(talep.tur).map((d) => {
             const engel = parcaIlerlemeEngeli(talep, d.id)
             return (
               <button
@@ -722,6 +736,11 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
         )}
 
         <Bolum ad="Talep">
+          {/* Makinenin bulunduğu adres: servis talebinde müşteri
+              uygulamada yazıyor, sahadaki servis onu okuyor. Telefonla
+              gelen taleplerde boş kalıyor ve servis kendi ekranında
+              dolduruyor. */}
+          <S k="Adres" v={talep.adres} />
           <S k="Makinenin Durumu" v={makineDurumAdi(talep.durum)} />
           <S k="Belirtiler" v={talep.belirtiler?.join(' · ')} />
           <S k="İstenen Parçalar" v={parcaYazisi(talep)} />
@@ -1065,6 +1084,11 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
                         müşteriye gönderildi
                       </span>
                     )}
+                    {n.servise && (
+                      <span className="rz rz--mor" style={{ marginLeft: 8 }}>
+                        servise gönderildi
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -1078,20 +1102,36 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
             placeholder="İç not…"
           />
           <div className="satir" style={{ marginTop: 8, gap: 8 }}>
-            <button className="dg" onClick={() => notKaydet(false)}>
-              İç not ekle
+            <button className="dg" onClick={() => notKaydet('ic')}>
+              İç Not Ekle
             </button>
+            {/* SERVİSE NOT YALNIZ SERVİSİ OLAN TALEPTE.
+
+                Servisi atanmamış bir talepte düğme, basıldığında
+                hiçbir yere ulaşmayan bir not üretirdi. */}
+            {talep.servis?.id && (
+              <button
+                className="dg"
+                disabled={not.trim().length < 2}
+                onClick={() => notKaydet('servis')}
+              >
+                Servise Gönder
+              </button>
+            )}
             <button
               className="dg dg--ana"
               disabled={not.trim().length < 2}
               onClick={() => setNotOnay(true)}
             >
-              Müşteriye gönder
+              Müşteriye Gönder
             </button>
           </div>
           <p className="kucuk sonuk" style={{ margin: '8px 0 0' }}>
-            "Müşteriye gönder" dediğinizde yazdığınız cümle olduğu gibi müşterinin
-            uygulamasında görünür ve bildirim gönderilir.
+            "Müşteriye Gönder" düğmesine dokunduğunuzda yazdığınız cümle olduğu
+            gibi müşterinin uygulamasında görünür ve müşteriye bildirim
+            gönderilir. "Servise Gönder" düğmesine dokunduğunuzda aynı cümle
+            servisin uygulamasında bu talebin içinde görünür; müşteriye
+            gönderilmez.
           </p>
         </Bolum>
 
@@ -1221,11 +1261,17 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
           <SevkFormu
             talep={talep}
             onKapat={() => setForm(null)}
-            onKaydet={(kargo) => {
+            onKaydet={({ kargo, not: sevkNotu }) => {
+              const vardi = Boolean(talep.parcaSevk)
               servisParcasiGonderildi(talep, kargo, personel)
+              if (sevkNotu) talepNotEkle(talep, sevkNotu, personel, { servise: true })
               setForm(null)
               tazele()
-              bildir(`${talep.no} · parça gönderildi, servis takınca kapatacak`)
+              bildir(
+                vardi
+                  ? `${talep.no} · kargo bilgisi kaydedildi`
+                  : `${talep.no} · parça gönderildi, servis takınca kapatacak`,
+              )
             }}
           />
         )}
@@ -1238,7 +1284,7 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
             onVazgec={() => setNotOnay(false)}
             onOnayla={() => {
               setNotOnay(false)
-              notKaydet(true)
+              notKaydet('musteri')
             }}
           />
         )}
@@ -1975,10 +2021,26 @@ function ServisKaydiBolumu({
       {k.sonuc && (
         <p style={{ whiteSpace: 'pre-wrap', margin: '0 0 8px' }}>{k.sonuc}</p>
       )}
-      <S k="Değiştirilen Parça" v={kayitParcaYazisi(k.parcalar)} />
-      <S k="Parçanın Durumu" v={k.parcaDurumu} />
       <S k="Gidilen Yol" v={k.km ? k.km + ' km' : ''} />
       <S k="İşçilik" v={k.iscilik ? paraYaz(k.iscilik) + ' ' + PARA_BIRIMI : ''} />
+
+      {/* PARÇA LİSTESİ VİRGÜLLE DEĞİL TABLOYLA.
+
+          Satır "A (2013101010) × 2, B (2013101011) × 1" biçimindeydi;
+          üç parçadan sonra kod ile ad birbirine giriyordu. Yedek parça
+          personelinin okuduğu asıl liste bu — sütunlara ayrıldı
+          (bkz. components/ParcaTablosu.jsx).
+
+          "Parçanın nesi var?" satırı da buradaydı; soru servis
+          uygulamasından kaldırıldı (gerekçesi lib/servisKaydi.js). */}
+      {temizParcalar(k.parcalar).length > 0 && (
+        <div style={{ margin: '4px 0 10px' }}>
+          <div className="alan__ad" style={{ marginBottom: 6 }}>
+            {k.asama === 'parca' ? 'İstenen parça' : 'Değiştirilen parça'}
+          </div>
+          <ParcaTablosu parcalar={temizParcalar(k.parcalar)} />
+        </div>
+      )}
 
       {h && (
         <>
@@ -2031,6 +2093,14 @@ function ServisKaydiBolumu({
                   .join(' · ')
               : 'Servis parçayı takınca talebi kendisi kapatacak.'}
           </p>
+          {/* Takip numarası girilmediyse iş bu masada duruyor; talep
+              listeden düşmesin ki numara geldiğinde girilebilsin. */}
+          {talep.parcaSevk && !talep.parcaSevk.takipNo && (
+            <p style={{ margin: '4px 0 0' }}>
+              Takip numarası girilmedi. Numara geldiğinde "Kargo Bilgisini Gir"
+              deyip yazabilirsiniz; kaydettiğinizde talep listenizden düşer.
+            </p>
+          )}
         </div>
       )}
 
@@ -2075,10 +2145,15 @@ function ServisKaydiBolumu({
         </div>
       )}
 
-      {yetkili && parcada && !talep.parcaSevk && (
+      {/* Parça gönderildikten sonra da düğme duruyor: takip numarası
+          çoğu zaman o an elde olmuyor, sonradan giriliyor. */}
+      {yetkili && parcada && (
         <div className="satir" style={{ marginTop: 12 }}>
-          <button className="dg dg--ana" onClick={onSevk}>
-            Parçayı Gönderdim
+          <button
+            className={'dg' + (talep.parcaSevk ? '' : ' dg--ana')}
+            onClick={onSevk}
+          >
+            {talep.parcaSevk ? 'Kargo Bilgisini Gir' : 'Parçayı Gönderdim'}
           </button>
         </div>
       )}
@@ -2236,46 +2311,94 @@ function RedFormu({ talep, onKapat, onKaydet }) {
 
    TALEBİ KAPATMIYOR. Parça yola çıkıyor ama iş bitmiyor: takılması
    gerekiyor ve onu yalnız serviste olan biri bilebilir. Talep açık
-   kalıyor, servis takınca kendisi kapatıyor. */
+   kalıyor, servis takınca kendisi kapatıyor.
+
+   KARGO BİLGİSİ ZORUNLU DEĞİL VE SONRADAN GİRİLEBİLİYOR.
+
+   Kargo firması zorunluydu, takip numarası kutusu da formda
+   duruyordu. Gerçekte ikisi de gönderim anında elde olmuyor: paket
+   şubeye veriliyor, numara akşam ya da ertesi gün geliyor. Zorunlu
+   alan bu durumda iki şeyden birini üretiyordu — ya personel
+   uydurma bir şey yazıyordu ya da parça yola çıktığı hâlde kayda
+   girilmiyordu. İkisi de servisi bekletiyor.
+
+   Şimdi ikisi de boş bırakılabiliyor ve aynı form talep açıkken
+   yeniden açılıp doldurulabiliyor. Gönderim tarihi ilk kaydın
+   tarihi olarak kalıyor (bkz. veri.js → servisParcasiGonderildi).
+
+   SERVİSE NOT AYNI FORMDA. "Kapıya bırakılacak", "iki koli gitti",
+   "eski kasnağı da koydum" gibi bilgilerin servise ulaşacağı başka
+   bir yol yoktu; müşteriye giden not mekanizmasının aynısı, muhatabı
+   servis. */
 function SevkFormu({ talep, onKapat, onKaydet }) {
-  const [firma, setFirma] = useState('')
-  const [takipNo, setTakipNo] = useState('')
-  const [hata, setHata] = useState('')
+  const sevk = talep.parcaSevk || null
+  const [firma, setFirma] = useState(sevk?.firma || '')
+  const [takipNo, setTakipNo] = useState(sevk?.takipNo || '')
+  const [not, setNot] = useState('')
+  const parcalar = temizParcalar(talep.servisKaydi?.parcalar)
 
   return (
     <div className="pencere" onClick={(e) => e.target === e.currentTarget && onKapat()}>
-      <div className="kart pencere__kart" style={{ maxWidth: 440 }}>
+      <div className="kart pencere__kart" style={{ maxWidth: 460 }}>
         <div className="kart__tepe">
-          <h2>Parçayı Gönder</h2>
+          <h2>{sevk ? 'Kargo bilgisi' : 'Parçayı gönder'}</h2>
         </div>
         <div className="kart__ic">
-          <p className="kucuk sonuk" style={{ margin: '0 0 14px' }}>
-            {talep.no} · {kayitParcaYazisi(talep.servisKaydi?.parcalar)}. Talep
-            kapanmayacak; servis parçayı taktıktan sonra kendisi kapatacak.
+          <p className="kucuk sonuk" style={{ margin: '0 0 10px' }}>
+            {talep.no} ·{' '}
+            {sevk
+              ? 'Parça gönderildi olarak işaretli. Kargo bilgisini şimdi girebilir ya da güncelleyebilirsiniz.'
+              : 'Talep kapanmayacak; servis parçayı taktıktan sonra kendisi kapatacak.'}
           </p>
+
+          {parcalar.length > 0 && (
+            <div style={{ marginBottom: 14 }}>
+              <ParcaTablosu parcalar={parcalar} />
+            </div>
+          )}
+
           <label className="alan">
-            <span className="alan__ad">Kargo Firması</span>
+            <span className="alan__ad">
+              Kargo firması <span className="sonuk">· isteğe bağlı</span>
+            </span>
             <input className="gir" value={firma} onChange={(e) => setFirma(e.target.value)} />
           </label>
           <label className="alan">
-            <span className="alan__ad">Takip Numarası</span>
+            <span className="alan__ad">
+              Takip numarası <span className="sonuk">· sonradan girilebilir</span>
+            </span>
             <input
               className="gir"
               value={takipNo}
               onChange={(e) => setTakipNo(e.target.value)}
             />
           </label>
-          {hata && <div className="uyari">{hata}</div>}
+          <label className="alan">
+            <span className="alan__ad">
+              Servise not <span className="sonuk">· isteğe bağlı</span>
+            </span>
+            <textarea
+              className="metin"
+              style={{ minHeight: 62 }}
+              value={not}
+              onChange={(e) => setNot(e.target.value)}
+            />
+            <span className="alan__ipucu">
+              Yazdığınız cümle servisin uygulamasında bu talebin içinde görünür.
+            </span>
+          </label>
+
           <div className="satir">
             <button
               className="dg dg--ana"
               onClick={() =>
-                !firma.trim()
-                  ? setHata('Kargo firmasını yazın.')
-                  : onKaydet({ firma: firma.trim(), takipNo: takipNo.trim() })
+                onKaydet({
+                  kargo: { firma: firma.trim(), takipNo: takipNo.trim() },
+                  not: not.trim(),
+                })
               }
             >
-              Gönderildi
+              {sevk ? 'Kaydet' : 'Gönderildi Olarak İşaretle'}
             </button>
             <button className="dg" onClick={onKapat}>Vazgeç</button>
           </div>

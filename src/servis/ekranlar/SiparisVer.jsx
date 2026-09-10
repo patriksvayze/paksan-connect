@@ -199,8 +199,12 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
           <Onay
             baslik={`Sipariş ${markaEk('a')} gidecek`}
             metin={`${MARKA} yedek parça birimi siparişi görecek ve hazırlayacak. Tutar fiyat listesinden hesaplandı; kesin tutar faturada belirlenir.`}
+            /* Sipariş onayında listenin kendisi duruyor, sayısı değil.
+               "3 tür · 7 adet" satırı neyin sipariş edildiğini
+               söylemiyordu; yanlış adet ancak parça geldiğinde fark
+               ediliyordu. */
+            parcalar={secili.map((k) => ({ kod: k.kod, ad: k.ad, adet: k.adet }))}
             kalemler={[
-              { ad: 'Parça', deger: `${secili.length} tür · ${secili.reduce((t, k) => t + k.adet, 0)} adet` },
               { ad: 'Tutar', deger: `${paraYaz(hesap.toplam)} ${PARA_BIRIMI}` },
               {
                 ad: 'Ödeme',

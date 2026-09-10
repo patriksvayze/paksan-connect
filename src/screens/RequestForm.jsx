@@ -119,6 +119,24 @@ function TalepFormu() {
   const [il, setIl] = useState(user?.il || '')
   const [ilce, setIlce] = useState(user?.ilce || '')
 
+  /* MAKİNENİN BULUNDUĞU ADRES — YALNIZ SERVİS TALEBİNDE.
+
+     Buraya kadar servis talebi yalnız İL ve İLÇE taşıyordu. Servis
+     elemanı tarlaya gitmek zorunda ve "Konya / Çumra" ile kimse
+     bulunamıyor; adres telefonla soruluyordu. Sahadaki servisin
+     kayıt ekranında da adres kutusu boş çıkıyor ve elle
+     dolduruluyordu — müşterinin uygulamada zaten söylemiş olması
+     gereken bir bilgi.
+
+     BİR KEZ SORULUYOR. Yazılan adres hesaba işleniyor (`updateUser`)
+     ve sonraki taleplerde kutu dolu geliyor; çiftçinin makinesi çoğu
+     zaman aynı yerde duruyor. Kilitli değil, çünkü bazen değişiyor.
+
+     YEDEK PARÇADA SORULMUYOR: orada zaten teslimat adresi var
+     (bkz. `faturaBilgisi`). Fiyat teklifinde de yok — ortada gidilecek
+     bir makine yok. */
+  const [servisAdres, setServisAdres] = useState(user?.adres || '')
+
   /* ---------------------------------------------- Yedek parça: 2. adım
 
      Yedek parça talebi tek ekranda bitmiyor: parça satın alınıyor,
@@ -360,6 +378,8 @@ function TalepFormu() {
       return sorunlu('parca', t('talep.parcaSecin'))
     if (aciklamaZorunlu && aciklama.trim().length < 10)
       return sorunlu('aciklama', t('talep.aciklamaKisa'))
+    if (tur === 'servis' && servisAdres.trim().length < 15)
+      return sorunlu('servisAdres', t('talep.servisAdresEksik'))
 
     setHata('')
 
@@ -482,8 +502,13 @@ function TalepFormu() {
 
     /* Konum düzeltildiyse hesaba da işlensin — bir daha sorulmasın.
        Telefona burada dokunulmuyor; onu yalnızca Paksan değiştirebiliyor. */
-    if (il !== user?.il || ilce !== (user?.ilce || '')) {
-      updateUser({ konumUlke, il, ilce })
+    const yeniAdres = tur === 'servis' ? servisAdres.trim() : ''
+    if (
+      il !== user?.il ||
+      ilce !== (user?.ilce || '') ||
+      (yeniAdres && yeniAdres !== (user?.adres || ''))
+    ) {
+      updateUser({ konumUlke, il, ilce, ...(yeniAdres ? { adres: yeniAdres } : {}) })
       showToast(t('talep.konumGuncellendi'))
     }
 
@@ -528,6 +553,10 @@ function TalepFormu() {
         telHam: user?.tel || '',
         il,
         ilce,
+        /* Servis bu adrese gidiyor; sahadaki kayıt ekranı onu okunur
+           satır olarak gösteriyor ve tekrar sormuyor
+           (bkz. lib/servisKaydi.js → eksikAlanlar). */
+        adres: tur === 'servis' ? servisAdres.trim() : '',
       })
     } catch {
       setOnayHata(t('talep.gonderilemedi'))
@@ -1389,6 +1418,24 @@ function TalepFormu() {
                 müşterinin elinde değil, gösterecek bir şey yok. */}
             {tur !== 'satinalma' && <EkAlani ekler={ekler} onDegis={setEkler} />}
           </div>
+          )}
+
+          {/* Servis buraya gelecek. İl/ilçe seçimi onay penceresinde
+              ayrıca duruyor; bu kutu onun tarifi. */}
+          {tur === 'servis' && (
+            <div className="field" data-alan="servisAdres">
+              <label>
+                <span className="field__label">{t('talep.servisAdres')}</span>
+                <span className="field__aciklama">{t('talep.servisAdresAciklama')}</span>
+                <textarea
+                  className="textarea"
+                  style={{ minHeight: 84 }}
+                  value={servisAdres}
+                  onChange={(e) => setServisAdres(e.target.value)}
+                  placeholder={t('talep.servisAdresIpucu')}
+                />
+              </label>
+            </div>
           )}
 
           {/* Çiftçi gün boyu tarlada; ne zaman ulaşılabildiğini

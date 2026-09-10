@@ -40,6 +40,19 @@ const SOYADLAR = [
   'Koç', 'Kurt', 'Özkan', 'Şimşek', 'Polat', 'Korkmaz', 'Bulut', 'Erdoğan',
 ]
 
+/* Servis talebinin adresi bunlardan kuruluyor. Adres tarifi çiftçinin
+   yazacağı gibi: köy adı ve bir işaret noktası — servis navigasyonla
+   değil, sorarak buluyor. */
+const KOYLER = [
+  'Alibeyhüyüğü', 'Karkın', 'Dedemli', 'Gökhüyük', 'Beşkavak', 'Yenidoğan',
+  'Akören', 'Taşpınar', 'Sarıkaya', 'Çayırbaşı', 'Kızılören', 'Üçpınar',
+]
+
+const TARIFLER = [
+  'kooperatifin arkası', 'cami karşısı', 'silonun yanı', 'köy girişi ilk sağ',
+  'muhtarlığın karşısı', 'sulama kanalının kenarı', 'okulun arkası',
+]
+
 /* İl ve ilçeler servis listesindeki illerden seçiliyor ki harita ve
    "en yakın servis" sıralaması anlamlı çıksın. */
 const YERLER = [
@@ -581,6 +594,17 @@ export async function demoYukle() {
         telHam: m.tel,
         il: m.il,
         ilce: m.ilce,
+        /* SERVİS TALEBİNİN ADRESİ — UYGULAMADAN GELEN TALEPTE VAR.
+
+           Servis talebi uygulamadan açıldığında müşteri makinenin
+           bulunduğu adresi yazıyor (bkz. screens/RequestForm.jsx).
+           Telefonla gelen taleplerde bu alan boş; sahadaki servis
+           kayıt ekranında kendisi dolduruyor. Demoda beşte biri boş
+           bırakılıyor ki iki yol da denenebilsin. */
+        adres:
+          tur === 'servis' && Math.random() > 0.2
+            ? `${m.ilce}, ${sec(KOYLER)} köyü, ${sec(TARIFLER)}`
+            : '',
         ulke: gorev.ihracat ? 'DE' : 'TR',
         ihracat: Boolean(gorev.ihracat),
         /* Uygulamanın sakladığı değerlerin aynısı — backoffice'te saat

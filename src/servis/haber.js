@@ -25,6 +25,8 @@ import { MARKA } from '../marka'
                     bir işe dönüşüyor: parça gelince makineye gidecek.
      PARA           hak edişi onaylandı ya da reddedildi. Servisin bu
                     uygulamada en çok merak ettiği şey.
+     PAKSAN'DAN NOT PAKSAN talebin içine servise not yazdı. Eskiden
+                    telefon ediliyordu ve talepte izi kalmıyordu.
      ACİL DUYURU    geri çağırma ve uyarı. Bunlar duyuru değil iş
                     emri: "bu makineleri arayıp servise çağırın".
 
@@ -60,6 +62,12 @@ function durumOku(servisId) {
     sevk: talepler.filter((t) => t.parcaSevk).map((t) => t.id),
     onayli: talepler.filter((t) => t.hakkedis?.durum === 'onaylandi').map((t) => t.id),
     redli: talepler.filter((t) => t.hakkedis?.durum === 'reddedildi').map((t) => t.id),
+    /* Notun kimliği yok; talep numarası ile tarihi birleştirilerek
+       üretiliyor. Aynı talebe ikinci not geldiğinde tarih değiştiği
+       için yeni sayılıyor. */
+    notlar: talepler.flatMap((t) =>
+      (t.notlar || []).filter((n) => n.servise).map((n) => `${t.id}:${n.tarih}`),
+    ),
   }
 }
 
@@ -143,6 +151,14 @@ export function useServisHaberi(oturum, tazele) {
         })
       }
 
+      const yeniNot = artan(yeni.notlar, eski.notlar)
+      if (yeniNot) {
+        bildirimGoster({
+          baslik: `${MARKA} size not bıraktı`,
+          metin: 'Notu talebin içinde okuyabilirsiniz.',
+        })
+      }
+
       const yeniDuyuru = artan(yeni.duyuru, eski.duyuru)
       if (yeniDuyuru) {
         bildirimGoster({
@@ -151,7 +167,7 @@ export function useServisHaberi(oturum, tazele) {
         })
       }
 
-      if (yeniIs || yeniSevk || yeniOnay || yeniRed || yeniDuyuru) tazele()
+      if (yeniIs || yeniSevk || yeniOnay || yeniRed || yeniNot || yeniDuyuru) tazele()
 
       onceki.current = yeni
     }, ARALIK)

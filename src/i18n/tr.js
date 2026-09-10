@@ -429,6 +429,11 @@ export const tr = {
     neKadarArazi: 'Ne kadar araziniz var?',
     traktorGucu: 'Traktörünüz kaç beygir?',
     traktorIpucu: 'Makine traktörünüze uygun mu, bunu bilmemiz gerekiyor.',
+    servisAdres: 'Makinenin bulunduğu adres',
+    servisAdresAciklama:
+      'Servis buraya gelecek. Köy, mevki ve yol tarifi yazın; harita adresi yeterli olmayabilir.',
+    servisAdresIpucu: 'Örnek: Çumra, Alibeyhüyüğü köyü, kooperatifin arkası',
+    servisAdresEksik: 'Servisin gelebilmesi için adresi biraz daha açık yazın.',
     neZamanArayalim: 'Gün içinde ne zaman müsait olursunuz?',
     aramaAciklamasi: 'Gerekirse sizinle iletişime geçeceğiz.',
     durumSecin: 'Makinenin şu anki durumunu işaretleyin.',

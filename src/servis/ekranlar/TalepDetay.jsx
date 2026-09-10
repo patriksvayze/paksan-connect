@@ -6,7 +6,8 @@ import {
   talepNotEkle,
   talepPlanla,
 } from '../../backoffice/veri'
-import { ASAMA, KAPI, parcaYazisiKodlu as parcaYazisi } from '../../lib/servisKaydi'
+import { ASAMA, KAPI, parcaYazisiKodlu as parcaYazisi, temizParcalar } from '../../lib/servisKaydi'
+import { ParcaTablosu } from '../../components/ParcaTablosu'
 import { bugunGirdi, ileriTarihMi } from '../../lib/tarih'
 import { makineDurumAdi } from '../../data/talepAlanlari'
 import { getProduct, MARKA, markaEk } from '../../marka'
@@ -121,6 +122,13 @@ export function TalepDetay({
   const randevuVar = sesiVar && !talep.servisKaydi && !onayda && !parcada
   /* Yalnız müşteriye gönderilmiş notlar; iç notlar servise gitmiyor. */
   const musteriNotlari = (talep.notlar || []).filter((n) => n.musteriye)
+  /* PAKSAN'IN DOĞRUDAN SERVİSE YAZDIKLARI.
+
+     Müşteriye giden notun aynısı, muhatabı servis: "iki koli gitti",
+     "kapıya bırakılacak", "eski kasnağı da koydum". Bu bilginin
+     servise ulaşacağı başka bir yol yoktu; telefon ediliyordu ve
+     talepte izi kalmıyordu. */
+  const bizeNotlar = (talep.notlar || []).filter((n) => n.servise)
 
   /* Kapanış tam ekran açılıyor, pencere olarak değil: her adımda tek
      soru soruluyor; cevaplar geniş düğmelerle sunuluyor. Gerekçesi
@@ -273,6 +281,14 @@ export function TalepDetay({
           ad="Konum"
           deger={talep.ilce ? `${talep.ilce} / ${talep.il}` : talep.il}
         />
+        {/* ADRES SERVİSİN ASIL İHTİYACI.
+
+            İl ve ilçe listede sıralama için yeterli, tarlaya gitmek
+            için değil. Müşteri uygulamada makinenin bulunduğu adresi
+            yazıyor (bkz. screens/RequestForm.jsx) ve servis kapıdan
+            çıkmadan önce burada okuyor. Telefonla açılan taleplerde
+            boş; o zaman servis kayıt ekranında kendisi dolduruyor. */}
+        <Satir ad="Adres" deger={talep.adres} />
         {talep.makine?.serial && <Makine makine={talep.makine} />}
 
         {/* Kimlik değil okunur karşılık: ekranda "sorunlu" yazıyordu. */}
@@ -370,6 +386,22 @@ export function TalepDetay({
             {MARKA} müşteriye şunları yazdı
           </div>
           {musteriNotlari.map((n, i) => (
+            <div key={i} style={{ marginBottom: 12 }}>
+              <p style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{n.metin}</p>
+              <div className="kucuk sonuk" style={{ marginTop: 4 }}>
+                {[n.personel, gecenSure(n.tarih)].filter(Boolean).join(' · ')}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {bizeNotlar.length > 0 && (
+        <div className="kart" style={{ padding: 16 }}>
+          <div className="kucuk sonuk" style={{ marginBottom: 10 }}>
+            {MARKA} size şunları yazdı
+          </div>
+          {bizeNotlar.map((n, i) => (
             <div key={i} style={{ marginBottom: 12 }}>
               <p style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{n.metin}</p>
               <div className="kucuk sonuk" style={{ marginTop: 4 }}>
@@ -654,13 +686,24 @@ function ServisKaydi({ talep }) {
       <Satir ad="Garanti Durumu" deger={KAPI[k.kapi]} />
       <Satir ad="Yapılan İş" deger={k.yapilanIs} />
       <Satir ad="Sonuç" deger={k.sonuc} />
-      <Satir ad="Değiştirilen Parça" deger={parcaYazisi(k.parcalar)} />
-      <Satir ad="Parçanın Durumu" deger={k.parcaDurumu} />
       <Satir ad="Gidilen Yol" deger={k.km ? k.km + ' km' : ''} />
       <Satir
         ad="İşçilik"
         deger={k.iscilik ? paraYaz(k.iscilik) + ' ' + PARA_BIRIMI : ''}
       />
+
+      {/* Parça listesi satır değil TABLO: kod, ad ve adet ayrı
+          sütunlarda (bkz. components/ParcaTablosu.jsx). */}
+      {temizParcalar(k.parcalar).length > 0 && (
+        <>
+          <div className="kucuk sonuk" style={{ margin: '12px 0 6px' }}>
+            {/* 1. aşamada parça henüz takılmadı: istendi. Aynı satırın
+                iki aşamada iki anlamı var. */}
+            {k.asama === ASAMA.parca ? 'İstediğiniz parça' : 'Değiştirilen parça'}
+          </div>
+          <ParcaTablosu parcalar={temizParcalar(k.parcalar)} />
+        </>
+      )}
 
       {h && (
         <>

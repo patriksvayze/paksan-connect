@@ -644,6 +644,47 @@ export function talepDurumlari(tur) {
   return liste.filter((d) => d.id !== 'teklif')
 }
 
+/* ==========================================================================
+   PERSONELİN ELLE SEÇEBİLECEĞİ DURUMLAR
+
+   `talepDurumlari` bir türün BAŞINA GELEBİLECEK durumları veriyor;
+   süzgeç onu okuyor, çünkü servis talebi gerçekten "Planlandı"
+   olabiliyor ve personel o listeyi süzebilmeli.
+
+   ÇİP LİSTESİ AYNI ŞEY DEĞİL: orada personelin ELLE geçirebileceği
+   durumlar duruyor.
+
+   SERVİS TALEBİNDE "PLANLANDI" PAKSAN'IN ELİNDE DEĞİL.
+
+   Randevuyu servis veriyor: müşteriyle o konuşuyor, tarlaya o
+   gidiyor, günü ancak o bilir (bkz. servis/ekranlar/TalepDetay.jsx →
+   talepPlanla). Çipe basan PAKSAN personeli kendi uydurduğu bir günü
+   müşterinin telefonuna bildirim olarak gönderiyordu — tutulacağının
+   garantisi olmayan bir söz.
+
+   Durumun kendisi duruyor: servis randevu verdiğinde talep yine
+   "Planlandı" oluyor, rozette ve süzgeçte görünüyor. Kalkan yalnız
+   PAKSAN'ın onu elle seçebilmesi.
+
+   Yedek parça ve fiyat teklifinde durum tersine: orada işi PAKSAN
+   yürütüyor, gönderim gününü de PAKSAN veriyor. Çip orada kalıyor.
+
+   ÖTEKİ DÖRDÜ SERVİSTE DE ANLAMLI:
+     Yeni        talebin doğduğu durum; yanlış tıklama buradan geri
+                 alınıyor (bkz. bildirimsizMi — geri alışta müşteriye
+                 bildirim gitmiyor).
+     İncelemede  servis destek istediğinde ya da PAKSAN işi
+                 devraldığında (bkz. destekTalepEt).
+     Kapandı     müşteri vazgeçtiğinde ya da iş servis kaydı
+                 açılmadan bittiğinde.
+     İptal       gerekçesiyle birlikte.
+   ========================================================================== */
+export function elleSecilebilirDurumlar(tur) {
+  const liste = talepDurumlari(tur)
+  if (tur === 'servis') return liste.filter((d) => d.id !== 'planlandi')
+  return liste
+}
+
 export const TALEP_ADI = {
   servis: 'Servis',
   parca: 'Yedek parça',
@@ -796,17 +837,26 @@ export function bayiAtamasiniKaldir(talep, personel) {
    sonra takip numarası ancak böyle iletilebiliyor.
 
    @param {boolean} musteriye true ise not müşteriye de gidiyor. */
-export function talepNotEkle(talep, metin, personel, { musteriye = false } = {}) {
-  const not = { metin, tarih: Date.now(), personel, musteriye }
+export function talepNotEkle(
+  talep,
+  metin,
+  personel,
+  { musteriye = false, servise = false } = {},
+) {
+  const not = { metin, tarih: Date.now(), personel, musteriye, servise }
   const notlar = [...(talep.notlar || []), not]
   talepYaz(talep.id, { notlar })
 
-  islemYaz({
-    tur: 'not',
-    ozet: `${talep.no} · ${musteriye ? 'müşteriye not gönderildi' : 'iç not eklendi'}`,
-    personel,
-  })
+  const nereye = musteriye ? 'müşteriye not gönderildi' : servise ? 'servise not gönderildi' : 'iç not eklendi'
+  islemYaz({ tur: 'not', ozet: `${talep.no} · ${nereye}`, personel })
 
+  /* SERVİSE GİDEN NOTA MÜŞTERİ BİLDİRİMİ ÇIKMIYOR.
+
+     Not servisin uygulamasında talebin içinde görünüyor
+     (bkz. servis/ekranlar/TalepDetay.jsx) ve servisin haber
+     yoklaması onu yakalıyor (bkz. servis/haber.js). Müşteriyi
+     ilgilendiren bir şey değil: PAKSAN ile servis arasında
+     konuşuluyor. */
   if (!musteriye) return
 
   /* Personelin yazdığı cümle olduğu gibi gidiyor — çeviremeyiz.
@@ -1811,16 +1861,49 @@ export function hakkedisReddet(talep, neden, personel) {
 /** Yedek parça personeli parçayı kargoya verdi. */
 export function servisParcasiGonderildi(talep, kargo, personel) {
   const simdi = Date.now()
+  /* İKİNCİ ÇAĞRI SEVKİ TEKRARLAMIYOR, ÜSTÜNE YAZIYOR.
+
+     Kargo firması ve takip numarası çoğu zaman gönderim anında belli
+     değil: paket kargoya veriliyor, numara akşam ya da ertesi gün
+     geliyor. Bu yüzden ikisi de boş bırakılabiliyor ve aynı form
+     sonradan yeniden açılıyor. İlk sevkin tarihi ve o işi yapan
+     personel korunuyor — sonradan numara giren başka biri olabilir,
+     parçayı gönderen o değil. */
+  const onceki = talep.parcaSevk || null
+
+  /* MASA TAKİP NUMARASI GELENE KADAR BOŞALMIYOR.
+
+     Sıra normalde serviste: parçayı takıp talebi kendisi kapatacak,
+     yedek parça masasında yapılacak bir şey kalmıyor. Ama takip
+     numarası boş bırakıldıysa KALIYOR — numara akşam ya da ertesi
+     gün geliyor ve girilmesi gereken yer burası.
+
+     Masa hemen boşalsaydı talep yedek parça personelinin listesinden
+     düşerdi (`rolunTalepleri` masaya bakıyor) ve numarayı girmek
+     isteyen kişi talebi bir daha bulamazdı. Ölçülerek görüldü.
+
+     Formun ikinci açılışında masa her hâlükârda boşalıyor: numara
+     girilmişse zaten iş bitti, girilmemişse personel "böyle
+     gidecek" demiş oluyor — kendi elindeki işi kendisi kapatıyor. */
+  const masaKalsin = !onceki && !kargo?.takipNo
   talepYaz(talep.id, {
-    /* Masa boşalıyor: sıra artık serviste — parçayı takıp talebi
-       kapatacak. Durum açık kalıyor ki iki taraf da unutmasın. */
-    masa: null,
-    parcaSevk: { ...kargo, tarih: simdi, personel },
-    gecmis: [...(talep.gecmis || []), { durum: 'parcaBekliyor', tarih: simdi, personel }],
+    masa: masaKalsin ? 'parca' : null,
+    parcaSevk: {
+      ...kargo,
+      tarih: onceki?.tarih || simdi,
+      personel: onceki?.personel || personel,
+      ...(onceki ? { guncelleme: simdi, guncelleyen: personel } : {}),
+    },
+    gecmis: onceki
+      ? talep.gecmis || []
+      : [...(talep.gecmis || []), { durum: 'parcaBekliyor', tarih: simdi, personel }],
   })
+  const kargoYazi = [kargo?.firma, kargo?.takipNo].filter(Boolean).join(' ')
   islemYaz({
     tur: 'sevk',
-    ozet: `${talep.no} · parça gönderildi${kargo?.takipNo ? ' · ' + (kargo.firma || 'kargo') + ' ' + kargo.takipNo : ''}`,
+    ozet: onceki
+      ? `${talep.no} · kargo bilgisi güncellendi${kargoYazi ? ' · ' + kargoYazi : ''}`
+      : `${talep.no} · parça gönderildi${kargoYazi ? ' · ' + kargoYazi : ''}`,
     personel,
   })
   return { tamam: true }

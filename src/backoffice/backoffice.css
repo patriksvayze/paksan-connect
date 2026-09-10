@@ -2486,17 +2486,48 @@ select.sec {
    kırpılmıyor ve tablonun toplam yüksekliği birebir aynı kaldı
    (3654 piksel) — yani hiçbir yerde yeni satır kırılması yok. */
 .tablo--talepler th:nth-child(1),
-.tablo--talepler td:nth-child(1) { width: 20%; }
+.tablo--talepler td:nth-child(1) { width: 19%; }
 .tablo--talepler th:nth-child(2),
-.tablo--talepler td:nth-child(2) { width: 18%; }
+.tablo--talepler td:nth-child(2) { width: 17%; }
 .tablo--talepler th:nth-child(3),
-.tablo--talepler td:nth-child(3) { width: 16%; }
+.tablo--talepler td:nth-child(3) { width: 15%; }
 .tablo--talepler th:nth-child(4),
-.tablo--talepler td:nth-child(4) { width: 14%; }
+.tablo--talepler td:nth-child(4) { width: 13%; }
 .tablo--talepler th:nth-child(5),
-.tablo--talepler td:nth-child(5) { width: 13.5%; }
+.tablo--talepler td:nth-child(5) { width: 12.5%; }
 .tablo--talepler th:nth-child(6),
-.tablo--talepler td:nth-child(6) { width: 18.5%; }
+.tablo--talepler td:nth-child(6) { width: 23.5%; }
+
+/* ------------------------------------------ Durum sütunu: rozet hizası
+
+   İKİ AYRI HATA VARDI, İKİSİ DE ÖLÇÜLDÜ.
+
+   1) BAŞLIK SÜTUNUNUN ÜSTÜNDE DURMUYORDU. Rozet (`.rz`) kendi iç
+      boşluğunu taşıyor: 9 piksel. Rozetin KUTUSU başlık yazısıyla
+      hizalıydı ama içindeki YAZI 9 piksel sağdan başlıyordu — beş
+      sütun tam hizalıyken altıncısı kaymış görünüyordu. Hücrenin sol
+      boşluğu rozetin iç boşluğu kadar azaltıldı: 14 − 9 = 5. Artık
+      "Durum" başlığı ile "Yeni" yazısı aynı dikey çizgide.
+
+   2) TABLO YATAY KAYIYORDU. En uzun rozet ("Parça Bekleniyor")
+      sütuna sığmıyordu: sütun 96, rozet 105 piksel. `.tablo-sar`
+      yatay taşma için kaydırma kabı olduğundan tablo sağa kayabilir
+      hâle geliyor ve kaydırıldığında başlık satırı gerçekten
+      sütunlarının üstünden çıkıyordu. Ölçülen taşma 24 piksel;
+      altıncı sütun 18,5%'ten 23,5%'e çıkarıldı, fark ilk beş sütundan
+      alındı (hiçbiri kırpılmıyor, hepsinin içeriği zaten sütunundan
+      dardı).
+
+   Rozet yine de sığmazsa taşmasın diye `min-width: 0`: rozet
+   sütununun içinde kalıyor. */
+.tablo--talepler td:nth-child(6) {
+  padding-left: 5px;
+}
+
+.tablo--talepler td:nth-child(6) .rz {
+  min-width: 0;
+  max-width: 100%;
+}
 
 /* DURUM SÜTUNU 15'TEN 18,5'E ÇIKTI — servis kaydı iki yeni durum
    getirdi ve ikisi de listedeki en uzun etiketler.
@@ -2810,4 +2841,72 @@ select.sec {
   background: var(--yuzey-2);
   color: var(--murekkep);
   line-height: 1.5;
+}
+
+/* ==========================================================================
+   PARÇA LİSTESİ TABLOSU — kod · parça · adet
+
+   Üç ürün de aynı üç sütunu okuyor (bkz. components/ParcaTablosu.jsx).
+   Biçim burada duruyor çünkü servis uygulaması bu dosyayı paylaşıyor;
+   iki yere kopyalanan bir kural, bir gün yalnız birinde düzeltiliyor.
+
+   `1fr` YALNIZCA ADDA. Kod sabit genişlikte (rakamlar aynı boyda),
+   adet sabit; artan yer parça adına gidiyor ve orada sarıyor. Üç
+   sütun da esneseydi satırlar birbirini tutmuyordu.
+   ========================================================================== */
+
+.parca-tablo {
+  border: 1px solid var(--cizgi);
+  /* 12px: servis uygulamasında 24px'lik kartın, backoffice'te de
+     panel kartının içinde oturuyor. Her iki kabuğa da yakışan tek
+     basamak bu; iki ayrı değer vermek aynı bileşeni iki ürün
+     arasında ayrıştırırdı. */
+  border-radius: var(--r-2);
+  overflow: hidden;
+  background: var(--yuzey);
+}
+
+.parca-tablo__baslik,
+.parca-tablo__satir {
+  display: grid;
+  grid-template-columns: minmax(88px, auto) 1fr 44px;
+  gap: var(--bosluk-3);
+  align-items: baseline;
+  padding: var(--bosluk-2) var(--bosluk-3);
+}
+
+.parca-tablo__baslik {
+  font-size: var(--yazi-1);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--murekkep-2);
+  background: var(--yuzey-2);
+  border-bottom: 1px solid var(--cizgi);
+}
+
+.parca-tablo__baslik > :last-child,
+.parca-tablo__adet {
+  text-align: right;
+}
+
+.parca-tablo__satir + .parca-tablo__satir {
+  border-top: 1px solid var(--cizgi);
+}
+
+.parca-tablo__kod {
+  font-size: var(--yazi-2);
+  color: var(--murekkep-2);
+}
+
+.parca-tablo__ad {
+  font-size: var(--yazi-2);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.parca-tablo__adet {
+  font-size: var(--yazi-2);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
