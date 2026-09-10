@@ -3,10 +3,10 @@
 
    NEDEN VAR
 
-   Destek ekranı bir yapay zekâ değil, hazır soru-cevap seti. Ama
-   müşterinin o sette NE ARADIĞI, PAKSAN için makinenin kendisi kadar
-   değerli: hangi modelde hangi arıza konuşuluyor, hangi soru en çok
-   seçiliyor, müşteri hangi cümleyi yazdığında cevapsız kalıyor.
+   Destek ekranı PAKSAN'ın kullanım kılavuzlarından cevap veren bir
+   asistan. Müşterinin ona NE SORDUĞU, PAKSAN için makinenin kendisi
+   kadar değerli: hangi modelde hangi arıza konuşuluyor, hangi soru en
+   çok soruluyor, müşteri hangi cümleyi yazdığında cevapsız kalıyor.
 
    Cevapsız kalan sorular bilgi tabanının eksik listesidir. Sık seçilen
    arızalar imalata giden geri bildirimdir. İkisi de ancak kayıt

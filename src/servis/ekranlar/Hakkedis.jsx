@@ -1,9 +1,10 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { cariBakiye, cariHareketleri, servisinTalepleri, talepleriGetir } from '../../backoffice/veri'
-import { PARA_BIRIMI, paraYaz, MARKA, markaEk } from '../../marka'
-import { gecenSure } from '../../backoffice/ekranlar/ortak'
-import { Bolum, Bos, ListeKarti } from '../Kabuk'
-import { IconAlert, IconCheckCircle } from '../../components/Icons'
+import { PARA_BIRIMI, paraYaz, MARKA, markaEk, getProduct, PARCA_FIYAT } from '../../marka'
+import { gecenSure, tarihYaz } from '../../backoffice/ekranlar/ortak'
+import { Bolum, Bos, ListeKarti, Yaprak } from '../Kabuk'
+import { IconAlert, IconCheckCircle, IconRight } from '../../components/Icons'
+import { formatSerial } from '../../lib/serial'
 import bosIsGorseli from '../../assets/gorseller/servis-bos-is.png'
 
 /* ==========================================================================
@@ -47,6 +48,7 @@ export function Hakkedis({ oturum, onAc }) {
     [oturum.servisId],
   )
   const bakiye = cariBakiye(oturum.servisId)
+  const [secili, setSecili] = useState(null)
 
   /* Gönderilmiş ama onaylanmamış kayıtlar. Servis "param nerede"
      sorusunun cevabını burada buluyor. */
@@ -108,7 +110,12 @@ export function Hakkedis({ oturum, onAc }) {
       ) : (
         <Bolum ad="Hesap Hareketleri" sayi={hareketler.length}>
           {hareketler.map((h) => (
-            <div key={h.id} className="hareket">
+            <button
+              key={h.id}
+              type="button"
+              className="hareket"
+              onClick={() => setSecili(h)}
+            >
               <div className="hareket__sol">
                 <div className="hareket__ad">{h.aciklama}</div>
                 <div className="hareket__zaman">{gecenSure(h.tarih)}</div>
@@ -124,7 +131,10 @@ export function Hakkedis({ oturum, onAc }) {
                 {h.tur === 'alacak' ? '+' : '−'}
                 {paraYaz(h.tutar)} {PARA_BIRIMI}
               </span>
-            </div>
+              <span className="hareket__ok" aria-hidden="true">
+                <IconRight size={18} />
+              </span>
+            </button>
           ))}
         </Bolum>
       )}
@@ -134,10 +144,95 @@ export function Hakkedis({ oturum, onAc }) {
           Bakiye ekranı olan her yerde ilk sorulan soru bu. Cevabı
           yoksa servis telefon ediyor; telefon eden servis, ekranın
           işe yaramadığı anlamına geliyor. */}
+      {secili && (
+        <HareketAyrinti
+          hareket={secili}
+          talepler={talepler}
+          onKapat={() => setSecili(null)}
+          onAc={(t) => {
+            setSecili(null)
+            onAc(t)
+          }}
+        />
+      )}
+
       <p className="ipucu">
         Ödemeler {MARKA} muhasebesi tarafından hesabınıza yapılır.
         Hesabınızla ilgili bir sorunuz varsa servis personeline yazın.
       </p>
     </>
+  )
+}
+
+/* ==========================================================================
+   Hesap hareketinin özeti
+
+   Satırda yalnız "SRV2609106112 · servis ödemesi" yazıyordu; servis
+   numaradan hangi iş olduğunu çıkaramıyordu (kullanıcı, 10 Eylül 2026).
+   Dokununca işin kimin için, hangi makinede, ne için yapıldığı açılıyor;
+   düğme işin kendisini açıyor. Parça siparişinde parçalar ve ödeme
+   biçimi, ödeme satırında tutar ve tarih görünüyor.
+   ========================================================================== */
+function HareketAyrinti({ hareket: h, talepler, onKapat, onAc }) {
+  const t = h.talepNo ? talepler.find((x) => x.no === h.talepNo) : null
+  const tutar = `${h.tur === 'alacak' ? '+' : '−'}${paraYaz(h.tutar)} ${PARA_BIRIMI}`
+  const son = [
+    { ad: 'Tutar', deger: tutar },
+    { ad: 'Tarih', deger: tarihYaz(h.tarih) },
+  ]
+
+  if (!t) {
+    return <Yaprak baslik="Hesap Hareketi" metin={h.aciklama} kalemler={son} onKapat={onKapat} />
+  }
+
+  if (t.servisSiparisi) {
+    const parcalar = (t.parcalar || []).map((ad) => ({
+      kod: PARCA_FIYAT[ad]?.kod || '',
+      ad,
+      adet: t.parcaAdet?.[ad] || 1,
+    }))
+    return (
+      <Yaprak
+        baslik="Parça Siparişi"
+        kalemler={[
+          { ad: 'Sipariş no.', deger: t.no },
+          {
+            ad: 'Ödeme',
+            deger: t.odeme === 'bakiye' ? 'Bakiyenizden düşüldü' : `${MARKA} tarafından faturalandırıldı`,
+          },
+          ...son,
+        ]}
+        parcalar={parcalar}
+        dugme="Siparişi Aç"
+        onDugme={() => onAc(t)}
+        onKapat={onKapat}
+      />
+    )
+  }
+
+  const urun = t.makine?.productId ? getProduct(t.makine.productId) : null
+  const makine = [urun?.name, t.makine?.serial && formatSerial(t.makine.serial)]
+    .filter(Boolean)
+    .join(' · ')
+
+  return (
+    <Yaprak
+      baslik="Servis İşi"
+      kalemler={[
+        { ad: 'Talep no.', deger: t.no },
+        { ad: 'Müşteri', deger: t.ad || '—' },
+        { ad: 'Yer', deger: [t.ilce, t.il].filter(Boolean).join(' / ') || '—' },
+        { ad: 'Makine', deger: makine || '—' },
+        { ad: 'Yapılan iş', deger: t.servisKaydi?.yapilanIs || t.cozum?.yapilanIs || '—' },
+        ...(t.hakkedis?.kalemler || []).map((k) => ({
+          ad: k.ad,
+          deger: `${paraYaz(k.tutar)} ${PARA_BIRIMI}`,
+        })),
+        ...son,
+      ]}
+      dugme="İşi Aç"
+      onDugme={() => onAc(t)}
+      onKapat={onKapat}
+    />
   )
 }

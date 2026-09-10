@@ -165,6 +165,7 @@ function tohum() {
   return `(() => {
     const d = ${JSON.stringify(d)};
     for (const [k, v] of Object.entries(d)) localStorage.setItem(k, JSON.stringify(v));
+    sessionStorage.setItem('paksan.user', JSON.stringify(d['paksan.user']));
     return Object.keys(localStorage).length;
   })()`
 }
@@ -633,7 +634,7 @@ async function main() {
 
     /* Karşılama ve giriş ekranları yalnız hesapsızken görünüyor. */
     await s.js(sahne.cikisYap
-      ? "localStorage.removeItem('paksan.user')"
+      ? "localStorage.removeItem('paksan.user'); sessionStorage.removeItem('paksan.user')"
       : tohum())
 
     await s.git(ADRES + '/#' + sahne.yol)

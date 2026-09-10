@@ -4,7 +4,7 @@
    İki ayrı APK üretiliyor:
 
      PAKSAN Connect  müşteri uygulaması   dist/         android/
-     PAKSAN Servis   servis paneli        dist-servis/  android-servis/
+     PAKSAN Servisim servis uygulaması    dist-servis/  android-servis/
 
    Capacitor tek bir `capacitor.config.json` okuyor. `.ts` ve `.js`
    yapılandırma da tanıyor ama ikisi de bu projede çalışmıyor: `.js`
@@ -39,7 +39,7 @@ const HEDEFLER = {
   },
   servis: {
     appId: 'com.paksanmakina.servis',
-    appName: 'PAKSAN Servis',
+    appName: 'PAKSAN Servisim',
     webDir: 'dist-servis',
     androidPath: 'android-servis',
   },

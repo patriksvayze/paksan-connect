@@ -11,9 +11,9 @@ import { formatSerial } from '../../lib/serial'
 
    NE İŞE YARIYOR
 
-   Destek ekranı bir yapay zekâ değil, hazır soru-cevap seti. Ama
-   müşterinin o sette NE ARADIĞI, PAKSAN için makinenin kendisi kadar
-   değerli:
+   Destek ekranı PAKSAN'ın kullanım kılavuzlarından cevap veren bir
+   asistan (bkz. screens/Support.jsx). Müşterinin ona NE SORDUĞU,
+   PAKSAN için makinenin kendisi kadar değerli:
 
      · Hangi modelde hangi arıza konuşuluyor → imalata giden geri bildirim
      · Hangi soru en çok seçiliyor → kılavuzun eksik kaldığı yer
@@ -25,8 +25,11 @@ import { formatSerial } from '../../lib/serial'
    yapmıyor demektir.
 
    CEVAPSIZ KALANLAR bu ekranın en değerli sütunu. Müşterinin yazdığı
-   ama bilgi tabanının karşılayamadığı cümleler; her biri yazılması
-   gereken bir kayıt.
+   ama kılavuzlarda karşılığı bulunamayan cümleler; her biri kılavuza
+   ya da asistana eklenmesi gereken bir bilgi.
+
+   Eski hazır soru-cevap ekranının kayıtları da okunuyor (`konu`,
+   `soru` olayları); geçmiş oturumlar kaybolmuyor.
 
    Kayıt müşterinin telefonunda tutuluyor, backoffice oradan okuyor
    (bkz. src/lib/destekLog.js). Sunucu geldiğinde tüm müşterilerin

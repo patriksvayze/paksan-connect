@@ -6,7 +6,6 @@ import { ILLER, ilceleriGetir } from '../../data/iller'
 import { extractYear, formatSerial, normalizeSerial, validateSerial } from '../../lib/serial'
 import { servisMakineKaydi } from '../../lib/makineKaydi'
 import { islemYaz, musterileriGetir } from '../../backoffice/veri'
-import { PARCA_FIYAT } from '../../marka'
 import { getProduct } from '../../marka'
 import { Bolum } from '../Kabuk'
 import { IconAlert, IconCheckCircle, IconSend } from '../../components/Icons'
@@ -82,26 +81,20 @@ import { IconAlert, IconCheckCircle, IconSend } from '../../components/Icons'
    AÇILMIYOR: o makine defterde zaten var.
    ========================================================================== */
 
-const TURLER = [
-  { id: 'servis', ad: 'Servis' },
-  { id: 'parca', ad: 'Yedek Parça' },
-]
-
 /* Numaranın yalnız rakamları karşılaştırılıyor: müşteri "0532 111 22 33"
    yazmış olabilir, servis "532 111 22 33". */
 const rakamlar = (v) => String(v || '').replace(/\D/g, '').slice(-10)
 
 export function ElleKayit({ oturum, onKaydedildi }) {
-  const [tur, setTur] = useState('servis')
   const [tel, setTel] = useState('')
   const [ad, setAd] = useState('')
   /* Adı servis mi yazdı, biz mi doldurduk — bkz. `telYaz`. */
   const [adElle, setAdElle] = useState(false)
   const [il, setIl] = useState(oturum.il || '')
   const [ilce, setIlce] = useState('')
+  const [adres, setAdres] = useState('')
   const [seri, setSeri] = useState('')
   const [makineId, setMakineId] = useState('')
-  const [parcalar, setParcalar] = useState({})
   const [aciklama, setAciklama] = useState('')
   const [hata, setHata] = useState('')
   /* Kayıt bitince kayıtlı olmayan müşteri için gösterilen ekran. */
@@ -157,20 +150,15 @@ export function ElleKayit({ oturum, onKaydedildi }) {
     if (!adElle) setAd(m.ad || '')
     if (m.il) setIl(m.il)
     if (m.ilce) setIlce(m.ilce)
+    if (m.adres) setAdres(m.adres)
   }
-
-  const secilenParcalar = Object.entries(parcalar)
-    .filter(([, adet]) => Number(adet) > 0)
-    .map(([adi, adet]) => ({ adi, adet: Number(adet) }))
 
   function kaydet() {
     if (tel.replace(/\D/g, '').length < 10) return setHata('Telefon numarasını yazın.')
     if (ad.trim().length < 3) return setHata('Müşterinin adını yazın.')
     if (!il) return setHata('İl seçin.')
     if (!ilce) return setHata('İlçe seçin.')
-    if (tur === 'parca' && !secilenParcalar.length) {
-      return setHata('En az bir parça seçin.')
-    }
+    if (adres.trim().length < 10) return setHata('Adresi yazın.')
 
     /* Kayıtlı müşterinin makinesi listeden seçildiyse doğrulanacak bir
        şey yok: o seri numarası zaten sistemde. Talebe uygulamadan gelen
@@ -200,15 +188,20 @@ export function ElleKayit({ oturum, onKaydedildi }) {
 
     const talep = {
       id: uid(),
-      no: talepNo(tur),
+      no: talepNo('servis'),
       createdAt: Date.now(),
       status: 'yeni',
-      tur,
+      tur: 'servis',
       ad: ad.trim(),
       tel: tel.trim(),
       telHam: tel.replace(/\D/g, ''),
       il,
       ilce,
+      /* ADRES BURADA SORULUYOR (10 Eylül 2026). Servis kaydı ekranı
+         talepte adres varsa onu salt okunur gösteriyor; elle açılan
+         talepte adres yoktu ve kayıt ekranında ayrıca yazdırılıyordu
+         (bkz. lib/servisKaydi.js → eksikAlanlar). */
+      adres: adres.trim(),
       ulke: 'TR',
       ihracat: false,
       aciklama: aciklama.trim(),
@@ -219,13 +212,6 @@ export function ElleKayit({ oturum, onKaydedildi }) {
       musteriId: eslesen?.id || null,
       sahip: 'servis',
       servis: { id: oturum.servisId, ad: oturum.ad, kademe: 'elle', tarih: Date.now() },
-    }
-
-    /* Parça talebi uygulamadan gelenle aynı şekli taşıyor; böylece
-       "İstenen parçalar" bölümü ve stok düşümü çalışıyor. */
-    if (tur === 'parca') {
-      talep.parcalar = secilenParcalar.map((p) => p.adi)
-      talep.parcaAdet = Object.fromEntries(secilenParcalar.map((p) => [p.adi, p.adet]))
     }
 
     save('requests', [talep, ...load('requests', [])])
@@ -275,21 +261,6 @@ export function ElleKayit({ oturum, onKaydedildi }) {
       </p>
 
       <div className="kart" style={{ padding: 16 }}>
-        <div className="alan">
-          <span className="alan__ad">Talep Türü</span>
-          <div className="suzgec">
-            {TURLER.map((t) => (
-              <button
-                key={t.id}
-                className={'cip' + (tur === t.id ? ' cip--on' : '')}
-                onClick={() => { setTur(t.id); setHata('') }}
-              >
-                {t.ad}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* TELEFON İLK. Numara kimliğin kendisi; girildiği anda kayıtlı
             müşteri bulunuyorsa alanlar doluyor. */}
         <label className="alan">
@@ -373,6 +344,18 @@ export function ElleKayit({ oturum, onKaydedildi }) {
           </label>
         </div>
 
+        <label className="alan">
+          <span className="alan__ad">Adres</span>
+          <textarea
+            className="gir"
+            rows={2}
+            value={adres}
+            onChange={(e) => setAdres(e.target.value)}
+            placeholder="Köy ya da mahalle, tarif"
+          />
+          <span className="kucuk sonuk">Servis kaydına kendiliğinden gelir.</span>
+        </label>
+
         {/* MAKİNE: kayıtlı müşteride SEÇİLİYOR, ötekinde yazılıyor.
             Gerekçesi dosyanın başında. */}
         {makineler.length > 0 ? (
@@ -413,7 +396,7 @@ export function ElleKayit({ oturum, onKaydedildi }) {
         )}
 
         <label className="alan">
-          <span className="alan__ad">Müşteri ne anlattı</span>
+          <span className="alan__ad">Servis Talebi Nedeni</span>
           <textarea
             className="gir"
             rows={3}
@@ -424,36 +407,6 @@ export function ElleKayit({ oturum, onKaydedildi }) {
 
         {hata && <div className="uyari">{hata}</div>}
       </div>
-
-      {/* Parça seçimi yalnız parça talebinde. Uygulamadaki talebin aynı
-          şeklini üretiyor: "İstenen parçalar" ve stok düşümü çalışsın. */}
-      {tur === 'parca' && (
-        <Bolum ad="İstenen Parçalar" sayi={secilenParcalar.length}>
-          <div className="kart" style={{ padding: '4px 16px' }}>
-            {Object.entries(PARCA_FIYAT).map(([adi, bilgi]) => (
-              <div key={adi} className="stok-satir">
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div>{adi}</div>
-                  <div className="kucuk sonuk mono">{bilgi.kod}</div>
-                </div>
-                <input
-                  className="gir mono"
-                  style={{ width: 82, textAlign: 'right' }}
-                  inputMode="numeric"
-                  value={parcalar[adi] || ''}
-                  onChange={(e) => {
-                    const v = e.target.value.replace(/\D/g, '')
-                    setParcalar((p) => ({ ...p, [adi]: v }))
-                    setHata('')
-                  }}
-                  placeholder="0"
-                  aria-label={adi + ' adedi'}
-                />
-              </div>
-            ))}
-          </div>
-        </Bolum>
-      )}
 
       <div className="yapisik">
         <button className="dg dg--ana dg--blok" onClick={kaydet}>

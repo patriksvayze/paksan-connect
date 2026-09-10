@@ -20,16 +20,13 @@ import bosStokGorseli from '../../assets/gorseller/servis-bos-stok.png'
 
    Geriye ekranın gerçekten işe yarayan tek parçası kaldı: sipariş.
 
-   EKRANIN GÖVDESİ LİSTE, DÜĞME ÜST ÇUBUKTA
+   EKRANIN GÖVDESİ LİSTE, DÜĞME ALTTA YÜZÜYOR
 
-   "Sipariş Ver" düğmesi bu ekranın en üstünde tam genişlikte
-   duruyordu ve servisin asıl baktığı şeyi — verdiği siparişlerin
-   nerede olduğunu — aşağı itiyordu. İşlerim'de aynı sorun aynı
-   şekilde çözülmüştü: yeni iş açmak üst çubuğun "+" düğmesinin işi
-   (bkz. ServisPanel.jsx). İki sekme artık aynı yerden iş açıyor.
-
-   Liste boşken düğme gövdede duruyor: orada zaten başka bir şey yok
-   ve boş bir ekranın yapılacak işi göstermesi gerekiyor.
+   "Sipariş Ver" bir dönem ekranın en üstünde tam genişlikte, sonra
+   üst çubukta "+" olarak durdu. İkisinde de parmağın uzağındaydı.
+   Şimdi İşlerim'deki "Kayıt Aç" ile aynı yerde: alt menünün üstünde
+   yüzen düğme (bkz. Kabuk.jsx → fab). Liste boşken de aynı düğme;
+   gövdeye ikinci bir kopyası konmuyor.
 
    Garanti kapsamındaki parça BURADAN İSTENMİYOR. O, bir servis
    kaydının içinden isteniyor ve aynı talebin üstünde yürüyor
@@ -54,16 +51,11 @@ export function Parca({ oturum, onAc, onSiparis, surum }) {
 
   if (siparisler.length === 0) {
     return (
-      <>
-        <Bos
-          gorsel={bosStokGorseli}
-          baslik="Henüz siparişiniz yok"
-          alt={`İhtiyacınız olan parçaları ${markaEk('dan')} buradan isteyebilirsiniz.`}
-        />
-        <button className="dg dg--ana dg--blok" onClick={onSiparis}>
-          Sipariş Ver
-        </button>
-      </>
+      <Bos
+        gorsel={bosStokGorseli}
+        baslik="Henüz siparişiniz yok"
+        alt={`İhtiyacınız olan parçaları ${markaEk('dan')} aşağıdaki Sipariş Ver düğmesiyle isteyebilirsiniz.`}
+      />
     )
   }
 
@@ -71,7 +63,7 @@ export function Parca({ oturum, onAc, onSiparis, surum }) {
     <>
       <p className="ipucu">
         Verdiğiniz siparişleri ve durumlarını burada görebilirsiniz. Yeni
-        sipariş vermek için üstteki + düğmesine dokunun.
+        sipariş için aşağıdaki Sipariş Ver düğmesine dokunun.
       </p>
 
       <Bolum ad="Siparişlerim" sayi={siparisler.length}>

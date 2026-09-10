@@ -25,6 +25,18 @@ import { MAKINE_DURUMU, ULASIM_ZAMANI } from '../data/talepAlanlari'
 import { PRODUCTS, SIRKET } from '../marka'
 import { PARCA_FIYAT } from '../marka'
 import { SERVISLER, BAYILER } from '../marka'
+import { makineninServisi } from '../lib/servisAtama'
+import {
+  DEMO_SERVIS,
+  SAHNE_GOREVLERI,
+  SAHNE_MUSTERI,
+  SAHNE_YERLERI,
+  odemeUret,
+  parcaHavuzu,
+  senaryoSec,
+  servisAkisi,
+  servisSiparisleriUret,
+} from './demoServis'
 
 /* ------------------------------------------------------------ Malzemeler */
 
@@ -158,18 +170,18 @@ function demoRolleri() {
   return (adminsiz.length ? adminsiz : liste).map((r) => r.id)
 }
 
-/* Destek ekranında seçilen konular ve sorular. Gerçek bilgi tabanındaki
-   başlıklarla aynı dilde yazıldı; backoffice'te "en çok sorulan" listesi
-   anlamlı görünsün. */
-const DESTEK_KONU = [
-  'Balya bağlama', 'Pikap ve toplama', 'Piston ve sıkıştırma',
-  'Şanzıman ve şaft', 'Hidrolik', 'Genel bakım',
-]
-
+/* Destek asistanına yazılan sorular. Çiftçi soruyu kendisi yazıyor
+   (bkz. screens/Support.jsx); kılavuzda cevabı olan türden sorular,
+   backoffice'te "en çok sorulan" listesi anlamlı görünsün. */
 const DESTEK_SORU = [
-  'Düğüm atmıyor', 'İp kopuyor', 'Balya gevşek çıkıyor',
-  'Pikap otu almıyor', 'Anormal ses geliyor', 'Yağ kaçağı var',
-  'Şaft titriyor', 'Balya sayacı çalışmıyor',
+  'Kaç beygir traktör gerekir?',
+  'Düğüm atıcı ne sıklıkla yağlanmalı?',
+  'Kuyruk mili devri kaç olmalı?',
+  'Balya boyu nasıl ayarlanır?',
+  'İp makaraya nasıl takılır?',
+  'Pikap yüksekliği nasıl ayarlanır?',
+  'Emniyet cıvatası neden kopar?',
+  'Sezon sonunda makineyi nasıl saklamalıyım?',
 ]
 
 /* Cevapsız kalan sorular bilgi tabanının eksik listesi; demoda da
@@ -190,12 +202,14 @@ const DUYURULAR = [
     tur: 'duyuru',
     alt: 'kampanya',
     baslik: 'Sezon öncesi bakım kampanyası',
+    gun: 30,
     metin: 'Nisan sonuna kadar yetkili servislerimizde sezon öncesi bakım işçiliğinde %20 indirim uygulanıyor. Randevu için servisinizle görüşebilirsiniz.',
   },
   {
     tur: 'duyuru',
     alt: 'yeniUrun',
     baslik: 'Orkinos 1290 satışa çıktı',
+    gun: 45,
     metin: 'Orkinos serisinin yeni modeli Orkinos 1290 satışa sunuldu. Fiyat ve satın alma için bayinize, teknik bilgi ve servis desteği için yetkili servise başvurabilirsiniz.',
     hedef: { kime: 'ikisi' },
   },
@@ -203,6 +217,7 @@ const DUYURULAR = [
     tur: 'duyuru',
     alt: 'etkinlik',
     baslik: 'Konya Tarım Fuarı’nda sizi bekliyoruz',
+    gun: 12,
     metin: 'Konya Tarım Fuarı’nda B salonundaki 214 numaralı standımızdayız. Bütün modellerimizi yerinde görebilir, ekibimizle görüşebilirsiniz.',
     hedef: { kime: 'ikisi' },
   },
@@ -210,6 +225,7 @@ const DUYURULAR = [
     tur: 'duyuru',
     alt: 'kampanya',
     baslik: 'Yeni yedek parça fiyat listesi',
+    gun: 60,
     metin: '2026 yedek parça fiyat listesi yürürlüğe girdi. Güncel fiyatları uygulamadaki yedek parça talebi ekranından görebilirsiniz.',
   },
   {
@@ -275,8 +291,8 @@ function telUret() {
    garanti "bilinmiyor" görünüyor ve numara ekranda tiresiz
    yazılıyordu. Gerçek seri numaralarında bunların hiçbiri olmuyor —
    yani demo, olmayan bir hatayı taklit ediyordu. */
-function seriUret(urun) {
-  const yil = tamsayi(2019, 2025)
+function seriUret(urun, enEski = 2019) {
+  const yil = tamsayi(enEski, 2025)
   const onek = normalizeSerial(urun.serialPrefix)
   return `${onek}${yil}${String(tamsayi(1, 9999)).padStart(5, '0')}`
 }
@@ -332,12 +348,16 @@ export async function demoYukle() {
   /* ---- Müşteriler */
   const musteriler = []
   for (let i = 0; i < 30; i++) {
-    const [il, ilce] = sec(YERLER)
+    /* İlk sekiz müşteri sahne servisinin ilinden (bkz. demoServis.js). */
+    const [il, ilce] = i < SAHNE_MUSTERI ? SAHNE_YERLERI[i] : sec(YERLER)
     const makineler = secBirkac(PRODUCTS, 1, 2).map((urun) => ({
       id: uid(),
       productId: urun.id,
-      serial: seriUret(urun),
-      year: tamsayi(2019, 2025),
+      /* Sahne müşterilerinin makineleri yeni: servis uygulamasındaki
+         garanti işleri "garanti süresi doldu" yazan makinede
+         görünmesin. */
+      serial: seriUret(urun, i < SAHNE_MUSTERI ? 2025 : 2019),
+      year: tamsayi(i < SAHNE_MUSTERI ? 2025 : 2019, 2025),
       nickname: '',
       addedAt: gunOnce(tamsayi(10, 700)),
       hours: tamsayi(0, 1200),
@@ -398,14 +418,23 @@ export async function demoYukle() {
      Bir kısmı bilerek boş bırakıldı: Logo her seri numarasını
      bilmiyor ve her makineye servis atanmış değil. Backoffice o
      eksikliği gösterebilmeli, demo da onu göstermeli. */
+  const sahneServisi = SERVISLER.find((x) => x.id === DEMO_SERVIS) || SERVISLER[0]
+  const digerServisler = SERVISLER.filter((x) => x.id !== sahneServisi.id)
+
   const makineKayitlari = []
   for (const m of musteriler) {
+    const sahneMusterisi = musteriler.indexOf(m) < SAHNE_MUSTERI
     for (const mk of m.makineler) {
       const logoBildi = Math.random() > 0.15
       const bayi = logoBildi ? sec(BAYILER) : null
       /* Makinelerin bir bölümüne servis elle atanmış; kalanların
          servisi bayisinden geliyor ya da hiç yok. */
-      const servis = Math.random() > 0.55 ? sec(SERVISLER) : null
+      /* Sahne müşterilerinin makinelerine sahne servisi atanmış:
+         servis talepleri makineden o servise düşüyor. Ötekiler
+         sahne servisine atanmıyor ki onun listesi dağılmasın. */
+      const servis = sahneMusterisi
+        ? sahneServisi
+        : Math.random() > 0.45 ? sec(digerServisler) : null
       makineKayitlari.push({
         id: uid(),
         tarih: mk.addedAt,
@@ -436,6 +465,24 @@ export async function demoYukle() {
     ...load(ANAHTAR.makineKayitlari, []).filter((x) => !x.demo),
   ])
 
+  /* SERVİS TALEBİ YALNIZ SERVİSİ OLAN MAKİNEDEN AÇILIYOR.
+
+     Uygulamada servisi olmayan müşteri servis talebi açamıyor; talep
+     makineden bayiye, bayiden servise giden zincirle bir servise düşüyor
+     (bkz. lib/servisAtama.js). Demo önceden servis talebini rastgele bir
+     müşteriye açıyor, servisi il ve ilçeye bakarak buluyordu — gerçekte
+     oluşamayacak bir kayıt. Şimdi aynı zincir soruluyor. */
+  const servisliMakineler = musteriler.slice(SAHNE_MUSTERI).flatMap((m) =>
+    m.makineler
+      .map((mk) => ({ m, mk, servis: makineninServisi(mk)?.servis || null }))
+      .filter((x) => x.servis && x.servis.id !== sahneServisi.id),
+  )
+  let sahneSira = 0
+  const sahneMakinesi = () => {
+    const m = musteriler[sahneSira++ % SAHNE_MUSTERI]
+    return { m, mk: sec(m.makineler), servis: sahneServisi }
+  }
+
   /* ---- Talepler
 
      Tarihler bilerek dağıtıldı: bir kısmı son 24 saatte (yeşil), bir
@@ -447,7 +494,7 @@ export async function demoYukle() {
      backoffice'teki durum süzgeci ve rapor sütunları boş kalmasın
      (bkz. src/backoffice/veri.js → talepDurumlari). */
   const DURUM = {
-    servis: ['yeni', 'incelemede', 'planlandi', 'kapandi', 'iptal'],
+    servis: ['yeni', 'incelemede', 'planlandi', 'parcaBekliyor', 'onayBekliyor', 'kapandi', 'iptal'],
     parca: ['yeni', 'incelemede', 'planlandi', 'kapandi', 'iptal'],
     satinalma: ['yeni', 'incelemede', 'teklif', 'kapandi', 'iptal'],
   }
@@ -457,6 +504,7 @@ export async function demoYukle() {
      böyle görünüyor. */
   const AGIRLIK = {
     yeni: 3, incelemede: 3, planlandi: 2, teklif: 2, kapandi: 4, iptal: 1,
+    parcaBekliyor: 2, onayBekliyor: 2,
   }
 
   function durumSec(tur) {
@@ -519,14 +567,31 @@ export async function demoYukle() {
   /* İHRACAT — yurtdışı talebi ayrı yoldan gidiyor, örneği olsun */
   gorevler.push({ tur: 'satinalma', durum: 'incelemede', ihracat: true })
 
+  /* SAHNE SERVİSİNİN İŞLERİ — servis uygulamasının demo hesabında her
+     hâlden bir iş görünsün (bkz. demoServis.js → SAHNE_GOREVLERI). */
+  for (const g of SAHNE_GOREVLERI) {
+    gorevler.push({ tur: 'servis', yasGun: g.yas, sahne: true, ...g })
+  }
+
+  /* Servis kaydındaki parçalar katalogdan; hesap hareketleri talepler
+     kurulurken birikiyor. */
+  const havuz = await parcaHavuzu()
+  const cariHareketler = []
+
   /* Fotoğraflı talepler: ilk beş serviste ek olacak */
   let fotoKalan = 5
 
   for (const gorev of gorevler) {
     {
-      const m = sec(musteriler)
       const tur = gorev.tur
-      const makine = sec(m.makineler)
+      const eslesme =
+        tur === 'servis'
+          ? gorev.sahne || !servisliMakineler.length
+            ? sahneMakinesi()
+            : sec(servisliMakineler)
+          : null
+      const m = eslesme ? eslesme.m : sec(musteriler)
+      const makine = eslesme ? eslesme.mk : sec(m.makineler)
       const yasGun = gorev.yasGun !== undefined
         ? gorev.yasGun
         : sec([0, 0.5, 1.2, 1.6, 3, 6, 14, 40])
@@ -582,7 +647,7 @@ export async function demoYukle() {
          doldururdu; oynatıcı yerine süresi görünüyor. */
       const sesliMi = Math.random() > 0.75
 
-      talepler.push({
+      const talep = {
         id: uid(),
         no: talepNo(tur),
         createdAt: tarih,
@@ -658,14 +723,47 @@ export async function demoYukle() {
         iptalBilgi: durum === 'iptal'
           ? { neden: sec(IPTAL_NEDEN), aciklama: '', personel, tarih: sonTarih }
           : null,
-        cozum: durum === 'kapandi'
+        cozum: durum === 'kapandi' && tur !== 'servis'
           ? cozumUret(tur, parcalar, parcaAdet, personel, sonTarih)
           : null,
+
+        /* Servis talebinde ikisini de servis akışı yazıyor. */
+        servis: null,
+        sahip: 'paksan',
 
         notlar: notUret(tarih, personel),
         gecmis,
         demo: true,
-      })
+      }
+
+      /* SERVİS TALEBİ SERVİS AKIŞINDAN GEÇİYOR: randevu, servis kaydı,
+         parça gönderimi, onay ve hesap hareketi (bkz. demoServis.js). */
+      if (tur === 'servis') {
+        const akis = servisAkisi(talep, gorev.senaryo || senaryoSec(durum), {
+          servis: eslesme.servis,
+          havuz,
+          personel,
+          secenek: gorev,
+        })
+        Object.assign(talep, akis.yama)
+        cariHareketler.push(...akis.cari)
+      }
+
+      /* FİYAT TEKLİFİNİN BİR KISMI BAYİYE ATANARAK KAPANDI. Satış
+         personeli teklifi bayiye yönlendirdiğinde PAKSAN'ın işi bitiyor
+         ve talep kapanıyor (bkz. veri.js → talebiBayiyeAta). Demo yalnız
+         teklif verip kapatılan satışı gösteriyordu. */
+      if (tur === 'satinalma' && durum === 'kapandi' && !gorev.ihracat && Math.random() < 0.5) {
+        const bayi = sec(BAYILER)
+        Object.assign(talep, {
+          bayi: { id: bayi.id, ad: bayi.ad, tel: bayi.tel || '', tarih: sonTarih },
+          sahip: 'bayi',
+          teklif: null,
+          cozum: null,
+        })
+      }
+
+      talepler.push(talep)
     }
   }
 
@@ -686,6 +784,30 @@ export async function demoYukle() {
       t.ekler = []
     }
   }
+
+  /* ---- Servisin parça siparişleri ve hesabı
+
+     Servis uygulamasının Parça ve Hesap ekranları demo verisinde
+     boştu. Sahne servisinin dört siparişi ve servise yapılmış bir
+     ödeme ekleniyor; onaylanan işlerin alacak satırları yukarıda,
+     talepler kurulurken birikti. */
+  cariHareketler.push(...odemeUret(cariHareketler, sahneServisi, sec(yeniPersonel).ad))
+  const sahneBakiyesi = cariHareketler
+    .filter((h) => h.servisId === sahneServisi.id)
+    .reduce((t, h) => t + (h.tur === 'alacak' ? h.tutar : -h.tutar), 0)
+  const siparis = servisSiparisleriUret({
+    servis: sahneServisi,
+    personel: yeniPersonel.map((p) => p.ad),
+    butce: sahneBakiyesi,
+  })
+  talepler.push(...siparis.talepler)
+  cariHareketler.push(...siparis.cari)
+  talepler.sort((a, b) => b.createdAt - a.createdAt)
+
+  save(ANAHTAR.cari, [
+    ...cariHareketler.sort((a, b) => b.tarih - a.tarih),
+    ...load(ANAHTAR.cari, []).filter((h) => !h.demo),
+  ])
 
   save(ANAHTAR.demoTalepler, talepler)
 
@@ -741,20 +863,31 @@ export async function demoYukle() {
       const makine = sec(m.makineler)
       const urun = PRODUCTS.find((u) => u.id === makine.productId)
       const baslangic = gunOnce(tamsayi(0, 45))
-      const sonuc = sec(['cozuldu', 'cozuldu', 'talep', 'cevapsiz'])
-
-      const olaylar = [
-        { tur: 'konu', deger: sec(DESTEK_KONU), tarih: baslangic + 20000 },
-      ]
+      /* Asistanın yazdığı olaylar (bkz. screens/Support.jsx): soru,
+         kılavuzdan gelen cevabın kaynağı, çiftçinin "çözüldü" ya da
+         "devam ediyor" demesi, talebe yönlenme. Beşte biri yarıda
+         kalıyor: cevap geldi, çiftçi bir şey demeden çıktı. */
+      const sonuc = sec(['cozuldu', 'cozuldu', 'talep', 'cevapsiz', 'yarim'])
+      const olaylar = []
 
       if (sonuc === 'cevapsiz') {
-        olaylar.push({ tur: 'serbest', deger: sec(DESTEK_CEVAPSIZ), tarih: baslangic + 60000 })
-        olaylar.push({ tur: 'cevapsiz', deger: sec(DESTEK_CEVAPSIZ), tarih: baslangic + 65000 })
+        const soru = sec(DESTEK_CEVAPSIZ)
+        olaylar.push({ tur: 'serbest', deger: soru, tarih: baslangic + 20000 })
+        olaylar.push({ tur: 'cevapsiz', deger: soru, tarih: baslangic + 29000 })
       } else {
         const soru = sec(DESTEK_SORU)
-        olaylar.push({ tur: 'soru', deger: soru, tarih: baslangic + 55000 })
-        olaylar.push({ tur: 'cevap', deger: soru, kayitId: 'kb-' + tamsayi(100, 999), tarih: baslangic + 60000 })
+        const sayfa = tamsayi(8, 60)
+        olaylar.push({ tur: 'serbest', deger: soru, tarih: baslangic + 20000 })
+        olaylar.push({
+          tur: 'cevap',
+          deger: `${urun?.name || 'Genel'} kılavuzu, s. ${sayfa}, ${sayfa + 1}`,
+          tarih: baslangic + 41000,
+        })
+        if (sonuc === 'cozuldu') {
+          olaylar.push({ tur: 'cevap', deger: 'çözüldü', tarih: baslangic + 90000 })
+        }
         if (sonuc === 'talep') {
+          olaylar.push({ tur: 'cozulmedi', deger: soru, tarih: baslangic + 95000 })
           olaylar.push({ tur: 'yonlendirme', deger: 'servis', tarih: baslangic + 140000 })
         }
       }
@@ -793,6 +926,9 @@ export async function demoYukle() {
     personel: sec(yeniPersonel).ad,
     pencere: i === 0,
     demo: true,
+    /* Kampanya ve etkinliğin son günü var; uyarıların yok
+       (bkz. veri.js → duyuruYayinla). */
+    ...(x.gun ? { bitis: Date.now() + x.gun * 86400000 } : {}),
     ...(x.hedef ? { hedef: x.hedef } : {}),
   }))
   save(ANAHTAR.duyurular, [...duyurular, ...load(ANAHTAR.duyurular, [])])
@@ -840,6 +976,7 @@ export function demoTemizle() {
   save(ANAHTAR.geriBildirim, load(ANAHTAR.geriBildirim, []).filter((g) => !g.demo))
   save(ANAHTAR.destekLog, load(ANAHTAR.destekLog, []).filter((o) => !o.demo))
   save(ANAHTAR.duyurular, load(ANAHTAR.duyurular, []).filter((x) => !x.demo))
+  save(ANAHTAR.cari, load(ANAHTAR.cari, []).filter((h) => !h.demo))
   save(
     ANAHTAR.makineKayitlari,
     load(ANAHTAR.makineKayitlari, []).filter((x) => !x.demo)
@@ -960,15 +1097,8 @@ function teklifUret(sonTarih, personel) {
 /* Kapanış alanları türe göre değişiyor (bkz. Talepler ekranındaki
    KAPANIS_ALANLARI); demo da aynı alanları dolduruyor. */
 function cozumUret(tur, parcalar, parcaAdet, personel, tarih) {
-  if (tur === 'servis') {
-    return {
-      yapilanIs: sec(YAPILAN_IS),
-      parcalar: parcalar.join(', '),
-      ucret: sec(['Garanti kapsamında', String(tamsayi(80, 450) * 10)]),
-      personel,
-      tarih,
-    }
-  }
+  /* Servis talebinin kapanışı burada üretilmiyor: servis kaydından
+     çıkıyor (bkz. demoServis.js → servisAkisi). */
 
   if (tur === 'parca') {
     /* "Yapılan iş" gönderilen parçaların kendisi; personel yazmıyor,

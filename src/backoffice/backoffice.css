@@ -2485,18 +2485,74 @@ select.sec {
    74 pikselden 34 piksele indi, 42 talep numarasının hiçbiri
    kırpılmıyor ve tablonun toplam yüksekliği birebir aynı kaldı
    (3654 piksel) — yani hiçbir yerde yeni satır kırılması yok. */
+/* DAR PENCEREDE DAĞILIM ÇÖKÜYORDU (10 Eylül 2026, kullanıcının ekran
+   görüntüleri). Yukarıdaki ölçüm geniş pencerede yapılmıştı. Liste
+   sütunu 720 piksel civarına indiğinde "Tarih / saat" başlığı "Durum"
+   başlığının üstüne taşıyor, tarih rakamın ortasından kırılıyor, talep
+   numarası kırpılıyordu.
+
+   İLK DÜZELTME tabloya 800 piksellik alt sınır koymuştu: çakışma bitti
+   ama tablo daha dar liste sütununda yana kaydırılarak okunuyordu.
+   Kullanıcı bunu da istemedi.
+
+   ŞİMDİ:
+     · Telefon ayrı sütun değil, müşterinin adının altında. Tablo beş
+       sütun; Durum sütunu en uzun rozetin istediği kadar.
+     · Liste sütunu 680 pikselden darsa hücre iç boşlukları daralıyor
+       (kap sorgusu, `.tablo-sar--talepler`).
+     · Başlık yazısı sığmazsa taşmıyor, iki satıra iniyor; tarih yalnız
+       boşluktan kırılıyor.
+     · Yatay kaydırma yalnız 480 pikselden dar bir kapta çıkıyor; o
+       genişlikte beş sütun zaten okunamaz. */
+.tablo-sar--talepler {
+  container-type: inline-size;
+}
+.tablo--talepler {
+  min-width: 480px;
+}
 .tablo--talepler th:nth-child(1),
-.tablo--talepler td:nth-child(1) { width: 19%; }
+.tablo--talepler td:nth-child(1) { width: 21%; }
 .tablo--talepler th:nth-child(2),
-.tablo--talepler td:nth-child(2) { width: 17%; }
+.tablo--talepler td:nth-child(2) { width: 24%; }
 .tablo--talepler th:nth-child(3),
-.tablo--talepler td:nth-child(3) { width: 15%; }
+.tablo--talepler td:nth-child(3) { width: 20%; }
 .tablo--talepler th:nth-child(4),
-.tablo--talepler td:nth-child(4) { width: 13%; }
+.tablo--talepler td:nth-child(4) { width: 15%; }
 .tablo--talepler th:nth-child(5),
-.tablo--talepler td:nth-child(5) { width: 12.5%; }
-.tablo--talepler th:nth-child(6),
-.tablo--talepler td:nth-child(6) { width: 23.5%; }
+.tablo--talepler td:nth-child(5) { width: 20%; }
+
+.tablo--talepler thead th {
+  white-space: normal;
+}
+
+.tablo--talepler .th-sirala {
+  align-items: flex-start;
+}
+
+.tablo--talepler td:nth-child(4) {
+  overflow-wrap: normal;
+}
+
+/* 600 PİKSELDEN DAR LİSTEDE talep numarası bir punto küçülüyor.
+   Ölçümde 560 piksellik listede numaraların hepsi kırpılıyordu; 1280
+   piksel genişliğindeki bir ekranda liste sütunu bu kadar kalıyor. */
+@container (max-width: 600px) {
+  .tablo-sar--talepler .talep-no {
+    font-size: 13px;
+  }
+}
+
+@container (max-width: 680px) {
+  .tablo-sar--talepler .tablo--talepler th,
+  .tablo-sar--talepler .tablo--talepler td {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .tablo-sar--talepler .tablo--talepler td:nth-child(5) {
+    padding-left: 0;
+  }
+}
 
 /* ------------------------------------------ Durum sütunu: rozet hizası
 
@@ -2520,11 +2576,11 @@ select.sec {
 
    Rozet yine de sığmazsa taşmasın diye `min-width: 0`: rozet
    sütununun içinde kalıyor. */
-.tablo--talepler td:nth-child(6) {
+.tablo--talepler td:nth-child(5) {
   padding-left: 5px;
 }
 
-.tablo--talepler td:nth-child(6) .rz {
+.tablo--talepler td:nth-child(5) .rz {
   min-width: 0;
   max-width: 100%;
 }
@@ -2682,6 +2738,58 @@ select.sec {
 
 .th-sirala--on .th-sirala__ok {
   opacity: 1;
+}
+
+/* ---------------------------------------------------------- Sayfalama
+
+   Liste kartının hem tepesinde hem dibinde aynı çubuk (bkz. ortak.jsx
+   → Sayfalama). Bulunulan sayfa dolu mavi; öteki numaralar olağan
+   küçük düğme. */
+.sayfalama {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--cizgi);
+}
+
+.sayfalama--alt {
+  border-top: 1px solid var(--cizgi);
+  border-bottom: 0;
+}
+
+.sayfalama__bilgi {
+  color: var(--murekkep-3);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.sayfalama__dugmeler {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sayfalama .sayfalama__no {
+  min-width: 34px;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.sayfalama .sayfalama__no--on,
+.sayfalama .sayfalama__no--on:hover {
+  background: var(--mavi);
+  border-color: var(--mavi);
+  color: #fff;
+}
+
+.sayfalama__bosluk {
+  padding: 0 2px;
+  color: var(--murekkep-3);
 }
 
 /* Rapor tablosunun dibindeki toplam satırı — sıralamaya karışmıyor,

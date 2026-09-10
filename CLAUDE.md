@@ -10,7 +10,7 @@ uygulama içi tüm metin ve yorumlar sade Türkçe.
 - `src/screens/` — müşteri uygulaması ekranları (22 dosya)
 - `src/backoffice/` — personel paneli, `ekranlar/` alt klasöründe ekranlar (16 dosya)
 - `src/components/` — paylaşılan bileşenler
-- `src/marka/` — firmaya ait her şey: kimlik, logo, renkler, ürün kataloğu, servis listesi, fiyatlar, arıza bilgi tabanı, kılavuz paketi. Motor buraya yalnızca `src/marka/index.js` kapısından bakar (bkz. MARKA-DEVIR.md)
+- `src/marka/` — firmaya ait her şey: kimlik, logo, renkler, ürün kataloğu, servis listesi, fiyatlar, kılavuz paketi. Motor buraya yalnızca `src/marka/index.js` kapısından bakar (bkz. MARKA-DEVIR.md)
 - `src/data/` — ülkeye ve motora ait statik içerik: il listesi, KVKK metinleri, talep alanları, duyuru türleri, yetki kataloğu
 - `src/lib/` — yardımcı modüller (depolama, bildirim, PDF/Excel dışa aktarım)
 - `src/i18n/` — `tr.js`/`en.js` (663 anahtar, eşit tutuluyor ama build'de zorlanmıyor) + `index.jsx`
@@ -20,9 +20,13 @@ uygulama içi tüm metin ve yorumlar sade Türkçe.
 
 - `vite.config.js` → `dist/` → APK'ya giren **müşteri uygulaması**
 - `vite.backoffice.config.js` → `dist-backoffice/` → **backoffice personel paneli**
-- `vite.servis.config.js` → `dist-servis/` → **servis uygulaması**
+- `vite.servis.config.js` → `dist-servis/` → **PAKSAN Servisim** (servis uygulaması)
 
 Backoffice ve servis kodu müşteri APK'sının içine GİRMEMELİ.
+
+**Servis uygulamasının adı PAKSAN Servisim** (10 Eylül 2026'dan beri).
+Android'de görünen ad `tools/cap-hedef.mjs` içinde. Kodda marka adı düz
+yazılmaz: `${MARKA} Servisim`.
 
 - `npm run build` → müşteri uygulaması
 - `npm run build:backoffice` → backoffice
@@ -32,6 +36,18 @@ Backoffice ve servis kodu müşteri APK'sının içine GİRMEMELİ.
 
 - `npm run apk` → müşteri APK'sı
 - `npm run apk:servis` → servis APK'sı
+
+### Sürüm numaraları — iki uygulamanın AYRI hattı var
+
+- **PAKSAN Connect:** `src/marka/kimlik.js` → `SURUM` (uygulamanın içinde
+  görünen), `package.json` → `version`, `android/app/build.gradle` →
+  `versionName` + `versionCode`. Üçü birlikte artırılır.
+- **PAKSAN Servisim:** yalnız `android-servis/app/build.gradle` →
+  `versionName` + `versionCode`. Kendi hattı 0.1.0'dan başladı
+  (10 Eylül 2026); Connect'in numarasını kopyalamaz.
+- APK dosyaları: `apk/paksan-<sürüm>-demo.apk` ve
+  `apk-servis/paksan-servisim-<sürüm>-demo.apk`. Var olan dosyanın
+  üstüne yazılmaz.
 
 İkisi tek `capacitor.config.json` dosyasını paylaşır. `tools/cap-hedef.mjs` hedefi değiştirir; servis derlemesi bitince hedefi müşteriye geri alır. Böylece depodaki dosya değişmez.
 
@@ -93,6 +109,15 @@ Kayıtlı Makineler ekranından yapılıyor.
 **Fiyat teklifi servise değil bayiye gider.** Talep PAKSAN'a düşüyor,
 satış personeli bayiye atıyor (`talebiBayiyeAta`), talep "Bayide"
 durumuna geçiyor ve PAKSAN'ın kuyruğundan çıkıyor.
+
+**Yedek parça talebi servise gitmez.** Müşterinin PAKSAN Connect'ten
+açtığı parça talebi yalnız backoffice'e düşer: tedarikçi PAKSAN, müşteri
+parayı dekontla PAKSAN'a öder, parçayı PAKSAN gönderir. Servislerde bir
+dönem "yedek parça hizmeti" işareti vardı ve talep o servise
+yönlendiriliyordu; servis parçayı kendi elinden gönderiyor, karşılığı
+hiçbir yere yazılmıyordu. İşaret ve yönlendirme 10 Eylül 2026'da
+kaldırıldı. Servisin parça ihtiyacı kendi siparişiyle ya da servis
+kaydının içinden karşılanır.
 
 Servis ayrı bir şirket ya da şahıstır ve **kendi menfaati dışında bir
 şey yapmaz.** Yalnızca PAKSAN'a yarayan bir veri girişi ya hiç yapılmaz
@@ -187,8 +212,23 @@ Genel diff incelemesi için `/code-review` komutu kullanılır.
 
 ## Codex ile iş bölümü
 
-- **KALICI KURAL:** Codex’in bu projedeki rolü yalnızca Türkçe metin yazımı ve dil doğruluk kontrolüdür.
-- Başka hiçbir iş Codex’e devredilmez.
+- **KALICI KURAL:** Codex’in bu projedeki rolü Türkçe metin yazımı ve dil doğruluk kontrolüdür.
+- **TEK İSTİSNA — DESTEK ASİSTANI (10 Eylül 2026, kullanıcının kararı).**
+  Destek ekranının geliştirmesini Codex yürütür: sohbet sunucusu
+  (`D:\paksan-rag\sohbet\`), kılavuz arama ve dil modeli,
+  `src/screens/Support.jsx` ve ona bağlı destek dosyaları. Model
+  `gpt-6-astra`, efor `xhigh`. Claude bu işi kendisi ya da kendi alt
+  ajanlarıyla YAPMAZ; yardım eder (tarayıcıda sınama, ölçüm, inceleme;
+  commit ve APK Claude'da). İki taraf arasındaki haberleşmeyi Claude'un
+  açtığı irtibat alt ajanı yürütür; her değişiklik ve her istek
+  `D:\paksan-rag\sohbet\ORTAK-DEFTER.md` dosyasına yazılır. Dosya
+  sahipliği o defterde.
+- **GEÇİCİ (10–15 Eylül 2026):** Codex kotası dolduğu için kullanıcı
+  destek işini 15 Eylül'e kadar Claude'a verdi. Claude aynı defter
+  kurallarıyla, Codex'in kaldığı yerden sürdürür. 15 Eylül'de
+  zamanlanmış görev (`codex-devir-15-eylul`) kotayı kontrol edip işi
+  Codex'e geri devreder; bu madde o zaman kaldırılır.
+- Bunun dışında hiçbir iş Codex’e devredilmez.
 - **Rolün sınırı YOK: ekranda görünen her Türkçe kelime Codex'ten
   geçer.** Cümle, paragraf, hata metni, sekme adı, düğme yazısı, bölüm
   başlığı, alan etiketi, rozet — hepsi. Bir-iki kelimelik etiketleri

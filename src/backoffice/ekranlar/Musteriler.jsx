@@ -344,7 +344,7 @@ function Detay({ musteri, talepler, duzenleyebilir, onDuzenle }) {
                 <span className="mono kucuk">{t.no}</span>
                 <span className="kucuk sonuk">{TALEP_ADI[t.tur]}</span>
                 <span className="kucuk sonuk">{gecenSure(t.createdAt)}</span>
-                <DurumRozet durum={t.status} />
+                <DurumRozet durum={t.status} talep={t} />
               </div>
             ))
           )}

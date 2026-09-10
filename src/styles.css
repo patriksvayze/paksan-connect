@@ -5326,3 +5326,122 @@ p {
   letter-spacing: 0.02em;
   color: var(--pk-orange-ink);
 }
+
+/* ------------------------------------------------ Giriş · Beni Hatırla
+
+   Giriş ekranında şifrenin altındaki kutu. Kutu işaretliyse telefon
+   numarası bu cihazda saklanıyor (bkz. screens/Login.jsx). */
+.hatirla {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  font-size: 15px;
+  color: inherit;
+  cursor: pointer;
+}
+
+.hatirla input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--pk-blue);
+}
+
+/* ==========================================================================
+   Destek asistanı
+
+   Cevaptaki [1] işareti ile kaynak listesindeki rozet aynı: çiftçi
+   hangi cümlenin hangi kılavuz sayfasından geldiğini eşleştiriyor.
+   Kaynak listesi ve güvenlik uyarısı var olan bileşenlerle çiziliyor
+   (dst-parcalar, uyari-kart); burada yalnız asistana özgü parçalar var.
+   ========================================================================== */
+
+.dst-ref {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  margin: 0 2px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--pk-blue-yazi);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  vertical-align: 0.15em;
+}
+
+.dst-bakiyor {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-2);
+}
+
+.dst-bakiyor .typing {
+  padding: 0;
+}
+
+.dst-durum {
+  margin-top: 10px;
+  color: var(--ink-2);
+}
+
+.dst-uyari {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.dst-alinti {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-left: 3px solid var(--line-strong);
+  border-radius: 0 10px 10px 0;
+  background: var(--surface-2);
+  font-size: 14.5px;
+  white-space: pre-wrap;
+}
+
+.dst-kaynak {
+  color: inherit;
+  text-decoration: none;
+}
+
+.sohbet-ekrani .dst-not {
+  margin-top: 18px;
+}
+
+/* Makine sorusu sohbetin içinde cevaplanır; seri numarası, aynı modelden
+   iki kayıtlı makineyi ayırır. Uzun adlar kesilmeden alt satıra geçer. */
+.dst-makineler {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin-top: 14px;
+  white-space: normal;
+}
+
+.dst-makineler .chip,
+.dst-makine {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--line-strong);
+  box-shadow: none;
+}
+
+.dst-makine > svg {
+  flex: none;
+}
+
+.dst-makine .listitem__title {
+  display: block;
+}
+
+.dst-makineler button:focus-visible {
+  outline: 2px solid var(--pk-blue-yazi);
+  outline-offset: 2px;
+}

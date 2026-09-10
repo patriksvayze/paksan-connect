@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-/* PAKSAN Servis — üçüncü ayrı derleme.
+/* PAKSAN Servisim — üçüncü ayrı derleme.
 
    Servis uygulaması servis elemanının telefonunda açılıyor. Ne
    müşterinin APK'sına ne de PAKSAN personelinin backoffice'ine

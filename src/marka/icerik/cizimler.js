@@ -1,8 +1,12 @@
 /* ==========================================================================
    Uygulamadaki çizimler
 
-   Boş ekranlar, karşılama ekranı ve Destek cevabındaki güvenlik
-   adımları için hazırlanmış düz vektör çizimler.
+   Boş ekranlar ve karşılama ekranı için hazırlanmış düz vektör
+   çizimler.
+
+   Eski Destek ekranının dört güvenlik çizimi de buradaydı; ekranın
+   gömülü rehberiyle birlikte 10 Eylül 2026'da uygulamadan çıkarıldı
+   (arşiv: D:\paksan-rag\arsiv\eski-destek-ekrani).
 
    NASIL ÜRETİLDİ
 
@@ -17,7 +21,7 @@
 
    NEDEN MAKİNE ÇİZİLMİYOR
 
-   Güvenlik çizimleri makine değil İNSAN HAREKETİ gösteriyor: kolu
+   Güvenlik çizimleri makine değil İNSAN HAREKETİ gösteriyordu: kolu
    indiren el, kontaktan çıkan anahtar, duran dişli ve dur işareti,
    destekle kaldırılmış yük. Görsel üreticiler tarım makinesi
    ayrıntılarında güvenilir değil; PAKSAN'ın kendi uygulamasında
@@ -48,10 +52,6 @@ import bosMakine from '../../assets/gorseller/bos-makine.png'
 import bosBildirim from '../../assets/gorseller/bos-bildirim.png'
 import bosArama from '../../assets/gorseller/bos-arama.png'
 import karsilama from '../../assets/gorseller/karsilama.png'
-import guvenlikKuyruk from '../../assets/gorseller/guvenlik-kuyruk.png'
-import guvenlikAnahtar from '../../assets/gorseller/guvenlik-anahtar.png'
-import guvenlikBekle from '../../assets/gorseller/guvenlik-bekle.png'
-import guvenlikDestek from '../../assets/gorseller/guvenlik-destek.png'
 
 export const CIZIM = {
   bosMakine,
@@ -60,12 +60,3 @@ export const CIZIM = {
   karsilama,
 }
 
-/* Destek cevabındaki dört güvenlik maddesinin sırasıyla karşılığı
-   (bkz. src/data/destekVerisi.js → GUVENLIK). Sıra bozulursa çizimler
-   yanlış maddeye düşer. */
-export const GUVENLIK_CIZIMLERI = [
-  guvenlikKuyruk,
-  guvenlikAnahtar,
-  guvenlikBekle,
-  guvenlikDestek,
-]

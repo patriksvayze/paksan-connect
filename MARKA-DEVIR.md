@@ -166,7 +166,6 @@ uygulamayı ayağa kaldırmak için beklemeniz gerekmiyor.
 
 | Doldurulmazsa | Ne olur |
 |---|---|
-| `icerik/destekVerisi.js` | Destek ekranı arıza bilgisi bulamıyor |
 | `icerik/mobile_support_package.json` + `icerik/kilavuzEslesme.js` | Kılavuzlar ekranı boş |
 | `icerik/teknikOzellikler.js` | Ürün sayfasında teknik değer çıkmıyor |
 | `icerik/rehber.js` / `.en.js` | Bakım rehberi yok |

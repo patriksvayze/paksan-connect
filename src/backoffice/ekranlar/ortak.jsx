@@ -43,7 +43,23 @@ export function gecenSure(zaman) {
   return tarihYaz(zaman, false)
 }
 
-export function DurumRozet({ durum }) {
+/* PARÇA YOLDA — durum değil, durumun alt hâli (10 Eylül 2026).
+
+   Parça gönderildikten sonra talep "Parça Bekleniyor" durumunda kalıyor:
+   iş, servis parçayı takıp kaydı tamamlayana kadar açık. Ama rozet aynı
+   kalınca personel "Parçayı Gönderdim" dediği hâlde talebin
+   güncellenmediğini sanıyordu (kullanıcı). Gönderim kaydı varsa rozet
+   ve durum yazısı "Parça Yolda" diyor; durum listesi ve süzgeç
+   değişmiyor. */
+export function durumYazisi(talep) {
+  if (talep?.status === 'parcaBekliyor' && talep?.parcaSevk) return 'Parça Yolda'
+  return durumBilgi(talep?.status || 'yeni').ad
+}
+
+export function DurumRozet({ durum, talep }) {
+  if (talep?.status === 'parcaBekliyor' && talep?.parcaSevk) {
+    return <span className="rz rz--mavi">Parça Yolda</span>
+  }
   const d = durumBilgi(durum || 'yeni')
   return <span className={'rz rz--' + d.ton}>{d.ad}</span>
 }
@@ -155,6 +171,74 @@ export function SiraliBaslik({ ad, alan, siralama, onSirala, genislik }) {
         </span>
       </button>
     </th>
+  )
+}
+
+/* ==========================================================================
+   Sayfalama
+
+   Uzun liste tek sayfada çizilmiyor. 200 talep olsa 200 satırın hepsi
+   birden ekrana basılıyordu; aranan kayıt bitmeyen bir kaydırmanın
+   içinde kayboluyordu (kullanıcı isteği, 10 Eylül 2026: 50 kayıtta bir
+   sayfa, geçiş düğmeleri listenin hem başında hem sonunda).
+
+   Numaralar kısaltılıyor: ilk sayfa, son sayfa, bulunulan sayfa ve iki
+   komşusu görünüyor; aradakiler üç nokta oluyor. Tek sayfalık listede
+   hiçbir şey çizilmiyor.
+   ========================================================================== */
+export function Sayfalama({ sayfa, sayfaSayisi, toplam, boy, birim, onDegis, alt = false }) {
+  if (sayfaSayisi <= 1) return null
+  const bas = sayfa * boy + 1
+  const son = Math.min(toplam, (sayfa + 1) * boy)
+
+  const numaralar = []
+  for (let i = 0; i < sayfaSayisi; i++) {
+    if (i === 0 || i === sayfaSayisi - 1 || Math.abs(i - sayfa) <= 1) numaralar.push(i)
+    else if (numaralar[numaralar.length - 1] !== 'bosluk') numaralar.push('bosluk')
+  }
+
+  return (
+    <nav className={'sayfalama' + (alt ? ' sayfalama--alt' : '')} aria-label="Sayfa geçişi">
+      <span className="sayfalama__bilgi">
+        {bas}–{son} / {toplam} {birim}
+      </span>
+      <div className="sayfalama__dugmeler">
+        <button
+          type="button"
+          className="dg dg--kucuk"
+          disabled={sayfa === 0}
+          onClick={() => onDegis(sayfa - 1)}
+        >
+          Önceki
+        </button>
+        {numaralar.map((n, i) =>
+          n === 'bosluk' ? (
+            <span key={'b' + i} className="sayfalama__bosluk" aria-hidden="true">
+              …
+            </span>
+          ) : (
+            <button
+              key={n}
+              type="button"
+              className={'dg dg--kucuk sayfalama__no' + (n === sayfa ? ' sayfalama__no--on' : '')}
+              aria-current={n === sayfa ? 'page' : undefined}
+              aria-label={`Sayfa ${n + 1}`}
+              onClick={() => onDegis(n)}
+            >
+              {n + 1}
+            </button>
+          ),
+        )}
+        <button
+          type="button"
+          className="dg dg--kucuk"
+          disabled={sayfa >= sayfaSayisi - 1}
+          onClick={() => onDegis(sayfa + 1)}
+        >
+          Sonraki
+        </button>
+      </div>
+    </nav>
   )
 }
 

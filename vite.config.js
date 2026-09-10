@@ -1,5 +1,7 @@
-import { exec } from 'node:child_process'
-import { createReadStream, existsSync, statSync } from 'node:fs'
+import { exec, spawn } from 'node:child_process'
+import { createReadStream, existsSync, openSync, statSync } from 'node:fs'
+import http from 'node:http'
+import net from 'node:net'
 import { extname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
@@ -91,6 +93,93 @@ function katalogSun() {
   }
 }
 
+/* --------------------------------------------------------------------------
+   DESTEK ASİSTANI — geliştirmede yerel sohbet sunucusuna aktarım
+
+   Destek ekranı `/destek-ai/...` adresine soru gönderiyor (bkz.
+   src/config.js → AI). Asistanın kılavuzları, arama indeksi ve dil
+   modeli uygulamanın içinde DEĞİL; canlıda PAKSAN'ın sunucusunda, bugün
+   bu bilgisayardaki sohbet sunucusunda duruyor:
+
+       D:/paksan-rag/sohbet/sunucu.mjs   →   http://127.0.0.1:8770
+
+   Bu ara katman istekleri oraya aktarıyor. Tarayıcı doğrudan 8770'e
+   gitmiyor: adres uygulamanın kendi kökünde kalıyor ki canlıda
+   değişecek tek şey `AI.kok` olsun.
+
+   SUNUCU KAPALIYSA KENDİSİ BAŞLATIYOR. `npm run dev` açılınca 8770
+   boşsa sohbet sunucusu arka planda başlıyor; günlüğü
+   D:/paksan-rag/uretim/sohbet-sunucusu.log. Açıksa dokunulmuyor.
+
+   Yalnız geliştirme sunucusunda (`apply: 'serve'`); derlemeye hiçbir
+   şey girmiyor.
+   -------------------------------------------------------------------------- */
+
+function destekAsistaniSun() {
+  const HEDEF = { host: '127.0.0.1', port: Number(process.env.PAKSAN_SOHBET_PORT) || 8770 }
+  const DOSYA = process.env.PAKSAN_SOHBET_SUNUCU || 'D:/paksan-rag/sohbet/sunucu.mjs'
+  const GUNLUK = process.env.PAKSAN_SOHBET_GUNLUK || 'D:/paksan-rag/uretim/sohbet-sunucusu.log'
+
+  const acikMi = () =>
+    new Promise((coz) => {
+      const soket = net.connect(HEDEF)
+      soket.once('connect', () => {
+        soket.destroy()
+        coz(true)
+      })
+      soket.once('error', () => coz(false))
+    })
+
+  return {
+    name: 'paksan-destek-asistani',
+    apply: 'serve',
+    async configureServer(server) {
+      if (!(await acikMi())) {
+        if (existsSync(DOSYA)) {
+          let cikti = 'ignore'
+          try {
+            cikti = openSync(GUNLUK, 'a')
+          } catch {
+            /* Günlük açılamazsa sunucu yine başlıyor, yalnız sessiz */
+          }
+          spawn(process.execPath, [DOSYA], {
+            detached: true,
+            stdio: ['ignore', cikti, cikti],
+            windowsHide: true,
+          }).unref()
+          server.config.logger.info(
+            `  Destek asistanı sunucusu başlatıldı → http://${HEDEF.host}:${HEDEF.port}`,
+          )
+        } else {
+          server.config.logger.warn(`  Destek asistanı sunucusu bulunamadı: ${DOSYA}`)
+        }
+      }
+
+      server.middlewares.use('/destek-ai', (istek, cevap) => {
+        const basliklar = { ...istek.headers, host: `${HEDEF.host}:${HEDEF.port}` }
+        delete basliklar.origin
+        delete basliklar.referer
+        const giden = http.request(
+          { ...HEDEF, method: istek.method, path: '/api' + (istek.url || '/'), headers: basliklar },
+          (gelen) => {
+            cevap.writeHead(gelen.statusCode || 502, gelen.headers)
+            gelen.pipe(cevap)
+          },
+        )
+        giden.on('error', () => {
+          if (!cevap.headersSent) {
+            cevap.writeHead(503, { 'Content-Type': 'application/json; charset=utf-8' })
+          }
+          cevap.end(JSON.stringify({ hata: 'destek-sunucusu-kapali' }))
+        })
+        /* Kullanıcı ekrandan çıkarsa sunucudaki üretim de dursun. */
+        cevap.on('close', () => giden.destroy())
+        istek.pipe(giden)
+      })
+    },
+  }
+}
+
 function ikiSekmeAc() {
   return {
     name: 'paksan-iki-sekme',
@@ -114,7 +203,7 @@ function ikiSekmeAc() {
 }
 
 export default defineConfig({
-  plugins: [react(), katalogSun(), ikiSekmeAc()],
+  plugins: [react(), katalogSun(), destekAsistaniSun(), ikiSekmeAc()],
   // Göreli yollar: Capacitor/Android WebView'da da aynı şekilde çalışır
   base: './',
   build: {

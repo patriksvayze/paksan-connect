@@ -6,7 +6,7 @@
    çağrısıyla değişecek, ekranlara dokunulmayacak.
    ========================================================================== */
 
-import { load, save, uid } from '../lib/storage'
+import { load, save, uid, remove, oturumYukle, oturumKaydet, oturumSil } from '../lib/storage'
 import { sifreHazirla, sifreDogruMu, sifreGecerliMi } from '../lib/hesap'
 import { yeniNo } from '../lib/numara'
 import { talepNo } from '../lib/talep'
@@ -841,13 +841,33 @@ export function talepNotEkle(
   talep,
   metin,
   personel,
-  { musteriye = false, servise = false } = {},
+  { musteriye = false, servise = false, servisten = false } = {},
 ) {
-  const not = { metin, tarih: Date.now(), personel, musteriye, servise }
-  const notlar = [...(talep.notlar || []), not]
+  /* `servisten`: notu servis kendi uygulamasından yazdı. PAKSAN görüyor,
+     müşteri görmüyor; servis de kendi ekranında görüyor
+     (bkz. servis/ekranlar/TalepDetay.jsx → benimNotlarim). */
+  const not = {
+    metin,
+    tarih: Date.now(),
+    personel,
+    musteriye,
+    servise,
+    ...(servisten ? { servisten } : {}),
+  }
+  /* Not talebin GÜNCEL hâline ekleniyor. Ekrandaki talep nesnesi
+     eskimiş olabilir; eskimiş nesnenin not listesine eklemek, arada
+     yazılmış başka bir notu siler. */
+  const guncel = talepleriGetir().find((t) => t.id === talep.id) || talep
+  const notlar = [...(guncel.notlar || []), not]
   talepYaz(talep.id, { notlar })
 
-  const nereye = musteriye ? 'müşteriye not gönderildi' : servise ? 'servise not gönderildi' : 'iç not eklendi'
+  const nereye = musteriye
+    ? 'müşteriye not gönderildi'
+    : servise
+      ? 'servise not gönderildi'
+      : servisten
+        ? 'servis not ekledi'
+        : 'iç not eklendi'
   islemYaz({ tur: 'not', ozet: `${talep.no} · ${nereye}`, personel })
 
   /* SERVİSE GİDEN NOTA MÜŞTERİ BİLDİRİMİ ÇIKMIYOR.
@@ -1542,14 +1562,6 @@ export function servisleriYaz(liste, personel, ozet, tur = 'servis') {
   islemYaz({ tur, ozet, personel })
 }
 
-export function servisleriSifirla(personel) {
-  const mevcut = { ...load(ANAHTAR.icerik, {}) }
-  delete mevcut.servisler
-  save(ANAHTAR.icerik, mevcut)
-  icerikTazele()
-  islemYaz({ tur: 'servis', ozet: 'Servis listesi koddaki listeye döndürüldü', personel })
-}
-
 /* ------------------------------------------------------------------ Bayiler
 
    Bayi kaydının servis kaydından tek farkı yok denecek kadar azdır ama
@@ -2115,19 +2127,23 @@ export async function servisGirisi(kullanici, sifre) {
     ilkGiris: Boolean(kayit.ilkGiris),
     giris: Date.now(),
   }
-  save(ANAHTAR.servisOturum, oturum)
+  oturumKaydet(ANAHTAR.servisOturum, oturum)
   islemYaz({ tur: 'oturum', ozet: 'Servis paneline giriş', personel: kayit.ad, rol: 'servis' })
   return { oturum }
 }
 
 export function servisOturumuGetir() {
-  const o = load(ANAHTAR.servisOturum, null)
+  /* OTURUM UYGULAMA KAPANINCA BİTİYOR (10 Eylül 2026): açılışta her
+     zaman giriş ekranı. Eski sürümlerin kalıcı depoya yazdığı oturum
+     burada siliniyor (bkz. lib/storage.js → oturumYukle). */
+  remove(ANAHTAR.servisOturum)
+  const o = oturumYukle(ANAHTAR.servisOturum, null)
   return o?.servisId ? o : null
 }
 
 export function servisOturumuKapat(o) {
   islemYaz({ tur: 'oturum', ozet: 'Servis panelinden çıkış', personel: o?.ad, rol: 'servis' })
-  save(ANAHTAR.servisOturum, null)
+  oturumSil(ANAHTAR.servisOturum)
 }
 
 /** Servis ilk girişte kendi şifresini belirliyor. */
@@ -2274,7 +2290,9 @@ export function islemYaz({ tur, ozet, personel, rol }) {
 
      Karar tarayıcıya değil, çalışan derlemeye ait (src/lib/urun.js). */
   const serviste = urun() === 'servis'
-  const oturum = load(serviste ? ANAHTAR.servisOturum : ANAHTAR.oturum, null)
+  const oturum = serviste
+    ? oturumYukle(ANAHTAR.servisOturum, null)
+    : load(ANAHTAR.oturum, null)
   const kayit = {
     id: uid(),
     tarih: Date.now(),

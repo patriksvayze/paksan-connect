@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { load, remove, save } from '../lib/storage'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppState'
 import { Rozet } from '../marka'
@@ -23,8 +24,12 @@ export default function Login() {
   const nav = useNavigate()
   const { girisYap, showToast } = useApp()
   const { t } = useDil()
-  const [ulke, setUlke] = useState(VARSAYILAN_ULKE)
-  const [tel, setTel] = useState('')
+  /* BENİ HATIRLA — telefon numarası bu cihazda saklanıyor ve giriş
+     ekranı açıldığında hazır geliyor. Şifre saklanmıyor: uygulama her
+     açılışta karşılama ekranından başlıyor ve giriş şifreyle yapılıyor. */
+  const [ulke, setUlke] = useState(() => load('hatirla', null)?.ulke || VARSAYILAN_ULKE)
+  const [tel, setTel] = useState(() => load('hatirla', null)?.tel || '')
+  const [hatirla, setHatirla] = useState(() => Boolean(load('hatirla', null)))
   const [sifre, setSifre] = useState('')
   const [bekliyor, setBekliyor] = useState(false)
   const [hata, setHata] = useState('')
@@ -45,6 +50,8 @@ export default function Login() {
     setBekliyor(false)
 
     if (sonuc.durum === GIRIS_SONUC.BULUNDU) {
+      if (hatirla) save('hatirla', { ulke, tel })
+      else remove('hatirla')
       girisYap(sonuc.user)
       showToast(t('giris.hosgeldiniz', { ad: sonuc.user.ad?.split(' ')[0] || '' }))
       nav('/', { replace: true })
@@ -106,6 +113,15 @@ export default function Login() {
               setSifreYanlis(false)
             }}
           />
+
+          <label className="hatirla">
+            <input
+              type="checkbox"
+              checked={hatirla}
+              onChange={(e) => setHatirla(e.target.checked)}
+            />
+            <span>{t('giris.beniHatirla')}</span>
+          </label>
 
           {sifreYanlis && (
             <div className="field__error">{t('giris.sifreYanlis')}</div>

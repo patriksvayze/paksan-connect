@@ -82,7 +82,7 @@ export { PARCA_SERVIS_ISKONTO } from './katalog/makineFiyat.js'
 /* --------------------------------------------------------------- Servisler */
 
 export {
-  HIZMETLER, hizmetAdi, SERVIS_TURU, SERVISLER, servisleriGetir, servisGetir,
+  SERVIS_TURU, SERVISLER, servisleriGetir, servisGetir,
   ileGore, bolgeKapsiyorMu, talebinServisleri, bayininServisleri,
 } from './katalog/servisler.js'
 

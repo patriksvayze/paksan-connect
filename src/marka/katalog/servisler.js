@@ -34,12 +34,13 @@
    kısmı tek kişilik: usta kendi adına çalışıyor, faturayı şahıs
    olarak kesiyor.
 
-   İKİ HİZMET VAR
+   YEDEK PARÇA SERVİSİN İŞİ DEĞİL
 
-     servis  kurulum, bakım, tamir
-     parca   yedek parça bulundurup satabiliyor
-
-   Her servis parça tutmuyor; talep yönlendirmesi buna bakıyor.
+   Kayıtta bir dönem "hizmet" alanı vardı (servis · yedek parça) ve
+   müşterinin parça talebi, parça hizmeti işaretli servise
+   yönlendiriliyordu. Alan kaldırıldı: parçanın tedarikçisi PAKSAN ve
+   müşteri parayı PAKSAN'a ödüyor (bkz. context/AppState.jsx →
+   addRequest). Servisin parça ihtiyacı kendi siparişiyle karşılanıyor.
 
    SORUMLULUK BÖLGESİ BİR KISIT DEĞİL
 
@@ -58,23 +59,6 @@
 
 import { icerikListe } from '../../lib/icerikDeposu.js'
 
-/* Servisin verebileceği hizmetler. Talep türü bu tabloya bakarak
-   eşleşiyor (bkz. src/context/AppState.jsx → TUR_YETKI). */
-export const HIZMETLER = {
-  servis: 'Servis ve bakım',
-  parca: 'Yedek parça',
-}
-
-const HIZMETLER_EN = {
-  servis: 'Service and maintenance',
-  parca: 'Spare parts',
-}
-
-/** Hizmetin ekranda görünen adı. */
-export function hizmetAdi(kod, dil = 'tr') {
-  return (dil === 'tr' ? HIZMETLER : HIZMETLER_EN)[kod] || kod
-}
-
 /** Servis şahıs mı, tüzel kişi mi — hak ediş bu ayrıma göre ödeniyor. */
 export const SERVIS_TURU = {
   sahis: 'Şahıs',
@@ -92,7 +76,6 @@ export const SERVISLER = [
     adres: 'Fevzi Çakmak Mahallesi, 10680. Sokak No: 14',
     tel: '03323450014',
     bayiler: ['konya-merkez', 'aksaray'],
-    hizmet: ['servis', 'parca'],
   },
   {
     id: 'ankara-servis',
@@ -104,7 +87,6 @@ export const SERVISLER = [
     adres: 'Şentepe Mahallesi, Sanayi Sitesi 6. Blok',
     tel: '03126230211',
     bayiler: ['ankara'],
-    hizmet: ['servis'],
   },
   {
     id: 'eskisehir-servis',
@@ -116,7 +98,6 @@ export const SERVISLER = [
     adres: 'Yeni Mahalle, Sanayi Caddesi No: 22',
     tel: '02226110320',
     bayiler: ['eskisehir'],
-    hizmet: ['servis', 'parca'],
   },
   {
     id: 'bandirma-servis',
@@ -128,7 +109,6 @@ export const SERVISLER = [
     adres: 'Yeni Sanayi Sitesi 9. Blok No: 4',
     tel: '02667330418',
     bayiler: ['balikesir', 'bursa'],
-    hizmet: ['servis'],
   },
   {
     id: 'izmir-servis',
@@ -140,7 +120,6 @@ export const SERVISLER = [
     adres: 'Pancar Organize Sanayi, 3. Cadde No: 8',
     tel: '02328560517',
     bayiler: ['izmir', 'aydin'],
-    hizmet: ['servis', 'parca'],
   },
   {
     id: 'manisa-servis',
@@ -152,7 +131,6 @@ export const SERVISLER = [
     adres: 'Adala Yolu 2. km',
     tel: '02367120633',
     bayiler: ['manisa'],
-    hizmet: ['servis'],
   },
   {
     id: 'antalya-servis',
@@ -164,7 +142,6 @@ export const SERVISLER = [
     adres: 'Bayat Mahallesi, Sanayi Caddesi No: 41',
     tel: '02426430741',
     bayiler: ['antalya'],
-    hizmet: ['servis'],
   },
   {
     id: 'adana-servis',
@@ -176,7 +153,6 @@ export const SERVISLER = [
     adres: 'Sanayi Mahallesi, 5. Sokak No: 16',
     tel: '03226130816',
     bayiler: ['adana'],
-    hizmet: ['servis', 'parca'],
   },
   {
     id: 'urfa-servis',
@@ -188,7 +164,6 @@ export const SERVISLER = [
     adres: 'Yeni Sanayi Sitesi 12. Blok',
     tel: '04145110927',
     bayiler: ['sanliurfa', 'diyarbakir'],
-    hizmet: ['servis'],
   },
   {
     id: 'malatya-servis',
@@ -200,7 +175,6 @@ export const SERVISLER = [
     adres: 'Çöşnük Mahallesi, Sanayi Caddesi No: 9',
     tel: '04223211009',
     bayiler: ['malatya'],
-    hizmet: ['servis', 'parca'],
   },
   {
     id: 'kayseri-servis',
@@ -212,7 +186,6 @@ export const SERVISLER = [
     adres: 'Aşağı Everek Mahallesi, Sanayi Sitesi 3. Blok',
     tel: '03526181122',
     bayiler: ['kayseri', 'sivas'],
-    hizmet: ['servis', 'parca'],
   },
   {
     id: 'samsun-servis',
@@ -224,7 +197,6 @@ export const SERVISLER = [
     adres: 'Kızılırmak Mahallesi, Sanayi Caddesi No: 30',
     tel: '03625421230',
     bayiler: ['samsun', 'corum'],
-    hizmet: ['servis'],
   },
   {
     id: 'erzurum-servis',
@@ -236,7 +208,6 @@ export const SERVISLER = [
     adres: 'Hasankale Sanayi Sitesi No: 7',
     tel: '04426611307',
     bayiler: ['erzurum'],
-    hizmet: ['servis'],
   },
   {
     id: 'tekirdag-servis',
@@ -248,7 +219,6 @@ export const SERVISLER = [
     adres: 'Camiatik Mahallesi, Keşan Caddesi No: 52',
     tel: '02824271452',
     bayiler: ['tekirdag'],
-    hizmet: ['servis', 'parca'],
   },
 ]
 
@@ -342,19 +312,13 @@ function bolgeIlceyeOzelMi(servis, il, ilce) {
    Hiçbir servise bölge girilmemişse liste 2. ve 3. kademeyle
    doluyor. Bölge bir kısıt değil, bir tercih.
 
-   HİZMET: hangi hizmetin arandığı talebin türüne göre değişiyor. Parça
-   tutmayan servise yedek parça talebi önermenin anlamı yok.
-
    @param {string} il
    @param {string} ilce
    @param {number} adet en fazla kaç servis
-   @param {'servis'|'parca'} gerekenHizmet
    @returns {{kademe: 'bolge'|'ilce'|'il'|'yok', servisler: Array}}
    ========================================================================== */
-export function talebinServisleri(il, ilce, adet = 3, gerekenHizmet = 'servis') {
-  const uygunlar = servisleriGetir().filter((b) =>
-    (b.hizmet || []).includes(gerekenHizmet),
-  )
+export function talebinServisleri(il, ilce, adet = 3) {
+  const uygunlar = servisleriGetir()
 
   /* 1. kademe — sorumluluk bölgesi.
      İlçesi açıkça yazılmış servis, tüm ilden sorumlu olana tercih
@@ -393,9 +357,7 @@ export function talebinServisleri(il, ilce, adet = 3, gerekenHizmet = 'servis') 
    çağıran taraf yapıyor. Bayi bilinmiyorsa boş dizi dönüyor ve
    çağıran coğrafi eşleştirmeye düşüyor.
    ========================================================================== */
-export function bayininServisleri(bayiId, gerekenHizmet = 'servis') {
+export function bayininServisleri(bayiId) {
   if (!bayiId) return []
-  return servisleriGetir().filter(
-    (s) => (s.bayiler || []).includes(bayiId) && (s.hizmet || []).includes(gerekenHizmet),
-  )
+  return servisleriGetir().filter((s) => (s.bayiler || []).includes(bayiId))
 }

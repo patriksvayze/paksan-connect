@@ -1,5 +1,5 @@
 import { Logo } from '../marka'
-import { IconBack, IconPhone } from '../components/Icons'
+import { IconBack, IconPhone, IconPlus } from '../components/Icons'
 import { ParcaTablosu } from '../components/ParcaTablosu'
 
 /* ==========================================================================
@@ -64,11 +64,22 @@ function Cubuk({ baslik, alt, onGeri, islem }) {
  * Sekmeli ana ekran.
  * @param {{ sekmeler: {id, ad, Icon, rozet?}[] }} props
  */
-export function Kabuk({ baslik, alt, islem, sekmeler, sekme, onSekme, children }) {
+export function Kabuk({ baslik, alt, islem, fab, sekmeler, sekme, onSekme, children }) {
   return (
-    <div className="uyg">
+    <div className={'uyg' + (fab ? ' uyg--fabli' : '')}>
       <Cubuk baslik={baslik} alt={alt} islem={islem} />
       <main className="uyg__ic">{children}</main>
+
+      {/* YÜZEN DÜĞME: sekmenin asıl işlemi (Kayıt Aç, Sipariş Ver).
+          Alt menünün hemen üstünde, sağda — başparmağın durduğu yer.
+          Yazısıyla birlikte: simge tek başına neyin ekleneceğini
+          söylemiyor. Gerekçesi servis.css → .uyg__fab. */}
+      {fab && (
+        <button className="uyg__fab" onClick={fab.onClick}>
+          <IconPlus size={22} />
+          <span>{fab.ad}</span>
+        </button>
+      )}
 
       <nav className="uyg__tabs" aria-label="Bölümler">
         {sekmeler.map(({ id, ad, Icon, rozet }) => (
@@ -180,6 +191,53 @@ export function Onay({
         </button>
         <button className="dg dg--blok onay__vazgec" onClick={onVazgec}>
           Vazgeç
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/* ==========================================================================
+   Bilgi yaprağı — bir kaydın özeti
+
+   Onay yaprağıyla aynı yüzey, ekranın dibinden açılıyor. Farkı: bir
+   işlemi onaylatmıyor, bir kaydı özetliyor. İsteğe bağlı tek düğme
+   kaydın kendisini açıyor; "Kapat" her zaman var.
+   ========================================================================== */
+export function Yaprak({ baslik, metin, kalemler = [], parcalar = [], dugme, onDugme, onKapat }) {
+  return (
+    <div
+      className="onay-perde"
+      onClick={(e) => e.target === e.currentTarget && onKapat()}
+    >
+      <div className="onay" role="dialog" aria-label={baslik}>
+        <h2 className="onay__baslik">{baslik}</h2>
+        {metin && <p className="onay__metin">{metin}</p>}
+
+        {kalemler.length > 0 && (
+          <div className="onay__liste">
+            {kalemler.map((x, i) => (
+              <div key={i} className="onay__satir">
+                <span>{x.ad}</span>
+                <strong>{x.deger}</strong>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {parcalar.length > 0 && (
+          <div className="onay__parca">
+            <ParcaTablosu parcalar={parcalar} />
+          </div>
+        )}
+
+        {dugme && onDugme && (
+          <button className="dg dg--ana dg--blok" onClick={onDugme}>
+            {dugme}
+          </button>
+        )}
+        <button className="dg dg--blok onay__vazgec" onClick={onKapat}>
+          Kapat
         </button>
       </div>
     </div>

@@ -392,14 +392,13 @@ export default function Profile() {
                             {r.aciklama.length > 90 ? r.aciklama.slice(0, 90) + '…' : r.aciklama}
                           </p>
                         )}
-                        {/* İptal ve kapanışta "neden" burada değil,
-                            talebin kendi ekranında. Listede yalnız
-                            böyle bir bilgi OLDUĞU söyleniyor. */}
-                        {(r.iptalBilgi || r.cozum || r.teklif) && (
-                          <div className="small" style={{ marginTop: 6, color: 'var(--pk-blue-yazi)' }}>
-                            {t('profil.detayGor')}
-                          </div>
-                        )}
+                        {/* "AYRINTI İÇİN DOKUNUN" KALDIRILDI (10 Eylül 2026).
+
+                            Yalnız iptal edilmiş, kapanmış ya da teklifi
+                            gelmiş taleplerde çıkıyordu; kartların bir
+                            kısmında olup ötekilerde olmaması tutarsız
+                            görünüyordu. Her kart zaten dokununca açılıyor
+                            ve sağındaki ok bunu gösteriyor. */}
                         <div className="small muted" style={{ marginTop: 6 }}>
                           {new Date(r.createdAt).toLocaleDateString(
                             dil === 'tr' ? 'tr-TR' : 'en-GB',

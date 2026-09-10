@@ -60,7 +60,20 @@ function TalepFormu() {
      aşağıda, ekranın kendi yerinde yazılı. */
   const servisim = musterininServisleri(machines).ana
 
-  const [makineId, setMakineId] = useState(params.get('makine') || machines[0]?.id || '')
+  /* Destek sohbetinde makine yalnız model adıyla belirlendiyse adreste
+     `model` geliyor, `makine` gelmiyor. Önce ilk kayıtlı makine seçiliyordu:
+     "Orka 870" diye soran çiftçinin talebi Hammer'ına açılabiliyordu. O
+     modelden tek kayıtlı makine varsa o seçiliyor; yoksa ya da birden
+     çoksa kutu boş kalıyor, müşteri kendisi seçiyor. */
+  const [makineId, setMakineId] = useState(() => {
+    if (params.get('makine')) return params.get('makine')
+    const model = params.get('model')
+    if (model) {
+      const ayni = machines.filter((m) => m.productId === model)
+      return ayni.length === 1 ? ayni[0].id : ''
+    }
+    return machines[0]?.id || ''
+  })
   const [urunId, setUrunId] = useState(params.get('urun') || '')
   /* Destek ekranından gelindiyse konuşulan arıza açıklamaya hazır
      yazılıyor: müşteri aynı şeyi ikinci kez anlatmasın, servis de

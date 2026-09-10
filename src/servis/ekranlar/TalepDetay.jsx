@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import {
-  parcaIlerlemeEngeli,
+import {
   talepDurumDegistir,
   talepKapat,
   talepNotEkle,
   talepPlanla,
+  talepIptal,
 } from '../../backoffice/veri'
 import { ASAMA, KAPI, parcaYazisiKodlu as parcaYazisi, temizParcalar } from '../../lib/servisKaydi'
 import { ParcaTablosu } from '../../components/ParcaTablosu'
@@ -12,7 +12,7 @@ import { bugunGirdi, ileriTarihMi } from '../../lib/tarih'
 import { makineDurumAdi } from '../../data/talepAlanlari'
 import { getProduct, MARKA, markaEk } from '../../marka'
 import { PARA_BIRIMI, paraYaz } from '../../marka'
-import { ServisKapanisi } from './ServisKapanisi'
+import { ServisKapanisi, Secenekler } from './ServisKapanisi'
 import { Onay, Sayfa } from '../Kabuk'
 import {
   extractYear,
@@ -29,6 +29,7 @@ import {
   IconPhone,
   IconRight,
   IconShield,
+  IconClose,
 } from '../../components/Icons'
 import { gecenSure } from '../../backoffice/ekranlar/ortak'
 import { Ekler } from '../../backoffice/ekranlar/Ekler'
@@ -79,6 +80,7 @@ export function TalepDetay({
   servisAd,
   onKapat,
   onDestekIste,
+  onYenile,
 }) {
   const [pencere, setPencere] = useState(null)
   const paksanda = (talep.sahip || 'paksan') === 'paksan'
@@ -109,6 +111,15 @@ export function TalepDetay({
   const islemVar = !kapali && !paksanda && !onayda && !parcada
   const sesiVar = !kapali && !paksanda
 
+  /* İPTAL YALNIZ SERVİS KAYDI AÇILMADAN (10 Eylül 2026).
+
+     Servis müşteriyi arayıp talebin yanlış açıldığını ya da
+     müşterinin vazgeçtiğini öğrenebiliyor. Kayıt açılmadıysa işin
+     izi yok; servis talebi gerekçesiyle kapatabiliyor. Kayıt
+     açıldıysa (parça istendi, onay bekliyor) iptal parçayı ve
+     ödemeyi de ilgilendiriyor; o karar PAKSAN'ın. */
+  const iptalVar = islemVar && !talep.servisKaydi
+
   /* RANDEVU YALNIZ ZİYARETTEN ÖNCE.
 
      `sesiVar` ile birlikte açılıyordu; sonuç şuydu: servis kaydını
@@ -129,6 +140,16 @@ export function TalepDetay({
      servise ulaşacağı başka bir yol yoktu; telefon ediliyordu ve
      talepte izi kalmıyordu. */
   const bizeNotlar = (talep.notlar || []).filter((n) => n.servise)
+  /* SERVİSİN KENDİ NOTLARI.
+
+     Not Ekle ile yazılan not talebe iç not olarak düşüyordu: PAKSAN
+     görüyor, müşteri görmüyor — ama servisin kendisi de bir daha
+     göremiyordu, çünkü bu ekran yalnız müşteriye ve servise
+     gönderilmiş notları süzüyordu. Eski kayıtlarda işaret yok; yazan
+     servisin adıyla eşleşen iç not da onun sayılıyor. */
+  const benimNotlarim = (talep.notlar || []).filter(
+    (n) => n.servisten || (!n.musteriye && !n.servise && n.personel === servisAd),
+  )
 
   /* Kapanış tam ekran açılıyor, pencere olarak değil: her adımda tek
      soru soruluyor; cevaplar geniş düğmelerle sunuluyor. Gerekçesi
@@ -150,30 +171,6 @@ export function TalepDetay({
      değildi. Servisin bu ekranda yapacağı tek şey var: işi bitirmek.
      O düğme altta, parmağın durduğu yerde ve tek başına; ötekiler
      detayın içinde, sırası gelince bakılan seçenekler. */
-  /* ÖDEME ONAYI BAYİ TARAFINDA DA KİLİT.
-
-     Parça bedeli önden alınıyor ve dekontu PAKSAN kontrol ediyor.
-     Backoffice bu kuralı zaten uyguluyordu (`parcaIlerlemeEngeli`)
-     ama servis paneli uygulamıyordu: servis, ödemesi onaylanmamış bir
-     talebi "gönderdim" diye kapatabiliyor ve müşteriye "Parçanız Yola
-     Çıktı" bildirimi gidiyordu. Aynı kural iki tarafta da geçerli. */
-  const odemeEngeli = parcaIlerlemeEngeli(talep, 'kapandi')
-
-  /* KAPANIŞ TÜRE GÖRE DEĞİŞİYOR — ikisi aynı formla kapanmıyor.
-
-     Servis kapanışı bir onarımı anlatıyor, yedek parça kapanışı bir
-     gönderimi. İkisi tek forma sokulduğunda parça talebi "Ne yapıldı?
-     Ayar yapıldı" diye kapanıyordu; sorulan soru işin kendisiyle
-     ilgisizdi.
-
-     Alan adları backoffice'in kendi kapanış formuyla aynı
-     (bkz. Talepler.jsx `KAPANIS_ALANLARI`), böylece PAKSAN ve müşteri
-     servisin kapattığı işi kendi ekranlarında okuyor. */
-  const KAPANIS = {
-    parca: { pencere: 'gonderdim', ad: 'Parçayı Gönderdim' },
-    servis: { pencere: 'kapanis', ad: 'Servis Kaydını Aç' },
-  }
-  const kapanis = KAPANIS[talep.tur] || KAPANIS.servis
 
   /* PARÇA BEKLEYEN İŞİ SERVİS KAPATIYOR — PAKSAN DEĞİL.
 
@@ -216,10 +213,9 @@ export function TalepDetay({
     islemVar && (
       <button
         className="dg dg--ana dg--blok"
-        onClick={() => setPencere(kapanis.pencere)}
-        disabled={Boolean(odemeEngeli)}
+        onClick={() => setPencere('kapanis')}
       >
-        {kapanis.ad}
+        Servis Kaydını Aç
       </button>
     )
   )
@@ -412,32 +408,28 @@ export function TalepDetay({
         </div>
       )}
 
+      {benimNotlarim.length > 0 && (
+        <div className="kart" style={{ padding: 16 }}>
+          <div className="kucuk sonuk" style={{ marginBottom: 10 }}>
+            Notlarınız
+          </div>
+          {benimNotlarim.map((n, i) => (
+            <div key={i} style={{ marginBottom: 12 }}>
+              <p style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{n.metin}</p>
+              <div className="kucuk sonuk" style={{ marginTop: 4 }}>
+                {gecenSure(n.tarih)}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* RANDEVU ALINMIŞ TALEP AYNI EKRANI GÖSTERMEMELİ.
 
           Randevu verildikten sonra talep servis tarafında yine "bekleyen"
           listesinde duruyor (doğrusu da bu, iş bitmedi) ama detayı yeni
           gelmiş bir taleple birebir aynı görünüyordu: servis randevu
           verdiğini unutup ikinci kez veriyordu. */}
-      {/* Ödemenin durumu servisin de bilmesi gereken bilgi: parçayı
-          hazırlamaya başlayıp başlamayacağına buna bakarak karar
-          veriyor. */}
-      {talep.tur === 'parca' && !kapali && talep.fatura && (
-        <div className={'not ' + (talep.odemeOnay ? 'not--yesil' : 'not--turuncu')}>
-          <IconCheckCircle size={19} />
-          <div>
-            <strong>
-              {talep.odemeOnay
-                ? 'Ödeme onaylandı'
-                : 'Ödeme onayı bekleniyor'}
-            </strong>
-            <p>
-              {talep.odemeOnay
-                ? 'Parçayı hazırlayıp kargoya verebilirsiniz.'
-                : `${MARKA} dekontu kontrol ediyor. Onaylanmadan parçayı göndermeyin.`}
-            </p>
-          </div>
-        </div>
-      )}
 
       {talep.plan && !kapali && (
         <div className="not not--mavi">
@@ -510,14 +502,24 @@ export function TalepDetay({
 
       {talep.servisKaydi && <ServisKaydi talep={talep} />}
 
-      {kapali && (
+      {/* İptal edilen talep "tamamlandı" demiyor; nedeni burada. */}
+      {kapali && talep.status === 'iptal' ? (
+        <div className="not not--turuncu">
+          <IconClose size={19} />
+          <div>
+            <strong>Bu talep iptal edildi.</strong>
+            {talep.iptalBilgi?.neden && <p>{talep.iptalBilgi.neden}</p>}
+            {talep.iptalBilgi?.aciklama && <p>{talep.iptalBilgi.aciklama}</p>}
+          </div>
+        </div>
+      ) : kapali ? (
         <div className="not not--yesil">
           <IconCheckCircle size={19} />
           <div>
             <strong>Bu talep tamamlandı.</strong>
           </div>
         </div>
-      )}
+      ) : null}
 
       {/* Kapanış kaydı: servis aylar sonra "Burada ne yapmıştık?" diye
           baktığında cevap burada. Alanlar backoffice'in kendi kapanış
@@ -554,6 +556,13 @@ export function TalepDetay({
             {markaEk('dan')} Destek İste
             <IconRight size={17} />
           </button>
+          {iptalVar && (
+            <button className="secenek__dg" onClick={() => setPencere('iptal')}>
+              <IconClose size={19} />
+              Talebi İptal Et
+              <IconRight size={17} />
+            </button>
+          )}
         </div>
       )}
 
@@ -565,33 +574,40 @@ export function TalepDetay({
           onBitti={onKapat}
         />
       )}
-      {pencere === 'gonderdim' && (
-        <Kapanis
-          talep={talep}
-          servisAd={servisAd}
-          onKapat={() => setPencere(null)}
-          onBitti={onKapat}
-        />
-      )}
+      {/* NOT YAZINCA DETAY KAPANMIYOR.
+
+          Önceden kaydet düğmesi talebin kendisini kapatıp listeye
+          dönüyordu; servis yazdığı notu bir daha göremiyordu. Pencere
+          kapanıyor, talep depodan yeniden okunuyor ve not Notlarınız
+          başlığında hemen görünüyor. */}
       {pencere === 'not' && (
         <Not
           talep={talep}
           servisAd={servisAd}
           onKapat={() => setPencere(null)}
-          onBitti={onKapat}
+          onBitti={() => {
+            setPencere(null)
+            onYenile?.()
+          }}
         />
       )}
       {pencere === 'destek' && (
         <Destek onKapat={() => setPencere(null)} onGonder={onDestekIste} />
       )}
+      {pencere === 'iptal' && (
+        <Iptal
+          talep={talep}
+          servisAd={servisAd}
+          onKapat={() => setPencere(null)}
+          onBitti={onKapat}
+        />
+      )}
       {pencere === 'parcaKapat' && (
         <Onay
           baslik="Talep kapanacak"
           metin="Parçayı taktığınızı bildiriyorsunuz. Talep kapanacak ve müşteriye bildirim gidecek."
-          kalemler={[
-            { ad: 'Talep', deger: talep.no },
-            { ad: 'Gönderilen parça', deger: (talep.parcalar || []).join(', ') || '—' },
-          ]}
+          parcalar={temizParcalar(talep.servisKaydi?.parcalar)}
+          kalemler={[{ ad: 'Talep', deger: talep.no }]}
           dugme="Parçayı Taktım"
           onOnayla={() => {
             talepDurumDegistir(talep, 'kapandi', servisAd)
@@ -887,65 +903,20 @@ function Randevu({ talep, servisAd, onKapat, onBitti }) {
   )
 }
 
-/* Yedek parça talebinin kapanışı. Servis işi bu pencereden çıktı;
-   burada yapılan iş bir onarım değil, bir gönderim. */
-function Kapanis({ talep, servisAd, onKapat, onBitti }) {
-  const [ozet, setOzet] = useState('')
-  const [hata, setHata] = useState('')
-
-  function kaydet() {
-    if (ozet.trim().length < 3) return setHata('Ne gönderdiğinizi yazın.')
-    /* ORTAK ALANA DA YAZILIYOR.
-
-       Burası yalnız `ozet` alanına yazıyordu. `ozet` işlem kaydına giden
-       satır; talebi OKUYAN iki ekran ona bakmıyor. Backoffice
-       `yapilanIs` alanını okuyor (bkz. Talepler.jsx →
-       KAPANIS_ALANLARI.parca), müşteri uygulaması da aynı alanı
-       (bkz. screens/RequestDetail.jsx). Sonuç: servis kargo takip
-       numarasını yazıyordu ve iki tarafta da boş bir kutu görünüyordu.
-
-       Aynı metin iki alana yazılıyor: `yapilanIs` okunan alan,
-       `ozet` işlem kaydının satırı. */
-    const yazi = ozet.trim()
-    talepKapat(talep, { yapilanIs: yazi, ozet: yazi }, servisAd)
-    onBitti()
-  }
-
-  return (
-    <Pencere baslik="Parçayı Gönderdim" onKapat={onKapat}>
-      <label className="alan">
-        <span className="alan__ad">Ne Gönderdiniz?</span>
-        <textarea
-          className="gir"
-          rows={3}
-          value={ozet}
-          onChange={(e) => setOzet(e.target.value)}
-          placeholder="Örnek: 2 adet düğüm bıçağı kargoya verildi"
-        />
-      </label>
-      {hata && <div className="uyari">{hata}</div>}
-      <div className="satir">
-        <button className="dg dg--ana" onClick={kaydet}>Kaydet</button>
-        <button className="dg" onClick={onKapat}>Vazgeç</button>
-      </div>
-    </Pencere>
-  )
-}
-
 function Not({ talep, servisAd, onKapat, onBitti }) {
   const [metin, setMetin] = useState('')
   const [hata, setHata] = useState('')
 
   function kaydet() {
     if (metin.trim().length < 3) return setHata('Notunuzu yazın.')
-    talepNotEkle(talep, metin.trim(), servisAd)
+    talepNotEkle(talep, metin.trim(), servisAd, { servisten: true })
     onBitti()
   }
 
   return (
     <Pencere baslik="Not Ekle" onKapat={onKapat}>
       <p className="kucuk sonuk" style={{ marginTop: 0 }}>
-        Bu not müşteriye gönderilmez; talep kaydında saklanır.
+        Notunuzu {MARKA} görür, müşteriye gönderilmez. Talebin içindeki Notlarınız bölümünde görünür.
       </p>
       <label className="alan">
         <span className="alan__ad">Not</span>
@@ -986,11 +957,84 @@ function Destek({ onKapat, onGonder }) {
         <button
           className="dg dg--ana"
           onClick={() => {
-            if (neden.trim().length < 3) return setHata('Kısaca sebebini yazın.')
+            if (neden.trim().length < 3) return setHata('Destek isteme nedeninizi yazın.')
             onGonder(neden.trim())
           }}
         >
           Destek İste
+        </button>
+        <button className="dg" onClick={onKapat}>Vazgeç</button>
+      </div>
+    </Pencere>
+  )
+}
+
+/* ==========================================================================
+   Talebi iptal etme
+
+   Servis müşteriyi aradığında talebin yanlış açıldığını ya da müşterinin
+   vazgeçtiğini öğrenebiliyor (kullanıcı, 10 Eylül 2026). Neden
+   sorulmadan iptal edilemiyor: neden müşteriye aynen gidiyor ve PAKSAN
+   da görüyor (bkz. backoffice/veri.js → talepIptal).
+
+   Pencere ne olacağını söylüyor; "Emin misiniz?" demiyor. Nedenler tam
+   genişlikte düğme; "Başka bir neden" seçilirse neden yazılıyor.
+   ========================================================================== */
+const IPTAL_NEDENLERI = [
+  { deger: 'yanlis', ad: 'Talep yanlış açılmış' },
+  { deger: 'vazgecti', ad: 'Müşteri vazgeçti' },
+  { deger: 'ulasilamadi', ad: 'Müşteriye ulaşılamadı' },
+  { deger: 'baska', ad: 'Başka bir neden' },
+]
+
+function Iptal({ talep, servisAd, onKapat, onBitti }) {
+  const [neden, setNeden] = useState('')
+  const [aciklama, setAciklama] = useState('')
+  const [hata, setHata] = useState('')
+  const baska = neden === 'baska'
+
+  function iptalEt() {
+    if (!neden) return setHata('İptal nedenini seçin.')
+    if (baska && aciklama.trim().length < 3) return setHata('İptal nedenini yazın.')
+    const secilen = IPTAL_NEDENLERI.find((n) => n.deger === neden)
+    talepIptal(
+      talep,
+      {
+        neden: baska ? aciklama.trim() : secilen.ad,
+        aciklama: baska ? '' : aciklama.trim(),
+      },
+      servisAd,
+    )
+    onBitti()
+  }
+
+  return (
+    <Pencere baslik="Talebi İptal Et" onKapat={onKapat}>
+      <p className="kucuk sonuk" style={{ marginTop: 0 }}>
+        Talep kapanır ve İşlerim listesinden çıkar. İptal nedeni müşteriye
+        bildirilir; {MARKA} de görür.
+      </p>
+      <Secenekler
+        secenekler={IPTAL_NEDENLERI}
+        secili={neden}
+        onSec={(v) => {
+          setNeden(v)
+          setHata('')
+        }}
+      />
+      <label className="alan">
+        <span className="alan__ad">{baska ? 'İptal Nedeni' : 'Açıklama (isteğe bağlı)'}</span>
+        <textarea
+          className="gir"
+          rows={3}
+          value={aciklama}
+          onChange={(e) => setAciklama(e.target.value)}
+        />
+      </label>
+      {hata && <div className="uyari">{hata}</div>}
+      <div className="satir">
+        <button className="dg dg--ana" onClick={iptalEt}>
+          Talebi İptal Et
         </button>
         <button className="dg" onClick={onKapat}>Vazgeç</button>
       </div>

@@ -535,7 +535,7 @@ function Giris({ onGiris }) {
         {hata && <div className="hata">{hata}</div>}
 
         <button className="dg dg--ana dg--lg" type="submit" disabled={bekliyor}>
-          {bekliyor ? 'Giriliyor…' : 'Gir'}
+          {bekliyor ? 'Giriliyor…' : 'Giriş'}
         </button>
 
         <button className="giris__bag" type="button" onClick={() => setUnuttum(true)}>

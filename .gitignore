@@ -23,6 +23,7 @@ android-servis/build
 # olduğu için git'te yalnız yer kaplar, karşılaştırma değeri yok.
 # Her sürüm zaten kendi dosyasında ayrı ayrı burada duruyor.
 apk/
+apk-servis/
 apk-bayi/
 
 # Sunum ekran görüntüleri — tools/ekran-goruntusu.mjs ile üretiliyor.

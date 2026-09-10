@@ -49,24 +49,22 @@ export function makineninKaydi(seri) {
  * Bir makineye bakan servis.
  *
  * @param {{serial?: string}|string} makine makine nesnesi ya da seri numarası
- * @param {'servis'|'parca'} gerekenHizmet
  * @returns {null|{servis: object, kaynak: 'atama'|'bayi', bayi: object|null}}
  */
-export function makineninServisi(makine, gerekenHizmet = 'servis') {
+export function makineninServisi(makine) {
   const seri = typeof makine === 'string' ? makine : makine?.serial
   const kayit = makineninKaydi(seri)
   if (!kayit) return null
 
   const bayi = bayiGetir(kayit.bayiId)
 
-  /* 1. Elle atanmış servis. Hizmeti tutmuyorsa yine de geçerli:
-     personel bilerek atadı, kod onu geçersiz kılmıyor. */
+  /* 1. Elle atanmış servis: personel bilerek atadı. */
   const atanan = servisGetir(kayit.servisId)
   if (atanan) return { servis: atanan, kaynak: 'atama', bayi }
 
   /* 2. Bayinin servisi. Birden çoksa ilki; hangisinin asıl olduğu
      bugün kayıtta yok (bkz. plan → açık uçlar). */
-  const bayidenler = bayininServisleri(kayit.bayiId, gerekenHizmet)
+  const bayidenler = bayininServisleri(kayit.bayiId)
   if (bayidenler.length) return { servis: bayidenler[0], kaynak: 'bayi', bayi }
 
   return null
@@ -81,10 +79,10 @@ export function makineninServisi(makine, gerekenHizmet = 'servis') {
  *
  * @returns {{ana: object|null, hepsi: Array<{makine, servis, kaynak, bayi}>}}
  */
-export function musterininServisleri(makineler = [], gerekenHizmet = 'servis') {
+export function musterininServisleri(makineler = []) {
   const hepsi = []
   for (const m of makineler) {
-    const bulunan = makineninServisi(m, gerekenHizmet)
+    const bulunan = makineninServisi(m)
     if (bulunan) hepsi.push({ makine: m, ...bulunan })
   }
   return { ana: hepsi[0]?.servis || null, hepsi }

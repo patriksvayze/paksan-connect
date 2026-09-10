@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, useCallback, useRef } from 'react'
-import { load, save, remove, uid } from '../lib/storage'
+import { load, save, remove, uid, oturumYukle, oturumKaydet, oturumSil } from '../lib/storage'
 import { telAnahtar } from '../lib/tel'
 import { yeniNo } from '../lib/numara'
 import { uygulamaKaydi } from '../lib/kayit'
@@ -17,11 +17,6 @@ import { cihazDili, DilSaglayici } from '../i18n'
    atanmıyor: PAKSAN'a düşüyor, satış personeli müşteriye en uygun
    bayiye atıyor (bkz. backoffice/ekranlar/Talepler.jsx → BayiyeAta).
    Listede karşılığı olmayan tür atanmadan geçiyor. */
-const TUR_HIZMET = {
-  servis: 'servis',
-  parca: 'parca',
-}
-
 const Ctx = createContext(null)
 
 export function useApp() {
@@ -31,7 +26,9 @@ export function useApp() {
 }
 
 export function AppProvider({ children }) {
-  const [user, setUser] = useState(() => load('user', null))
+  /* Açık oturum oturum deposunda: uygulama kapanınca biter ve açılış
+     karşılama ekranından başlar (bkz. lib/storage.js → oturumYukle). */
+  const [user, setUser] = useState(() => oturumYukle('user', null))
   const [machines, setMachines] = useState(() => load('machines', []))
   const [requests, setRequests] = useState(() => load('requests', []))
   const requestsRef = useRef(requests)
@@ -61,7 +58,11 @@ export function AppProvider({ children }) {
     save('dil', yeni)
   }, [])
 
-  useEffect(() => save('user', user), [user])
+  useEffect(() => oturumKaydet('user', user), [user])
+
+  /* Eski sürümlerin kalıcı depoya yazdığı oturum kaydı siliniyor;
+     kalsaydı hiçbir şey okumasa da telefonda gereksiz yer tutardı. */
+  useEffect(() => remove('user'), [])
 
   /* Numara sisteminden önce açılmış hesapların numarası yok; ilk
      açılışta bir kez veriliyor. */
@@ -95,6 +96,27 @@ export function AppProvider({ children }) {
     }
   }, [])
   useEffect(() => save('chats', chats), [chats])
+
+  /* MÜŞTERİ YALNIZ KENDİ TALEPLERİNİ GÖRÜYOR (10 Eylül 2026).
+
+     Talepler deposu tarayıcıda servis uygulaması ve backoffice ile
+     paylaşılıyor: servisin PAKSAN'dan verdiği parça siparişi ve
+     servisin başka müşteriler için elle açtığı kayıtlar da aynı
+     listeye yazılıyor. Connect onları müşterinin kendi talebi gibi
+     gösteriyordu (servis siparişinde "Ödemeniz kontrol ediliyor").
+     Telefonda iki uygulama depoyu paylaşmıyor, sunucu geldiğinde de
+     liste müşteriye göre gelecek; süzgeç yine de ekranlara giden
+     listede duruyor.
+
+     Depoya yazılan liste süzülmüyor: süzülseydi paylaşılan depodaki
+     servis kayıtları silinirdi. */
+  const gorunenTalepler = useMemo(
+    () =>
+      requests.filter(
+        (r) => !r.servisSiparisi && (!r.elle || (user && r.musteriId === user.id)),
+      ),
+    [requests, user],
+  )
   useEffect(() => save('okunanBildirimler', okunanBildirimler), [okunanBildirimler])
 
   /* Uzun cümlenin okunması kısa olandan uzun sürüyor; süre yazının
@@ -108,7 +130,7 @@ export function AppProvider({ children }) {
   /* ------------------------------------------------------------ Kullanıcı */
 
   /* Hesap iki yerde durur:
-       'user'  → açık oturum. Çıkış yapınca silinir.
+       'user'  → açık oturum. Çıkış yapınca ve uygulama kapanınca biter.
        'hesap' → bu telefonda kayıt olmuş kişi. Çıkış yapınca KALIR ki
                  aynı numarayla tekrar giriş yapılabilsin.
      Makineler ve talepler de çıkışta silinmez; yalnızca oturum kapanır.
@@ -155,7 +177,7 @@ export function AppProvider({ children }) {
   /* Oturumu kapat — kayıtlar telefonda kalır, tekrar giriş yapılabilir */
   const logout = useCallback(() => {
     setUser(null)
-    remove('user')
+    oturumSil('user')
   }, [])
 
   /* NOT: Hesap silme uygulamadan yapılmıyor. KVKK kapsamındaki silme
@@ -228,16 +250,21 @@ export function AppProvider({ children }) {
          verdiğini bilmek zorunda; "en yakın" bir kayıt değil, tahmin.
 
          Servis talebi zaten servis atanmadan açılamıyor (form o kapıyı
-         tutuyor). Yedek parça talebi ise servis parça tutmuyorsa
-         PAKSAN'da kalıyor: parçası olmayan servise parça talebi
-         yollamak, talebi bir kez daha taşıtmak demek.
+         tutuyor).
 
-         Yurtdışı talebi hiç düşmüyor: servis ağı Türkiye içinde.
-         Fiyat teklifi de düşmüyor (bkz. TUR_HIZMET). */
-      const gerekenHizmet = TUR_HIZMET[data.tur]
-      const servis = ihracat || !gerekenHizmet
-        ? null
-        : musterininServisleri(machines, gerekenHizmet).ana
+         YEDEK PARÇA TALEBİ SERVİSE DÜŞMÜYOR. Tedarikçi PAKSAN: müşteri
+         parayı dekontla PAKSAN'a ödüyor, parçayı PAKSAN gönderiyor.
+         Bir dönem makineye bakan servis "parça hizmeti" veriyorsa talep
+         ona gidiyordu. Servis parçayı kendi elinden gönderiyor, parası
+         PAKSAN'da kalıyordu ve servise karşılığı hiçbir yere
+         yazılmıyordu. Elle atanmış servis parça hizmeti vermese de
+         talebi alıyordu. Servisin parça ihtiyacı kendi siparişiyle
+         (Parça sekmesi) ya da servis kaydının içinden karşılanıyor.
+
+         Yurtdışı talebi ve fiyat teklifi de düşmüyor: servis ağı
+         Türkiye içinde, teklif satışın işi. */
+      const servis =
+        ihracat || data.tur !== 'servis' ? null : musterininServisleri(machines).ana
 
       const r = {
         id: uid(),
@@ -322,7 +349,7 @@ export function AppProvider({ children }) {
       updateMachine,
       removeMachine,
       hasSerial,
-      requests,
+      requests: gorunenTalepler,
       addRequest,
       updateRequest,
       removeRequest,
@@ -340,7 +367,7 @@ export function AppProvider({ children }) {
     [
       user, login, girisYap, logout, updateUser,
       machines, addMachine, updateMachine, removeMachine, hasSerial,
-      requests, addRequest, updateRequest, removeRequest,
+      gorunenTalepler, addRequest, updateRequest, removeRequest,
       getChat, pushChat, clearChat,
       okunanBildirimler, bildirimOku, bildirimleriOku,
       toast, showToast, dil, setDil,

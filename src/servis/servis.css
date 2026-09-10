@@ -1976,10 +1976,6 @@
   cursor: pointer;
 }
 
-.parca-satir--on .parca-satir__ac {
-  background: var(--mavi-z);
-}
-
 .parca-satir__ad {
   flex: 1;
   min-width: 0;
@@ -3125,6 +3121,12 @@
   border-color: var(--cizgi-koyu);
 }
 
+/* SEÇİLİ SATIR TEK TON.
+
+   Satırın tamamı açık maviye boyanıyordu, soldaki düğme alanı da ayrıca
+   daha koyu bir maviye (`--mavi-z`). İki kural üst üste biniyordu ve
+   satır ortasından iki renge bölünüyordu; kasıtlı değildi. Koyu kural
+   kaldırıldı: seçili satırın kenarı ve zemini tek renk. */
 .uyg .parca-satir--on {
   border-color: var(--mavi-rz);
   background: var(--mavi-soft);
@@ -3166,6 +3168,37 @@
   outline: 0;
   border-color: var(--mavi-rz);
   box-shadow: 0 0 0 3px var(--mavi-soft-2);
+}
+
+/* ARAMA KUTUSUNUN İÇİNDEKİ ALAN ÇERÇEVESİZ.
+
+   `.ara-kutu .gir` iç alanın kenarlığını sıfırlıyordu; ama aynı
+   ağırlıktaki `.uyg .gir` dosyada daha aşağıda durduğu için kenarlığı,
+   köşe yuvarlağını ve odak halkasını geri getiriyordu. Ekranda büyüteç
+   bir kutuda, yazı alanı onun içinde ikinci bir kutuda görünüyordu
+   (kullanıcının ekran görüntüsü, 10 Eylül 2026). Çerçeve ve odak
+   rengi artık yalnız dıştaki kutuda; yükseklik, çizgi rengi ve köşe
+   öteki giriş alanlarıyla aynı. */
+.uyg .ara-kutu {
+  min-height: var(--dokunma);
+  border-color: var(--cizgi-koyu);
+  border-radius: var(--r-sm);
+}
+
+.uyg .ara-kutu:focus-within {
+  border-color: var(--mavi-rz);
+  box-shadow: 0 0 0 3px var(--mavi-soft-2);
+}
+
+.uyg .ara-kutu .gir,
+.uyg .ara-kutu .gir:focus {
+  flex: 1;
+  min-width: 0;
+  padding-left: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .uyg textarea.gir {
@@ -3396,6 +3429,29 @@
 
 .hareket__tutar--alacak {
   color: var(--yesil);
+}
+
+/* HAREKETE DOKUNULUNCA ÖZETİ AÇILIYOR (bkz. Hakkedis.jsx →
+   HareketAyrinti). Satır düğme; sağdaki ok dokunulabildiğini
+   gösteriyor. */
+button.hareket {
+  width: 100%;
+  align-items: center;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+button.hareket:active {
+  transform: scale(0.99);
+}
+
+.hareket__ok {
+  display: inline-flex;
+  flex: none;
+  color: var(--murekkep-3);
 }
 
 /* ---------------------------------------------------------- Duyuru kartı
@@ -3884,4 +3940,73 @@
   font-size: var(--y-mini);
   font-weight: 400;
   color: var(--murekkep-3);
+}
+
+/* ==========================================================================
+   Yüzen düğme — sekmenin asıl işlemi
+
+   Üst çubuğun sağ köşesindeki "+" gün içinde en çok basılan düğmeydi ve
+   ekranın parmağa en uzak noktasındaydı. Alt menünün hemen üstüne, sağa
+   indi: telefonu tek elle tutan servisin başparmağı orada.
+
+   YAZILI, YALNIZ SİMGE DEĞİL. Servis uygulamasının kuralı: simge tek
+   başına anlam taşımaz (bkz. CLAUDE.md). "+" neyin ekleneceğini
+   söylemiyor; "Kayıt Aç" söylüyor.
+
+   Sağ kenarı alt menünün sağ kenarıyla aynı çizgide: menü geniş ekranda
+   460 pikselde ortalanıyor, düğme de onunla birlikte içeri geliyor.
+   ========================================================================== */
+
+.uyg__fab {
+  position: fixed;
+  right: max(var(--bosluk-4), calc((100% - 460px) / 2));
+  bottom: calc(var(--nav-h) + var(--nav-gap) + var(--dip) + var(--bosluk-3));
+  z-index: 39;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  height: var(--dokunma-genis);
+  padding: 0 var(--bosluk-5) 0 var(--bosluk-4);
+  border: 0;
+  border-radius: var(--r-tam);
+  background: var(--turuncu-dugme);
+  color: #fff;
+  font: inherit;
+  font-size: var(--y-govde);
+  font-weight: 700;
+  box-shadow: var(--sh-turuncu);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.uyg__fab:active {
+  transform: scale(0.96);
+}
+
+/* Listenin son kartı düğmenin arkasında kalmasın. */
+.uyg--fabli .uyg__ic {
+  padding-bottom: calc(
+    var(--bosluk-5) + var(--tabs) + var(--dip) + var(--dokunma-genis) + var(--bosluk-3)
+  );
+}
+
+/* ------------------------------------------------ Giriş · Beni Hatırla
+
+   Şifrenin altındaki kutu. İşaretliyse kullanıcı adı bu telefonda
+   saklanıyor (bkz. ServisPanel.jsx → Giris). Dokunma hedefi tam satır. */
+.sgiris__hatirla {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3, 12px);
+  min-height: var(--dokunma, 48px);
+  margin-bottom: var(--bosluk-3, 12px);
+  font-size: var(--y-govde, 15px);
+  cursor: pointer;
+}
+
+.sgiris__hatirla input {
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  accent-color: var(--mavi-rz);
 }

@@ -1,131 +1,95 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useApp } from '../context/AppState'
-import { TopBar, TabBar, Sheet } from '../components/Chrome'
-import { Amblem } from '../marka'
+import { TopBar, TabBar } from '../components/Chrome'
+import { Amblem, PRODUCTS, getProduct, urunDilde } from '../marka'
 import { useDil } from '../i18n'
-import { load, save } from '../lib/storage'
 import { destekOlay, destekOturumu } from '../lib/destekLog'
-import { PRODUCTS, getProduct, supportGroup, urunDilde } from '../marka'
-import { DESTEK, GUVENLIK, ZORLUK } from '../marka/icerik/destekVerisi'
-import { GUVENLIK_CIZIMLERI } from '../marka/icerik/cizimler'
+import { kilavuzAdresi, soruSor, sorudakiUrun } from '../lib/destekAsistani'
 import {
-  IconAlert, IconCheckCircle, IconMachine, IconParca, IconRight, IconWrench,
+  IconAlert, IconCheckCircle, IconMachine, IconParca, IconRight, IconSend, IconWrench,
 } from '../components/Icons'
 
 /* ==========================================================================
-   Destek ekranı
+   Destek ekranı — PAKSAN'ın kılavuzlarından cevap veren asistan
 
-   NE İŞE YARIYOR
+   ESKİ EKRAN GEÇİCİYDİ
 
-   Çiftçi tarlada, makinenin yanında duruyor. Bir şey ters gidiyor ve
-   tek bir şey öğrenmek istiyor: ne yapacağım.
+   Burada bir dönem hazır bir arıza rehberi vardı: makine → bölüm →
+   belirti → sebepler. İçeriği uygulamaya gömülü 81 kayıttı
+   ve yalnız o soruları biliyordu. O veri 10 Eylül 2026'da uygulamadan
+   çıkarıldı (arşiv: D:\paksan-rag\arsiv\eski-destek-ekrani).
+   Hedef baştan beri PAKSAN'a özel bir asistandı; o ekran yerini
+   tutuyordu.
 
-   Ekran onu üç dokunuşta oraya götürüyor:
+   ASİSTANIN HİÇBİR PARÇASI UYGULAMADA DEĞİL
 
-       makine  →  nerede  →  ne oluyor  →  CEVAP
+   Kılavuzlar, arama indeksi ve dil modeli sunucuda (bkz. src/config.js
+   → AI, lib/destekAsistani.js). Uygulama soruyu gönderiyor, cevabı
+   geldikçe gösteriyor. Sunucuya yeni kılavuz eklendiğinde bu ekran hiç
+   değişmeden onu da biliyor.
 
-   Makine bir kere seçiliyor ve hatırlanıyor; ikinci açılışta doğrudan
-   "nerede" sorusundan başlanıyor, iki dokunuş yetiyor.
+   CEVABIN KAYNAĞI GÖSTERİLİYOR
 
-   Makine sorusu sohbetin İÇİNDE soruluyor, aşağıdan kayan bir
-   pencereyle değil. Ekran açılır açılmaz pencereyle karşılaşmak,
-   kullanıcıyı daha ne sunulduğunu görmeden karar vermeye zorluyordu.
-   Pencere yalnız "başka makine" denince açılıyor.
+   Her cevabın altında hangi kılavuzun hangi sayfasından geldiği yazıyor
+   ve dokununca o sayfa açılıyor. Cevaptaki [1] işareti ile kaynaktaki
+   rozet aynı: çiftçi hangi cümlenin hangi sayfadan geldiğini
+   eşleştirebiliyor. Asistan kılavuzda bulamadığını uydurmuyor —
+   "bulamadım" diyor ve servis talebine yönlendiriyor.
 
-   AKIŞ NEDEN BU SIRADA
+   MAKİNEYİ GEREKTİĞİNDE ASİSTAN SORUYOR
 
-   Her adım, çiftçinin makineye bakarak cevaplayabileceği bir soru:
+   Aynı soru iki makinede başka cevaba çıkıyor (traktör gücü, yağ
+   miktarı). Sohbet seçimsiz başlıyor; sunucu sorudan modeli bulamazsa
+   makine_gerekli dönüyor. Kayıtlı makineler ve diğer modeller sohbetin
+   içinde sunuluyor. Seçim yapılınca bekleyen soru yeniden gönderiliyor.
+   Makine sayfasından gelindiyse adresteki makine kullanılıyor.
 
-     "Hangi makine"    — yanında duran makine
-     "Nerede"          — parmağıyla gösterebileceği bölüm
-     "Ne oluyor"       — gözüyle gördüğü belirti
+   BOŞ EKRAN ÇIKMAZ SOKAK DEĞİL. Hiç soru sorulmamışken örnek sorular
+   duruyor ve tek dokunuşla soruluyor.
 
-   Hiçbir adımda çiftçiden teşhis koyması istenmiyor. "Mekik zamanlaması
-   bozuk mu?" diye sorulsa cevabı bilemez; zaten bilse zaten çözerdi.
-   Teşhis ekranın işi, belirtiyi bildirmek çiftçinin.
+   KAYIT
 
-   CEVAP NASIL VERİLİYOR
-
-   Bir belirtinin altında birden çok sebep olabiliyor. Hepsi birden
-   gösteriliyor ama SIRALI: en olası ve en kolay kontrol edileni en
-   üstte, servis gerektiren en altta. Çiftçi listeyi yukarıdan aşağıya
-   işliyor.
-
-   Her sebepte iki satır var:
-
-       KONTROL   bunu nasıl anlarsınız
-       YAPILACAK anladıysanız ne yaparsınız
-
-   Yanında bir de rozet: tarlada yapılır / alet gerekir / servis işi.
-   Böylece çiftçi hangi maddeyi kendi başına deneyebileceğini görüyor.
-
-   KULLANICI YAZI YAZMIYOR
-
-   Ekranda yazı kutusu yok, her cevap bir düğme. Tarlada eldivenle yazı
-   yazmak zor; ayrıca yazılan cümleyi yorumlayan bir sistem yanlış
-   anlayabilir ve yanlış anlaşılmış bir arıza tavsiyesi zarar verir.
-
-   ÇÖZEMEZSE
-
-   Cevabın altında "Sorun çözüldü" ve "Hâlâ devam ediyor" var. Devam
-   ediyorsa üç yol açılıyor: başka bir belirtiye bakmak, servis talebi,
-   yedek parça talebi. Talebe makine ve konuşulan belirti taşınıyor,
-   çiftçi aynı şeyi ikinci kez anlatmıyor. Aramaya yönlendirme yok;
-   bu ekranın işi telefon yükünü azaltmak.
-
-   VERİ
-
-   İçerik src/data/destekVerisi.js dosyasında. Makinenin destek grubuna
-   göre seçiliyor (bkz. products.js → supportGroup), böylece
-   uygulamadaki yirmi makinenin tamamının bir karşılığı var.
+   Her soru ve cevabın kaynağı Destek Kayıtları'na düşüyor
+   (bkz. lib/destekLog.js). Cevapsız kalan sorular PAKSAN'a hangi
+   kılavuzun ya da bölümün eksik olduğunu gösteriyor.
    ========================================================================== */
 
-const SECILI_URUN = 'destekUrun'
+/* Model cevabı, fiziksel makine talebi belirler. Eski sohbetin seçimi
+   cihazdan yüklenmez; yeni sohbet fark ettirmeden o makineye bağlanmaz. */
+const BOS_BAGLAM = { urunId: null, makineId: null }
+const MODEL_ADLARI = PRODUCTS.map((p) => ({ ...p, enName: urunDilde(p, 'en').name }))
 
-/* Seçilen FİZİKSEL makine ayrı saklanıyor.
+/* Modele geri gönderilen geçmiş: son üç soru ve cevabı. Uzun geçmiş
+   hem cevabı yavaşlatıyor hem de konuyu eski soruya kaydırıyor. */
+const GECMIS = 6
 
-   Ürün kimliği "hangi model", makine kimliği ise "hangi makine" demek.
-   Aynı modelden iki makinesi olan çiftçi için ikisi farklı şeylerdir: destek
-   içeriği modele göre geliyor ama talep, seri numarası belli olan tek
-   bir makineye açılıyor. */
-const SECILI_MAKINE = 'destekMakine'
+/* Kılavuz adındaki tarih çiftçiye bir şey anlatmıyor. */
+const kilavuzAdi = (ad) => String(ad || '').replace(/\s+\d{8}$/, '')
 
 export default function Support() {
   const nav = useNavigate()
-  /* Adresten gelen makine (/destek/mk1). Aşağıdaki `makineId`
-     durumuyla karışmaması için ayrı adlandırıldı. */
   const { machineId: adresMakineId } = useParams()
-  const [params] = useSearchParams()
   const { user, machines } = useApp()
   const { t, dil } = useDil()
 
-  /* Seçilen makine telefonda saklanıyor: çiftçi her açılışta yeniden
-     seçmesin. İkisi birlikte tutuluyor — ürün destek içeriğini,
-     makine ise açılacak talebin hangi seri numarasına bağlanacağını
-     belirliyor. */
-  const [urunId, setUrunId] = useState(() => load(SECILI_URUN, null))
-  const [makineId, setMakineId] = useState(() => load(SECILI_MAKINE, null))
-  const [secici, setSecici] = useState(false)
-
+  const adresMakinesi = machines.find((m) => m.id === adresMakineId)
+  const [baglam, setBaglam] = useState(() => adresMakinesi
+    ? { urunId: adresMakinesi.productId, makineId: adresMakinesi.id }
+    : BOS_BAGLAM)
+  const { urunId, makineId } = baglam
   const [mesajlar, setMesajlar] = useState([])
-  const [adim, setAdim] = useState(null)
+  const [yazi, setYazi] = useState('')
+  const [bekliyor, setBekliyor] = useState(false)
 
   const sayac = useRef(0)
   const dip = useRef(null)
-  /* Talep formuna taşınacak belirti adı */
-  const sonBelirti = useRef('')
-  const urun = urunId ? urunDilde(getProduct(urunId), dil) : null
-  const grup = useMemo(() => destekGrubu(urunId), [urunId])
-  const bolumler = grup.bolumler
+  const durdurucu = useRef(null)
+  const sonSoru = useRef('')
+  const bekleyenSoru = useRef(null)
 
-  /* Müşterinin uygulamada kayıtlı makineleri en üstte. Artık her
-     makinenin destek karşılığı var, hiçbiri elenmiyor.
-
-     HER MAKİNE AYRI SATIR. Önce aynı modelden olanlar teke
-     indiriliyordu; iki Süper Yunus'u olan çiftçi listede tek satır
-     görüyor, ikinci makinesine hiç ulaşamıyordu. Satırda seri
-     numarası da yazdığı için gösterilen numara ötekinin oluyordu. */
+  /* Müşterinin kayıtlı makineleri en üstte, her makine ayrı satır: iki
+     Süper Yunus'u olan çiftçi ikisini de görmeli. */
   const benimMakinelerim = useMemo(() => {
     const liste = []
     for (const m of machines) {
@@ -136,351 +100,420 @@ export default function Support() {
         makineId: m.id,
         urunId: m.productId,
         ad: m.nickname || p.name,
-        alt: m.serial,
+        alt: [m.nickname ? p.name : null, m.serial].filter(Boolean).join(' · '),
       })
     }
     return liste
   }, [machines, dil])
 
-  /* Katalogdan seçilen model, kullanıcının kayıtlı makinesi değil:
+  /* Katalogdan seçilen model kullanıcının kayıtlı makinesi değil:
      `makineId` yok, talep de bir seri numarasına bağlanmıyor. */
   const digerUrunler = useMemo(() => {
-    const benim = new Set(benimMakinelerim.map((m) => m.urunId))
-    return PRODUCTS.filter((p) => !benim.has(p.id)).map((p) => ({
+    return PRODUCTS.map((p) => ({
       anahtar: p.id,
       makineId: null,
       urunId: p.id,
       ad: urunDilde(p, dil).name,
     }))
-  }, [benimMakinelerim, dil])
+  }, [dil])
 
-  /* Saklanan makine silinmiş olabilir: kayıt listede yoksa yok
-     sayılıyor. Böylece talebe var olmayan bir makine kimliği
-     taşınmıyor. */
-  const secilenMakine = makineId ? machines.find((m) => m.id === makineId) : null
+  /* Saklanan makine silinmiş olabilir: listede yoksa yok sayılıyor. */
+  const secilenMakine = machines.find((m) => m.id === makineId && m.productId === urunId)
 
+  /* Makine sayfasından gelindiğinde (/destek/mk1) makine adreste yazılı;
+     bir daha sorulmuyor. */
   useEffect(() => {
-    if (urunId) save(SECILI_URUN, urunId)
-    save(SECILI_MAKINE, makineId || null)
-  }, [urunId, makineId])
+    durdurucu.current?.abort()
+    durdurucu.current = null
+    bekleyenSoru.current = null
+    sonSoru.current = ''
+    setBekliyor(false)
+    setMesajlar([])
+    setYazi('')
+    setBaglam(adresMakinesi
+      ? { urunId: adresMakinesi.productId, makineId: adresMakinesi.id }
+      : BOS_BAGLAM)
+  }, [adresMakineId, adresMakinesi?.id, adresMakinesi?.productId])
 
-  /* Tek kayıtlı makinesi olan kullanıcıya seçim hiç sorulmuyor. */
-  useEffect(() => {
-    if (!urunId && benimMakinelerim.length === 1) {
-      setUrunId(benimMakinelerim[0].urunId)
-      setMakineId(benimMakinelerim[0].makineId)
-    }
-  }, [urunId, benimMakinelerim])
+  /* Ekrandan çıkılınca yarım kalan cevap sunucuda da duruyor. */
+  useEffect(() => () => {
+    durdurucu.current?.abort()
+    durdurucu.current = null
+  }, [])
 
   useEffect(() => {
     dip.current?.scrollIntoView({ block: 'end', behavior: 'smooth' })
-  }, [mesajlar, adim])
+  }, [mesajlar])
 
-  /* ------------------------------------------------------- Oturum kaydı
+  /* ------------------------------------------------------- Oturum kaydı */
 
-     Her konuşma backoffice'e kayıt olarak düşüyor: hangi makinede hangi
-     belirti arandı, çözüldü mü. Çözülmeyenler PAKSAN'a bilgi tabanının
-     sahada yetmediği yeri gösteriyor. */
-
-  const kaydet = (olay) =>
+  function kaydet(olay, hedef = baglam) {
+    const u = hedef.urunId ? getProduct(hedef.urunId) : null
+    const makine = machines.find((m) => m.id === hedef.makineId && m.productId === hedef.urunId)
     destekOlay(
       destekOturumu({
-        anahtar: urunId || 'genel',
+        anahtar: makine?.id || hedef.urunId || 'genel',
         kullanici: user,
-        makine: urun ? { machine_id: urunId, name: urun.name } : null,
-        urun: urun ? { id: urun.id, name: urun.name } : null,
-        grup: urunId || 'genel',
+        makine: makine
+          ? { id: makine.id, serial: makine.serial, productId: makine.productId }
+          : null,
+        urun: u ? { id: u.id, name: u.name } : null,
+        grup: u?.category || 'genel',
         dil,
       }),
-      olay
+      olay,
     )
+  }
 
   /* ------------------------------------------------------------ Sohbet */
 
-  function soyle(mesaj) {
-    /* Numara sayacın dışından okunuyor: React güncellemeyi sıraya
-       aldığı için içeriden okunsaydı arka arkaya gönderilen iki mesaja
-       aynı numara düşerdi. */
-    sayac.current += 1
-    const numara = sayac.current
-    setMesajlar((x) => [...x, { id: numara, ...mesaj }])
+  function guncelle(id, yama) {
+    setMesajlar((liste) =>
+      liste.map((m) =>
+        m.id === id ? { ...m, ...(typeof yama === 'function' ? yama(m) : yama) } : m,
+      ),
+    )
   }
 
-  /* Karşılama her zaman aynı iki satır. İlk soru ayrı baloncukta
-     arkadan geliyor; böylece selam, makinenin seçili olup olmamasına
-     göre değişmiyor. */
-  function karsilama() {
-    return {
-      id: 1,
-      kim: 'bot',
-      metin: [
-        t('destek.selam', { ad: (user?.ad || '').split(' ')[0] || '' }),
-        t('destek.nasilYardim'),
-      ].join('\n'),
+  async function sor(metin, { hedef = baglam, onceki = mesajlar, secimMetni = '' } = {}) {
+    const soru = String(metin || '').trim()
+    if (soru.length < 3 || soru.length > 1000) return
+
+    /* Makine sorusuna yalnız model adı yazmak da düğmeye dokunmak gibi
+       ilk soruyu sürdürür. Yeni bir cümle ise yeni soru olarak işlenir. */
+    const yazilanModel = sorudakiUrun(soru, MODEL_ADLARI, true)
+    if (!secimMetni && bekleyenSoru.current && yazilanModel) {
+      makineSec({ urunId: yazilanModel.id, ad: urunDilde(yazilanModel, dil).name })
+      return
+    }
+    const anilanModel = secimMetni ? null : sorudakiUrun(soru, MODEL_ADLARI)
+    if (anilanModel && anilanModel.id !== hedef.urunId) {
+      hedef = { urunId: anilanModel.id, makineId: null }
+    }
+    setBaglam(hedef)
+    bekleyenSoru.current = null
+
+    /* Yeni soru bekleyen cevabı durduruyor: çiftçi soruyu değiştirdiyse
+       eski cevabın bitmesini beklemesinin anlamı yok. */
+    durdurucu.current?.abort()
+    const kontrol = new AbortController()
+    durdurucu.current = kontrol
+
+    /* Yalnız aynı makineye ait tamamlanan soru-cevap çiftleri. Makine
+       seçimi ve cevapsız ilk deneme geçmişe ikinci soru gibi eklenmez. */
+    const gecmis = onceki.flatMap((m) =>
+      m.kim === 'bot' && m.durum === 'cevaplandi' && m.metin && m.soru &&
+      m.baglam?.urunId === hedef.urunId && m.baglam?.makineId === hedef.makineId
+        ? [{ kim: 'ben', metin: m.soru }, { kim: 'bot', metin: m.metin }]
+        : [],
+    )
+      .slice(-GECMIS)
+
+    sayac.current += 2
+    const benId = sayac.current - 1
+    const botId = sayac.current
+    sonSoru.current = soru
+    setMesajlar((l) => [
+      ...l.filter((m) => !m.akiyor),
+      { id: benId, kim: 'ben', metin: secimMetni || soru, yanit: Boolean(secimMetni) },
+      { id: botId, kim: 'bot', metin: '', akiyor: true, soru, baglam: hedef },
+    ])
+    setYazi('')
+    setBekliyor(true)
+    kaydet({ tur: 'serbest', deger: soru }, hedef)
+
+    let kaynaklar = []
+    const son = await soruSor(
+      { soru, urun: hedef.urunId || '', dil, gecmis },
+      {
+        signal: kontrol.signal,
+        onOlay: (olay) => {
+          if (kontrol.signal.aborted || durdurucu.current !== kontrol) return
+          if (olay.tur === 'durum') {
+            guncelle(botId, { asama: olay.durum })
+          } else if (olay.tur === 'kaynaklar') {
+            kaynaklar = olay.kaynaklar || []
+            guncelle(botId, { kaynaklar, guvenlik: Boolean(olay.guvenlik) })
+          } else if (olay.tur === 'parca') {
+            guncelle(botId, (m) => ({ metin: (m.metin || '') + olay.metin }))
+          }
+        },
+      },
+    )
+
+    if (kontrol.signal.aborted || durdurucu.current !== kontrol) return
+    durdurucu.current = null
+    setBekliyor(false)
+    if (son.durum === 'iptal') {
+      setMesajlar((l) => l.filter((m) => m.id !== botId))
+      return
+    }
+    guncelle(botId, { akiyor: false, durum: son.durum, alintilar: son.alintilar || null })
+    if (son.durum === 'makine_gerekli') {
+      bekleyenSoru.current = { botId, soru, onceki }
+    }
+
+    if (son.durum === 'cevaplandi' || son.durum === 'llm_yok') {
+      /* "HAMMER KULLANIM KILAVUZU, s. 37, 38" — aynı kılavuzun sayfaları
+         tek satırda; backoffice'te hangi bölümün işe yaradığı okunuyor. */
+      const sayfalar = {}
+      for (const k of kaynaklar) {
+        const ad = kilavuzAdi(k.kilavuz)
+        sayfalar[ad] = [...new Set([...(sayfalar[ad] || []), k.sayfa])]
+      }
+      const kaynakYazisi = Object.entries(sayfalar)
+        .map(([ad, liste]) => `${ad}, s. ${liste.sort((a, b) => a - b).join(', ')}`)
+        .join('; ')
+      kaydet({ tur: 'cevap', deger: kaynakYazisi || soru }, hedef)
+    } else if (['bulunamadi', 'kilavuz_yok', 'model_farkli'].includes(son.durum)) {
+      kaydet({ tur: 'cevapsiz', deger: soru }, hedef)
     }
   }
 
-  /* Karşılamadan sonraki ilk soru: makine belliyse "ne oluyor",
-     değilse "hangi makine". */
-  function ilkSoru(hedefUrunId) {
-    const u = hedefUrunId ? urunDilde(getProduct(hedefUrunId), dil) : null
-    return u ? t('destek.neOluyor', { makine: u.name }) : t('destek.hangiMakine')
+  function makineSec(secim) {
+    const bekleyen = bekleyenSoru.current
+    if (!bekleyen || durdurucu.current) return
+    bekleyenSoru.current = null
+    const hedef = { urunId: secim.urunId, makineId: secim.makineId || null }
+    sor(bekleyen.soru, {
+      hedef,
+      onceki: bekleyen.onceki,
+      secimMetni: [secim.ad, secim.alt].filter(Boolean).join(' · '),
+    })
   }
 
-  function bastanBasla(hedefUrunId = urunId) {
-    sayac.current = 2
-    setMesajlar([
-      karsilama(),
-      { id: 2, kim: 'bot', metin: ilkSoru(hedefUrunId) },
+  /* ÇÖZÜLDÜ MÜ — ÇİFTÇİNİN KENDİ SÖZÜ.
+
+     Cevabın gelmiş olması sorunun çözüldüğünü göstermiyor. Backoffice'teki
+     "Ekranda çözüldü" sayısı yalnız bu cevaba bakıyor (bkz.
+     backoffice/ekranlar/DestekKayitlari.jsx → cozuldu); kanıt yoksa
+     oturum "yarıda kaldı" sayılıyor.
+
+     "Hâlâ devam ediyor" denince talep düğmeleri çıkıyor: asistanın
+     yetmediği yer servisin başladığı yer. Çiftçinin seçimi kendi
+     baloncuğunda görünüyor ama modele geri gönderilmiyor (`yanit`). */
+  function geriBildirim(cozuldu) {
+    sayac.current += 2
+    const benId = sayac.current - 1
+    const botId = sayac.current
+    kaydet(cozuldu ? { tur: 'cevap', deger: 'çözüldü' } : { tur: 'cozulmedi', deger: sonSoru.current })
+    setMesajlar((l) => [
+      ...l,
+      { id: benId, kim: 'ben', yanit: true, metin: t(cozuldu ? 'destek.cozuldu' : 'destek.cozulmedi') },
+      {
+        id: botId,
+        kim: 'bot',
+        yanit: true,
+        metin: t(cozuldu ? 'destek.tesekkur' : 'destek.neYapalim'),
+        durum: cozuldu ? 'tesekkur' : 'devam',
+      },
     ])
-    /* Makine belli değilse ilk soru o. Bölümler makineye göre
-       değiştiği için önce makineyi bilmek gerekiyor. */
-    setAdim({ tur: hedefUrunId ? 'bolum' : 'makine' })
   }
 
-  function bolumSec(bolum) {
-    soyle({ kim: 'ben', metin: yaz(bolum.ad, dil) })
-    soyle({ kim: 'bot', metin: t('destek.hangisi') })
-    setAdim({ tur: 'belirti', bolum })
+  function bastanBasla() {
+    durdurucu.current?.abort()
+    durdurucu.current = null
+    bekleyenSoru.current = null
+    sonSoru.current = ''
+    setBekliyor(false)
+    setMesajlar([])
+    setYazi('')
+    setBaglam(adresMakinesi
+      ? { urunId: adresMakinesi.productId, makineId: adresMakinesi.id }
+      : BOS_BAGLAM)
   }
 
-  /* Bir belirtiye dokunulunca cevabın tamamı tek seferde açılıyor.
-     Ara soru sorulmuyor; sebepler sıralı olarak listeleniyor. */
-  function belirtiSec(belirti) {
-    const ad = yaz(belirti.ad, dil)
-    sonBelirti.current = ad
-
-    soyle({ kim: 'ben', metin: ad })
-    kaydet({ tur: 'soru', deger: yaz(belirti.ad, 'tr'), kayitId: belirti.id })
-
-    soyle({ kim: 'bot', cevap: belirti })
-    setAdim({ tur: 'sonuc', belirti })
-  }
-
-  function cozuldu() {
-    soyle({ kim: 'ben', metin: t('destek.cozuldu') })
-    kaydet({ tur: 'cevap', deger: 'çözüldü' })
-    soyle({ kim: 'bot', metin: t('destek.tesekkur') })
-    setAdim({ tur: 'bitti' })
-  }
-
-  /* Talep açmaya gitmek, "ekranda çözülmedi" demenin kendisi: ayrıca
-     bir düğmeye basılmasına gerek yok. Kayda ikisi de yazılıyor —
-     `yonlendirme` hangi talebe gidildiğini, `cozulmedi` hangi
-     belirtinin çözülmediğini tutuyor (bkz. backoffice → Destek
-     Kayıtları). */
-  function talepAc(tur, parcalar) {
-    if (sonBelirti.current) kaydet({ tur: 'cozulmedi', deger: sonBelirti.current })
+  /* Talebe konuşulan soru ve makine taşınıyor; çiftçi aynı şeyi ikinci
+     kez anlatmıyor. */
+  function talepAc(tur) {
     kaydet({ tur: 'yonlendirme', deger: tur })
-    const belirti = sonBelirti.current
-      ? `&destek=${encodeURIComponent(sonBelirti.current)}`
-      : ''
-    /* Sebep kartında "gerekebilecek parçalar" listelendiyse o parçalar
-       talep formunda hazır seçili geliyor; çiftçi aynı listeyi ikinci
-       kez elle işaretlemiyor. */
-    const parca = tur === 'parca' && parcalar?.length
-      ? `&parcalar=${encodeURIComponent(parcalar.join('|'))}`
-      : ''
-    /* KONUŞULAN MAKİNE TALEBE TAŞINIYOR.
-
-       Önce yalnızca belirti ve parçalar taşınıyordu; talep formu makine
-       alanını kullanıcının İLK makinesiyle dolduruyordu. Aynı modelden
-       iki makinesi olan çiftçi, arızayı ikinci makinesi için anlatıp
-       talebi birinci makinesi için açmış oluyordu — servise yanlış seri
-       numarası gidiyordu.
-
-       Katalogdan model seçilmişse kimlik yok; form kendi
-       varsayılanıyla açılıyor. */
+    const destek = sonSoru.current ? `&destek=${encodeURIComponent(sonSoru.current)}` : ''
+    /* Makine yalnız model adıyla belirlendiyse model taşınıyor; form o
+       modelden tek kayıtlı makine varsa onu seçer (bkz. RequestForm.jsx). */
     const makine = secilenMakine
       ? `&makine=${encodeURIComponent(secilenMakine.id)}`
-      : ''
-    nav(`/talep?tur=${tur}${belirti}${parca}${makine}`)
+      : urunId ? `&model=${encodeURIComponent(urunId)}` : ''
+    nav(`/talep?tur=${tur}${destek}${makine}`)
   }
-
-  /* Sohbetin içinden makine seçimi: konuşma kesilmiyor, seçilen
-     makine kullanıcının cevabı olarak baloncuğa yazılıyor.
-
-     Listedeki satırın tamamı geliyor: kayıtlı makinede hem model hem
-     seri numarası belli, katalogdan seçilen modelde ise yalnızca model. */
-  function makineSec(secim, pencereden = false) {
-    const id = secim.urunId
-    const p = urunDilde(getProduct(id), dil)
-    setUrunId(id)
-    setMakineId(secim.makineId || null)
-    setSecici(false)
-
-    /* Pencereden seçildiyse ya da konuşma ilerlemişse baştan
-       başlanıyor: bölümler ve belirtiler makineye özel. */
-    if (pencereden || adim?.tur !== 'makine') {
-      sayac.current = 2
-      setMesajlar([
-        karsilama(),
-        { id: 2, kim: 'bot', metin: ilkSoru(id) },
-      ])
-      return setAdim({ tur: 'bolum' })
-    }
-
-    soyle({ kim: 'ben', metin: p?.name || id })
-    soyle({ kim: 'bot', metin: t('destek.nerede') })
-    setAdim({ tur: 'bolum' })
-  }
-
-  /* Sohbet ekran açılır açılmaz başlıyor.
-
-     Makine sayfasından ya da bakım rehberinden gelindiğinde adreste o
-     makinenin kaydı yazıyor (/destek/mk1). Kullanıcı zaten hangi
-     makineyi kastettiğini söylemiş oluyor, bir daha sorulmuyor. */
-  const gelen = params.get('belirti')
-  const kuruldu = useRef(false)
-  useEffect(() => {
-    if (kuruldu.current) return
-    kuruldu.current = true
-
-    /* Makine kaydı bulunduysa kimliği de tutuluyor: kullanıcı hangi
-       makineyi kastettiğini adreste zaten söylemiş, talep açarken bir
-       daha sorulmuyor. */
-    const adrestenGelen = adresMakineId
-      ? machines.find((m) => m.id === adresMakineId)
-      : null
-    const acilis = adrestenGelen?.productId || urunId
-    if (adrestenGelen) {
-      if (adrestenGelen.productId !== urunId) setUrunId(adrestenGelen.productId)
-      setMakineId(adrestenGelen.id)
-    }
-
-    const bulunan = acilis && gelen ? belirtiBul(destekGrubu(acilis), gelen) : null
-    if (!bulunan) return bastanBasla(acilis)
-
-    sayac.current = 1
-    setMesajlar([karsilama()])
-    belirtiSec(bulunan)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  /* Konuşma bilerek saklanmıyor: ekrandan çıkılınca siliniyor. Yarım
-     kalmış bir teşhise günler sonra dönmek işe yaramaz, makinenin
-     durumu değişmiş olur. Kayda geçen oturum ayrı tutuluyor. */
 
   /* ------------------------------------------------------------- Ekran */
 
+  const sonMesaj = mesajlar[mesajlar.length - 1]
+  const sonBot = sonMesaj?.kim === 'bot' && !sonMesaj.akiyor ? sonMesaj : null
+  /* Cevap geldiyse önce "çözüldü mü" soruluyor. Cevap hiç yoksa ya da
+     çiftçi "devam ediyor" dediyse doğrudan talep düğmeleri. */
+  const cevapVar =
+    sonBot && ((sonBot.durum === 'cevaplandi' && sonBot.metin) || sonBot.durum === 'llm_yok')
+  const talepVar =
+    sonBot &&
+    (sonBot.durum === 'devam' ||
+      ['bulunamadi', 'kilavuz_yok', 'model_farkli'].includes(sonBot.durum) ||
+      (sonBot.durum === 'cevaplandi' && !sonBot.metin))
+  const ornekler = [t('destek.ornek1'), t('destek.ornek2'), t('destek.ornek3')]
+
   return (
     <div className="app">
-      <TopBar title={t('destek.baslik')} sub={urun?.name || null} back="auto" />
+      <TopBar title={t('destek.baslik')} back="auto" />
 
-      <div className="screen wrap fade-in" style={{ paddingTop: 14 }}>
-        <button className="listitem listitem--flat" onClick={() => setSecici(true)}>
-          <div className="listitem__icon"><IconMachine size={21} /></div>
-          <div className="listitem__body">
-            <div className="listitem__title" style={{ fontSize: 15 }}>
-              {urun ? urun.name : t('destek.makineSecin')}
-            </div>
-            <div className="listitem__sub">
-              {urun ? t('destek.degistir') : t('destek.makineSecinAlt')}
-            </div>
-          </div>
-          <span className="listitem__chev"><IconRight size={20} /></span>
-        </button>
-
+      <div className="screen wrap fade-in sohbet-ekrani" style={{ paddingTop: 14 }}>
         <div className="chat">
+          <Balon
+            mesaj={{
+              kim: 'bot',
+              metin: [
+                t('destek.selam', { ad: (user?.ad || '').split(' ')[0] || '' }),
+                t('destek.nasilYardim'),
+              ].join('\n'),
+            }}
+            t={t}
+          />
+
+          {mesajlar.length === 0 && (
+            <div className="chips chips--dikey">
+              <div className="eyebrow">{t('destek.ornekBaslik')}</div>
+              {ornekler.map((o) => (
+                <button key={o} className="chip" onClick={() => sor(o)}>
+                  {o}
+                </button>
+              ))}
+            </div>
+          )}
+
           {mesajlar.map((m) => (
-            <Balon key={m.id} mesaj={m} dil={dil} t={t} />
+            <Balon
+              key={m.id}
+              mesaj={m}
+              t={t}
+              makine={urunDilde(getProduct(m.baglam?.urunId), dil)?.name}
+            >
+              {m === sonBot && m.durum === 'makine_gerekli' && (
+                <MakineListesi benim={benimMakinelerim} digerleri={digerUrunler} onSec={makineSec} t={t} />
+              )}
+            </Balon>
           ))}
         </div>
 
-        <Secenekler
-          adim={adim}
-          bolumler={bolumler}
-          benimMakinelerim={benimMakinelerim}
-          dil={dil}
-          t={t}
-          onMakine={makineSec}
-          onBaskaMakine={() => setSecici(true)}
-          onBolum={bolumSec}
-          onBelirti={belirtiSec}
-          onCozuldu={cozuldu}
-          onBaskaSorun={() => {
-            soyle({ kim: 'bot', metin: t('destek.nerede') })
-            setAdim({ tur: 'bolum' })
-          }}
-          onTalep={talepAc}
-        />
+        {cevapVar && (
+          <div className="chips chips--dikey">
+            <button className="chip chip--ana" onClick={() => geriBildirim(true)}>
+              <IconCheckCircle size={18} /> {t('destek.cozuldu')}
+            </button>
+            <button className="chip" onClick={() => geriBildirim(false)}>
+              <IconAlert size={18} /> {t('destek.cozulmedi')}
+            </button>
+          </div>
+        )}
 
-        {mesajlar.length > 1 && (
-          <button
-            className="btn btn--soft btn--sm"
-            style={{ marginTop: 18 }}
-            onClick={() => bastanBasla()}
-          >
+        {talepVar && (
+          <div className="chips chips--dikey">
+            <button className="chip chip--ana" onClick={() => talepAc('servis')}>
+              <IconWrench size={18} /> {t('destek.servisTalebi')}
+            </button>
+            <button className="chip" onClick={() => talepAc('parca')}>
+              <IconParca size={18} /> {t('destek.parcaTalebi')}
+            </button>
+          </div>
+        )}
+
+        {mesajlar.length > 0 && (
+          <button className="btn btn--soft btn--sm" style={{ marginTop: 18 }} onClick={bastanBasla}>
             {t('destek.bastanBasla')}
           </button>
         )}
 
+        <p className="dst-not">{t('destek.asistanNot')}</p>
         <div ref={dip} />
       </div>
 
-      <Sheet open={secici} onClose={() => setSecici(false)} title={t('destek.makineSec')}>
-        <p className="muted small" style={{ marginBottom: 14, lineHeight: 1.55 }}>
-          {t('destek.makineSecAciklama')}
-        </p>
-        <MakineListesi
-          benim={benimMakinelerim}
-          digerleri={digerUrunler}
-          secili={makineId || urunId}
-          onSec={(secim) => makineSec(secim, true)}
-          t={t}
+      <form
+        className="composer"
+        onSubmit={(e) => {
+          e.preventDefault()
+          sor(yazi)
+        }}
+      >
+        <input
+          className="input"
+          value={yazi}
+          onChange={(e) => setYazi(e.target.value)}
+          placeholder={t('destek.yaziIpucu')}
+          enterKeyHint="send"
+          maxLength={1000}
         />
-      </Sheet>
+        <button
+          className="composer__send"
+          type="submit"
+          disabled={yazi.trim().length < 3}
+          aria-label={t('destek.gonder')}
+        >
+          <IconSend size={21} />
+        </button>
+      </form>
+
+      {bekliyor && <span className="sr-only" aria-live="polite">{t('destek.bakiyor')}</span>}
 
       <TabBar />
     </div>
   )
 }
 
-/* ------------------------------------------------------------ Yardımcılar */
-
-function yaz(deger, dil = 'tr') {
-  if (!deger) return ''
-  if (typeof deger === 'string') return deger
-  return deger[dil] || deger.tr || deger.en || ''
-}
-
-/** Ürünün destek grubu; karşılığı yoksa genel gruba düşüyor. */
-function destekGrubu(urunId) {
-  const p = urunId ? getProduct(urunId) : null
-  const anahtar = p ? supportGroup(p) : 'genel'
-  return DESTEK[anahtar] || DESTEK.genel
-}
-
-function belirtiBul(grup, belirtiId) {
-  for (const b of grup.bolumler) {
-    const bulunan = b.belirtiler.find((x) => x.id === belirtiId)
-    if (bulunan) return bulunan
-  }
-  return null
-}
-
 /* ============================================================== Baloncuk
 
-   Bot baloncuğunun solunda PAKSAN amblemi, kullanıcınınki sağda ve
-   lacivert. Cevap baloncuğu ayrı bir bileşen; içinde güvenlik uyarısı,
-   sebep listesi ve parça listesi var. */
-function Balon({ mesaj, dil, t }) {
+   Cevaptaki [1] işareti rozete çevriliyor; aynı rozet kaynak listesinde
+   de var. Cevap akarken kaynak listesi gösterilmiyor: cevap bitmeden
+   hangi sayfanın kullanıldığı belli değil. */
+
+function isaretli(metin) {
+  return String(metin)
+    .split(/(\[\d+\])/g)
+    .map((parca, i) => {
+      const m = parca.match(/^\[(\d+)\]$/)
+      return m ? (
+        <sup key={i} className="dst-ref">
+          {m[1]}
+        </sup>
+      ) : (
+        parca
+      )
+    })
+}
+
+function Balon({ mesaj, t, makine, children }) {
   const bot = mesaj.kim === 'bot'
-  /* Cevap baloncuğa sığmıyor: içinde güvenlik uyarısı, numaralı sebep
-     listesi ve parça listesi var. Konuşma balonu kısa cümleler için;
-     cevap satırın tamamını kaplıyor. */
-  const genis = Boolean(mesaj.cevap)
+  const bitti = bot && !mesaj.akiyor
+  /* YALNIZ KULLANILAN KAYNAK. Modele beş alıntı gidiyor, cevap çoğu zaman
+     birini kullanıyor. Hepsi listelenseydi çiftçi cevabı olmayan
+     sayfaları da açardı. Cevapta [n] varsa yalnız anılanlar gösteriliyor;
+     hiç yoksa (ya da numaralar listede yoksa) hepsi. Numaralar değişmiyor:
+     cevaptaki [3] listede de 3. */
+  const anilan = new Set([...String(mesaj.metin || '').matchAll(/\[(\d+)\]/g)].map((m) => Number(m[1])))
+  const anilanKaynaklar = (mesaj.kaynaklar || []).filter((k) => anilan.has(k.no))
+  const kaynakListesi = anilanKaynaklar.length ? anilanKaynaklar : mesaj.kaynaklar || []
+  const kaynakli =
+    bitti &&
+    (mesaj.durum === 'cevaplandi' || mesaj.durum === 'llm_yok') &&
+    kaynakListesi.length > 0
+  const genis = bot && (kaynakli || mesaj.alintilar?.length > 0 || Boolean(children))
+
+  const DURUM = {
+    makine_gerekli: t('destek.makineGerekli'),
+    kilavuz_yok: t('destek.kilavuzYok', { makine: makine || '' }),
+    model_farkli: t('destek.modelFarkli'),
+    bulunamadi: t('destek.bulunamadi'),
+    llm_yok: t('destek.llmYok'),
+    hazir_degil: t('destek.hazirDegil'),
+    baglanti: t('destek.baglantiYok'),
+    hata: t('destek.hata'),
+  }
+  /* Model "cevaplandı" deyip hiçbir şey yazmadıysa boş baloncuk kalmasın. */
+  const durumYazisi = !bitti
+    ? null
+    : mesaj.durum === 'cevaplandi' && !mesaj.metin
+      ? t('destek.bulunamadi')
+      : DURUM[mesaj.durum] || null
 
   return (
-    <div
-      className={
-        'msg-row msg-row--' + (bot ? 'bot' : 'me') + (genis ? ' msg-row--genis' : '')
-      }
-    >
-      {/* Cevap satırında amblem yok: 375 piksellik bir telefonda
-          amblem ve boşluğu birlikte otuz piksel yiyor, o genişlik
-          cevabın kendisine lazım. Kimliği önceki baloncuklar zaten
-          kurmuş oluyor. */}
+    <div className={'msg-row msg-row--' + (bot ? 'bot' : 'me') + (genis ? ' msg-row--genis' : '')}>
       {bot && !genis && (
         <span className="msg-ava">
           <Amblem size={22} />
@@ -488,232 +521,107 @@ function Balon({ mesaj, dil, t }) {
       )}
 
       <div className={'msg msg--' + (bot ? 'bot' : 'me')}>
-        {mesaj.metin && <div>{mesaj.metin}</div>}
-        {mesaj.cevap && <Cevap belirti={mesaj.cevap} dil={dil} t={t} />}
-      </div>
-    </div>
-  )
-}
-
-/* ================================================================= Cevap
-
-   Sıralama önemli: önce güvenlik, sonra sebepler, en sonda parçalar.
-
-   Sebepler veri dosyasındaki sırayla geliyor; o sıra bilerek "en olası
-   ve en kolay kontrol edilen önce" diye kurulmuş. Ekran ayrıca zorluk
-   rozetine göre yeniden sıralıyor, böylece servis işleri her zaman
-   dipte kalıyor. */
-function Cevap({ belirti, dil, t }) {
-  const sira = { kolay: 0, orta: 1, servis: 2 }
-  const sebepler = [...belirti.sebepler].sort(
-    (a, b) => (sira[a.zorluk] ?? 1) - (sira[b.zorluk] ?? 1)
-  )
-
-  return (
-    <div className="dst-cevap">
-      <div className="dst-guvenlik">
-        <div className="dst-guvenlik__bas">
-          <IconAlert size={16} />
-          <span>{t('destek.guvenlikBaslik')}</span>
-        </div>
-        {/* Her maddenin yanında ne yapılacağını gösteren çizim.
-
-            Okuması zor olan kullanıcı için cümleyi çözmeden de anlam
-            çıkıyor; hangi maddeden bahsedildiği çizimden görünüyor.
-            Çizimler makine değil hareket gösteriyor (bkz.
-            src/data/cizimler.js). */}
-        <div className="dst-guvenlik__liste">
-          {(GUVENLIK[dil] || GUVENLIK.tr).map((g, i) => (
-            <div key={g} className="dst-guvenlik__madde">
-              {GUVENLIK_CIZIMLERI[i] && (
-                <img className="dst-guvenlik__cizim" src={GUVENLIK_CIZIMLERI[i]} alt="" />
-              )}
-              <span>{g}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="dst-cevap__ust">
-        {t('destek.sebepBasligi', { n: sebepler.length })}
-      </div>
-
-      <div className="dst-sebepler">
-        {sebepler.map((s, i) => (
-          <div key={yaz(s.ad, 'tr')} className="dst-sebep">
-            <div className="dst-sebep__bas">
-              <span className="dst-sebep__no">{i + 1}</span>
-              <span className="dst-sebep__ad">{yaz(s.ad, dil)}</span>
-            </div>
-
-            <div className={'dst-rozet dst-rozet--' + s.zorluk}>
-              {yaz(ZORLUK[s.zorluk], dil)}
-            </div>
-
-            <div className="dst-sebep__satir">
-              <span className="dst-sebep__etiket">{t('destek.kontrol')}</span>
-              <p>{yaz(s.kontrol, dil)}</p>
-            </div>
-            <div className="dst-sebep__satir">
-              <span className="dst-sebep__etiket">{t('destek.yapilacak')}</span>
-              <p>{yaz(s.yap, dil)}</p>
-            </div>
+        {bot && mesaj.guvenlik && (mesaj.metin || mesaj.alintilar?.length > 0) && (
+          <div className="uyari-kart dst-uyari">
+            <IconAlert size={16} />
+            <span>{t('destek.guvenlikUyari')}</span>
           </div>
-        ))}
-      </div>
+        )}
 
-      {belirti.parcalar?.length > 0 && (
-        <div className="dst-parcalar">
-          <div className="dst-parcalar__bas">{t('destek.parcalar')}</div>
-          <div className="dst-parcalar__liste">
-            {belirti.parcalar.map((p) => (
-              <span key={p} className="dst-parca">{p}</span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Bu içeriğin ne olduğu açıkça yazıyor: makine sınıfının genel
-          çalışma bilgisi, kullanım kılavuzunun yerine geçmez. */}
-      <p className="dst-not">{t('destek.kaynakNot')}</p>
-    </div>
-  )
-}
-
-/* =========================================================== Seçenekler
-
-   Sohbetin altındaki düğmeler. Kullanıcı yazı yazmadığı için her adımda
-   ne söyleyebileceği burada duruyor. */
-function Secenekler({
-  adim, bolumler, benimMakinelerim, dil, t,
-  onMakine, onBaskaMakine, onBolum, onBelirti, onCozuldu,
-  onBaskaSorun, onTalep,
-}) {
-  if (!adim) return null
-
-  /* Makine seçimi konuşmanın ilk adımı. Kayıtlı makineleri hazır
-     düğme; kaydı olmayan makine için pencere açılıyor. */
-  if (adim.tur === 'makine') {
-    return (
-      <div className="chips chips--dikey">
-        {benimMakinelerim.map((m) => (
-          <button key={m.anahtar} className="chip" onClick={() => onMakine(m)}>
-            <IconMachine size={18} /> {m.ad}
-          </button>
-        ))}
-        <button className="chip chip--soluk" onClick={onBaskaMakine}>
-          {benimMakinelerim.length ? t('destek.baskaMakine') : t('destek.makineSec')}
-        </button>
-      </div>
-    )
-  }
-
-  if (adim.tur === 'bolum') {
-    return (
-      <div className="chips chips--dikey">
-        {bolumler.map((b) => (
-          <button key={b.id} className="chip chip--konu" onClick={() => onBolum(b)}>
-            <span>
-              <span className="chip__ad">{yaz(b.ad, dil)}</span>
-              <span className="chip__alt">{yaz(b.aciklama, dil)}</span>
+        {/* İLK KELİMEYE KADAR NE OLDUĞU YAZIYOR. Asistan işlemcide
+            çalışıyor; bulunan bölümü okuyup ilk kelimeyi yazması yarım
+            dakikayı bulabiliyor, bir süre kullanılmadıysa üstüne yeniden
+            hazırlanması ekleniyor. Tek bir "bakıyorum" yazısı o sürede
+            takılmış gibi görünürdü. Aşamayı sunucu `durum` olayıyla
+            bildiriyor (bkz. lib/destekAsistani.js). */}
+        {bot && mesaj.akiyor && !mesaj.metin && (
+          <div className="dst-bakiyor">
+            <span className="typing">
+              <i />
+              <i />
+              <i />
             </span>
-            <span className="chip__adet">{b.belirtiler.length}</span>
-          </button>
-        ))}
-      </div>
-    )
-  }
-
-  if (adim.tur === 'belirti') {
-    return (
-      <div className="chips chips--dikey">
-        {adim.bolum.belirtiler.map((b) => (
-          <button key={b.id} className="chip" onClick={() => onBelirti(b)}>
-            {yaz(b.ad, dil)}
-          </button>
-        ))}
-        <button className="chip chip--soluk" onClick={onBaskaSorun}>
-          {t('destek.baskaBolum')}
-        </button>
-      </div>
-    )
-  }
-
-  if (adim.tur === 'sonuc') {
-    /* ÇÖZÜLMEDİYSE NE YAPILACAĞI DOĞRUDAN BURADA.
-
-       Önce "Hâlâ devam ediyor" düğmesi vardı; ona basılınca bir adım
-       daha açılıp servis ve parça düğmeleri geliyordu. Fazladan bir
-       dokunuş, hiçbir bilgi eklemiyordu — "devam ediyor" demekle
-       "servis istiyorum" demek arasında çiftçi için bir fark yok.
-
-       Sebep kartında "gerekebilecek parçalar" listelendiyse parça
-       talebi ÖNE alınıyor: çiftçi zaten hangi parçaya ihtiyacı
-       olduğunu okumuş durumda, sipariş bir dokunuş uzakta olmalı. */
-    const parcalar = adim.belirti?.parcalar || []
-    return (
-      <div className="chips chips--dikey">
-        <button className="chip chip--ana" onClick={onCozuldu}>
-          <IconCheckCircle size={18} /> {t('destek.cozuldu')}
-        </button>
-        {parcalar.length > 0 && (
-          <button className="chip chip--ana" onClick={() => onTalep('parca', parcalar)}>
-            <IconParca size={18} /> {t('destek.parcaTalebi')}
-          </button>
+            <span>
+              {mesaj.asama === 'model_yukleniyor'
+                ? t('destek.hazirlaniyor')
+                : mesaj.asama === 'yaziyor'
+                  ? t('destek.yaziyor')
+                  : t('destek.bakiyor')}
+            </span>
+          </div>
         )}
-        <button className="chip chip--ana" onClick={() => onTalep('servis')}>
-          <IconWrench size={18} /> {t('destek.servisTalebi')}
-        </button>
-        {parcalar.length === 0 && (
-          <button className="chip chip--ana" onClick={() => onTalep('parca')}>
-            <IconParca size={18} /> {t('destek.parcaTalebi')}
-          </button>
-        )}
-        <button className="chip" onClick={onBaskaSorun}>{t('destek.baskaBelirti')}</button>
-      </div>
-    )
-  }
 
-  /* adim.tur === 'bitti' */
-  return (
-    <div className="chips">
-      <button className="chip" onClick={onBaskaSorun}>{t('destek.baskaBelirti')}</button>
+        {mesaj.metin && <div>{bot ? isaretli(mesaj.metin) : mesaj.metin}</div>}
+
+        {durumYazisi && <div className={mesaj.metin ? 'dst-durum' : undefined}>{durumYazisi}</div>}
+
+        {children}
+
+        {mesaj.alintilar?.map((a) => (
+          <blockquote key={a.no} className="dst-alinti">
+            <sup className="dst-ref">{a.no}</sup> {a.metin}
+          </blockquote>
+        ))}
+
+        {kaynakli && (
+          <div className="dst-parcalar">
+            <div className="dst-parcalar__bas">{t('destek.kaynak')}</div>
+            <div className="dst-parcalar__liste">
+              {kaynakListesi.map((k) => (
+                <a
+                  key={k.no}
+                  className="dst-parca dst-kaynak"
+                  href={kilavuzAdresi(k.belge, k.sayfa)}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <span className="dst-ref">{k.no}</span> {kilavuzAdi(k.kilavuz)} ·{' '}
+                  {t('destek.sayfa', { n: k.sayfa })}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
 
 /* ========================================================= Makine listesi */
-function MakineListesi({ benim, digerleri, secili, onSec, t }) {
+function MakineListesi({ benim, digerleri, onSec, t }) {
+  const [modellerAcik, setModellerAcik] = useState(benim.length === 0)
   return (
-    <div className="stack" style={{ gap: 8 }}>
+    <div className="dst-makineler">
       {benim.length > 0 && (
         <>
           <div className="eyebrow">{t('destek.benimMakinelerim')}</div>
           {benim.map((m) => (
-            <Satir key={m.anahtar} m={m} secili={secili} onSec={onSec} />
+            <Satir key={m.anahtar} m={m} onSec={onSec} />
           ))}
-          <div className="eyebrow" style={{ marginTop: 12 }}>
-            {t('destek.digerModeller')}
-          </div>
+          <button type="button" className="chip" aria-expanded={modellerAcik}
+            onClick={() => setModellerAcik((acik) => !acik)}>
+            {t(modellerAcik ? 'destek.modelleriGizle' : 'destek.baskaModel')}
+          </button>
         </>
       )}
-      {digerleri.map((m) => (
-        <Satir key={m.anahtar} m={m} secili={secili} onSec={onSec} />
-      ))}
+      {modellerAcik && (
+        <>
+          <div className="eyebrow">{t('destek.digerModeller')}</div>
+          {digerleri.map((m) => <Satir key={m.anahtar} m={m} onSec={onSec} />)}
+        </>
+      )}
     </div>
   )
 }
 
-/* Seçim `anahtar` üzerinden işaretleniyor: kayıtlı makinede makine
-   kimliği, katalogdan seçilen modelde ise ürün kimliği. Ürün kimliğine
-   bakılsaydı aynı modelden iki makinenin ikisi birden seçili
-   görünürdü. */
-function Satir({ m, secili, onSec }) {
+function Satir({ m, onSec }) {
   return (
     <button
-      className={'listitem' + (secili === m.anahtar ? ' listitem--on' : '')}
+      type="button"
+      className="listitem dst-makine"
       onClick={() => onSec(m)}
     >
+      <IconMachine size={18} />
       <div className="listitem__body">
         <div className="listitem__title" style={{ fontSize: 14.5 }}>{m.ad}</div>
         {m.alt && <div className="listitem__sub">{m.alt}</div>}

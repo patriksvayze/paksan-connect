@@ -188,23 +188,30 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
     setParcalar((l) => l.filter((p) => p.kod !== kod))
   }
 
-  /* Formun kendi soruları. Model katmanına ancak hepsi doluysa
+  /* UYARI EKSİK YERİN BAŞLIĞIYLA AYNI DİLİ KONUŞUYOR.
+
+     "Tespitiniz" boşken "Ne bulduğunuzu bir cümleyle yazın" çıkıyordu;
+     servis ekranda öyle bir başlık arıyordu. Başlıklar değişince
+     uyarılar geride kalmıştı. Her uyarı artık doldurulacak bölümün
+     adını taşıyor.
+
+     Formun kendi soruları. Model katmanına ancak hepsi doluysa
      gidiliyor; sıra ekrandaki sıranın aynısı, böylece hata mesajı hep
      en yukarıdaki eksiği gösteriyor. */
   function formHatasi() {
     if (!ikinci) {
-      if (eksik.includes('ad') && ad.trim().length < 3) return 'Müşterinin adını yazın.'
+      if (eksik.includes('ad') && ad.trim().length < 3) return 'Müşterinin adını ve soyadını yazın.'
       if (eksik.includes('tel') && telGiris(tel).replace(/\D/g, '').length < 10) {
         return 'Telefon numarasını eksiksiz yazın.'
       }
       if (eksik.includes('seri') && seri.trim() && !validateSerial(normalizeSerial(seri)).ok) {
         return 'Şase numarasını kontrol edip yeniden yazın.'
       }
-      if (ariza.trim().length < 5) return 'Arızayı bir cümleyle yazın.'
-      if (!kapi) return 'Hizmetin kapsamını seçin.'
+      if (ariza.trim().length < 5) return 'Servis talebinin nedenini yazın.'
+      if (!kapi) return 'Hizmet kapsamını seçin.'
     }
     if (sonuc.trim().length < 5) {
-      return parcaIstegi ? 'Ne bulduğunuzu bir cümleyle yazın.' : 'Ne yaptığınızı bir cümleyle yazın.'
+      return parcaIstegi ? 'Tespitinizi yazın.' : 'Yapılan işin ayrıntısını yazın.'
     }
     return null
   }
@@ -446,28 +453,6 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
               onKatalog={() => setKatalogAcik(true)}
             />
 
-            {/* SEÇİMİN SONUCU AYNI YERDE YAZIYOR.
-
-                "Parça gerekiyor mu?" sorusu kalktı; yerine sorulacak
-                bir şey konmadı ama ne olacağı söylenmeden de
-                bırakılmadı. Garanti kapısında parça seçildiği anda iş
-                bu ziyarette bitmiyor, kayıt parça isteğine dönüyor ve
-                yol/işçilik kutuları kapanıyor. Kutuların sebepsiz
-                kaybolması yerine sebebi burada yazılı. */}
-            {parcaIstegi && (
-              <div className="not not--mavi">
-                <IconAlert size={19} />
-                <div>
-                  <strong>Bu kayıt bir parça isteği olarak gidecek.</strong>
-                  <p>
-                    {MARKA} parçayı hazırlayıp size gönderecek. Parçayı
-                    taktığınızda bu talebe dönüp işi tamamlayacaksınız; yol ve
-                    işçilik bilgileri o zaman sorulacak.
-                  </p>
-                </div>
-              </div>
-            )}
-
             {/* FOTOĞRAF İSTEĞE BAĞLI VE ESKİ PARÇA GERİ İSTENMİYOR.
 
                 Burada "eski parçayı PAKSAN'a geri gönderin, yoksa
@@ -636,7 +621,7 @@ function Kutu({ ad, deger, onDegis, satir, ipucu, tur }) {
 
 /* Cevap listesi. Tam genişlikte satırlar. Seçili olan kenarındaki
    şeritle de ayrılıyor, yalnız renkle değil (renk körlüğü). */
-function Secenekler({ secenekler, secili, onSec }) {
+export function Secenekler({ secenekler, secili, onSec }) {
   return (
     <div className="secenek">
       {secenekler.map((s) => (
@@ -724,7 +709,7 @@ function SecilenParcalar({ ad, ipucu, secili, onAdet, onCikar, onKatalog }) {
 
       <button className="dg dg--blok" onClick={onKatalog}>
         <IconPlus size={19} />
-        {secili.length ? 'Parça Ekle veya Çıkar' : 'Parça Seç'}
+        {secili.length ? 'Parça Ekle' : 'Parça Seç'}
       </button>
     </Bolum>
   )

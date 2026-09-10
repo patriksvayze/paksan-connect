@@ -61,6 +61,7 @@ müşteriye yalan söylemesi demek.
 | 6 | Bayi ve backoffice verisini paylaştırmak | Bayi paneli işe yaramaz |
 | 7 | Yetki denetimi | Bir bayi başka bayinin müşterisini görür |
 | 8 | LOGO ERP'ye bağlanmak | Fatura ve satış bilgisi hiç gelmez |
+| 9 | Destek asistanı ve yedek parça kataloğu (bkz. 2.1.1) | Destek ekranı cevap veremez, servis parça seçemez |
 
 7. madde özellikle önemli ve gözden kaçıyor: bugün "bu bayi yalnız
 kendi taleplerini görsün" kuralı **arayüzde** uygulanıyor. Bu bir
@@ -82,6 +83,46 @@ denetim aynı yolla aşılır. Rol sistemi bugün bir arayüz kolaylığı;
 güvenlik sınırına ancak sunucu geldiğinde dönüşür. Sunucu yazılırken
 yetki denetimi HER istekte sunucuda tekrarlanmalı — istemcinin
 gönderdiği role asla güvenilmemeli.
+
+### 2.1.1 Destek asistanı ve yedek parça kataloğu
+
+İkisi de bugün uygulamanın İÇİNDE DEĞİL ve canlıda da olmayacak:
+uygulama onları adresten çağırıyor. Geliştirmede bu bilgisayardaki
+sunucular cevap veriyor; canlıda PAKSAN'ın sunucusu verecek.
+
+| Ne | Uygulamadaki ayar | Bugün cevap veren | Sunucudan beklenen |
+|---|---|---|---|
+| Destek asistanı | `src/config.js` → `AI.kok` (`/destek-ai`) | `D:\paksan-rag\sohbet\sunucu.mjs` (127.0.0.1:8770); `npm run dev` açıkken aktarılıyor, kapalıysa kendiliğinden başlatılıyor | `GET <kok>/durum`, `POST <kok>/sohbet` (satır satır JSON akışı), `GET <kok>/kilavuz/<belge>` (PDF) |
+| Yedek parça kataloğu | `src/config.js` → `PARCA_KATALOG.kok` (`/parca-katalogu`) | depodaki `sunucu-taklidi/` klasörü | `<kok>/katalog.json`, `<kok>/gorseller/<kod>.webp` |
+
+Canlıya çıkarken:
+
+1. `AI.kok` ve `PARCA_KATALOG.kok` alanlarına sunucunun MUTLAK adresi
+   yazılır. APK'da göreli adres çalışmaz: telefonda uygulamanın kendi
+   kökü sunucu değil.
+2. Kılavuzlar, arama indeksi ve dil modeli sunucuda durur. Dil modeli
+   için bir API anahtarı gerekirse o da sunucuda kalır; uygulamaya
+   yazılmaz.
+3. Dil modeli bugün bu bilgisayarda Ollama ile çalışıyor. Model yoksa
+   asistan cevap yazamaz, kılavuzda bulduğu bölümleri alıntı olarak
+   gösterir (`llm_yok` durumu). Sunucuda model hazır olmadan açılış
+   yapılmamalı.
+
+   Sohbet akışında sunucu, cevabın ilk kelimesini beklerken en geç 15
+   saniyede bir `durum` olayı gönderir: `araniyor`, `model_yukleniyor`,
+   `yaziyor`. Ekrandaki bekleme yazısı buna göre değişir; uygulama 90
+   saniye hiç olay gelmezse bağlantıyı kopmuş sayar (`AI.bekleme`).
+   Sunucuyu başka biri yazarsa bu nabız da sözleşmenin parçasıdır.
+
+   Model bir süre kullanılmayınca bellekten düşer ve sonraki ilk soru
+   uzun sürer. Canlı sunucuda model hep bellekte tutulmalı
+   (`PAKSAN_LLM_KEEP_ALIVE=-1`, bkz. `D:\paksan-rag\sohbet\llm.mjs`).
+4. Yeni kılavuz eklemek: PDF `D:\paksan-rag\kilavuzlar\` klasörüne,
+   hangi ürüne ait olduğu `kilavuzlar.json` dosyasına yazılır, sonra
+   `node D:\paksan-rag\sohbet\kilavuz-ekle.mjs` çalıştırılır
+   (ayrıntı: `kilavuzlar/BENIOKU.md`). Sunucu yeni indeksi kendisi
+   yükler; uygulamada değişen bir şey olmaz.
+5. `PARCA_KATALOG.taklitGecikme` 0 yapılır.
 
 ### 2.2 Sunucuyu kim yazacak — üç yol
 

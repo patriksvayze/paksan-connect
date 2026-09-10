@@ -13,7 +13,7 @@ import {
 } from '../backoffice/veri'
 import { gecenSure } from '../backoffice/ekranlar/ortak'
 import { TemaSecici } from '../backoffice/Tema'
-import { load, save } from '../lib/storage'
+import { load, save, remove } from '../lib/storage'
 import { duyuruGecerliMi } from '../lib/duyuruHedef'
 import { Kabuk, Sayfa, Bolum, Bos, ListeKarti } from './Kabuk'
 import { DEMO_HESAP, demoAPKmi } from './demoKimlik'
@@ -27,6 +27,7 @@ import {
   IconMachine,
   IconTag,
   IconAlert,
+  IconCheckCircle,
   IconUndo,
   IconChevronDown as IconChevron,
 } from '../components/Icons'
@@ -47,7 +48,7 @@ import { Hakkedis } from './ekranlar/Hakkedis'
 import { ElleKayit } from './ekranlar/ElleKayit'
 
 /* ==========================================================================
-   PAKSAN Servis
+   PAKSAN Servisim
 
    NEDEN BACKOFFICE GİBİ DEĞİL
 
@@ -140,7 +141,12 @@ function Giris({ onGiris }) {
      açtı, kullanıcının bilmediği bir kullanıcı adını tahmin etmesi
      beklenemez. Tarayıcı panelinde alanlar boş. */
   const demo = demoAPKmi()
-  const [kullanici, setKullanici] = useState(demo ? DEMO_HESAP.kullanici : '')
+  /* BENİ HATIRLA — kullanıcı adı bu telefonda saklanıyor. Şifre
+     saklanmıyor: uygulama her açılışta bu ekrandan başlıyor. */
+  const [kullanici, setKullanici] = useState(
+    () => (demo ? DEMO_HESAP.kullanici : load('servisHatirla', '') || ''),
+  )
+  const [hatirla, setHatirla] = useState(() => Boolean(load('servisHatirla', '')))
   const [sifre, setSifre] = useState(demo ? DEMO_HESAP.sifre : '')
   const [hata, setHata] = useState('')
   const [bekliyor, setBekliyor] = useState(false)
@@ -158,11 +164,13 @@ function Giris({ onGiris }) {
     const sonuc = await servisGirisi(kullanici, sifre)
     setBekliyor(false)
     if (sonuc.hata) return setHata(sonuc.hata)
+    if (hatirla) save('servisHatirla', kullanici.trim())
+    else remove('servisHatirla')
     onGiris(sonuc.oturum)
   }
 
   return (
-    <GirisEkrani baslik="Servis Girişi" aciklama={GIRIS_ALT}>
+    <GirisEkrani baslik={`${MARKA} Servisim`} aciklama={GIRIS_ALT}>
       <form onSubmit={gir}>
         <label className="alan">
           <span className="alan__ad">Kullanıcı Adı</span>
@@ -189,6 +197,15 @@ function Giris({ onGiris }) {
           />
         </label>
 
+        <label className="sgiris__hatirla">
+          <input
+            type="checkbox"
+            checked={hatirla}
+            onChange={(e) => setHatirla(e.target.checked)}
+          />
+          <span>Beni Hatırla</span>
+        </label>
+
         {hata && <div className="uyari">{hata}</div>}
         {yardim && (
           <div className="not not--mavi" style={{ marginTop: 0 }}>
@@ -209,7 +226,7 @@ function Giris({ onGiris }) {
           type="submit"
           disabled={bekliyor}
         >
-          {bekliyor ? 'Kontrol ediliyor…' : 'Gir'}
+          {bekliyor ? 'Kontrol ediliyor…' : 'Giriş'}
         </button>
 
         {/* ŞİFREMİ UNUTTUM E-POSTA GÖNDERMİYOR.
@@ -342,6 +359,9 @@ function Uygulama({ oturum, onCikis }) {
         talep={acik}
         oturum={oturum}
         servisAd={oturum.ad}
+        /* Not gibi detayı kapatmayan işlemlerden sonra talep depodan
+           yeniden okunuyor; ekran yazılanı hemen gösteriyor. */
+        onYenile={() => setAcik(talepleriGetir().find((t) => t.id === acik.id) || null)}
         onKapat={() => {
           setAcik(null)
           setTazele((x) => x + 1)
@@ -447,8 +467,11 @@ function Uygulama({ oturum, onCikis }) {
     { id: 'hakkedis', ad: 'Hak Ediş', Icon: IconTag },
   ]
 
+  /* SELAMLAMA (10 Eylül 2026). PAKSAN Connect ana sayfası müşteriyi
+     adıyla selamlıyor; servis uygulaması da servisi adıyla selamlıyor.
+     Yeri başlığın altındaki satır: ekran düzeni değişmiyor. */
   const BASLIK = {
-    isler: { baslik: 'İşlerim', alt: oturum.ad },
+    isler: { baslik: 'İşlerim', alt: `Merhaba, ${oturum.ad}` },
     parca: { baslik: 'Parça', alt: `${MARKA} siparişleriniz` },
     hakkedis: { baslik: 'Hak Ediş', alt: `${MARKA} ile hesabınız` },
   }
@@ -457,26 +480,15 @@ function Uygulama({ oturum, onCikis }) {
     <Kabuk
       {...BASLIK[sekme]}
       islem={
-        /* İKİ DÜĞME, İKİ AYRI İŞ.
+        /* ÜST ÇUBUKTA YALNIZ HESAP.
 
-           "+" günde birkaç kez basılan bir iş: dükkâna gelen ya da
-           telefonla çağıran müşteri için kayıt açmak. Ekranın gövdesinde
-           tam genişlikte bir düğme olarak duruyordu ve bekleyen işlerin
-           listesini aşağı itiyordu — servisin sabah baktığı tek şeyin
-           önüne geçmiş oluyordu. Toplantı notundaki tarif de zaten
-           "ekrandaki + butonu".
-
-           Hesap ayda bir açılıyor; harf rozetiyle en sağda. */
+           "+" düğmesi bir dönem burada, hesap harfinin yanında
+           duruyordu. Gün içinde en çok basılan düğme ekranın parmağa en
+           uzak köşesindeydi: telefonu tek elle tutan servisin başparmağı
+           oraya yetişmiyor. Yüzen düğme olarak alt menünün üstüne indi
+           (bkz. Kabuk.jsx → fab). Hesap ayda bir açılıyor; üstte kalması
+           doğru. */
         <div className="uyg__islemler">
-          {(sekme === 'isler' || sekme === 'parca') && (
-            <button
-              className="uyg__ekle"
-              onClick={() => setAlt(sekme === 'parca' ? 'siparis' : 'kayit')}
-              aria-label={sekme === 'parca' ? 'Sipariş ver' : 'Yeni kayıt'}
-            >
-              <IconPlus size={22} />
-            </button>
-          )}
           <button
             className="uyg__hesap"
             onClick={() => setAlt('hesap')}
@@ -485,6 +497,13 @@ function Uygulama({ oturum, onCikis }) {
             {(oturum.ad || '?').charAt(0)}
           </button>
         </div>
+      }
+      fab={
+        sekme === 'isler'
+          ? { ad: 'Kayıt Aç', onClick: () => setAlt('kayit') }
+          : sekme === 'parca'
+            ? { ad: 'Sipariş Ver', onClick: () => setAlt('siparis') }
+            : null
       }
       sekmeler={sekmeler}
       sekme={sekme}
@@ -543,6 +562,17 @@ function Uygulama({ oturum, onCikis }) {
 function Isler({ oturum, bekleyen, biten, onAc, onYeniKayit }) {
   const [bitenAcik, setBitenAcik] = useState(false)
 
+  /* Servisin henüz el sürmediği iş: randevu verilmemiş, kayıt
+     açılmamış, PAKSAN'a devredilmemiş, parça ya da onay beklemiyor. */
+  const [yeniIsler, devamEden] = useMemo(() => {
+    const dokunulmamis = (t) =>
+      !t.plan &&
+      !t.servisKaydi &&
+      !t.devir &&
+      !['parcaBekliyor', 'onayBekliyor'].includes(t.status)
+    return [bekleyen.filter(dokunulmamis), bekleyen.filter((t) => !dokunulmamis(t))]
+  }, [bekleyen])
+
   return (
     <>
       <BildirimIzni />
@@ -564,30 +594,51 @@ function Isler({ oturum, bekleyen, biten, onAc, onYeniKayit }) {
           Kapalı iki satır bekleyen işleri 96 piksel aşağı itmiyor. */}
       <ServisDuyurulari oturum={oturum} />
 
-      {/* BEKLEYEN BÖLÜMÜ İŞ YOKKEN DE ÇIKIYOR.
+      {/* YENİ VE DEVAM EDEN AYRI.
 
-          Önce yalnız iş varsa çiziliyordu. Sonuç: tamamlanmış işi olan
-          bir servis ekranı açtığında yalnız "TAMAMLANAN" görüyordu ve
-          bekleyen işinin olup olmadığı hiçbir yerde yazmıyordu.
-          Bilginin yokluğu, bilgi değil — "acaba yüklenmedi mi?" diye
-          düşündürüyor. */}
-      <Bolum ad="Bekleyen" sayi={bekleyen.length}>
-        {bekleyen.length > 0 ? (
-          bekleyen.map((t) => (
-            <TalepKarti key={t.id} talep={t} onAc={() => onAc(t)} />
-          ))
-        ) : (
+          Açık işlerin hepsi "Bekleyen" başlığı altında tek listedeydi:
+          dün gelmiş, kimsenin dokunmadığı bir talep ile randevusu
+          verilmiş, parçası yolda olan bir iş aynı görünüyordu. Servisin
+          sabah sorduğu ilk soru "bana yeni ne düştü" ve cevabı listenin
+          içinde kayboluyordu.
+
+          Yeni: servisin henüz el sürmediği iş.
+          Devam Eden: geri kalan açık işler. Her kartın altında neyi
+          beklediği yazıyor (randevu günü, parça, onay).
+
+          İKİSİ DE BOŞSA TEK BİR BOŞ EKRAN. İş yokken de bölüm
+          çiziliyor: yalnız "Tamamlanan" görünseydi servis bekleyen
+          işinin olup olmadığını bilemezdi. */}
+      {yeniIsler.length === 0 && devamEden.length === 0 ? (
+        <Bolum ad="Yeni" sayi={0}>
           <Bos
             gorsel={bosIsGorseli}
             baslik="Bekleyen işiniz yok"
             alt={
               biten.length > 0
-                ? 'Tüm işleri tamamladınız. Dükkâna gelen bir müşteri için üstteki + düğmesine dokunarak kayıt açabilirsiniz.'
-                : 'Size bir talep geldiğinde burada görünecek. Dükkâna gelen bir müşteri için üstteki + düğmesine dokunarak kayıt açın.'
+                ? 'Tüm işleri tamamladınız. Dükkâna gelen bir müşteri için aşağıdaki Kayıt Aç düğmesine dokunun.'
+                : 'Size bir talep geldiğinde burada görünecek. Dükkâna gelen bir müşteri için aşağıdaki Kayıt Aç düğmesine dokunun.'
             }
           />
-        )}
-      </Bolum>
+        </Bolum>
+      ) : (
+        <>
+          {yeniIsler.length > 0 && (
+            <Bolum ad="Yeni" sayi={yeniIsler.length}>
+              {yeniIsler.map((t) => (
+                <TalepKarti key={t.id} talep={t} onAc={() => onAc(t)} />
+              ))}
+            </Bolum>
+          )}
+          {devamEden.length > 0 && (
+            <Bolum ad="Devam Eden" sayi={devamEden.length}>
+              {devamEden.map((t) => (
+                <TalepKarti key={t.id} talep={t} onAc={() => onAc(t)} />
+              ))}
+            </Bolum>
+          )}
+        </>
+      )}
 
       {/* Tamamlananlar kapalı başlıyor: biten iş bir kayıt, bir görev
           değil. Açık dururken bekleyen işlerle aynı ağırlıkta
@@ -599,6 +650,7 @@ function Isler({ oturum, bekleyen, biten, onAc, onYeniKayit }) {
             onClick={() => setBitenAcik((x) => !x)}
             aria-expanded={bitenAcik}
           >
+            <IconCheckCircle size={18} />
             <span>Tamamlanan işler</span>
             <span className="katla__sayi">{biten.length}</span>
             <IconChevron size={18} className={bitenAcik ? 'katla__ok--acik' : ''} />
@@ -1011,7 +1063,8 @@ function ServisDuyurulari({ oturum, acil = false }) {
               onClick={() => setAcikMi((x) => !x)}
               aria-expanded={acikMi}
             >
-              <span>Okuduğunuz uyarılar</span>
+              <IconAlert size={18} />
+              <span>Uyarılar</span>
               <span className="katla__sayi">{okunmus.length}</span>
               <IconChevron size={18} className={acikMi ? 'katla__ok--acik' : ''} />
             </button>
@@ -1033,7 +1086,7 @@ function ServisDuyurulari({ oturum, acil = false }) {
         aria-expanded={acikMi}
       >
         <IconBell size={18} />
-        <span>{MARKA} duyuruları</span>
+        <span>Duyurular</span>
         {yeniler.length > 0 && <span className="katla__sayi">{yeniler.length}</span>}
         <IconChevron size={18} className={acikMi ? 'katla__ok--acik' : ''} />
       </button>

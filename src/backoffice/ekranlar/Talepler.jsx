@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   DURUMLAR, durumBilgi, gecikmisMi, gonderimGecikti, gonderimGecikmeSaati,
   izinli, KAPALI_DURUMLAR, musterininDigerTalepleri,
@@ -16,8 +16,9 @@ import { KAPI, parcaYazisiKodlu as kayitParcaYazisi, temizParcalar } from '../..
 import { ParcaTablosu } from '../../components/ParcaTablosu'
 import { useVeri } from '../kanca'
 import {
-  Baslik, Bekleme, Bos, DurumRozet, saatYaz, siraliListe, SiraliBaslik,
+  Baslik, Bekleme, Bos, DurumRozet, saatYaz, Sayfalama, siraliListe, SiraliBaslik,
   tarihSaat, tarihYaz, useSiralama,
+  durumYazisi,
 } from './ortak'
 import { DisaAktar } from './aktar'
 import { boyutYaz, ekAdresi, ekYaz } from '../../lib/ekler'
@@ -31,6 +32,9 @@ import { BANKA } from '../../marka'
 import { servisleriGetir, bayileriGetir, MARKA } from '../../marka'
 import { PARA_BIRIMI, parcaToplami, paraYaz } from '../../marka'
 import { telFirma } from '../../lib/tel'
+
+/* Talepler listesinde bir sayfadaki kayıt sayısı (bkz. ortak.jsx → Sayfalama). */
+const SAYFA_BOYU = 10
 
 /* Talepler.
 
@@ -206,6 +210,38 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
     [suzulmus, siralama]
   )
 
+  /* SAYFALAMA — 10 talepte bir sayfa.
+
+     Süzgeç ya da sıralama değişince ilk sayfaya dönülüyor: eski sayfa
+     numarası yeni listede başka kayıtları gösterirdi. Başka bir yerden
+     talep seçildiğinde (ör. müşterinin diğer talepleri) o talebin
+     bulunduğu sayfaya geçiliyor; satıra tıklamak sayfayı değiştirmiyor,
+     çünkü tıklanan satır zaten ekrandaki sayfada. */
+  const [sayfa, setSayfa] = useState(0)
+  const listeBasi = useRef(null)
+  const sayfaSayisi = Math.max(1, Math.ceil(liste.length / SAYFA_BOYU))
+  const gecerliSayfa = Math.min(sayfa, sayfaSayisi - 1)
+  const gorunen = liste.slice(gecerliSayfa * SAYFA_BOYU, (gecerliSayfa + 1) * SAYFA_BOYU)
+
+  useEffect(() => {
+    setSayfa(0)
+  }, [durum, tur, aralik, il, ilce, makine, sahiplik, ara, siralama])
+
+  useEffect(() => {
+    if (!secili) return
+    const sira = liste.findIndex((t) => t.id === secili)
+    if (sira >= 0) setSayfa(Math.floor(sira / SAYFA_BOYU))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [secili])
+
+  const sayfalamaOrtak = {
+    sayfa: gecerliSayfa,
+    sayfaSayisi,
+    toplam: liste.length,
+    boy: SAYFA_BOYU,
+    birim: 'talep',
+  }
+
   const acik = secili ? kendiTalepleri.find((t) => t.id === secili) : null
 
   return (
@@ -327,22 +363,23 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
       </SuzgecCubugu>
 
       <div className="ikili">
-        <div className="kart">
+        <div className="kart" ref={listeBasi}>
           {yukleniyor ? (
             <Bekleme satir={5} />
           ) : liste.length === 0 ? (
             <Bos metin="Talep yok." />
           ) : (
-            <div className="tablo-sar">
+            <>
+              <Sayfalama {...sayfalamaOrtak} onDegis={setSayfa} />
+              <div className="tablo-sar tablo-sar--talepler">
               <table className="tablo--esit tablo--talepler">
                 <thead>
                   <tr>
                     <SiraliBaslik ad="Talep" alan="no" siralama={siralama} onSirala={cevir} />
                     <SiraliBaslik ad="Müşteri" alan="ad" siralama={siralama} onSirala={cevir} />
                     <SiraliBaslik ad="Makine" alan="makine" siralama={siralama} onSirala={cevir} />
-                    <SiraliBaslik ad="Telefon" alan="tel" siralama={siralama} onSirala={cevir} />
                     <SiraliBaslik
-                      ad="Tarih / saat"
+                      ad="Tarih"
                       alan="createdAt"
                       siralama={siralama}
                       onSirala={cevir}
@@ -351,7 +388,7 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {liste.map((t) => {
+                  {gorunen.map((t) => {
                     const p = t.makine ? getProduct(t.makine.productId) : null
                     return (
                       <tr
@@ -383,6 +420,10 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
                           <div className="kucuk sonuk">
                             {t.ilce ? `${t.ilce} / ${t.il}` : t.il || '—'}
                           </div>
+                          {/* TELEFON AYRI SÜTUNDAYDI. Dar ekranda tablo
+                              sığmıyor, yana kaydırılarak okunuyordu;
+                              aranacak numara artık müşterinin altında. */}
+                          {t.tel && <div className="kucuk sonuk mono">{telFirma(t.tel)}</div>}
                         </td>
                         <td>
                           <div className="kucuk">{p?.name || '—'}</div>
@@ -390,7 +431,6 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
                             <div className="kucuk sonuk mono">{formatSerial(t.makine.serial)}</div>
                           )}
                         </td>
-                        <td className="kucuk mono">{telFirma(t.tel) || '—'}</td>
                         {/* "3 saat önce" yerine tarih ve saat.
 
                             Göreli süre okunması kolay ama iş görmüyor:
@@ -403,13 +443,22 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
                           <div>{tarihYaz(t.createdAt, false)}</div>
                           <div className="sonuk">{saatYaz(t.createdAt)}</div>
                         </td>
-                        <td><DurumRozet durum={t.status} /></td>
+                        <td><DurumRozet durum={t.status} talep={t} /></td>
                       </tr>
                     )
                   })}
                 </tbody>
               </table>
-            </div>
+              </div>
+              <Sayfalama
+                {...sayfalamaOrtak}
+                alt
+                onDegis={(n) => {
+                  setSayfa(n)
+                  listeBasi.current?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+                }}
+              />
+            </>
           )}
         </div>
 
@@ -576,7 +625,7 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
             {TALEP_ADI[talep.tur] || talep.tur} · {tarihYaz(talep.createdAt)}
           </div>
         </div>
-        <span style={{ marginLeft: 'auto' }}><DurumRozet durum={talep.status} /></span>
+        <span style={{ marginLeft: 'auto' }}><DurumRozet durum={talep.status} talep={talep} /></span>
       </div>
 
       <div className="kart__ic">
@@ -712,7 +761,7 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
                   <span className="mono">{t.no}</span>
                   <TurEtiket tur={t.tur} />
                   <span className="kucuk sonuk">{tarihYaz(t.createdAt, false)}</span>
-                  <span className="kucuk sonuk">{durumBilgi(t.status).ad}</span>
+                  <span className="kucuk sonuk">{durumYazisi(t)}</span>
                 </button>
               ))
             )}
@@ -1089,6 +1138,11 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
                         servise gönderildi
                       </span>
                     )}
+                    {n.servisten && (
+                      <span className="rz rz--turuncu" style={{ marginLeft: 8 }}>
+                        servis notu
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -1430,7 +1484,7 @@ function S({ k, v, mono }) {
 const AKTAR_SUTUNLARI = [
   { ad: 'Talep numarası', deger: (t) => t.no },
   { ad: 'Tür', deger: (t) => TALEP_ADI[t.tur] || t.tur },
-  { ad: 'Durum', deger: (t) => durumBilgi(t.status).ad },
+  { ad: 'Durum', deger: (t) => durumYazisi(t) },
   { ad: 'Tarih', deger: (t) => tarihSaat(t.createdAt)[0] },
   { ad: 'Saat', deger: (t) => tarihSaat(t.createdAt)[1] },
   { ad: 'Müşteri', deger: (t) => t.ad || '' },

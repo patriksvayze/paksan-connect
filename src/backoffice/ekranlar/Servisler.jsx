@@ -3,14 +3,13 @@ import {
   servisSifreTalebiKapat,
   servisSifreTalepleriGetir,
   servisleriGetirBackoffice,
-  servisleriSifirla,
   servisleriYaz,
   izinli,
   kullaniciAdiOner,
 } from '../veri'
 import { sifreHazirla } from '../../lib/hesap'
 import { useVeri } from '../kanca'
-import { SERVISLER, HIZMETLER, SERVIS_TURU, bayileriGetir } from '../../marka'
+import { SERVISLER, SERVIS_TURU, bayileriGetir } from '../../marka'
 import { ILLER, ilceleriGetir } from '../../data/iller'
 import { Baslik, Bekleme, Bos, siraliListe, SiraliBaslik, tarihYaz, useSiralama } from './ortak'
 import { Secim, SuzgecCubugu } from './suzgec'
@@ -48,7 +47,7 @@ const BOS_CARI = {
 
 const BOS_SERVIS = {
   ad: '', tur: 'tuzel', il: '', ilce: '', adres: '', tel: '',
-  hizmet: ['servis'], bayiler: [], bolge: [], cari: { ...BOS_CARI },
+  bayiler: [], bolge: [], cari: { ...BOS_CARI },
 }
 
 /* Servisin bıraktığı şifre yardımı talebi.
@@ -107,7 +106,6 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
   const [yerel, setYerel] = useState(null)
   const [il, setIl] = useState('hepsi')
   const [ilce, setIlce] = useState('hepsi')
-  const [hizmet, setHizmet] = useState('hepsi')
   const [ara, setAra] = useState('')
 
   const { veri: kayitli, yukleniyor } = useVeri(() => servisleriGetirBackoffice(), [surum], null)
@@ -135,7 +133,6 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
   const suzulmus = tumServisler.filter((b) => {
     if (il !== 'hepsi' && b.il !== il) return false
     if (ilce !== 'hepsi' && b.ilce !== ilce) return false
-    if (hizmet !== 'hepsi' && !(b.hizmet || []).includes(hizmet)) return false
 
     const q = ara.trim().toLocaleLowerCase('tr-TR')
     if (!q) return true
@@ -157,10 +154,8 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
     ad: (b) => b.ad,
     konum: (b) => b.il,
     tel: (b) => b.tel,
-    hizmet: (b) => (b.hizmet || []).length,
     bayi: (b) => (b.bayiler || []).length,
   })
-  const ozel = Boolean(yerel || kayitli)
 
   /* Süzgeç açıkken bile kaydetme bütün listeyi yazıyor; ekranda
      görünen alt küme değil. */
@@ -201,20 +196,6 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
               />
             )}
 
-            {ozel && (
-              <button
-                className="dg"
-                onClick={() => {
-                  if (!confirm('Koddaki temsilî listeye geri dönülecek. Emin misiniz?')) return
-                  servisleriSifirla(personel)
-                  setYerel(null)
-                  tazele()
-                  bildir('Fabrika ayarına dönüldü')
-                }}
-              >
-                Fabrika ayarına dön
-              </button>
-            )}
             <button
               className="dg dg--ana"
               onClick={() => setDuzenlenen({ ...BOS_SERVIS, id: uid(), yeni: true })}
@@ -252,17 +233,6 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
           genislik={150}
         />
 
-        <Secim
-          ad="Hizmet"
-          deger={hizmet}
-          onDegis={setHizmet}
-          secenekler={[
-            { deger: 'hepsi', ad: 'Tüm hizmetler' },
-            ...Object.entries(HIZMETLER).map(([k, ad]) => ({ deger: k, ad })),
-          ]}
-          genislik={170}
-        />
-
         <label className="secim-alan secim-alan--genis">
           <span className="secim-alan__ad">Ara</span>
           <input
@@ -296,7 +266,6 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
                   <SiraliBaslik ad="Servis" alan="ad" siralama={siralama} onSirala={cevir} />
                   <SiraliBaslik ad="Konum" alan="konum" siralama={siralama} onSirala={cevir} />
                   <SiraliBaslik ad="Telefon" alan="tel" siralama={siralama} onSirala={cevir} />
-                  <SiraliBaslik ad="Hizmet" alan="hizmet" siralama={siralama} onSirala={cevir} />
                   <SiraliBaslik ad="Bayi" alan="bayi" siralama={siralama} onSirala={cevir} />
                   {duzenleyebilir && <th style={{ width: 1 }}></th>}
                 </tr>
@@ -314,13 +283,6 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
                     </td>
                     <td className="kucuk">{b.ilce} / {b.il}</td>
                     <td className="kucuk mono">{telFirma(b.tel)}</td>
-                    <td>
-                      <div className="satir" style={{ gap: 4 }}>
-                        {(b.hizmet || []).map((y) => (
-                          <span key={y} className="rz rz--mavi">{HIZMETLER[y] || y}</span>
-                        ))}
-                      </div>
-                    </td>
                     {/* Bayi bağı kurulmamış servis, talebi yalnız
                         coğrafyadan alıyor. Listede görünmesi gerekiyor
                         ki eksik bağ fark edilsin. */}
@@ -723,7 +685,6 @@ function Form({ servis, onKapat, onKaydet }) {
     if (d.ad.trim().length < 2) return setHata('Servis adını yazın.')
     if (!d.il.trim()) return setHata('İl adını yazın.')
     if (!d.tel.replace(/\D/g, '')) return setHata('Telefon numarasını yazın.')
-    if (!(d.hizmet || []).length) return setHata('En az bir hizmet seçin.')
     /* Kullanıcı adı yazıldıysa şifre de olmalı: şifresiz hesap
        giriş yapamaz, ekranda "hesabı var" görünür ve kimse
        neden giremediğini anlamaz. */
@@ -810,35 +771,6 @@ function Form({ servis, onKapat, onKaydet }) {
               placeholder="0332 321 00 01"
             />
           </label>
-
-          <div className="alan">
-            <span className="alan__ad">Verdiği Hizmetler</span>
-            <p className="kucuk sonuk" style={{ margin: '0 0 8px' }}>
-              Her servis parça bulundurmuyor. Yedek parça talebi yalnız
-              parça hizmeti işaretli servislere düşüyor.
-            </p>
-            <div className="suzgec">
-              {Object.entries(HIZMETLER).map(([k, ad]) => {
-                const secili = (d.hizmet || []).includes(k)
-                return (
-                  <button
-                    key={k}
-                    className={'cip' + (secili ? ' cip--on' : '')}
-                    onClick={() =>
-                      setD({
-                        ...d,
-                        hizmet: secili
-                          ? d.hizmet.filter((x) => x !== k)
-                          : [...(d.hizmet || []), k],
-                      })
-                    }
-                  >
-                    {ad}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
 
           <BayiSecici
             secili={d.bayiler || []}
@@ -929,7 +861,7 @@ function Form({ servis, onKapat, onKaydet }) {
    yüklenmeleri yanlış hesaba ödeme yapılması demek. */
 
 const AKTAR_BASLIK = [
-  'Servis Adı', 'Servis Türü', 'İl', 'İlçe', 'Adres', 'Telefon', 'Hizmetler',
+  'Servis Adı', 'Servis Türü', 'İl', 'İlçe', 'Adres', 'Telefon',
 ]
 
 const ORNEK_SATIR = [
@@ -942,11 +874,6 @@ const ORNEK_SATIR = [
   'Servis ve bakım, Yedek parça',
 ]
 
-const HIZMET_KOD = {
-  'servis ve bakım': 'servis', servis: 'servis', bakım: 'servis',
-  'yedek parça': 'parca', parca: 'parca', 'parça': 'parca',
-}
-
 const TUR_KOD = { 'şahıs': 'sahis', sahis: 'sahis', 'tüzel kişi': 'tuzel', 'tüzel': 'tuzel', tuzel: 'tuzel' }
 
 function aktarSatiri(b) {
@@ -957,7 +884,6 @@ function aktarSatiri(b) {
     b.ilce || '',
     b.adres || '',
     telFirma(b.tel),
-    (b.hizmet || []).map((y) => HIZMETLER[y] || y).join(', '),
   ]
 }
 
@@ -972,15 +898,6 @@ function iceAl(kayitlar, mevcut, kaydet) {
     if (!ad) return hatalar.push(`${satir}. satır: servis adı boş, atlandı.`)
     if (!k['İl']) return hatalar.push(`${satir}. satır (${ad}): il boş, atlandı.`)
 
-    const hizmet = String(k['Hizmetler'] || '')
-      .split(/[,;/]/)
-      .map((x) => HIZMET_KOD[x.trim().toLocaleLowerCase('tr-TR')])
-      .filter(Boolean)
-
-    if (!hizmet.length) {
-      return hatalar.push(`${satir}. satır (${ad}): hizmet okunamadı, atlandı.`)
-    }
-
     yeniler.push({
       id: uid(),
       no: yeniNo('servis'),
@@ -992,7 +909,6 @@ function iceAl(kayitlar, mevcut, kaydet) {
       ilce: k['İlçe'] || '',
       adres: k['Adres'] || '',
       tel: telGiris(k['Telefon'] || ''),
-      hizmet: [...new Set(hizmet)],
       bayiler: [],
       bolge: [],
       cari: { ...BOS_CARI },

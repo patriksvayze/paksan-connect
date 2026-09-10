@@ -192,7 +192,7 @@ export function eksikAlanlar(talep) {
    yapıldığı soruluyor.
    ========================================================================== */
 export function kaydiDogrula(kayit) {
-  if (!KAPI[kayit?.kapi]) return 'Garanti durumunu seçin.'
+  if (!KAPI[kayit?.kapi]) return 'Hizmet kapsamını seçin.'
 
   const parcalar = temizParcalar(kayit.parcalar)
 
@@ -201,16 +201,16 @@ export function kaydiDogrula(kayit) {
     return null
   }
 
-  if (!kayit.yapilanIs) return 'Ne yapıldığını seçin.'
+  if (!kayit.yapilanIs) return 'Yapılan işi seçin.'
 
   if (kayit.kapi === 'garanti') {
     if (!parcalar.length && !Number(kayit.km) && !Number(kayit.iscilik)) {
-      return 'Değişen parçayı, gidilen yolu veya işçilik tutarını yazın.'
+      return 'Gidilen yolu ya da işçilik tutarını yazın.'
     }
   }
 
   if (kayit.kapi === 'parcaIste' && !parcalar.length) {
-    return `${markaEk('dan')} istenecek parçayı seçin.`
+    return 'İstenen parçayı seçin.'
   }
   if (kayit.kapi === 'eldeParca' && !parcalar.length) {
     return 'Taktığınız parçayı seçin.'

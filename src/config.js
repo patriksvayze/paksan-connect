@@ -10,25 +10,54 @@
    (bkz. MARKA-DEVIR.md).
    ========================================================================== */
 
+/* ==========================================================================
+   DESTEK ASİSTANI — uzaktan çağrılıyor
+
+   Destek ekranı PAKSAN'ın kullanım kılavuzlarından cevap veren bir yapay
+   zekâ asistanı. Asistanın HİÇBİR PARÇASI uygulamanın içinde değil ve
+   olmayacak:
+
+     · Kılavuzlar, arama indeksi ve dil modeli sunucuda duruyor. Yeni
+       kılavuz eklendiğinde sunucudaki indeks yenileniyor; telefondaki
+       uygulama güncellenmek zorunda kalmıyor.
+     · Model ve indeks yüzlerce megabayt; APK'ya sığmaz.
+     · Model erişimi ya da API anahtarı olursa o da sunucuda kalır.
+
+   ÇEVRİMDIŞI YEDEK YOK. Burada bir dönem "internet yoksa cihazdaki arıza
+   rehberiyle cevap ver" anahtarı vardı. Kaldırıldı: o rehber cihaza
+   gömülü bir bilgi tabanı demekti. Bağlantı yoksa ekran bunu söylüyor ve
+   servis talebine yönlendiriyor.
+
+   BUGÜN SUNUCU YOK. Geliştirme sunucusu `/destek-ai` adresine gelen
+   istekleri bu bilgisayardaki sohbet sunucusuna aktarıyor
+   (bkz. vite.config.js → destekAsistaniSun; sunucu:
+   D:/paksan-rag/sohbet/sunucu.mjs). İstek gerçekten ağdan gidiyor.
+
+   CANLIYA ÇIKARKEN `kok` alanına PAKSAN'ın sunucusundaki adres yazılacak.
+   Sunucudan beklenen üç yol:
+
+       POST <kok>/sohbet           soru → satır satır akan cevap (NDJSON)
+       GET  <kok>/durum            yüklü kılavuzlar, model hazır mı
+       GET  <kok>/kilavuz/<belge>  kaynak gösterilen kılavuzun PDF'i
+   ========================================================================== */
 export const AI = {
-  /* Destek asistanını firmanın kendi yapay zekâ servisine bağlamak için
-     bu bloğu doldurmak yeterli; başka hiçbir dosyaya dokunulmuyor. */
-  aktif: false,
+  /* Göreli adres tarayıcıda ve geliştirmede çalışıyor. APK'da mutlak
+     adres gerekiyor (bkz. PARCA_KATALOG.kok). */
+  kok: '/destek-ai',
 
-  /* Uygulamanın soru göndereceği adres.
-     Örnek: 'https://destek.ornekfirma.com.tr/api/sor'
+  /* İKİ OLAY ARASINDA EN FAZLA BU KADAR BEKLENİR (milisaniye).
 
-     ÖNEMLİ: API anahtarı ASLA uygulamanın içine konmaz. Anahtar
-     firmanın sunucusunda durur; uygulama sadece bu adrese soru yollar. */
-  endpoint: '',
+     Toplam süre değil: cevap parça parça akıyor ve her parça sayacı
+     sıfırlıyor. İşlemcide çalışan model ilk kelimeyi yarım dakikada
+     verebiliyor; toplam süreye sınır konsaydı uzun ama sağlıklı bir
+     cevap yarıda kesilirdi.
 
-  /* Cevap bu süre içinde gelmezse çevrimdışı yedeğe geçilir (milisaniye).
-     Tarlada şebeke zayıf olabilir, bu yüzden kısa tutuldu. */
-  zamanAsimi: 20000,
-
-  /* İnternet yoksa veya servise ulaşılamazsa, cihaz üzerindeki
-     temel arıza rehberiyle cevap verilsin mi? */
-  cevrimdisiYedek: true,
+     Sunucu ilk kelimeyi beklerken de 15 saniyede bir `durum` olayı
+     gönderiyor (sohbet sunucusunda `LLM.nabizMs`). Bu değer ondan uzun
+     kalmalı: 90 sn, art arda kaçan beş nabza pay bırakıyor. Sunucu
+     değişirse bu nabız da sunucudan beklenenler listesinde
+     (CANLIYA-CIKIS.md 2.1.1). */
+  bekleme: 90000,
 }
 
 /* ==========================================================================
