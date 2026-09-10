@@ -3597,3 +3597,197 @@
   opacity: 0.72;
   cursor: not-allowed;
 }
+
+/* ==========================================================================
+   Parça seçimi — alt montaj listesi ve katalog kartları
+
+   Düzen PAKSAN'ın bastığı fiyat listesinin aynısı: görsel, kod, ad,
+   fiyat. Servis kâğıttaki listeye alışkın; ekranda başka bir sıra
+   kurmak, aynı parçayı iki biçimde ezberlemesini istemek olurdu.
+   ========================================================================== */
+
+.montaj-liste {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bosluk-2);
+}
+
+/* Alt montaj satırı. Sağdaki sayı o montajda kaç parça olduğunu
+   söylüyor: servis kaç kart geleceğini girmeden biliyor. */
+.montaj {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  width: 100%;
+  min-height: var(--dokunma);
+  padding: var(--bosluk-3) var(--bosluk-4);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-2);
+  background: var(--yuzey);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.montaj__ad {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--yazi-3);
+  font-weight: 700;
+}
+
+.montaj__sayi {
+  flex: none;
+  min-width: 30px;
+  padding: 2px 8px;
+  border-radius: var(--r-tam);
+  background: var(--mavi-z);
+  color: var(--mavi-rz);
+  font-size: var(--yazi-2);
+  font-weight: 800;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* İKİ SÜTUN. Tek sütunda kart 340 piksel genişliğinde oluyor ve
+   ekranda üç parça görünüyor; otuz parçalık bir montajda on ekran
+   kaydırmak gerekiyordu. Üç sütunda ise görsel 100 pikselin altına
+   iniyor ve parça tanınmıyor — asıl iş o görselde. */
+.parca-izgara {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--bosluk-3);
+}
+
+.parca-kart {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--bosluk-2) var(--bosluk-2) var(--bosluk-3);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-3);
+  background: var(--yuzey);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.parca-kart--on {
+  border-color: var(--mavi-rz);
+  box-shadow: inset 0 0 0 1px var(--mavi-rz);
+  background: var(--mavi-soft);
+}
+
+/* Görsel kutusu SABİT ORANDA: kartlar farklı yükseklikte parçalarla
+   dolduğunda ızgara tırtıklı bitiyordu. Zemin her temada beyaz —
+   katalog görselleri beyaz zemine basılmış, koyu temada gri bir
+   kutuya oturtulunca çevresinde hâle çıkıyor. */
+.parca-kart__resim {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  margin-bottom: var(--bosluk-2);
+  border-radius: var(--r-1);
+  background: #fff;
+  overflow: hidden;
+}
+
+/* Resim kutuya MUTLAK oturuyor.
+
+   Önce `width/height: 100%` verilmişti; ızgara gözünde yükseklik
+   belirsiz kalıyor ve resim kendi boyunda çiziliyordu. Kutu
+   `overflow: hidden` olduğu için de parçanın yalnız üst yarısı —
+   çoğu zaman boş beyaz kısmı — görünüyordu. Mutlak konumda kutunun
+   ölçüsü kesin. */
+.parca-kart__resim img {
+  position: absolute;
+  inset: 6px;
+  width: calc(100% - 12px);
+  height: calc(100% - 12px);
+  object-fit: contain;
+}
+
+.parca-kart__resimsiz {
+  font-size: var(--yazi-1);
+  color: var(--murekkep-3);
+}
+
+/* Seçili işareti köşede: renk tek başına anlam taşımıyor. */
+.parca-kart__onay {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-tam);
+  background: var(--mavi-rz);
+  color: #fff;
+}
+
+.parca-kart__kod {
+  font-size: var(--yazi-1);
+  color: var(--murekkep-3);
+}
+
+.parca-kart__ad {
+  font-size: var(--yazi-2);
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--murekkep);
+}
+
+.parca-kart__fiyat {
+  margin-top: 2px;
+  font-size: var(--yazi-3);
+  font-weight: 800;
+  color: var(--turuncu);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Yükleme iskeleti. Boş ekran "bir şey yok" der, iskelet "geliyor"
+   der — ikisi aynı şey değil. */
+.parca-kart--iskelet {
+  pointer-events: none;
+}
+
+.parca-kart--iskelet .parca-kart__resim {
+  background: var(--yuzey-2);
+}
+
+.iskelet-satir {
+  height: 10px;
+  margin-top: 6px;
+  border-radius: var(--r-tam);
+  background: var(--yuzey-2);
+}
+
+.iskelet-satir--kisa {
+  width: 55%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .parca-kart--iskelet .parca-kart__resim,
+  .iskelet-satir {
+    animation: iskelet-yanip-sonme 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes iskelet-yanip-sonme {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+/* Servis kaydındaki seçilmiş parça satırı: katalogdan dönen parçalar
+   kod ve fiyatlarıyla birlikte duruyor. */
+.secili-parca__kod {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--yazi-1);
+  font-weight: 400;
+  color: var(--murekkep-3);
+}

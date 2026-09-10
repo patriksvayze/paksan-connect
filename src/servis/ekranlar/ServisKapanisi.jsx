@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
-import { parcalariGetir, PARCA_DIGER } from '../../data/talepAlanlari'
-import { supportGroup, MARKA, markaEk, PARA_BIRIMI, paraYaz } from '../../marka'
+import { MARKA, markaEk, PARA_BIRIMI, paraYaz } from '../../marka'
 import {
   extractYear,
   formatSerial,
@@ -24,13 +23,14 @@ import {
 import { ekYaz, fotoKucult } from '../../lib/ekler'
 import { servisKaydiGonder } from '../../backoffice/veri'
 import { Bolum, Onay, Sayfa } from '../Kabuk'
+import { ParcaSec } from './ParcaSec'
 import {
   IconAlert,
   IconCamera,
-  IconCheck,
   IconMinus,
   IconPlus,
   IconShield,
+  IconTrash,
 } from '../../components/Icons'
 
 /* ==========================================================================
@@ -115,16 +115,10 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
   const [iscilik, setIscilik] = useState(onceki?.iscilik ? String(onceki.iscilik) : '')
   const [hata, setHata] = useState('')
   const [onay, setOnay] = useState(false)
+  const [katalogAcik, setKatalogAcik] = useState(false)
 
   const seriDegeri = seri.trim() || talep.makine?.serial || ''
   const urun = useMemo(() => matchProduct(seriDegeri)?.product || null, [seriDegeri])
-
-  /* Parça listesi makinenin destek grubundan geliyor; "Diğer" satırı
-     kayıtta bir şey anlatmadığı için çıkarılıyor. */
-  const parcaSecenekleri = useMemo(
-    () => parcalariGetir(supportGroup(urun)).filter((p) => p !== PARCA_DIGER),
-    [urun],
-  )
 
   /* "son" = garantinin SON YILI, yani garanti hâlâ sürüyor. */
   const garantiDurumu = warrantyStatus(extractYear(seriDegeri)).state
@@ -172,19 +166,14 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
   const hakkedis = hakkedisHesapla(kayit)
   const secilenler = temizParcalar(parcalar)
 
-  function parcaCevir(parcaAdi) {
-    setHata('')
+  function adetDegistir(kod, fark) {
     setParcalar((l) =>
-      l.some((p) => p.ad === parcaAdi)
-        ? l.filter((p) => p.ad !== parcaAdi)
-        : [...l, { ad: parcaAdi, adet: 1 }],
+      l.map((p) => (p.kod === kod ? { ...p, adet: Math.max(1, p.adet + fark) } : p)),
     )
   }
 
-  function adetDegistir(parcaAdi, fark) {
-    setParcalar((l) =>
-      l.map((p) => (p.ad === parcaAdi ? { ...p, adet: Math.max(1, p.adet + fark) } : p)),
-    )
+  function parcaCikar(kod) {
+    setParcalar((l) => l.filter((p) => p.kod !== kod))
   }
 
   /* Formun kendi soruları. Model katmanına ancak hepsi doluysa
@@ -272,6 +261,25 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
         }
 
   const dugmeYazi = parcaIstegi ? 'Parçayı İste' : ikinci ? 'İşi Tamamla' : 'Kaydı Tamamla'
+
+  /* KATALOG TAM EKRAN AÇILIYOR, PENCERE OLARAK DEĞİL.
+
+     Kartlarda görsel var ve görsel bu ekranın asıl işi; pencereye
+     sıkıştırıldığında parça tanınmıyor. Kayıt ekranı arkada duruyor,
+     seçim bitince aynı yerden devam ediliyor. */
+  if (katalogAcik) {
+    return (
+      <ParcaSec
+        secili={parcalar}
+        onKapat={() => setKatalogAcik(false)}
+        onBitti={(secilenler) => {
+          setParcalar(secilenler)
+          setKatalogAcik(false)
+          setHata('')
+        }}
+      />
+    )
+  }
 
   return (
     <div className="katman">
@@ -449,17 +457,17 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
         {/* --------------------------------------------------------- Parça */}
         {parcaBolumu && (
           <>
-            <ParcaSecimi
-              ad={parcaIstegi ? 'Gereken Parça' : 'Değişen Parça'}
+            <SecilenParcalar
+              ad={parcaIstegi ? 'Gerekli Parça' : 'Değiştirilen Parça'}
               ipucu={
                 parcaIstegi
                   ? `${MARKA} bu parçaları hazırlayıp size gönderecek.`
-                  : 'Değiştirdiğiniz parça varsa işaretleyin.'
+                  : 'Değiştirdiğiniz parça varsa katalogdan seçin.'
               }
-              secenekler={parcaSecenekleri}
               secili={parcalar}
-              onCevir={parcaCevir}
               onAdet={adetDegistir}
+              onCikar={parcaCikar}
+              onKatalog={() => setKatalogAcik(true)}
             />
 
             {secilenler.length > 0 && (kapi === 'garanti' || ikinci) && (
@@ -657,82 +665,78 @@ function Secenekler({ secenekler, secili, onSec }) {
 }
 
 /* ==========================================================================
-   Parça seçimi
+   Kayıttaki parçalar — katalogdan seçiliyor
 
-   ÖNCEKİ HÂLİ ON TANE BOŞ BEYAZ KUTUYDU
+   ÖNCE BURADA ON TANE İSİM VARDI
 
-   Her parça tam genişlikte, çerçeveli, içi boş bir satırdı; seçilince
-   kenarı maviye dönüyor ve adet düğmeleri beliriyordu. Ekranda on
-   tane aynı boyda beyaz dikdörtgen alt alta duruyordu ve hiçbiri
-   dokunulabilir görünmüyordu — yazı kutusu sanılıyordu. Seçilenler de
-   seçilmeyenlerin arasında kayboluyordu.
+   Makinenin destek grubuna göre "Rulman", "Kayış", "Zincir" gibi on
+   kadar genel ad listeleniyordu. İki sorunu vardı ve ikisi de büyük:
 
-   ŞİMDİ HER SATIRIN BİR KUTUCUĞU VAR. Dokunma hedefi satırın
-   tamamı (eldivenle küçük bir yuvarlağa isabet ettirilemez), ama
-   kutucuk satırın seçilebilir olduğunu ilk bakışta söylüyor.
-   Seçilenler listenin BAŞINA çıkıyor: servisin kontrol edeceği şey
-   seçtikleri, seçmedikleri değil.
+     · PAKSAN'IN GERÇEK PARÇALARI DEĞİLDİ. Fiyat listesinde 538 parça
+       var; kayda giden "Rulman" satırı yedek parça personelinin
+       hangi rulmanı hazırlayacağını söylemiyordu.
+     · Servis parçayı adıyla değil, RESMİYLE ve KODUYLA tanıyor.
 
-   AÇILIR KUTU YOK, ARAMA YOK: makinenin destek grubunda on kadar
-   parça var. Onu arama kutusunun arkasına saklamak, iki dokunuş
-   eklemekten başka bir şey yapmaz.
+   Şimdi seçim PAKSAN'ın kendi kataloğundan yapılıyor (bkz.
+   ekranlar/ParcaSec.jsx) ve kayda kod, ad ve fiyat birlikte gidiyor.
+   Bu ekranda yalnız SEÇİLENLER duruyor: adet ayarı ve çıkarma.
 
-   STOK SÜTUNU KALDIRILDI. Servisin elindeki parça sayısı uygulamada
-   tutuluyordu ve hiçbir zaman gerçeğe uymadı; yanlış sayı, sayının
-   olmamasından kötü.
+   Liste boşken de bölüm çiziliyor. "Parça Seç" düğmesi ekranın o
+   noktasında bir yer tutuyor; sonradan belirseydi servis parça
+   ekleyebileceğini bilmezdi.
    ========================================================================== */
-function ParcaSecimi({ ad, ipucu, secenekler, secili, onCevir, onAdet }) {
-  const secilenAdlar = secili.map((p) => p.ad)
-  /* Seçilenler üstte, kendi sıralarını koruyarak. */
-  const sirali = [
-    ...secenekler.filter((p) => secilenAdlar.includes(p)),
-    ...secenekler.filter((p) => !secilenAdlar.includes(p)),
-  ]
-
+function SecilenParcalar({ ad, ipucu, secili, onAdet, onCikar, onKatalog }) {
   return (
     <Bolum ad={ad} sayi={secili.length}>
       {ipucu && <p className="alan__ipucu parca-ipucu">{ipucu}</p>}
 
-      <div className="parca-liste">
-        {sirali.map((parcaAdi) => {
-          const secim = secili.find((p) => p.ad === parcaAdi)
-          return (
-            <div
-              key={parcaAdi}
-              className={'parca-satir' + (secim ? ' parca-satir--on' : '')}
-            >
-              <button
-                className="parca-satir__ac"
-                onClick={() => onCevir(parcaAdi)}
-                aria-pressed={Boolean(secim)}
-              >
-                <span className="parca-kutucuk">{secim && <IconCheck size={15} />}</span>
-                <span className="parca-satir__ad">{parcaAdi}</span>
-              </button>
+      {secili.length > 0 && (
+        <div className="parca-liste" style={{ marginBottom: 12 }}>
+          {secili.map((p) => (
+            <div key={p.kod} className="parca-satir parca-satir--on">
+              <span className="parca-satir__ac" style={{ cursor: 'default' }}>
+                <span className="parca-satir__ad">
+                  {p.ad}
+                  <span className="secili-parca__kod mono">
+                    {p.kod}
+                    {p.fiyat ? ` · ${paraYaz(p.fiyat)} ${PARA_BIRIMI}` : ''}
+                  </span>
+                </span>
+              </span>
 
-              {secim && (
-                <div className="parca-satir__adet">
-                  <button
-                    className="stok-dus"
-                    onClick={() => onAdet(parcaAdi, -1)}
-                    aria-label={parcaAdi + ' adedini azalt'}
-                  >
-                    <IconMinus size={19} />
-                  </button>
-                  <span className="parca-satir__sayi">{secim.adet}</span>
-                  <button
-                    className="stok-dus"
-                    onClick={() => onAdet(parcaAdi, 1)}
-                    aria-label={parcaAdi + ' adedini artır'}
-                  >
-                    <IconPlus size={19} />
-                  </button>
-                </div>
-              )}
+              <div className="parca-satir__adet">
+                <button
+                  className="stok-dus"
+                  onClick={() => onAdet(p.kod, -1)}
+                  aria-label={p.ad + ' adedini azalt'}
+                >
+                  <IconMinus size={19} />
+                </button>
+                <span className="parca-satir__sayi">{p.adet}</span>
+                <button
+                  className="stok-dus"
+                  onClick={() => onAdet(p.kod, 1)}
+                  aria-label={p.ad + ' adedini artır'}
+                >
+                  <IconPlus size={19} />
+                </button>
+                <button
+                  className="stok-dus"
+                  onClick={() => onCikar(p.kod)}
+                  aria-label={p.ad + ' satırını kaldır'}
+                >
+                  <IconTrash size={18} />
+                </button>
+              </div>
             </div>
-          )
-        })}
-      </div>
+          ))}
+        </div>
+      )}
+
+      <button className="dg dg--blok" onClick={onKatalog}>
+        <IconPlus size={19} />
+        {secili.length ? 'Parça Ekle veya Çıkar' : 'Parça Seç'}
+      </button>
     </Bolum>
   )
 }

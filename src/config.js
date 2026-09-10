@@ -52,6 +52,55 @@ export const GIRIS = {
 }
 
 /* ==========================================================================
+   YEDEK PARÇA KATALOĞU
+
+   538 parça, 35 alt montaj, 2 MB görsel. UYGULAMANIN İÇİNDE DEĞİL ve
+   olmayacak. Üç sebebi var:
+
+     · Fiyatlar değişiyor. Gömülü liste ilk zamda yalan söylemeye
+       başlar ve düzeltmenin tek yolu yeni sürüm yayınlamaktır.
+     · APK şişer. Uygulamanın tamamı bugün 7 MB civarında.
+     · Katalog PAKSAN'ın verisi, uygulamanın değil. Yeni liste
+       geldiğinde sunucudaki dosya değişecek, telefondaki uygulama
+       değil.
+
+   Servis "Parça Seç" dediğinde liste ağdan çağrılıyor ve o oturum
+   boyunca bellekte tutuluyor (bkz. src/lib/parcaKatalogu.js).
+
+   BUGÜN SUNUCU YOK. Geliştirme sunucusu, depodaki `sunucu-taklidi/`
+   klasörünü aşağıdaki adresten yayınlıyor; istek gerçekten ağdan
+   gidiyor, yükleme ve hata ekranları gerçekten çalışıyor
+   (bkz. vite.config.js → katalogSun).
+
+   CANLIYA ÇIKARKEN `kok` alanına PAKSAN'ın sunucusundaki adres
+   yazılacak. Sunucudan beklenen tek şey iki yol:
+
+       <kok>/katalog.json
+       <kok>/gorseller/<parça kodu>.webp
+   ========================================================================== */
+export const PARCA_KATALOG = {
+  /* Göreli adres tarayıcıda ve geliştirmede çalışıyor. APK'da mutlak
+     adres gerekiyor: telefonda uygulamanın kendi kökü sunucu değil. */
+  kok: '/parca-katalogu',
+
+  /* SUNUCU HIZINI TAKLİT EDEN GECİKME.
+
+     Geliştirme sunucusu aynı makinede; istek 3-5 milisaniyede
+     dönüyor ve yükleme göstergesi göz kırpması gibi geçiyor. Gerçek
+     bir sunucudan 538 parçalık liste tarlada bundan uzun sürecek.
+     Ekranın o durumu gerçekten göstermesi için araya gecikme
+     konuyor.
+
+     Sunucu açıldığında bu değer 0 yapılacak — taklit oradan sonra
+     yalan olur. */
+  taklitGecikme: 800,
+
+  /* Cevap bu süre içinde gelmezse hata gösterilip yeniden denenebiliyor.
+     Tarlada şebeke zayıf olabiliyor. */
+  zamanAsimi: 20000,
+}
+
+/* ==========================================================================
    SUNUCU — talep gönderimi ve geri bildirim
 
    Şu an talepler yalnızca telefonun hafızasına yazılıyor; gönderim anlık

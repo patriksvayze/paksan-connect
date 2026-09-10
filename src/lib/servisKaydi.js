@@ -216,16 +216,52 @@ export function kaydiDogrula(kayit) {
   return null
 }
 
-/** Boş ve sıfır adetli satırları atar, adedi sayıya çevirir. */
+/* Boş ve sıfır adetli satırları atar, adedi sayıya çevirir.
+
+   PARÇA KODU VE FİYATI DA TAŞINIYOR.
+
+   Önce yalnız ad ve adet saklanıyordu; parçalar da makinenin destek
+   grubundan gelen "Rulman", "Kayış" gibi genel adlardı. Seçim
+   PAKSAN'ın kendi kataloğuna bağlandıktan sonra (bkz.
+   servis/ekranlar/ParcaSec.jsx) adın tek başına taşınması KAYIP:
+   yedek parça personeli "İPLİ BIÇAK" satırını görüp hangi kodu
+   hazırlayacağını yine bilemezdi.
+
+   Fiyat da kaydın kendi anındaki değeriyle duruyor — katalog fiyatı
+   sonradan değişince "bu iş o gün ne tutuyordu" sorusunun cevabı
+   kalsın. Katalog dışından gelen eski kayıtlarda iki alan da yok;
+   yokluk sorun değil, okuyan ekranlar `kod` olmayan satırı da
+   çiziyor. */
 export function temizParcalar(parcalar = []) {
   return parcalar
     .filter((p) => p?.ad && Number(p.adet) > 0)
-    .map((p) => ({ ad: p.ad, adet: Number(p.adet) }))
+    .map((p) => ({
+      ad: p.ad,
+      adet: Number(p.adet),
+      ...(p.kod ? { kod: p.kod } : {}),
+      ...(Number.isFinite(p.fiyat) ? { fiyat: p.fiyat } : {}),
+    }))
 }
 
-/** "Rulman × 2, Kayış × 1" */
+/* "Rulman × 2, Kayış × 1" — müşterinin de okuduğu satır.
+
+   KOD BURADA YAZMIYOR ve bilerek: bu metin `cozum.parcalar` alanına
+   gidiyor, müşteri uygulamasında görünüyor. Çiftçi için "20131010104.01"
+   bir şey anlatmıyor. Kodun gerektiği yer PAKSAN'ın yedek parça
+   masası; orası yapısal alanı okuyor (bkz. `temizParcalar`). */
 export function parcaYazisi(parcalar = []) {
   return temizParcalar(parcalar).map((p) => `${p.ad} × ${p.adet}`).join(', ')
+}
+
+/* PAKSAN tarafının okuduğu satır: kod da yazılı.
+
+   "İPLİ BIÇAK × 1" satırı yedek parça personeline hangi bıçağı
+   hazırlayacağını söylemiyor; 538 parçalık katalogta aynı adı taşıyan
+   birden çok kayıt var. */
+export function parcaYazisiKodlu(parcalar = []) {
+  return temizParcalar(parcalar)
+    .map((p) => (p.kod ? `${p.ad} (${p.kod}) × ${p.adet}` : `${p.ad} × ${p.adet}`))
+    .join(', ')
 }
 
 /* ==========================================================================

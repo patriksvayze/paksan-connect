@@ -10,7 +10,9 @@ import {
   hakkedisOnayla, hakkedisDuzelt, hakkedisReddet, servisParcasiGonderildi,
   hakkedisIlerlemeEngeli,
 } from '../veri'
-import { KAPI, parcaYazisi as kayitParcaYazisi, temizParcalar } from '../../lib/servisKaydi'
+/* Kodlu biçim: yedek parça personeli 538 parçalık katalogta hangi
+   kaydı hazırlayacağını addan çıkaramıyor. */
+import { KAPI, parcaYazisiKodlu as kayitParcaYazisi, temizParcalar } from '../../lib/servisKaydi'
 import { useVeri } from '../kanca'
 import {
   Baslik, Bekleme, Bos, DurumRozet, saatYaz, siraliListe, SiraliBaslik,
@@ -1973,7 +1975,7 @@ function ServisKaydiBolumu({
       {k.sonuc && (
         <p style={{ whiteSpace: 'pre-wrap', margin: '0 0 8px' }}>{k.sonuc}</p>
       )}
-      <S k="Değişen Parça" v={kayitParcaYazisi(k.parcalar)} />
+      <S k="Değiştirilen Parça" v={kayitParcaYazisi(k.parcalar)} />
       <S k="Parçanın Durumu" v={k.parcaDurumu} />
       <S k="Gidilen Yol" v={k.km ? k.km + ' km' : ''} />
       <S k="İşçilik" v={k.iscilik ? paraYaz(k.iscilik) + ' ' + PARA_BIRIMI : ''} />

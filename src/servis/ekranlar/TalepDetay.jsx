@@ -6,7 +6,7 @@ import {
   talepNotEkle,
   talepPlanla,
 } from '../../backoffice/veri'
-import { ASAMA, KAPI, parcaYazisi } from '../../lib/servisKaydi'
+import { ASAMA, KAPI, parcaYazisiKodlu as parcaYazisi } from '../../lib/servisKaydi'
 import { bugunGirdi, ileriTarihMi } from '../../lib/tarih'
 import { makineDurumAdi } from '../../data/talepAlanlari'
 import { getProduct, MARKA, markaEk } from '../../marka'
@@ -494,7 +494,7 @@ export function TalepDetay({
       {kapali && talep.cozum && (
         <div className="kart" style={{ padding: 16 }}>
           <Satir ad="Yapılan İş" deger={talep.cozum.yapilanIs} />
-          <Satir ad="Değişen Parça" deger={talep.cozum.parcalar} />
+          <Satir ad="Değiştirilen Parça" deger={talep.cozum.parcalar} />
           <Satir ad="Ücret" deger={talep.cozum.ucret} />
           <Satir ad="Garanti Talebi" deger={talep.cozum.garantiNo} />
           <Satir ad="Sonuç" deger={talep.cozum.sonuc} />
@@ -654,7 +654,7 @@ function ServisKaydi({ talep }) {
       <Satir ad="Garanti Durumu" deger={KAPI[k.kapi]} />
       <Satir ad="Yapılan İş" deger={k.yapilanIs} />
       <Satir ad="Sonuç" deger={k.sonuc} />
-      <Satir ad="Değişen Parça" deger={parcaYazisi(k.parcalar)} />
+      <Satir ad="Değiştirilen Parça" deger={parcaYazisi(k.parcalar)} />
       <Satir ad="Parçanın Durumu" deger={k.parcaDurumu} />
       <Satir ad="Gidilen Yol" deger={k.km ? k.km + ' km' : ''} />
       <Satir

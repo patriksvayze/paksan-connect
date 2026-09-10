@@ -1,4 +1,7 @@
 import { exec } from 'node:child_process'
+import { createReadStream, existsSync, statSync } from 'node:fs'
+import { extname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -40,6 +43,54 @@ function tarayicidaAc(adres) {
   })
 }
 
+/* --------------------------------------------------------------------------
+   YEDEK PARÇA KATALOĞUNU GELİŞTİRME SUNUCUSUNDAN YAYINLA
+
+   Katalog uygulamanın içinde DEĞİL: 538 parça ve 2 MB görsel, ayrıca
+   fiyatlar değişiyor. Uygulama onu ağdan çağırıyor (bkz.
+   src/lib/parcaKatalogu.js). Sunucu henüz yok; geliştirme sırasında
+   onun yerini depodaki `sunucu-taklidi/` klasörü tutuyor.
+
+   `publicDir` KULLANILMADI ve sebebi tam da bu: Vite oradaki dosyaları
+   `dist/` içine KOPYALAR, yani katalog APK'ya girerdi. Bu ara katman
+   yalnızca geliştirme sunucusunda çalışıyor (`apply: 'serve'`);
+   derlemede hiçbir dosya kopyalanmıyor.
+
+   Böylece taklit gerçeğe benziyor: uygulama gerçek bir HTTP isteği
+   atıyor, yükleme göstergesi ve hata ekranı gerçekten çalışıyor.
+   -------------------------------------------------------------------------- */
+
+function katalogSun() {
+  const KOK = fileURLToPath(new URL('./sunucu-taklidi', import.meta.url))
+  const TURLER = {
+    '.json': 'application/json; charset=utf-8',
+    '.webp': 'image/webp',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+  }
+
+  return {
+    name: 'paksan-katalog-sun',
+    apply: 'serve',
+    configureServer(server) {
+      server.middlewares.use('/parca-katalogu', (istek, cevap, sonraki) => {
+        /* Adres çözümlemesi kök dışına çıkamıyor: `..` içeren bir
+           istek geliştirme makinesindeki başka dosyaları okuyabilirdi. */
+        const yol = decodeURIComponent((istek.url || '/').split('?')[0])
+        const tam = join(KOK, 'parca-katalogu', yol)
+        if (!tam.startsWith(join(KOK, 'parca-katalogu'))) return sonraki()
+        if (!existsSync(tam) || statSync(tam).isDirectory()) return sonraki()
+
+        const uzanti = extname(tam).toLowerCase()
+        cevap.setHeader('Content-Type', TURLER[uzanti] || 'application/octet-stream')
+        /* Görseller değişmiyor; tarayıcı ikinci kez indirmesin. */
+        cevap.setHeader('Cache-Control', uzanti === '.json' ? 'no-cache' : 'max-age=86400')
+        createReadStream(tam).pipe(cevap)
+      })
+    },
+  }
+}
+
 function ikiSekmeAc() {
   return {
     name: 'paksan-iki-sekme',
@@ -63,7 +114,7 @@ function ikiSekmeAc() {
 }
 
 export default defineConfig({
-  plugins: [react(), ikiSekmeAc()],
+  plugins: [react(), katalogSun(), ikiSekmeAc()],
   // Göreli yollar: Capacitor/Android WebView'da da aynı şekilde çalışır
   base: './',
   build: {
