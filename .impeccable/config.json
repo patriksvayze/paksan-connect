@@ -1,4 +1,5 @@
 {
+  "buildPath": "code",
   "detector": {
     "ignoreRules": [],
     "ignoreFiles": [],
@@ -7,40 +8,10 @@
         "rule": "side-tab",
         "value": "*",
         "files": [
-          "src/styles.css"
-        ],
-        "createdAt": "2026-09-03T06:41:57.299Z",
-        "reason": "Anlamsal renk kodlamasi, sus degil. styles.css:3866 yorumu durum renklerini (kirmizi iptal, mor teklif, turuncu randevu, yesil tamamlanan), 4816 yorumu ise guvenlik maddelerinin kullanim adimlariyla karismamasi icin turuncu serit kullanildigini yaziyor. Tarim makinesi uygulamasinda guvenlik uyarisinin siradan metinle karismasi gercek tehlike."
-      },
-      {
-        "rule": "side-tab",
-        "value": "*",
-        "files": [
           "src/backoffice/backoffice.css"
         ],
-        "createdAt": "2026-09-03T06:42:15.299Z",
-        "reason": "Alintilanan cevap blogu (.cevap) ve ayni kalibin ikinci kullanimi. E-posta alintisi gibi konvansiyonel gosterim, dekoratif vurgu degil."
-      },
-      {
-        "rule": "overused-font",
-        "value": "roboto",
-        "createdAt": "2026-09-03T06:42:22.677Z",
-        "reason": "PAKSAN marka yazi tipi, bu oturumdan onceki karar. src/backoffice/main.jsx yorumu: uygulama tarafi Roboto yukluyordu, backoffice yuklemiyordu, tarayici Segoe UI e dusuyordu; ayni marka ayni yazi tipi olmali. Sirketin marka karari denetleyici uyarisiyla degistirilmez."
-      },
-      {
-        "rule": "side-tab",
-        "value": "*",
-        "files": [
-          "src/backoffice/Backoffice.css"
-        ],
-        "createdAt": "2026-09-03T06:59:55.034Z",
-        "reason": "Ayni dosyanin buyuk harfli yazimi. Diskteki ad backoffice.css, denetleyici Backoffice.css diye bildiriyor ve kucuk harfli bastirma eslesmiyor. Bulgu 1862. satirdaki .cevap: alintilanan cevap blogu, e-posta alintisi gibi konvansiyonel gosterim."
-      },
-      {
-        "rule": "bounce-easing",
-        "value": "bounce",
-        "createdAt": "2026-09-04T15:03:01.549Z",
-        "reason": "Ad eslesmesi, yanlis pozitif. styles.css:2594 destek asistaninin yaziyor gostergesi (uc nokta). Ortada zipplayan bir yumusatma yok: animasyon `bounce 1.1s infinite`, zamanlama fonksiyonu belirtilmemis, yani varsayilan `ease`. Kare dizisi de 0 > -5px > 0, dinlenme noktasini hic asmiyor. Kural gercek elastik egrileri (cubic-bezier tasmali) hedefliyor; burada yalnizca animasyonun ADI bounce."
+        "createdAt": "2026-09-10T05:52:32.314Z",
+        "reason": "Claude: .cevap bir kart aksanı değil, iç içe cevap çizgisi. GeriBildirimler.jsx:83 — PAKSAN personelinin notları müşterinin görüşünün ALTINA yerleşiyor; soldaki 3px çizgi alıntı girintisi, notların üstteki kayda ait olduğunu gösteren tek işaret. Kaldırılırsa iç içelik kayboluyor."
       }
     ]
   }
