@@ -1,8 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { LOGO_DOSYASI as logo, SIRKET } from '../marka'
-/* Giriş şeridi Higgsfield ile üretildi, uygulamanın kendi görsel
-   diline referans verilerek (bkz. tools/gorsel-hazirla.mjs). */
-import girisGorseli from '../assets/gorseller/backoffice-giris.png'
+/* Giriş ekranının fotoğrafı: PAKSAN'ın kendi tarla çekimi (SÜPER
+   S8002 E). Önce Higgsfield ile üretilmiş bir çizim vardı — makineyi
+   temsil ediyordu ama firmanın makinesi değildi. Personelin her sabah
+   gördüğü ilk ekranda üretilmiş bir çizimin durması için sebep yok:
+   fotoğraf var.
+
+   Ölçekleme ve JPEG sıkıştırma tools/gorsel-hazirla.mjs ile yapıldı,
+   kaynağı tools/kaynak/backoffice-giris-girdi.jpg. Backoffice ayrı
+   derlendiği için (dist-backoffice/) bu dosya APK'ya girmiyor. */
+import girisGorseli from '../assets/gorseller/backoffice-giris.jpg'
 import {
   izinli, oturumGetir, oturumKapat, backofficeGiris, personelBaslat, personelGetir,
   rolBilgi, rolunTalepleri, sifreJetonuGecerli, sifreJetonuKullan, sifreTalebiOlustur,
@@ -493,11 +500,8 @@ function Giris({ onGiris }) {
   if (unuttum) return <SifreTalebi onKapat={() => setUnuttum(false)} />
 
   return (
-    <div className="giris">
+    <GirisSayfasi>
       <form className="giris__kart" onSubmit={gir}>
-        {/* Şerit kartın üstünde. Backoffice'in kendi resmi yoktu;
-            personel günde bir kez de olsa bu ekrandan geçiyor. */}
-        <img className="giris__serit" src={girisGorseli} alt="" />
         <img className="giris__logo" src={logo} alt={SIRKET.ad} />
         <div className="giris__baslik">Backoffice</div>
         <div className="giris__cizgi" />
@@ -542,6 +546,41 @@ function Giris({ onGiris }) {
           {SIRKET.ad} · Hesabınız yoksa yöneticinize başvurun.
         </div>
       </form>
+    </GirisSayfasi>
+  )
+}
+
+/* Giriş, şifre talebi ve şifre değiştirme ekranlarının ortak zemini.
+
+   FOTOĞRAF KARTIN İÇİNDE DEĞİL, SAYFANIN ÜSTÜNDE.
+
+   Önce kartın içinde bir şeritti ve 380 piksele sıkışıyordu. Eldeki
+   fotoğraf 1900x650 — bir kart şeridi için değil, sayfa başlığı için
+   çekilmiş bir oran. Şerit olarak kullanmak makineyi 130 piksele
+   indiriyordu.
+
+   Şimdi tam genişlikte duruyor, kart alt kenarına biniyor. Kartın
+   binmesi ikisini tek kompozisyon yapıyor; yan yana iki blok
+   olmalarını engelliyor.
+
+   Fotoğrafın altı lacivere eritiliyor: sayfanın geri kalanı zaten o
+   renk ve fotoğraf keskin bir çizgiyle bitmiyor. */
+function GirisSayfasi({ children }) {
+  /* Kaydırma çubuğu için ayrılan pay `body`nin dışında; oradaki açık
+     gri, koyu giriş ekranının sağında şerit gibi duruyordu. İşaret
+     duruyorken `html` de laciverde boyanıyor. */
+  useEffect(() => {
+    const kok = document.documentElement
+    kok.setAttribute('data-ekran', 'giris')
+    return () => kok.removeAttribute('data-ekran')
+  }, [])
+
+  return (
+    <div className="giris">
+      <div className="giris__manzara">
+        <img src={girisGorseli} alt="" />
+      </div>
+      {children}
     </div>
   )
 }
@@ -564,7 +603,7 @@ function SifreTalebi({ onKapat }) {
   }
 
   return (
-    <div className="giris">
+    <GirisSayfasi>
       <form className="giris__kart" onSubmit={gonder}>
         <img className="giris__logo" src={logo} alt={SIRKET.ad} />
         <div className="giris__baslik">Şifre Değiştirme</div>
@@ -611,7 +650,7 @@ function SifreTalebi({ onKapat }) {
           </>
         )}
       </form>
-    </div>
+    </GirisSayfasi>
   )
 }
 
@@ -640,7 +679,7 @@ function SifreDegistir({ jeton, onBitti }) {
   }
 
   return (
-    <div className="giris">
+    <GirisSayfasi>
       <form className="giris__kart" onSubmit={kaydet}>
         <img className="giris__logo" src={logo} alt={SIRKET.ad} />
         <div className="giris__baslik">Şifre Değiştirme</div>
@@ -699,6 +738,6 @@ function SifreDegistir({ jeton, onBitti }) {
           </>
         )}
       </form>
-    </div>
+    </GirisSayfasi>
   )
 }

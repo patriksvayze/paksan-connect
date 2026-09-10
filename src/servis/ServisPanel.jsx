@@ -93,6 +93,44 @@ export function ServisPanel() {
 
 /* ------------------------------------------------------------------ Giriş */
 
+/* Başlığın altındaki tek satır. Ekranın ne olduğunu değil, hesabın
+   nereden geldiğini söylüyor: servis kendi hesabını açmıyor. */
+const GIRIS_ALT = `Hesabınızı ${MARKA} açar. Giriş yaptığınızda bekleyen işlerinizi görürsünüz.`
+
+/* GİRİŞ EKRANI ARTIK PANEL AÇILIŞI DEĞİL, UYGULAMA AÇILIŞI.
+
+   Önce backoffice'in giriş kartını kullanıyordu: ekranın ortasında
+   yüzen, gölgeli, 380 piksellik bir kutu. Bilgisayarda doğru — orada
+   pencere büyük, kart onu toparlıyor. Telefonda aynı kutu, ekranın
+   ortasına yapıştırılmış bir web sayfası gibi duruyor: üstünde ve
+   altında ölü boşluk, kenarlarda kırpılmış bir çerçeve.
+
+   Şimdi ekranın kendisi giriş ekranı. Görsel tepede, kenarlara
+   dayanmış; içerik alttan yükselen bir kâğıtta ve o kâğıt ekranın
+   dibine kadar iniyor. Aynı üç şeyi soruyor, aynı yerden giriliyor;
+   değişen yalnız durduğu yüzey.
+
+   Şifre belirleme ekranı da buradan geçiyor: ikisi de oturum
+   açılmadan görülen ekranlar ve aynı yüzeyde durmaları gerekiyor. */
+function GirisEkrani({ baslik, aciklama, children }) {
+  return (
+    <div className="sgiris">
+      <div className="sgiris__tepe">
+        <img className="sgiris__resim" src={girisGorseli} alt="" />
+        {/* Marka işareti lacivert payın üstünde: kâğıtta başlıkla
+            logo alt alta iki kimlik oluyordu. */}
+        <Logo height={20} beyaz sadeceYazi className="sgiris__marka" />
+      </div>
+
+      <div className="sgiris__kagit">
+        <h1 className="sgiris__baslik">{baslik}</h1>
+        {aciklama ? <p className="sgiris__alt">{aciklama}</p> : null}
+        {children}
+      </div>
+    </div>
+  )
+}
+
 function Giris({ onGiris }) {
   /* Demo APK'sında alanlar dolu geliyor: hesabı uygulamanın kendisi
      açtı, kullanıcının bilmediği bir kullanıcı adını tahmin etmesi
@@ -120,16 +158,8 @@ function Giris({ onGiris }) {
   }
 
   return (
-    <div className="giris">
-      <form className="giris__kart" onSubmit={gir}>
-        {/* Şerit kartın en üstünde, tam genişlikte. Giriş ekranı
-            uygulamanın ilk izlenimi ve tek kimliği logo değil: servis
-            burada ne işi olduğunu da görüyor. */}
-        <img className="giris__serit" src={girisGorseli} alt="" />
-        <Logo height={26} style={{ marginBottom: 14 }} />
-        <div className="giris__baslik">Servis Girişi</div>
-        <div className="giris__cizgi" />
-
+    <GirisEkrani baslik="Servis Girişi" aciklama={GIRIS_ALT}>
+      <form onSubmit={gir}>
         <label className="alan">
           <span className="alan__ad">Kullanıcı Adı</span>
           <input
@@ -170,7 +200,11 @@ function Giris({ onGiris }) {
           </div>
         )}
 
-        <button className="dg dg--ana dg--blok" type="submit" disabled={bekliyor}>
+        <button
+          className="dg dg--ana dg--blok sgiris__gir"
+          type="submit"
+          disabled={bekliyor}
+        >
           {bekliyor ? 'Kontrol ediliyor…' : 'Gir'}
         </button>
 
@@ -182,7 +216,7 @@ function Giris({ onGiris }) {
             bırakıyor, PAKSAN arıyor. */}
         <button
           type="button"
-          className="giris__yardim"
+          className="sgiris__yardim"
           onClick={() => {
             servisSifreTalebiAc(kullanici)
             setHata('')
@@ -191,14 +225,14 @@ function Giris({ onGiris }) {
         >
           Şifremi Unuttum
         </button>
-
-        <p className="giris__dip">
-          {demo
-            ? `Demo sürümü · Kullanıcı adı ${DEMO_HESAP.kullanici} · Şifre ${DEMO_HESAP.sifre}`
-            : `${SIRKET.ad} · Hesabınız yoksa ${MARKA} yetkilinize başvurun.`}
-        </p>
       </form>
-    </div>
+
+      <p className="sgiris__dip">
+        {demo
+          ? `Demo sürümü · Kullanıcı adı ${DEMO_HESAP.kullanici} · Şifre ${DEMO_HESAP.sifre}`
+          : `${SIRKET.ad} · Hesabınız yoksa ${MARKA} yetkilinize başvurun.`}
+      </p>
+    </GirisEkrani>
   )
 }
 
@@ -223,16 +257,11 @@ function IlkSifre({ oturum, onBitti }) {
   }
 
   return (
-    <div className="giris">
-      <form className="giris__kart" onSubmit={kaydet}>
-        <Logo height={26} style={{ marginBottom: 14 }} />
-        <div className="giris__baslik">Şifrenizi Belirleyin</div>
-        <div className="giris__cizgi" />
-        <p className="kucuk sonuk" style={{ marginTop: 0 }}>
-          Hesabınız {MARKA} tarafından açıldı. Kendi şifrenizi belirleyin;
-          bundan sonra bu şifreyle gireceksiniz.
-        </p>
-
+    <GirisEkrani
+      baslik="Şifrenizi Belirleyin"
+      aciklama={`Hesabınız ${MARKA} tarafından açıldı. Kendi şifrenizi belirleyin; bundan sonra bu şifreyle gireceksiniz.`}
+    >
+      <form onSubmit={kaydet}>
         <label className="alan">
           <span className="alan__ad">Yeni Şifre</span>
           <input
@@ -259,9 +288,11 @@ function IlkSifre({ oturum, onBitti }) {
         </label>
 
         {hata && <div className="uyari">{hata}</div>}
-        <button className="dg dg--ana dg--blok" type="submit">Kaydet</button>
+        <button className="dg dg--ana dg--blok sgiris__gir" type="submit">
+          Kaydet
+        </button>
       </form>
-    </div>
+    </GirisEkrani>
   )
 }
 

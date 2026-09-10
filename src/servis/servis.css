@@ -1213,14 +1213,171 @@
   font-size: var(--yazi-3);
 }
 
-/* Giriş ekranı kabuğun dışında; ölçüler orada da geçerli. */
-.giris .dg,
-.giris .gir {
+/* ==========================================================================
+   Giriş ekranı — oturum açılmadan görülen tek yüzey
+
+   NEDEN BACKOFFICE'İN KARTI DEĞİL
+
+   Buradaki ekranlar bir dönem backoffice'in `.giris` kartını
+   kullanıyordu: sayfanın ortasında yüzen, gölgeli, 380 piksellik bir
+   kutu. Bilgisayarda doğru — pencere geniş, kart onu toparlıyor.
+   Telefonda aynı kutu ekranın ortasına yapıştırılmış bir web sayfası
+   gibi duruyordu: üstünde ve altında ölü boşluk, kenarlarda kırpılmış
+   bir çerçeve. Bu uygulama artık tarayıcıda açılan bir panel değil,
+   telefona kurulan bir uygulama; açılış ekranı da öyle olmalı.
+
+   Uygulama açılışının üç kuralı burada uygulandı:
+
+     · Görsel kenarlara dayanıyor. Kutunun içinde şerit değil, ekranın
+       kendi tepesi.
+     · İçerik alttan yükselen bir kâğıtta; kâğıt ekranın dibine kadar
+       iniyor. Altında lacivert bir kuşak kalsaydı yine kart olurdu.
+     · Ölçüler kabuğun içindekiyle aynı: 48 piksel dokunma hedefi,
+       16 piksel gövde. `.uyg` seçicisi burada geçmiyor, o yüzden
+       aynı kurallar `.sgiris` için tekrar yazılıyor.
+   ========================================================================== */
+
+.sgiris {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--lacivert);
+}
+
+/* Çentiğin payı lacivert kalıyor. `servis.html` içinde
+   `viewport-fit=cover` var; görsel oraya kadar çıkabilirdi ama
+   çentiğin arkasına giren bir çizim kırpılmış görünüyor. Tarayıcıda
+   bu değer sıfır, hiç görünmüyor. */
+/* Tepe: lacivert bir alan, çizim onun DİBİNE oturuyor.
+
+   ÇİZİMİN GÖĞÜ SAYDAM. `karsilama-tarla.png` de böyle: çizim yalnız
+   yer düzlemini taşıyor, ufkun üstünü arkadaki zemin dolduruyor
+   (bkz. tools/gok-say.mjs).
+
+   Denenen ve geri alınan iki yol var. Çizim tek başına, kendi
+   oranında durduğunda 390 piksellik telefonda yalnız 218 piksel yer
+   kaplıyor; ekranın kalanı forma göre fazla geliyor ve künyenin
+   üstünde 250 piksellik boşluk kalıyordu. Beyaz göğü gradyan perdeyle
+   laciverde eritmek de işe yaramadı: beyaz griye dönüp sis gibi
+   duruyordu.
+
+   Gök saydam olunca tepenin yüksekliğini lacivert belirliyor. Çizim
+   kırpılmıyor — `cover` ile yükseklik verilseydi atölyenin sol kenarı
+   ve makinenin çeki demiri kesiliyordu. */
+/* ARTAN YER LACİVERDE GİDİYOR, KÂĞIDA DEĞİL.
+
+   `flex: 1` tepede: form kadar kâğıt, kalanı lacivert. Sabit bir
+   yükseklik verildiğinde uzun telefonda formun altında beyaz bir
+   boşluk kalıyordu; kısa telefonda ise çizim yer bulamıyordu.
+   Çizim `justify-content: flex-end` ile hep dipte, ufuk çizgisi
+   kâğıdın üst kenarına sabit uzaklıkta duruyor. */
+.sgiris__tepe {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-top: env(safe-area-inset-top, 0px);
+  background: var(--lacivert);
+}
+
+/* Marka işareti lacivert payın üstünde. Koyu zeminde amblem beyaza
+   çevrilince düz bir lekeye dönüyor; kural gereği yalnız yazı
+   kullanılıyor (bkz. src/marka/logo.jsx). */
+.sgiris__marka {
+  position: absolute;
+  z-index: 1;
+  top: calc(env(safe-area-inset-top, 0px) + var(--bosluk-5));
+  left: var(--bosluk-5);
+}
+
+/* Görsel KIRPILMIYOR: kendi oranında (1400x781) tam genişlikte
+   duruyor. Sabit yüksekliğe `cover` ile oturtulsaydı dar ekranda
+   atölyenin sol kenarı ve makinenin çeki demiri kesiliyordu. */
+.sgiris__resim {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Alttan yükselen kâğıt. Görselin son 22 pikselini örtüyor: iki ayrı
+   blok değil, tek ekran. `flex: 1` dibe kadar indiriyor. */
+.sgiris__kagit {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  margin-top: -22px;
+  padding: var(--bosluk-5) var(--bosluk-5)
+    calc(var(--bosluk-5) + env(safe-area-inset-bottom, 0px));
+  border-radius: var(--r-3) var(--r-3) 0 0;
+  background: var(--yuzey);
+}
+
+.sgiris__baslik {
+  margin: 0;
+  font-size: var(--yazi-5);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--murekkep);
+}
+
+.sgiris__alt {
+  margin: var(--bosluk-2) 0 var(--bosluk-5);
+  font-size: var(--yazi-3);
+  line-height: 1.5;
+  color: var(--murekkep-2);
+}
+
+/* Alan ölçüleri kabuğun içindekiyle aynı; `.uyg` burada olmadığı
+   için tekrar yazılıyor. Zemin `--yuzey-2`: kâğıt beyaz olduğu için
+   beyaz kutunun kenarı güneşte kayboluyordu, alanın kendisi bir tık
+   koyu olunca çerçeveye bakmadan görülüyor. */
+.sgiris .alan {
+  display: block;
+  margin-bottom: var(--bosluk-4);
+}
+
+.sgiris .alan__ad {
+  display: block;
+  margin-bottom: 7px;
+  font-size: var(--yazi-2);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--murekkep);
+}
+
+.sgiris .gir {
+  width: 100%;
   min-height: var(--dokunma);
+  padding: 12px 16px;
+  border: 1px solid var(--cizgi-koyu);
+  border-radius: var(--r-2);
+  background: var(--yuzey-2);
+  color: var(--murekkep);
+  font-family: inherit;
+  font-size: var(--yazi-3);
+}
+
+.sgiris .gir:focus {
+  outline: 0;
+  border-color: var(--mavi-rz);
+  background: var(--yuzey);
+  box-shadow: 0 0 0 3px var(--mavi-soft-2);
+}
+
+.sgiris .dg {
+  min-height: var(--dokunma);
+  font-size: var(--yazi-3);
+}
+
+.sgiris__gir {
+  margin-top: var(--bosluk-5);
 }
 
 /* "Şifremi unuttum" — ikincil, ama kaybolmayacak kadar görünür. */
-.giris__yardim {
+.sgiris__yardim {
   display: block;
   width: 100%;
   min-height: var(--dokunma);
@@ -1228,9 +1385,42 @@
   background: transparent;
   border: 0;
   color: var(--mavi-rz);
-  font-size: var(--yazi-2);
+  font-size: var(--yazi-3);
   font-weight: 700;
   cursor: pointer;
+}
+
+/* Künye satırı ekranın dibine iniyor: `margin-top: auto`. Kâğıdın
+   içinde kalan boşluk formun altında birikmiyor, ince yazı da
+   olması gereken yerde — en altta — duruyor. */
+.sgiris__dip {
+  margin: var(--bosluk-6) 0 0;
+  padding-top: var(--bosluk-4);
+  /* margin kısayolundan sonra geliyor: aşağıdaki `margin-top: auto`
+     onu bilerek eziyor. */
+  border-top: 1px solid var(--cizgi);
+  font-size: var(--yazi-2);
+  line-height: 1.6;
+  color: var(--murekkep-3);
+  text-align: center;
+  /* Kâğıdın artan boşluğu formun altında birikmiyor; ince yazı
+     ekranın dibine iniyor. */
+  margin-top: auto;
+}
+
+/* Geniş ekran yalnız geliştirme içindir: uygulama telefona kuruluyor.
+   Yine de kırık görünmesin diye açılış telefon genişliğinde bir
+   sütunda ortalanıyor, iki yanında lacivert kalıyor. */
+@media (min-width: 640px) {
+  .sgiris {
+    align-items: center;
+  }
+
+  .sgiris__tepe,
+  .sgiris__kagit {
+    width: 100%;
+    max-width: 420px;
+  }
 }
 
 /* ------------------------------------------------------- Başlıktaki hesap

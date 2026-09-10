@@ -290,6 +290,22 @@ html {
   }
 }
 
+/* GİRİŞ EKRANINDA ÇUBUK PAYI AYRILMIYOR.
+
+   Yukarıdaki gerekçe ekranlar arasında geçiş yapılan panel için
+   geçerli: pay ayrılmazsa listeden listeye geçerken içerik yana
+   sıçrıyor. Giriş ekranı tek başına duruyor, geçilecek bir ekran yok.
+
+   Pay ayrılınca fotoğraf sağ kenara varamıyor ve yanında 15 piksellik
+   bir şerit kalıyordu. Burada pay kapatılıyor; çubuk gerçekten
+   gerektiğinde çıkıyor ve rengi de koyu zemine göre veriliyor.
+
+   İşaret React tarafından konuyor (bkz. GirisSayfasi). */
+html[data-ekran='giris'] {
+  scrollbar-gutter: auto;
+  scrollbar-color: #24406e #0e2044;
+}
+
 body {
   margin: 0;
   background: var(--zemin);
@@ -343,56 +359,111 @@ a {
    Uygulamayla aynı renk düzeni, iki ürünün aynı yere ait olduğunu
    söylüyor.
 
-   Görsel dosyası yok, gökyüzü CSS ile boyanıyor: giriş ekranı için
-   ayrıca bir dosya indirmeye değmez. */
+   ZEMİN ARTIK GÖKYÜZÜ TAKLİDİ DEĞİL.
+
+   Bir dönem tarla ve gün batımı CSS gradyanıyla boyanıyordu; ortada
+   fotoğraf yoktu ve "giriş ekranı için ayrıca dosya indirmeye
+   değmez" diye yazılmıştı. Artık firmanın kendi tarla fotoğrafı
+   sayfanın üstünde duruyor, gradyan da onun altında devam eden
+   lacivert oldu — taklit ettiği şey gerçekten ekranda.
+
+   Gradyanın dibindeki turuncu ışık KALDIRILDI. Gün batımını taklit
+   ederken anlamı vardı; fotoğraf yukarı gelince kaynağı olmayan bir
+   sıcak lekeye dönüştü. Sayfanın sıcaklığını artık fotoğraf taşıyor,
+   markanın turuncusu da kartın içindeki çizgide duruyor. */
 .giris {
   min-height: 100vh;
-  display: grid;
-  place-items: center;
-  background:
-    radial-gradient(
-      ellipse 70% 40% at 50% 104%,
-      rgba(232, 100, 26, 0.5) 0%,
-      rgba(232, 100, 26, 0) 62%
-    ),
-    linear-gradient(
-      180deg,
-      #060f21 0%,
-      #0d2148 46%,
-      #24365a 74%,
-      #4a3a45 92%,
-      #6b3f2c 100%
-    );
-  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* İlk durak, manzaranın bittiği yükseklikte perdenin son rengiyle
+     (#0b1c37) aynı kalıyor; yoksa perde bir tonda bitip sayfa başka
+     tonda başlıyor ve fotoğrafın altında ince bir dikiş görünüyor. */
+  background: linear-gradient(
+    180deg,
+    #0b1c37 0%,
+    #0b1c37 36%,
+    #0d2148 62%,
+    #16294d 100%
+  );
+  padding: 0 24px 28px;
 }
 
+/* Sayfanın üstündeki fotoğraf.
+
+   TAM GENİŞLİK. `.giris` yatay dolgusu var, manzara onun dışına
+   taşıyor: `align-self: stretch` ile içerik kutusunu dolduruyor,
+   negatif kenar boşluğu da dolgu kadarını geri alıyor.
+
+   `100vw` DENENDİ VE GERİ ALINDI: 100vw dikey kaydırma çubuğunu da
+   sayıyor, sayfa 15 piksel yana kayıyor ve sağda beyaz bir şerit
+   kalıyordu.
+
+   Yükseklik ekranın payına göre: 30vh, ama 180'in altına inmiyor ve
+   330'un üstüne çıkmıyor. Fotoğraf 1600x547 olduğu için hiç
+   büyütülmüyor, yalnız üstten ve alttan kırpılıyor.
+
+   30 ÖLÇÜLEREK SEÇİLDİ: 34vh'de 1280x720 ekranda sayfa 34 piksel
+   taşıyor ve giriş ekranı kaydırılır oluyordu. 30vh ile 720'de de
+   sığıyor, 1080'de fotoğraf yine 324 piksel.
+
+   `object-position` 50% 46%: makine karenin biraz altında duruyor,
+   ortadan kırpınca traktörün kabini kesiliyordu. */
+.giris__manzara {
+  position: relative;
+  align-self: stretch;
+  margin: 0 -24px;
+  height: clamp(180px, 30vh, 330px);
+  flex: none;
+  overflow: hidden;
+}
+
+.giris__manzara img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 46%;
+}
+
+/* Fotoğrafın iki ucundaki perde.
+
+   Üstte hafif bir koyulaştırma: gökyüzü ekranın en parlak yeri
+   oluyordu ve göz forma değil oraya gidiyordu. Altta lacivert
+   perdesi: fotoğraf keskin bir çizgiyle bitmiyor, sayfanın kendi
+   rengine eriyor. Bitiş rengi `.giris` gradyanının o yükseklikteki
+   değeri (#0b1c37) — perde bittiği yerde fark görünmüyor. */
+.giris__manzara::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(6, 15, 33, 0.46) 0%,
+    rgba(6, 15, 33, 0.08) 24%,
+    rgba(9, 24, 47, 0.06) 40%,
+    rgba(10, 26, 52, 0.42) 68%,
+    rgba(11, 28, 55, 0.88) 90%,
+    #0b1c37 100%
+  );
+}
+
+/* Kart fotoğrafın alt kenarına biniyor.
+
+   Binme olmasaydı üst üste duran iki blok olurlardı; 44 piksellik
+   örtüşme ikisini tek kompozisyon yapıyor ve kartı fotoğrafın önüne
+   çıkarıyor. Gölge de bu yüzden büyüdü: kartın fotoğraftan
+   ayrıldığının tek işareti o. */
 .giris__kart {
+  position: relative;
+  z-index: 1;
+  margin-top: -44px;
   background: var(--yuzey);
   border-radius: 16px;
-  padding: 34px 32px 26px;
+  padding: 30px 32px 26px;
   width: 100%;
   max-width: 380px;
-  box-shadow: var(--golge-2);
-}
-
-/* Giriş kartının üstündeki şerit.
-
-   Kartın kendi dolgusunun dışına taşıyor: negatif kenar boşluğuyla
-   kartın köşelerine kadar gidiyor, üst köşeleri kartınkiyle aynı
-   yuvarlaklıkta. Yoksa görselin çevresinde ince bir çerçeve kalıyor
-   ve kartın içine yapıştırılmış gibi duruyordu.
-
-   Çizimin zemini bilerek korundu (saydam yapılmadı): gökyüzü ve tarla
-   çizimin parçası. Koyu temada da aynı duruyor — bir fotoğraf gibi
-   okunuyor, arayüz yüzeyi gibi değil. */
-.giris__serit {
-  display: block;
-  width: calc(100% + 64px);
-  margin: -34px -32px 22px;
-  border-radius: 16px 16px 0 0;
-  aspect-ratio: 1400 / 640;
-  object-fit: cover;
-  object-position: center 62%;
+  box-shadow: 0 18px 44px rgba(3, 10, 24, 0.42), 0 2px 8px rgba(3, 10, 24, 0.3);
 }
 
 .giris__kart .alan {
