@@ -292,7 +292,7 @@ export const en = {
     iptalMetin: 'Reason: {neden}',
     teklifBaslik: '{no} · Your Quote Is Ready',
     teklifMetin: 'Quoted price: {tutar}. Tap your request for details.',
-    teklifMetinGecerlilik: 'Quoted price: {tutar} · Valid: {gecerlilik}',
+    teklifMetinGecerlilik: 'Quoted price: {tutar} · Valid: {gecerlilik}',
     odemeBaslik: '{no} · Payment Received',
     odemeMetin: 'Your receipt has been checked. Your parts are being prepared.',
     gonderildiBaslik: '{no} · Your Parts Are on the Way',
@@ -801,6 +801,12 @@ export const en = {
     hazirDegil: 'The assistant is getting ready. Please try again in a few minutes.',
     baglantiYok: 'Could not reach the assistant. Check your internet connection and try again.',
     hata: 'The answer could not be completed. Please try again.',
+
+    sohbetSelam: 'Hello! I am the {marka} support assistant. Type your question about your machine and I will answer from the operator manual.',
+    sohbetTesekkur: 'You are welcome. I am here if you have another question.',
+    sohbetVeda: 'Have a good day. Write to me whenever you have a question.',
+    sohbetKimlik: 'I am the {marka} support assistant. I answer questions about specifications, maintenance, settings and faults of {marka} machines using their operator manuals. For anything not covered in the manuals, you can create a service request.',
+    konuDisi: 'I cannot help with that. I only answer questions about {marka} machines (maintenance, settings, faults, specifications).',
 
     cozuldu: 'Problem Solved',
     cozulmedi: 'Still Happening',

@@ -368,7 +368,9 @@ export default function Support() {
             t={t}
           />
 
-          {mesajlar.length === 0 && (
+          {/* Örnek sorular açılışta; selam ya da "ne yapabilirsin" cevabından
+              sonra da çiftçi ne sorabileceğini görsün. */}
+          {(mesajlar.length === 0 || (sonBot && ['selam', 'kimlik'].includes(sonBot.durum))) && (
             <div className="chips chips--dikey">
               <div className="eyebrow">{t('destek.ornekBaslik')}</div>
               {ornekler.map((o) => (
@@ -504,6 +506,14 @@ function Balon({ mesaj, t, makine, children }) {
     hazir_degil: t('destek.hazirDegil'),
     baglanti: t('destek.baglantiYok'),
     hata: t('destek.hata'),
+    /* Sohbet: sunucu selamı, teşekkürü, vedayı, "sen kimsin" sorusunu ve
+       makineyle ilgisi olmayan soruları kılavuza ve modele göndermeden
+       ayırıyor (sohbet sunucusunda niyet.mjs). Cevap burada, sözlükte. */
+    selam: t('destek.sohbetSelam'),
+    tesekkur: t('destek.sohbetTesekkur'),
+    veda: t('destek.sohbetVeda'),
+    kimlik: t('destek.sohbetKimlik'),
+    konu_disi: t('destek.konuDisi'),
   }
   /* Model "cevaplandı" deyip hiçbir şey yazmadıysa boş baloncuk kalmasın. */
   const durumYazisi = !bitti

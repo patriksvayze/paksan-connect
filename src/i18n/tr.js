@@ -290,7 +290,7 @@ export const tr = {
     iptalMetin: 'Sebep: {neden}',
     teklifBaslik: '{no} · Teklifiniz Hazır',
     teklifMetin: 'Teklif tutarı: {tutar}. Ayrıntı için talebinize dokunun.',
-    teklifMetinGecerlilik: 'Teklif tutarı: {tutar} · Geçerlilik: {gecerlilik}',
+    teklifMetinGecerlilik: 'Teklif tutarı: {tutar} · Geçerlilik: {gecerlilik}',
     odemeBaslik: '{no} · Ödemeniz Alındı',
     odemeMetin: 'Dekontunuz kontrol edildi. Parçanız hazırlanıyor.',
     gonderildiBaslik: '{no} · Parçanız Yola Çıktı',
@@ -822,6 +822,13 @@ export const tr = {
     hazirDegil: 'Asistan şu an hazırlanıyor. Birkaç dakika sonra yeniden deneyin.',
     baglantiYok: 'Asistana ulaşılamadı. İnternet bağlantınızı kontrol edip yeniden deneyin.',
     hata: 'Cevap tamamlanamadı. Yeniden deneyin.',
+
+    /* ------------------------------------------------------ Sohbet */
+    sohbetSelam: 'Merhaba! Ben {marka} destek asistanıyım. Makinenizle ilgili sorunuzu yazın; kullanım kılavuzundan cevaplayayım.',
+    sohbetTesekkur: 'Rica ederim. Başka bir sorunuz olursa buradayım.',
+    sohbetVeda: 'İyi çalışmalar dilerim. Sorunuz olduğunda yazabilirsiniz.',
+    sohbetKimlik: 'Ben {marka} destek asistanıyım. {marka} makinelerinin kullanım kılavuzlarına bakarak teknik özellik, bakım, ayar ve arıza sorularına cevap veriyorum. Kılavuzda olmayan konularda servis talebi oluşturabilirsiniz.',
+    konuDisi: 'Bu konuda yardımcı olamıyorum. Yalnız {marka} makineleriyle ilgili sorulara (bakım, ayar, arıza, teknik özellikler) cevap veriyorum.',
 
     /* ------------------------------------------------------- Sonuç */
     cozuldu: 'Sorun Çözüldü',

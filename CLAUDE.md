@@ -228,6 +228,17 @@ Genel diff incelemesi için `/code-review` komutu kullanılır.
   kurallarıyla, Codex'in kaldığı yerden sürdürür. 15 Eylül'de
   zamanlanmış görev (`codex-devir-15-eylul`) kotayı kontrol edip işi
   Codex'e geri devreder; bu madde o zaman kaldırılır.
+- **SÜREKLİ GELİŞTİRME DÖNGÜSÜ (10 Eylül 2026, kullanıcının isteği):**
+  Destek asistanı tek tek iş verilip beklenmeden sürekli geliştirilir.
+  Kural `D:\paksan-rag\sohbet\GELISTIRME-DONGUSU.md`, iş listesi
+  `GELISTIRME-KUYRUGU.md`, sahip ve taban `dongu-durumu.json`. Zamanlanmış
+  görev `destek-gelistirme-dongusu` 5 dakikada bir yoklar; tur sürmüyorsa
+  hemen yenisini başlatır, çalışma durmaz (sahip
+  Codex iken Codex turunu başlatır ve doğrular). Bir işi bitirip "devam
+  edeyim mi?" diye durulmaz; sıradaki iş kuyruktan alınır. Kullanıcı
+  sohbette **"duraklat"** yazınca döngü hemen durdurulur
+  (`duraklatildi: true`, görev kapatılır, süren ölçüm durdurulur),
+  **"devam"** yazınca sürer.
 - Bunun dışında hiçbir iş Codex’e devredilmez.
 - **Rolün sınırı YOK: ekranda görünen her Türkçe kelime Codex'ten
   geçer.** Cümle, paragraf, hata metni, sekme adı, düğme yazısı, bölüm
