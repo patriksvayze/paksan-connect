@@ -32,9 +32,11 @@
 
 import sharp from 'sharp'
 import { readdirSync } from 'node:fs'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const KLASOR = 'C:/Users/Pc/Desktop/paksan/src/assets/urunler'
+// Proje klasörü sabit yazılmıyor: depo nereye taşınırsa taşınsın çalışsın.
+const KLASOR = join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'assets', 'urunler')
 
 function hsv(r, g, b) {
   const max = Math.max(r, g, b), min = Math.min(r, g, b)

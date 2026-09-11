@@ -92,7 +92,7 @@ sunucular cevap veriyor; canlıda PAKSAN'ın sunucusu verecek.
 
 | Ne | Uygulamadaki ayar | Bugün cevap veren | Sunucudan beklenen |
 |---|---|---|---|
-| Destek asistanı | `src/config.js` → `AI.kok` (`/destek-ai`) | `D:\paksan-rag\sohbet\sunucu.mjs` (127.0.0.1:8770); `npm run dev` açıkken aktarılıyor, kapalıysa kendiliğinden başlatılıyor | `GET <kok>/durum`, `POST <kok>/sohbet` (satır satır JSON akışı), `GET <kok>/kilavuz/<belge>` (PDF) |
+| Destek asistanı | `src/config.js` → `AI.kok` (`/destek-ai`) | `D:\PAKSAN\paksan-rag\sohbet\sunucu.mjs` (127.0.0.1:8770); `npm run dev` açıkken aktarılıyor, kapalıysa kendiliğinden başlatılıyor | `GET <kok>/durum`, `POST <kok>/sohbet` (satır satır JSON akışı), `GET <kok>/kilavuz/<belge>` (PDF) |
 | Yedek parça kataloğu | `src/config.js` → `PARCA_KATALOG.kok` (`/parca-katalogu`) | depodaki `sunucu-taklidi/` klasörü | `<kok>/katalog.json`, `<kok>/gorseller/<kod>.webp` |
 
 Canlıya çıkarken:
@@ -116,10 +116,10 @@ Canlıya çıkarken:
 
    Model bir süre kullanılmayınca bellekten düşer ve sonraki ilk soru
    uzun sürer. Canlı sunucuda model hep bellekte tutulmalı
-   (`PAKSAN_LLM_KEEP_ALIVE=-1`, bkz. `D:\paksan-rag\sohbet\llm.mjs`).
-4. Yeni kılavuz eklemek: PDF `D:\paksan-rag\kilavuzlar\` klasörüne,
+   (`PAKSAN_LLM_KEEP_ALIVE=-1`, bkz. `D:\PAKSAN\paksan-rag\sohbet\llm.mjs`).
+4. Yeni kılavuz eklemek: PDF `D:\PAKSAN\paksan-rag\kilavuzlar\` klasörüne,
    hangi ürüne ait olduğu `kilavuzlar.json` dosyasına yazılır, sonra
-   `node D:\paksan-rag\sohbet\kilavuz-ekle.mjs` çalıştırılır
+   `node D:\PAKSAN\paksan-rag\sohbet\kilavuz-ekle.mjs` çalıştırılır
    (ayrıntı: `kilavuzlar/BENIOKU.md`). Sunucu yeni indeksi kendisi
    yükler; uygulamada değişen bir şey olmaz.
 5. `PARCA_KATALOG.taklitGecikme` 0 yapılır.

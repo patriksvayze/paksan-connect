@@ -6,7 +6,7 @@
 
    Eski Destek ekranının dört güvenlik çizimi de buradaydı; ekranın
    gömülü rehberiyle birlikte 10 Eylül 2026'da uygulamadan çıkarıldı
-   (arşiv: D:\paksan-rag\arsiv\eski-destek-ekrani).
+   (arşiv: D:\PAKSAN\paksan-rag\arsiv\eski-destek-ekrani).
 
    NASIL ÜRETİLDİ
 

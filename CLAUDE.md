@@ -215,13 +215,13 @@ Genel diff incelemesi için `/code-review` komutu kullanılır.
 - **KALICI KURAL:** Codex’in bu projedeki rolü Türkçe metin yazımı ve dil doğruluk kontrolüdür.
 - **TEK İSTİSNA — DESTEK ASİSTANI (10 Eylül 2026, kullanıcının kararı).**
   Destek ekranının geliştirmesini Codex yürütür: sohbet sunucusu
-  (`D:\paksan-rag\sohbet\`), kılavuz arama ve dil modeli,
+  (`D:\PAKSAN\paksan-rag\sohbet\`), kılavuz arama ve dil modeli,
   `src/screens/Support.jsx` ve ona bağlı destek dosyaları. Model
   `gpt-6-astra`, efor `xhigh`. Claude bu işi kendisi ya da kendi alt
   ajanlarıyla YAPMAZ; yardım eder (tarayıcıda sınama, ölçüm, inceleme;
   commit ve APK Claude'da). İki taraf arasındaki haberleşmeyi Claude'un
   açtığı irtibat alt ajanı yürütür; her değişiklik ve her istek
-  `D:\paksan-rag\sohbet\ORTAK-DEFTER.md` dosyasına yazılır. Dosya
+  `D:\PAKSAN\paksan-rag\sohbet\ORTAK-DEFTER.md` dosyasına yazılır. Dosya
   sahipliği o defterde.
 - **GEÇİCİ (10–15 Eylül 2026):** Codex kotası dolduğu için kullanıcı
   destek işini 15 Eylül'e kadar Claude'a verdi. Claude aynı defter
@@ -230,7 +230,7 @@ Genel diff incelemesi için `/code-review` komutu kullanılır.
   Codex'e geri devreder; bu madde o zaman kaldırılır.
 - **SÜREKLİ GELİŞTİRME DÖNGÜSÜ (10 Eylül 2026, kullanıcının isteği):**
   Destek asistanı tek tek iş verilip beklenmeden sürekli geliştirilir.
-  Kural `D:\paksan-rag\sohbet\GELISTIRME-DONGUSU.md`, iş listesi
+  Kural `D:\PAKSAN\paksan-rag\sohbet\GELISTIRME-DONGUSU.md`, iş listesi
   `GELISTIRME-KUYRUGU.md`, sahip ve taban `dongu-durumu.json`. Zamanlanmış
   görev `destek-gelistirme-dongusu` 5 dakikada bir yoklar; tur sürmüyorsa
   hemen yenisini başlatır, çalışma durmaz (sahip

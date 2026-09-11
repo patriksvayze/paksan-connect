@@ -31,7 +31,7 @@
    BUGÜN SUNUCU YOK. Geliştirme sunucusu `/destek-ai` adresine gelen
    istekleri bu bilgisayardaki sohbet sunucusuna aktarıyor
    (bkz. vite.config.js → destekAsistaniSun; sunucu:
-   D:/paksan-rag/sohbet/sunucu.mjs). İstek gerçekten ağdan gidiyor.
+   D:/PAKSAN/paksan-rag/sohbet/sunucu.mjs). İstek gerçekten ağdan gidiyor.
 
    CANLIYA ÇIKARKEN `kok` alanına PAKSAN'ın sunucusundaki adres yazılacak.
    Sunucudan beklenen üç yol:

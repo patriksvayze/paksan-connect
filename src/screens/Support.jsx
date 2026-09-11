@@ -18,7 +18,7 @@ import {
    Burada bir dönem hazır bir arıza rehberi vardı: makine → bölüm →
    belirti → sebepler. İçeriği uygulamaya gömülü 81 kayıttı
    ve yalnız o soruları biliyordu. O veri 10 Eylül 2026'da uygulamadan
-   çıkarıldı (arşiv: D:\paksan-rag\arsiv\eski-destek-ekrani).
+   çıkarıldı (arşiv: D:\PAKSAN\paksan-rag\arsiv\eski-destek-ekrani).
    Hedef baştan beri PAKSAN'a özel bir asistandı; o ekran yerini
    tutuyordu.
 

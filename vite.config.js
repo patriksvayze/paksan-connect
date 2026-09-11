@@ -101,7 +101,7 @@ function katalogSun() {
    modeli uygulamanın içinde DEĞİL; canlıda PAKSAN'ın sunucusunda, bugün
    bu bilgisayardaki sohbet sunucusunda duruyor:
 
-       D:/paksan-rag/sohbet/sunucu.mjs   →   http://127.0.0.1:8770
+       D:/PAKSAN/paksan-rag/sohbet/sunucu.mjs   →   http://127.0.0.1:8770
 
    Bu ara katman istekleri oraya aktarıyor. Tarayıcı doğrudan 8770'e
    gitmiyor: adres uygulamanın kendi kökünde kalıyor ki canlıda
@@ -109,7 +109,7 @@ function katalogSun() {
 
    SUNUCU KAPALIYSA KENDİSİ BAŞLATIYOR. `npm run dev` açılınca 8770
    boşsa sohbet sunucusu arka planda başlıyor; günlüğü
-   D:/paksan-rag/uretim/sohbet-sunucusu.log. Açıksa dokunulmuyor.
+   D:/PAKSAN/paksan-rag/uretim/sohbet-sunucusu.log. Açıksa dokunulmuyor.
 
    Yalnız geliştirme sunucusunda (`apply: 'serve'`); derlemeye hiçbir
    şey girmiyor.
@@ -117,8 +117,8 @@ function katalogSun() {
 
 function destekAsistaniSun() {
   const HEDEF = { host: '127.0.0.1', port: Number(process.env.PAKSAN_SOHBET_PORT) || 8770 }
-  const DOSYA = process.env.PAKSAN_SOHBET_SUNUCU || 'D:/paksan-rag/sohbet/sunucu.mjs'
-  const GUNLUK = process.env.PAKSAN_SOHBET_GUNLUK || 'D:/paksan-rag/uretim/sohbet-sunucusu.log'
+  const DOSYA = process.env.PAKSAN_SOHBET_SUNUCU || 'D:/PAKSAN/paksan-rag/sohbet/sunucu.mjs'
+  const GUNLUK = process.env.PAKSAN_SOHBET_GUNLUK || 'D:/PAKSAN/paksan-rag/uretim/sohbet-sunucusu.log'
 
   const acikMi = () =>
     new Promise((coz) => {
