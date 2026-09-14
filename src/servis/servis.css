@@ -1216,369 +1216,455 @@
 }
 
 /* ==========================================================================
-   Giriş ekranı — oturum açılmadan görülen tek yüzey
+   Giriş ekranı — PAKSAN Connect karşılamasının kardeşi
 
-   NEDEN BACKOFFICE'İN KARTI DEĞİL
+   BACKOFFICE'TEN DEVŞİRME DEĞİL (14 Eylül 2026, kullanıcının kararı)
 
-   Buradaki ekranlar bir dönem backoffice'in `.giris` kartını
-   kullanıyordu: sayfanın ortasında yüzen, gölgeli, 380 piksellik bir
-   kutu. Bilgisayarda doğru — pencere geniş, kart onu toparlıyor.
-   Telefonda aynı kutu ekranın ortasına yapıştırılmış bir web sayfası
-   gibi duruyordu: üstünde ve altında ölü boşluk, kenarlarda kırpılmış
-   bir çerçeve. Bu uygulama artık tarayıcıda açılan bir panel değil,
-   telefona kurulan bir uygulama; açılış ekranı da öyle olmalı.
+   Bu ekran önce backoffice girişinin telefona uyarlanmış hâliydi:
+   tepede bir fotoğraf, laciverde eriyen bir geçiş, altında beyaz bir
+   form kutusu. Kullanıcı "backoffice karşılamasından devşirme gibi
+   duruyor; referans alınacaksa PAKSAN Connect karşılaması alınmalı"
+   dedi. Servisim, Connect'in kardeşi; backoffice'in değil.
 
-   Uygulama açılışının üç kuralı burada uygulandı:
+   Connect karşılamasından alınanlar (değerler src/styles.css'ten
+   ölçüldü, uydurulmadı):
+     · Fotoğraf kutuda değil, ekranın ARKASINDA. Üstünde karartma
+       perdesi, içerik doğrudan fotoğrafın üstünde; beyaz kutu yok.
+     · Marka bloğu: beyaz daire içinde 64 piksellik amblem, altında
+       50 piksellik beyaz yazı, arada 12 piksel (.safak__logo).
+     · Başlık 42 piksel, 400 kalınlık, harf aralığı -0,038em; üstünde
+       12 piksel, 700 kalınlık, 0,22em aralıklı küçük satır
+       (.giris__yanindayiz, .giris__ustsatir).
+     · Ana düğme turuncu, 60 piksel, köşe 18, turuncu gölge; yanında
+       ok simgesi (.btn--orange.btn--lg).
+     · Dipte %66 beyaz, 12 piksellik silik satır (.giris__surum).
 
-     · Görsel kenarlara dayanıyor. Kutunun içinde şerit değil, ekranın
-       kendi tepesi.
-     · İçerik alttan yükselen bir kâğıtta; kâğıt ekranın dibine kadar
-       iniyor. Altında lacivert bir kuşak kalsaydı yine kart olurdu.
-     · Ölçüler kabuğun içindekiyle aynı: 48 piksel dokunma hedefi,
-       16 piksel gövde. `.uyg` seçicisi burada geçmiyor, o yüzden
-       aynı kurallar `.sgiris` için tekrar yazılıyor.
+   Connect'ten AYRILAN tek şey: form da bu ekranda. Connect'in
+   karşılaması bir kere görülen bir kapı, giriş ayrı ekranda. Servis
+   elemanı ise uygulamayı her açışta şifre giriyor; araya bir "Giriş
+   Yap" dokunuşu daha koymak her gün tekrarlanan boş bir iş olurdu.
+   Alanlar bu yüzden fotoğrafın koyu kısmında, Connect'in koyu zemin
+   düğmesiyle aynı dilde yarı saydam camdan.
+
+   KAYMA YOK. Önceki düzende fotoğraf en az 360 piksel yer tutan bir
+   bloktu ve formun üstüne diziliyordu; ikisinin toplamı telefonun
+   görünür yüksekliğini aşıyor, ekran kayıyordu. Artık fotoğraf arka
+   planda ve yer kaplamıyor; ekranın boyu yalnız içerikten geliyor.
+   Klavye açılıp yer gerçekten bitmedikçe sayfa kaymıyor.
+
+   Ekran temadan bağımsız: Connect karşılaması gibi hep koyu. Renkler
+   bu yüzden token'dan değil sabit.
    ========================================================================== */
 
 .sgiris {
+  position: relative;
+  isolation: isolate;
+  color-scheme: dark;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background: var(--lacivert);
-}
-
-/* TEPE: FOTOĞRAF, BAŞLIK VE LACİVERT TEK YÜZEY.
-
-   14 Eylül 2026'da kullanıcı açılışı "sonradan konmuş, oraya ait
-   değilmiş gibi, kalitesiz ve ucuz" buldu. Sebepleri tek tek:
-
-     · Ekran iki bloktu: üstte bir resim, altta beyaz bir kart; araları
-       keskin bir çizgi. Kartın 22 piksellik bindirmesi o çizgiyi
-       saklamaya yetmiyordu.
-     · Logonun okunsun diye tepeye konan düz lacivert şerit, güneşli
-       gökyüzünün üstünde çamurlu bir griye dönüyordu.
-     · Logo köşede küçücüktü; başlık beyaz kartın içindeydi, fotoğrafla
-       hiçbir teması yoktu.
-     · Fotoğraf öğle ışığında düz bir stok çekimdi, arayüzün laciverdiyle
-       bir bağı yoktu.
-
-   Benzer uygulamalara bakıldı (Spotify, Nike, Strava, AllTrails'in
-   karşılamaları): fotoğraf, üstündeki yazının ve formun durduğu rengin
-   ta kendisine eriyor, resmin nerede bittiği görülmüyor. Burada da öyle:
-
-     · Fotoğraf yumuşak bir geçişle `--lacivert`e iniyor (::after).
-       Geçiş düz değil, yavaşlayan duraklı: düz iki duraklı geçiş
-       ortasında bant yapıyor ve Android'de basamaklanıyor.
-     · Başlık geçişin koyu kısmında, beyaz. Yeni metin yazılmadı, var
-       olan başlık kâğıttan buraya taşındı. Altındaki açıklama satırı
-       kullanıcının isteğiyle kaldırıldı (bkz. ServisPanel.jsx → Giris).
-     · Kâğıt fotoğrafın değil düz laciverdin üstünden başlıyor.
-     · Görselin koyu tonları dosyanın kendisinde laciverde çekildi,
-       tarlanın doygunluğu indirildi, turuncu gövdeye dokunulmadı.
-       CSS filtresiyle yapılsaydı makinenin turuncusu da solardı.
-
-   Geçişin rengi bir maske ile veriliyor, renk karışımıyla değil: katman
-   `--lacivert` ile boyanıp saydamlığı maskeden geliyor. Böylece koyu
-   temada laciverdin tonu değişince geçiş de onunla değişiyor ve eski
-   Android WebView'larda bulunmayan `color-mix` gerekmiyor.
-
-   ARTAN YER HÂLÂ TEPEYE GİDİYOR. `flex: 1`: form kadar kâğıt, kalanı
-   fotoğraf. Alt sınır 360 piksel: altında makine ile başlık üst üste
-   biniyor. Kısa ekranda (360x640) sayfa kayıyor; kök `min-height:
-   100dvh`, sabit yükseklik değil. */
-.sgiris__tepe {
-  position: relative;
-  isolation: isolate;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  min-height: 360px;
-  padding: calc(env(safe-area-inset-top, 0px) + var(--bosluk-7)) var(--bosluk-5) var(--bosluk-5);
   overflow: hidden;
-  background: var(--lacivert);
-}
-
-/* ÜST PERDE: yalnız logo ve durum çubuğu için, çok hafif.
-
-   Görselin gökyüzü zaten koyu mavi-gri; eski düz şerit gibi bir kuşak
-   gerekmiyor. Lacivert yukarıdan 160 pikselde %60'tan sıfıra iniyor.
-
-   Önce 120 piksel ve %45'ti. QA turu 360x640'ta beyaz logonun alt
-   kenarını gökyüzündeki açık bir bulut şeridinin üstünde 2,85:1 ölçtü
-   (büyük grafik için gereken 3:1). Perde logonun tamamını örtecek
-   kadar uzadı ve koyulaştı; görsel de biraz aşağı kaydı, logo daha
-   koyu göğe düştü (bkz. .sgiris__resim).
-
-   Düzeltmeden sonra ölçüldü (logo kutusunun tamamındaki en açık zemin
-   pikseli, perdeler bindirilerek; harf araları da sayıldığı için
-   gerçek değer bundan iyi): 360x640 3,99 · 390x844 4,68 · 430x932
-   5,86. Başlık aynı yöntemle 10,55 / 11,03 / 13,1. */
-.sgiris__tepe::before {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  inset: 0 0 auto;
-  height: 160px;
-  background: var(--lacivert);
-  -webkit-mask-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.3) 50%, transparent);
-  mask-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.3) 50%, transparent);
-  pointer-events: none;
-}
-
-/* ALT ERİME: fotoğraf laciverde iniyor.
-
-   Tepenin alt %42'sini kaplıyor; makine ve teknisyen üst bölümde,
-   geçişin başladığı yerin üstünde kalıyor. Duraklar yavaşlayan bir
-   eğriden (0 → %7,5 → %38 → %74 → tam); en altta başlığın durduğu
-   yer düz lacivert. */
-.sgiris__tepe::after {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  inset: auto 0 0;
-  height: 42%;
-  background: var(--lacivert);
-  -webkit-mask-image: linear-gradient(
-    rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 0.075) 20%,
-    rgba(0, 0, 0, 0.38) 42%,
-    rgba(0, 0, 0, 0.74) 64%,
-    #000 86%
-  );
-  mask-image: linear-gradient(
-    rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 0.075) 20%,
-    rgba(0, 0, 0, 0.38) 42%,
-    rgba(0, 0, 0, 0.74) 64%,
-    #000 86%
-  );
-  pointer-events: none;
-}
-
-/* Marka işareti tepede, hafif perdenin üstünde. Koyu zeminde amblem
-   beyaza çevrilince düz bir lekeye dönüyor; kural gereği yalnız yazı
-   kullanılıyor (bkz. src/marka/logo.jsx).
-
-   Boy 50 piksel, PAKSAN Connect karşılamasındakiyle aynı; 20 pikselken
-   kullanıcı çok küçük buldu. Üst pay 16: yazının SVG'sinde harflerin
-   üstünde yaklaşık %15 boşluk var, harfler böylece soldaki 24
-   piksellik kenarla aynı hizaya iniyor. */
-.sgiris__marka {
-  position: absolute;
-  top: calc(env(safe-area-inset-top, 0px) + var(--bosluk-4));
-  left: var(--bosluk-5);
+  background: #080e1a;
+  color: #fff;
 }
 
 /* GÖRSEL: PAKSAN ORKINOS 1270 BAŞINDA SERVİS TEKNİSYENİ.
 
-   Görsel dikey 3:4 (1200x1607). Makine ve teknisyen yüksekliğin
-   %31-67'si arasında, üstü şafak göğü, altı odak dışı anız. Kırpma
-   dikeyde %58'den: artan yüksekliğin bir kısmı göğün tepesinden, bir
-   kısmı önplandaki anızdan gidiyor. Denenenler:
-     · %30 — 390x844'te başlık teknisyenin üstüne biniyordu.
-     · %100 — makine yukarı kaçıp büyüyen logoya değiyordu.
-     · %70 — logo, gökyüzündeki açık bulut şeridinin üstüne düşüyordu
-       (360x640'ta 2,85:1) ve makinenin korkuluğuna 11 piksel kalıyordu.
-   %58'de korkuluk logonun yaklaşık 28 piksel altında, logo daha koyu
-   gökte, takım çantası başlığın 50 pikselden fazla üstünde. */
+   Genişliği ekran kadar, yüksekliği kendi oranından. Dikey yeri
+   ServisPanel.jsx ölçüyor (--resim-ust): makine ve takım çantası
+   (görsel yüksekliğinin %30-68'i) marka bloğunun altı ile başlığın
+   üstü arasındaki boşluğun ortasına getiriliyor. Görselin üst ve alt
+   kenarı zemine eriyor; fotoğrafın nerede bittiği görülmüyor. */
 .sgiris__resim {
   position: absolute;
   z-index: -2;
-  inset: 0;
+  left: 0;
+  top: var(--resim-ust, 0px);
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 50% 58%;
+  height: auto;
+  -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 74%, transparent);
+  mask-image: linear-gradient(transparent, #000 14%, #000 74%, transparent);
+  pointer-events: none;
 }
 
-/* Başlık alanı: geçişin koyu kısmında, formla aynı sol kenarda. */
-.sgiris__baslikalani {
-  position: relative;
+/* PERDE: Connect'teki gibi tepe ve dip koyu, makinenin durduğu yer açık.
+
+   Duraklar sabit yüzde değil, ölçülen iki çizgiye bağlı (--perde-ust:
+   marka bloğunun altı, --perde-alt: başlığın üstü). Yüzdeyle yazılsaydı
+   kısa telefonda makinenin üstü kararır, uzun telefonda başlık açık
+   zemine düşerdi. Ölçüm gelmeden önceki ilk karede 390x844'e göre
+   varsayılan değerler duruyor. Duraklardan biri öncekinin gerisine
+   düşerse tarayıcı onu öncekine eşitliyor, geçiş bozulmuyor. */
+.sgiris__perde {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(
+    rgba(8, 14, 26, 0.6) 0px,
+    rgba(8, 14, 26, 0.3) calc(var(--perde-ust, 160px) - 40px),
+    rgba(8, 14, 26, 0) calc(var(--perde-ust, 160px) + 20px),
+    rgba(8, 14, 26, 0) calc(var(--perde-alt, 380px) - 130px),
+    rgba(8, 14, 26, 0.6) calc(var(--perde-alt, 380px) - 10px),
+    rgba(8, 14, 26, 0.84) calc(var(--perde-alt, 380px) + 110px),
+    rgba(8, 14, 26, 0.9) 100%
+  );
+  pointer-events: none;
 }
 
-/* Alttan yükselen kâğıt. Düz laciverdin üstünden başlıyor; köşeleri
-   laciverde açılıyor, fotoğrafa değil. `flex: none`: yüksekliği formun
-   kendisi kadar. */
-.sgiris__kagit {
+.sgiris__ic {
   position: relative;
-  z-index: 1;
-  flex: none;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  padding: var(--bosluk-5) var(--bosluk-5)
-    calc(var(--bosluk-5) + env(safe-area-inset-bottom, 0px));
-  border-radius: var(--r-3) var(--r-3) 0 0;
-  background: var(--yuzey);
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: calc(env(safe-area-inset-top, 0px) + 32px) 24px
+    calc(env(safe-area-inset-bottom, 0px) + 24px);
 }
 
-/* Kalınlık 700. 800 yazılıydı ama uygulama Roboto'yu yalnız 400, 500,
-   700 ve 900 olarak yüklüyor (src/servis/main.jsx); tarayıcı 900'ü
-   çiziyordu ve kalın büyük "PAKSAN" üstteki logoyla ikinci bir logo
-   gibi yarışıyordu. */
+/* Marka bloğu — Connect'teki .safak__logo ile aynı: amblem beyaz
+   dairede (çok renkli kalkan koyu zeminde beyaza çevrilince düz bir
+   lekeye dönüyor), yazı altında. */
+.sgiris__marka {
+  display: grid;
+  place-items: center;
+  gap: 12px;
+}
+
+.sgiris__amblem,
+.sgiris__yazi {
+  display: block;
+}
+
+/* Makinenin göründüğü pencere. Artan yer buraya gidiyor. */
+.sgiris__bosluk {
+  flex: 1;
+  min-height: 16px;
+}
+
+.sgiris__ustsatir {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  color: rgba(255, 255, 255, 0.9);
+}
+
 .sgiris__baslik {
   margin: 0;
-  font-size: var(--yazi-5);
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-size: 42px;
+  font-weight: 400;
+  letter-spacing: -0.038em;
+  line-height: 1.08;
   color: #fff;
 }
 
 .sgiris__alt {
-  margin: var(--bosluk-2) 0 0;
+  margin: 12px 0 0;
   max-width: 36ch;
-  font-size: var(--yazi-3);
+  font-size: 16px;
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.86);
 }
 
-/* AÇILIŞ HAREKETİ, KISA.
+.sgiris form {
+  margin-top: 24px;
+}
 
-   Fotoğraf laciverdin içinden belirip çok az yaklaşıyor; başlık ve
-   kâğıt kısa bir süzülmeyle yerine oturuyor. Form yarım saniyede
-   kullanılır hâlde: servis elemanı her açılışta bunu görüyor, hareket
-   onu bekletmemeli. Hareketi azaltmış telefonda hiç oynamıyor. */
+.sgiris .alan {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.sgiris .alan__ad {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+/* Cam alan: Connect'in koyu zemin düğmesiyle (.btn--on-dark, %16 beyaz)
+   aynı aile. Kenar çizgisi alanı güneşte de belli ediyor; odakta
+   çizgi beyazlaşıyor, çevresine halka geliyor. Çizgi %50 beyaz: camın
+   dolgusu zeminden ancak 1,36:1 ayrışıyor, alanı belli eden çizgi;
+   %28'de QA turu 2,44:1 ölçtü (bileşen sınırı 3:1). */
+.sgiris .gir {
+  width: 100%;
+  min-height: 56px;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.12);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: #fff;
+  caret-color: #fff;
+  font-family: inherit;
+  font-size: 17px;
+}
+
+.sgiris .gir::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.sgiris .gir:focus {
+  outline: 0;
+  border-color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18);
+}
+
+/* Tarayıcının kendi doldurma rengi (sarı/açık mavi) camı bozup beyaz
+   yazıyı okunmaz yapıyordu; koyu zemin içeriden boyanıyor. */
+.sgiris .gir:-webkit-autofill {
+  -webkit-text-fill-color: #fff;
+  box-shadow: inset 0 0 0 1000px rgba(28, 36, 52, 0.96);
+  transition: background-color 9999s;
+}
+
+/* "Beni Hatırla" ile "Şifremi Unuttum" aynı satırda: ikisi de şifreye
+   ait; ayrı satırlarda form 56 piksel uzuyordu. */
+.sgiris__satir {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 4px 0 16px;
+}
+
+.sgiris__hatirla {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.92);
+  cursor: pointer;
+}
+
+/* Tarayıcının kutusu koyu zeminde ince gri bir çerçeve olarak
+   kayboluyordu. İşaretlenince turuncu — uygulamanın "seçili" rengi. */
+.sgiris__hatirla input {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  border: 2px solid rgba(255, 255, 255, 0.75);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.08) center / 16px no-repeat;
+  cursor: pointer;
+}
+
+.sgiris__hatirla input:checked {
+  border-color: var(--marka-turuncu-dugme);
+  background-color: var(--marka-turuncu-dugme);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8.5l3 3 7-7' fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+.sgiris__hatirla input:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* Bağlantı olduğu altı çizgiyle belli: gizli etkileşim yok. */
+.sgiris__yardim {
+  min-height: 48px;
+  padding: 0 4px;
+  margin-right: -4px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.45);
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+
+/* Connect'in turuncu düğmesi (.btn--orange.btn--lg). */
+.sgiris__gir {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 60px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--marka-turuncu-dugme);
+  box-shadow: 0 6px 18px rgba(199, 73, 10, 0.28);
+  color: #fff;
+  font-family: inherit;
+  font-size: 17.5px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  cursor: pointer;
+  transition: transform 0.13s ease, filter 0.13s ease;
+}
+
+.sgiris__gir:active {
+  transform: scale(0.975);
+  filter: brightness(0.94);
+}
+
+.sgiris__gir:disabled {
+  opacity: 0.6;
+  transform: none;
+  filter: none;
+}
+
+.sgiris__gir:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+/* HATA VE "PAKSAN SİZİ ARAYACAK" KUTULARI KOYU ZEMİNE GÖRE.
+
+   İkisi de uygulamanın ortak kutuları ve renklerini temanın açık
+   token'larından alıyor; bu ekran ise temadan bağımsız, hep koyu.
+   QA turu ölçtü: mavi notun başlığı beyaz zemine beyaz yazılıyordu
+   (1,00:1, hiç görünmüyordu), hata kutusu 3,01:1'de kalıyordu. Burada
+   ikisi de camın dilinde, sabit renkle. */
+.sgiris .uyari,
+.sgiris .not {
+  margin: 0 0 16px;
+}
+
+.sgiris .uyari {
+  border: 1px solid rgba(255, 150, 105, 0.5);
+  background: rgba(225, 96, 37, 0.18);
+  color: #ffdccb;
+}
+
+.sgiris .uyari b {
+  color: #fff;
+}
+
+.sgiris .not {
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.1);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: #fff;
+}
+
+.sgiris .not p {
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.sgiris .not--mavi {
+  border-left: 4px solid #8fb2ff;
+}
+
+.sgiris .not--mavi > svg {
+  color: #a9c4ff;
+}
+
+/* Dipteki silik satır — Connect'teki sürüm satırıyla aynı. */
+.sgiris__dip {
+  margin: 16px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.66);
+}
+
+/* KISA TELEFON. Connect de 720 pikselin altında sıkılaşıyor. Çoğu
+   telefonda uygulamanın görünür yüksekliği (durum ve alt çubuk
+   düşünce) 700-800 piksel; bu aralıkta amblem yazının üstünden
+   soluna geçiyor ve marka bloğu 126 pikselden 64'e iniyor, başlık da
+   küçülüyor. Makinenin penceresi o kadar büyüyor, amblem de kalıyor.
+   680'in altında yalnız yazılı logo kalıyor. */
+@media (max-height: 800px) {
+  .sgiris__marka {
+    grid-auto-flow: column;
+    justify-content: center;
+  }
+
+  .sgiris__ic {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 24px);
+  }
+
+  .sgiris__baslik {
+    font-size: 36px;
+  }
+}
+
+@media (max-height: 680px) {
+  .sgiris__amblem {
+    display: none;
+  }
+
+  .sgiris__yazi svg {
+    width: auto;
+    height: 40px;
+  }
+
+  .sgiris form {
+    margin-top: 16px;
+  }
+
+  .sgiris__satir {
+    margin-bottom: 8px;
+  }
+}
+
+/* Geniş ekran yalnız geliştirme içindir: uygulama telefona kuruluyor.
+   Görsel telefon genişliğinde bir sütunda, iki yan koyu. */
+@media (min-width: 640px) {
+  .sgiris {
+    max-width: 420px;
+    margin: 0 auto;
+    box-shadow: 0 0 0 100vmax #080e1a;
+    clip-path: inset(0 -100vmax);
+  }
+}
+
+/* AÇILIŞ HAREKETİ, KISA. Connect'teki gibi fotoğraf karanlıktan
+   beliriyor, amblem ve yazı ayrı ayrı yükseliyor; ama bir saniyede
+   bitiyor: Connect'in karşılaması oturumda bir kez, bu ekran her gün
+   açılıyor. Hareketi azaltmış telefonda hiç oynamıyor. */
 @media (prefers-reduced-motion: no-preference) {
   .sgiris__resim {
-    animation: sgiris-foto 2.2s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation: sgiris-foto 1.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
   }
 
-  .sgiris__baslikalani {
-    animation: sgiris-suz 0.6s 0.15s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  .sgiris__amblem {
+    animation: sgiris-yuksel 0.9s cubic-bezier(0.22, 0.7, 0.3, 1) 0.1s both;
   }
 
-  .sgiris__kagit {
-    animation: sgiris-kagit 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  .sgiris__yazi {
+    animation: sgiris-yuksel 0.9s cubic-bezier(0.22, 0.7, 0.3, 1) 0.3s both;
+  }
+
+  .sgiris__baslikalani,
+  .sgiris form,
+  .sgiris__dip {
+    animation: sgiris-suz 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.35s both;
   }
 }
 
 @keyframes sgiris-foto {
-  from { opacity: 0; transform: scale(1.06); }
-  35%  { opacity: 1; }
+  from { opacity: 0; transform: scale(1.05); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes sgiris-yuksel {
+  from { opacity: 0; transform: translateY(24px); }
   to   { opacity: 1; transform: none; }
 }
 
 @keyframes sgiris-suz {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: none; }
-}
-
-@keyframes sgiris-kagit {
-  from { transform: translateY(24px); }
-  to   { transform: none; }
-}
-
-/* Alan ölçüleri kabuğun içindekiyle aynı; `.uyg` burada olmadığı
-   için tekrar yazılıyor. Zemin `--yuzey-2`: kâğıt beyaz olduğu için
-   beyaz kutunun kenarı güneşte kayboluyordu, alanın kendisi bir tık
-   koyu olunca çerçeveye bakmadan görülüyor. */
-.sgiris .alan {
-  display: block;
-  margin-bottom: var(--bosluk-4);
-}
-
-.sgiris .alan__ad {
-  display: block;
-  margin-bottom: 7px;
-  font-size: var(--yazi-2);
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--murekkep);
-}
-
-.sgiris .gir {
-  width: 100%;
-  min-height: var(--dokunma);
-  padding: 12px 16px;
-  border: 1px solid var(--cizgi-koyu);
-  border-radius: var(--r-2);
-  background: var(--yuzey-2);
-  color: var(--murekkep);
-  font-family: inherit;
-  font-size: var(--yazi-3);
-}
-
-.sgiris .gir:focus {
-  outline: 0;
-  border-color: var(--mavi-rz);
-  background: var(--yuzey);
-  box-shadow: 0 0 0 3px var(--mavi-soft-2);
-}
-
-.sgiris .dg {
-  min-height: var(--dokunma);
-  font-size: var(--yazi-3);
-}
-
-.sgiris__gir {
-  margin-top: var(--bosluk-5);
-}
-
-/* ANA DÜĞME TURUNCU — uygulamanın içindeki her ana düğme gibi.
-
-   Lacivertti; bilerek değil: `.uyg .dg--ana` kuralı giriş ekranına
-   ulaşmıyordu ve düğme backoffice'in rengine düşüyordu. Ekran lacivert
-   şerit, beyaz kâğıt, lacivert düğme diye üç soğuk katmana bölünüyor,
-   görseldeki makinenin turuncusu ekranda tek başına kalıyordu. Değerler
-   `.uyg .dg--ana` ile aynı (köşe 18, turuncu gölge); bu dosya
-   backoffice.css'ten sonra yüklendiği için dokunmatik ekranda
-   backoffice'in `:hover` rengi de düğmede takılı kalmıyor. */
-.sgiris .dg--ana {
-  background: var(--turuncu-dugme);
-  color: #fff;
-  border-radius: 18px;
-  box-shadow: var(--sh-turuncu);
-}
-
-.sgiris .dg:active {
-  transform: scale(0.975);
-  filter: brightness(0.94);
-}
-
-/* "Şifremi unuttum" — ikincil, ama kaybolmayacak kadar görünür. */
-.sgiris__yardim {
-  display: block;
-  width: 100%;
-  min-height: var(--dokunma);
-  margin-top: var(--bosluk-2);
-  background: transparent;
-  border: 0;
-  color: var(--mavi-rz);
-  font-size: var(--yazi-3);
-  font-weight: 700;
-  cursor: pointer;
-}
-
-/* Künye satırı ekranın dibine iniyor: `margin-top: auto`. Kâğıdın
-   içinde kalan boşluk formun altında birikmiyor, ince yazı da
-   olması gereken yerde — en altta — duruyor. */
-.sgiris__dip {
-  margin: var(--bosluk-6) 0 0;
-  padding-top: var(--bosluk-4);
-  /* margin kısayolundan sonra geliyor: aşağıdaki `margin-top: auto`
-     onu bilerek eziyor. */
-  border-top: 1px solid var(--cizgi);
-  font-size: var(--yazi-2);
-  line-height: 1.6;
-  color: var(--murekkep-3);
-  text-align: center;
-  /* Kâğıdın artan boşluğu formun altında birikmiyor; ince yazı
-     ekranın dibine iniyor. */
-  margin-top: auto;
-}
-
-/* Geniş ekran yalnız geliştirme içindir: uygulama telefona kuruluyor.
-   Yine de kırık görünmesin diye açılış telefon genişliğinde bir
-   sütunda ortalanıyor, iki yanında lacivert kalıyor. */
-@media (min-width: 640px) {
-  .sgiris {
-    align-items: center;
-  }
-
-  .sgiris__tepe,
-  .sgiris__kagit {
-    width: 100%;
-    max-width: 420px;
-  }
 }
 
 /* ------------------------------------------------------- Başlıktaki hesap
@@ -2659,13 +2745,7 @@
    (orada gövde 16, ekran başlığı 19; Connect 30 ve 20 kullanıyor).
 
    YENİ VE DEĞİŞEN KODDA PİKSEL YAZILMAZ, BU İSİMLER KULLANILIR. */
-/* `.sgiris` de burada: giriş ekranı `.uyg`nin DIŞINDA duruyor ve bu
-   token'lar ona hiç ulaşmıyordu. 14 Eylül 2026 QA turu ölçtü: alana
-   dokununca odak halkası çıkmıyordu (`--mavi-soft-2` tanımsız, gölge
-   hiç hesaplanmıyordu), "Beni Hatırla" ölçek dışı 15 pikselle
-   yazılıyordu, ana düğme de backoffice'in laciverdine düşüyordu. */
-.uyg,
-.sgiris {
+.uyg {
   --zemin: #f1f4f9;
   --yuzey-2: #f5f7fb;
   --cizgi: #e6eaf2;
@@ -2716,8 +2796,7 @@
   -webkit-font-smoothing: antialiased;
 }
 
-[data-tema='koyu'] .uyg,
-[data-tema='koyu'] .sgiris {
+[data-tema='koyu'] .uyg {
   --zemin: #0f1622;
   --yuzey-2: #172033;
   --cizgi: #263141;
@@ -4188,25 +4267,4 @@ button.hareket:active {
   padding-bottom: calc(
     var(--bosluk-5) + var(--tabs) + var(--dip) + var(--dokunma-genis) + var(--bosluk-3)
   );
-}
-
-/* ------------------------------------------------ Giriş · Beni Hatırla
-
-   Şifrenin altındaki kutu. İşaretliyse kullanıcı adı bu telefonda
-   saklanıyor (bkz. ServisPanel.jsx → Giris). Dokunma hedefi tam satır. */
-.sgiris__hatirla {
-  display: flex;
-  align-items: center;
-  gap: var(--bosluk-3, 12px);
-  min-height: var(--dokunma, 48px);
-  margin-bottom: var(--bosluk-3, 12px);
-  font-size: var(--y-govde, 15px);
-  cursor: pointer;
-}
-
-.sgiris__hatirla input {
-  width: 22px;
-  height: 22px;
-  margin: 0;
-  accent-color: var(--mavi-rz);
 }

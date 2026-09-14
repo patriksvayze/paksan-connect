@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import {
   servisGirisi,
   servisOturumuGetir,
@@ -31,11 +31,12 @@ import {
   IconCheckCircle,
   IconUndo,
   IconChevronDown as IconChevron,
+  IconRight,
 } from '../components/Icons'
 import { altBilgi } from '../data/duyuruTurleri'
 import { makineDurumAdi } from '../data/talepAlanlari'
 import { useBildirimIzni, useServisHaberi } from './haber'
-import { Logo, MARKA, SIRKET, getProduct } from '../marka'
+import { Logo, Amblem, MARKA, SIRKET, getProduct } from '../marka'
 /* Çizimler Higgsfield ile üretildi, uygulamanın kendi görsel diline
    (kalın lacivert kontur, düz dolgu, sınırlı palet) referans verilerek.
    Küçültme ve sıkıştırma: tools/gorsel-hazirla.mjs */
@@ -131,40 +132,109 @@ export function ServisPanel() {
 
 /* ------------------------------------------------------------------ Giriş */
 
-/* GİRİŞ EKRANI ARTIK PANEL AÇILIŞI DEĞİL, UYGULAMA AÇILIŞI.
+/* GİRİŞ EKRANI: PAKSAN CONNECT KARŞILAMASININ KARDEŞİ.
 
-   Önce backoffice'in giriş kartını kullanıyordu: ekranın ortasında
-   yüzen, gölgeli, 380 piksellik bir kutu. Bilgisayarda doğru — orada
-   pencere büyük, kart onu toparlıyor. Telefonda aynı kutu, ekranın
-   ortasına yapıştırılmış bir web sayfası gibi duruyor: üstünde ve
-   altında ölü boşluk, kenarlarda kırpılmış bir çerçeve.
-
-   Şimdi ekranın kendisi giriş ekranı. Görsel tepede, kenarlara
-   dayanmış ve laciverde eriyor; başlık o geçişin üstünde, form alttan
-   yükselen bir kâğıtta ve o kâğıt ekranın dibine kadar iniyor. Aynı
-   üç şeyi soruyor, aynı yerden giriliyor; değişen yalnız durduğu
-   yüzey.
+   Önce backoffice'in giriş kartını kullanıyordu, sonra onun telefona
+   uyarlanmış hâlini (tepede fotoğraf, altında beyaz form kutusu).
+   Kullanıcı ikisini de backoffice'ten devşirme buldu: Servisim,
+   PAKSAN Connect'in kardeşi. Artık düzen Connect karşılamasının düzeni:
+   fotoğraf ekranın arkasında, amblem ve logo ortada, büyük başlık ve
+   turuncu düğme fotoğrafın koyu kısmında (ölçüler ve gerekçe
+   servis.css → "Giriş ekranı").
 
    Şifre belirleme ekranı da buradan geçiyor: ikisi de oturum
    açılmadan görülen ekranlar ve aynı yüzeyde durmaları gerekiyor. */
-function GirisEkrani({ baslik, aciklama, children }) {
+
+/* GÖRSEL ÖLÇÜLEREK YERLEŞİYOR.
+
+   Fotoğraf arka planda ve genişliği ekran kadar; makine ile takım
+   çantası görselin yüksekliğinin %30-68'inde. Görsel, bu bant marka
+   bloğunun altı ile başlığın üstü arasındaki boşluğun ortasına gelecek
+   kadar kaydırılıyor. Boşluk bandı almıyorsa (kısa telefon) bandın
+   üstü marka bloğunun hemen altına oturuyor; makinenin dibi başlığın
+   koyu perdesine iniyor ama makine logoya çarpmıyor.
+
+   Ölçüm `offsetTop` ile: başlık ve logo açılışta aşağıdan süzülüyor,
+   dönüşümü sayan bir ölçü görseli o kadar kaydırırdı. Form uzayınca
+   (hata ya da "PAKSAN sizi arayacak" kutusu çıkınca) başlık yukarı
+   kalkıyor; ResizeObserver formu da izliyor ve yeniden yerleştiriyor.
+   Aynı iki çizgi perdenin duraklarını da veriyor (--perde-ust,
+   --perde-alt). Connect de amblemin yerini ölçüp güneşi ona hizalıyor
+   (bkz. src/components/Safak.jsx). */
+const RESIM_ORAN = 1607 / 1200
+const MAKINE_UST = 0.3
+const MAKINE_ALT = 0.68
+const RESIM_PAY = 12
+
+function resimYerlesimi(kok) {
+  const ic = kok.querySelector('.sgiris__ic')
+  const marka = kok.querySelector('.sgiris__marka')
+  const baslik = kok.querySelector('.sgiris__baslikalani')
+  const W = kok.clientWidth
+  if (!ic || !marka || !baslik || !W) return null
+
+  const ustSinir = ic.offsetTop + marka.offsetTop + marka.offsetHeight + RESIM_PAY
+  const altSinir = ic.offsetTop + baslik.offsetTop - RESIM_PAY
+  const yuk = W * RESIM_ORAN
+  const bantUst = MAKINE_UST * yuk
+  const bantAlt = MAKINE_ALT * yuk
+
+  let ust = (ustSinir + altSinir) / 2 - (bantUst + bantAlt) / 2
+  if (bantAlt - bantUst > altSinir - ustSinir) ust = ustSinir - bantUst
+  return { ust, ustSinir, altSinir }
+}
+
+function GirisEkrani({ ustSatir, baslik, aciklama, children }) {
+  const kok = useRef(null)
+
+  useLayoutEffect(() => {
+    const el = kok.current
+    if (!el) return undefined
+    const yerlestir = () => {
+      const y = resimYerlesimi(el)
+      if (!y) return
+      el.style.setProperty('--resim-ust', `${y.ust.toFixed(1)}px`)
+      el.style.setProperty('--perde-ust', `${y.ustSinir.toFixed(1)}px`)
+      el.style.setProperty('--perde-alt', `${y.altSinir.toFixed(1)}px`)
+    }
+    yerlestir()
+    const izle = new ResizeObserver(yerlestir)
+    izle.observe(el)
+    el.querySelectorAll('.sgiris__ic > *').forEach((c) => izle.observe(c))
+    return () => izle.disconnect()
+  }, [])
+
   return (
-    <div className="sgiris">
-      <div className="sgiris__tepe">
-        <img className="sgiris__resim" src={girisGorseli} alt="" />
-        {/* Marka işareti tepede: kâğıtta başlıkla logo alt alta iki
-            kimlik oluyordu. 20 pikselken kullanıcı çok küçük buldu;
-            PAKSAN Connect karşılamasındakiyle aynı boyda. */}
-        <Logo height={50} beyaz sadeceYazi className="sgiris__marka" />
-        {/* Başlık fotoğrafın laciverde eridiği yerde, kâğıtta değil:
-            resimle yazı tek yüzey olsun (bkz. servis.css → .sgiris__tepe). */}
+    <div className="sgiris" ref={kok}>
+      <img className="sgiris__resim" src={girisGorseli} alt="" />
+      <div className="sgiris__perde" />
+
+      <div className="sgiris__ic">
+        {/* Connect karşılamasındaki marka bloğu: amblem beyaz dairede,
+            yazı altında. */}
+        <div className="sgiris__marka">
+          <span className="sgiris__amblem">
+            <Amblem size={64} cerceve />
+          </span>
+          <span className="sgiris__yazi">
+            <Logo height={50} sadeceYazi beyaz />
+          </span>
+        </div>
+
+        {/* Makinenin göründüğü pencere */}
+        <div className="sgiris__bosluk" />
+
         <div className="sgiris__baslikalani">
-          <h1 className="sgiris__baslik">{baslik}</h1>
+          <h1 className="sgiris__baslik">
+            {ustSatir ? <span className="sgiris__ustsatir">{ustSatir}</span> : null}
+            {ustSatir ? ' ' : null}
+            {baslik}
+          </h1>
           {aciklama ? <p className="sgiris__alt">{aciklama}</p> : null}
         </div>
-      </div>
 
-      <div className="sgiris__kagit">{children}</div>
+        {children}
+      </div>
     </div>
   )
 }
@@ -200,6 +270,9 @@ function Giris({ onGiris }) {
   async function gir(e) {
     e.preventDefault()
     if (bekliyor) return
+    /* "PAKSAN sizi arayacak" notu açıksa kapanıyor: hata kutusuyla üst
+       üste açık kalınca form uzuyor, kısa telefonda ekran kayıyordu. */
+    setYardim(false)
     if (!kullanici.trim()) return setHata('Kullanıcı adınızı yazın.')
     if (sifre.length !== BACKOFFICE_SIFRE_HANE) {
       return setHata('Şifre 6 rakamdan oluşmalı.')
@@ -231,8 +304,12 @@ function Giris({ onGiris }) {
        "Hesabınızı PAKSAN açar, giriş yaptığınızda bekleyen işlerinizi
        görürsünüz" satırı vardı; kullanıcı gereksiz buldu. Servis elemanı
        hesabını PAKSAN'dan zaten alıyor, ekranın ne olduğunu da görselle
-       başlık söylüyor. Hesabı olmayan için yol dipteki künye satırında. */
-    <GirisEkrani baslik={`${MARKA} Servisim`}>
+       başlık söylüyor. Hesabı olmayan için yol dipteki künye satırında.
+
+       Başlık Connect'teki "1970'TEN BERİ / Yanınızdayız" gibi iki
+       katlı: üstte küçük aralıklı marka adı, altında iri "Servisim".
+       Ekran okuyucu ikisini tek başlık olarak okuyor. */
+    <GirisEkrani ustSatir={MARKA} baslik="Servisim">
       <form onSubmit={gir}>
         <label className="alan">
           <span className="alan__ad">Kullanıcı Adı</span>
@@ -259,14 +336,36 @@ function Giris({ onGiris }) {
           />
         </label>
 
-        <label className="sgiris__hatirla">
-          <input
-            type="checkbox"
-            checked={hatirla}
-            onChange={(e) => setHatirla(e.target.checked)}
-          />
-          <span>Beni Hatırla</span>
-        </label>
+        {/* "Beni Hatırla" ile "Şifremi Unuttum" aynı satırda: ikisi de
+            şifre alanına ait; ayrı satırlarda form 56 piksel uzuyordu. */}
+        <div className="sgiris__satir">
+          <label className="sgiris__hatirla">
+            <input
+              type="checkbox"
+              checked={hatirla}
+              onChange={(e) => setHatirla(e.target.checked)}
+            />
+            <span>Beni Hatırla</span>
+          </label>
+
+          {/* ŞİFREMİ UNUTTUM E-POSTA GÖNDERMİYOR.
+
+              Personelin sıfırlaması e-postayla çalışıyor; serviste e-posta
+              yok, iletişim telefonla yürüyor. Kendi kendine sıfırlayan bir
+              akış, kullanıcı adını bilen herkese hesabı açardı. Servis talep
+              bırakıyor, PAKSAN arıyor. */}
+          <button
+            type="button"
+            className="sgiris__yardim"
+            onClick={() => {
+              servisSifreTalebiAc(kullanici)
+              setHata('')
+              setYardim(true)
+            }}
+          >
+            Şifremi Unuttum
+          </button>
+        </div>
 
         {hata && <div className="uyari">{hata}</div>}
         {yardim && (
@@ -283,30 +382,9 @@ function Giris({ onGiris }) {
           </div>
         )}
 
-        <button
-          className="dg dg--ana dg--blok sgiris__gir"
-          type="submit"
-          disabled={bekliyor}
-        >
+        <button className="sgiris__gir" type="submit" disabled={bekliyor}>
           {bekliyor ? 'Kontrol ediliyor…' : 'Giriş'}
-        </button>
-
-        {/* ŞİFREMİ UNUTTUM E-POSTA GÖNDERMİYOR.
-
-            Personelin sıfırlaması e-postayla çalışıyor; serviste e-posta
-            yok, iletişim telefonla yürüyor. Kendi kendine sıfırlayan bir
-            akış, kullanıcı adını bilen herkese hesabı açardı. Servis talep
-            bırakıyor, PAKSAN arıyor. */}
-        <button
-          type="button"
-          className="sgiris__yardim"
-          onClick={() => {
-            servisSifreTalebiAc(kullanici)
-            setHata('')
-            setYardim(true)
-          }}
-        >
-          Şifremi Unuttum
+          {bekliyor ? null : <IconRight size={21} />}
         </button>
       </form>
 
@@ -359,6 +437,7 @@ function IlkSifre({ oturum, onBitti }) {
             maxLength={BACKOFFICE_SIFRE_HANE}
             value={sifre}
             onChange={(e) => setSifre(e.target.value.replace(/\D/g, ''))}
+            autoComplete="new-password"
             autoFocus
           />
         </label>
@@ -372,11 +451,12 @@ function IlkSifre({ oturum, onBitti }) {
             maxLength={BACKOFFICE_SIFRE_HANE}
             value={tekrar}
             onChange={(e) => setTekrar(e.target.value.replace(/\D/g, ''))}
+            autoComplete="new-password"
           />
         </label>
 
         {hata && <div className="uyari">{hata}</div>}
-        <button className="dg dg--ana dg--blok sgiris__gir" type="submit">
+        <button className="sgiris__gir" type="submit">
           Kaydet
         </button>
       </form>
