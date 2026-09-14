@@ -1,0 +1,57 @@
+# Satır sonları ve ikili dosyalar
+#
+# NEDEN BU DOSYA VAR
+#
+# Bu depo Windows'ta yazılıyor ve `core.autocrlf=true` ayarı Git for
+# Windows'un KURULUM dosyasından geliyor (`C:/Program Files/Git/etc/
+# gitconfig`). O ayar depoyla birlikte taşınmıyor: başka bir makinede,
+# Linux'ta ya da sürekli tümleştirme ortamında varsayılan `false` olur
+# ve aynı dosyalar baştan sona değişmiş görünür.
+#
+# Eklendiği an ölçüldü (12 Eylül 2026): indekste 305 metin dosyasının
+# tamamı LF, 666 dosya ikili. Yani bu kural hiçbir dosyayı yeniden
+# yazmıyor, var olan durumu sabitliyor.
+#
+# Kardeş depoda (D:\PAKSAN\paksan-rag) bu dosya yokken 28 kilitli
+# dosyadan 4'ü indeks ile disk arasında ayrıştı ve destek sunucusu
+# başka bir makinede açılmaz hâle geldi. Aynısı burada olmasın.
+
+# Metin dosyaları indekste her zaman LF
+* text=auto eol=lf
+
+# ---------------------------------------------------------------- İkili
+# Bunlar asla dönüştürülmemeli; `diff` çıktısı da anlamsız.
+
+*.webp  binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.mp4   binary
+*.mp3   binary
+*.wav   binary
+*.webm  binary
+*.pdf   binary
+*.zip   binary
+*.jar   binary
+*.apk   binary
+*.aab   binary
+*.keystore binary
+*.jks   binary
+*.ttf   binary
+*.otf   binary
+*.woff  binary
+*.woff2 binary
+*.onnx  binary
+*.npy   binary
+
+# ------------------------------------------------------------- Windows
+# Toplu iş dosyaları Windows'ta CRLF olmadan çalışmıyor.
+
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+
+# Gradle sarmalayıcısı: betik LF, Windows karşılığı CRLF.
+gradlew      text eol=lf
+gradlew.bat  text eol=crlf

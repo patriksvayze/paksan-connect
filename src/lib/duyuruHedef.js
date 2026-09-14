@@ -80,7 +80,15 @@ export function duyuruGecerliMi(
      gönderilen fiyat teklifi böyle: servis kendi müşterisine yazıyor,
      bildirim başkasının ekranında görünmemeli. Alanı taşımayan eski
      kayıtlar (talep durumu, numara değişikliği) tek hesaplı cihazda
-     üretildikleri için buradan geçmiyor. */
+     üretildikleri için buradan geçmiyor.
+
+     `kisisel` DAMGALI AMA KİMLİKSİZ KAYIT KİMSEYE GÖSTERİLMİYOR.
+     Damgayı `veri.js → musteriyeBildir` her kişisel bildirime vuruyor;
+     `musteriId` ise alıcı telefondan eşleşmediğinde boş kalıyor.
+     Damga varken kimlik yoksa bu bir kişinin bildirimidir ama kimin
+     olduğu bilinmiyor: alansız diye HERKESE AÇIK sayılırsa yabancının
+     talep numarası, kargo notu ve randevusu her ekranda çıkar. */
+  if (d?.kisisel && !d?.musteriId) return false
   if (d?.musteriId && d.musteriId !== user?.id) return false
 
   /* Talep, numara ve görüş bildirimleri buradan hiç süzülmüyor:

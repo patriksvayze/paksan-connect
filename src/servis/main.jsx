@@ -24,6 +24,7 @@ import '../styles/olcu.css'
 import '../backoffice/backoffice.css'
 import './servis.css'
 
+import { HataSiniri, hataKaydet } from '../components/HataSiniri'
 import { urunAyarla } from '../lib/urun'
 import { temayiUygula } from '../backoffice/Tema'
 import { demoAPKmi } from './demoKimlik'
@@ -49,10 +50,25 @@ const hazir = demoAPKmi()
   ? import('./demoKur').then((m) => m.demoKur())
   : Promise.resolve()
 
-hazir.then(() => {
+function ciz() {
+  /* Sınır kökte; bir çizim hatası uygulamayı bembeyaz bırakmasın
+     (bkz. src/components/HataSiniri.jsx). */
   createRoot(document.getElementById('servis')).render(
     <StrictMode>
-      <ServisPanel />
+      <HataSiniri urun="servis">
+        <ServisPanel />
+      </HataSiniri>
     </StrictMode>
   )
-})
+}
+
+/* DEMO KURULUMU ÇİZİMİ ENGELLEMİYOR.
+
+   Burada `.catch` yoktu: `import('./demoKur')` başarısız olursa —
+   parça indirilemedi, hafıza yazılamadı — zincir kırılıyor ve
+   `createRoot` hiç çağrılmıyordu. Sonuç boş ekran, konsolda tek satır
+   yok. Demo verisi uygulamanın çalışması için şart değil; kurulamazsa
+   uygulama boş hafızayla, giriş ekranıyla açılır. O yüzden hata
+   yutulmuyor ama çizimi de durdurmuyor: kaydediliyor ve devam
+   ediliyor. */
+hazir.catch((e) => hataKaydet('servis', e, { nerede: 'demo-kurulumu' })).then(ciz)

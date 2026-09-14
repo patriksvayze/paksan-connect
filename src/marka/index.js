@@ -73,9 +73,15 @@ export { URUN_GORSELI, KATEGORI_GORSELI, urunGorseli } from './katalog/gorseller
 /* ------------------------------------------------------------- Fiyatlar */
 
 export {
-  PARCA_FIYAT_AKTIF, KDV_ORANI, PARA_BIRIMI, PARCA_FIYAT, FIYATSIZ,
-  parcaFiyatBilgisi, fiyatliMi, parcaToplami, paraYaz,
-} from './katalog/parcaFiyat.js'
+  PARA_BIRIMI, KDV_ORANI, KDV_HARIC_LISTE, kdvTutari, paraYaz,
+} from './katalog/para.js'
+
+/* Parça grubu → makine ailesi köprüsü. Gerçek katalogda makine alanı
+   yok; eşleme PAKSAN'ın grup adlarından çıkarılıyor. */
+export {
+  PARCA_GRUBU_AILESI, PARCASIZ_AILELER,
+  eslenmemisGruplar, artikOlmayanGruplar,
+} from './katalog/parcaGruplari.js'
 
 export { PARCA_SERVIS_ISKONTO } from './katalog/makineFiyat.js'
 

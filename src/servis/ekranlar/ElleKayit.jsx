@@ -32,13 +32,6 @@ import { IconAlert, IconCheckCircle, IconSend } from '../../components/Icons'
    kayıtlı müşteri de olsa her seferinde yeni bir yabancı kayıt
    doğuyordu.
 
-   YEDEK PARÇA TALEBİNDE PARÇA SEÇİLİYOR
-
-   Talep serbest metinden ibaret kalınca "İstenen parçalar" bölümü boş
-   çıkıyor, stok düşümü çalışmıyor ve talep uygulamadan gelenle aynı
-   şekilde işlenemiyordu. Parça listesi uygulamadakiyle aynı kaynaktan
-   (`parcaFiyat.js`) geliyor.
-
    MAKİNE YAZILMIYOR, SEÇİLİYOR
 
    Kayıtlı müşteri bulunduğunda seri numarası kutusu kapanıyor ve
@@ -158,7 +151,7 @@ export function ElleKayit({ oturum, onKaydedildi }) {
     if (ad.trim().length < 3) return setHata('Müşterinin adını yazın.')
     if (!il) return setHata('İl seçin.')
     if (!ilce) return setHata('İlçe seçin.')
-    if (adres.trim().length < 10) return setHata('Adresi yazın.')
+    if (adres.trim().length < 10) return setHata('Adresi en az 10 karakter olacak şekilde yazın.')
 
     /* Kayıtlı müşterinin makinesi listeden seçildiyse doğrulanacak bir
        şey yok: o seri numarası zaten sistemde. Talebe uygulamadan gelen
@@ -351,9 +344,9 @@ export function ElleKayit({ oturum, onKaydedildi }) {
             rows={2}
             value={adres}
             onChange={(e) => setAdres(e.target.value)}
-            placeholder="Köy ya da mahalle, tarif"
+            placeholder="Köy veya mahalle adı, adres tarifi"
           />
-          <span className="kucuk sonuk">Servis kaydına kendiliğinden gelir.</span>
+          <span className="kucuk sonuk">Bu adres servis kaydına otomatik eklenir.</span>
         </label>
 
         {/* MAKİNE: kayıtlı müşteride SEÇİLİYOR, ötekinde yazılıyor.

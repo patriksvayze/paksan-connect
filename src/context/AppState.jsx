@@ -6,7 +6,7 @@ import { uygulamaKaydi } from '../lib/kayit'
 import { talepNo } from '../lib/talep'
 import { sunucuyaGonder } from '../lib/sunucu'
 import { ihracatPostasi, talepUlkesi, yurtdisiTalepMi } from '../lib/ihracat'
-import { musterininServisleri } from '../lib/servisAtama'
+import { makineninServisi } from '../lib/servisAtama'
 import { SUNUCU } from '../config'
 import { cihazDili, DilSaglayici } from '../i18n'
 
@@ -40,6 +40,16 @@ export function AppProvider({ children }) {
       return yeni
     })
   }, [])
+  /* Müşterinin KENDİ LİSTESİNDEN kaldırdığı taleplerin kimlikleri.
+
+     Talepler deposu backoffice ve servis uygulamasıyla paylaşılıyor.
+     Müşteri bir satırı listeden kaldırınca kayıt siliniyordu: PAKSAN'ın
+     ve teknisyenin listesinden de kalkıyordu, geri dönüşü yoktu. Artık
+     yalnız bu telefonda gizleniyor, paylaşılan kayıt yerinde kalıyor.
+     Bu defter telefona ait; sunucuya gitmiyor. */
+  const [gizlenenTalepler, setGizlenenTalepler] = useState(() =>
+    load('gizlenenTalepler', [])
+  )
   const [chats, setChats] = useState(() => load('chats', {}))
   /* Okunmuş bildirimlerin kimlikleri. Bildirimlerin kendisi
      saklanmıyor — uygulamanın bildiklerinden her açılışta yeniden
@@ -109,14 +119,19 @@ export function AppProvider({ children }) {
      listede duruyor.
 
      Depoya yazılan liste süzülmüyor: süzülseydi paylaşılan depodaki
-     servis kayıtları silinirdi. */
+     servis kayıtları silinirdi. Müşterinin kendi listesinden
+     kaldırdıkları da aynı süzgeçten geçiyor. */
   const gorunenTalepler = useMemo(
     () =>
       requests.filter(
-        (r) => !r.servisSiparisi && (!r.elle || (user && r.musteriId === user.id)),
+        (r) =>
+          !r.servisSiparisi &&
+          (!r.elle || (user && r.musteriId === user.id)) &&
+          !gizlenenTalepler.includes(r.id),
       ),
-    [requests, user],
+    [requests, user, gizlenenTalepler],
   )
+  useEffect(() => save('gizlenenTalepler', gizlenenTalepler), [gizlenenTalepler])
   useEffect(() => save('okunanBildirimler', okunanBildirimler), [okunanBildirimler])
 
   /* Uzun cümlenin okunması kısa olandan uzun sürüyor; süre yazının
@@ -148,6 +163,20 @@ export function AppProvider({ children }) {
       setMachines([])
       requestsGuncelle(() => [])
       setChats({})
+      setGizlenenTalepler([])
+
+      /* BİLDİRİMLER DE SİLİNİYOR. Duyuru kaydında kimin olduğu
+         yazmıyor: kalsaydı telefonu devralan kişi önceki müşterinin
+         talep numaralarını, personel notlarını ve atanan bayisini
+         okuyordu. Aynı yol yalnız bu kişiye ait öteki defterleri de
+         bırakıyordu — destek yazışması, geri bildirim ve numara
+         değişikliği talebi. Anahtar adları backoffice’teki ANAHTAR
+         listesiyle aynı; uygulama backoffice’in kodunu almıyor. */
+      for (const anahtarAdi of [
+        'duyurular', 'destekLog', 'geribildirim', 'numaraTalepleri',
+      ]) {
+        remove(anahtarAdi)
+      }
     }
 
     /* Müşteri numarası kayıtta veriliyor; telefonda konuşurken kaydı
@@ -262,9 +291,16 @@ export function AppProvider({ children }) {
          (Parça sekmesi) ya da servis kaydının içinden karşılanıyor.
 
          Yurtdışı talebi ve fiyat teklifi de düşmüyor: servis ağı
-         Türkiye içinde, teklif satışın işi. */
-      const servis =
-        ihracat || data.tur !== 'servis' ? null : musterininServisleri(machines).ana
+         Türkiye içinde, teklif satışın işi.
+
+         SERVİS, TALEBİN AÇILDIĞI MAKİNEDEN ÇIKIYOR. Bir zamanlar
+         müşterinin İLK makinesinin servisi yazılıyordu; iki ayrı
+         bayiden makine almış müşteri B makinesi için talep açınca iş
+         A makinesinin servisine düşüyordu. Yanlış servis tanımadığı
+         bir işi görüyor, doğru servis hiç görmüyor. */
+      const makineServisi =
+        ihracat || data.tur !== 'servis' ? null : makineninServisi(data.makine)
+      const servis = makineServisi?.servis || null
 
       const r = {
         id: uid(),
@@ -300,20 +336,25 @@ export function AppProvider({ children }) {
 
       return r
     },
-    [user, machines, requestsGuncelle]
+    [user, requestsGuncelle]
   )
 
   const updateRequest = useCallback((id, patch) => {
     requestsGuncelle((list) => list.map((r) => (r.id === id ? { ...r, ...patch } : r)))
   }, [requestsGuncelle])
 
+  /* Talebi müşterinin listesinden kaldırır.
+
+     PAYLAŞILAN KAYIT SİLİNMİYOR. Eskiden satır 'requests' deposundan
+     çıkarılıyordu; o depoyu backoffice ve servis uygulaması da okuyor,
+     yani müşterinin tek hareketi PAKSAN'ın ve teknisyenin listesinden
+     de kaydı geri dönüşsüz siliyordu. Şimdi kimlik yalnız bu telefonun
+     gizleme defterine yazılıyor. */
   const removeRequest = useCallback((id) => {
-    requestsGuncelle((list) => {
-      const silinen = list.find((r) => r.id === id)
-      if (silinen) uygulamaKaydi('talep', `${silinen.no} müşteri tarafından silindi`)
-      return list.filter((r) => r.id !== id)
-    })
-  }, [requestsGuncelle])
+    const silinen = requestsRef.current.find((r) => r.id === id)
+    if (silinen) uygulamaKaydi('talep', `${silinen.no} müşteri tarafından kendi listesinden kaldırıldı`)
+    setGizlenenTalepler((liste) => (liste.includes(id) ? liste : [...liste, id]))
+  }, [])
 
   /* --------------------------------------------------------------- Sohbet */
 

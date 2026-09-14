@@ -1,8 +1,8 @@
 import { uid } from '../lib/storage'
 import { talepNo } from '../lib/talep'
-import { katalogGetir } from '../lib/parcaKatalogu'
+import { fiyatGoruntusu, katalogGetir } from '../lib/parcaKatalogu'
 import { ASAMA, kaydiCozume, kaydiDogrula, kapininSonucu } from '../lib/servisKaydi'
-import { KDV_ORANI, PARCA_FIYAT } from '../marka'
+import { kdvTutari } from '../marka'
 
 /* ==========================================================================
    Demo verisi — servis akışı
@@ -32,12 +32,26 @@ import { KDV_ORANI, PARCA_FIYAT } from '../marka'
    Konya servisinin listesinde Antalya işi, demoyu inceleyen kişiye
    ekranın yanlış olduğunu düşündürür.
 
-   PARÇALAR KATALOGDAN
+   PARÇALAR KATALOGDAN — YEDEK TABLO YOK
 
-   Servis kaydındaki parça kodları, servis uygulamasının parça seçtiği
-   yerden — uzaktaki katalogdan — geliyor (bkz. lib/parcaKatalogu.js).
-   Katalog uygulamanın içinde değil; ulaşılamazsa (APK'da sunucu yok)
-   müşteri fiyat listesindeki parçalar kullanılıyor.
+   Demo verisindeki her parça, servis uygulamasının parça seçtiği
+   yerden — PAKSAN'ın fiyat listesinden — geliyor: gerçek kod, gerçek
+   ad, gerçek fiyat (bkz. lib/parcaKatalogu.js).
+
+   Katalog uygulamanın içinde değil, sunucudan iniyor. Eskiden
+   inmediğinde uydurma bir fiyat tablosuna düşülüyordu; demo o zaman
+   hiç var olmayan kodlarla doluyor ve demoyu inceleyen kişiye yanlış
+   bir fiyat listesi gösteriyordu. Sessizce yanlış veri üretmek,
+   veri üretmemekten kötüdür: yedek tablo kaldırıldı. Katalog
+   gelmezse demo verisi hiç kurulmuyor (bkz. demo.js → demoYukle).
+
+   FİYAT KAYDIN İÇİNDE DURUYOR
+
+   Parça talebi, açıldığı günün fiyat görüntüsünü kendi içinde
+   taşıyor (`parcaFiyat`). Fiyat listesi değişiyor; altı ay sonra
+   aynı talebe bakan personel o günün rakamını görmemeli. Demo da
+   aynı biçimi yazıyor, yoksa backoffice ekranları demo kaydıyla
+   gerçek kaydı ayrı ayrı okumak zorunda kalırdı.
    ========================================================================== */
 
 /** Servis uygulamasının demo hesabının açıldığı servis. */
@@ -197,18 +211,46 @@ function bugunSaat() {
   return d.getTime()
 }
 
-/** Servis kaydına konacak parçaların havuzu. */
-export async function parcaHavuzu() {
-  try {
-    const katalog = await katalogGetir()
-    return katalog.parcalar.map((p) => ({ kod: p.kod, ad: p.ad, fiyat: p.fiyat }))
-  } catch {
-    return Object.entries(PARCA_FIYAT).map(([ad, v]) => ({ kod: v.kod, ad, fiyat: v.fiyat }))
+/**
+ * Demo verisinin parça kaynağı: katalogun kendisi ve ondan türeyen
+ * havuz. Katalog da dönüyor, çünkü talebe yazılan fiyat görüntüsü
+ * (`fiyatGoruntusu`) katalogu istiyor.
+ *
+ * HATA YUTULMUYOR. Çağıran demoYukle; katalog gelmezse hiç kayıt
+ * açmıyor. Burada bir yedek tabloya düşmek, demoyu uydurma kodlarla
+ * doldurmak olurdu.
+ *
+ * @returns {Promise<{katalog: Object, havuz: Array}>}
+ */
+export async function parcaKaynagi() {
+  const katalog = await katalogGetir()
+  const havuz = katalog.parcalar.map((p) => ({ kod: p.kod, ad: p.ad, fiyat: p.fiyat }))
+  return { katalog, havuz }
+}
+
+/* Havuzdan parça seçer, ADI tekrar etmeyecek biçimde.
+
+   Katalogun birincil anahtarı kod; ad tekil değil, aynı ad birkaç
+   kodda geçiyor. Servis siparişinin adedi artık KODLA anahtarlanıyor
+   (aşağıda, gerçek siparişin yazdığı biçimin aynısı), yani orada aynı
+   ad iki kez düşse de rakam bozulmuyor.
+
+   AYIKLAMA YİNE DURUYOR: bu seçim müşterinin parça talebinde de
+   kullanılıyor ve o kayıt adedi hâlâ ADLA anahtarlıyor
+   (bkz. demo.js → parcaAdet); aynı ad iki kez düşerse biri diğerinin
+   adedini siler. Seçimde ayıklamak, orada yanlış adet yazmaktan ucuz.
+   En az bir parça her zaman dönüyor. */
+export function parcaSecimi(havuz, enAz, enCok) {
+  const secilen = []
+  for (const p of secBirkac(havuz, enAz, enCok)) {
+    if (secilen.some((s) => s.ad === p.ad)) continue
+    secilen.push(p)
   }
+  return secilen
 }
 
 function parcaSec(havuz) {
-  return secBirkac(havuz, 1, 2).map((p) => ({ ...p, adet: tamsayi(1, 2) }))
+  return parcaSecimi(havuz, 1, 2).map((p) => ({ ...p, adet: tamsayi(1, 2) }))
 }
 
 /** Rastgele üretilen servis talebinde durumdan senaryo seçer. */
@@ -497,15 +539,18 @@ export function servisAkisi(talep, senaryo, { servis, havuz, personel, secenek =
    gönderildi ve bedeli hesaptan düşülen, gönderildi ve faturalı.
    Bakiyeden düşülen kapanmış siparişin borç satırı da burada.
    ========================================================================== */
-export function servisSiparisleriUret({ servis, personel, butce = 0 }) {
-  const liste = Object.entries(PARCA_FIYAT)
+export function servisSiparisleriUret({ servis, personel, katalog, butce = 0 }) {
+  const liste = katalog.parcalar
   /* BAKİYEDEN ÖDENEN SİPARİŞ BAKİYEYİ AŞMIYOR. Servis uygulaması
      bakiyenin karşılamadığı siparişte bu seçeneği kapatıyor (bkz.
      servis/ekranlar/SiparisVer.jsx). Demo aşsaydı hesap ekranı eksi
      bakiye gösterirdi: gerçekte oluşamayacak bir rakam. Sığan parça
      yoksa sipariş faturalı yazılıyor. */
   let kalan = butce
-  const kdvli = (fiyat, adet) => fiyat * adet + Math.round(fiyat * adet * KDV_ORANI)
+  /* KDV tek yerden hesaplanıyor: `kdvTutari` (bkz. marka/katalog/
+     para.js). Oranı elle çarpan her satır, oran değiştiğinde
+     gözden kaçacak bir satırdır. */
+  const kdvli = (fiyat, adet) => fiyat * adet + kdvTutari(fiyat * adet)
   const SIPARISLER = [
     { yas: 0.4, durum: 'yeni', odeme: 'bakiye' },
     { yas: 2, durum: 'incelemede', odeme: 'fatura' },
@@ -521,24 +566,27 @@ export function servisSiparisleriUret({ servis, personel, butce = 0 }) {
     const [t1, t2] = zamanlar(bas, 2)
     const kim = sec(personel)
     let odeme = s.odeme
-    let kalemler = secBirkac(liste, 1, 3).map(([ad, v]) => ({
-      ad,
-      kod: v.kod,
-      fiyat: v.fiyat,
+    let kalemler = parcaSecimi(liste, 1, 3).map((p) => ({
+      ad: p.ad,
+      kod: p.kod,
+      fiyat: p.fiyat,
       adet: tamsayi(1, 4),
     }))
     if (odeme === 'bakiye') {
-      const sigan = liste.filter(([, v]) => kdvli(v.fiyat, 1) <= kalan * 0.6)
+      const sigan = liste.filter((p) => kdvli(p.fiyat, 1) <= kalan * 0.6)
       if (sigan.length) {
-        const [ad, v] = sec(sigan)
-        const adet = kdvli(v.fiyat, 2) <= kalan * 0.6 ? tamsayi(1, 2) : 1
-        kalemler = [{ ad, kod: v.kod, fiyat: v.fiyat, adet }]
+        const p = sec(sigan)
+        const adet = kdvli(p.fiyat, 2) <= kalan * 0.6 ? tamsayi(1, 2) : 1
+        kalemler = [{ ad: p.ad, kod: p.kod, fiyat: p.fiyat, adet }]
       } else {
         odeme = 'fatura'
       }
     }
-    const tutar = kalemler.reduce((t, k) => t + k.fiyat * k.adet, 0)
-    const tutarKdvli = tutar + Math.round(tutar * KDV_ORANI)
+    /* Tutar da fiyat görüntüsünden okunuyor: sipariş kaydındaki rakam
+       ile kayda yazılan satırlar aynı hesaptan çıksın. */
+    const parcaGoruntu = fiyatGoruntusu(katalog, kalemler)
+    const tutar = parcaGoruntu.araToplam
+    const tutarKdvli = parcaGoruntu.toplam
     if (odeme === 'bakiye') kalan -= tutarKdvli
 
     const gecmis = [{ durum: 'yeni', tarih: bas, personel: servis.ad }]
@@ -560,8 +608,18 @@ export function servisSiparisleriUret({ servis, personel, butce = 0 }) {
       ihracat: false,
       musteriId: null,
       aciklama: '',
-      parcalar: kalemler.map((k) => k.ad),
-      parcaAdet: Object.fromEntries(kalemler.map((k) => [k.ad, k.adet])),
+      /* BİÇİM GERÇEK SİPARİŞİN AYNISI (bkz. veri.js →
+         servisParcaSiparisi): ad listesi eski okuyucular için duruyor,
+         adet KOD anahtarlı. Demo adla anahtarlamaya devam ederken servis
+         uygulaması adedi kodla arıyordu; demo siparişlerinin her satırı
+         ekranda "× 1" görünüyordu. Kodu olmayan satır ancak adıyla
+         anahtarlanabiliyor; kod uydurulmuyor. */
+      parcalar: kalemler.map((k) => k.ad || k.kod),
+      parcaAdet: Object.fromEntries(kalemler.map((k) => [k.kod || k.ad, k.adet])),
+      /* Sipariş anının fiyat görüntüsü: kod, adet, birim fiyat, tutar
+         ve katalog sürümü kaydın içinde. Ekranlar canlı fiyata değil
+         buna bakıyor. */
+      parcaFiyat: parcaGoruntu,
       fatura: { ad: servis.ad, adres: [servis.ilce, servis.il].filter(Boolean).join(' / ') },
       odeme,
       tutar,

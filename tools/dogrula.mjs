@@ -22,14 +22,23 @@
      5. Marka sınırı     — motor marka klasörüne yalnız kapıdan bakıyor mu
      6. Marka adı        — firma adı motor kodunda düz yazıyla geçiyor mu
      7. Bayi kalıntısı   — servis uygulamasında bayi kelimesi kalmış mı
-     8. Birim sınamaları — tools/ altındaki üç sınama betiği
+     8. Birim sınamaları — tools/ altındaki dört sınama betiği
+     9. Yedek parça      — katalog tutarlı mı, uydurma fiyat geri geldi mi
+    10. Sürüm numarası   — Connect'in üç yeri tutuyor mu, Servisim ayrı mı
+    11. Yayın anahtarları — geliştirme ayarı APK'ya gidiyor mu (saymıyor)
+    12. Yazılmamış metin — Codex'i bekleyen yer tutucu ekrana çıkıyor mu
 
    4. kontrol yalnız dist/ varsa çalışır; yoksa atlanır.
 
-   8. kontrol tek tek çalıştırılan üç betiği bir araya getiriyor. Ayrı
+   8. kontrol tek tek çalıştırılan dört betiği bir araya getiriyor. Ayrı
    dururken unutuluyorlardı: `bolge-testi.mjs` marka klasörü taşınırken
    kırıldı ve haftalarca kırık kaldı, çünkü hiçbir komut onu
-   çağırmıyordu. Bir sınama çağrılmıyorsa yoktur.
+   çağırmıyordu. `destek-dogrula.mjs` aynı şeyi yaşadı: veri paketi
+   src/data altından src/marka/icerik altına taşınınca betik ENOENT
+   verip durdu ve kimse görmedi. Bir sınama çağrılmıyorsa yoktur.
+
+   11. kontrol SAYMIYOR: bulduğu şeyler bugün bilerek öyle, gerekçesi
+   kendi başlığının altında.
    ========================================================================== */
 
 import { readFileSync, existsSync, readdirSync } from 'node:fs'
@@ -491,6 +500,11 @@ const SINAMALAR = [
   ['marka-ek-testi.mjs', 'marka adının Türkçe ekleri'],
   ['bolge-testi.mjs', 'servis bölge eşleştirmesi'],
   ['duyuru-hedef-testi.mjs', 'duyuru hedeflemesi'],
+  /* Destek veri paketini denetliyor: dokununca boş açılan arıza,
+     güvenlik uyarısı olmayan model, kaynaksız cümle. Listeye 12 Eylül
+     2026'da girdi — dosya taşınınca kırılmış, çağıran komut olmadığı
+     için haftalarca kırık kalmıştı. */
+  ['destek-dogrula.mjs', 'destek veri paketi'],
 ]
 
 for (const [dosya, ad] of SINAMALAR) {
@@ -511,6 +525,336 @@ for (const [dosya, ad] of SINAMALAR) {
   }
 }
 
+/* ------------------------------------------------ 9. Yedek parça verisi
+
+   Uygulamada bir dönem UYDURMA bir yedek parça fiyat listesi vardı
+   (`src/marka/katalog/parcaFiyat.js`, 30 kayıt, `PKS-` ile başlayan
+   kodlar) ve müşteriye o uydurma tutar havale ettirilmek üzereydi.
+   12 Eylül 2026'da tamamen kaldırıldı; fiyatın tek kaynağı artık
+   PAKSAN'ın kendi yedek parça kataloğu.
+
+   Bu kontrol üç şeyi birden koruyor:
+
+   - Uydurma veri geri gelemez. Kodda `PKS-` kodu ya da silinen
+     fonksiyonlardan biri görünürse doğrulama düşüyor.
+   - Katalog kendi içinde tutarlı kalır. Alanı eksik parça, mükerrer
+     kod, karşılığı olmayan grup ya da görselsiz parça ekranda sessiz
+     bir tire olarak görünür; müşteriye eksik tutar söyletir.
+   - Makine köprüsü eksiksiz kalır. Yeni bir fiyat listesi yeni bir grup
+     getirir ve köprüye yazılmazsa o grubun parçaları müşteri ekranından
+     SESSİZCE kaybolur. Sessiz kayıp, görünür hatadan tehlikelidir. */
+
+baslik('9. Yedek parça verisi')
+
+const UYDURMA_IZLERI = [
+  ['PKS-', 'uydurma parça kodu'],
+  ['PARCA_FIYAT', 'silinen uydurma fiyat tablosu'],
+  ['parcaFiyatBilgisi', 'silinen ada göre fiyat araması'],
+  ['fiyatliMi', 'silinen fiyat kontrolü'],
+  ['FIYATSIZ', 'silinen fiyatsız liste'],
+  ['katalog/parcaFiyat', 'silinen dosyaya atıf'],
+]
+
+const uydurmaBulgular = []
+for (const dosya of kaynaklar) {
+  const metin = readFileSync(dosya, 'utf8')
+  for (const [iz, ne] of UYDURMA_IZLERI) {
+    if (metin.includes(iz)) {
+      uydurmaBulgular.push(`${dosya.replace(KOK + SEP, '')} → ${ne} (${iz})`)
+    }
+  }
+}
+if (uydurmaBulgular.length) {
+  bildir('kodda uydurma parça verisi izi var:')
+  for (const b of uydurmaBulgular) console.log('      ' + b)
+} else {
+  tamam('kodda uydurma parça verisi izi yok')
+}
+
+/* Kataloğu tek kapı okuyor mu? İkinci kapı açılırsa doğrulama, bellek
+   ve hata yüzeyi ikiye ayrılır.
+
+   Yorumlar ayıklanıyor: `src/config.js` ve marka dosyaları katalog
+   dosyasının adını gerekçe anlatırken anıyor, onları kapı saymak
+   yanlış alarm olur. */
+function yorumsuz(metin) {
+  return metin.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '')
+}
+
+const KATALOG_KAPISI = join('src', 'lib', 'parcaKatalogu.js')
+const izinsizKapi = kaynaklar
+  .filter((d) => yorumsuz(readFileSync(d, 'utf8')).includes('katalog.json'))
+  .map((d) => d.replace(KOK + SEP, ''))
+  .filter((d) => d !== KATALOG_KAPISI)
+if (izinsizKapi.length) {
+  bildir('katalog.json tek kapı dışından okunuyor: ' + izinsizKapi.join(', '))
+} else {
+  tamam('katalog yalnız parcaKatalogu.js üzerinden okunuyor')
+}
+
+const KATALOG_YOLU = join(KOK, 'sunucu-taklidi', 'parca-katalogu', 'katalog.json')
+const GORSEL_KLASORU = join(KOK, 'sunucu-taklidi', 'parca-katalogu', 'gorseller')
+
+if (!existsSync(KATALOG_YOLU)) {
+  bildir('katalog dosyası bulunamadı: sunucu-taklidi/parca-katalogu/katalog.json')
+} else {
+  const katalog = JSON.parse(readFileSync(KATALOG_YOLU, 'utf8'))
+  const parcalar = katalog.parcalar || []
+  const gruplar = katalog.gruplar || []
+  const grupKimlikleri = new Set(gruplar.map((g) => g.id))
+
+  const eksikAlan = parcalar.filter(
+    (p) =>
+      !p || typeof p.kod !== 'string' || !p.kod ||
+      typeof p.ad !== 'string' || !p.ad ||
+      typeof p.grup !== 'string' || !p.grup ||
+      typeof p.fiyat !== 'number' || !Number.isFinite(p.fiyat) ||
+      typeof p.gorsel !== 'string' || !p.gorsel,
+  )
+  const kodlar = parcalar.map((p) => p && p.kod)
+  const mukerrer = [...new Set(kodlar.filter((k, i) => kodlar.indexOf(k) !== i))]
+  const yetimGrup = parcalar
+    .filter((p) => p && p.grup && !grupKimlikleri.has(p.grup))
+    .map((p) => `${p.kod} → ${p.grup}`)
+  const adetYanlis = gruplar.filter(
+    (g) => g.adet !== parcalar.filter((p) => p && p.grup === g.id).length,
+  )
+
+  if (eksikAlan.length) {
+    bildir(`katalogda alanı eksik ${eksikAlan.length} parça var`)
+  } else if (mukerrer.length) {
+    bildir('katalogda mükerrer parça kodu: ' + mukerrer.join(', '))
+  } else if (yetimGrup.length) {
+    bildir('karşılığı olmayan gruba bağlı parça: ' + yetimGrup.slice(0, 5).join(', '))
+  } else if (adetYanlis.length) {
+    bildir('grup sayaçları gerçek sayımla tutmuyor: ' + adetYanlis.map((g) => g.id).join(', '))
+  } else {
+    tamam(`katalog tutarlı — ${gruplar.length} grupta ${parcalar.length} parça`)
+  }
+
+  if (!existsSync(GORSEL_KLASORU)) {
+    bildir('görsel klasörü bulunamadı: sunucu-taklidi/parca-katalogu/gorseller')
+  } else {
+    const diskte = new Set(readdirSync(GORSEL_KLASORU))
+    const gorselsiz = parcalar.filter((p) => p && p.gorsel && !diskte.has(p.gorsel))
+    const yetimGorsel = [...diskte].filter(
+      (d) => d.endsWith('.webp') && !parcalar.some((p) => p && p.gorsel === d),
+    )
+    if (gorselsiz.length) {
+      bildir(`görseli eksik ${gorselsiz.length} parça`)
+    } else if (yetimGorsel.length) {
+      bildir(`parçası olmayan ${yetimGorsel.length} görsel`)
+    } else {
+      tamam(`görseller birebir — ${parcalar.length} parça, ${parcalar.length} görsel`)
+    }
+  }
+
+  const { eslenmemisGruplar, artikOlmayanGruplar } = await import(
+    '../src/marka/katalog/parcaGruplari.js'
+  )
+  const eslenmemis = eslenmemisGruplar(gruplar)
+  const olmayan = artikOlmayanGruplar(gruplar)
+  if (eslenmemis.length) {
+    bildir('köprüde eşlenmemiş grup, parçaları müşteri ekranında görünmez: ' + eslenmemis.join(', '))
+  } else if (olmayan.length) {
+    bildir('köprüde artık var olmayan grup: ' + olmayan.join(', '))
+  } else {
+    tamam('her parça grubu bir makine ailesine eşlenmiş')
+  }
+}
+
+/* ------------------------------------------------- 10. Sürüm numarası
+
+   PAKSAN Connect'in sürümü ÜÇ YERDE birden yazılı: `src/marka/kimlik.js`
+   içindeki `SURUM` (uygulamanın ekranında görünen), `package.json`
+   içindeki `version` ve `android/app/build.gradle` içindeki
+   `versionName`. Üçü elle artırılıyor; bugüne kadar tutmalarını sağlayan
+   tek şey dikkat oldu, ne kanca var ne CI.
+
+   Tutmazlarsa ne olur: telefondaki sürüm bir şey, mağazadaki başka bir
+   şey söyler; bir hatanın hangi derlemede olduğu bulunamaz. APK dosya
+   adı da `SURUM`'dan geliyor, yani var olan bir dosyanın üstüne yazma
+   riski de buradan doğuyor.
+
+   PAKSAN Servisim'in hattı AYRI ve bilerek ayrı (0.1.0 / versionCode 1,
+   10 Eylül 2026). Bu kontrol onun FARKLI olmasından şikâyet etmez;
+   tersine, ikisi birden (hem `versionName` hem `versionCode`) eşitlenirse
+   Servisim'in numarası Connect'e bitişmiş demektir ve bunu söyler.
+
+   `versionCode` tam sayı olmalı: Gradle metin kabul etmiyor ve derleme
+   anında düşüyor. Burada düşmesi, Android Studio'da düşmesinden ucuz. */
+
+baslik('10. Sürüm numarası')
+
+const { SURUM } = await import('../src/marka/kimlik.js')
+const paketJson = JSON.parse(readFileSync(join(KOK, 'package.json'), 'utf8'))
+
+/** build.gradle'daki sürüm alanlarını okur. */
+function gradleSurum(yol) {
+  if (!existsSync(yol)) return null
+  const metin = readFileSync(yol, 'utf8')
+  const ad = metin.match(/versionName\s+"([^"]+)"/)
+  const kod = metin.match(/versionCode\s+([^\s/]+)/)
+  return { ad: ad && ad[1], kod: kod && kod[1] }
+}
+
+const connect = gradleSurum(join(KOK, 'android', 'app', 'build.gradle'))
+
+if (!connect) {
+  bildir('android/app/build.gradle bulunamadı, Connect sürümü karşılaştırılamadı')
+} else if (SURUM === paketJson.version && paketJson.version === connect.ad) {
+  tamam(`Connect sürümü üç yerde de ${SURUM} (versionCode ${connect.kod})`)
+} else {
+  bildir('Connect sürümü üç yerde aynı değil:')
+  console.log(`      src/marka/kimlik.js SURUM   ${SURUM}`)
+  console.log(`      package.json version        ${paketJson.version}`)
+  console.log(`      android versionName         ${connect && connect.ad}`)
+}
+
+if (connect && !/^\d+$/.test(String(connect.kod))) {
+  bildir(`Connect versionCode tam sayı değil: ${connect.kod}`)
+}
+
+/* Servisim kendi hattında. Klasör ilk servis derlemesinde oluşuyor;
+   yoksa bu adım atlanıyor, eksiklik değil. */
+const servisim = gradleSurum(join(KOK, 'android-servis', 'app', 'build.gradle'))
+
+if (!servisim) {
+  tamam('android-servis henüz üretilmemiş, Servisim hattı atlandı')
+} else if (!/^\d+$/.test(String(servisim.kod))) {
+  bildir(`Servisim versionCode tam sayı değil: ${servisim.kod}`)
+} else if (connect && servisim.ad === connect.ad && servisim.kod === connect.kod) {
+  bildir(
+    `Servisim sürümü Connect'e bitişmiş (${servisim.ad} / versionCode ${servisim.kod}); ` +
+      'Servisim kendi hattında artıyor',
+  )
+} else {
+  tamam(`Servisim kendi hattında: ${servisim.ad} (versionCode ${servisim.kod})`)
+}
+
+/* --------------------------------------------- 11. Yayın anahtarları
+
+   Dört ayar bugün BİLEREK geliştirme değerinde, yayına çıkarken mutlaka
+   değişecek:
+
+     · `AI.kok` ve `PARCA_KATALOG.kok` göreli adres. Telefonda
+       uygulamanın kendi kökü sunucu değil; APK'da göreli adres
+       çözülmüyor, destek ekranı ve parça listesi boş açılıyor. Gerekçe
+       `src/config.js` içindeki kendi yorumlarında yazılı.
+     · `PARCA_KATALOG.taklitGecikme`, sunucu hızını taklit eden 800 ms.
+       Gerçek sunucu bağlanınca bu gecikme yalan olur.
+     · `servis.html` kök etiketindeki `data-demo="acik"`: demo verisi
+       kuruluyor — uydurma müşteriler ve çalışan bir demo hesabı dahil.
+
+   NİYE SORUN SAYMIYOR
+
+   Bu dördü bugün DOĞRU durumda: sunucu yok, demo hesabı olmadan servis
+   uygulamasına girilemiyor. Günlük `npm run dogrula` bunlar yüzünden
+   kırmızı dönerse kırmızı dönmek normalleşir, asıl sorunlar o gürültünün
+   içinde kaybolur ve kontrolün kendisi işe yaramaz hale gelir. Bu yüzden
+   burada yalnız RAPOR ediliyor; sayaç artmıyor.
+
+   Yayın derlemesinde sayması için açık bir işaret gerekiyor:
+
+       npm run dogrula -- --yayin          (ya da PAKSAN_YAYIN=1)
+
+   O kipte aynı satırlar sorun sayılıyor ve çıkış kodu 1 oluyor. Karar
+   şöyle okunmalı: listeyi her gün görüyorsun, yalnız yayın günü seni
+   durduruyor. */
+
+baslik('11. Yayın anahtarları')
+
+const YAYIN_KIPI = process.argv.includes('--yayin') || process.env.PAKSAN_YAYIN === '1'
+
+const { AI, PARCA_KATALOG } = await import('../src/config.js')
+
+const goreliAdres = (adres) => !/^https?:\/\//i.test(String(adres || ''))
+
+const engeller = []
+if (goreliAdres(AI.kok)) engeller.push(`src/config.js → AI.kok göreli: '${AI.kok}'`)
+if (goreliAdres(PARCA_KATALOG.kok)) {
+  engeller.push(`src/config.js → PARCA_KATALOG.kok göreli: '${PARCA_KATALOG.kok}'`)
+}
+if (PARCA_KATALOG.taklitGecikme !== 0) {
+  engeller.push(`src/config.js → taklitGecikme ${PARCA_KATALOG.taklitGecikme} ms (0 olmalı)`)
+}
+
+/* Yalnız kök etikete bakılıyor: dosyanın başındaki yorum işaretin ne
+   olduğunu anlatırken aynı metni yazıyor, onu bulgu saymak yanlış
+   alarm olurdu. */
+const SERVIS_HTML = join(KOK, 'servis.html')
+if (existsSync(SERVIS_HTML)) {
+  const kok = /<html[^>]*\sdata-demo=["']acik["']/.test(readFileSync(SERVIS_HTML, 'utf8'))
+  if (kok) engeller.push('servis.html → kök etikette data-demo="acik" (demo verisi kuruluyor)')
+}
+
+if (!engeller.length) {
+  tamam('yayına çıkışı engelleyen geliştirme ayarı yok')
+} else if (YAYIN_KIPI) {
+  for (const e of engeller) bildir(e)
+} else {
+  console.log(`  - ${engeller.length} geliştirme ayarı açık (bugün böyle olması doğru):`)
+  for (const e of engeller) console.log('      ' + e)
+  console.log('    yayın derlemesinde saydırmak için: npm run dogrula -- --yayin')
+}
+
+/* ------------------------------------------------- 12. Yazılmamış metin
+
+   Bu projede ekranda görünen her Türkçe kelime Codex'ten geçiyor
+   (bkz. CLAUDE.md). Yeni bir ekran yazılırken metin hemen yazılmıyor:
+   yerine göze batan bir işaret bırakılıyor ve işaretler toplu hâlde
+   Codex'e veriliyor.
+
+   NEDEN KONTROL GEREKİYOR. 12 Eylül 2026'da yedi parti düzeltme aynı
+   anda çalıştı ve geride 15 yazılmamış dizgi bıraktı: hata ekranının
+   başlığı, iki panelin okuma hatası satırı, garanti gerekçesi. Hiçbiri
+   yakalanmadı, çünkü o güne kadar bu kontrol yoktu — doğrulama on bir
+   kez "temiz" deyip yer tutucuların üç uygulamaya da girmesine izin
+   verecekti. Yer tutucunun göze batması, onu gören bir göz olduğu
+   sürece işe yarıyor.
+
+   İŞARETİN BİÇİMİ SABİT DEĞİL. Her parti kendi kalıbını uydurdu
+   (`TODO_CODEX_`, `TODO-TR`, `[[CODEX: …]]`, `[TR-METİN BEKLENİYOR: …]`,
+   `[[ metin bekleniyor: … ]]`). Hepsi burada listeli; yeni bir kalıp
+   uyduran parti onu bu listeye de yazmak zorunda.
+
+   Yorumlar ayıklanıyor: yer tutucunun ne olduğunu anlatan gerekçe
+   yorumları dosyalarda kalıyor ve onları bulgu saymak yanlış alarm
+   olur. Aranan şey KODDAKİ dizgi. */
+
+baslik('12. Yazılmamış metin')
+
+const YER_TUTUCU_KALIPLARI = [
+  [/TODO_CODEX/g, 'Codex bekleyen yer tutucu'],
+  [/TODO-(?:TR|EN)/g, 'yazılmamış tr/en metni'],
+  [/\[\[\s*CODEX\s*:/g, 'Codex işareti'],
+  [/\[\[\s*TR\s*:/g, 'Türkçe metin işareti'],
+  [/\[\s*TR-MET[İI]N BEKLEN[İI]YOR/g, 'Türkçe metin bekleniyor'],
+  [/\[\[\s*metin bekleniyor/gi, 'metin bekleniyor'],
+]
+
+const yazilmamis = []
+for (const dosya of kaynaklar) {
+  const govde = yorumsuz(readFileSync(dosya, 'utf8'))
+  const satirlar = govde.split('\n')
+  for (let i = 0; i < satirlar.length; i++) {
+    for (const [kalip, ne] of YER_TUTUCU_KALIPLARI) {
+      kalip.lastIndex = 0
+      if (kalip.test(satirlar[i])) {
+        yazilmamis.push(`${dosya.replace(KOK + SEP, '')}:${i + 1} → ${ne}`)
+        break
+      }
+    }
+  }
+}
+
+if (yazilmamis.length) {
+  bildir(`ekrana çıkacak ${yazilmamis.length} yazılmamış metin var:`)
+  for (const y of yazilmamis) console.log('      ' + y)
+} else {
+  tamam('yer tutucu metin kalmadı')
+}
+
 /* ------------------------------------------------------------- Sonuç */
 
 console.log('')
@@ -518,4 +862,6 @@ if (sorun) {
   console.log(`SONUÇ: ${sorun} sorun bulundu.`)
   process.exit(1)
 }
-console.log('SONUÇ: sekiz kontrol de temiz.')
+console.log(
+  YAYIN_KIPI ? 'SONUÇ: on iki kontrol de temiz, yayına hazır.' : 'SONUÇ: on iki kontrol de temiz.',
+)

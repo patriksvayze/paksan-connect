@@ -23,16 +23,17 @@ import { normalizeSerial } from '../lib/serial'
 import { ANAHTAR, islemYaz, personelGetir, rolleriGetir } from './veri'
 import { MAKINE_DURUMU, ULASIM_ZAMANI } from '../data/talepAlanlari'
 import { PRODUCTS, SIRKET } from '../marka'
-import { PARCA_FIYAT } from '../marka'
 import { SERVISLER, BAYILER } from '../marka'
 import { makineninServisi } from '../lib/servisAtama'
+import { fiyatGoruntusu } from '../lib/parcaKatalogu'
 import {
   DEMO_SERVIS,
   SAHNE_GOREVLERI,
   SAHNE_MUSTERI,
   SAHNE_YERLERI,
   odemeUret,
-  parcaHavuzu,
+  parcaKaynagi,
+  parcaSecimi,
   senaryoSec,
   servisAkisi,
   servisSiparisleriUret,
@@ -81,11 +82,6 @@ const SERVIS_BELIRTI = [
   'İp düğümlemiyor', 'Balya dağılıyor', 'Pikap toplamıyor', 'Ses geliyor',
   'Zincir atıyor', 'Yağ kaçırıyor', 'Sensör uyarı veriyor', 'Titreşim var',
 ]
-
-/* Parça adları fiyat listesinden geliyor: demo talebi açıldığında
-   backoffice'te tutar da hesaplanabilsin, "en çok istenen parçalar"
-   raporu gerçek kodlarla dolsun (bkz. src/data/parcaFiyat.js). */
-const PARCALAR = Object.keys(PARCA_FIYAT)
 
 const KARGO = ['Aras Kargo', 'Yurtiçi Kargo', 'MNG Kargo', 'Sürat Kargo']
 
@@ -308,6 +304,39 @@ export function demoVarMi() {
  * değişikliği talepleri.
  */
 export async function demoYukle() {
+  /* ---- Parça kataloğu: EN BAŞTA, hiçbir kayıt yazılmadan önce
+
+     Demo verisindeki her parça PAKSAN'ın gerçek fiyat listesinden
+     geliyor: gerçek kod, gerçek ad, gerçek fiyat (bkz.
+     lib/parcaKatalogu.js). Katalog uygulamanın içinde değil,
+     sunucudan iniyor.
+
+     KATALOG GELMEZSE DEMO HİÇ KURULMUYOR. Eskiden uydurma bir fiyat
+     tablosuna düşülüyordu; demo o zaman hiç var olmayan kodlarla
+     doluyor ve demoyu inceleyen kişiye yanlış bir fiyat listesi
+     gösteriyordu. Parçasız kurmak da olmazdı: parça istenmiş ama
+     parçası olmayan bir servis kaydı gerçekte oluşamaz, parça masası
+     da boş görünürdü.
+
+     Bu yüzden istek en başta atılıyor — personel, müşteri ve makine
+     kayıtları yazılmadan. Yarım bir demo kalmıyor, `demoVarMi()`
+     hâlâ boş dönüyor ve düğme açık kalıyor. Başarısız katalog isteği
+     bellekte saklanmadığı için ikinci deneme gerçekten yeniden
+     deniyor (bkz. lib/parcaKatalogu.js). */
+  let katalog
+  let parcaHavuzu
+  try {
+    const kaynak = await parcaKaynagi()
+    katalog = kaynak.katalog
+    parcaHavuzu = kaynak.havuz
+  } catch (hata) {
+    console.error('demo: parça kataloğu alınamadı, demo verisi kurulmadı', hata)
+    return {
+      personel: 0, musteri: 0, talep: 0, numara: 0,
+      gorus: 0, destek: 0, duyuru: 0, hata: 'katalog',
+    }
+  }
+
   /* ---- Personel: admin dışında rastgele roller */
   const mevcut = personelGetir()
   const yeniPersonel = []
@@ -573,9 +602,8 @@ export async function demoYukle() {
     gorevler.push({ tur: 'servis', yasGun: g.yas, sahne: true, ...g })
   }
 
-  /* Servis kaydındaki parçalar katalogdan; hesap hareketleri talepler
-     kurulurken birikiyor. */
-  const havuz = await parcaHavuzu()
+  /* Hesap hareketleri talepler kurulurken birikiyor. Parça havuzu
+     yukarıda, demonun en başında alındı. */
   const cariHareketler = []
 
   /* Fotoğraflı talepler: ilk beş serviste ek olacak */
@@ -633,9 +661,18 @@ export async function demoYukle() {
       }))
       const sonTarih = gecmis.length ? gecmis[gecmis.length - 1].tarih : tarih
 
-      const parcalar = tur === 'parca' ? secBirkac(PARCALAR, 1, 3) : []
-      const parcaAdet = {}
-      for (const x of parcalar) parcaAdet[x] = tamsayi(1, 4)
+      /* PARÇALAR KATALOGDAN, FİYAT KAYDIN İÇİNDE.
+
+         Seçim PAKSAN'ın fiyat listesinden yapılıyor; "en çok istenen
+         parçalar" raporu gerçek kodlarla doluyor. Talebin tutarı
+         açılış anındaki fiyat görüntüsünden (`parcaFiyat`) okunuyor:
+         liste sonradan değiştiğinde eski talebin rakamı değişmiyor
+         (bkz. lib/parcaKatalogu.js → fiyatGoruntusu). */
+      const kalemler = tur === 'parca'
+        ? parcaSecimi(parcaHavuzu, 1, 3).map((p) => ({ ...p, adet: tamsayi(1, 4) }))
+        : []
+      const parcalar = kalemler.map((k) => k.ad)
+      const parcaAdet = Object.fromEntries(kalemler.map((k) => [k.ad, k.adet]))
 
       /* Yedek parçada bedel önden ödeniyor: "yeni" dışındaki her
          aşamada ödemenin onaylanmış olması gerekiyor, yoksa talep
@@ -683,6 +720,7 @@ export async function demoYukle() {
         belirtiler: tur === 'servis' ? secBirkac(SERVIS_BELIRTI, 1, 3) : [],
         parcalar,
         parcaAdet: tur === 'parca' ? parcaAdet : null,
+        parcaFiyat: kalemler.length ? fiyatGoruntusu(katalog, kalemler) : null,
         urunTipi: tur === 'satinalma' ? sec(['Saman', 'Kuru ot', 'Silaj']) : '',
         arazi: tur === 'satinalma' ? sec(['Düz', 'Hafif eğimli', 'Engebeli']) : '',
         traktor: tur === 'satinalma' ? sec(['50-75 HP', '75-100 HP', '100 HP üzeri']) : '',
@@ -741,7 +779,7 @@ export async function demoYukle() {
       if (tur === 'servis') {
         const akis = servisAkisi(talep, gorev.senaryo || senaryoSec(durum), {
           servis: eslesme.servis,
-          havuz,
+          havuz: parcaHavuzu,
           personel,
           secenek: gorev,
         })
@@ -798,6 +836,7 @@ export async function demoYukle() {
   const siparis = servisSiparisleriUret({
     servis: sahneServisi,
     personel: yeniPersonel.map((p) => p.ad),
+    katalog,
     butce: sahneBakiyesi,
   })
   talepler.push(...siparis.talepler)

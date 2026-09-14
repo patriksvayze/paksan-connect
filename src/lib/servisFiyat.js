@@ -13,28 +13,41 @@
    fiyat katmanı bu yüzden kaldırıldı.
 
    KDV BURADA YOK. Fiyatlar KDV hariç konuşuluyor; KDV'yi gösteren
-   ekran `KDV_ORANI` ile kendisi hesaplıyor.
+   ekran `kdvTutari()` ile kendisi hesaplıyor.
+
+   ARTIK PARÇA ADI DEĞİL, PARÇANIN KENDİSİ GİRİYOR
+
+   Bu dosya bir dönem parça ADINA bakıp uydurma bir fiyat tablosundan
+   fiyat buluyordu. O tablo 12 Eylül 2026'da kaldırıldı; fiyatın tek
+   kaynağı PAKSAN'ın yedek parça kataloğu. Katalogdaki birincil anahtar
+   `kod` (ad tekil değil), bu yüzden fonksiyon artık katalogdan gelen
+   parça nesnesini alıyor. Eski hâli gerçek katalogun hiçbir parçasında
+   çalışmıyordu: ada göre arama 538 parçanın tamamında boş dönüyordu.
    ========================================================================== */
 
-import { PARCA_SERVIS_ISKONTO, parcaFiyatBilgisi } from '../marka'
+import { PARCA_SERVIS_ISKONTO } from '../marka'
 
 /**
  * Bir yedek parçanın servis fiyatı.
  *
- * Parça fiyatları müşteri tarafında da kullanılıyor; oradaki `fiyat`
- * tavsiye satış fiyatı, servisin ödediği onun iskontolu hâli. Aradaki
- * fark servisin garanti dışı işte kalan payı.
+ * Katalogdaki `fiyat` tavsiye satış fiyatı; servisin ödediği onun
+ * iskontolu hâli. Aradaki fark servisin garanti dışı işte kalan payı.
  *
- * @returns {null|{fiyat, kod, tavsiye, alis, iskonto}}
- *   Parçanın fiyatı yazılmamışsa null.
+ * @param {null|{kod: string, ad: string, fiyat: number}} parca
+ *   `katalogGetir()` / `parcaBul()` sonucundan gelen parça.
+ * @returns {null|{kod, ad, fiyat, tavsiye, alis, iskonto}}
+ *   Parça yoksa ya da fiyatı sayı değilse null.
  */
-export function parcaServisFiyati(ad) {
-  const bilgi = parcaFiyatBilgisi(ad)
-  if (!bilgi) return null
+export function parcaServisFiyati(parca) {
+  if (!parca || typeof parca.fiyat !== 'number' || !Number.isFinite(parca.fiyat)) {
+    return null
+  }
   return {
-    ...bilgi,
-    tavsiye: bilgi.fiyat,
-    alis: Math.round(bilgi.fiyat * (1 - PARCA_SERVIS_ISKONTO)),
+    kod: parca.kod,
+    ad: parca.ad,
+    fiyat: parca.fiyat,
+    tavsiye: parca.fiyat,
+    alis: Math.round(parca.fiyat * (1 - PARCA_SERVIS_ISKONTO)),
     iskonto: PARCA_SERVIS_ISKONTO,
   }
 }

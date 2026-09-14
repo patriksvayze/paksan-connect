@@ -1,7 +1,8 @@
-import { IHRACAT, UYGULAMA } from '../marka'
+import { IHRACAT, UYGULAMA, PARA_BIRIMI, paraYaz } from '../marka'
 import { ulkeAdi } from '../data/ulkeler'
 import { getProduct } from '../marka'
 import { TALEP_TURLERI } from './talep'
+import { talebinParcalari } from './servisKaydi'
 
 /* ==========================================================================
    Yurtdışı talepleri
@@ -74,6 +75,22 @@ function satir(etiket, deger) {
     </tr>`
 }
 
+/* Birden çok satırlı değer — parça listesi gibi.
+
+   Parça listesi virgülle tek satıra dizilince okunmuyordu; kod, ad,
+   adet ve tutar birbirine giriyor. Her parça kendi satırında; hücre
+   düzeni `satir()` ile aynı kalıyor, e-posta istemcilerinde bozulan bir
+   şey eklenmiyor. Satırlar tek tek kaçırılıyor, `<br>` dışarıdan
+   konuyor. */
+function satirCok(etiket, satirlar) {
+  const liste = (satirlar || []).filter(Boolean)
+  if (!liste.length) return ''
+  return `<tr>
+      <td style="padding:6px 14px 6px 0;color:#55617a;font-size:13px;white-space:nowrap;vertical-align:top">${kacir(etiket)}</td>
+      <td style="padding:6px 0;font-size:14px;color:#0f1c33;line-height:1.6">${liste.map(kacir).join('<br>')}</td>
+    </tr>`
+}
+
 /* Müşterinin yazdığı metin e-postaya gömülüyor; HTML olarak
    yorumlanmamalı. */
 function kacir(deger) {
@@ -82,6 +99,65 @@ function kacir(deger) {
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
+}
+
+/* ------------------------------------------------------- Parça listesi
+
+   YURTDIŞINDA PARÇAYI AYIRT EDEN ŞEY KOD. Katalogdaki parça adları
+   yalnız Türkçe ve katalogda tekrar eden adlar var; Almanya'daki
+   distribütör "Pikap dişi" yazısıyla bir şey yapamaz, siparişi kodla
+   açıyor. Bu yüzden satır koddan başlıyor: kod, ad, adet, tutar.
+
+   TUTAR KAYITTAKİ GÖRÜNTÜDEN (`parcaFiyat`) geliyor, canlı fiyat
+   listesinden yeniden hesaplanmıyor: müşteri o günün tutarını gördü,
+   ihracat ekibi de aynı rakamı görmeli.
+
+   GÖRÜNTÜSÜ OLMAYAN ESKİ KAYITLAR yalnız ad taşıyor. O satırlara kod
+   ya da tutar UYDURULMUYOR; ad yazılıp geçiliyor.
+
+   SATIRLARI LİSTENİN KENDİSİNDEN DEĞİL, ORTAK OKUYUCUDAN ALIYOR
+   (bkz. servisKaydi.js → talebinParcalari). Burada adet talebin ad
+   listesinden `parcaAdet[ad]` ile aranıyordu; koda göre anahtarlanmış
+   bir kayıtta o arama boş dönüyor ve satır adetsiz çıkıyordu. Ortak
+   okuyucu önce kaydın fiyat görüntüsüne bakıyor, adet orada yazılı.
+
+   ADET YAZISI yalnız görüntüden gelen satırda her zaman yazılıyor.
+   Eski kayıtta adet bulunamamış olabilir ve bulunamayınca 1
+   varsayılıyor; "x 1" yazmak, bilinmeyen bir adedi biliniyor gibi
+   göstermek olurdu. */
+function parcaSatirlari(talep) {
+  return talebinParcalari(talep)
+    .filter((s) => s.ad)
+    .map((s) => {
+      const adet = s.goruntuden || s.adet > 1 ? `x ${s.adet}` : null
+      const tutar =
+        s.tutar === null || s.tutar === undefined
+          ? null
+          : `${paraYaz(s.tutar)} ${PARA_BIRIMI}`
+      return [s.kod, s.ad, adet, tutar].filter(Boolean).join(' · ')
+    })
+}
+
+/* Görüntüdeki toplam. Fiyatı bulunamayan kalem varsa toplam
+   YAZILMIYOR: yarım bir rakam, ihracat ekibinin yanlış teklif
+   vermesi demek. Tutarlar yurt içi liste tutarlarıdır — müşteriye
+   uygulamada görünen rakam budur; ihracat fiyatı ayrı listeden
+   veriliyor, o yüzden etiketinde bu yazıyor. */
+function parcaTutarSatirlari(talep) {
+  const g = talep.parcaFiyat
+  if (!g) return []
+  if (g.eksikFiyat) return ['Some items have no catalogue price — to be confirmed by the export team']
+
+  const toplam = Number(g.toplam) || 0
+  if (!toplam) return []
+
+  const kdv = Number(g.kdv) || 0
+  const ara = Number(g.araToplam) || 0
+  return [
+    kdv > 0
+      ? `${paraYaz(toplam)} ${PARA_BIRIMI} (${paraYaz(ara)} + VAT ${paraYaz(kdv)})`
+      : `${paraYaz(toplam)} ${PARA_BIRIMI}`,
+  ]
 }
 
 /**
@@ -98,12 +174,8 @@ export function ihracatPostasi(talep) {
 
   const konu = `[${TALEP_TURLERI[talep.tur]?.onek || 'REQ'}] ${turAdi} · ${ulke} · ${talep.no}`
 
-  const parcalar = (talep.parcalar || [])
-    .map((p) => {
-      const adet = talep.parcaAdet?.[p]
-      return adet > 1 ? `${p} x ${adet}` : p
-    })
-    .join(', ')
+  const parcalar = parcaSatirlari(talep)
+  const parcaTutari = parcaTutarSatirlari(talep)
 
   const satirlar = [
     satir('Request no', talep.no),
@@ -116,7 +188,9 @@ export function ihracatPostasi(talep) {
     satir('Serial no', talep.makine?.serial),
     satir('Product of interest', urun),
     satir('Symptoms', (talep.belirtiler || []).join(', ')),
-    satir('Parts requested', parcalar),
+    /* Kod · ad · adet · tutar, her parça kendi satırında */
+    satirCok('Parts requested', parcalar),
+    satirCok('Parts total (domestic list, as shown in the app)', parcaTutari),
     satir('Preferred call time', talep.ulasim),
     satir('Voice note', talep.ses?.veri ? `Yes (${talep.ses.sure}s) — see the app record` : ''),
     satir('Attachments', (talep.ekler || []).length ? `${talep.ekler.length} file(s)` : ''),
@@ -160,7 +234,11 @@ export function ihracatPostasi(talep) {
     [talep.ilce, talep.il].filter(Boolean).join(', '),
     makine ? `Machine: ${makine} (${talep.makine?.serial || ''})` : '',
     urun ? `Product of interest: ${urun}` : '',
-    parcalar ? `Parts: ${parcalar}` : '',
+    /* Düz metinde de her parça kendi satırında; kod önde */
+    parcalar.length ? `Parts:\n${parcalar.map((p) => `  - ${p}`).join('\n')}` : '',
+    parcaTutari.length
+      ? `Parts total (domestic list, as shown in the app): ${parcaTutari.join(' ')}`
+      : '',
     talep.aciklama ? `\nCustomer message:\n${talep.aciklama}` : '',
   ]
     .filter(Boolean)

@@ -1,4 +1,5 @@
 import { PARCA_KATALOG } from '../config'
+import { kdvTutari, PARCA_GRUBU_AILESI, PARCASIZ_AILELER } from '../marka'
 
 /* ==========================================================================
    YEDEK PARÇA KATALOĞU — uzaktan çağrılıyor
@@ -60,6 +61,22 @@ export function katalogGetir() {
       if (!Array.isArray(veri?.parcalar) || !veri.parcalar.length) {
         throw new Error('katalog-bos')
       }
+      /* Grup listesi de zorunlu: ekran grupları gezerek çalışıyor,
+         gruplar boş gelirse kullanıcı boş ekran görür. */
+      if (!Array.isArray(veri?.gruplar) || !veri.gruplar.length) {
+        throw new Error('katalog-gruplar-bos')
+      }
+      /* Alanı eksik parça ekranda sessiz '—' olarak görünür; fiyatı
+         eksik parça ise müşteriye eksik tutar söyletir. Erken patlat. */
+      const bozuk = veri.parcalar.find(
+        (p) =>
+          !p ||
+          typeof p.kod !== 'string' || !p.kod ||
+          typeof p.ad !== 'string' || !p.ad ||
+          typeof p.grup !== 'string' || !p.grup ||
+          typeof p.fiyat !== 'number' || !Number.isFinite(p.fiyat),
+      )
+      if (bozuk) throw new Error('katalog-eksik-alan')
 
       /* Sunucu hızını taklit eden gecikme; sunucu açıldığında sıfır
          olacak (bkz. config.js). */
@@ -109,4 +126,108 @@ export function parcaAra(katalog, sorgu) {
 /** Yalnız sınama ve ekran geçişleri için: belleği boşaltır. */
 export function katalogUnut() {
   istek = null
+}
+
+/**
+ * Kodu verilen parça; yoksa null.
+ *
+ * Birincil anahtar `kod`. Parça ADI tekil değil (katalogda 6 tekrar
+ * eden ad var), o yüzden ada göre arama yapan bir eşleme yazılmamalı.
+ */
+export function parcaBul(katalog, kod) {
+  if (!kod) return null
+  const aranan = String(kod)
+  return (katalog?.parcalar || []).find((p) => p.kod === aranan) || null
+}
+
+/** Katalogdaki alt montaj listesi, fiyat listesindeki sırasıyla. */
+export function gruplarListesi(katalog) {
+  return katalog?.gruplar || []
+}
+
+/**
+ * Bir makine ailesinin parça grupları.
+ *
+ * Makine ailesi `supportGroup()` çıktısıdır (balya · rulo · yem ·
+ * silaj · cayir · toprak · genel). Eşleme `src/marka/katalog/
+ * parcaGruplari.js` içinde; katalogda makine alanı olmadığı için
+ * köprü oradan geliyor.
+ *
+ * `ayriListeVar` false dönen ailelerde (rulo, silaj, toprak) PAKSAN'ın
+ * fiyat listesinde hiç parça yok. O durumda ekran kataloğun tamamını
+ * göstermeli — parça isteme yolu kapanmamalı.
+ *
+ * @returns {{ayriListeVar: boolean, gruplar: Array}}
+ */
+export function destekGrubununGruplari(katalog, destekGrubu) {
+  const hepsi = gruplarListesi(katalog)
+  if (!destekGrubu || PARCASIZ_AILELER.includes(destekGrubu)) {
+    return { ayriListeVar: false, gruplar: hepsi }
+  }
+  const kendi = hepsi.filter((g) => PARCA_GRUBU_AILESI[g.id] === destekGrubu)
+  if (!kendi.length) return { ayriListeVar: false, gruplar: hepsi }
+  return { ayriListeVar: true, gruplar: kendi }
+}
+
+/**
+ * Seçilen parçaların tutarı — kod üzerinden, gerçek katalogdan.
+ *
+ * Eski sistem parça ADINI anahtar olarak kullanıyordu ve fiyatlar
+ * uydurmaydı; ikisi de kaldırıldı. Artık anahtar kod, kaynak katalog.
+ *
+ * @param {Object} katalog katalogGetir() sonucu
+ * @param {Array<{kod: string, adet: number}>} secimler
+ * @returns {{satirlar, araToplam, kdv, toplam, eksikFiyat}}
+ *   `eksikFiyat` — kodu katalogda bulunmayan seçim var mı. Varsa ekran
+ *   "toplam" değil "hesaplanan kısım" demeli, yoksa müşteri eksik para
+ *   gönderir.
+ */
+export function parcaToplami(katalog, secimler = []) {
+  const satirlar = []
+  let araToplam = 0
+  let eksikFiyat = false
+
+  for (const secim of secimler) {
+    const kod = secim?.kod
+    const adet = Math.max(1, Number(secim?.adet) || 1)
+    const parca = parcaBul(katalog, kod)
+
+    if (!parca) {
+      eksikFiyat = true
+      satirlar.push({ kod, ad: secim?.ad || kod, adet, parca: null, tutar: null })
+      continue
+    }
+
+    const tutar = parca.fiyat * adet
+    araToplam += tutar
+    satirlar.push({ kod: parca.kod, ad: parca.ad, adet, parca, tutar })
+  }
+
+  const kdv = kdvTutari(araToplam)
+  return { satirlar, araToplam, kdv, toplam: araToplam + kdv, eksikFiyat }
+}
+
+/**
+ * Talep kaydına yazılacak fiyat anlık görüntüsü.
+ *
+ * Fiyat listesi değişiyor. Müşteri bugünkü tutarı havale ediyor; altı
+ * ay sonra aynı talebe bakan personel o günün fiyatını görmemeli.
+ * Bu yüzden satırlar, katalog sürümü ve kaynağı kaydın İÇİNE yazılıyor
+ * ve rapor ile backoffice canlı fiyata değil bu görüntüye bakıyor.
+ */
+export function fiyatGoruntusu(katalog, secimler = []) {
+  const hesap = parcaToplami(katalog, secimler)
+  return {
+    surum: katalog?.surum ?? null,
+    kaynak: katalog?.kaynak || null,
+    satirlar: hesap.satirlar.map((r) => ({
+      kod: r.kod, ad: r.ad, adet: r.adet,
+      birimFiyat: r.parca ? r.parca.fiyat : null,
+      tutar: r.tutar,
+    })),
+    araToplam: hesap.araToplam,
+    kdv: hesap.kdv,
+    toplam: hesap.toplam,
+    eksikFiyat: hesap.eksikFiyat,
+  }
 }

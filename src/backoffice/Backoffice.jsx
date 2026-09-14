@@ -16,6 +16,7 @@ import {
   talepleriGetir, geriBildirimGetir, numaraTalepleriGetir, teklifBekliyorMu,
   BACKOFFICE_SIFRE_HANE,
 } from './veri'
+import { ozetHatasiMi } from '../lib/hesap'
 import { bildirimGonder, izinDurumu, izinIste, sayiliBaslik } from './bildirim'
 import { TemaSecici } from './Tema'
 import {
@@ -471,6 +472,17 @@ function useYeniIsHaberi(oturum, tazele) {
 
 /* ------------------------------------------------------------------- Giriş */
 
+/* ŞİFRE ÖZETİ ÜRETİLEMEDİĞİNDE YAZILACAK METİN.
+
+   Tarayıcı güvenli kökende değilse (düz HTTP ile yayınlanan bir iç ağ
+   adresi) şifre doğrulanamıyor; bkz. src/lib/hesap.js → ozet. Önceden
+   bu durumda düğme "Giriliyor…" yazısında kalıyor, ekranda hiçbir şey
+   çıkmıyordu.
+
+   Metin personel diliyle yazıldı: backoffice'te terim yasağı yok ve
+   "https" doğrudan geçiyor — yöneticinin yapacağı şey tam olarak o. */
+const OZET_HATASI_METNI = 'Bağlantı güvenli olmadığı için şifre doğrulanamıyor. Adresi https ile açın veya yöneticinize başvurun.'
+
 function Giris({ onGiris }) {
   const [kullanici, setKullanici] = useState('')
   const [sifre, setSifre] = useState('')
@@ -490,11 +502,21 @@ function Giris({ onGiris }) {
 
     setHata('')
     setBekliyor(true)
-    const sonuc = await backofficeGiris(kullanici, sifre)
-    setBekliyor(false)
-
-    if (sonuc.hata) return setHata(sonuc.hata)
-    onGiris(sonuc.oturum)
+    /* Bekleme hâlinden çıkış `finally`de: hangi hata olursa olsun düğme
+       kilitli kalmasın. */
+    try {
+      const sonuc = await backofficeGiris(kullanici, sifre)
+      if (sonuc.hata) {
+        setHata(sonuc.hata)
+        return
+      }
+      onGiris(sonuc.oturum)
+    } catch (e) {
+      if (!ozetHatasiMi(e)) throw e
+      setHata(OZET_HATASI_METNI)
+    } finally {
+      setBekliyor(false)
+    }
   }
 
   if (unuttum) return <SifreTalebi onKapat={() => setUnuttum(false)} />
@@ -672,10 +694,19 @@ function SifreDegistir({ jeton, onBitti }) {
 
     setHata('')
     setBekliyor(true)
-    const cevap = await sifreJetonuKullan(jeton, yeni)
-    setBekliyor(false)
-    if (cevap.hata) return setHata(cevap.hata)
-    setBitti(true)
+    try {
+      const cevap = await sifreJetonuKullan(jeton, yeni)
+      if (cevap.hata) {
+        setHata(cevap.hata)
+        return
+      }
+      setBitti(true)
+    } catch (e) {
+      if (!ozetHatasiMi(e)) throw e
+      setHata(OZET_HATASI_METNI)
+    } finally {
+      setBekliyor(false)
+    }
   }
 
   return (

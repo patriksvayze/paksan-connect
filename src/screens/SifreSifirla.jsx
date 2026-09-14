@@ -7,8 +7,8 @@ import { TelefonAlani } from '../components/TelefonAlani'
 import { SifreAlani } from '../components/SifreAlani'
 import { telGecerliMi, telGoster } from '../lib/tel'
 import {
-  mevcutHesap, otpGonder, otpKontrol, otpTemizle, sifreHazirla,
-  sifreGecerliMi, SIFRE_HANE, OTP_SURE,
+  mevcutHesap, otpGonder, otpKontrol, otpTemizle, ozetHatasiMi, sifreHazirla,
+  sifreGecerliMi, SIFRE_HANE, OTP_SURE, OTP_SONUC,
 } from '../lib/hesap'
 import { save } from '../lib/storage'
 import { VARSAYILAN_ULKE } from '../data/ulkeler'
@@ -78,11 +78,19 @@ export default function SifreSifirla() {
 
   function koduDogrula() {
     if (kod.length < 6) return setHata(t('sifre.kodKisa'))
-    if (!otpKontrol(kod)) {
-      return setHata(
-        kalan === 0 ? t('sifre.kodSuresiDoldu') : t('sifre.kodYanlis')
-      )
-    }
+
+    const sonuc = otpKontrol(kod)
+
+    /* SUNUCU AÇIKKEN "KOD YANLIŞ" DEMİYORUZ.
+
+       Kod cihazda bilinmiyor, doğrulamayı yapacak bir sunucu ucu da
+       yok (eksiğin tamamı src/lib/hesap.js → otpGonder içinde yazılı).
+       Doğru kodu yazan kullanıcıya "yanlış" demek, hatayı onda
+       aratmak olur; olan şeyi söylüyoruz. */
+    if (sonuc === OTP_SONUC.SUNUCUDA) return setHata(t('sifre.dogrulamaSunucuda'))
+    if (sonuc === OTP_SONUC.SURE_DOLDU) return setHata(t('sifre.kodSuresiDoldu'))
+    if (sonuc !== OTP_SONUC.GECERLI) return setHata(t('sifre.kodYanlis'))
+
     setHata('')
     setAdim('yeni')
   }
@@ -97,9 +105,20 @@ export default function SifreSifirla() {
       return setHata(t('sifre.hesapYok'))
     }
 
+    /* Özet üretilemezse kayıt hiç yazılmıyor ve sebebi ekrana çıkıyor:
+       güvenli köken yoksa bu çağrı hata atıyor ve eskiden düğmeye
+       basıldığında hiçbir şey olmuyordu (bkz. src/lib/hesap.js → ozet). */
+    let sifreOzeti
+    try {
+      sifreOzeti = await sifreHazirla(sifre)
+    } catch (e) {
+      if (!ozetHatasiMi(e)) throw e
+      return setHata(t('giris.ozetYok'))
+    }
+
     /* Hesap kaydı güncelleniyor; oturum açılmıyor — kullanıcı yeni
        şifresiyle girsin ki şifreyi bir kez daha yazıp aklında kalsın. */
-    save('hesap', { ...hesap, sifre: await sifreHazirla(sifre) })
+    save('hesap', { ...hesap, sifre: sifreOzeti })
     otpTemizle()
     showToast(t('sifre.degistirildi'))
     nav('/giris', { replace: true })

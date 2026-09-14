@@ -9,10 +9,16 @@ import {
   TEKLIF_BEKLEME_GUN, talebiBayiyeAta, bayiAtamasiniKaldir,
   hakkedisOnayla, hakkedisDuzelt, hakkedisReddet, servisParcasiGonderildi,
   hakkedisIlerlemeEngeli,
+  islemYaz,
 } from '../veri'
 /* Kodlu biçim: yedek parça personeli 538 parçalık katalogta hangi
    kaydı hazırlayacağını addan çıkaramıyor. */
-import { KAPI, parcaYazisiKodlu as kayitParcaYazisi, temizParcalar } from '../../lib/servisKaydi'
+import {
+  KAPI,
+  parcaYazisiKodlu as kayitParcaYazisi,
+  talebinParcalari,
+  temizParcalar,
+} from '../../lib/servisKaydi'
 import { ParcaTablosu } from '../../components/ParcaTablosu'
 import { useVeri } from '../kanca'
 import {
@@ -30,11 +36,19 @@ import { ileriTarihMi, simdiGirdi } from '../../lib/tarih'
 import { makineDurumAdi } from '../../data/talepAlanlari'
 import { BANKA } from '../../marka'
 import { servisleriGetir, bayileriGetir, MARKA } from '../../marka'
-import { PARA_BIRIMI, parcaToplami, paraYaz } from '../../marka'
+import { PARA_BIRIMI, paraYaz } from '../../marka'
 import { telFirma } from '../../lib/tel'
 
 /* Talepler listesinde bir sayfadaki kayıt sayısı (bkz. ortak.jsx → Sayfalama). */
 const SAYFA_BOYU = 10
+
+/* Okuma hatası satırı.
+
+   "Kayıt yok" ile "kayıt okunamadı" ayrı şeyler ve önceden ikisi de
+   "Talep yok." yazıyordu: personel bekleyen talebi olmadığını sanıp
+   kuyruğu kapatıyordu. Satır artık arızayı söylüyor ve ne yapacağını
+   da söylüyor — cevabı olmayan bir hata mesajı, hata mesajı değil. */
+const OKUMA_HATASI = 'Talep kayıtları okunamadı. Sayfayı yenileyin; sorun sürerse yöneticinize haber verin.'
 
 /* Talepler.
 
@@ -72,7 +86,17 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
     setSecili(null)
   }, [sorgu])
 
-  const { veri: kendiTalepleri, yukleniyor } = useVeri(
+  /* OKUMA HATASI "KAYIT YOK" DİYE GÖRÜNMÜYOR.
+
+     `useVeri` baştan beri bir `hata` değeri döndürüyor (bkz. kanca.js)
+     ama hiçbir ekran onu almıyordu: okuma patladığında liste boş
+     geliyor ve ekranda "Talep yok." yazıyordu. Personel o an doğru
+     kararı veriyor — yeni talep gelmemiş diye bırakıyor; oysa elde
+     bekleyen talepler var ve kimse görmüyor.
+
+     "Yok" ile "okunamadı" ayrı iki cevap. Sunucuya geçildiğinde bu
+     ayrım daha da pahalı: ağ hatası, boş kuyruk gibi görünürdü. */
+  const { veri: kendiTalepleri, yukleniyor, hata } = useVeri(
     () => rolunTalepleri(talepleriGetir(), rol),
     [surum, rol],
     []
@@ -366,6 +390,8 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
         <div className="kart" ref={listeBasi}>
           {yukleniyor ? (
             <Bekleme satir={5} />
+          ) : hata ? (
+            <div className="hata">{OKUMA_HATASI}</div>
           ) : liste.length === 0 ? (
             <Bos metin="Talep yok." />
           ) : (
@@ -895,12 +921,24 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
               <>
                 {/* TDK'ye göre "unvan"; etikette "Ünvan" yazıyordu. */}
                 <S k="Unvan" v={talep.fatura.unvan} />
-                <S k="Vergi numarası" v={talep.fatura.vergiNo} mono />
+                <KimlikNo
+                  k="Vergi numarası"
+                  v={talep.fatura.vergiNo}
+                  talep={talep}
+                  rol={rol}
+                  personel={personel}
+                />
               </>
             ) : (
               <>
                 <S k="Ad Soyad" v={talep.fatura.ad} />
-                <S k="T.C. kimlik numarası" v={talep.fatura.tc} mono />
+                <KimlikNo
+                  k="T.C. kimlik numarası"
+                  v={talep.fatura.tc}
+                  talep={talep}
+                  rol={rol}
+                  personel={personel}
+                />
               </>
             )}
             <S k="Fatura telefonu" v={talep.fatura.tel} mono />
@@ -923,9 +961,10 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
 
                 Ödemeyi onaylayan personel "ne kadar gelmesi
                 gerekiyordu" sorusunun cevabını görmeden dekontu
-                kontrol edemiyordu. Fiyatlar müşteriye gösterilen
-                listeden geliyor (bkz. src/data/parcaFiyat.js), yani
-                müşterinin gördüğü rakamın aynısı. */}
+                kontrol edemiyordu. Rakam, talep açılırken kaydın içine
+                yazılan fiyattan geliyor (bkz. lib/parcaKatalogu.js →
+                fiyatGoruntusu), yani müşterinin o gün gördüğü rakamın
+                aynısı. */}
             <div className="alan__ad" style={{ marginTop: 18, marginBottom: 6 }}>
               Beklenen Tutar
             </div>
@@ -1445,6 +1484,71 @@ function S({ k, v, mono }) {
   )
 }
 
+/* ==========================================================================
+   Kimlik ve vergi numarası — kapalı duruyor, açılışı kaydediliyor
+
+   ÖNCE OLDUĞU GİBİ YAZIYORDU. Talebi görebilen her rol — yedek parça,
+   satış, servis — müşterinin T.C. kimlik numarasını ve vergi numarasını
+   tam okuyordu; üstelik kimin baktığı hiçbir yere yazılmıyordu.
+
+   NUMARA KALDIRILMIYOR: faturayı kesen kişiye gerçekten gerekiyor.
+   Kapalı duruyor, isteyen açıyor ve açtığı İşlem Kaydı'na yazılıyor.
+   Ekranın üstünde kendiliğinden duran bir numara, omzundan bakan
+   herkese açıktır; açmak bir karar olunca arkasında iz kalıyor.
+
+   SON DÖRT HANE AÇIK — müşteri uygulamasındaki kuralın aynısı
+   (bkz. screens/RequestDetail.jsx → gizle). Personel doğru kaydın
+   önünde olduğunu teyit edebiliyor, numaranın tamamını okumuyor.
+
+   BU EKRAN KORUMASI, ERİŞİM DENETİMİ DEĞİL. Kayıt hâlâ tarayıcının
+   deposunda duruyor; numarayı gerçekten ayıracak yer sunucunun satır
+   süzgeci. Buradaki kazanç iki şey: numara kendiliğinden ekranda
+   durmuyor ve açan kişi biliniyor.
+
+   TALEP DEĞİŞİNCE YENİDEN KAPANIYOR. Açık hâl talebin kimliğine
+   bağlı: yoksa listeden bir sonraki müşteriye geçildiğinde onun
+   numarası kayıtsız açılırdı — tam da kapatılmak istenen şey.
+
+   İZİN KATALOGDA YOKKEN AÇMA DÜĞMESİ ÇIKMIYOR, satır maskeli kalıyor.
+   Katalog satırı src/data/yetkiler.js içinde; hangi rollerin alacağına
+   PAKSAN karar veriyor. */
+const KIMLIK_IZNI = 'kimlikNo'
+
+function kimlikMaskele(numara) {
+  const s = String(numara || '')
+  if (s.length < 5) return s
+  return '•'.repeat(s.length - 4) + s.slice(-4)
+}
+
+/* İşlem Kaydı satırının fiili. Satır `TLP-241 · T.C. Kimlik No ·
+   tamamı görüntülendi` biçiminde kuruluyor: cümle değil, kayıt. */
+const KIMLIK_ACILDI = 'tamamı görüntülendi'
+
+function KimlikNo({ k, v, talep, rol, personel }) {
+  const [acilan, setAcilan] = useState(null)
+  if (!v) return null
+
+  const acik = acilan === talep.id
+  const yetkili = izinli(rol, KIMLIK_IZNI)
+
+  function ac() {
+    setAcilan(talep.id)
+    islemYaz({ tur: 'musteri', ozet: `${talep.no} · ${k} · ${KIMLIK_ACILDI}`, personel })
+  }
+
+  return (
+    <div className="satir" style={{ gap: 10, alignItems: 'baseline', marginBottom: 5 }}>
+      <span className="kucuk sonuk" style={{ minWidth: 118 }}>{k}</span>
+      <span className="mono">{acik ? v : kimlikMaskele(v)}</span>
+      {yetkili && !acik && (
+        <button type="button" className="dg dg--kucuk" onClick={ac}>
+          Göster
+        </button>
+      )}
+    </div>
+  )
+}
+
 /* ----------------------------------------------------------- Excel aktarımı
 
    Ekranda ne görünüyorsa o gidiyor: rolün göremediği talep dosyaya da
@@ -1671,16 +1775,34 @@ function GonderimGecikti({ talep }) {
   )
 }
 
+/* --------------------------------------------- Talepteki parça kalemleri
+
+   KAYDIN İÇİNDEKİ FİYAT OKUNUYOR, CANLI KATALOG AÇILMIYOR.
+
+   Talep açılırken o günün fiyatı kaydın içine yazılıyor (`parcaFiyat`,
+   bkz. lib/parcaKatalogu.js → fiyatGoruntusu). Fiyat listesi
+   değişiyor; altı ay önceki talebe bakan personel müşterinin o gün
+   havale ettiği tutarı görmeli, bugünün rakamını değil.
+
+   İKİ KAYIT BİÇİMİ VAR
+
+     YENİ  `parcaFiyat` dolu: satırda kod, ad, adet ve o günün tutarı.
+     ESKİ  yalnız parça ADLARI ile adetleri var; fiyat hiçbir yerde
+           yazılı değil. Bugünün fiyatını o kayda yazmak uydurma
+           olurdu, o yüzden tutar boş kalıyor ve ekran bunu söylüyor. */
+/* OKUMA BURADA YAPILMIYOR, paylasılan okuyucuya gidiyor:
+   lib/servisKaydi.js → talebinParcalari. Bu dosyada bir kopyası vardı
+   ve kopya sessizce ayrışmıştı: `kod` için '' yerine null dönüyor,
+   görüntüde tutar olsa bile `tutar: null` yazıyor ve `goruntuden`
+   alanını hiç taşımıyordu. Kayıt biçimini bilen tek yer orada. */
+
 /* "Pikap dişi × 2 · Düğüm atıcı bıçağı"
 
    Adet ayrı bir alanda tutuluyor; eski taleplerde yok, o yüzden
    yalnızca 1'den büyükse yazılıyor. */
 function parcaYazisi(talep) {
-  return (talep.parcalar || [])
-    .map((x) => {
-      const adet = talep.parcaAdet?.[x]
-      return adet > 1 ? `${x} × ${adet}` : x
-    })
+  return talebinParcalari(talep)
+    .map((k) => (k.adet > 1 ? `${k.ad || '—'} × ${k.adet}` : k.ad || '—'))
     .join(' · ')
 }
 
@@ -1738,7 +1860,8 @@ const KAPANIS_ALANLARI = {
   /* Yedek parça kapanışında TUTAR SORULMUYOR.
 
      Parça bedeli talebin en başında, müşteri tarafından ödeniyor ve
-     tutarı fiyat listesinden belli (bkz. src/data/parcaFiyat.js).
+     tutarı talebin içinde yazılı (bkz. lib/parcaKatalogu.js →
+     fiyatGoruntusu).
      Kapanışta bir kez daha sormak, aynı rakamı ikinci kez ve elle
      yazdırmak demekti; iki kayıt tutmayınca da hangisinin doğru olduğu
      belirsizleşiyordu. */
@@ -2967,28 +3090,56 @@ function IptalFormu({ talep, onKapat, onKaydet }) {
    aramasın.
    ========================================================================== */
 
-/* Talepteki parçaların liste fiyatı üzerinden tutarı.
+/* Talepteki parçaların, TALEP AÇILDIĞI GÜNKÜ tutarı.
 
    Bu bir fatura değil, KONTROL SATIRI: dekonttaki rakamla
-   karşılaştırılıyor. Fiyatı bilinmeyen parça varsa (müşteri "Diğer"
-   seçmişse) toplam eksik demektir ve bu ekranda yazıyor — yoksa
-   personel eksik parayı onaylayabilir. */
-function BeklenenTutar({ talep }) {
-  const hesap = parcaToplami(talep.parcalar || [], talep.parcaAdet || {})
+   karşılaştırılıyor. Bu yüzden rakam katalogdan yeniden
+   hesaplanamaz — müşteri havaleyi o gün gördüğü tutardan yaptı,
+   fiyat listesi o günden sonra değişmiş olabilir. Kaydın içindeki
+   anlık görüntü okunuyor (bkz. lib/servisKaydi.js → talebinParcalari).
 
-  if (!hesap.satirlar.length) return <span className="kucuk sonuk">Parça seçilmemiş.</span>
+   Fiyatı bilinmeyen parça varsa toplam eksik demektir ve bu ekranda
+   yazıyor — yoksa personel eksik parayı onaylayabilir.
+
+   ESKİ KAYITLARDA HİÇ FİYAT YOK: anlık görüntü alınmaya başlamadan
+   önce açılmış talepler yalnız parça adlarını taşıyor. Orada parça
+   listesi gösteriliyor, tutar gösterilmiyor; bugünkü fiyatı yazmak
+   dekontla karşılaştırılan rakamı uydurmak olurdu. */
+function BeklenenTutar({ talep }) {
+  const kalemler = talebinParcalari(talep)
+  const goruntu = talep.parcaFiyat
+
+  if (!kalemler.length) return <span className="kucuk sonuk">Parça seçilmemiş.</span>
+
+  if (!goruntu) {
+    return (
+      <>
+        {kalemler.map((k, i) => (
+          <div key={i} className="kucuk" style={{ marginBottom: 4 }}>
+            {k.ad || '—'}
+            {k.adet > 1 ? ` × ${k.adet}` : ''}
+          </div>
+        ))}
+        <div className="uyari" style={{ marginTop: 10, marginBottom: 0 }}>
+          <span>Bu talep fiyat listesi gelmeden önce açıldığı için kayıtta fiyat dökümü bulunmuyor. Parça tutarları için fiyat listesine bakın.</span>
+        </div>
+      </>
+    )
+  }
 
   return (
     <>
-      {hesap.satirlar.map((r) => (
-        <div key={r.ad} className="satir" style={{ gap: 10, marginBottom: 4 }}>
+      {kalemler.map((k, i) => (
+        <div key={i} className="satir" style={{ gap: 10, marginBottom: 4 }}>
           <span className="kucuk">
-            {r.ad}
-            {r.adet > 1 ? ` × ${r.adet}` : ''}
-            {r.bilgi ? <span className="sonuk"> · {r.bilgi.kod}</span> : null}
+            {k.ad || '—'}
+            {k.adet > 1 ? ` × ${k.adet}` : ''}
+            {k.kod ? <span className="sonuk"> · {k.kod}</span> : null}
           </span>
           <span className="kucuk mono" style={{ marginLeft: 'auto' }}>
-            {r.tutar === null ? '—' : paraYaz(r.tutar) + ' ' + PARA_BIRIMI}
+            {k.tutar === null || k.tutar === undefined
+              ? '—'
+              : paraYaz(k.tutar) + ' ' + PARA_BIRIMI}
           </span>
         </div>
       ))}
@@ -2999,11 +3150,11 @@ function BeklenenTutar({ talep }) {
       >
         <b>KDV dâhil toplam</b>
         <b className="mono" style={{ marginLeft: 'auto' }}>
-          {paraYaz(hesap.toplam)} {PARA_BIRIMI}
+          {paraYaz(goruntu.toplam)} {PARA_BIRIMI}
         </b>
       </div>
 
-      {hesap.eksikFiyat && (
+      {goruntu.eksikFiyat && (
         <div className="uyari" style={{ marginTop: 10, marginBottom: 0 }}>
           <span>
             Fiyatı listede olmayan parça var ("Diğer"). Yukarıdaki toplam EKSİK — müşteriyle

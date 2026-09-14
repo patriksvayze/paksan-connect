@@ -6,7 +6,9 @@ import { Rozet } from '../marka'
 import { TelefonAlani } from '../components/TelefonAlani'
 import { SifreAlani } from '../components/SifreAlani'
 import { telGecerliMi } from '../lib/tel'
-import { girisDene, GIRIS_SONUC, sifreGecerliMi, SIFRE_HANE } from '../lib/hesap'
+import {
+  girisDene, GIRIS_SONUC, ozetHatasiMi, sifreGecerliMi, SIFRE_HANE,
+} from '../lib/hesap'
 import { VARSAYILAN_ULKE } from '../data/ulkeler'
 import { useDil } from '../i18n'
 import { IconBack } from '../components/Icons'
@@ -46,26 +48,45 @@ export default function Login() {
     setSifreYanlis(false)
     setBekliyor(true)
 
-    const sonuc = await girisDene({ ulke, tel, sifre })
-    setBekliyor(false)
+    /* Düğmenin "Giriliyor…" hâlinden çıkışı `finally`de: aradaki hiçbir
+       hata düğmeyi kilitli bırakmasın. Tarayıcı güvenli kökende
+       değilse şifre özeti üretilemiyor ve giriş hata atıyordu; düğme
+       sonsuza kadar bekliyor yazıyordu (bkz. src/lib/hesap.js → ozet). */
+    try {
+      const sonuc = await girisDene({ ulke, tel, sifre })
 
-    if (sonuc.durum === GIRIS_SONUC.BULUNDU) {
-      if (hatirla) save('hatirla', { ulke, tel })
-      else remove('hatirla')
-      girisYap(sonuc.user)
-      showToast(t('giris.hosgeldiniz', { ad: sonuc.user.ad?.split(' ')[0] || '' }))
-      nav('/', { replace: true })
-      return
+      if (sonuc.durum === GIRIS_SONUC.BULUNDU) {
+        if (hatirla) save('hatirla', { ulke, tel })
+        else remove('hatirla')
+        girisYap(sonuc.user)
+        showToast(t('giris.hosgeldiniz', { ad: sonuc.user.ad?.split(' ')[0] || '' }))
+        nav('/', { replace: true })
+        return
+      }
+      /* Şifresiz açılmış eski kayıt: giriş yok, şifre koyma yolu var. */
+      if (sonuc.durum === GIRIS_SONUC.SIFRE_KURULUM) {
+        showToast(t('giris.sifreKurulumGerek'))
+        nav('/sifremi-unuttum')
+        return
+      }
+      if (sonuc.durum === GIRIS_SONUC.HATA) {
+        setHata(t(sonuc.mesaj))
+        return
+      }
+      if (sonuc.durum === GIRIS_SONUC.SIFRE_YANLIS) {
+        setSifreYanlis(true)
+        return
+      }
+      setBulunamadi(true)
+    } catch (e) {
+      /* Beklenmeyen bir hata olursa sebebi uydurulmuyor: yalnız özet
+         hatasının karşılığı var, gerisi konsola düşüyor. Düğme yine de
+         `finally` ile serbest kalıyor. */
+      if (!ozetHatasiMi(e)) throw e
+      setHata(t('giris.ozetYok'))
+    } finally {
+      setBekliyor(false)
     }
-    if (sonuc.durum === GIRIS_SONUC.HATA) {
-      setHata(t(sonuc.mesaj))
-      return
-    }
-    if (sonuc.durum === GIRIS_SONUC.SIFRE_YANLIS) {
-      setSifreYanlis(true)
-      return
-    }
-    setBulunamadi(true)
   }
 
   return (

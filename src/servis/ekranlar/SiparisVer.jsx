@@ -1,14 +1,30 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { cariBakiye, servisParcaSiparisi } from '../../backoffice/veri'
 import { servisleriGetir, MARKA, markaEk } from '../../marka'
-import { KDV_ORANI, PARA_BIRIMI, PARCA_FIYAT, paraYaz } from '../../marka'
+import {
+  KDV_HARIC_LISTE,
+  KDV_ORANI,
+  PARA_BIRIMI,
+  kdvTutari,
+  paraYaz,
+} from '../../marka'
+import {
+  gorselAdresi,
+  grubunParcalari,
+  katalogGetir,
+  parcaAra,
+  parcaBul,
+} from '../../lib/parcaKatalogu'
 import { parcaServisFiyati } from '../../lib/servisFiyat'
 import { Bolum, Onay } from '../Kabuk'
 import {
+  IconAlert,
+  IconBack,
   IconCheck,
   IconCheckCircle,
   IconMinus,
   IconPlus,
+  IconRight,
   IconSearch,
   IconTrash,
 } from '../../components/Icons'
@@ -28,6 +44,30 @@ import {
 
    TUTAR BAĞLAYICI DEĞİL ve bu ekranda yazıyor. Fiyat listesi
    göstergedir; siparişi PAKSAN onaylıyor, fatura LOGO'dan çıkıyor.
+
+   SİPARİŞ ARTIK PAKSAN'IN KENDİ KATALOĞUNDAN VERİLİYOR
+
+   Bu ekran bir dönem uydurma bir fiyat tablosundan (30 kalem, sahte
+   kodlar) liste kuruyordu. Tablo 12 Eylül 2026'da kaldırıldı; parçanın
+   tek kaynağı PAKSAN'ın bastığı yedek parça listesi — 538 parça, 35 alt
+   montaj (bkz. lib/parcaKatalogu.js). Liste ekran açılınca ağdan
+   iniyor; yükleme ve hata durumları gerçek.
+
+   ANAHTAR AD DEĞİL KOD. Katalogda ad tekil değil, aynı ad birden fazla
+   montajda geçiyor. Seçim, sepet ve sipariş satırları bu yüzden kodla
+   taşınıyor; ad yalnız ekranda okunan yazı.
+
+   PARÇA SEÇİMİYLE AYNI YOL: ÖNCE MONTAJ, SONRA PARÇA
+
+   538 parça tek listede gösterilemez. Servis kaydındaki parça seçimi
+   (bkz. ekranlar/ParcaSec.jsx) bu işi alt montajlara bölerek çözüyor ve
+   servis o ekranı zaten kullanıyor. Sipariş ekranı ayrı bir düzen
+   kurmuyor: aynı grup listesi, aynı arama kutusu, aynı sıra — fiyat
+   listesinin sırası. Arama kestirme, asıl yol montaj listesi.
+
+   FİYAT SERVİSİN ÖDEDİĞİ FİYAT. Katalogdaki tutar tavsiye satış
+   fiyatı; satırda görünen ve toplanan, onun iskontolu hâli
+   (bkz. lib/servisFiyat.js).
 
    ADET KUTUYA YAZILMIYOR, DÜĞMEYLE SAYILIYOR
 
@@ -62,10 +102,20 @@ import {
    servisin siparişi oraya hiç düşmüyordu. Artık sipariş normal bir
    yedek parça talebi — aynı liste, aynı durumlar, aynı kapanış
    (bkz. backoffice/veri.js → servisParcaSiparisi).
+
+   SİPARİŞİN İÇİNE FİYAT ANLIK GÖRÜNTÜSÜ YAZILIYOR
+
+   Fiyat listesi değişiyor. Altı ay sonra bu siparişe bakan personel o
+   günün fiyatını değil, siparişin verildiği günün fiyatını görmeli.
+   Bu yüzden satırlar, katalog sürümü ve kaynağı kaydın içine
+   gönderiliyor (`parcaFiyat`). Tutarlar servisin ödediği iskontolu
+   fiyattan; kaydın canlı katalogla yeniden hesaplanması gerekmiyor.
    ========================================================================== */
 
 export function SiparisVer({ oturum, onKapat, onVerildi }) {
   const [adim, setAdim] = useState('secim')
+  /* Seçim kod → adet. Ad anahtar olarak kullanılmıyor: katalogda
+     tekrar eden adlar var, ikisi tek satıra düşerdi. */
   const [adetler, setAdetler] = useState({})
   const [arama, setArama] = useState('')
   const [not, setNot] = useState('')
@@ -73,6 +123,27 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
   const [hata, setHata] = useState('')
   const [onay, setOnay] = useState(false)
   const [siparis, setSiparis] = useState(null)
+
+  /* Katalog ağdan iniyor; üç hâl de gerçek. Servis kaydındaki parça
+     seçimiyle aynı yükleme ve hata yüzeyi kullanılıyor. */
+  const [durum, setDurum] = useState('yukleniyor')
+  const [katalog, setKatalog] = useState(null)
+  const [grup, setGrup] = useState(null)
+
+  useEffect(() => {
+    let gecerli = true
+    setDurum('yukleniyor')
+    katalogGetir()
+      .then((k) => {
+        if (!gecerli) return
+        setKatalog(k)
+        setDurum('hazir')
+      })
+      .catch(() => gecerli && setDurum('hata'))
+    return () => {
+      gecerli = false
+    }
+  }, [])
 
   const servis = useMemo(
     () => servisleriGetir().find((b) => b.id === oturum.servisId) || null,
@@ -87,32 +158,27 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
     servis ? [servis.adres, servis.ilce, servis.il].filter(Boolean).join(', ') : '',
   )
 
-  const kalemler = useMemo(
-    () =>
-      Object.entries(PARCA_FIYAT).map(([ad, b]) => ({
-        anahtar: ad,
-        ad,
-        kod: b.kod,
-      })),
-    [],
-  )
-
-  const secili = useMemo(
-    () =>
-      kalemler
-        .map((k) => {
-          const adet = Number(adetler[k.anahtar]) || 0
-          const f = parcaServisFiyati(k.anahtar)
-          return {
-            ...k,
-            adet,
-            birimFiyat: f?.alis ?? null,
-            satirTutari: f ? f.alis * adet : null,
-          }
-        })
-        .filter((k) => k.adet > 0),
-    [kalemler, adetler],
-  )
+  /* Sepet. Sıra, seçim sırası: servis en son dokunduğu parçayı özetin
+     sonunda bulur. Fiyat katalogdan değil `parcaServisFiyati`den
+     geliyor — servis iskontolu fiyatı ödüyor. */
+  const secili = useMemo(() => {
+    const liste = []
+    for (const [kod, ham] of Object.entries(adetler)) {
+      const adet = Number(ham) || 0
+      if (adet <= 0) continue
+      const parca = parcaBul(katalog, kod)
+      const f = parcaServisFiyati(parca)
+      liste.push({
+        kod,
+        ad: parca?.ad || kod,
+        grup: parca?.grup || null,
+        adet,
+        birimFiyat: f ? f.alis : null,
+        satirTutari: f ? f.alis * adet : null,
+      })
+    }
+    return liste
+  }, [katalog, adetler])
 
   const hesap = useMemo(() => {
     let araToplam = 0
@@ -121,7 +187,7 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
       if (k.satirTutari === null) eksik = true
       else araToplam += k.satirTutari
     }
-    const kdv = Math.round(araToplam * KDV_ORANI)
+    const kdv = kdvTutari(araToplam)
     return { araToplam, kdv, toplam: araToplam + kdv, eksik }
   }, [secili])
 
@@ -130,11 +196,14 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
   const bakiyeYeter = bakiye >= hesap.toplam && hesap.toplam > 0
   const eksikTutar = Math.max(0, hesap.toplam - bakiye)
 
-  function adetDegistir(anahtar, fark) {
+  function adetDegistir(kod, fark) {
     setAdetler((a) => {
-      const simdiki = Number(a[anahtar]) || 0
+      const simdiki = Number(a[kod]) || 0
       const yeni = Math.max(0, simdiki + fark)
-      return { ...a, [anahtar]: yeni || '' }
+      const sonraki = { ...a }
+      if (yeni > 0) sonraki[kod] = yeni
+      else delete sonraki[kod]
+      return sonraki
     })
     setHata('')
   }
@@ -150,7 +219,33 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
       servisTel: servis?.tel || '',
       il: servis?.il || '',
       ilce: servis?.ilce || '',
-      kalemler: secili,
+      /* Kalem satırında artık kod da var: talebi okuyan taraf parçayı
+         adıyla değil koduyla buluyor. */
+      kalemler: secili.map((k) => ({
+        kod: k.kod,
+        ad: k.ad,
+        adet: k.adet,
+        birimFiyat: k.birimFiyat,
+        satirTutari: k.satirTutari,
+      })),
+      /* Fiyat anlık görüntüsü: sipariş anındaki satırlar, katalog
+         sürümü ve kaynağı. Tutarlar servisin ödediği iskontolu
+         fiyattan — liste fiyatından değil. */
+      parcaFiyat: {
+        surum: katalog?.surum ?? null,
+        kaynak: katalog?.kaynak || null,
+        satirlar: secili.map((k) => ({
+          kod: k.kod,
+          ad: k.ad,
+          adet: k.adet,
+          birimFiyat: k.birimFiyat,
+          tutar: k.satirTutari,
+        })),
+        araToplam: hesap.araToplam,
+        kdv: hesap.kdv,
+        toplam: hesap.toplam,
+        eksikFiyat: hesap.eksik,
+      },
       not,
       teslimat,
       odeme: bakiyeYeter ? odeme : 'fatura',
@@ -192,7 +287,7 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
             setHata('')
             setOnay(true)
           }}
-          onSil={(k) => setAdetler((a) => ({ ...a, [k.anahtar]: '' }))}
+          onSil={(k) => adetDegistir(k.kod, -k.adet)}
         />
 
         {onay && (
@@ -225,7 +320,10 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
 
   return (
     <Secim
-      kalemler={kalemler}
+      durum={durum}
+      katalog={katalog}
+      grup={grup}
+      onGrup={setGrup}
       adetler={adetler}
       arama={arama}
       onArama={setArama}
@@ -234,14 +332,32 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
       hesap={hesap}
       onKapat={onKapat}
       onDevam={() => setAdim('onay')}
+      onTekrar={() => {
+        setDurum('yukleniyor')
+        yenidenDene(setDurum, setKatalog)
+      }}
     />
   )
+}
+
+/* Yeniden deneme: bellekteki hata zaten silinmiş oluyor
+   (bkz. lib/parcaKatalogu.js), tek yapılacak yeni bir istek. */
+function yenidenDene(setDurum, setKatalog) {
+  katalogGetir()
+    .then((k) => {
+      setKatalog(k)
+      setDurum('hazir')
+    })
+    .catch(() => setDurum('hata'))
 }
 
 /* -------------------------------------------------------------- 1. Seçim */
 
 function Secim({
-  kalemler,
+  durum,
+  katalog,
+  grup,
+  onGrup,
   adetler,
   arama,
   onArama,
@@ -250,23 +366,21 @@ function Secim({
   hesap,
   onKapat,
   onDevam,
+  onTekrar,
 }) {
-  const q = arama.trim().toLocaleLowerCase('tr-TR')
-  const suzulmus = q
-    ? kalemler.filter(
-        (k) =>
-          k.ad.toLocaleLowerCase('tr-TR').includes(q) ||
-          (k.kod || '').toLocaleLowerCase('tr-TR').includes(q),
-      )
-    : kalemler
+  const aranan = arama.trim()
+  const aramaAcik = aranan.length >= 2
+  const sonuclar = useMemo(() => parcaAra(katalog, arama), [katalog, arama])
 
-  /* Seçilenler listenin başında: sepette ne olduğu, sepette olmayanın
-     arasında aranmıyor. */
-  const secilenAnahtarlar = secili.map((k) => k.anahtar)
-  const sirali = [
-    ...suzulmus.filter((k) => secilenAnahtarlar.includes(k.anahtar)),
-    ...suzulmus.filter((k) => !secilenAnahtarlar.includes(k.anahtar)),
-  ]
+  /* Listelenen parçalar: arama varsa sonuçlar, yoksa seçili montajın
+     parçaları. Hiçbiri yoksa ekranda montaj listesi duruyor. */
+  const listelenen = aramaAcik
+    ? sonuclar
+    : grup
+      ? grubunParcalari(katalog, grup.id)
+      : []
+
+  const adetToplam = secili.reduce((t, k) => t + k.adet, 0)
 
   return (
     <>
@@ -275,45 +389,91 @@ function Secim({
         görecek ve siparişi vereceksiniz.
       </p>
 
-      <div className="ara-kutu">
-        <IconSearch size={18} />
-        <input
-          className="gir"
-          value={arama}
-          onChange={(e) => onArama(e.target.value)}
-          placeholder="Parça ara"
-          aria-label="Parça ara"
-        />
-      </div>
+      {durum === 'yukleniyor' && <Yukleniyor />}
+      {durum === 'hata' && <Hata onTekrar={onTekrar} />}
 
-      {sirali.length > 0 ? (
-        <Bolum ad="Yedek Parça" sayi={secili.length}>
-          <div className="parca-liste">
-            {sirali.map((k) => (
-              <SecimSatiri
-                key={k.anahtar}
-                kalem={k}
-                adet={Number(adetler[k.anahtar]) || 0}
-                onAdet={(fark) => onAdet(k.anahtar, fark)}
-              />
-            ))}
-          </div>
-        </Bolum>
-      ) : (
-        <p className="kucuk sonuk">“{arama}” ile eşleşen parça yok.</p>
+      {durum === 'hazir' && (
+        <>
+          <label className="ara-kutu">
+            <IconSearch size={18} />
+            <input
+              className="gir"
+              value={arama}
+              onChange={(e) => onArama(e.target.value)}
+              placeholder="Parça adı veya kodu"
+              aria-label="Parça ara"
+            />
+          </label>
+
+          {/* Montaj listesi: arama boşken ve bir montaj seçilmemişken.
+              Sıra katalogdan geliyor, yani basılı fiyat listesinin
+              sırası; sağdaki sayı o montajda kaç parça olduğunu
+              söylüyor. */}
+          {!grup && !aranan && (
+            <div className="montaj-liste">
+              {(katalog?.gruplar || []).map((g) => (
+                <button key={g.id} className="montaj" onClick={() => onGrup(g)}>
+                  <span className="montaj__ad">{g.ad}</span>
+                  <span className="montaj__sayi">{g.adet}</span>
+                  <IconRight size={18} />
+                </button>
+              ))}
+            </div>
+          )}
+
+          {(grup || aramaAcik) && (
+            <>
+              {/* Montaja girildiğinde geri dönüş yolu ekranda duruyor:
+                  sayfanın geri düğmesi siparişin tamamından çıkıyor,
+                  servisin istediği ise bir üst kademe. */}
+              {grup && !aranan && (
+                <button
+                  className="dg dg--blok"
+                  style={{ marginBottom: 12 }}
+                  onClick={() => onGrup(null)}
+                >
+                  <IconBack size={17} />
+                  Bölüm Listesine Dön
+                </button>
+              )}
+
+              {aramaAcik && (
+                <p className="ipucu">
+                  “{aranan}” için {listelenen.length} parça bulundu.
+                </p>
+              )}
+
+              {listelenen.length === 0 ? (
+                <p className="kucuk sonuk">Eşleşen parça yok.</p>
+              ) : (
+                <Bolum ad={grup && !aranan ? grup.ad : 'Yedek Parça'}>
+                  <div className="parca-liste">
+                    {listelenen.map((p) => (
+                      <SecimSatiri
+                        key={p.kod}
+                        parca={p}
+                        adet={Number(adetler[p.kod]) || 0}
+                        onAdet={(fark) => onAdet(p.kod, fark)}
+                      />
+                    ))}
+                  </div>
+                </Bolum>
+              )}
+            </>
+          )}
+        </>
       )}
 
       <div className="yapisik">
         {secili.length > 0 && (
           <div className="siparis-toplam">
             <span>
-              {secili.length} parça türü ·{' '}
-              {secili.reduce((t, k) => t + k.adet, 0)} adet
+              {secili.length} parça türü · {adetToplam} adet
             </span>
             <strong>
               {paraYaz(hesap.araToplam)} {PARA_BIRIMI}
             </strong>
-            <small>KDV hariç</small>
+            {KDV_HARIC_LISTE && <small>KDV hariç</small>}
           </div>
         )}
         <button
@@ -332,10 +492,15 @@ function Secim({
 }
 
 /* Satırın tamamı dokunma hedefi: seçilmemişken bir kez dokunmak bir
-   adet ekliyor. Servis kaydındaki parça satırıyla aynı iskelet. */
-function SecimSatiri({ kalem, adet, onAdet }) {
-  const f = parcaServisFiyati(kalem.anahtar)
+   adet ekliyor. Servis kaydındaki parça satırıyla aynı iskelet.
+
+   Küçük görsel fiyat listesindeki resmin kendisi: sahadaki usta
+   parçayı adıyla değil resmiyle ve koduyla tanıyor. Tek başına anlam
+   taşımıyor, yanında kod ve ad duruyor. */
+function SecimSatiri({ parca, adet, onAdet }) {
+  const f = parcaServisFiyati(parca)
   const secili = adet > 0
+  const adres = gorselAdresi(parca.gorsel)
 
   return (
     <div className={'parca-satir' + (secili ? ' parca-satir--on' : '')}>
@@ -345,12 +510,28 @@ function SecimSatiri({ kalem, adet, onAdet }) {
         aria-pressed={secili}
       >
         <span className="parca-kutucuk">{secili && <IconCheck size={15} />}</span>
+        {adres && (
+          /* Bir montajda otuz satır olabiliyor; hepsini birden
+             indirmek tarlada zayıf şebekede ekranı kilitler. */
+          <img
+            src={adres}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            style={{
+              flex: 'none',
+              width: 44,
+              height: 44,
+              objectFit: 'contain',
+              borderRadius: 6,
+            }}
+          />
+        )}
         <span className="parca-satir__ad">
-          {kalem.ad}
+          {parca.ad}
           <span className="parca-satir__fiyat">
-            {kalem.kod && <span className="mono">{kalem.kod}</span>}
-            {kalem.kod && f ? ' · ' : ''}
-            {f ? `${paraYaz(f.alis)} ${PARA_BIRIMI}` : 'Fiyat bilgisi yok'}
+            <span className="mono">{parca.kod}</span>
+            {f ? ` · ${paraYaz(f.alis)} ${PARA_BIRIMI}` : ''}
           </span>
         </span>
       </button>
@@ -360,7 +541,7 @@ function SecimSatiri({ kalem, adet, onAdet }) {
           <button
             className="stok-dus"
             onClick={() => onAdet(-1)}
-            aria-label={kalem.ad + ' adedini azalt'}
+            aria-label={parca.ad + ' adedini azalt'}
           >
             <IconMinus size={19} />
           </button>
@@ -368,12 +549,51 @@ function SecimSatiri({ kalem, adet, onAdet }) {
           <button
             className="stok-dus"
             onClick={() => onAdet(1)}
-            aria-label={kalem.ad + ' adedini artır'}
+            aria-label={parca.ad + ' adedini artır'}
           >
             <IconPlus size={19} />
           </button>
         </div>
       )}
+    </div>
+  )
+}
+
+/* Yükleme sırasında kartların iskeleti duruyor: boş bir ekran
+   "bir şey yok" der, iskelet "geliyor" der. Servis kaydındaki parça
+   seçimiyle birebir aynı yüzey. */
+function Yukleniyor() {
+  return (
+    <>
+      <p className="ipucu">Parça listesi {MARKA} sunucusundan yükleniyor…</p>
+      <div className="parca-izgara">
+        {Array.from({ length: 6 }, (_, i) => (
+          <div key={i} className="parca-kart parca-kart--iskelet">
+            <span className="parca-kart__resim" />
+            <span className="iskelet-satir iskelet-satir--kisa" />
+            <span className="iskelet-satir" />
+            <span className="iskelet-satir iskelet-satir--kisa" />
+          </div>
+        ))}
+      </div>
+    </>
+  )
+}
+
+function Hata({ onTekrar }) {
+  return (
+    <div className="not not--turuncu">
+      <IconAlert size={19} />
+      <div>
+        <strong>Parça listesi yüklenemedi</strong>
+        <p>
+          Liste {MARKA} sunucusundan geliyor. Bağlantınızı kontrol edip
+          yeniden deneyin.
+        </p>
+        <button className="dg dg--ana dg--blok" style={{ marginTop: 12 }} onClick={onTekrar}>
+          Yeniden Dene
+        </button>
+      </div>
     </div>
   )
 }
@@ -407,11 +627,11 @@ function Ozet({
       <Bolum ad="Sipariş Özeti" sayi={secili.length}>
         <div className="kart" style={{ padding: '4px 16px' }}>
           {secili.map((k) => (
-            <div key={k.anahtar} className="ozet-kalem">
+            <div key={k.kod} className="ozet-kalem">
               <div className="ozet-kalem__ad">
                 <div>{k.ad}</div>
                 <div className="kucuk sonuk">
-                  {k.adet} ×{' '}
+                  <span className="mono">{k.kod}</span> · {k.adet} ×{' '}
                   {k.birimFiyat === null
                     ? 'Fiyat bilgisi yok'
                     : `${paraYaz(k.birimFiyat)} ${PARA_BIRIMI}`}
@@ -438,12 +658,16 @@ function Ozet({
               {paraYaz(hesap.araToplam)} {PARA_BIRIMI}
             </strong>
           </div>
-          <div className="urun-kart__satir">
-            <span>KDV %{Math.round(KDV_ORANI * 100)}</span>
-            <strong>
-              {paraYaz(hesap.kdv)} {PARA_BIRIMI}
-            </strong>
-          </div>
+          {/* KDV satırı yalnız liste fiyatı KDV hariçse görünüyor;
+              kararın gerekçesi marka/katalog/para.js içinde. */}
+          {KDV_HARIC_LISTE && (
+            <div className="urun-kart__satir">
+              <span>KDV %{Math.round(KDV_ORANI * 100)}</span>
+              <strong>
+                {paraYaz(hesap.kdv)} {PARA_BIRIMI}
+              </strong>
+            </div>
+          )}
           <div className="urun-kart__satir urun-kart__satir--vurgu">
             <span>Genel toplam</span>
             <strong>
@@ -551,7 +775,8 @@ function Sonuc({ siparis, hesap, onBitir }) {
       <p className="mono siparis-sonuc__no">{siparis.no}</p>
       <p className="kucuk sonuk">
         {(siparis.parcalar || []).length} kalem · {adet} adet ·{' '}
-        {paraYaz(hesap.araToplam)} {PARA_BIRIMI} (KDV hariç)
+        {paraYaz(hesap.araToplam)} {PARA_BIRIMI}
+        {KDV_HARIC_LISTE ? ' (KDV hariç)' : ''}
       </p>
       <p className="kucuk sonuk">
         Siparişin durumunu Parça bölümünden takip edebilirsiniz. {MARKA}{' '}

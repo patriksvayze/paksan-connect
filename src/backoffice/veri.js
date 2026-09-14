@@ -10,7 +10,7 @@ import { load, save, uid, remove, oturumYukle, oturumKaydet, oturumSil } from '.
 import { sifreHazirla, sifreDogruMu, sifreGecerliMi } from '../lib/hesap'
 import { yeniNo } from '../lib/numara'
 import { talepNo } from '../lib/talep'
-import { SIRKET, MARKA, markaEk, PARA_BIRIMI } from '../marka'
+import { SIRKET, MARKA, markaEk, PARA_BIRIMI, kdvTutari } from '../marka'
 import { urun } from '../lib/urun'
 import { ASAMA, kaydiDogrula, kaydiCozume, kapininSonucu } from '../lib/servisKaydi.js'
 import { servisleriGetir } from '../marka'
@@ -66,8 +66,27 @@ export const ANAHTAR = {
    içinde, gerekçeleriyle birlikte.                                     */
 
 /** Yürürlükteki rol listesi — düzenlenmediyse koddaki varsayılan. */
+/* ADMİNİN İZİNLERİ KATALOGTAN OKUNUYOR, DEPODAN DEĞİL.
+
+   Rol listesine bir kez dokunulduğunda listenin TAMAMI depoya yazılıyor
+   (bkz. lib/icerikDeposu.js → icerikListe) ve o günün izin kümesi orada
+   donuyor. Katalogta sonradan açılan bir izin hiçbir role girmiyor,
+   ADMİNE DE: izni arayan düğme ekranda hiç çıkmıyor ve bu fark
+   edilmiyor, çünkü görünmeyen bir düğmenin yokluğu hata vermiyor.
+   `kimlikNo` izni tam böyle oldu — maskeyi kaldıran düğme yazıldı,
+   katalog satırı eklendi, ama depoda eski küme duruyordu.
+
+   Admin sistemin çıpası ve kilitli: `rolGuncelle` onu değiştirmeyi
+   reddediyor, tanımı da "her şeyi görür ve yapar" (bkz. yetkiler.js →
+   VARSAYILAN_ROLLER). O tanım burada her okumada yeniden kuruluyor;
+   katalog büyüdükçe admin de büyüyor.
+
+   ÖTEKİ ROLLER DEPODAKİNİ KORUYOR. Yeni bir izin kimseye sessizce
+   dağıtılmaz: hangi rolün neyi göreceğine PAKSAN karar veriyor. */
 export function rolleriGetir() {
-  return icerikListe('roller', VARSAYILAN_ROLLER)
+  return icerikListe('roller', VARSAYILAN_ROLLER).map((r) =>
+    r.id === 'admin' ? { ...r, izinler: TUM_IZINLER } : r,
+  )
 }
 
 /* Rolün kaydı.
@@ -763,6 +782,7 @@ export function talepDurumDegistir(talep, yeniDurum, personel, { bildirme } = {}
   if (bildirme) return
 
   musteriyeBildir({
+    musteriId: bildirimAlicisi(talep),
     tur: 'talep',
     baslikAnahtar: 'bildirimler.durumBaslik',
     metinAnahtar: 'bildirimler.durum_' + yeniDurum,
@@ -807,6 +827,7 @@ export function talebiBayiyeAta(talep, bayi, personel) {
   islemYaz({ tur: 'durum', ozet: `${talep.no} → Kapandı · bayiye atandı: ${bayi.ad}`, personel })
 
   musteriyeBildir({
+    musteriId: bildirimAlicisi(talep),
     tur: 'talep',
     baslikAnahtar: 'bildirimler.bayiBaslik',
     metinAnahtar: 'bildirimler.bayiMetin',
@@ -882,12 +903,44 @@ export function talepNotEkle(
   /* Personelin yazdığı cümle olduğu gibi gidiyor — çeviremeyiz.
      Başlık sözlükten geliyor, o müşterinin dilinde çıkıyor. */
   musteriyeBildir({
+    musteriId: bildirimAlicisi(talep),
     tur: 'talep',
     baslikAnahtar: 'bildirimler.notBaslik',
     degerler: { no: talep.no, talepTur: talep.tur },
     metin,
     talepNo: talep.no,
   })
+}
+
+/* ------------------------------------------------- Bildirim kimin kaydı
+
+   `duyurular` ANAHTARI PAYLAŞILIYOR. Aynı listede personelin yayımladığı
+   duyuru ile uygulamanın ürettiği kişiye özel bildirim birlikte duruyor
+   (bkz. lib/duyuruHedef.js). Süzgeç kişiye özel kaydı YALNIZCA
+   `musteriId` alanından tanıyor; alan yoksa kayıt herkese açık sayılıyor
+   ve her hesabın ekranında çiziliyor.
+
+   Alan hiçbir çağırandan gelmiyordu. Sonucu ekranda görülüyordu: bir
+   cihazda ikinci bir hesap açıldığında önceki müşterinin talep
+   numarası, kargo notu, randevu tarihi, atanan bayi adı ve görüşüne
+   yazılan cevap yeni hesabın Bildirimler ekranında çıkıyordu.
+
+   KİMLİK İKİ YERDEN OKUNUYOR. Kayıtta `musteriId` varsa o geçerli
+   (numara talebi ve servisin elle açtığı kayıt taşıyor). Yoksa
+   telefondan eşleştiriliyor: uygulamadan açılan talep bugün yalnız
+   `telHam` taşıyor (bkz. screens/RequestForm.jsx) ve hesabın `tel`
+   alanı da ham numara.
+
+   EŞLEŞME YOKSA null. Yanlış hesaba damga vurmak, bildirimi
+   sahibinden saklamak demek; o yüzden kimlik uydurulmuyor. null
+   dönünce kayıt kimliksiz yazılıyor ve `musteriyeBildir`in vurduğu
+   `kisisel` damgası sayesinde KİMSEYE gösterilmiyor — eskiden bu
+   durumda kayıt herkese açık sayılıyordu. */
+function bildirimAlicisi(kayit) {
+  if (kayit?.musteriId) return kayit.musteriId
+  const tel = kayit?.telHam || kayit?.tel
+  if (!tel) return null
+  return musterileriGetir().find((m) => m.tel === tel)?.id || null
 }
 
 /* Müşterinin Bildirimler ekranına düşen kayıt.
@@ -897,12 +950,42 @@ export function talepNotEkle(
    kendi dilinde çıkıyor. Personelin elle yazdığı cevaplarda `metin`
    doğrudan gidiyor — o cümleyi çeviremeyiz.
 
+   `musteriId` ZORUNLU: bu kayıt bir kişinin kendi bildirimi ve yalnız
+   onun ekranına düşmeli (yukarıdaki gerekçe). Çağıran alanı
+   `bildirimAlicisi()` ile hesaplıyor.
+
    Dışa açık: servis paneli de aynı kapıdan yazıyor (fiyat teklifi
    gönderildiğinde). İkinci bir bildirim deposu açmak, müşterinin
    ekranında iki ayrı liste demekti. */
 export function musteriyeBildir(bildirim) {
+  /* `kisisel` DAMGASI HER KAYITTA, ALICISI ÇÖZÜLSE DE ÇÖZÜLMESE DE.
+
+     `bildirimAlicisi()` kimseyi bulamadığında kayıt `musteriId`
+     ALANSIZ yazılıyordu ve süzgeç alansız kaydı HERKESE AÇIK duyuru
+     sayıyor (bkz. lib/duyuruHedef.js). Yani kimliği çözülemeyen bir
+     kişisel bildirim —talep numarası, kargo notu, randevu tarihi,
+     atanan bayi adı— her hesabın Bildirimler ekranında çiziliyordu.
+     Tam olarak kapatılmak istenen sızıntının kendisi.
+
+     Damga süzgece "bu kayıt bir kişinin" diyor. Kişi bulunamadıysa
+     kayıt KİMSEYE gösterilmiyor: bildirimi sahibinden saklamak,
+     yabancıya göstermekten iyidir. Kayıt yine de yazılıyor, çünkü
+     depoda durması onu sonradan doğru hesaba bağlamanın tek yolu.
+
+     Damga yayılımdan SONRA konuyor: çağıran yanlışlıkla da olsa
+     `kisisel: false` geçirip süzgeci kapatamasın.
+
+     Eski kayıtlarda damga yok; süzgeç onları eskisi gibi geçiriyor.
+     Tek hesaplı cihazda üretildiler, geriye uyum bozulmuyor. */
+  if (!bildirim?.musteriId) {
+    console.warn(
+      'musteriyeBildir: alıcı çözülemedi, bildirim kimseye gösterilmeyecek —',
+      bildirim?.tur || '?',
+      bildirim?.no || '',
+    )
+  }
   save(ANAHTAR.duyurular, [
-    { id: uid(), tarih: Date.now(), ...bildirim },
+    { id: uid(), tarih: Date.now(), ...bildirim, kisisel: true },
     ...load(ANAHTAR.duyurular, []),
   ])
 }
@@ -990,8 +1073,20 @@ export function talepKapat(talep, cozum, personel) {
      zaman yazılıyor.
 
      Tutar sipariş anındaki fiyattan; sunucu geldiğinde faturanın
-     kendi tutarı gelecek ve değişecek tek şey bu satır olacak. */
-  const dusulecek = Number(talep.tutarKdvli) || Number(talep.tutar) || 0
+     kendi tutarı gelecek ve değişecek tek şey bu satır olacak.
+
+     RAKAM KAYDIN İÇİNDEKİ FİYAT GÖRÜNTÜSÜNDEN OKUNUYOR.
+
+     Sipariş verilirken o günün satırları, KDV'si ve toplamı kaydın
+     içine yazılıyor (`parcaFiyat`, bkz. servisParcaSiparisi). Deftere
+     yazılan borç oradan geliyor; katalog yeniden açılıp fiyat yeniden
+     hesaplanmıyor — fiyat listesi aradan geçen günlerde değişmiş
+     olabilir ve servise söylenen tutar sipariş günündeki tutardır.
+
+     Eski siparişlerde görüntü yok, yalnız `tutarKdvli` var; onlar için
+     o alan kullanılıyor. */
+  const dusulecek =
+    Number(talep.parcaFiyat?.toplam) || Number(talep.tutarKdvli) || Number(talep.tutar) || 0
   if (talep.servisSiparisi && talep.odeme === 'bakiye' && dusulecek > 0) {
     cariHareketEkle({
       servisId: talep.servis?.id,
@@ -1012,6 +1107,7 @@ export function talepKapat(talep, cozum, personel) {
      kaldırıldı (bkz. DURUMLAR). */
   const parcaGonderimi = talep.tur === 'parca'
   musteriyeBildir({
+    musteriId: bildirimAlicisi(talep),
     tur: 'talep',
     baslikAnahtar: parcaGonderimi
       ? 'bildirimler.gonderildiBaslik'
@@ -1045,6 +1141,7 @@ export function talepIptal(talep, iptal, personel) {
   islemYaz({ tur: 'durum', ozet: `${talep.no} iptal edildi · ${iptal.neden}`, personel })
 
   musteriyeBildir({
+    musteriId: bildirimAlicisi(talep),
     tur: 'talep',
     baslikAnahtar: 'bildirimler.iptalBaslik',
     metinAnahtar: 'bildirimler.iptalMetin',
@@ -1081,6 +1178,7 @@ export function talepTeklifVer(talep, teklif, personel) {
   })
 
   musteriyeBildir({
+    musteriId: bildirimAlicisi(talep),
     tur: 'talep',
     baslikAnahtar: 'bildirimler.teklifBaslik',
     metinAnahtar: teklif.gecerlilik
@@ -1161,6 +1259,7 @@ export function odemeOnayla(talep, personel, not) {
   })
 
   musteriyeBildir({
+    musteriId: bildirimAlicisi(talep),
     tur: 'talep',
     baslikAnahtar: 'bildirimler.odemeBaslik',
     metinAnahtar: 'bildirimler.odemeMetin',
@@ -1355,6 +1454,7 @@ export function talepPlanla(talep, plan, personel) {
   })
 
   musteriyeBildir({
+    musteriId: bildirimAlicisi(talep),
     tur: 'talep',
     baslikAnahtar: 'bildirimler.durumBaslik',
     metinAnahtar: 'bildirimler.durum_planlandiDetay',
@@ -1472,6 +1572,7 @@ export function numaraTalebiKarar(talep, onay, personel, not) {
     )
 
     musteriyeBildir({
+      musteriId: bildirimAlicisi(talep),
       tur: 'numara',
       baslikAnahtar: 'bildirimler.numaraBaslik',
       metinAnahtar: 'bildirimler.numaraOnay',
@@ -1479,6 +1580,7 @@ export function numaraTalebiKarar(talep, onay, personel, not) {
     })
   } else {
     musteriyeBildir({
+      musteriId: bildirimAlicisi(talep),
       tur: 'numara',
       baslikAnahtar: 'bildirimler.numaraBaslik',
       metinAnahtar: 'bildirimler.numaraRet',
@@ -1516,7 +1618,10 @@ export function geriBildirimNotEkle(gorus, metin, personel) {
   )
   save(ANAHTAR.geriBildirim, liste)
 
+  /* Görüş kaydı `musteriId` taşımıyor, yalnız telefonu var
+     (bkz. lib/geriBildirim.js); kimlik oradan eşleştiriliyor. */
   musteriyeBildir({
+    musteriId: bildirimAlicisi(gorus),
     tur: 'gorus',
     baslikAnahtar: 'bildirimler.gorusCevapBaslik',
     metin,
@@ -1739,12 +1844,32 @@ export function servisKaydiGonder(talep, kayit, servisAd) {
     rol: 'servis',
   })
 
-  if (sonuc.durum === 'kapandi') {
+  /* SERVİS GELDİ, MÜŞTERİ HABER ALMIYORDU.
+
+     Bildirim yalnız `kapandi` sonucunda gidiyordu. Oysa kapının üç
+     sonucu var (bkz. lib/servisKaydi.js → kapininSonucu): iş bitti,
+     parça bekleniyor, kayıt PAKSAN'da inceleniyor. Son ikisinde servis
+     sahaya gidiyor, işi yazıyor ve müşterinin uygulamasında günlerce
+     hiçbir şey olmuyordu — çiftçi makinesinin başına kimin geldiğini
+     ve şimdi ne beklediğini uygulamadan göremiyordu.
+
+     METİN YENİ YAZILMADI. Müşterinin bu iki aşama için gördüğü
+     karşılık sözlükte zaten duruyor (`talepDurum.*`, iki dilde de
+     yazılı) ve ekranın durum rozetinde aynı cümle çıkıyor; bildirim
+     de onu kullanıyor, böylece iki yerde iki ayrı cümle olmuyor. */
+  const DURUM_METNI = {
+    kapandi: 'bildirimler.durum_kapandi',
+    parcaBekliyor: 'talepDurum.parcaBekliyor',
+    onayBekliyor: 'talepDurum.onayBekliyor',
+  }
+  const metinAnahtar = DURUM_METNI[sonuc.durum]
+  if (metinAnahtar) {
     musteriyeBildir({
+      musteriId: bildirimAlicisi(talep),
       tur: 'talep',
       baslikAnahtar: 'bildirimler.durumBaslik',
-      metinAnahtar: 'bildirimler.durum_kapandi',
-      degerler: { no: talep.no, durum: 'kapandi', talepTur: talep.tur },
+      metinAnahtar,
+      degerler: { no: talep.no, durum: sonuc.durum, talepTur: talep.tur },
       talepNo: talep.no,
     })
   }
@@ -1838,6 +1963,7 @@ export function hakkedisOnayla(talep, personel) {
      işi tamamlanıyor, müşterinin uygulamasında talep sessizce
      kapanıyordu. */
   musteriyeBildir({
+    musteriId: bildirimAlicisi(talep),
     tur: 'talep',
     baslikAnahtar: 'bildirimler.durumBaslik',
     metinAnahtar: 'bildirimler.durum_kapandi',
@@ -1935,6 +2061,23 @@ export function servisParcasiGonderildi(talep, kargo, personel) {
    Servisin siparişi artık NORMAL BİR YEDEK PARÇA TALEBİ. Aynı listede,
    aynı durumlarda, aynı kapanış formuyla. Tek farkı `servisSiparisi`
    işareti: müşterisi yok, müşterisi servisin kendisi.
+
+   SATIRIN KİMLİĞİ KOD, AD DEĞİL
+
+   Adetler bir dönem parça ADINA göre anahtarlanıyordu. PAKSAN'ın
+   gerçek fiyat listesinde aynı adı taşıyan altı parça var: iki ayrı
+   kod tek satıra düşüyor, biri diğerinin adedini siliyor ve sipariş
+   eksik geliyordu. Anahtar artık kod (bkz. lib/parcaKatalogu.js →
+   parcaBul: birincil anahtar `kod`).
+
+   FİYAT ANLIK GÖRÜNTÜSÜ KAYDIN İÇİNE YAZILIYOR
+
+   Sipariş anındaki satırlar, katalog sürümü ve kaynağı `parcaFiyat`
+   alanında duruyor — müşterinin parça talebinde kullanılan alanın
+   aynısı, böylece backoffice iki kayıt için tek biçim okuyor
+   (bkz. ekranlar/Talepler.jsx → parcaKalemleri). Tutarlar servisin
+   ödediği iskontolu fiyattan geliyor; kayıt canlı katalogla yeniden
+   hesaplanmıyor.
    ========================================================================== */
 export function servisParcaSiparisi({
   servisId,
@@ -1944,14 +2087,38 @@ export function servisParcaSiparisi({
   il,
   ilce,
   kalemler,
+  parcaFiyat,
   not,
   teslimat,
   odeme,
   tutar,
   tutarKdvli,
 }) {
-  const temiz = (kalemler || []).filter((k) => Number(k.adet) > 0)
+  const temiz = (kalemler || [])
+    .map((k) => ({
+      kod: String(k?.kod || '').trim(),
+      ad: String(k?.ad || '').trim(),
+      adet: Number(k?.adet) || 0,
+    }))
+    .filter((k) => k.adet > 0 && (k.kod || k.ad))
   if (!temiz.length) return { hata: 'En az bir parça seçin.' }
+
+  /* Satırları olmayan bir görüntü kaydedilmiyor: okuyan ekranlar
+     `parcaFiyat`ın varlığını "fiyat yazılı" diye anlıyor (bkz.
+     ekranlar/Talepler.jsx → BeklenenTutar). Boş bir nesne, tutarı
+     bilinmeyen siparişi tutarı sıfır gibi gösterirdi. */
+  const goruntu =
+    parcaFiyat && Array.isArray(parcaFiyat.satirlar) && parcaFiyat.satirlar.length
+      ? parcaFiyat
+      : null
+
+  /* TUTAR TEK YERDEN: kaydedilen görüntüden. Ayrıca gelen `tutar` ve
+     `tutarKdvli` yalnız görüntüsü olmayan çağrılar için duruyor.
+     KDV elle çarpılmıyor — oranı ve "liste KDV hariç mi" kararını
+     `kdvTutari` biliyor (bkz. marka/katalog/para.js). */
+  const araToplam = Number(goruntu ? goruntu.araToplam : tutar) || 0
+  const kdvliToplam =
+    Number(goruntu ? goruntu.toplam : tutarKdvli) || araToplam + kdvTutari(araToplam)
 
   const simdi = Date.now()
   const talep = {
@@ -1971,8 +2138,16 @@ export function servisParcaSiparisi({
     ihracat: false,
     musteriId: null,
     aciklama: (not || '').trim(),
-    parcalar: temiz.map((k) => k.ad),
-    parcaAdet: Object.fromEntries(temiz.map((k) => [k.ad, Number(k.adet)])),
+    /* Ekranlarda görünen ad listesi. Kod, adet ve tutar `parcaFiyat`
+       içinde yazılı; okuyan taraf parçayı oradan koduyla buluyor. */
+    parcalar: temiz.map((k) => k.ad || k.kod),
+    /* ADET KOD ANAHTARLI. Aynı adı taşıyan iki parça artık ayrı ayrı
+       duruyor. Kodu olmayan satır (katalog dışı, elle yazılmış) ancak
+       adıyla anahtarlanabiliyor; kod uydurulmuyor. */
+    parcaAdet: Object.fromEntries(temiz.map((k) => [k.kod || k.ad, k.adet])),
+    /* Sipariş anındaki fiyat görüntüsü. Müşterinin parça talebindeki
+       alanın aynısı; yoksa null (bkz. backoffice/demo.js). */
+    parcaFiyat: goruntu,
     fatura: { ad: servisAd, adres: (teslimat || '').trim() },
     /* İSTENEN TESLİM TARİHİ KALDIRILDI.
 
@@ -1988,12 +2163,13 @@ export function servisParcaSiparisi({
     odeme: odeme === 'bakiye' ? 'bakiye' : 'fatura',
     /* Sipariş anındaki tutar kaydediliyor: fiyat listesi sonradan
        değişince "bu siparişi hangi fiyattan verdim" sorusunun cevabı
-       kalsın. */
-    tutar: Number(tutar) || 0,
+       kalsın. Rakam `parcaFiyat` görüntüsünden geliyor; iki alan
+       listelerin kestirmesi, kaynağı değil. */
+    tutar: araToplam,
     /* Hak edişten düşülecek tutar KDV dâhil olan. `tutar` alanı KDV
        hariç ve listelerde o görünüyor; ikisini tek alana sıkıştırmak,
        bir yerde eksik bir yerde fazla rakam demekti. */
-    tutarKdvli: Number(tutarKdvli) || Number(tutar) || 0,
+    tutarKdvli: kdvliToplam,
     servisSiparisi: true,
     sahip: 'paksan',
     masa: 'parca',

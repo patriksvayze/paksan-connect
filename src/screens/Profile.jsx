@@ -308,19 +308,29 @@ export default function Profile() {
           </div>
         ) : (
           <>
-            <p className="small muted" style={{ marginBottom: 10 }}>
-              {t('profil.kaydirIpucu')}
-            </p>
+            {/* İpucu yalnız kapalı talepler sekmesinde: açık taleplerde
+                kaydırma yok, olmayan bir hareketi anlatmak yanlış. */}
+            {talepSekme === 'kapali' && (
+              <p className="small muted" style={{ marginBottom: 10 }}>
+                {t('profil.kaydirIpucu')}
+              </p>
+            )}
             <div className="stack">
               {gosterilen.map((r) => {
                 const pr = r.makine ? urunDilde(getProduct(r.makine.productId), dil) : null
                 const tur = talepTuru(r.tur)
-                return (
-                  <KaydirilirSatir
-                    key={r.id}
-                    onSil={() => setSilinecek(r)}
-                    onDokun={() => nav('/talebim/' + r.id)}
-                  >
+                /* ÜZERİNDE İŞ SÜREN TALEP KAYDIRILAMIYOR.
+
+                   Her satır kaydırılabiliyordu ve kaydırma kaydı
+                   listeden kaldırıyordu. Açık bir talep PAKSAN'ın ve
+                   teknisyenin listesinde duran iştir: müşteri onu
+                   kaldırınca ekranında işin izi kalmıyor, oysa iş
+                   sürüyor. Kapanmış ya da iptal edilmiş satır
+                   kaldırılabiliyor; açık satırda kaydırma hiç yok —
+                   çalışmayan bir hareketi ipucuyla tanıtmak kendi
+                   başına hata. */
+                const kaldirilabilir = KAPALI.includes(r.status || 'yeni')
+                const govde = (
                     <div
                       className="listitem"
                       style={{ alignItems: 'flex-start' }}
@@ -374,12 +384,17 @@ export default function Profile() {
                         )}
                         {/* Formda işaretlenen belirti / parça başlıkları —
                             açıklamayı okumadan talebin ne olduğu anlaşılsın */}
-                        {(r.belirtiler?.length > 0 || r.parcalar?.length > 0) && (
+                        {(r.belirtiler?.length > 0 ||
+                          r.parcalar?.length > 0 ||
+                          r.parcaFiyat?.satirlar?.length > 0) && (
                           <div className="listitem__sub" style={{ marginTop: 4 }}>
-                            {/* Kayıt Türkçe; ekranda kullanıcının dilinde */}
-                            {[...(r.belirtiler || []), ...(r.parcalar || [])]
-                              .map((x) => alanEtiketi(x, dil))
-                              .join(' · ')}
+                            {/* Belirti kaydı Türkçe; ekranda kullanıcının
+                                dilinde. Parçalar katalogdan geliyor ve
+                                kendi adıyla, kodunun yanında yazıyor. */}
+                            {[
+                              ...(r.belirtiler || []).map((x) => alanEtiketi(x, dil)),
+                              ...parcaOzetleri(r, dil),
+                            ].join(' · ')}
                           </div>
                         )}
                         {r.ses?.veri && (
@@ -408,7 +423,27 @@ export default function Profile() {
                       </div>
                       <span className="listitem__chev"><IconRight size={20} /></span>
                     </div>
+                )
+                return kaldirilabilir ? (
+                  <KaydirilirSatir
+                    key={r.id}
+                    onSil={() => setSilinecek(r)}
+                    onDokun={() => nav('/talebim/' + r.id)}
+                  >
+                    {govde}
                   </KaydirilirSatir>
+                ) : (
+                  <div
+                    key={r.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => nav('/talebim/' + r.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') nav('/talebim/' + r.id)
+                    }}
+                  >
+                    {govde}
+                  </div>
                 )
               })}
             </div>
@@ -604,7 +639,7 @@ export default function Profile() {
 
           <div className="grid-2">
             <label className="field">
-              <span className="field__label">İl</span>
+              <span className="field__label">{t('ortak.il')}</span>
               <select
                 className="select"
                 value={il}
@@ -620,7 +655,7 @@ export default function Profile() {
               </select>
             </label>
             <label className="field">
-              <span className="field__label">İlçe</span>
+              <span className="field__label">{t('ortak.ilce')}</span>
               <select
                 className="select"
                 value={ilce}
@@ -761,12 +796,12 @@ export default function Profile() {
       <Sheet
         open={Boolean(silinecek)}
         onClose={() => setSilinecek(null)}
-        title={t('profil.talepSilSor')}
+        title={t('profil.talepKaldirSor')}
       >
         {silinecek && (
           <div className="stack" style={{ gap: 14 }}>
             <p style={{ lineHeight: 1.65 }}>
-              {t('profil.talepSilAciklama', {
+              {t('profil.talepKaldirAciklama', {
                 no: silinecek.no,
                 tur: t(`talep.${silinecek.tur}.baslik`).toLocaleLowerCase(),
               })}
@@ -777,10 +812,10 @@ export default function Profile() {
               onClick={() => {
                 removeRequest(silinecek.id)
                 setSilinecek(null)
-                showToast(t('profil.talepSilindi'))
+                showToast(t('profil.talepKaldirildi'))
               }}
             >
-              {t('profil.evetSil')}
+              {t('profil.evetKaldir')}
             </button>
             <button className="btn btn--soft" onClick={() => setSilinecek(null)}>
               {t('ortak.vazgec')}
@@ -846,4 +881,23 @@ export default function Profile() {
       <TabBar />
     </div>
   )
+}
+
+/* ------------------------------------------- Listedeki parça özetleri
+
+   Talep kartının alt satırında parçalar tek tek yazıyor. Kayıttaki
+   fiyat görüntüsü (`parcaFiyat.satirlar`) varsa oradan okunuyor ve KOD
+   da yazılıyor: PAKSAN'ın kataloğunda tekrar eden adlar var, adın
+   kendisi artık parçayı belirtmiyor. Liste sıkışık olduğu için satır
+   kısa tutuluyor — ad, parantez içinde kod; adet ve tutar burada yok,
+   ikisi de talep detayında duruyor.
+
+   Görüntüsü olmayan eski kayıtlarda yalnız ad var; kod UYDURULMUYOR,
+   satır eski biçimde yazılıyor. */
+function parcaOzetleri(r, dil) {
+  const satirlar = (r.parcaFiyat?.satirlar || []).filter((s) => s?.ad)
+  if (satirlar.length) {
+    return satirlar.map((s) => (s.kod ? `${s.ad} (${s.kod})` : s.ad))
+  }
+  return (r.parcalar || []).map((x) => alanEtiketi(x, dil))
 }

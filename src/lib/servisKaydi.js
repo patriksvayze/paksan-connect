@@ -269,6 +269,75 @@ export function parcaYazisiKodlu(parcalar = []) {
 }
 
 /* ==========================================================================
+   TALEBİN PARÇA SATIRLARI — TEK OKUYUCU
+
+   Aynı okuma üç ekranda üç kez yazıldı (hak ediş yaprağı, sipariş
+   listesi, talep ekranı) ve üçü birbirinden ayrı ayrı bozuldu. Kayıt
+   biçimi bir daha değiştiğinde üç yerin birlikte güncellenmesini
+   hatırlamak, hatırlanmayacak şeylerden biri. Okuma buraya alındı:
+   kaydın biçimini bilen tek yer burası.
+
+   HANGİ BİÇİMLER GELİYOR VE HANGİSİ NEDEN VAR
+
+     1. `parcaFiyat.satirlar` — ASIL KAYIT. Talep ya da sipariş
+        açıldığı anda katalogtan alınan görüntü: kod, ad, adet, birim
+        fiyat ve tutar (bkz. lib/parcaKatalogu.js → fiyatGoruntusu).
+        Fiyat listesi sonradan değişse de bu satırlar o günün rakamını
+        taşıyor. Varsa başka hiçbir yere bakılmıyor.
+
+     2. `parcalar` yapısal liste — servis kaydının kendi satırları
+        (bkz. `temizParcalar`): kod, ad, adet nesnenin içinde.
+
+     3. `parcalar` ad listesi + `parcaAdet` nesnesi — ESKİ OKUYUCULAR
+        İÇİN yazılan katman (bkz. screens/RequestForm.jsx). İki ayrı
+        anahtarlama var ve ikisi de bilerek: müşterinin talebinde adet
+        ADA göre anahtarlı, servis siparişinde KODA göre
+        (bkz. veri.js → servisParcaSiparisi) — çünkü katalogta aynı adı
+        taşıyan parçalar var ve ad bir parçayı tanımlamıyor. Ad listesi
+        kodu hiç taşımıyor, o yüzden koda göre anahtarlanmış bir kayıtta
+        adet ADLA bulunamıyor; orada 1 varsayılıyor. Kod da uydurulmuyor:
+        kodsuz satır kodsuz çiziliyor (bkz. components/ParcaTablosu.jsx).
+
+     4. Parçası olmayan kayıt — boş dizi dönüyor.
+
+   DÖNEN SATIR: `kod`, `ad`, `adet`, görüntüde varsa `tutar`, ve
+   `goruntuden`. Son alan "adet kesin mi" sorusunun cevabı: görüntüden
+   gelen satırda adet yazılı, eski kayıtta bulunamamış olabilir. Tutarı
+   okuyan taraf (bkz. lib/ihracat.js) buna bakıp "× 1" yazıp yazmayacağına
+   karar veriyor. */
+function adetBul(talep, satir, kod, ad) {
+  const dogrudan = Number(satir?.adet)
+  if (dogrudan > 0) return dogrudan
+  const harita = talep?.parcaAdet
+  const kodla = kod ? Number(harita?.[kod]) : 0
+  if (kodla > 0) return kodla
+  const adla = ad ? Number(harita?.[ad]) : 0
+  return adla > 0 ? adla : 1
+}
+
+export function talebinParcalari(talep) {
+  const goruntu = talep?.parcaFiyat?.satirlar
+  if (Array.isArray(goruntu) && goruntu.length) {
+    return goruntu.map((s) => ({
+      kod: s?.kod || '',
+      ad: s?.ad || s?.kod || '',
+      adet: Math.max(1, Number(s?.adet) || 1),
+      ...(s?.tutar === null || s?.tutar === undefined ? {} : { tutar: s.tutar }),
+      goruntuden: true,
+    }))
+  }
+
+  return (talep?.parcalar || []).map((p) => {
+    if (typeof p === 'string') {
+      return { kod: '', ad: p, adet: adetBul(talep, null, '', p), goruntuden: false }
+    }
+    const kod = p?.kod || ''
+    const ad = p?.ad || kod
+    return { kod, ad, adet: adetBul(talep, p, kod, p?.ad || ''), goruntuden: false }
+  })
+}
+
+/* ==========================================================================
    Kaydın talebe yazılacak hâli
 
    `cozum` nesnesi KORUNUYOR ve aynı alanları taşımaya devam ediyor

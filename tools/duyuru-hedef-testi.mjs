@@ -126,5 +126,30 @@ bak(
   'güvenlik uyarısı müşteriye gider',
 )
 
+/* 12. KİŞİSEL BİLDİRİM YABANCIYA GİTMİYOR.
+
+       `duyurular` anahtarı paylaşıldığı için süzgeç kişisel kaydı
+       yalnız `musteriId` alanından tanıyordu; alansız kayıt HERKESE
+       AÇIK sayılıyordu. Alıcı telefondan eşleşmediğinde (bkz. veri.js
+       → bildirimAlicisi) alan boş kalıyor ve o kayıt —başkasının talep
+       numarası, kargo notu, randevusu— her hesabın ekranına düşüyordu.
+       `veri.js → musteriyeBildir` artık her kişisel bildirime
+       `kisisel` damgası vuruyor; damga varken kimlik yoksa kayıt
+       kimseye gösterilmiyor. Sahibinden saklamak, yabancıya
+       göstermekten iyidir. */
+const ahmet = { id: 'u-ahmet', il: 'Konya', onaylar: {} }
+const mehmet = { id: 'u-mehmet', il: 'Konya', onaylar: {} }
+const ahmetin = { id: 'b2', tur: 'talep', kisisel: true, musteriId: 'u-ahmet' }
+const kimsesiz = { id: 'b3', tur: 'talep', kisisel: true }
+
+bak(duyuruGecerliMi(ahmetin, { user: ahmet }), true, 'kişisel bildirim sahibine gider')
+bak(duyuruGecerliMi(ahmetin, { user: mehmet }), false, 'kişisel bildirim yabancıya gitmez')
+bak(duyuruGecerliMi(kimsesiz, { user: ahmet }), false, 'alıcısı çözülemeyen bildirim kimseye gitmez')
+bak(duyuruGecerliMi(kimsesiz, { user: mehmet }), false, 'kimliksiz kişisel kayıt herkese açık değil')
+
+/* Damgasız ESKİ kayıt eskisi gibi geçiyor: tek hesaplı cihazda
+   üretildi, geriye uyum bozulmuyor. */
+bak(duyuruGecerliMi(talepBildirimi, { user: ahmet }), true, 'damgasız eski bildirim geçmeye devam eder')
+
 console.log(`${n} durumun hepsi doğru.`)
 console.log('\nSONUÇ: duyuru hedeflemesi çalışıyor.')

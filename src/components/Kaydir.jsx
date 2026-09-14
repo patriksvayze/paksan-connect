@@ -1,9 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { useDil } from '../i18n'
 
-/* Kaydırarak silinen satır.
+/* Kaydırarak listeden kaldırılan satır.
 
-   Satırı sola kaydırınca altından "Sil" düğmesi çıkar. Parmağı bırakınca
+   TEK KULLANICISI screens/Profile.jsx ve orada yaptığı iş SİLMEK
+   DEĞİL: talep yalnız müşterinin listesinden kalkar, PAKSAN'ın ve
+   servisin kaydı yerinde durur (bkz. context/AppState.jsx →
+   removeRequest). Düğme bu yüzden `ortak.sil` değil `ortak.kaldir`
+   yazıyor; `ortak.sil` gerçekten silen ekranların sözü.
+
+   Satırı sola kaydırınca altından "Kaldır" düğmesi çıkar. Parmağı bırakınca
    satır ya açık kalır ya da yerine döner — yarım yolda kalmaz.
    Dokunmatik olmayan cihazlarda (masaüstü tarayıcı) fare ile de çalışsın
    diye pointer olayları kullanılıyor.
@@ -135,7 +141,7 @@ export function KaydirilirSatir({ children, onSil, onDokun }) {
             onSil?.()
           }}
         >
-          {t('ortak.sil')}
+          {t('ortak.kaldir')}
         </button>
       </div>
 

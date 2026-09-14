@@ -1,8 +1,8 @@
 /* ==========================================================================
    Destek veri paketi denetimi
 
-   Veri seti yenilendiğinde (src/data/mobile_support_package.json yeniden
-   kopyalandığında) çalıştırılır. Ekranın açıkta kalacağı durumları
+   Veri seti yenilendiğinde (src/marka/icerik/mobile_support_package.json
+   yeniden kopyalandığında) çalıştırılır. Ekranın açıkta kalacağı durumları
    arar: dokununca boş açılan bir arıza, kaynağı olmayan bir cümle,
    listede görünmemesi gereken bir kapsam kaydı.
 
@@ -13,8 +13,18 @@
    ========================================================================== */
 
 import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const paket = JSON.parse(readFileSync('src/data/mobile_support_package.json', 'utf8'))
+/* Paket yolu betiğin kendi yerine göre kuruluyor, çalıştırıldığı
+   klasöre göre değil: dosya bir kere src/data altından src/marka/icerik
+   altına taşındı ve bu betik ENOENT verip durdu. Kimse görmedi, çünkü
+   `npm run dogrula` onu çağırmıyordu. Artık çağırıyor (8. kontrol). */
+const PAKET_YOLU = join(
+  dirname(fileURLToPath(import.meta.url)), '..', 'src', 'marka', 'icerik', 'mobile_support_package.json',
+)
+
+const paket = JSON.parse(readFileSync(PAKET_YOLU, 'utf8'))
 
 let hata = 0
 const yaz = (durum, metin) => {

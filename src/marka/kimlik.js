@@ -21,7 +21,7 @@
    burası, capacitor.config.json ve android/.../values/strings.xml */
 export const UYGULAMA = 'PAKSAN Connect'
 
-export const SURUM = '0.9.13'
+export const SURUM = '0.9.14'
 
 /* Müşteriye gönderilen indirme adresi.
 
@@ -88,12 +88,26 @@ export const SIRKET = {
    İhracat yapmayan bir firma için `aktif: false` yeterli; ekranlarda
    başka bir iş kalmıyor.
 
-   ⚠ E-POSTA ADRESLERİ DOLDURULMADI. Gerçek ihracat ekibi adresleri
-     yazılmalı. Liste boşken talep yine işaretleniyor ve backoffice’ten
-     gizleniyor, e-posta sunucu bağlanınca gidecek.
+   ⚠ BUGÜN KAPALI — 12 Eylül 2026. İki ucu birden eksikti: `epostalar`
+     listesi boş ve `SUNUCU.ihracatEndpoint` boş. Açıkken yol şu hale
+     geliyordu: yurtdışındaki müşteri talebini açıyor, uygulama
+     "alındı" diyor, talep backoffice’ten gizleniyor ve gidecek bir
+     e-posta adresi de olmadığı için kayıt YALNIZ O TELEFONDA kalıyor.
+     Kimseye ulaşmayan bir talebi alınmış göstermek, hiç açılmamasından
+     kötü: müşteri bekliyor, PAKSAN beklediğini bilmiyor.
+
+     Kapalıyken yurtdışı talebi ayrı yola çıkmıyor, İÇ TALEP GİBİ
+     İŞLİYOR: backoffice’e düşüyor ve PAKSAN görüyor. Servis talebinde
+     makineye servis atanmamışsa ekran zaten "servisiniz henüz
+     atanmadı" deyip PAKSAN’ı aramayı öneriyor (bkz. talep.servisYok).
+
+     AÇMAK İÇİN İKİSİ BİRDEN GEREKİR: gerçek ihracat ekibi adresleri
+     aşağıdaki listeye, gönderimi yapacak adres de
+     `src/config.js` → `SUNUCU.ihracatEndpoint` alanına yazılacak.
+     Biri eksikse kapalı kalmalı.
    ========================================================================== */
 export const IHRACAT = {
-  aktif: true,
+  aktif: false,
 
   /* Talebin düşeceği adresler */
   epostalar: [

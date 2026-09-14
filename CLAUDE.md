@@ -158,7 +158,19 @@ hiçbir üründe düşmez; sorulan soru sayısı düşer.**
 - Tek ekranda tek soru; cevaplar tam genişlikte düğmelerle sunulur
 - Gizli etkileşim yok: Kaydırarak silme, uzun basma, çift dokunma yok
 - İkon tek başına anlam taşımaz; yanında yazı olur
-- Terim yok: "İskonto", "kapsam", "künye", "hak ediş" ekranda geçmez
+- Terim yok: "İskonto", "kapsam", "künye" ekranda geçmez.
+  **"hak ediş" SERVİSTE SERBEST** (12 Eylül 2026, kullanıcının kararı):
+  servis ayrı bir şirket, PAKSAN'ın karşı tarafı ve bu kelime onun
+  kendi parasının adı — bilmediği bir terim değil. Alt menüdeki
+  "Hak Ediş" sekmesi ve ekran başlığı bu yüzden yerinde kalıyor
+  (`src/servis/ServisPanel.jsx`). Müşteri ekranlarında yasak sürüyor.
+
+  YASAK LİSTESİ NEREDEN GELDİ: 7 Eylül 2026'da **bayi paneli** için
+  yazıldı (commit e6569c4, o günkü başlık "Bayi Panelinin
+  Kullanıcısı"). 9 Eylül'de panel bayiden servise devredilirken
+  (6d6410f) başlık "Servis Panelinin Kullanıcısı" oldu ve liste olduğu
+  gibi taşındı — yeni kullanıcıya göre bir daha okunmadı. Kalan üç
+  terim gerçekten müşteri diline ait; "hak ediş" değildi.
 - Onay penceresi ne olacağını açıklar; "Emin misiniz?" demez
 - Boş ekran çıkmaz sokak olmaz; ne yapılacağını açıklar
 
@@ -223,11 +235,6 @@ Genel diff incelemesi için `/code-review` komutu kullanılır.
   açtığı irtibat alt ajanı yürütür; her değişiklik ve her istek
   `D:\PAKSAN\paksan-rag\sohbet\ORTAK-DEFTER.md` dosyasına yazılır. Dosya
   sahipliği o defterde.
-- **GEÇİCİ (10–15 Eylül 2026):** Codex kotası dolduğu için kullanıcı
-  destek işini 15 Eylül'e kadar Claude'a verdi. Claude aynı defter
-  kurallarıyla, Codex'in kaldığı yerden sürdürür. 15 Eylül'de
-  zamanlanmış görev (`codex-devir-15-eylul`) kotayı kontrol edip işi
-  Codex'e geri devreder; bu madde o zaman kaldırılır.
 - **SÜREKLİ GELİŞTİRME DÖNGÜSÜ (10 Eylül 2026, kullanıcının isteği):**
   Destek asistanı tek tek iş verilip beklenmeden sürekli geliştirilir.
   Kural `D:\PAKSAN\paksan-rag\sohbet\GELISTIRME-DONGUSU.md`, iş listesi
@@ -254,8 +261,10 @@ Genel diff incelemesi için `/code-review` komutu kullanılır.
     "Sorun Devam Ediyor". Etiket ve açıklama cümleleri normal.
   - Marka adı yer tutucuyla geçer (`{marka}`, `{markaYi}`, …);
     Codex'ten bunları değiştirmemesi istenir.
-  - Terim yasağı (iskonto, kapsam, künye, hak ediş) müşteri ve servis
-    ekranları için geçerli, backoffice'te değil.
+  - Terim yasağı (iskonto, kapsam, künye) müşteri ve servis ekranları
+    için geçerli, backoffice'te değil. "hak ediş" YALNIZ müşteri
+    ekranlarında yasak; serviste serbest (gerekçesi "Servis Panelinin
+    Kullanıcısı" bölümünde).
 - İş devredilirken gereken efor açıkça belirtilir; `codex exec` için `-c model_reasoning_effort` kullanılır.
 - Türkçe metin yazımı ve dil doğruluk kontrolü için efor seviyesi `low` olarak belirlenir.
 - Devredilen iş sessizce başarısız olabilir; sonucu görülmeden iş tamamlanmış sayılmaz.
@@ -266,21 +275,37 @@ Genel diff incelemesi için `/code-review` komutu kullanılır.
 
     npm run dogrula
 
-Sekiz şeye bakıyor: `tr.js`/`en.js` anahtar eşitliği, kodda kullanılan
-`t('...')` anahtarlarının sözlükteki karşılıkları, iki CSS
-dosyasındaki token'ların uyumu, `dist/` içine backoffice kodunun
-sızıp sızmadığı, motorun marka klasörüne yalnızca kapıdan bakıp
-bakmadığı, motor kodunda marka adının düz yazıyla geçip geçmediği,
-servis uygulamasında bayi kalıntısı kalıp kalmadığı ve `tools/`
-altındaki üç birim sınamasının geçip geçmediği.
+On iki şeye bakıyor:
+
+ 1. `tr.js`/`en.js` anahtar eşitliği
+ 2. Kodda kullanılan `t('...')` anahtarlarının sözlükteki karşılıkları
+ 3. İki CSS dosyasındaki token'ların uyumu
+ 4. `dist/` içine backoffice kodunun sızıp sızmadığı
+ 5. Motorun marka klasörüne yalnızca kapıdan bakıp bakmadığı
+ 6. Motor kodunda marka adının düz yazıyla geçip geçmediği
+ 7. Servis uygulamasında bayi kalıntısı kalıp kalmadığı
+ 8. `tools/` altındaki dört birim sınamasının geçip geçmediği
+ 9. Yedek parça kataloğunun tutarlılığı ve uydurma fiyat izi
+10. Connect'in üç yerdeki sürüm numarasının tutması, Servisim'in ayrı hattı
+11. Yayına çıkışı engelleyen geliştirme ayarları (saymıyor, yalnız listeler)
+12. Codex'i bekleyen yer tutucu metin ekrana çıkıyor mu
 
 5. ve 6. kontroller marka sınırını koruyor: ürünün başka bir firmaya
 kurulabilmesi buna bağlı. 7. kontrol bayi–servis ayrımını koruyor:
 panel bayiden servise devredildi; yarım kalan bir devir, altı ay sonra
 hangi adın ne anlama geldiğini belirsizleştirir. 8. kontrol
-`marka-ek-testi`, `bolge-testi` ve `duyuru-hedef-testi` betiklerini
-çağırıyor — ayrı dururken unutuluyorlardı ve biri haftalarca kırık
-kaldı. Yorumlar altıncı kontrolün dışında; oralarda firmanın iş
+`marka-ek-testi`, `bolge-testi`, `duyuru-hedef-testi` ve
+`destek-dogrula` betiklerini çağırıyor — ayrı dururken
+unutuluyorlardı ve biri haftalarca kırık kaldı. 9. kontrol uydurma
+parça listesinin geri gelmesini engelliyor ve kataloğa yeni bir grup
+eklendiğinde o grubun müşteri ekranından sessizce kaybolmasını
+yakalıyor. 11. kontrol bulduğunu SORUN SAYMIYOR: o ayarların bugün
+açık olması doğru; yayın günü saydırmak için `npm run dogrula --
+--yayin`. 12. kontrol, ekranda görünen Türkçenin Codex'ten geçmesi
+kuralının ağıdır: yer tutucu bırakıp unutmak yedi partinin birlikte
+çalıştığı bir günde gerçekten oldu (15 yazılmamış dizgi).
+
+Yorumlar altıncı ve on ikinci kontrolün dışında; oralarda firmanın iş
 kuralını anlatan gerekçeler var. Sorun bulursa çıkış kodu 1.
 
 **bayi ≠ servis.** Bayi makineyi satan firma: kaydı var, paneli yok.

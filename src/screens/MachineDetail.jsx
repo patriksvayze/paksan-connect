@@ -250,13 +250,24 @@ function Videolar({ product }) {
   )
 }
 
+/* Bir video satırı.
+
+   DİL KANCASI BURADA ŞART. Satır `t(...)` çağırıyordu ama kancayı
+   almıyordu: dosyası da adresi de olmayan videoya dokunulduğunda
+   çağrı hata veriyor ve ekranda hiçbir şey olmuyordu. Katalogdaki 31
+   videonun 30'u bu durumda, yani dokunuşların neredeyse tamamı
+   sessizce boşa gidiyordu.
+
+   Yokluğu dokunmadan önce de yazıyoruz: süre yerine "yakında"
+   satırı görünüyor, dokununca da aynı cümle uyarı olarak çıkıyor. */
 function VideoRow({ video, onOynat }) {
   const { showToast } = useApp()
+  const { t } = useDil()
+  const tur = videoTuru(video)
   return (
     <button
       className="listitem"
       onClick={() => {
-        const tur = videoTuru(video)
         if (tur === 'oynat') onOynat(video)
         else if (tur === 'dis') window.open(video.url, '_blank')
         else showToast(t('detay.videoYakinda'))
@@ -272,7 +283,9 @@ function VideoRow({ video, onOynat }) {
         <div className="listitem__title" style={{ whiteSpace: 'normal', fontSize: 15 }}>
           {video.title}
         </div>
-        <div className="listitem__sub"><VideoSure video={video} /></div>
+        <div className="listitem__sub">
+          {tur === 'yok' ? t('detay.videoYakinda') : <VideoSure video={video} />}
+        </div>
       </div>
       <span className="listitem__chev"><IconRight size={20} /></span>
     </button>

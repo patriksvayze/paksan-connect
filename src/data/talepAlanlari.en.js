@@ -7,8 +7,15 @@
 
    Terimler serviste kullanılan İngilizce karşılıklar:
      düğüm atıcı → knotter · pikap → pickup · helezon → auger
-     mafsal/şaft → PTO shaft · emniyet cıvatası → shear bolt
-     merdane → roller · tırmık parmağı → rake tine
+     mafsal/şaft → PTO shaft
+
+   PARÇA ADLARI BURADA YOK VE OLMAYACAK. Bir dönem `ORTAK_PARCA_EN` ve
+   `PARCALAR_EN` listeleri vardı; karşılığı PAKSAN'ın fiyat listesinde
+   bulunmayan, uydurulmuş otuz parça adının İngilizcesiydi. Parça artık
+   PAKSAN'ın kendi kataloğundan seçiliyor (`src/lib/parcaKatalogu.js`) ve
+   o katalogda parça adları YALNIZ TÜRKÇE. İngilizce karşılık uydurmak,
+   müşteriye kataloğun kodu ile tutmayan bir ad göstermek olurdu; kod her
+   iki dilde de aynı ve parçayı ayırt eden şey o.
    ========================================================================== */
 
 export const ULASIM_ZAMANI_EN = [
@@ -103,32 +110,8 @@ export const BELIRTILER_EN = {
   genel: [],
 }
 
-export const ORTAK_PARCA_EN = [
-  'Bearing',
-  'Belt',
-  'Chain',
-  'Oil seal',
-  'PTO shaft / driveline',
-  'Shear bolt',
-  'Hydraulic hose',
-]
-
-export const PARCALAR_EN = {
-  balya: [
-    'Knotter blade',
-    'Twine guide',
-    'Needle',
-    'Pickup tine',
-    'Plunger ring',
-    'Bale counter',
-  ],
-  rulo: ['Wrapping knife', 'Rubber belt', 'Pickup tine', 'Tailgate ram'],
-  yem: ['Mixer knife', 'Auger', 'Load cell', 'Discharge conveyor'],
-  silaj: ['Cutting knife', 'Shear bar', 'Feed roller'],
-  cayir: ['Mower blade', 'Rake tine', 'Guard plate'],
-  toprak: ['Point', 'Leg / frame', 'Disc', 'Roller'],
-  genel: [],
-}
-
+/* "Diğer" hem belirti hem parça listesinin sonunda duruyor: listede
+   olmayanı anlatmanın yolu. Parça tarafında kataloğa bağlı olmayan tek
+   seçenek bu — katalog inmese bile talep bu yoldan açılabiliyor. */
 export const DIGER_EN = 'Other'
 export const BILMIYORUM_EN = 'I am not sure, please check'

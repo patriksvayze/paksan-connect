@@ -16,8 +16,9 @@ import { cevapsizlar, cozuldu, konular, sorular, yonlendirme } from './DestekKay
 import { DisaAktar } from './aktar'
 import { getProduct } from '../../marka'
 import { formatSerial } from '../../lib/serial'
+import { talebinParcalari } from '../../lib/servisKaydi'
 import { SIRKET } from '../../marka'
-import { parcaToplami } from '../../marka'
+import { paraYaz } from '../../marka'
 
 /* ==========================================================================
    Raporlar — yönetici ekranı
@@ -127,6 +128,13 @@ const OBEKLER = [
   { ad: 'Büyüme', alt: 'Müşteri, bölge ve bayi' },
 ]
 
+/* Okuma hatası satırı.
+
+   "Rapor boş" ile "veri okunamadı" ayrı şeyler: ilki bir bilgi,
+   ikincisi bir arıza. Önceden bu durumda yükleniyor iskeleti sonsuza
+   kadar dönüyordu ve yönetici dönemin boş olduğunu sanıyordu. */
+const OKUMA_HATASI = 'Rapor verileri okunamadı. Sayfayı yenileyin; sorun sürerse yöneticinize haber verin.'
+
 export function Raporlar({ rol, surum, git }) {
   /* `acikRapor` null iken genel bakış, dolu iken o raporun tablosu. */
   const [acikRapor, setAcikRapor] = useState(null)
@@ -137,7 +145,7 @@ export function Raporlar({ rol, surum, git }) {
      sıfırlanıyor — üçüncü sütun her raporda başka bir şey. */
   const { siralama, cevir } = useSiralama(null, 'artan')
 
-  const { veri, yukleniyor } = useVeri(
+  const { veri, yukleniyor, hata } = useVeri(
     () => ({
       talepler: talepleriGetir(),
       musteriler: musterileriGetir(),
@@ -148,6 +156,25 @@ export function Raporlar({ rol, surum, git }) {
     [surum],
     null
   )
+
+  /* OKUMA HATASI SONSUZ BEKLEMEYE DÖNÜŞÜYORDU.
+
+     `useVeri` baştan beri bir `hata` değeri döndürüyor (bkz. kanca.js)
+     ama bu ekran onu almıyordu. Okuma patladığında `veri` null kalıyor,
+     `yukleniyor` da false oluyor — aşağıdaki koşul ikisine birden
+     baktığı için gri iskelet ekranda KALICI olarak duruyordu.
+     Yöneticinin gördüğü şey "rapor yükleniyor"du ve hiç yüklenmiyordu.
+
+     Rakamların okunamadığını söylemek, okunmamış rakam göstermekten
+     de yanlış sayı göstermekten de iyidir. */
+  if (hata) {
+    return (
+      <>
+        <Baslik ad="Raporlar" />
+        <div className="hata">{OKUMA_HATASI}</div>
+      </>
+    )
+  }
 
   if (yukleniyor || !veri) {
     return (
@@ -538,10 +565,11 @@ function paraOku(deger) {
   return rakam ? Number(rakam) : null
 }
 
-function paraYaz(sayi) {
-  if (sayi === null || sayi === undefined || Number.isNaN(sayi)) return '—'
-  return String(Math.round(sayi)).replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-}
+/* `paraYaz` MARKA KAPISINDAN GELİYOR.
+
+   Aynı biçimleyici burada bir kopya olarak da duruyordu; iki kopya
+   demek, biçim değiştiğinde raporların panelin geri kalanından
+   ayrılması demekti (bkz. marka → katalog/para.js). */
 
 /* Kutucuklarda para birimi yazılıyor; tablolarda yazılmıyor, orada
    sütun başlığı zaten "Tutar" diyor. */
@@ -601,6 +629,41 @@ function dilim(dizi, oran) {
   const i = Math.min(gecerli.length - 1, Math.floor(gecerli.length * oran))
   return gecerli[i]
 }
+
+/* --------------------------------------------- Yedek parça kayıtları
+
+   RAPOR CANLI FİYATA BAKMIYOR, KAYDIN İÇİNDEKİNE BAKIYOR.
+
+   Fiyat listesi değişiyor. Müşteri talebi açtığı gün gördüğü tutarı
+   havale etti; altı ay sonra aynı talebi raporda gören yönetici o
+   günün rakamını görmeli. Bu yüzden talep açılırken fiyat anlık
+   görüntüsü kaydın içine yazılıyor (`parcaFiyat`, bkz.
+   lib/parcaKatalogu.js → fiyatGoruntusu) ve rapor katalogu hiç
+   açmıyor.
+
+   İKİ KAYIT BİÇİMİ BİR ARADA YAŞIYOR
+
+     YENİ  `parcaFiyat` var: satırlarda kod, ad, adet ve o günün
+           tutarı duruyor.
+     ESKİ  yalnız parça ADLARI ile adetleri var, fiyat yok. O günün
+           fiyatı hiçbir yerde yazılı değil ve bugünkü fiyatı o kayda
+           yazmak, müşterinin ödediği tutarı tahrif etmek olurdu.
+
+   Eski kayıtların tutarı bu yüzden `null` kalıyor; parayı toplayan
+   yer onları dışarıda bırakıyor ve kaç tane oldukları ayrıca
+   yazılıyor — sessizce sıfır saymak, toplamı doğru gösterip yanlış
+   olmasına yol açardı. */
+function parcaGoruntusu(talep) {
+  const g = talep?.parcaFiyat
+  return g && Number.isFinite(Number(g.toplam)) ? g : null
+}
+
+/* Parça kalemleri paylasılan okuyucudan geliyor:
+   lib/servisKaydi.js → talebinParcalari. Bu dosyada aynı adlı bir
+   kopyası vardı ve kopya ayrışmıştı: `kod` için '' yerine null, her
+   satırda `tutar: null`, `goruntuden` alanı hiç yok. Aynı adı
+   taşıdığı için de fark edilmiyordu: paylaşılan sürümü içeri alan
+   bir import bu dosyada sessizce gölgelenirdi. */
 
 
 
@@ -740,20 +803,27 @@ const URETICILER = {
     const servis = donem.filter((t) => t.tur === 'servis' && t.cozum)
     const servisTutar = topla(servis.map((t) => paraOku(t.cozum?.ucret)))
 
-    /* Yedek parça geliri FİYAT LİSTESİNDEN hesaplanıyor, kapanışta
-       elle girilen bir rakamdan değil.
+    /* Yedek parça geliri TALEBİN İÇİNE YAZILMIŞ FİYATTAN geliyor,
+       kapanışta elle girilen bir rakamdan da, bugünün fiyat
+       listesinden de değil.
 
        Müşteri parça bedelini talebin başında, uygulamada gördüğü
        fiyattan ödüyor; kapanışta personele aynı rakamı ikinci kez
        yazdırmanın karşılığı yoktu ve iki kayıt tutunca hangisinin
-       doğru olduğu belirsizleşiyordu.
+       doğru olduğu belirsizleşiyordu. Aynı sebeple rapor katalogu da
+       açmıyor: fiyat listesi değişince geçmiş ayın tahsilatı kendi
+       kendine değişirdi.
 
        Yalnız ÖDEMESİ ONAYLANMIŞ talepler sayılıyor: onaylanmamış
-       ödeme henüz hesaba geçmemiş para demek. */
+       ödeme henüz hesaba geçmemiş para demek.
+
+       Fiyatı kaydında yazılı OLMAYAN eski talepler toplamın dışında
+       (gerekçesi `parcaGoruntusu` başlığında) ve sayıları ayrı bir
+       satırda yazıyor. */
     const parca = donem.filter((t) => t.tur === 'parca' && t.odemeOnay)
-    const parcaTutar = topla(
-      parca.map((t) => parcaToplami(t.parcalar || [], t.parcaAdet || {}).toplam)
-    )
+    const fiyatliParca = parca.filter((t) => parcaGoruntusu(t))
+    const fiyatsizParca = parca.filter((t) => !parcaGoruntusu(t))
+    const parcaTutar = topla(fiyatliParca.map((t) => parcaGoruntusu(t).toplam))
 
     /* Garanti kapsamında yapılan iş: kapanışta tutar yazılmamış ya da
        rakam yerine cümle yazılmış servisler. */
@@ -770,8 +840,16 @@ const URETICILER = {
         'Vazgeçti, rakibe gitti veya ulaşılamadı'],
       ['Servis tahsilatı', String(servis.length - garantili.length), paraYaz(servisTutar),
         'Kapanışta ücret girilen servisler'],
-      ['Yedek parça tahsilatı', String(parca.length), paraYaz(parcaTutar),
+      ['Yedek parça tahsilatı', String(fiyatliParca.length), paraYaz(parcaTutar),
         'Ödemesi onaylanan parça talepleri, fiyat listesi üzerinden (KDV dâhil)'],
+      ...(fiyatsizParca.length
+        ? [[
+            'Fiyat dökümü olmayan talepler',
+            String(fiyatsizParca.length),
+            '—',
+            'Fiyat listesi gelmeden önce açılan parça taleplerinde fiyat dökümü kayıtlı değil',
+          ]]
+        : []),
       ['Garanti kapsamında', String(garantili.length), '—',
         'Ücretsiz yapılan servis — imalat kalitesinin maliyeti'],
     ]
@@ -1033,24 +1111,43 @@ const URETICILER = {
     }
   },
 
-  /* Stok planlaması: hangi parça ne sıklıkta isteniyor. */
+  /* Stok planlaması: hangi parça ne sıklıkta isteniyor.
+
+     SAYIM PARÇA KODUNA GÖRE. Katalogda aynı ada sahip birden çok
+     parça var; ada göre toplamak iki farklı parçayı tek satırda
+     birleştiriyordu ve stoğa hangisinin alınacağı belirsiz kalıyordu.
+     Kodu bilinen satırda kod da yazılıyor — depoya giden kişi adla
+     değil kodla çalışıyor. Kodu olmayan eski kayıtlar adıyla
+     sayılmaya devam ediyor. */
   parca(donem) {
     const kova = {}
     donem
       .filter((t) => t.tur === 'parca')
       .forEach((t) => {
-        ;(t.parcalar || []).forEach((p) => {
-          if (!kova[p]) kova[p] = { adet: 0, modeller: new Set() }
-          kova[p].adet++
-          if (t.makine) {
-            kova[p].modeller.add(getProduct(t.makine.productId)?.name || t.makine.productId)
+        const model = t.makine
+          ? getProduct(t.makine.productId)?.name || t.makine.productId
+          : null
+        talebinParcalari(t).forEach((p) => {
+          const anahtar = p.kod || p.ad
+          /* Paylaşılan okuyucu adsız satırda '' dönüyor (kod uydurmuyor);
+             tabloda boş hücre yerine tire çiziliyor. Sayım SIKLIK:
+             `adet++` kaç talepte istendiğini sayıyor, kaç adet
+             istendiğini değil — başlık da öyle diyor. */
+          if (!kova[anahtar]) {
+            kova[anahtar] = { ad: p.ad || '—', kod: p.kod, adet: 0, modeller: new Set() }
           }
+          kova[anahtar].adet++
+          if (model) kova[anahtar].modeller.add(model)
         })
       })
 
-    const satirlar = Object.entries(kova)
-      .sort((a, b) => b[1].adet - a[1].adet)
-      .map(([ad, k]) => [ad, String(k.adet), [...k.modeller].join(' · ') || '—'])
+    const satirlar = Object.values(kova)
+      .sort((a, b) => b.adet - a.adet)
+      .map((k) => [
+        k.kod ? `${k.ad} · ${k.kod}` : k.ad,
+        String(k.adet),
+        [...k.modeller].join(' · ') || '—',
+      ])
 
     return {
       basliklar: ['Parça', 'İstenme sayısı', 'Hangi modellerde'],
@@ -1269,7 +1366,11 @@ const URETICILER = {
 
 const ACIKLAMA = {
   ozet: 'Süreler talebin geçmişinden hesaplanıyor; hiç dokunulmamış talep ortalamaya girmiyor. Yüzde farklar bir önceki eşit uzunluktaki dönemle karşılaştırılıyor; "Tüm zamanlar" seçiliyse karşılaştırma yapılmıyor.',
-  finans: 'Teklif ve servis tutarları personelin girdiği rakamlardan, yedek parça tutarı fiyat listesinden geliyor. Bu bir muhasebe kaydı değil — kesin ciro Logo\'daki faturadan okunur. Rakam yerine "Garanti kapsamında" gibi bir cümle yazılan servisler toplama girmiyor, ayrıca sayılıyor.',
+  /* Son cümle yedek parça tutarının NEREDEN geldiğini söylüyor: artık
+     bugünün fiyat listesinden değil, talep açılırken kaydın içine
+     yazılan fiyattan. Fiyatı kayıtlı olmayan eski talepler toplama
+     girmiyor, ayrı bir satirda sayılıyor. */
+  finans: 'Teklif ve servis tutarları personelin girdiği rakamlardan, yedek parça tutarı talep açılırken kaydedilen sabit fiyattan geliyor. Bu bir muhasebe kaydı değil — kesin ciro Logo\'daki faturadan okunur. Rakam yerine "Garanti kapsamında" gibi bir cümle yazılan servisler toplama girmiyor, ayrıca sayılıyor. Fiyatı kayıtlı olmayan eski talepler toplama girmiyor, "Fiyat dökümü olmayan talepler" satırında sayılıyor.',
   sadakat: 'Müşteriler telefon numarasına göre tekilleştirildi. Çok talep açan müşteri hem en sadık hem de makinesi en çok bozulan olabilir; ikisi de aranmayı hak ediyor.',
   destek: 'Destek ekranındaki konuşmalardan üretiliyor; talep kayıtlarından bağımsız. "Cevapsız kalan" sütunu bilgi tabanına yazılması gereken soruları gösteriyor — ayrıntısı Destek Kayıtları ekranında.',
   personel: 'Bir talebe birden çok kişi dokunmuşsa her biri kendi satırında sayılıyor.',

@@ -39,6 +39,7 @@ export const tr = {
     metniOku: 'Metni oku',
     kapat: 'Kapat',
     sil: 'Sil',
+    kaldir: 'Kaldır',
     tumu: 'Tümü',
     evet: 'Evet',
     hayir: 'Hayır',
@@ -97,6 +98,8 @@ export const tr = {
     hosgeldiniz: 'Hoş geldiniz {ad}',
     telefonHatali: 'Telefon numaranızı eksiksiz ve başında sıfır olmadan yazın.',
     sifreHane: 'Şifreniz {n} rakamdan oluşur.',
+    ozetYok: 'Şifreniz şu anda doğrulanamıyor. Uygulamayı kapatıp yeniden açın. Sorun sürerse {markaya} başvurun.',
+    sifreKurulumGerek: 'Hesabınızda henüz şifre yok. Şimdi bir şifre belirleyin.',
   },
 
   kayit: {
@@ -170,6 +173,7 @@ export const tr = {
     kodTekrar: 'Kodu Tekrar Gönder',
     kodKisa: 'Altı haneli kodu yazın.',
     kodYanlis: 'Kod yanlış. Mesajdaki altı haneyi kontrol edin.',
+    dogrulamaSunucuda: 'Kod şu anda kontrol edilemiyor. Şifrenizi yenilemek için {markaya} başvurun.',
     kodSuresiDoldu: 'Kodun süresi doldu. Yeni kod isteyin.',
     gonderilemedi: 'Kod gönderilemedi. İnternet bağlantınızı kontrol edin.',
     numaraDegisti: 'Telefon numaranızı mı değiştirdiniz?',
@@ -339,7 +343,7 @@ export const tr = {
     dahaFazlaTalep: '{n} talep daha göster',
     taleplerim: 'Taleplerim',
     talepYok: 'Henüz talep oluşturmadınız. Servis, yedek parça veya fiyat teklifi taleplerinizi buradan takip edebilirsiniz.',
-    kaydirIpucu: 'Silmek için talebi sola kaydırın.',
+    kaydirIpucu: 'Talebi bu listeden kaldırmak için sola kaydırın.',
     sesEklendi: 'Ses kaydı eklendi',
     girisNumarasi: 'Giriş Numaranız',
     girisNumarasiAlt: 'Uygulamaya bu numarayla giriyorsunuz',
@@ -356,10 +360,10 @@ export const tr = {
     cikisAciklama: 'Oturumunuz kapatılacaktır. Makine kayıtlarınız ve talepleriniz silinmeyecektir.',
     hesapSilme: 'Hesabınızın ve kayıtlarınızın tamamen silinmesini istiyorsanız {eposta} adresine yazın; talebiniz {marka} tarafından işleme alınır.',
     kvkkBaglanti: 'KVKK | Açık Rıza Metni | İzinler',
-    talepSilSor: 'Talep Silinsin mi?',
-    talepSilAciklama: '{no} numaralı {tur} kaydınız silinecek. Bu işlem geri alınamaz.',
-    evetSil: 'Evet, Sil',
-    talepSilindi: 'Talep silindi',
+    talepKaldirSor: 'Talep Kaldırılsın mı?',
+    talepKaldirAciklama: '{no} numaralı {tur} listenizden kaldırılacak. Talebiniz {markada} kalır, istediğinizde {markaya} sorabilirsiniz.',
+    evetKaldir: 'Evet, Kaldır',
+    talepKaldirildi: 'Talep listeden kaldırıldı',
     kampanyaAcik: 'Kampanya bildirimleri açıldı',
     kampanyaKapali: 'Kampanya bildirimleri kapatıldı',
     onayTarihi: 'Bu metinleri {tarih} tarihinde onayladınız (sürüm {surum}).',
@@ -481,9 +485,35 @@ export const tr = {
     gonderilecek: 'Gönderilecek tutar',
     kargoHaric: 'Fiyatlara kargo dâhil değildir. Kargo bedeli teslimat sırasında alınır.',
     sonraBelirlenecek: 'Fiyatı sizinle görüşülecek',
-    birim_adet: 'adet',
-    birim_takım: 'takım',
-    birim_metre: 'metre',
+    /* BİRİM ANAHTARLARI KALDIRILDI (birim_adet / birim_takım /
+       birim_metre). Fiyatın yanında " / adet" yazıyordu; "birim"
+       PAKSAN'ın fiyat listesinde olmayan bir alandı, uydurma parça
+       listesiyle birlikte gelmişti. Gerçek katalogda her satır bir
+       parça ve fiyatı o parçanın fiyatı. */
+  },
+
+  /* -------------------------------------------- Katalogdan parça seçimi
+
+     Parça adları ve alt montaj adları SÖZLÜKTE YOK ve olmayacak: ikisi
+     de PAKSAN'ın fiyat listesinden geliyor, katalog verisi. Burada
+     yalnız onların çevresindeki cümleler duruyor. */
+  parcaSec: {
+    yukleniyor: 'Parça listesi {markanin} sunucusundan yükleniyor.',
+    hataBaslik: 'Parça listesine ulaşılamadı',
+    hataMetin: 'Parça listesi {markanin} sunucusundan geliyor; bağlantınızı kontrol edip yeniden deneyebilirsiniz. Liste açılmasa da aşağıdaki “Diğer” düğmesine basıp parçayı yazıyla anlatarak talep oluşturabilirsiniz. Tutarı {marka} size bildirecek.',
+    yenidenDene: 'Yeniden Dene',
+    ara: 'Parça adı veya kodu',
+    aramaTemizle: 'Aramayı Temizle',
+    montajSec: 'Parçanın makinenin hangi bölümünde olduğunu seçin; ardından o bölümün parçaları listelenecek.',
+    montajaDon: 'Bölüm Listesine Dön',
+    grupAdet: '{n} parça',
+    sonuc: '{n} parça bulundu.',
+    sonucYok: 'Parça bulunamadı. Parça koduyla aramayı deneyin veya “Diğer” düğmesine basıp parçayı yazıyla anlatın.',
+    tumKatalog: 'Bu makine için ayrı bir parça listesi bulunmadığından katalogdaki tüm parçalar gösteriliyor. Aradığınız parçayı bulamazsanız “Diğer” düğmesine basıp yazıyla anlatabilirsiniz.',
+    gorselYok: 'Görsel yüklenemedi',
+    digerIpucu: 'Listede olmayan bir parçayı yazıyla anlatabilirsiniz. {marka} tutarı belirleyip sizinle iletişime geçecek.',
+    cikar: 'Parçayı Çıkar',
+    tutarYok: 'Tutar hesaplanamadı',
   },
 
   /* ---------------------------------------------- Talep detay ekranı */
@@ -827,8 +857,8 @@ export const tr = {
     sohbetSelam: 'Merhaba! Ben {marka} destek asistanıyım. Makinenizle ilgili sorunuzu yazın; kullanım kılavuzundan cevaplayayım.',
     sohbetTesekkur: 'Rica ederim. Başka bir sorunuz olursa buradayım.',
     sohbetVeda: 'İyi çalışmalar dilerim. Sorunuz olduğunda yazabilirsiniz.',
-    sohbetKimlik: 'Ben {marka} destek asistanıyım. {marka} makinelerinin kullanım kılavuzlarına bakarak teknik özellik, bakım, ayar ve arıza sorularına cevap veriyorum. Kılavuzda olmayan konularda servis talebi oluşturabilirsiniz.',
-    konuDisi: 'Bu konuda yardımcı olamıyorum. Yalnız {marka} makineleriyle ilgili sorulara (bakım, ayar, arıza, teknik özellikler) cevap veriyorum.',
+    sohbetKimlik: 'Ben {marka} destek asistanıyım. {marka} makinelerinin teknik özellikleri, bakımı, ayarları ve arızalarıyla ilgili soruları yalnız kullanım kılavuzlarına dayanarak cevaplıyorum. Sorunuzun cevabı kılavuzda yoksa servis talebi oluşturabilirsiniz.',
+    konuDisi: 'Bu konuda yardımcı olamıyorum. {marka} makinelerinin bakımı, ayarları, arızaları ve teknik özellikleriyle ilgili soruları yalnız kullanım kılavuzlarına dayanarak cevaplıyorum.',
 
     /* ------------------------------------------------------- Sonuç */
     cozuldu: 'Sorun Çözüldü',

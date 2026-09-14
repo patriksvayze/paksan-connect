@@ -10,8 +10,9 @@ import { getProduct, urunDilde } from '../marka'
 import { alanEtiketi } from '../data/talepAlanlari'
 import { formatSerial } from '../lib/serial'
 import { servisleriGetir } from '../marka'
-import { PARA_BIRIMI } from '../marka'
+import { PARA_BIRIMI, paraYaz } from '../marka'
 import { talepTuru } from '../lib/talep'
+import { talebinParcalari } from '../lib/servisKaydi'
 import { ekAdresi } from '../lib/ekler'
 import { SIRKET } from '../marka'
 import { araProps, telFirma } from '../lib/tel'
@@ -304,7 +305,7 @@ export default function RequestDetail() {
             k={t('talepDetay.belirtiler')}
             v={(r.belirtiler || []).map((x) => alanEtiketi(x, dil)).join(' · ')}
           />
-          <Satir k={t('talepDetay.parcalar')} v={parcaYazisi(r, dil)} />
+          <Parcalar r={r} dil={dil} t={t} />
           <Satir k={t('talepDetay.aranmaTercihi')} v={alanEtiketi(r.ulasim, dil)} />
           {r.aciklama && <p className="detay-metin">{r.aciklama}</p>}
           {r.ses?.veri && (
@@ -626,13 +627,119 @@ function Imza({ personel, tarih }) {
   )
 }
 
-/* "Pikap dişi × 2 · Düğüm atıcı bıçağı" */
+/* ------------------------------------------------- İstenen parçalar
+
+   KAYITTAKİ FİYAT GÖRÜNTÜSÜ OKUNUYOR, CANLI LİSTE DEĞİL.
+
+   Müşterinin havale ettiği tutar talebin içinde duruyor: `parcaFiyat`
+   satırları, ara toplamı, KDV'si ve toplamıyla birlikte kaydın içine
+   yazılıyor (bkz. lib/parcaKatalogu.js → fiyatGoruntusu). Fiyat listesi
+   değişiyor; bu ekran canlı listeden yeniden hesaplasa, müşterinin
+   gönderdiği rakam aylar sonra başka görünürdü. Burada gösterilen tutar
+   her zaman o günün görüntüsündeki tutardır.
+
+   KOD AD İLE BİRLİKTE YAZIYOR. PAKSAN'ın kataloğunda tekrar eden parça
+   adları var; parçayı ayırt eden şey kod. Müşteri telefonu açtığında ya
+   da havale açıklamasını yazarken de kodu söylüyor — ödeme adımında
+   gördüğü satırın aynısı burada duruyor.
+
+   ESKİ KAYITLARDA GÖRÜNTÜ YOK. Katalog bağlanmadan önce açılmış
+   talepler ile "Diğer" yolundan gelen talepler yalnız ad (ve eski
+   kayıtlarda ada göre anahtarlanmış adet) taşıyor. O satırlara kod ya
+   da tutar UYDURULMUYOR; eski biçimde, tek satır yazı olarak
+   gösteriliyor.
+
+   PARÇA TABLOSU BİLEŞENİ BURADA KULLANILMIYOR
+   (components/ParcaTablosu.jsx): biçimi yalnız backoffice.css içinde
+   tanımlı ve sütun başlıkları tek dilli. Müşteri uygulamasında ödeme
+   adımındaki satır düzeni tekrarlanıyor; müşteri aynı listeyi iki
+   ekranda aynı biçimde görüyor. */
+function Parcalar({ r, dil, t }) {
+  const gorunti = r.parcaFiyat
+  const satirlar = (gorunti?.satirlar || []).filter((s) => s?.ad && Number(s.adet) > 0)
+
+  /* Görüntüsü olmayan kayıt: eski ad/adet alanları. */
+  if (!satirlar.length) {
+    return <Satir k={t('talepDetay.parcalar')} v={parcaYazisi(r, dil)} />
+  }
+
+  const araToplam = Number(gorunti.araToplam) || 0
+  const kdv = Number(gorunti.kdv) || 0
+  /* KDV oranı görüntüde yazmıyor; uygulanmış tutardan geri hesaplanıyor.
+     Böylece oran sonradan değişse bile eski kayıt kendi oranını yazıyor. */
+  const kdvOran = araToplam > 0 ? Math.round((kdv / araToplam) * 100) : 0
+  /* Yarım toplam gösterilmiyor: fiyatı bulunamayan kalem varsa müşteri
+     eksik havale eder. Ödeme adımı da aynı kuralla davranıyor. */
+  const tutarGosterilir = !gorunti.eksikFiyat && araToplam > 0
+
+  return (
+    <>
+      <div className="eyebrow" style={{ marginTop: 12, marginBottom: 6 }}>
+        {t('talepDetay.parcalar')}
+      </div>
+      {satirlar.map((s, i) => (
+        <div className="detay-satir" key={(s.kod || s.ad) + i}>
+          <span>
+            {s.ad}
+            <span
+              className="small muted serial-mono"
+              style={{ display: 'block', marginTop: 2 }}
+            >
+              {[s.kod, Number(s.adet) > 1 ? '× ' + s.adet : null]
+                .filter(Boolean)
+                .join(' · ')}
+            </span>
+          </span>
+          <span className="detay-satir__vurgu">
+            {s.tutar === null || s.tutar === undefined
+              ? '—'
+              : `${paraYaz(s.tutar)} ${PARA_BIRIMI}`}
+          </span>
+        </div>
+      ))}
+
+      {tutarGosterilir ? (
+        <div className="tutar-kutu" style={{ marginTop: 12 }}>
+          <div className="tutar-kutu__satir">
+            <span>{t('parcaFiyat.araToplam')}</span>
+            <span>{paraYaz(araToplam)} {PARA_BIRIMI}</span>
+          </div>
+          {kdv > 0 && (
+            <div className="tutar-kutu__satir">
+              <span>{t('parcaFiyat.kdv', { oran: kdvOran })}</span>
+              <span>{paraYaz(kdv)} {PARA_BIRIMI}</span>
+            </div>
+          )}
+          <div className="tutar-kutu__satir tutar-kutu__satir--toplam">
+            <span>{t('parcaFiyat.gonderilecek')}</span>
+            <span>{paraYaz(Number(gorunti.toplam) || 0)} {PARA_BIRIMI}</span>
+          </div>
+        </div>
+      ) : (
+        <p className="small muted" style={{ margin: '10px 0 0', lineHeight: 1.5 }}>
+          {t('parcaSec.tutarYok')}
+        </p>
+      )}
+    </>
+  )
+}
+
+/* "Pikap dişi × 2 · Düğüm atıcı bıçağı" — fiyat görüntüsü olmayan
+   kayıtlar için.
+
+   ADET BURADA ARANMIYOR, ORTAK OKUYUCUDAN GELİYOR
+   (bkz. lib/servisKaydi.js → talebinParcalari). Önceden talebin ad
+   listesi üzerinde `parcaAdet[ad]` ile aranıyordu; adet koda göre
+   anahtarlanmış bir kayıtta o arama boş dönüyor ve her satır adetsiz
+   çıkıyordu. Aynı okuma servis uygulamasının üç ekranında da vardı ve
+   tek yere toplandı.
+
+   Bulunamayan adet yine yazılmıyor: ortak okuyucu bulamadığında 1
+   varsayıyor, 1 de yazılmıyor. Yanlış adet yazmaktansa yazmamak. */
 function parcaYazisi(r, dil) {
-  return (r.parcalar || [])
-    .map((x) => {
-      const adet = r.parcaAdet?.[x]
-      return alanEtiketi(x, dil) + (adet > 1 ? ' × ' + adet : '')
-    })
+  return talebinParcalari(r)
+    .filter((x) => x.ad)
+    .map((x) => alanEtiketi(x.ad, dil) + (x.adet > 1 ? ' × ' + x.adet : ''))
     .join(' · ')
 }
 

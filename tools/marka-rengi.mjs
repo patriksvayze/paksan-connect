@@ -8,8 +8,9 @@
    turuncu. Üretilen çizimlerde makineler lacivert boyanmıştı — PAKSAN
    makinesi öyle görünmüyor.
 
-   Renk tahmin edilmedi, ölçüldü: `src/assets/urunler/` altındaki 15
-   ürün fotoğrafı taranıp doygun pikseller ton kovalarına toplandı.
+   Renk tahmin edilmedi, ölçüldü: `src/marka/varliklar/urunler/`
+   altındaki 15 ürün fotoğrafı taranıp doygun pikseller ton kovalarına
+   toplandı.
 
    4 Eylül 2026 ölçümü (45.479 piksel):
 
@@ -17,6 +18,18 @@
        20°  #E16C20   15.607 piksel
        ────────────────────────────
        ağırlıklı ortalama:  #E16025   ← MAKİNE GÖVDE RENGİ
+
+   İKİ TURUNCU AYRI ŞEYDİR, BİRİ ÖTEKİNE "DÜZELTİLMEZ".
+
+   Buradaki **#E16025** fotoğraftan ÖLÇÜLEN makine gövde rengidir;
+   bir veri noktasıdır, ekranda hiçbir yerde kullanılmıyor. Arayüzün
+   turuncusu ise `src/marka/renkler.css` içindeki
+   `--marka-turuncu: #e8641a` — o bir TASARIM kararı, beyaz yazıyla
+   kontrast ölçülerek seçildi. İkisi yakın tonlar olduğu için birini
+   öteki sanıp eşitlemek kolay; eşitlenirse ya çizimlerin rengi
+   ölçümden kopar ya da düğme kontrastı bozulur. Ölçüm değişirse
+   güncellenecek yer bu dosyanın yorumu ve çizim notudur
+   (`src/marka/icerik/cizimler.js`), renk token'ı değil.
 
    BU SAYI SABİT DEĞİL. Bugünkü fotoğraflar şirketin sitesinden alındı
    ve sıkıştırılmış JPEG; gerçek stüdyo çekimleri geldiğinde
@@ -36,7 +49,9 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 // Proje klasörü sabit yazılmıyor: depo nereye taşınırsa taşınsın çalışsın.
-const KLASOR = join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'assets', 'urunler')
+const KLASOR = join(
+  dirname(fileURLToPath(import.meta.url)), '..', 'src', 'marka', 'varliklar', 'urunler',
+)
 
 function hsv(r, g, b) {
   const max = Math.max(r, g, b), min = Math.min(r, g, b)

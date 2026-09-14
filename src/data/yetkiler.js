@@ -44,6 +44,7 @@ export const YETKI_KATALOG = [
       { id: 'musteriler', ad: 'Müşteri ve makine kayıtlarını görür' },
       { id: 'musteriDuzenle', ad: 'Müşteri bilgisini düzeltir' },
       { id: 'numara', ad: 'Numara değişikliği talebini onaylar' },
+      { id: 'kimlikNo', ad: 'Talepteki T.C. kimlik veya vergi numarasının tamamını görür' },
     ],
   },
   {

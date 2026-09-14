@@ -724,92 +724,213 @@ p {
      boşluklar çalışmıyor ve düğmeler logonun üstüne biniyordu. */
   display: flex;
   flex-direction: column;
+  /* Görselin en üst satırının rengi (ölçüldü: #080e1a). Görsel katmanı
+     ekranın üstünden taşarak başlıyor; bir an yüklenmemişse ya da çok
+     uzun bir ekranda üstte pay kalırsa zemin gökyüzünün devamı gibi
+     duruyor, beyaz ya da lacivert bir şerit görünmüyor. */
+  background: #080e1a;
 
-  /* UFUK ÇİZGİSİNİN YÜKSEKLİĞİ, TEK YERDE.
+  /* UFUK: GÖRSELDE NEREDE, EKRANDA NEREDE.
 
-     Tarla da güneş de buna bakıyor. Önceden tarla `19vh`, güneş ise
-     `bottom: 15%` idi; ikisi ayrı ölçülerdi ve ekran boyu değişince
-     birbirlerinden kopuyorlardı. Kısa ekranda güneş tarlanın içine
-     gömülüyor, uzun ekranda havada asılı kalıyordu. */
-  --ufuk: max(19vh, 96px);
+     --ufuk-foto  güneşin görseldeki yüksekliği (ölçüldü: %52,8).
+     --ufuk-y     güneşin ekranda duracağı yer, sahne yüksekliğine oran.
+                  Safak.jsx amblemin merkezini ölçüp buraya yazıyor. */
+  --ufuk-foto: 0.528;
+  /* Amblemin ekranın ortasından yatay farkı; Safak.jsx ölçüyor. */
+  --gunes-dx: 0px;
 }
 
-/* ------------------------------------------------------------- Gökyüzü */
+/* ------------------------------------------------------------- Görsel
 
-.safak__gok {
+   KATMAN, GÜNEŞİ --ufuk-y'YE OTURTACAK KADAR UZUN VE YUKARIDA.
+
+   Kutunun altı ekranın altına dayalı. Yüksekliği öyle seçiliyor ki
+   görseldeki güneş (%52,8) ekrandaki --ufuk-y noktasına düşsün:
+
+       üst + 0,528 · yükseklik = ufuk      ve      üst + yükseklik = 1
+       yükseklik = (1 − ufuk) / (1 − 0,528)
+
+   390x844 telefonda amblem %23'te; kutu ekranın 1,7 katı ve üstünden
+   taşıyor. Görsel bu yüzden 4K'dan hazırlandı: 1,7 kat büyütülmüş
+   2K bir görsel 3x ekranda yumuşak görünürdü.
+
+   `background-position` dikeyde %52,8: kutu görselden kısa kalırsa
+   (geniş ekran) kırpma ufku yerinden oynatmadan yapılıyor. Yatayda
+   %50: görsel güneş ortada kalacak şekilde kırpıldı (4K'nın ortadaki
+   %64'ü; telefon zaten bundan fazlasını göstermiyor), güneş her ekran
+   genişliğinde amblemin tam altında. Sağdaki balya makinesi 390 piksel
+   telefonda kenara yakın ama kadrajda. */
+/* YATAYDA AMBLEME HİZA. Görsel güneşi ortada tutacak şekilde kırpıldı;
+   kutunun ortası amblemin merkezine kaydırılıyor. Kutu kaydırılmıyor,
+   o yöne GENİŞLETİLİYOR: yalnız kaydırılsaydı öbür kenarda --gunes-dx
+   kadar boş şerit kalırdı. Fark sağa ise sağ kenar dışarı taşıyor,
+   sola ise sol kenar. */
+.safak__foto {
   position: absolute;
-  inset: 0;
   z-index: 0;
-  background:
-    linear-gradient(
-      180deg,
-      #060f21 0%,
-      #0d2148 42%,
-      #2a3d63 66%,
-      #7a4a2a 84%,
-      #b85a1e 100%
-    );
-  /* Gece hâli: sahne başlarken sıcak tonlar yok */
-  filter: saturate(0.25) brightness(0.42);
-  transition: filter 1.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.safak--bitti .safak__gok,
-.safak:not(.safak--bitti) .safak__gok {
-  filter: saturate(1) brightness(1);
-}
-
-/* Animasyon oynarken gece hâlinden başlaması için ayrı bir kural
-   gerekiyor; yukarıdaki geçiş onu şafağa taşıyor. */
-@media (prefers-reduced-motion: no-preference) {
-  .safak:not(.safak--bitti) .safak__gok {
-    animation: safak-gok 1.8s cubic-bezier(0.4, 0, 0.2, 1) both;
-  }
-}
-
-@keyframes safak-gok {
-  from { filter: saturate(0.2) brightness(0.35); }
-  to   { filter: saturate(1) brightness(1); }
-}
-
-/* --------------------------------------------------------------- Güneş */
-
-.safak__gunes {
-  position: absolute;
-  z-index: 1;
-  left: 50%;
-
-  /* GÜNEŞ DOĞUYOR, HAVADA DURMUYOR.
-
-     Önceden bitmiş hâlde neredeyse tamamı ufkun üstündeydi: 190
-     piksellik parlak bir top, ekranın ortasında, düğmelerin arkasında
-     duruyordu. İki sorun birden: sahne "gün doğumu" değil "gündüz"
-     gibi görünüyordu ve düğmelerin altındaki açıklama yazıları turuncu
-     kürenin üstüne düşüp okunmaz oluyordu.
-
-     Şimdi güneşin büyük kısmı tarlanın arkasında; yalnız tepesi ufku
-     aşıyor. Aydınlığı zaten haleden (box-shadow) geliyor, o yumuşak
-     ve yazıyı bozmuyor. */
-  bottom: calc(var(--ufuk) - 120px);
-  width: 170px;
-  height: 170px;
-  margin-left: -85px;
-  border-radius: 50%;
-  background: radial-gradient(circle, #ffb057 0%, #f2801f 62%, #e8641a 100%);
-  box-shadow: 0 0 90px 30px rgba(232, 100, 26, 0.34);
+  left: min(0px, calc(2 * var(--gunes-dx)));
+  right: min(0px, calc(-2 * var(--gunes-dx)));
+  bottom: 0;
+  height: calc((1 - var(--ufuk-y)) / (1 - var(--ufuk-foto)) * 100%);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: 50% calc(var(--ufuk-foto) * 100%);
+  /* Kamera güneşe doğru ilerliyor: büyüme merkezi güneşin kendisi. */
+  transform-origin: 50% calc(var(--ufuk-foto) * 100%);
+  transform: scale(1.06);
   pointer-events: none;
 }
 
+/* ------------------------------------------------------ Güneşin ışığı
+
+   Görseldeki güneş zaten orada; bu katman onun üstüne, doğarken
+   büyüyen sıcak bir hale ekliyor. `screen` karışımı yalnız aydınlatıyor,
+   renkleri bozmuyor.
+
+   YASSI VE YUKARIDA. Hale amblemin 40 piksel altındaki PAKSAN
+   yazısının arkasına taşınca yazının zeminini aydınlatıp kontrastı
+   düşürüyordu (ölçüldü: 280 piksellik yuvarlak halede yazının en kötü
+   noktası 2,67:1). Hale şimdi 320x150 bir elips, merkezi güneşin 18
+   piksel üstünde: ışık ufuk boyunca yayılıyor, aşağı inmiyor. */
+.safak__isik {
+  position: absolute;
+  z-index: 1;
+  left: calc(50% + var(--gunes-dx));
+  top: calc(var(--ufuk-y) * 100% - 18px);
+  width: 320px;
+  height: 150px;
+  margin: -75px 0 0 -160px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 206, 140, 0.55) 0%,
+    rgba(255, 160, 70, 0.22) 38%,
+    rgba(255, 140, 50, 0) 70%
+  );
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------- Ufuktaki sis
+
+   Ufkun hemen altında ince, açık bir bant; açılışta birkaç yüzde
+   yana kayıyor. Hareket neredeyse fark edilmiyor — sahneyi fotoğraftan
+   ayırıp "canlı" gösteren şey bu. Bant ekrandan geniş ki kayarken
+   kenarı görünmesin. */
+.safak__sis {
+  position: absolute;
+  z-index: 1;
+  left: -10%;
+  width: 120%;
+  top: calc(var(--ufuk-y) * 100% - 14px);
+  height: 40px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 236, 214, 0) 0%,
+    rgba(255, 236, 214, 0.1) 45%,
+    rgba(255, 236, 214, 0) 100%
+  );
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------------- Perde
+
+   YAZIYI OKUTAN KATMAN. Değerler ekran görüntüsünden ölçülerek
+   seçildi: yazılar gizlenip arkalarındaki gerçek pikseller örneklendi
+   (hale, sis ve kameranın son yakınlığı dahil).
+
+     · Tepede hafif: durum çubuğu ikonları okunsun diye. Dil seçici
+       gökyüzünün açık kısmında kalıyor ama kendi koyu zeminini
+       taşıyor (bkz. .dilsec--koyu); gökyüzü perdeyle boğulmuyor.
+     · Güneşte (--ufuk-y, ~%23) en açık: amblem doğan güneşin önünde,
+       sahnenin en parlak yeri perdesiz kalıyor.
+     · Hemen altında yeniden koyulaşıyor: PAKSAN yazısı güneşin 40
+       piksel altında, ufuktaki sisin üstünde.
+     · Aşağı indikçe koyulaşıyor: slogan ve düğmeler tarlanın üstünde.
+
+   Perde durakları --ufuk-y'ye değil ekrana göre: amblem her boyda
+   ekranın %20-26'sında kalıyor.
+
+   ÖLÇÜM YAZININ KENDİ SAYDAMLIĞIYLA YAPILIYOR. İlk ölçümde bütün
+   yazılar tam beyaz sayıldı ve "1970'ten beri" (%75 beyaz) ile sürüm
+   satırı (%48 beyaz) geçiyor göründü; son QA turu gerçek renkle ölçünce
+   430 genişlikte ikisi de 4,5:1'in altında çıktı (4,45 ve 4,42). İki
+   satırın rengi karşılama ekranı için ayrıca açıldı (aşağıda,
+   .safak .giris__ustsatir ve .safak .giris__surum).
+
+   Ölçülen en kötü piksel (360x640 / 390x844 / 430x932; yazı kendi
+   rengiyle, yarı saydam zeminler sahnenin gerçek rengiyle bindirilerek,
+   sahnedeki makine dahil). 14 Eylül 2026'da makine temiz maskeyle
+   yeniden yerleştirilip dil seçicinin zemini koyulaştıktan sonra:
+     PAKSAN yazısı          6,63 / 6,72 / 6,18
+     1970'ten beri (%90)    6,53 / 6,94 / 7,52
+     Yanınızdayız           9,95 / 5,83 / 7,05
+     Giriş Yap              17,1 / 14,5 / 15,6
+     Sürüm (%66)            7,73 / 8,33 / 8,50
+     EN — seçici (%82)      6,18 / 6,90 / 7,43
+   320x568'de en düşüğü "1970'ten beri" 5,38.
+
+   Bir durak değişirse ölçüm yeniden yapılmalı: yazılar gizlenip
+   arkalarındaki piksel ekran görüntüsünden örneklenir, yazı rengi
+   kendi saydamlığıyla o zeminin üstüne bindirilir. Fark gözle değil
+   pikselde görünüyor. */
+.safak__perde {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(8, 14, 26, 0.5) 0%,
+    rgba(8, 14, 26, 0.18) 12%,
+    rgba(8, 14, 26, 0) 20%,
+    rgba(8, 14, 26, 0.3) 29%,
+    rgba(8, 14, 26, 0.2) 40%,
+    rgba(8, 14, 26, 0.22) 50%,
+    rgba(8, 14, 26, 0.32) 64%,
+    rgba(8, 14, 26, 0.5) 82%,
+    rgba(8, 14, 26, 0.72) 100%
+  );
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------ Hareket
+
+   Son hâller yukarıdaki temel kurallarda; animasyonlar oradan geriye
+   başlıyor. Böylece ikinci gelişte ve "hareketi azalt"ta sahne
+   doğrudan bitmiş hâliyle duruyor, ayrı bir kural gerekmiyor.
+
+   Süreler: aydınlanma 2,4 sn, ışık 2,6 sn, kamera 7,2 sn
+   (Safak.jsx → SAHNE_SURESI ile aynı), sis 7,2 sn. */
 @media (prefers-reduced-motion: no-preference) {
-  .safak:not(.safak--bitti) .safak__gunes {
-    animation: safak-gunes 2s cubic-bezier(0.22, 0.7, 0.3, 1) both;
+  .safak:not(.safak--bitti) .safak__foto {
+    animation:
+      safak-aydinlan 2.4s cubic-bezier(0.4, 0, 0.2, 1) both,
+      safak-kamera 7.2s cubic-bezier(0.25, 0.1, 0.25, 1) both;
+  }
+
+  .safak:not(.safak--bitti) .safak__isik {
+    animation: safak-isik 2.6s cubic-bezier(0.22, 0.7, 0.3, 1) 0.3s both;
+  }
+
+  .safak:not(.safak--bitti) .safak__sis {
+    animation: safak-sis 7.2s ease-out both;
   }
 }
 
-@keyframes safak-gunes {
+@keyframes safak-aydinlan {
+  from { filter: brightness(0.3) saturate(0.45); }
+  to   { filter: brightness(1) saturate(1); }
+}
+
+@keyframes safak-kamera {
+  from { transform: scale(1); }
+  to   { transform: scale(1.06); }
+}
+
+@keyframes safak-isik {
   from {
-    transform: translateY(190px) scale(0.86);
-    opacity: 0.35;
+    transform: translateY(28px) scale(0.5);
+    opacity: 0;
   }
   to {
     transform: translateY(0) scale(1);
@@ -817,22 +938,10 @@ p {
   }
 }
 
-/* --------------------------------------------------------------- Tarla */
-
-.safak__tarla {
-  position: absolute;
-  z-index: 2;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100%;
-  /* Ekran boyuna göre şerit; uzun telefonlarda gökyüzü büyüyor,
-     kısa olanlarda tarla ezilmiyor. Güneş de aynı ölçüye bakıyor. */
-  height: var(--ufuk);
-  object-fit: cover;
-  object-position: 50% 0;
-  display: block;
-  pointer-events: none;
+@keyframes safak-sis {
+  from { transform: translateX(4%); opacity: 0; }
+  30%  { opacity: 1; }
+  to   { transform: translateX(0); opacity: 1; }
 }
 
 /* ---------------------------------------------------------------- Logo */
@@ -911,11 +1020,13 @@ p {
   width: 100%;
   max-width: 560px;
   margin: 0 auto;
-  /* Tarla şeridinin üstünde kalsın. Şerit ekranın altında duruyor ve
-     saman rengi; "Giriş yap" düğmesinin beyaz yazısı onun üstünde
-     okunmuyordu. Aradaki boşluklar esnek olduğu için bu pay içeriği
-     yukarı itiyor, kısa ekranda da taşma yapmıyor. */
-  padding-bottom: calc(var(--ufuk) + 18px);
+  /* Alt pay. Önceki sahnede burada saman rengi bir tarla şeridi vardı
+     ve içerik onun yüksekliği kadar yukarı itiliyordu. Artık altta
+     perdenin en koyu yeri var; pay yalnız başparmağın ekranın dibine
+     çarpmaması ve jest çubuğu için. Yerleşim korunsun diye önceki
+     şerit ölçüsüne (19vh, en az 96px) yakın tutuldu: amblemin, sloganın
+     ve düğmelerin yeri değişmedi, perde ölçümleri bu yerleşimle yapıldı. */
+  padding-bottom: calc(max(19vh, 96px) + 18px);
 }
 
 /* İçeriğin girişi — marka bloğu HARİÇ.
@@ -937,6 +1048,20 @@ p {
 @keyframes safak-ic {
   from { opacity: 0; }
   to   { opacity: 1; }
+}
+
+/* SAHNE BİTİNCE İÇERİK YENİDEN SÖNMESİN.
+
+   Slogan ve düğme blokları ortak `.fade-in` sınıfını da taşıyor
+   (0,3 sn'lik yukarı süzülme). Sahne oynarken yukarıdaki kural onu
+   eziyor; `.safak--bitti` gelince kural kalkıyor, animasyonun adı
+   değiştiği için tarayıcı `.fade-in`'i BAŞTAN oynatıyordu: içerik
+   sahnenin sonunda bir anlığına sönüp yeniden beliriyordu. Açılış 2,6
+   saniyeyken göze batmıyordu; 7,2 saniyede kullanıcı çoktan düğmeye
+   uzanmış oluyor. Sunum görüntüsü de tam o anı yakaladı (yarı saydam
+   slogan ve düğmeler). Bitmiş sahnede içerikte animasyon yok. */
+.safak--bitti .giris__ic > * {
+  animation: none;
 }
 
 .giris {
@@ -1032,6 +1157,22 @@ p {
   letter-spacing: 0.22em;
   color: var(--on-dark-2);
   margin-bottom: 12px;
+}
+
+/* Şafak sahnesinin üstünde iki silik satır açılıyor.
+
+   --on-dark-2 (%75) ve sürümün %48'i düz lacivert zemin için seçilmişti.
+   Fotoğrafın tarlası o zeminden açık; 430x932'de "1970'ten beri" 4,45,
+   sürüm satırı 4,42 ölçüldü (gereken 4,5). Token'a dokunulmuyor — başka
+   sekiz yerde kullanılıyor — yalnız bu sahnede iki satırın rengi
+   açılıyor. Hiyerarşi korunuyor: slogan tam beyaz, üst satır %90,
+   sürüm %66. */
+.safak .giris__ustsatir {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.safak .giris__surum {
+  color: rgba(255, 255, 255, 0.66);
 }
 
 /* Asıl söz. Kalınlık 400 — 300 YAZILMAZ: uygulamada yalnızca
@@ -1715,14 +1856,30 @@ p {
   box-shadow: var(--sh-1);
 }
 
-/* Karşılama ekranı koyu zeminde */
+/* Karşılama ekranı: fotoğrafın üstünde.
+
+   Önce zemin %10 beyazdı ve seçili olmayan dil %60 beyazdı; gece
+   laciverti bir gökyüzünde yetiyordu. Sahne fotoğrafa geçince tepeye
+   şafağın açık gökyüzü geldi ve "EN" 2,5:1'e düştü. Gökyüzünü perdeyle
+   karartmak sahnenin kendisini boğuyordu; bunun yerine seçicinin
+   kendi zemini koyulaştı ve arkasını bulanıklaştırıyor. Bu varyant
+   yalnız karşılama ekranında kullanılıyor (profil ekranı açık varyantı
+   kullanıyor).
+
+   14 Eylül 2026'daki QA turu zemin %50, yazı %78 iken "EN"i 320
+   genişlikte 4,26:1, 390'da 4,41-4,51 ölçtü: sahnenin sol üstündeki
+   gökyüzü (yaklaşık 212,188,125) seçicinin arkasında fazla açık
+   kalıyordu. Zemin %60'a, seçili olmayan dil %82'ye çıkarıldı; hesapla
+   aynı gökyüzünde 5,5:1'in üstü. */
 .dilsec--koyu {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(8, 14, 26, 0.6);
+  border-color: rgba(255, 255, 255, 0.18);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
 }
 
 .dilsec--koyu .dilsec__dugme {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.82);
 }
 
 .dilsec--koyu .dilsec__dugme--on {

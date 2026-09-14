@@ -8,7 +8,9 @@ import { telGecerliMi } from '../lib/tel'
 import { adTemizle } from '../lib/ad'
 import { alanaGit } from '../lib/formOdak'
 import { izinIste, bildirimGoster, engelNerede, BILDIRIM } from '../lib/bildirim'
-import { mevcutHesap, sifreHazirla, sifreGecerliMi, SIFRE_HANE } from '../lib/hesap'
+import {
+  mevcutHesap, ozetHatasiMi, sifreHazirla, sifreGecerliMi, SIFRE_HANE,
+} from '../lib/hesap'
 import { VARSAYILAN_ULKE } from '../data/ulkeler'
 import { Rozet } from '../marka'
 import { TelefonAlani } from '../components/TelefonAlani'
@@ -138,6 +140,22 @@ export default function Register() {
      saymak. Bayiler kayıtlı ile göre sıralanıyor, o bilgi zaten
      formda. */
   async function kaydiBitir(bildirimDurumu) {
+    /* Şifre özeti kayıttan ÖNCE alınıyor ve hatası yakalanıyor.
+
+       Güvenli köken yoksa özet üretilemiyor (bkz. src/lib/hesap.js →
+       ozet). Eskiden bu hata `login({...})` çağrısının içinde oluşuyordu:
+       düğmeye basılıyor, hiçbir şey olmuyor, ekranda tek kelime
+       çıkmıyordu. Artık kullanıcı sebebini görüyor ve kayıt yarım
+       yazılmıyor. */
+    let sifreOzeti
+    try {
+      sifreOzeti = await sifreHazirla(sifre)
+    } catch (e) {
+      if (!ozetHatasiMi(e)) throw e
+      showToast(t('giris.ozetYok'))
+      return
+    }
+
     login({
       /* Ad ve soyad ayrı tutuluyor: veriler işlenirken ayıklamak
          gerekmesin. `ad` alanı ekranlarda tam ad olarak kullanılıyor. */
@@ -149,7 +167,7 @@ export default function Register() {
       ulke,
       tel,
       /* Şifre düz metin saklanmıyor, tuzlanıp özetleniyor */
-      sifre: await sifreHazirla(sifre),
+      sifre: sifreOzeti,
       konumUlke,
       il,
       ilce,

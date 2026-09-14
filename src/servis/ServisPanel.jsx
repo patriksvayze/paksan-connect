@@ -14,6 +14,7 @@ import {
 import { gecenSure } from '../backoffice/ekranlar/ortak'
 import { TemaSecici } from '../backoffice/Tema'
 import { load, save, remove } from '../lib/storage'
+import { ozetHatasiMi } from '../lib/hesap'
 import { duyuruGecerliMi } from '../lib/duyuruHedef'
 import { Kabuk, Sayfa, Bolum, Bos, ListeKarti } from './Kabuk'
 import { DEMO_HESAP, demoAPKmi } from './demoKimlik'
@@ -39,7 +40,39 @@ import { Logo, MARKA, SIRKET, getProduct } from '../marka'
    (kalın lacivert kontur, düz dolgu, sınırlı palet) referans verilerek.
    Küçültme ve sıkıştırma: tools/gorsel-hazirla.mjs */
 import bosIsGorseli from '../assets/gorseller/servis-bos-is.png'
-import girisGorseli from '../assets/gorseller/servis-giris.png'
+/* Giriş ekranının görseli: PAKSAN ORKINOS 1270'İN BAŞINDA SERVİS
+   TEKNİSYENİ, ŞAFAKTA TARLADA.
+
+   Konu uygulamanın kullanıcısının kendisi: makine duruyor, teknisyen
+   toplayıcının zincir dişlisinde anahtarla çalışıyor, yanında açık
+   takım çantası. Servis elemanı uygulamayı tam da bu anda açıyor.
+
+   MAKİNE PAKSAN'IN KENDİ MODELİ (14 Eylül 2026, kullanıcının isteği).
+   Önceki üretimde makine firmanın videosundan referans alınmıştı ama
+   genel bir balya makinesi olarak çıkmıştı. Kullanıcı ekranı "sonradan
+   konmuş, ucuz" buldu ve görselin PAKSAN'ın makinelerinden biri
+   olmasını istedi. Amiral model Orkinos 1270 seçildi: kabartma desenli
+   uzun turuncu kaput ve iki aks ilk bakışta tanınıyor.
+
+   ÜRETİLDİ, FOTOĞRAF DEĞİL. Higgsfield, Nano Banana Pro; referanslar
+   katalogdaki Orkinos 1270 fotoğrafı, tanıtım videosundan tarlada bir
+   kare ve ışık için PAKSAN Connect karşılamasının şafak sahnesi (iki
+   uygulamanın açılışı aynı sabahın içinde duruyor).
+
+   Bir deneme kadraj için eski görseli de referans aldı; model eski
+   makineyi koruyup yalnız kaputun desenini ve yazısını ekledi, ortaya
+   PAKSAN'da olmayan melez bir makine çıktı. Referanslardan eski görsel
+   çıkarılınca model doğru makineyi üretti. Bu görsel yenilenecekse
+   kadraj referansı verilmemeli.
+
+   Kaputtaki "paksan" yazısı üretimde doğru çıktı ve bırakıldı.
+   Teknisyenin sırtındaki yarım harf izi silindi. Koyu tonlar markanın
+   laciverdine çekildi, tarlanın doygunluğu indirildi; turuncuya
+   dokunulmadı (bkz. servis.css → .sgiris__tepe).
+
+   Kaynak tools/kaynak/servis-giris-orkinos-girdi.jpg (1792x2400,
+   işlenmemiş üretim); uygulamadaki dosya 1200x1607 JPEG. */
+import girisGorseli from '../assets/gorseller/servis-giris-orkinos.jpg'
 import { TalepDetay } from './ekranlar/TalepDetay'
 import { Parca } from './ekranlar/Parca'
 import { Bayilerim } from './ekranlar/Bayilerim'
@@ -98,10 +131,6 @@ export function ServisPanel() {
 
 /* ------------------------------------------------------------------ Giriş */
 
-/* Başlığın altındaki tek satır. Ekranın ne olduğunu değil, hesabın
-   nereden geldiğini söylüyor: servis kendi hesabını açmıyor. */
-const GIRIS_ALT = `Hesabınızı ${MARKA} açar. Giriş yaptığınızda bekleyen işlerinizi görürsünüz.`
-
 /* GİRİŞ EKRANI ARTIK PANEL AÇILIŞI DEĞİL, UYGULAMA AÇILIŞI.
 
    Önce backoffice'in giriş kartını kullanıyordu: ekranın ortasında
@@ -111,9 +140,10 @@ const GIRIS_ALT = `Hesabınızı ${MARKA} açar. Giriş yaptığınızda bekleye
    altında ölü boşluk, kenarlarda kırpılmış bir çerçeve.
 
    Şimdi ekranın kendisi giriş ekranı. Görsel tepede, kenarlara
-   dayanmış; içerik alttan yükselen bir kâğıtta ve o kâğıt ekranın
-   dibine kadar iniyor. Aynı üç şeyi soruyor, aynı yerden giriliyor;
-   değişen yalnız durduğu yüzey.
+   dayanmış ve laciverde eriyor; başlık o geçişin üstünde, form alttan
+   yükselen bir kâğıtta ve o kâğıt ekranın dibine kadar iniyor. Aynı
+   üç şeyi soruyor, aynı yerden giriliyor; değişen yalnız durduğu
+   yüzey.
 
    Şifre belirleme ekranı da buradan geçiyor: ikisi de oturum
    açılmadan görülen ekranlar ve aynı yüzeyde durmaları gerekiyor. */
@@ -122,19 +152,34 @@ function GirisEkrani({ baslik, aciklama, children }) {
     <div className="sgiris">
       <div className="sgiris__tepe">
         <img className="sgiris__resim" src={girisGorseli} alt="" />
-        {/* Marka işareti lacivert payın üstünde: kâğıtta başlıkla
-            logo alt alta iki kimlik oluyordu. */}
-        <Logo height={20} beyaz sadeceYazi className="sgiris__marka" />
+        {/* Marka işareti tepede: kâğıtta başlıkla logo alt alta iki
+            kimlik oluyordu. 20 pikselken kullanıcı çok küçük buldu;
+            PAKSAN Connect karşılamasındakiyle aynı boyda. */}
+        <Logo height={50} beyaz sadeceYazi className="sgiris__marka" />
+        {/* Başlık fotoğrafın laciverde eridiği yerde, kâğıtta değil:
+            resimle yazı tek yüzey olsun (bkz. servis.css → .sgiris__tepe). */}
+        <div className="sgiris__baslikalani">
+          <h1 className="sgiris__baslik">{baslik}</h1>
+          {aciklama ? <p className="sgiris__alt">{aciklama}</p> : null}
+        </div>
       </div>
 
-      <div className="sgiris__kagit">
-        <h1 className="sgiris__baslik">{baslik}</h1>
-        {aciklama ? <p className="sgiris__alt">{aciklama}</p> : null}
-        {children}
-      </div>
+      <div className="sgiris__kagit">{children}</div>
     </div>
   )
 }
+
+/* ŞİFRE ÖZETİ ÜRETİLEMEDİĞİNDE YAZILACAK METİN.
+
+   Tarayıcı güvenli kökende değilse (düz HTTP adresi) şifre
+   doğrulanamıyor; bkz. src/lib/hesap.js → ozet. Önceden düğme
+   "Kontrol ediliyor…" yazısında kalıyor, ekranda hiçbir şey
+   çıkmıyordu.
+
+   Metin servis sesiyle yazıldı: tek cümle, terim yok. Teknisyen
+   ekranı tarlada ayakta okuyor; ona "güvenli köken" demek bir şey
+   anlatmaz, yapacağı şeyi söylemek anlatır. */
+const OZET_HATASI_METNI = `Şifre kontrol edilemiyor; uygulamayı yeniden açın, sorun sürerse ${MARKA} yetkilisini arayın.`
 
 function Giris({ onGiris }) {
   /* Demo APK'sında alanlar dolu geliyor: hesabı uygulamanın kendisi
@@ -161,16 +206,33 @@ function Giris({ onGiris }) {
     }
     setHata('')
     setBekliyor(true)
-    const sonuc = await servisGirisi(kullanici, sifre)
-    setBekliyor(false)
-    if (sonuc.hata) return setHata(sonuc.hata)
-    if (hatirla) save('servisHatirla', kullanici.trim())
-    else remove('servisHatirla')
-    onGiris(sonuc.oturum)
+    /* Bekleme hâlinden çıkış `finally`de: hangi hata olursa olsun düğme
+       kilitli kalmasın — tarlada tek çıkış yolu uygulamayı kapatmak
+       olmasın. */
+    try {
+      const sonuc = await servisGirisi(kullanici, sifre)
+      if (sonuc.hata) {
+        setHata(sonuc.hata)
+        return
+      }
+      if (hatirla) save('servisHatirla', kullanici.trim())
+      else remove('servisHatirla')
+      onGiris(sonuc.oturum)
+    } catch (e) {
+      if (!ozetHatasiMi(e)) throw e
+      setHata(OZET_HATASI_METNI)
+    } finally {
+      setBekliyor(false)
+    }
   }
 
   return (
-    <GirisEkrani baslik={`${MARKA} Servisim`} aciklama={GIRIS_ALT}>
+    /* BAŞLIĞIN ALTINDA AÇIKLAMA YOK (14 Eylül 2026, kullanıcının kararı).
+       "Hesabınızı PAKSAN açar, giriş yaptığınızda bekleyen işlerinizi
+       görürsünüz" satırı vardı; kullanıcı gereksiz buldu. Servis elemanı
+       hesabını PAKSAN'dan zaten alıyor, ekranın ne olduğunu da görselle
+       başlık söylüyor. Hesabı olmayan için yol dipteki künye satırında. */
+    <GirisEkrani baslik={`${MARKA} Servisim`}>
       <form onSubmit={gir}>
         <label className="alan">
           <span className="alan__ad">Kullanıcı Adı</span>
@@ -272,8 +334,13 @@ function IlkSifre({ oturum, onBitti }) {
       return setHata('Şifre 6 rakamdan oluşmalı.')
     }
     if (sifre !== tekrar) return setHata('Şifreler eşleşmiyor.')
-    const sonuc = await servisSifresiniDegistir(oturum.servisId, sifre)
-    if (sonuc.hata) return setHata(sonuc.hata)
+    try {
+      const sonuc = await servisSifresiniDegistir(oturum.servisId, sifre)
+      if (sonuc.hata) return setHata(sonuc.hata)
+    } catch (e) {
+      if (!ozetHatasiMi(e)) throw e
+      return setHata(OZET_HATASI_METNI)
+    }
     onBitti()
   }
 
@@ -1169,7 +1236,13 @@ function SifreDegistir({ oturum }) {
       return setHata(`Yeni şifre ${BACKOFFICE_SIFRE_HANE} rakamdan oluşmalı.`)
     }
     if (yeni !== tekrar) return setHata('Yeni şifreler eşleşmiyor.')
-    const sonuc = await servisSifresiniDegistir(oturum.servisId, yeni, eski)
+    let sonuc
+    try {
+      sonuc = await servisSifresiniDegistir(oturum.servisId, yeni, eski)
+    } catch (e) {
+      if (!ozetHatasiMi(e)) throw e
+      return setHata(OZET_HATASI_METNI)
+    }
     if (sonuc.hata) return setHata(sonuc.hata)
     setEski('')
     setYeni('')

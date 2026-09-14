@@ -86,6 +86,40 @@ const GARANTI_YAZI = {
   bitti: () => 'Garanti süresi doldu',
 }
 
+/* ==========================================================================
+   GARANTİ KARARI NEYE DAYANIYOR — EKRAN BUNU SÖYLEMEK ZORUNDA
+
+   Yukarıdaki dört satır kesin konuşuyor ama altındaki hesap kesin
+   değil: `warrantyStatus` şase numarasındaki ÜRETİM YILINI okuyor,
+   satış tarihini değil. Satış tarihi sistemde hiçbir yerde yok.
+
+   Sonucu somut: 2024'te üretilip 2026'da satılmış bir makine burada
+   "garanti süresi doldu" görünüyor. Servis, gerçekte geçerli olan bir
+   garanti işini garanti dışı sanıp parçayı müşteriye ödetiyor ya da
+   kaydı "PAKSAN reddeder" diye gönderiyor. Ekranın dayanağını
+   saklaması, yanlış kararı servisin sırtına yıkıyor.
+
+   HESAP DEĞİŞMİYOR, EKRAN DÜRÜST OLUYOR. Satış tarihi gelmeden
+   hesabı düzeltmenin yolu yok; yapılabilecek olan, kararın nereden
+   geldiğini yazmak ve servisi tahmine değil PAKSAN'a yönlendirmek.
+
+   AŞAĞIDAKİ İKİ METİN CODEX'TEN GELDİ (proje kuralı: ekranda görünen
+   her Türkçe kelime Codex'ten geçer):
+
+     garantiDayanak — kararın dayanağını söylüyor: şase numarasındaki
+       üretim yılı, satış kaydı değil. Üç kararın hepsinde, üretim
+       yılı okunabildiği sürece görünüyor.
+     garantiDisiUyari — servis "Garanti Kapsamında" seçti ama üretim
+       yılına göre süre dolmuş görünüyorsa çıkıyor. Kaydın yine de
+       gönderilebileceğini söylüyor, sonra servisin haklı olabileceğini
+       kabul ediyor ve tahmin etmek yerine {MARKA} ile doğrulamasını
+       istiyor.
+   ========================================================================== */
+const GARANTI_METNI = {
+  garantiDayanak: 'Garanti süresi satış tarihine değil, şase numarasındaki üretim yılına göre hesaplanır.',
+  garantiDisiUyari: `Kaydı yine de gönderebilirsiniz. Garanti süresi üretim yılına göre hesaplanır; satış tarihi burada yazılı olmadığı için sonradan satılan makinenin garantisi devam ediyor olabilir. Şase numarasını kontrol edin; hâlâ emin değilseniz göndermeden önce ${MARKA} yetkilisiyle doğrulayın.`,
+}
+
 export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
   const onceki = talep.servisKaydi || null
   /* İkinci aşama: 1. aşamada parça istenmiş, parça gelmiş, servis
@@ -419,24 +453,42 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
                 },
               ]}
               secili={kapi}
+              /* KAPI DEĞİŞİNCE SIFIRLANAN BAŞKA BİR ŞEY YOK.
+
+                 Burada kaldırılan "Parça gerekiyor mu?" sorusunun
+                 sıfırlaması kalmıştı (`setParcaGerek`); öyle bir
+                 durum artık tanımlı değil, her dokunuş hata atıyor ve
+                 arkasındaki `setHata('')` hiç çalışmıyordu — ekranda
+                 kalan uyarı temizlenemiyordu.
+
+                 Seçilen parçalar bilerek duruyor: aynı parça
+                 garantide istenen, garanti dışında takılan parça
+                 oluyor, liste ikisinde de geçerli. Yol ve işçilik de
+                 duruyor; garanti dışında hak ediş hesabı onları
+                 zaten okumuyor (bkz. lib/servisKaydi.js →
+                 hakkedisHesapla). */
               onSec={(v) => {
                 setKapi(v)
-                setParcaGerek('')
                 setHata('')
               }}
             />
           </Bolum>
         )}
 
+        {/* UYARI ARTIK SUÇU ŞASEYE ATMIYOR.
+
+            Burada "Şase numarasını kontrol edin" yazıyordu: tek
+            olasılığın servisin yanlış yazması olduğunu ima ediyordu.
+            Oysa doğru yazılmış bir şasede de karar yanlış çıkabiliyor,
+            çünkü hesap üretim yılından gidiyor ve satış tarihi
+            sistemde yok. Uyarı artık dayanağı söylüyor ve servisi
+            tahmine değil PAKSAN'a yönlendiriyor. */}
         {!ikinci && kapi === 'garanti' && !garantiVar && (
           <div className="not not--turuncu">
             <IconAlert size={19} />
             <div>
               <strong>Bu makinenin garantisi görünmüyor.</strong>
-              <p>
-                Kayıt yine de gönderilebilir ama {MARKA} reddedebilir. Şase
-                numarasını kontrol edin.
-              </p>
+              <p>{GARANTI_METNI.garantiDisiUyari}</p>
             </div>
           </div>
         )}
@@ -758,6 +810,12 @@ function Garanti({ seri, urun }) {
           {formatSerial(seri)}
           {urun ? ` · ${urun.name}` : ''}
         </p>
+        {/* DAYANAK SATIRI. Üstteki karar şase numarasındaki üretim
+            yılından çıkıyor; satış tarihi sistemde yok. Servis neye
+            baktığını bilmeden "garanti bitti" yazısına güvenemez
+            (gerekçesi yukarıda, GARANTI_METNI başlığında). Üretim
+            yılı okunamadıysa yazılacak bir dayanak da yok. */}
+        {yil ? <p>{GARANTI_METNI.garantiDayanak}</p> : null}
       </div>
     </div>
   )

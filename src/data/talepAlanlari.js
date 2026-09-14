@@ -16,14 +16,29 @@
    Seçenekler yazmak yerine DOKUNARAK işaretleniyor. Tarlada eldivenli
    parmakla yazı yazmak zor; seçenek varsa dokunmak yeter.
 
-   ⚠ Buradaki belirti ve parça adları taslaktır. Servis ekibinin
-     kullandığı gerçek adlarla değiştirilmeli (bkz. PRODA-CIKIS.md → B).
+   ⚠ Buradaki belirti adları taslaktır. Servis ekibinin kullandığı
+     gerçek adlarla değiştirilmeli (bkz. PRODA-CIKIS.md → B).
+
+   PARÇA ADLARI BURADAN KALDIRILDI
+
+   Bir dönem bu dosyada otuz parça adı duruyordu (`ORTAK_PARCA` ve
+   makine grubuna göre `PARCALAR`). Hiçbiri PAKSAN'ın fiyat listesinden
+   gelmiyordu; uydurulmuşlardı ve yanlarındaki fiyatlar da uydurmaydı.
+   Çiftçi "Pikap parmağı" seçiyor, depoda o adla bir parça bulunmuyordu.
+
+   Parça artık PAKSAN'ın kendi kataloğundan seçiliyor: 538 parça, 35 alt
+   montaj, her birinin kodu, resmi ve fiyatı var
+   (bkz. `src/lib/parcaKatalogu.js`). Anahtar PARÇA KODU — parça adı
+   tekil değil, katalogda altı tekrar eden ad var.
+
+   Listeye bağlı olmayan tek seçenek `PARCA_DIGER`: katalogda
+   bulunmayan parçayı yazıyla anlatmanın yolu. Katalog inmese de talep
+   o yoldan açılabiliyor, bu yüzden burada duruyor.
    ========================================================================== */
 
 import {
   ULASIM_ZAMANI_EN, MAKINE_DURUMU_EN, URUN_TIPI_EN,
-  ARAZI_EN, TRAKTOR_EN, ORTAK_BELIRTI_EN, BELIRTILER_EN,
-  ORTAK_PARCA_EN, PARCALAR_EN, DIGER_EN,
+  ARAZI_EN, TRAKTOR_EN, ORTAK_BELIRTI_EN, BELIRTILER_EN, DIGER_EN,
 } from './talepAlanlari.en'
 
 /* -------------------------------------------------- Her talepte sorulan */
@@ -119,35 +134,6 @@ const BELIRTILER = {
   genel: [],
 }
 
-/* --------------------------------------------------------- Yedek parça */
-
-const ORTAK_PARCA = [
-  'Rulman',
-  'Kayış',
-  'Zincir',
-  'Yağ keçesi',
-  'Mafsal / şaft',
-  'Emniyet cıvatası',
-  'Hidrolik hortum',
-]
-
-const PARCALAR = {
-  balya: [
-    'Düğüm atıcı bıçağı',
-    'İp kılavuzu',
-    'İğne',
-    'Pikap parmağı',
-    'Piston segmanı',
-    'Balya sayacı',
-  ],
-  rulo: ['Sarım bıçağı', 'Kauçuk bant', 'Pikap parmağı', 'Kapak silindiri'],
-  yem: ['Karıştırıcı bıçağı', 'Helezon', 'Tartı sensörü', 'Boşaltma bandı'],
-  silaj: ['Kesici bıçak', 'Karşı bıçak', 'Besleme silindiri'],
-  cayir: ['Biçme bıçağı', 'Tırmık parmağı', 'Koruma sacı'],
-  toprak: ['Uç demiri', 'Ayak / gövde', 'Disk', 'Merdane'],
-  genel: [],
-}
-
 /* ------------------------------------------------------- Fiyat teklifi */
 
 /* Satış ekibinin telefonda ilk sorduğu üç soru bunlar. Cevapları
@@ -198,10 +184,6 @@ export function makineDurumAdi(id) {
    yem karma makinesi olmayana "helezon sıkışıyor" sormanın anlamı yok. */
 export function belirtileriGetir(grup) {
   return [...(BELIRTILER[grup] || []), ...ORTAK_BELIRTI, 'Diğer']
-}
-
-export function parcalariGetir(grup) {
-  return [...(PARCALAR[grup] || []), ...ORTAK_PARCA, 'Diğer']
 }
 
 
@@ -264,14 +246,13 @@ export function belirtiSecenekleri(grup, dil = 'tr') {
 
    "Diğer" listede olmayan bir parçayı anlatmak için. Seçildiğinde
    adet sorulmuyor ve başka parça seçilemiyor (bkz. RequestForm →
-   parcaCevir); ne istendiği açıklama kutusuna yazılıyor. */
-export const PARCA_DIGER = 'Diğer'
+   digerCevir); ne istendiği açıklama kutusuna yazılıyor.
 
-export function parcaSecenekleri(grup, dil = 'tr') {
-  const trListe = [...(PARCALAR[grup] || []), ...ORTAK_PARCA, PARCA_DIGER]
-  const enListe = [...(PARCALAR_EN[grup] || []), ...ORTAK_PARCA_EN, DIGER_EN]
-  return eslestir(trListe, enListe, dil)
-}
+   KATALOG İNMEZSE KALAN TEK YOL BU. Parça listesi PAKSAN'ın
+   sunucusundan geliyor; tarlada şebeke yoksa inmiyor. O durumda ekran
+   "talep açılamaz" demiyor, bu seçeneği açık bırakıyor: çiftçi istediği
+   parçayı yazıyla anlatıyor, fiyatı PAKSAN'la konuşuluyor. */
+export const PARCA_DIGER = 'Diğer'
 
 /* ==========================================================================
    Kayıttaki Türkçe değerin ekranda görünen karşılığı
@@ -299,7 +280,6 @@ function sozlukKur() {
   ekle(ARAZI, ARAZI_EN)
   ekle(TRAKTOR, TRAKTOR_EN)
   ekle(ORTAK_BELIRTI, ORTAK_BELIRTI_EN)
-  ekle(ORTAK_PARCA, ORTAK_PARCA_EN)
   s['Diğer'] = DIGER_EN
   /* Eski talepler bu seçenekle açılmış olabilir; kayıt bozulmasın
      diye karşılığı sözlükte duruyor. Yeni taleplerde çıkmıyor. */
@@ -315,9 +295,10 @@ function sozlukKur() {
   for (const grup of Object.keys(BELIRTILER)) {
     ekle(BELIRTILER[grup], BELIRTILER_EN[grup] || [])
   }
-  for (const grup of Object.keys(PARCALAR)) {
-    ekle(PARCALAR[grup], PARCALAR_EN[grup] || [])
-  }
+  /* PARÇA ADLARININ İNGİLİZCESİ YOK. Parça adı artık PAKSAN'ın
+     kataloğundan geliyor ve katalog tek dilli. Karşılığı bulunmayan
+     değer olduğu gibi gösteriliyor; İngilizce ekranda parça Türkçe adı
+     ve kodu ile görünüyor — kod iki dilde de aynı. */
   return s
 }
 

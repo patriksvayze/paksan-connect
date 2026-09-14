@@ -18,6 +18,7 @@ import './styles/olcu.css'
 import './styles.css'
 
 import App from './App'
+import { HataSiniri } from './components/HataSiniri'
 import { temayiUygula } from './components/TemaSecici'
 
 /* Kayıtlı görünüm tercihi ilk çizimden ÖNCE uygulanıyor. Sonra
@@ -25,8 +26,13 @@ import { temayiUygula } from './components/TemaSecici'
    gece kullanımda tam da kaçınmak istediğimiz şey. */
 temayiUygula()
 
+/* Sınır KÖKTE duruyor: altında ne patlarsa patlasın ekranda bir şey
+   kalıyor. Sınır olmadan tek bir çizim hatası kalıcı beyaz ekran
+   demekti (bkz. src/components/HataSiniri.jsx). */
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <App />
+    <HataSiniri urun="app">
+      <App />
+    </HataSiniri>
   </StrictMode>
 )

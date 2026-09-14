@@ -12,6 +12,21 @@
         ],
         "createdAt": "2026-09-10T05:52:32.314Z",
         "reason": "Claude: .cevap bir kart aksanı değil, iç içe cevap çizgisi. GeriBildirimler.jsx:83 — PAKSAN personelinin notları müşterinin görüşünün ALTINA yerleşiyor; soldaki 3px çizgi alıntı girintisi, notların üstteki kayda ait olduğunu gösteren tek işaret. Kaldırılırsa iç içelik kayboluyor."
+      },
+      {
+        "rule": "overused-font",
+        "value": "roboto",
+        "createdAt": "2026-09-12T14:51:03.806Z",
+        "reason": "Claude karari: src/lib/ihracat.js:197 bir e-posta HTML sablonudur, uygulama arayuzu degil. E-posta istemcileri web yazi tipi yuklemedigi icin guvenli yigin (Roboto,Arial,sans-serif) dogru muhendislik karari; marka tipografisi bu yuzeyde ifade edilmiyor. Satir bu oturumdan once, commit e4fd2eb'den geliyor."
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "src/servis/servis.css"
+        ],
+        "createdAt": "2026-09-12T15:47:30.000Z",
+        "reason": "Claude karari: servis.css'teki alti tek-kenar cizgisinin hepsi ANLAM tasiyor, kart susu degil. .is--gec (605) geciken isin liste satirindaki kirmizi durum seridi; .duyuru (617) rengi duyuru TURUNDEN geliyor (.duyuru--kampanya/yeniUrun/etkinlik, 655-657); .not--mavi/yesil/turuncu (727/735/746) bilgi-basari-uyari kutulari, yani klasik admonition deseni; .alinti (796) SMS onizlemesinin alinti girintisi ve backoffice.css'teki .cevap istisnasiyla ayni turden. Hepsi ikon ve yazi ile birlikte kullaniliyor, yani renk tek kanal degil. Servis kullanicisi ekrani tarlada ayakta okuyor (bkz. CLAUDE.md); renkli kenar cizgisi okumadan once fark edilen bir kanal. Satirlarin hicbiri bu oturumdan degil, 10 Eylul 2026 commit 29e09c7'den geliyor."
       }
     ]
   }

@@ -163,6 +163,7 @@ export function EkAlani({ ekler, onDegis, mevcut = [] }) {
 }
 
 function Onizleme({ ek, onCikar }) {
+  const { t } = useDil()
   const [adres, setAdres] = useState(null)
 
   useEffect(() => {
@@ -190,7 +191,7 @@ function Onizleme({ ek, onCikar }) {
         </div>
       )}
       <span className="ek__boyut">{boyutYaz(ek.boyut)}</span>
-      <button className="ek__sil" type="button" onClick={onCikar} aria-label="Kaldır">
+      <button className="ek__sil" type="button" onClick={onCikar} aria-label={t('ortak.kaldir')}>
         <IconClose size={15} />
       </button>
     </div>

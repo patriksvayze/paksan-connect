@@ -40,6 +40,7 @@ export const en = {
     metniOku: 'Read the text',
     kapat: 'Close',
     sil: 'Delete',
+    kaldir: 'Remove',
     tumu: 'See all',
     evet: 'Yes',
     hayir: 'No',
@@ -102,6 +103,8 @@ export const en = {
     hosgeldiniz: 'Welcome {ad}',
     telefonHatali: 'Enter your full phone number, without the leading zero.',
     sifreHane: 'Your password is {n} digits.',
+    ozetYok: 'Your password cannot be verified right now. Close and reopen the app. If the problem continues, contact {marka}.',
+    sifreKurulumGerek: 'Your account does not have a password yet. Set one now.',
   },
 
   kayit: {
@@ -174,6 +177,7 @@ export const en = {
     kodTekrar: 'Send the Code Again',
     kodKisa: 'Enter the six-digit code.',
     kodYanlis: 'Wrong code. Check the six digits in the message.',
+    dogrulamaSunucuda: 'The code cannot be checked right now. Contact {marka} to reset your password.',
     kodSuresiDoldu: 'The code has expired. Please request a new one.',
     gonderilemedi: 'The code could not be sent. Check your internet connection.',
     numaraDegisti: 'Has your phone number changed?',
@@ -325,9 +329,33 @@ export const en = {
     gonderilecek: 'Amount to transfer',
     kargoHaric: 'Shipping is not included. The courier fee is collected on delivery.',
     sonraBelirlenecek: 'Price to be agreed with you',
-    birim_adet: 'each',
-    birim_takım: 'set',
-    birim_metre: 'metre',
+    /* Birim anahtarları kaldırıldı (birim_adet / birim_takım /
+       birim_metre); gerekçesi tr.js içinde yazılı. */
+  },
+
+  /* --------------------------------------------- Picking a part from the
+     catalogue.
+
+     Parça ve alt montaj adları burada yok: PAKSAN'ın fiyat listesi tek
+     dilli (Türkçe) ve parçayı ayırt eden şey kod — kod iki dilde de
+     aynı. İngilizce ekranda parça Türkçe adı ve koduyla görünüyor. */
+  parcaSec: {
+    yukleniyor: 'Loading the parts list from the {marka} server.',
+    hataBaslik: 'Parts list unavailable',
+    hataMetin: 'The parts list comes from the {marka} server; check your connection and try again. You can still submit a request without the list by tapping “Other” below and describing the part. {marka} will let you know the price.',
+    yenidenDene: 'Try Again',
+    ara: 'Part name or code',
+    aramaTemizle: 'Clear Search',
+    montajSec: 'Select the section of the machine the part belongs to, then see the parts in that section.',
+    montajaDon: 'Back to Sections',
+    grupAdet: '{n} parts',
+    sonuc: 'Parts found: {n}.',
+    sonucYok: 'No parts found. Try searching by part code or tap “Other” to describe the part.',
+    tumKatalog: 'There is no separate parts list for this machine, so all catalogue parts are shown. If you cannot find the part you need, tap “Other” to describe it.',
+    gorselYok: 'Image unavailable',
+    digerIpucu: 'You can describe a part that is not listed. {marka} will determine the price and contact you.',
+    cikar: 'Remove Part',
+    tutarYok: 'Price unavailable',
   },
 
   /* ---------------------------------------------- Request detail screen */
@@ -487,7 +515,7 @@ export const en = {
     dahaFazlaTalep: 'Show {n} more requests',
     taleplerim: 'My Requests',
     talepYok: 'You have not created a request yet. You can follow your service, spare part and quote requests here.',
-    kaydirIpucu: 'Swipe a request to the left to delete it.',
+    kaydirIpucu: 'Swipe left on a request to remove it from this list.',
     sesEklendi: 'Voice message attached',
     girisNumarasi: 'Your Sign-in Number',
     girisNumarasiAlt: 'This is the number you sign in with',
@@ -504,10 +532,10 @@ export const en = {
     cikisAciklama: 'You will be signed out. Your machine records and requests will not be deleted.',
     hesapSilme: 'If you want your account and records deleted completely, write to {eposta}; your request will be handled by {marka}.',
     kvkkBaglanti: 'Privacy Notice | Consent | Permissions',
-    talepSilSor: 'Delete This Request?',
-    talepSilAciklama: 'Your {tur} record number {no} will be deleted. This cannot be undone.',
-    evetSil: 'Yes, Delete',
-    talepSilindi: 'Request deleted',
+    talepKaldirSor: 'Remove This Request?',
+    talepKaldirAciklama: 'Your {tur} (#{no}) will be removed from your list. {marka} will still have your request, so you can ask about it anytime.',
+    evetKaldir: 'Yes, Remove',
+    talepKaldirildi: 'Request removed from list',
     kampanyaAcik: 'Campaign notifications turned on',
     kampanyaKapali: 'Campaign notifications turned off',
     onayTarihi: 'You accepted these texts on {tarih} (version {surum}).',
@@ -805,8 +833,8 @@ export const en = {
     sohbetSelam: 'Hello! I am the {marka} support assistant. Type your question about your machine and I will answer from the operator manual.',
     sohbetTesekkur: 'You are welcome. I am here if you have another question.',
     sohbetVeda: 'Have a good day. Write to me whenever you have a question.',
-    sohbetKimlik: 'I am the {marka} support assistant. I answer questions about specifications, maintenance, settings and faults of {marka} machines using their operator manuals. For anything not covered in the manuals, you can create a service request.',
-    konuDisi: 'I cannot help with that. I only answer questions about {marka} machines (maintenance, settings, faults, specifications).',
+    sohbetKimlik: 'I am the {marka} support assistant. I answer questions about the specifications, maintenance, settings and faults of {marka} machines based only on their operator manuals. If the manual does not answer your question, you can create a service request.',
+    konuDisi: 'I cannot help with that. I answer questions about the maintenance, settings, faults and specifications of {marka} machines based only on their operator manuals.',
 
     cozuldu: 'Problem Solved',
     cozulmedi: 'Still Happening',

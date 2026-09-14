@@ -1,32 +1,65 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Logo, Amblem } from '../marka'
-import tarla from '../assets/gorseller/karsilama-tarla.png'
+import sahne from '../assets/gorseller/karsilama-sahne.jpg'
 
 /* ==========================================================================
    Şafak — karşılama ekranının açılış sahnesi
 
    NE OLUYOR
 
-   Uygulama açıldığında gün doğuyor: gökyüzü gece lacivertinden şafak
-   turuncusuna, oradan sabah mavisine dönüyor; güneş ufkun arkasından
-   yükseliyor; PAKSAN logosu güneşle birlikte doğuyor. Altta tarla ve
-   balyalar duruyor.
+   Uygulama açıldığında Anadolu'da bir tarlada gün doğuyor. Sahne gece
+   karanlığından şafağa aydınlanıyor, kamera ufka doğru çok yavaş
+   ilerliyor, güneşin ışığı amblemin arkasında büyüyor, ufuktaki sis
+   hafifçe kayıyor. Amblem ve PAKSAN yazısı güneşle birlikte doğuyor.
 
-   NEDEN GÜNEŞ AYRI ÇİZİLİYOR
+   ÇİZİMDEN FOTOĞRAF GERÇEKLİĞİNE (14 Eylül 2026)
 
-   Güneş de logo da görselin içine gömülü DEĞİL; ikisi de ayrı katman.
-   Gömülü olsalardı hareket ettirilemezlerdi. Tarla görseli hareketsiz
-   duruyor, gökyüzü CSS ile boyanıyor, güneş ve logo yükseliyor.
+   Önceki sahne CSS ile boyanmış bir gökyüzü, düz renkli bir daire
+   güneş ve altta düz renkli bir tarla çiziminden (karsilama-tarla.png)
+   oluşuyordu. Kullanıcı daha kaliteli bir açılış istedi. Görsel
+   Higgsfield ile üretildi (Nano Banana Pro, firmanın Orkinos
+   videosundan bir kare makine referansı olarak verildi) ve aynı
+   yerde 4K'ya büyütüldü. Kaynak: tools/kaynak/karsilama-sahne-girdi.jpg.
 
-   Görselin kendi gökyüzü kırpıldı ve üstünde kalan şerit saydam
-   yapıldı; böylece boyanan gökyüzü onun arkasından görünüyor.
+   UFUKTAKİ MAKİNE PAKSAN'IN
+
+   Üretilen sahnedeki makine PAKSAN'a benzemiyordu; kullanıcı
+   "müşterilerimiz neden PAKSAN olmayan bir makine görsün" dedi.
+   Traktörün çektiği turuncu balya makinesi ayrıca üretilip (Süper
+   S8002 E fotoğrafı referans) sahneye yerleştirildi, eski makine
+   silindi. Modelin gövdeye yazdığı bozuk marka yazısı silindi: yanlış
+   yazılmış marka adı, hiç yazı olmamasından kötü.
+
+   İlk yerleştirmede makine elle çizilmiş kaba bir çokgenle kesildi ve
+   üretim görselinin açık renkli tozlu gökyüzü de makineyle birlikte
+   geldi: traktörün ve makinenin çevresinde açık tonda yamalar göze
+   batıyordu (kullanıcı fark etti). Şimdi makine arka plan ayırma
+   modeliyle kendi hattından kesiliyor; sahnenin sisine göre biraz
+   karartılıp puslandırılıyor, kenarlarına sahnenin ışığı sızdırılıyor,
+   tekerlerin altına hafif gölge ve toz ekleniyor. Aynı iş yeniden
+   yapılacaksa kaba maskeyle kesilmemeli.
+
+   GÜNEŞ AMBLEMİN ARKASINDA — VE BU ÖLÇÜLEREK KONUYOR
+
+   Görselde güneş ufukta, yüksekliğin %52,8'inde. Olduğu gibi
+   yayılsaydı ufuk ekranın ortasına düşüyor ve "Yanınızdayız" yazısı
+   güneşin en parlak ışığının üstünde kalıyordu (ölçüldü: kontrast
+   2,34:1). Güneşin amblemin arkasına oturması hem bu sorunu çözüyor
+   hem "logo güneşle doğar" fikrinin kendisi.
+
+   Amblemin yeri sabit değil: karşılama ekranı esnek boşluklarla
+   dizili, amblem ekran boyuna göre yukarı aşağı kayıyor. Bu yüzden
+   ufuk bir yüzdeye yazılmıyor; amblemin merkezi ölçülüp `--ufuk-y`
+   değişkenine yazılıyor ve görsel katmanı onu hizalıyor (bkz.
+   styles.css → .safak__foto). Ekran döndüğünde ya da boyu değiştiğinde
+   yeniden ölçülüyor.
 
    BİR KERE OYNUYOR
 
    Kullanıcı kayıt ekranına gidip geri geldiğinde animasyon baştan
    başlamıyor. Bir açılışta bir kez oynuyor; ikinci gelişte sahne
-   doğrudan bitmiş hâliyle duruyor. Her seferinde iki saniye beklemek
-   çabuk sıkar.
+   doğrudan bitmiş hâliyle duruyor. Her seferinde birkaç saniye
+   beklemek çabuk sıkar.
 
    HAREKET İSTEMEYENE HAREKET YOK
 
@@ -40,11 +73,51 @@ import tarla from '../assets/gorseller/karsilama-tarla.png'
    ekrandan çıkıp geri gelince sıfırlanmasın. */
 let oynadi = false
 
+/* En uzun katmanın (kameranın ilerleyişi) süresi, milisaniye.
+   styles.css → safak-kamera ile aynı tutulmalı. */
+const SAHNE_SURESI = 7200
+
+/* Amblem ölçülemezse (ilk çizimden önce) kullanılan ufuk: 390x844
+   telefonda amblemin merkezi ekranın %23'ünde. */
+const VARSAYILAN_UFUK = 0.23
+
+/** Amblemin merkezi: dikeyde sahne yüksekliğine oran, yatayda sahnenin
+ * ortasından piksel farkı.
+ *
+ * `getBoundingClientRect` KULLANILMIYOR: amblem doğarken 52 piksel
+ * aşağıdan başlıyor (transform), o anda ölçülse ufuk da onunla birlikte
+ * aşağı kayardı. `offsetTop` zinciri dönüşümleri saymıyor, amblemin
+ * yerleşimdeki gerçek yerini veriyor.
+ *
+ * YATAY FARK NEDEN VAR. Karşılama ekranının iç dolgusu solda 24, sağda
+ * 44 piksel; amblem o sütunda ortalandığı için ekranın ortasının 10
+ * piksel sağında duruyor. Görsel ekranın ortasına hizalıydı ve güneş
+ * her genişlikte amblemin 10 piksel solunda kalıyordu (son QA turu
+ * ölçtü). Fark ölçülüp görsel katmanı o kadar kaydırılıyor. */
+function amblemMerkezi(sahneEl) {
+  const amblem = sahneEl.querySelector('.safak__amblem')
+  if (!amblem || !sahneEl.offsetHeight) return null
+  let y = amblem.offsetHeight / 2
+  let x = amblem.offsetWidth / 2
+  let el = amblem
+  while (el && el !== sahneEl) {
+    y += el.offsetTop
+    x += el.offsetLeft
+    el = el.offsetParent
+  }
+  if (el !== sahneEl) return null
+  return {
+    oran: Math.min(0.6, Math.max(0.08, y / sahneEl.offsetHeight)),
+    fark: x - sahneEl.offsetWidth / 2,
+  }
+}
+
 export function Safak({ children }) {
   const azalt = useRef(
     typeof matchMedia === 'function' &&
       matchMedia('(prefers-reduced-motion: reduce)').matches
   )
+  const kok = useRef(null)
   /* İlk açılışta animasyonlu, sonrasında bitmiş hâlde. */
   const [bitti, setBitti] = useState(() => oynadi || azalt.current)
 
@@ -60,15 +133,39 @@ export function Safak({ children }) {
     const sayac = setTimeout(() => {
       oynadi = true
       setBitti(true)
-    }, 2600)
+    }, SAHNE_SURESI)
     return () => clearTimeout(sayac)
   }, [bitti])
 
+  /* Ufku amblemin merkezine hizala; boy değişince yeniden ölç.
+     `useLayoutEffect`: ilk kare boyanmadan önce yerine otursun, görsel
+     bir an yanlış yerde görünüp zıplamasın. */
+  useLayoutEffect(() => {
+    const el = kok.current
+    if (!el) return
+    const olc = () => {
+      const m = amblemMerkezi(el)
+      if (!m) return
+      el.style.setProperty('--ufuk-y', m.oran.toFixed(4))
+      el.style.setProperty('--gunes-dx', m.fark.toFixed(1) + 'px')
+    }
+    olc()
+    if (typeof ResizeObserver !== 'function') return
+    const gozcu = new ResizeObserver(olc)
+    gozcu.observe(el)
+    return () => gozcu.disconnect()
+  }, [])
+
   return (
-    <div className={'safak' + (bitti ? ' safak--bitti' : '')}>
-      <div className="safak__gok" />
-      <div className="safak__gunes" />
-      <img className="safak__tarla" src={tarla} alt="" />
+    <div
+      ref={kok}
+      className={'safak' + (bitti ? ' safak--bitti' : '')}
+      style={{ '--ufuk-y': VARSAYILAN_UFUK, '--gunes-dx': '0px' }}
+    >
+      <div className="safak__foto" style={{ backgroundImage: `url(${sahne})` }} />
+      <div className="safak__isik" />
+      <div className="safak__sis" />
+      <div className="safak__perde" />
 
       <div className="safak__ic">{children}</div>
     </div>
@@ -86,7 +183,7 @@ export function Safak({ children }) {
  * AMBLEM BEYAZ DAİRE İÇİNDE. Kalkan amblemi çok renkli; koyu gökyüzünde
  * beyaza çevrilirse ayrıntıları kaybolup düz bir leke oluyor
  * (bkz. src/marka/logo.jsx). Beyaz daire hem amblemi kendi
- * renkleriyle bırakıyor hem güneşin doğduğu yerde duran bir madalyon
+ * renkleriyle bırakıyor hem doğan güneşin tam önünde duran bir madalyon
  * gibi duruyor.
  */
 export function SafakLogo() {

@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
 import { cariBakiye, cariHareketleri, servisinTalepleri, talepleriGetir } from '../../backoffice/veri'
-import { PARA_BIRIMI, paraYaz, MARKA, markaEk, getProduct, PARCA_FIYAT } from '../../marka'
+import { PARA_BIRIMI, paraYaz, MARKA, markaEk, getProduct } from '../../marka'
 import { gecenSure, tarihYaz } from '../../backoffice/ekranlar/ortak'
 import { Bolum, Bos, ListeKarti, Yaprak } from '../Kabuk'
 import { IconAlert, IconCheckCircle, IconRight } from '../../components/Icons'
 import { formatSerial } from '../../lib/serial'
+import { talebinParcalari } from '../../lib/servisKaydi'
 import bosIsGorseli from '../../assets/gorseller/servis-bos-is.png'
 
 /* ==========================================================================
@@ -173,6 +174,17 @@ export function Hakkedis({ oturum, onAc }) {
    düğme işin kendisini açıyor. Parça siparişinde parçalar ve ödeme
    biçimi, ödeme satırında tutar ve tarih görünüyor.
    ========================================================================== */
+/* Siparişin parça satırları lib/servisKaydi.js → talebinParcalari'den
+   okunuyor; kaydın hangi biçimlerde durduğu orada yazılı.
+
+   Burada bir dönem parça kodu ADDAN TÜRETİLİYORDU: siparişin adlar
+   listesi uydurma fiyat tablosunda aranıyor, bulunursa kodu
+   yazılıyordu. Tablo kalkınca o yol tamamen kapandı, ama kapanmasa
+   da işe yaramıyordu: servis parçayı PAKSAN'ın kendi kataloğundan
+   seçiyor (bkz. ParcaSec.jsx) ve oradaki adlar tabloda geçmiyordu —
+   lookup her gerçek parçada boş dönüyordu. Ekranda kodun yerinde
+   hiçbir şey olmaması, kodu olmayan bir parça gibi görünüyordu. */
+
 function HareketAyrinti({ hareket: h, talepler, onKapat, onAc }) {
   const t = h.talepNo ? talepler.find((x) => x.no === h.talepNo) : null
   const tutar = `${h.tur === 'alacak' ? '+' : '−'}${paraYaz(h.tutar)} ${PARA_BIRIMI}`
@@ -186,11 +198,7 @@ function HareketAyrinti({ hareket: h, talepler, onKapat, onAc }) {
   }
 
   if (t.servisSiparisi) {
-    const parcalar = (t.parcalar || []).map((ad) => ({
-      kod: PARCA_FIYAT[ad]?.kod || '',
-      ad,
-      adet: t.parcaAdet?.[ad] || 1,
-    }))
+    const parcalar = talebinParcalari(t)
     return (
       <Yaprak
         baslik="Parça Siparişi"

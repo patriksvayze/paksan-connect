@@ -1246,90 +1246,225 @@
   background: var(--lacivert);
 }
 
-/* Çentiğin payı lacivert kalıyor. `servis.html` içinde
-   `viewport-fit=cover` var; görsel oraya kadar çıkabilirdi ama
-   çentiğin arkasına giren bir çizim kırpılmış görünüyor. Tarayıcıda
-   bu değer sıfır, hiç görünmüyor. */
-/* Tepe: lacivert bir alan, çizim onun DİBİNE oturuyor.
+/* TEPE: FOTOĞRAF, BAŞLIK VE LACİVERT TEK YÜZEY.
 
-   ÇİZİMİN GÖĞÜ SAYDAM. `karsilama-tarla.png` de böyle: çizim yalnız
-   yer düzlemini taşıyor, ufkun üstünü arkadaki zemin dolduruyor
-   (bkz. tools/gok-say.mjs).
+   14 Eylül 2026'da kullanıcı açılışı "sonradan konmuş, oraya ait
+   değilmiş gibi, kalitesiz ve ucuz" buldu. Sebepleri tek tek:
 
-   Denenen ve geri alınan iki yol var. Çizim tek başına, kendi
-   oranında durduğunda 390 piksellik telefonda yalnız 218 piksel yer
-   kaplıyor; ekranın kalanı forma göre fazla geliyor ve künyenin
-   üstünde 250 piksellik boşluk kalıyordu. Beyaz göğü gradyan perdeyle
-   laciverde eritmek de işe yaramadı: beyaz griye dönüp sis gibi
-   duruyordu.
+     · Ekran iki bloktu: üstte bir resim, altta beyaz bir kart; araları
+       keskin bir çizgi. Kartın 22 piksellik bindirmesi o çizgiyi
+       saklamaya yetmiyordu.
+     · Logonun okunsun diye tepeye konan düz lacivert şerit, güneşli
+       gökyüzünün üstünde çamurlu bir griye dönüyordu.
+     · Logo köşede küçücüktü; başlık beyaz kartın içindeydi, fotoğrafla
+       hiçbir teması yoktu.
+     · Fotoğraf öğle ışığında düz bir stok çekimdi, arayüzün laciverdiyle
+       bir bağı yoktu.
 
-   Gök saydam olunca tepenin yüksekliğini lacivert belirliyor. Çizim
-   kırpılmıyor — `cover` ile yükseklik verilseydi atölyenin sol kenarı
-   ve makinenin çeki demiri kesiliyordu. */
-/* ARTAN YER LACİVERDE GİDİYOR, KÂĞIDA DEĞİL.
+   Benzer uygulamalara bakıldı (Spotify, Nike, Strava, AllTrails'in
+   karşılamaları): fotoğraf, üstündeki yazının ve formun durduğu rengin
+   ta kendisine eriyor, resmin nerede bittiği görülmüyor. Burada da öyle:
 
-   `flex: 1` tepede: form kadar kâğıt, kalanı lacivert. Sabit bir
-   yükseklik verildiğinde uzun telefonda formun altında beyaz bir
-   boşluk kalıyordu; kısa telefonda ise çizim yer bulamıyordu.
-   Çizim `justify-content: flex-end` ile hep dipte, ufuk çizgisi
-   kâğıdın üst kenarına sabit uzaklıkta duruyor. */
+     · Fotoğraf yumuşak bir geçişle `--lacivert`e iniyor (::after).
+       Geçiş düz değil, yavaşlayan duraklı: düz iki duraklı geçiş
+       ortasında bant yapıyor ve Android'de basamaklanıyor.
+     · Başlık geçişin koyu kısmında, beyaz. Yeni metin yazılmadı, var
+       olan başlık kâğıttan buraya taşındı. Altındaki açıklama satırı
+       kullanıcının isteğiyle kaldırıldı (bkz. ServisPanel.jsx → Giris).
+     · Kâğıt fotoğrafın değil düz laciverdin üstünden başlıyor.
+     · Görselin koyu tonları dosyanın kendisinde laciverde çekildi,
+       tarlanın doygunluğu indirildi, turuncu gövdeye dokunulmadı.
+       CSS filtresiyle yapılsaydı makinenin turuncusu da solardı.
+
+   Geçişin rengi bir maske ile veriliyor, renk karışımıyla değil: katman
+   `--lacivert` ile boyanıp saydamlığı maskeden geliyor. Böylece koyu
+   temada laciverdin tonu değişince geçiş de onunla değişiyor ve eski
+   Android WebView'larda bulunmayan `color-mix` gerekmiyor.
+
+   ARTAN YER HÂLÂ TEPEYE GİDİYOR. `flex: 1`: form kadar kâğıt, kalanı
+   fotoğraf. Alt sınır 360 piksel: altında makine ile başlık üst üste
+   biniyor. Kısa ekranda (360x640) sayfa kayıyor; kök `min-height:
+   100dvh`, sabit yükseklik değil. */
 .sgiris__tepe {
   position: relative;
+  isolation: isolate;
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding-top: env(safe-area-inset-top, 0px);
+  min-height: 360px;
+  padding: calc(env(safe-area-inset-top, 0px) + var(--bosluk-7)) var(--bosluk-5) var(--bosluk-5);
+  overflow: hidden;
   background: var(--lacivert);
 }
 
-/* Marka işareti lacivert payın üstünde. Koyu zeminde amblem beyaza
-   çevrilince düz bir lekeye dönüyor; kural gereği yalnız yazı
-   kullanılıyor (bkz. src/marka/logo.jsx). */
+/* ÜST PERDE: yalnız logo ve durum çubuğu için, çok hafif.
+
+   Görselin gökyüzü zaten koyu mavi-gri; eski düz şerit gibi bir kuşak
+   gerekmiyor. Lacivert yukarıdan 160 pikselde %60'tan sıfıra iniyor.
+
+   Önce 120 piksel ve %45'ti. QA turu 360x640'ta beyaz logonun alt
+   kenarını gökyüzündeki açık bir bulut şeridinin üstünde 2,85:1 ölçtü
+   (büyük grafik için gereken 3:1). Perde logonun tamamını örtecek
+   kadar uzadı ve koyulaştı; görsel de biraz aşağı kaydı, logo daha
+   koyu göğe düştü (bkz. .sgiris__resim).
+
+   Düzeltmeden sonra ölçüldü (logo kutusunun tamamındaki en açık zemin
+   pikseli, perdeler bindirilerek; harf araları da sayıldığı için
+   gerçek değer bundan iyi): 360x640 3,99 · 390x844 4,68 · 430x932
+   5,86. Başlık aynı yöntemle 10,55 / 11,03 / 13,1. */
+.sgiris__tepe::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0 0 auto;
+  height: 160px;
+  background: var(--lacivert);
+  -webkit-mask-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.3) 50%, transparent);
+  mask-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.3) 50%, transparent);
+  pointer-events: none;
+}
+
+/* ALT ERİME: fotoğraf laciverde iniyor.
+
+   Tepenin alt %42'sini kaplıyor; makine ve teknisyen üst bölümde,
+   geçişin başladığı yerin üstünde kalıyor. Duraklar yavaşlayan bir
+   eğriden (0 → %7,5 → %38 → %74 → tam); en altta başlığın durduğu
+   yer düz lacivert. */
+.sgiris__tepe::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: auto 0 0;
+  height: 42%;
+  background: var(--lacivert);
+  -webkit-mask-image: linear-gradient(
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.075) 20%,
+    rgba(0, 0, 0, 0.38) 42%,
+    rgba(0, 0, 0, 0.74) 64%,
+    #000 86%
+  );
+  mask-image: linear-gradient(
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.075) 20%,
+    rgba(0, 0, 0, 0.38) 42%,
+    rgba(0, 0, 0, 0.74) 64%,
+    #000 86%
+  );
+  pointer-events: none;
+}
+
+/* Marka işareti tepede, hafif perdenin üstünde. Koyu zeminde amblem
+   beyaza çevrilince düz bir lekeye dönüyor; kural gereği yalnız yazı
+   kullanılıyor (bkz. src/marka/logo.jsx).
+
+   Boy 50 piksel, PAKSAN Connect karşılamasındakiyle aynı; 20 pikselken
+   kullanıcı çok küçük buldu. Üst pay 16: yazının SVG'sinde harflerin
+   üstünde yaklaşık %15 boşluk var, harfler böylece soldaki 24
+   piksellik kenarla aynı hizaya iniyor. */
 .sgiris__marka {
   position: absolute;
-  z-index: 1;
-  top: calc(env(safe-area-inset-top, 0px) + var(--bosluk-5));
+  top: calc(env(safe-area-inset-top, 0px) + var(--bosluk-4));
   left: var(--bosluk-5);
 }
 
-/* Görsel KIRPILMIYOR: kendi oranında (1400x781) tam genişlikte
-   duruyor. Sabit yüksekliğe `cover` ile oturtulsaydı dar ekranda
-   atölyenin sol kenarı ve makinenin çeki demiri kesiliyordu. */
+/* GÖRSEL: PAKSAN ORKINOS 1270 BAŞINDA SERVİS TEKNİSYENİ.
+
+   Görsel dikey 3:4 (1200x1607). Makine ve teknisyen yüksekliğin
+   %31-67'si arasında, üstü şafak göğü, altı odak dışı anız. Kırpma
+   dikeyde %58'den: artan yüksekliğin bir kısmı göğün tepesinden, bir
+   kısmı önplandaki anızdan gidiyor. Denenenler:
+     · %30 — 390x844'te başlık teknisyenin üstüne biniyordu.
+     · %100 — makine yukarı kaçıp büyüyen logoya değiyordu.
+     · %70 — logo, gökyüzündeki açık bulut şeridinin üstüne düşüyordu
+       (360x640'ta 2,85:1) ve makinenin korkuluğuna 11 piksel kalıyordu.
+   %58'de korkuluk logonun yaklaşık 28 piksel altında, logo daha koyu
+   gökte, takım çantası başlığın 50 pikselden fazla üstünde. */
 .sgiris__resim {
-  display: block;
+  position: absolute;
+  z-index: -2;
+  inset: 0;
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 58%;
 }
 
-/* Alttan yükselen kâğıt. Görselin son 22 pikselini örtüyor: iki ayrı
-   blok değil, tek ekran. `flex: 1` dibe kadar indiriyor. */
+/* Başlık alanı: geçişin koyu kısmında, formla aynı sol kenarda. */
+.sgiris__baslikalani {
+  position: relative;
+}
+
+/* Alttan yükselen kâğıt. Düz laciverdin üstünden başlıyor; köşeleri
+   laciverde açılıyor, fotoğrafa değil. `flex: none`: yüksekliği formun
+   kendisi kadar. */
 .sgiris__kagit {
   position: relative;
   z-index: 1;
   flex: none;
   display: flex;
   flex-direction: column;
-  margin-top: -22px;
   padding: var(--bosluk-5) var(--bosluk-5)
     calc(var(--bosluk-5) + env(safe-area-inset-bottom, 0px));
   border-radius: var(--r-3) var(--r-3) 0 0;
   background: var(--yuzey);
 }
 
+/* Kalınlık 700. 800 yazılıydı ama uygulama Roboto'yu yalnız 400, 500,
+   700 ve 900 olarak yüklüyor (src/servis/main.jsx); tarayıcı 900'ü
+   çiziyordu ve kalın büyük "PAKSAN" üstteki logoyla ikinci bir logo
+   gibi yarışıyordu. */
 .sgiris__baslik {
   margin: 0;
   font-size: var(--yazi-5);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--murekkep);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #fff;
 }
 
 .sgiris__alt {
-  margin: var(--bosluk-2) 0 var(--bosluk-5);
+  margin: var(--bosluk-2) 0 0;
+  max-width: 36ch;
   font-size: var(--yazi-3);
   line-height: 1.5;
-  color: var(--murekkep-2);
+  color: rgba(255, 255, 255, 0.86);
+}
+
+/* AÇILIŞ HAREKETİ, KISA.
+
+   Fotoğraf laciverdin içinden belirip çok az yaklaşıyor; başlık ve
+   kâğıt kısa bir süzülmeyle yerine oturuyor. Form yarım saniyede
+   kullanılır hâlde: servis elemanı her açılışta bunu görüyor, hareket
+   onu bekletmemeli. Hareketi azaltmış telefonda hiç oynamıyor. */
+@media (prefers-reduced-motion: no-preference) {
+  .sgiris__resim {
+    animation: sgiris-foto 2.2s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .sgiris__baslikalani {
+    animation: sgiris-suz 0.6s 0.15s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .sgiris__kagit {
+    animation: sgiris-kagit 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+}
+
+@keyframes sgiris-foto {
+  from { opacity: 0; transform: scale(1.06); }
+  35%  { opacity: 1; }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes sgiris-suz {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes sgiris-kagit {
+  from { transform: translateY(24px); }
+  to   { transform: none; }
 }
 
 /* Alan ölçüleri kabuğun içindekiyle aynı; `.uyg` burada olmadığı
@@ -1376,6 +1511,27 @@
 
 .sgiris__gir {
   margin-top: var(--bosluk-5);
+}
+
+/* ANA DÜĞME TURUNCU — uygulamanın içindeki her ana düğme gibi.
+
+   Lacivertti; bilerek değil: `.uyg .dg--ana` kuralı giriş ekranına
+   ulaşmıyordu ve düğme backoffice'in rengine düşüyordu. Ekran lacivert
+   şerit, beyaz kâğıt, lacivert düğme diye üç soğuk katmana bölünüyor,
+   görseldeki makinenin turuncusu ekranda tek başına kalıyordu. Değerler
+   `.uyg .dg--ana` ile aynı (köşe 18, turuncu gölge); bu dosya
+   backoffice.css'ten sonra yüklendiği için dokunmatik ekranda
+   backoffice'in `:hover` rengi de düğmede takılı kalmıyor. */
+.sgiris .dg--ana {
+  background: var(--turuncu-dugme);
+  color: #fff;
+  border-radius: 18px;
+  box-shadow: var(--sh-turuncu);
+}
+
+.sgiris .dg:active {
+  transform: scale(0.975);
+  filter: brightness(0.94);
 }
 
 /* "Şifremi unuttum" — ikincil, ama kaybolmayacak kadar görünür. */
@@ -2503,7 +2659,13 @@
    (orada gövde 16, ekran başlığı 19; Connect 30 ve 20 kullanıyor).
 
    YENİ VE DEĞİŞEN KODDA PİKSEL YAZILMAZ, BU İSİMLER KULLANILIR. */
-.uyg {
+/* `.sgiris` de burada: giriş ekranı `.uyg`nin DIŞINDA duruyor ve bu
+   token'lar ona hiç ulaşmıyordu. 14 Eylül 2026 QA turu ölçtü: alana
+   dokununca odak halkası çıkmıyordu (`--mavi-soft-2` tanımsız, gölge
+   hiç hesaplanmıyordu), "Beni Hatırla" ölçek dışı 15 pikselle
+   yazılıyordu, ana düğme de backoffice'in laciverdine düşüyordu. */
+.uyg,
+.sgiris {
   --zemin: #f1f4f9;
   --yuzey-2: #f5f7fb;
   --cizgi: #e6eaf2;
@@ -2554,7 +2716,8 @@
   -webkit-font-smoothing: antialiased;
 }
 
-[data-tema='koyu'] .uyg {
+[data-tema='koyu'] .uyg,
+[data-tema='koyu'] .sgiris {
   --zemin: #0f1622;
   --yuzey-2: #172033;
   --cizgi: #263141;
@@ -2679,15 +2842,17 @@
 
 /* --------------------------------------------------------- Yüzen menü
 
-   Connect'in menüsüyle AYNI tarif: seçili sekme yazısını taşıyan turuncu
-   hap, ötekiler yalnız simge. Gerekçesi src/styles.css içinde uzun uzun
-   yazılı — özeti: beş (burada üç) küçük etiket sürekli yer sıkıntısı
-   yaratıyor ve çözüm olarak punto düşürülüyordu; yazıyı yalnız seçilide
-   tutunca sıkıntı kalmadı, punto düşmek yerine büyüdü.
+   Connect'in menüsüyle AYNI tarif: ekranın dibinde duran lacivert hap,
+   999 piksel köşe, seçili sekmenin altında turuncu kapsül
+   (`--nav-secili`). Biçim ortak, çünkü iki uygulama aynı firmanın
+   ürünü.
 
-   Servis tarafında üç sekme var, yani yer daha da bol; buna rağmen aynı
-   düzen kullanılıyor: iki uygulama aynı firmanın ürünü ve alt menü
-   ikisinde de aynı davranmalı. */
+   AYRILDIĞI TEK YER: ADLAR. Connect'te beş sekme var ve yazılar yer
+   sıkıntısı yüzünden kapatılmıştı; burada üç sekme var, yer bol ve
+   üçünün de adı yazıyor. Sebebi süsleme değil kural: bu uygulamanın
+   kullanıcısı ekranı tarlada açıyor, simgeyi öğrenmek zorunda
+   bırakılmıyor (bkz. CLAUDE.md, "İkon tek başına anlam taşımaz").
+   Ölçüler aşağıda .uyg__tab-ad ve .uyg__tab-ikon başlıklarında. */
 
 .uyg__tabs {
   position: fixed;
@@ -2729,26 +2894,31 @@
 
 .uyg__tab-ikon {
   flex: none;
-  /* Hap 48x40'tan 58x46'ya çıktı. Öğeye 65 piksel düşüyor ve hap
-     onun ancak üçte ikisini kaplıyordu; yazı kalkınca seçiliyi
-     gösteren tek şey bu ve küçük kalıyordu. İki yanında 3,5
-     piksel nefes payı kalıyor, dokunma hedefi öğenin tamamı. */
-  width: 58px;
+  /* Kutu 58'den 34'e indi. 58 iken kutu hapın kendisiydi ve seçiliyi
+     gösteren tek şeydi, o yüzden büyüktü. Hap öğenin tamamına geçince
+     kutunun taşıması gereken tek şey 22 piksellik simge ile sağ üstteki
+     rozet kaldı; 34 ikisine yetiyor ve kazanılan 24 piksel adın yeri
+     oldu. Dokunma hedefi simge kutusu değil, 52 piksel yüksekliğindeki
+     öğenin tamamı. Yükseklik 46'da kalıyor: rozet kutunun dışına
+     taşıyor ve aşağıda kırpılmaması gerekiyor. */
+  width: 34px;
   height: 46px;
   border-radius: 999px;
   transition: transform 0.18s ease, background 0.2s ease;
 }
 
+/* HAP SİMGENİN ARKASINDAN ÖĞENİN TAMAMINA DÖNDÜ.
+
+   Hap bir dönem yalnız simgenin arkasındaydı; gerekçesi "yazı
+   kapatıldı, öğe yalnız simge" idi. Yazı geri geldiği için o gerekçe
+   de kalktı: hap simgede kalsaydı seçili sekmenin ADI hapın dışında,
+   sönük renkte kalırdı — seçili olanın yazısı en okunur olması
+   gerekenken. Hap artık simgeyi ve adı birlikte kuşatıyor. */
 .uyg__tab--on {
   flex: 1 1 0;
   padding: 0;
-  background: transparent;
-  color: var(--nav-secili-yazi);
-}
-
-.uyg__tab--on .uyg__tab-ikon {
   background: var(--nav-secili);
-  border-radius: 999px;
+  color: var(--nav-secili-yazi);
 }
 
 .uyg__tab--on .uyg__tab-ikon {
@@ -2763,18 +2933,33 @@
   transform: scale(0.9);
 }
 
-/* Yazı DOM'da kalıyor, yalnız genişliği kapanıyor: düğmenin
-   erişilebilir adı ondan geliyor. */
-/* Yazı HİÇ görünmüyor ama DOM'da duruyor: düğmenin erişilebilir adı
-   ondan geliyor, ekran okuyucu beşini de okumaya devam ediyor.
-   `display: none` olsaydı ad da giderdi. */
+/* ÜÇ SEKMENİN ÜÇÜNDE DE AD GÖRÜNÜYOR.
+
+   Burada `max-width: 0; opacity: 0` vardı ve üstündeki yorum seçili
+   sekmenin adını taşıdığını söylüyordu; öyle bir kural hiç yazılmamış,
+   yani üç sekmenin üçü de yalnız simgeydi. Ad yalnız DOM'da, ekran
+   okuyucu için duruyordu — gören kullanıcı için simge tek başına anlam
+   taşıyordu. Proje kuralı bunu yasaklıyor (bkz. CLAUDE.md, Servis
+   Panelinin Kullanıcısı) ve yasağın sebebi tam buradaki kullanıcı:
+   ekranı tarlada, işin sonunda, çoğu zaman ayakta açıyor; anahtar,
+   dişli ve etiket simgelerinden hangisinin hak ediş olduğunu
+   tahmin etmek zorunda kalmamalı.
+
+   YER ÖLÇÜLDÜ, KESİLMİYOR. Tarayıcıda ölçüldü, hesaplanmadı: en dar
+   hedef telefon 360 piksel, menü 344, öğeye 108,8 düşüyor. En uzun ad
+   "Hak Ediş" 14px/700'de 55 piksel; 28'lik simge kutusu ve 10'luk payla
+   93 tutuyor. 320 pikselde öğe 95,5 — orada da kesilmiyor. Yani
+   hiçbir sekmede "Hak Edi|" görünmüyor.
+
+   PAY 10 PİKSEL, 8 DEĞİL. İşlerim sekmesinin rozeti simge kutusunun
+   sağından 6 piksel taşıyor; 8'lik payda yazıya 2 piksel kalıyordu ve
+   rakam adın üstüne biniyor gibi duruyordu. */
 .uyg__tab-ad {
-  max-width: 0;
-  opacity: 0;
-  margin-left: 0;
-  overflow: hidden;
-  transition: max-width 0.24s cubic-bezier(0.2, 0.7, 0.3, 1), opacity 0.16s ease,
-    margin-left 0.24s ease;
+  /* 12 değil 14: yukarıdaki eski çubuğun kuralı adı 12'ye düşürüyordu,
+     ölçü merdiveninin tabanı ise 14 ve altına inilmiyor. Ayakta,
+     güneşte okunan bir menüde ilk kısılacak yer yazı boyu değil. */
+  font-size: var(--y-alt);
+  margin-left: 10px;
 }
 
 .uyg__rozet {
@@ -2790,19 +2975,34 @@
   }
 }
 
-/* İKON-ONLY'DE TAŞMA YOK.
-   Yazı kalkınca beş simge 320 pikselde rahat sığıyor (5x48 = 240,
-   iç genişlik 294); menü kenar payını geri aldı. */
+/* DAR TELEFONDA AD DEĞİL SİMGE KUTUSU DARALIYOR.
+   Üç ad da görünür kalmalı; daralacak bir şey gerekiyorsa simgenin
+   iki yanındaki nefes payından alınıyor (34 → 28), addan değil. Kutu
+   artık hapı değil yalnız 22 piksellik simgeyi ve rozetin çapasını
+   taşıyor; iki yanında 3 piksel kalıyor.
+   Ölçü (tarayıcıda, 14px/700): hedefin alt sınırı 360 pikselde öğeye
+   108,8 düşüyor, en uzun ad "Hak Ediş" 28'lik kutu ve 10'luk payla 93
+   tutuyor. 320 pikselde öğe 95,5'e iniyor — hâlâ sığıyor ama payı iki
+   buçuk piksel; 320 artık hedef değil, kırılmadan daralması yeter.
+   Menünün ekran kenarındaki payı da burada daralıyor (32 → 16).
+
+   İÇ PAY DARALMIYOR. Bir dönem burada yatay iç pay 8'den 4'e
+   iniyordu; yazı kapalıyken kimse görmüyordu, seçili hap artık
+   öğenin tamamı olduğu için ilk ve son sekme seçilince turuncu hap
+   lacivert çubuğun kenarına yapışıyor. Kazanılan 8 piksele de
+   ihtiyaç yok: 360'ta öğeye 108,8 düşüyor, gereken 93. */
 @media (max-width: 360px) {
   .uyg__tabs {
     width: calc(100% - 16px);
-    padding: var(--bosluk-2) var(--bosluk-1);
   }
 
   .uyg__tab-ikon {
-    width: 52px;
+    width: 28px;
   }
 
+  /* 44 piksel dokunma hedefinin alt sınırı (bkz. PRODUCT.md); adın
+     sığdığı genişlik bunun üstünde, bu yüzden taban hiç devreye
+     girmiyor — yine de yerinde duruyor. */
   .uyg__tab {
     min-width: 44px;
   }

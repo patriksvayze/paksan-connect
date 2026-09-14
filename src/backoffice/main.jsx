@@ -17,6 +17,7 @@ import '@fontsource/roboto/latin-ext-900.css'
 /* Ortak ölçü sistemi (bkz. src/styles/olcu.css) — üç ürün de paylaşıyor. */
 import '../styles/olcu.css'
 import './backoffice.css'
+import { HataSiniri } from '../components/HataSiniri'
 import { urunAyarla } from '../lib/urun'
 import { temayiUygula } from './Tema'
 
@@ -31,8 +32,12 @@ temayiUygula()
 /* PAKSAN Backoffice — telefondaki uygulamadan ayrı bir program.
    Bilgisayarda tarayıcıda açılıyor, APK'nın içine girmiyor. */
 
+/* Sınır kökte; bir çizim hatası paneli bembeyaz bırakmasın
+   (bkz. src/components/HataSiniri.jsx). */
 createRoot(document.getElementById('backoffice')).render(
   <StrictMode>
-    <Backoffice />
+    <HataSiniri urun="backoffice">
+      <Backoffice />
+    </HataSiniri>
   </StrictMode>
 )

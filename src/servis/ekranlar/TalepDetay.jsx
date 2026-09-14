@@ -1,12 +1,14 @@
 import { useState } from 'react'
-import {
+import {
   talepDurumDegistir,
   talepKapat,
   talepNotEkle,
   talepPlanla,
   talepIptal,
 } from '../../backoffice/veri'
-import { ASAMA, KAPI, parcaYazisiKodlu as parcaYazisi, temizParcalar } from '../../lib/servisKaydi'
+import {
+  ASAMA, KAPI, parcaYazisiKodlu as parcaYazisi, talebinParcalari, temizParcalar,
+} from '../../lib/servisKaydi'
 import { ParcaTablosu } from '../../components/ParcaTablosu'
 import { bugunGirdi, ileriTarihMi } from '../../lib/tarih'
 import { makineDurumAdi } from '../../data/talepAlanlari'
@@ -294,7 +296,10 @@ export function TalepDetay({
         {talep.belirtiler?.length > 0 && (
           <Satir ad="Belirtiler" deger={talep.belirtiler.join(', ')} />
         )}
-        {talep.parcalar?.length > 0 && (
+        {/* Koşul iki biçime de bakıyor: yeni kayıtta satırlar fiyat
+            görüntüsünde, eski kayıtta ad listesinde duruyor. */}
+        {(talep.parcalar?.length > 0 ||
+          talep.parcaFiyat?.satirlar?.length > 0) && (
           <ParcaDurumu talep={talep} />
         )}
         {/* TESLİMAT ADRESİ BAYİDE GÖRÜNMÜYORDU.
@@ -781,22 +786,33 @@ function ServisKaydi({ talep }) {
    de kendi defterini burada tutmadı. Yanlış sayı, sayının hiç
    olmamasından kötü — ekran ona bakıp karar veriyordu.
 
-   Geriye işin kendisi kaldı: hangi parça, kaç adet. */
+   Geriye işin kendisi kaldı: hangi parça, kaç adet.
+
+   ADET ADLA ARANMIYOR — KODLA BULUNUYOR.
+
+   Satırlar bir dönem talebin ad listesinden çiziliyor, adet de o adla
+   `parcaAdet` içinde aranıyordu. Sipariş kaydı adedi artık kod
+   anahtarıyla yazıyor (bkz. veri.js → servisParcaSiparisi); ad ile
+   yapılan arama her satırda boş dönüyor ve ekranda her parça "× 1"
+   görünüyordu. Ustaya söylenen rakam yanlıştı.
+
+   Katalogta aynı adı taşıyan parçalar var, yani ad bir parçayı
+   tanımlamıyor. Bu yüzden satırda KOD da yazıyor: usta parçayı
+   koduyla istiyor.
+
+   SATIRLARI ÜRETEN YER BU DOSYA DEĞİL: lib/servisKaydi.js →
+   talebinParcalari. Aynı okuma burada, hak ediş ekranında ve sipariş
+   listesinde üç kez yazılmıştı; hangi biçimin neden durduğu ve eski
+   kayıtta koda niçin uydurulmadığı orada yazılı. */
 function ParcaDurumu({ talep }) {
+  const parcalar = talebinParcalari(talep)
+  if (!parcalar.length) return null
   return (
     <div style={{ marginTop: 10 }}>
-      <div className="kucuk sonuk">İstenen Parçalar</div>
-      {talep.parcalar.map((ad) => {
-        const istenen = Number(talep.parcaAdet?.[ad]) || 1
-        return (
-          <div key={ad} className="satir" style={{ gap: 8, alignItems: 'baseline' }}>
-            <span>
-              {ad}
-              {istenen > 1 && <span className="kucuk sonuk"> × {istenen}</span>}
-            </span>
-          </div>
-        )
-      })}
+      <div className="kucuk sonuk" style={{ marginBottom: 6 }}>
+        İstenen Parçalar
+      </div>
+      <ParcaTablosu parcalar={parcalar} />
     </div>
   )
 }
@@ -980,11 +996,13 @@ function Destek({ onKapat, onGonder }) {
    Pencere ne olacağını söylüyor; "Emin misiniz?" demiyor. Nedenler tam
    genişlikte düğme; "Başka bir neden" seçilirse neden yazılıyor.
    ========================================================================== */
+/* Düğme yazısı Başlık Düzeninde (`ad`); müşterinin bildirimine giden
+   cümle normal yazımla (`neden`). */
 const IPTAL_NEDENLERI = [
-  { deger: 'yanlis', ad: 'Talep yanlış açılmış' },
-  { deger: 'vazgecti', ad: 'Müşteri vazgeçti' },
-  { deger: 'ulasilamadi', ad: 'Müşteriye ulaşılamadı' },
-  { deger: 'baska', ad: 'Başka bir neden' },
+  { deger: 'yanlis', ad: 'Talep Yanlış Açılmış', neden: 'Talep yanlış açılmış' },
+  { deger: 'vazgecti', ad: 'Müşteri Vazgeçti', neden: 'Müşteri vazgeçti' },
+  { deger: 'ulasilamadi', ad: 'Müşteriye Ulaşılamadı', neden: 'Müşteriye ulaşılamadı' },
+  { deger: 'baska', ad: 'Başka Bir Neden', neden: 'Başka bir neden' },
 ]
 
 function Iptal({ talep, servisAd, onKapat, onBitti }) {
@@ -1000,7 +1018,7 @@ function Iptal({ talep, servisAd, onKapat, onBitti }) {
     talepIptal(
       talep,
       {
-        neden: baska ? aciklama.trim() : secilen.ad,
+        neden: baska ? aciklama.trim() : secilen.neden,
         aciklama: baska ? '' : aciklama.trim(),
       },
       servisAd,
@@ -1011,8 +1029,8 @@ function Iptal({ talep, servisAd, onKapat, onBitti }) {
   return (
     <Pencere baslik="Talebi İptal Et" onKapat={onKapat}>
       <p className="kucuk sonuk" style={{ marginTop: 0 }}>
-        Talep kapanır ve İşlerim listesinden çıkar. İptal nedeni müşteriye
-        bildirilir; {MARKA} de görür.
+        Talep iptal edilir ve İşlerim listesinden çıkar. İptal nedeni
+        müşteriye bildirilir. {MARKA} yetkilileri de iptal nedenini görür.
       </p>
       <Secenekler
         secenekler={IPTAL_NEDENLERI}
@@ -1023,7 +1041,7 @@ function Iptal({ talep, servisAd, onKapat, onBitti }) {
         }}
       />
       <label className="alan">
-        <span className="alan__ad">{baska ? 'İptal Nedeni' : 'Açıklama (isteğe bağlı)'}</span>
+        <span className="alan__ad">{baska ? 'İptal nedeni' : 'Açıklama (isteğe bağlı)'}</span>
         <textarea
           className="gir"
           rows={3}

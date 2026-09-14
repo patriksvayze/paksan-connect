@@ -270,7 +270,25 @@ function destekKaydi() {
    ========================================================================== */
 
 const UYGULAMA = [
-  { ad: '01-karsilama', baslik: 'Karşılama', yol: '/hosgeldiniz', cikisYap: true },
+  {
+    /* Şafak sahnesi 7,2 saniyelik tek seferlik açılış animasyonuyla
+       geliyor (bkz. src/components/Safak.jsx → SAHNE_SURESI). Sabit
+       bir bekleme yerine `.safak--bitti` işareti bekleniyor — hem
+       animasyon erken kesilmiyor hem gereksiz yere uzun sürmüyor. */
+    ad: '01-karsilama', baslik: 'Karşılama', yol: '/hosgeldiniz', cikisYap: true,
+    adimlar: [
+      {
+        js: `(() => new Promise((coz) => {
+          const bitti = () => document.querySelector('.safak--bitti');
+          if (bitti()) { coz('OK'); return; }
+          const aralik = setInterval(() => {
+            if (bitti()) { clearInterval(aralik); coz('OK'); }
+          }, 200);
+          setTimeout(() => { clearInterval(aralik); coz('ZAMAN-ASIMI'); }, 8000);
+        }))()`,
+      },
+    ],
+  },
   { ad: '02-giris', baslik: 'Giriş', yol: '/giris', cikisYap: true },
   { ad: '03-kayit', baslik: 'Hesap açma', yol: '/kayit', cikisYap: true },
   { ad: '04-ana-sayfa', baslik: 'Ana Sayfa', yol: '/' },
@@ -369,6 +387,14 @@ const BACKOFFICE = [
     ad: '54-cikis-onayi', baslik: 'Çıkış onayı', menu: 'Dashboard',
     adimlar: [{ tikla: '.yan__cikis' }, { bekle: 400 }],
   },
+]
+
+/* Servisim ayrı bir HTML girişinden açılıyor (servis.html), UYGULAMA
+   listesindeki hash route'larla aynı sayfada değil — bkz. CLAUDE.md
+   "Servis tarafı YALNIZ MOBİL UYGULAMA". Bugünlük tek sahne: giriş
+   ekranı, oturum açmadan görünüyor. */
+const SERVIS = [
+  { ad: '60-servisim-giris', baslik: 'Servisim — giriş', bekle: 2600 },
 ]
 
 /* ====================================================== Chrome sürücüsü */
@@ -674,6 +700,19 @@ async function main() {
       }
     }
 
+    await adimlariUygula(s, sahne.adimlar)
+    await s.cek(join(CIKTI, sahne.ad + '.png'))
+    sayi++
+  }
+
+  /* ------------------------------------------------------- Servisim */
+  await s.olcu(TELEFON)
+  for (const sahne of SERVIS) {
+    if (SUZGEC && !sahne.ad.includes(SUZGEC) && !sahne.baslik.toLowerCase().includes(SUZGEC)) continue
+    process.stdout.write(`  ${sahne.ad}  ${sahne.baslik}\n`)
+
+    await s.git(ADRES + '/servis.html')
+    await bekle(sahne.bekle || 900)
     await adimlariUygula(s, sahne.adimlar)
     await s.cek(join(CIKTI, sahne.ad + '.png'))
     sayi++
