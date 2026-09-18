@@ -3498,3 +3498,88 @@ select.sec {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
+
+/* ==========================================================================
+   Yedek Parça Kataloğu ekranı
+
+   Kod: backoffice/ekranlar/ParcaKatalogu.jsx
+   ========================================================================== */
+
+/* SÜTUN GENİŞLİĞİ SABİT. Sıralama değiştikçe hücre metinleri değişiyor
+   ve tarayıcı sütunları yeniden ölçüyordu: başlığa her tıklamada tablo
+   yerinden oynuyordu (kullanıcı bildirdi, 18.09.2026). Genişlikler
+   ekranda `<colgroup>` ile bir kez veriliyor; kalıp rapor tablolarından
+   (`.rapor-tablo--sabit`). */
+.katalog-tablo {
+  table-layout: fixed;
+}
+
+.katalog-tablo td,
+.katalog-tablo thead th {
+  overflow-wrap: anywhere;
+}
+
+/* Fiyat sütunu sağa dayalı: rakamlar alt alta okunuyor. */
+.katalog-tablo td.sag,
+.katalog-tablo thead th.sag {
+  text-align: right;
+}
+
+/* Yeni fiyat listesi önizlemesi: ad solda, sayı sağda. Düz tabloda
+   ikisi de sola dayanıyor ve sayılar birbirinden ayırt edilemiyordu. */
+.katalog-ozet {
+  margin: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.katalog-ozet > div {
+  display: flex;
+  align-items: baseline;
+  gap: var(--bosluk-3);
+  padding: 7px 0;
+  border-bottom: 1px solid var(--cizgi);
+}
+
+.katalog-ozet > div:last-child {
+  border-bottom: 0;
+}
+
+.katalog-ozet dt {
+  flex: 1;
+  color: var(--murekkep-2);
+}
+
+.katalog-ozet dd {
+  margin: 0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* Düzeltme penceresinin tepesi: görsel + ad + kod. Personel doğru
+   parçayı düzelttiğinden resme bakarak emin oluyor. */
+.katalog-form__tepe {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  margin-bottom: var(--bosluk-4);
+}
+
+.katalog-form__gorsel {
+  flex: none;
+  width: 92px;
+  height: 92px;
+  object-fit: contain;
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-2);
+  background: var(--yuzey-2);
+  padding: 6px;
+}
+
+.katalog-form__gorsel--bos {
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 8px;
+}

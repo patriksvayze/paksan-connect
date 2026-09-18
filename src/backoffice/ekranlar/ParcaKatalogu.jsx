@@ -6,8 +6,8 @@ import {
   parcaDuzeltmesiYaz,
 } from '../veri'
 import { useVeri } from '../kanca'
-import { katalogHamGetir, duzeltmeleriUygula } from '../../lib/parcaKatalogu'
-import { MARKA, paraYaz } from '../../marka'
+import { katalogHamGetir, duzeltmeleriUygula, gorselAdresi } from '../../lib/parcaKatalogu'
+import { MARKA, PARA_BIRIMI, paraYaz } from '../../marka'
 import { Baslik, Bekleme, Bos, Sayfalama, siraliListe, SiraliBaslik, useSiralama } from './ortak'
 import { Secim, SuzgecCubugu } from './suzgec'
 
@@ -66,16 +66,20 @@ import { Secim, SuzgecCubugu } from './suzgec'
 
 const METIN = {
   baslik: 'Yedek Parça Kataloğu',
-  aciklama:
-    'Parça adını ve grubunu buradan düzeltebilir, satılmayan parçayı listeden kaldırabilirsiniz. Düzeltmeler müşteri ve servis uygulamalarında hemen görünür.',
-  fiyatNotu:
-    'Fiyatlar buradan tek tek değiştirilmez. Zam ya da indirim geldiğinde yeni fiyat listesini yükleyin; eski fiyatlar verilmiş siparişlerin kanıtı olarak olduğu gibi kalır.',
-  yerelNot:
-    'Düzeltmeler şimdilik bu bilgisayarda saklanıyor. Sunucu açıldığında aynı ekran çalışmaya devam edecek, düzeltmeler bütün personelde görünecek.',
+
+  /* Başlığın altındaki dikkat kartı. Ekranı açan personelin ilk
+     sorusu "fiyatı nereden değiştiririm" oluyor; cevabı en başta ve
+     tek cümlede veriliyor. Kalıp Servisler ekranındaki "Şifre Yardımı
+     Bekleyen Servis" kartıyla aynı. */
+  uyariBaslik: 'Fiyat buradan değiştirilmez',
+  uyariMetin:
+    'Parça adını ve grubunu düzeltebilir, satılmayan parçayı pasife alabilirsiniz. Fiyat tek tek değiştirilmez: zam ya da indirim geldiğinde güncel fiyat listesini yükleyin.',
+  uyariAlt:
+    'Eski fiyatlar verilmiş siparişlerin kanıtı olarak olduğu gibi kalır.',
 
   // Süzgeç
   tumGruplar: 'Tüm gruplar',
-  yalnizDuzeltilen: 'Yalnız düzeltilenler',
+  pasifGoster: 'Pasif Olanları Göster',
   ara: 'Ara',
   araIpucu: 'Parça adı veya kodu',
   birim: 'parça',
@@ -88,7 +92,7 @@ const METIN = {
   duzelt: 'Düzelt',
   geriAl: 'Geri Al',
   rozetDuzeltildi: 'Düzeltildi',
-  rozetGizli: 'Listede değil',
+  rozetPasif: 'Pasif',
   asilAd: 'Listedeki adı:',
   bosSuzgec: 'Bu süzgeçle parça bulunamadı.',
 
@@ -96,9 +100,10 @@ const METIN = {
   formBaslik: 'Parçayı Düzelt',
   alanAd: 'Parça Adı',
   alanGrup: 'Grup',
-  alanGizli: 'Bu parça listede görünmesin',
-  gizliIpucu:
-    'Artık satılmayan parça müşteriye ve servise gösterilmez. Fiyat listesinden silinmez; yeni liste geldiğinde geri gelebilir.',
+  alanPasif: 'Pasife al',
+  pasifIpucu:
+    'Pasif parça müşteriye ve servise gösterilmez. Fiyat listesinden silinmez; bu listede "Pasif Olanları Göster" ile bulunup geri alınabilir.',
+  gorselYok: 'Bu parçanın görseli yok.',
   kaydet: 'Düzeltmeyi Kaydet',
   vazgec: 'Vazgeç',
   adBos: 'Parça adı boş bırakılamaz.',
@@ -216,7 +221,10 @@ export function ParcaKatalogu({ personel, rol, bildir, tazele, surum }) {
   const [duzeltmeler, setDuzeltmeler] = useState(() => parcaDuzeltmeleriGetir())
   const [grup, setGrup] = useState('hepsi')
   const [ara, setAra] = useState('')
-  const [yalnizDuzeltilen, setYalnizDuzeltilen] = useState(false)
+  /* Pasif parçalar varsayılan olarak GİZLİ: personelin gördüğü liste,
+     müşterinin gördüğü listeyle aynı olsun. Pasife alınmış bir parçayı
+     geri almak için bu kutu işaretleniyor. */
+  const [pasifGoster, setPasifGoster] = useState(false)
   const [sayfa, setSayfa] = useState(0)
   const [duzenlenen, setDuzenlenen] = useState(null)
   const [yeniListe, setYeniListe] = useState(null)
@@ -257,7 +265,7 @@ export function ParcaKatalogu({ personel, rol, bildir, tazele, surum }) {
         }
       })
       .filter((p) => (grup === 'hepsi' ? true : p.grup === grup))
-      .filter((p) => (yalnizDuzeltilen ? p.duzeltilmis : true))
+      .filter((p) => (pasifGoster ? true : !p.gizli))
       .filter((p) =>
         q.length < 2
           ? true
@@ -270,7 +278,7 @@ export function ParcaKatalogu({ personel, rol, bildir, tazele, surum }) {
       grup: (p) => grupAdi[p.grup] || p.grup,
       fiyat: (p) => p.fiyat,
     })
-  }, [ham, duzeltmeler, grup, ara, yalnizDuzeltilen, siralama, grupAdi])
+  }, [ham, duzeltmeler, grup, ara, pasifGoster, siralama, grupAdi])
 
   /* `Sayfalama` sıfır tabanlı çalışıyor (bkz. ortak.jsx:196). */
   const sayfaSayisi = Math.max(1, Math.ceil(liste.length / SAYFA_BOYU))
@@ -281,6 +289,7 @@ export function ParcaKatalogu({ personel, rol, bildir, tazele, surum }) {
   )
 
   const duzeltmeSayisi = Object.keys(duzeltmeler).length
+  const pasifSayisi = Object.values(duzeltmeler).filter((d) => d?.gizli).length
 
   function duzeltmeKaydet(kod, d, ozet) {
     setDuzeltmeler(parcaDuzeltmesiYaz(kod, d, personel, ozet))
@@ -326,11 +335,88 @@ export function ParcaKatalogu({ personel, rol, bildir, tazele, surum }) {
     <>
       <Baslik ad={METIN.baslik} />
 
-      <div className="kart" style={{ marginBottom: 14, padding: 14 }}>
-        <p style={{ margin: 0 }}>{METIN.aciklama}</p>
-        <p style={{ margin: '6px 0 0' }}>{METIN.fiyatNotu}</p>
-        <p className="kucuk sonuk" style={{ margin: '6px 0 0' }}>{METIN.yerelNot}</p>
+      <div className="kart kart--dikkat" style={{ marginBottom: 14 }}>
+        <div className="kart__tepe">
+          <h2>{METIN.uyariBaslik}</h2>
+        </div>
+        <div className="kart__ic">
+          <p style={{ margin: 0 }}>{METIN.uyariMetin}</p>
+          <p className="kucuk sonuk" style={{ margin: '6px 0 0' }}>{METIN.uyariAlt}</p>
+        </div>
       </div>
+
+      {duzenleyebilir && (
+        <div className="kart" style={{ marginBottom: 14 }}>
+          <div className="kart__tepe">
+            <h2>{METIN.listeBaslik}</h2>
+          </div>
+          <div className="kart__ic">
+            <p className="kucuk sonuk" style={{ margin: '0 0 12px' }}>
+              {METIN.listeAciklama}
+            </p>
+
+            <input
+              ref={dosyaGirdisi}
+              type="file"
+              accept=".json,application/json"
+              style={{ display: 'none' }}
+              onChange={dosyaSecildi}
+            />
+            <div className="satir" style={{ gap: 10, alignItems: 'center' }}>
+              <button className="dg" onClick={() => dosyaGirdisi.current?.click()}>
+                {METIN.dosyaSec}
+              </button>
+              <span className="kucuk sonuk">{METIN.dosyaIpucu}</span>
+            </div>
+
+            {yeniListe && (
+              <div style={{ marginTop: 16 }}>
+                <h3 style={{ margin: '0 0 8px', fontSize: '1rem' }}>
+                  {METIN.onizlemeBaslik}
+                </h3>
+                {/* Ölçü satırları: ad solda, sayı sağda. Düz tabloda
+                    hepsi sola dayanıyor ve sayılar okunmuyordu. */}
+                <dl className="katalog-ozet">
+                  <div><dt>{METIN.toplamParca}</dt><dd className="mono">{yeniListe.ozet.toplam}</dd></div>
+                  <div><dt>{METIN.yeniParca}</dt><dd className="mono">{yeniListe.ozet.yeni}</dd></div>
+                  <div><dt>{METIN.dusenParca}</dt><dd className="mono">{yeniListe.ozet.dusen}</dd></div>
+                  <div><dt>{METIN.fiyatiDegisen}</dt><dd className="mono">{yeniListe.ozet.fiyatiDegisen}</dd></div>
+                  <div><dt>{METIN.ortalamaDegisim}</dt><dd className="mono">{yuzdeYaz(yeniListe.ozet.ortalama)}</dd></div>
+                  <div>
+                    <dt>{METIN.enBuyukArtis}</dt>
+                    <dd className="mono">
+                      {yeniListe.ozet.enBuyuk
+                        ? `${yuzdeYaz(yeniListe.ozet.enBuyuk.oran)} · ${yeniListe.ozet.enBuyuk.ad}`
+                        : '—'}
+                    </dd>
+                  </div>
+                </dl>
+
+                {yeniListe.ozet.yeniGruplar.length > 0 && (
+                  <div className="uyari" style={{ marginTop: 12, display: 'block' }}>
+                    <div style={{ fontWeight: 700 }}>
+                      {METIN.yeniGrup}: {yeniListe.ozet.yeniGruplar.map((g) => g.ad).join(', ')}
+                    </div>
+                    <p style={{ margin: '4px 0 0' }}>{METIN.yeniGrupUyari}</p>
+                  </div>
+                )}
+
+                <div className="satir" style={{ gap: 8, marginTop: 12 }}>
+                  <button className="dg dg--ana" onClick={birlestirilmisIndir}>
+                    {METIN.indir}
+                  </button>
+                  <button className="dg" onClick={() => setYeniListe(null)}>
+                    {METIN.onizlemeKapat}
+                  </button>
+                </div>
+                <p className="kucuk sonuk" style={{ margin: '6px 0 0' }}>
+                  {METIN.indirIpucu}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <SuzgecCubugu>
         <Secim
@@ -360,14 +446,16 @@ export function ParcaKatalogu({ personel, rol, bildir, tazele, surum }) {
           />
         </label>
 
-        {duzeltmeSayisi > 0 && (
+        {/* Kutu yalnız pasif parça VARSA çıkıyor: hiç yokken
+            anlamsız bir seçenek duruyordu. */}
+        {pasifSayisi > 0 && (
           <label className="secim-alan">
-            <span className="secim-alan__ad">{METIN.yalnizDuzeltilen}</span>
+            <span className="secim-alan__ad">{METIN.pasifGoster}</span>
             <input
               type="checkbox"
-              checked={yalnizDuzeltilen}
+              checked={pasifGoster}
               onChange={(e) => {
-                setYalnizDuzeltilen(e.target.checked)
+                setPasifGoster(e.target.checked)
                 setSayfa(0)
               }}
             />
@@ -389,7 +477,19 @@ export function ParcaKatalogu({ personel, rol, bildir, tazele, surum }) {
         ) : (
           <>
             <div className="tablo-sar">
-              <table>
+              {/* SÜTUN GENİŞLİĞİ SABİT. Sıralama değiştikçe satır
+                  metinleri değişiyor ve tarayıcı sütunları yeniden
+                  ölçüyordu: başlığa her tıklamada tablo yerinden
+                  oynuyordu. Genişlikler burada bir kez veriliyor
+                  (kalıp: rapor/Gorunum.jsx → rapor-tablo--sabit). */}
+              <table className="katalog-tablo">
+                <colgroup>
+                  <col style={{ width: 130 }} />
+                  <col />
+                  <col style={{ width: 220 }} />
+                  <col style={{ width: 130 }} />
+                  {duzenleyebilir && <col style={{ width: 170 }} />}
+                </colgroup>
                 <thead>
                   <tr>
                     <SiraliBaslik
@@ -397,7 +497,6 @@ export function ParcaKatalogu({ personel, rol, bildir, tazele, surum }) {
                       alan="kod"
                       siralama={siralama}
                       onSirala={cevir}
-                      genislik={130}
                     />
                     <SiraliBaslik ad={METIN.sutunAd} alan="ad" siralama={siralama} onSirala={cevir} />
                     <SiraliBaslik ad={METIN.sutunGrup} alan="grup" siralama={siralama} onSirala={cevir} />
@@ -406,7 +505,6 @@ export function ParcaKatalogu({ personel, rol, bildir, tazele, surum }) {
                       alan="fiyat"
                       siralama={siralama}
                       onSirala={cevir}
-                      genislik={110}
                     />
                     {duzenleyebilir && <th style={{ width: 1 }}></th>}
                   </tr>
@@ -423,21 +521,25 @@ export function ParcaKatalogu({ personel, rol, bildir, tazele, surum }) {
                           </div>
                         )}
                         <div className="satir" style={{ gap: 6, marginTop: 4 }}>
-                          {p.gizli && <span className="rz rz--turuncu">{METIN.rozetGizli}</span>}
+                          {p.gizli && <span className="rz rz--turuncu">{METIN.rozetPasif}</span>}
                           {p.duzeltilmis && !p.gizli && (
                             <span className="rz rz--mavi">{METIN.rozetDuzeltildi}</span>
                           )}
                         </div>
                       </td>
                       <td className="kucuk">{grupAdi[p.grup] || p.grup}</td>
-                      <td className="kucuk mono">{paraYaz(p.fiyat)}</td>
+                      <td className="kucuk mono sag">{paraYaz(p.fiyat)} {PARA_BIRIMI}</td>
                       {duzenleyebilir && (
                         <td>
                           <div className="satir" style={{ gap: 6, flexWrap: 'nowrap' }}>
                             <button className="dg" onClick={() => setDuzenlenen({ ...p })}>
                               {METIN.duzelt}
                             </button>
-                            {p.duzeltilmis && (
+                            {/* Pasif satırda "Geri Al" YOK: pasifliği geri
+                                almanın yeri düzeltme penceresindeki
+                                "Pasife al" kutusu. İki ayrı yerden aynı
+                                işin yapılması karışıklık çıkarıyordu. */}
+                            {p.duzeltilmis && !p.gizli && (
                               <button
                                 className="dg"
                                 onClick={() => {
@@ -488,90 +590,6 @@ export function ParcaKatalogu({ personel, rol, bildir, tazele, surum }) {
         </button>
       )}
 
-      {duzenleyebilir && (
-        <div className="kart" style={{ marginTop: 18 }}>
-          <h3 style={{ margin: '0 0 6px' }}>{METIN.listeBaslik}</h3>
-          <p className="kucuk sonuk" style={{ margin: '0 0 12px' }}>
-            {METIN.listeAciklama}
-          </p>
-
-          <input
-            ref={dosyaGirdisi}
-            type="file"
-            accept=".json,application/json"
-            style={{ display: 'none' }}
-            onChange={dosyaSecildi}
-          />
-          <button className="dg" onClick={() => dosyaGirdisi.current?.click()}>
-            {METIN.dosyaSec}
-          </button>
-          <div className="kucuk sonuk" style={{ marginTop: 6 }}>
-            {METIN.dosyaIpucu}
-          </div>
-
-          {yeniListe && (
-            <div style={{ marginTop: 16 }}>
-              <h4 style={{ margin: '0 0 8px' }}>{METIN.onizlemeBaslik}</h4>
-              <div className="tablo-sar">
-                <table>
-                  <tbody>
-                    <tr>
-                      <td>{METIN.toplamParca}</td>
-                      <td className="mono">{yeniListe.ozet.toplam}</td>
-                    </tr>
-                    <tr>
-                      <td>{METIN.yeniParca}</td>
-                      <td className="mono">{yeniListe.ozet.yeni}</td>
-                    </tr>
-                    <tr>
-                      <td>{METIN.dusenParca}</td>
-                      <td className="mono">{yeniListe.ozet.dusen}</td>
-                    </tr>
-                    <tr>
-                      <td>{METIN.fiyatiDegisen}</td>
-                      <td className="mono">{yeniListe.ozet.fiyatiDegisen}</td>
-                    </tr>
-                    <tr>
-                      <td>{METIN.ortalamaDegisim}</td>
-                      <td className="mono">{yuzdeYaz(yeniListe.ozet.ortalama)}</td>
-                    </tr>
-                    <tr>
-                      <td>{METIN.enBuyukArtis}</td>
-                      <td className="mono">
-                        {yeniListe.ozet.enBuyuk
-                          ? `${yuzdeYaz(yeniListe.ozet.enBuyuk.oran)} · ${yeniListe.ozet.enBuyuk.ad}`
-                          : '—'}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              {yeniListe.ozet.yeniGruplar.length > 0 && (
-                <div className="uyari" style={{ marginTop: 12, display: 'block' }}>
-                  <div style={{ fontWeight: 700 }}>
-                    {METIN.yeniGrup}: {yeniListe.ozet.yeniGruplar.map((g) => g.ad).join(', ')}
-                  </div>
-                  <p style={{ margin: '4px 0 0' }}>{METIN.yeniGrupUyari}</p>
-                </div>
-              )}
-
-              <div className="satir" style={{ gap: 8, marginTop: 12 }}>
-                <button className="dg dg--ana" onClick={birlestirilmisIndir}>
-                  {METIN.indir}
-                </button>
-                <button className="dg" onClick={() => setYeniListe(null)}>
-                  {METIN.onizlemeKapat}
-                </button>
-              </div>
-              <div className="kucuk sonuk" style={{ marginTop: 6 }}>
-                {METIN.indirIpucu}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
       {duzenlenen && (
         <DuzeltmeFormu
           parca={duzenlenen}
@@ -620,8 +638,26 @@ function DuzeltmeFormu({ parca, gruplar, onKapat, onKaydet }) {
           </button>
         </div>
         <div className="kart__ic">
-        <div className="mono kucuk sonuk" style={{ marginBottom: 12 }}>
-          {parca.kod}
+        {/* GÖRSEL EN ÜSTTE. Parça kodu ile ad yan yana birbirine
+            benziyor; personel doğru parçayı düzelttiğinden ancak
+            resme bakarak emin oluyor. */}
+        <div className="katalog-form__tepe">
+          {gorselAdresi(parca.gorsel) ? (
+            <img
+              className="katalog-form__gorsel"
+              src={gorselAdresi(parca.gorsel)}
+              alt=""
+              loading="lazy"
+            />
+          ) : (
+            <div className="katalog-form__gorsel katalog-form__gorsel--bos">
+              <span className="kucuk sonuk">{METIN.gorselYok}</span>
+            </div>
+          )}
+          <div>
+            <div style={{ fontWeight: 700 }}>{parca.asilAd}</div>
+            <div className="mono kucuk sonuk">{parca.kod}</div>
+          </div>
         </div>
 
         <label className="alan">
@@ -651,9 +687,9 @@ function DuzeltmeFormu({ parca, gruplar, onKapat, onKaydet }) {
 
         <label className="alan" style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <input type="checkbox" checked={gizli} onChange={(e) => setGizli(e.target.checked)} />
-          <span>{METIN.alanGizli}</span>
+          <span>{METIN.alanPasif}</span>
         </label>
-        <p className="kucuk sonuk" style={{ margin: '0 0 12px' }}>{METIN.gizliIpucu}</p>
+        <p className="kucuk sonuk" style={{ margin: '0 0 12px' }}>{METIN.pasifIpucu}</p>
 
         {hata && <p className="uyari">{hata}</p>}
 
