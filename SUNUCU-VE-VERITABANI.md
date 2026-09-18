@@ -1,3 +1,15 @@
+> ## ⚠ YERİNİ İKİ BELGE ALDI — güncel değil
+>
+> Bu belge (4 Eylül 2026) sunucu ve veritabanı konusunu ilk kez
+> anlatıyordu. O günden sonra konu ikiye ayrıldı ve ikisi de
+> ayrıntılandı:
+>
+> - **Canlıya nasıl çıkılacak, ne satın alınacak:** `CANLIYA-CIKIS.md`
+> - **Veritabanının kendisi:** `veritabani/tasarim.md`
+>
+> Çelişki olursa o iki belge geçerlidir. Burası tarihsel kayıt olarak
+> duruyor.
+
 # Sunucu ve Veritabanı — Sıfırdan Anlatım
 
 Bu belge tek bir soruyu cevaplıyor: **proje bittiğinde, onu

@@ -1,3 +1,15 @@
+> ## ⚠ TARİHSEL KAYIT — güncel değil
+>
+> Bu belge projenin ilk aşamasının (Ağustos 2026) çalışma notları.
+> Uygulama o günden beri çok değişti: bayi paneli kaldırıldı, servis
+> uygulaması ayrıldı, ekosistem dört taraflı hâle geldi. Buradaki
+> ayrıntılar bugünkü kodu anlatmıyor.
+>
+> **Bugünkü kurallar:** `CLAUDE.md`. **Klasörde ne var:** `README.md`.
+>
+> Silinmedi çünkü kararların neden öyle alındığını anlatan tek kayıt
+> burası.
+
 # PAKSAN Connect — Aşama 1 Notları
 
 > Uygulamanın adı **PAKSAN Connect**. Telefonun ekranında ikonun altında

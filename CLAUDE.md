@@ -192,6 +192,25 @@ hiçbir üründe düşmez; sorulan soru sayısı düşer.**
   elle çizilmiş zayıf görselle idare edilmez
 - Tasarım referansı için kullanıcıya sorulmaz: tarayıcı açılır, benzer
   uygulamalara bakılır, karar gerekçesiyle yazılır
+- **DOSYA DÜZENİ AÇIKLANABİLİR OLMALI (18 Eylül 2026, kullanıcının
+  isteği):** "Dosyalara daldığımda neyin ne olduğunu bilmeliyim."
+  Kullanıcı geliştirici değil ama dosyaların içine giriyor; kod okumadan,
+  yalnız adlara bakarak neyin nerede olduğunu çıkarabilmeli.
+  - Klasörde neyin ne olduğunu **`README.md`** anlatır. Yeni klasör ya da
+    kök belgesi eklenince o dosya da güncellenir.
+  - Ad ne işe yaradığını söylesin; kısaltma ve İngilizce ad kullanılmaz.
+  - Geçici çalışma dosyası bırakılmaz; iş bitince silinir.
+  - Kök dizine yeni `.md` atmadan önce var olan bir belgeye ait olup
+    olmadığına bakılır.
+  - Bir belge geçerliliğini yitirdiyse SİLİNMEZ, başına gerekçesiyle
+    "GEÇERSİZ" notu düşülür (örnek: `BAYI-YOL-HARITASI.md`).
+  - Aynı bilgi iki dosyada tutulmaz; ikinci dosya birinciye yönlendirir
+    (örnek: `AGENTS.md` → `CLAUDE.md`).
+- **GEREKSİZ DOSYA SORULMADAN SİLİNİR (18 Eylül 2026, kullanıcının
+  kararı):** "Sileyim mi diye sorduğun şeyin ne olduğunu ben zaten
+  bilmiyorum." İki şart: işe yaramadığından %100 emin ol (referans
+  taraması yap) ve geri dönüşüm kutusuna gönder. Emin değilsen silme,
+  yalnız bildir.
 
 ## Değişiklik sonrası kontrol listesi
 
