@@ -2333,40 +2333,11 @@
   text-align: right;
 }
 
-/* ------------------------------------------------------------ İç sekmeler
-
-   Makine detayında üç bölüm var ve üçü de aynı makineye ait. Ayrı
-   sayfalara bölmek geri-ileri gezinme demekti; usta arızaya bakarken
-   teknik değere de bakıyor.                                          */
-
-.ic-sekme {
-  display: flex;
-  gap: var(--bosluk-2);
-  margin-bottom: var(--bosluk-4);
-  overflow-x: auto;
-}
-
-.ic-sekme__dg {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  flex: none;
-  min-height: var(--dokunma);
-  padding: 0 var(--bosluk-4);
-  border: 1px solid var(--cizgi);
-  border-radius: var(--r-tam);
-  background: var(--yuzey);
-  color: var(--murekkep-2);
-  font-size: var(--yazi-2);
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.ic-sekme__dg--on {
-  border-color: transparent;
-  background: var(--lacivert);
-  color: #fff;
-}
+/* İÇ SEKMELER KALDIRILDI (18 Eylül 2026). `.ic-sekme`, `.ic-sekme__dg`
+   ve `--on` hâli makine detayındaki üç bölümü yan yana hap olarak
+   gösteriyordu; o düzen değişti ve sınıflar `src/servis/` içinde hiçbir
+   yerde kullanılmıyordu. Ölü bir kontrol kalıbı, bir dahaki erişilebilirlik
+   ya da renk turunda gerçek bir ekranmış gibi ölçülüyor. */
 
 /* --------------------------------------------------------------- Arıza */
 
