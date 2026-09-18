@@ -43,6 +43,54 @@ da müşteri PAKSAN'ı arıyor (sahiplik devrini personel yapıyor).
   @Gerekce` gerekiyor — açık sahiplik `devir` nedeniyle biter, yeni
   sahiplik açılır, hesaplar birleşmez. Tasarımda bugün karşılığı yok.
 
+### 1.1 Devrin kuralları — KULLANICININ KARARI (18 Eylül 2026)
+
+Prosedür yazılırken bu üç madde uygulanır. Kararlar kullanıcıya aittir,
+katalog yazarı yeniden yorumlamaz.
+
+**(a) Belge istenmez, TEYİT İSTENİR.** Personel devri yaparken fatura ya
+da satış belgesi aramaz; eski ve yeni numarayı arayıp iki taraftan da
+teyit alır. Yani doğrulama belgede değil, personelin telefon görüşmesinde.
+
+- `@Gerekce` bu yüzden ZORUNLU ve serbest metin değil bir kayıt: hangi
+  iki numaranın arandığı ve kimin teyit verdiği yazılır. Devir sessizce
+  yapılamaz.
+- Devir `denetim.IslemKaydi`'na ve `makine.KayitOlayi`'na yazılır; sonradan
+  "bu makine kimden kime, kimin kararıyla geçti" sorusunun cevabı orada
+  durur.
+- Belge şartı KONULMADI ama belge alanı da kapatılmadı: ileride istenirse
+  `BelgeBagiKimlik` eklenir; bugün zorunlu değil.
+
+**(b) MAKİNE GEÇER, GEÇMİŞ GEÇMEZ.** Makine el değiştirince eski sahibin
+listesinden düşer, yeni sahibin listesine girer. Yeni sahip makinenin
+ESKİ SERVİS GEÇMİŞİNİ GÖRMEZ. PAKSAN ise backoffice'ten makinenin bütün
+servis kayıtlarını görmeye devam eder.
+
+Şemada karşılığı: servis kayıtları makineye bağlı (`talep.Talep` →
+`MakineKimlik`) ama HESABA da bağlı (`HesapKimlik`). Devirde
+`talep.Talep.HesapKimlik` TAŞINMAZ — hesap birleştirmeden ayrıldığı yer
+tam burası.
+
+- **Connect'te makinenin talep listesi hesapla süzülmeli**, yalnız
+  makineyle değil. Süzgeç makineye bırakılırsa yeni sahip önceki sahibin
+  adını, telefonunu, adresini ve arızasını görür; bu KVKK sorunudur.
+  Sunucu tarafında bu bir şart olarak yazılacak (bugün tek cihazda tek
+  hesap çalıştığı için ortaya çıkmıyor).
+- Backoffice'te süzgeç YOK: `gorunum.MakineKarti` ve `MakineArama`
+  makinenin bütün geçmişini vermeye devam eder. Garanti tartışmasında ve
+  ikinci el makinenin arıza geçmişinde PAKSAN'ın bakacağı tek yer orası.
+- Eski sahibin kendi açtığı talepler kendi hesabında kalır; makine artık
+  onun değil ama geçmişte açtığı kayıt onun kaydıdır.
+
+**(c) GARANTİ SAHİPLİĞE BAĞLI DEĞİL.** Garanti makinenin satış zamanına
+bağlı; sahiplik değişse de garantide hiçbir şey değişmez. Bu tasarımda
+zaten böyle (garanti satışa sabitleniyor, Bölüm 1.9.6:
+`makine.MakineSatisi` satırına `GarantiYil`,
+`GarantiBaslangicEsasiKodu`, `GarantiFaturaEkGun` satış anında kopyalanır
+ve sonra değişmez). Devir prosedürü garanti alanlarına DOKUNMAZ —
+prosedürün sınamasına bu da bir madde olarak yazılır: devirden önce ve
+sonra `gorunum.MakineGarantisi` aynı sonucu vermeli.
+
 ## 2. Servisim Adreslerim — teslimat adresi
 
 Akış: servis, garanti parçası isteğinde ve kendi parça siparişinde
