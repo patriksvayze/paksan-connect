@@ -1,10 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import {
-  izinli,
-  parcaDuzeltmeleriGetir,
-  parcaDuzeltmeleriSifirla,
-  parcaDuzeltmesiYaz,
-} from '../veri'
+import { izinli, parcaDuzeltmeleriGetir, parcaDuzeltmesiYaz } from '../veri'
 import { useVeri } from '../kanca'
 import { katalogHamGetir, duzeltmeleriUygula, gorselAdresi } from '../../lib/parcaKatalogu'
 import { MARKA, PARA_BIRIMI, paraYaz } from '../../marka'
@@ -89,7 +84,7 @@ const METIN = {
   sutunAd: 'Parça',
   sutunGrup: 'Grup',
   sutunFiyat: 'Fiyat',
-  duzelt: 'Düzelt',
+  duzelt: 'Düzenle',
   geriAl: 'Geri Al',
   rozetDuzeltildi: 'Düzeltildi',
   rozetPasif: 'Pasif',
@@ -97,7 +92,7 @@ const METIN = {
   bosSuzgec: 'Bu süzgeçle parça bulunamadı.',
 
   // Düzeltme penceresi
-  formBaslik: 'Parçayı Düzelt',
+  formBaslik: 'Parçayı Düzenle',
   alanAd: 'Parça Adı',
   alanGrup: 'Grup',
   alanPasif: 'Pasife al',
@@ -107,11 +102,6 @@ const METIN = {
   kaydet: 'Düzeltmeyi Kaydet',
   vazgec: 'Vazgeç',
   adBos: 'Parça adı boş bırakılamaz.',
-
-  // Toplu geri alma
-  hepsiniGeriAl: 'Tüm Düzeltmeleri Geri Al',
-  hepsiniGeriAlSoru: (n) =>
-    `${n} düzeltme geri alınacak ve parçalar fiyat listesindeki hâline dönecek.`,
 
   // Yeni fiyat listesi
   listeBaslik: 'Yeni Fiyat Listesi',
@@ -291,7 +281,6 @@ export function ParcaKatalogu({ personel, rol, bildir, tazele, surum }) {
     (gecerliSayfa + 1) * SAYFA_BOYU,
   )
 
-  const duzeltmeSayisi = Object.keys(duzeltmeler).length
   const pasifSayisi = Object.values(duzeltmeler).filter((d) => d?.gizli).length
 
   function duzeltmeKaydet(kod, d, ozet) {
@@ -577,21 +566,6 @@ export function ParcaKatalogu({ personel, rol, bildir, tazele, surum }) {
           </>
         )}
       </div>
-
-      {duzenleyebilir && duzeltmeSayisi > 0 && (
-        <button
-          className="dg"
-          style={{ marginTop: 12 }}
-          onClick={() => {
-            if (!confirm(METIN.hepsiniGeriAlSoru(duzeltmeSayisi))) return
-            parcaDuzeltmeleriSifirla(personel)
-            setDuzeltmeler({})
-            tazele()
-          }}
-        >
-          {METIN.hepsiniGeriAl}
-        </button>
-      )}
 
       {duzenlenen && (
         <DuzeltmeFormu

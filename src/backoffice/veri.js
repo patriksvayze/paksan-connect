@@ -1997,18 +1997,10 @@ export function parcaDuzeltmesiYaz(kod, duzeltme, personel, ozet) {
   return hepsi
 }
 
-export function parcaDuzeltmeleriSifirla(personel) {
-  const mevcut = { ...load(ANAHTAR.icerik, {}) }
-  const sayi = Object.keys(parcaDuzeltmeleriGetir()).length
-  delete mevcut.parcaDuzeltme
-  save(ANAHTAR.icerik, mevcut)
-  icerikTazele()
-  islemYaz({
-    tur: 'katalog',
-    ozet: `Yedek parça kataloğundaki ${sayi} düzeltme geri alındı`,
-    personel,
-  })
-}
+/* TOPLU GERİ ALMA YOK (18.09.2026, kullanıcının kararı): "Hem riskli hem
+   de ne olduğu anlaşılmayan bir buton." Tek dokunuşla bütün düzeltmeleri
+   silen bir düğme, ne sildiğini ekranda göstermiyordu. Düzeltmeler tek
+   tek geri alınıyor; pasiflik düzeltme penceresinden kaldırılıyor. */
 
 /* ------------------------------------------------------- Servis ve sahiplik
 
