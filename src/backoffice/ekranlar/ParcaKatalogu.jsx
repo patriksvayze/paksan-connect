@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react'
 import { izinli, parcaDuzeltmeleriGetir, parcaDuzeltmesiYaz } from '../veri'
 import { useVeri } from '../kanca'
 import { katalogHamGetir, duzeltmeleriUygula, gorselAdresi } from '../../lib/parcaKatalogu'
-import { MARKA, PARA_BIRIMI, paraYaz } from '../../marka'
+import { PARA_BIRIMI, paraYaz } from '../../marka'
 import { Baslik, Bekleme, Bos, Sayfalama, siraliListe, SiraliBaslik, useSiralama } from './ortak'
 import { Secim, SuzgecCubugu } from './suzgec'
 
@@ -103,13 +103,22 @@ const METIN = {
   vazgec: 'Vazgeç',
   adBos: 'Parça adı boş bırakılamaz.',
 
-  // Yeni fiyat listesi
-  listeBaslik: 'Yeni Fiyat Listesi',
+  /* YENİ FİYAT LİSTESİ — bu bölüm bir YÜKLEME değil, bir KONTROL yeri.
+
+     Gerçek akış şöyle: fiyat listesi basılı bir PDF olarak geliyor ve
+     parçalara, fiyatlara ve görsellere ayrılması için bir dönüştürme
+     adımından geçiyor (bugün `tools/parca-katalogu.py`). Personelin
+     elinde PDF var, dönüşmüş dosya yok. Bu yüzden ekran "dosyanızı
+     yükleyin" demiyor; "dönüşen listeyi açın, neyin değiştiğini
+     görün" diyor. Onay adımı asıl değeri burada: yanlış okunmuş bir
+     liste yayına girmeden yakalanıyor. */
+  listeBaslik: 'Yeni Fiyat Listesi Geldiğinde',
   listeAciklama:
-    'Yeni listeyi yüklediğinizde önce neyin değiştiğini gösteririm; onaylamadan hiçbir şey değişmez.',
-  dosyaSec: 'Fiyat Listesi Dosyası Seç',
-  dosyaIpucu: `${MARKA} fiyat listesinden üretilmiş .json dosyası`,
-  okunamadi: 'Dosya okunamadı. Fiyat listesinden üretilmiş bir dosya seçtiğinizden emin olun.',
+    'Yeni fiyat listesini bize gönderin; parçalara ve görsellere ayrılmış hâlini size geri veririz. Aşağıdan açtığınızda neyin değiştiğini görür, yayına girmeden önce kontrol edersiniz.',
+  dosyaSec: 'Gelen Listeyi Aç',
+  dosyaIpucu: 'Kontrol için: size gönderdiğimiz liste dosyası',
+  okunamadi:
+    'Bu dosya okunamadı. Fiyat listesinin size gönderdiğimiz hâlini seçtiğinizden emin olun; basılı listenin kendisi (PDF) burada açılmıyor.',
   onizlemeBaslik: 'Yeni listede ne değişiyor',
   toplamParca: 'Parça',
   yeniParca: 'Yeni gelen',
@@ -120,9 +129,9 @@ const METIN = {
   yeniGrup: 'Yeni grup',
   yeniGrupUyari:
     'Yeni gelen parça grupları bir makine ailesine bağlanmadan müşteri ekranında görünmez. Bu bağ bugün kod içinde tutuluyor; listeyi yayına almadan önce bize bildirin.',
-  indir: 'Birleştirilmiş Dosyayı İndir',
+  indir: 'Düzeltmelerimle Birlikte İndir',
   indirIpucu:
-    'İndirdiğiniz dosya sunucuya konulduğunda yeni liste yayına girer. Sunucu açıldığında bu adım tek düğmeye inecek.',
+    'Listeyi onaylıyorsanız bu dosyayı bize geri gönderin: yaptığınız ad ve grup düzeltmeleri de içinde gelir. Sunucu açıldığında bu adım tek düğmeye inecek.',
   onizlemeKapat: 'Önizlemeyi Kapat',
 }
 
