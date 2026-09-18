@@ -59,3 +59,8 @@ skills-lock.json
 
 # task-observer skill'ının tuttuğu gözlem kayıtları — araç çıktısı
 skill-observations/
+
+# Veritabani ortam dosyalari: giris sifreleri icerir, git'e girmez.
+# Yalniz bos ornek dosya izlenir (bkz. tools/vt/ortam.mjs).
+veritabani/ortam/*.env
+!veritabani/ortam/ornek.env

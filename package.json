@@ -11,6 +11,9 @@
     "build:backoffice": "vite build --config vite.backoffice.config.js",
     "dogrula": "node tools/dogrula.mjs",
     "graf": "node tools/graf.mjs",
+    "vt": "node tools/vt.mjs",
+    "vt:tohum": "node tools/vt.mjs tohum",
+    "vt:sinama": "node tools/vt.mjs sinama",
     "build:servis": "vite build --config vite.servis.config.js",
     "apk:servis": "npm run build:servis && node tools/cap-hedef.mjs servis && npx cap sync android && node tools/ikon-uret.mjs servis && node tools/cap-hedef.mjs app"
   },

@@ -1,0 +1,5840 @@
+[
+  {
+    "IlKodu": 1,
+    "Ad": "Aladağ",
+    "IlceKodu": 1001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 1,
+    "Ad": "Ceyhan",
+    "IlceKodu": 1002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 1,
+    "Ad": "Çukurova",
+    "IlceKodu": 1003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 1,
+    "Ad": "Feke",
+    "IlceKodu": 1004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 1,
+    "Ad": "İmamoğlu",
+    "IlceKodu": 1005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 1,
+    "Ad": "Karaisalı",
+    "IlceKodu": 1006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 1,
+    "Ad": "Karataş",
+    "IlceKodu": 1007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 1,
+    "Ad": "Kozan",
+    "IlceKodu": 1008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 1,
+    "Ad": "Pozantı",
+    "IlceKodu": 1009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 1,
+    "Ad": "Saimbeyli",
+    "IlceKodu": 1010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 1,
+    "Ad": "Sarıçam",
+    "IlceKodu": 1011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 1,
+    "Ad": "Seyhan",
+    "IlceKodu": 1012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 1,
+    "Ad": "Tufanbeyli",
+    "IlceKodu": 1013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 1,
+    "Ad": "Yumurtalık",
+    "IlceKodu": 1014,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 1,
+    "Ad": "Yüreğir",
+    "IlceKodu": 1015,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 2,
+    "Ad": "Besni",
+    "IlceKodu": 2001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 2,
+    "Ad": "Çelikhan",
+    "IlceKodu": 2002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 2,
+    "Ad": "Gerger",
+    "IlceKodu": 2003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 2,
+    "Ad": "Gölbaşı",
+    "IlceKodu": 2004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 2,
+    "Ad": "Kahta",
+    "IlceKodu": 2005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 2,
+    "Ad": "Merkez",
+    "IlceKodu": 2006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 2,
+    "Ad": "Samsat",
+    "IlceKodu": 2007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 2,
+    "Ad": "Sincik",
+    "IlceKodu": 2008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 2,
+    "Ad": "Tut",
+    "IlceKodu": 2009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 3,
+    "Ad": "Başmakçı",
+    "IlceKodu": 3001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 3,
+    "Ad": "Bayat",
+    "IlceKodu": 3002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 3,
+    "Ad": "Bolvadin",
+    "IlceKodu": 3003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 3,
+    "Ad": "Çay",
+    "IlceKodu": 3004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 3,
+    "Ad": "Çobanlar",
+    "IlceKodu": 3005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 3,
+    "Ad": "Dazkırı",
+    "IlceKodu": 3006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 3,
+    "Ad": "Dinar",
+    "IlceKodu": 3007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 3,
+    "Ad": "Emirdağ",
+    "IlceKodu": 3008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 3,
+    "Ad": "Evciler",
+    "IlceKodu": 3009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 3,
+    "Ad": "Hocalar",
+    "IlceKodu": 3010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 3,
+    "Ad": "İhsaniye",
+    "IlceKodu": 3011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 3,
+    "Ad": "İscehisar",
+    "IlceKodu": 3012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 3,
+    "Ad": "Kızılören",
+    "IlceKodu": 3013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 3,
+    "Ad": "Merkez",
+    "IlceKodu": 3014,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 3,
+    "Ad": "Sandıklı",
+    "IlceKodu": 3015,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 3,
+    "Ad": "Sinanpaşa",
+    "IlceKodu": 3016,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 3,
+    "Ad": "Sultandağı",
+    "IlceKodu": 3017,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 3,
+    "Ad": "Şuhut",
+    "IlceKodu": 3018,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 4,
+    "Ad": "Diyadin",
+    "IlceKodu": 4001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 4,
+    "Ad": "Doğubayazıt",
+    "IlceKodu": 4002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 4,
+    "Ad": "Eleşkirt",
+    "IlceKodu": 4003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 4,
+    "Ad": "Hamur",
+    "IlceKodu": 4004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 4,
+    "Ad": "Merkez",
+    "IlceKodu": 4005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 4,
+    "Ad": "Patnos",
+    "IlceKodu": 4006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 4,
+    "Ad": "Taşlıçay",
+    "IlceKodu": 4007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 4,
+    "Ad": "Tutak",
+    "IlceKodu": 4008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 5,
+    "Ad": "Göynücek",
+    "IlceKodu": 5001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 5,
+    "Ad": "Gümüşhacıköy",
+    "IlceKodu": 5002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 5,
+    "Ad": "Hamamözü",
+    "IlceKodu": 5003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 5,
+    "Ad": "Merkez",
+    "IlceKodu": 5004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 5,
+    "Ad": "Merzifon",
+    "IlceKodu": 5005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 5,
+    "Ad": "Suluova",
+    "IlceKodu": 5006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 5,
+    "Ad": "Taşova",
+    "IlceKodu": 5007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 6,
+    "Ad": "Akyurt",
+    "IlceKodu": 6001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 6,
+    "Ad": "Altındağ",
+    "IlceKodu": 6002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 6,
+    "Ad": "Ayaş",
+    "IlceKodu": 6003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 6,
+    "Ad": "Bala",
+    "IlceKodu": 6004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 6,
+    "Ad": "Beypazarı",
+    "IlceKodu": 6005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 6,
+    "Ad": "Çamlıdere",
+    "IlceKodu": 6006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 6,
+    "Ad": "Çankaya",
+    "IlceKodu": 6007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 6,
+    "Ad": "Çubuk",
+    "IlceKodu": 6008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 6,
+    "Ad": "Elmadağ",
+    "IlceKodu": 6009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 6,
+    "Ad": "Etimesgut",
+    "IlceKodu": 6010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 6,
+    "Ad": "Evren",
+    "IlceKodu": 6011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 6,
+    "Ad": "Gölbaşı",
+    "IlceKodu": 6012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 6,
+    "Ad": "Güdül",
+    "IlceKodu": 6013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 6,
+    "Ad": "Haymana",
+    "IlceKodu": 6014,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 6,
+    "Ad": "Kahramankazan",
+    "IlceKodu": 6015,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 6,
+    "Ad": "Kalecik",
+    "IlceKodu": 6016,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 6,
+    "Ad": "Keçiören",
+    "IlceKodu": 6017,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 6,
+    "Ad": "Kızılcahamam",
+    "IlceKodu": 6018,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 6,
+    "Ad": "Mamak",
+    "IlceKodu": 6019,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 6,
+    "Ad": "Nallıhan",
+    "IlceKodu": 6020,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 6,
+    "Ad": "Polatlı",
+    "IlceKodu": 6021,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 6,
+    "Ad": "Pursaklar",
+    "IlceKodu": 6022,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 6,
+    "Ad": "Sincan",
+    "IlceKodu": 6023,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 6,
+    "Ad": "Şereflikoçhisar",
+    "IlceKodu": 6024,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 6,
+    "Ad": "Yenimahalle",
+    "IlceKodu": 6025,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 7,
+    "Ad": "Akseki",
+    "IlceKodu": 7001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 7,
+    "Ad": "Aksu",
+    "IlceKodu": 7002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 7,
+    "Ad": "Alanya",
+    "IlceKodu": 7003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 7,
+    "Ad": "Demre",
+    "IlceKodu": 7004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 7,
+    "Ad": "Döşemealtı",
+    "IlceKodu": 7005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 7,
+    "Ad": "Elmalı",
+    "IlceKodu": 7006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 7,
+    "Ad": "Finike",
+    "IlceKodu": 7007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 7,
+    "Ad": "Gazipaşa",
+    "IlceKodu": 7008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 7,
+    "Ad": "Gündoğmuş",
+    "IlceKodu": 7009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 7,
+    "Ad": "İbradı",
+    "IlceKodu": 7010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 7,
+    "Ad": "Kaş",
+    "IlceKodu": 7011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 7,
+    "Ad": "Kemer",
+    "IlceKodu": 7012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 7,
+    "Ad": "Kepez",
+    "IlceKodu": 7013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 7,
+    "Ad": "Konyaaltı",
+    "IlceKodu": 7014,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 7,
+    "Ad": "Korkuteli",
+    "IlceKodu": 7015,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 7,
+    "Ad": "Kumluca",
+    "IlceKodu": 7016,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 7,
+    "Ad": "Manavgat",
+    "IlceKodu": 7017,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 7,
+    "Ad": "Muratpaşa",
+    "IlceKodu": 7018,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 7,
+    "Ad": "Serik",
+    "IlceKodu": 7019,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 8,
+    "Ad": "Ardanuç",
+    "IlceKodu": 8001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 8,
+    "Ad": "Arhavi",
+    "IlceKodu": 8002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 8,
+    "Ad": "Borçka",
+    "IlceKodu": 8003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 8,
+    "Ad": "Hopa",
+    "IlceKodu": 8004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 8,
+    "Ad": "Kemalpaşa",
+    "IlceKodu": 8005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 8,
+    "Ad": "Merkez",
+    "IlceKodu": 8006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 8,
+    "Ad": "Murgul",
+    "IlceKodu": 8007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 8,
+    "Ad": "Şavşat",
+    "IlceKodu": 8008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 8,
+    "Ad": "Yusufeli",
+    "IlceKodu": 8009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 9,
+    "Ad": "Bozdoğan",
+    "IlceKodu": 9001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 9,
+    "Ad": "Buharkent",
+    "IlceKodu": 9002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 9,
+    "Ad": "Çine",
+    "IlceKodu": 9003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 9,
+    "Ad": "Didim",
+    "IlceKodu": 9004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 9,
+    "Ad": "Efeler",
+    "IlceKodu": 9005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 9,
+    "Ad": "Germencik",
+    "IlceKodu": 9006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 9,
+    "Ad": "İncirliova",
+    "IlceKodu": 9007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 9,
+    "Ad": "Karacasu",
+    "IlceKodu": 9008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 9,
+    "Ad": "Karpuzlu",
+    "IlceKodu": 9009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 9,
+    "Ad": "Koçarlı",
+    "IlceKodu": 9010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 9,
+    "Ad": "Köşk",
+    "IlceKodu": 9011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 9,
+    "Ad": "Kuşadası",
+    "IlceKodu": 9012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 9,
+    "Ad": "Kuyucak",
+    "IlceKodu": 9013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 9,
+    "Ad": "Nazilli",
+    "IlceKodu": 9014,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 9,
+    "Ad": "Söke",
+    "IlceKodu": 9015,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 9,
+    "Ad": "Sultanhisar",
+    "IlceKodu": 9016,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 9,
+    "Ad": "Yenipazar",
+    "IlceKodu": 9017,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 10,
+    "Ad": "Altıeylül",
+    "IlceKodu": 10001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 10,
+    "Ad": "Ayvalık",
+    "IlceKodu": 10002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 10,
+    "Ad": "Balya",
+    "IlceKodu": 10003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 10,
+    "Ad": "Bandırma",
+    "IlceKodu": 10004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 10,
+    "Ad": "Bigadiç",
+    "IlceKodu": 10005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 10,
+    "Ad": "Burhaniye",
+    "IlceKodu": 10006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 10,
+    "Ad": "Dursunbey",
+    "IlceKodu": 10007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 10,
+    "Ad": "Edremit",
+    "IlceKodu": 10008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 10,
+    "Ad": "Erdek",
+    "IlceKodu": 10009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 10,
+    "Ad": "Gömeç",
+    "IlceKodu": 10010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 10,
+    "Ad": "Gönen",
+    "IlceKodu": 10011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 10,
+    "Ad": "Havran",
+    "IlceKodu": 10012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 10,
+    "Ad": "İvrindi",
+    "IlceKodu": 10013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 10,
+    "Ad": "Karesi",
+    "IlceKodu": 10014,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 10,
+    "Ad": "Kepsut",
+    "IlceKodu": 10015,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 10,
+    "Ad": "Manyas",
+    "IlceKodu": 10016,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 10,
+    "Ad": "Marmara",
+    "IlceKodu": 10017,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 10,
+    "Ad": "Savaştepe",
+    "IlceKodu": 10018,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 10,
+    "Ad": "Sındırgı",
+    "IlceKodu": 10019,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 10,
+    "Ad": "Susurluk",
+    "IlceKodu": 10020,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 11,
+    "Ad": "Bozüyük",
+    "IlceKodu": 11001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 11,
+    "Ad": "Gölpazarı",
+    "IlceKodu": 11002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 11,
+    "Ad": "İnhisar",
+    "IlceKodu": 11003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 11,
+    "Ad": "Merkez",
+    "IlceKodu": 11004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 11,
+    "Ad": "Osmaneli",
+    "IlceKodu": 11005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 11,
+    "Ad": "Pazaryeri",
+    "IlceKodu": 11006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 11,
+    "Ad": "Söğüt",
+    "IlceKodu": 11007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 11,
+    "Ad": "Yenipazar",
+    "IlceKodu": 11008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 12,
+    "Ad": "Adaklı",
+    "IlceKodu": 12001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 12,
+    "Ad": "Genç",
+    "IlceKodu": 12002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 12,
+    "Ad": "Karlıova",
+    "IlceKodu": 12003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 12,
+    "Ad": "Kiğı",
+    "IlceKodu": 12004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 12,
+    "Ad": "Merkez",
+    "IlceKodu": 12005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 12,
+    "Ad": "Solhan",
+    "IlceKodu": 12006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 12,
+    "Ad": "Yayladere",
+    "IlceKodu": 12007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 12,
+    "Ad": "Yedisu",
+    "IlceKodu": 12008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 13,
+    "Ad": "Adilcevaz",
+    "IlceKodu": 13001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 13,
+    "Ad": "Ahlat",
+    "IlceKodu": 13002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 13,
+    "Ad": "Güroymak",
+    "IlceKodu": 13003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 13,
+    "Ad": "Hizan",
+    "IlceKodu": 13004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 13,
+    "Ad": "Merkez",
+    "IlceKodu": 13005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 13,
+    "Ad": "Mutki",
+    "IlceKodu": 13006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 13,
+    "Ad": "Tatvan",
+    "IlceKodu": 13007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 14,
+    "Ad": "Dörtdivan",
+    "IlceKodu": 14001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 14,
+    "Ad": "Gerede",
+    "IlceKodu": 14002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 14,
+    "Ad": "Göynük",
+    "IlceKodu": 14003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 14,
+    "Ad": "Kıbrıscık",
+    "IlceKodu": 14004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 14,
+    "Ad": "Mengen",
+    "IlceKodu": 14005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 14,
+    "Ad": "Merkez",
+    "IlceKodu": 14006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 14,
+    "Ad": "Mudurnu",
+    "IlceKodu": 14007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 14,
+    "Ad": "Seben",
+    "IlceKodu": 14008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 14,
+    "Ad": "Yeniçağa",
+    "IlceKodu": 14009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 15,
+    "Ad": "Ağlasun",
+    "IlceKodu": 15001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 15,
+    "Ad": "Altınyayla",
+    "IlceKodu": 15002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 15,
+    "Ad": "Bucak",
+    "IlceKodu": 15003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 15,
+    "Ad": "Çavdır",
+    "IlceKodu": 15004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 15,
+    "Ad": "Çeltikçi",
+    "IlceKodu": 15005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 15,
+    "Ad": "Gölhisar",
+    "IlceKodu": 15006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 15,
+    "Ad": "Karamanlı",
+    "IlceKodu": 15007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 15,
+    "Ad": "Kemer",
+    "IlceKodu": 15008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 15,
+    "Ad": "Merkez",
+    "IlceKodu": 15009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 15,
+    "Ad": "Tefenni",
+    "IlceKodu": 15010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 15,
+    "Ad": "Yeşilova",
+    "IlceKodu": 15011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 16,
+    "Ad": "Büyükorhan",
+    "IlceKodu": 16001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 16,
+    "Ad": "Gemlik",
+    "IlceKodu": 16002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 16,
+    "Ad": "Gürsu",
+    "IlceKodu": 16003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 16,
+    "Ad": "Harmancık",
+    "IlceKodu": 16004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 16,
+    "Ad": "İnegöl",
+    "IlceKodu": 16005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 16,
+    "Ad": "İznik",
+    "IlceKodu": 16006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 16,
+    "Ad": "Karacabey",
+    "IlceKodu": 16007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 16,
+    "Ad": "Keles",
+    "IlceKodu": 16008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 16,
+    "Ad": "Kestel",
+    "IlceKodu": 16009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 16,
+    "Ad": "Mudanya",
+    "IlceKodu": 16010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 16,
+    "Ad": "Mustafakemalpaşa",
+    "IlceKodu": 16011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 16,
+    "Ad": "Nilüfer",
+    "IlceKodu": 16012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 16,
+    "Ad": "Orhaneli",
+    "IlceKodu": 16013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 16,
+    "Ad": "Orhangazi",
+    "IlceKodu": 16014,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 16,
+    "Ad": "Osmangazi",
+    "IlceKodu": 16015,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 16,
+    "Ad": "Yenişehir",
+    "IlceKodu": 16016,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 16,
+    "Ad": "Yıldırım",
+    "IlceKodu": 16017,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 17,
+    "Ad": "Ayvacık",
+    "IlceKodu": 17001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 17,
+    "Ad": "Bayramiç",
+    "IlceKodu": 17002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 17,
+    "Ad": "Biga",
+    "IlceKodu": 17003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 17,
+    "Ad": "Bozcaada",
+    "IlceKodu": 17004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 17,
+    "Ad": "Çan",
+    "IlceKodu": 17005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 17,
+    "Ad": "Eceabat",
+    "IlceKodu": 17006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 17,
+    "Ad": "Ezine",
+    "IlceKodu": 17007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 17,
+    "Ad": "Gelibolu",
+    "IlceKodu": 17008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 17,
+    "Ad": "Gökçeada",
+    "IlceKodu": 17009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 17,
+    "Ad": "Lapseki",
+    "IlceKodu": 17010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 17,
+    "Ad": "Merkez",
+    "IlceKodu": 17011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 17,
+    "Ad": "Yenice",
+    "IlceKodu": 17012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 18,
+    "Ad": "Atkaracalar",
+    "IlceKodu": 18001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 18,
+    "Ad": "Bayramören",
+    "IlceKodu": 18002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 18,
+    "Ad": "Çerkeş",
+    "IlceKodu": 18003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 18,
+    "Ad": "Eldivan",
+    "IlceKodu": 18004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 18,
+    "Ad": "Ilgaz",
+    "IlceKodu": 18005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 18,
+    "Ad": "Kızılırmak",
+    "IlceKodu": 18006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 18,
+    "Ad": "Korgun",
+    "IlceKodu": 18007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 18,
+    "Ad": "Kurşunlu",
+    "IlceKodu": 18008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 18,
+    "Ad": "Merkez",
+    "IlceKodu": 18009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 18,
+    "Ad": "Orta",
+    "IlceKodu": 18010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 18,
+    "Ad": "Şabanözü",
+    "IlceKodu": 18011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 18,
+    "Ad": "Yapraklı",
+    "IlceKodu": 18012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 19,
+    "Ad": "Alaca",
+    "IlceKodu": 19001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 19,
+    "Ad": "Bayat",
+    "IlceKodu": 19002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 19,
+    "Ad": "Boğazkale",
+    "IlceKodu": 19003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 19,
+    "Ad": "Dodurga",
+    "IlceKodu": 19004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 19,
+    "Ad": "İskilip",
+    "IlceKodu": 19005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 19,
+    "Ad": "Kargı",
+    "IlceKodu": 19006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 19,
+    "Ad": "Laçin",
+    "IlceKodu": 19007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 19,
+    "Ad": "Mecitözü",
+    "IlceKodu": 19008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 19,
+    "Ad": "Merkez",
+    "IlceKodu": 19009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 19,
+    "Ad": "Oğuzlar",
+    "IlceKodu": 19010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 19,
+    "Ad": "Ortaköy",
+    "IlceKodu": 19011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 19,
+    "Ad": "Osmancık",
+    "IlceKodu": 19012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 19,
+    "Ad": "Sungurlu",
+    "IlceKodu": 19013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 19,
+    "Ad": "Uğurludağ",
+    "IlceKodu": 19014,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 20,
+    "Ad": "Acıpayam",
+    "IlceKodu": 20001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 20,
+    "Ad": "Babadağ",
+    "IlceKodu": 20002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 20,
+    "Ad": "Baklan",
+    "IlceKodu": 20003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 20,
+    "Ad": "Bekilli",
+    "IlceKodu": 20004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 20,
+    "Ad": "Beyağaç",
+    "IlceKodu": 20005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 20,
+    "Ad": "Bozkurt",
+    "IlceKodu": 20006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 20,
+    "Ad": "Buldan",
+    "IlceKodu": 20007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 20,
+    "Ad": "Çal",
+    "IlceKodu": 20008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 20,
+    "Ad": "Çameli",
+    "IlceKodu": 20009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 20,
+    "Ad": "Çardak",
+    "IlceKodu": 20010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 20,
+    "Ad": "Çivril",
+    "IlceKodu": 20011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 20,
+    "Ad": "Güney",
+    "IlceKodu": 20012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 20,
+    "Ad": "Honaz",
+    "IlceKodu": 20013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 20,
+    "Ad": "Kale",
+    "IlceKodu": 20014,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 20,
+    "Ad": "Merkezefendi",
+    "IlceKodu": 20015,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 20,
+    "Ad": "Pamukkale",
+    "IlceKodu": 20016,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 20,
+    "Ad": "Sarayköy",
+    "IlceKodu": 20017,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 20,
+    "Ad": "Serinhisar",
+    "IlceKodu": 20018,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 20,
+    "Ad": "Tavas",
+    "IlceKodu": 20019,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 21,
+    "Ad": "Bağlar",
+    "IlceKodu": 21001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 21,
+    "Ad": "Bismil",
+    "IlceKodu": 21002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 21,
+    "Ad": "Çermik",
+    "IlceKodu": 21003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 21,
+    "Ad": "Çınar",
+    "IlceKodu": 21004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 21,
+    "Ad": "Çüngüş",
+    "IlceKodu": 21005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 21,
+    "Ad": "Dicle",
+    "IlceKodu": 21006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 21,
+    "Ad": "Eğil",
+    "IlceKodu": 21007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 21,
+    "Ad": "Ergani",
+    "IlceKodu": 21008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 21,
+    "Ad": "Hani",
+    "IlceKodu": 21009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 21,
+    "Ad": "Hazro",
+    "IlceKodu": 21010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 21,
+    "Ad": "Kayapınar",
+    "IlceKodu": 21011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 21,
+    "Ad": "Kocaköy",
+    "IlceKodu": 21012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 21,
+    "Ad": "Kulp",
+    "IlceKodu": 21013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 21,
+    "Ad": "Lice",
+    "IlceKodu": 21014,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 21,
+    "Ad": "Silvan",
+    "IlceKodu": 21015,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 21,
+    "Ad": "Sur",
+    "IlceKodu": 21016,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 21,
+    "Ad": "Yenişehir",
+    "IlceKodu": 21017,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 22,
+    "Ad": "Enez",
+    "IlceKodu": 22001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 22,
+    "Ad": "Havsa",
+    "IlceKodu": 22002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 22,
+    "Ad": "İpsala",
+    "IlceKodu": 22003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 22,
+    "Ad": "Keşan",
+    "IlceKodu": 22004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 22,
+    "Ad": "Lalapaşa",
+    "IlceKodu": 22005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 22,
+    "Ad": "Meriç",
+    "IlceKodu": 22006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 22,
+    "Ad": "Merkez",
+    "IlceKodu": 22007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 22,
+    "Ad": "Süloğlu",
+    "IlceKodu": 22008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 22,
+    "Ad": "Uzunköprü",
+    "IlceKodu": 22009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 23,
+    "Ad": "Ağın",
+    "IlceKodu": 23001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 23,
+    "Ad": "Alacakaya",
+    "IlceKodu": 23002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 23,
+    "Ad": "Arıcak",
+    "IlceKodu": 23003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 23,
+    "Ad": "Baskil",
+    "IlceKodu": 23004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 23,
+    "Ad": "Karakoçan",
+    "IlceKodu": 23005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 23,
+    "Ad": "Keban",
+    "IlceKodu": 23006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 23,
+    "Ad": "Kovancılar",
+    "IlceKodu": 23007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 23,
+    "Ad": "Maden",
+    "IlceKodu": 23008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 23,
+    "Ad": "Merkez",
+    "IlceKodu": 23009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 23,
+    "Ad": "Palu",
+    "IlceKodu": 23010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 23,
+    "Ad": "Sivrice",
+    "IlceKodu": 23011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 24,
+    "Ad": "Çayırlı",
+    "IlceKodu": 24001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 24,
+    "Ad": "İliç",
+    "IlceKodu": 24002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 24,
+    "Ad": "Kemah",
+    "IlceKodu": 24003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 24,
+    "Ad": "Kemaliye",
+    "IlceKodu": 24004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 24,
+    "Ad": "Merkez",
+    "IlceKodu": 24005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 24,
+    "Ad": "Otlukbeli",
+    "IlceKodu": 24006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 24,
+    "Ad": "Refahiye",
+    "IlceKodu": 24007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 24,
+    "Ad": "Tercan",
+    "IlceKodu": 24008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 24,
+    "Ad": "Üzümlü",
+    "IlceKodu": 24009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 25,
+    "Ad": "Aşkale",
+    "IlceKodu": 25001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 25,
+    "Ad": "Aziziye",
+    "IlceKodu": 25002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 25,
+    "Ad": "Çat",
+    "IlceKodu": 25003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 25,
+    "Ad": "Hınıs",
+    "IlceKodu": 25004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 25,
+    "Ad": "Horasan",
+    "IlceKodu": 25005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 25,
+    "Ad": "İspir",
+    "IlceKodu": 25006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 25,
+    "Ad": "Karaçoban",
+    "IlceKodu": 25007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 25,
+    "Ad": "Karayazı",
+    "IlceKodu": 25008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 25,
+    "Ad": "Köprüköy",
+    "IlceKodu": 25009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 25,
+    "Ad": "Narman",
+    "IlceKodu": 25010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 25,
+    "Ad": "Oltu",
+    "IlceKodu": 25011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 25,
+    "Ad": "Olur",
+    "IlceKodu": 25012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 25,
+    "Ad": "Palandöken",
+    "IlceKodu": 25013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 25,
+    "Ad": "Pasinler",
+    "IlceKodu": 25014,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 25,
+    "Ad": "Pazaryolu",
+    "IlceKodu": 25015,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 25,
+    "Ad": "Şenkaya",
+    "IlceKodu": 25016,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 25,
+    "Ad": "Tekman",
+    "IlceKodu": 25017,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 25,
+    "Ad": "Tortum",
+    "IlceKodu": 25018,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 25,
+    "Ad": "Uzundere",
+    "IlceKodu": 25019,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 25,
+    "Ad": "Yakutiye",
+    "IlceKodu": 25020,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 26,
+    "Ad": "Alpu",
+    "IlceKodu": 26001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 26,
+    "Ad": "Beylikova",
+    "IlceKodu": 26002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 26,
+    "Ad": "Çifteler",
+    "IlceKodu": 26003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 26,
+    "Ad": "Günyüzü",
+    "IlceKodu": 26004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 26,
+    "Ad": "Han",
+    "IlceKodu": 26005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 26,
+    "Ad": "İnönü",
+    "IlceKodu": 26006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 26,
+    "Ad": "Mahmudiye",
+    "IlceKodu": 26007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 26,
+    "Ad": "Mihalgazi",
+    "IlceKodu": 26008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 26,
+    "Ad": "Mihalıççık",
+    "IlceKodu": 26009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 26,
+    "Ad": "Odunpazarı",
+    "IlceKodu": 26010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 26,
+    "Ad": "Sarıcakaya",
+    "IlceKodu": 26011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 26,
+    "Ad": "Seyitgazi",
+    "IlceKodu": 26012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 26,
+    "Ad": "Sivrihisar",
+    "IlceKodu": 26013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 26,
+    "Ad": "Tepebaşı",
+    "IlceKodu": 26014,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 27,
+    "Ad": "Araban",
+    "IlceKodu": 27001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 27,
+    "Ad": "İslahiye",
+    "IlceKodu": 27002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 27,
+    "Ad": "Karkamış",
+    "IlceKodu": 27003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 27,
+    "Ad": "Nizip",
+    "IlceKodu": 27004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 27,
+    "Ad": "Nurdağı",
+    "IlceKodu": 27005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 27,
+    "Ad": "Oğuzeli",
+    "IlceKodu": 27006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 27,
+    "Ad": "Şahinbey",
+    "IlceKodu": 27007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 27,
+    "Ad": "Şehitkamil",
+    "IlceKodu": 27008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 27,
+    "Ad": "Yavuzeli",
+    "IlceKodu": 27009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 28,
+    "Ad": "Alucra",
+    "IlceKodu": 28001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 28,
+    "Ad": "Bulancak",
+    "IlceKodu": 28002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 28,
+    "Ad": "Çamoluk",
+    "IlceKodu": 28003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 28,
+    "Ad": "Çanakçı",
+    "IlceKodu": 28004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 28,
+    "Ad": "Dereli",
+    "IlceKodu": 28005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 28,
+    "Ad": "Doğankent",
+    "IlceKodu": 28006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 28,
+    "Ad": "Espiye",
+    "IlceKodu": 28007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 28,
+    "Ad": "Eynesil",
+    "IlceKodu": 28008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 28,
+    "Ad": "Görele",
+    "IlceKodu": 28009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 28,
+    "Ad": "Güce",
+    "IlceKodu": 28010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 28,
+    "Ad": "Keşap",
+    "IlceKodu": 28011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 28,
+    "Ad": "Merkez",
+    "IlceKodu": 28012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 28,
+    "Ad": "Piraziz",
+    "IlceKodu": 28013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 28,
+    "Ad": "Şebinkarahisar",
+    "IlceKodu": 28014,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 28,
+    "Ad": "Tirebolu",
+    "IlceKodu": 28015,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 28,
+    "Ad": "Yağlıdere",
+    "IlceKodu": 28016,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 29,
+    "Ad": "Kelkit",
+    "IlceKodu": 29001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 29,
+    "Ad": "Köse",
+    "IlceKodu": 29002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 29,
+    "Ad": "Kürtün",
+    "IlceKodu": 29003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 29,
+    "Ad": "Merkez",
+    "IlceKodu": 29004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 29,
+    "Ad": "Şiran",
+    "IlceKodu": 29005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 29,
+    "Ad": "Torul",
+    "IlceKodu": 29006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 30,
+    "Ad": "Çukurca",
+    "IlceKodu": 30001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 30,
+    "Ad": "Derecik",
+    "IlceKodu": 30002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 30,
+    "Ad": "Merkez",
+    "IlceKodu": 30003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 30,
+    "Ad": "Şemdinli",
+    "IlceKodu": 30004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 30,
+    "Ad": "Yüksekova",
+    "IlceKodu": 30005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 31,
+    "Ad": "Altınözü",
+    "IlceKodu": 31001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 31,
+    "Ad": "Antakya",
+    "IlceKodu": 31002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 31,
+    "Ad": "Arsuz",
+    "IlceKodu": 31003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 31,
+    "Ad": "Belen",
+    "IlceKodu": 31004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 31,
+    "Ad": "Defne",
+    "IlceKodu": 31005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 31,
+    "Ad": "Dörtyol",
+    "IlceKodu": 31006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 31,
+    "Ad": "Erzin",
+    "IlceKodu": 31007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 31,
+    "Ad": "Hassa",
+    "IlceKodu": 31008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 31,
+    "Ad": "İskenderun",
+    "IlceKodu": 31009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 31,
+    "Ad": "Kırıkhan",
+    "IlceKodu": 31010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 31,
+    "Ad": "Kumlu",
+    "IlceKodu": 31011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 31,
+    "Ad": "Payas",
+    "IlceKodu": 31012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 31,
+    "Ad": "Reyhanlı",
+    "IlceKodu": 31013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 31,
+    "Ad": "Samandağ",
+    "IlceKodu": 31014,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 31,
+    "Ad": "Yayladağı",
+    "IlceKodu": 31015,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 32,
+    "Ad": "Aksu",
+    "IlceKodu": 32001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 32,
+    "Ad": "Atabey",
+    "IlceKodu": 32002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 32,
+    "Ad": "Eğirdir",
+    "IlceKodu": 32003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 32,
+    "Ad": "Gelendost",
+    "IlceKodu": 32004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 32,
+    "Ad": "Gönen",
+    "IlceKodu": 32005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 32,
+    "Ad": "Keçiborlu",
+    "IlceKodu": 32006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 32,
+    "Ad": "Merkez",
+    "IlceKodu": 32007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 32,
+    "Ad": "Senirkent",
+    "IlceKodu": 32008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 32,
+    "Ad": "Sütçüler",
+    "IlceKodu": 32009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 32,
+    "Ad": "Şarkikaraağaç",
+    "IlceKodu": 32010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 32,
+    "Ad": "Uluborlu",
+    "IlceKodu": 32011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 32,
+    "Ad": "Yalvaç",
+    "IlceKodu": 32012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 32,
+    "Ad": "Yenişarbademli",
+    "IlceKodu": 32013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 33,
+    "Ad": "Akdeniz",
+    "IlceKodu": 33001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 33,
+    "Ad": "Anamur",
+    "IlceKodu": 33002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 33,
+    "Ad": "Aydıncık",
+    "IlceKodu": 33003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 33,
+    "Ad": "Bozyazı",
+    "IlceKodu": 33004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 33,
+    "Ad": "Çamlıyayla",
+    "IlceKodu": 33005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 33,
+    "Ad": "Erdemli",
+    "IlceKodu": 33006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 33,
+    "Ad": "Gülnar",
+    "IlceKodu": 33007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 33,
+    "Ad": "Mezitli",
+    "IlceKodu": 33008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 33,
+    "Ad": "Mut",
+    "IlceKodu": 33009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 33,
+    "Ad": "Silifke",
+    "IlceKodu": 33010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 33,
+    "Ad": "Tarsus",
+    "IlceKodu": 33011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 33,
+    "Ad": "Toroslar",
+    "IlceKodu": 33012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 33,
+    "Ad": "Yenişehir",
+    "IlceKodu": 33013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Adalar",
+    "IlceKodu": 34001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Arnavutköy",
+    "IlceKodu": 34002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Ataşehir",
+    "IlceKodu": 34003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Avcılar",
+    "IlceKodu": 34004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Bağcılar",
+    "IlceKodu": 34005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Bahçelievler",
+    "IlceKodu": 34006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Bakırköy",
+    "IlceKodu": 34007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Başakşehir",
+    "IlceKodu": 34008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Bayrampaşa",
+    "IlceKodu": 34009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Beşiktaş",
+    "IlceKodu": 34010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Beykoz",
+    "IlceKodu": 34011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Beylikdüzü",
+    "IlceKodu": 34012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Beyoğlu",
+    "IlceKodu": 34013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Büyükçekmece",
+    "IlceKodu": 34014,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Çatalca",
+    "IlceKodu": 34015,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Çekmeköy",
+    "IlceKodu": 34016,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Esenler",
+    "IlceKodu": 34017,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Esenyurt",
+    "IlceKodu": 34018,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Eyüpsultan",
+    "IlceKodu": 34019,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Fatih",
+    "IlceKodu": 34020,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Gaziosmanpaşa",
+    "IlceKodu": 34021,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Güngören",
+    "IlceKodu": 34022,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Kadıköy",
+    "IlceKodu": 34023,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Kağıthane",
+    "IlceKodu": 34024,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Kartal",
+    "IlceKodu": 34025,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Küçükçekmece",
+    "IlceKodu": 34026,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Maltepe",
+    "IlceKodu": 34027,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Pendik",
+    "IlceKodu": 34028,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Sancaktepe",
+    "IlceKodu": 34029,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Sarıyer",
+    "IlceKodu": 34030,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Silivri",
+    "IlceKodu": 34031,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Sultanbeyli",
+    "IlceKodu": 34032,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Sultangazi",
+    "IlceKodu": 34033,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Şile",
+    "IlceKodu": 34034,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Şişli",
+    "IlceKodu": 34035,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Tuzla",
+    "IlceKodu": 34036,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Ümraniye",
+    "IlceKodu": 34037,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Üsküdar",
+    "IlceKodu": 34038,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 34,
+    "Ad": "Zeytinburnu",
+    "IlceKodu": 34039,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Aliağa",
+    "IlceKodu": 35001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Balçova",
+    "IlceKodu": 35002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Bayındır",
+    "IlceKodu": 35003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Bayraklı",
+    "IlceKodu": 35004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Bergama",
+    "IlceKodu": 35005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Beydağ",
+    "IlceKodu": 35006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Bornova",
+    "IlceKodu": 35007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Buca",
+    "IlceKodu": 35008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Çeşme",
+    "IlceKodu": 35009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Çiğli",
+    "IlceKodu": 35010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Dikili",
+    "IlceKodu": 35011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Foça",
+    "IlceKodu": 35012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Gaziemir",
+    "IlceKodu": 35013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Güzelbahçe",
+    "IlceKodu": 35014,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Karabağlar",
+    "IlceKodu": 35015,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Karaburun",
+    "IlceKodu": 35016,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Karşıyaka",
+    "IlceKodu": 35017,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Kemalpaşa",
+    "IlceKodu": 35018,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Kınık",
+    "IlceKodu": 35019,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Kiraz",
+    "IlceKodu": 35020,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Konak",
+    "IlceKodu": 35021,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Menderes",
+    "IlceKodu": 35022,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Menemen",
+    "IlceKodu": 35023,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Narlıdere",
+    "IlceKodu": 35024,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Ödemiş",
+    "IlceKodu": 35025,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Seferihisar",
+    "IlceKodu": 35026,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Selçuk",
+    "IlceKodu": 35027,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Tire",
+    "IlceKodu": 35028,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Torbalı",
+    "IlceKodu": 35029,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 35,
+    "Ad": "Urla",
+    "IlceKodu": 35030,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 36,
+    "Ad": "Akyaka",
+    "IlceKodu": 36001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 36,
+    "Ad": "Arpaçay",
+    "IlceKodu": 36002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 36,
+    "Ad": "Digor",
+    "IlceKodu": 36003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 36,
+    "Ad": "Kağızman",
+    "IlceKodu": 36004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 36,
+    "Ad": "Merkez",
+    "IlceKodu": 36005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 36,
+    "Ad": "Sarıkamış",
+    "IlceKodu": 36006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 36,
+    "Ad": "Selim",
+    "IlceKodu": 36007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 36,
+    "Ad": "Susuz",
+    "IlceKodu": 36008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 37,
+    "Ad": "Abana",
+    "IlceKodu": 37001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 37,
+    "Ad": "Ağlı",
+    "IlceKodu": 37002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 37,
+    "Ad": "Araç",
+    "IlceKodu": 37003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 37,
+    "Ad": "Azdavay",
+    "IlceKodu": 37004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 37,
+    "Ad": "Bozkurt",
+    "IlceKodu": 37005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 37,
+    "Ad": "Cide",
+    "IlceKodu": 37006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 37,
+    "Ad": "Çatalzeytin",
+    "IlceKodu": 37007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 37,
+    "Ad": "Daday",
+    "IlceKodu": 37008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 37,
+    "Ad": "Devrekani",
+    "IlceKodu": 37009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 37,
+    "Ad": "Doğanyurt",
+    "IlceKodu": 37010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 37,
+    "Ad": "Hanönü",
+    "IlceKodu": 37011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 37,
+    "Ad": "İhsangazi",
+    "IlceKodu": 37012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 37,
+    "Ad": "İnebolu",
+    "IlceKodu": 37013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 37,
+    "Ad": "Küre",
+    "IlceKodu": 37014,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 37,
+    "Ad": "Merkez",
+    "IlceKodu": 37015,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 37,
+    "Ad": "Pınarbaşı",
+    "IlceKodu": 37016,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 37,
+    "Ad": "Seydiler",
+    "IlceKodu": 37017,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 37,
+    "Ad": "Şenpazar",
+    "IlceKodu": 37018,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 37,
+    "Ad": "Taşköprü",
+    "IlceKodu": 37019,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 37,
+    "Ad": "Tosya",
+    "IlceKodu": 37020,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 38,
+    "Ad": "Akkışla",
+    "IlceKodu": 38001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 38,
+    "Ad": "Bünyan",
+    "IlceKodu": 38002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 38,
+    "Ad": "Develi",
+    "IlceKodu": 38003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 38,
+    "Ad": "Felahiye",
+    "IlceKodu": 38004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 38,
+    "Ad": "Hacılar",
+    "IlceKodu": 38005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 38,
+    "Ad": "İncesu",
+    "IlceKodu": 38006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 38,
+    "Ad": "Kocasinan",
+    "IlceKodu": 38007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 38,
+    "Ad": "Melikgazi",
+    "IlceKodu": 38008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 38,
+    "Ad": "Özvatan",
+    "IlceKodu": 38009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 38,
+    "Ad": "Pınarbaşı",
+    "IlceKodu": 38010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 38,
+    "Ad": "Sarıoğlan",
+    "IlceKodu": 38011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 38,
+    "Ad": "Sarız",
+    "IlceKodu": 38012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 38,
+    "Ad": "Talas",
+    "IlceKodu": 38013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 38,
+    "Ad": "Tomarza",
+    "IlceKodu": 38014,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 38,
+    "Ad": "Yahyalı",
+    "IlceKodu": 38015,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 38,
+    "Ad": "Yeşilhisar",
+    "IlceKodu": 38016,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 39,
+    "Ad": "Babaeski",
+    "IlceKodu": 39001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 39,
+    "Ad": "Demirköy",
+    "IlceKodu": 39002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 39,
+    "Ad": "Kofçaz",
+    "IlceKodu": 39003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 39,
+    "Ad": "Lüleburgaz",
+    "IlceKodu": 39004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 39,
+    "Ad": "Merkez",
+    "IlceKodu": 39005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 39,
+    "Ad": "Pehlivanköy",
+    "IlceKodu": 39006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 39,
+    "Ad": "Pınarhisar",
+    "IlceKodu": 39007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 39,
+    "Ad": "Vize",
+    "IlceKodu": 39008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 40,
+    "Ad": "Akçakent",
+    "IlceKodu": 40001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 40,
+    "Ad": "Akpınar",
+    "IlceKodu": 40002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 40,
+    "Ad": "Boztepe",
+    "IlceKodu": 40003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 40,
+    "Ad": "Çiçekdağı",
+    "IlceKodu": 40004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 40,
+    "Ad": "Kaman",
+    "IlceKodu": 40005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 40,
+    "Ad": "Merkez",
+    "IlceKodu": 40006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 40,
+    "Ad": "Mucur",
+    "IlceKodu": 40007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 41,
+    "Ad": "Başiskele",
+    "IlceKodu": 41001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 41,
+    "Ad": "Çayırova",
+    "IlceKodu": 41002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 41,
+    "Ad": "Darıca",
+    "IlceKodu": 41003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 41,
+    "Ad": "Derince",
+    "IlceKodu": 41004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 41,
+    "Ad": "Dilovası",
+    "IlceKodu": 41005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 41,
+    "Ad": "Gebze",
+    "IlceKodu": 41006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 41,
+    "Ad": "Gölcük",
+    "IlceKodu": 41007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 41,
+    "Ad": "İzmit",
+    "IlceKodu": 41008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 41,
+    "Ad": "Kandıra",
+    "IlceKodu": 41009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 41,
+    "Ad": "Karamürsel",
+    "IlceKodu": 41010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 41,
+    "Ad": "Kartepe",
+    "IlceKodu": 41011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 41,
+    "Ad": "Körfez",
+    "IlceKodu": 41012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Ahırlı",
+    "IlceKodu": 42001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Akören",
+    "IlceKodu": 42002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Akşehir",
+    "IlceKodu": 42003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Altınekin",
+    "IlceKodu": 42004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Beyşehir",
+    "IlceKodu": 42005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Bozkır",
+    "IlceKodu": 42006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Cihanbeyli",
+    "IlceKodu": 42007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Çeltik",
+    "IlceKodu": 42008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Çumra",
+    "IlceKodu": 42009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Derbent",
+    "IlceKodu": 42010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Derebucak",
+    "IlceKodu": 42011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Doğanhisar",
+    "IlceKodu": 42012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Emirgazi",
+    "IlceKodu": 42013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Ereğli",
+    "IlceKodu": 42014,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Güneysınır",
+    "IlceKodu": 42015,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Hadim",
+    "IlceKodu": 42016,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Halkapınar",
+    "IlceKodu": 42017,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Hüyük",
+    "IlceKodu": 42018,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Ilgın",
+    "IlceKodu": 42019,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Kadınhanı",
+    "IlceKodu": 42020,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Karapınar",
+    "IlceKodu": 42021,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Karatay",
+    "IlceKodu": 42022,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Kulu",
+    "IlceKodu": 42023,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Meram",
+    "IlceKodu": 42024,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Sarayönü",
+    "IlceKodu": 42025,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Selçuklu",
+    "IlceKodu": 42026,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Seydişehir",
+    "IlceKodu": 42027,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Taşkent",
+    "IlceKodu": 42028,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Tuzlukçu",
+    "IlceKodu": 42029,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Yalıhüyük",
+    "IlceKodu": 42030,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 42,
+    "Ad": "Yunak",
+    "IlceKodu": 42031,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 43,
+    "Ad": "Altıntaş",
+    "IlceKodu": 43001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 43,
+    "Ad": "Aslanapa",
+    "IlceKodu": 43002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 43,
+    "Ad": "Çavdarhisar",
+    "IlceKodu": 43003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 43,
+    "Ad": "Domaniç",
+    "IlceKodu": 43004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 43,
+    "Ad": "Dumlupınar",
+    "IlceKodu": 43005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 43,
+    "Ad": "Emet",
+    "IlceKodu": 43006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 43,
+    "Ad": "Gediz",
+    "IlceKodu": 43007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 43,
+    "Ad": "Hisarcık",
+    "IlceKodu": 43008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 43,
+    "Ad": "Merkez",
+    "IlceKodu": 43009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 43,
+    "Ad": "Pazarlar",
+    "IlceKodu": 43010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 43,
+    "Ad": "Simav",
+    "IlceKodu": 43011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 43,
+    "Ad": "Şaphane",
+    "IlceKodu": 43012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 43,
+    "Ad": "Tavşanlı",
+    "IlceKodu": 43013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 44,
+    "Ad": "Akçadağ",
+    "IlceKodu": 44001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 44,
+    "Ad": "Arapgir",
+    "IlceKodu": 44002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 44,
+    "Ad": "Arguvan",
+    "IlceKodu": 44003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 44,
+    "Ad": "Battalgazi",
+    "IlceKodu": 44004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 44,
+    "Ad": "Darende",
+    "IlceKodu": 44005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 44,
+    "Ad": "Doğanşehir",
+    "IlceKodu": 44006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 44,
+    "Ad": "Doğanyol",
+    "IlceKodu": 44007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 44,
+    "Ad": "Hekimhan",
+    "IlceKodu": 44008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 44,
+    "Ad": "Kale",
+    "IlceKodu": 44009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 44,
+    "Ad": "Kuluncak",
+    "IlceKodu": 44010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 44,
+    "Ad": "Pütürge",
+    "IlceKodu": 44011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 44,
+    "Ad": "Yazıhan",
+    "IlceKodu": 44012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 44,
+    "Ad": "Yeşilyurt",
+    "IlceKodu": 44013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 45,
+    "Ad": "Ahmetli",
+    "IlceKodu": 45001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 45,
+    "Ad": "Akhisar",
+    "IlceKodu": 45002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 45,
+    "Ad": "Alaşehir",
+    "IlceKodu": 45003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 45,
+    "Ad": "Demirci",
+    "IlceKodu": 45004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 45,
+    "Ad": "Gölmarmara",
+    "IlceKodu": 45005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 45,
+    "Ad": "Gördes",
+    "IlceKodu": 45006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 45,
+    "Ad": "Kırkağaç",
+    "IlceKodu": 45007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 45,
+    "Ad": "Köprübaşı",
+    "IlceKodu": 45008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 45,
+    "Ad": "Kula",
+    "IlceKodu": 45009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 45,
+    "Ad": "Salihli",
+    "IlceKodu": 45010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 45,
+    "Ad": "Sarıgöl",
+    "IlceKodu": 45011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 45,
+    "Ad": "Saruhanlı",
+    "IlceKodu": 45012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 45,
+    "Ad": "Selendi",
+    "IlceKodu": 45013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 45,
+    "Ad": "Soma",
+    "IlceKodu": 45014,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 45,
+    "Ad": "Şehzadeler",
+    "IlceKodu": 45015,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 45,
+    "Ad": "Turgutlu",
+    "IlceKodu": 45016,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 45,
+    "Ad": "Yunusemre",
+    "IlceKodu": 45017,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 46,
+    "Ad": "Afşin",
+    "IlceKodu": 46001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 46,
+    "Ad": "Andırın",
+    "IlceKodu": 46002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 46,
+    "Ad": "Çağlayancerit",
+    "IlceKodu": 46003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 46,
+    "Ad": "Dulkadiroğlu",
+    "IlceKodu": 46004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 46,
+    "Ad": "Ekinözü",
+    "IlceKodu": 46005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 46,
+    "Ad": "Elbistan",
+    "IlceKodu": 46006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 46,
+    "Ad": "Göksun",
+    "IlceKodu": 46007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 46,
+    "Ad": "Nurhak",
+    "IlceKodu": 46008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 46,
+    "Ad": "Onikişubat",
+    "IlceKodu": 46009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 46,
+    "Ad": "Pazarcık",
+    "IlceKodu": 46010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 46,
+    "Ad": "Türkoğlu",
+    "IlceKodu": 46011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 47,
+    "Ad": "Artuklu",
+    "IlceKodu": 47001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 47,
+    "Ad": "Dargeçit",
+    "IlceKodu": 47002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 47,
+    "Ad": "Derik",
+    "IlceKodu": 47003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 47,
+    "Ad": "Kızıltepe",
+    "IlceKodu": 47004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 47,
+    "Ad": "Mazıdağı",
+    "IlceKodu": 47005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 47,
+    "Ad": "Midyat",
+    "IlceKodu": 47006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 47,
+    "Ad": "Nusaybin",
+    "IlceKodu": 47007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 47,
+    "Ad": "Ömerli",
+    "IlceKodu": 47008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 47,
+    "Ad": "Savur",
+    "IlceKodu": 47009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 47,
+    "Ad": "Yeşilli",
+    "IlceKodu": 47010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 48,
+    "Ad": "Bodrum",
+    "IlceKodu": 48001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 48,
+    "Ad": "Dalaman",
+    "IlceKodu": 48002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 48,
+    "Ad": "Datça",
+    "IlceKodu": 48003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 48,
+    "Ad": "Fethiye",
+    "IlceKodu": 48004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 48,
+    "Ad": "Kavaklıdere",
+    "IlceKodu": 48005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 48,
+    "Ad": "Köyceğiz",
+    "IlceKodu": 48006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 48,
+    "Ad": "Marmaris",
+    "IlceKodu": 48007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 48,
+    "Ad": "Menteşe",
+    "IlceKodu": 48008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 48,
+    "Ad": "Milas",
+    "IlceKodu": 48009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 48,
+    "Ad": "Ortaca",
+    "IlceKodu": 48010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 48,
+    "Ad": "Seydikemer",
+    "IlceKodu": 48011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 48,
+    "Ad": "Ula",
+    "IlceKodu": 48012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 48,
+    "Ad": "Yatağan",
+    "IlceKodu": 48013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 49,
+    "Ad": "Bulanık",
+    "IlceKodu": 49001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 49,
+    "Ad": "Hasköy",
+    "IlceKodu": 49002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 49,
+    "Ad": "Korkut",
+    "IlceKodu": 49003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 49,
+    "Ad": "Malazgirt",
+    "IlceKodu": 49004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 49,
+    "Ad": "Merkez",
+    "IlceKodu": 49005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 49,
+    "Ad": "Varto",
+    "IlceKodu": 49006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 50,
+    "Ad": "Acıgöl",
+    "IlceKodu": 50001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 50,
+    "Ad": "Avanos",
+    "IlceKodu": 50002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 50,
+    "Ad": "Derinkuyu",
+    "IlceKodu": 50003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 50,
+    "Ad": "Gülşehir",
+    "IlceKodu": 50004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 50,
+    "Ad": "Hacıbektaş",
+    "IlceKodu": 50005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 50,
+    "Ad": "Kozaklı",
+    "IlceKodu": 50006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 50,
+    "Ad": "Merkez",
+    "IlceKodu": 50007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 50,
+    "Ad": "Ürgüp",
+    "IlceKodu": 50008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 51,
+    "Ad": "Altunhisar",
+    "IlceKodu": 51001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 51,
+    "Ad": "Bor",
+    "IlceKodu": 51002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 51,
+    "Ad": "Çamardı",
+    "IlceKodu": 51003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 51,
+    "Ad": "Çiftlik",
+    "IlceKodu": 51004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 51,
+    "Ad": "Merkez",
+    "IlceKodu": 51005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 51,
+    "Ad": "Ulukışla",
+    "IlceKodu": 51006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 52,
+    "Ad": "Akkuş",
+    "IlceKodu": 52001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 52,
+    "Ad": "Altınordu",
+    "IlceKodu": 52002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 52,
+    "Ad": "Aybastı",
+    "IlceKodu": 52003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 52,
+    "Ad": "Çamaş",
+    "IlceKodu": 52004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 52,
+    "Ad": "Çatalpınar",
+    "IlceKodu": 52005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 52,
+    "Ad": "Çaybaşı",
+    "IlceKodu": 52006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 52,
+    "Ad": "Fatsa",
+    "IlceKodu": 52007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 52,
+    "Ad": "Gölköy",
+    "IlceKodu": 52008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 52,
+    "Ad": "Gülyalı",
+    "IlceKodu": 52009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 52,
+    "Ad": "Gürgentepe",
+    "IlceKodu": 52010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 52,
+    "Ad": "İkizce",
+    "IlceKodu": 52011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 52,
+    "Ad": "Kabadüz",
+    "IlceKodu": 52012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 52,
+    "Ad": "Kabataş",
+    "IlceKodu": 52013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 52,
+    "Ad": "Korgan",
+    "IlceKodu": 52014,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 52,
+    "Ad": "Kumru",
+    "IlceKodu": 52015,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 52,
+    "Ad": "Mesudiye",
+    "IlceKodu": 52016,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 52,
+    "Ad": "Perşembe",
+    "IlceKodu": 52017,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 52,
+    "Ad": "Ulubey",
+    "IlceKodu": 52018,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 52,
+    "Ad": "Ünye",
+    "IlceKodu": 52019,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 53,
+    "Ad": "Ardeşen",
+    "IlceKodu": 53001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 53,
+    "Ad": "Çamlıhemşin",
+    "IlceKodu": 53002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 53,
+    "Ad": "Çayeli",
+    "IlceKodu": 53003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 53,
+    "Ad": "Derepazarı",
+    "IlceKodu": 53004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 53,
+    "Ad": "Fındıklı",
+    "IlceKodu": 53005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 53,
+    "Ad": "Güneysu",
+    "IlceKodu": 53006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 53,
+    "Ad": "Hemşin",
+    "IlceKodu": 53007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 53,
+    "Ad": "İkizdere",
+    "IlceKodu": 53008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 53,
+    "Ad": "İyidere",
+    "IlceKodu": 53009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 53,
+    "Ad": "Kalkandere",
+    "IlceKodu": 53010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 53,
+    "Ad": "Merkez",
+    "IlceKodu": 53011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 53,
+    "Ad": "Pazar",
+    "IlceKodu": 53012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 54,
+    "Ad": "Adapazarı",
+    "IlceKodu": 54001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 54,
+    "Ad": "Akyazı",
+    "IlceKodu": 54002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 54,
+    "Ad": "Arifiye",
+    "IlceKodu": 54003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 54,
+    "Ad": "Erenler",
+    "IlceKodu": 54004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 54,
+    "Ad": "Ferizli",
+    "IlceKodu": 54005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 54,
+    "Ad": "Geyve",
+    "IlceKodu": 54006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 54,
+    "Ad": "Hendek",
+    "IlceKodu": 54007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 54,
+    "Ad": "Karapürçek",
+    "IlceKodu": 54008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 54,
+    "Ad": "Karasu",
+    "IlceKodu": 54009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 54,
+    "Ad": "Kaynarca",
+    "IlceKodu": 54010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 54,
+    "Ad": "Kocaali",
+    "IlceKodu": 54011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 54,
+    "Ad": "Pamukova",
+    "IlceKodu": 54012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 54,
+    "Ad": "Sapanca",
+    "IlceKodu": 54013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 54,
+    "Ad": "Serdivan",
+    "IlceKodu": 54014,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 54,
+    "Ad": "Söğütlü",
+    "IlceKodu": 54015,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 54,
+    "Ad": "Taraklı",
+    "IlceKodu": 54016,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 55,
+    "Ad": "19 Mayıs",
+    "IlceKodu": 55001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 55,
+    "Ad": "Alaçam",
+    "IlceKodu": 55002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 55,
+    "Ad": "Asarcık",
+    "IlceKodu": 55003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 55,
+    "Ad": "Atakum",
+    "IlceKodu": 55004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 55,
+    "Ad": "Ayvacık",
+    "IlceKodu": 55005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 55,
+    "Ad": "Bafra",
+    "IlceKodu": 55006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 55,
+    "Ad": "Canik",
+    "IlceKodu": 55007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 55,
+    "Ad": "Çarşamba",
+    "IlceKodu": 55008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 55,
+    "Ad": "Havza",
+    "IlceKodu": 55009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 55,
+    "Ad": "İlkadım",
+    "IlceKodu": 55010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 55,
+    "Ad": "Kavak",
+    "IlceKodu": 55011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 55,
+    "Ad": "Ladik",
+    "IlceKodu": 55012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 55,
+    "Ad": "Salıpazarı",
+    "IlceKodu": 55013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 55,
+    "Ad": "Tekkeköy",
+    "IlceKodu": 55014,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 55,
+    "Ad": "Terme",
+    "IlceKodu": 55015,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 55,
+    "Ad": "Vezirköprü",
+    "IlceKodu": 55016,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 55,
+    "Ad": "Yakakent",
+    "IlceKodu": 55017,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 56,
+    "Ad": "Baykan",
+    "IlceKodu": 56001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 56,
+    "Ad": "Eruh",
+    "IlceKodu": 56002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 56,
+    "Ad": "Kurtalan",
+    "IlceKodu": 56003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 56,
+    "Ad": "Merkez",
+    "IlceKodu": 56004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 56,
+    "Ad": "Pervari",
+    "IlceKodu": 56005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 56,
+    "Ad": "Şirvan",
+    "IlceKodu": 56006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 56,
+    "Ad": "Tillo",
+    "IlceKodu": 56007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 57,
+    "Ad": "Ayancık",
+    "IlceKodu": 57001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 57,
+    "Ad": "Boyabat",
+    "IlceKodu": 57002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 57,
+    "Ad": "Dikmen",
+    "IlceKodu": 57003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 57,
+    "Ad": "Durağan",
+    "IlceKodu": 57004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 57,
+    "Ad": "Erfelek",
+    "IlceKodu": 57005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 57,
+    "Ad": "Gerze",
+    "IlceKodu": 57006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 57,
+    "Ad": "Merkez",
+    "IlceKodu": 57007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 57,
+    "Ad": "Saraydüzü",
+    "IlceKodu": 57008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 57,
+    "Ad": "Türkeli",
+    "IlceKodu": 57009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 58,
+    "Ad": "Akıncılar",
+    "IlceKodu": 58001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 58,
+    "Ad": "Altınyayla",
+    "IlceKodu": 58002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 58,
+    "Ad": "Divriği",
+    "IlceKodu": 58003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 58,
+    "Ad": "Doğanşar",
+    "IlceKodu": 58004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 58,
+    "Ad": "Gemerek",
+    "IlceKodu": 58005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 58,
+    "Ad": "Gölova",
+    "IlceKodu": 58006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 58,
+    "Ad": "Gürün",
+    "IlceKodu": 58007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 58,
+    "Ad": "Hafik",
+    "IlceKodu": 58008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 58,
+    "Ad": "İmranlı",
+    "IlceKodu": 58009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 58,
+    "Ad": "Kangal",
+    "IlceKodu": 58010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 58,
+    "Ad": "Koyulhisar",
+    "IlceKodu": 58011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 58,
+    "Ad": "Merkez",
+    "IlceKodu": 58012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 58,
+    "Ad": "Suşehri",
+    "IlceKodu": 58013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 58,
+    "Ad": "Şarkışla",
+    "IlceKodu": 58014,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 58,
+    "Ad": "Ulaş",
+    "IlceKodu": 58015,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 58,
+    "Ad": "Yıldızeli",
+    "IlceKodu": 58016,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 58,
+    "Ad": "Zara",
+    "IlceKodu": 58017,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 59,
+    "Ad": "Çerkezköy",
+    "IlceKodu": 59001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 59,
+    "Ad": "Çorlu",
+    "IlceKodu": 59002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 59,
+    "Ad": "Ergene",
+    "IlceKodu": 59003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 59,
+    "Ad": "Hayrabolu",
+    "IlceKodu": 59004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 59,
+    "Ad": "Kapaklı",
+    "IlceKodu": 59005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 59,
+    "Ad": "Malkara",
+    "IlceKodu": 59006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 59,
+    "Ad": "Marmaraereğlisi",
+    "IlceKodu": 59007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 59,
+    "Ad": "Muratlı",
+    "IlceKodu": 59008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 59,
+    "Ad": "Saray",
+    "IlceKodu": 59009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 59,
+    "Ad": "Süleymanpaşa",
+    "IlceKodu": 59010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 59,
+    "Ad": "Şarköy",
+    "IlceKodu": 59011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 60,
+    "Ad": "Almus",
+    "IlceKodu": 60001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 60,
+    "Ad": "Artova",
+    "IlceKodu": 60002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 60,
+    "Ad": "Başçiftlik",
+    "IlceKodu": 60003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 60,
+    "Ad": "Erbaa",
+    "IlceKodu": 60004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 60,
+    "Ad": "Merkez",
+    "IlceKodu": 60005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 60,
+    "Ad": "Niksar",
+    "IlceKodu": 60006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 60,
+    "Ad": "Pazar",
+    "IlceKodu": 60007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 60,
+    "Ad": "Reşadiye",
+    "IlceKodu": 60008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 60,
+    "Ad": "Sulusaray",
+    "IlceKodu": 60009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 60,
+    "Ad": "Turhal",
+    "IlceKodu": 60010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 60,
+    "Ad": "Yeşilyurt",
+    "IlceKodu": 60011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 60,
+    "Ad": "Zile",
+    "IlceKodu": 60012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 61,
+    "Ad": "Akçaabat",
+    "IlceKodu": 61001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 61,
+    "Ad": "Araklı",
+    "IlceKodu": 61002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 61,
+    "Ad": "Arsin",
+    "IlceKodu": 61003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 61,
+    "Ad": "Beşikdüzü",
+    "IlceKodu": 61004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 61,
+    "Ad": "Çarşıbaşı",
+    "IlceKodu": 61005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 61,
+    "Ad": "Çaykara",
+    "IlceKodu": 61006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 61,
+    "Ad": "Dernekpazarı",
+    "IlceKodu": 61007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 61,
+    "Ad": "Düzköy",
+    "IlceKodu": 61008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 61,
+    "Ad": "Hayrat",
+    "IlceKodu": 61009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 61,
+    "Ad": "Köprübaşı",
+    "IlceKodu": 61010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 61,
+    "Ad": "Maçka",
+    "IlceKodu": 61011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 61,
+    "Ad": "Of",
+    "IlceKodu": 61012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 61,
+    "Ad": "Ortahisar",
+    "IlceKodu": 61013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 61,
+    "Ad": "Sürmene",
+    "IlceKodu": 61014,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 61,
+    "Ad": "Şalpazarı",
+    "IlceKodu": 61015,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 61,
+    "Ad": "Tonya",
+    "IlceKodu": 61016,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 61,
+    "Ad": "Vakfıkebir",
+    "IlceKodu": 61017,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 61,
+    "Ad": "Yomra",
+    "IlceKodu": 61018,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 62,
+    "Ad": "Çemişgezek",
+    "IlceKodu": 62001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 62,
+    "Ad": "Hozat",
+    "IlceKodu": 62002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 62,
+    "Ad": "Mazgirt",
+    "IlceKodu": 62003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 62,
+    "Ad": "Merkez",
+    "IlceKodu": 62004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 62,
+    "Ad": "Nazımiye",
+    "IlceKodu": 62005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 62,
+    "Ad": "Ovacık",
+    "IlceKodu": 62006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 62,
+    "Ad": "Pertek",
+    "IlceKodu": 62007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 62,
+    "Ad": "Pülümür",
+    "IlceKodu": 62008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 63,
+    "Ad": "Akçakale",
+    "IlceKodu": 63001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 63,
+    "Ad": "Birecik",
+    "IlceKodu": 63002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 63,
+    "Ad": "Bozova",
+    "IlceKodu": 63003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 63,
+    "Ad": "Ceylanpınar",
+    "IlceKodu": 63004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 63,
+    "Ad": "Eyyübiye",
+    "IlceKodu": 63005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 63,
+    "Ad": "Halfeti",
+    "IlceKodu": 63006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 63,
+    "Ad": "Haliliye",
+    "IlceKodu": 63007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 63,
+    "Ad": "Harran",
+    "IlceKodu": 63008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 63,
+    "Ad": "Hilvan",
+    "IlceKodu": 63009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 63,
+    "Ad": "Karaköprü",
+    "IlceKodu": 63010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 63,
+    "Ad": "Siverek",
+    "IlceKodu": 63011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 63,
+    "Ad": "Suruç",
+    "IlceKodu": 63012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 63,
+    "Ad": "Viranşehir",
+    "IlceKodu": 63013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 64,
+    "Ad": "Banaz",
+    "IlceKodu": 64001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 64,
+    "Ad": "Eşme",
+    "IlceKodu": 64002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 64,
+    "Ad": "Karahallı",
+    "IlceKodu": 64003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 64,
+    "Ad": "Merkez",
+    "IlceKodu": 64004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 64,
+    "Ad": "Sivaslı",
+    "IlceKodu": 64005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 64,
+    "Ad": "Ulubey",
+    "IlceKodu": 64006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 65,
+    "Ad": "Bahçesaray",
+    "IlceKodu": 65001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 65,
+    "Ad": "Başkale",
+    "IlceKodu": 65002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 65,
+    "Ad": "Çaldıran",
+    "IlceKodu": 65003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 65,
+    "Ad": "Çatak",
+    "IlceKodu": 65004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 65,
+    "Ad": "Edremit",
+    "IlceKodu": 65005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 65,
+    "Ad": "Erciş",
+    "IlceKodu": 65006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 65,
+    "Ad": "Gevaş",
+    "IlceKodu": 65007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 65,
+    "Ad": "Gürpınar",
+    "IlceKodu": 65008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 65,
+    "Ad": "İpekyolu",
+    "IlceKodu": 65009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 65,
+    "Ad": "Muradiye",
+    "IlceKodu": 65010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 65,
+    "Ad": "Özalp",
+    "IlceKodu": 65011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 65,
+    "Ad": "Saray",
+    "IlceKodu": 65012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 65,
+    "Ad": "Tuşba",
+    "IlceKodu": 65013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 66,
+    "Ad": "Akdağmadeni",
+    "IlceKodu": 66001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 66,
+    "Ad": "Aydıncık",
+    "IlceKodu": 66002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 66,
+    "Ad": "Boğazlıyan",
+    "IlceKodu": 66003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 66,
+    "Ad": "Çandır",
+    "IlceKodu": 66004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 66,
+    "Ad": "Çayıralan",
+    "IlceKodu": 66005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 66,
+    "Ad": "Çekerek",
+    "IlceKodu": 66006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 66,
+    "Ad": "Kadışehri",
+    "IlceKodu": 66007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 66,
+    "Ad": "Merkez",
+    "IlceKodu": 66008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 66,
+    "Ad": "Saraykent",
+    "IlceKodu": 66009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 66,
+    "Ad": "Sarıkaya",
+    "IlceKodu": 66010,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 66,
+    "Ad": "Sorgun",
+    "IlceKodu": 66011,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 66,
+    "Ad": "Şefaatli",
+    "IlceKodu": 66012,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 66,
+    "Ad": "Yenifakılı",
+    "IlceKodu": 66013,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 66,
+    "Ad": "Yerköy",
+    "IlceKodu": 66014,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 67,
+    "Ad": "Alaplı",
+    "IlceKodu": 67001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 67,
+    "Ad": "Çaycuma",
+    "IlceKodu": 67002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 67,
+    "Ad": "Devrek",
+    "IlceKodu": 67003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 67,
+    "Ad": "Ereğli",
+    "IlceKodu": 67004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 67,
+    "Ad": "Gökçebey",
+    "IlceKodu": 67005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 67,
+    "Ad": "Kilimli",
+    "IlceKodu": 67006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 67,
+    "Ad": "Kozlu",
+    "IlceKodu": 67007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 67,
+    "Ad": "Merkez",
+    "IlceKodu": 67008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 68,
+    "Ad": "Ağaçören",
+    "IlceKodu": 68001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 68,
+    "Ad": "Eskil",
+    "IlceKodu": 68002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 68,
+    "Ad": "Gülağaç",
+    "IlceKodu": 68003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 68,
+    "Ad": "Güzelyurt",
+    "IlceKodu": 68004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 68,
+    "Ad": "Merkez",
+    "IlceKodu": 68005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 68,
+    "Ad": "Ortaköy",
+    "IlceKodu": 68006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 68,
+    "Ad": "Sarıyahşi",
+    "IlceKodu": 68007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 68,
+    "Ad": "Sultanhanı",
+    "IlceKodu": 68008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 69,
+    "Ad": "Aydıntepe",
+    "IlceKodu": 69001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 69,
+    "Ad": "Demirözü",
+    "IlceKodu": 69002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 69,
+    "Ad": "Merkez",
+    "IlceKodu": 69003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 70,
+    "Ad": "Ayrancı",
+    "IlceKodu": 70001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 70,
+    "Ad": "Başyayla",
+    "IlceKodu": 70002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 70,
+    "Ad": "Ermenek",
+    "IlceKodu": 70003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 70,
+    "Ad": "Kazımkarabekir",
+    "IlceKodu": 70004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 70,
+    "Ad": "Merkez",
+    "IlceKodu": 70005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 70,
+    "Ad": "Sarıveliler",
+    "IlceKodu": 70006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 71,
+    "Ad": "Bahşılı",
+    "IlceKodu": 71001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 71,
+    "Ad": "Balışeyh",
+    "IlceKodu": 71002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 71,
+    "Ad": "Çelebi",
+    "IlceKodu": 71003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 71,
+    "Ad": "Delice",
+    "IlceKodu": 71004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 71,
+    "Ad": "Karakeçili",
+    "IlceKodu": 71005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 71,
+    "Ad": "Keskin",
+    "IlceKodu": 71006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 71,
+    "Ad": "Merkez",
+    "IlceKodu": 71007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 71,
+    "Ad": "Sulakyurt",
+    "IlceKodu": 71008,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 71,
+    "Ad": "Yahşihan",
+    "IlceKodu": 71009,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 72,
+    "Ad": "Beşiri",
+    "IlceKodu": 72001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 72,
+    "Ad": "Gercüş",
+    "IlceKodu": 72002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 72,
+    "Ad": "Hasankeyf",
+    "IlceKodu": 72003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 72,
+    "Ad": "Kozluk",
+    "IlceKodu": 72004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 72,
+    "Ad": "Merkez",
+    "IlceKodu": 72005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 72,
+    "Ad": "Sason",
+    "IlceKodu": 72006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 73,
+    "Ad": "Beytüşşebap",
+    "IlceKodu": 73001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 73,
+    "Ad": "Cizre",
+    "IlceKodu": 73002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 73,
+    "Ad": "Güçlükonak",
+    "IlceKodu": 73003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 73,
+    "Ad": "İdil",
+    "IlceKodu": 73004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 73,
+    "Ad": "Merkez",
+    "IlceKodu": 73005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 73,
+    "Ad": "Silopi",
+    "IlceKodu": 73006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 73,
+    "Ad": "Uludere",
+    "IlceKodu": 73007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 74,
+    "Ad": "Amasra",
+    "IlceKodu": 74001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 74,
+    "Ad": "Kurucaşile",
+    "IlceKodu": 74002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 74,
+    "Ad": "Merkez",
+    "IlceKodu": 74003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 74,
+    "Ad": "Ulus",
+    "IlceKodu": 74004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 75,
+    "Ad": "Çıldır",
+    "IlceKodu": 75001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 75,
+    "Ad": "Damal",
+    "IlceKodu": 75002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 75,
+    "Ad": "Göle",
+    "IlceKodu": 75003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 75,
+    "Ad": "Hanak",
+    "IlceKodu": 75004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 75,
+    "Ad": "Merkez",
+    "IlceKodu": 75005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 75,
+    "Ad": "Posof",
+    "IlceKodu": 75006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 76,
+    "Ad": "Aralık",
+    "IlceKodu": 76001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 76,
+    "Ad": "Karakoyunlu",
+    "IlceKodu": 76002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 76,
+    "Ad": "Merkez",
+    "IlceKodu": 76003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 76,
+    "Ad": "Tuzluca",
+    "IlceKodu": 76004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 77,
+    "Ad": "Altınova",
+    "IlceKodu": 77001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 77,
+    "Ad": "Armutlu",
+    "IlceKodu": 77002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 77,
+    "Ad": "Çınarcık",
+    "IlceKodu": 77003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 77,
+    "Ad": "Çiftlikköy",
+    "IlceKodu": 77004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 77,
+    "Ad": "Merkez",
+    "IlceKodu": 77005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 77,
+    "Ad": "Termal",
+    "IlceKodu": 77006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 78,
+    "Ad": "Eflani",
+    "IlceKodu": 78001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 78,
+    "Ad": "Eskipazar",
+    "IlceKodu": 78002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 78,
+    "Ad": "Merkez",
+    "IlceKodu": 78003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 78,
+    "Ad": "Ovacık",
+    "IlceKodu": 78004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 78,
+    "Ad": "Safranbolu",
+    "IlceKodu": 78005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 78,
+    "Ad": "Yenice",
+    "IlceKodu": 78006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 79,
+    "Ad": "Elbeyli",
+    "IlceKodu": 79001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 79,
+    "Ad": "Merkez",
+    "IlceKodu": 79002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 79,
+    "Ad": "Musabeyli",
+    "IlceKodu": 79003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 79,
+    "Ad": "Polateli",
+    "IlceKodu": 79004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 80,
+    "Ad": "Bahçe",
+    "IlceKodu": 80001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 80,
+    "Ad": "Düziçi",
+    "IlceKodu": 80002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 80,
+    "Ad": "Hasanbeyli",
+    "IlceKodu": 80003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 80,
+    "Ad": "Kadirli",
+    "IlceKodu": 80004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 80,
+    "Ad": "Merkez",
+    "IlceKodu": 80005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 80,
+    "Ad": "Sumbas",
+    "IlceKodu": 80006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 80,
+    "Ad": "Toprakkale",
+    "IlceKodu": 80007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 81,
+    "Ad": "Akçakoca",
+    "IlceKodu": 81001,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 81,
+    "Ad": "Cumayeri",
+    "IlceKodu": 81002,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 81,
+    "Ad": "Çilimli",
+    "IlceKodu": 81003,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 81,
+    "Ad": "Gölyaka",
+    "IlceKodu": 81004,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 81,
+    "Ad": "Gümüşova",
+    "IlceKodu": 81005,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 81,
+    "Ad": "Kaynaşlı",
+    "IlceKodu": 81006,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 81,
+    "Ad": "Merkez",
+    "IlceKodu": 81007,
+    "ResmiIlceKodu": null
+  },
+  {
+    "IlKodu": 81,
+    "Ad": "Yığılca",
+    "IlceKodu": 81008,
+    "ResmiIlceKodu": null
+  }
+]

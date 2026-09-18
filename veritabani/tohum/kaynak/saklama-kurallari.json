@@ -1,0 +1,18 @@
+{
+  "_aciklama": "tasarim.md 1.13.4 saklama süreleri. T08 bu dosyadan sistem.SaklamaKurali satırlarını MERGE ile yazar. Hukukçu kararı bu dosyadan değişir: SureGun, EylemKodu ve HukukOnayli burada güncellenir, tohum yeniden üretilir.",
+  "kurallar": [
+    { "KayitTuruKodu": "girisDenemesi", "SureGun": 90, "EylemKodu": "sil", "HukukOnayli": false, "Aciklama": "erisim.GirisDenemesi; zaman ölçütü DenemeZamani." },
+    { "KayitTuruKodu": "dogrulamaKodu", "SureGun": 30, "EylemKodu": "sil", "HukukOnayli": false, "Aciklama": "erisim.DogrulamaKodu; zaman ölçütü OlusmaZamani." },
+    { "KayitTuruKodu": "sifreSifirlamaJetonu", "SureGun": 30, "EylemKodu": "sil", "HukukOnayli": false, "Aciklama": "erisim.SifreSifirlamaJetonu; zaman ölçütü SonGecerlilikZamani." },
+    { "KayitTuruKodu": "oturum", "SureGun": 365, "EylemKodu": "sil", "HukukOnayli": false, "Aciklama": "erisim.Oturum (kapanmış ya da süresi bitmiş); zaman ölçütü COALESCE(KapanmaZamani, BitisZamani)." },
+    { "KayitTuruKodu": "destekOturumu", "SureGun": 730, "EylemKodu": "sil", "HukukOnayli": false, "Aciklama": "Önce destek.SohbetOlayi, sonra olayı kalmayan destek.SohbetOturumu; zaman ölçütü SohbetOturumu.SonHareketZamani." },
+    { "KayitTuruKodu": "giden", "SureGun": 180, "EylemKodu": "sil", "HukukOnayli": false, "Aciklama": "sistem.Giden (gonderildi, vazgecildi). Teslimata ya da doğrulama koduna bağlı satırda yalnız Govde, Konu, DegiskenlerJson, AliciAdres boşaltılır; bağsız satır ekleriyle silinir. Zaman ölçütü COALESCE(GonderilmeZamani, OlusmaZamani)." },
+    { "KayitTuruKodu": "tekrarAnahtari", "SureGun": 1, "EylemKodu": "sil", "HukukOnayli": false, "Aciklama": "sistem.TekrarAnahtari; zaman ölçütü SonGecerlilikZamani." },
+    { "KayitTuruKodu": "logoSeriSorgusu", "SureGun": 30, "EylemKodu": "sil", "HukukOnayli": false, "Aciklama": "entegrasyon.LogoSeriSorgusu (makine.KayitOlayi'nın başvurmadığı); zaman ölçütü GecerlilikBitisZamani." },
+    { "KayitTuruKodu": "iceAktarimSatiri", "SureGun": 90, "EylemKodu": "bosalt", "HukukOnayli": false, "Aciklama": "entegrasyon.IceAktarimSatiri.HamVeriJson boşaltılır (içe aktarım uygulandi ya da hata); zaman ölçütü IceAktarim.OlusmaZamani." },
+    { "KayitTuruKodu": "iptalTalepDosyasi", "SureGun": 730, "EylemKodu": "sil", "HukukOnayli": false, "Aciklama": "İptal edilmiş talebin genel sınıflı dosyaları (TalepEki, EklemeEki, ses); satır silinmez, SilinmeIstendiZamani yazılır. Zaman ölçütü Talep.KapanmaZamani." },
+    { "KayitTuruKodu": "dekont", "SureGun": null, "EylemKodu": "sakla", "HukukOnayli": false, "Aciklama": "dosya.Dosya (dekont sınıfı); hukukçu süre verene kadar saklanır." },
+    { "KayitTuruKodu": "islemKaydi", "SureGun": null, "EylemKodu": "sakla", "HukukOnayli": false, "Aciklama": "denetim.IslemKaydi; saklanır, silinmez." },
+    { "KayitTuruKodu": "rizaOlayi", "SureGun": null, "EylemKodu": "sakla", "HukukOnayli": false, "Aciklama": "kvkk.RizaOlayi; yasal kanıt olarak saklanır." }
+  ]
+}

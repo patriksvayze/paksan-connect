@@ -1,0 +1,16 @@
+{
+  "_aciklama": "Yedek parça fiyat listeleri arşivi (tasarim.md 5.5). Her liste fiyat-listeleri/<MarkaKodu>/<Kod>.json dosyasındadır; dosya bir kez yazılır, sonra değişmez. KaynakOzeti dosyanın SHA-256 özetidir (UTF-8, BOM atılmış, CRLF → LF); dosya değişirse üretim durur, yeni liste yeni kodla eklenir. Dizideki sıra listelerin geliş sırasıdır (eskiden yeniye); markada en çok bir liste yururlukte olur. YururlukBaslangicTarihi kaynakta yazmıyorsa boş kalır.",
+  "listeler": [
+    {
+      "MarkaKodu": "paksan",
+      "Kod": "2026-07-1",
+      "KaynakDosyaAdi": "PAKSAN TEMMUZ 2026 FİYAT LİSTESİ.pdf",
+      "YururlukBaslangicTarihi": null,
+      "ListeKdvHaric": true,
+      "KdvEsasiDogrulandi": false,
+      "ParaBirimiKodu": "TRY",
+      "DurumKodu": "yururlukte",
+      "KaynakOzeti": "0dace5fb364264af8aea5d1766f259b8504bbca24a22e1ef4cb22a07b743760c"
+    }
+  ]
+}

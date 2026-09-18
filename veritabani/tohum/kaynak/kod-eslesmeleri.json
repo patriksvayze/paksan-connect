@@ -1,0 +1,259 @@
+{
+  "_aciklama": "Kod listelerinin kaynakla eşleşmesi (tasarim.md 5.6). 'etiketler': kaynakta yalnız ekran yazısı olan seçeneğin kodu; yazı birebir (büyük/küçük harf ve Türkçe harf korunur) aranır, eşleşmesi olmayan yazı üretimi durdurur. Bu yazılar eski veride saklandığı için kod.EskiDegerEslesmesi'ne de girer. 'ingilizce': kodun İngilizcesinin src/i18n/en.js'teki anahtarı. 'bayraklar': kaynakta veri olarak bulunmayan liste kolonları. 'eskiDegerler': eski uygulama verisindeki kodların bugünkü karşılığı. 'pasif': Aktif = 0 yapılacak kodlar (tohum başka hiçbir satırı pasifleştirmez).",
+  "ingilizceAnahtarKalibi": "İngilizce metin src/i18n/en.js içinde aynı anahtarla ya da kaynak dosyanın .en.js eşindeki aynı sıradaki öğeyle bulunur; bulunamayan kodun kod.Ceviri satırı yazılmaz (ekran Türkçesini gösterir).",
+  "listeler": {
+    "kod.UlasimZamani": {
+      "kaynak": "src/data/talepAlanlari.js ULASIM_ZAMANI",
+      "etiketler": {
+        "Fark etmez": "farkEtmez",
+        "Sabah (09.00 - 12.00)": "sabah",
+        "Öğleden sonra (12.00 - 15.00)": "ogledenSonra",
+        "Akşamüstü (15.00 - 18.00)": "aksamustu"
+      }
+    },
+    "kod.UrunTipi": {
+      "kaynak": "src/data/talepAlanlari.js URUN_TIPI",
+      "etiketler": {
+        "Yonca": "yonca",
+        "Saman / buğday": "samanBugday",
+        "Ot / çayır": "otCayir",
+        "Mısır silajı": "misirSilaji",
+        "Diğer": "diger"
+      }
+    },
+    "kod.Arazi": {
+      "kaynak": "src/data/talepAlanlari.js ARAZI",
+      "etiketler": {
+        "50 dönümden az": "elliDonumAlti",
+        "50 - 150 dönüm": "elliYuzelliDonum",
+        "150 - 500 dönüm": "yuzelliBesyuzDonum",
+        "500 dönümden fazla": "besyuzDonumUstu",
+        "Başkasının tarlasında da çalışıyorum": "baskaTarladaCalisiyor"
+      }
+    },
+    "kod.TraktorGucu": {
+      "kaynak": "src/data/talepAlanlari.js TRAKTOR",
+      "etiketler": {
+        "50 beygirin altı": "elliBeygirAlti",
+        "50 - 80 beygir": "elliSeksenBeygir",
+        "80 - 110 beygir": "seksenYuzonBeygir",
+        "110 - 150 beygir": "yuzonYuzelliBeygir",
+        "150 beygirin üstü": "yuzelliBeygirUstu",
+        "Bilmiyorum": "bilmiyor"
+      }
+    },
+    "kod.Belirti": {
+      "kaynak": "src/data/talepAlanlari.js ORTAK_BELIRTI, BELIRTILER, PARCA_DIGER",
+      "etiketler": {
+        "Anormal ses geliyor": "anormalSes",
+        "Aşırı titriyor": "asiriTitresim",
+        "Yağ kaçağı var": "yagKacagi",
+        "Şaft / mafsal sorunu": "saftMafsal",
+        "Hidrolikte sorun": "hidrolikSorunu",
+        "Kayış veya zincir atıyor": "kayisZincirAtiyor",
+        "Isınma / yanık kokusu": "isinmaYanikKokusu",
+        "Düğüm atmıyor": "dugumAtmiyor",
+        "İp kopuyor": "ipKopuyor",
+        "Balya gevşek çıkıyor": "balyaGevsek",
+        "Balya dağılıyor": "balyaDagiliyor",
+        "Pikap otu almıyor": "pikapOtAlmiyor",
+        "Piston / vurma sorunu": "pistonVurma",
+        "Balya sayacı çalışmıyor": "balyaSayaciCalismiyor",
+        "Balya sarılmıyor": "balyaSarilmiyor",
+        "Ağ veya ip sarmıyor": "agIpSarmiyor",
+        "Kapak açılmıyor / kapanmıyor": "kapakAcilmiyor",
+        "Karıştırma yetersiz": "karistirmaYetersiz",
+        "Bıçaklar kesmiyor": "bicaklarKesmiyor",
+        "Boşaltma yapmıyor": "bosaltmaYapmiyor",
+        "Tartı çalışmıyor": "tartiCalismiyor",
+        "Helezon sıkışıyor": "helezonSikisiyor",
+        "Kesme boyu tutmuyor": "kesmeBoyuTutmuyor",
+        "Bıçaklar körelmiş": "bicaklarKorelmis",
+        "Tıkanma oluyor": "tikanma",
+        "Besleme düzgün değil": "beslemeDuzgunDegil",
+        "Biçme düzgün değil": "bicmeDuzgunDegil",
+        "Bıçak veya parmak kırılıyor": "bicakParmakKiriliyor",
+        "Tırmık otu toplamıyor": "tirmikOtToplamiyor",
+        "Derinlik tutmuyor": "derinlikTutmuyor",
+        "Uç / ayak kırılıyor": "ucAyakKiriliyor",
+        "Toprağı düzgün işlemiyor": "topragiDuzgunIslemiyor",
+        "Diğer": "diger"
+      }
+    },
+    "kod.IptalNedeni": {
+      "kaynak": "src/backoffice/ekranlar/Talepler.jsx IPTAL_SEBEPLERI; src/servis/ekranlar/TalepDetay.jsx IPTAL_NEDENLERI (baska)",
+      "etiketler": {
+        "Müşteri vazgeçti": "musteriVazgecti",
+        "Müşteriye ulaşılamadı": "musteriyeUlasilamadi",
+        "Yanlışlıkla açılmış talep": "yanlisAcilmis",
+        "Aynı konuda başka talep var": "ayniKonudaBaskaTalep",
+        "Sorun telefonda çözüldü": "telefondaCozuldu",
+        "Bu talep kapsamımız dışında": "kapsamDisi"
+      },
+      "servisimDegerleri": {
+        "yanlis": "yanlisAcilmis",
+        "vazgecti": "musteriVazgecti",
+        "ulasilamadi": "musteriyeUlasilamadi",
+        "baska": "baskaNeden"
+      },
+      "bayraklar": {
+        "baskaNeden": { "AciklamaZorunlu": 1 }
+      }
+    },
+    "kod.TeklifSonucu": {
+      "kaynak": "src/backoffice/ekranlar/Talepler.jsx KAPANIS_ALANLARI.satinalma (sonuc.secenek); İngilizcesi src/data/talepAlanlari.js sozlukKur",
+      "etiketler": {
+        "Satış oldu": "satisOldu",
+        "Müşteri vazgeçti": "musteriVazgecti",
+        "Rakibe gitti": "rakibeGitti",
+        "Ulaşılamadı": "ulasilamadi"
+      },
+      "bayraklar": {
+        "satisOldu": { "FiyatZorunlu": 1 }
+      }
+    },
+    "kod.YapilanIs": {
+      "kaynak": "src/lib/servisKaydi.js YAPILAN_IS",
+      "etiketler": {
+        "İlk Kurulum ve Çalıştırma": "ilkKurulum",
+        "Ayar Yapıldı": "ayar",
+        "Bakım Yapıldı": "bakim",
+        "Parça Değişti": "parcaDegisimi",
+        "Arıza Bulunamadı": "arizaBulunamadi"
+      },
+      "ingilizce": {
+        "ilkKurulum": "talepDetay.isKurulum",
+        "ayar": "talepDetay.isAyar",
+        "bakim": "talepDetay.isBakim",
+        "parcaDegisimi": "talepDetay.isParca",
+        "arizaBulunamadi": "talepDetay.isArizaYok"
+      }
+    },
+    "kod.UcretDurumu": {
+      "kaynak": "src/lib/servisKaydi.js UCRET_YAZI",
+      "etiketler": {
+        "Garanti kapsamında": "garanti",
+        "Müşteri ödedi": "musteriOdedi"
+      },
+      "ingilizce": {
+        "garanti": "talepDetay.ucretGaranti",
+        "musteriOdedi": "talepDetay.ucretMusteriOdedi"
+      }
+    },
+    "kod.FaturaTuru": {
+      "kaynak": "src/screens/RequestForm.jsx fatura seçenekleri; adları src/i18n/tr.js parcaOdeme",
+      "i18n": {
+        "kendisi": "parcaOdeme.kendiAdima",
+        "baskaKisi": "parcaOdeme.baskaKisi",
+        "firma": "parcaOdeme.tuzelKisi"
+      }
+    },
+    "kod.ServisKapisi": {
+      "kaynak": "src/lib/servisKaydi.js KAPI",
+      "bayraklar": {
+        "garanti": { "Eski": 0 },
+        "eldeParca": { "Eski": 1 },
+        "parcaIste": { "Eski": 1 }
+      }
+    },
+    "kod.TalepDurumu": {
+      "kaynak": "src/backoffice/veri.js DURUMLAR, KAPALI_DURUMLAR; İngilizcesi src/i18n/en.js talepDurum",
+      "ingilizceBolumu": "talepDurum",
+      "gecikmeSayilmayanAcikDurumlar": ["teklif"]
+    },
+    "kod.IslemKategorisi": {
+      "kaynak": "src/backoffice/ekranlar/IslemKaydi.jsx TURLER",
+      "haric": ["hepsi"]
+    },
+    "kod.HedefKitle": {
+      "kaynak": "src/backoffice/ekranlar/Duyurular.jsx KIMLER"
+    },
+    "erisim.IzinGrubu": {
+      "kaynak": "src/data/yetkiler.js YETKI_KATALOG[].grup",
+      "etiketler": {
+        "Talepler": "talepler",
+        "Müşteriler": "musteriler",
+        "Servisler": "servisler",
+        "Yönetim": "yonetim",
+        "Hesaplar": "hesaplar"
+      }
+    },
+    "erisim.Rol": {
+      "kaynak": "src/data/yetkiler.js VARSAYILAN_ROLLER[].id → erisim.Rol.Kod (tasarim.md 5.3 B03)",
+      "kodlar": {
+        "admin": "admin",
+        "yonetici": "yonetici",
+        "servis": "servis-masasi",
+        "parca": "yedek-parca",
+        "satis": "satis"
+      }
+    }
+  },
+  "numaraOnekleri": {
+    "_aciklama": "Talep türlerinin önekleri src/lib/talep.js TALEP_TURLERI[].onek'ten gelir ve burada doğrulanır; öteki önekler tasarim.md 0.4 sistem.NumaraOneki kararıdır.",
+    "SRV": "talep",
+    "YPR": "talep",
+    "TKF": "talep",
+    "SPS": "talep",
+    "HAK": "donemDokumu",
+    "TEL": "telefonDegisikligi",
+    "GBD": "geriBildirim"
+  },
+  "talepNumaraKurallari": [
+    { "TurKodu": "servis", "KaynakKodu": "connect", "NumaraOneki": "SRV" },
+    { "TurKodu": "servis", "KaynakKodu": "servisElle", "NumaraOneki": "SRV" },
+    { "TurKodu": "servis", "KaynakKodu": "backoffice", "NumaraOneki": "SRV" },
+    { "TurKodu": "parca", "KaynakKodu": "connect", "NumaraOneki": "YPR" },
+    { "TurKodu": "parca", "KaynakKodu": "servisSiparisi", "NumaraOneki": "SPS" },
+    { "TurKodu": "parca", "KaynakKodu": "backoffice", "NumaraOneki": "YPR" },
+    { "TurKodu": "satinalma", "KaynakKodu": "connect", "NumaraOneki": "TKF" },
+    { "TurKodu": "satinalma", "KaynakKodu": "backoffice", "NumaraOneki": "TKF" }
+  ],
+  "talepTuruUydulari": [
+    { "TurKodu": "servis", "UyduKodu": "servisZiyareti" },
+    { "TurKodu": "parca", "UyduKodu": "faturaBilgisi" },
+    { "TurKodu": "satinalma", "UyduKodu": "bayiAtamasi" }
+  ],
+  "akisDurumlari": {
+    "_aciklama": "Türde bulunup personelin elle seçemediği durumlar (ElleSecilebilir = 0). Öteki durumlar src/backoffice/veri.js talepDurumlari(tur) ve elleSecilebilirDurumlar(tur) çıktısından gelir.",
+    "servis": ["onayBekliyor", "parcaBekliyor"],
+    "parca": ["odemeBekliyor"]
+  },
+  "eskiDegerler": {
+    "kod.TalepDurumu": {
+      "gonderildi": { "YeniKod": "kapandi", "Not": "src/backoffice/veri.js DURUMLAR: Gönderildi durumu kaldırıldı" },
+      "bayide": { "YeniKod": "kapandi", "Not": "src/backoffice/veri.js DURUMLAR: Bayide durumu kaldırıldı; sahip bayi" }
+    },
+    "kod.Masa": {
+      "servis": { "YeniKod": "servisMasasi", "Not": "src/lib/servisKaydi.js kapininSonucu masa" },
+      "parca": { "YeniKod": "parcaMasasi", "Not": "src/lib/servisKaydi.js kapininSonucu masa" }
+    },
+    "kod.KaynakUygulama": {
+      "app": { "YeniKod": "connect", "Not": null },
+      "servis": { "YeniKod": "servisim", "Not": null }
+    },
+    "kod.DosyaTuru": {
+      "gorsel": { "YeniKod": "foto", "Not": null }
+    },
+    "kod.ParaBirimi": {
+      "TL": { "YeniKod": "TRY", "Not": "src/marka/katalog/para.js PARA_BIRIMI" }
+    },
+    "kod.KayitKaynagi": {
+      "connect": { "YeniKod": "musteri", "Not": null },
+      "servisElle": { "YeniKod": "servis", "Not": null },
+      "excel": { "YeniKod": "iceAktarim", "Not": null },
+      "elle": { "YeniKod": "personel", "Not": null }
+    },
+    "kod.ServisAtamaKaynagi": {
+      "atama": { "YeniKod": "makineAtamasi", "Not": "src/lib/servisAtama.js kaynak" },
+      "bayi": { "YeniKod": "bayiServisi", "Not": "src/lib/servisAtama.js kaynak" }
+    },
+    "kod.FaturaTuru": {
+      "kendim": { "YeniKod": "kendisi", "Not": "src/screens/RequestForm.jsx faturaKime" },
+      "baskasi": { "YeniKod": "baskaKisi", "Not": "src/screens/RequestForm.jsx faturaKime" }
+    }
+  },
+  "pasif": {
+    "kod.IslemKategorisi": ["stok", "demo"]
+  }
+}

@@ -275,7 +275,7 @@ Genel diff incelemesi için `/code-review` komutu kullanılır.
 
     npm run dogrula
 
-On iki şeye bakıyor:
+On üç şeye bakıyor:
 
  1. `tr.js`/`en.js` anahtar eşitliği
  2. Kodda kullanılan `t('...')` anahtarlarının sözlükteki karşılıkları
@@ -289,6 +289,9 @@ On iki şeye bakıyor:
 10. Connect'in üç yerdeki sürüm numarasının tutması, Servisim'in ayrı hattı
 11. Yayına çıkışı engelleyen geliştirme ayarları (saymıyor, yalnız listeler)
 12. Codex'i bekleyen yer tutucu metin ekrana çıkıyor mu
+13. Veritabanı betikleri: SQL statik denetimi (`tools/vt/denetle.mjs`),
+    tohum betiklerinin `tohum/kaynak/*.json` ile aynı olması ve ortam
+    dosyasının git'e girmemiş olması (veritabanı klasörü yoksa atlanır)
 
 5. ve 6. kontroller marka sınırını koruyor: ürünün başka bir firmaya
 kurulabilmesi buna bağlı. 7. kontrol bayi–servis ayrımını koruyor:
@@ -303,7 +306,15 @@ yakalıyor. 11. kontrol bulduğunu SORUN SAYMIYOR: o ayarların bugün
 açık olması doğru; yayın günü saydırmak için `npm run dogrula --
 --yayin`. 12. kontrol, ekranda görünen Türkçenin Codex'ten geçmesi
 kuralının ağıdır: yer tutucu bırakıp unutmak yedi partinin birlikte
-çalıştığı bir günde gerçekten oldu (15 yazılmamış dizgi).
+çalıştığı bir günde gerçekten oldu (15 yazılmamış dizgi). 13. kontrol
+veritabanı planının "Eşleşme denetimi (`npm run dogrula`)" maddesini
+buradan çağırıyor. Üç parçası da yazılıydı ama hiçbiri bu komuttan
+koşmuyordu: statik denetim yalnız elle ya da `vt sinama` içinden,
+tohum karşılaştırması yalnız elle `vt tohum --denetle`, ortam dosyası
+kontrolü hiç. Tohum karşılaştırması `vt sinama` KR-04 ile aynı şey
+değildir: KR-04 betiği veritabanıyla karşılaştırır, bu kontrol betiği
+kaynak JSON'la — kaynağı düzeltip betiği yeniden üretmeyi unutmak
+KR-04'ten sessizce geçiyordu.
 
 Yorumlar altıncı ve on ikinci kontrolün dışında; oralarda firmanın iş
 kuralını anlatan gerekçeler var. Sorun bulursa çıkış kodu 1.

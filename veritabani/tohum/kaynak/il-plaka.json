@@ -1,0 +1,326 @@
+[
+  {
+    "Ad": "Adana",
+    "IlKodu": 1
+  },
+  {
+    "Ad": "Adıyaman",
+    "IlKodu": 2
+  },
+  {
+    "Ad": "Afyonkarahisar",
+    "IlKodu": 3
+  },
+  {
+    "Ad": "Ağrı",
+    "IlKodu": 4
+  },
+  {
+    "Ad": "Amasya",
+    "IlKodu": 5
+  },
+  {
+    "Ad": "Ankara",
+    "IlKodu": 6
+  },
+  {
+    "Ad": "Antalya",
+    "IlKodu": 7
+  },
+  {
+    "Ad": "Artvin",
+    "IlKodu": 8
+  },
+  {
+    "Ad": "Aydın",
+    "IlKodu": 9
+  },
+  {
+    "Ad": "Balıkesir",
+    "IlKodu": 10
+  },
+  {
+    "Ad": "Bilecik",
+    "IlKodu": 11
+  },
+  {
+    "Ad": "Bingöl",
+    "IlKodu": 12
+  },
+  {
+    "Ad": "Bitlis",
+    "IlKodu": 13
+  },
+  {
+    "Ad": "Bolu",
+    "IlKodu": 14
+  },
+  {
+    "Ad": "Burdur",
+    "IlKodu": 15
+  },
+  {
+    "Ad": "Bursa",
+    "IlKodu": 16
+  },
+  {
+    "Ad": "Çanakkale",
+    "IlKodu": 17
+  },
+  {
+    "Ad": "Çankırı",
+    "IlKodu": 18
+  },
+  {
+    "Ad": "Çorum",
+    "IlKodu": 19
+  },
+  {
+    "Ad": "Denizli",
+    "IlKodu": 20
+  },
+  {
+    "Ad": "Diyarbakır",
+    "IlKodu": 21
+  },
+  {
+    "Ad": "Edirne",
+    "IlKodu": 22
+  },
+  {
+    "Ad": "Elazığ",
+    "IlKodu": 23
+  },
+  {
+    "Ad": "Erzincan",
+    "IlKodu": 24
+  },
+  {
+    "Ad": "Erzurum",
+    "IlKodu": 25
+  },
+  {
+    "Ad": "Eskişehir",
+    "IlKodu": 26
+  },
+  {
+    "Ad": "Gaziantep",
+    "IlKodu": 27
+  },
+  {
+    "Ad": "Giresun",
+    "IlKodu": 28
+  },
+  {
+    "Ad": "Gümüşhane",
+    "IlKodu": 29
+  },
+  {
+    "Ad": "Hakkari",
+    "IlKodu": 30
+  },
+  {
+    "Ad": "Hatay",
+    "IlKodu": 31
+  },
+  {
+    "Ad": "Isparta",
+    "IlKodu": 32
+  },
+  {
+    "Ad": "Mersin",
+    "IlKodu": 33
+  },
+  {
+    "Ad": "İstanbul",
+    "IlKodu": 34
+  },
+  {
+    "Ad": "İzmir",
+    "IlKodu": 35
+  },
+  {
+    "Ad": "Kars",
+    "IlKodu": 36
+  },
+  {
+    "Ad": "Kastamonu",
+    "IlKodu": 37
+  },
+  {
+    "Ad": "Kayseri",
+    "IlKodu": 38
+  },
+  {
+    "Ad": "Kırklareli",
+    "IlKodu": 39
+  },
+  {
+    "Ad": "Kırşehir",
+    "IlKodu": 40
+  },
+  {
+    "Ad": "Kocaeli",
+    "IlKodu": 41
+  },
+  {
+    "Ad": "Konya",
+    "IlKodu": 42
+  },
+  {
+    "Ad": "Kütahya",
+    "IlKodu": 43
+  },
+  {
+    "Ad": "Malatya",
+    "IlKodu": 44
+  },
+  {
+    "Ad": "Manisa",
+    "IlKodu": 45
+  },
+  {
+    "Ad": "Kahramanmaraş",
+    "IlKodu": 46
+  },
+  {
+    "Ad": "Mardin",
+    "IlKodu": 47
+  },
+  {
+    "Ad": "Muğla",
+    "IlKodu": 48
+  },
+  {
+    "Ad": "Muş",
+    "IlKodu": 49
+  },
+  {
+    "Ad": "Nevşehir",
+    "IlKodu": 50
+  },
+  {
+    "Ad": "Niğde",
+    "IlKodu": 51
+  },
+  {
+    "Ad": "Ordu",
+    "IlKodu": 52
+  },
+  {
+    "Ad": "Rize",
+    "IlKodu": 53
+  },
+  {
+    "Ad": "Sakarya",
+    "IlKodu": 54
+  },
+  {
+    "Ad": "Samsun",
+    "IlKodu": 55
+  },
+  {
+    "Ad": "Siirt",
+    "IlKodu": 56
+  },
+  {
+    "Ad": "Sinop",
+    "IlKodu": 57
+  },
+  {
+    "Ad": "Sivas",
+    "IlKodu": 58
+  },
+  {
+    "Ad": "Tekirdağ",
+    "IlKodu": 59
+  },
+  {
+    "Ad": "Tokat",
+    "IlKodu": 60
+  },
+  {
+    "Ad": "Trabzon",
+    "IlKodu": 61
+  },
+  {
+    "Ad": "Tunceli",
+    "IlKodu": 62
+  },
+  {
+    "Ad": "Şanlıurfa",
+    "IlKodu": 63
+  },
+  {
+    "Ad": "Uşak",
+    "IlKodu": 64
+  },
+  {
+    "Ad": "Van",
+    "IlKodu": 65
+  },
+  {
+    "Ad": "Yozgat",
+    "IlKodu": 66
+  },
+  {
+    "Ad": "Zonguldak",
+    "IlKodu": 67
+  },
+  {
+    "Ad": "Aksaray",
+    "IlKodu": 68
+  },
+  {
+    "Ad": "Bayburt",
+    "IlKodu": 69
+  },
+  {
+    "Ad": "Karaman",
+    "IlKodu": 70
+  },
+  {
+    "Ad": "Kırıkkale",
+    "IlKodu": 71
+  },
+  {
+    "Ad": "Batman",
+    "IlKodu": 72
+  },
+  {
+    "Ad": "Şırnak",
+    "IlKodu": 73
+  },
+  {
+    "Ad": "Bartın",
+    "IlKodu": 74
+  },
+  {
+    "Ad": "Ardahan",
+    "IlKodu": 75
+  },
+  {
+    "Ad": "Iğdır",
+    "IlKodu": 76
+  },
+  {
+    "Ad": "Yalova",
+    "IlKodu": 77
+  },
+  {
+    "Ad": "Karabük",
+    "IlKodu": 78
+  },
+  {
+    "Ad": "Kilis",
+    "IlKodu": 79
+  },
+  {
+    "Ad": "Osmaniye",
+    "IlKodu": 80
+  },
+  {
+    "Ad": "Düzce",
+    "IlKodu": 81
+  }
+]

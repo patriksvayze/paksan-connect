@@ -1,0 +1,12 @@
+{
+  "_aciklama": "Tohumun kapsadığı markalar ve şirketler. Her marka bir src/marka klasöründen okunur; tohum yalnız burada yazılı markaların ve şirketlerin satırlarına dokunur (tasarim.md 5.5: bir markanın kataloğunun tek sahibi depo). Veriyle eklenen marka bu listeye girmedikçe tohumun kapsamı dışındadır.",
+  "markalar": [
+    {
+      "MarkaKodu": "paksan",
+      "SirketKodu": "paksan",
+      "KaynakKlasoru": "src/marka",
+      "SeriKuraliKodu": "onekYilSira",
+      "GarantiBaslangicEsasiKodu": null
+    }
+  ]
+}
