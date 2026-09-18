@@ -153,12 +153,16 @@ export function useSiralama(varsayilanAlan = null, varsayilanYon = 'azalan') {
 }
 
 /** Tıklanabilir sütun başlığı. */
-export function SiraliBaslik({ ad, alan, siralama, onSirala, genislik }) {
+/* `sag`: sayı sütunlarında başlık da sağa dayanıyor. Başlık solda,
+   rakamlar sağda kalınca sütun kaymış görünüyordu (kullanıcı bildirdi,
+   18.09.2026). Hizalamayı ekranın kendi CSS'i tamamlıyor
+   (`… th.sag .th-sirala { justify-content: flex-end }`). */
+export function SiraliBaslik({ ad, alan, siralama, onSirala, genislik, sag = false }) {
   const secili = siralama?.alan === alan
   const yon = secili ? siralama.yon : null
 
   return (
-    <th style={genislik ? { width: genislik } : undefined}>
+    <th className={sag ? 'sag' : undefined} style={genislik ? { width: genislik } : undefined}>
       <button
         type="button"
         className={'th-sirala' + (secili ? ' th-sirala--on' : '')}

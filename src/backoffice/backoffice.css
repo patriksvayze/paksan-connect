@@ -3519,10 +3519,24 @@ select.sec {
   overflow-wrap: anywhere;
 }
 
-/* Fiyat sütunu sağa dayalı: rakamlar alt alta okunuyor. */
+/* Fiyat sütunu sağa dayalı: rakamlar alt alta okunuyor. Başlık da
+   sağa dayanıyor — sola bırakıldığında sütun kaymış görünüyordu
+   (kullanıcı bildirdi, 18.09.2026). Başlık bir düğme olduğu için
+   hizayı `justify-content` veriyor, `text-align` değil. */
 .katalog-tablo td.sag,
 .katalog-tablo thead th.sag {
   text-align: right;
+}
+
+.katalog-tablo thead th.sag .th-sirala {
+  justify-content: flex-end;
+}
+
+/* Fiyat rakamları eşit genişlikte: 1.300 ile 26.500 alt alta hizalı
+   duruyor. */
+.katalog-tablo td.sag {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 /* Yeni fiyat listesi önizlemesi: ad solda, sayı sağda. Düz tabloda
@@ -3566,15 +3580,20 @@ select.sec {
   margin-bottom: var(--bosluk-4);
 }
 
+/* 92 pikselde denendi ve küçük parçalarda ne olduğu anlaşılmıyordu
+   (kullanıcı bildirdi, 18.09.2026): katalog görselleri parçayı çerçeveye
+   ortalıyor, yani rondela gibi küçük bir parça karenin ortasında
+   birkaç piksel kalıyor. 160 piksel, 520 piksellik pencerede adın ve
+   kodun yanında rahat duruyor. */
 .katalog-form__gorsel {
   flex: none;
-  width: 92px;
-  height: 92px;
+  width: 160px;
+  height: 160px;
   object-fit: contain;
   border: 1px solid var(--cizgi);
   border-radius: var(--r-2);
   background: var(--yuzey-2);
-  padding: 6px;
+  padding: 8px;
 }
 
 .katalog-form__gorsel--bos {

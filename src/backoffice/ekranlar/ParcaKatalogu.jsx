@@ -497,6 +497,7 @@ export function ParcaKatalogu({ personel, rol, bildir, tazele, surum }) {
                       alan="fiyat"
                       siralama={siralama}
                       onSirala={cevir}
+                      sag
                     />
                     {duzenleyebilir && <th style={{ width: 1 }}></th>}
                   </tr>
