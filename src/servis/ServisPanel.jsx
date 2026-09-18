@@ -16,7 +16,7 @@ import { TemaSecici } from '../backoffice/Tema'
 import { load, save, remove } from '../lib/storage'
 import { ozetHatasiMi } from '../lib/hesap'
 import { duyuruGecerliMi } from '../lib/duyuruHedef'
-import { Kabuk, Sayfa, Bolum, Bos, ListeKarti } from './Kabuk'
+import { Kabuk, Sayfa, Bolum, Bos, ListeKarti, Onay } from './Kabuk'
 import { DEMO_HESAP, demoAPKmi } from './demoKimlik'
 import {
   IconWrench,
@@ -80,6 +80,7 @@ import { Bayilerim } from './ekranlar/Bayilerim'
 import { SiparisVer } from './ekranlar/SiparisVer'
 import { Hakkedis } from './ekranlar/Hakkedis'
 import { ElleKayit } from './ekranlar/ElleKayit'
+import { Adreslerim } from './ekranlar/Adreslerim'
 
 /* ==========================================================================
    PAKSAN Servisim
@@ -1255,6 +1256,13 @@ const GORULEN = 'gorulenDuyurularServis'
 /* ---------------------------------------------------------------- Hesap */
 
 function Hesap({ oturum, onCikis }) {
+  /* ÇIKIŞ ONAYLA YAPILIYOR (14 Eylül 2026, kullanıcının bildirdiği hata).
+     Düğmeye basıldığı anda oturum kapanıyordu. Sahada eldivenle, tek
+     elle kullanılan ekranda yanlış dokunuş kullanıcıyı giriş ekranına
+     atıyor ve şifreyi yeniden yazdırıyordu. Onay yaprağı ne olacağını
+     söylüyor, "Emin misiniz?" diye sormuyor (bkz. Kabuk.jsx → Onay). */
+  const [cikisOnayi, setCikisOnayi] = useState(false)
+
   return (
     <>
       <div className="kimlik">
@@ -1265,6 +1273,12 @@ function Hesap({ oturum, onCikis }) {
           <div className="kimlik__alt">{oturum.il}</div>
         </div>
       </div>
+
+      {/* ADRESLERİM KİMLİĞİN HEMEN ALTINDA (17 Eylül 2026, kullanıcının
+          isteği). Hesap ekranında servisin kendi eliyle değiştirdiği tek
+          iş verisi bu; alttaki liste PAKSAN'ın bağladığı, okunur bir
+          liste. Gerekçe ve düzen ekranlar/Adreslerim.jsx başında. */}
+      <Adreslerim oturum={oturum} />
 
       <Bayilerim oturum={oturum} />
 
@@ -1279,19 +1293,27 @@ function Hesap({ oturum, onCikis }) {
       </Bolum>
 
       <Bolum ad="Oturum">
-        <button
-          className="dg dg--blok"
-          onClick={() => {
-            servisOturumuKapat(oturum)
-            onCikis()
-          }}
-        >
+        <button className="dg dg--blok" onClick={() => setCikisOnayi(true)}>
           Çıkış Yap
         </button>
         <p className="kucuk sonuk" style={{ marginTop: 10 }}>
           Şifrenizi unutursanız {MARKA} yetkilinize başvurun.
         </p>
       </Bolum>
+
+      {cikisOnayi && (
+        <Onay
+          baslik="Oturum kapanacak"
+          metin="İşleriniz ve kayıtlarınız korunacak; tekrar giriş yapmak için şifreniz gerekecek."
+          dugme="Çıkış Yap"
+          onOnayla={() => {
+            setCikisOnayi(false)
+            servisOturumuKapat(oturum)
+            onCikis()
+          }}
+          onVazgec={() => setCikisOnayi(false)}
+        />
+      )}
     </>
   )
 }

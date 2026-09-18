@@ -1,7 +1,13 @@
 import { uid } from '../lib/storage'
 import { talepNo } from '../lib/talep'
 import { fiyatGoruntusu, katalogGetir } from '../lib/parcaKatalogu'
-import { ASAMA, kaydiCozume, kaydiDogrula, kapininSonucu } from '../lib/servisKaydi'
+import {
+  ASAMA,
+  GARANTI_DISI_OZET,
+  kaydiCozume,
+  kaydiDogrula,
+  kapininSonucu,
+} from '../lib/servisKaydi'
 import { kdvTutari } from '../marka'
 
 /* ==========================================================================
@@ -75,12 +81,17 @@ export const SAHNE_YERLERI = [
      parcaIstendi  garanti işi, parça istendi, henüz gönderilmedi
      parcaYolda    parça gönderildi, takip numarası daha girilmedi
      parcaGeldi    parça takip numarasıyla yolda, "Parçayı Taktım" açık
-     parcaIste     garanti dışı, parçayı PAKSAN gönderiyor
      onay…         iş bitti, onay bekliyor (parçalı ve parçasız)
      onaylandi     hesaba yazıldı; dördü farklı tarihlerde
      reddedildi    kabul edilmedi, gerekçesiyle
-     eldeParca     garanti dışı, parça serviste vardı
-     iptal         PAKSAN iptal etti */
+     garantiDisi   garanti dışı yapıldı, servis kaydı açılmadan kapandı
+     iptal         PAKSAN iptal etti
+
+   GARANTİ DIŞI İKİ SAHNE KALDIRILDI (15 Eylül 2026). "parcaIste"
+   (parçayı PAKSAN göndersin) ve "eldeParca" (parçayı ben taktım)
+   servis kaydının garanti dışı kapılarıydı; servis kaydı artık yalnız
+   garanti işi için (bkz. lib/servisKaydi.js başı). Demo bugünkü akışı
+   gösteriyor: garanti dışı iş kayıtsız kapanıyor. */
 export const SAHNE_GOREVLERI = [
   { durum: 'yeni', senaryo: 'yeni', yas: 0.1 },
   { durum: 'yeni', senaryo: 'yeni', yas: 2.6 },
@@ -97,7 +108,6 @@ export const SAHNE_GOREVLERI = [
     serviseNot: 'Parça kargoya verildi. Takip numarası gelince buraya yazacağız.',
   },
   { durum: 'parcaBekliyor', senaryo: 'parcaGeldi', yas: 5 },
-  { durum: 'parcaBekliyor', senaryo: 'parcaIste', yas: 6 },
   { durum: 'onayBekliyor', senaryo: 'onayParcali', yas: 9 },
   { durum: 'onayBekliyor', senaryo: 'onayParcasiz', yas: 3 },
   { durum: 'kapandi', senaryo: 'onaylandi', yas: 7 },
@@ -105,8 +115,8 @@ export const SAHNE_GOREVLERI = [
   { durum: 'kapandi', senaryo: 'onaylandi', yas: 29 },
   { durum: 'kapandi', senaryo: 'onaylandi', yas: 44 },
   { durum: 'kapandi', senaryo: 'reddedildi', yas: 21 },
-  { durum: 'kapandi', senaryo: 'eldeParca', yas: 12 },
-  { durum: 'kapandi', senaryo: 'eldeParca', yas: 33, elle: true },
+  { durum: 'kapandi', senaryo: 'garantiDisi', yas: 12 },
+  { durum: 'kapandi', senaryo: 'garantiDisi', yas: 33, elle: true },
   { durum: 'iptal', senaryo: 'iptal', yas: 10 },
 ]
 
@@ -261,11 +271,11 @@ export function senaryoSec(durum) {
     case 'planlandi':
       return 'planlandi'
     case 'parcaBekliyor':
-      return sec(['parcaIstendi', 'parcaYolda', 'parcaGeldi', 'parcaIste'])
+      return sec(['parcaIstendi', 'parcaYolda', 'parcaGeldi'])
     case 'onayBekliyor':
       return sec(['onayParcali', 'onayParcasiz'])
     case 'kapandi':
-      return sec(['onaylandi', 'onaylandi', 'onaylandi', 'eldeParca', 'reddedildi'])
+      return sec(['onaylandi', 'onaylandi', 'onaylandi', 'garantiDisi', 'reddedildi'])
     case 'iptal':
       return 'iptal'
     default:
@@ -414,21 +424,6 @@ export function servisAkisi(talep, senaryo, { servis, havuz, personel, secenek =
       sevk(t2, true)
       break
 
-    case 'parcaIste':
-      kayitYaz(
-        {
-          kapi: 'parcaIste',
-          asama: ASAMA.bitti,
-          yapilanIs: 'Parça Değişti',
-          parcalar: parcaSec(havuz),
-          sonuc: sec(TESPIT),
-          ariza,
-        },
-        t1,
-      )
-      sevk(t2, true)
-      break
-
     case 'onayParcali':
     case 'onayParcasiz':
     case 'onaylandi':
@@ -477,18 +472,12 @@ export function servisAkisi(talep, senaryo, { servis, havuz, personel, secenek =
       break
     }
 
-    case 'eldeParca':
-      kayitYaz(
-        {
-          kapi: 'eldeParca',
-          asama: ASAMA.bitti,
-          yapilanIs: 'Parça Değişti',
-          parcalar: parcaSec(havuz),
-          sonuc: sec(IS_AYRINTI),
-          ariza,
-        },
-        t1,
-      )
+    /* Servis işin garanti dışı olduğunu gördü; kayıt açmadan kapattı
+       (bkz. servis/ekranlar/TalepDetay.jsx → garantiDisi). */
+    case 'garantiDisi':
+      yama.status = 'kapandi'
+      yama.cozum = { ozet: GARANTI_DISI_OZET, garantiDisi: true, tarih: t1, personel: servisAd }
+      yama.gecmis.push({ durum: 'kapandi', tarih: t1, personel: servisAd })
       break
 
     case 'iptal':

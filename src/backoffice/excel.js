@@ -194,7 +194,30 @@ const STILLER = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
  * @param {Array<Array<string>>} satirlar ilk satır başlık
  */
 export function xlsxYap(sayfaAdi, satirlar) {
-  const ad = String(sayfaAdi).slice(0, 28).replace(/[\\/?*[\]:]/g, ' ')
+  return xlsxSayfalarYap([{ ad: sayfaAdi, satirlar }])
+}
+
+/* Excel sekme adı: en çok 31 karakter, bazı işaretler yasak ve aynı
+   dosyada iki sekme aynı adı taşıyamıyor (Excel dosyayı onarmak ister). */
+function sekmeAdlari(adlar) {
+  const kullanilan = new Set()
+  return adlar.map((ham) => {
+    const temel = String(ham || 'Sayfa').replace(/[\\/?*[\]:]/g, ' ').trim().slice(0, 28) || 'Sayfa'
+    let ad = temel
+    for (let i = 2; kullanilan.has(ad.toLocaleLowerCase('tr-TR')); i++) ad = `${temel.slice(0, 26)} ${i}`
+    kullanilan.add(ad.toLocaleLowerCase('tr-TR'))
+    return ad
+  })
+}
+
+/**
+ * Birden çok sayfalı .xlsx üretir. Raporlar ekranı bir bölümün bütün
+ * tablolarını tek dosyada, her tabloyu ayrı sekmede veriyor.
+ * @param {Array<{ad: string, satirlar: Array<Array<string>>}>} sayfalar
+ */
+export function xlsxSayfalarYap(sayfalar) {
+  const adlar = sekmeAdlari(sayfalar.map((s) => s.ad))
+  const sira = sayfalar.map((_, i) => i + 1)
 
   return zipYap([
     {
@@ -204,7 +227,7 @@ export function xlsxYap(sayfaAdi, satirlar) {
 <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
 <Default Extension="xml" ContentType="application/xml"/>
 <Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
-<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+${sira.map((n) => `<Override PartName="/xl/worksheets/sheet${n}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('\n')}
 <Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>
 </Types>`),
     },
@@ -219,19 +242,22 @@ export function xlsxYap(sayfaAdi, satirlar) {
       ad: 'xl/workbook.xml',
       icerik: metin(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
-<sheets><sheet name="${kacir(ad)}" sheetId="1" r:id="rId1"/></sheets>
+<sheets>${sira.map((n, i) => `<sheet name="${kacir(adlar[i])}" sheetId="${n}" r:id="rId${n}"/>`).join('')}</sheets>
 </workbook>`),
     },
     {
       ad: 'xl/_rels/workbook.xml.rels',
       icerik: metin(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
-<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
+${sira.map((n) => `<Relationship Id="rId${n}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${n}.xml"/>`).join('\n')}
+<Relationship Id="rId${sayfalar.length + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
 </Relationships>`),
     },
     { ad: 'xl/styles.xml', icerik: metin(STILLER) },
-    { ad: 'xl/worksheets/sheet1.xml', icerik: metin(sayfaXml(satirlar)) },
+    ...sayfalar.map((s, i) => ({
+      ad: `xl/worksheets/sheet${i + 1}.xml`,
+      icerik: metin(sayfaXml(s.satirlar)),
+    })),
   ])
 }
 

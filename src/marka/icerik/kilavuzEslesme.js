@@ -37,3 +37,32 @@ export const URUN_KILAVUZU = {
   'orka-870': 'MCH_ORKA_870',
   'ipak-rulo': 'MCH_IPAK_ROUND_BALER',
 }
+
+/* ---------------------------------------------- İngilizce ekrandaki adlar
+
+   Kılavuz paketindeki model ve belge adları tek dilli (Türkçe). Türkçe
+   ekranda paketteki ad olduğu gibi görünüyor; İngilizce ekranda
+   aşağıdaki karşılık. Ürün adındaki "Süper" katalogdaki gibi "Super"
+   yazılıyor (bkz. katalog/products.en.js). Karşılığı yoksa paketteki ad
+   gösteriliyor. */
+export const KILAVUZ_MODEL_AD_EN = {
+  'Hammer 2 İpli Haşpaysız': 'Hammer 2-Twine, without Chopper',
+  'Hammer 3 İpli Haşpaysız': 'Hammer 3-Twine, without Chopper',
+  'Süper S8002 2 İpli Haşpaysız': 'Super S8002 2-Twine, without Chopper',
+  'Süper S8002E 2 İpli Haşpaysız Ekstra': 'Super S8002E 2-Twine, without Chopper, Extra',
+  'Süper S8002E 3 İpli Haşpaysız Ekstra': 'Super S8002E 3-Twine, without Chopper, Extra',
+  'Süper S8002E 3 İpli Haşpaylı Ekstra': 'Super S8002E 3-Twine, with Chopper, Extra',
+  'Süper YUNUS 2 İpli Haşpaysız': 'Super YUNUS 2-Twine, without Chopper',
+  'Süper YUNUS 3 İpli Haşpaysız': 'Super YUNUS 3-Twine, without Chopper',
+  'Süper YUNUS 3 İpli Haşpaylı': 'Super YUNUS 3-Twine, with Chopper',
+  'I-PAK YUVARLAK BALYA MAKİNESİ': 'I-PAK ROUND BALER',
+  'ORKA 870 4 İPLİ BÜYÜK BALYA MAKİNESİ': 'ORKA 870 4-TWINE LARGE SQUARE BALER',
+}
+
+export const KILAVUZ_BELGE_AD_EN = {
+  'HAMMER KULLANIM KILAVUZU': 'HAMMER USER MANUAL',
+  'ORKA KULLANIM KILAVUZU': 'ORKA USER MANUAL',
+  'PAKSAN BALYA KULLANIM KILAVUZU': 'PAKSAN BALER USER MANUAL',
+  'TWIN HAMMER KULLANIM KILAVUZU': 'TWIN HAMMER USER MANUAL',
+  'YUVARLAK BALYA KULLANIM KILAVUZU': 'ROUND BALER USER MANUAL',
+}

@@ -70,6 +70,21 @@
   --yesil: #17733f;
   --gri: #5e6775;
 
+  /* Rapor grafiklerinin seri renkleri (bkz. ekranlar/rapor/hesap.js →
+     RENK). Bir grafikte en çok üç renkli seri; sıra sabit, seriler
+     sıralarına göre renk alıyor. dataviz doğrulayıcısıyla ÖLÇÜLDÜ
+     (17 Eylül 2026, beyaz yüzey): aydınlık bant, renk doygunluğu,
+     normal görüşte ayrım (en düşük 24,8) ve yüzeye karşı 3:1 geçiyor;
+     turuncu–yeşil çifti kırmızı körlüğünde 6,9'da, yani yalnız renge
+     bırakılmıyor — grafiklerde renk anahtarı, dilimler arası boşluk ve
+     tablo her zaman var. Talep türlerinin rozet renkleri (--tur-*)
+     burada KULLANILMIYOR: parça moru ile satış mavisi yeşil körlüğünde
+     2,4'e düşüyor. */
+  --grafik-1: #1848a8;
+  --grafik-2: #d9661f;
+  --grafik-3: #15885f;
+  --grafik-notr: var(--gri);
+
   --kirmizi-z: rgba(201, 54, 54, 0.1);
   --turuncu-z: rgba(184, 98, 10, 0.12);
   --mavi-z: rgba(24, 72, 168, 0.1);
@@ -174,6 +189,13 @@
   --tur-parca-koyu: #9849ef;
   --tur-satis-koyu: #0775da;
 
+  /* Rapor grafik serileri karanlık yüzeyde (#161f36) ayrı ölçüldü:
+     bant, doygunluk, renk körlüğü ayrımı (en düşük 10,4) ve 3:1
+     kontrast geçiyor. Aydınlık tonlar koyu yüzeyde 2,4'e düşüyordu. */
+  --grafik-1-koyu: #3f78da;
+  --grafik-2-koyu: #d6682a;
+  --grafik-3-koyu: #1f9d74;
+
   /* Soluk zeminler ters çevriliyor */
   --kirmizi-z-koyu: rgba(240, 115, 111, 0.18);
   --turuncu-z-koyu: rgba(255, 138, 61, 0.18);
@@ -215,6 +237,9 @@
   --tur-servis: var(--tur-servis-koyu);
   --tur-parca: var(--tur-parca-koyu);
   --tur-satis: var(--tur-satis-koyu);
+  --grafik-1: var(--grafik-1-koyu);
+  --grafik-2: var(--grafik-2-koyu);
+  --grafik-3: var(--grafik-3-koyu);
   --kirmizi-z: var(--kirmizi-z-koyu);
   --turuncu-z: var(--turuncu-z-koyu);
   --mavi-z: var(--mavi-z-koyu);
@@ -255,6 +280,9 @@
     --tur-servis: var(--tur-servis-koyu);
     --tur-parca: var(--tur-parca-koyu);
     --tur-satis: var(--tur-satis-koyu);
+    --grafik-1: var(--grafik-1-koyu);
+    --grafik-2: var(--grafik-2-koyu);
+    --grafik-3: var(--grafik-3-koyu);
     --kirmizi-z: var(--kirmizi-z-koyu);
     --turuncu-z: var(--turuncu-z-koyu);
     --mavi-z: var(--mavi-z-koyu);
@@ -929,9 +957,23 @@ tbody tr.secili .rz,
   color: var(--yesil);
 }
 
+/* Gri rozetin yazısı kendi soluk zemininde 4,44'te kalıyordu (18 Eylül
+   2026 denetimi); 11,5 punto için aranan 4,5'in altı. Rozetin yazısı bir
+   tık koyulaştı — `--gri` metin ve simge olarak başka yerlerde de
+   kullanıldığı için token'a dokunulmadı. Koyu temada zaten 5,59. */
 .rz--gri {
   background: var(--gri-z);
+  color: #545c69;
+}
+
+:root[data-tema='koyu'] .rz--gri {
   color: var(--gri);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema='acik']) .rz--gri {
+    color: var(--gri);
+  }
 }
 
 .rz--mor {
@@ -2310,6 +2352,418 @@ select.sec {
   color: var(--murekkep-2);
 }
 
+.yigin__liste--ust {
+  margin: 0 0 14px;
+}
+
+/* Yatay barda satır adı düğme olduğunda: altı çizgisiz, bağlantı gibi
+   üstüne gelince belirginleşiyor. */
+.ybar__ad--dg {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ybar__ad--dg:hover,
+.ybar__ad--dg:focus-visible {
+  color: var(--mavi-rz);
+  text-decoration: underline;
+}
+
+/* ------------------------------------------------- Yığılmış sütun grafiği
+   (bkz. ekranlar/grafik.jsx → YiginSutun) */
+
+.ysutun {
+  position: relative;
+}
+
+.ysutun__govde {
+  display: flex;
+  gap: 8px;
+}
+
+.ysutun__olcek {
+  position: relative;
+  flex: none;
+  width: 44px;
+  height: var(--ysutun-h, 180px);
+  font-size: 11px;
+  color: var(--murekkep-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.ysutun__olcek span {
+  position: absolute;
+  right: 0;
+  transform: translateY(50%);
+  white-space: nowrap;
+}
+
+.ysutun__alan {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--sutun-adet), minmax(0, 1fr));
+  height: var(--ysutun-h, 180px);
+  border-bottom: 1px solid var(--cizgi-koyu);
+}
+
+/* En yüksek sütunun sayısı çizim alanının üstüne taşıp grafik başlığıyla
+   çakışıyordu; üstte sayı kadar yer ayrılıyor. */
+.ysutun__govde {
+  padding-top: 18px;
+}
+
+.ysutun__cizgi {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--cizgi);
+  pointer-events: none;
+}
+
+.ysutun__hucre {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 100%;
+  min-width: 0;
+}
+
+.ysutun__hucre--aktif {
+  background: var(--yuzey-2);
+}
+
+.ysutun__hucre--tiklanir {
+  cursor: pointer;
+}
+
+.ysutun__yigin {
+  position: relative;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 2px;
+  width: 64%;
+  max-width: 24px;
+  min-height: 3px;
+}
+
+.ysutun__dilim {
+  display: block;
+  flex-basis: 0;
+  min-height: 2px;
+}
+
+/* Tepe 4 piksel yuvarlak, taban düz (column-reverse: ilk dilim altta). */
+.ysutun__dilim:last-child {
+  border-radius: 4px 4px 0 0;
+}
+
+.ysutun__sayi {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 3px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--murekkep-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ysutun__kutu {
+  position: absolute;
+  z-index: 5;
+  bottom: calc(100% - 8px);
+  left: 50%;
+  min-width: 170px;
+  padding: 9px 11px;
+  border: 1px solid var(--cizgi-koyu);
+  border-radius: 8px;
+  background: var(--yuzey);
+  box-shadow: var(--golge-2);
+  font-size: 12.5px;
+  pointer-events: none;
+}
+
+.ysutun__kutu--sol {
+  left: auto;
+  right: 50%;
+}
+
+.ysutun__kutu-bas {
+  margin-bottom: 6px;
+  font-weight: 800;
+  color: var(--murekkep);
+}
+
+.ysutun__kutu-satir {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--murekkep-2);
+  white-space: nowrap;
+}
+
+.ysutun__kutu-satir b {
+  margin-left: auto;
+  padding-left: 12px;
+  color: var(--murekkep);
+  font-variant-numeric: tabular-nums;
+}
+
+.ysutun__kutu-toplam {
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px solid var(--cizgi);
+}
+
+.ysutun__eksen {
+  display: grid;
+  grid-template-columns: repeat(var(--sutun-adet), minmax(0, 1fr));
+  margin-left: 52px;
+  padding-top: 6px;
+}
+
+.ysutun__etiket {
+  font-size: 10.5px;
+  color: var(--murekkep-3);
+  white-space: nowrap;
+  text-align: center;
+  overflow: visible;
+}
+
+/* ==========================================================================
+   Raporlar — sekmeler, ölçü şeridi, rapor tabloları
+   (bkz. ekranlar/Raporlar.jsx ve ekranlar/rapor/Gorunum.jsx)
+   ========================================================================== */
+
+.rapor-sekmeler {
+  display: flex;
+  gap: 4px;
+  margin: 0 0 14px;
+  padding-bottom: 2px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--cizgi);
+  scrollbar-width: thin;
+}
+
+.rapor-sekme {
+  position: relative;
+  flex: none;
+  padding: 10px 14px 12px;
+  border: 0;
+  background: none;
+  color: var(--murekkep-2);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.rapor-sekme:hover {
+  color: var(--murekkep);
+}
+
+.rapor-sekme--on {
+  color: var(--murekkep);
+}
+
+.rapor-sekme--on::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: -3px;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--mavi);
+}
+
+.rapor-bolum-bas {
+  margin: 4px 0 16px;
+}
+
+.rapor-bolum-bas h2 {
+  margin: 0 0 3px;
+  font-size: 21px;
+  letter-spacing: -0.01em;
+}
+
+.rapor-bolum-bas p {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--murekkep-2);
+}
+
+/* Ölçü kutucuğunun farkı: yön oku ve renk birlikte. Renk yalnız iyi
+   yönü bilinen ölçüde var (talep sayısı artışı ne iyi ne kötü). */
+.deger__fark--iyi { color: var(--yesil); }
+.deger__fark--kotu { color: var(--kirmizi); }
+.deger__fark--notr { color: var(--murekkep-2); }
+
+.deger__aciklama {
+  margin-top: 5px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--murekkep-3);
+}
+
+.rapor-tablo td.sag,
+.rapor-tablo th.sag {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ÇOK SÜTUNLU RAPOR TABLOSU SIĞSIN DİYE başlık iki satıra inebiliyor,
+   ad ve sayı hücreleri ise kırılmıyor. Başlıklar tek satırdayken on iki
+   sütunlu servis karnesi ekrandan taşıyor, servis adları üç satıra
+   bölünüyordu (1440 piksel ekranda ölçüldü). */
+.rapor-tablo thead th {
+  white-space: normal;
+  vertical-align: bottom;
+  min-width: 64px;
+}
+
+.rapor-tablo thead .th-sirala {
+  align-items: flex-end;
+}
+
+.rapor-tablo td:first-child,
+.rapor-tablo td.sag {
+  white-space: nowrap;
+}
+
+/* Toplam satırı gövde hücreleriyle aynı iç boşlukta; yoksa sütunlarla
+   hizası kayıyordu (tfoot'a genel bir kural yok). */
+.rapor-tablo tfoot td {
+  padding: 11px 14px;
+  vertical-align: top;
+}
+
+/* SABİT SÜTUNLAR (17 Eylül 2026). Genişlik tablonun bütün satırlarından
+   bir kez ölçülüp <colgroup> ile veriliyor (bkz. rapor/Gorunum.jsx →
+   Sabit sütun genişliği); sıralama ve sayfa geçişi tabloyu oynatmıyor.
+   Sayı hücresi ölçüsüne göre sığıyor ve yukarıdaki kuralla kırılmıyor.
+   Ad sütunu da artık sarılabiliyor: genişliği en uzun ada göre, bir
+   tavana kadar veriliyor; servis adları yine tek satırda kalıyor, yalnız
+   tavanı aşan uzun parça adı alt satıra iniyor. */
+.rapor-tablo--sabit {
+  table-layout: fixed;
+}
+
+.rapor-tablo--sabit td:first-child:not(.sag) {
+  white-space: normal;
+}
+
+.rapor-tablo--sabit td,
+.rapor-tablo--sabit thead th {
+  overflow-wrap: anywhere;
+}
+
+.pano--rapor {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+  .pano--rapor {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Rapor ölçüleri dörderli: sekiz kutu 7 + 1 diye bölünüp sonuncusu
+   tek başına alt satırda kalıyordu. */
+.olculer--rapor {
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+}
+
+/* Geniş kartta yatay barın adları daha uzun: "Müşterinin teklif
+   yanıtı bekleniyor" 190 pikselde kesiliyordu. */
+.pano__genis .ybar__ad {
+  width: 30%;
+  max-width: 330px;
+}
+
+.rapor-tablo th.sag .th-sirala {
+  justify-content: flex-end;
+}
+
+.rapor-tablo tr.tiklanir:hover td {
+  background: var(--yuzey-2);
+}
+
+/* Klavyeyle gezen personel satırın seçili olduğunu görsün. */
+.rapor-tablo tr.tiklanir:focus-visible {
+  outline: 2px solid var(--mavi-rz);
+  outline-offset: -2px;
+}
+
+.rapor-tablo tr.tiklanir:focus-visible td {
+  background: var(--yuzey-2);
+}
+
+.rapor-tablo tr.rapor-satir--kirmizi td:first-child {
+  box-shadow: inset 3px 0 0 var(--kirmizi);
+}
+
+.rapor-tablo tr.rapor-satir--turuncu td:first-child {
+  box-shadow: inset 3px 0 0 var(--turuncu-d);
+}
+
+.rapor-not {
+  margin: 0 0 18px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--murekkep-2);
+}
+
+.rapor-not summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--murekkep);
+}
+
+.rapor-not ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.rapor-not li + li {
+  margin-top: 4px;
+}
+
+.kucuk-coklu {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px 22px;
+}
+
+.kucuk-coklu__bas {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 13.5px;
+  font-weight: 800;
+}
+
+.kucuk-coklu__bas span {
+  margin-left: auto;
+  font-weight: 700;
+  color: var(--murekkep-2);
+  font-variant-numeric: tabular-nums;
+}
+
 /* -------------------------------------------------- Sol alt profil düğmesi */
 
 .yan__kisi {
@@ -2630,6 +3084,15 @@ select.sec {
   margin-top: 0;
 }
 
+/* Servisin PAKSAN'a devrettiği talep: "Devredildi · servis" satırı
+   kalın ve turuncu. Detaydaki "PAKSAN'da" rozeti ve devir uyarısı da
+   turuncu; liste ile detay aynı rengi konuşuyor. Rozet değil, düz yazı
+   (bkz. Talepler.jsx → SahiplikEtiketi). */
+.talep-devir {
+  font-weight: 700;
+  color: var(--turuncu-d);
+}
+
 /* --------------------------------------------------------- Tür etiketi
 
    Talep numarasının altında duruyor. Renkler Dashboard'daki
@@ -2760,7 +3223,10 @@ select.sec {
   border-bottom: 0;
 }
 
+/* Genişlikler sayfa değişince oynamasın diye en uzun hâle göre ayrılıyor
+   (--sayfa-bilgi ve --sayfa-hane ortak.jsx'ten geliyor). */
 .sayfalama__bilgi {
+  min-width: calc(var(--sayfa-bilgi, 16) * 0.62em);
   color: var(--murekkep-3);
   font-size: 13px;
   font-variant-numeric: tabular-nums;
@@ -2770,14 +3236,27 @@ select.sec {
 .sayfalama__dugmeler {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px;
 }
 
+/* Numara ve üç nokta SABİT genişlikte: en küçük genişlik yetmiyordu,
+   iki haneli numara ve üç nokta birkaç piksel taşıp komşularını itiyordu. */
+.sayfalama .sayfalama__no,
+.sayfalama__bosluk {
+  width: max(34px, calc(var(--sayfa-hane, 2) * 0.72em + 22px));
+  font-size: 12px;
+  flex: none;
+}
+
 .sayfalama .sayfalama__no {
-  min-width: 34px;
+  padding-left: 0;
+  padding-right: 0;
   justify-content: center;
   font-variant-numeric: tabular-nums;
+  /* Renk geçişi kapalı: yazı anında beyaza dönüp zemin 0,13 sn geç
+     maviye döndüğünde beyaz yazı açık zeminde parlıyordu. */
+  transition: none;
 }
 
 .sayfalama .sayfalama__no--on,
@@ -2788,7 +3267,8 @@ select.sec {
 }
 
 .sayfalama__bosluk {
-  padding: 0 2px;
+  display: inline-flex;
+  justify-content: center;
   color: var(--murekkep-3);
 }
 

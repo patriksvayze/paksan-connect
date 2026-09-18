@@ -128,6 +128,9 @@ export default function RequestDetail() {
   const urun = r.makine ? urunDilde(getProduct(r.makine.productId), dil) : null
   const teklifUrun = r.urunId ? urunDilde(getProduct(r.urunId), dil) : null
   const durum = r.status || 'yeni'
+  /* "Yapılan İş" kutusunun okuduğu çözüm: garanti dışı kayıtsız
+     kapanışta varsa ilk ziyaretinki (aşağıdaki kutunun yorumu). */
+  const kutuCozum = r.cozum?.garantiDisi ? r.cozum.onceki || null : r.cozum
 
   /* Müşteriye açık notlar — personelin "müşteriye gönder" diyerek
      yazdıkları. İç notlar buraya GELMİYOR. */
@@ -215,22 +218,32 @@ export default function RequestDetail() {
         )}
 
 
-        {r.cozum && (
+        {/* Garanti dışı yapılıp servis kaydı açılmadan kapanan talepte
+            (bkz. servis/ekranlar/TalepDetay.jsx → garantiDisi) çözümde
+            müşteriye gösterilecek bir alan yok; başlığı "Yapılan İş"
+            olan boş bir kutu çizilmiyor, talebin tamamlandığı durum
+            satırında yazılı. Talep daha önce garanti kaydıyla kapanıp
+            yeniden açıldıysa ilk ziyaretin çözümü `onceki`de duruyor ve
+            kutu onu göstermeye devam ediyor. */}
+        {kutuCozum && (
           <Kutu
             ad={r.tur === 'satinalma' ? t('talepDetay.sonucBaslik') : t('talepDetay.yapilanIs')}
             ton="yesil"
           >
-            {r.cozum.yapilanIs && <p className="detay-metin">{r.cozum.yapilanIs}</p>}
-            <Satir k={t('talepDetay.degisenParca')} v={r.cozum.parcalar} />
-            <Satir k={t('talepDetay.ucret')} v={r.cozum.ucret} vurgu />
+            {kutuCozum.yapilanIs && <p className="detay-metin">{kayitYazisi(kutuCozum.yapilanIs, t)}</p>}
+            {/* Parça yazısı çevrilmiyor: parça adları PAKSAN'ın tek dilli
+                kataloğundan geliyor (bkz. data/talepAlanlari.js), İngilizce
+                karşılığı yok. Kod iki dilde aynı olduğu için yeterli. */}
+            <Satir k={t('talepDetay.degisenParca')} v={kutuCozum.parcalar} />
+            <Satir k={t('talepDetay.ucret')} v={kayitYazisi(kutuCozum.ucret, t)} vurgu />
             {/* Seçenekler kayda HER ZAMAN Türkçe yazılıyor (bkz.
                 data/talepAlanlari.js); ekranda kullanıcının dilinde
                 görünmeleri gerekiyor. Belirtiler ve parçalar zaten
                 çevriliyordu, bu üç alan atlanmıştı. */}
-            <Satir k={t('talepDetay.sonuc')} v={alanEtiketi(r.cozum.sonuc, dil)} />
-            <Satir k={t('talepDetay.satisFiyati')} v={paraliYaz(r.cozum.satisFiyati)} vurgu />
-            {r.cozum.not && <p className="detay-metin">{r.cozum.not}</p>}
-            <Imza personel={r.cozum.personel} tarih={tarihYaz(r.cozum.tarih)} />
+            <Satir k={t('talepDetay.sonuc')} v={alanEtiketi(kutuCozum.sonuc, dil)} />
+            <Satir k={t('talepDetay.satisFiyati')} v={paraliYaz(kutuCozum.satisFiyati)} vurgu />
+            {kutuCozum.not && <p className="detay-metin">{kutuCozum.not}</p>}
+            <Imza personel={kutuCozum.personel} tarih={tarihYaz(kutuCozum.tarih)} />
           </Kutu>
         )}
 
@@ -736,6 +749,25 @@ function Parcalar({ r, dil, t }) {
 
    Bulunamayan adet yine yazılmıyor: ortak okuyucu bulamadığında 1
    varsayıyor, 1 de yazılmıyor. Yanlış adet yazmaktansa yazmamak. */
+/* Servis kaydının kayda Türkçe yazılan sabit değerleri (bkz.
+   lib/servisKaydi.js → UCRET_YAZI ve YAPILAN_IS). Kayıt değişmiyor —
+   backoffice, Servisim ve raporlar bu yazıyı okuyor; yalnız ekranda
+   kullanıcının dilinde gösteriliyor. Listede olmayan değer (personelin
+   yazdığı tutar ya da iş) olduğu gibi kalıyor. */
+const KAYIT_ANAHTARI = {
+  'Garanti kapsamında': 'talepDetay.ucretGaranti',
+  'Müşteri ödedi': 'talepDetay.ucretMusteriOdedi',
+  'İlk Kurulum ve Çalıştırma': 'talepDetay.isKurulum',
+  'Ayar Yapıldı': 'talepDetay.isAyar',
+  'Bakım Yapıldı': 'talepDetay.isBakim',
+  'Parça Değişti': 'talepDetay.isParca',
+  'Arıza Bulunamadı': 'talepDetay.isArizaYok',
+}
+
+function kayitYazisi(deger, t) {
+  return KAYIT_ANAHTARI[deger] ? t(KAYIT_ANAHTARI[deger]) : deger
+}
+
 function parcaYazisi(r, dil) {
   return talebinParcalari(r)
     .filter((x) => x.ad)

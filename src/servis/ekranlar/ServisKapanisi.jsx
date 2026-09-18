@@ -23,6 +23,11 @@ import { servisKaydiGonder } from '../../backoffice/veri'
 import { Bolum, Onay, Sayfa } from '../Kabuk'
 import { ParcaTablosu } from '../../components/ParcaTablosu'
 import { ParcaSec } from './ParcaSec'
+import { DikteliKutu } from '../Dikte'
+import { AdresSecici, teslimatHatasi } from '../AdresSecici'
+import { firmaAdresiOnerisi } from '../adresler'
+import { adresYazisi, teslimatTemizle, teslimatYazisi } from '../../lib/teslimat'
+import { servisleriGetir } from '../../marka'
 import {
   IconAlert,
   IconCamera,
@@ -59,8 +64,7 @@ import {
    ekran olsaydı aynı sorular iki yerde yazılı olurdu; ekran aşamayı
    kaydın kendisinden okuyor:
 
-     1. AŞAMA   arıza, teşhis, garanti kapısı, gereken parça.
-                Para sorulmuyor.
+     1. AŞAMA   arıza, teşhis, gereken parça. Para sorulmuyor.
      2. AŞAMA   ne yapıldı, yol, işçilik. 1. aşamanın cevapları
                 üstte okunur satır olarak duruyor.
 
@@ -109,8 +113,8 @@ const GARANTI_YAZI = {
      garantiDayanak — kararın dayanağını söylüyor: şase numarasındaki
        üretim yılı, satış kaydı değil. Üç kararın hepsinde, üretim
        yılı okunabildiği sürece görünüyor.
-     garantiDisiUyari — servis "Garanti Kapsamında" seçti ama üretim
-       yılına göre süre dolmuş görünüyorsa çıkıyor. Kaydın yine de
+     garantiDisiUyari — şase numarası yazılı ama üretim yılına göre
+       süre dolmuş (ya da okunamıyor) görünüyorsa çıkıyor. Kaydın yine de
        gönderilebileceğini söylüyor, sonra servisin haklı olabileceğini
        kabul ediyor ve tahmin etmek yerine {MARKA} ile doğrulamasını
        istiyor.
@@ -137,7 +141,6 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
   const [ariza, setAriza] = useState(onceki?.ariza || talep.aciklama || '')
   const [yapilanIs, setYapilanIs] = useState(onceki?.yapilanIs || '')
   const [sonuc, setSonuc] = useState(onceki?.sonuc || '')
-  const [kapi, setKapi] = useState(onceki?.kapi || '')
   const [parcalar, setParcalar] = useState(onceki?.parcalar || [])
   const [foto, setFoto] = useState(onceki?.foto || null)
   const [km, setKm] = useState(onceki?.km ? String(onceki.km) : '')
@@ -145,6 +148,9 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
   const [hata, setHata] = useState('')
   const [onay, setOnay] = useState(false)
   const [katalogAcik, setKatalogAcik] = useState(false)
+  /* Parçanın gönderileceği adres (bkz. aşağıda "Parçanın Gönderileceği
+     Adres" bölümü). Yalnız parça isteğinde soruluyor. */
+  const [teslimat, setTeslimat] = useState(onceki?.teslimat || null)
 
   const seriDegeri = seri.trim() || talep.makine?.serial || ''
   const urun = useMemo(() => matchProduct(seriDegeri)?.product || null, [seriDegeri])
@@ -155,54 +161,82 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
 
   const secilenler = temizParcalar(parcalar)
 
-  /* AŞAMAYI SEÇİLEN PARÇA BELİRLİYOR, AYRI BİR SORU DEĞİL.
+  /* SERVİS KAYDI YALNIZ GARANTİ İŞİ İÇİN (15 Eylül 2026, kullanıcının
+     kararı).
+
+     Burada "Hizmet Kapsamı" diye üç seçenek vardı: Garanti Kapsamında,
+     Garanti Dışı · Parçayı Ben Taktım, Garanti Dışı · Parçayı PAKSAN
+     Göndersin. Kaldırıldı, çünkü:
+
+       · Garanti dışında elindeki parçayla yapılan iş PAKSAN'ı
+         ilgilendirmiyor: parayı müşteri ödüyor, PAKSAN'ın ödeyeceği
+         ya da göndereceği bir şey yok. Kayıt istemek, servisten
+         karşılığı olmayan bir iş istemekti.
+       · Garanti dışında parça gerekiyorsa servis zaten parça
+         siparişini kendi Parça ekranından veriyor.
+
+     Garanti dışı yapılmış bir müşteri talebi servis kaydı açılmadan
+     talep detayından kapatılıyor (bkz. TalepDetay.jsx → garantiDisi).
+
+     Kayda `kapi: 'garanti'` yazılmaya devam ediyor: hak ediş hesabı,
+     doğrulama ve backoffice o alanı okuyor; eski kayıtlarda öteki iki
+     değer duruyor ve okunmaya devam ediyor (bkz. lib/servisKaydi.js →
+     KAPI). Müşteri "Sorun Devam Ediyor" deyip talep yeniden açıldıysa
+     önceki kaydın kapısı buraya taşınmıyor; yeni kayıt garanti kaydı.
+
+     AŞAMAYI SEÇİLEN PARÇA BELİRLİYOR, AYRI BİR SORU DEĞİL.
 
      Burada "Parça gerekiyor mu?" diye bir soru vardı ve kaldırıldı.
      Cevabı zaten ekranda duruyordu: servis parça seçtiyse parça
-     gerekiyor demektir. Aynı şeyi iki kez sormak, ikisinin
-     birbirini tutmadığı bir kayıt ihtimali açıyordu — "hayır"
-     denip parça seçilmiş bir kayıt gibi.
+     gerekiyor demektir.
 
-     GARANTİDE PARÇAYI HER ZAMAN PAKSAN GÖNDERİYOR. Servisin
-     elindeki parçayı takması garanti kapısında seçenek değil;
-     "Parçayı Ben Taktım" yalnız garanti dışında var. Bu yüzden
-     garanti kapısında seçilen her parça bir PARÇA İSTEĞİDİR:
-     kayıt 1. aşamada duruyor, hak ediş doğmuyor, iş parça
-     takıldığında bitiyor.
-
-     Garanti işinde hiç parça gerekmiyorsa (yalnız ayar yapıldıysa)
-     liste boş kalıyor ve kayıt bugün kapanıyor. */
-  const parcaIstegi = !ikinci && kapi === 'garanti' && secilenler.length > 0
+     GARANTİDE PARÇAYI HER ZAMAN PAKSAN GÖNDERİYOR. Seçilen her parça
+     bir PARÇA İSTEĞİDİR: kayıt 1. aşamada duruyor, hak ediş doğmuyor,
+     iş parça takıldığında bitiyor. Hiç parça gerekmiyorsa (yalnız
+     ayar yapıldıysa) liste boş kalıyor ve kayıt bugün onaya gidiyor. */
+  const parcaIstegi = !ikinci && secilenler.length > 0
   const asama = parcaIstegi ? ASAMA.parca : ASAMA.bitti
 
-  /* Parça bölümü üç kapıda da açık: garantide istenecek parça,
-     garanti dışında takılan ya da istenen parça. */
-  const parcaBolumu = !ikinci && Boolean(kapi)
+  /* Parça yalnız 1. aşamada seçiliyor; 2. aşamada istenen parça
+     üstteki özet tablosunda okunur duruyor. */
+  const parcaBolumu = !ikinci
 
-  /* BÖLÜM ADI KAPIDAN OKUNUYOR, SEÇİMDEN DEĞİL.
-
-     Bir aralık `parcaIstegi` bakılıyordu ve o ancak parça
-     seçildikten sonra doğru oluyordu: garanti kapısında liste
-     boşken başlık "Değiştirilen Parça" yazıyordu, yani servis
-     parçayı isteyeceğini değil değiştirmiş olduğunu okuyordu.
-     Kapı zaten neyin isteneceğini söylüyor. */
-  const parcaBaslik = ikinci
-    ? { ad: 'Değiştirilen Parça', ipucu: 'Taktığınız parça listede yazılı; değiştiyse düzeltin.' }
-    : kapi === 'garanti'
-      ? { ad: 'Gereken Parça', ipucu: `${MARKA} seçtiğiniz parçaları hazırlayıp size gönderecek. Parça gerekmiyorsa boş bırakın.` }
-      : kapi === 'parcaIste'
-        ? { ad: 'İstenen Parça', ipucu: `${MARKA} parçayı hazırlayıp gönderecek; ücretini müşteriden alırsınız.` }
-        : { ad: 'Taktığınız Parça', ipucu: 'Bu ziyarette taktığınız parçaları katalogdan seçin.' }
+  /* "PARÇA GEREKMİYORSA BOŞ BIRAKIN" CÜMLESİ KALDIRILDI (kullanıcının
+     isteği, 15 Eylül 2026). Garantide parçayı PAKSAN'ın gönderdiği
+     bilgisi yeterli; boş bırakma talimatı gereksiz uzatıyordu. */
+  const parcaBaslik = {
+    ad: 'Gereken Parça',
+    ipucu: `${MARKA} seçtiğiniz parçaları hazırlayıp size gönderecek.`,
+  }
 
   /* İş bittiğinde sorulanlar: ne yapıldı, yol, işçilik. Parça
      isteğinde hiçbiri sorulmuyor — henüz olmamış bir işin parası
      yazılamaz. */
-  const isBitti = ikinci || (Boolean(kapi) && !parcaIstegi)
-  const paraSorulur = isBitti && (ikinci || kapi === 'garanti')
+  const isBitti = ikinci || !parcaIstegi
+  const paraSorulur = isBitti
+
+  /* "Adres Ekle"nin ilk önerisi servisin firma adresi; "Elle Gir"
+     müşterinin bilgileriyle açılıyor — parça çoğu zaman ya dükkâna ya
+     doğrudan bu müşterinin makinesinin başına gidiyor. */
+  const adresOnerisi = useMemo(
+    () =>
+      firmaAdresiOnerisi(
+        servisleriGetir().find((s) => s.id === oturum.servisId) || null,
+        oturum.ad,
+      ),
+    [oturum.servisId, oturum.ad],
+  )
+  const musteriAdresi = {
+    alici: ad.trim(),
+    tel,
+    il: talep.il || '',
+    ilce: talep.ilce || '',
+    acikAdres: adres.trim(),
+  }
 
   const kayit = {
     asama,
-    kapi: ikinci ? onceki.kapi : kapi,
+    kapi: 'garanti',
     yapilanIs,
     sonuc,
     parcalar,
@@ -242,7 +276,10 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
         return 'Şase numarasını kontrol edip yeniden yazın.'
       }
       if (ariza.trim().length < 5) return 'Servis talebinin nedenini yazın.'
-      if (!kapi) return 'Hizmet kapsamını seçin.'
+    }
+    if (parcaIstegi) {
+      const teslimHatasi = teslimatHatasi(teslimat)
+      if (teslimHatasi) return teslimHatasi
     }
     if (sonuc.trim().length < 5) {
       return parcaIstegi ? 'Tespitinizi yazın.' : 'Yapılan işin ayrıntısını yazın.'
@@ -265,6 +302,10 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
        kez burada öğreniliyor. */
     const tam = {
       ...kayit,
+      /* Adres yalnız parça isteğinde kayda giriyor. 2. aşamada anahtar
+         hiç yazılmıyor: veri katmanı kaydı üstüne yazarken 1. aşamanın
+         adresi yerinde kalıyor (bkz. veri.js → servisKaydiGonder). */
+      ...(parcaIstegi ? { teslimat: teslimatTemizle(teslimat) } : {}),
       musteri: { ad: ad.trim(), tel: telGiris(tel), adres: adres.trim() },
       makine: seri.trim()
         ? { serial: normalizeSerial(seri), productId: urun?.id || null }
@@ -284,30 +325,19 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
         baslik: 'Parça isteğiniz gönderilecek',
         metin: `${MARKA} yedek parça birimi parçayı hazırlayıp size gönderecek. Parça elinize geçtiğinde bu talebi açıp "Parçayı Taktım" düğmesine dokunacaksınız. Yol ve işçilik bilgileri o zaman sorulacak.`,
         parcalar: secilenler,
-        kalemler: [],
+        kalemler: [{ ad: 'Gönderilecek Adres', deger: adresYazisi(teslimat) }],
         dugme: 'Parça Talebini Gönder',
       }
-    : kapi === 'garanti' || ikinci
-      ? {
-          baslik: `Kayıt ${markaEk('a')} onaya gidecek`,
-          metin: `${MARKA} yolu, işçiliği ve parçaları inceleyecek. Onaylandığında tutar hesabınıza eklenecek ve talep kapanacak.`,
-          parcalar: secilenler,
-          kalemler: [
-            { ad: 'Yapılan iş', deger: yapilanIs || '—' },
-            { ad: 'Hesabınıza eklenecek tutar', deger: `${paraYaz(hakkedis.toplam)} ${PARA_BIRIMI}` },
-          ],
-          dugme: 'Kaydı Gönder',
-        }
-      : {
-          baslik: 'Talep kapanacak',
-          metin: 'Kayıt müşterinin uygulamasında görünecek ve müşteriye bildirim gidecek.',
-          parcalar: secilenler,
-          kalemler: [
-            { ad: 'Yapılan iş', deger: yapilanIs || '—' },
-            { ad: 'Ücret', deger: 'Müşteri ödedi' },
-          ],
-          dugme: 'Kaydı Gönder',
-        }
+    : {
+        baslik: `Kayıt ${markaEk('a')} onaya gidecek`,
+        metin: `${MARKA} yolu, işçiliği ve parçaları inceleyecek. Onaylandığında tutar hesabınıza eklenecek ve talep kapanacak.`,
+        parcalar: secilenler,
+        kalemler: [
+          { ad: 'Yapılan iş', deger: yapilanIs || '—' },
+          { ad: 'Hesabınıza eklenecek tutar', deger: `${paraYaz(hakkedis.toplam)} ${PARA_BIRIMI}` },
+        ],
+        dugme: 'Kaydı Gönder',
+      }
 
   const dugmeYazi = parcaIstegi
     ? 'Parça Talebini Gönder'
@@ -407,6 +437,11 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
             {extractYear(seriDegeri) && (
               <Satir ad="İmal Yılı" deger={String(extractYear(seriDegeri))} />
             )}
+
+            {/* GARANTİ KARTI ŞASENİN YANINDA. Kaldırılan "Hizmet
+                Kapsamı" bölümünün içindeydi; kart bir soru değil, şase
+                numarasından okunan bilgi, yeri de şasenin yanı. */}
+            {seriDegeri && <Garanti seri={seriDegeri} urun={urun} />}
           </Bolum>
         )}
 
@@ -418,6 +453,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
         {!ikinci && (
           <Bolum ad="Servis Talebi Nedeni">
             <Kutu
+              etiket="Servis Talebi Nedeni"
               deger={ariza}
               onDegis={setAriza}
               satir={3}
@@ -430,51 +466,6 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
           </Bolum>
         )}
 
-        {/* ---------------------------------------------------------- Kapı */}
-        {!ikinci && (
-          <Bolum ad="Hizmet Kapsamı">
-            {seriDegeri && <Garanti seri={seriDegeri} urun={urun} />}
-            <Secenekler
-              secenekler={[
-                {
-                  deger: 'garanti',
-                  ad: 'Garanti Kapsamında',
-                  alt: `Yolunuzu ve işçiliğinizi ${MARKA} öder.`,
-                },
-                {
-                  deger: 'eldeParca',
-                  ad: 'Garanti Dışı · Parçayı Ben Taktım',
-                  alt: 'Ücreti müşteriden alırsınız, kayıt kapanır.',
-                },
-                {
-                  deger: 'parcaIste',
-                  ad: `Garanti Dışı · Parçayı ${MARKA} Göndersin`,
-                  alt: `Parça ${markaEk('dan')} gelecek, ücreti müşteriden alırsınız.`,
-                },
-              ]}
-              secili={kapi}
-              /* KAPI DEĞİŞİNCE SIFIRLANAN BAŞKA BİR ŞEY YOK.
-
-                 Burada kaldırılan "Parça gerekiyor mu?" sorusunun
-                 sıfırlaması kalmıştı (`setParcaGerek`); öyle bir
-                 durum artık tanımlı değil, her dokunuş hata atıyor ve
-                 arkasındaki `setHata('')` hiç çalışmıyordu — ekranda
-                 kalan uyarı temizlenemiyordu.
-
-                 Seçilen parçalar bilerek duruyor: aynı parça
-                 garantide istenen, garanti dışında takılan parça
-                 oluyor, liste ikisinde de geçerli. Yol ve işçilik de
-                 duruyor; garanti dışında hak ediş hesabı onları
-                 zaten okumuyor (bkz. lib/servisKaydi.js →
-                 hakkedisHesapla). */
-              onSec={(v) => {
-                setKapi(v)
-                setHata('')
-              }}
-            />
-          </Bolum>
-        )}
-
         {/* UYARI ARTIK SUÇU ŞASEYE ATMIYOR.
 
             Burada "Şase numarasını kontrol edin" yazıyordu: tek
@@ -482,8 +473,12 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
             Oysa doğru yazılmış bir şasede de karar yanlış çıkabiliyor,
             çünkü hesap üretim yılından gidiyor ve satış tarihi
             sistemde yok. Uyarı artık dayanağı söylüyor ve servisi
-            tahmine değil PAKSAN'a yönlendiriyor. */}
-        {!ikinci && kapi === 'garanti' && !garantiVar && (
+            tahmine değil PAKSAN'a yönlendiriyor.
+
+            Şase yazılmadan çıkmıyor: seçim kalkınca her kayıt garanti
+            kaydı oldu ve şasesiz her formun başında bu uyarı
+            belirecekti; dayanağı olmayan uyarı kör edilir. */}
+        {!ikinci && seriDegeri && !garantiVar && (
           <div className="not not--turuncu">
             <IconAlert size={19} />
             <div>
@@ -505,6 +500,35 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
               onKatalog={() => setKatalogAcik(true)}
             />
 
+            {/* PARÇANIN GÖNDERİLECEĞİ ADRES (17 Eylül 2026, kullanıcının
+                isteği). Parça seçilince çıkıyor, parçanın hemen altında:
+                ne istendiği ile nereye gideceği aynı yerde okunuyor.
+
+                Servis bunu doldurduğunda ne alıyor? Parçası kendi
+                seçtiği kapıya geliyor — dükkânına ya da doğrudan
+                müşterinin tarlasına. Soru sorulmadan önce PAKSAN
+                parçayı servisin firma adresine yolluyordu. Kayıtlı
+                adres tek dokunuş; varsayılan zaten seçili geliyor. */}
+            {parcaIstegi && (
+              <Bolum ad="Parçanın Gönderileceği Adres">
+                <AdresSecici
+                  servisId={oturum.servisId}
+                  deger={teslimat}
+                  onDegis={(t) => {
+                    setTeslimat(t)
+                    setHata('')
+                  }}
+                  oneri={adresOnerisi}
+                  elleOneri={musteriAdresi}
+                  elleNotu={
+                    musteriAdresi.alici || musteriAdresi.acikAdres
+                      ? 'Müşterinin bilgileriyle dolduruldu; değiştirebilirsiniz.'
+                      : ''
+                  }
+                />
+              </Bolum>
+            )}
+
             {/* FOTOĞRAF İSTEĞE BAĞLI VE ESKİ PARÇA GERİ İSTENMİYOR.
 
                 Burada "eski parçayı PAKSAN'a geri gönderin, yoksa
@@ -513,7 +537,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
                 vardı, o da kaldırıldı (gerekçesi lib/servisKaydi.js).
                 Fotoğraf kaldı: garanti tartışmasında bakılacak tek
                 şey o. */}
-            {secilenler.length > 0 && (kapi === 'garanti' || ikinci) && (
+            {secilenler.length > 0 && (
               <Bolum ad="Parçanın Fotoğrafı">
                 <Fotograf foto={foto} onFoto={setFoto} />
               </Bolum>
@@ -552,6 +576,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
         {parcaIstegi && (
           <Bolum ad="Tespitiniz">
             <Kutu
+              etiket="Tespitiniz"
               deger={sonuc}
               onDegis={setSonuc}
               satir={3}
@@ -628,6 +653,9 @@ function IlkAsama({ kayit }) {
       <div className="kart" style={{ padding: 16 }}>
         <Satir ad="Müşterinin Anlattığı" deger={kayit.ariza} />
         <Satir ad="Bulduğunuz" deger={kayit.sonuc} />
+        {/* Parçanın nereye istendiği de okunur: servis parçayı nerede
+            bekleyeceğini hatırlasın. */}
+        <Satir ad="Gönderim Adresi" deger={teslimatYazisi(kayit.teslimat)} />
       </div>
       <p className="alan__ipucu parca-ipucu">İstediğiniz parça</p>
       <ParcaTablosu parcalar={temizParcalar(kayit.parcalar)} />
@@ -646,8 +674,23 @@ function Satir({ ad, deger, mono }) {
   )
 }
 
-/* Yazı kutusu. `satir` verilirse çok satırlı. */
-function Kutu({ ad, deger, onDegis, satir, ipucu, tur }) {
+/* Yazı kutusu. `satir` verilirse çok satırlı.
+
+   Çok satırlı kutunun içinde sesle yazma şeridi var (bkz. Dikte.jsx);
+   tek satırlık kutular ad, telefon, şase, km ve tutar — onlarda yok. */
+function Kutu({ ad, etiket, deger, onDegis, satir, ipucu, tur }) {
+  if (satir) {
+    return (
+      <DikteliKutu
+        ad={ad}
+        etiket={etiket}
+        deger={deger}
+        onDegis={onDegis}
+        satir={satir}
+        ipucu={ipucu && <span className="alan__ipucu">{ipucu}</span>}
+      />
+    )
+  }
   return (
     <label className="alan">
       {ad && <span className="alan__ad">{ad}</span>}

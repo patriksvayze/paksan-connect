@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  gorselAdresi,
   grubunParcalari,
   katalogGetir,
   parcaAra,
 } from '../../lib/parcaKatalogu'
-import { PARA_BIRIMI, paraYaz, MARKA } from '../../marka'
+import { MARKA } from '../../marka'
 import { Sayfa } from '../Kabuk'
-import { IconAlert, IconCheck, IconRight, IconSearch } from '../../components/Icons'
+import { ParcaKarti } from '../ParcaKarti'
+import { IconAlert, IconRight, IconSearch } from '../../components/Icons'
 
 /* ==========================================================================
    Parça seçimi — PAKSAN'ın kendi kataloğundan
@@ -91,7 +91,13 @@ export function ParcaSec({ secili = [], onBitti, onKapat }) {
       ? grubunParcalari(katalog, grup.id)
       : []
 
+  /* KATALOG İNMEDEN SEÇİM KAPANMIYOR. Liste yüklenirken ya da
+     inemediğinde "Seçimi Bitir" çalışıyordu; seçilen kodlar katalogda
+     aranıp bulunamadığı için boş liste dönüyor ve formdaki seçim
+     sessizce siliniyordu. Düğme o durumda kapalı; geri ile çıkmak
+     seçime dokunmuyor. */
   function bitir() {
+    if (durum !== 'hazir') return
     const secilenler = []
     for (const [kod, adet] of secim) {
       const p = (katalog?.parcalar || []).find((x) => x.kod === kod)
@@ -125,7 +131,7 @@ export function ParcaSec({ secili = [], onBitti, onKapat }) {
               <span>Seçilen parçalar</span>
               <strong>{secim.size}</strong>
             </div>
-            <button className="dg dg--ana dg--blok" onClick={bitir}>
+            <button className="dg dg--ana dg--blok" onClick={bitir} disabled={durum !== 'hazir'}>
               Seçimi Bitir
             </button>
           </div>
@@ -183,6 +189,7 @@ export function ParcaSec({ secili = [], onBitti, onKapat }) {
                       <ParcaKarti
                         key={p.kod}
                         parca={p}
+                        fiyat={p.fiyat}
                         secili={secim.has(p.kod)}
                         onSec={() => cevir(p)}
                       />
@@ -207,43 +214,6 @@ function yenidenDene(setDurum, setKatalog) {
       setDurum('hazir')
     })
     .catch(() => setDurum('hata'))
-}
-
-/* Kart düzeni fiyat listesinin aynısı: görsel, kod, ad, fiyat.
-
-   Seçili olan yalnız renkle değil, köşedeki onay işaretiyle de
-   ayrılıyor — güneşte ve renk körlüğünde renk tek başına yetmiyor. */
-function ParcaKarti({ parca, secili, onSec }) {
-  const adres = gorselAdresi(parca.gorsel)
-
-  return (
-    <button
-      className={'parca-kart' + (secili ? ' parca-kart--on' : '')}
-      onClick={onSec}
-      aria-pressed={secili}
-    >
-      <span className="parca-kart__resim">
-        {adres ? (
-          /* Ekranda otuz kart olabiliyor; hepsini birden indirmek
-             tarlada zayıf şebekede ekranı kilitler. */
-          <img src={adres} alt="" loading="lazy" decoding="async" />
-        ) : (
-          <span className="parca-kart__resimsiz">Görsel yok</span>
-        )}
-        {secili && (
-          <span className="parca-kart__onay">
-            <IconCheck size={15} />
-          </span>
-        )}
-      </span>
-
-      <span className="parca-kart__kod mono">{parca.kod}</span>
-      <span className="parca-kart__ad">{parca.ad}</span>
-      <span className="parca-kart__fiyat">
-        {parca.fiyat === null ? '—' : `${paraYaz(parca.fiyat)} ${PARA_BIRIMI}`}
-      </span>
-    </button>
-  )
 }
 
 /* Yükleme sırasında kartların iskeleti duruyor: boş bir ekran

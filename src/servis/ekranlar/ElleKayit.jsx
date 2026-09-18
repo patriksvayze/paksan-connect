@@ -8,6 +8,7 @@ import { servisMakineKaydi } from '../../lib/makineKaydi'
 import { islemYaz, musterileriGetir } from '../../backoffice/veri'
 import { getProduct } from '../../marka'
 import { Bolum } from '../Kabuk'
+import { DikteliKutu } from '../Dikte'
 import { IconAlert, IconCheckCircle, IconSend } from '../../components/Icons'
 
 /* ==========================================================================
@@ -337,17 +338,15 @@ export function ElleKayit({ oturum, onKaydedildi }) {
           </label>
         </div>
 
-        <label className="alan">
-          <span className="alan__ad">Adres</span>
-          <textarea
-            className="gir"
-            rows={2}
-            value={adres}
-            onChange={(e) => setAdres(e.target.value)}
-            placeholder="Köy veya mahalle adı, adres tarifi"
-          />
-          <span className="kucuk sonuk">Bu adres servis kaydına otomatik eklenir.</span>
-        </label>
+        {/* Sesle yazma düğmesi <label>'ın dışında (bkz. Dikte.jsx). */}
+        <DikteliKutu
+          ad="Adres"
+          deger={adres}
+          onDegis={setAdres}
+          satir={2}
+          placeholder="Köy veya mahalle adı, adres tarifi"
+          ipucu={<span className="alan__ipucu">Bu adres servis kaydına otomatik eklenir.</span>}
+        />
 
         {/* MAKİNE: kayıtlı müşteride SEÇİLİYOR, ötekinde yazılıyor.
             Gerekçesi dosyanın başında. */}
@@ -388,15 +387,7 @@ export function ElleKayit({ oturum, onKaydedildi }) {
           </label>
         )}
 
-        <label className="alan">
-          <span className="alan__ad">Servis Talebi Nedeni</span>
-          <textarea
-            className="gir"
-            rows={3}
-            value={aciklama}
-            onChange={(e) => setAciklama(e.target.value)}
-          />
-        </label>
+        <DikteliKutu ad="Servis Talebi Nedeni" deger={aciklama} onDegis={setAciklama} satir={3} />
 
         {hata && <div className="uyari">{hata}</div>}
       </div>

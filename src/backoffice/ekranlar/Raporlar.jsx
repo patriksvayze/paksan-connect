@@ -1,177 +1,121 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
-  destekOturumlariGetir, DURUMLAR, durumBilgi, gecikmisMi, geriBildirimGetir,
-  KAPALI_DURUMLAR, makineKayitlariGetir, musterileriGetir, personelGetir,
-  TALEP_ADI, talepleriGetir, teklifBekliyorMu,
+  bayileriGetirBackoffice, cariHareketleri, destekOturumlariGetir, islemKaydiGetir,
+  makineKayitlariGetir, musterileriGetir, personelGetir, servisleriGetirBackoffice,
+  talepleriGetir,
 } from '../veri'
 import { useVeri } from '../kanca'
-import {
-  Baslik, Bekleme, Bos, siraliSatirlar, SiraliBaslik, tarihSaat, tarihYaz,
-  useSiralama,
-} from './ortak'
-import {
-  araligiCoz, araliktaMi, BOS_ARALIK, Secim, SuzgecCubugu, TarihAraligi,
-} from './suzgec'
-import { cevapsizlar, cozuldu, konular, sorular, yonlendirme } from './DestekKayitlari'
-import { DisaAktar } from './aktar'
-import { getProduct } from '../../marka'
-import { formatSerial } from '../../lib/serial'
-import { talebinParcalari } from '../../lib/servisKaydi'
-import { SIRKET } from '../../marka'
-import { paraYaz } from '../../marka'
+import { bayileriGetir, servisleriGetir } from '../../marka'
+import { Baslik, Bekleme } from './ortak'
+import { araliktaMi, BOS_ARALIK, SuzgecCubugu, TarihAraligi } from './suzgec'
+import { BOLUMLER } from './rapor/bolumler'
+import { bolumuExceleAktar, RaporBolumu } from './rapor/Gorunum'
+import { karsilastirilabilirMi, oncekiDonemdeMi } from './rapor/hesap'
+import { codexBekliyor } from './rapor/metin'
 
 /* ==========================================================================
-   Raporlar — yönetici ekranı
+   Raporlar — yönetim ekranı
 
-   ESKİ HÂLİ NEDEN ÇALIŞMIYORDU
+   17 EYLÜL 2026'DA BAŞTAN KURULDU (kullanıcının isteği: "yöneticilerin
+   çok beğenmesini ve gerçekten kullanmalarını istediğim bir alan").
 
-   On üç rapor bir açılır listedeydi. Yönetici ekranı açtığında hiçbir
-   şey görmüyordu; önce hangi raporu istediğini BİLMESİ, sonra listeden
-   bulup seçmesi gerekiyordu. Oysa yöneticinin sorusu "Garanti maliyeti
-   raporunu aç" değil, "işler nasıl gidiyor, neye bakmam lazım".
+   ESKİ HÂLİ NEYİ EKSİK BIRAKIYORDU
+     · Ekosistemin yarısı raporlarda yoktu: servis ağı, hak ediş ve
+       servis bakiyesi, garanti içi/dışı ayrımı, parça sevki, yeniden
+       açılan talepler, bayiye atanan teklifler, servisi olmayan
+       makineler.
+     · Hiç grafik yoktu; her rapor düz bir tabloydu.
+     · Bazı raporlar eski dünyaya göre sayıyordu: servisin kendi parça
+       siparişi müşteri talebi gibi, servis firması personel gibi,
+       "Servis tahsilatı" PAKSAN servisten para alıyormuş gibi.
 
-   YENİ DÜZEN — ÜÇ KAT
+   YENİ DÜZEN — SEKMELER
+     Her sekme bir yönetici sorusunu cevaplıyor (bkz. rapor/bolumler/).
+     Her sekmede aynı üç kat var:
+       1  ölçüler      önceki eşit dönemle karşılaştırmalı; iyi yönü
+                       bilinen ölçüde fark yeşil ya da kırmızı
+       2  grafikler    zaman içindeki gidiş ve sıralamalar
+       3  tablolar     sıralanabilir; satıra tıklayınca ilgili liste
+                       süzgeçli açılıyor; her tablo ve bütün sekme
+                       Excel'e iniyor
+     Genel Bakış'ta ayrıca "Dikkat İsteyenler": şu an bir şey
+     yapılması gereken işler, tarih süzgecinden bağımsız.
 
-     1  BU DÖNEM        altı sayı, önceki dönemle karşılaştırmalı.
-                        Ekranı açan beş saniyede durumu görüyor.
-
-     2  DİKKAT İSTEYEN  o an müdahale gerektiren şeyler, her biri
-                        ilgili listeye tek dokunuşla gidiyor.
-
-     3  RAPORLAR        on üç raporun kartları. Her kartta raporun
-                        cevapladığı SORU ve o raporun tek başlık
-                        rakamı yazıyor — açmadan önce içinde ne
-                        olduğu belli.
-
-   Karta dokununca raporun tablosu tam ekran açılıyor, geri düğmesiyle
-   bu ekrana dönülüyor.
-
-   Bu düzen servis masası ve CRM ürünlerinde yerleşmiş olan yöntem:
-   özet üstte, istisnalar hemen altında, ayrıntıya özetin üstünden
-   tıklanarak iniliyor; raporlar açılır liste yerine adı ve açıklaması
-   görünen bir kitaplık.
-
-   RAPORLARIN KENDİSİ DEĞİŞMEDİ. Hesaplamalar, sütunlar, Excel çıktısı
-   ve "uydurma sayı yok" kuralı aynı: hesaplanamayan hücre boş kalıyor,
-   tahmin yürütülmüyor.
+   Hesaplar tek yerde (rapor/hesap.js), çizim tek yerde (rapor/Gorunum.jsx).
+   Bir bölümün hesabı patlarsa yalnız o sekme hata gösteriyor; ekranın
+   geri kalanı çalışmaya devam ediyor.
    ========================================================================== */
 
-/* Rapor kitaplığı.
+const M = codexBekliyor({
+  baslik: 'Raporlar',
+  okumaHatasi: 'Rapor verileri okunamadı. Sayfayı yenileyin; sorun sürerse yöneticinize haber verin.',
+  bolumHatasi: 'Bu raporun hesaplanmasında bir sorun çıktı. Öteki raporlar çalışıyor; sorun sürerse yöneticinize haber verin.',
+  karsilastirma: 'Farklar bir önceki eşit dönemle karşılaştırılıyor',
+  karsilastirmaYok: 'Tüm zamanlar seçili; önceki dönemle karşılaştırma yapılmıyor',
+  sekmeler: 'Rapor bölümleri',
+  bolumExcel: "Bu Bölümü Excel'e Aktar",
+})
 
-   `soru` alanı raporun adından daha önemli: yönetici rapor adlarını
-   ezberlemek zorunda değil, sorusunu tanıyor.
-
-   `oneCikan` o raporun özetindeki hangi sayının kartta görüneceği.
-   Adı raporun kendi özetiyle birebir eşleşmeli; eşleşmezse kartta
-   rakam çıkmıyor, uydurma bir sayı yazılmıyor. */
-/* "SONUÇ" ÖBEĞİ KALDIRILDI.
-
-   Dönem özeti, para akışı ve garanti maliyeti raporları çıkarıldı;
-   fiyat teklifi sonuçları Operasyon öbeğine taşındı. Üç öbek yerine
-   iki öbek kaldı: işin akışı ve büyüme. */
-const RAPORLAR = [
-  {
-    deger: 'satis', ad: 'Fiyat teklifi sonuçları', obek: 'Operasyon',
-    soru: 'Verdiğimiz teklifler ne oldu, hangisi cevap bekliyor?',
-    oneCikan: 'Cevap beklenen',
-  },
-  {
-    deger: 'gecikme', ad: 'Bekleyen işler', obek: 'Operasyon',
-    soru: 'Kimsenin bakmadığı ya da cevap beklenen talepler hangileri?',
-    oneCikan: 'Kimsenin bakmadığı',
-  },
-  {
-    deger: 'personel', ad: 'Personel performansı', obek: 'Operasyon',
-    soru: 'Kim kaç talebe dokundu, ne kadar sürede kapattı?',
-    oneCikan: 'Kapatılan talep',
-  },
-  {
-    deger: 'model', ad: 'Model arıza raporu', obek: 'Operasyon',
-    soru: 'Hangi makine daha çok arıza çıkarıyor?',
-    oneCikan: 'Talep gelen model',
-  },
-  {
-    deger: 'parca', ad: 'En çok istenen parçalar', obek: 'Operasyon',
-    soru: 'Stokta ne bulundurmalıyız?',
-    oneCikan: 'Parça talebi',
-  },
-  {
-    deger: 'destek', ad: 'Destek ekranı konuları', obek: 'Operasyon',
-    soru: 'Müşteri uygulamada ne arıyor, nerede cevapsız kalıyor?',
-    oneCikan: 'Cevapsız kalan soru',
-  },
-
-  {
-    deger: 'sadakat', ad: 'Müşteri sadakati', obek: 'Büyüme',
-    soru: 'En çok hangi müşteri bize geliyor?',
-    oneCikan: 'Tekrar oranı',
-  },
-  {
-    deger: 'bolge', ad: 'Bölge dağılımı', obek: 'Büyüme',
-    soru: 'Talepler hangi illerden geliyor?',
-    oneCikan: 'Talep gelen il',
-  },
-  {
-    deger: 'bayi', ad: 'Bayi raporu', obek: 'Büyüme',
-    soru: 'Müşteriler makineyi nereden aldıklarını söylüyor?',
-    oneCikan: 'Kayıtlı müşteri',
-  },
-  {
-    deger: 'musteri', ad: 'Müşteri ve makine kayıtları', obek: 'Büyüme',
-    soru: 'Bu dönem kaç yeni müşteri, kaç makine kaydı geldi?',
-    oneCikan: 'Yeni müşteri',
-  },
-]
-
-const OBEKLER = [
-  { ad: 'Operasyon', alt: 'İşin akışı ve ekibin yükü' },
-  { ad: 'Büyüme', alt: 'Müşteri, bölge ve bayi' },
-]
-
-/* Okuma hatası satırı.
-
-   "Rapor boş" ile "veri okunamadı" ayrı şeyler: ilki bir bilgi,
-   ikincisi bir arıza. Önceden bu durumda yükleniyor iskeleti sonsuza
-   kadar dönüyordu ve yönetici dönemin boş olduğunu sanıyordu. */
-const OKUMA_HATASI = 'Rapor verileri okunamadı. Sayfayı yenileyin; sorun sürerse yöneticinize haber verin.'
-
-export function Raporlar({ rol, surum, git }) {
-  /* `acikRapor` null iken genel bakış, dolu iken o raporun tablosu. */
-  const [acikRapor, setAcikRapor] = useState(null)
+export function Raporlar({ rol, personel, surum, git, sorgu }) {
+  const [bolumId, setBolumId] = useState(sorgu?.bolum || 'genel')
   const [aralik, setAralik] = useState({ ...BOS_ARALIK, tur: 'gun30' })
 
-  /* Sıralama sütun SIRASINA göre: rapor tabloları hücrelerini hazır
-     yazı olarak üretiyor, alan adları yok. Rapor değişince sıralama
-     sıfırlanıyor — üçüncü sütun her raporda başka bir şey. */
-  const { siralama, cevir } = useSiralama(null, 'artan')
+  useEffect(() => {
+    if (sorgu?.bolum) setBolumId(sorgu.bolum)
+  }, [sorgu])
 
   const { veri, yukleniyor, hata } = useVeri(
     () => ({
       talepler: talepleriGetir(),
       musteriler: musterileriGetir(),
       personel: personelGetir(),
-      gorusler: geriBildirimGetir(),
       makineler: makineKayitlariGetir(),
+      /* Backoffice'te liste hiç değiştirilmemişse bu iki okuyucu null
+         dönüyor; asıl liste katalogda (marka kapısı). */
+      servisler: servisleriGetirBackoffice() || servisleriGetir(),
+      bayiler: bayileriGetirBackoffice() || bayileriGetir(),
+      cari: cariHareketleri(),
+      destekOturumlari: destekOturumlariGetir(),
+      islemKaydi: islemKaydiGetir(),
     }),
     [surum],
-    null
+    null,
   )
 
-  /* OKUMA HATASI SONSUZ BEKLEMEYE DÖNÜŞÜYORDU.
+  const bolum = BOLUMLER.find((b) => b.id === bolumId) || BOLUMLER[0]
 
-     `useVeri` baştan beri bir `hata` değeri döndürüyor (bkz. kanca.js)
-     ama bu ekran onu almıyordu. Okuma patladığında `veri` null kalıyor,
-     `yukleniyor` da false oluyor — aşağıdaki koşul ikisine birden
-     baktığı için gri iskelet ekranda KALICI olarak duruyordu.
-     Yöneticinin gördüğü şey "rapor yükleniyor"du ve hiç yüklenmiyordu.
+  /* Bölüm yalnız veri, dönem ya da sekme değişince yeniden hesaplanıyor;
+     tablo sıralaması ve sayfa geçişi hesabı tekrarlatmıyor. */
+  const hesap = useMemo(() => {
+    if (!veri) return null
+    const donemde = (z) => Number.isFinite(z) && araliktaMi(z, aralik)
+    const oncekide = (z) => Number.isFinite(z) && oncekiDonemdeMi(z, aralik)
+    const baglam = {
+      veri,
+      aralik,
+      donemde,
+      oncekide,
+      karsilastir: karsilastirilabilirMi(aralik),
+      donem: veri.talepler.filter((t) => donemde(t.createdAt)),
+      onceki: veri.talepler.filter((t) => oncekide(t.createdAt)),
+      git,
+      rol,
+    }
+    try {
+      return { sonuc: bolum.uret(baglam) }
+    } catch (e) {
+      console.error('Rapor hesaplanamadı:', bolum.id, e)
+      return { hata: e }
+    }
+  }, [veri, aralik, bolum, git, rol])
 
-     Rakamların okunamadığını söylemek, okunmamış rakam göstermekten
-     de yanlış sayı göstermekten de iyidir. */
+  const bas = (sag) => <Baslik ad={M.baslik} sag={sag} />
+
   if (hata) {
     return (
       <>
-        <Baslik ad="Raporlar" />
-        <div className="hata">{OKUMA_HATASI}</div>
+        {bas()}
+        <div className="hata">{M.okumaHatasi}</div>
       </>
     )
   }
@@ -179,1206 +123,53 @@ export function Raporlar({ rol, surum, git }) {
   if (yukleniyor || !veri) {
     return (
       <>
-        <Baslik ad="Raporlar" />
+        {bas()}
         <Bekleme satir={6} />
       </>
     )
   }
 
-  /* Rapor dönemi: talepler geliş tarihine göre süzülüyor */
-  const donem = veri.talepler.filter((t) => araliktaMi(t.createdAt, aralik))
-
-  /* Bir önceki eşit uzunlukta dönem.
-
-     Tek bir sayı "iyi mi kötü mü" sorusunu cevaplamıyor: 42 talep çok
-     mu az mı, geçen ayki 61'i görmeden bilinmiyor. */
-  const onceki = veri.talepler.filter((t) => oncekiDonemdeMi(t.createdAt, aralik))
-
-  const uret = (ad) => URETICILER[ad](donem, veri, aralik, onceki)
-
-  /* ------------------------------------------------------ Rapor detayı */
-
-  if (acikRapor) {
-    const tanim = RAPORLAR.find((r) => r.deger === acikRapor)
-    const sonuc = uret(acikRapor)
-
-    return (
-      <>
-        <Baslik ad={tanim.ad} />
-
-        <SuzgecCubugu>
-          <button className="dg dg--kucuk" onClick={() => { setAcikRapor(null); cevir(null) }}>
-            ← Tüm raporlar
-          </button>
-          <TarihAraligi aralik={aralik} onDegis={setAralik} />
-          <DisaAktar
-            ad={tanim.ad}
-            basliklar={sonuc.basliklar}
-            satirlar={
-              sonuc.toplamSatiri ? [...sonuc.satirlar, sonuc.toplamSatiri] : sonuc.satirlar
-            }
-            personel={rol}
-          />
-          <span className="suzgec-cubugu__sayi">{sonuc.satirlar.length} satır</span>
-        </SuzgecCubugu>
-
-        <p className="kucuk sonuk" style={{ margin: '0 0 14px' }}>{tanim.soru}</p>
-
-        {sonuc.ozet?.length > 0 && <Olculer ozet={sonuc.ozet} />}
-
-        <div className="kart">
-          <div className="kart__tepe">
-            <h2>{tanim.ad}</h2>
-            <span className="kucuk sonuk" style={{ marginLeft: 'auto' }}>
-              {donem.length} talep incelendi
-            </span>
-          </div>
-
-          {sonuc.satirlar.length === 0 ? (
-            <Bos metin="Bu dönemde gösterilecek kayıt yok." />
-          ) : (
-            <div className="tablo-sar">
-              <table>
-                <thead>
-                  <tr>
-                    {sonuc.basliklar.map((b, i) => (
-                      <SiraliBaslik
-                        key={b}
-                        ad={b}
-                        alan={i}
-                        siralama={siralama}
-                        onSirala={cevir}
-                      />
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {siraliSatirlar(sonuc.satirlar, siralama).map((satir, i) => (
-                    <tr key={i}>
-                      {satir.map((h, j) => (
-                        <td key={j} className={j === 0 ? undefined : 'kucuk'}>{h}</td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-                {/* Toplam satırı sıralamaya karışmıyor; her zaman dipte */}
-                {sonuc.toplamSatiri && (
-                  <tfoot>
-                    <tr className="toplam-satir">
-                      {sonuc.toplamSatiri.map((h, j) => (
-                        <td key={j} className={j === 0 ? undefined : 'kucuk'}>{h}</td>
-                      ))}
-                    </tr>
-                  </tfoot>
-                )}
-              </table>
-            </div>
-          )}
-        </div>
-
-        <p className="kucuk sonuk">{ACIKLAMA[acikRapor]}</p>
-      </>
-    )
-  }
-
-  /* ------------------------------------------------------ Genel bakış */
-
-  const ozetR = uret('ozet')
-  const finansR = uret('finans')
-  const uyarilar = dikkatIsteyenler(donem, veri, aralik, git)
-
-  /* Kartlarda görünecek başlık rakamları. Her rapor bir kere
-     üretiliyor; on üç rapor da hafif, tamamı bellekteki diziler
-     üzerinde dönüyor. */
-  const kartDegeri = {}
-  for (const r of RAPORLAR) {
-    if (!r.oneCikan) continue
-    const o = uret(r.deger).ozet || []
-    const bulunan = o.find((x) => x.ad === r.oneCikan)
-    if (bulunan) kartDegeri[r.deger] = bulunan
-  }
-
   return (
     <>
-      <Baslik ad="Raporlar" />
+      {bas(
+        hesap?.sonuc && (
+          <button className="dg" onClick={() => bolumuExceleAktar(bolum.ad, hesap.sonuc, personel)}>
+            {M.bolumExcel}
+          </button>
+        ),
+      )}
+
+      <nav className="rapor-sekmeler" aria-label={M.sekmeler}>
+        {BOLUMLER.map((b) => (
+          <button
+            key={b.id}
+            type="button"
+            className={'rapor-sekme' + (b.id === bolum.id ? ' rapor-sekme--on' : '')}
+            aria-current={b.id === bolum.id ? 'page' : undefined}
+            onClick={() => setBolumId(b.id)}
+          >
+            {b.ad}
+          </button>
+        ))}
+      </nav>
 
       <SuzgecCubugu>
         <TarihAraligi aralik={aralik} onDegis={setAralik} />
-        <span className="suzgec-cubugu__sayi">{donem.length} talep</span>
+        <span className="suzgec-cubugu__sayi">
+          {karsilastirilabilirMi(aralik) ? M.karsilastirma : M.karsilastirmaYok}
+        </span>
       </SuzgecCubugu>
 
-      {/* 1 — Bu dönem: durum beş saniyede okunuyor */}
-      <div className="kart" style={{ marginBottom: 16 }}>
-        <div className="kart__tepe">
-          <h2>Bu Dönem</h2>
-          <span className="kucuk sonuk" style={{ marginLeft: 'auto' }}>
-            önceki eşit dönemle karşılaştırmalı
-          </span>
-        </div>
-        <div className="kart__ic">
-          {/* Altı kutucuk, hepsi farklı bir soruya cevap veriyor:
-              kaç iş geldi · kaçı bitti · ne kadarı zamanında ·
-              ne kadar para · talep başına ne kadar · hangi makine geri
-              geldi.
-
-              "Ort. kapanma" ile "Hunide bekleyen" buradan kaldırıldı:
-              biri "Tamamlanma" ile aynı şeyi başka türlü söylüyordu,
-              öteki adından ne olduğu anlaşılmıyordu ve ikisi de kendi
-              raporlarında zaten duruyor. */}
-          <Olculer
-            ozet={[
-              ...(ozetR.ozet || []).filter((x) =>
-                [
-                  'Gelen talep', 'Kapanan', 'Tamamlanma',
-                  'Verilen tarihte teslim', 'Tekrar gelen makine',
-                ].includes(x.ad)
-              ),
-              ...(finansR.ozet || []).filter((x) => x.ad === 'Satışa dönen'),
-            ]}
-          />
-        </div>
+      <div className="rapor-bolum-bas">
+        <h2>{bolum.ad}</h2>
+        <p>{bolum.soru}</p>
       </div>
 
-      {/* 2 — Dikkat isteyenler: yöneticinin asıl işi */}
-      <div className="kart" style={{ marginBottom: 16 }}>
-        <div className="kart__tepe">
-          <h2>Dikkat İsteyenler</h2>
-          <span className="kucuk sonuk" style={{ marginLeft: 'auto' }}>
-            {uyarilar.length ? `${uyarilar.length} başlık` : 'temiz'}
-          </span>
-        </div>
-        <div className="kart__ic">
-          {uyarilar.length === 0 ? (
-            <p className="kucuk sonuk" style={{ margin: 0 }}>
-              Bu dönemde bekleyen, gecikmiş ya da cevapsız kalan bir şey yok.
-            </p>
-          ) : (
-            <div className="uyari-liste">
-              {uyarilar.map((u) => (
-                <div key={u.ad} className={'uyari-satir uyari-satir--' + u.ton}>
-                  <span className="uyari-satir__nokta" />
-                  <div style={{ flex: 1 }}>
-                    <div className="uyari-satir__ad">{u.ad}</div>
-                    <div className="kucuk sonuk">{u.alt}</div>
-                  </div>
-                  {u.goster && (
-                    <button className="dg dg--kucuk" onClick={u.goster}>
-                      Göster →
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* 3 — Rapor kitaplığı */}
-      {OBEKLER.map((obek) => (
-        <div className="kart" key={obek.ad} style={{ marginBottom: 16 }}>
-          <div className="kart__tepe">
-            <h2>{obek.ad}</h2>
-            <span className="kucuk sonuk" style={{ marginLeft: 'auto' }}>{obek.alt}</span>
-          </div>
-          <div className="kart__ic">
-            <div className="rapor-izgara">
-              {RAPORLAR.filter((r) => r.obek === obek.ad).map((r) => (
-                <button
-                  key={r.deger}
-                  className="rapor-kart"
-                  onClick={() => { setAcikRapor(r.deger); cevir(null) }}
-                >
-                  <div className="rapor-kart__ad">{r.ad}</div>
-                  <div className="rapor-kart__soru">{r.soru}</div>
-                  {kartDegeri[r.deger] && (
-                    <div className="rapor-kart__deger">
-                      {kartDegeri[r.deger].deger}
-                      <span className="rapor-kart__etiket">{kartDegeri[r.deger].ad}</span>
-                    </div>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      ))}
+      {hesap?.hata ? (
+        <div className="hata">{M.bolumHatasi}</div>
+      ) : (
+        hesap?.sonuc && <RaporBolumu sonuc={hesap.sonuc} personel={personel} />
+      )}
     </>
   )
-}
-
-/* Ölçü şeridi — hem genel bakışta hem rapor detayında aynı biçim. */
-function Olculer({ ozet }) {
-  return (
-    <div className="olculer">
-      {ozet.map((o) => (
-        <div className="deger" key={o.ad}>
-          <div className="deger__ad">{o.ad}</div>
-          <div className="deger__v">{o.deger}</div>
-          {/* Bir önceki eşit dönemle fark. Yön okla, büyüklük yüzdeyle.
-              Karşılaştırılacak veri yoksa satır hiç çizilmiyor — "%0"
-              yazmak yanıltıcı olurdu. */}
-          {o.fark !== undefined && o.fark !== null && (
-            <div className={'deger__fark ' + (o.fark >= 0 ? 'arti' : 'eksi')}>
-              {o.fark >= 0 ? '▲' : '▼'} %{Math.abs(o.fark)}
-              <span className="sonuk"> önceki döneme göre</span>
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  )
-}
-
-/* --------------------------------------------------- Dikkat isteyenler
-
-   Yöneticinin ekrana bakma sebebi genelde "her şey yolunda mı" değil,
-   "neye yetişmem lazım". Burada yalnız BİR ŞEY YAPILMASI GEREKEN
-   durumlar var; sayısı sıfır olan başlık listeye hiç girmiyor.
-
-   Her satırın "Göster" düğmesi ilgili ekranı süzgeçli açıyor —
-   yönetici raporu okuyup sonra listeyi elle aramıyor.
-
-   SEÇİLEN DÖNEM DE TAŞINIYOR. Taşınmadığında rapor "8 talep" derken
-   açılan liste 9 satır gösteriyordu: rapor seçili döneme bakıyor,
-   liste ise bütün zamanlara. İki sayının tutmaması, raporun tamamına
-   olan güveni götürür. */
-function dikkatIsteyenler(donem, veri, aralik, git) {
-  const liste = []
-
-  const gecikenler = donem.filter(gecikmisMi)
-  if (gecikenler.length) {
-    liste.push({
-      ad: `${gecikenler.length} taleple 48 saattir ilgilenilmedi`,
-      alt: 'Açık kaldığı hâlde hiçbir personelin ilgilenmediği talepler',
-      ton: 'kirmizi',
-      goster: git ? () => git('talepler', { durum: 'gecikmis', aralik }) : null,
-    })
-  }
-
-  const teklifBekleyen = donem.filter(teklifBekliyorMu)
-  if (teklifBekleyen.length) {
-    liste.push({
-      ad: `${teklifBekleyen.length} teklif müşterinin yanıtını bekliyor`,
-      alt: 'Fiyat verildi, müşteriden yanıt gelmedi',
-      ton: 'turuncu',
-      goster: git ? () => git('talepler', { durum: 'teklifBekleyen', aralik }) : null,
-    })
-  }
-
-  /* En çok arıza çıkaran model — imalat tarafının bakması gereken
-     tek satır. Yalnız birden çok arızası olan model uyarı sayılıyor;
-     tek arıza tesadüf olabilir. */
-  const modelSayim = new Map()
-  for (const t of donem) {
-    if (t.tur !== 'servis' || !t.makine?.productId) continue
-    const ad = getProduct(t.makine.productId)?.name || t.makine.productId
-    modelSayim.set(ad, (modelSayim.get(ad) || 0) + 1)
-  }
-  const enCok = [...modelSayim.entries()].sort((a, b) => b[1] - a[1])[0]
-  if (enCok && enCok[1] > 1) {
-    liste.push({
-      ad: `En çok servis isteyen model: ${enCok[0]} (${enCok[1]} talep)`,
-      alt: 'Aynı modelde tekrarlayan arıza, imalatın incelenmesini gerektirebilir',
-      ton: 'mavi',
-      goster: null,
-    })
-  }
-
-  /* Destek ekranında cevapsız kalan sorular: kılavuzda ya da veri
-     setinde eksik olan her satır, ileride bir telefon demek. */
-  const oturumlar = destekOturumlariGetir().filter((o) => araliktaMi(o.baslangic, aralik))
-  /* `cevapsizlar` TEK BİR OTURUM alıyor, dizi değil. Önce diziyle
-     çağrılıyordu: `oturum.olaylar` tanımsız kalıyor, fonksiyon her
-     zaman boş dönüyordu ve bu uyarı hiçbir zaman çıkamıyordu. */
-  const eksikler = oturumlar.reduce((a, o) => a + cevapsizlar(o).length, 0)
-  if (eksikler) {
-    liste.push({
-      ad: `Destek ekranında ${eksikler} soru cevapsız kaldı`,
-      alt: 'Müşterinin arayıp bulamadığı arızalar',
-      ton: 'turuncu',
-      goster: git ? () => git('destek') : null,
-    })
-  }
-
-  return liste
-}
-
-/* --------------------------------------------------------- Yardımcılar */
-
-const SAAT = 3600000
-
-/** Talebe ilk dokunuş ve kapanış süreleri (saat). */
-function sureler(t) {
-  const gecmis = t.gecmis || []
-  const ilk = gecmis[0] ? (gecmis[0].tarih - t.createdAt) / SAAT : null
-  const kapanis = gecmis.find((g) => g.durum === 'kapandi')
-  return { ilk, kapanis: kapanis ? (kapanis.tarih - t.createdAt) / SAAT : null }
-}
-
-function ortalama(dizi) {
-  const gecerli = dizi.filter((x) => x !== null && !Number.isNaN(x))
-  if (!gecerli.length) return null
-  return gecerli.reduce((a, b) => a + b, 0) / gecerli.length
-}
-
-function sureYaz(saat) {
-  if (saat === null) return '—'
-  if (saat < 1) return `${Math.round(saat * 60)} dk`
-  if (saat < 48) return `${Math.round(saat)} sa`
-  return `${Math.round(saat / 24)} gün`
-}
-
-function yuzde(bolum, toplam) {
-  if (!toplam) return '—'
-  return '%' + Math.round((bolum / toplam) * 100)
-}
-
-/* Bir önceki eşit uzunlukta dönem.
-
-   "Son 30 gün" seçiliyse ondan önceki 30 gün. "Tüm zamanlar" veya açık
-   uçlu özel aralık seçiliyse karşılaştırılacak bir önceki dönem yok —
-   o durumda hiçbir şey karşılaştırılmıyor, uydurma bir taban
-   üretmiyoruz. */
-function oncekiDonemdeMi(zaman, aralik) {
-  const { bas, bit } = araligiCoz(aralik)
-  if (!Number.isFinite(bas) || !Number.isFinite(bit) || bas === 0) return false
-  const uzunluk = bit - bas
-  return zaman >= bas - uzunluk - 1 && zaman < bas
-}
-
-/** İki dönem arasındaki yüzde farkı; taban yoksa null. */
-function fark(simdi, once) {
-  if (!once) return null
-  return Math.round(((simdi - once) / once) * 100)
-}
-
-/* Para alanlarının okunması.
-
-   Personel bu alanlara her zaman sayı yazmıyor: servis ücretine
-   "Garanti kapsamında" yazılabiliyor ve bu doğru bir cevap. Rakam
-   içermeyen değer toplama girmiyor, ayrıca sayılıyor — garanti
-   kapsamında yapılan iş imalatçı için ayrı bir maliyet kalemi. */
-function paraOku(deger) {
-  const ham = String(deger ?? '')
-  if (!/\d/.test(ham)) return null
-  const rakam = ham.replace(/\D/g, '')
-  return rakam ? Number(rakam) : null
-}
-
-/* `paraYaz` MARKA KAPISINDAN GELİYOR.
-
-   Aynı biçimleyici burada bir kopya olarak da duruyordu; iki kopya
-   demek, biçim değiştiğinde raporların panelin geri kalanından
-   ayrılması demekti (bkz. marka → katalog/para.js). */
-
-/* Kutucuklarda para birimi yazılıyor; tablolarda yazılmıyor, orada
-   sütun başlığı zaten "Tutar" diyor. */
-function paraKutu(sayi) {
-  const v = paraYaz(sayi)
-  return v === '—' ? v : v + ' ₺'
-}
-
-/* Müşteriye tarih verilmiş ve kapanmış taleplerin kaçında o tarihe
-   uyulduğu.
-
-   Sınır GÜNÜN SONU: saat 14.00 denip 16.00'da kapanan talep sözünde
-   sayılıyor, ertesi güne sarkan sayılmıyor. Müşteriye söylenen şey
-   gün; saat saatine tutturmak beklenmiyor.
-
-   Tarih verilmemiş talepler paydaya girmiyor — söz verilmemişse
-   tutulmamış da sayılmaz. */
-function sozTutmaOrani(liste) {
-  const sozluler = liste.filter(
-    (t) => t.plan?.tarih && t.status === 'kapandi' && t.cozum?.tarih
-  )
-  if (!sozluler.length) return '—'
-  const gunSonu = (z) => {
-    const d = new Date(z)
-    d.setHours(23, 59, 59, 999)
-    return d.getTime()
-  }
-  const tutulan = sozluler.filter((t) => t.cozum.tarih <= gunSonu(t.plan.tarih))
-  return yuzde(tutulan.length, sozluler.length)
-}
-
-/* Bu dönem birden çok talep açılmış makine sayısı. Makineler seri
-   numarasıyla ayırt ediliyor; seri numarası olmayan talep sayılmıyor
-   çünkü hangi makine olduğu bilinmiyor. */
-function tekrarEdenMakine(liste) {
-  const sayac = new Map()
-  for (const t of liste) {
-    const seri = t.makine?.serial
-    if (!seri) continue
-    sayac.set(seri, (sayac.get(seri) || 0) + 1)
-  }
-  return [...sayac.values()].filter((n) => n > 1).length
-}
-
-function topla(dizi) {
-  return dizi.filter((x) => x !== null).reduce((a, b) => a + b, 0)
-}
-
-/* Yüzdelik dilim — ortalamanın sakladığı kuyruğu gösteriyor.
-
-   "Ortalama kapanma 19 saat" iyi görünüyor ama taleplerin onda biri
-   dokuz gün bekliyorsa o dokuz gün müşteri kaybı demek. Ortalama bunu
-   gizliyor, p90 gösteriyor. */
-function dilim(dizi, oran) {
-  const gecerli = dizi.filter((x) => x !== null && !Number.isNaN(x)).sort((a, b) => a - b)
-  if (!gecerli.length) return null
-  const i = Math.min(gecerli.length - 1, Math.floor(gecerli.length * oran))
-  return gecerli[i]
-}
-
-/* --------------------------------------------- Yedek parça kayıtları
-
-   RAPOR CANLI FİYATA BAKMIYOR, KAYDIN İÇİNDEKİNE BAKIYOR.
-
-   Fiyat listesi değişiyor. Müşteri talebi açtığı gün gördüğü tutarı
-   havale etti; altı ay sonra aynı talebi raporda gören yönetici o
-   günün rakamını görmeli. Bu yüzden talep açılırken fiyat anlık
-   görüntüsü kaydın içine yazılıyor (`parcaFiyat`, bkz.
-   lib/parcaKatalogu.js → fiyatGoruntusu) ve rapor katalogu hiç
-   açmıyor.
-
-   İKİ KAYIT BİÇİMİ BİR ARADA YAŞIYOR
-
-     YENİ  `parcaFiyat` var: satırlarda kod, ad, adet ve o günün
-           tutarı duruyor.
-     ESKİ  yalnız parça ADLARI ile adetleri var, fiyat yok. O günün
-           fiyatı hiçbir yerde yazılı değil ve bugünkü fiyatı o kayda
-           yazmak, müşterinin ödediği tutarı tahrif etmek olurdu.
-
-   Eski kayıtların tutarı bu yüzden `null` kalıyor; parayı toplayan
-   yer onları dışarıda bırakıyor ve kaç tane oldukları ayrıca
-   yazılıyor — sessizce sıfır saymak, toplamı doğru gösterip yanlış
-   olmasına yol açardı. */
-function parcaGoruntusu(talep) {
-  const g = talep?.parcaFiyat
-  return g && Number.isFinite(Number(g.toplam)) ? g : null
-}
-
-/* Parça kalemleri paylasılan okuyucudan geliyor:
-   lib/servisKaydi.js → talebinParcalari. Bu dosyada aynı adlı bir
-   kopyası vardı ve kopya ayrışmıştı: `kod` için '' yerine null, her
-   satırda `tutar: null`, `goruntuden` alanı hiç yok. Aynı adı
-   taşıdığı için de fark edilmiyordu: paylaşılan sürümü içeri alan
-   bir import bu dosyada sessizce gölgelenirdi. */
-
-
-
-/* ------------------------------------------------------- Rapor üreticileri
-
-   Her üretici { basliklar, satirlar, ozet } döndürüyor. Ekran ve Excel
-   aynı veriyi kullanıyor; tabloda ne görünüyorsa dosyaya o iniyor. */
-
-const URETICILER = {
-  /* Yöneticinin ilk sorusu: bu dönemde ne geldi, ne kapandı, ne kadar
-     sürdü. Tür bazında ayrı ayrı — servisle satışın temposu farklı. */
-  ozet(donem, veri, aralik, onceki) {
-    const satirlar = Object.entries(TALEP_ADI).map(([tur, ad]) => {
-      const liste = donem.filter((t) => t.tur === tur)
-      const kapanan = liste.filter((t) => t.status === 'kapandi')
-      const acik = liste.filter((t) => !KAPALI_DURUMLAR.includes(t.status || 'yeni'))
-      return [
-        ad,
-        String(liste.length),
-        String(kapanan.length),
-        String(acik.length),
-        String(acik.filter(gecikmisMi).length),
-        yuzde(kapanan.length, liste.length),
-        sureYaz(ortalama(liste.map((t) => sureler(t).ilk))),
-        sureYaz(ortalama(liste.map((t) => sureler(t).kapanis))),
-        /* En yavaş onda birin kapanma süresi. Ortalamanın sakladığı
-           kuyruk burada görünüyor: ortalama iyiyken müşterilerin
-           %10'u haftalarca bekliyor olabilir. */
-        sureYaz(dilim(liste.map((t) => sureler(t).kapanis), 0.9)),
-      ]
-    })
-
-    /* Toplam satırı — tabloyu gözle toplamak zorunda kalmasın.
-
-       `satirlar` içine KONULMUYOR: sütun başlığından sıralama
-       yapıldığında toplam satırı listenin ortasına düşerdi. Ayrı
-       duruyor, tablonun dibinde sabit. */
-    const kapanan = donem.filter((t) => t.status === 'kapandi')
-    const acikHepsi = donem.filter((t) => !KAPALI_DURUMLAR.includes(t.status || 'yeni'))
-    const toplamSatiri = [
-      String(donem.length),
-      String(kapanan.length),
-      String(acikHepsi.length),
-      String(acikHepsi.filter(gecikmisMi).length),
-      yuzde(kapanan.length, donem.length),
-      sureYaz(ortalama(donem.map((t) => sureler(t).ilk))),
-      sureYaz(ortalama(donem.map((t) => sureler(t).kapanis))),
-      sureYaz(dilim(donem.map((t) => sureler(t).kapanis), 0.9)),
-    ]
-
-    const oncekiKapanan = onceki.filter((t) => t.status === 'kapandi')
-
-    return {
-      basliklar: [
-        'Talep türü', 'Gelen', 'Kapanan', 'Açık', 'Gecikmiş',
-        'Tamamlanma', 'Ort. ilk dokunuş', 'Ort. kapanma', 'En yavaş %10',
-      ],
-      satirlar,
-      toplamSatiri,
-      ozet: [
-        {
-          ad: 'Gelen talep',
-          deger: donem.length,
-          fark: fark(donem.length, onceki.length),
-        },
-        {
-          ad: 'Kapanan',
-          deger: kapanan.length,
-          fark: fark(kapanan.length, oncekiKapanan.length),
-        },
-        { ad: 'Tamamlanma', deger: yuzde(kapanan.length, donem.length) },
-        {
-          ad: 'Ort. kapanma',
-          deger: sureYaz(ortalama(donem.map((t) => sureler(t).kapanis))),
-        },
-        /* "Bu Dönem" şeridinde gösteriliyor. Aynı makineden bu dönem
-           birden çok talep açıldıysa ya arıza geçmemiş ya ilk
-           müdahale yetmemiş; imalatçı için ikisi de haber. Seri
-           numarası olmayan talepler sayılmıyor. */
-        { ad: 'Tekrar gelen makine', deger: tekrarEdenMakine(donem) },
-        /* "Bu Dönem" şeridinde gösteriliyor. Müşteriye tarih verilip
-           kapanmış taleplerin kaçında söze uyulduğu. */
-        { ad: 'Verilen tarihte teslim', deger: sozTutmaOrani(donem) },
-        {
-          ad: 'En yavaş %10',
-          deger: sureYaz(dilim(donem.map((t) => sureler(t).kapanis), 0.9)),
-        },
-      ],
-    }
-  },
-
-  /* ------------------------------------------------------ Para akışı
-
-     YÖNETİCİNİN İLK SORUSU BUYDU VE HİÇBİR RAPORDA CEVABI YOKTU.
-
-     Backoffice tutarları baştan beri topluyordu — kapanışta girilen servis
-     ücreti, parça tutarı, verilen teklif — ama hiçbir yerde
-     toplanmıyordu. Yönetici "bu ay ne kadar iş yaptık" sorusunu
-     backoffice’e soramıyor, Logo'ya bakmak zorunda kalıyordu.
-
-     Burada üç ayrı para var ve karıştırılmamalı:
-
-       HUNİDEKİ   teklif verilmiş, cevabı beklenen tutar. Henüz para
-                  değil, ihtimal. Satış ekibinin peşine düşeceği liste.
-       KAZANILAN  satışa dönen teklif tutarı.
-       TAHSİL     servis ve yedek parçadan kapanışta girilen tutar.
-
-     Garanti kapsamında ücretsiz yapılan iş ayrıca sayılıyor: o bir
-     gelir değil, imalat kalitesinin maliyeti. */
-  finans(donem, veri, aralik, onceki) {
-    const teklifler = donem.filter((t) => t.tur === 'satinalma')
-    const hunide = teklifler.filter((t) => (t.status || 'yeni') === 'teklif')
-    const kazanilan = teklifler.filter((t) => t.cozum?.sonuc === 'Satış oldu')
-    const kaybedilen = teklifler.filter(
-      (t) => t.cozum && t.cozum.sonuc && t.cozum.sonuc !== 'Satış oldu'
-    )
-    /* BAYİYE DEVREDİLEN TEKLİFLER BU RAPORDA GÖRÜNMEZDİ.
-
-       Fiyat teklifi talebinin çoğu artık bayiye atanıyor ve orada
-       PAKSAN'ın işi bitiyor (bkz. veri.js → talebiBayiyeAta). Bu
-       taleplerin `cozum` alanı hiç dolmuyor; huniye de girmiyorlar,
-       kazanılan/kaybedilen sayısına da. Sayılmayınca rapor "bu ay 3
-       teklif geldi" diyordu, oysa otuz gelmiş ve yirmi yedisi bayiye
-       gitmişti.
-
-       Tutarı YOK ve olmayacak: fiyatı bayi veriyor, kendi payını
-       kendi koyuyor, PAKSAN o rakamı bilmiyor. Adet bilgisi ise
-       satış ekibinin ürettiği işin kendisi. */
-    const bayideler = teklifler.filter((t) => t.bayi)
-
-    const hunideTutar = topla(hunide.map((t) => paraOku(t.teklif?.tutar)))
-    const kazanilanTutar = topla(
-      kazanilan.map((t) => paraOku(t.cozum?.satisFiyati) ?? paraOku(t.teklif?.tutar))
-    )
-    const kaybedilenTutar = topla(kaybedilen.map((t) => paraOku(t.teklif?.tutar)))
-
-    const servis = donem.filter((t) => t.tur === 'servis' && t.cozum)
-    const servisTutar = topla(servis.map((t) => paraOku(t.cozum?.ucret)))
-
-    /* Yedek parça geliri TALEBİN İÇİNE YAZILMIŞ FİYATTAN geliyor,
-       kapanışta elle girilen bir rakamdan da, bugünün fiyat
-       listesinden de değil.
-
-       Müşteri parça bedelini talebin başında, uygulamada gördüğü
-       fiyattan ödüyor; kapanışta personele aynı rakamı ikinci kez
-       yazdırmanın karşılığı yoktu ve iki kayıt tutunca hangisinin
-       doğru olduğu belirsizleşiyordu. Aynı sebeple rapor katalogu da
-       açmıyor: fiyat listesi değişince geçmiş ayın tahsilatı kendi
-       kendine değişirdi.
-
-       Yalnız ÖDEMESİ ONAYLANMIŞ talepler sayılıyor: onaylanmamış
-       ödeme henüz hesaba geçmemiş para demek.
-
-       Fiyatı kaydında yazılı OLMAYAN eski talepler toplamın dışında
-       (gerekçesi `parcaGoruntusu` başlığında) ve sayıları ayrı bir
-       satırda yazıyor. */
-    const parca = donem.filter((t) => t.tur === 'parca' && t.odemeOnay)
-    const fiyatliParca = parca.filter((t) => parcaGoruntusu(t))
-    const fiyatsizParca = parca.filter((t) => !parcaGoruntusu(t))
-    const parcaTutar = topla(fiyatliParca.map((t) => parcaGoruntusu(t).toplam))
-
-    /* Garanti kapsamında yapılan iş: kapanışta tutar yazılmamış ya da
-       rakam yerine cümle yazılmış servisler. */
-    const garantili = servis.filter((t) => paraOku(t.cozum?.ucret) === null)
-
-    const satirlar = [
-      ['Bayiye devredilenler', String(bayideler.length), '—',
-        'Teklifi bayi hazırlıyor; tutarı bayi belirliyor.'],
-      ['Hunideki teklif', String(hunide.length), paraYaz(hunideTutar),
-        'Teklif verildi, müşterinin yanıtı bekleniyor'],
-      ['Satışa dönen', String(kazanilan.length), paraYaz(kazanilanTutar),
-        'Teklif kapandı, sonuç: satış oldu'],
-      ['Kaybedilen', String(kaybedilen.length), paraYaz(kaybedilenTutar),
-        'Vazgeçti, rakibe gitti veya ulaşılamadı'],
-      ['Servis tahsilatı', String(servis.length - garantili.length), paraYaz(servisTutar),
-        'Kapanışta ücret girilen servisler'],
-      ['Yedek parça tahsilatı', String(fiyatliParca.length), paraYaz(parcaTutar),
-        'Ödemesi onaylanan parça talepleri, fiyat listesi üzerinden (KDV dâhil)'],
-      ...(fiyatsizParca.length
-        ? [[
-            'Fiyat dökümü olmayan talepler',
-            String(fiyatsizParca.length),
-            '—',
-            'Fiyat listesi gelmeden önce açılan parça taleplerinde fiyat dökümü kayıtlı değil',
-          ]]
-        : []),
-      ['Garanti kapsamında', String(garantili.length), '—',
-        'Ücretsiz yapılan servis — imalat kalitesinin maliyeti'],
-    ]
-
-    const oncekiKazanilan = topla(
-      onceki
-        .filter((t) => t.tur === 'satinalma' && t.cozum?.sonuc === 'Satış oldu')
-        .map((t) => paraOku(t.cozum?.satisFiyati) ?? paraOku(t.teklif?.tutar))
-    )
-
-    return {
-      basliklar: ['Kalem', 'Adet', 'Tutar', 'Ne anlama geliyor'],
-      satirlar,
-      ozet: [
-        {
-          ad: 'Satışa dönen',
-          deger: paraKutu(kazanilanTutar),
-          fark: fark(kazanilanTutar, oncekiKazanilan),
-        },
-        { ad: 'Hunide bekleyen', deger: paraKutu(hunideTutar) },
-        { ad: 'Servis + parça', deger: paraKutu(servisTutar + parcaTutar) },
-        {
-          ad: 'Teklif dönüşümü',
-          deger: yuzde(kazanilan.length, kazanilan.length + kaybedilen.length),
-        },
-        { ad: 'Garantili iş', deger: garantili.length },
-      ],
-    }
-  },
-
-
-  /* ------------------------------------------------- Müşteri sadakati
-
-     Yeni müşteri bulmak, var olanı elde tutmaktan pahalı. Bu rapor
-     "kaç müşterimiz bize ikinci kez döndü" sorusunu cevaplıyor ve
-     defalarca gelen müşterileri listeliyor — hem en sadıklar hem de
-     makinesi sürekli bozulanlar bu listede. İkisi de aranmayı hak
-     ediyor, farklı sebeplerle. */
-  sadakat(donem) {
-    const kova = {}
-    donem.forEach((t) => {
-      if (!t.telHam) return
-      if (!kova[t.telHam]) {
-        kova[t.telHam] = {
-          ad: t.ad,
-          il: t.il,
-          servis: 0,
-          parca: 0,
-          satis: 0,
-          ilk: t.createdAt,
-          son: t.createdAt,
-          makineler: new Set(),
-        }
-      }
-      const k = kova[t.telHam]
-      if (t.tur === 'servis') k.servis++
-      if (t.tur === 'parca') k.parca++
-      if (t.tur === 'satinalma') k.satis++
-      k.ilk = Math.min(k.ilk, t.createdAt)
-      k.son = Math.max(k.son, t.createdAt)
-      if (t.makine) k.makineler.add(getProduct(t.makine.productId)?.name || t.makine.productId)
-    })
-
-    const hepsi = Object.entries(kova).map(([tel, k]) => ({ tel, ...k }))
-    const tekrarEden = hepsi.filter((k) => k.servis + k.parca + k.satis > 1)
-
-    const satirlar = hepsi
-      .sort((a, b) => b.servis + b.parca + b.satis - (a.servis + a.parca + a.satis))
-      .map((k) => [
-        k.ad || '—',
-        k.tel,
-        k.il || '—',
-        String(k.servis + k.parca + k.satis),
-        String(k.servis),
-        String(k.parca),
-        String(k.satis),
-        [...k.makineler].join(' · ') || '—',
-        tarihYaz(k.son, false),
-      ])
-
-    return {
-      basliklar: [
-        'Müşteri', 'Telefon', 'İl', 'Toplam talep', 'Servis', 'Yedek parça',
-        'Fiyat teklifi', 'Makineleri', 'Son talebi',
-      ],
-      satirlar,
-      ozet: [
-        { ad: 'Talep açan müşteri', deger: hepsi.length },
-        { ad: 'Birden çok kez gelen', deger: tekrarEden.length },
-        { ad: 'Tekrar oranı', deger: yuzde(tekrarEden.length, hepsi.length) },
-        {
-          ad: 'Müşteri başına talep',
-          deger: hepsi.length
-            ? (donem.length / hepsi.length).toFixed(1).replace('.', ',')
-            : '—',
-        },
-      ],
-    }
-  },
-
-  /* ------------------------------------------- Destek ekranı konuları
-
-     Destek ekranında müşteri ne arıyor. Kayıt uygulamada tutuluyor
-     (bkz. src/lib/destekLog.js); burada makine ve konu bazında
-     toplanıyor.
-
-     RAPOR DÖNEMİNE TALEPLERDEN AYRI BAKILIYOR: destek oturumu bir
-     talep değil, kendi tarihi var.
-
-     "Cevapsız" sütunu bu raporun asıl çıktısı: bilgi tabanının o
-     makinede nerede yetersiz kaldığını gösteriyor. */
-  destek(donem, veri, aralik) {
-    const oturumlar = destekOturumlariGetir().filter((o) =>
-      araliktaMi(o.baslangic, aralik)
-    )
-
-    const kova = {}
-    oturumlar.forEach((o) => {
-      const ad = o.urun?.ad || 'Makine seçilmedi'
-      if (!kova[ad]) {
-        kova[ad] = { oturum: 0, soru: 0, cevapsiz: 0, talep: 0, cozulen: 0, konular: {} }
-      }
-      const k = kova[ad]
-      k.oturum++
-      k.soru += sorular(o).length
-      k.cevapsiz += cevapsizlar(o).length
-      if (yonlendirme(o)) k.talep++
-      /* "Çözüldü" ancak çiftçi öyle dediyse sayılıyor — talebe
-         dönüşmemiş her oturumu çözülmüş saymak oranı şişiriyordu
-         (bkz. DestekKayitlari.jsx → cozuldu). */
-      if (cozuldu(o)) k.cozulen++
-      konular(o).forEach((c) => {
-        k.konular[c] = (k.konular[c] || 0) + 1
-      })
-    })
-
-    const satirlar = Object.entries(kova)
-      .sort((a, b) => b[1].oturum - a[1].oturum)
-      .map(([ad, k]) => {
-        const enSik = Object.entries(k.konular).sort((a, b) => b[1] - a[1])[0]
-        return [
-          ad,
-          String(k.oturum),
-          String(k.soru),
-          String(k.cevapsiz),
-          String(k.talep),
-          yuzde(k.cozulen, k.oturum),
-          enSik ? `${enSik[0]} (${enSik[1]})` : '—',
-        ]
-      })
-
-    const toplamCevapsiz = oturumlar.reduce((a, o) => a + cevapsizlar(o).length, 0)
-    const talepOlan = oturumlar.filter((o) => yonlendirme(o)).length
-    const cozulen = oturumlar.filter((o) => cozuldu(o)).length
-
-    return {
-      basliklar: [
-        'Makine', 'Konuşma', 'Sorulan soru', 'Cevapsız kalan',
-        'Talebe dönen', 'Ekranda çözülen', 'En çok konuşulan konu',
-      ],
-      satirlar,
-      ozet: [
-        { ad: 'Destek konuşması', deger: oturumlar.length },
-        { ad: 'Cevapsız kalan soru', deger: toplamCevapsiz },
-        { ad: 'Talebe dönen', deger: talepOlan },
-        {
-          ad: 'Ekranda çözülen',
-          deger: yuzde(cozulen, oturumlar.length),
-        },
-      ],
-    }
-  },
-
-  /* Kim ne kadar iş kapatmış. Kaynak: talebin geçmişindeki durum
-     değişikliklerini yapan kişi. Not eklemek de iş sayılıyor —
-     dokunulan talep, sahiplenilmiş taleptir. */
-  personel(donem, veri) {
-    const kova = {}
-    const ekle = (ad, alan) => {
-      if (!ad || ad === '—') return
-      if (!kova[ad]) kova[ad] = { dokunma: 0, kapatma: 0, not: 0, sureler: [] }
-      kova[ad][alan]++
-    }
-
-    donem.forEach((t) => {
-      ;(t.gecmis || []).forEach((g) => {
-        ekle(g.personel, 'dokunma')
-        if (g.durum === 'kapandi') {
-          ekle(g.personel, 'kapatma')
-          if (kova[g.personel]) kova[g.personel].sureler.push((g.tarih - t.createdAt) / SAAT)
-        }
-      })
-      ;(t.notlar || []).forEach((n) => ekle(n.personel, 'not'))
-    })
-
-    const satirlar = Object.entries(kova)
-      .sort((a, b) => b[1].kapatma - a[1].kapatma)
-      .map(([ad, k]) => {
-        const kisi = veri.personel.find((p) => p.ad === ad)
-        return [
-          ad,
-          kisi?.no || '—',
-          kisi ? kisi.rol : '—',
-          String(k.dokunma),
-          String(k.kapatma),
-          String(k.not),
-          sureYaz(ortalama(k.sureler)),
-        ]
-      })
-
-    return {
-      basliklar: ['Personel', 'No', 'Rol', 'İşlem', 'Kapattığı talep', 'Not', 'Ort. kapanma'],
-      satirlar,
-      ozet: [
-        { ad: 'Çalışan sayısı', deger: satirlar.length },
-        { ad: 'Kapatılan talep', deger: donem.filter((t) => t.status === 'kapandi').length },
-      ],
-    }
-  },
-
-  /* İmalatçı için en değerli rapor: hangi model kaç kez arızalanıyor,
-     en sık hangi belirtiyle. Ürün geliştirmeye doğrudan girdi. */
-  model(donem) {
-    const kova = {}
-    donem
-      .filter((t) => t.makine)
-      .forEach((t) => {
-        const ad = getProduct(t.makine.productId)?.name || t.makine.productId
-        if (!kova[ad]) kova[ad] = { servis: 0, parca: 0, belirti: {}, seriler: new Set() }
-        if (t.tur === 'servis') kova[ad].servis++
-        if (t.tur === 'parca') kova[ad].parca++
-        kova[ad].seriler.add(t.makine.serial)
-        ;(t.belirtiler || []).forEach((b) => {
-          kova[ad].belirti[b] = (kova[ad].belirti[b] || 0) + 1
-        })
-      })
-
-    const satirlar = Object.entries(kova)
-      .sort((a, b) => b[1].servis + b[1].parca - (a[1].servis + a[1].parca))
-      .map(([ad, k]) => {
-        const enSik = Object.entries(k.belirti).sort((a, b) => b[1] - a[1])[0]
-        return [
-          ad,
-          String(k.servis + k.parca),
-          String(k.servis),
-          String(k.parca),
-          String(k.seriler.size),
-          enSik ? `${enSik[0]} (${enSik[1]})` : '—',
-        ]
-      })
-
-    return {
-      basliklar: [
-        'Model', 'Toplam talep', 'Servis', 'Yedek parça',
-        'Farklı makine', 'En sık belirti',
-      ],
-      satirlar,
-      ozet: [{ ad: 'Talep gelen model', deger: satirlar.length }],
-    }
-  },
-
-  /* Stok planlaması: hangi parça ne sıklıkta isteniyor.
-
-     SAYIM PARÇA KODUNA GÖRE. Katalogda aynı ada sahip birden çok
-     parça var; ada göre toplamak iki farklı parçayı tek satırda
-     birleştiriyordu ve stoğa hangisinin alınacağı belirsiz kalıyordu.
-     Kodu bilinen satırda kod da yazılıyor — depoya giden kişi adla
-     değil kodla çalışıyor. Kodu olmayan eski kayıtlar adıyla
-     sayılmaya devam ediyor. */
-  parca(donem) {
-    const kova = {}
-    donem
-      .filter((t) => t.tur === 'parca')
-      .forEach((t) => {
-        const model = t.makine
-          ? getProduct(t.makine.productId)?.name || t.makine.productId
-          : null
-        talebinParcalari(t).forEach((p) => {
-          const anahtar = p.kod || p.ad
-          /* Paylaşılan okuyucu adsız satırda '' dönüyor (kod uydurmuyor);
-             tabloda boş hücre yerine tire çiziliyor. Sayım SIKLIK:
-             `adet++` kaç talepte istendiğini sayıyor, kaç adet
-             istendiğini değil — başlık da öyle diyor. */
-          if (!kova[anahtar]) {
-            kova[anahtar] = { ad: p.ad || '—', kod: p.kod, adet: 0, modeller: new Set() }
-          }
-          kova[anahtar].adet++
-          if (model) kova[anahtar].modeller.add(model)
-        })
-      })
-
-    const satirlar = Object.values(kova)
-      .sort((a, b) => b.adet - a.adet)
-      .map((k) => [
-        k.kod ? `${k.ad} · ${k.kod}` : k.ad,
-        String(k.adet),
-        [...k.modeller].join(' · ') || '—',
-      ])
-
-    return {
-      basliklar: ['Parça', 'İstenme sayısı', 'Hangi modellerde'],
-      satirlar,
-      ozet: [
-        { ad: 'Parça talebi', deger: donem.filter((t) => t.tur === 'parca').length },
-        { ad: 'Farklı parça', deger: satirlar.length },
-      ],
-    }
-  },
-
-  /* Satış hunisi.
-
-     ÖNCEDEN YALNIZ KAPANMIŞ TEKLİFLER LİSTELENİYORDU. Bu, hunideki
-     en önemli kalemi — teklif verilmiş, cevabı beklenen işleri —
-     görünmez yapıyordu. Bir satış müdürünün ilk bakacağı yer orası.
-
-     Artık teklif verilmiş her talep listede: kapanmışlar sonucuyla,
-     bekleyenler kaç gündür beklediğiyle. Uzun süre cevapsız kalan
-     satırlar ayrıca işaretli. */
-  satis(donem) {
-    const teklifler = donem.filter((t) => t.tur === 'satinalma')
-    const fiyatVerilen = teklifler.filter((t) => t.teklif)
-    const kapanan = teklifler.filter((t) => t.cozum)
-    const oldu = kapanan.filter((t) => t.cozum.sonuc === 'Satış oldu')
-
-    const satirlar = fiyatVerilen
-      .sort((a, b) => (b.teklif?.tarih || 0) - (a.teklif?.tarih || 0))
-      .map((t) => [
-        t.no,
-        tarihYaz(t.teklif.tarih, false),
-        t.ad || '—',
-        t.il || '—',
-        t.urunId ? getProduct(t.urunId)?.name || t.urunId : '—',
-        t.teklif.tutar || '—',
-        t.cozum?.sonuc || (teklifBekliyorMu(t) ? 'BEKLİYOR — cevap gecikti' : 'Bekliyor'),
-        t.cozum?.satisFiyati || '—',
-        t.cozum
-          ? sureYaz(sureler(t).kapanis)
-          : Math.floor((Date.now() - t.teklif.tarih) / 86400000) + ' gündür',
-      ])
-
-    const bekleyenTutar = topla(
-      fiyatVerilen
-        .filter((t) => !t.cozum)
-        .map((t) => paraOku(t.teklif?.tutar))
-    )
-
-    return {
-      basliklar: [
-        'Talep numarası', 'Teklif tarihi', 'Müşteri', 'İl', 'İlgilendiği ürün',
-        'Teklif tutarı', 'Sonuç', 'Satış fiyatı', 'Süre',
-      ],
-      satirlar,
-      ozet: [
-        { ad: 'Gelen teklif talebi', deger: teklifler.length },
-        { ad: 'Fiyat verilen', deger: fiyatVerilen.length },
-        { ad: 'Cevap beklenen', deger: fiyatVerilen.length - kapanan.length },
-        { ad: 'Hunide bekleyen tutar', deger: paraYaz(bekleyenTutar) },
-        { ad: 'Dönüşüm', deger: yuzde(oldu.length, kapanan.length) },
-      ],
-    }
-  },
-
-  /* Servis ağı planlaması: hangi ilden ne kadar iş geliyor. */
-  bolge(donem) {
-    const kova = {}
-    donem.forEach((t) => {
-      const il = t.il || 'Belirtilmemiş'
-      if (!kova[il]) kova[il] = { toplam: 0, servis: 0, parca: 0, satis: 0, musteri: new Set() }
-      kova[il].toplam++
-      if (t.tur === 'servis') kova[il].servis++
-      if (t.tur === 'parca') kova[il].parca++
-      if (t.tur === 'satinalma') kova[il].satis++
-      if (t.telHam) kova[il].musteri.add(t.telHam)
-    })
-
-    const satirlar = Object.entries(kova)
-      .sort((a, b) => b[1].toplam - a[1].toplam)
-      .map(([il, k]) => [
-        il,
-        String(k.toplam),
-        String(k.servis),
-        String(k.parca),
-        String(k.satis),
-        String(k.musteri.size),
-      ])
-
-    return {
-      basliklar: ['İl', 'Toplam talep', 'Servis', 'Yedek parça', 'Fiyat teklifi', 'Müşteri'],
-      satirlar,
-      ozet: [{ ad: 'Talep gelen il', deger: satirlar.length }],
-    }
-  },
-
-  /* Bayi raporu — müşterinin "makineyi nereden aldım" cevabına dayanıyor.
-
-     ⚠ Bu bir satış rakamı DEĞİL: yalnız uygulamaya kayıt olan
-     müşterilerin beyanı. Gerçek satış adedi Logo'daki faturadan gelir. */
-  bayi(donem, veri) {
-    const kova = {}
-    veri.musteriler.forEach((m) => {
-      const ad = m.satici || 'Belirtilmemiş'
-      if (!kova[ad]) kova[ad] = { musteri: 0, makine: 0, talep: 0, telefonlar: new Set() }
-      kova[ad].musteri++
-      kova[ad].makine += (m.makineler || []).length
-      if (m.tel) kova[ad].telefonlar.add(m.tel)
-    })
-
-    donem.forEach((t) => {
-      const sahip = veri.musteriler.find((m) => m.tel === t.telHam)
-      const ad = sahip?.satici || 'Belirtilmemiş'
-      if (kova[ad]) kova[ad].talep++
-    })
-
-    const satirlar = Object.entries(kova)
-      .sort((a, b) => b[1].musteri - a[1].musteri)
-      .map(([ad, k]) => [
-        ad,
-        String(k.musteri),
-        String(k.makine),
-        String(k.talep),
-        k.musteri ? (k.talep / k.musteri).toFixed(1).replace('.', ',') : '0',
-      ])
-
-    return {
-      basliklar: [
-        'Makinenin alındığı yer', 'Müşteri', 'Kayıtlı makine',
-        'Dönemdeki talep', 'Müşteri başına talep',
-      ],
-      satirlar,
-      ozet: [{ ad: 'Kayıtlı müşteri', deger: veri.musteriler.length }],
-    }
-  },
-
-  /* Bekleyen iş listesi — toplantıda tek tek üzerinden geçmek için.
-
-     İKİ FARKLI BEKLEME VAR ve aynı listede ama ayrı işaretli:
-
-       GECİKMİŞ  48 saati geçmiş, hâlâ kimsenin bakmadığı talep.
-                 Bu bizim hatamız.
-       TEKLİF    fiyat verilmiş, müşteri haftalardır dönmemiş.
-                 Bu müşterinin sessizliği; iş, telefon açmak.
-
-     İkisini ayırmadan tek liste yapmak, satış ekibine "gecikmiş 40
-     talebiniz var" demek olurdu ki doğru değil. */
-  gecikme(donem) {
-    const liste = donem
-      .filter((t) => gecikmisMi(t) || teklifBekliyorMu(t))
-      .sort((a, b) => a.createdAt - b.createdAt)
-
-    const satirlar = liste.map((t) => [
-      t.no,
-      TALEP_ADI[t.tur] || t.tur,
-      durumBilgi(t.status).ad,
-      teklifBekliyorMu(t) ? 'Müşterinin yanıtı bekleniyor' : 'İlgilenilmedi',
-      t.ad || '—',
-      t.tel || '—',
-      t.il || '—',
-      ...tarihSaat(t.createdAt),
-      `${Math.floor((Date.now() - t.createdAt) / 86400000)} gün`,
-    ])
-
-    const gecikenler = donem.filter(gecikmisMi)
-    const teklifBekleyen = donem.filter(teklifBekliyorMu)
-
-    return {
-      basliklar: [
-        'Talep numarası', 'Tür', 'Durum', 'Neden bekliyor', 'Müşteri', 'Telefon',
-        'İl', 'Tarih', 'Saat', 'Bekleme',
-      ],
-      satirlar,
-      ozet: [
-        { ad: 'Kimsenin bakmadığı', deger: gecikenler.length },
-        { ad: 'Cevap beklenen teklif', deger: teklifBekleyen.length },
-        {
-          ad: 'En eski',
-          deger: liste.length
-            ? `${Math.floor((Date.now() - liste[0].createdAt) / 86400000)} gün`
-            : '—',
-        },
-      ],
-    }
-  },
-
-  /* Uygulamanın büyümesi: kim kayıt oldu, hangi makineyi kaydetti. */
-  musteri(donem, veri, aralik) {
-    const yeniler = veri.musteriler.filter((m) => araliktaMi(m.createdAt, aralik))
-    const makineler = veri.makineler.filter((k) => araliktaMi(k.tarih, aralik))
-
-    const satirlar = yeniler.map((m) => [
-      m.no || '—',
-      m.ad || '—',
-      m.tel || '—',
-      m.il || '—',
-      tarihYaz(m.createdAt, false),
-      String((m.makineler || []).length),
-      (m.makineler || []).map((x) => formatSerial(x.serial)).join(' · ') || '—',
-      m.satici || '—',
-    ])
-
-    return {
-      basliklar: [
-        'Müşteri numarası', 'Ad soyad', 'Telefon', 'İl', 'Kayıt tarihi',
-        'Makine', 'Seri numaraları', 'Aldığı yer',
-      ],
-      satirlar,
-      ozet: [
-        { ad: 'Yeni müşteri', deger: yeniler.length },
-        { ad: 'Makine kaydı', deger: makineler.length },
-        { ad: 'Toplam müşteri', deger: veri.musteriler.length },
-      ],
-    }
-  },
-}
-
-const ACIKLAMA = {
-  ozet: 'Süreler talebin geçmişinden hesaplanıyor; hiç dokunulmamış talep ortalamaya girmiyor. Yüzde farklar bir önceki eşit uzunluktaki dönemle karşılaştırılıyor; "Tüm zamanlar" seçiliyse karşılaştırma yapılmıyor.',
-  /* Son cümle yedek parça tutarının NEREDEN geldiğini söylüyor: artık
-     bugünün fiyat listesinden değil, talep açılırken kaydın içine
-     yazılan fiyattan. Fiyatı kayıtlı olmayan eski talepler toplama
-     girmiyor, ayrı bir satirda sayılıyor. */
-  finans: 'Teklif ve servis tutarları personelin girdiği rakamlardan, yedek parça tutarı talep açılırken kaydedilen sabit fiyattan geliyor. Bu bir muhasebe kaydı değil — kesin ciro Logo\'daki faturadan okunur. Rakam yerine "Garanti kapsamında" gibi bir cümle yazılan servisler toplama girmiyor, ayrıca sayılıyor. Fiyatı kayıtlı olmayan eski talepler toplama girmiyor, "Fiyat dökümü olmayan talepler" satırında sayılıyor.',
-  sadakat: 'Müşteriler telefon numarasına göre tekilleştirildi. Çok talep açan müşteri hem en sadık hem de makinesi en çok bozulan olabilir; ikisi de aranmayı hak ediyor.',
-  destek: 'Destek ekranındaki konuşmalardan üretiliyor; talep kayıtlarından bağımsız. "Cevapsız kalan" sütunu bilgi tabanına yazılması gereken soruları gösteriyor — ayrıntısı Destek Kayıtları ekranında.',
-  personel: 'Bir talebe birden çok kişi dokunmuşsa her biri kendi satırında sayılıyor.',
-  model: 'Yalnız makinesi kayıtlı talepler; fiyat teklifleri bu raporda yok.',
-  parca: 'Müşterinin formda seçtiği parça başlıkları sayılıyor.',
-  satis: 'Fiyat verilmiş her teklif listede: kapanmışlar sonucuyla, bekleyenler kaç gündür beklediğiyle. Henüz fiyat çalışılmamış talepler bu listede yok.',
-  bolge: 'Müşteri sayısı telefon numarasına göre tekilleştirildi.',
-  bayi: 'Bu bir satış rakamı değil — müşterinin "makineyi nereden aldım" beyanı. Gerçek satış adedi Logo\'daki faturadan gelir.',
-  gecikme: 'İki tür bekleme bir arada: 48 saati geçtiği hâlde ilgilenilmeyen talepler ve fiyatı verilip müşterinin yanıtı alınamayan teklifler. "Neden bekliyor" sütunu ikisini ayırıyor.',
-  musteri: 'Kayıt tarihi seçilen aralığa düşen müşteriler.',
 }

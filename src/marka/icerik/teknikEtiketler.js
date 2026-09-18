@@ -97,6 +97,51 @@ export const KUNYE_ETIKET = {
   'Çeki kancası gelen ağırlık': { tr: 'Çeki Kancasına Gelen Ağırlık', en: 'Drawbar Load' },
   'Şaft Boyu Min Max Shaft Size Min-max': { tr: 'Şaft Boyu (min–maks)', en: 'Shaft Length (min–max)' },
   'Şaft Tipi Shaft Type': { tr: 'Şaft Tipi', en: 'Shaft Type' },
+
+  /* Paket yenilendiğinde etiketler tek dilli, küçük harfli metne
+     dönüştü ("ağırlık"). Türkçe ekranda olduğu gibi görünmeye devam
+     ediyor (tr alanı kaynak metnin aynısı); yalnız İngilizce karşılık
+     eklendi. */
+  'ağırlık': { tr: 'ağırlık', en: 'Weight' },
+  'bağlayıcı sayısı': { tr: 'bağlayıcı sayısı', en: 'Number of Knotters' },
+  'makine uzunluğu': { tr: 'makine uzunluğu', en: 'Machine Length' },
+  'diş borusu sayısı': { tr: 'diş borusu sayısı', en: 'Number of Tine Bars' },
+  'diş sayısı': { tr: 'diş sayısı', en: 'Number of Tines' },
+  'genişlik': { tr: 'genişlik', en: 'Width' },
+  'hız': { tr: 'hız', en: 'Speed' },
+  'strok uzunluğu': { tr: 'strok uzunluğu', en: 'Stroke Length' },
+  'kuyruk mili hızı': { tr: 'kuyruk mili hızı', en: 'PTO Speed' },
+  'net genişlik': { tr: 'net genişlik', en: 'Net Width' },
+  'sağ': { tr: 'sağ', en: 'Right' },
+  'yükseklik': { tr: 'yükseklik', en: 'Height' },
+  'yol iş uzunluğu': { tr: 'yol iş uzunluğu', en: 'Length (transport / working)' },
+  'çeki kancası gelen ağırlık': { tr: 'çeki kancası gelen ağırlık', en: 'Drawbar Load' },
+  'balya ağırlığı': { tr: 'balya ağırlığı', en: 'Bale Weight' },
+  'balya boyutları': { tr: 'balya boyutları', en: 'Bale Dimensions' },
+  'balya odası tipi': { tr: 'balya odası tipi', en: 'Bale Chamber Type' },
+  'balya sarma ünitesi': { tr: 'balya sarma ünitesi', en: 'Bale Wrapping Unit' },
+  'güç aktarımı': { tr: 'güç aktarımı', en: 'Power Transmission' },
+  'lastik ebatları': { tr: 'lastik ebatları', en: 'Tyre Sizes' },
+  'maksimum tırmık genişliği': { tr: 'maksimum tırmık genişliği', en: 'Maximum Pick-Up Width' },
+  'minimum traktör gücü': { tr: 'minimum traktör gücü', en: 'Minimum Tractor Power' },
+  'rulo file sayısı': { tr: 'rulo file sayısı', en: 'Number of Net Rolls' },
+  'şaft boyu (minimum–maksimum)': { tr: 'şaft boyu (minimum–maksimum)', en: 'Shaft Length (min–max)' },
+  'şaft tipi': { tr: 'şaft tipi', en: 'Shaft Type' },
+  'tırmık borusu sayısı': { tr: 'tırmık borusu sayısı', en: 'Number of Tine Bars' },
+  'tırmık lastik ebatları': { tr: 'tırmık lastik ebatları', en: 'Pick-Up Wheel Tyre Dimensions' },
+  'tırmık parmak sayısı': { tr: 'tırmık parmak sayısı', en: 'Pick-Up Tines' },
+  'tırmık tekerlekleri arasındaki maksimum mesafe': { tr: 'tırmık tekerlekleri arasındaki maksimum mesafe', en: 'Max. Distance Between the Outer Pick-Up Tyres' },
+  'traktör hidrolik sistem basıncı': { tr: 'traktör hidrolik sistem basıncı', en: 'Tractor Hydraulic System Pressure' },
+  'traktör hidrolik sistemi': { tr: 'traktör hidrolik sistemi', en: 'Tractor Hydraulic System' },
+  'traktör taşıma hızı': { tr: 'traktör taşıma hızı', en: 'Tractor Transport Speed' },
+  'traktör–makine şaft bağlantı profili': { tr: 'traktör–makine şaft bağlantı profili', en: 'Splined Profile of the PTO Shaft' },
+  'traktör prizi': { tr: 'traktör prizi', en: 'Tractor Plug' },
+  'balya boyu': { tr: 'balya boyu', en: 'Bale Length' },
+  'kesit': { tr: 'kesit', en: 'Section' },
+  'sol': { tr: 'sol', en: 'Left' },
+  'elektrik sistemi': { tr: 'elektrik sistemi', en: 'Electrical System' },
+  'kuyruk mili devri': { tr: 'kuyruk mili devri', en: 'PTO Rotation Rate' },
+  'uzunluk': { tr: 'uzunluk', en: 'Length' },
 }
 
 /* Değerler: yalnız içinde metin geçenler. Sayı + birim olanlara
@@ -134,6 +179,12 @@ export const KUNYE_DEGER = {
     tr: '2 ünite tek etkili, 1 ünite çift etkili (bıçaklı modelde)',
     en: '2 single-acting units, 1 double-acting unit (on bladed models)',
   },
+
+  /* Yenilenen paketin tek dilli değerleri; tr alanı kaynak metnin aynısı. */
+  'Silindirik, sabit odalı': { tr: 'Silindirik, sabit odalı', en: 'Cylindrical, fixed chamber' },
+  'Teleskopik kardan şaftı': { tr: 'Teleskopik kardan şaftı', en: 'Telescopic cardan shaft' },
+  'Serbest dönüşlü, aşırı yükte cıvata kesmeli, geniş açılı şaft': { tr: 'Serbest dönüşlü, aşırı yükte cıvata kesmeli, geniş açılı şaft', en: 'Free-rotation, wide-angle shaft with overload shear bolt' },
+  '2 tek etkili ünite, 1 çift etkili ünite (bıçaklı balya makinesi için opsiyonel ekipman)': { tr: '2 tek etkili ünite, 1 çift etkili ünite (bıçaklı balya makinesi için opsiyonel ekipman)', en: '2 single-acting units, 1 double-acting unit (optional equipment for balers with knives)' },
 }
 
 /** Künye etiketini seçili dilde verir; eşleşme yoksa olduğu gibi. */
@@ -147,6 +198,10 @@ export function kunyeEtiket(ham, dil = 'tr') {
    "2 Adet/ pcs" gibi karma yazımlar yukarıdaki sözlükte, onlar
    önce eşleşiyor. */
 const ADET_KALIBI = /^(\d+)\s*pcs\.?$/i
+/* Yenilenen pakette adet Türkçe yazılmış ("112 adet", yuvarlak balya
+   kılavuzunda "4 Ad"). Türkçe ekranda olduğu gibi kalıyor, İngilizcede
+   "112 pcs" oluyor. */
+const AD_KALIBI = /^(\d+)\s*(?:adet|Ad\.?)$/i
 
 /** Künye değerini seçili dilde verir; eşleşme yoksa olduğu gibi. */
 export function kunyeDeger(ham, dil = 'tr') {
@@ -155,5 +210,7 @@ export function kunyeDeger(ham, dil = 'tr') {
   if (k) return k[dil] || k.tr
   const adet = metin.match(ADET_KALIBI)
   if (adet) return dil === 'tr' ? `${adet[1]} adet` : `${adet[1]} pcs`
+  const ad = metin.match(AD_KALIBI)
+  if (ad && dil !== 'tr') return `${ad[1]} pcs`
   return ham
 }

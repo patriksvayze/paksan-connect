@@ -654,9 +654,10 @@ p {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  /* 42'ydi; dokunma tabanı 44 (bkz. PRODUCT.md). Denetimde
-     ölçüldü: alt sayfaların hepsinde bu düğme eşiğin altındaydı. */
-  height: 44px;
+  /* 42 → 44 → 48. Projenin kendi dokunma tabanı 48 (styles/olcu.css →
+     --dokunma); 44 Apple'ın tabanı, ölçü dosyası ikisinin büyüğünü
+     seçiyor. 18 Eylül 2026 görsel denetimi bu düğmeyi 44'te yakaladı. */
+  height: var(--dokunma, 48px);
   padding: 0 17px 0 12px;
   border-radius: 999px;
   background: var(--surface);
@@ -4317,6 +4318,84 @@ p {
   font-size: 17px;
   font-weight: 800;
   color: var(--ink);
+}
+
+/* ==========================================================================
+   Yedek parça talebi — "Parça Ekle" ve parça seçme ekranı
+
+   Katalog formun içinden çıktı, ayrı ekrana taşındı (bkz.
+   screens/ParcaSecEkrani.jsx). Formda seçilenler, adet ve toplam
+   kaldı; altlarında seçme ekranını açan düğme var.
+   ========================================================================== */
+
+/* "Kaç adet gerekiyor?" — alanın kendi sorusunun altında ikinci soru.
+   Soru başlığından bir tık soluk: aynı alanın alt adımı. */
+.parca-alan__alt {
+  display: block;
+  margin: 2px 0 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-2);
+}
+
+/* Düğme tam genişlikte. Mavi yazı ve kesik çizgili kenar "buraya
+   eklenir" diyor; dolu ana düğme gibi durup formun asıl düğmesiyle
+   yarışmıyor. */
+.parca-alan__ekle {
+  margin-top: 12px;
+  color: var(--pk-blue-yazi);
+  border-style: dashed;
+  border-width: 1.5px;
+}
+
+.field__label + .parca-alan__ekle,
+.field__hint + .parca-alan__ekle {
+  margin-top: 0;
+}
+
+/* Seçme ekranının gövdesi dipteki sabit çubuk kadar boşluk bırakıyor;
+   son parça satırı çubuğun arkasında kalmasın. Çubuk: 54 piksel düğme
+   + 12'şer piksel iç boşluk + çizgi, üstüne pay. */
+.parca-sec {
+  padding-bottom: calc(var(--safe-bottom) + 108px);
+}
+
+/* Dipte sabit çubuk. Genişlik uygulamanın gövdesiyle aynı (en fazla
+   560 piksel, ortalanmış); geniş ekranda sayfanın tamamına yayılmıyor.
+   Telefonun alt hareket çubuğu varsa çubuk onun üstünde duruyor. */
+.parca-dip {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0;
+  width: 100%;
+  max-width: 560px;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px calc(12px + var(--safe-bottom));
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  box-shadow: 0 -8px 24px rgba(10, 26, 51, 0.08);
+}
+
+.parca-dip__sayi {
+  flex: 1;
+  min-width: 0;
+  font-size: 15.5px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Düğme yazısı kadar geniş, en az 128 piksel: 360 piksel ekranda
+   yanındaki sayı satırına 190 piksel kalıyor. */
+.parca-dip__tamam {
+  flex: none;
+  width: auto;
+  min-width: 128px;
 }
 
 /* ==========================================================================

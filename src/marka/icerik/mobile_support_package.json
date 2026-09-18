@@ -39874,6 +39874,7 @@
         "tr": "Makineyi krikoyla kaldırarak traktörün çeki kancasına bağlayın."
       },
       "body": {
+        "en": "Raise the machine with the jack until it is level with the ground and hitch it to the tractor’s drawbar hook. You may also need to adjust the height of the tractor’s hook from the ground. Do not hitch the machine to a drawbar attached to the lower lift arms. After hitching the machine to the tractor, raise the jack on the drawbar and secure it in its place on the drawbar. Connect the pick-up hydraulic hoses and the power plug to their sockets on the tractor. Fit the PTO shaft that transmits drive from the tractor to the machine. After connecting one end of the shaft to the machine and the other to the tractor, attach the safety chain on the shaft guard to a suitable point.",
         "tr": "Makineyi krikoyla kaldırarak yere paralel hâle getirin ve traktörün çeki kancasına bağlayın. Bunun için traktörün çeki kancasının yerden yüksekliğini de ayarlamanız gerekebilir. Makineyi yan askı kollarına bağlı çeki demirine bağlamayın. Makineyi traktöre bağladıktan sonra çeki demirindeki krikoyu kaldırın ve çeki demiri üzerindeki yerine sabitleyin. Toplama düzeninin hidrolik hortumlarını ve güç fişini traktördeki yerlerine bağlayın. Traktörden makineye hareket aktaran şaftı takın. Şaftın bir ucunu makineye, diğer ucunu traktöre bağladıktan sonra şaft muhafazasındaki emniyet zincirini uygun bir yere takın."
       },
       "machine_id": "MCH_HAMMER_SERIES",
@@ -39904,6 +39905,7 @@
         "tr": "Makineyi uygun konuma getirmeden çalıştırmayın."
       },
       "body": {
+        "en": "Do not start the machine until it is in position to make bales in the field. Do not bale without opening the cover at the rear bale outlet. During field work, reduce the PTO speed on turns to lower the load on the joints, and avoid sharp turns.",
         "tr": "Makineyi tarlada balya bağlamaya uygun konuma getirmeden çalıştırmayın. Arka balya çıkışındaki kapağı açmadan balya yapmayın. Tarla çalışması sırasında dönüşlerde mafsallara binen yükü azaltmak için kuyruk mili devrini düşürün ve keskin dönüşlerden kaçının."
       },
       "machine_id": "MCH_HAMMER_SERIES",
@@ -39934,6 +39936,7 @@
         "tr": "Makineyi çalıştırmadan önce çevrede kimse ve içeride alet kalmadığından emin olun."
       },
       "body": {
+        "en": "Before starting the machine, make sure no one is nearby and no tools are left inside. Start the machine gradually. Check that all parts run freely and quietly.",
         "tr": "Makineyi çalıştırmadan önce çevrede kimse ve içeride alet kalmadığından emin olun. Makineyi kademeli olarak çalıştırın. Tüm parçaların serbestçe ve sessizce çalışıp çalışmadığını kontrol edin."
       },
       "machine_id": "MCH_HAMMER_SERIES",
@@ -39964,6 +39967,7 @@
         "tr": "Kuyruk mili devrini 200–250 dev/dakikaya ayarlayın ve makineyi bir süre boşa çalıştırın."
       },
       "body": {
+        "en": "Set the PTO speed to 200–250 rpm and let the machine run idle for a while.",
         "tr": "Kuyruk mili devrini 200–250 dev/dakikaya ayarlayın ve makineyi bir süre boşa çalıştırın."
       },
       "machine_id": "MCH_HAMMER_SERIES",
@@ -39994,6 +39998,7 @@
         "tr": "Balya sıkılık yaylarını gevşetin, kuyruk mili devrini 500–550 dev/dakikaya yükselttikten sonra çalışmaya başlayın."
       },
       "body": {
+        "en": "Loosen the bale density springs, raise the PTO speed to 500–550 rpm and then start work.",
         "tr": "Balya sıkılık yaylarını gevşetin, kuyruk mili devrini 500–550 dev/dakikaya yükselttikten sonra çalışmaya başlayın."
       },
       "machine_id": "MCH_HAMMER_SERIES",
@@ -40024,6 +40029,7 @@
         "tr": "Çalışan sistemlerin alışması için ilk yüz balyayı yapın."
       },
       "body": {
+        "en": "Make the first hundred bales so that the working systems can run in.",
         "tr": "Çalışan sistemlerin alışması için ilk yüz balyayı yapın."
       },
       "machine_id": "MCH_HAMMER_SERIES",
@@ -40054,6 +40060,7 @@
         "tr": "İlk yüz balyadan sonra balyanın uzunluk, sıkılık ve düzgünlük ayarlarını kontrol edin."
       },
       "body": {
+        "en": "Meanwhile, check the length, density and shape of the bales. After the first hundred bales, stop the machine and inspect it. If needed, adjust the bale shape, length and density settings.",
         "tr": "Bu sırada balyanın uzunluğunu, sıkılığını ve düzgünlüğünü kontrol edin. İlk yüz balyadan sonra makineyi durdurup gözden geçirin. Gerekirse balyanın düzgünlük, uzunluk ve sıkılık ayarlarını yapın."
       },
       "machine_id": "MCH_HAMMER_SERIES",
@@ -40084,6 +40091,7 @@
         "tr": "Balya makinesini 610 dev/dakikadan daha yüksek devirde çalıştırmayın."
       },
       "body": {
+        "en": "Your baler is designed for a PTO speed of 540 rpm. The maximum speed during work should be 610 rpm. Pay attention to this and do not work at a higher speed.",
         "tr": "Balya makineniz 540 dev/dakika kuyruk mili devrine göre üretilmiştir. Çalışma sırasında en yüksek devir 610 dev/dakika olmalıdır. Buna dikkat edin ve daha yüksek devirde çalışmayın."
       },
       "machine_id": "MCH_HAMMER_SERIES",
@@ -40114,6 +40122,7 @@
         "tr": "Makineyi krikoyla kaldırarak traktörün çeki kancasına bağlayın."
       },
       "body": {
+        "en": "Raise the machine with the jack until it is level with the ground and hitch it to the tractor’s drawbar hook. You may also need to adjust the height of the tractor’s hook from the ground. Do not hitch the machine to a drawbar attached to the lower lift arms. After hitching the machine to the tractor, raise the jack on the drawbar and secure it in its place on the drawbar. Connect the pick-up hydraulic hoses and the power plug to their sockets on the tractor. Fit the PTO shaft that transmits drive from the tractor to the machine. After connecting one end of the shaft to the machine and the other to the tractor, attach the safety chain on the shaft guard to a suitable point.",
         "tr": "Makineyi krikoyla kaldırarak yere paralel hâle getirin ve traktörün çeki kancasına bağlayın. Bunun için traktörün çeki kancasının yerden yüksekliğini de ayarlamanız gerekebilir. Makineyi yan askı kollarına bağlı çeki demirine bağlamayın. Makineyi traktöre bağladıktan sonra çeki demirindeki krikoyu kaldırın ve çeki demiri üzerindeki yerine sabitleyin. Toplama düzeninin hidrolik hortumlarını ve güç fişini traktördeki yerlerine bağlayın. Traktörden makineye hareket aktaran şaftı takın. Şaftın bir ucunu makineye, diğer ucunu traktöre bağladıktan sonra şaft muhafazasındaki emniyet zincirini uygun bir yere takın."
       },
       "machine_id": "MCH_PAKSAN_BALYA_SUPER",
@@ -40142,6 +40151,7 @@
         "tr": "Makineyi uygun konuma getirmeden çalıştırmayın."
       },
       "body": {
+        "en": "Do not start the machine until it is in position to make bales in the field. Do not bale without opening the cover at the rear bale outlet. During field work, reduce the PTO speed on turns to lower the load on the joints, and avoid sharp turns.",
         "tr": "Makineyi tarlada balya bağlamaya uygun konuma getirmeden çalıştırmayın. Arka balya çıkışındaki kapağı açmadan balya yapmayın. Tarla çalışması sırasında dönüşlerde mafsallara binen yükü azaltmak için kuyruk mili devrini düşürün ve keskin dönüşlerden kaçının."
       },
       "machine_id": "MCH_PAKSAN_BALYA_SUPER",
@@ -40170,6 +40180,7 @@
         "tr": "Makineyi çalıştırmadan önce çevrede kimse ve içeride alet kalmadığından emin olun."
       },
       "body": {
+        "en": "Before starting the machine, make sure no one is nearby and no tools are left inside. Start the machine gradually. Check that all parts run freely and quietly.",
         "tr": "Makineyi çalıştırmadan önce çevrede kimse ve içeride alet kalmadığından emin olun. Makineyi kademeli olarak çalıştırın. Tüm parçaların serbestçe ve sessizce çalışıp çalışmadığını kontrol edin."
       },
       "machine_id": "MCH_PAKSAN_BALYA_SUPER",
@@ -40198,6 +40209,7 @@
         "tr": "Kuyruk mili devrini 200–250 dev/dakikaya ayarlayın ve makineyi bir süre boşa çalıştırın."
       },
       "body": {
+        "en": "Set the PTO speed to 200–250 rpm and let the machine run idle for a while.",
         "tr": "Kuyruk mili devrini 200–250 dev/dakikaya ayarlayın ve makineyi bir süre boşa çalıştırın."
       },
       "machine_id": "MCH_PAKSAN_BALYA_SUPER",
@@ -40226,6 +40238,7 @@
         "tr": "Balya sıkılık yaylarını gevşetin, kuyruk mili devrini 500–550 dev/dakikaya yükselttikten sonra çalışmaya başlayın."
       },
       "body": {
+        "en": "Loosen the bale density springs, raise the PTO speed to 500–550 rpm and then start work.",
         "tr": "Balya sıkılık yaylarını gevşetin, kuyruk mili devrini 500–550 dev/dakikaya yükselttikten sonra çalışmaya başlayın."
       },
       "machine_id": "MCH_PAKSAN_BALYA_SUPER",
@@ -40254,6 +40267,7 @@
         "tr": "Çalışan sistemlerin alışması için ilk yüz balyayı yapın."
       },
       "body": {
+        "en": "Make the first hundred bales so that the working systems can run in.",
         "tr": "Çalışan sistemlerin alışması için ilk yüz balyayı yapın."
       },
       "machine_id": "MCH_PAKSAN_BALYA_SUPER",
@@ -40282,6 +40296,7 @@
         "tr": "İlk yüz balyadan sonra balyanın uzunluk, sıkılık ve düzgünlük ayarlarını kontrol edin."
       },
       "body": {
+        "en": "Meanwhile, check the length, density and shape of the bales. After the first hundred bales, stop the machine and inspect it. If needed, adjust the bale shape, length and density settings.",
         "tr": "Bu sırada balyanın uzunluğunu, sıkılığını ve düzgünlüğünü kontrol edin. İlk yüz balyadan sonra makineyi durdurup gözden geçirin. Gerekirse balyanın düzgünlük, uzunluk ve sıkılık ayarlarını yapın."
       },
       "machine_id": "MCH_PAKSAN_BALYA_SUPER",
@@ -40310,6 +40325,7 @@
         "tr": "Balya makinesini 610 dev/dakikadan daha yüksek devirde çalıştırmayın."
       },
       "body": {
+        "en": "Your baler is designed for a PTO speed of 540 rpm. The maximum speed during work should be 610 rpm. Pay attention to this and do not work at a higher speed.",
         "tr": "Balya makineniz 540 dev/dakika kuyruk mili devrine göre üretilmiştir. Çalışma sırasında en yüksek devir 610 dev/dakika olmalıdır. Buna dikkat edin ve daha yüksek devirde çalışmayın."
       },
       "machine_id": "MCH_PAKSAN_BALYA_SUPER",
@@ -40338,6 +40354,7 @@
         "tr": "Makinenizi, kullanım kılavuzunda belirtilen teknik özelliklere uygun bir traktörle çalıştırmanız tavsiye edilir."
       },
       "body": {
+        "en": "It is recommended to operate your machine with a tractor that meets the technical specifications given in the user manual.",
         "tr": "Makinenizi, kullanım kılavuzunda belirtilen teknik özelliklere uygun bir traktörle çalıştırmanız tavsiye edilir."
       },
       "machine_id": "MCH_PAKSAN_BALYA_SUPER",
@@ -40366,6 +40383,7 @@
         "tr": "Makineniz, bağlama düzeninin kapasitesine uygun sayıda ip takılmış ve gerekli tüm aksamın ayarları ile yağlaması yapılmış şekilde teslim edilir."
       },
       "body": {
+        "en": "Your machine is delivered with twine fitted to match the capacity of the knotting system, and with all necessary parts adjusted and lubricated.",
         "tr": "Makineniz, bağlama düzeninin kapasitesine uygun sayıda ip takılmış ve gerekli tüm aksamın ayarları ile yağlaması yapılmış şekilde teslim edilir."
       },
       "machine_id": "MCH_PAKSAN_BALYA_SUPER",
@@ -40394,6 +40412,7 @@
         "tr": "Kullanım kılavuzunu okuduktan sonra, anlatılanlara uygun şekilde makinenizi traktöre takıp çalıştırın."
       },
       "body": {
+        "en": "After reading the user manual, hitch your machine to the tractor and start it as described.",
         "tr": "Kullanım kılavuzunu okuduktan sonra, anlatılanlara uygun şekilde makinenizi traktöre takıp çalıştırın."
       },
       "machine_id": "MCH_PAKSAN_BALYA_SUPER",
@@ -41129,6 +41148,7 @@
       "severity": "UNKNOWN",
       "hazard_category": "MAINTENANCE",
       "text": {
+        "en": "Carry out adjustments and repairs on your machine only with the tractor engine off and the wheels chocked. Before starting any maintenance, adjustment or repair, take the tractor’s ignition key with you.",
         "tr": "Makinenizdeki ayar ve onarımları yalnızca traktörün motoru kapalı ve tekerlekleri takozluyken yapın. Bakım, ayar veya onarıma başlamadan önce traktörün kontak anahtarını yanınıza alın."
       },
       "applies_when": null,
@@ -41158,6 +41178,7 @@
       "severity": "UNKNOWN",
       "hazard_category": "MAINTENANCE",
       "text": {
+        "en": "If possible, the tractor should be parked on level ground, left in gear and the parking brake applied.",
         "tr": "Eğer mümkünse traktör düz bir yerde park edilmeli ve bu durumda viteslerden birine takılmalı ve el freni çekilmelidir."
       },
       "applies_when": null,
@@ -41187,6 +41208,7 @@
       "severity": "UNKNOWN",
       "hazard_category": "MAINTENANCE",
       "text": {
+        "en": "If parking on a slope, use first gear facing uphill or reverse gear facing downhill, and apply the parking brake in both cases.",
         "tr": "Eğimli bir arazide park edilecekse yokuş yukarı birinci vitese, yokuş aşağı geri vitese takılmalı ve her iki durumda da el freni çekilmelidir."
       },
       "applies_when": null,
@@ -41216,6 +41238,7 @@
       "severity": "UNKNOWN",
       "hazard_category": "MAINTENANCE",
       "text": {
+        "en": "The PTO shaft must always be disconnected.",
         "tr": "Şaft bağlantısı mutlaka çözülmelidir."
       },
       "applies_when": null,
@@ -42620,6 +42643,7 @@
       "severity": "UNKNOWN",
       "hazard_category": "MAINTENANCE",
       "text": {
+        "en": "Carry out adjustments and repairs on your machine only with the tractor engine off and the wheels chocked. Before starting any maintenance, adjustment or repair, take the tractor’s ignition key with you.",
         "tr": "Makinenizdeki ayar ve onarımları yalnızca traktörün motoru kapalı ve tekerlekleri takozluyken yapın. Bakım, ayar veya onarıma başlamadan önce traktörün kontak anahtarını yanınıza alın."
       },
       "applies_when": null,
@@ -42647,6 +42671,7 @@
       "severity": "UNKNOWN",
       "hazard_category": "MAINTENANCE",
       "text": {
+        "en": "If possible, park the tractor on level ground; leave it in gear and apply the parking brake.",
         "tr": "Eğer mümkünse traktörü düz bir yere park edin; viteslerden birine takın ve el frenini çekin."
       },
       "applies_when": null,
@@ -42674,6 +42699,7 @@
       "severity": "UNKNOWN",
       "hazard_category": "MAINTENANCE",
       "text": {
+        "en": "If parking on a slope, use first gear facing uphill or reverse gear facing downhill, and apply the parking brake in both cases.",
         "tr": "Eğimli bir arazide park edilecekse yokuş yukarı birinci vitese, yokuş aşağı geri vitese takılmalı ve her iki durumda da el freni çekilmelidir."
       },
       "applies_when": null,
@@ -42701,6 +42727,7 @@
       "severity": "UNKNOWN",
       "hazard_category": "MAINTENANCE",
       "text": {
+        "en": "The PTO shaft must always be disconnected.",
         "tr": "Şaft bağlantısı mutlaka çözülmelidir."
       },
       "applies_when": null,
@@ -44011,6 +44038,7 @@
       "severity": "UNKNOWN",
       "hazard_category": "OTHER",
       "text": {
+        "en": "Take care of crushing and cutting hazards when using the jack stand.",
         "tr": "Kriko ayağını kullanırken ezilme ve kesilme risklerine karşı dikkatli olun."
       },
       "applies_when": null,
@@ -44038,6 +44066,7 @@
       "severity": "UNKNOWN",
       "hazard_category": "OTHER",
       "text": {
+        "en": "Use the jack stand to steady the baler when hitching or unhitching it.",
         "tr": "Balya makinesini bağlarken veya bağlantısını çözerken dengelemek için kriko ayağını kullanın."
       },
       "applies_when": null,
@@ -44065,6 +44094,7 @@
       "severity": "UNKNOWN",
       "hazard_category": "OTHER",
       "text": {
+        "en": "Take care when hitching or unhitching the baler. These manoeuvres can be dangerous if not done carefully.",
         "tr": "Balya makinesini bağlama veya çözme işlemi sırasında dikkatli olun. Bu manevralar dikkatli yapılmazsa tehlikeli olabilir."
       },
       "applies_when": null,
@@ -44092,6 +44122,7 @@
       "severity": "UNKNOWN",
       "hazard_category": "OTHER",
       "text": {
+        "en": "Check the required lighting, signalling and safety equipment before transport.",
         "tr": "Taşıma sırasında gerekli aydınlatma, sinyal ve güvenlik ekipmanlarını kontrol edin."
       },
       "applies_when": null,
@@ -45577,6 +45608,7 @@
       "severity": "UNKNOWN",
       "hazard_category": "MAINTENANCE",
       "text": {
+        "en": "Carry out adjustments and repairs on your machine only with the tractor engine off and the wheels chocked. Before starting any maintenance, adjustment or repair, take the tractor’s ignition key with you.",
         "tr": "Makinenizdeki ayar ve onarımları yalnızca traktörün motoru kapalı ve tekerlekleri takozluyken yapın. Bakım, ayar veya onarıma başlamadan önce traktörün kontak anahtarını yanınıza alın."
       },
       "applies_when": null,
@@ -45604,6 +45636,7 @@
       "severity": "UNKNOWN",
       "hazard_category": "MAINTENANCE",
       "text": {
+        "en": "If possible, park the tractor on level ground; leave it in gear and apply the parking brake.",
         "tr": "Eğer mümkünse traktörü düz bir yere park edin; viteslerden birine takın ve el frenini çekin."
       },
       "applies_when": null,
@@ -45631,6 +45664,7 @@
       "severity": "UNKNOWN",
       "hazard_category": "MAINTENANCE",
       "text": {
+        "en": "If parking on a slope, use first gear facing uphill or reverse gear facing downhill, and apply the parking brake in both cases.",
         "tr": "Eğimli bir arazide park edilecekse yokuş yukarı birinci vitese, yokuş aşağı geri vitese takılmalı ve her iki durumda da el freni çekilmelidir."
       },
       "applies_when": null,
@@ -45658,6 +45692,7 @@
       "severity": "UNKNOWN",
       "hazard_category": "MAINTENANCE",
       "text": {
+        "en": "The PTO shaft must always be disconnected.",
         "tr": "Şaft bağlantısı mutlaka çözülmelidir."
       },
       "applies_when": null,

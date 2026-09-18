@@ -8,12 +8,32 @@ import { urunDilde } from '../marka'
 import { SIRKET } from '../marka'
 import { validateSerial, formatSerial, normalizeSerial, warrantyStatus, ORNEK_SERILER } from '../lib/serial'
 import { araProps } from '../lib/tel'
-import { makineKaydet } from '../lib/makineKaydi'
-import { IconBarcode, IconInfo, IconMachine, IconAlert, IconPhone } from '../components/Icons'
+import { makineKaydet, seriBaskaHesaptaMi } from '../lib/makineKaydi'
+import { SERI_CAKISMASI } from '../lib/numaraTalebi'
+import { NumaraTalepFormu } from '../components/NumaraTalepFormu'
+import {
+  IconBarcode, IconInfo, IconMachine, IconAlert, IconPhone, IconLock, IconRight, IconUser,
+} from '../components/Icons'
 
 /* Seri numarası ile makine kaydı.
    Amaç: müşteri hangi makineyi kullandığını bize bildirsin,
-   biz de satılan ürünü ve garantiyi takip edebilelim. */
+   biz de satılan ürünü ve garantiyi takip edebilelim.
+
+   SERİ BAŞKA HESAPTAYSA (17 Eylül 2026, kullanıcının kararı)
+
+   İkinci kayıt açılmıyor: makine eklenmiyor, deftere satır yazılmıyor.
+   Müşteriye iki seçenek çıkıyor:
+
+     Numaram Değişti            → yazılı numara talebi, seri çakışması
+                                  kipinde (bkz. components/NumaraTalepFormu.jsx).
+                                  PAKSAN eski numarayı doğrulayınca eski
+                                  hesabın kayıtları bu hesaba geçiyor.
+     Makineyi Başkasından Aldım → PAKSAN'ı aramaya yönlendiriliyor.
+                                  Sahiplik devrini PAKSAN arka planda
+                                  yapıyor; uygulama bir şey istemiyor.
+
+   Öteki hesabın adı, numarası, müşteri numarası ekranda HİÇ geçmiyor:
+   başkasının bilgisi, ve makineyi çalmış biri de bu ekranı görebilir. */
 
 export default function AddMachine() {
   const nav = useNavigate()
@@ -28,6 +48,20 @@ export default function AddMachine() {
   const [takma, setTakma] = useState('')
   const [yardim, setYardim] = useState(false)
   const [kaydediliyor, setKaydediliyor] = useState(false)
+  /* Seri başka hesapta çıktıysa: {product, serial, year, eskiHesap} */
+  const [cakisma, setCakisma] = useState(null)
+  const [cakismaAdim, setCakismaAdim] = useState('secim') // 'secim' | 'numara' | 'aldim'
+
+  /** Seri başka hesaptaysa çakışma ekranını açar ve true döner. */
+  function cakismayaGec(sonuc) {
+    const eskiHesap = seriBaskaHesaptaMi(sonuc.serial, user)
+    if (!eskiHesap) return false
+    setHata('')
+    setBulunan(null)
+    setCakismaAdim('secim')
+    setCakisma({ ...sonuc, eskiHesap })
+    return true
+  }
 
   function kontrolEt() {
     const sonuc = validateSerial(serial)
@@ -41,6 +75,7 @@ export default function AddMachine() {
       setBulunan(null)
       return
     }
+    if (cakismayaGec(sonuc)) return
     setHata('')
     setBulunan(sonuc)
   }
@@ -51,6 +86,9 @@ export default function AddMachine() {
      hiç çıkmıyor — bkz. src/lib/logo.js */
   async function kaydet() {
     if (kaydediliyor) return
+    /* Onay ekranında beklerken defter değişmiş olabilir (başka bir
+       hesap aynı seriyi kaydetti); yazmadan önce bir kez daha. */
+    if (cakismayaGec(bulunan)) return
     setKaydediliyor(true)
 
     const makine = addMachine({
@@ -76,6 +114,99 @@ export default function AddMachine() {
     }
     showToast(t('ekle.kaydedildi'))
     nav('/makinelerim', { replace: true })
+  }
+
+  /* ------------------------------------ Seri başka hesapta */
+  if (cakisma) {
+    const secimeDon = () => setCakismaAdim('secim')
+    /* Seri kutusu dolu kalıyor: yanlış yazdıysa düzeltsin. */
+    const giriseDon = () => setCakisma(null)
+
+    if (cakismaAdim === 'numara') {
+      return (
+        <div className="app">
+          <TopBar title={t('ekle.numaramDegisti')} back={secimeDon} />
+          <div className="screen screen--nonav wrap fade-in" style={{ paddingTop: 20 }}>
+            <NumaraTalepFormu
+              kip={SERI_CAKISMASI}
+              seri={cakisma.serial}
+              eskiHesap={cakisma.eskiHesap}
+              onGeri={secimeDon}
+              onKapat={() => nav(ilkKayit ? '/' : '/makinelerim', { replace: true })}
+            />
+          </div>
+        </div>
+      )
+    }
+
+    if (cakismaAdim === 'aldim') {
+      return <BaskasindanAldim seri={cakisma.serial} onGeri={secimeDon} />
+    }
+
+    const urun = urunDilde(cakisma.product, dil)
+    return (
+      <div className="app">
+        <TopBar title={t('ekle.cakismaBaslik')} back={giriseDon} />
+        <div className="screen screen--nonav wrap fade-in" style={{ paddingTop: 20 }}>
+          <div className="card">
+            <div className="row" style={{ gap: 13, alignItems: 'flex-start' }}>
+              <div
+                className="listitem__icon"
+                style={{ background: 'var(--pk-orange-soft)', color: 'var(--pk-orange-ink)' }}
+              >
+                <IconLock size={22} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 700, fontSize: 16.5 }}>{urun.name}</div>
+                <div className="serial-mono small muted" style={{ marginTop: 2 }}>
+                  {formatSerial(cakisma.serial)}
+                </div>
+                <p className="muted small" style={{ marginTop: 8, lineHeight: 1.6 }}>
+                  {t('ekle.cakismaAciklama')}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <h2 style={{ fontSize: 17, marginTop: 24 }}>{t('ekle.cakismaSoru')}</h2>
+
+          <div className="stack" style={{ marginTop: 12 }}>
+            <button className="listitem" onClick={() => setCakismaAdim('numara')}>
+              <div className="listitem__icon">
+                <IconPhone size={22} />
+              </div>
+              <div className="listitem__body">
+                <div className="listitem__title">{t('ekle.numaramDegisti')}</div>
+                <div className="listitem__sub">{t('ekle.numaramDegistiAlt')}</div>
+              </div>
+              <span className="listitem__chev">
+                <IconRight size={21} />
+              </span>
+            </button>
+
+            <button className="listitem" onClick={() => setCakismaAdim('aldim')}>
+              <div
+                className="listitem__icon"
+                style={{ background: 'var(--pk-orange-soft)', color: 'var(--pk-orange-ink)' }}
+              >
+                <IconUser size={22} />
+              </div>
+              <div className="listitem__body">
+                <div className="listitem__title">{t('ekle.baskasindanAldim')}</div>
+                <div className="listitem__sub">{t('ekle.baskasindanAldimAlt')}</div>
+              </div>
+              <span className="listitem__chev">
+                <IconRight size={21} />
+              </span>
+            </button>
+          </div>
+
+          <button className="btn btn--soft" style={{ marginTop: 22 }} onClick={giriseDon}>
+            {t('ekle.seriDuzelt')}
+          </button>
+        </div>
+      </div>
+    )
   }
 
   /* ---------------------------------------------- Onay ekranı */
@@ -138,7 +269,7 @@ export default function AddMachine() {
   return (
     <div className="app">
       <TopBar
-        title={ilkKayit ? 'Makinenizi kaydedin' : 'Makine Ekle'}
+        title={ilkKayit ? t('ekle.ilkBaslik') : t('ekle.baslik')}
         back={ilkKayit ? null : true}
       />
 
@@ -266,6 +397,73 @@ export default function AddMachine() {
           </a>
         </div>
       </Sheet>
+    </div>
+  )
+}
+
+/* "Makineyi başkasından aldım".
+
+   Sahiplik devrini PAKSAN yapıyor: önceki sahibin hesabından çıkarıp
+   bu hesaba geçirmek, önceki sahiple de konuşmayı gerektirebilir.
+   Uygulamada doldurulacak bir form yok; müşteri arıyor.
+
+   Telefonda ilk sorulacak şey seri numarası. Ekranda büyük yazılı ve
+   kopyalanabilir duruyor: müşteri etikete tekrar gitmesin. */
+function BaskasindanAldim({ seri, onGeri }) {
+  const { t } = useDil()
+  const { showToast } = useApp()
+
+  async function kopyala() {
+    try {
+      await navigator.clipboard.writeText(formatSerial(seri))
+      showToast(t('ekle.seriKopyalandi'))
+    } catch {
+      /* Pano kapalı olabiliyor; numara ekranda yazılı duruyor. */
+      showToast(t('parcaOdeme.kopyalanamadi'))
+    }
+  }
+
+  return (
+    <div className="app">
+      <TopBar title={t('ekle.baskasindanAldim')} back={onGeri} />
+      <div className="screen screen--nonav wrap fade-in" style={{ paddingTop: 20 }}>
+        <div className="card center" style={{ padding: '28px 20px' }}>
+          <div style={{ color: 'var(--pk-blue-yazi)' }}>
+            <IconPhone size={46} />
+          </div>
+          <h2 style={{ marginTop: 14, fontSize: 19 }}>{t('ekle.aldimBaslik')}</h2>
+          <p className="muted" style={{ marginTop: 10, lineHeight: 1.6 }}>
+            {t('ekle.aldimMetin')}
+          </p>
+          <a
+            className="btn btn--brand btn--lg"
+            style={{ marginTop: 20 }}
+            {...araProps(SIRKET.telefonHam, SIRKET.telefon, showToast)}
+          >
+            <IconPhone size={21} /> {t('ortak.araTel', { tel: SIRKET.telefon })}
+          </a>
+        </div>
+
+        <div className="card" style={{ marginTop: 16 }}>
+          <div className="field__label">{t('ekle.aldimSeriEtiket')}</div>
+          <div
+            className="serial-mono"
+            style={{ fontSize: 20, fontWeight: 700, marginTop: 6, userSelect: 'all', overflowWrap: 'anywhere' }}
+          >
+            {formatSerial(seri)}
+          </div>
+          <p className="small muted" style={{ marginTop: 8, lineHeight: 1.6 }}>
+            {t('ekle.aldimHazirla')}
+          </p>
+          <button className="btn btn--soft" style={{ marginTop: 12 }} onClick={kopyala}>
+            {t('ekle.seriKopyala')}
+          </button>
+        </div>
+
+        <button className="btn btn--ghost" style={{ marginTop: 14 }} onClick={onGeri}>
+          {t('ortak.geri')}
+        </button>
+      </div>
     </div>
   )
 }

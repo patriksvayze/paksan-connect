@@ -185,20 +185,41 @@ export function SiraliBaslik({ ad, alan, siralama, onSirala, genislik }) {
    Numaralar kısaltılıyor: ilk sayfa, son sayfa, bulunulan sayfa ve iki
    komşusu görünüyor; aradakiler üç nokta oluyor. Tek sayfalık listede
    hiçbir şey çizilmiyor.
-   ========================================================================== */
+
+   ÇUBUK SAYFA DEĞİŞİNCE YERİNDEN OYNAMIYOR (17 Eylül 2026). Önceden
+   ilk sayfada 4, ortada 7 öğe çıkıyordu; sağa yaslı grup genişleyip
+   daralınca tıklanan numara imlecin altından kayıyordu. Artık yedi
+   sayfadan uzun listede her zaman yedi yer var (baştayken 1–5 … son,
+   sondayken 1 … son beş), üç nokta bir numara genişliğinde, numara
+   düğmeleri en uzun sayfa numarasına göre eşit genişlikte ve "1–50 /
+   237" yazısı en uzun hâlinin yerini baştan ayırıyor. */
 export function Sayfalama({ sayfa, sayfaSayisi, toplam, boy, birim, onDegis, alt = false }) {
   if (sayfaSayisi <= 1) return null
   const bas = sayfa * boy + 1
   const son = Math.min(toplam, (sayfa + 1) * boy)
 
-  const numaralar = []
-  for (let i = 0; i < sayfaSayisi; i++) {
-    if (i === 0 || i === sayfaSayisi - 1 || Math.abs(i - sayfa) <= 1) numaralar.push(i)
-    else if (numaralar[numaralar.length - 1] !== 'bosluk') numaralar.push('bosluk')
+  const YER = 7
+  let numaralar
+  if (sayfaSayisi <= YER) {
+    numaralar = Array.from({ length: sayfaSayisi }, (_, i) => i)
+  } else if (sayfa <= 3) {
+    numaralar = [0, 1, 2, 3, 4, 'bosluk-son', sayfaSayisi - 1]
+  } else if (sayfa >= sayfaSayisi - 4) {
+    const k = sayfaSayisi
+    numaralar = [0, 'bosluk-bas', k - 5, k - 4, k - 3, k - 2, k - 1]
+  } else {
+    numaralar = [0, 'bosluk-bas', sayfa - 1, sayfa, sayfa + 1, 'bosluk-son', sayfaSayisi - 1]
   }
 
+  const hane = String(sayfaSayisi).length
+  const enUzunBilgi = `${toplam}–${toplam} / ${toplam} ${birim}`.length
+
   return (
-    <nav className={'sayfalama' + (alt ? ' sayfalama--alt' : '')} aria-label="Sayfa geçişi">
+    <nav
+      className={'sayfalama' + (alt ? ' sayfalama--alt' : '')}
+      aria-label="Sayfa geçişi"
+      style={{ '--sayfa-hane': hane, '--sayfa-bilgi': enUzunBilgi }}
+    >
       <span className="sayfalama__bilgi">
         {bas}–{son} / {toplam} {birim}
       </span>
@@ -211,9 +232,9 @@ export function Sayfalama({ sayfa, sayfaSayisi, toplam, boy, birim, onDegis, alt
         >
           Önceki
         </button>
-        {numaralar.map((n, i) =>
-          n === 'bosluk' ? (
-            <span key={'b' + i} className="sayfalama__bosluk" aria-hidden="true">
+        {numaralar.map((n) =>
+          typeof n === 'string' ? (
+            <span key={n} className="sayfalama__bosluk" aria-hidden="true">
               …
             </span>
           ) : (
@@ -322,12 +343,27 @@ export function hucreDegeri(deger) {
     return new Date(+yil, +ay - 1, +gun, +saat, +dakika).getTime()
   }
 
-  /* Binlik noktası, yüzde işareti, para birimi ve boşluk atılıyor;
+  /* SÜRE saate çevriliyor: "45 dk", "37 sa", "2,9 gün", "5 gündür".
+     Raporlar süreyi büyüklüğüne göre farklı birimle yazıyor; yazı gibi
+     sıralanınca "2,0 gün" (48 saat) "27 sa"dan önce geliyordu. */
+  const sure = metin.match(/^(-?\d+(?:,\d+)?)\s*(dk|sa|gün|gündür)$/)
+  if (sure) {
+    const n = Number(sure[1].replace(',', '.'))
+    return sure[2] === 'dk' ? n / 60 : sure[2] === 'sa' ? n : n * 24
+  }
+
+  /* BİNLİK NOKTASI GERÇEKTEN SİLİNİYOR (17 Eylül 2026). Aşağıdaki
+     düzenli ifadede `\b` yerine görünmez bir kontrol karakteri (0x08)
+     yazılı kalmıştı; nokta hiç silinmiyor, "10.480" 10,48 diye, iki
+     noktalı "8.730.000" yazı diye sıralanıyordu. Bütün backoffice
+     tablolarında para ve binlik sayı sütunları yanlış sıralanıyordu.
+
+     Binlik noktası, yüzde işareti, para birimi ve boşluk atılıyor;
      ondalık virgül noktaya çevriliyor. Geriye yalnız rakam kaldıysa
      bu bir sayıdır. */
   const temiz = metin
     .replace(/[%\s]/g, '')
-    .replace(/\.(?=\d{3})/g, '')
+    .replace(/\.(?=\d{3}(?!\d))/g, '')
     .replace(',', '.')
   if (/^-?\d+(\.\d+)?$/.test(temiz)) return Number(temiz)
 

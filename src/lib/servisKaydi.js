@@ -44,15 +44,28 @@
    ziyarette bitiyor: 1. aşama hiç doğmuyor, kayıt doğrudan 2. aşama
    olarak gönderiliyor.
 
-   GARANTİ DIŞINDA İKİ KAPI VAR VE İKİSİ DE TEK AŞAMA
+   GARANTİ DIŞI İŞ KAYIT DEĞİL (15 Eylül 2026, kullanıcının kararı)
 
-     PARÇA ELDE   PAKSAN'a iş düşmüyor. Servis parayı müşteriden
-       alıyor, talebi kapatıyor. Kayıt yine tutuluyor: makinenin arıza
-       geçmişi imalatçının en değerli verisi.
+   Kayıt bir dönem garanti dışı iki kapı daha taşıyordu ve servis
+   ekranında üçünden birini seçiyordu:
 
-     PARÇA PAKSAN'DAN   Bir satın alma. Yedek parça personeline
-       düşüyor, hak ediş doğmuyor. Parça gelince servis takıp talebi
-       kendisi kapatıyor.
+     PARÇA ELDE (`eldeParca`)   servis parayı müşteriden alıp talebi
+       kapatıyordu; kayıt arıza geçmişi için tutuluyordu.
+     PARÇA PAKSAN'DAN (`parcaIste`)   bir satın alma; yedek parça
+       personeline düşüyordu, parça gelince servis talebi kapatıyordu.
+
+   İkisi de yeni kayıtta YAZILMIYOR. Garanti dışında elindeki parçayla
+   yapılan iş PAKSAN'ı ilgilendirmiyor ve servisten karşılığı olmayan
+   bir kayıt istemek geçiştirilmiş veri demekti. Garanti dışında parça
+   gerekiyorsa servis parça siparişini kendi Parça ekranından veriyor.
+   Garanti dışı yapılmış müşteri talebi kayıtsız kapanıyor
+   (bkz. servis/ekranlar/TalepDetay.jsx → garantiDisi, GARANTI_DISI_OZET).
+
+   ESKİ KAYITLAR İÇİN DEĞERLER DURUYOR: `KAPI` etiketleri, `UCRET_YAZI`,
+   doğrulamanın kapıya özel kuralları ve `kapininSonucu` dalları. Depoda
+   o kapılarla yazılmış kayıtlar var; backoffice düzeltmesi
+   (hakkedisDuzelt) kaydı yeniden doğruluyor ve yolu yarıda kalmış
+   parça isteği TalepDetay'daki "Parçayı Taktım" dalıyla bitiyor.
 
    NEDEN BU KADAR ÇOK ALAN SORULUYOR
 
@@ -80,12 +93,19 @@ import { MARKA, markaEk } from '../marka'
    okuyor ve talebin durumu da buna göre belirleniyor. */
 export const ASAMA = { parca: 'parca', bitti: 'bitti' }
 
-/** Kaydın üç kapısı. Ekrandaki düğme yazıları da bunlar. */
+/** Kaydın kapısı. Yeni kayıt yalnız `garanti`; öteki ikisi eski
+    kayıtların etiketi (bkz. dosya başı). */
 export const KAPI = {
   garanti: 'Garanti Kapsamında',
   eldeParca: 'Garanti Dışı · Parçayı Ben Taktım',
   parcaIste: `Garanti Dışı · Parçayı ${MARKA} Göndersin`,
 }
+
+/* Garanti dışı yapılıp kayıtsız kapanan talebin kapanış özeti
+   (`cozum.ozet`, yanında `garantiDisi: true`). Backoffice talep
+   detayında ve işlem geçmişinde, servis kapanmış talepte okuyor.
+   Metin Codex'ten (15 Eylül 2026). */
+export const GARANTI_DISI_OZET = 'Garanti dışında tamamlandı'
 
 /* PARÇANIN NESİ VAR? DİYE SORULMUYOR.
 

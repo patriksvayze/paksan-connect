@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useGeri } from '../geri'
 import { cariBakiye, servisParcaSiparisi } from '../../backoffice/veri'
 import { servisleriGetir, MARKA, markaEk } from '../../marka'
 import {
@@ -9,7 +10,6 @@ import {
   paraYaz,
 } from '../../marka'
 import {
-  gorselAdresi,
   grubunParcalari,
   katalogGetir,
   parcaAra,
@@ -17,10 +17,14 @@ import {
 } from '../../lib/parcaKatalogu'
 import { parcaServisFiyati } from '../../lib/servisFiyat'
 import { Bolum, Onay } from '../Kabuk'
+import { DikteliKutu } from '../Dikte'
+import { ParcaKarti } from '../ParcaKarti'
+import { AdresSecici, teslimatHatasi } from '../AdresSecici'
+import { firmaAdresiOnerisi } from '../adresler'
+import { adresYazisi, teslimatTemizle } from '../../lib/teslimat'
 import {
   IconAlert,
   IconBack,
-  IconCheck,
   IconCheckCircle,
   IconMinus,
   IconPlus,
@@ -75,8 +79,9 @@ import {
    yazıyordu. Tarlada, eldivenle, tek elle kullanılan bir uygulamada
    sayı klavyesi açıp "2" yazmak, iki dokunuşluk bir işi beş dokunuşa
    çıkarıyordu. Satırlar da seçili olup olmadıklarını söylemiyordu.
-   Şimdi servis kaydındaki parça seçimiyle aynı kalıp kullanılıyor:
-   kutucuk, ad, artı-eksi.
+   Şimdi servis kaydındaki parça seçimiyle aynı kart kullanılıyor
+   (bkz. servis/ParcaKarti.jsx): büyük görsel, kod, ad, fiyat; seçili
+   kartın altında eksi-artı.
 
    İSTENEN TESLİM TARİHİ KALDIRILDI
 
@@ -152,11 +157,20 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
 
   const bakiye = useMemo(() => cariBakiye(oturum.servisId), [oturum.servisId, adim])
 
-  /* Teslim adresi servisin kayıtlı adresiyle doluyor ama kilitli değil:
-     sevkiyat bazen doğrudan müşterinin tarlasına gidiyor. */
-  const [teslimat, setTeslimat] = useState(() =>
-    servis ? [servis.adres, servis.ilce, servis.il].filter(Boolean).join(', ') : '',
-  )
+  /* TESLİM ADRESİ ARTIK ADRESLERİM'DEN SEÇİLİYOR (17 Eylül 2026,
+     kullanıcının isteği).
+
+     Burada servisin firma adresiyle dolu serbest bir kutu vardı. Her
+     siparişte aynı adres yeniden okunuyor, başka bir yere gidecekse
+     elle siliniyor ve baştan yazılıyordu; PAKSAN'a da alıcısı ve
+     telefonu belli olmayan tek satırlık bir yazı düşüyordu.
+
+     Şimdi defterdeki varsayılan adres seçili geliyor; başka bir kayıtlı
+     adres tek dokunuş, müşterinin tarlası gibi bir kerelik yer "Elle
+     Gir". Değer yapısal: alıcı, telefon, il, ilçe, açık adres (bkz.
+     lib/teslimat.js). Firma adresi yalnız ilk adresin önerisi. */
+  const [teslimat, setTeslimat] = useState(null)
+  const adresOnerisi = useMemo(() => firmaAdresiOnerisi(servis, oturum.ad), [servis, oturum.ad])
 
   /* Sepet. Sıra, seçim sırası: servis en son dokunduğu parçayı özetin
      sonunda bulur. Fiyat katalogdan değil `parcaServisFiyati`den
@@ -210,7 +224,8 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
 
   function gonder() {
     setOnay(false)
-    if (!teslimat.trim()) return setHata('Teslim adresini yazın.')
+    const teslimHatasi = teslimatHatasi(teslimat)
+    if (teslimHatasi) return setHata(teslimHatasi)
 
     const sonuc = servisParcaSiparisi({
       servisId: oturum.servisId,
@@ -247,7 +262,7 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
         eksikFiyat: hesap.eksik,
       },
       not,
-      teslimat,
+      teslimat: teslimatTemizle(teslimat),
       odeme: bakiyeYeter ? odeme : 'fatura',
       tutar: hesap.araToplam,
       tutarKdvli: hesap.toplam,
@@ -257,6 +272,17 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
     setSiparis(sonuc.talep)
     setAdim('sonuc')
   }
+
+  /* Geri tuşu bir kademe geri gider, siparişi kapatmaz (bkz.
+     servis/geri.jsx): özetten seçime, aramadan ve parça listesinden
+     montaj listesine — ParcaSec'teki "Geri" ile aynı sıra. */
+  useGeri(adim === 'onay' || (adim === 'secim' && Boolean(arama.trim() || grup)), () => {
+    if (adim === 'onay') {
+      setAdim('secim')
+      setHata('')
+    } else if (arama.trim()) setArama('')
+    else setGrup(null)
+  })
 
   if (adim === 'sonuc' && siparis) {
     return <Sonuc siparis={siparis} hesap={hesap} onBitir={onVerildi} />
@@ -269,7 +295,12 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
           secili={secili}
           hesap={hesap}
           teslimat={teslimat}
-          onTeslimat={setTeslimat}
+          onTeslimat={(t) => {
+            setTeslimat(t)
+            setHata('')
+          }}
+          servisId={oturum.servisId}
+          adresOnerisi={adresOnerisi}
           not={not}
           onNot={setNot}
           odeme={bakiyeYeter ? odeme : 'fatura'}
@@ -283,7 +314,8 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
             setHata('')
           }}
           onVer={() => {
-            if (!teslimat.trim()) return setHata('Teslim adresini yazın.')
+            const teslimHatasi = teslimatHatasi(teslimat)
+            if (teslimHatasi) return setHata(teslimHatasi)
             setHata('')
             setOnay(true)
           }}
@@ -308,6 +340,9 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
                     ? 'Bakiyemden düşülsün'
                     : 'Faturayla',
               },
+              /* Adres de son özette: yanlış adrese çıkan parçanın geri
+                 dönüşü günler sürüyor. */
+              { ad: 'Teslim Adresi', deger: adresYazisi(teslimat) },
             ]}
             dugme="Sipariş Ver"
             onOnayla={gonder}
@@ -447,9 +482,9 @@ function Secim({
                 <p className="kucuk sonuk">Eşleşen parça yok.</p>
               ) : (
                 <Bolum ad={grup && !aranan ? grup.ad : 'Yedek Parça'}>
-                  <div className="parca-liste">
+                  <div className="parca-izgara">
                     {listelenen.map((p) => (
-                      <SecimSatiri
+                      <SecimKarti
                         key={p.kod}
                         parca={p}
                         adet={Number(adetler[p.kod]) || 0}
@@ -491,62 +526,40 @@ function Secim({
   )
 }
 
-/* Satırın tamamı dokunma hedefi: seçilmemişken bir kez dokunmak bir
-   adet ekliyor. Servis kaydındaki parça satırıyla aynı iskelet.
+/* Servis kaydındaki parça seçimiyle AYNI KART (bkz. servis/ParcaKarti.jsx).
 
-   Küçük görsel fiyat listesindeki resmin kendisi: sahadaki usta
-   parçayı adıyla değil resmiyle ve koduyla tanıyor. Tek başına anlam
-   taşımıyor, yanında kod ve ad duruyor. */
-function SecimSatiri({ parca, adet, onAdet }) {
+   Önce 44 piksellik görselli satırlardı; resimde parça tanınmıyordu
+   ve servis ne sipariş edeceğini adından tahmin ediyordu. Artık iki
+   sütunlu kartta büyük görsel, kod, ad ve servisin ödeyeceği fiyat.
+
+   Kartın tamamı dokunma hedefi: seçilmemişken bir kez dokunmak bir
+   adet ekliyor, seçiliyken dokunmak parçayı sepetten çıkarıyor.
+   Seçilince kartın altına eksi-artı düğmeleri geliyor; kartın
+   genişliğini dolduruyorlar ve parmak boyundalar. */
+function SecimKarti({ parca, adet, onAdet }) {
   const f = parcaServisFiyati(parca)
   const secili = adet > 0
-  const adres = gorselAdresi(parca.gorsel)
 
   return (
-    <div className={'parca-satir' + (secili ? ' parca-satir--on' : '')}>
-      <button
-        className="parca-satir__ac"
-        onClick={() => onAdet(secili ? -adet : 1)}
-        aria-pressed={secili}
-      >
-        <span className="parca-kutucuk">{secili && <IconCheck size={15} />}</span>
-        {adres && (
-          /* Bir montajda otuz satır olabiliyor; hepsini birden
-             indirmek tarlada zayıf şebekede ekranı kilitler. */
-          <img
-            src={adres}
-            alt=""
-            loading="lazy"
-            decoding="async"
-            style={{
-              flex: 'none',
-              width: 44,
-              height: 44,
-              objectFit: 'contain',
-              borderRadius: 6,
-            }}
-          />
-        )}
-        <span className="parca-satir__ad">
-          {parca.ad}
-          <span className="parca-satir__fiyat">
-            <span className="mono">{parca.kod}</span>
-            {f ? ` · ${paraYaz(f.alis)} ${PARA_BIRIMI}` : ''}
-          </span>
-        </span>
-      </button>
-
+    <ParcaKarti
+      parca={parca}
+      fiyat={f ? f.alis : null}
+      secili={secili}
+      onSec={() => onAdet(secili ? -adet : 1)}
+    >
       {secili && (
-        <div className="parca-satir__adet">
+        <div className="parca-kart__adet">
           <button
+            type="button"
             className="stok-dus"
             onClick={() => onAdet(-1)}
             aria-label={parca.ad + ' adedini azalt'}
           >
             <IconMinus size={19} />
           </button>
-          <span className="parca-satir__sayi">{adet}</span>
+          <span className="parca-kart__sayi">{adet}</span>
           <button
+            type="button"
             className="stok-dus"
             onClick={() => onAdet(1)}
             aria-label={parca.ad + ' adedini artır'}
@@ -555,7 +568,7 @@ function SecimSatiri({ parca, adet, onAdet }) {
           </button>
         </div>
       )}
-    </div>
+    </ParcaKarti>
   )
 }
 
@@ -605,6 +618,8 @@ function Ozet({
   hesap,
   teslimat,
   onTeslimat,
+  servisId,
+  adresOnerisi,
   not,
   onNot,
   odeme,
@@ -720,33 +735,26 @@ function Ozet({
         </div>
       </Bolum>
 
-      <Bolum ad="Teslimat">
-        <label className="alan">
-          <span className="alan__ad">Teslim Adresi</span>
-          <textarea
-            className="gir"
-            rows={2}
-            value={teslimat}
-            onChange={(e) => onTeslimat(e.target.value)}
-            placeholder="Sevkiyatın gideceği adres"
-          />
-        </label>
+      <Bolum ad="Teslim Adresi">
+        <AdresSecici
+          servisId={servisId}
+          deger={teslimat}
+          onDegis={onTeslimat}
+          oneri={adresOnerisi}
+        />
       </Bolum>
 
       {/* NOT ZORUNLU DEĞİL ve bunu etiketin kendisi söylüyor. Boş
           bırakılabileceği yazmıyorsa kullanıcı doldurmak zorunda
           olduğunu sanıyor. */}
       <Bolum ad="Not">
-        <label className="alan">
-          <span className="alan__ad">Not (isteğe bağlı)</span>
-          <textarea
-            className="gir"
-            rows={3}
-            value={not}
-            onChange={(e) => onNot(e.target.value)}
-            placeholder={`${markaEk('a')} iletmek istediğiniz bir şey varsa yazın`}
-          />
-        </label>
+        <DikteliKutu
+          ad="Not (isteğe bağlı)"
+          deger={not}
+          onDegis={onNot}
+          satir={3}
+          placeholder={`${markaEk('a')} iletmek istediğiniz bir şey varsa yazın`}
+        />
       </Bolum>
 
       {hata && <div className="uyari">{hata}</div>}

@@ -1,6 +1,7 @@
 import { Logo } from '../marka'
 import { IconBack, IconPhone, IconPlus } from '../components/Icons'
 import { ParcaTablosu } from '../components/ParcaTablosu'
+import { GeriKatmani, useGeri } from './geri'
 
 /* ==========================================================================
    Servis uygulamasının kabuğu
@@ -65,7 +66,12 @@ function Cubuk({ baslik, alt, onGeri, islem }) {
  * @param {{ sekmeler: {id, ad, Icon, rozet?}[] }} props
  */
 export function Kabuk({ baslik, alt, islem, fab, sekmeler, sekme, onSekme, children }) {
+  /* Geri tuşu: başka sekmedeyken ilk sekmeye döner; ilk sekmede
+     karşılamaz, uygulama arka plana alınır (bkz. geri.jsx). */
+  const ilk = sekmeler[0]?.id
+  const derinlik = useGeri(sekme !== ilk, () => onSekme(ilk))
   return (
+    <GeriKatmani derinlik={derinlik}>
     <div className={'uyg' + (fab ? ' uyg--fabli' : '')}>
       <Cubuk baslik={baslik} alt={alt} islem={islem} />
       <main className="uyg__ic">{children}</main>
@@ -102,6 +108,7 @@ export function Kabuk({ baslik, alt, islem, fab, sekmeler, sekme, onSekme, child
         ))}
       </nav>
     </div>
+    </GeriKatmani>
   )
 }
 
@@ -111,10 +118,13 @@ export function Kabuk({ baslik, alt, islem, fab, sekmeler, sekme, onSekme, child
  * yanlışlıkla başka bölüme geçmesin.
  */
 export function Sayfa({ baslik, alt, onGeri, islem, dip, children }) {
+  /* Geri tuşu ekrandaki "Geri" düğmesiyle aynı işi yapar. */
+  const derinlik = useGeri(Boolean(onGeri), () => onGeri())
   return (
-    /* Dip çubuğu varken gövdeye ek boşluk gerekiyor: çubuk ekranın
-       altına yapışık duruyor ve sayfa aşağı kaydırılırken içeriğin son
-       satırını örtüyordu. */
+    <GeriKatmani derinlik={derinlik}>
+    {/* Dip çubuğu varken gövdeye ek boşluk gerekiyor: çubuk ekranın
+        altına yapışık duruyor ve sayfa aşağı kaydırılırken içeriğin son
+        satırını örtüyordu. */}
     <div className={'uyg uyg--sayfa' + (dip ? ' uyg--dipli' : '')}>
       <Cubuk baslik={baslik} alt={alt} onGeri={onGeri} islem={islem} />
       <main className="uyg__ic">{children}</main>
@@ -122,6 +132,7 @@ export function Sayfa({ baslik, alt, onGeri, islem, dip, children }) {
           uzun bir detayın sonuna kadar kaydırmak gerekmesin. */}
       {dip && <div className="uyg__dip">{dip}</div>}
     </div>
+    </GeriKatmani>
   )
 }
 
@@ -160,6 +171,8 @@ export function Onay({
   onOnayla,
   onVazgec,
 }) {
+  /* Geri tuşu "Vazgeç" demek. */
+  useGeri(true, () => onVazgec())
   return (
     <div
       className="onay-perde"
@@ -205,6 +218,7 @@ export function Onay({
    kaydın kendisini açıyor; "Kapat" her zaman var.
    ========================================================================== */
 export function Yaprak({ baslik, metin, kalemler = [], parcalar = [], dugme, onDugme, onKapat }) {
+  useGeri(true, () => onKapat())
   return (
     <div
       className="onay-perde"

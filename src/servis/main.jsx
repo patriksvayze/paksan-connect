@@ -28,11 +28,15 @@ import { HataSiniri, hataKaydet } from '../components/HataSiniri'
 import { urunAyarla } from '../lib/urun'
 import { temayiUygula } from '../backoffice/Tema'
 import { demoAPKmi } from './demoKimlik'
+import { geriTusunuKur } from './geri'
 
 /* Paylaşılan dosyalara hangi derlemenin çalıştığı burada bildiriliyor
    (bkz. src/lib/urun.js). Görünüm tercihi ve işlem kaydının rolü buna
    bakıyor; ikisi de backoffice'inkinden ayrı tutuluyor. */
 urunAyarla('servis')
+
+/* Android geri tuşu açık katmanı kapatır (bkz. geri.jsx). */
+geriTusunuKur()
 
 /* Kayıtlı görünüm tercihi ilk çizimden ÖNCE uygulanıyor. */
 temayiUygula()

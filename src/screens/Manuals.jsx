@@ -95,7 +95,7 @@ export default function Manuals() {
             </div>
             <div className="stack">
               {benimModellerim.map((p) => (
-                <KilavuzSatiri key={p.id} urun={urunDilde(p, dil)} />
+                <KilavuzSatiri key={p.id} urun={urunDilde(p, dil)} dil={dil} />
               ))}
             </div>
           </>
@@ -107,7 +107,7 @@ export default function Manuals() {
         </div>
         <div className="stack">
           {digerleri.map((p) => (
-            <KilavuzSatiri key={p.id} urun={urunDilde(p, dil)} />
+            <KilavuzSatiri key={p.id} urun={urunDilde(p, dil)} dil={dil} />
           ))}
         </div>
       </div>
@@ -117,8 +117,8 @@ export default function Manuals() {
   )
 }
 
-function KilavuzSatiri({ urun }) {
-  const belge = kilavuzBelgesi(urun.id)
+function KilavuzSatiri({ urun, dil }) {
+  const belge = kilavuzBelgesi(urun.id, dil)
 
   return (
     <Link to={`/kilavuz/${urun.id}`} className="listitem">

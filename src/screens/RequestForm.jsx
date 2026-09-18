@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useApp } from '../context/AppState'
 import { TopBar, TabBar, Sheet } from '../components/Chrome'
@@ -18,9 +18,9 @@ import {
    `parcaToplami` hesaplıyor ve KDV'yi `kdvTutari()` ile ekliyor, ekran
    elle çarpma yapmıyor. */
 import {
-  destekGrubununGruplari, fiyatGoruntusu, gorselAdresi, grubunParcalari,
-  katalogGetir, parcaAra, parcaBul, parcaToplami,
+  fiyatGoruntusu, katalogGetir, parcaBul, parcaToplami,
 } from '../lib/parcaKatalogu'
+import { ParcaSecEkrani } from './ParcaSecEkrani'
 import { formatSerial } from '../lib/serial'
 import { araProps, telKullanici } from '../lib/tel'
 import { musterininServisleri } from '../lib/servisAtama'
@@ -38,7 +38,7 @@ import { useDil } from '../i18n'
 import { BANKA, SIRKET } from '../marka'
 import {
   IconCheckCircle, IconPin, IconRight, IconLock, IconCheck, IconAlert,
-  IconPlus, IconMinus, IconCart, IconInfo, IconPhone, IconSearch, IconClose,
+  IconPlus, IconMinus, IconCart, IconInfo, IconPhone, IconClose,
 } from '../components/Icons'
 
 /* Tür başlıkları sözlükte: talep.servis.baslik gibi. Placeholder
@@ -147,9 +147,10 @@ function TalepFormu() {
      Uygulama sunucu olmadan da çalışacağına göre bu akış da çalışmalı. */
   const [katalogDurum, setKatalogDurum] = useState('yukleniyor')
   const [katalog, setKatalog] = useState(null)
-  /* Gezinme: seçili alt montaj ve arama kutusu. */
-  const [montaj, setMontaj] = useState(null)
-  const [arama, setArama] = useState('')
+  /* Parça seçme ekranı açık mı (bkz. ParcaSecEkrani.jsx). Ayrı bir
+     adres değil, bu bileşenin içinde bir görünüm: adres değişseydi
+     sayfa geçişi formu söker, doldurulanlar kaybolurdu. */
+  const [parcaEkrani, setParcaEkrani] = useState(false)
 
   /* Ad, telefon ve konum formda sorulmuyor; hesaptan geliyor. Gönder'e
      basınca açılan onay penceresinde teyit ediliyor.
@@ -346,7 +347,7 @@ function TalepFormu() {
 
   /* Android'in geri hareketi ödeme adımından uygulamayı kapatmasın,
      talep formuna dönsün — doldurulan fatura bilgileri kaybolmasın. */
-  useGeriYakala(adim === 'odeme', () => setAdim('form'))
+  useGeriYakala(adim === 'odeme' && !parcaEkrani, () => setAdim('form'))
 
   /* Onay penceresindeki cümle türe göre değişiyor.
 
@@ -395,19 +396,51 @@ function TalepFormu() {
       .catch(() => setKatalogDurum('hata'))
   }
 
-  /* Makinenin kendi alt montajları. PAKSAN'ın fiyat listesinde makine
-     alanı yok; köprü grup adlarından kuruluyor (bkz. marka/katalog/
-     parcaGruplari.js). `ayriListeVar` false dönen makinelerde listede o
-     makineye ait hiç parça yok — kataloğun tamamı gösteriliyor ve bu
-     ekranda yazıyla söyleniyor. */
-  const { ayriListeVar, gruplar: montajlar } = destekGrubununGruplari(katalog, grup)
+  /* ------------------------------------------- Parça seçme ekranı
 
-  /* Makine değiştirilirse açık olan alt montaj yeni makinenin
-     listesinde olmayabilir. O durumda ekran kendiliğinden montaj
-     listesine dönüyor; yoksa çiftçi başka bir makinenin parçalarına
-     bakmaya devam ediyordu. */
-  const acikMontaj =
-    montaj && montajlar.some((g) => g.id === montaj.id) ? montaj : null
+     "Parça Ekle" ekranı açıyor; ekran kendi taslağıyla çalışıyor.
+     Makine formda değiştirilse de eski bir bölüm açık kalmıyor: ekran
+     her açılışta bölüm listesinden ve boş aramayla başlıyor, bölümleri
+     o anki makineye göre kuruyor.
+
+     Katalog hazır değilken açılmıyor ve "Tamam" yazmıyor. Servisim'deki
+     ekran liste inmeden bitirilince seçimi siliyordu; burada o yol
+     kapalı. */
+  function parcaEkraniniAc() {
+    if (katalogDurum !== 'hazir') return
+    setParcaEkrani(true)
+  }
+
+  /* `taslak` verilirse "Tamam" basıldı: seçim forma yazılıyor. Verilmezse
+     geri ile çıkıldı: taslak atılıyor, form eski hâlinde kalıyor.
+
+     Katalogdan parça seçildiyse "Diğer" kalkıyor — karışık bir talep hem
+     fiyatlanamıyor hem depoda toplanamıyor (bkz. `parcaCevir`). */
+  const parcaDonusu = useRef(false)
+  function parcaEkranindanDon(taslak) {
+    if (taslak && katalogDurum === 'hazir') {
+      setSecim(taslak)
+      if (taslak.size) setDiger(false)
+      setHata('')
+    }
+    parcaDonusu.current = true
+    setParcaEkrani(false)
+  }
+
+  /* Forma dönünce parça alanına. Seçici sayfayı başa kaydırmıştı;
+     çiftçi ne seçtiğini ve adetleri görmek için aşağı inmek zorunda
+     kalmasın. Başlık yapışkan; alan onun altına düşmesin diye başlığın
+     boyu kadar pay bırakılıyor. Çizimden önce çalışıyor: form bir an
+     en üstte görünüp sonra kaymıyor. */
+  useLayoutEffect(() => {
+    if (parcaEkrani || !parcaDonusu.current) return
+    parcaDonusu.current = false
+    const alan = document.querySelector('[data-alan="parca"]')
+    if (!alan) return
+    const baslik = document.querySelector('.topbar')?.offsetHeight || 0
+    const y = alan.getBoundingClientRect().top + window.scrollY - baslik - 12
+    window.scrollTo(0, Math.max(0, y))
+  }, [parcaEkrani])
 
   /* Destekten gelen parça adları bir KEZ işleniyor; katalog indikten
      sonra çalışıyor. Kullanıcı sonradan kaldırırsa geri gelmiyor.
@@ -444,16 +477,6 @@ function TalepFormu() {
       })
     }
   }, [tur, katalogDurum])
-
-  /* Arama kestirme, asıl yol alt montaj. Kodu bilen çiftçinin 35 grubu
-     gezmesi gereksiz; arama iki harften sonra çalışıyor ve Türkçe
-     küçültmeyi biliyor (bkz. lib/parcaKatalogu.js → parcaAra). */
-  const aramaVar = arama.trim().length >= 2
-  const listelenen = aramaVar
-    ? parcaAra(katalog, arama)
-    : acikMontaj
-      ? grubunParcalari(katalog, acikMontaj.id)
-      : []
 
   /* 1. adım — talebin kendisi doğru mu? */
   function gonder() {
@@ -837,6 +860,23 @@ function TalepFormu() {
         </div>
         <TabBar />
       </div>
+    )
+  }
+
+  /* ---------------------------------------------- Parça seçme ekranı
+
+      Talep formunun yerine çiziliyor; form durumu bu bileşende kaldığı
+      için dönüşte her şey yerinde. Servisim'deki servis kaydı ekranı da
+      kataloğu aynı biçimde, tam ekran açıyor. */
+  if (tur === 'parca' && parcaEkrani && katalogDurum === 'hazir') {
+    return (
+      <ParcaSecEkrani
+        katalog={katalog}
+        grup={grup}
+        secili={secim}
+        onTamam={(taslak) => parcaEkranindanDon(taslak)}
+        onVazgec={() => parcaEkranindanDon(null)}
+      />
     )
   }
 
@@ -1350,10 +1390,17 @@ function TalepFormu() {
 
               ÖNCE ALT MONTAJ, SONRA PARÇA. 538 parça tek listede
               gösterilemez; gösterilse de kimse sonuna kadar kaydırmaz.
-              Fiyat listesi zaten alt montajlara ayrılmış ve ekran aynı
-              sırayı izliyor. Arama bunun kestirmesi, yerine geçen yol
-              değil. Servis uygulamasındaki seçim de böyle çalışıyor
-              (bkz. src/servis/ekranlar/ParcaSec.jsx). */}
+              Fiyat listesi zaten alt montajlara ayrılmış ve seçme
+              ekranı aynı sırayı izliyor. Arama bunun kestirmesi, yerine
+              geçen yol değil.
+
+              KATALOG FORMDA DEĞİL, AYRI EKRANDA. Önce bölüm listesi,
+              arama ve parça satırları bu alanın içinde açılıyordu; form
+              ekranlarca uzuyor, seçilenler listenin dibinde kalıyordu.
+              Artık burada yalnız SEÇİLENLER duruyor: adet, fiyat ve
+              toplam. "Parça Ekle" seçme ekranını açıyor (bkz.
+              ParcaSecEkrani.jsx). Servis uygulamasındaki servis kaydı da
+              böyle çalışıyor (bkz. src/servis/ekranlar/ServisKapanisi.jsx). */}
           {tur === 'parca' && (
             <>
               <div className="field" data-alan="parca">
@@ -1364,7 +1411,9 @@ function TalepFormu() {
 
                 {/* Boş ekran çıkmıyor: liste inerken ne olduğu yazıyor. */}
                 {katalogDurum === 'yukleniyor' && (
-                  <span className="field__hint">{t('parcaSec.yukleniyor')}</span>
+                  <span className="field__hint" style={{ marginTop: 0, marginBottom: 10 }}>
+                    {t('parcaSec.yukleniyor')}
+                  </span>
                 )}
 
                 {/* LİSTE İNMEZSE TALEP KAPANMIYOR.
@@ -1396,118 +1445,128 @@ function TalepFormu() {
                   </div>
                 )}
 
-                {/* "Diğer" seçiliyken katalog gezilmiyor: karışık bir
-                    talep hem fiyatlanamıyor hem depoda toplanamıyor. */}
-                {katalogDurum === 'hazir' && !diger && (
-                  <>
-                    {/* Bu makinenin PAKSAN fiyat listesinde kendi
-                        parçası yoksa kataloğun tamamı açılıyor ve bu
-                        ekranda söyleniyor — sessizce 538 parça
-                        göstermek, çiftçiye kendi makinesinin listesine
-                        baktığını sandırırdı. */}
-                    {!ayriListeVar && (
-                      <div className="uyari-kart">{t('parcaSec.tumKatalog')}</div>
-                    )}
+                {/* Adet ve fiyat — yalnız seçilen parçalar için.
 
-                    {/* `label` değil `div`: içindeki temizleme düğmesi
-                        etikete bağlı olsaydı dokunuş hem düğmeye hem
-                        kutuya gidiyordu. Kutunun adı `aria-label` ile
-                        veriliyor. */}
-                    <div
-                      className="row"
-                      style={{ gap: 8, alignItems: 'center', marginTop: 10 }}
-                    >
-                      <span style={{ color: 'var(--ink-3)', flex: 'none' }}>
-                        <IconSearch size={19} />
-                      </span>
-                      <input
-                        className="input"
-                        value={arama}
-                        onChange={(e) => setArama(e.target.value)}
-                        placeholder={t('parcaSec.ara')}
-                        aria-label={t('parcaSec.ara')}
-                      />
-                      {arama && (
-                        <button
-                          className="adet-kutu__dg"
-                          style={{ flex: 'none' }}
-                          onClick={() => setArama('')}
-                          aria-label={t('parcaSec.aramaTemizle')}
-                        >
-                          <IconClose size={18} />
-                        </button>
-                      )}
+                    Her satırın yanına adet kutusu koymak listeyi düğme
+                    duvarına çeviriyordu. Seçim yapılınca burada kısa bir
+                    liste duruyor; artı-eksi düğmeleri eldivenli parmakla
+                    basılacak kadar geniş.
+
+                    FİYAT NEDEN BURADA: müşteri parça bedelini havaleyle
+                    ÖNDEN gönderiyor. Ne kadar göndereceğini seçim
+                    yaparken görmezse, ödeme adımında sürprizle
+                    karşılaşıyor ya da telefon açmak zorunda kalıyor. */}
+                {secimler.length > 0 && (
+                  <>
+                    <span className="parca-alan__alt">{t('talep.kacAdet')}</span>
+                    <div className="adetler">
+                      {hesap.satirlar.map((r) => (
+                        <div key={r.kod} className="adet-satir">
+                          <span className="adet-satir__ad">
+                            {r.ad}
+                            {/* Kod adın altında: müşteri telefonda ya da
+                                havale açıklamasında parçayı koduyla
+                                söylüyor, ad tekil değil. */}
+                            <span className="adet-satir__alt serial-mono">{r.kod}</span>
+                          </span>
+                          {/* EKSİ DÜĞMESİ 1'DE PARÇAYI ÇIKARIYOR.
+
+                              Önce 1'de kapalıydı ve vazgeçmek için parça
+                              listesine dönüp aynı satırı bulmak
+                              gerekiyordu. Ayrı bir çöp düğmesi de
+                              konulamazdı: satırda dördüncü bir 44 piksel,
+                              telefonda parça adına yer bırakmıyor
+                              (ölçüldü: 360 piksel ekranda ada 34 piksel
+                              kalıyor). Aynı düğme, 1'de işini değiştiriyor
+                              ve simgesiyle bunu söylüyor. */}
+                          <div className="adet-kutu">
+                            <button
+                              className="adet-kutu__dg"
+                              onClick={() =>
+                                r.adet <= 1 ? parcaCevir(r.kod) : adetDegis(r.kod, -1)
+                              }
+                              aria-label={
+                                r.adet <= 1 ? t('parcaSec.cikar') : t('talep.adetAzalt')
+                              }
+                            >
+                              {r.adet <= 1 ? <IconClose size={18} /> : <IconMinus size={18} />}
+                            </button>
+                            <span className="adet-kutu__sayi">{r.adet}</span>
+                            <button
+                              className="adet-kutu__dg"
+                              onClick={() => adetDegis(r.kod, 1)}
+                              aria-label={t('talep.adetArtir')}
+                            >
+                              <IconPlus size={18} />
+                            </button>
+                          </div>
+                          {/* BİRİM fiyat — adetle çarpılmıyor.
+
+                              Önce satır tutarı yazıyordu ve adet arttıkça
+                              buradaki rakam da artıyordu; alt toplam zaten
+                              aynı sayıyı gösterdiği için aynı bilgi iki
+                              kez, iki farklı yerde değişiyordu. */}
+                          {r.parca && (
+                            <span className="adet-satir__tutar">
+                              {paraYaz(r.parca.fiyat)} {PARA_BIRIMI}
+                            </span>
+                          )}
+                        </div>
+                      ))}
                     </div>
 
-                    {/* Alt montaj listesi — fiyat listesindeki sırayla.
-                        Sıra basılı listenin sırası; çiftçi kâğıttakiyle
-                        aynı yerde arıyor. */}
-                    {!acikMontaj && !aramaVar && (
-                      <>
-                        <span className="field__hint">{t('parcaSec.montajSec')}</span>
-                        <div className="stack" style={{ gap: 8, marginTop: 10 }}>
-                          {montajlar.map((g) => (
-                            <button
-                              key={g.id}
-                              className="listitem"
-                              onClick={() => setMontaj(g)}
-                            >
-                              <span className="listitem__body">
-                                <span className="listitem__title">{g.ad}</span>
-                                <span className="listitem__sub">
-                                  {t('parcaSec.grupAdet', { n: g.adet })}
-                                </span>
-                              </span>
-                              <IconRight size={20} className="listitem__chev" />
-                            </button>
-                          ))}
+                    {fiyatGosterilir && (
+                      <div className="tutar-kutu">
+                        <div className="tutar-kutu__satir">
+                          <span>{t('parcaFiyat.araToplam')}</span>
+                          <span>{paraYaz(hesap.araToplam)} {PARA_BIRIMI}</span>
                         </div>
-                      </>
-                    )}
-
-                    {(acikMontaj || aramaVar) && (
-                      <div className="stack" style={{ gap: 8, marginTop: 10 }}>
-                        {aramaVar ? (
-                          <span className="field__hint">
-                            {t('parcaSec.sonuc', {
-                              sorgu: arama.trim(),
-                              n: listelenen.length,
-                            })}
-                          </span>
-                        ) : (
-                          /* Geri bir kademe: parça listesinden alt
-                             montajlara. Telefondaki "geri" düğmesi iki
-                             kademeyi birden atlarsa seçim kayboldu
-                             sanılıyor. */
-                          <button
-                            className="secenek secenek--daha"
-                            style={{ alignSelf: 'flex-start' }}
-                            onClick={() => setMontaj(null)}
-                          >
-                            {t('parcaSec.montajaDon')}
-                          </button>
+                        {/* KDV satırı listenin KDV'li olup olmamasına
+                            bağlı; gerekçesi ödeme adımında yazılı. */}
+                        {KDV_HARIC_LISTE && (
+                          <div className="tutar-kutu__satir">
+                            <span>{t('parcaFiyat.kdv', { oran: KDV_ORANI * 100 })}</span>
+                            <span>{paraYaz(hesap.kdv)} {PARA_BIRIMI}</span>
+                          </div>
                         )}
-
-                        {listelenen.length === 0 ? (
-                          <span className="field__hint">{t('parcaSec.sonucYok')}</span>
-                        ) : (
-                          listelenen.map((p) => (
-                            <ParcaSatiri
-                              key={p.kod}
-                              parca={p}
-                              secili={secim.has(p.kod)}
-                              onSec={() => parcaCevir(p.kod)}
-                            />
-                          ))
-                        )}
+                        <div className="tutar-kutu__satir tutar-kutu__satir--toplam">
+                          <span>{t('parcaFiyat.toplam')}</span>
+                          <span>{paraYaz(hesap.toplam)} {PARA_BIRIMI}</span>
+                        </div>
+                        <p className="small muted" style={{ margin: '10px 0 0', lineHeight: 1.5 }}>
+                          {t('parcaFiyat.kargoHaric')}
+                        </p>
                       </div>
                     )}
                   </>
                 )}
 
+                {/* PARÇA EKLE — seçme ekranının kapısı.
+
+                    Liste boşken de duruyor: düğme ekranın bu noktasında
+                    yer tutuyor, sonradan belirseydi çiftçi parçayı
+                    nereden seçeceğini bilmezdi. Boşken "Parça Seç",
+                    doluyken "Parça Ekle" yazıyor — Servisim'deki gibi.
+
+                    "Diğer" seçiliyken görünmüyor: ikisi birbirini
+                    dışlıyor. Liste inerken sönük duruyor ve basılmıyor;
+                    liste inmediyse hiç görünmüyor, yerinde hata kutusu
+                    ve "Diğer" yolu var. */}
+                {!diger && katalogDurum !== 'hata' && (
+                  <button
+                    className="btn btn--soft parca-alan__ekle"
+                    onClick={parcaEkraniniAc}
+                    disabled={katalogDurum !== 'hazir'}
+                  >
+                    <IconPlus size={20} />
+                    {secimler.length > 0 ? t('parcaSec.parcaEkle') : t('parcaSec.parcaSecDugme')}
+                  </button>
+                )}
+
                 {/* "Diğer" HER DURUMDA burada: liste inmese de, makinenin
                     kendi listesi olmasa da çiftçinin parça isteyebileceği
-                    yol bu. */}
+                    yol bu. Seçme ekranında yok; orada bulamayan çiftçiye
+                    buraya dönmesi söyleniyor. */}
                 <div className="secenekler" style={{ marginTop: 12 }}>
                   <button
                     className={'secenek' + (diger ? ' secenek--on' : '')}
@@ -1526,102 +1585,6 @@ function TalepFormu() {
                   konuşuyor. */}
               {diger && (
                 <div className="uyari-kart">{t('talep.digerAciklama')}</div>
-              )}
-
-              {/* Adet ve fiyat — yalnız seçilen parçalar için.
-
-                  Her satırın yanına adet kutusu koymak listeyi düğme
-                  duvarına çeviriyordu. Seçim yapılınca altta kısa bir
-                  liste açılıyor; artı-eksi düğmeleri eldivenli parmakla
-                  basılacak kadar geniş.
-
-                  FİYAT NEDEN BURADA: müşteri parça bedelini havaleyle
-                  ÖNDEN gönderiyor. Ne kadar göndereceğini seçim
-                  yaparken görmezse, ödeme adımında sürprizle
-                  karşılaşıyor ya da telefon açmak zorunda kalıyor. */}
-              {secimler.length > 0 && (
-                <div className="field">
-                  <span className="field__label">{t('talep.kacAdet')}</span>
-                  <div className="adetler">
-                    {hesap.satirlar.map((r) => (
-                      <div key={r.kod} className="adet-satir">
-                        <span className="adet-satir__ad">
-                          {r.ad}
-                          {/* Kod adın altında: müşteri telefonda ya da
-                              havale açıklamasında parçayı koduyla
-                              söylüyor, ad tekil değil. */}
-                          <span className="adet-satir__alt serial-mono">{r.kod}</span>
-                        </span>
-                        {/* EKSİ DÜĞMESİ 1'DE PARÇAYI ÇIKARIYOR.
-
-                            Önce 1'de kapalıydı ve vazgeçmek için parça
-                            listesine dönüp aynı satırı bulmak
-                            gerekiyordu. Ayrı bir çöp düğmesi de
-                            konulamazdı: satırda dördüncü bir 44 piksel,
-                            telefonda parça adına yer bırakmıyor
-                            (ölçüldü: 360 piksel ekranda ada 34 piksel
-                            kalıyor). Aynı düğme, 1'de işini değiştiriyor
-                            ve simgesiyle bunu söylüyor. */}
-                        <div className="adet-kutu">
-                          <button
-                            className="adet-kutu__dg"
-                            onClick={() =>
-                              r.adet <= 1 ? parcaCevir(r.kod) : adetDegis(r.kod, -1)
-                            }
-                            aria-label={
-                              r.adet <= 1 ? t('parcaSec.cikar') : t('talep.adetAzalt')
-                            }
-                          >
-                            {r.adet <= 1 ? <IconClose size={18} /> : <IconMinus size={18} />}
-                          </button>
-                          <span className="adet-kutu__sayi">{r.adet}</span>
-                          <button
-                            className="adet-kutu__dg"
-                            onClick={() => adetDegis(r.kod, 1)}
-                            aria-label={t('talep.adetArtir')}
-                          >
-                            <IconPlus size={18} />
-                          </button>
-                        </div>
-                        {/* BİRİM fiyat — adetle çarpılmıyor.
-
-                            Önce satır tutarı yazıyordu ve adet arttıkça
-                            buradaki rakam da artıyordu; alt toplam zaten
-                            aynı sayıyı gösterdiği için aynı bilgi iki
-                            kez, iki farklı yerde değişiyordu. */}
-                        {r.parca && (
-                          <span className="adet-satir__tutar">
-                            {paraYaz(r.parca.fiyat)} {PARA_BIRIMI}
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {fiyatGosterilir && (
-                    <div className="tutar-kutu">
-                      <div className="tutar-kutu__satir">
-                        <span>{t('parcaFiyat.araToplam')}</span>
-                        <span>{paraYaz(hesap.araToplam)} {PARA_BIRIMI}</span>
-                      </div>
-                      {/* KDV satırı listenin KDV'li olup olmamasına
-                          bağlı; gerekçesi ödeme adımında yazılı. */}
-                      {KDV_HARIC_LISTE && (
-                        <div className="tutar-kutu__satir">
-                          <span>{t('parcaFiyat.kdv', { oran: KDV_ORANI * 100 })}</span>
-                          <span>{paraYaz(hesap.kdv)} {PARA_BIRIMI}</span>
-                        </div>
-                      )}
-                      <div className="tutar-kutu__satir tutar-kutu__satir--toplam">
-                        <span>{t('parcaFiyat.toplam')}</span>
-                        <span>{paraYaz(hesap.toplam)} {PARA_BIRIMI}</span>
-                      </div>
-                      <p className="small muted" style={{ margin: '10px 0 0', lineHeight: 1.5 }}>
-                        {t('parcaFiyat.kargoHaric')}
-                      </p>
-                    </div>
-                  )}
-                </div>
               )}
             </>
           )}
@@ -1941,76 +1904,6 @@ function rakam(deger, uzunluk) {
 /** Adet yazısı: 1 ise gösterilmiyor, kalabalık yapıyor. */
 function adetYaz(n) {
   return '× ' + (n || 1)
-}
-
-/* ==========================================================================
-   Katalogdaki bir parçanın satırı
-
-   Düzen fiyat listesinin aynısı: solda parçanın resmi, yanında kodu,
-   adı ve fiyatı. Çiftçi kâğıttaki listeye alışkın; ekranda başka bir
-   sıra kurmak aynı parçayı iki biçimde ezberlemesini istemek olurdu.
-
-   İKON TEK BAŞINA ANLAM TAŞIMIYOR: resmin yanında kod ve ad her zaman
-   yazıyor. Resmi olmayan parçada kutu boş kalmıyor, yerine yazı
-   giriyor.
-
-   SEÇİLİ OLAN YALNIZ RENKLE AYRILMIYOR: sağdaki onay işareti ve
-   `aria-pressed` de söylüyor. Güneşte ve renk körlüğünde renk tek
-   başına yetmiyor.
-   ========================================================================== */
-function ParcaSatiri({ parca, secili, onSec }) {
-  const { t } = useDil()
-  const adres = gorselAdresi(parca.gorsel)
-
-  return (
-    <button
-      className="listitem"
-      onClick={onSec}
-      aria-pressed={secili}
-      style={
-        secili
-          ? { outline: '2px solid var(--pk-blue-yazi)', outlineOffset: -2 }
-          : undefined
-      }
-    >
-      <span
-        className="listitem__icon"
-        style={{ background: 'var(--surface-3)', overflow: 'hidden' }}
-      >
-        {adres ? (
-          /* Listede otuz satır olabiliyor; hepsini birden indirmek
-             tarlada zayıf şebekede ekranı kilitler. */
-          <img
-            src={adres}
-            alt=""
-            loading="lazy"
-            decoding="async"
-            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-          />
-        ) : (
-          <span className="small muted" style={{ fontSize: 10, textAlign: 'center' }}>
-            {t('parcaSec.gorselYok')}
-          </span>
-        )}
-      </span>
-
-      <span className="listitem__body">
-        <span className="listitem__sub serial-mono" style={{ marginTop: 0 }}>
-          {parca.kod}
-        </span>
-        <span className="listitem__title" style={{ fontSize: 15 }}>
-          {parca.ad}
-        </span>
-        <span className="listitem__sub" style={{ fontWeight: 700 }}>
-          {paraYaz(parca.fiyat)} {PARA_BIRIMI}
-        </span>
-      </span>
-
-      <span style={{ flex: 'none', color: secili ? 'var(--pk-green-yazi)' : 'var(--ink-3)' }}>
-        {secili ? <IconCheck size={20} /> : <IconPlus size={20} />}
-      </span>
-    </button>
-  )
 }
 
 /* Hesaptan gelen bilgi.

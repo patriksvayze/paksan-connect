@@ -105,7 +105,9 @@ export function Hakkedis({ oturum, onAc }) {
         <Bos
           gorsel={bosIsGorseli}
           baslik="Henüz ödemeniz yok"
-          alt="Garanti kapsamında tamamladığınız işler onaylandığında burada görünür."
+          /* "kapsam" servis ekranında yasak kelime; metin Codex'ten
+             (15 Eylül 2026). */
+          alt="Garanti için tamamladığınız işler onaylandığında burada görünür."
           kucuk={bekleyen.length > 0}
         />
       ) : (

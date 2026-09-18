@@ -337,7 +337,37 @@ const UYGULAMA = [
   { ad: '19-kilavuz', baslik: 'Kılavuz detayı', yol: '/kilavuz/hammer' },
   { ad: '20-bakim-rehberi', baslik: 'Bakım rehberi', yol: '/bakim' },
   { ad: '21-talep-servis', baslik: 'Servis talebi formu', yol: '/talep?tur=servis' },
-  { ad: '22-talep-parca', baslik: 'Yedek parça talebi formu', yol: '/talep?tur=parca' },
+  /* PARÇA LİSTESİ FORMDAN ÇIKTI (15 Eylül 2026).
+     Seçim artık formun içinde değil, "Parça Seç" düğmesiyle açılan tam
+     ekran seçicide yapılıyor (bkz. ParcaSecEkrani.jsx). Katalog ağdan
+     geliyor ve gerçekçi gecikmeyle geliyor (PARCA_KATALOG.taklitGecikme,
+     800ms) — düğmeye basmadan önce yüklenmesini bekliyoruz. */
+  {
+    ad: '22-talep-parca', baslik: 'Yedek parça talebi formu', yol: '/talep?tur=parca',
+    adimlar: [
+      { bekle: 700 },
+      { tikla: '.parca-alan__ekle' },
+      { bekle: 500 },
+      { tiklaSira: '.listitem', sira: 0 },
+      { bekle: 400 },
+      { tiklaSira: '.listitem', sira: 0 },
+      { bekle: 300 },
+      { tikla: '.parca-dip__tamam' },
+      { bekle: 500 },
+    ],
+  },
+  {
+    ad: '22b-talep-parca-secici', baslik: 'Yedek parça talebi — parça seçici', yol: '/talep?tur=parca',
+    adimlar: [
+      { bekle: 700 },
+      { tikla: '.parca-alan__ekle' },
+      { bekle: 500 },
+      { tiklaSira: '.listitem', sira: 0 },
+      { bekle: 400 },
+      { tiklaSira: '.listitem', sira: 0 },
+      { bekle: 300 },
+    ],
+  },
   { ad: '23-talep-teklif', baslik: 'Fiyat teklifi talebi formu', yol: '/talep?tur=satinalma' },
   { ad: '24-talep-detay', baslik: 'Talep detayı', yol: '/talebim/tlp-servis-1' },
   { ad: '25-talep-detay-parca', baslik: 'Yedek parça talebi detayı', yol: '/talebim/tlp-parca-1' },

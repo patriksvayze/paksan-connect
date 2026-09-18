@@ -1,6 +1,8 @@
 import { PAKET, yaz } from './destek'
 import { kunyeEtiket, kunyeDeger } from '../marka/icerik/teknikEtiketler'
-import { URUN_KILAVUZU } from '../marka/icerik/kilavuzEslesme'
+import {
+  URUN_KILAVUZU, KILAVUZ_MODEL_AD_EN, KILAVUZ_BELGE_AD_EN,
+} from '../marka/icerik/kilavuzEslesme'
 
 /* ==========================================================================
    Kılavuz içeriği — gerçek kullanım kılavuzlarından
@@ -77,7 +79,7 @@ function kapsamda(kayit, kapsam, modelIdler) {
 }
 
 /** Kılavuzun kapsadığı modeller — teknik değerlerde seçiliyor. */
-export function kilavuzModelleri(productId) {
+export function kilavuzModelleri(productId, dil = 'tr') {
   const kapsam = kilavuzKapsami(productId)
   if (!kapsam) return []
 
@@ -92,7 +94,11 @@ export function kilavuzModelleri(productId) {
 
   const hepsi = PAKET.machines
     .filter((m) => idler.has(m.machine_id))
-    .map((m) => ({ id: m.machine_id, ad: m.name, model: m.model }))
+    .map((m) => ({
+      id: m.machine_id,
+      ad: (dil !== 'tr' && KILAVUZ_MODEL_AD_EN[m.name]) || m.name,
+      model: m.model,
+    }))
 
   const suzgec = AILE_SUZGECI[productId]
   if (!suzgec) return hepsi
@@ -128,7 +134,7 @@ export function kilavuzTeknik(machineId) {
 }
 
 /** Kılavuzun kendisi: dosya adı ve sayfa sayısı. */
-export function kilavuzBelgesi(productId) {
+export function kilavuzBelgesi(productId, dil = 'tr') {
   const kayit = kilavuzGuvenlik(productId)[0] || kilavuzKartlari(productId)[0]
   const kaynak = kayit?.source?.[0]
   if (!kaynak) return null
@@ -136,8 +142,9 @@ export function kilavuzBelgesi(productId) {
   const belge = PAKET.source_documents.find((b) => b.document_id === kaynak.document_id)
   if (!belge) return null
 
+  const ad = belge.filename.replace(/\.pdf$/i, '').replace(/\s+\d{8}$/, '')
   return {
-    ad: belge.filename.replace(/\.pdf$/i, '').replace(/\s+\d{8}$/, ''),
+    ad: (dil !== 'tr' && KILAVUZ_BELGE_AD_EN[ad]) || ad,
     sayfa: belge.page_count,
   }
 }

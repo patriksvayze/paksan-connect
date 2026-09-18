@@ -47,8 +47,8 @@ export default function Manual() {
   const sabitGuvenlik = useMemo(() => genelGuvenlik(productId), [productId])
   const tumGuvenlik = useMemo(() => kilavuzGuvenlik(productId), [productId])
   const prosedur = useMemo(() => kilavuzKartlari(productId, 'PROCEDURE'), [productId])
-  const modeller = useMemo(() => kilavuzModelleri(productId), [productId])
-  const belge = useMemo(() => kilavuzBelgesi(productId), [productId])
+  const modeller = useMemo(() => kilavuzModelleri(productId, dil), [productId, dil])
+  const belge = useMemo(() => kilavuzBelgesi(productId, dil), [productId, dil])
 
   /* Teknik değerler varyanta özel; ilk varyant seçili geliyor. */
   const [varyant, setVaryant] = useState(() => kilavuzModelleri(productId)[0]?.id || null)

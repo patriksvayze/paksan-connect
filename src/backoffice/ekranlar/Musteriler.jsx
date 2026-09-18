@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { izinli, musteriGuncelle, musterileriGetir, talepleriGetir, TALEP_ADI } from '../veri'
+import { izinli, musteriGuncelle, musterileriGetir, rolunTalepleri, talepleriGetir, TALEP_ADI } from '../veri'
 import { useVeri } from '../kanca'
 import {
   Baslik, BeklemeKart, Bos, DurumRozet, gecenSure, siraliListe, SiraliBaslik,
@@ -22,7 +22,7 @@ import { musterininServisleri } from '../../lib/servisAtama'
    değişikliği müşterinin kendi talebi üzerinden, seri numarasıyla
    doğrulanarak yapılıyor (Numara Talepleri ekranı). */
 
-export function Musteriler({ personel, rol, bildir, tazele, surum }) {
+export function Musteriler({ personel, rol, bildir, tazele, surum, git }) {
   const [ara, setAra] = useState('')
   const [aralik, setAralik] = useState(BOS_ARALIK)
   const [makineli, setMakineli] = useState('hepsi')
@@ -196,6 +196,11 @@ export function Musteriler({ personel, rol, bildir, tazele, surum }) {
                       <td>
                         <div style={{ fontWeight: 700 }}>{m.ad}</div>
                         <div className="kucuk sonuk mono">{telGoster(m.ulke, m.tel)}</div>
+                        {m.birlesti && (
+                          <div className="kucuk sonuk">
+                            {m.birlesti.hesapNo || '—'} hesabına geçirildi
+                          </div>
+                        )}
                       </td>
                       <td className="kucuk">{m.ilce ? `${m.ilce} / ${m.il}` : m.il || '—'}</td>
                       <td className="kucuk">{m.makineler?.length || 0}</td>
@@ -214,6 +219,16 @@ export function Musteriler({ personel, rol, bildir, tazele, surum }) {
                 talepler={talepler}
                 duzenleyebilir={izinli(rol, 'musteriDuzenle')}
                 onDuzenle={() => setDuzenlenen({ ...acik })}
+                /* Talebe gidiş yalnız o talebi Talepler ekranında
+                   görebilen personele açık: ekrana yetkisi yoksa ya da
+                   rolü başka bir talep türüne bağlıysa (satış personeli
+                   servis talebini görmüyor) satır tıklanmıyor. Tıklanıp
+                   boş bir ekran açılsaydı personel talebin silindiğini
+                   sanardı. */
+                talebeGidebilir={(t) =>
+                  Boolean(git) && izinli(rol, 'talepler') && rolunTalepleri([t], rol).length > 0
+                }
+                onTalebeGit={(t) => git('talepler', { durum: 'hepsi', talep: t.id })}
               />
             ) : (
               <Bos metin="Müşteri seçin." />
@@ -238,7 +253,7 @@ export function Musteriler({ personel, rol, bildir, tazele, surum }) {
   )
 }
 
-function Detay({ musteri, talepler, duzenleyebilir, onDuzenle }) {
+function Detay({ musteri, talepler, duzenleyebilir, onDuzenle, talebeGidebilir, onTalebeGit }) {
   const kendi = talepler.filter((t) => t.telHam === musteri.tel)
   const servisSatirlari = musterininServisleri(musteri.makineler || []).hepsi
 
@@ -260,6 +275,32 @@ function Detay({ musteri, talepler, duzenleyebilir, onDuzenle }) {
       </div>
 
       <div className="kart__ic">
+        {/* ==================================== Birleştirilmiş hesap
+
+            Seri çakışması talebi onaylandığında eski hesabın makineleri
+            ve talepleri yeni hesaba geçiyor (bkz. veri.js →
+            hesaplariBirlestir). Geriye kalan eski kayıt, açıklaması
+            olmadan makinesi boşalmış sıradan bir müşteri gibi
+            görünüyordu; telefon çaldığında personel makinenin nereye
+            gittiğini bilemiyordu. */}
+        {musteri.birlesti && (
+          <p
+            className="kucuk"
+            style={{
+              margin: '0 0 16px',
+              padding: '11px 14px',
+              borderRadius: 'var(--r)',
+              background: 'var(--mavi-z)',
+              lineHeight: 1.55,
+            }}
+          >
+            Bu hesabın makineleri ve talepleri{' '}
+            <span className="mono">{musteri.birlesti.hesapNo || '—'}</span> hesabına
+            geçirildi ({tarihYaz(musteri.birlesti.tarih)}). Müşteri makinelerini
+            yeni numarasıyla açtığı hesaptan görüyor.
+          </p>
+        )}
+
         <Bolum ad="Bilgiler">
           <S k="Müşteri numarası" v={musteri.no} mono />
           <S k="Konum" v={musteri.ilce ? `${musteri.ilce} / ${musteri.il}` : musteri.il} />
@@ -339,14 +380,38 @@ function Detay({ musteri, talepler, duzenleyebilir, onDuzenle }) {
           {kendi.length === 0 ? (
             <p className="kucuk sonuk" style={{ margin: 0 }}>Talep açmamış.</p>
           ) : (
-            kendi.map((t) => (
-              <div key={t.id} className="satir" style={{ marginBottom: 8, alignItems: 'baseline' }}>
-                <span className="mono kucuk">{t.no}</span>
-                <span className="kucuk sonuk">{TALEP_ADI[t.tur]}</span>
-                <span className="kucuk sonuk">{gecenSure(t.createdAt)}</span>
-                <DurumRozet durum={t.status} talep={t} />
-              </div>
-            ))
+            /* TALEBE TIKLANIYOR (14 Eylül 2026, kullanıcının isteği).
+               Önce düz satırdı: talebin ayrıntısı için Talepler ekranına
+               geçip numarayla aramak gerekiyordu. Satır artık Talepler
+               ekranını o talep seçili ve "tüm durumlar" süzgeciyle
+               açıyor; kapanmış talep de bulunuyor. Görünüm, talep
+               detayındaki "müşterinin diğer talepleri" satırlarıyla aynı
+               (.bag-satir). */
+            kendi.map((t) => {
+              const icerik = (
+                <>
+                  <span className="mono kucuk">{t.no}</span>
+                  <span className="kucuk sonuk">{TALEP_ADI[t.tur]}</span>
+                  <span className="kucuk sonuk">{gecenSure(t.createdAt)}</span>
+                  <DurumRozet durum={t.status} talep={t} />
+                </>
+              )
+              return talebeGidebilir(t) ? (
+                <button
+                  key={t.id}
+                  type="button"
+                  className="bag-satir"
+                  style={{ flexWrap: 'wrap' }}
+                  onClick={() => onTalebeGit(t)}
+                >
+                  {icerik}
+                </button>
+              ) : (
+                <div key={t.id} className="satir" style={{ marginBottom: 8, alignItems: 'baseline' }}>
+                  {icerik}
+                </div>
+              )
+            })
           )}
         </Bolum>
       </div>

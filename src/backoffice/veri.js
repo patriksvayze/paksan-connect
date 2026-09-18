@@ -13,9 +13,13 @@ import { talepNo } from '../lib/talep'
 import { SIRKET, MARKA, markaEk, PARA_BIRIMI, kdvTutari } from '../marka'
 import { urun } from '../lib/urun'
 import { ASAMA, kaydiDogrula, kaydiCozume, kapininSonucu } from '../lib/servisKaydi.js'
+import { teslimatTemizle } from '../lib/teslimat.js'
 import { servisleriGetir } from '../marka'
 import { icerikListe, icerikTazele } from '../lib/icerikDeposu.js'
 import { altBilgi } from '../data/duyuruTurleri.js'
+import { SERI_CAKISMASI } from '../lib/numaraTalebi.js'
+import { telGoster } from '../lib/tel.js'
+import { normalizeSerial, validateSerial } from '../lib/serial.js'
 import {
   rolKimligi, TUM_IZINLER, VARSAYILAN_ROLLER, YETKISIZ_ROL,
 } from '../data/yetkiler.js'
@@ -1523,8 +1527,68 @@ function talebinMusterisi(talep) {
   return load(ANAHTAR.demoMusteriler, []).find((m) => m.id === talep.musteriId) || null
 }
 
+/* SERİ ÇAKIŞMASINDAN GELEN TALEP (17 Eylül 2026)
+
+   Müşteri makine eklerken seri başka bir hesapta çıktı ve "numaram
+   değişti" dedi (bkz. lib/numaraTalebi.js → seriCakismasiTalebi). Yön
+   öteki talebin tersi: talebi açan hesap YENİ numarayla açılmış,
+   müşteri ESKİ numarasını yazmış. İstenen, eski hesabın kayıtlarının bu
+   hesaba geçmesi.
+
+   Kanıtlar da o yüzden eski hesaba bakıyor: yazılan eski numara o
+   hesabın numarası mı, seri o hesaba kayıtlı makine mi. Seri makinenin
+   üstünde yazıyor, tek başına kanıt değil; asıl kanıt eski numara —
+   uygulama onu hiçbir yerde göstermedi. */
+export function seriCakismasiMi(talep) {
+  return talep?.kaynak === SERI_CAKISMASI
+}
+
+/** Seri çakışması talebinde eski hesabın kaydı; bu tarayıcıda yoksa null. */
+function eskiHesapKaydi(talep) {
+  const { musteriId, musteriNo } = talep?.eskiHesap || {}
+  if (!musteriId && !musteriNo) return null
+  return musterileriGetir().find(
+    (m) => (musteriId && m.id === musteriId) || (musteriNo && m.no === musteriNo)
+  ) || null
+}
+
+/** Ekranda gösterilecek eski hesap: numara ve ad. Ad yoksa defterden. */
+export function eskiHesapBilgisi(talep) {
+  const kayit = eskiHesapKaydi(talep)
+  const satir = eskiHesabinDefteri(talep)[0]
+  return {
+    no: kayit?.no || talep?.eskiHesap?.musteriNo || '',
+    ad: kayit?.ad || satir?.musteriAd || '',
+    bulundu: Boolean(kayit),
+  }
+}
+
+function eskiHesabinMi(talep, k) {
+  const { musteriId, musteriNo } = talep?.eskiHesap || {}
+  return Boolean(
+    (musteriId && k.musteriId === musteriId) || (musteriNo && k.musteriNo === musteriNo)
+  )
+}
+
+function eskiHesabinDefteri(talep) {
+  return makineKayitlariGetir().filter((k) => eskiHesabinMi(talep, k))
+}
+
 /** Talepteki seri no müşterinin kayıtlı makinelerinden biri mi? */
 export function seriDogruMu(talep) {
+  /* Seri çakışmasında makine ESKİ hesapta: defter satırı ya da eski
+     hesabın makine listesi. */
+  if (seriCakismasiMi(talep)) {
+    const aranan = normalizeSerial(talep.seri)
+    if (!aranan) return false
+    return (
+      eskiHesabinDefteri(talep).some((k) => normalizeSerial(k.seri) === aranan) ||
+      (eskiHesapKaydi(talep)?.makineler || []).some(
+        (m) => normalizeSerial(m.serial) === aranan
+      )
+    )
+  }
+
   const seriler = (talebinMusterisi(talep)?.makineler || []).map((m) =>
     String(m.serial || '').replace(/\D/g, '')
   )
@@ -1534,10 +1598,176 @@ export function seriDogruMu(talep) {
 
 /** Talepteki eski numara hesaptaki numarayla aynı mı? */
 export function numaraDogruMu(talep) {
-  const kayitli = String(talebinMusterisi(talep)?.tel || '').replace(/\D/g, '')
+  /* Seri çakışmasında karşılaştırılan hesap talebi açan değil, seriyi
+     tutan eski hesap. O hesap bu tarayıcıda yoksa doğrulanamıyor. */
+  const hesap = seriCakismasiMi(talep) ? eskiHesapKaydi(talep) : talebinMusterisi(talep)
+  const kayitli = String(hesap?.tel || '').replace(/\D/g, '')
   const girilen = String(talep.eskiTel || '').replace(/\D/g, '')
   if (!kayitli || !girilen) return false
   return girilen.endsWith(kayitli) || kayitli.endsWith(girilen)
+}
+
+/* ESKİ HESABIN KAYITLARI YENİ HESABA — plan ve uygulama ayrı.
+
+   Plan hiçbir şey yazmıyor; backoffice kartı onaydan önce neyin
+   taşınacağını aynı hesapla gösteriyor. Onayda aynı plan yazılıyor —
+   ekrandaki sayı ile yapılan iş ayrışamasın.
+
+   NE TAŞINIYOR (demo: tarayıcı deposunun gördüğü kadarı)
+     · Makine defteri: eski hesaba ait satırların müşteri bilgisi
+       (musteriId/No/Ad) yeni hesaba. Makinenin yeri (il/ilçe), bayisi,
+       servisi olduğu gibi kalıyor: makine aynı makine.
+     · Talepler: eski numarayla (telHam) ya da eski hesabın kimliğiyle
+       açılmış taleplerin telHam/tel/musteriId'si yeni hesaba.
+     · Makine listesi: eski hesabın makineleri yeni hesabın listesine;
+       eski hesabın listesi boşalıyor. Eski hesap bu tarayıcıda yoksa
+       liste defter satırlarından kuruluyor ki müşteri makinesini görsün.
+     · Eski hesap `birlesti` işaretini alıyor (yalnız demo müşterisinde).
+       İşareti Müşteriler ekranı okuyor: hem listede hem müşteri
+       kartında "… hesabına geçirildi" yazıyor. Okuyan ekran olmadan
+       geriye açıklamasız, makinesi boşalmış bir kayıt kalıyordu.
+
+   NE TAŞINAMIYOR
+     · Eski hesap başka bir telefonda açılmışsa (bu tarayıcıda kaydı
+       yoksa) numarası bilinmiyor: yalnız kimliğiyle işaretli talepler
+       taşınıyor, numarayla açılanlar kalıyor. İşlem kaydına yazılıyor.
+     · Başka cihazdaki oturum, bildirimler (`duyurular`), destek ve
+       geri bildirim kayıtları taşınmıyor. Bunlar sunucuda
+       hesap birleştirmenin işi (bkz. veritabani/tasarim.md). */
+function hesapBirlesmePlani(talep) {
+  const eski = eskiHesapKaydi(talep)
+  const eskiId = talep.eskiHesap?.musteriId || null
+
+  /* Yeni hesabın GÜNCEL kaydı: talep bırakıldıktan sonra numarası
+     değişmiş olabilir; talepteki kopya değil güncel olan yazılıyor. */
+  const yeniId = talep.yeniHesap?.musteriId || talep.musteriId
+  const yeni = musterileriGetir().find((m) => m.id === yeniId) || null
+  const hedef = {
+    id: yeniId,
+    no: yeni?.no || talep.yeniHesap?.musteriNo || null,
+    ad: yeni?.ad || talep.ad || '',
+    telHam: yeni?.tel || talep.yeniTelHam || '',
+    ulke: yeni?.ulke || talep.yeniUlke || '',
+  }
+
+  const defter = makineKayitlariGetir().map((k) =>
+    eskiHesabinMi(talep, k)
+      ? { ...k, musteriId: hedef.id, musteriNo: hedef.no, musteriAd: hedef.ad }
+      : k
+  )
+  const defterSayisi = makineKayitlariGetir().filter((k) => eskiHesabinMi(talep, k)).length
+
+  const eskiTel = eski?.tel ? String(eski.tel) : ''
+  const talebinMi = (t) =>
+    (eskiTel && t.telHam === eskiTel) || (eskiId && t.musteriId === eskiId)
+  const talepYamasi = (t) => ({
+    ...t,
+    telHam: hedef.telHam,
+    tel: telGoster(hedef.ulke, hedef.telHam),
+    telUlke: hedef.ulke,
+    musteriId: hedef.id,
+  })
+  const talepler = load(ANAHTAR.talepler, [])
+  const demoTalepler = load(ANAHTAR.demoTalepler, [])
+  const talepSayisi = [...talepler, ...demoTalepler].filter(talebinMi).length
+
+  /* Taşınacak makineler: eski hesabın listesi; yoksa defterden. */
+  const kaynakMakineler = eski
+    ? eski.makineler || []
+    : eskiHesabinDefteri(talep).map((k) => ({
+        id: uid(),
+        productId: k.productId,
+        serial: k.seri,
+        year: validateSerial(k.seri).year || null,
+        nickname: '',
+        addedAt: k.tarih || Date.now(),
+        hours: 0,
+        doneMaintenance: [],
+      }))
+  const yeniMakineler = yeni?.makineler || []
+  const eklenecek = kaynakMakineler.filter(
+    (m) => !yeniMakineler.some((x) => normalizeSerial(x.serial) === normalizeSerial(m.serial))
+  )
+
+  return {
+    eski, eskiId, hedef, defter, defterSayisi, talebinMi, talepYamasi,
+    talepler, demoTalepler, talepSayisi, eklenecek,
+    eskiTelBilinmiyor: !eskiTel,
+  }
+}
+
+/** Onaydan önce gösterilecek özet: kaç makine, kaç defter satırı, kaç talep. */
+export function hesapBirlesmeOzeti(talep) {
+  const p = hesapBirlesmePlani(talep)
+  return {
+    makine: p.eklenecek.length,
+    defter: p.defterSayisi,
+    talep: p.talepSayisi,
+    eskiTelBilinmiyor: p.eskiTelBilinmiyor,
+  }
+}
+
+/* Makine listesi hesabın durduğu yerde: bu telefondaki hesap `machines`
+   deposunda, demo müşterisi kendi kaydının içinde. */
+function hesabinMakineleriniYaz(hesapId, degistir) {
+  if (!hesapId) return
+  const kisi = load(ANAHTAR.hesap, null) || load(ANAHTAR.kullanici, null)
+  if (kisi && kisi.id === hesapId) {
+    save(ANAHTAR.makineler, degistir(load(ANAHTAR.makineler, [])))
+    return
+  }
+  save(
+    ANAHTAR.demoMusteriler,
+    load(ANAHTAR.demoMusteriler, []).map((m) =>
+      m.id === hesapId ? { ...m, makineler: degistir(m.makineler || []) } : m
+    )
+  )
+}
+
+function hesaplariBirlestir(talep) {
+  const p = hesapBirlesmePlani(talep)
+  const kimlik = {
+    eskiNo: p.eski?.no || talep.eskiHesap?.musteriNo || '',
+    yeniNo: p.hedef.no || '',
+    eskiTelBilinmiyor: p.eskiTelBilinmiyor,
+  }
+
+  /* TAŞINACAK HİÇBİR ŞEY YOKSA HİÇBİR DEPO YAZILMIYOR.
+
+     Aynı eski hesap için ikinci bir talep daha onaylanabilir: kayıtlar
+     ilk onayda taşındığı için ikincisinde taşınacak bir şey kalmıyor.
+     Yine de yazsaydık eski hesabın `birlesti` işareti ikinci hesabı
+     gösterirdi — kayıtlar birincide dururken. İşlem kaydına da
+     "0 makine taşındı" diye yanıltıcı bir satır düşerdi. */
+  if (!p.eklenecek.length && !p.defterSayisi && !p.talepSayisi) {
+    return { bos: true, makine: 0, defter: 0, talep: 0, ...kimlik }
+  }
+
+  save(ANAHTAR.makineKayitlari, p.defter)
+  save(ANAHTAR.talepler, p.talepler.map((t) => (p.talebinMi(t) ? p.talepYamasi(t) : t)))
+  save(ANAHTAR.demoTalepler, p.demoTalepler.map((t) => (p.talebinMi(t) ? p.talepYamasi(t) : t)))
+
+  hesabinMakineleriniYaz(p.hedef.id, (liste) => [...p.eklenecek, ...liste])
+  if (p.eski) hesabinMakineleriniYaz(p.eski.id, () => [])
+
+  if (p.eskiId) {
+    save(
+      ANAHTAR.demoMusteriler,
+      load(ANAHTAR.demoMusteriler, []).map((m) =>
+        m.id === p.eskiId
+          ? { ...m, birlesti: { hesapId: p.hedef.id, hesapNo: p.hedef.no, tarih: Date.now() } }
+          : m
+      )
+    )
+  }
+
+  return {
+    bos: false,
+    makine: p.eklenecek.length,
+    defter: p.defterSayisi,
+    talep: p.talepSayisi,
+    ...kimlik,
+  }
 }
 
 export function numaraTalebiKarar(talep, onay, personel, not) {
@@ -1551,6 +1781,37 @@ export function numaraTalebiKarar(talep, onay, personel, not) {
       : t
   )
   save(ANAHTAR.numaraTalepleri, liste)
+
+  /* Seri çakışması: bu hesabın numarasına dokunulmuyor; eski hesabın
+     kayıtları bu hesaba geçiyor. Reddedilirse yalnız talep kapanıyor. */
+  if (seriCakismasiMi(talep)) {
+    const sonuc = onay ? hesaplariBirlestir(talep) : null
+
+    musteriyeBildir({
+      musteriId: talep.musteriId,
+      tur: 'numara',
+      baslikAnahtar: 'bildirimler.cakismaBaslik',
+      metinAnahtar: onay ? 'bildirimler.cakismaOnay' : 'bildirimler.cakismaRet',
+      degerler: {},
+    })
+
+    islemYaz({
+      tur: 'numara',
+      ozet: !sonuc
+        ? `${talep.ad} · seri çakışması reddedildi · ${talep.seri}${not ? ' · ' + not : ''}`
+        : sonuc.bos
+          ? `${talep.ad} · seri çakışması onaylandı · eski hesap ${
+              sonuc.eskiNo || '—'
+            } · taşınacak kayıt bulunamadı${not ? ' · ' + not : ''}`
+          : `${talep.ad} · seri çakışması onaylandı · eski hesap ${sonuc.eskiNo || '—'} → ${
+              sonuc.yeniNo || '—'
+            } · ${sonuc.makine} makine, ${sonuc.defter} makine kaydı, ${sonuc.talep} talep taşındı${
+              sonuc.eskiTelBilinmiyor ? ' · eski numara bilinmiyor, numarayla açılan talepler taşınamadı' : ''
+            }${not ? ' · ' + not : ''}`,
+      personel,
+    })
+    return liste
+  }
 
   if (onay) {
     /* Ekranda görünen biçim değil, ham numara yazılıyor — yoksa giriş
@@ -1723,11 +1984,20 @@ export function destekTalepEt(talep, neden, servisAd) {
      kutusunda çakılı kalmasın, personel bildirimi düşsün. Ödeme
      onayındaki kalıbın aynısı. */
   const durum = talep.status === 'yeni' ? 'incelemede' : talep.status
+
+  /* GEÇMİŞ SATIRI KAYNAĞIYLA YAZILIYOR (17 Eylül 2026). Satır, talebin
+     o anki durumunu ve SERVİSİN ADINI taşıyor; durum 'parcaBekliyor' ya
+     da 'onayBekliyor' ise gerçek bir servis kaydından ayırt
+     edilemiyordu ve Raporlar'da destek istemek sahaya çıkmak gibi
+     sayılıyordu ("İş yapan servis" ölçüsü). `kaynak` bunu söylüyor;
+     tarih de tek okumadan geliyor, böylece `devir.tarih` ile geçmiş
+     satırı bir milisaniye ayrışmıyor. */
+  const simdi = Date.now()
   talepYaz(talep.id, {
     sahip: 'paksan',
-    devir: { tarih: Date.now(), neden: neden || '', servisAd },
+    devir: { tarih: simdi, neden: neden || '', servisAd },
     status: durum,
-    gecmis: [...(talep.gecmis || []), { durum, tarih: Date.now(), personel: servisAd }],
+    gecmis: [...(talep.gecmis || []), { durum, tarih: simdi, personel: servisAd, kaynak: 'devir' }],
   })
   islemYaz({
     tur: 'devir',
@@ -1755,6 +2025,21 @@ export function destekTalepEt(talep, neden, servisAd) {
 export function servisKaydiGonder(talep, kayit, servisAd) {
   const hata = kaydiDogrula(kayit)
   if (hata) return { hata }
+
+  /* PARÇANIN GÖNDERİLECEĞİ ADRES PARÇA İSTEĞİYLE BİRLİKTE (17 Eylül 2026).
+
+     Garanti parçasını PAKSAN servise gönderiyor ama nereye
+     gönderileceği sorulmuyordu; personel servisin firma adresine
+     yolluyordu, parça bazen doğrudan tarlaya gitmeliydi. Adres 1.
+     aşamada kaydın içine yazılıyor (`servisKaydi.teslimat`), yarım
+     adres kabul edilmiyor. 2. aşamada soru yok: kayıt üstüne
+     yazılırken (`devam`) alan olduğu gibi kalıyor; yeni ziyarette
+     eski kayıtla birlikte arşive gidiyor. */
+  if (kayit.asama === ASAMA.parca) {
+    const teslimat = teslimatTemizle(kayit.teslimat)
+    if (!teslimat) return { hata: 'Parçanın gönderileceği adresi seçin.' }
+    kayit = { ...kayit, teslimat }
+  }
 
   const { cozum, hakkedis, parcalar } = kaydiCozume(kayit)
   const sonuc = kapininSonucu(kayit)
@@ -1785,14 +2070,47 @@ export function servisKaydiGonder(talep, kayit, servisAd) {
      arıza, teşhis ve parça korunuyor. */
   const devam = talep.servisKaydi?.asama === ASAMA.parca && kayit.asama !== ASAMA.parca
 
-  const arsiv =
-    talep.servisKaydi && !devam
-      ? [...(talep.oncekiKayitlar || []), { ...talep.servisKaydi, hakkedis: talep.hakkedis || null }]
-      : talep.oncekiKayitlar || []
+  /* GARANTİ DIŞI KAPANIŞ DA ARŞİVE GİRİYOR (15 Eylül 2026).
+
+     Servis garanti dışı işi kayıt açmadan kapatabiliyor (bkz.
+     servis/ekranlar/TalepDetay.jsx → garantiDisi); o kapanışın izi
+     yalnız `cozum`da. Müşteri "sorun devam ediyor" deyip servis bu
+     kez garanti kaydı gönderirse `cozum` üzerine yazılıyor ve PAKSAN,
+     aynı arızanın daha önce müşteriden ücret alınarak kapatıldığını
+     hak edişi onaylarken "Önceki ziyaretler"de göremiyordu. */
+  const garantiDisiKapanis =
+    !devam && talep.cozum?.garantiDisi
+      ? [{
+          tarih: talep.cozum.tarih,
+          servisAd: talep.cozum.personel,
+          yapilanIs: talep.cozum.ozet,
+          parcalar: [],
+          garantiDisi: true,
+        }]
+      : []
+
+  /* ESKİ SEVK BİLGİSİ YENİ ZİYARETE TAŞINMIYOR. Önceki ziyaretin
+     parçası kargoyla gelmişse `parcaSevk` talepte kalıyordu; yeni
+     ziyarette parça istenince Servisim "Parça yola çıktı" deyip eski
+     takip numarasını gösteriyor, "Parçayı Taktım" parça gelmeden
+     açılıyor, backoffice'te de "Parçayı Gönderdim" yerine "Kargo
+     Bilgisini Gir" çıkıyordu. Sevk arşivdeki kayıtla birlikte
+     saklanıyor, talepteki alan boşalıyor. Aynı ziyaretin 2. aşamasında
+     (devam) sevk yerinde kalıyor. */
+  const arsiv = !devam
+    ? [
+        ...(talep.oncekiKayitlar || []),
+        ...(talep.servisKaydi
+          ? [{ ...talep.servisKaydi, hakkedis: talep.hakkedis || null, parcaSevk: talep.parcaSevk || null }]
+          : []),
+        ...garantiDisiKapanis,
+      ]
+    : talep.oncekiKayitlar || []
 
   const yama = {
     status: sonuc.durum,
     masa: sonuc.masa,
+    ...(devam ? {} : { parcaSevk: null }),
     /* Kayıt talebin üstünde duruyor; `cozum` eskisi gibi korunuyor
        çünkü müşteri uygulaması ve raporlar onu okuyor. */
     servisKaydi: devam
@@ -2103,6 +2421,15 @@ export function servisParcaSiparisi({
     .filter((k) => k.adet > 0 && (k.kod || k.ad))
   if (!temiz.length) return { hata: 'En az bir parça seçin.' }
 
+  /* TESLİMAT YAPISAL (17 Eylül 2026). Servisim adresi Adreslerim'den
+     ya da "Elle Gir"den nesne olarak veriyor: alıcı, telefon, il, ilçe,
+     açık adres (bkz. lib/teslimat.js). Yarım adres kaydedilmiyor —
+     parçayı hazırlayan personel onu tam sanıp kargoya verirdi.
+     Düz yazı gelirse (eski çağrı) eskisi gibi yalnız `fatura.adres`. */
+  const teslim = teslimatTemizle(teslimat)
+  const teslimYazi = teslim ? teslim.yazi : typeof teslimat === 'string' ? teslimat.trim() : ''
+  if (!teslimYazi) return { hata: 'Parçanın gönderileceği adresi seçin.' }
+
   /* Satırları olmayan bir görüntü kaydedilmiyor: okuyan ekranlar
      `parcaFiyat`ın varlığını "fiyat yazılı" diye anlıyor (bkz.
      ekranlar/Talepler.jsx → BeklenenTutar). Boş bir nesne, tutarı
@@ -2148,7 +2475,11 @@ export function servisParcaSiparisi({
     /* Sipariş anındaki fiyat görüntüsü. Müşterinin parça talebindeki
        alanın aynısı; yoksa null (bkz. backoffice/demo.js). */
     parcaFiyat: goruntu,
-    fatura: { ad: servisAd, adres: (teslimat || '').trim() },
+    /* `fatura.adres` geriye uyum için tek satır: onu okuyan ekranlar
+       (Servisim talep detayı, Excel) değişmeden çalışıyor. Yapısal hâli
+       `teslimat`ta; backoffice parçayı gönderirken onu okuyor. */
+    fatura: { ad: servisAd, adres: teslimYazi },
+    teslimat: teslim,
     /* İSTENEN TESLİM TARİHİ KALDIRILDI.
 
        Soruluyordu ve hiçbir şeye bağlanmıyordu: ne sevkiyat planına

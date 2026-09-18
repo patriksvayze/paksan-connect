@@ -38,6 +38,7 @@ import { BANKA } from '../../marka'
 import { servisleriGetir, bayileriGetir, MARKA } from '../../marka'
 import { PARA_BIRIMI, paraYaz } from '../../marka'
 import { telFirma } from '../../lib/tel'
+import { teslimatTelYaz } from '../../lib/teslimat'
 
 /* Talepler listesinde bir sayfadaki kayıt sayısı (bkz. ortak.jsx → Sayfalama). */
 const SAYFA_BOYU = 10
@@ -83,7 +84,10 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
        kutuda 35 yazıyor, listede 12 kayıt çıkıyordu. */
     setSahiplik(sorgu.sahiplik ?? 'hepsi')
     setAra(sorgu.ara ?? '')
-    setSecili(null)
+    /* Başka ekrandan belirli bir talep açılabiliyor (Müşteriler →
+       müşterinin talepleri). Seçim, bulunduğu sayfaya geçişi de
+       tetikliyor (aşağıdaki sayfa etkisi). */
+    setSecili(sorgu.talep ?? null)
   }, [sorgu])
 
   /* OKUMA HATASI "KAYIT YOK" DİYE GÖRÜNMÜYOR.
@@ -905,12 +909,20 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
               k="İstenen tarih"
               v={talep.istenenTarih ? tarihYaz(talep.istenenTarih, false) : ''}
             />
-            <div className="alan__ad" style={{ marginTop: 14, marginBottom: 6 }}>
-              Teslimat adresi
-            </div>
-            <p style={{ whiteSpace: 'pre-wrap', margin: 0 }}>
-              {talep.fatura?.adres || '—'}
-            </p>
+            {/* Servisim adresi yapısal veriyor (17 Eylül 2026); eski
+                siparişte yalnız tek satırlık yazı var. */}
+            {talep.teslimat ? (
+              <TeslimatAdresi teslimat={talep.teslimat} />
+            ) : (
+              <>
+                <div className="alan__ad" style={{ marginTop: 14, marginBottom: 6 }}>
+                  Teslimat adresi
+                </div>
+                <p style={{ whiteSpace: 'pre-wrap', margin: 0 }}>
+                  {talep.fatura?.adres || '—'}
+                </p>
+              </>
+            )}
           </Bolum>
         )}
 
@@ -1094,8 +1106,15 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
 
             `cozum` YİNE YAZILIYOR: müşteri uygulaması, Excel çıktısı
             ve raporlar onu okuyor. Yalnız bu ekranda ikinci kez
-            çizilmiyor. */}
-        {talep.cozum && !talep.servisKaydi && (
+            çizilmiyor.
+
+            GARANTİ DIŞI KAPANIŞ İSTİSNA: yeniden açılmış talepte
+            servis ikinci ziyareti kayıt açmadan kapattıysa (bkz.
+            servis/ekranlar/TalepDetay.jsx → garantiDisi) talepte ilk
+            ziyaretin servis kaydı duruyor ama güncel kapanış o değil.
+            Blok çizilmezse personel talebi ilk kayıtla kapanmış
+            sanıyordu. Alanlar boş olduğu için özet satırı çıkıyor. */}
+        {talep.cozum && (!talep.servisKaydi || talep.cozum.garantiDisi) && (
           <Bolum ad={talep.tur === 'satinalma' ? 'Teklif sonucu' : 'Yapılan iş'}>
             {(KAPANIS_ALANLARI[talep.tur] || KAPANIS_ALANLARI.servis).map((a) =>
               a.uzun ? (
@@ -1480,6 +1499,58 @@ function S({ k, v, mono }) {
     <div className="satir" style={{ gap: 10, alignItems: 'baseline', marginBottom: 5 }}>
       <span className="kucuk sonuk" style={{ minWidth: 118 }}>{k}</span>
       <span className={mono ? 'mono' : undefined}>{v}</span>
+    </div>
+  )
+}
+
+/* ==========================================================================
+   Teslimat adresi — parçanın gideceği yer
+
+   Servisim'de servis, siparişinde ve garanti parça isteğinde adresi
+   Adreslerim'den seçiyor ya da elle giriyor (bkz. lib/teslimat.js).
+   Burada parçayı kargoya veren personel okuyor: alıcı, telefon, il ve
+   ilçe, açık adres ayrı satırlarda — kargo firmasının formundaki
+   sırayla.
+
+   "ADRESİ KOPYALA" tek satırı panoya alıyor: kargo firmasının kendi
+   ekranına yazılırken harf harf okunup yeniden yazılmıyor.
+   ========================================================================== */
+function TeslimatAdresi({ teslimat: t, ust = 14 }) {
+  const [kopyalandi, setKopyalandi] = useState(false)
+  if (!t) return null
+
+  async function kopyala() {
+    try {
+      await navigator.clipboard.writeText(t.yazi || '')
+      setKopyalandi(true)
+      setTimeout(() => setKopyalandi(false), 2000)
+    } catch {
+      /* Pano izni yoksa yazı ekranda duruyor; elle seçilebilir. */
+    }
+  }
+
+  return (
+    <div style={{ marginTop: ust }}>
+      <div className="satir" style={{ marginBottom: 6, gap: 8 }}>
+        <span className="alan__ad" style={{ margin: 0 }}>
+          Teslimat adresi
+        </span>
+        <span className="rz rz--gri">
+          {t.kaynak === 'kayitli' && t.baslik ? t.baslik : 'Servis elle girdi'}
+        </span>
+        <button
+          type="button"
+          className="dg dg--kucuk"
+          style={{ marginLeft: 'auto' }}
+          onClick={kopyala}
+        >
+          {kopyalandi ? 'Kopyalandı' : 'Adresi Kopyala'}
+        </button>
+      </div>
+      <S k="Alıcı" v={t.alici} />
+      <S k="Telefon" v={teslimatTelYaz(t.tel)} mono />
+      <S k="İl / İlçe" v={[t.il, t.ilce].filter(Boolean).join(' / ')} />
+      <S k="Açık adres" v={t.acikAdres} />
     </div>
   )
 }
@@ -1979,10 +2050,26 @@ function SahiplikEtiketi({ talep }) {
     )
   }
 
+  /* DEVREDİLEN TALEP TALEBE GİRMEDEN BELLİ OLUYOR.
+
+     Servis talebi PAKSAN'a bıraktığında da bu satır "Serviste" ile aynı
+     soluk, küçük yazıdaydı; kullanıcı talebe girmeden fark etmiyordu
+     (detayda turuncu rozet ve uyarı kutusu var). Yeni bir rozet
+     eklenmedi — kullanıcının isteği (14 Eylül 2026): ekranda zaten çok
+     etiket var. Yazı aynı, kalın ve detaydaki turuncu tonda: iş PAKSAN'a
+     geri döndü, bakılması gereken satır bu (bkz. backoffice.css →
+     .talep-devir). */
   const devredildi = (talep.sahip || 'paksan') === 'paksan'
+  if (devredildi) {
+    return (
+      <div className="kucuk talep-devir" style={{ marginTop: 2 }}>
+        Devredildi · {talep.servis.ad}
+      </div>
+    )
+  }
   return (
     <div className="kucuk sonuk" style={{ marginTop: 2 }}>
-      {devredildi ? `Devredildi · ${talep.servis.ad}` : `Serviste · ${talep.servis.ad}`}
+      Serviste · {talep.servis.ad}
     </div>
   )
 }
@@ -2193,7 +2280,11 @@ function ServisKaydiBolumu({
         </span>
       }
     >
-      <S k="Garanti Durumu" v={KAPI[k.kapi]} />
+      {/* Yalnız ESKİ garanti dışı kayıtta. 15 Eylül 2026'dan beri
+          servis kaydı yalnız garanti işi için yazılıyor (bkz.
+          servis/ekranlar/ServisKapanisi.jsx); satır her kayıtta aynı
+          şeyi söylüyordu. */}
+      {k.kapi !== 'garanti' && <S k="Garanti Durumu" v={KAPI[k.kapi]} />}
       <S k="Yapılan İş" v={k.yapilanIs} />
       {k.sonuc && (
         <p style={{ whiteSpace: 'pre-wrap', margin: '0 0 8px' }}>{k.sonuc}</p>
@@ -2216,6 +2307,12 @@ function ServisKaydiBolumu({
             {k.asama === 'parca' ? 'İstenen parça' : 'Değiştirilen parça'}
           </div>
           <ParcaTablosu parcalar={temizParcalar(k.parcalar)} />
+        </div>
+      )}
+
+      {!parcada && k.teslimat && (
+        <div style={{ marginBottom: 10 }}>
+          <TeslimatAdresi teslimat={k.teslimat} ust={0} />
         </div>
       )}
 
@@ -2268,7 +2365,13 @@ function ServisKaydiBolumu({
                 ]
                   .filter(Boolean)
                   .join(' · ')
-              : 'Servis parçayı takınca talebi kendisi kapatacak.'}
+              : k.kapi === 'parcaIste'
+                ? 'Servis parçayı takınca talebi kendisi kapatacak.'
+                : /* Garanti işi: servis parçayı takınca kaydı onaya
+                     geliyor, talebi kendisi kapatmıyor. Metin Codex'ten
+                     (15 Eylül 2026); eski cümle yalnız eski garanti
+                     dışı parça isteğinde doğru. */
+                  'Parça gönderilip takıldıktan sonra servis kaydını tamamlayacak; servis birimi kaydı onaylayınca talep kapanacak.'}
           </p>
           {/* Takip numarası girilmediyse iş bu masada duruyor; talep
               listeden düşmesin ki numara geldiğinde girilebilsin. */}
@@ -2324,6 +2427,14 @@ function ServisKaydiBolumu({
 
       {/* Parça gönderildikten sonra da düğme duruyor: takip numarası
           çoğu zaman o an elde olmuyor, sonradan giriliyor. */}
+      {/* PARÇANIN GİDECEĞİ ADRES GÖNDER DÜĞMESİNİN HEMEN ÜSTÜNDE.
+          Servis parça isterken adresi seçiyor (bkz. servis/ekranlar/
+          ServisKapanisi.jsx); parçayı kargoya veren personel başka yere
+          bakmadan okuyor. Parça beklenmiyorsa (takıldı, kayıt onayda)
+          adres parça tablosunun altında duruyor. Eski kayıtta adres
+          yok, bölüm çıkmıyor. */}
+      {parcada && k.teslimat && <TeslimatAdresi teslimat={k.teslimat} />}
+
       {yetkili && parcada && (
         <div className="satir" style={{ marginTop: 12 }}>
           <button
@@ -2488,7 +2599,9 @@ function RedFormu({ talep, onKapat, onKaydet }) {
 
    TALEBİ KAPATMIYOR. Parça yola çıkıyor ama iş bitmiyor: takılması
    gerekiyor ve onu yalnız serviste olan biri bilebilir. Talep açık
-   kalıyor, servis takınca kendisi kapatıyor.
+   kalıyor; garanti işinde servis parçayı takınca kaydını tamamlıyor ve
+   kayıt onaya geliyor. (Eski garanti dışı parça isteğinde servis
+   talebi kendisi kapatıyordu.)
 
    KARGO BİLGİSİ ZORUNLU DEĞİL VE SONRADAN GİRİLEBİLİYOR.
 
@@ -2525,12 +2638,22 @@ function SevkFormu({ talep, onKapat, onKaydet }) {
             {talep.no} ·{' '}
             {sevk
               ? 'Parça gönderildi olarak işaretli. Kargo bilgisini şimdi girebilir ya da güncelleyebilirsiniz.'
-              : 'Talep kapanmayacak; servis parçayı taktıktan sonra kendisi kapatacak.'}
+              : talep.servisKaydi?.kapi === 'parcaIste'
+                ? 'Talep kapanmayacak; servis parçayı taktıktan sonra kendisi kapatacak.'
+                : 'Parça gönderilince talep açık kalacak; servis parçayı takıp kaydını tamamladıktan sonra servis biriminin onayıyla kapanacak.'}
           </p>
 
           {parcalar.length > 0 && (
             <div style={{ marginBottom: 14 }}>
               <ParcaTablosu parcalar={parcalar} />
+            </div>
+          )}
+
+          {/* Kargo formu adresle birlikte: gönderi bu bilgiyle
+              hazırlanıyor. */}
+          {talep.servisKaydi?.teslimat && (
+            <div style={{ marginBottom: 14 }}>
+              <TeslimatAdresi teslimat={talep.servisKaydi.teslimat} ust={0} />
             </div>
           )}
 
@@ -2804,6 +2927,14 @@ function KapanisFormu({ talep, onKapat, onKaydet }) {
         </div>
 
         <div className="kart__ic">
+          {/* Servis siparişi kapanırken parça kargoya veriliyor; adres
+              formun başında, başka yere bakmadan okunuyor. */}
+          {talep.servisSiparisi && talep.teslimat && (
+            <div style={{ marginBottom: 14 }}>
+              <TeslimatAdresi teslimat={talep.teslimat} ust={0} />
+            </div>
+          )}
+
           {alanlar.map((a, i) => (
             <label className="alan" key={a.ad}>
               <span className="alan__ad">

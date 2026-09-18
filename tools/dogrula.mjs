@@ -27,8 +27,11 @@
     10. Sürüm numarası   — Connect'in üç yeri tutuyor mu, Servisim ayrı mı
     11. Yayın anahtarları — geliştirme ayarı APK'ya gidiyor mu (saymıyor)
     12. Yazılmamış metin — Codex'i bekleyen yer tutucu ekrana çıkıyor mu
+    13. Veritabanı betikleri — SQL statik denetimi, tohum betikleri
+                           kaynakla aynı mı, ortam dosyası git'te mi
 
    4. kontrol yalnız dist/ varsa çalışır; yoksa atlanır.
+   13. kontrol yalnız veritabani/ klasörü varsa çalışır; yoksa atlanır.
 
    8. kontrol tek tek çalıştırılan dört betiği bir araya getiriyor. Ayrı
    dururken unutuluyorlardı: `bolge-testi.mjs` marka klasörü taşınırken
@@ -831,6 +834,9 @@ const YER_TUTUCU_KALIPLARI = [
   [/\[\[\s*TR\s*:/g, 'Türkçe metin işareti'],
   [/\[\s*TR-MET[İI]N BEKLEN[İI]YOR/g, 'Türkçe metin bekleniyor'],
   [/\[\[\s*metin bekleniyor/gi, 'metin bekleniyor'],
+  /* Raporlar ekranı (17 Eylül 2026): metin nesnesi okunur taslakla
+     duruyor, işareti sarmalayıcı (bkz. backoffice/ekranlar/rapor/metin.js). */
+  [/\bcodexBekliyor\s*\(/g, 'Codex bekleyen taslak metin'],
 ]
 
 const yazilmamis = []
@@ -848,11 +854,116 @@ for (const dosya of kaynaklar) {
   }
 }
 
+/* CODEX-BEKLEYEN.md (17 Eylül 2026, kullanıcının kararı): Codex sınırı
+   doluyken yazılan taslaklar orada listeleniyor. Connect sözlüğündeki
+   taslak anahtarlar ve tek dilli ekranların taslak metinli dosyaları
+   dosya içinde işaretsiz duruyor (ekran okunur kalsın diye); ağ bu
+   listeden kuruluyor. Liste boşalınca bu kontrol de susuyor. */
+const BEKLEYEN = join(KOK, 'CODEX-BEKLEYEN.md')
+if (existsSync(BEKLEYEN)) {
+  const liste = readFileSync(BEKLEYEN, 'utf8')
+  const blok = (ad) => {
+    const m = liste.match(new RegExp(`<!-- ${ad} -->([\\s\\S]*?)<!-- /${ad} -->`))
+    return m ? [...m[1].matchAll(/^- `([^`]+)`/gm)].map((x) => x[1]) : []
+  }
+  for (const anahtar of blok('anahtarlar:connect')) {
+    yazilmamis.push(`src${SEP}i18n${SEP}tr.js → ${anahtar} → Codex bekleyen taslak (CODEX-BEKLEYEN.md)`)
+  }
+  for (const dosya of blok('dosyalar:tekdil')) {
+    yazilmamis.push(`${dosya} → Codex bekleyen taslak (CODEX-BEKLEYEN.md)`)
+  }
+}
+
 if (yazilmamis.length) {
   bildir(`ekrana çıkacak ${yazilmamis.length} yazılmamış metin var:`)
   for (const y of yazilmamis) console.log('      ' + y)
 } else {
   tamam('yer tutucu metin kalmadı')
+}
+
+/* ------------------------------------------------ 13. Veritabanı betikleri
+
+   Planın "Doğrulama → Eşleşme denetimi (npm run dogrula)" maddesi üç şey
+   istiyor ve üçü de buradan koşar:
+
+     a) statik SQL denetimi (yasak özellikler) — tools/vt/denetle.mjs
+     b) tohumlar güncel — üretilmiş T/B/O betikleri tohum/kaynak/*.json ile
+        aynı mı
+     c) ortam dosyası git'te yok — bağlantı şifreleri depoya girmemeli
+
+   Üçü de yazılıydı ama hiçbiri bu komuttan çağrılmıyordu: (a) yalnız elle
+   ya da `vt sinama` içinden, (b) yalnız elle `vt tohum --denetle`, (c) hiç.
+   Bir sınama çağrılmıyorsa yoktur (8. kontrolün başlığındaki gerekçe).
+
+   (b) ile `vt sinama` KR-04'ü aynı şey değildir: KR-04 betiklerin ikinci
+   kez çalıştırılınca satır değiştirmediğini ölçer, yani VERİTABANI ile
+   BETİK'i karşılaştırır. Burada BETİK ile KAYNAK JSON karşılaştırılır:
+   kaynağı düzeltip betiği yeniden üretmeyi unutmak KR-04'ten sessizce
+   geçerdi.
+
+   Veritabanı klasörü yoksa (marka devri, yalnız uygulama kopyası) kontrol
+   atlanır. */
+
+baslik('13. Veritabanı betikleri')
+
+const VT_KLASOR = join(KOK, 'veritabani')
+if (!existsSync(VT_KLASOR)) {
+  tamam('veritabani klasörü yok, atlandı')
+} else {
+  /* a) Statik SQL denetimi */
+  const { statikDenetim, yerTutucuUyarilari } = await import('./vt/denetle.mjs')
+  const sqlSorunlari = statikDenetim()
+  if (sqlSorunlari.length) {
+    bildir(`SQL betiklerinde ${sqlSorunlari.length} sorun var:`)
+    for (const s of sqlSorunlari.slice(0, 40)) console.log('      ' + s)
+    if (sqlSorunlari.length > 40) console.log(`      … ve ${sqlSorunlari.length - 40} tane daha`)
+  } else {
+    tamam('SQL betikleri kurallara uyuyor')
+  }
+  /* Yer tutucular 12. kontrolün konusu; burada yalnız sayısı yazılır. */
+  const sqlYerTutucu = yerTutucuUyarilari()
+  if (sqlYerTutucu.length) console.log(`      (SQL betiklerinde Codex bekleyen ${sqlYerTutucu.length} metin)`)
+
+  /* b) Tohum betikleri kaynakla tutuyor mu (hiçbir dosyaya yazmaz).
+        Yer tutucu sayısı burada SORUN DEĞİL: bugün bilerek var, 12.
+        kontrolün konusu. Sorun sayılan yalnız "kaynak ile betik ayrışmış". */
+  const { tohumDurumu } = await import('./vt/tohum-uret.mjs')
+  const tohum = await tohumDurumu()
+  if (tohum.hata) {
+    bildir(`tohum üretilemedi: ${tohum.hata}`)
+  } else if (tohum.farkli.length || tohum.fazla.length) {
+    if (tohum.farkli.length) {
+      bildir(`${tohum.farkli.length} tohum betiği kaynakla tutmuyor (npm run vt -- tohum):`)
+      for (const a of tohum.farkli) console.log('      ' + a)
+    }
+    if (tohum.fazla.length) {
+      bildir(`üreticinin yazmadığı tohum betiği var: ${tohum.fazla.join(', ')}`)
+    }
+  } else {
+    tamam(`tohum betikleri kaynakla aynı (${tohum.dosyalar.size} dosya)`)
+  }
+
+  /* c) Ortam dosyası git'te olmamalı: içinde sunucu girişlerinin şifreleri
+        var. ornek.env bilerek izlenir (şifresiz şablon). Git yoksa ya da
+        burası bir depo değilse kontrol atlanır — sorun sayılmaz. */
+  const gitSonuc = spawnSync('git', ['ls-files', '--', 'veritabani/ortam'], {
+    cwd: KOK,
+    encoding: 'utf8',
+  })
+  if (gitSonuc.error || gitSonuc.status !== 0) {
+    tamam('ortam dosyası: git sorgulanamadı, atlandı')
+  } else {
+    const izlenen = gitSonuc.stdout
+      .split('\n')
+      .map((x) => x.trim())
+      .filter(Boolean)
+      .filter((x) => x !== 'veritabani/ortam/ornek.env')
+    if (izlenen.length) {
+      bildir(`ortam dosyası git'te izleniyor (şifre içerir): ${izlenen.join(', ')}`)
+    } else {
+      tamam("ortam dosyaları git'e girmiyor (yalnız ornek.env izleniyor)")
+    }
+  }
 }
 
 /* ------------------------------------------------------------- Sonuç */
@@ -863,5 +974,5 @@ if (sorun) {
   process.exit(1)
 }
 console.log(
-  YAYIN_KIPI ? 'SONUÇ: on iki kontrol de temiz, yayına hazır.' : 'SONUÇ: on iki kontrol de temiz.',
+  YAYIN_KIPI ? 'SONUÇ: on üç kontrol de temiz, yayına hazır.' : 'SONUÇ: on üç kontrol de temiz.',
 )

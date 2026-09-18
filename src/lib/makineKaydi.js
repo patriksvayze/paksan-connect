@@ -30,11 +30,63 @@
 import { load, save, uid } from './storage'
 import { seriBilgisi, yeniSatisMi } from './logo'
 import { uygulamaKaydi } from './kayit'
+import { normalizeSerial } from './serial'
 
 const ANAHTAR = 'makineKayitlari'
 
 export function makineKayitlari() {
   return load(ANAHTAR, [])
+}
+
+/* SERİ BAŞKA HESAPTA MI (17 Eylül 2026, kullanıcının kararı)
+
+   Bir makine tek hesapta durur. Müşteri makine eklerken aynı seri
+   defterde BAŞKA bir hesaba bağlıysa ikinci satır açılmıyordu değil,
+   sessizce açılıyordu — ve en yeni satır `servisAtama.makineninKaydi`
+   içinde öne geçip PAKSAN'ın atadığı servisi gölgeliyordu.
+
+   Artık ekleme durur ve müşteri iki yoldan birini seçer: "numaram
+   değişti" (yazılı talep, PAKSAN doğrular ve eski hesabı bu hesaba
+   geçirir) ya da "makineyi başkasından aldım" (PAKSAN aranır, devri
+   PAKSAN yapar). Soruyu soran tek yer burası; ekran kendi içinde
+   defteri taramaz.
+
+   BAŞKA HESAP NE DEMEK: satırda bir hesap kimliği (`musteriId` ya da
+   `musteriNo`) var ve bu kullanıcınınkiyle tutmuyor. Servisin elle
+   açtığı hesapsız satır (`kaynak: 'servis'`) kimsenin hesabı değil;
+   müşteri makinesini üstüne ekleyebilir.
+
+   DÖNEN DEĞER yalnız hesabın kimliği — ad ve telefon DEĞİL. Ekran onu
+   göstermez: başkasının bilgisi, ve makineyi çalmış biri de bu ekranı
+   görebilir. Kimlik yalnız talebe yazılıyor ki PAKSAN hangi hesaba
+   bakacağını bilsin. Sunucu geldiğinde bu cevap sunucudan gelecek ve
+   hesap kimliği bile istemciye inmeyecek (bkz. veritabani/tasarim.md).
+
+   Aynı seri için birden çok eski satır varsa (bu kural gelmeden
+   açılmış kopyalar) başka hesabın en yeni satırı dönüyor; defter
+   yeniden eskiye sıralı. Bu hesabın da bir satırı olması çakışmayı
+   kaldırmıyor: sahiplik belirsiz, kararı PAKSAN verir. */
+/**
+ * @param {string} seri  müşterinin yazdığı seri (biçimi önemli değil)
+ * @param {{id?: string, no?: string}|null} user  bu cihazdaki hesap
+ * @returns {null|{musteriId: string|null, musteriNo: string|null}}
+ */
+export function seriBaskaHesaptaMi(seri, user) {
+  const aranan = normalizeSerial(seri)
+  if (!aranan) return null
+
+  const bizim = (k) =>
+    (k.musteriId && user?.id && k.musteriId === user.id) ||
+    (k.musteriNo && user?.no && k.musteriNo === user.no)
+
+  const satir = makineKayitlari().find(
+    (k) =>
+      normalizeSerial(k.seri) === aranan &&
+      (k.musteriId || k.musteriNo) &&
+      !bizim(k)
+  )
+  if (!satir) return null
+  return { musteriId: satir.musteriId || null, musteriNo: satir.musteriNo || null }
 }
 
 /** Kayıt defterindeki bir satırı günceller (backoffice'ten atama). */

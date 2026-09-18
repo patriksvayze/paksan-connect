@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useGeri } from '../geri'
 import {
   talepDurumDegistir,
   talepKapat,
@@ -7,9 +8,11 @@ import {
   talepIptal,
 } from '../../backoffice/veri'
 import {
-  ASAMA, KAPI, parcaYazisiKodlu as parcaYazisi, talebinParcalari, temizParcalar,
+  ASAMA, GARANTI_DISI_OZET, KAPI, parcaYazisiKodlu as parcaYazisi, talebinParcalari, temizParcalar,
 } from '../../lib/servisKaydi'
+import { DikteliKutu } from '../Dikte'
 import { ParcaTablosu } from '../../components/ParcaTablosu'
+import { teslimatYazisi } from '../../lib/teslimat'
 import { bugunGirdi, ileriTarihMi } from '../../lib/tarih'
 import { makineDurumAdi } from '../../data/talepAlanlari'
 import { getProduct, MARKA, markaEk } from '../../marka'
@@ -45,8 +48,8 @@ import { Ekler } from '../../backoffice/ekranlar/Ekler'
    bildirimleri değişmeden çalışıyor.
 
      Randevu ver          → talepPlanla()   → planlandi
-     İşi tamamladım       → talepKapat()    → kapandi
-     Parçayı gönderdim    → talepKapat()    → kapandi
+     Servis kaydı         → ServisKapanisi  → parça ya da onay bekliyor
+     Garanti dışı iş      → talepKapat()    → kapandi (kayıt yok)
      PAKSAN'dan destek    → destekTalepEt() → sahiplik PAKSAN'a geçer
 
    Talep PAKSAN'a devredildiyse servis işlem yapmıyor ama takip ediyor:
@@ -122,6 +125,23 @@ export function TalepDetay({
      ödemeyi de ilgilendiriyor; o karar PAKSAN'ın. */
   const iptalVar = islemVar && !talep.servisKaydi
 
+  /* GARANTİ DIŞI İŞ KAYITSIZ KAPANIYOR (15 Eylül 2026, kullanıcının
+     kararı).
+
+     Servis kaydı yalnız garanti işi için (bkz. ServisKapanisi.jsx
+     başı). Müşterinin açtığı talebe giden servis işin garanti dışı
+     olduğunu görürse parasını müşteriden alıyor; PAKSAN'ın ödeyeceği
+     ya da göndereceği bir şey yok, kayıt da istenmiyor. Ama talep
+     açık kalamaz: servisin "Yeni" listesinde durur, backoffice'te 48
+     saat sonra gecikmiş görünür.
+
+     Kapatma talepKapat() ile: müşteriye "Talebiniz tamamlandı"
+     bildirimi gidiyor ve "Sorun Devam Ediyor" düğmesi açık kalıyor —
+     iptal değil, iş yapıldı. Hak ediş doğmuyor. Kapanış kaydına yalnız
+     kısa bir özet yazılıyor; PAKSAN talebin garanti dışı kapandığını
+     oradan okuyor. */
+  const garantiDisiVar = islemVar && talep.tur === 'servis'
+
   /* RANDEVU YALNIZ ZİYARETTEN ÖNCE.
 
      `sesiVar` ile birlikte açılıyordu; sonuç şuydu: servis kaydını
@@ -185,8 +205,11 @@ export function TalepDetay({
      AŞAMASINI AÇIYOR. Parça takıldıktan sonra sorulacak üç şey var:
      ne yapıldı, kaç kilometre gidildi, ne kadar işçilik alındı.
      Hak ediş bunlardan doğuyor ve kayıt ondan sonra onaya gidiyor
-     (bkz. lib/servisKaydi.js başı). Garanti dışı parça isteğinde
-     sorulacak bir şey yok: parası müşteriden alındı, talep kapanıyor.
+     (bkz. lib/servisKaydi.js başı). ESKİ garanti dışı parça
+     isteğinde (kapı 'parcaIste', 15 Eylül 2026'dan önce yazılmış)
+     sorulacak bir şey yok: parası müşteriden alındı, talep doğrudan
+     kapanıyor. Yeni kayıt o kapıyla yazılmıyor ama yolda olan parçası
+     olan eski talep bu yoldan bitiyor; dal bu yüzden duruyor.
 
      DÜĞME PARÇA YOLA ÇIKMADAN AÇILMIYOR. `parcaSevk` yedek parça
      personelinin "gönderdim" kaydı; o yokken servis parçayı takmış
@@ -522,6 +545,9 @@ export function TalepDetay({
           <IconCheckCircle size={19} />
           <div>
             <strong>Bu talep tamamlandı.</strong>
+            {/* Garanti dışı kapanışta kayıt yok; nasıl kapandığı
+                yalnız bu satırda. */}
+            {talep.cozum?.garantiDisi && <p>{talep.cozum.ozet}</p>}
           </div>
         </div>
       ) : null}
@@ -530,7 +556,9 @@ export function TalepDetay({
           baktığında cevap burada. Alanlar backoffice'in kendi kapanış
           formuyla aynı; müşteri de bunları kendi uygulamasında
           okuyor. */}
-      {kapali && talep.cozum && (
+      {/* Garanti dışı kapanışta gösterilecek alan yok (özet yukarıdaki
+          yeşil notta); boş kart çizilmiyor. */}
+      {kapali && talep.cozum && !talep.cozum.garantiDisi && (
         <div className="kart" style={{ padding: 16 }}>
           <Satir ad="Yapılan İş" deger={talep.cozum.yapilanIs} />
           <Satir ad="Değiştirilen Parça" deger={talep.cozum.parcalar} />
@@ -544,6 +572,21 @@ export function TalepDetay({
 
       {sesiVar && (
         <div className="secenek">
+          {/* GARANTİ DIŞI TAMAMLAMA LİSTENİN BAŞINDA VE AYRIŞIYOR (17 Eylül
+              2026, kullanıcının isteği). Talebi kapatan ikinci yol bu;
+              öteki seçenekler talebi açık bırakıyor. Dipteki "Servis
+              Kaydını Aç" düğmesinin hemen üstünde, yeşil çerçeveyle
+              duruyor: iki kapanış yolu yan yana, iptal en sonda. */}
+          {garantiDisiVar && (
+            <button
+              className="secenek__dg secenek__dg--tamamla"
+              onClick={() => setPencere('garantiDisi')}
+            >
+              <IconCheckCircle size={19} />
+              Garanti Dışı İşi Tamamla
+              <IconRight size={17} />
+            </button>
+          )}
           {talep.tur === 'servis' && randevuVar && (
             <button className="secenek__dg" onClick={() => setPencere('randevu')}>
               <IconCalendar size={19} />
@@ -605,6 +648,33 @@ export function TalepDetay({
           servisAd={servisAd}
           onKapat={() => setPencere(null)}
           onBitti={onKapat}
+        />
+      )}
+      {/* Metinler Codex'ten (15 Eylül 2026). */}
+      {pencere === 'garantiDisi' && (
+        <Onay
+          baslik="Talep kapanacak"
+          metin="Servis kaydı açılmadan talep kapanacak, hak ediş oluşmayacak. Müşteriye talebin tamamlandığı bildirilecek."
+          kalemler={[{ ad: 'Talep', deger: talep.no }]}
+          dugme="Talebi Kapat"
+          onOnayla={() => {
+            /* Yeniden açılmış talepte ilk ziyaretin çözümü (yapılan iş,
+               değişen parça) silinmiyor: `onceki` içinde kalıyor ve
+               müşteri uygulaması onu göstermeye devam ediyor. */
+            talepKapat(
+              talep,
+              {
+                ozet: GARANTI_DISI_OZET,
+                garantiDisi: true,
+                ...(talep.servisKaydi && talep.cozum && !talep.cozum.garantiDisi
+                  ? { onceki: talep.cozum }
+                  : {}),
+              },
+              servisAd,
+            )
+            onKapat()
+          }}
+          onVazgec={() => setPencere(null)}
         />
       )}
       {pencere === 'parcaKapat' && (
@@ -704,7 +774,9 @@ function ServisKaydi({ talep }) {
         Servis Kaydınız · {gecenSure(k.tarih)}
       </div>
 
-      <Satir ad="Garanti Durumu" deger={KAPI[k.kapi]} />
+      {/* Yalnız ESKİ garanti dışı kayıtta: 15 Eylül 2026'dan beri her
+          servis kaydı garanti kaydı, satır bilgi taşımıyordu. */}
+      {k.kapi !== 'garanti' && <Satir ad="Garanti Durumu" deger={KAPI[k.kapi]} />}
       <Satir ad="Yapılan İş" deger={k.yapilanIs} />
       <Satir ad="Sonuç" deger={k.sonuc} />
       <Satir ad="Gidilen Yol" deger={k.km ? k.km + ' km' : ''} />
@@ -725,6 +797,10 @@ function ServisKaydi({ talep }) {
           <ParcaTablosu parcalar={temizParcalar(k.parcalar)} />
         </>
       )}
+
+      {/* Parça isteğinde seçilen adres (bkz. ServisKapanisi.jsx): servis
+          parçayı nerede bekleyeceğini burada görüyor. */}
+      <Satir ad="Gönderim Adresi" deger={teslimatYazisi(k.teslimat)} />
 
       {h && (
         <>
@@ -819,6 +895,8 @@ function ParcaDurumu({ talep }) {
 
 /* Pencere kabuğu; backoffice'teki Form kalıbının aynısı. */
 function Pencere({ baslik, children, onKapat }) {
+  /* Geri tuşu "Kapat" düğmesiyle aynı (bkz. servis/geri.jsx). */
+  useGeri(true, () => onKapat())
   return (
     <div
       style={{
@@ -934,10 +1012,7 @@ function Not({ talep, servisAd, onKapat, onBitti }) {
       <p className="kucuk sonuk" style={{ marginTop: 0 }}>
         Notunuzu {MARKA} görür, müşteriye gönderilmez. Talebin içindeki Notlarınız bölümünde görünür.
       </p>
-      <label className="alan">
-        <span className="alan__ad">Not</span>
-        <textarea className="gir" rows={3} value={metin} onChange={(e) => setMetin(e.target.value)} />
-      </label>
+      <DikteliKutu ad="Not" deger={metin} onDegis={setMetin} satir={3} />
       {hata && <div className="uyari">{hata}</div>}
       <div className="satir">
         <button className="dg dg--ana" onClick={kaydet}>Kaydet</button>
@@ -958,16 +1033,13 @@ function Destek({ onKapat, onGonder }) {
         edecek. {markaEk('in')} attığı adımları burada görmeye devam
         edeceksiniz.
       </p>
-      <label className="alan">
-        <span className="alan__ad">Neden Destek İstiyorsunuz?</span>
-        <textarea
-          className="gir"
-          rows={3}
-          value={neden}
-          onChange={(e) => setNeden(e.target.value)}
-          placeholder="Örnek: Sorunu yerinde göremedik, elektronik arıza olabilir"
-        />
-      </label>
+      <DikteliKutu
+        ad="Neden Destek İstiyorsunuz?"
+        deger={neden}
+        onDegis={setNeden}
+        satir={3}
+        placeholder="Örnek: Sorunu yerinde göremedik, elektronik arıza olabilir"
+      />
       {hata && <div className="uyari">{hata}</div>}
       <div className="satir">
         <button
@@ -1040,15 +1112,12 @@ function Iptal({ talep, servisAd, onKapat, onBitti }) {
           setHata('')
         }}
       />
-      <label className="alan">
-        <span className="alan__ad">{baska ? 'İptal nedeni' : 'Açıklama (isteğe bağlı)'}</span>
-        <textarea
-          className="gir"
-          rows={3}
-          value={aciklama}
-          onChange={(e) => setAciklama(e.target.value)}
-        />
-      </label>
+      <DikteliKutu
+        ad={baska ? 'İptal nedeni' : 'Açıklama (isteğe bağlı)'}
+        deger={aciklama}
+        onDegis={setAciklama}
+        satir={3}
+      />
       {hata && <div className="uyari">{hata}</div>}
       <div className="satir">
         <button className="dg dg--ana" onClick={iptalEt}>
