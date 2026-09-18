@@ -23,6 +23,7 @@ import {
   IconPano, IconTalep, IconUser, IconPin, IconMail, IconRapor,
   IconChat, IconBell, IconPhone, IconPersonel, IconKayit, IconMachine,
   IconCart,
+  IconParca,
   IconTag,
   IconShield,
 } from '../components/Icons'
@@ -39,6 +40,7 @@ import { Roller } from './ekranlar/Roller'
 import { GeriBildirimler } from './ekranlar/GeriBildirimler'
 import { Servisler } from './ekranlar/Servisler'
 import { Bayiler } from './ekranlar/Bayiler'
+import { ParcaKatalogu } from './ekranlar/ParcaKatalogu'
 import { Makineler } from './ekranlar/Makineler'
 import { IslemKaydi } from './ekranlar/IslemKaydi'
 
@@ -80,6 +82,10 @@ const MENU = [
   /* Bayi ayrı bir ekran: kaydı var, paneli yok. Servisin çalıştığı
      bayiler Servisler ekranından bağlanıyor; burası künye. */
   { id: 'bayiler', ad: 'Bayiler', izin: 'servisler', Ikon: IconCart },
+  /* Yedek parça kataloğu: müşterinin ve servisin gördüğü parça adını,
+     grubunu ve fiyat listesini yöneten ekran. Katalog uygulamanın içinde
+     değil, sunucudan iniyor (bkz. lib/parcaKatalogu.js). */
+  { id: 'parcaKatalogu', ad: 'Yedek Parça Kataloğu', izin: 'parcaKatalogu', Ikon: IconParca },
   /* "SERVİS SİPARİŞLERİ" EKRANI KALDIRILDI.
 
      Servisin PAKSAN'dan istediği parça kendi deposunda ve kendi
@@ -236,6 +242,7 @@ export function Backoffice() {
         {acik === 'makineler' && <Makineler {...ortak} />}
         {acik === 'servisler' && <Servisler {...ortak} />}
         {acik === 'bayiler' && <Bayiler {...ortak} />}
+        {acik === 'parcaKatalogu' && <ParcaKatalogu {...ortak} />}
         {acik === 'geribildirim' && <GeriBildirimler {...ortak} />}
         {acik === 'numara' && <NumaraTalepleri {...ortak} />}
         {acik === 'personel' && <Personel {...ortak} />}

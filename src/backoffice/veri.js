@@ -1956,6 +1956,60 @@ export function bayileriSifirla(personel) {
   islemYaz({ tur: 'bayi', ozet: 'Bayi listesi koddaki listeye döndürüldü', personel })
 }
 
+/* ------------------------------------------ Yedek parça kataloğu düzeltmeleri
+
+   Katalog PAKSAN'ın bastığı fiyat listesinden üretiliyor ve listede
+   yanlış yazılmış bir ad ya da yanlış gruba düşmüş bir parça olabiliyor.
+   Personel bunu yeni liste beklemeden düzeltiyor.
+
+   DÜZELTME PARÇA KODUNA BAĞLI. Katalog dosyasının içine yazılmıyor,
+   üstüne biniyor (bkz. lib/parcaKatalogu.js → duzeltmeleriUygula). Yeni
+   fiyat listesi geldiğinde dosya bütünüyle değişiyor ama düzeltmeler
+   kodla eşleştiği için ayakta kalıyor.
+
+   FİYAT BURADAN DEĞİŞMİYOR. Ad, grup ve "listede görünmesin" işareti
+   var; fiyat ancak yeni liste sürümüyle bütün olarak değişiyor. Tek tek
+   değiştirilebilseydi altı ay sonra hangi tutarın ne zaman geçerli
+   olduğu çıkarılamazdı — verilmiş siparişlerin tutarı da o kayıttan
+   doğrulanıyor (bkz. parcaKatalogu.js → fiyatGoruntusu). */
+
+export function parcaDuzeltmeleriGetir() {
+  const v = load(ANAHTAR.icerik, {}).parcaDuzeltme
+  return v && typeof v === 'object' && !Array.isArray(v) ? v : {}
+}
+
+/**
+ * Bir parçanın düzeltmesini yazar. `duzeltme` alanlarından yalnız
+ * verilenler değişiyor; `null` verilirse o parçanın düzeltmesi siliniyor
+ * ve parça asıl hâline dönüyor.
+ *
+ * @param {string} kod parça kodu
+ * @param {{ad?: string, grup?: string, gizli?: boolean}|null} duzeltme
+ */
+export function parcaDuzeltmesiYaz(kod, duzeltme, personel, ozet) {
+  const mevcut = load(ANAHTAR.icerik, {})
+  const hepsi = { ...parcaDuzeltmeleriGetir() }
+  if (!duzeltme) delete hepsi[kod]
+  else hepsi[kod] = { ...hepsi[kod], ...duzeltme }
+  save(ANAHTAR.icerik, { ...mevcut, parcaDuzeltme: hepsi })
+  icerikTazele()
+  islemYaz({ tur: 'katalog', ozet, personel })
+  return hepsi
+}
+
+export function parcaDuzeltmeleriSifirla(personel) {
+  const mevcut = { ...load(ANAHTAR.icerik, {}) }
+  const sayi = Object.keys(parcaDuzeltmeleriGetir()).length
+  delete mevcut.parcaDuzeltme
+  save(ANAHTAR.icerik, mevcut)
+  icerikTazele()
+  islemYaz({
+    tur: 'katalog',
+    ozet: `Yedek parça kataloğundaki ${sayi} düzeltme geri alındı`,
+    personel,
+  })
+}
+
 /* ------------------------------------------------------- Servis ve sahiplik
 
    Talep oluşurken bir servise yazılıyor (bkz. AppState.jsx). İki alan

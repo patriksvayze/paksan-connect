@@ -43,6 +43,10 @@ const TURLER = [
   { deger: 'rol', ad: 'Rol ve yetki' },
   { deger: 'sifre', ad: 'Şifre' },
   { deger: 'servis', ad: 'Servis listesi' },
+  /* Yedek parça kataloğundaki düzeltmeler: müşterinin ve servisin
+     gördüğü parça adını, grubunu ve listede olup olmadığını
+     değiştiriyor. */
+  { deger: 'katalog', ad: 'Parça kataloğu' },
   /* Servis tarafından gelen dört işlem. Sipariş, stok ve fiyat teklifi
      servis panelinde doğuyor, devir de servisin PAKSAN'dan destek
      istemesi. Teklif süzgeci sonradan eklendi: kayıtlar yazılıyordu

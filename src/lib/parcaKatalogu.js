@@ -1,5 +1,6 @@
 import { PARCA_KATALOG } from '../config'
 import { kdvTutari, PARCA_GRUBU_AILESI, PARCASIZ_AILELER } from '../marka'
+import { load } from './storage'
 
 /* ==========================================================================
    YEDEK PARÇA KATALOĞU — uzaktan çağrılıyor
@@ -27,6 +28,78 @@ import { kdvTutari, PARCA_GRUBU_AILESI, PARCASIZ_AILELER } from '../marka'
    ekrandaki hatayı tekrar göstermiyor.
    ========================================================================== */
 
+/* ==========================================================================
+   PAKSAN'IN KENDİ DÜZELTMELERİ
+
+   Katalog PAKSAN'ın bastığı fiyat listesinden üretiliyor ve o listede
+   yanlış yazılmış bir parça adı ya da yanlış gruba düşmüş bir parça
+   olabiliyor. Bunu düzeltmek için yeni liste beklenmiyor: personel
+   backoffice'teki Yedek Parça Kataloğu ekranından düzeltiyor
+   (bkz. backoffice/ekranlar/ParcaKatalogu.jsx).
+
+   DÜZELTME KATALOĞUN ÜSTÜNE BİNİYOR, İÇİNE YAZILMIYOR. Asıl katalog
+   dosyası olduğu gibi duruyor; düzeltmeler ayrı bir kayıtta ve okuma
+   sırasında uygulanıyor. Sebebi: yeni fiyat listesi geldiğinde asıl
+   dosya bütünüyle değişiyor, düzeltmeler ise parça koduna bağlı
+   kaldığı için hayatta kalıyor.
+
+   FİYAT BURADAN DEĞİŞMİYOR. Düzeltme yalnız ad, grup ve "listede
+   görünmesin" işaretini taşıyor. Fiyat tek tek değiştirilseydi altı ay
+   sonra hangi tutarın ne zaman geçerli olduğu çıkarılamazdı; fiyat
+   ancak yeni bir liste sürümüyle bütün olarak değişiyor.
+
+   Bayi ve servis listelerindeki kalıbın aynısı (bkz. lib/icerikDeposu.js):
+   bugün tarayıcının deposunda, sunucu geldiğinde yalnız bu dosyanın içi
+   değişecek.
+   ========================================================================== */
+
+const DUZELTME_ANAHTARI = 'panelIcerik'
+const DUZELTME_BOLUMU = 'parcaDuzeltme'
+
+/** Personelin yaptığı düzeltmeler: `{ [parça kodu]: {ad, grup, gizli} }` */
+export function katalogDuzeltmeleri() {
+  const v = load(DUZELTME_ANAHTARI, {})?.[DUZELTME_BOLUMU]
+  return v && typeof v === 'object' && !Array.isArray(v) ? v : {}
+}
+
+/**
+ * Düzeltmeleri katalogun üstüne bindirir ve grup sayaçlarını yeniden
+ * hesaplar. Düzeltme yoksa katalog olduğu gibi dönüyor — tek bir nesne
+ * bile kopyalanmıyor.
+ */
+export function duzeltmeleriUygula(katalog, duzeltmeler = katalogDuzeltmeleri()) {
+  const kodlar = Object.keys(duzeltmeler || {})
+  if (!katalog || !kodlar.length) return katalog
+
+  const parcalar = []
+  for (const p of katalog.parcalar || []) {
+    const d = duzeltmeler[p.kod]
+    if (!d) {
+      parcalar.push(p)
+      continue
+    }
+    /* "Gizli" parça listeden tamamen çıkıyor: fiyat listesinde duran ama
+       artık satılmayan parçayı müşteriye göstermemenin yolu bu. */
+    if (d.gizli) continue
+    parcalar.push({
+      ...p,
+      ad: typeof d.ad === 'string' && d.ad.trim() ? d.ad.trim() : p.ad,
+      grup: typeof d.grup === 'string' && d.grup ? d.grup : p.grup,
+    })
+  }
+
+  /* Grup sayacı türetilmiş bir değer; parça gizlenince ya da başka
+     gruba taşınınca ekranda yanlış sayı görünmesin. */
+  const sayim = new Map()
+  for (const p of parcalar) sayim.set(p.grup, (sayim.get(p.grup) || 0) + 1)
+  const gruplar = (katalog.gruplar || []).map((g) => ({
+    ...g,
+    adet: sayim.get(g.id) || 0,
+  }))
+
+  return { ...katalog, parcalar, gruplar }
+}
+
 /** Bekleyen ya da tamamlanmış istek. Hata olursa temizleniyor. */
 let istek = null
 
@@ -39,10 +112,13 @@ function bekle(ms) {
 }
 
 /**
- * Katalogu getirir. Aynı oturumda ikinci çağrı ağa çıkmıyor.
+ * PAKSAN'ın bastığı katalog, düzeltmeler UYGULANMADAN. Backoffice'teki
+ * düzeltme ekranı asıl değerle düzeltilmiş değeri yan yana gösterebilsin
+ * diye ayrı duruyor; başka hiçbir ekran bunu çağırmamalı.
+ *
  * @returns {Promise<{surum, gruplar: Array, parcalar: Array}>}
  */
-export function katalogGetir() {
+export function katalogHamGetir() {
   if (istek) return istek
 
   istek = (async () => {
@@ -93,6 +169,21 @@ export function katalogGetir() {
     istek = null
   })
   return istek
+}
+
+/**
+ * Ekranların çağırdığı asıl kapı: katalog + personelin düzeltmeleri.
+ *
+ * Düzeltmeler HER ÇAĞRIDA yeniden biniyor, önbelleğe alınmıyor. Sebebi:
+ * personel backoffice'te bir adı düzelttiğinde aynı oturumda açılan
+ * ekranın onu görmesi gerekiyor; ağa yeniden çıkmaya ise gerek yok.
+ * Denetimler ham dosyada koşuyor (yukarıda), yani bozuk bir katalog
+ * düzeltmeyle gizlenemiyor.
+ *
+ * @returns {Promise<{surum, gruplar: Array, parcalar: Array}>}
+ */
+export async function katalogGetir() {
+  return duzeltmeleriUygula(await katalogHamGetir())
 }
 
 /** Parça görselinin adresi. Görseli olmayan parçada null. */

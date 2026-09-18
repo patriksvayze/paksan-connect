@@ -6,7 +6,7 @@
    düzenlemeyin: kaynak değişince yeniden üretilir ve el değişikliği
    kaybolur. Kaynağı değiştirin, sonra "npm run vt -- tohum" çalıştırın.
 
-   61 kod listesi, 406 kod; 90 çeviri; 101 eski değer eşleşmesi.
+   61 kod listesi, 407 kod; 90 çeviri; 102 eski değer eşleşmesi.
 
    Kaynak: src/lib/talep.js, src/backoffice/veri.js, src/data/talepAlanlari.js
    (+ .en.js), src/backoffice/ekranlar/Talepler.jsx, IslemKaydi.jsx,
@@ -241,7 +241,7 @@ WHEN NOT MATCHED BY TARGET THEN
     INSERT (Kod, Ad, Sira, Aktif)
     VALUES (k.Kod, k.Ad, k.Sira, 1);
 
-/* kod.IslemKategorisi — 26 satır */
+/* kod.IslemKategorisi — 27 satır */
 
 MERGE kod.IslemKategorisi AS h
 USING (
@@ -249,32 +249,33 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'bayi', N'<Codex metni: Bayi listesi>', 21),
-        (N'demo', N'Demo verisi', 19),
-        (N'devir', N'<Codex metni: Üreticiye devir>', 17),
+        (N'bayi', N'<Codex metni: Bayi listesi>', 22),
+        (N'demo', N'Demo verisi', 20),
+        (N'devir', N'<Codex metni: Üreticiye devir>', 18),
         (N'durum', N'Talep durumu', 2),
         (N'duyuru', N'Duyuru', 9),
-        (N'excel', N'Excel aktarımı', 18),
+        (N'excel', N'Excel aktarımı', 19),
         (N'geribildirim', N'Geri bildirim', 8),
-        (N'hakEdis', N'<Codex metni: Hak ediş>', 23),
-        (N'kvkk', N'<Codex metni: KVKK>', 25),
+        (N'hakEdis', N'<Codex metni: Hak ediş>', 24),
+        (N'katalog', N'Parça kataloğu', 14),
+        (N'kvkk', N'<Codex metni: KVKK>', 26),
         (N'makine', N'Makine kaydı', 5),
         (N'musteri', N'Müşteri kaydı', 7),
         (N'not', N'Talep notu', 3),
         (N'numara', N'Numara değişikliği', 6),
         (N'odeme', N'Ödeme onayı', 4),
-        (N'oturum', N'Giriş / çıkış', 20),
+        (N'oturum', N'Giriş / çıkış', 21),
         (N'personel', N'Personel', 10),
         (N'rol', N'Rol ve yetki', 11),
         (N'servis', N'Servis listesi', 13),
-        (N'servisKaydi', N'<Codex metni: Servis kaydı>', 22),
-        (N'sevk', N'<Codex metni: Parça sevki>', 24),
+        (N'servisKaydi', N'<Codex metni: Servis kaydı>', 23),
+        (N'sevk', N'<Codex metni: Parça sevki>', 25),
         (N'sifre', N'Şifre', 12),
-        (N'siparis', N'Servis siparişi', 14),
-        (N'sistem', N'<Codex metni: Sistem>', 26),
-        (N'stok', N'Servis stoku', 15),
+        (N'siparis', N'Servis siparişi', 15),
+        (N'sistem', N'<Codex metni: Sistem>', 27),
+        (N'stok', N'Servis stoku', 16),
         (N'talep', N'Talep', 1),
-        (N'teklif', N'Servis fiyat teklifi', 16)
+        (N'teklif', N'Servis fiyat teklifi', 17)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -1676,7 +1677,7 @@ WHEN NOT MATCHED BY TARGET THEN
     INSERT (ListeAdi, Kod, AlanAdi, DilKodu, Metin)
     VALUES (k.ListeAdi, k.Kod, k.AlanAdi, k.DilKodu, k.Metin);
 
-/* kod.EskiDegerEslesmesi — 101 satır */
+/* kod.EskiDegerEslesmesi — 102 satır */
 
 MERGE kod.EskiDegerEslesmesi AS h
 USING (
@@ -1689,6 +1690,7 @@ USING (
         (N'erisim.IzinGrubu', N'Müşteriler', N'musteriler', N'Eski veride ekran yazısı (src/data/yetkiler.js YETKI_KATALOG[].grup)'),
         (N'erisim.IzinGrubu', N'Servisler', N'servisler', N'Eski veride ekran yazısı (src/data/yetkiler.js YETKI_KATALOG[].grup)'),
         (N'erisim.IzinGrubu', N'Talepler', N'talepler', N'Eski veride ekran yazısı (src/data/yetkiler.js YETKI_KATALOG[].grup)'),
+        (N'erisim.IzinGrubu', N'Yedek parça kataloğu', N'parcaKatalogu', N'Eski veride ekran yazısı (src/data/yetkiler.js YETKI_KATALOG[].grup)'),
         (N'erisim.IzinGrubu', N'Yönetim', N'yonetim', N'Eski veride ekran yazısı (src/data/yetkiler.js YETKI_KATALOG[].grup)'),
         (N'kod.Arazi', N'150 - 500 dönüm', N'yuzelliBesyuzDonum', N'Eski veride ekran yazısı (src/data/talepAlanlari.js ARAZI)'),
         (N'kod.Arazi', N'50 - 150 dönüm', N'elliYuzelliDonum', N'Eski veride ekran yazısı (src/data/talepAlanlari.js ARAZI)'),

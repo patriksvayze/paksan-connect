@@ -6,7 +6,7 @@
    düzenlemeyin: kaynak değişince yeniden üretilir ve el değişikliği
    kaybolur. Kaynağı değiştirin, sonra "npm run vt -- tohum" çalıştırın.
 
-   5 izin grubu, 17 izin.
+   6 izin grubu, 19 izin.
 
    Kaynak: src/data/yetkiler.js YETKI_KATALOG; grup kodları
    tohum/kaynak/kod-eslesmeleri.json. Tasarım: tasarim.md 5.2 T03.
@@ -18,7 +18,7 @@
    burada yazılmaz). İkinci çalıştırmada hiçbir satır değişmez.
    ========================================================================== */
 
-/* erisim.IzinGrubu — 5 satır */
+/* erisim.IzinGrubu — 6 satır */
 
 MERGE erisim.IzinGrubu AS h
 USING (
@@ -26,11 +26,12 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'hesaplar', N'Hesaplar', 5),
+        (N'hesaplar', N'Hesaplar', 6),
         (N'musteriler', N'Müşteriler', 2),
+        (N'parcaKatalogu', N'Yedek parça kataloğu', 4),
         (N'servisler', N'Servisler', 3),
         (N'talepler', N'Talepler', 1),
-        (N'yonetim', N'Yönetim', 4)
+        (N'yonetim', N'Yönetim', 5)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -40,7 +41,7 @@ WHEN NOT MATCHED BY TARGET THEN
     INSERT (Kod, Ad, Sira, Aktif)
     VALUES (k.Kod, k.Ad, k.Sira, 1);
 
-/* erisim.Izin — 17 satır */
+/* erisim.Izin — 19 satır */
 
 MERGE erisim.Izin AS h
 USING (
@@ -57,6 +58,8 @@ USING (
         (N'musteriDuzenle', N'Müşteri bilgisini düzeltir', N'musteriler', 2),
         (N'musteriler', N'Müşteri ve makine kayıtlarını görür', N'musteriler', 1),
         (N'numara', N'Numara değişikliği talebini onaylar', N'musteriler', 3),
+        (N'parcaKatalogDuzenle', N'Parça adını ve grubunu düzeltir, parçayı listeden kaldırır', N'parcaKatalogu', 2),
+        (N'parcaKatalogu', N'Yedek parça kataloğunu görür', N'parcaKatalogu', 1),
         (N'personel', N'Personel listesini görür', N'hesaplar', 1),
         (N'personelDuzenle', N'Personel hesabı açar, kapatır ve rolünü değiştirir', N'hesaplar', 2),
         (N'raporlar', N'Raporları görür', N'yonetim', 1),

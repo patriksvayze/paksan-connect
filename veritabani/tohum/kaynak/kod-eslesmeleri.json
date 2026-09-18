@@ -97,7 +97,9 @@
         "baska": "baskaNeden"
       },
       "bayraklar": {
-        "baskaNeden": { "AciklamaZorunlu": 1 }
+        "baskaNeden": {
+          "AciklamaZorunlu": 1
+        }
       }
     },
     "kod.TeklifSonucu": {
@@ -109,7 +111,9 @@
         "Ulaşılamadı": "ulasilamadi"
       },
       "bayraklar": {
-        "satisOldu": { "FiyatZorunlu": 1 }
+        "satisOldu": {
+          "FiyatZorunlu": 1
+        }
       }
     },
     "kod.YapilanIs": {
@@ -151,19 +155,29 @@
     "kod.ServisKapisi": {
       "kaynak": "src/lib/servisKaydi.js KAPI",
       "bayraklar": {
-        "garanti": { "Eski": 0 },
-        "eldeParca": { "Eski": 1 },
-        "parcaIste": { "Eski": 1 }
+        "garanti": {
+          "Eski": 0
+        },
+        "eldeParca": {
+          "Eski": 1
+        },
+        "parcaIste": {
+          "Eski": 1
+        }
       }
     },
     "kod.TalepDurumu": {
       "kaynak": "src/backoffice/veri.js DURUMLAR, KAPALI_DURUMLAR; İngilizcesi src/i18n/en.js talepDurum",
       "ingilizceBolumu": "talepDurum",
-      "gecikmeSayilmayanAcikDurumlar": ["teklif"]
+      "gecikmeSayilmayanAcikDurumlar": [
+        "teklif"
+      ]
     },
     "kod.IslemKategorisi": {
       "kaynak": "src/backoffice/ekranlar/IslemKaydi.jsx TURLER",
-      "haric": ["hepsi"]
+      "haric": [
+        "hepsi"
+      ]
     },
     "kod.HedefKitle": {
       "kaynak": "src/backoffice/ekranlar/Duyurular.jsx KIMLER"
@@ -174,6 +188,7 @@
         "Talepler": "talepler",
         "Müşteriler": "musteriler",
         "Servisler": "servisler",
+        "Yedek parça kataloğu": "parcaKatalogu",
         "Yönetim": "yonetim",
         "Hesaplar": "hesaplar"
       }
@@ -200,60 +215,157 @@
     "GBD": "geriBildirim"
   },
   "talepNumaraKurallari": [
-    { "TurKodu": "servis", "KaynakKodu": "connect", "NumaraOneki": "SRV" },
-    { "TurKodu": "servis", "KaynakKodu": "servisElle", "NumaraOneki": "SRV" },
-    { "TurKodu": "servis", "KaynakKodu": "backoffice", "NumaraOneki": "SRV" },
-    { "TurKodu": "parca", "KaynakKodu": "connect", "NumaraOneki": "YPR" },
-    { "TurKodu": "parca", "KaynakKodu": "servisSiparisi", "NumaraOneki": "SPS" },
-    { "TurKodu": "parca", "KaynakKodu": "backoffice", "NumaraOneki": "YPR" },
-    { "TurKodu": "satinalma", "KaynakKodu": "connect", "NumaraOneki": "TKF" },
-    { "TurKodu": "satinalma", "KaynakKodu": "backoffice", "NumaraOneki": "TKF" }
+    {
+      "TurKodu": "servis",
+      "KaynakKodu": "connect",
+      "NumaraOneki": "SRV"
+    },
+    {
+      "TurKodu": "servis",
+      "KaynakKodu": "servisElle",
+      "NumaraOneki": "SRV"
+    },
+    {
+      "TurKodu": "servis",
+      "KaynakKodu": "backoffice",
+      "NumaraOneki": "SRV"
+    },
+    {
+      "TurKodu": "parca",
+      "KaynakKodu": "connect",
+      "NumaraOneki": "YPR"
+    },
+    {
+      "TurKodu": "parca",
+      "KaynakKodu": "servisSiparisi",
+      "NumaraOneki": "SPS"
+    },
+    {
+      "TurKodu": "parca",
+      "KaynakKodu": "backoffice",
+      "NumaraOneki": "YPR"
+    },
+    {
+      "TurKodu": "satinalma",
+      "KaynakKodu": "connect",
+      "NumaraOneki": "TKF"
+    },
+    {
+      "TurKodu": "satinalma",
+      "KaynakKodu": "backoffice",
+      "NumaraOneki": "TKF"
+    }
   ],
   "talepTuruUydulari": [
-    { "TurKodu": "servis", "UyduKodu": "servisZiyareti" },
-    { "TurKodu": "parca", "UyduKodu": "faturaBilgisi" },
-    { "TurKodu": "satinalma", "UyduKodu": "bayiAtamasi" }
+    {
+      "TurKodu": "servis",
+      "UyduKodu": "servisZiyareti"
+    },
+    {
+      "TurKodu": "parca",
+      "UyduKodu": "faturaBilgisi"
+    },
+    {
+      "TurKodu": "satinalma",
+      "UyduKodu": "bayiAtamasi"
+    }
   ],
   "akisDurumlari": {
     "_aciklama": "Türde bulunup personelin elle seçemediği durumlar (ElleSecilebilir = 0). Öteki durumlar src/backoffice/veri.js talepDurumlari(tur) ve elleSecilebilirDurumlar(tur) çıktısından gelir.",
-    "servis": ["onayBekliyor", "parcaBekliyor"],
-    "parca": ["odemeBekliyor"]
+    "servis": [
+      "onayBekliyor",
+      "parcaBekliyor"
+    ],
+    "parca": [
+      "odemeBekliyor"
+    ]
   },
   "eskiDegerler": {
     "kod.TalepDurumu": {
-      "gonderildi": { "YeniKod": "kapandi", "Not": "src/backoffice/veri.js DURUMLAR: Gönderildi durumu kaldırıldı" },
-      "bayide": { "YeniKod": "kapandi", "Not": "src/backoffice/veri.js DURUMLAR: Bayide durumu kaldırıldı; sahip bayi" }
+      "gonderildi": {
+        "YeniKod": "kapandi",
+        "Not": "src/backoffice/veri.js DURUMLAR: Gönderildi durumu kaldırıldı"
+      },
+      "bayide": {
+        "YeniKod": "kapandi",
+        "Not": "src/backoffice/veri.js DURUMLAR: Bayide durumu kaldırıldı; sahip bayi"
+      }
     },
     "kod.Masa": {
-      "servis": { "YeniKod": "servisMasasi", "Not": "src/lib/servisKaydi.js kapininSonucu masa" },
-      "parca": { "YeniKod": "parcaMasasi", "Not": "src/lib/servisKaydi.js kapininSonucu masa" }
+      "servis": {
+        "YeniKod": "servisMasasi",
+        "Not": "src/lib/servisKaydi.js kapininSonucu masa"
+      },
+      "parca": {
+        "YeniKod": "parcaMasasi",
+        "Not": "src/lib/servisKaydi.js kapininSonucu masa"
+      }
     },
     "kod.KaynakUygulama": {
-      "app": { "YeniKod": "connect", "Not": null },
-      "servis": { "YeniKod": "servisim", "Not": null }
+      "app": {
+        "YeniKod": "connect",
+        "Not": null
+      },
+      "servis": {
+        "YeniKod": "servisim",
+        "Not": null
+      }
     },
     "kod.DosyaTuru": {
-      "gorsel": { "YeniKod": "foto", "Not": null }
+      "gorsel": {
+        "YeniKod": "foto",
+        "Not": null
+      }
     },
     "kod.ParaBirimi": {
-      "TL": { "YeniKod": "TRY", "Not": "src/marka/katalog/para.js PARA_BIRIMI" }
+      "TL": {
+        "YeniKod": "TRY",
+        "Not": "src/marka/katalog/para.js PARA_BIRIMI"
+      }
     },
     "kod.KayitKaynagi": {
-      "connect": { "YeniKod": "musteri", "Not": null },
-      "servisElle": { "YeniKod": "servis", "Not": null },
-      "excel": { "YeniKod": "iceAktarim", "Not": null },
-      "elle": { "YeniKod": "personel", "Not": null }
+      "connect": {
+        "YeniKod": "musteri",
+        "Not": null
+      },
+      "servisElle": {
+        "YeniKod": "servis",
+        "Not": null
+      },
+      "excel": {
+        "YeniKod": "iceAktarim",
+        "Not": null
+      },
+      "elle": {
+        "YeniKod": "personel",
+        "Not": null
+      }
     },
     "kod.ServisAtamaKaynagi": {
-      "atama": { "YeniKod": "makineAtamasi", "Not": "src/lib/servisAtama.js kaynak" },
-      "bayi": { "YeniKod": "bayiServisi", "Not": "src/lib/servisAtama.js kaynak" }
+      "atama": {
+        "YeniKod": "makineAtamasi",
+        "Not": "src/lib/servisAtama.js kaynak"
+      },
+      "bayi": {
+        "YeniKod": "bayiServisi",
+        "Not": "src/lib/servisAtama.js kaynak"
+      }
     },
     "kod.FaturaTuru": {
-      "kendim": { "YeniKod": "kendisi", "Not": "src/screens/RequestForm.jsx faturaKime" },
-      "baskasi": { "YeniKod": "baskaKisi", "Not": "src/screens/RequestForm.jsx faturaKime" }
+      "kendim": {
+        "YeniKod": "kendisi",
+        "Not": "src/screens/RequestForm.jsx faturaKime"
+      },
+      "baskasi": {
+        "YeniKod": "baskaKisi",
+        "Not": "src/screens/RequestForm.jsx faturaKime"
+      }
     }
   },
   "pasif": {
-    "kod.IslemKategorisi": ["stok", "demo"]
+    "kod.IslemKategorisi": [
+      "stok",
+      "demo"
+    ]
   }
 }

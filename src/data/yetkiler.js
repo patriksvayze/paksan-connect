@@ -55,6 +55,15 @@ export const YETKI_KATALOG = [
     ],
   },
   {
+    grup: 'Yedek parça kataloğu',
+    izinler: [
+      { id: 'parcaKatalogu', ad: 'Yedek parça kataloğunu görür' },
+      /* Düzeltme müşterinin ve servisin gördüğü parça adını değiştiriyor;
+         görmekten ayrı bir yetki. */
+      { id: 'parcaKatalogDuzenle', ad: 'Parça adını ve grubunu düzeltir, parçayı listeden kaldırır' },
+    ],
+  },
+  {
     grup: 'Yönetim',
     izinler: [
       { id: 'raporlar', ad: 'Raporları görür' },

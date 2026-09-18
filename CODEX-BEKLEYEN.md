@@ -127,4 +127,5 @@ Tek dilli ekranlar; metin dosyanın içinde. Satır biçimi
 - `src/servis/ekranlar/ServisKapanisi.jsx` — Adreslerim: "Parçanın Gönderileceği Adres" bölümü, "Müşterinin bilgileriyle dolduruldu; değiştirebilirsiniz." notu, onay yaprağında "Gönderilecek Adres", 2. aşamada "Gönderim Adresi"
 - `src/servis/ekranlar/TalepDetay.jsx` — Adreslerim: servis kaydı kartında "Gönderim Adresi" satırı
 - `src/backoffice/ekranlar/Talepler.jsx` — Adreslerim: `TeslimatAdresi` bölümü (Teslimat adresi, Servis elle girdi, Adresi Kopyala/Kopyalandı, Alıcı, Telefon, İl / İlçe, Açık adres)
+- `src/backoffice/ekranlar/ParcaKatalogu.jsx` — Yedek Parça Kataloğu ekranı: `METIN` nesnesinin tamamı (başlık, açıklama ve fiyat notu, süzgeç adları, sütun başlıkları, rozetler, düzeltme penceresi alanları ve uyarıları, toplu geri alma onayı, yeni fiyat listesi bölümünün tamamı: dosya seçme, önizleme satır adları, yeni grup uyarısı, indirme ipucu)
 <!-- /dosyalar:tekdil -->
