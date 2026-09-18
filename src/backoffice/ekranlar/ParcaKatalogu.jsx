@@ -222,8 +222,8 @@ export function ParcaKatalogu({ personel, rol, bildir, tazele, surum }) {
   const [grup, setGrup] = useState('hepsi')
   const [ara, setAra] = useState('')
   /* Pasif parçalar varsayılan olarak GİZLİ: personelin gördüğü liste,
-     müşterinin gördüğü listeyle aynı olsun. Pasife alınmış bir parçayı
-     geri almak için bu kutu işaretleniyor. */
+     müşterinin gördüğü listeyle aynı olsun. Kutu işaretlenince liste
+     yalnız pasiflere dönüyor — iki hâl birbirinin tersi, karışmıyor. */
   const [pasifGoster, setPasifGoster] = useState(false)
   const [sayfa, setSayfa] = useState(0)
   const [duzenlenen, setDuzenlenen] = useState(null)
@@ -265,7 +265,10 @@ export function ParcaKatalogu({ personel, rol, bildir, tazele, surum }) {
         }
       })
       .filter((p) => (grup === 'hepsi' ? true : p.grup === grup))
-      .filter((p) => (pasifGoster ? true : !p.gizli))
+      /* Kutu işaretliyken YALNIZ pasifler görünüyor, hepsi değil:
+         "pasife aldıklarım neydi" tek bakışta okunuyor ve geri alınacak
+         parça 538 satırın arasında aranmıyor. */
+      .filter((p) => (pasifGoster ? p.gizli : !p.gizli))
       .filter((p) =>
         q.length < 2
           ? true
