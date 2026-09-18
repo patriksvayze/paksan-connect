@@ -61,6 +61,7 @@ Her belgenin tek bir sorusu var.
 | `CLAUDE.md` | Bu projede nasıl çalışılır? Kurallar, iş bölümü, değişiklik sonrası kontroller. **Çalışma kurallarının tek kaynağı budur.** |
 | `CANLIYA-CIKIS.md` | Proje bittiğinde gerçek müşterilere nasıl açılacak? Ne satın alınacak, kim ne yapacak, sırayla ne olacak. |
 | `PRODA-CIKIS.md` | Müşteriye açılmadan önce neler eksik? Maddelenmiş yapılacaklar listesi. (`CANLIYA-CIKIS.md` "nasıl", bu belge "neler eksik" diyor.) |
+| `GELISTIRICI-BAGIMLILIGI.md` | Canlıya çıkıldığında hangi işler için geliştirici çağırmak gerekecek? Rol rol döküm ve bağımlılığı kaldırma sırası. |
 | `KOD-SISTEMI.md` | Ekosistemdeki numaralar (talep, sipariş, makine, hak ediş) nasıl üretiliyor, hedeflenen düzen ne? |
 | `MARKA-DEVIR.md` | Bu ürün başka bir firmaya nasıl kurulur? |
 | `CODEX-BEKLEYEN.md` | Ekrana çıkacak hangi Türkçe metinler henüz Codex'ten geçmedi? Sınır yenilenince topluca verilecek liste. |
