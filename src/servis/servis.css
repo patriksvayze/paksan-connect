@@ -2924,11 +2924,35 @@
 
 .uyg__ekle,
 .uyg__hesap {
+  position: relative;
   width: 44px;
   height: 44px;
   padding: 0;
   border-radius: 999px;
   background-clip: border-box;
+}
+
+/* DAİRE 44 PİKSEL ÇİZİLİYOR, BASILABİLİR ALAN 48.
+
+   Ölçüldü (18 Eylül 2026): düğme 44x44'tü. iOS'un 44 piksellik alt
+   sınırını karşılıyor ama Android'inki 48 ve bu uygulama Android
+   telefonda, tarlada, çoğu zaman eldivenle açılıyor.
+
+   Dairenin KENDİSİ büyütülmedi: üst çubuk Connect'in karşılamasından
+   ölçülerek geldi ve 48 piksellik beyaz bir daire orada logonun önüne
+   geçiyordu. Bunun yerine dokunma alanı görünmez bir katmanla iki
+   piksel dışarı taşıyor — aynı çözüm geri okunda ve bu dosyanın
+   1689. satırındaki taban kuralında da var. */
+.uyg__ekle::after,
+.uyg__hesap::after {
+  content: '';
+  position: absolute;
+  inset: calc((44px - var(--dokunma, 48px)) / 2);
+  /* Katman KARE, daire değil. `border-radius: inherit` denendi ve
+     köşeler dışarıda kaldı: 48x48'lik kutunun dört köşesine basınca
+     düğme yakalamıyordu. Katman görünmez olduğu için karenin görsel
+     karşılığı yok, kazancı ise gerçek 48x48. Yanında başka bir düğme
+     yok (logo 200 pikselden uzakta), çakışma olmuyor. */
 }
 
 .uyg__ekle {
