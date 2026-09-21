@@ -153,7 +153,45 @@ const TALEPLER = [
       { durum: 'kapandi', tarih: SIMDI - 13 * GUN, personel: 'Sistem Yöneticisi' },
     ],
   },
+  /* 21 Eylül 2026: RequestDetail'e "bayiyeIletildi" için mor kart
+     eklendi (bkz. src/screens/RequestDetail.jsx, styles.css
+     .durum-kart--bayiyeIletildi). Önceki dört talepte bu durum yoktu;
+     ekranın yeni hâlini göstermek için eklendi. `bayi` alanı
+     src/marka/katalog/bayiler.js'teki gerçek Bandırma bayisi. */
+  {
+    ...ORTAK_TALEP,
+    id: 'tlp-teklif-2', no: 'TKF2608219944', createdAt: SIMDI - 1 * GUN, status: 'bayiyeIletildi',
+    tur: 'satinalma', aciklama: 'Süper Yunus 2 İpli modelini bölgemdeki bayiden almak istiyorum.',
+    makine: null, urunId: 'super-yunus', durum: null, belirtiler: [],
+    parcalar: [], parcaAdet: {}, fatura: null, dekont: null,
+    bayi: { id: 'balikesir', ad: 'Marmara Ziraat Makineleri', tel: '02667330012', tarih: SIMDI - 12 * 3600000 },
+    gecmis: [
+      { durum: 'incelemede', tarih: SIMDI - 1 * GUN + 3600000, personel: 'Sistem Yöneticisi' },
+      { durum: 'bayiyeIletildi', tarih: SIMDI - 12 * 3600000, personel: 'Sistem Yöneticisi' },
+    ],
+  },
 ]
+
+/* Bildirimler ekranındaki "Makinenize Servis Atandı" türü (21 Eylül
+   2026, bkz. src/backoffice/veri.js → makineAtamasiniKaydet ve
+   src/lib/bildirimler.js → BILDIRIM_TURU.MAKINE). Backoffice'in gerçek
+   akışını kurmak yerine (makine kaydı + servis atama + islemYaz) aynı
+   şekli doğrudan `paksan.duyurular`'a yazıyoruz — üretilen kayıt
+   `musteriyeBildir`'in yazdığıyla birebir aynı alanları taşıyor. */
+const BILDIRIM_SERVIS_ATANDI = {
+  id: 'dyr-servis-atandi-1',
+  tarih: SIMDI - 3 * 3600000,
+  musteriId: MUSTERI.id,
+  kisisel: true,
+  tur: 'makine',
+  baslikAnahtar: 'bildirimler.servisAtandiBaslik',
+  metinAnahtar: 'bildirimler.servisAtandiMetin',
+  degerler: {
+    makine: 'Hammer 2 İpli Haşbaysız',
+    seri: 'HMR2024-00123',
+    servis: 'Marmara Ziraat Makineleri',
+  },
+}
 
 function tohum() {
   const d = {
@@ -161,6 +199,7 @@ function tohum() {
     'paksan.hesap': MUSTERI,
     'paksan.machines': MAKINELER,
     'paksan.requests': TALEPLER,
+    'paksan.duyurular': [BILDIRIM_SERVIS_ATANDI],
     'paksan.destekUrun': 'hammer',
   }
   return `(() => {
@@ -270,6 +309,23 @@ function destekKaydi() {
    görüntü alınmadan önce yapılacaklar (sekmeye dokun, kutuyu aç…).
    ========================================================================== */
 
+/* Destek sohbeti gerçek sunucu çağrısıyla ilerliyor (bkz. aşağıdaki
+   DESTEK notu); sabit bir bekleme yerine ilgili sınıf DOM'a
+   düşünceye kadar bekleniyor. */
+const MAKINE_BEKLE = `(() => new Promise((coz) => {
+  const hazir = () => document.querySelector('.dst-makineler');
+  if (hazir()) { coz('OK'); return; }
+  const aralik = setInterval(() => { if (hazir()) { clearInterval(aralik); coz('OK'); } }, 300);
+  setTimeout(() => { clearInterval(aralik); coz('ZAMAN-ASIMI'); }, 15000);
+}))()`
+
+const CEVAP_BEKLE = `(() => new Promise((coz) => {
+  const hazir = () => document.querySelector('.chip--ana');
+  if (hazir()) { coz('OK'); return; }
+  const aralik = setInterval(() => { if (hazir()) { clearInterval(aralik); coz('OK'); } }, 400);
+  setTimeout(() => { clearInterval(aralik); coz('ZAMAN-ASIMI'); }, 60000);
+}))()`
+
 const UYGULAMA = [
   {
     /* Şafak sahnesi 7,2 saniyelik tek seferlik açılış animasyonuyla
@@ -302,36 +358,69 @@ const UYGULAMA = [
     ad: '10-destek-makine-secimi', baslik: 'Destek — makine seçimi', yol: '/destek',
     adimlar: [{ js: "localStorage.removeItem('paksan.destekUrun')" }, { yenile: true }],
   },
-  /* DESTEK — üç adımlı yönlendirme.
+  /* DESTEK — sohbet asistanı (10 Eylül 2026'dan beri).
 
-     Ekran yenilendi: düz arıza listesi yerine önce konu grubu,
-     sonra belirti, sonra cevap geliyor. Seçiciler buna göre. */
-  { ad: '11-destek-konular', baslik: 'Destek — konu grupları', yol: '/destek' },
+     Üç adımlı sabit yönlendirme (konu grubu → belirti → cevap,
+     `.chip--konu`/`.dst-sebepler`/`.dst-guvenlik`) kalktı; ekran artık
+     sunucudaki kılavuz asistanıyla konuşan bir sohbet
+     (bkz. src/screens/Support.jsx, src/config.js → AI). Akış: soru →
+     (makine seçilmemişse "hangi makine" listesi, `.dst-makineler` /
+     `.dst-makine`) → cevap ve kaynaklar, cevap bitince `.chip--ana`
+     görünür (çözüldü mü / talep düğmeleri). Cevap gerçek bir sunucu
+     çağrısıyla geliyor (D:\PAKSAN\paksan-rag\sohbet) — sabit bekleme
+     yerine ilgili sınıf DOM'da görününceye kadar bekleniyor. */
+  { ad: '11-destek-konular', baslik: 'Destek — karşılama ve örnek sorular', yol: '/destek' },
   {
-    ad: '12-destek-belirtiler', baslik: 'Destek — belirtiler', yol: '/destek',
+    ad: '12-destek-belirtiler', baslik: 'Destek — hangi makine soruluyor', yol: '/destek',
     adimlar: [
-      { tiklaMetin: 'Bağlama ve düğüm', kapsam: '.chip--konu' },
-      { bekle: 600 },
+      { tiklaMetin: 'Kaç beygir traktör gerekir?' },
+      { js: MAKINE_BEKLE },
+      { bekle: 400 },
     ],
   },
   {
-    ad: '13-destek-cevap', baslik: 'Destek — sebepler ve çözümler', yol: '/destek',
+    ad: '13-destek-cevap', baslik: 'Destek — cevap ve kaynaklar', yol: '/destek',
     adimlar: [
-      { tiklaMetin: 'Bağlama ve düğüm', kapsam: '.chip--konu' },
-      { bekle: 500 },
-      { tiklaMetin: 'İp sürekli kopuyor', kapsam: '.chip' },
-      { bekle: 800 },
-      { kaydirSecici: '.dst-sebepler' },
+      { tiklaMetin: 'Hangi yağı kullanmalıyım?' },
+      { js: MAKINE_BEKLE },
+      { tiklaMetin: 'Hammer', kapsam: '.dst-makine' },
+      { js: CEVAP_BEKLE },
+      { bekle: 400 },
     ],
   },
   {
+    /* Örnek sorular arasında güvenlik sınıflamasını tetikleyen yok;
+       yazı kutusuna gerçek bir soru yazılıp gönderiliyor. Değer
+       "girdi" — ekrana yerleşen bir metin değil, DESTEK_OTURUM'daki
+       'İp düğümlenmiyor' sorusuyla aynı temayı taşıyor. */
     ad: '14-destek-guvenlik', baslik: 'Destek — müdahale uyarısı', yol: '/destek',
     adimlar: [
-      { tiklaMetin: 'Bağlama ve düğüm', kapsam: '.chip--konu' },
-      { bekle: 500 },
-      { tiklaMetin: 'İp sürekli kopuyor', kapsam: '.chip' },
-      { bekle: 800 },
-      { kaydirSecici: '.dst-guvenlik' },
+      {
+        js: `(() => {
+          const yaz = (el, v) => {
+            const p = Object.getOwnPropertyDescriptor(el.constructor.prototype, 'value').set;
+            p.call(el, v);
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+          };
+          const g = document.querySelector('.composer .input');
+          if (!g) return 'YOK';
+          yaz(g, 'İp düğümlenmiyor, ayar nasıl yapılır?');
+          return 'OK';
+        })()`,
+      },
+      { bekle: 250 },
+      {
+        js: `(() => {
+          const f = document.querySelector('.composer');
+          if (!f) return 'YOK';
+          f.requestSubmit();
+          return 'OK';
+        })()`,
+      },
+      { js: MAKINE_BEKLE },
+      { tiklaMetin: 'Hammer', kapsam: '.dst-makine' },
+      { js: CEVAP_BEKLE },
+      { bekle: 400 },
     ],
   },
   { ad: '18-kilavuzlar', baslik: 'Kılavuzlar', yol: '/kilavuzlar' },
@@ -373,6 +462,7 @@ const UYGULAMA = [
   { ad: '24-talep-detay', baslik: 'Talep detayı', yol: '/talebim/tlp-servis-1' },
   { ad: '25-talep-detay-parca', baslik: 'Yedek parça talebi detayı', yol: '/talebim/tlp-parca-1' },
   { ad: '25b-talep-detay-teklif', baslik: 'Fiyat teklifi detayı', yol: '/talebim/tlp-teklif-1' },
+  { ad: '25c-talep-detay-bayide', baslik: 'Fiyat teklifi — bayiye iletildi', yol: '/talebim/tlp-teklif-2' },
   { ad: '26-bayiler', baslik: 'Bayi ve servis ağı', yol: '/bayiler' },
   { ad: '27-bildirimler', baslik: 'Bildirimler', yol: '/bildirimler' },
   { ad: '28-profil', baslik: 'Profil', yol: '/profil' },
@@ -402,6 +492,10 @@ const BACKOFFICE = [
     adimlar: [{ tiklaSira: 'tbody tr', sira: 0 }, { bekle: 600 }],
   },
   { ad: '44-musteriler', baslik: 'Müşteriler', menu: 'Müşteriler' },
+  /* 21 Eylül 2026: Servis açılır kutusundaki "atanmamış" seçeneği
+     "Servis atanmamış" onay kutusuyla değişti (bkz. Makineler.jsx).
+     Sahnesi hiç yoktu — sidebar'da bağlantı var ama liste dışıydı. */
+  { ad: '44b-kayitli-makineler', baslik: 'Kayıtlı Makineler', menu: 'Kayıtlı Makineler' },
   {
     ad: '45-musteri-detay', baslik: 'Müşteri detayı', menu: 'Müşteriler',
     adimlar: [{ tiklaSira: 'tbody tr', sira: 0 }, { bekle: 600 }],
@@ -422,10 +516,133 @@ const BACKOFFICE = [
 
 /* Servisim ayrı bir HTML girişinden açılıyor (servis.html), UYGULAMA
    listesindeki hash route'larla aynı sayfada değil — bkz. CLAUDE.md
-   "Servis tarafı YALNIZ MOBİL UYGULAMA". Bugünlük tek sahne: giriş
-   ekranı, oturum açmadan görünüyor. */
+   "Servis tarafı YALNIZ MOBİL UYGULAMA".
+
+   GİRİŞ FORM DEĞİL, OTURUM TOHUMU (21 Eylül 2026). Demo APK'sı
+   (servis.html → data-demo="acik") açılışta kendi demo verisini ve
+   'konya' servis hesabını kuruyor (bkz. src/servis/demoKur.js). Giriş
+   formunu doldurup göndermek yerine — backoffice sahnesinin yaptığının
+   aksine — o hesabın oturumu doğrudan `sessionStorage`'a yazılıyor
+   (bkz. servisimOturumAc), tıpkı UYGULAMA sahnelerinin `tohum()` ile
+   localStorage'a yazması gibi. */
 const SERVIS = [
-  { ad: '60-servisim-giris', baslik: 'Servisim — giriş', bekle: 2600 },
+  { ad: '60-servisim-giris', baslik: 'Servisim — giriş', bekle: 2600, giris: false },
+  {
+    ad: '61-servisim-islerim', baslik: 'Servisim — işlerim',
+    /* Varsayılan sekme zaten "İşlerim": PAKSAN'dan gelen bildirimler
+       listesi ve gecikme şeridi burada, ek adım gerekmiyor. */
+  },
+  /* "PAKSAN tarafından yapılan işlemler" kartı (TalepDetay.jsx →
+     paksanIslemleri) yalnız gerçek bir backoffice işlemi (durum
+     değiştirme, iptal, not, hak ediş onayı…) `serviseBildir` çağırınca
+     doluyor (bkz. backoffice/veri.js). demoServis.js talepleri doğrudan
+     nesne olarak kuruyor, bu çağrıların hiçbirinden geçmiyor — taze bir
+     demo profilinde bu kart hiç görünmez. Sahne yine de gerçek bir iş
+     kartını açıyor; kart varsa görünür, yoksa ekran yine doğru, yalnız
+     o bölüm eksik. */
+  {
+    ad: '62-servisim-is-detay', baslik: 'Servisim — iş detayı',
+    adimlar: [
+      { tiklaSira: '.is__ac', sira: 0 },
+      { bekle: 500 },
+    ],
+  },
+  /* HAK EDİŞ — bakiye kartındaki simge para işaretine döndü
+     (21 Eylül 2026, bkz. Hakkedis.jsx → .bakiye__simge). Sekmeye
+     geçmek yeterli, ek adım gerekmiyor. */
+  {
+    ad: '63-servisim-hakkedis', baslik: 'Servisim — hak ediş',
+    adimlar: [
+      { tiklaMetin: 'Hak Ediş', kapsam: '.uyg__tab' },
+      { bekle: 700 },
+    ],
+  },
+  /* Hesap hareketine dokununca açılan yaprakta, işin değiştirilen
+     parçaları artık görselli listeleniyor (ParcaGorselListesi.jsx).
+     Demo hareketleri karışık (servis ödemesi / parça siparişi /
+     ödeme); parçası olan ilk satır bulunana kadar sırayla açılıp
+     kapatılıyor — sabit bir sıra numarası her demo turunda aynı
+     satıra denk gelmeyebiliyor. */
+  {
+    ad: '64-servisim-hakkedis-is', baslik: 'Servisim — hak ediş iş kağıdı (parça görselleri)',
+    adimlar: [
+      { tiklaMetin: 'Hak Ediş', kapsam: '.uyg__tab' },
+      { bekle: 700 },
+      {
+        js: `(() => new Promise(async (coz) => {
+          const satirlar = [...document.querySelectorAll('.hareket')];
+          for (const s of satirlar) {
+            s.click();
+            await new Promise((r) => setTimeout(r, 400));
+            if (document.querySelector('.parca-gorselli')) { coz('OK'); return; }
+            const perde = document.querySelector('.onay-perde');
+            if (perde) perde.click();
+            await new Promise((r) => setTimeout(r, 250));
+          }
+          coz('YOK');
+        }))()`,
+      },
+      { bekle: 400 },
+    ],
+  },
+  /* ELLE KAYIT — Ad/Soyad yan yana (Connect'in kayıt ekranıyla aynı
+     düzen). Form açılır açılmaz görünüyor, ek adım gerekmiyor. */
+  {
+    ad: '65-servisim-elle-kayit', baslik: 'Servisim — elle kayıt',
+    adimlar: [
+      { tiklaMetin: 'Kayıt Aç' },
+      { bekle: 600 },
+    ],
+  },
+  /* Seri numarası başka müşteride kayıtlıysa çıkan uyarı kutusu
+     ("Anladım" düğmeli). Uyarıyı tetiklemek için gerçek bir seri
+     gerekiyor: backoffice'in demo verisi zaten `makineKayitlari`
+     defterine hesaplı satırlar yazdığı için (bkz. src/backoffice/demo.js)
+     oradan hesabı olan ilk satır okunup seri kutusuna yazılıyor —
+     sahte bir seri uydurmuyoruz. Telefon kutusuna da eşleşmeyecek bir
+     numara yazılıyor ki "Seri Numarası" alanı görünsün (kayıtlı
+     müşteride bu alan değil, makine seçimi çıkıyor). Kutu formun
+     altında kaldığı için görüntü alınmadan önce ona kaydırılıyor. */
+  {
+    ad: '65b-servisim-elle-kayit-uyari', baslik: 'Servisim — elle kayıt, başka müşteriye kayıtlı seri uyarısı',
+    adimlar: [
+      { tiklaMetin: 'Kayıt Aç' },
+      { bekle: 500 },
+      {
+        js: `(() => {
+          const yaz = (el, v) => {
+            const p = Object.getOwnPropertyDescriptor(el.constructor.prototype, 'value').set;
+            p.call(el, v);
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+          };
+          const tel = document.querySelector('input[placeholder="532 111 22 33"]');
+          if (!tel) return 'YOK-TEL';
+          yaz(tel, '5559998877');
+          return 'OK';
+        })()`,
+      },
+      { bekle: 400 },
+      {
+        js: `(() => {
+          const yaz = (el, v) => {
+            const p = Object.getOwnPropertyDescriptor(el.constructor.prototype, 'value').set;
+            p.call(el, v);
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+          };
+          const seriKutu = document.querySelector('input[placeholder="ORK1270-2024-00157"]');
+          if (!seriKutu) return 'YOK-SERI';
+          const liste = JSON.parse(localStorage.getItem('paksan.makineKayitlari') || '[]');
+          const satir = liste.find((k) => (k.musteriId || k.musteriNo) && k.seri);
+          if (!satir) return 'YOK-SATIR';
+          yaz(seriKutu, satir.seri);
+          return 'OK';
+        })()`,
+      },
+      { bekle: 600 },
+      { kaydirSecici: '.not__onay', bosluk: 200 },
+      { bekle: 300 },
+    ],
+  },
 ]
 
 /* ====================================================== Chrome sürücüsü
@@ -446,7 +663,11 @@ async function adimlariUygula(s, adimlar = [], yol) {
       await bekle(250)
       continue
     }
-    if (a.js) { await s.js(a.js); continue }
+    if (a.js) {
+      const r = await s.js(a.js)
+      if (r === 'ZAMAN-ASIMI' || r === 'YOK') console.warn('    ! js adımı:', r, JSON.stringify(a.js).slice(0, 60))
+      continue
+    }
     if (a.yenile) { await s.git(ADRES + '/#' + yol); await bekle(600); continue }
 
     let sonuc
@@ -547,12 +768,25 @@ async function main() {
 
   /* ------------------------------------------------------- Servisim */
   await s.olcu(TELEFON)
+  let servisGirildi = false
   for (const sahne of SERVIS) {
     if (SUZGEC && !sahne.ad.includes(SUZGEC) && !sahne.baslik.toLowerCase().includes(SUZGEC)) continue
     process.stdout.write(`  ${sahne.ad}  ${sahne.baslik}\n`)
 
-    await s.git(ADRES + '/servis.html')
-    await bekle(sahne.bekle || 900)
+    if (sahne.giris === false) {
+      await s.js("sessionStorage.removeItem('paksan.servisOturum')")
+      await s.git(ADRES + '/servis.html')
+      await bekle(sahne.bekle || 900)
+      servisGirildi = false
+    } else {
+      if (!servisGirildi) {
+        await servisimOturumAc(s)
+        servisGirildi = true
+      }
+      await s.git(ADRES + '/servis.html')
+      await bekle(sahne.bekle || 900)
+    }
+
     await adimlariUygula(s, sahne.adimlar)
     await s.cek(join(CIKTI, sahne.ad + '.png'))
     sayi++
@@ -598,6 +832,29 @@ async function demoYukle(s) {
     console.warn('    ! demo düğmesi yok (veri zaten yüklü olabilir)')
   }
   await bekle(2500)
+}
+
+/* Servisim'in 'konya' demo hesabıyla oturum açması: form doldurup
+   göndermek yerine demoKur()'un kurduğu servis kaydını okuyup
+   oturumu doğrudan sessionStorage'a yazıyor (bkz. SERVIS notu ve
+   src/lib/storage.js → oturumKaydet, anahtar 'paksan.servisOturum').
+   Sayfa ilk açılışta demo verisini kendi kuruyor; o bitmeden okumamak
+   için sabit bir bekleme var (aşağıdaki 2600ms, giriş sahnesiyle aynı
+   süre). */
+async function servisimOturumAc(s) {
+  await s.git(ADRES + '/servis.html')
+  await bekle(2600)
+  const r = await s.js(`(() => {
+    const ic = JSON.parse(localStorage.getItem('paksan.panelIcerik') || '{}');
+    const k = (ic.servisler || []).find((b) => b.kullanici === 'konya');
+    if (!k) return 'YOK';
+    const oturum = { servisId: k.id, no: k.no, ad: k.ad, il: k.il, ilkGiris: false, giris: Date.now() };
+    sessionStorage.setItem('paksan.servisOturum', JSON.stringify(oturum));
+    return 'OK';
+  })()`)
+  if (r === 'YOK') console.warn('    ! demo servis hesabı yok ("konya")')
+  await s.git(ADRES + '/servis.html')
+  await bekle(900)
 }
 
 main().catch((e) => {

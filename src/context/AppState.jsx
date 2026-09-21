@@ -6,6 +6,7 @@ import { uygulamaKaydi } from '../lib/kayit'
 import { sunucuyaGonder } from '../lib/sunucu'
 import { ihracatPostasi } from '../lib/ihracat'
 import { talepKaydiOlustur } from '../lib/talepOlustur'
+import { normalizeSerial } from '../lib/serial'
 import { SUNUCU } from '../config'
 import { cihazDili, DilSaglayici } from '../i18n'
 
@@ -238,8 +239,14 @@ export function AppProvider({ children }) {
     })
   }, [])
 
+  /* Seri biçimden bağımsız karşılaştırılıyor (21 Eylül 2026): kayıt
+     defteri de öyle arıyor. Düz eşitlikte aynı makine küçük harfle ya da
+     tiresiz yazılınca "zaten kayıtlı" denmiyordu. */
   const hasSerial = useCallback(
-    (serial) => machines.some((m) => m.serial === serial),
+    (serial) => {
+      const aranan = normalizeSerial(serial)
+      return Boolean(aranan) && machines.some((m) => normalizeSerial(m.serial) === aranan)
+    },
     [machines]
   )
 

@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react'
 import { cariBakiye, cariHareketleri, servisinTalepleri, talepleriGetir } from '../../backoffice/veri'
-import { PARA_BIRIMI, paraYaz, MARKA, markaEk, getProduct } from '../../marka'
+import { PARA_BIRIMI, PARA_SIMGESI, paraYaz, MARKA, markaEk, getProduct } from '../../marka'
 import { gecenSure, tarihYaz } from '../../backoffice/ekranlar/ortak'
 import { Bolum, Bos, ListeKarti, Yaprak } from '../Kabuk'
-import { IconAlert, IconCheckCircle, IconRight } from '../../components/Icons'
+import { IconAlert, IconRight } from '../../components/Icons'
 import { formatSerial } from '../../lib/serial'
-import { talebinParcalari } from '../../lib/servisKaydi'
+import { talebinParcalari, temizParcalar } from '../../lib/servisKaydi'
 import bosIsGorseli from '../../assets/gorseller/servis-bos-is.png'
 
 /* ==========================================================================
@@ -61,10 +61,16 @@ export function Hakkedis({ oturum, onAc }) {
       {/* TEK RAKAM, EN ÜSTTE. Servis ekranı bunun için açıyor.
 
           Connect'in "Servisiniz" kartıyla aynı anatomi: soluk turuncu
-          simge karesi, küçük etiket, büyük lacivert rakam. */}
+          simge karesi, küçük etiket, büyük lacivert rakam.
+
+          SİMGE PARA İŞARETİ (21 Eylül 2026, kullanıcının isteği): önce
+          onay işareti vardı; kart "onaylandı" değil "ne kadar" diyor.
+          İşaret yazı olarak çiziliyor, ikon değil — ölçüsü rakamla aynı
+          yazı ailesinden geliyor. Ekran okuyucu tutarın yanındaki
+          birimi zaten okuyor; işaret ona kapalı. */}
       <section className="bakiye">
-        <div className="bakiye__ikon">
-          <IconCheckCircle size={22} />
+        <div className="bakiye__ikon" aria-hidden="true">
+          <span className="bakiye__simge">{PARA_SIMGESI}</span>
         </div>
         <div className="bakiye__govde">
           <div className="bakiye__etiket">Hesabınızdaki Tutar</div>
@@ -225,9 +231,17 @@ function HareketAyrinti({ hareket: h, talepler, onKapat, onAc }) {
     .filter(Boolean)
     .join(' · ')
 
+  /* İŞİN PARÇALARI GÖRSELİYLE (21 Eylül 2026, kullanıcının isteği).
+     Garanti işinde değiştirilen parça servis kaydında duruyor; özet onu
+     hiç göstermiyordu. Etiket TalepDetay'daki servis kaydı özetiyle
+     aynı: hak edişe düşen iş bitmiş iş, parça değiştirildi. */
+  const parcalar = temizParcalar(t.servisKaydi?.parcalar)
+
   return (
     <Yaprak
       baslik="Servis İşi"
+      parcalar={parcalar}
+      parcaBaslik="Değiştirilen parça"
       kalemler={[
         { ad: 'Talep no.', deger: t.no },
         { ad: 'Müşteri', deger: t.ad || '—' },

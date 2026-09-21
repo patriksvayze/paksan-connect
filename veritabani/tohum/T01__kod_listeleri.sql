@@ -6,7 +6,7 @@
    düzenlemeyin: kaynak değişince yeniden üretilir ve el değişikliği
    kaybolur. Kaynağı değiştirin, sonra "npm run vt -- tohum" çalıştırın.
 
-   61 kod listesi, 407 kod; 90 çeviri; 102 eski değer eşleşmesi.
+   61 kod listesi, 409 kod; 91 çeviri; 102 eski değer eşleşmesi.
 
    Kaynak: src/lib/talep.js, src/backoffice/veri.js, src/data/talepAlanlari.js
    (+ .en.js), src/backoffice/ekranlar/Talepler.jsx, IslemKaydi.jsx,
@@ -426,7 +426,7 @@ WHEN NOT MATCHED BY TARGET THEN
     INSERT (Kod, Ad, Sira, Aktif)
     VALUES (k.Kod, k.Ad, k.Sira, 1);
 
-/* kod.TalepDurumu — 9 satır */
+/* kod.TalepDurumu — 10 satır */
 
 MERGE kod.TalepDurumu AS h
 USING (
@@ -437,12 +437,13 @@ USING (
            CONVERT(bit, v.GecikmeSayilir) AS GecikmeSayilir,
            CONVERT(nvarchar(20), v.Ton) AS Ton
     FROM (VALUES
+        (N'bayiyeIletildi', N'Bayiye İletildi', 5, 1, 0, N'mavi'),
         (N'incelemede', N'İncelemede', 2, 0, 1, N'turuncu'),
-        (N'iptal', N'İptal', 9, 1, 0, N'gri'),
-        (N'kapandi', N'Kapandı', 8, 1, 0, N'yesil'),
-        (N'odemeBekliyor', N'Ödeme bekliyor', 7, 0, 0, NULL),
-        (N'onayBekliyor', N'Onay Bekliyor', 5, 0, 1, N'mor'),
-        (N'parcaBekliyor', N'Parça Bekleniyor', 6, 0, 1, N'turuncu'),
+        (N'iptal', N'İptal', 10, 1, 0, N'gri'),
+        (N'kapandi', N'Kapandı', 9, 1, 0, N'yesil'),
+        (N'odemeBekliyor', N'Ödeme bekliyor', 8, 0, 0, NULL),
+        (N'onayBekliyor', N'Onay Bekliyor', 6, 0, 1, N'mor'),
+        (N'parcaBekliyor', N'Parça Bekleniyor', 7, 0, 1, N'turuncu'),
         (N'planlandi', N'Planlandı', 3, 0, 1, N'mavi'),
         (N'teklif', N'Teklif Verildi', 4, 0, 0, N'mor'),
         (N'yeni', N'Yeni', 1, 0, 1, N'kirmizi')
@@ -1065,7 +1066,7 @@ WHEN NOT MATCHED BY TARGET THEN
     INSERT (Kod, Ad, Sira, UstTurKodu, VarsayilanHedefKitleKodu, KilitliHedefKitleKodu, Ton, Ikon, Aktif)
     VALUES (k.Kod, k.Ad, k.Sira, k.UstTurKodu, k.VarsayilanHedefKitleKodu, k.KilitliHedefKitleKodu, k.Ton, k.Ikon, 1);
 
-/* kod.BildirimTuru — 4 satır */
+/* kod.BildirimTuru — 5 satır */
 
 MERGE kod.BildirimTuru AS h
 USING (
@@ -1074,6 +1075,7 @@ USING (
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
         (N'gorus', N'Geri bildirim', 3),
+        (N'makine', N'Makine', 5),
         (N'numara', N'Numara değişikliği', 2),
         (N'randevu', N'Randevu', 4),
         (N'talep', N'Talep', 1)
@@ -1530,7 +1532,7 @@ USING (
         (N'parca', N'odemeBekliyor', 0),
         (N'parca', N'planlandi', 1),
         (N'parca', N'yeni', 1),
-        (N'satinalma', N'incelemede', 1),
+        (N'satinalma', N'bayiyeIletildi', 0),
         (N'satinalma', N'iptal', 1),
         (N'satinalma', N'kapandi', 1),
         (N'satinalma', N'teklif', 1),
@@ -1568,7 +1570,7 @@ WHEN NOT MATCHED BY TARGET THEN
     INSERT (TurKodu, UyduKodu)
     VALUES (k.TurKodu, k.UyduKodu);
 
-/* kod.Ceviri — 90 satır; kod listeleri */
+/* kod.Ceviri — 91 satır; kod listeleri */
 
 MERGE kod.Ceviri AS h
 USING (
@@ -1631,6 +1633,7 @@ USING (
         (N'kod.RizaMetni', N'acikRiza', N'Ad', N'en', N'Consent Statement'),
         (N'kod.RizaMetni', N'aydinlatma', N'Ad', N'en', N'Privacy Notice'),
         (N'kod.RizaMetni', N'ticariIleti', N'Ad', N'en', N'Campaign Notifications'),
+        (N'kod.TalepDurumu', N'bayiyeIletildi', N'Ad', N'en', N'Passed to our dealer'),
         (N'kod.TalepDurumu', N'incelemede', N'Ad', N'en', N'Our team is reviewing it'),
         (N'kod.TalepDurumu', N'iptal', N'Ad', N'en', N'Cancelled'),
         (N'kod.TalepDurumu', N'kapandi', N'Ad', N'en', N'Completed'),

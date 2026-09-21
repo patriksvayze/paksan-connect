@@ -181,7 +181,7 @@ export default function RequestDetail() {
 
         {/* ---------------------------------------------- Talebi alan bayi
 
-            Fiyat teklifi bayiye atandığında müşterinin bilmesi gereken
+            Fiyat teklifi bayiye iletildiğinde müşterinin bilmesi gereken
             tek şey: kim arayacak ve numarası ne. Tanımadığı bir
             numaradan gelen aramayı beklemesin. */}
         {r.bayi && (
@@ -375,12 +375,16 @@ export default function RequestDetail() {
         ) : (
           /* Kapanmış SERVİS talebinde "yeni talep açın" demek artık
              yanlış: aşağıda aynı talebi geri açan bir düğme var ve
-             doğru yol o. İki yazı birbiriyle çelişmemeli. */
+             doğru yol o. İki yazı birbiriyle çelişmemeli.
+             Bayiye iletilmiş teklifte de öyle: yukarıda bayinin adı ve
+             telefonu duruyor, müşteriyi oraya yönlendiriyoruz. */
           <p className="small muted" style={{ marginTop: 16, lineHeight: 1.6 }}>
             {t(
               r.tur === 'servis' && durum === 'kapandi'
                 ? 'talepDetay.eklemeKapaliServis'
-                : 'talepDetay.eklemeKapali',
+                : durum === 'bayiyeIletildi'
+                  ? 'talepDetay.eklemeBayide'
+                  : 'talepDetay.eklemeKapali',
             )}
           </p>
         )}
@@ -601,6 +605,7 @@ function DurumIkon({ durum }) {
     durum === 'iptal' ? IconClose
       : durum === 'planlandi' ? IconCalendar
       : durum === 'teklif' ? IconCart
+      : durum === 'bayiyeIletildi' ? IconPhone
       : durum === 'incelemede' ? IconWrench
       : IconCheckCircle
   return (

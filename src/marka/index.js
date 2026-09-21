@@ -73,7 +73,7 @@ export { URUN_GORSELI, KATEGORI_GORSELI, urunGorseli } from './katalog/gorseller
 /* ------------------------------------------------------------- Fiyatlar */
 
 export {
-  PARA_BIRIMI, KDV_ORANI, KDV_HARIC_LISTE, kdvTutari, paraYaz,
+  PARA_BIRIMI, PARA_SIMGESI, KDV_ORANI, KDV_HARIC_LISTE, kdvTutari, paraYaz,
 } from './katalog/para.js'
 
 /* Parça grubu → makine ailesi köprüsü. Gerçek katalogda makine alanı

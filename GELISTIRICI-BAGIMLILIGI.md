@@ -41,7 +41,7 @@ tasarım değiştirmek, bir kerelik kurulum işleri.
 
 - Yeni makine modelini sisteme eklemek — ürün listesi kaynak kodda (src/marka/katalog/products.js:472) ve seri doğrulaması bilinmeyen öneki reddediyor (src/lib/serial.js:79). Kataloğa girmemiş makine müşteri tarafından hiç eklenemiyor.
 - Ürün fotoğrafı, teknik özellik, bakım adımı, vitrin sırası, garanti süresi değiştirmek — hepsi kodda (gorseller.js:23, teknikOzellikler.js:5, products.js:27, products.js:509, serial.js:90).
-- Yeni yedek parça fiyat listesini yürürlüğe sokmak — tek yol `python tools/parca-katalogu.py <liste.pdf>` çalıştırıp çıkan katalog.json'u sunucuya koymak (sunucu-taklidi/BENIOKU.md:44-52). Backoffice menüsünde fiyat/katalog ekranı yok (src/backoffice/Backoffice.jsx:75-109).
+- ~~Yeni yedek parça fiyat listesini yürürlüğe sokmak~~ — **YAPILDI (21 Eylül 2026):** personel Yedek Parça Kataloğu ekranından PDF'i yüklüyor, değişiklikleri görüp onaylıyor (bkz. 8 numaralı iş). Canlıda sunucunun yayın uç noktası gerekiyor (CANLIYA-CIKIS.md 2.1.1 madde 6).
 - Yeni parça grubunu makine ailesine bağlamak — eşleme kodda elle tutuluyor (src/marka/katalog/parcaGruplari.js:37); yazılmayan grubun parçaları müşteri ekranında hiç görünmüyor.
 - Banka hesabı / IBAN girmek — liste kodda ve bugün BOŞ (src/marka/kimlik.js:132-146, `aktif: false`). Bu yüzden ödeme ekranı IBAN yerine 'bizi arayın' diyor (src/screens/RequestForm.jsx:1925-1932).
 - Şirket telefon/e-posta/adres bilgisini değiştirmek — src/marka/kimlik.js:41-58.
@@ -192,6 +192,16 @@ Kapattığı bağımlılıklar:
 
 ### 6. Veritabanı yedeklemesi
 
+**KISMEN BİTTİ (21 Eylül 2026).** `tools/vt/yedekle.mjs` yazıldı:
+`npm run vt -- yedekle` tam yedek alıp `RESTORE VERIFYONLY` ile
+doğruluyor, `--gunluk` günlük yedeğini alıyor (tasarim.md 1.19.2).
+Sınama veritabanında denendi: yedekten önce güncelleme kapısı kapalı,
+yedekten sonra açık; 64 KB'ı bozulmuş bir yedek kopyasını doğrulama
+reddetti. **Kapattığı iki engel kalktı:** yedek alınabiliyor ve
+`vt guncelle` test/canlıda artık durmuyor. **Kalan:** yedeğin ikinci
+bir yere kopyalanması, zamanlanmış günlük iş (saklama kurallarıyla
+birlikte) ve bir kez geri yükleme provası.
+
 tools/vt/yedekle.mjs'in yazılması, yedeğin ikinci bir yere kopyalanması, günlük zamanlanmış yedek işi ve bir kez geri dönme provası (CANLIYA-CIKIS.md:444-451).
 
 **Büyüklük:** orta · **Önce bitmesi gereken:** Veritabanının canlı sunucuda kurulmuş olması
@@ -220,13 +230,15 @@ Kapattığı bağımlılıklar:
 
 ### 8. Yedek parça fiyat listesi ekranı
 
-Backoffice'te "Yedek Parça Fiyat Listesi" ekranı: PDF yükle → çıkarılan listeyi önizle (kaç grup, kaç parça, kaç fiyat, kaç görsel; kaç yeni, kaç değişti) → eşleşmemiş parça gruplarını makine ailesiyle eşleştir → onayla → yeni liste yürürlüğe girsin, eski liste arşive geçsin. Çıkarım işinin (bugün tools/parca-katalogu.py) sunucuya taşınması.
+Backoffice'te "Yedek Parça Fiyat Listesi" ekranı: PDF yükle → çıkarılan listeyi önizle (kaç grup, kaç parça, kaç fiyat, kaç görsel; kaç yeni, kaç değişti) → eşleşmemiş parça gruplarını makine ailesiyle eşleştir → onayla → yeni liste yürürlüğe girsin, eski liste arşive geçsin. Çıkarım işinin (21 Eylül 2026’ya kadar tools/parca-katalogu.py) komut satırından çıkarılması.
 
 **Büyüklük:** büyük · **Önce bitmesi gereken:** 7 (parça-makine eşleşmesi ürün kataloğuna dayanıyor)
 
 **KARAR VERİLDİ (18 Eylül 2026):** Dönüştürme sunucuya taşınacak. Bugün fiyat listesi basılı bir PDF olarak geliyor ve komut satırından `python tools/parca-katalogu.py "<liste.pdf>"` ile ayrıştırılıyor. Sunucuda bu iş bir uç noktanın arkasına geçecek; personel PDF'i seçecek, sunucu dönüştürecek, ekran neyin değiştiğini gösterecek, personel onaylayınca liste yayına girecek.
 
-**Ekranın önizleme ve onay tarafı YAZILDI** (`src/backoffice/ekranlar/ParcaKatalogu.jsx`, 18 Eylül 2026): parça adı ve grubu düzeltilebiliyor, parça pasife alınabiliyor, dönüşmüş liste açılıp neyin değiştiği görülebiliyor. Eksik olan tek halka dönüştürmenin sunucuda koşması. Ayrıntı: `CANLIYA-CIKIS.md` 2.1.1 madde 6.
+**Ekranın önizleme ve onay tarafı YAZILDI** (`src/backoffice/ekranlar/ParcaKatalogu.jsx`, 18 Eylül 2026): parça adı ve grubu düzeltilebiliyor, parça pasife alınabiliyor, dönüşmüş liste açılıp neyin değiştiği görülebiliyor.
+
+**PDF YÜKLEME YAPILDI (21 Eylül 2026, kullanıcının isteği: "Yedek parça personeli buradan yedek parça PDF listesini yükleyebilmeli").** Personel PDF'i seçiyor, liste tarayıcıda okunuyor (`src/lib/fiyatListesiOku.js`), fiyatı değişen / yeni / çıkan parçalar tek tek görülüyor, "Yayına Al" ile liste yürürlüğe giriyor ve eskisi arşive gidiyor (`sunucu-taklidi/fiyat-listesi-yayini.mjs`). Okumanın yeri kararından farklı: sunucuda değil tarayıcıda — sunucu yok ve sunucuya Python kurmak ek bağımlılıktı; akış aynı. Okuyucunun eski Python betiğiyle birebir aynı sonucu verdiği her `npm run dogrula`'da denetleniyor; betik kaldırıldı. Kalan: canlıda sunucunun `POST <kok>/yayinla` uç noktası (`CANLIYA-CIKIS.md` 2.1.1 madde 6) ve yeni parça grubunu makine ailesiyle eşleştirme adımı (bugün uyarı veriyor, eşleme hâlâ kodda).
 
 Kapattığı bağımlılıklar:
 
@@ -329,7 +341,7 @@ Her şeyin devredilebileceğini söylemek yanlış olur. Bunlar, yukarıdaki on 
 
 5) YENİ YETKİ TANIMLAMAK. src/data/yetkiler.js:31'deki katalog koddan geliyor. Rolleri açmak ve yetkileri dağıtmak personelin işi ve bu bugün çalışıyor; YENİ bir yetki ise neredeyse her zaman yeni bir ekran davranışı demek, yani zaten kod işi. Burada yapılacak tek şey var: sunucu yazılırken yetki denetiminin sunucuda tekrarlanması (CANLIYA-CIKIS.md 2.1 madde 7).
 
-6) FİYAT LİSTESİ PDF'İNİN DÜZENİ DEĞİŞİRSE ÇIKARIM AYARI. tools/parca-katalogu.py:60-64'teki ızgara ölçüleri bugünkü A4 listesi üzerinde ölçülmüş. Liste farklı dizilirse betik yeniden ölçülmeli. 8 numaralı işteki önizleme bunu SESSİZ olmaktan çıkarır (yanlış sayı görünür, yükleme durur) ama düzeltmeyi yine geliştirici yapar.
+6) FİYAT LİSTESİ PDF'İNİN DÜZENİ DEĞİŞİRSE ÇIKARIM AYARI. src/lib/fiyatListesiOku.js → IZGARA'daki ölçüler bugünkü A4 listesi üzerinde ölçülmüş (21 Eylül 2026'ya kadar aynı ölçüler tools/parca-katalogu.py'deydi). Liste farklı dizilirse ölçüler yeniden alınmalı. 8 numaralı işteki önizleme bunu SESSİZ olmaktan çıkarır (yanlış sayı görünür, yükleme durur) ama düzeltmeyi yine geliştirici yapar.
 
 7) TÜRKÇE METİN TURU. Ekranda görünen her Türkçe kelime Codex'ten geçiyor. Personelin backoffice'ten girdiği veri (ürün adı, belirti adı, duyuru metni) bu kuralın dışında — orada metni PAKSAN'ın kendisi yazıyor. Ama yeni bir EKRAN yazıldığında dizgi turu kaçınılmaz.
 

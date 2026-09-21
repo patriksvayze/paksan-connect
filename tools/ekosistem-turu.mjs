@@ -79,7 +79,7 @@
 
 import { chromeAc, Cdp, Sayfa, bekle, PROFIL, CHROME } from './tarayici.mjs'
 import { rmSync } from 'node:fs'
-import { ortamKur, modulleriYukle, depoTemizle, kapat } from './ekosistem/ortam.mjs'
+import { ortamKur, modulleriYukle, modulYukle, depoTemizle, kapat } from './ekosistem/ortam.mjs'
 import { SERVIS, MUSTERI, dunyaKur, talepVerisi, talebiYaz } from './ekosistem/tohum.mjs'
 import {
   CONNECT,
@@ -192,9 +192,13 @@ m.depo.save('gorulenDuyurularServis', duyuruIdleri)
    çalışıp rastgele üretilmiş demo verisi yazıyor. O veri turun ektiği
    kaydı listelerde aşağı itebilir ve sonucu koşudan koşuya
    değiştirebilirdi. demoKur, demo hesabı varsa ve `demoSurumu` güncelse
-   hemen dönüyor (src/servis/demoKur.js:44-50) — ikisini de kuruyoruz. */
+   hemen dönüyor (src/servis/demoKur.js) — ikisini de kuruyoruz.
+   Sürüm numarası elle yazılmıyor, demoKur'un kendisinden okunuyor:
+   sürüm artınca (21 Eylül 2026'da 2 → 3 oldu) tur demoyu kapatamaz
+   hâle gelmesin. */
 await m.veri.servisHesabiYaz(SERVIS.id, { kullanici: 'konya', sifre: '123456' }, 'Sınama')
-m.depo.save('demoSurumu', 2)
+const { DEMO_SURUMU } = await modulYukle('/src/servis/demoKur.js')
+m.depo.save('demoSurumu', DEMO_SURUMU)
 
 /* Bakım rehberi kimliği uydurulmuyor, uygulamanın kendi listesinden
    alınıyor: rehber silinir ya da yeniden adlandırılırsa tur onu görür. */

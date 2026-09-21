@@ -275,6 +275,7 @@ export const tr = {
     parcaBekliyor: 'Makineniz için parça bekleniyor',
     kapandi: 'Tamamlandı',
     iptal: 'İptal edildi',
+    bayiyeIletildi: 'Bayimize iletildi',
   },
 
   bildirimler: {
@@ -306,6 +307,8 @@ export const tr = {
     cakismaBaslik: 'Eski hesabınız',
     cakismaOnay: 'Eski hesabınız bu hesaba geçirildi. Makineleriniz ve eski talepleriniz artık burada.',
     cakismaRet: 'Yazdığınız eski numara, makinenin kayıtlı olduğu telefon numarasıyla aynı değil. Numarayı kontrol edip yeniden gönderebilir ya da {markaYi} arayabilirsiniz.',
+    servisAtandiBaslik: 'Makinenize Servis Atandı',
+    servisAtandiMetin: '{makine} ({seri}) makinenize artık {servis} bakacak. Servis talebini uygulamadan açabilirsiniz.',
     baslik: 'Bildirimler',
     okunmamis: '{n} okunmamış',
     tumunuOku: 'Tümünü okundu olarak işaretle',
@@ -476,8 +479,9 @@ export const tr = {
     urunuIncele: '{ad} ürününü incelemek ister misiniz?',
     urunuInceleAlt: 'Teknik özellikler, fotoğraflar ve bakım bilgileri',
     servisYok: 'Servisiniz henüz atanmadı',
-    servisYokAlt: 'Servis talebi açmak için makinenize bakacak servisin belirlenmesi gerekiyor. Servisi {marka} belirliyor. Bizi arayın, hemen atayalım.',
-    servisYokAra: '{markaYi} Ara',
+    servisYokAlt: 'Makinenize henüz servis atanmadığı için servis talebi açamıyorsunuz. {marka} en kısa sürede servis atayacak.',
+    makineYokBaslik: 'Henüz kayıtlı makineniz yok',
+    makineYokAlt: 'Servis talebi açmak için önce makinenizi seri numarasıyla kaydedin. Makinenize bakacak servis, kaydettiğiniz makineye göre belirlenir.',
   },
 
   /* ------------------------------------------- Yedek parça fiyatları */
@@ -594,6 +598,7 @@ export const tr = {
     devamAlindi: 'Bildiriminiz alındı. Talebiniz yeniden açıldı.',
     devamBildirildi: 'Sorun devam ediyor',
     eklemeKapaliServis: 'Bu talep kapandı, bu nedenle yeni bilgi eklenemez. Sorun devam ediyorsa aşağıdaki düğmeyle talebi yeniden açın. Servis daha önce yapılanları görerek gelir.',
+    eklemeBayide: 'Talebiniz bayimize iletildi. Bundan sonraki işlemleri bayi yürütecek. Buraya yazacağınız notlar okunmayacak. Sorularınız için bayiyle görüşün.',
   },
 
   /* --------------------------------- Yedek parça: fatura ve ödeme */
@@ -910,8 +915,7 @@ export const tr = {
   servisim: {
     baslik: 'Servisiniz',
     yok: 'Servisiniz henüz atanmadı',
-    yokAlt: 'Makinenize bakacak servisi {marka} belirliyor. Bizi arayın, hemen atayalım.',
-    markayiAra: '{markaYi} Ara',
+    yokAlt: 'Makinenize henüz servis atanmadığı için servis talebi açamıyorsunuz. {marka} en kısa sürede servis atayacak.',
   },
   bayi: {
     baslik: 'Bayi ve iletişim',

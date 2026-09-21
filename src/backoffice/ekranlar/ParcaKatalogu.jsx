@@ -1,8 +1,12 @@
 import { useMemo, useRef, useState } from 'react'
-import { izinli, parcaDuzeltmeleriGetir, parcaDuzeltmesiYaz } from '../veri'
+import { fiyatListesiYayinlandi, izinli, parcaDuzeltmeleriGetir, parcaDuzeltmesiYaz } from '../veri'
 import { useVeri } from '../kanca'
-import { katalogHamGetir, duzeltmeleriUygula, gorselAdresi } from '../../lib/parcaKatalogu'
-import { PARA_BIRIMI, paraYaz } from '../../marka'
+import {
+  katalogHamGetir, duzeltmeleriUygula, fiyatListesiYayinla, gorselAdresi,
+} from '../../lib/parcaKatalogu'
+import { fiyatListesiniOku } from '../../lib/fiyatListesiOku'
+import { gorseliDosyayaCevir } from '../fiyatListesiGorseli'
+import { MARKA, PARA_BIRIMI, paraYaz } from '../../marka'
 import { Baslik, Bekleme, Bos, Sayfalama, siraliListe, SiraliBaslik, useSiralama } from './ortak'
 import { Secim, SuzgecCubugu } from './suzgec'
 
@@ -51,9 +55,14 @@ import { Secim, SuzgecCubugu } from './suzgec'
 
    Düzeltmeler bu tarayıcının deposunda. Sunucu açıldığında aynı ekran
    aynı işi yapacak, yalnız yazdığı yer değişecek (bayi ve servis
-   listelerinde bugün de böyle). Yeni fiyat listesi ise bugün sunucuya
-   elle konuyor; ekran listeyi önizliyor ve birleştirilmiş dosyayı
-   veriyor, yerine koymak dağıtım adımı.
+   listelerinde bugün de böyle).
+
+   YENİ FİYAT LİSTESİ BURADAN YÜKLENİYOR (21 Eylül 2026). Personel PDF'i
+   seçiyor, liste tarayıcıda okunuyor, önizlemede neyin değiştiği
+   görünüyor, "Yayına Al" deyince sunucu eskisini arşive alıp yenisini
+   yürürlüğe sokuyor. Bugün o sunucunun yerini geliştirme sunucusu
+   tutuyor (sunucu-taklidi/fiyat-listesi-yayini.mjs); derlenmiş
+   backoffice'te sunucu olmadan "sunucuya ulaşılamadı" der.
 
    METİNLER TEK NESNEDE: hepsi aşağıdaki METIN nesnesinde toplu.
    Codex'ten 19 Eylül 2026'da geçti; yeni metin eklenirse o da buraya
@@ -67,11 +76,11 @@ const METIN = {
      sorusu "fiyatı nereden değiştiririm" oluyor; cevabı en başta ve
      tek cümlede veriliyor. Kalıp Servisler ekranındaki "Şifre Yardımı
      Bekleyen Servis" kartıyla aynı. */
-  uyariBaslik: 'Fiyatlar toplu listeyle güncellenir',
+  uyariBaslik: 'Fiyatlar yeni liste yüklenerek güncellenir',
   uyariMetin:
-    'Burada parça adını ve grubunu düzeltebilir, satılmayan parçayı pasife alabilirsiniz; fiyatlar tek tek değil, yeni fiyat listesiyle topluca güncellenir.',
+    'Burada parça adını ve grubunu düzeltebilir, satılmayan parçayı pasife alabilirsiniz. Fiyatları güncellemek için aşağıdaki bölümden yeni fiyat listesini PDF olarak yükleyin.',
   uyariAlt:
-    'Daha önce verilmiş siparişlerdeki fiyatlar değişmez.',
+    'Fiyatlar tek tek değiştirilemez. Yeni liste, daha önce verilmiş siparişlerin fiyatlarını değiştirmez.',
 
   // Süzgeç
   tumGruplar: 'Tüm gruplar',
@@ -104,36 +113,70 @@ const METIN = {
   vazgec: 'Vazgeç',
   adBos: 'Parça adını yazın.',
 
-  /* YENİ FİYAT LİSTESİ — bu bölüm bir YÜKLEME değil, bir KONTROL yeri.
+  /* Katalog sunucudan okunamadığında tablonun yerinde çıkan yazı. */
+  katalogYok:
+    'Parça kataloğu yüklenemedi. Sayfayı yenileyin; sorun sürerse yazılım ekibine haber verin.',
 
-     Gerçek akış şöyle: fiyat listesi basılı bir PDF olarak geliyor ve
-     parçalara, fiyatlara ve görsellere ayrılması için bir dönüştürme
-     adımından geçiyor (bugün `tools/parca-katalogu.py`). Personelin
-     elinde PDF var, dönüşmüş dosya yok. Bu yüzden ekran "dosyanızı
-     yükleyin" demiyor; "dönüşen listeyi açın, neyin değiştiğini
-     görün" diyor. Onay adımı asıl değeri burada: yanlış okunmuş bir
-     liste yayına girmeden yakalanıyor. */
-  listeBaslik: 'Yeni fiyat listesini kontrol edin',
+  /* YENİ FİYAT LİSTESİ (21 Eylül 2026, kullanıcının isteği: "Yedek parça
+     personeli buradan yedek parça PDF listesini yükleyebilmeli").
+
+     Personel PAKSAN'ın PDF fiyat listesini seçiyor; liste tarayıcıda
+     okunuyor (lib/fiyatListesiOku.js), neyin değiştiği gösteriliyor,
+     personel onaylayınca sunucu eskisini arşive alıp yenisini yürürlüğe
+     sokuyor. Onay adımı asıl değer: yanlış okunmuş bir liste yayına
+     girmeden yakalanıyor.
+
+     Önceki hâli bir YÜKLEME değil KONTROL yeriydi: PDF'i bir geliştirici
+     komut satırından dönüştürüyor, personel çıkan dosyayı açıp
+     bakıyordu. Personelin elinde PDF vardı, dönüşmüş dosya yoktu; ekran
+     "bize gönderin" diyordu ve "biz" diye bir taraf yoktu. */
+  listeBaslik: 'Yeni fiyat listesi yükleyin',
   listeAciklama:
-    'Yeni fiyat listesini bize gönderin. Parçaları, fiyatları ve görselleri kontrol edebileceğiniz bir dosya hazırlayıp size göndeririz. Gelen dosyayı aşağıdan açıp değişiklikleri liste yayına girmeden önce kontrol edin.',
-  dosyaSec: 'Gelen Listeyi Aç',
-  dosyaIpucu: 'Kontrol için size gönderdiğimiz liste dosyasını seçin.',
-  okunamadi:
-    'Bu dosya okunamadı. Kontrol için size gönderdiğimiz liste dosyasını seçin. Fiyat listesinin PDF dosyası burada açılamaz.',
-  onizlemeBaslik: 'Yeni listede değişenler',
+    `${MARKA} yedek parça fiyat listesini PDF olarak seçin. Parça sayısını ve yürürlükteki listeye göre değişiklikleri kontrol edin. Ardından "Listeyi Yayına Al" düğmesine basın. Onay penceresinde işlemi onaylamadan hiçbir fiyat değişmez.`,
+  dosyaSec: "Fiyat Listesi PDF'ini Seç",
+  dosyaIpucu:
+    `Parça görsellerini, kodlarını, adlarını ve fiyatlarını içeren ${MARKA} fiyat listesinin PDF dosyasını seçin.`,
+  okunuyor: 'Liste okunuyor…',
+  okunanSayfa: (sayfa, toplam) => `Okunan sayfa: ${sayfa} / ${toplam}`,
+  pdfDegil: `Seçtiğiniz dosya PDF değil. ${MARKA} yedek parça fiyat listesinin PDF dosyasını seçin.`,
+  pdfOkunamadi: 'PDF açılamadı. Dosya bozuk ya da şifreli olabilir.',
+  parcaBulunamadi:
+    `Bu PDF'te parça bulunamadı. Dosyanın ${MARKA} yedek parça fiyat listesi olduğundan emin olun.`,
+
+  onizlemeBaslik: (dosya, sayfa) => `${dosya} okundu · ${sayfa} sayfa`,
   toplamParca: 'Toplam parça',
   yeniParca: 'Yeni eklenen parça',
-  dusenParca: 'Listeden çıkarılan parça',
+  dusenParca: 'Listeden çıkan parça',
   fiyatiDegisen: 'Fiyatı değişen parça',
   ortalamaDegisim: 'Ortalama fiyat değişimi',
   enBuyukArtis: 'En yüksek fiyat artışı',
+  gorselsizParca: 'Görseli bulunamayan parça',
+  buyukFark:
+    "Okunan liste yürürlükteki listeden çok farklı. PDF dosyasını ve karşılaştırmayı kontrol edin. Sayfa düzeni değiştiyse liste eksik okunmuş olabilir. Doğru okunduğundan emin olmadan listeyi yayına almayın.",
+  yayinDisi: (n) => `Liste yayına alınabilir. Fiyatı ya da adı okunamayan şu ${n} parça listede yer almayacak:`,
   yeniGrup: 'Yeni grup',
   yeniGrupUyari:
-    'Yeni parça grupları bir makine ailesiyle eşleştirilmeden müşteri ekranında görünmez. Eşleştirme yapılması için liste yayına alınmadan önce yeni grupları bize bildirin.',
-  indir: 'Düzeltmelerimle Birlikte İndir',
-  indirIpucu:
-    'Kontrolü tamamlayıp listeyi onayladığınızda dosyayı indirin ve bize geri gönderin. Dosya, yaptığınız parça adı ve grup düzeltmelerini de içerir.',
-  onizlemeKapat: 'Önizlemeyi Kapat',
+    'Yeni parça gruplarının hangi makineye ait olduğunu yazılım ekibine bildirin. Bu eşleştirme tanımlanana kadar gruplar müşteri ekranında görünmez.',
+  listeFiyat: 'Fiyatı değişen parçalar',
+  listeYeni: 'Yeni eklenen parçalar',
+  listeDusen: 'Listeden çıkan parçalar',
+  sutunEski: 'Eski fiyat',
+  sutunYeni: 'Yeni fiyat',
+  sutunDegisim: 'Değişim',
+  yayinla: 'Listeyi Yayına Al',
+
+  onayBaslik: 'Yeni fiyat listesini yayına al',
+  onayMetin: (n) =>
+    `Onayladığınızda ${n} parçalık yeni liste yürürlüğe girecek. Müşteriler ve servisler yeni fiyatları görecek. Daha önce verilmiş siparişlerin fiyatları değişmeyecek. Yürürlükteki liste arşivde saklanacak.`,
+  onayDugme: 'Listeyi Yayına Al',
+  yayinlaniyor: 'Liste yayına alınıyor…',
+  yayinlandi: (n) => `Yeni fiyat listesi yayında · ${n} parça`,
+  yayinBaglanti:
+    'Sunucuya ulaşılamadığı için liste yayına alınamadı. Bağlantınızı kontrol edip yeniden deneyin.',
+  yayinYazilamadi:
+    'Sunucu dosyaları kaydedemediği için liste yayına alınamadı. Yürürlükteki liste değişmedi. Biraz sonra yeniden deneyin. Sorun sürerse yazılım ekibine haber verin.',
+  yayinReddedildi:
+    "Sunucu okunan listeyi kabul etmediği için liste yayına alınamadı. PDF dosyasını yeniden seçip deneyin. Sorun sürerse yazılım ekibine haber verin.",
 }
 
 const SAYFA_BOYU = 25
@@ -149,14 +192,14 @@ export function listeKarsilastir(eski, yeni) {
   const eskiler = new Map((eski?.parcalar || []).map((p) => [p.kod, p]))
   const yeniler = new Map((yeni?.parcalar || []).map((p) => [p.kod, p]))
 
-  let yeniSayi = 0
-  let dusen = 0
+  const yeniEklenenler = []
+  const dusenler = []
   const degisenler = []
 
   for (const [kod, p] of yeniler) {
     const o = eskiler.get(kod)
     if (!o) {
-      yeniSayi += 1
+      yeniEklenenler.push({ kod, ad: p.ad, fiyat: p.fiyat })
       continue
     }
     if (o.fiyat !== p.fiyat) {
@@ -171,7 +214,12 @@ export function listeKarsilastir(eski, yeni) {
       })
     }
   }
-  for (const kod of eskiler.keys()) if (!yeniler.has(kod)) dusen += 1
+  for (const [kod, o] of eskiler) {
+    if (!yeniler.has(kod)) dusenler.push({ kod, ad: o.ad, fiyat: o.fiyat })
+  }
+  /* Personel önce en büyük değişime baksın: yanlış okunmuş bir fiyat
+     (bir sıfır fazla, bir hane eksik) listenin en üstüne çıkıyor. */
+  degisenler.sort((a, b) => Math.abs(b.oran ?? Infinity) - Math.abs(a.oran ?? Infinity))
 
   const oranlar = degisenler.map((d) => d.oran).filter((o) => o !== null)
   const ortalama = oranlar.length
@@ -186,26 +234,50 @@ export function listeKarsilastir(eski, yeni) {
 
   return {
     toplam: yeniler.size,
-    yeni: yeniSayi,
-    dusen,
+    yeni: yeniEklenenler.length,
+    dusen: dusenler.length,
     fiyatiDegisen: degisenler.length,
     ortalama,
     enBuyuk,
     yeniGruplar,
+    yeniEklenenler,
+    dusenler,
+    degisenler,
   }
 }
 
-/** Gelen dosya gerçekten fiyat listesi mi? */
-function listeGecerliMi(v) {
+/* PDF kütüphanesi YALNIZ bu ekranda ve ilk seçimde yükleniyor: 1 MB'ı
+   aşan bir kütüphane, fiyat listesi yılda birkaç kez yüklenirken bütün
+   backoffice'in açılışını yavaşlatmasın. Okuma ayrı bir işçide koşuyor,
+   sayfa donmuyor. */
+async function pdfKutuphanesi() {
+  const [pdfjs, isci] = await Promise.all([
+    import('pdfjs-dist'),
+    import('pdfjs-dist/build/pdf.worker.min.mjs?url'),
+  ])
+  pdfjs.GlobalWorkerOptions.workerSrc = isci.default
+  return pdfjs
+}
+
+function base64Yap(dosya) {
+  return new Promise((coz, red) => {
+    const okuyucu = new FileReader()
+    okuyucu.onerror = () => red(okuyucu.error)
+    okuyucu.onload = () => coz(String(okuyucu.result).split(',')[1] || '')
+    okuyucu.readAsDataURL(dosya)
+  })
+}
+
+/* Okunan liste şu ankinden çok mu farklı? PDF'in düzeni değişmişse
+   okuma sessizce eksik kalır; o zaman ya parçaların büyük kısmı
+   "çıkarılmış" görünür ya da görseller bulunamaz. */
+function cokFarkliMi(ham, sonuc, ozet) {
+  const eski = ham?.parcalar?.length || 0
+  const yeni = sonuc.katalog.parcalar.length
   return (
-    v &&
-    Array.isArray(v.parcalar) &&
-    v.parcalar.length > 0 &&
-    Array.isArray(v.gruplar) &&
-    v.gruplar.length > 0 &&
-    v.parcalar.every(
-      (p) => p && typeof p.kod === 'string' && typeof p.ad === 'string' && typeof p.fiyat === 'number',
-    )
+    (eski > 0 && ozet.dusen > eski * 0.2) ||
+    sonuc.eksik.gorsel.length > yeni * 0.1 ||
+    sonuc.eksik.fiyat.length + sonuc.eksik.ad.length > yeni * 0.05
   )
 }
 
@@ -227,7 +299,13 @@ export function ParcaKatalogu({ personel, rol, bildir, tazele, surum }) {
   const [pasifGoster, setPasifGoster] = useState(false)
   const [sayfa, setSayfa] = useState(0)
   const [duzenlenen, setDuzenlenen] = useState(null)
+  /* Yeni liste üç aşamadan geçiyor:
+       okunuyor      { asama, dosyaAdi, sayfa, toplam }
+       onizleme      { asama, dosyaAdi, sonuc, ozet, pdf }
+       yayinlaniyor  önizlemenin aynısı, düğmeler kapalı */
   const [yeniListe, setYeniListe] = useState(null)
+  const [listeHata, setListeHata] = useState('')
+  const [yayinOnayi, setYayinOnayi] = useState(false)
   const dosyaGirdisi = useRef(null)
 
   /* HAM katalog okunuyor: ekran hem asıl adı hem düzeltilmiş adı
@@ -298,39 +376,101 @@ export function ParcaKatalogu({ personel, rol, bildir, tazele, surum }) {
     tazele()
   }
 
-  function dosyaSecildi(e) {
+  async function pdfSecildi(e) {
     const dosya = e.target.files?.[0]
     e.target.value = ''
     if (!dosya) return
-    const okuyucu = new FileReader()
-    okuyucu.onerror = () => bildir(METIN.okunamadi)
-    okuyucu.onload = () => {
-      try {
-        const v = JSON.parse(String(okuyucu.result))
-        if (!listeGecerliMi(v)) return bildir(METIN.okunamadi)
-        setYeniListe({ veri: v, ozet: listeKarsilastir(ham, v) })
-      } catch {
-        bildir(METIN.okunamadi)
+    setListeHata('')
+    setYeniListe(null)
+
+    const bayt = await dosya.arrayBuffer()
+    const imza = String.fromCharCode(...new Uint8Array(bayt, 0, Math.min(4, bayt.byteLength)))
+    if (imza !== '%PDF') return setListeHata(METIN.pdfDegil)
+
+    setYeniListe({ asama: 'okunuyor', dosyaAdi: dosya.name, sayfa: 0, toplam: 0 })
+    try {
+      const pdfjs = await pdfKutuphanesi()
+      const sonuc = await fiyatListesiniOku(bayt, {
+        pdfjs,
+        kaynak: dosya.name,
+        gorselIsle: gorseliDosyayaCevir,
+        ilerleme: (sayfa, toplam) =>
+          setYeniListe((l) => (l?.asama === 'okunuyor' ? { ...l, sayfa, toplam } : l)),
+      })
+      if (!sonuc.katalog.parcalar.length) {
+        setYeniListe(null)
+        return setListeHata(METIN.parcaBulunamadi)
       }
+      setYeniListe({
+        asama: 'onizleme',
+        dosyaAdi: dosya.name,
+        sonuc,
+        ozet: listeKarsilastir(ham, sonuc.katalog),
+        pdf: bayt,
+      })
+    } catch {
+      setYeniListe(null)
+      setListeHata(METIN.pdfOkunamadi)
     }
-    okuyucu.readAsText(dosya)
   }
 
-  /* Birleştirilmiş dosya: yeni fiyat listesi + bugünkü düzeltmeler.
-     Sunucuya konulacak dosya bu — düzeltmeler her okumada yeniden
-     bindiği için aslında şart değil, ama sunucudaki dosyanın da doğru
-     adları taşıması ileride bir karışıklığı önlüyor. */
-  function birlestirilmisIndir() {
-    const birlesik = duzeltmeleriUygula(yeniListe.veri, duzeltmeler)
-    const kan = new Blob([JSON.stringify(birlesik, null, 2)], {
-      type: 'application/json',
-    })
-    const adres = URL.createObjectURL(kan)
-    const bag = document.createElement('a')
-    bag.href = adres
-    bag.download = `parca-katalogu-${new Date().toISOString().slice(0, 10)}.json`
-    bag.click()
-    URL.revokeObjectURL(adres)
+  /* Yayına alınan liste: fiyatı ya da adı okunamayan parçalar
+     çıkarılmış hâli. Onlar yayına girse müşteriye eksik tutar
+     söylenirdi; önizlemede kodlarıyla yazıyorlar. Düzeltmeler (parça
+     adı, grup, pasiflik) listeye yazılmıyor: parça koduna bağlı ayrı
+     kayıtta duruyorlar ve yeni listenin üstüne de biniyorlar. */
+  async function yayinla() {
+    setYayinOnayi(false)
+    const liste = yeniListe
+    setYeniListe({ ...liste, asama: 'yayinlaniyor' })
+    setListeHata('')
+
+    try {
+      const gorseller = {}
+      const parcalar = []
+      for (const p of liste.sonuc.katalog.parcalar) {
+        if (p.fiyat === null || !p.ad) continue
+        const g = liste.sonuc.gorseller.get(p.kod)
+        let gorsel = null
+        if (p.gorsel && g?.dosya) {
+          gorsel = `${p.kod}.${g.uzanti}`
+          gorseller[gorsel] = await base64Yap(g.dosya)
+        }
+        parcalar.push({ ...p, gorsel })
+      }
+      const kullanilan = new Set(parcalar.map((p) => p.grup))
+      const cevap = await fiyatListesiYayinla({
+        katalog: {
+          kaynak: liste.dosyaAdi,
+          gruplar: liste.sonuc.katalog.gruplar.filter((g) => kullanilan.has(g.id)),
+          parcalar,
+        },
+        gorseller,
+        kaynakPdf: await base64Yap(new Blob([liste.pdf])),
+        personel,
+      })
+
+      if (cevap.hata) {
+        setYeniListe(liste)
+        /* Üç ayrı sebep, üç ayrı cümle: sunucuya ulaşılamadı, sunucu
+           listeyi kaydedemedi, sunucu listeyi kurala aykırı buldu.
+           Hepsine "kabul etmedi" demek personeli yanlış yere
+           yönlendiriyordu (21 Eylül denemesinde kayıt hatasına öyle
+           dendi). */
+        const metin =
+          cevap.hata === 'baglanti' ? METIN.yayinBaglanti
+            : cevap.hata === 'yazilamadi' || cevap.hata.startsWith('durum-5') ? METIN.yayinYazilamadi
+              : METIN.yayinReddedildi
+        return setListeHata(metin)
+      }
+      fiyatListesiYayinlandi({ kaynak: liste.dosyaAdi, parca: cevap.parca, surum: cevap.surum }, personel)
+      setYeniListe(null)
+      tazele()
+      bildir(METIN.yayinlandi(cevap.parca))
+    } catch {
+      setYeniListe(liste)
+      setListeHata(METIN.yayinBaglanti)
+    }
   }
 
   return (
@@ -360,61 +500,47 @@ export function ParcaKatalogu({ personel, rol, bildir, tazele, surum }) {
             <input
               ref={dosyaGirdisi}
               type="file"
-              accept=".json,application/json"
+              accept=".pdf,application/pdf"
               style={{ display: 'none' }}
-              onChange={dosyaSecildi}
+              onChange={pdfSecildi}
             />
-            <div className="satir" style={{ gap: 10, alignItems: 'center' }}>
-              <button className="dg" onClick={() => dosyaGirdisi.current?.click()}>
-                {METIN.dosyaSec}
-              </button>
-              <span className="kucuk sonuk">{METIN.dosyaIpucu}</span>
-            </div>
-
-            {yeniListe && (
-              <div style={{ marginTop: 16 }}>
-                <h3 style={{ margin: '0 0 8px', fontSize: '1rem' }}>
-                  {METIN.onizlemeBaslik}
-                </h3>
-                {/* Ölçü satırları: ad solda, sayı sağda. Düz tabloda
-                    hepsi sola dayanıyor ve sayılar okunmuyordu. */}
-                <dl className="katalog-ozet">
-                  <div><dt>{METIN.toplamParca}</dt><dd className="mono">{yeniListe.ozet.toplam}</dd></div>
-                  <div><dt>{METIN.yeniParca}</dt><dd className="mono">{yeniListe.ozet.yeni}</dd></div>
-                  <div><dt>{METIN.dusenParca}</dt><dd className="mono">{yeniListe.ozet.dusen}</dd></div>
-                  <div><dt>{METIN.fiyatiDegisen}</dt><dd className="mono">{yeniListe.ozet.fiyatiDegisen}</dd></div>
-                  <div><dt>{METIN.ortalamaDegisim}</dt><dd className="mono">{yuzdeYaz(yeniListe.ozet.ortalama)}</dd></div>
-                  <div>
-                    <dt>{METIN.enBuyukArtis}</dt>
-                    <dd className="mono">
-                      {yeniListe.ozet.enBuyuk
-                        ? `${yuzdeYaz(yeniListe.ozet.enBuyuk.oran)} · ${yeniListe.ozet.enBuyuk.ad}`
-                        : '—'}
-                    </dd>
-                  </div>
-                </dl>
-
-                {yeniListe.ozet.yeniGruplar.length > 0 && (
-                  <div className="uyari" style={{ marginTop: 12, display: 'block' }}>
-                    <div style={{ fontWeight: 700 }}>
-                      {METIN.yeniGrup}: {yeniListe.ozet.yeniGruplar.map((g) => g.ad).join(', ')}
-                    </div>
-                    <p style={{ margin: '4px 0 0' }}>{METIN.yeniGrupUyari}</p>
-                  </div>
-                )}
-
-                <div className="satir" style={{ gap: 8, marginTop: 12 }}>
-                  <button className="dg dg--ana" onClick={birlestirilmisIndir}>
-                    {METIN.indir}
-                  </button>
-                  <button className="dg" onClick={() => setYeniListe(null)}>
-                    {METIN.onizlemeKapat}
-                  </button>
-                </div>
-                <p className="kucuk sonuk" style={{ margin: '6px 0 0' }}>
-                  {METIN.indirIpucu}
-                </p>
+            {!yeniListe && (
+              <div className="satir" style={{ gap: 10, alignItems: 'center' }}>
+                <button className="dg dg--ana" onClick={() => dosyaGirdisi.current?.click()}>
+                  {METIN.dosyaSec}
+                </button>
+                <span className="kucuk sonuk">{METIN.dosyaIpucu}</span>
               </div>
+            )}
+
+            {listeHata && (
+              <p className="uyari" style={{ margin: '12px 0 0', display: 'block' }}>
+                {listeHata}
+              </p>
+            )}
+
+            {yeniListe?.asama === 'okunuyor' && (
+              <div className="katalog-okuma" role="status">
+                <div style={{ fontWeight: 700 }}>{METIN.okunuyor}</div>
+                <progress max={yeniListe.toplam || 1} value={yeniListe.sayfa} />
+                <div className="kucuk sonuk">
+                  {yeniListe.dosyaAdi}
+                  {yeniListe.toplam ? ` · ${METIN.okunanSayfa(yeniListe.sayfa, yeniListe.toplam)}` : ''}
+                </div>
+              </div>
+            )}
+
+            {(yeniListe?.asama === 'onizleme' || yeniListe?.asama === 'yayinlaniyor') && (
+              <ListeOnizleme
+                liste={yeniListe}
+                ham={ham}
+                yayinlaniyor={yeniListe.asama === 'yayinlaniyor'}
+                onYayinla={() => setYayinOnayi(true)}
+                onVazgec={() => {
+                  setYeniListe(null)
+                  setListeHata('')
+                }}
+              />
             )}
           </div>
         </div>
@@ -473,7 +599,7 @@ export function ParcaKatalogu({ personel, rol, bildir, tazele, surum }) {
         {yukleniyor ? (
           <Bekleme satir={6} />
         ) : hata || !ham ? (
-          <Bos metin={METIN.okunamadi} />
+          <Bos metin={METIN.katalogYok} />
         ) : liste.length === 0 ? (
           <Bos metin={METIN.bosSuzgec} />
         ) : (
@@ -598,7 +724,166 @@ export function ParcaKatalogu({ personel, rol, bildir, tazele, surum }) {
           }}
         />
       )}
+
+      {yayinOnayi && yeniListe?.sonuc && (
+        <div className="pencere" onClick={(e) => e.target === e.currentTarget && setYayinOnayi(false)}>
+          <div className="kart pencere__kart" style={{ maxWidth: 460 }}>
+            <div className="kart__tepe">
+              <h2>{METIN.onayBaslik}</h2>
+            </div>
+            <div className="kart__ic">
+              <p style={{ margin: '0 0 18px', lineHeight: 1.6 }}>
+                {METIN.onayMetin(yayinlanacaklar(yeniListe.sonuc).length)}
+              </p>
+              <div className="satir">
+                <button className="dg dg--ana" onClick={yayinla} autoFocus>
+                  {METIN.onayDugme}
+                </button>
+                <button className="dg" onClick={() => setYayinOnayi(false)}>
+                  {METIN.vazgec}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
+  )
+}
+
+/* Yayına girecek parçalar: fiyatı ve adı okunmuş olanlar. */
+function yayinlanacaklar(sonuc) {
+  return sonuc.katalog.parcalar.filter((p) => p.fiyat !== null && p.ad)
+}
+
+/* ------------------------------------------------------ Liste önizlemesi
+
+   Personelin sorusu "bu liste doğru okundu mu, neler değişiyor?".
+   Üstte sayılar, altında açılır üç liste: fiyatı değişenler (en büyük
+   değişim en üstte — yanlış okunmuş bir fiyat orada göze batıyor),
+   yeni eklenenler ve listeden çıkanlar. */
+function ListeOnizleme({ liste, ham, yayinlaniyor, onYayinla, onVazgec }) {
+  const { sonuc, ozet } = liste
+  const disarida = sonuc.katalog.parcalar.filter((p) => p.fiyat === null || !p.ad)
+  const fiyat = (n) => (n === null || n === undefined ? '—' : `${paraYaz(n)} ${PARA_BIRIMI}`)
+
+  return (
+    <div style={{ marginTop: 4 }}>
+      <h3 style={{ margin: '0 0 8px', fontSize: '1rem' }}>
+        {METIN.onizlemeBaslik(liste.dosyaAdi, sonuc.sayfaSayisi)}
+      </h3>
+
+      {cokFarkliMi(ham, sonuc, ozet) && (
+        <p className="uyari" style={{ margin: '0 0 12px', display: 'block' }}>{METIN.buyukFark}</p>
+      )}
+
+      {/* Ölçü satırları: ad solda, sayı sağda. Düz tabloda hepsi sola
+          dayanıyor ve sayılar okunmuyordu. */}
+      <dl className="katalog-ozet">
+        <div><dt>{METIN.toplamParca}</dt><dd className="mono">{ozet.toplam}</dd></div>
+        <div><dt>{METIN.yeniParca}</dt><dd className="mono">{ozet.yeni}</dd></div>
+        <div><dt>{METIN.dusenParca}</dt><dd className="mono">{ozet.dusen}</dd></div>
+        <div><dt>{METIN.fiyatiDegisen}</dt><dd className="mono">{ozet.fiyatiDegisen}</dd></div>
+        <div><dt>{METIN.ortalamaDegisim}</dt><dd className="mono">{yuzdeYaz(ozet.ortalama)}</dd></div>
+        <div>
+          <dt>{METIN.enBuyukArtis}</dt>
+          <dd className="mono">
+            {ozet.enBuyuk ? `${yuzdeYaz(ozet.enBuyuk.oran)} · ${ozet.enBuyuk.ad}` : '—'}
+          </dd>
+        </div>
+        <div><dt>{METIN.gorselsizParca}</dt><dd className="mono">{sonuc.eksik.gorsel.length}</dd></div>
+      </dl>
+
+      {disarida.length > 0 && (
+        <div className="uyari" style={{ marginTop: 12, display: 'block' }}>
+          <div style={{ fontWeight: 700 }}>{METIN.yayinDisi(disarida.length)}</div>
+          <p className="mono kucuk" style={{ margin: '4px 0 0' }}>
+            {disarida.map((p) => p.kod).join(', ')}
+          </p>
+        </div>
+      )}
+
+      {ozet.yeniGruplar.length > 0 && (
+        <div className="uyari" style={{ marginTop: 12, display: 'block' }}>
+          <div style={{ fontWeight: 700 }}>
+            {METIN.yeniGrup}: {ozet.yeniGruplar.map((g) => g.ad).join(', ')}
+          </div>
+          <p style={{ margin: '4px 0 0' }}>{METIN.yeniGrupUyari}</p>
+        </div>
+      )}
+
+      <div className="katalog-degisim">
+        {ozet.degisenler.length > 0 && (
+          <details>
+            <summary>{METIN.listeFiyat} ({ozet.degisenler.length})</summary>
+            <DegisimTablosu
+              satirlar={ozet.degisenler}
+              sutunlar={[METIN.sutunEski, METIN.sutunYeni, METIN.sutunDegisim]}
+              hucreler={(d) => [fiyat(d.eski), fiyat(d.yeni), yuzdeYaz(d.oran)]}
+            />
+          </details>
+        )}
+        {ozet.yeniEklenenler.length > 0 && (
+          <details>
+            <summary>{METIN.listeYeni} ({ozet.yeniEklenenler.length})</summary>
+            <DegisimTablosu
+              satirlar={ozet.yeniEklenenler}
+              sutunlar={[METIN.sutunFiyat]}
+              hucreler={(d) => [fiyat(d.fiyat)]}
+            />
+          </details>
+        )}
+        {ozet.dusenler.length > 0 && (
+          <details>
+            <summary>{METIN.listeDusen} ({ozet.dusenler.length})</summary>
+            <DegisimTablosu
+              satirlar={ozet.dusenler}
+              sutunlar={[METIN.sutunFiyat]}
+              hucreler={(d) => [fiyat(d.fiyat)]}
+            />
+          </details>
+        )}
+      </div>
+
+      <div className="satir" style={{ gap: 8, marginTop: 14, alignItems: 'center' }}>
+        <button className="dg dg--ana" onClick={onYayinla} disabled={yayinlaniyor}>
+          {METIN.yayinla}
+        </button>
+        <button className="dg" onClick={onVazgec} disabled={yayinlaniyor}>
+          {METIN.vazgec}
+        </button>
+        {yayinlaniyor && <span className="kucuk sonuk" role="status">{METIN.yayinlaniyor}</span>}
+      </div>
+    </div>
+  )
+}
+
+function DegisimTablosu({ satirlar, sutunlar, hucreler }) {
+  return (
+    <div className="tablo-sar">
+      <table className="katalog-tablo">
+        <thead>
+          <tr>
+            <th>{METIN.sutunKod}</th>
+            <th>{METIN.sutunAd}</th>
+            {sutunlar.map((s) => (
+              <th key={s} className="sag">{s}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {satirlar.map((d) => (
+            <tr key={d.kod}>
+              <td className="mono kucuk sonuk">{d.kod}</td>
+              <td className="kucuk">{d.ad}</td>
+              {hucreler(d).map((h, i) => (
+                <td key={i} className="kucuk mono sag">{h}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   )
 }
 

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   DURUMLAR, durumBilgi, gecikmisMi, gonderimGecikti, gonderimGecikmeSaati,
   izinli, KAPALI_DURUMLAR, musterininDigerTalepleri,
-  odemeOnayla, parcaIlerlemeEngeli, rolBilgi, rolunTalepleri, TALEP_ADI,
+  odemeOnayla, parcaIlerlemeEngeli, rolBilgi, rolunTalepleri, rolunTurleri, TALEP_ADI,
   talepDurumDegistir,
   elleSecilebilirDurumlar, talepDurumlari, talepIptal, talepKapat, talepleriGetir,
   talepNotEkle, talepPlanla, talepTeklifVer, teklifBeklemeGunu, teklifBekliyorMu,
@@ -106,7 +106,12 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
     []
   )
 
-  const tumTurler = rolBilgi(rol).talepTuru === null
+  /* Rolün türleri: null = hepsi. Birden çok tür görebilen rolde (21 Eylül
+     2026'dan beri) süzgeç o türleri ve "Her tür"ü sunuyor. */
+  const rolTurleri = rolunTurleri(rol)
+  const tumTurler = rolTurleri === null
+  const turSecenegi = tumTurler ? Object.keys(TALEP_ADI) : rolTurleri
+  const tekTur = turSecenegi.length === 1 ? turSecenegi[0] : null
 
   /* DURUM SÜZGECİ SEÇİLİ TÜRE GÖRE DARALIYOR.
 
@@ -124,7 +129,7 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
 
      "Cevap bekleyen teklifler" kısayolu da yalnız fiyat teklifi
      görünürken çıkıyor; başka türde karşılığı yok. */
-  const suzgecTuru = tumTurler ? tur : rolBilgi(rol).talepTuru
+  const suzgecTuru = tekTur || tur
   const durumSecenekleri =
     suzgecTuru && suzgecTuru !== 'hepsi' ? talepDurumlari(suzgecTuru) : DURUMLAR
   const teklifVar = !suzgecTuru || suzgecTuru === 'hepsi' || suzgecTuru === 'satinalma'
@@ -182,7 +187,7 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
       ) {
         return false
       }
-      if (tumTurler && tur !== 'hepsi' && t.tur !== tur) return false
+      if (!tekTur && tur !== 'hepsi' && t.tur !== tur) return false
       if (!araliktaMi(t.createdAt, aralik)) return false
       if (il !== 'hepsi' && t.il !== il) return false
       if (ilce !== 'hepsi' && t.ilce !== ilce) return false
@@ -219,7 +224,7 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
         .filter(Boolean)
         .some((x) => String(x).replace(/\D/g, '').includes(qRakam))
     })
-  }, [kendiTalepleri, durum, tur, aralik, il, ilce, makine, ara, tumTurler, sahiplik])
+  }, [kendiTalepleri, durum, tur, aralik, il, ilce, makine, ara, tekTur, sahiplik])
 
   /* Sıralama süzgeçten SONRA: ekranda ne varsa o sıralanıyor.
      Değer fonksiyonları sıralamanın neye baktığını söylüyor —
@@ -305,19 +310,14 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
 
         <Secim
           ad="Talep Türü"
-          deger={tumTurler ? tur : rolBilgi(rol).talepTuru}
+          deger={tekTur || tur}
           onDegis={setTur}
           secenekler={
-            tumTurler
-              ? [
-                  { deger: 'hepsi', ad: 'Her tür' },
-                  ...Object.entries(TALEP_ADI).map(([k, ad]) => ({ deger: k, ad })),
-                ]
+            tekTur
+              ? [{ deger: tekTur, ad: TALEP_ADI[tekTur] }]
               : [
-                  {
-                    deger: rolBilgi(rol).talepTuru,
-                    ad: TALEP_ADI[rolBilgi(rol).talepTuru],
-                  },
+                  { deger: 'hepsi', ad: 'Her tür' },
+                  ...turSecenegi.map((k) => ({ deger: k, ad: TALEP_ADI[k] })),
                 ]
           }
           genislik={150}
@@ -559,7 +559,12 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
      (`rol !== 'admin'`). Roller ekrandan açılabildiği için yetkiye
      taşındı; hangi rolün açabileceği Roller ekranından işaretleniyor. */
   const kapali = KAPALI_DURUMLAR.includes(suanki)
-  const kilitli = kapali && !izinli(rol, 'talepGeriAc')
+  /* BAYİYE İLETİLEN TALEP HİÇ AÇILMIYOR (21 Eylül 2026, kullanıcının
+     kararı): geri açma yetkisi olan da çiple başka bir duruma geçiremez.
+     Yanlış tıklamanın tek düzeltmesi Bayi bölümündeki geri alma
+     (bkz. veri.js → durumGecisiEngeli). */
+  const bayide = suanki === 'bayiyeIletildi'
+  const kilitli = bayide || (kapali && !izinli(rol, 'talepGeriAc'))
 
   /* Müşteriye bildirim gitmeyecek iki hâl:
 
@@ -679,31 +684,38 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
           </div>
         )}
 
-        <div className="suzgec" style={{ marginBottom: kilitli ? 8 : 20 }}>
-          {elleSecilebilirDurumlar(talep.tur).map((d) => {
-            const engel = parcaIlerlemeEngeli(talep, d.id)
-            return (
-              <button
-                key={d.id}
-                className={
-                  'cip' +
-                  (suanki === d.id ? ' cip--on' : '') +
-                  (engel ? ' cip--kilitli' : '')
-                }
-                onClick={() => durumaGec(d.id)}
-                disabled={suanki === d.id || kilitli}
-                title={engel ? 'Önce ödemeyi onaylayın' : undefined}
-              >
-                {engel && <span aria-hidden="true">🔒 </span>}
-                {d.ad}
-              </button>
-            )
-          })}
-        </div>
+        {/* Bayiye iletilmiş talepte çip sırası çizilmiyor: şu anki durum
+            çiplerde yok (bayi seçilmeden girilmiyor), hiçbiri seçili
+            görünmez ve hepsi kapalıdır. Durum sağ üstteki rozette. */}
+        {!bayide && (
+          <div className="suzgec" style={{ marginBottom: kilitli ? 8 : 20 }}>
+            {elleSecilebilirDurumlar(talep.tur).map((d) => {
+              const engel = parcaIlerlemeEngeli(talep, d.id)
+              return (
+                <button
+                  key={d.id}
+                  className={
+                    'cip' +
+                    (suanki === d.id ? ' cip--on' : '') +
+                    (engel ? ' cip--kilitli' : '')
+                  }
+                  onClick={() => durumaGec(d.id)}
+                  disabled={suanki === d.id || kilitli}
+                  title={engel ? 'Önce ödemeyi onaylayın' : undefined}
+                >
+                  {engel && <span aria-hidden="true">🔒 </span>}
+                  {d.ad}
+                </button>
+              )
+            })}
+          </div>
+        )}
 
         {kilitli && (
           <p className="kucuk sonuk" style={{ margin: '0 0 20px' }}>
-            Bu talep kapandı. Yeniden açılması gerekiyorsa yöneticinize başvurun.
+            {bayide
+              ? 'Bu talep bayiye iletildi. Durumu değiştirilemez.'
+              : 'Bu talep kapandı. Yeniden açılması gerekiyorsa yöneticinize başvurun.'}
           </p>
         )}
 
@@ -1760,10 +1772,10 @@ const AKTAR_SUTUNLARI = [
 
 /** Rolün göreceği sütunlar; rolün gördüğü talep türüne göre süzülüyor. */
 export function aktarSutunlari(rol) {
-  const tur = rolBilgi(rol).talepTuru
+  const turler = rolunTurleri(rol)
   /* Bütün türleri gören rolde süzme yok. */
-  if (!tur) return AKTAR_SUTUNLARI
-  return AKTAR_SUTUNLARI.filter((x) => !x.turler || x.turler.includes(tur))
+  if (!turler) return AKTAR_SUTUNLARI
+  return AKTAR_SUTUNLARI.filter((x) => !x.turler || x.turler.some((t) => turler.includes(t)))
 }
 
 /* Kapanışta yüklenen servis fişi.
@@ -2025,12 +2037,13 @@ function TurEtiket({ tur }) {
    Servisi olmayan talepte hiçbir şey yazmıyor: satırda gereksiz gürültü
    olmasın, "PAKSAN'da" zaten varsayılan durum. */
 function SahiplikEtiketi({ talep }) {
-  /* Fiyat teklifi bayiye atandıysa satırda bayinin adı yazıyor: o
-     talebi artık PAKSAN yürütmüyor, "kimde" sorusunun cevabı bayi. */
+  /* Fiyat teklifi bayiye iletildiyse satırda yetkilendirilen bayinin
+     adı yazıyor. Durum rozeti zaten "Bayiye İletildi" diyor; bu satır
+     "hangi bayiye" sorusunu cevaplıyor. */
   if (talep.bayi) {
     return (
       <div className="kucuk sonuk" style={{ marginTop: 2 }}>
-        Bayide · {talep.bayi.ad}
+        Yetkili bayi · {talep.bayi.ad}
       </div>
     )
   }
@@ -2094,20 +2107,28 @@ function SahiplikEtiketi({ talep }) {
    aranacak.
    ========================================================================== */
 /* ==========================================================================
-   Fiyat teklifini bayiye atama
+   Fiyat teklifini bayiye iletme (21 Eylül 2026, kullanıcının kararı)
 
-   Satış personelinin bu talepteki tek işi: doğru bayiyi seçmek.
-   Teklifi bayi hazırlıyor, müşteriyi bayi arıyor, kendi payını kendi
-   koyuyor. Atamadan sonra talep PAKSAN'ın kuyruğundan çıkıyor
-   (bkz. veri.js → talebiBayiyeAta).
+   BAYİ SİSTEMİ YOK, ATAMA DA YOK. Bayinin paneli yok; satış personeli
+   talebi bayiye telefonla ya da mesajla kendisi iletiyor. Bu bölümün
+   işi yalnız HANGİ BAYİNİN YETKİLENDİRİLDİĞİNİ yazmak. Kaydedilince
+   talep "Bayiye İletildi" durumuna geçiyor, PAKSAN'ın kuyruğundan
+   çıkıyor ve orada kalıyor (bkz. veri.js → talebiBayiyeAta).
+
+   BÖLÜM ÜÇ HÂLDE:
+     yeni, teklif verilmemiş   iletme formu
+     bayiye iletildi           yetkili bayi; yetkisi olana geri alma
+     öteki her durum           hiç çizilmiyor — teklif verilmiş,
+                               kapanmış ya da iptal edilmiş talep
+                               bayiye iletilemez
 
    BAYİLER MÜŞTERİYE YAKINLIĞA GÖRE SIRALI ve sıra ekranda yazılı:
    aynı ilçe, aynı il, sonra kalanlar. Personel istediğini seçebiliyor —
    sıralama bir kolaylık, kısıt değil.
 
-   PAKSAN KENDİSİ İLGİLENECEKSE ATAMA YAPILMIYOR. O zaman talep her
-   zamanki akışta kalıyor: teklif veriliyor, kapanıyor. Bu yüzden
-   bölüm bir zorunluluk gibi değil, bir seçenek gibi duruyor.
+   PAKSAN KENDİSİ İLGİLENECEKSE İLETİLMİYOR. O zaman talep her zamanki
+   akışta kalıyor: teklif veriliyor, kapanıyor. Bu yüzden bölüm bir
+   zorunluluk gibi değil, bir seçenek gibi duruyor.
    ========================================================================== */
 function BayiAtama({ talep, personel, geriAlabilir, tazele, bildir }) {
   const [secim, setSecim] = useState('')
@@ -2119,47 +2140,51 @@ function BayiAtama({ talep, personel, geriAlabilir, tazele, bildir }) {
     return [...hepsi].sort((a, b) => puan(a) - puan(b) || a.ad.localeCompare(b.ad, 'tr'))
   }, [talep.il, talep.ilce])
 
-  if (talep.bayi) {
+  const durum = talep.status || 'yeni'
+
+  if (durum === 'bayiyeIletildi') {
     return (
-      <Bolum ad="Bayi">
+      <Bolum ad="Yetkili bayi">
         <div className="satir" style={{ gap: 10, alignItems: 'center', marginBottom: 8 }}>
-          <b>{talep.bayi.ad}</b>
-          <span className="rz rz--mor" style={{ marginLeft: 'auto' }}>Bayide</span>
+          <b>{talep.bayi?.ad || '—'}</b>
         </div>
-        <S k="Telefon" v={telFirma(talep.bayi.tel)} mono />
-        <S k="Atandı" v={talep.bayi.tarih ? tarihYaz(talep.bayi.tarih) : ''} />
+        <S k="Telefon" v={telFirma(talep.bayi?.tel)} mono />
+        <S k="İletilme tarihi" v={talep.bayi?.tarih ? tarihYaz(talep.bayi.tarih) : ''} />
         <p className="kucuk sonuk" style={{ margin: '8px 0 0' }}>
-          {`Teklifi bayi hazırlar ve müşteriyi arar. ${MARKA} bu taleple ilgilenmez.`}
+          {`Müşteriyle bu bayi ilgilenecek. ${MARKA} bu taleple ilgili başka işlem yapmayacak. Müşteriye bildirim gönderilmedi.`}
         </p>
         {geriAlabilir && (
           <button
             className="dg"
             style={{ marginTop: 10 }}
             onClick={() => {
-              if (!confirm(`Atama kaldırılacak ve talep ${markaEk('a')} dönecek.`)) return
-              bayiAtamasiniKaldir(talep, personel)
+              if (!confirm('Talep "Yeni" durumuna dönecek ve talepteki bayi bilgisi silinecek. Müşteriye bildirim gönderilmeyecek.')) return
+              const sonuc = bayiAtamasiniKaldir(talep, personel)
+              if (sonuc?.hata) return bildir(sonuc.hata)
               tazele()
-              bildir('Bayi ataması kaldırıldı')
+              bildir('Bayiye iletme işlemi geri alındı')
             }}
           >
-            Atamayı kaldır
+            Geri Al
           </button>
         )}
       </Bolum>
     )
   }
 
+  if (durum !== 'yeni' || talep.teklif) return null
+
   return (
-    <Bolum ad="Bayiye ata">
+    <Bolum ad="Bayiye ilet">
       <p className="kucuk sonuk" style={{ margin: '0 0 10px' }}>
-        {`Teklifi bayi verecekse talebi buradan bayiye atayın. Atandığında talep ${markaEk('in')} bekleyen işlerinden çıkar. ${MARKA} ilgilenecekse atama yapmayın.`}
+        {`Teklifi bayi verecekse önce bayiye haber verin, ardından yetkilendirdiğiniz bayiyi buradan seçip kaydedin. Talep "Bayiye İletildi" durumuna geçer ve müşteriye bildirim gönderilmez. ${MARKA} kendisi teklif verecekse bu bölümü kullanmayın.`}
       </p>
 
       <div className="satir" style={{ gap: 8, alignItems: 'flex-end' }}>
         <label className="alan" style={{ flex: 1, marginBottom: 0 }}>
           <span className="alan__ad">Bayi</span>
           <select className="gir" value={secim} onChange={(e) => setSecim(e.target.value)}>
-            <option value="">Seçin</option>
+            <option value="">Bayi seçin</option>
             {bayiler.map((b) => (
               <option key={b.id} value={b.id}>
                 {b.ad} · {b.ilce} / {b.il}
@@ -2175,10 +2200,10 @@ function BayiAtama({ talep, personel, geriAlabilir, tazele, bildir }) {
             const sonuc = talebiBayiyeAta(talep, b, personel)
             if (sonuc.hata) return bildir(sonuc.hata)
             tazele()
-            bildir(`Talep ${b.ad} bayisine atandı`)
+            bildir(`Talep bayiye iletildi · ${b.ad}`)
           }}
         >
-          Ata
+          Bayiye İlet
         </button>
       </div>
     </Bolum>

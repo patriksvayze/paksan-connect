@@ -17,7 +17,10 @@
                       --denetle  üretmeden karşılaştırır (fark varsa çıkış 1)
      sinama           Sınama veritabanlarını kurup bütün doğrulamaları çalıştırır.
      ilk-yonetici     İlk backoffice yöneticisini geçici şifreyle açar.
-     yedekle          Tam yedek alır.
+     yedekle          Tam yedek alır, RESTORE VERIFYONLY ile doğrular.
+                      --gunluk  günlük yedeği (yalnız FULL kurtarma: canlı)
+                      --klasor  yedek klasörü (varsayılan: ortam dosyası,
+                                o da boşsa SQL Server'ınki)
 
    AYNI BETİKLER HER ORTAMDA: yerelde çalışan kurulum VPS'te de aynen
    çalışır; farkı yalnız ortam dosyası belirler (bkz. tools/vt/ortam.mjs).
@@ -41,7 +44,13 @@ function secenekleriOku(arg) {
   const s = { bayrak: new Set() }
   for (let i = 0; i < arg.length; i++) {
     const a = arg[i]
-    if (a === '--ayar' || a === '--ortam' || a === '--betik-klasoru' || a === '--veritabani') {
+    if (
+      a === '--ayar' ||
+      a === '--ortam' ||
+      a === '--betik-klasoru' ||
+      a === '--veritabani' ||
+      a === '--klasor'
+    ) {
       s[a.slice(2).replace(/-([a-z])/g, (_, h) => h.toUpperCase())] = arg[++i]
     } else if (a.startsWith('--')) s.bayrak.add(a.slice(2))
   }
@@ -177,7 +186,14 @@ async function ana() {
   }
   const s = secenekleriOku(geriKalan)
   if (MODUL_KOMUTLARI[komut]) {
-    const modul = await import(MODUL_KOMUTLARI[komut]).catch(() => null)
+    /* Yalnız DOSYA YOKSA "henüz hazır değil". Eskiden her hata yutuluyordu:
+       var olan bir komut dosyasındaki yazım hatası da "hazır değil" diye
+       görünüyor, asıl hata kayboluyordu. */
+    const modul = await import(MODUL_KOMUTLARI[komut]).catch((e) => {
+      const dosyaAdi = MODUL_KOMUTLARI[komut].split('/').pop()
+      if (e?.code === 'ERR_MODULE_NOT_FOUND' && String(e.message).includes(dosyaAdi)) return null
+      throw e
+    })
     if (!modul?.calistir) throw new Error(`"${komut}" komutu henüz hazır değil`)
     await modul.calistir(s)
     return

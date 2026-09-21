@@ -552,6 +552,14 @@ p {
   -webkit-line-clamp: 2;
   line-clamp: 2;
   overflow: hidden;
+  /* Tek kelime satıra sığmazsa kesilmiyor, heceden bölünüp alt satıra
+     iniyor. Satır sınırı iki satırı sayıyor ama tek uzun kelimeyi
+     bölemiyordu: sağa taşan kısım görünmeden kayboluyordu. Ölçüm
+     (21 Eylül 2026): Bildirimler ekranı doğrudan açılıp hepsi okununca
+     320 piksel genişlikte "Notifications" 145,9 pikselle 146 piksellik
+     alana ancak sığıyor. Sığan başlıkta bu kuralın hiçbir etkisi yok. */
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .topbar .sub {
@@ -3594,15 +3602,31 @@ p {
   margin-top: 5px;
 }
 
-/* Başlıktaki metin düğmesi — "Tümünü okundu işaretle" */
-/* Yükseklik 32'den 44'e: başlık çubuğundaki tek dokunulur öge bu. */
+/* Başlıktaki metin düğmesi — "Tümünü okundu olarak işaretle"
+
+   Tek satıra zorlanmıyor. Türkçe yazı 13,5 pikselde 188 piksel tutuyor;
+   320 piksel genişlikte "Geri" butonu ve amblemle aynı satırda 139
+   piksel kalıyor. Sığmayınca iki dengeli satıra iniyor ve sağa
+   yaslanıyor. Başlık bu satırda değil (bkz. components/Chrome.jsx →
+   TopBar), o yüzden butonun uzunluğu başlığı artık kesmiyor.
+
+   Dokunma alanı: projenin tabanı (--dokunma, 48). İki satıra inince de
+   yazı alanın ortasında kalıyor. */
 .topbar__islem {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 0 1 auto;
+  min-width: 0;
+  min-height: var(--dokunma, 48px);
   font-size: 13.5px;
   font-weight: 700;
+  line-height: 1.25;
   color: var(--pk-blue-yazi);
-  white-space: nowrap;
-  padding: 12px 6px;
-  margin: -12px -6px;
+  text-align: right;
+  text-wrap: balance;
+  padding: 4px 6px;
+  margin: 0 -6px;
 }
 
 /* Ana sayfadaki bildirim düğmesinin üstündeki sayı */
@@ -4089,8 +4113,12 @@ p {
   color: var(--pk-orange-ink);
 }
 
-.durum-kart--teklif { border-left-color: var(--pk-mor); }
-.durum-kart--teklif .durum-kart__ikon {
+/* Bayiye iletilmiş teklif de mor: hemen altındaki bayi kutusu
+   (RequestDetail.jsx → talepDetay.bayiBaslik) aynı renkte. */
+.durum-kart--teklif,
+.durum-kart--bayiyeIletildi { border-left-color: var(--pk-mor); }
+.durum-kart--teklif .durum-kart__ikon,
+.durum-kart--bayiyeIletildi .durum-kart__ikon {
   background: var(--pk-mor-soft);
   color: var(--pk-mor);
 }
@@ -4660,7 +4688,8 @@ p {
   color: var(--pk-orange-ink);
 }
 
-.durum-hap--teklif {
+.durum-hap--teklif,
+.durum-hap--bayiyeIletildi {
   background: var(--pk-mor-soft);
   color: var(--pk-mor);
 }

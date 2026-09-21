@@ -2157,7 +2157,16 @@ function b03Yaz(K, eslesme) {
       Aciklama: r.aciklama ?? null,
       TumIzinler: tum ? 1 : 0,
       Sistem: r.sistem ? 1 : 0,
-      TalepTuruKodu: r.talepTuru ?? null,
+      /* Rol birden çok tür görebiliyor (21.09.2026, yetkiler.js →
+         talepTurleri); veritabanında bugün tek sütun var. Çoklu türlü
+         varsayılan rol gelirse sessizce ilkini yazmak yerine durur
+         (tablo gereği: VT-TASARIM-EKLERI.md §3). */
+      TalepTuruKodu: (() => {
+        const t = r.talepTurleri ?? (r.talepTuru ? [r.talepTuru] : null)
+        if (!t || !t.length) return null
+        if (t.length > 1) dur(`yetkiler.js: ${r.id} rolü birden çok talep türü görüyor; erisim.Rol tek tür tutuyor (VT-TASARIM-EKLERI.md §3)`)
+        return t[0]
+      })(),
       EskiKayitNo: r.id,
     })
     if (!tum) {

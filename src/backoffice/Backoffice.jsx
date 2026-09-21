@@ -14,8 +14,9 @@ import {
   izinli, oturumGetir, oturumKapat, backofficeGiris, personelBaslat, personelGetir,
   rolBilgi, rolunTalepleri, sifreJetonuGecerli, sifreJetonuKullan, sifreTalebiOlustur,
   talepleriGetir, geriBildirimGetir, numaraTalepleriGetir, teklifBekliyorMu,
-  BACKOFFICE_SIFRE_HANE,
+  makineKayitlariGetir, BACKOFFICE_SIFRE_HANE,
 } from './veri'
+import { servisiAtanmamisKayitlar } from '../lib/servisAtama'
 import { ozetHatasiMi } from '../lib/hesap'
 import { bildirimGonder, izinDurumu, izinIste, sayiliBaslik } from './bildirim'
 import { TemaSecici } from './Tema'
@@ -77,7 +78,13 @@ const MENU = [
   { id: 'ozet', ad: 'Dashboard', Ikon: IconPano },
   { id: 'talepler', ad: 'Talepler', izin: 'talepler', sayac: 'talep', Ikon: IconTalep },
   { id: 'musteriler', ad: 'Müşteriler', izin: 'musteriler', Ikon: IconUser },
-  { id: 'makineler', ad: 'Kayıtlı Makineler', izin: 'musteriler', Ikon: IconMachine },
+  /* Sayaç: servisi atanmamış MAKİNE (21 Eylül 2026, kullanıcının
+     kararı). Atama makine başına: aynı müşterinin yem karmasına bir
+     servis, balya makinesine başka bir servis bakabilir — her servis
+     her makinede uzman değil. Personel sayıyı buradan görüyor, atamayı
+     Kayıtlı Makineler ekranından yapıyor. Aynı gün önce Müşteriler
+     düğmesinde müşteri sayısı olarak denenmiş, geri alınmıştı. */
+  { id: 'makineler', ad: 'Kayıtlı Makineler', izin: 'musteriler', sayac: 'servissiz', Ikon: IconMachine },
   { id: 'servisler', ad: 'Servisler', izin: 'servisler', Ikon: IconPin },
   /* Bayi ayrı bir ekran: kaydı var, paneli yok. Servisin çalıştığı
      bayiler Servisler ekranından bağlanıyor; burası künye. */
@@ -151,6 +158,11 @@ export function Backoffice() {
       ).length,
       gorus: geriBildirimGetir().filter((g) => !g.okundu).length,
       numara: numaraTalepleriGetir().filter((t) => t.durum === 'bekliyor').length,
+      /* Yalnız servis atayabilene: atama yapamayan birine sayı göstermek
+         yapamayacağı bir işi hatırlatmak olur. */
+      servissiz: izinli(oturum.rol, 'servisDuzenle')
+        ? servisiAtanmamisKayitlar(makineKayitlariGetir()).length
+        : 0,
     }
   }, [surum, oturum])
 

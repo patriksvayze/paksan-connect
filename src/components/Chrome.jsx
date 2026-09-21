@@ -59,16 +59,25 @@ export function TopBar({ title, sub, back, right }) {
     </div>
   )
 
-  /* Geri butonu varken başlık alta iner: buton net "Geri" yazar,
-     sayfa adıyla yan yana gelip karışmaz. */
-  if (geriGoster) {
+  /* Başlık iki durumda kendi satırına iner:
+
+     - Geri butonu varken: buton net "Geri" yazar, sayfa adıyla yan
+       yana gelip karışmaz.
+     - Sayfaya ait bir işlem butonu varken: başlık, butonla ve amblemle
+       aynı satırı paylaşınca daralıyordu. Bildirimler ekranı doğrudan
+       açıldığında (geri butonu yokken) 390 piksel genişlikte başlığa
+       106 piksel kalıyordu ve "Bildirimler" "Bildirimle" diye kesiliyordu.
+       Artık buton ve amblem üst satırda, başlık altta tüm genişlikte. */
+  if (geriGoster || right) {
     return (
       <header className={sinif}>
         <div className="topbar__row">
-          <button className="backbtn" onClick={geri}>
-            <IconBack size={21} />
-            {t('ortak.geri')}
-          </button>
+          {geriGoster && (
+            <button className="backbtn" onClick={geri}>
+              <IconBack size={21} />
+              {t('ortak.geri')}
+            </button>
+          )}
           <div className="spacer" />
           {marka}
         </div>

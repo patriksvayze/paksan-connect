@@ -1,12 +1,13 @@
 # Codex'i bekleyen Türkçe metinler
 
-**ŞU AN KUYRUK BOŞ (19 Eylül 2026).** Bekleyen metin yok;
-`npm run dogrula` 12. kontrol ve `node tools/vt/denetle.mjs` temiz.
+**KUYRUK BOŞ (21 Eylül 2026, 18:10).** 21 Eylül'de biriken metinler
+(servis ataması bildirimi, Kayıtlı Makineler kartı, Servisim elle kayıt
+uyarıları, bildirim türü kod adı) Codex'ten geçip yerlerine yazıldı.
 
 Dosya SİLİNMEDİ, çünkü anlattığı şey bir iş değil bir YÖNTEM ve o
-yöntem tekrar gerekecek: Codex'in kullanım sınırı 17 ve 19 Eylül'de
-iki kez doldu. Beş kaynak dosya, `tools/dogrula.mjs` ve README bu
-dosyayı adıyla gösteriyor; silinseydi hepsi kırık bağa bakardı.
+yöntem tekrar gerekecek: Codex'in kullanım sınırı 17, 19 ve 21 Eylül'de
+doldu. Beş kaynak dosya, `tools/dogrula.mjs` ve README bu dosyayı
+adıyla gösteriyor; silinseydi hepsi kırık bağa bakardı.
 
 ## Yöntem — sınır dolduğunda ne yapılır
 
@@ -68,3 +69,4 @@ tercihine göre değiştiriyor.
 
 <!-- dosyalar:tekdil -->
 <!-- /dosyalar:tekdil -->
+

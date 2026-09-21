@@ -12,7 +12,7 @@ import {
 
    FİYAT TEKLİFİ TALEBİNİN İKİ YOLU VAR ve ikisi ayrı sayılıyor:
 
-     BAYİYE ATANAN   satış personeli talebi bayiye veriyor, talep o an
+     BAYİYE İLETİLEN satış personeli talebi bayiye iletiyor, talep o an
                      kapanıyor ve PAKSAN'ın işi bitiyor (bkz. veri.js →
                      talebiBayiyeAta). Fiyatı bayi veriyor; tutar da
                      sonuç da PAKSAN'ın kaydına dönmüyor. Burada yalnız
@@ -20,17 +20,17 @@ import {
      PAKSAN'IN       PAKSAN kendisi fiyat veriyor (`teklif`), müşteri
      KENDİ TEKLİFİ   dönünce sonuçla kapatıyor (`cozum.sonuc`).
 
-   DÖNÜŞÜM ORANI YALNIZ SONUCU YAZILAN TEKLİFLERDE. Bayiye atanan
+   DÖNÜŞÜM ORANI YALNIZ SONUCU YAZILAN TEKLİFLERDE. Bayiye iletilen
    teklifin sonucu bilinmiyor; paydaya girse oran kendiliğinden
    düşerdi ve satış ekibi yapmadığı bir kaybı görürdü. Hâlâ açık
    teklif de paydada yok: sonucu henüz yok.
 
-   ÖLÇÜLER OLAYIN KENDİ GÜNÜNE GÖRE (bayiye atanma, fiyat verme,
+   ÖLÇÜLER OLAYIN KENDİ GÜNÜNE GÖRE (bayiye iletme, fiyat verme,
    kapanış). Grafik ve teklif tablosu ise dönemde AÇILAN taleplere
    bakıyor: "bu dönem gelen talepler bugün ne durumda" sorusu.
 
    BAYİ KARNESİ BİR SATIŞ ADEDİ DEĞİL. Bayinin paneli yok; elimizde
-   olan kayıtlar atanan teklif, makine kayıt defteri ve o makinelerden
+   olan kayıtlar iletilen teklif, makine kayıt defteri ve o makinelerden
    gelen servis talebi. Kesin satış Logo'daki faturada. Servisi olmayan
    bayi işaretli: makineye elle servis atanmadıysa o bayiden alınan
    makinenin sahibi servis talebi açamıyor (bkz. lib/servisAtama.js).
@@ -47,7 +47,7 @@ const M = {
 
   gelen: 'Fiyat teklifi talebi',
   gelenAlt: 'Bu dönemde açılan talepler',
-  bayiye: 'Bayiye atanan',
+  bayiye: 'Bayiye iletilen',
   bayiyeAlt: `Fiyatı bayi veriyor; tutar ${MARKA} kayıtlarında yok`,
   fiyatVerilen: 'Fiyat verilen',
   fiyatVerilenAlt: `${MARKA} personelinin fiyat verdiği teklifler`,
@@ -72,7 +72,7 @@ const M = {
   grafikSonuc: 'Teklif talepleri ne oldu?',
   grafikSonucAlt: 'Bu dönemde açılan talepler, bugünkü durumlarıyla. Bir satıra tıklayınca liste açılır.',
   sonuc: {
-    bayi: 'Bayiye atandı',
+    bayi: 'Bayiye İletildi',
     bekliyor: 'Müşterinin yanıtı bekleniyor',
     gecikti: 'Yanıt gecikti',
     islemde: 'İşlemde',
@@ -87,12 +87,12 @@ const M = {
 
   tabloBayi: 'Bayi karnesi',
   tabloBayiAciklama:
-    'Bütün bayiler gösterilir. Atanan teklifler, bu dönem kaydedilen makineler ve servis talepleri seçilen döneme aittir; kayıtlı makine sayısı bütün zamanları kapsar. Yalnız bayisi yazılı makineler sayılır; bu yüzden toplam satırı öteki sekmelerdeki kayıtlı makine, yeni makine kaydı ve servis talebi sayılarından küçük olabilir. Turuncu satırdaki bayinin servisi yok: o bayiden alınan makineye elle servis atanmadıysa müşteri servis talebi açamaz. Bayi bilgisi bulunan ancak bayi listesinde kaydı bulunamayanların sayıları "Bayi kaydı bulunamayanlar" satırında toplanır.',
+    'Bütün bayiler gösterilir. Bayilere iletilen teklifler, bu dönem kaydedilen makineler ve servis talepleri seçilen döneme aittir; kayıtlı makine sayısı bütün zamanları kapsar. Yalnız bayisi yazılı makineler sayılır; bu yüzden toplam satırı öteki sekmelerdeki kayıtlı makine, yeni makine kaydı ve servis talebi sayılarından küçük olabilir. Turuncu satırdaki bayinin servisi yok: o bayiden alınan makineye elle servis atanmadıysa müşteri servis talebi açamaz. Bayi bilgisi bulunan ancak bayi listesinde kaydı bulunamayanların sayıları "Bayi kaydı bulunamayanlar" satırında toplanır.',
   listeDisiBayi: 'Bayi kaydı bulunamayanlar',
   sutunBayi: {
     bayi: 'Bayi',
     il: 'İl',
-    atanan: 'Atanan teklif',
+    atanan: 'İletilen teklif',
     makine: 'Kayıtlı makine',
     yeniMakine: 'Bu dönem kaydedilen makine',
     servisTalebi: 'Makinelerinden gelen servis talebi',
@@ -119,11 +119,11 @@ const M = {
 
   notlar: [
     'Fiyat teklifi talebi: seçilen dönemde açılan fiyat teklifi talepleri.',
-    `Bayiye atanan: bayiye atandığı gün seçilen döneme düşen talepler. Bu taleplerde fiyatı bayi veriyor; tutar ve sonuç ${MARKA} kayıtlarında yok, bu yüzden dönüşüm oranına girmiyor.`,
+    `Bayiye iletilen: seçilen dönemde bayiye iletilen talepler. Bu taleplerde fiyatı bayi veriyor; tutar ve sonuç ${MARKA} kayıtlarında yok, bu yüzden dönüşüm oranına girmiyor.`,
     'Fiyat verilen: teklif tarihi seçilen döneme düşen talepler.',
     `Müşterinin yanıtı beklenen: şu an "Teklif Verildi" durumundaki talepler; tarih süzgecinden bağımsız. ${TEKLIF_BEKLEME_GUN} günü geçen, fiyat verildiği günden sayılır.`,
     'Satışa dönen: sonucu "Satış oldu" yazılıp seçilen dönemde kapanan teklifler. Tutar, kapanışta yazılan satış fiyatlarının toplamıdır.',
-    'Dönüşüm oranı: seçilen dönemde sonucu yazılarak kapanan tekliflerden satışa dönenlerin payı. Bayiye atanan, iptal edilen ve hâlâ açık olan teklifler hesaba girmez.',
+    'Dönüşüm oranı: seçilen dönemde sonucu yazılarak kapanan tekliflerden satışa dönenlerin payı. Bayiye iletilen, iptal edilen ve hâlâ açık olan teklifler hesaba girmez.',
     'Yanıt beklenen teklif tutarı: şu an müşterinin yanıtı beklenen tekliflerin tutarları toplamı; tarih süzgecinden bağımsız. Tutarı rakamla yazılmamış teklif toplama girmez, kaç tanesinin girdiği kutunun altında yazar.',
     `Teklif talepleri ne oldu: seçilen dönemde açılan taleplerin bugünkü durumu. Olumsuz sonuçlar kapanışta seçildiği gibi ayrı satırlarda. Yanıt bekleyen teklifler, fiyat verildiği tarihten geçen süreye göre ikiye ayrılır: ${TEKLIF_BEKLEME_GUN} günü geçmeyenler "Müşterinin yanıtı bekleniyor", geçmişler "Yanıt gecikti"; teklif tablosundaki "Sonuç" sütunu da aynı adları kullanır.`,
     "Bayi karnesi: kayıtlı makine, makine kayıt defterinde o bayiye bağlı seri numaralarıdır; bir makine bir kez sayılır. Bu bir satış adedi değildir, kesin satış Logo'daki faturadan gelir. Üç makine sütunu da makinenin defterdeki ilk satırına bakar, bu yüzden \"bu dönem kaydedilen\" her zaman \"kayıtlı\"nın alt kümesidir.",
@@ -382,8 +382,8 @@ export const satisBolumu = {
       )
 
     /* KATALOGDAN SİLİNMİŞ BAYİ KAYBOLMUYOR. Tablo yalnız bayi
-       listesindeki bayilere satır açıyordu; silinmiş bir bayiye atanmış
-       teklif "Bayiye atanan" ölçüsünde sayılıyor ama tabloda hiçbir
+       listesindeki bayilere satır açıyordu; silinmiş bir bayiye iletilmiş
+       teklif "bayiye iletilen" ölçüsünde sayılıyor ama tabloda hiçbir
        satıra girmiyordu — aynı sekmede aynı şey için iki farklı sayı.
        Bayi listede yokken sayılar tek satırda toplanıyor. */
     const bilinen = new Set(bayiler.map((b) => b.id))

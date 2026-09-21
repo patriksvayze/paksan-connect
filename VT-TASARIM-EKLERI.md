@@ -1,6 +1,6 @@
 # Uygulamadan gelen veritabanı tasarımı ekleri
 
-18 Eylül 2026'da uygulamaya iki yeni akış girdi. İkisi de bugün
+18 Eylül 2026'da uygulamaya iki yeni akış girdi (21 Eylül'de üçüncüsü eklendi). Hepsi bugün
 tarayıcının hafızasında çalışıyor; sunucuya geçerken veritabanı
 tasarımına (`veritabani/tasarim.md`) aşağıdaki maddeler işlenmeli.
 
@@ -121,3 +121,29 @@ defterde duruyor, bir kerelik adres de girilebiliyor.
 - **Taşıma eşlemesi:** `servisAdresleri` → `servis.TeslimatAdresi`;
   talepteki `teslimat` → ziyaretsiz satır; `servisKaydi.teslimat` ve
   `oncekiKayitlar[].teslimat` → ziyaretli satır.
+
+## 3. Rolün birden çok talep türü görmesi (21 Eylül 2026)
+
+Akış: backoffice'te Roller ve Yetkiler ekranında bir rolün "Gördüğü
+Talepler"i artık birden çok seçilebiliyor (kullanıcının isteği). Örnek:
+servis ve fiyat teklifi taleplerine birlikte bakan bir masa. Hiçbiri
+seçili değilse ya da üçü birden seçildiyse rol bütün talepleri görür.
+Uygulamada alan `talepTurleri` (dizi); tek türlü eski kayıtlar okunurken
+çevriliyor (`src/backoffice/veri.js` → `rolunTurleri`).
+
+- **Bugünkü şema tek tür tutuyor:** `erisim.Rol.TalepTuruKodu NULL`
+  (FK `kod.TalepTuru`). Birden çok tür için ara tablo gerekiyor.
+- **`erisim.RolTalepTuru`:** `erisim.RolIzin` kalıbıyla `RolKimlik`,
+  `TalepTuruKodu` → `PK (RolKimlik, TalepTuruKodu)`, FK'ler
+  `erisim.Rol (Kimlik)` ve `kod.TalepTuru (Kod)`, sistem sürümlemeli
+  (`gecmis.erisim_RolTalepTuru`). Satır yoksa rol bütün talepleri görür.
+- **Taşıma:** dolu `erisim.Rol.TalepTuruKodu` değerleri birer satır
+  olarak yeni tabloya; ardından sütun, FK'si ve `IX_erisim_Rol_TalepTuruKodu`
+  kaldırılır (sürümleme geçici kapatılarak, geçmiş tablosuyla birlikte).
+- **Görünür karşılık:** rolün talep listesi süzgeci (`rolunTalepleri`)
+  "türü listede VEYA masası listede" kuralıyla çalışıyor; sunucudaki
+  sorgu da aynı kuralı uygulamalı.
+- **Tohum:** `tools/vt/tohum-uret.mjs` (B03) bugün tek türü sütuna
+  yazıyor; varsayılan rollerden biri birden çok tür alırsa üretim
+  "veritabanında yeri yok" diye duruyor. Tablo gelince B03 satırları ona
+  yazacak.

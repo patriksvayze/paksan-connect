@@ -22,7 +22,8 @@ import {
 } from '../lib/parcaKatalogu'
 import { ParcaSecEkrani } from './ParcaSecEkrani'
 import { formatSerial } from '../lib/serial'
-import { araProps, telKullanici } from '../lib/tel'
+import { telKullanici } from '../lib/tel'
+import { CIZIM } from '../marka/icerik/cizimler'
 import { musterininServisleri } from '../lib/servisAtama'
 import { SesKaydi } from '../components/SesKaydi'
 import { EkAlani } from '../components/EkAlani'
@@ -38,7 +39,7 @@ import { useDil } from '../i18n'
 import { BANKA, SIRKET } from '../marka'
 import {
   IconCheckCircle, IconPin, IconRight, IconLock, IconCheck, IconAlert,
-  IconPlus, IconMinus, IconCart, IconInfo, IconPhone, IconClose,
+  IconPlus, IconMinus, IconCart, IconInfo, IconClose,
 } from '../components/Icons'
 
 /* Tür başlıkları sözlükte: talep.servis.baslik gibi. Placeholder
@@ -725,40 +726,46 @@ function TalepFormu() {
      sahiplenmez, müşteri de bir şey olduğunu sanır. Boşa açılan bir
      talep, açılmamış talepten kötü.
 
-     Atama PAKSAN'ın kararı (bkz. lib/servisAtama.js). Bu yüzden ekran
-     çiftçiden bir şey yapmasını istemiyor, PAKSAN'ı aramasını
-     söylüyor — tek dokunuşla.
+     Atama PAKSAN'ın kararı (bkz. lib/servisAtama.js) ve PAKSAN onu
+     kendisi yapıyor (21 Eylül 2026, kullanıcının kararı): ekran
+     "atamayı en kısa sürede PAKSAN yapacak" diyor ve DÜĞME YOK.
+     Önce altında "Geri" ve "PAKSAN'ı Ara" düğmeleri vardı; kullanıcı
+     ikisini de kaldırttı: geri düğmesi zaten sol üstte, aramak da
+     müşteriden istenen bir iş değil — atamayı PAKSAN yapıyor.
+
+     MAKİNESİ HİÇ YOKSA AYRI EKRAN. Servis makineye göre belirleniyor;
+     kayıtlı makinesi olmayan müşteri için "servis atanmadı" demek
+     yanlış yönlendirmeydi (atanacak makine yok). Ona makinesini
+     kaydetmesi söyleniyor ve kayıt ekranına götüren düğme veriliyor.
 
      YALNIZ SERVİS TALEBİNDE. Yedek parça ve fiyat teklifi PAKSAN'da
      karşılık buluyor; onları engellemenin sebebi yok. */
   if (tur === 'servis' && !servisim) {
+    const makineYok = machines.length === 0
     return (
       <div className="app">
         <TopBar title={cfg('baslik')} back />
         <div className="screen wrap fade-in" style={{ paddingTop: 24 }}>
-          <div className="card center" style={{ padding: '30px 20px' }}>
-            <div style={{ color: 'var(--pk-orange-ink)' }}>
-              <IconAlert size={46} />
+          {makineYok ? (
+            <div className="empty">
+              <img className="empty__cizim" src={CIZIM.bosMakine} alt="" />
+              <h2 style={{ fontSize: 18.5, marginBottom: 8 }}>{t('talep.makineYokBaslik')}</h2>
+              <p style={{ lineHeight: 1.6, marginBottom: 24 }}>{t('talep.makineYokAlt')}</p>
+              <button className="btn btn--primary btn--lg" onClick={() => nav('/makine-ekle')}>
+                <IconPlus size={22} /> {t('makine.ekle')}
+              </button>
             </div>
-            <h2 style={{ marginTop: 14 }}>{t('talep.servisYok')}</h2>
-            <p className="muted" style={{ marginTop: 10, lineHeight: 1.6 }}>
-              {t('talep.servisYokAlt')}
-            </p>
-            <a
-              className="btn btn--brand btn--lg"
-              style={{ marginTop: 20 }}
-              {...araProps(SIRKET.telefonHam, SIRKET.telefon, showToast)}
-            >
-              <IconPhone size={21} /> {t('talep.servisYokAra')}
-            </a>
-            <button
-              className="btn btn--soft"
-              style={{ marginTop: 10 }}
-              onClick={() => nav('/')}
-            >
-              {t('ortak.geri')}
-            </button>
-          </div>
+          ) : (
+            <div className="card center" style={{ padding: '30px 20px' }}>
+              <div style={{ color: 'var(--pk-orange-ink)' }}>
+                <IconAlert size={46} />
+              </div>
+              <h2 style={{ marginTop: 14 }}>{t('talep.servisYok')}</h2>
+              <p className="muted" style={{ marginTop: 10, lineHeight: 1.6 }}>
+                {t('talep.servisYokAlt')}
+              </p>
+            </div>
+          )}
         </div>
         <TabBar />
       </div>

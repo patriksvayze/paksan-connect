@@ -326,15 +326,26 @@ export function ilkIslemZamani(t) {
    iki kez bakıldığında iki farklı sayı çıkıyordu.
 
    İkisi de yeniden açılıp TEKRAR kapanan talepte son kapanışı alıyor:
-   talep bir dönemde bir kez sayılıyor. */
+   talep bir dönemde bir kez sayılıyor.
+
+   "BAYİYE İLETİLDİ" DE KAPANIŞ (21 Eylül 2026). Fiyat teklifi bayiye
+   verildiğinde PAKSAN'ın işi biter; kullanıcının deyişiyle "aslında
+   kapanmış sayılmalı". Eskiden bu talep "Kapandı" durumuna geçtiği
+   için kapanan sayısına kendiliğinden giriyordu; kendi durumunu alınca
+   sayımdan düşmesin diye kapanış olayı iki durumu da tanıyor. */
+const KAPANIS_DURUMLARI = ['kapandi', 'bayiyeIletildi']
+
 export function kapanisZamani(t) {
-  if (t?.status !== 'kapandi') return null
+  if (!KAPANIS_DURUMLARI.includes(t?.status)) return null
   return kapanisOlayi(t)
 }
 
 export function kapanisOlayi(t) {
-  const satirlar = (t?.gecmis || []).filter((g) => g?.durum === 'kapandi' && g.tarih)
+  const satirlar = (t?.gecmis || []).filter(
+    (g) => KAPANIS_DURUMLARI.includes(g?.durum) && g.tarih,
+  )
   if (satirlar.length) return satirlar[satirlar.length - 1].tarih
+  if (t?.status === 'bayiyeIletildi') return t.bayi?.tarih || null
   return t?.status === 'kapandi' ? t.cozum?.tarih || null : null
 }
 

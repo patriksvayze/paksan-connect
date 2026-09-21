@@ -4,7 +4,9 @@ import { talepNo } from '../../lib/talep'
 import { INDIRME_ADRESI, uygulamaEk, UYGULAMA, SIRKET } from '../../marka'
 import { ILLER, ilceleriGetir } from '../../data/iller'
 import { extractYear, formatSerial, normalizeSerial, validateSerial } from '../../lib/serial'
-import { servisMakineKaydi } from '../../lib/makineKaydi'
+import { servisMakineKaydi, seriSatiri } from '../../lib/makineKaydi'
+import { telGoster } from '../../lib/tel'
+import { adBicimle } from '../../lib/adBicimi'
 import { islemYaz, musterileriGetir } from '../../backoffice/veri'
 import { getProduct } from '../../marka'
 import { Bolum } from '../Kabuk'
@@ -73,15 +75,52 @@ import { IconAlert, IconCheckCircle, IconSend } from '../../components/Icons'
    ve bugün hep boş; servisin elle açtığı kayıt onu bugünden doldurmaya
    başlıyor. Kayıtlı müşterinin listeden seçilen makinesi için satır
    AÇILMIYOR: o makine defterde zaten var.
+
+   SERİ DEFTERDE ZATEN VARSA SATIR AÇILMIYOR (21 Eylül 2026). Önce
+   açılıyordu: bir müşteride kayıtlı makine, talebi açan ikinci kişide
+   de görünüyordu ve en yeni satır öne geçtiği için makinenin servisi
+   bu servis oluyordu (bkz. lib/makineKaydi.js başı). Talep YİNE
+   açılıyor — makineyi getiren sahibinin işçisi, akrabası ya da onu
+   ikinci el almış biri olabilir; servis kapıdan çeviremez. Ama
+   makinenin kaydı değişmiyor ve servis bunu yazarken görüyor. Makine
+   başka bir müşterinin hesabındaysa İşlem Kaydı'na da düşüyor: makine
+   el değiştirmiş olabilir, devri PAKSAN yapıyor.
+
+   MAKİNENİN SAHİBİ GÖSTERİLİYOR VE ONAY İSTENİYOR (21 Eylül 2026,
+   kullanıcının kararı): "Servis talebini illa kayıtlı kişi açmak zorunda
+   değil, oğlu veya başka biri açmıştır. En azından onay ekranında
+   makinenin asıl sahibini görüp ona göre onay alır servis." Aynı gün
+   önce sahibin adı başkasının bilgisi diye gizlenmişti; karar tersine
+   döndü. Servis PAKSAN'ın iş ortağı ve karşısındaki kişiye "Ahmet
+   Bey'in nesi oluyorsunuz?" diye sorabilmesi için adı bilmesi gerekiyor.
+   Seri yazılınca kutunun altında sahibin adı, yeri ve telefonu çıkıyor;
+   servis "Anladım"a basmadan talep açılmıyor (aynı gün sonraki karar:
+   önce "Talebi Aç"tan sonra bir onay yaprağı açılıyordu ve telefon
+   gösterilmiyordu).
    ========================================================================== */
 
 /* Numaranın yalnız rakamları karşılaştırılıyor: müşteri "0532 111 22 33"
    yazmış olabilir, servis "532 111 22 33". */
 const rakamlar = (v) => String(v || '').replace(/\D/g, '').slice(-10)
 
+/* Kayıtlı müşterinin adı ve soyadı. Connect hesabı ikisini ayrı tutuyor
+   (`adi`, `soyadi`); ayrı alanı olmayan eski kayıtta tam ad son
+   boşluktan bölünüyor — soyadı son kelime. */
+function adiSoyadi(m) {
+  if (m?.adi || m?.soyadi) return [m.adi || '', m.soyadi || '']
+  const parca = String(m?.ad || '').trim().split(/\s+/).filter(Boolean)
+  if (parca.length < 2) return [parca[0] || '', '']
+  return [parca.slice(0, -1).join(' '), parca[parca.length - 1]]
+}
+
 export function ElleKayit({ oturum, onKaydedildi }) {
   const [tel, setTel] = useState('')
-  const [ad, setAd] = useState('')
+  /* AD VE SOYAD AYRI KUTUDA (21 Eylül 2026, kullanıcının isteği): tek
+     kutuda "onu rgökay" gibi yanlış yere düşen bir boşluk kayda öyle
+     geçiyordu. Kayıtta yine tek alan (`talep.ad`, veritabanında
+     talep.Talep.IletisimAdi); iki kutu kaydederken birleşiyor. */
+  const [adi, setAdi] = useState('')
+  const [soyadi, setSoyadi] = useState('')
   /* Adı servis mi yazdı, biz mi doldurduk — bkz. `telYaz`. */
   const [adElle, setAdElle] = useState(false)
   const [il, setIl] = useState(oturum.il || '')
@@ -118,6 +157,65 @@ export function ElleKayit({ oturum, onKaydedildi }) {
     makineler.find((m) => m.id === makineId) ||
     (makineler.length === 1 ? makineler[0] : null)
 
+  /* Yazılan seri defterde var mı, varsa kimde. Seri tanınmıyorsa soru
+     sorulmuyor: kaydet zaten hata veriyor. */
+  const kayitliSatir = useMemo(() => {
+    const sonuc = seri.trim() ? validateSerial(normalizeSerial(seri)) : null
+    return sonuc?.ok ? seriSatiri(sonuc.serial) : null
+  }, [seri])
+  const buMusteride = Boolean(
+    kayitliSatir &&
+      eslesen &&
+      ((kayitliSatir.musteriId && kayitliSatir.musteriId === eslesen.id) ||
+        (kayitliSatir.musteriNo && kayitliSatir.musteriNo === eslesen.no))
+  )
+  const baskaMusteride = Boolean(
+    kayitliSatir && (kayitliSatir.musteriId || kayitliSatir.musteriNo) && !buMusteride
+  )
+
+  /* Makine telefonu yazılan kişinin değilse kimin adına kayıtlı. Hesabı
+     olan sahipte ad ve yer hesabın GÜNCEL kaydından (defterdeki ad
+     makine eklendiği günün adı); hesapsız satırda servisin o gün
+     yazdığı ad. */
+  const baskasininMakinesi = useMemo(() => {
+    if (!kayitliSatir || buMusteride) return null
+    const hesap = musteriler.find(
+      (m) =>
+        (kayitliSatir.musteriId && m.id === kayitliSatir.musteriId) ||
+        (kayitliSatir.musteriNo && m.no === kayitliSatir.musteriNo)
+    )
+    /* TELEFON (21 Eylül 2026, kullanıcının isteği). Hesabı olan sahipte
+       hesabın numarası. Hesapsız satırda defter numara tutmuyor; numara
+       o makineyi deftere yazan elle açılmış talepte duruyor. İkisi de
+       yoksa satır çizilmiyor. */
+    const ilkTalep = hesap
+      ? null
+      : load('requests', []).find(
+          (t) =>
+            t.elle &&
+            normalizeSerial(t.makine?.serial) === normalizeSerial(kayitliSatir.seri) &&
+            t.telHam
+        )
+    const telHam = hesap?.tel || ilkTalep?.telHam || ''
+    return {
+      id: kayitliSatir.id,
+      ad: hesap?.ad || kayitliSatir.musteriAd || '—',
+      yer: [hesap?.ilce || kayitliSatir.ilce, hesap?.il || kayitliSatir.il]
+        .filter(Boolean)
+        .join(' / '),
+      telHam,
+      tel: telHam ? telGoster(hesap?.ulke || 'TR', telHam) : '',
+    }
+  }, [kayitliSatir, buMusteride, musteriler])
+
+  /* "ANLADIM" ZORUNLU (21 Eylül 2026, kullanıcının kararı): servisin
+     uyarıyı okuyup anladığına dair onayı. Aynı gün önce "Talebi Aç"tan
+     sonra açılan bir onay yaprağı vardı; düğme onun yerini aldı — aynı
+     şeyi iki kez onaylatmak servise fazladan soru. Onay SATIRA bağlı:
+     seri başka birinin makinesine değişirse yeniden isteniyor. */
+  const [anlasilanSatir, setAnlasilanSatir] = useState(null)
+  const anladi = Boolean(baskasininMakinesi) && anlasilanSatir === baskasininMakinesi.id
+
   /* Eşleşme bulununca alanlar dolduruluyor; servis isterse üzerine
      yazabiliyor (müşteri taşınmış olabilir).
 
@@ -129,7 +227,8 @@ export function ElleKayit({ oturum, onKaydedildi }) {
      müşterinin hesabına bağlı olarak kaydediliyordu.
 
      `adElle` ayrımı bunu çözüyor: kendi doldurduğumuz adı
-     değiştirebiliriz, servisin yazdığını değiştiremeyiz. */
+     değiştirebiliriz, servisin yazdığını değiştiremeyiz. İki kutudan
+     birine servis bir şey yazdıysa ikisine de dokunulmuyor. */
   function telYaz(v) {
     setTel(v)
     setHata('')
@@ -138,18 +237,40 @@ export function ElleKayit({ oturum, onKaydedildi }) {
     const m = n.length === 10 ? musteriler.find((x) => rakamlar(x.tel) === n) : null
     if (!m) {
       /* Eşleşme kalmadıysa bizim doldurduğumuz ad da kalkıyor. */
-      if (!adElle) setAd('')
+      if (!adElle) {
+        setAdi('')
+        setSoyadi('')
+      }
       return
     }
-    if (!adElle) setAd(m.ad || '')
+    if (!adElle) {
+      const [a, s] = adiSoyadi(m)
+      setAdi(a)
+      setSoyadi(s)
+    }
     if (m.il) setIl(m.il)
     if (m.ilce) setIlce(m.ilce)
     if (m.adres) setAdres(m.adres)
   }
 
+  /* Ad ve soyad kutusuna yalnız harf, boşluk, tire ve kesme işareti
+     girer. Kullanıcı "123424 223424" yazıp talebi açabilmişti (21 Eylül
+     2026): uzunluk denetimi rakamı ad sayıyordu. Rakam ve işaret
+     yazılırken düşüyor; bu yüzden ayrı bir hata metnine gerek yok. */
+  function adYaz(kutu, hamDeger) {
+    const deger = hamDeger.replace(/[^\p{L}\s'-]/gu, '')
+    const yeniAdi = kutu === 'adi' ? deger : adi
+    const yeniSoyadi = kutu === 'soyadi' ? deger : soyadi
+    setAdi(yeniAdi)
+    setSoyadi(yeniSoyadi)
+    setAdElle(Boolean(yeniAdi.trim() || yeniSoyadi.trim()))
+  }
+
   function kaydet() {
     if (tel.replace(/\D/g, '').length < 10) return setHata('Telefon numarasını yazın.')
-    if (ad.trim().length < 3) return setHata('Müşterinin adını yazın.')
+    const harfSayisi = (s) => (s.match(/\p{L}/gu) || []).length
+    if (harfSayisi(adi) < 2) return setHata('Müşterinin adını yazın.')
+    if (harfSayisi(soyadi) < 2) return setHata('Müşterinin soyadını yazın.')
     if (!il) return setHata('İl seçin.')
     if (!ilce) return setHata('İlçe seçin.')
     if (adres.trim().length < 10) return setHata('Adresi en az 10 karakter olacak şekilde yazın.')
@@ -180,13 +301,21 @@ export function ElleKayit({ oturum, onKaydedildi }) {
       return setHata('Hangi makine için geldiğini seçin.')
     }
 
+    /* Seri başkasının adına kayıtlıysa servis uyarıdaki "Anladım"a
+       basmış olmalı. */
+    if (yeniKayit && baskasininMakinesi && !anladi) {
+      return setHata('Talebi açmadan önce makinenin sahibiyle ilgili uyarıyı okuyup Anladım düğmesine basın.')
+    }
+
     const talep = {
       id: uid(),
       no: talepNo('servis'),
       createdAt: Date.now(),
       status: 'yeni',
       tur: 'servis',
-      ad: ad.trim(),
+      /* "Onur Gökay" biçiminde (kullanıcının isteği, lib/adBicimi.js).
+         Defter satırı, İşlem Kaydı ve SMS daveti bu alandan okuyor. */
+      ad: adBicimle(`${adi} ${soyadi}`),
       tel: tel.trim(),
       telHam: tel.replace(/\D/g, ''),
       il,
@@ -217,18 +346,20 @@ export function ElleKayit({ oturum, onKaydedildi }) {
       tur: 'talep',
       ozet: `${talep.no} · elle açıldı · ${talep.ad}${
         eslesen ? ' · kayıtlı müşteri' : ''
-      }`,
+      }${yeniKayit && baskaMusteride ? ' · makine başka müşteride kayıtlı' : ''}`,
       personel: oturum.ad,
     })
 
     /* Kayıt defterine YALNIZ elle yazılan seri için satır açılıyor.
        Listeden seçilen makine defterde zaten var; ikinci satır aynı
-       makineyi iki kez göstermek olurdu. */
+       makineyi iki kez göstermek olurdu. Elle yazılan seri de defterde
+       varsa `servisMakineKaydi` yazmadan dönüyor. */
     if (yeniKayit) {
       servisMakineKaydi({
         seri: makine.serial,
         productId: makine.productId,
         musteriId: eslesen?.id || null,
+        musteriNo: eslesen?.no || null,
         musteriAd: talep.ad,
         il,
         ilce,
@@ -263,7 +394,7 @@ export function ElleKayit({ oturum, onKaydedildi }) {
             className="gir mono"
             value={tel}
             onChange={(e) => telYaz(e.target.value)}
-            placeholder="0532 111 22 33"
+            placeholder="532 111 22 33"
             type="tel"
             inputMode="tel"
             autoComplete="tel"
@@ -305,17 +436,35 @@ export function ElleKayit({ oturum, onKaydedildi }) {
           </div>
         )}
 
-        <label className="alan">
-          <span className="alan__ad">Müşterinin Adı</span>
-          <input
-            className="gir"
-            value={ad}
-            onChange={(e) => {
-              setAd(e.target.value)
-              setAdElle(e.target.value.trim().length > 0)
-            }}
-          />
-        </label>
+        {/* Ad ve soyad YAN YANA, Connect'in kayıt ekranıyla aynı düzen ve
+            aynı metinler (kullanıcının isteği): "Ad" / "Soyad", örnek
+            "Ahmet" / "Yılmaz". Aynı gün önce alt alta ve "Müşterinin
+            Soyadı" etiketiyle yapılmıştı; kullanıcı beğenmedi. Kısa
+            etiketler telefonda sarmıyor. */}
+        <div className="esit esit--ikili">
+          <label className="alan">
+            <span className="alan__ad">Ad</span>
+            <input
+              className="gir"
+              value={adi}
+              onChange={(e) => adYaz('adi', e.target.value)}
+              placeholder="Ahmet"
+              autoComplete="given-name"
+              autoCapitalize="words"
+            />
+          </label>
+          <label className="alan">
+            <span className="alan__ad">Soyad</span>
+            <input
+              className="gir"
+              value={soyadi}
+              onChange={(e) => adYaz('soyadi', e.target.value)}
+              placeholder="Yılmaz"
+              autoComplete="family-name"
+              autoCapitalize="words"
+            />
+          </label>
+        </div>
 
         <div className="esit">
           <label className="alan">
@@ -371,20 +520,68 @@ export function ElleKayit({ oturum, onKaydedildi }) {
             </span>
           </div>
         ) : (
-          <label className="alan">
-            <span className="alan__ad">Makine Seri Numarası (varsa)</span>
-            <input
-              className="gir mono"
-              value={seri}
-              onChange={(e) => setSeri(e.target.value)}
-              placeholder="ORK1270-2024-00157"
-            />
-            <span className="kucuk sonuk">
-              {eslesen
-                ? 'Bu müşterinin kayıtlı makinesi yok. Seri numarasını elle yazabilirsiniz.'
-                : 'Yazarsanız makine sizin kaydınıza bağlanır. Model seri numarasından bulunuyor.'}
-            </span>
-          </label>
+          <>
+            <label className="alan">
+              <span className="alan__ad">Makine Seri Numarası (varsa)</span>
+              <input
+                className="gir mono"
+                value={seri}
+                onChange={(e) => setSeri(e.target.value)}
+                placeholder="ORK1270-2024-00157"
+              />
+              {/* Seri defterdeyse ipucu onu söylüyor: "sizin kaydınıza
+                  bağlanır" o zaman doğru değil (bkz. dosyanın başı).
+                  Başkasının makinesinde ipucunun yerini aşağıdaki uyarı
+                  alıyor. */}
+              {!baskasininMakinesi && (
+                <span className="kucuk sonuk">
+                  {buMusteride
+                    ? 'Bu makine bu müşterinin adına zaten kayıtlı.'
+                    : eslesen
+                      ? 'Bu müşterinin kayıtlı makinesi yok. Seri numarasını elle yazabilirsiniz.'
+                      : 'Yazarsanız makine sizin kaydınıza bağlanır. Model seri numarasından bulunuyor.'}
+                </span>
+              )}
+            </label>
+
+            {/* BAŞKASININ MAKİNESİ: sahibi ve telefonu yazılıyor
+                (gerekçe dosyanın başında). Talep engellenmiyor ama
+                "Anladım" basılmadan açılmıyor. Numara dokununca aranıyor:
+                servis "makineyi getiren sizin nenizdir" diye sahibine
+                sorabilsin. */}
+            {baskasininMakinesi && (
+              <div className="not not--turuncu" style={{ marginTop: 0, marginBottom: 14 }}>
+                <IconAlert size={19} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <strong>Bu makine başka birinin adına kayıtlı</strong>
+                  <p>
+                    Kayıtlı sahibi: {baskasininMakinesi.ad}
+                    {baskasininMakinesi.yer ? ` · ${baskasininMakinesi.yer}` : ''}
+                  </p>
+                  {baskasininMakinesi.tel && (
+                    <p>
+                      Telefon:{' '}
+                      <a className="mono not__tel" href={`tel:${baskasininMakinesi.telHam}`}>
+                        {baskasininMakinesi.tel}
+                      </a>
+                    </p>
+                  )}
+                  <button
+                    type="button"
+                    className={'dg dg--blok not__onay' + (anladi ? ' not__onay--on' : '')}
+                    aria-pressed={anladi}
+                    onClick={() => {
+                      setAnlasilanSatir(anladi ? null : baskasininMakinesi.id)
+                      setHata('')
+                    }}
+                  >
+                    {anladi && <IconCheckCircle size={19} />}
+                    Anladım
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         <DikteliKutu ad="Servis Talebi Nedeni" deger={aciklama} onDegis={setAciklama} satir={3} />
@@ -397,6 +594,7 @@ export function ElleKayit({ oturum, onKaydedildi }) {
           Talebi Aç
         </button>
       </div>
+
     </>
   )
 }

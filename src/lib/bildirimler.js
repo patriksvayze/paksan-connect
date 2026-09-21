@@ -18,12 +18,18 @@
 import { load } from './storage'
 import { duyuruGecerliMi } from './duyuruHedef.js'
 import { yurtdisiTalepMi } from './ihracat'
+import { normalizeSerial } from './serial'
 
 export const BILDIRIM_TURU = {
   TALEP: 'talep',
   DUYURU: 'duyuru',
   UYARI: 'uyari',
   RANDEVU: 'randevu',
+  /* Müşterinin makinesiyle ilgili kişisel bildirim (21 Eylül 2026):
+     bugün yalnız "makinenize servis atandı" (backoffice/veri.js →
+     makineAtamasiniKaydet). Duyuru türüne düşseydi satırda "Kampanya"
+     etiketi çıkardı; talep türüne düşseydi talep ikonu. */
+  MAKINE: 'makine',
 }
 
 /* Randevu hatırlatması kaç saat önce çıksın.
@@ -105,6 +111,7 @@ export function bildirimListesi({ requests = [], user = null, makineler = [] } =
       id: 'duyuru-' + d.id,
       tur: d.tur === 'uyari' ? BILDIRIM_TURU.UYARI
         : d.tur === 'talep' ? BILDIRIM_TURU.TALEP
+        : d.tur === 'makine' ? BILDIRIM_TURU.MAKINE
         : BILDIRIM_TURU.DUYURU,
       /* Personelin elle yazdığı duyuru hazır metin; uygulamanın
          ürettiği otomatik bildirim sözlük anahtarı taşıyor ki müşterinin
@@ -125,9 +132,10 @@ export function bildirimListesi({ requests = [], user = null, makineler = [] } =
 
            talep durumu  → o talebin kendisi (silinmişse gitmiyor)
            numara        → profildeki hesap bilgileri
+           servis ataması→ o makinenin ekranı (silinmişse listesi)
            görüş cevabı  → gidilecek yer yok, okunup geçiliyor
            duyuru        → gidilecek yer yok                        */
-      ...yonlendir(d, requests),
+      ...yonlendir(d, requests, makineler),
     }))
 
   /* Sabit satırlar önde döndürülüyor ki ekran onları ayırabilsin;
@@ -156,7 +164,7 @@ export function bildirimleriAyir(liste) {
    `yol` boş kalıyor ve satır tıklanınca yalnızca okundu işaretleniyor.
    Ekranda da o satır ok işareti göstermiyor — dokunmanın bir şey
    yapacağı izlenimi verilmiyor. */
-function yonlendir(d, requests) {
+function yonlendir(d, requests, makineler = []) {
   if (d.talepNo) {
     const talep = requests.find((r) => r.no === d.talepNo)
     /* Müşteri talebi silmişse bildirim artık bir yere gitmiyor */
@@ -164,6 +172,14 @@ function yonlendir(d, requests) {
     return { yol: '/talebim/' + talep.id, durum: null }
   }
   if (d.tur === 'numara') return { yol: '/profil', durum: { odak: 'hesap' } }
+  /* Servis ataması: makine seri numarasıyla bulunuyor, çünkü PAKSAN'ın
+     defteri telefondaki makinenin kimliğini bilmiyor. Müşteri makineyi
+     telefonundan silmişse makine listesi açılıyor. */
+  if (d.tur === 'makine') {
+    const aranan = normalizeSerial(d.degerler?.seri)
+    const makine = aranan && makineler.find((m) => normalizeSerial(m.serial) === aranan)
+    return { yol: makine ? '/makine/' + makine.id : '/makinelerim', durum: null }
+  }
   return { yol: null, durum: null }
 }
 

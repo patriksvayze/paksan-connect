@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import {
-  rolEkle, rolGuncelle, rolleriGetir, rolSil, rolunPersoneli,
+  rolEkle, rolGuncelle, rolleriGetir, rolSil, rolunPersoneli, rolunTurleri,
 } from '../veri'
 import { useVeri } from '../kanca'
 import { Baslik, Bekleme } from './ortak'
@@ -31,14 +31,15 @@ import { TALEP_TURU_SECENEKLERI, YETKI_KATALOG } from '../../data/yetkiler'
    ayarını değiştirmek.
    ========================================================================== */
 
-const BOS = { ad: '', aciklama: '', talepTuru: null, izinler: [] }
+/* `talepTurleri` boş dizi = bütün türler ("Hepsi"). */
+const BOS = { ad: '', aciklama: '', talepTurleri: [], izinler: [] }
 
 /* Rol kaydından form taslağı. */
 function taslakYap(r) {
   return {
     ad: r.ad,
     aciklama: r.aciklama || '',
-    talepTuru: r.talepTuru || null,
+    talepTurleri: rolunTurleri(r) || [],
     izinler: [...(r.izinler || [])],
   }
 }
@@ -50,7 +51,7 @@ function degistiMi(taslak, kayit) {
   return (
     taslak.ad !== kayit.ad ||
     taslak.aciklama !== (kayit.aciklama || '') ||
-    (taslak.talepTuru || null) !== (kayit.talepTuru || null) ||
+    [...taslak.talepTurleri].sort().join() !== [...(rolunTurleri(kayit) || [])].sort().join() ||
     [...taslak.izinler].sort().join() !== [...(kayit.izinler || [])].sort().join()
   )
 }
@@ -243,20 +244,35 @@ export function Roller({ personel, bildir, tazele, surum }) {
 
             {/* Talep türü yetkiden AYRI bir soru: "talepleri görür" izni
                 hangi talepleri göreceğini söylemiyor. Servis ekibi
-                talepleri görüyor ama yalnız servis taleplerini. */}
+                talepleri görüyor ama yalnız servis taleplerini.
+
+                BİRDEN ÇOK TÜR SEÇİLEBİLİYOR (21 Eylül 2026, kullanıcının
+                isteği): çipler aç-kapa çalışıyor. "Hepsi" seçimi temizliyor;
+                hiçbiri seçili değilse ya da üçü birden seçildiyse rol bütün
+                talepleri görüyor ve "Hepsi" yanıyor. */}
             <div className="alan">
               <span className="alan__ad">Gördüğü Talepler</span>
               <div className="suzgec">
-                {TALEP_TURU_SECENEKLERI.map((s) => (
-                  <button
-                    key={s.id || 'hepsi'}
-                    className={'cip' + ((taslak.talepTuru || null) === s.id ? ' cip--on' : '')}
-                    disabled={kilitli}
-                    onClick={() => setTaslak({ ...taslak, talepTuru: s.id })}
-                  >
-                    {s.ad}
-                  </button>
-                ))}
+                {TALEP_TURU_SECENEKLERI.map((s) => {
+                  const turler = rolunTurleri({ talepTurleri: taslak.talepTurleri }) || []
+                  const secili = s.id === null ? turler.length === 0 : turler.includes(s.id)
+                  const degistir = () => {
+                    if (s.id === null) return setTaslak({ ...taslak, talepTurleri: [] })
+                    const yeni = secili ? turler.filter((t) => t !== s.id) : [...turler, s.id]
+                    setTaslak({ ...taslak, talepTurleri: rolunTurleri({ talepTurleri: yeni }) || [] })
+                  }
+                  return (
+                    <button
+                      key={s.id || 'hepsi'}
+                      className={'cip' + (secili ? ' cip--on' : '')}
+                      aria-pressed={secili}
+                      disabled={kilitli}
+                      onClick={degistir}
+                    >
+                      {s.ad}
+                    </button>
+                  )
+                })}
               </div>
             </div>
 

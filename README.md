@@ -22,9 +22,9 @@ personeli backoffice'ten yürütür.
 | Klasör | İçinde ne var |
 |---|---|
 | `src/` | **Bütün uygulama kodu.** Üç uygulama da buradan derleniyor. Alt klasörleri aşağıda. |
-| `veritabani/` | SQL Server veritabanının tasarımı ve kurulum betikleri. Henüz kalıcı olarak kurulmadı; ekosistem tamamlanınca kurulacak. |
-| `tools/` | Otomasyon betikleri: doğrulama (`dogrula.mjs`), **ekosistem sınaması** (`ekosistem-sinamasi.mjs` üç uygulamanın paylaştığı veri katmanını 13 akış senaryosuyla, `ekosistem-turu.mjs` gezilebilir 49 ekranın tamamını tarayıcıda koşturur; envanter `ekosistem/ekranlar.mjs`), ekran görüntüsü, ikon üretimi, veritabanı araçları. Uygulamanın içine girmez. |
-| `sunucu-taklidi/` | Sunucu gelene kadar sunucunun yerini tutan dosyalar — bugün yalnız **yedek parça kataloğu** (538 parça, görselleriyle). Geliştirme sunucusu bunları ağdan yayınlıyor. |
+| `veritabani/` | SQL Server veritabanının tasarımı ve kurulum betikleri. Henüz kalıcı olarak kurulmadı; ekosistem tamamlanınca kurulacak. `uygulama-eslesmesi.mjs`: uygulamaların yazdığı her alanın veritabanında nereye düştüğü. |
+| `tools/` | Otomasyon betikleri: doğrulama (`dogrula.mjs`), **ekosistem sınaması** (`ekosistem-sinamasi.mjs` üç uygulamanın paylaştığı veri katmanını 18 akış senaryosuyla, `ekosistem-turu.mjs` gezilebilir 49 ekranın tamamını tarayıcıda koşturur; envanter `ekosistem/ekranlar.mjs`), **eşleme denetimi** (`veritabani-eslesme-denetimi.mjs`: uygulama veritabanında karşılığı olmayan bir alan yazarsa doğrulamayı düşürür), **fiyat listesi sınaması** (`fiyat-listesi-okuma-sinamasi.mjs`: backoffice'e yüklenen PDF'i okuyan kodun doğru okuduğunu ve yayına alma adımını denetler), ekran görüntüsü, ikon üretimi, veritabanı araçları (`vt.mjs`; yedek `vt yedekle`). Uygulamanın içine girmez. |
+| `sunucu-taklidi/` | Sunucu gelene kadar sunucunun yerini tutan dosyalar — bugün yalnız **yedek parça kataloğu** (538 parça, görselleriyle) ve yeni fiyat listesini yayına alan adım (`fiyat-listesi-yayini.mjs`; backoffice'ten yüklenen liste buraya geliyor, eskisi `parca-katalogu-arsiv/`'e gidiyor). Geliştirme sunucusu bunları ağdan yayınlıyor. Ayrıntı: `sunucu-taklidi/BENIOKU.md`. |
 | `android/` | PAKSAN Connect'in Android projesi. Capacitor üretiyor. |
 | `android-servis/` | PAKSAN Servisim'in Android projesi. |
 | `apk/` · `apk-servis/` | Derlenmiş APK dosyaları. Her sürüm ayrı dosyada durur, üstüne yazılmaz. |

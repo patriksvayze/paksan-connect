@@ -98,7 +98,7 @@ Kodda doğrulanan en kritik üç bulgu:
   - Para birimi ve KDV şirket değeri olarak kalır; markada isteğe bağlı üzerine yazma alanı açılır.
   - Servis iskontosu `parca.servisIskonto ?? 0.3`.
 - **Tek talep ya da sipariş tek marka taşır**; karışık sepet olmaz.
-- **`tools/parca-katalogu.py`:** `--marka` argümanı.
+- **`src/lib/fiyatListesiOku.js`:** marka seçeneği (liste okunurken hangi markanın kataloğuna gideceği; 21.09.2026'ya kadar bu iş `tools/parca-katalogu.py`'deydi).
 - **`dogrula` 9. kontrol:** her marka klasörü için ayrı çalışır. Fiyatlı bir katalog, markada `kaynakNotu` yoksa **doğrulamayı düşürür** (uydurma fiyat engeli).
 
 ## Faz 5 — Ekranlar, metin, logo, katalog

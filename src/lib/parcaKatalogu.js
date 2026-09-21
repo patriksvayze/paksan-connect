@@ -154,6 +154,8 @@ export function katalogHamGetir() {
       )
       if (bozuk) throw new Error('katalog-eksik-alan')
 
+      gorselSurumu = Number(veri.surum) || 0
+
       /* Sunucu hızını taklit eden gecikme; sunucu açıldığında sıfır
          olacak (bkz. config.js). */
       if (PARCA_KATALOG.taklitGecikme > 0) {
@@ -186,9 +188,41 @@ export async function katalogGetir() {
   return duzeltmeleriUygula(await katalogHamGetir())
 }
 
+/* GÖRSEL ADRESİNDE LİSTENİN SÜRÜMÜ. Görseller tarayıcıda bir gün
+   saklanıyor ve dosya adı parça kodu; yeni liste aynı parçaya yeni resim
+   getirdiğinde adres değişmezse eski resim bir gün daha görünüyordu.
+   Sürüm eki adresi her yeni listede değiştiriyor. */
+let gorselSurumu = 0
+
 /** Parça görselinin adresi. Görseli olmayan parçada null. */
 export function gorselAdresi(gorsel) {
-  return gorsel ? `${kok()}/gorseller/${gorsel}` : null
+  if (!gorsel) return null
+  return `${kok()}/gorseller/${gorsel}${gorselSurumu ? `?s=${gorselSurumu}` : ''}`
+}
+
+/**
+ * Onaylanan fiyat listesini sunucuya gönderir; sunucu eskisini arşive
+ * alıp yenisini yürürlüğe sokar (sözleşme:
+ * sunucu-taklidi/fiyat-listesi-yayini.mjs). Başarılı olursa bellekteki
+ * katalog bırakılıyor ki ekranlar yeni listeyi okusun.
+ *
+ * @returns {Promise<{surum, parca, yayinTarihi} | {hata: string}>}
+ */
+export async function fiyatListesiYayinla(govde) {
+  let cevap
+  try {
+    cevap = await fetch(`${kok()}/yayinla`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(govde),
+    })
+  } catch {
+    return { hata: 'baglanti' }
+  }
+  const sonuc = await cevap.json().catch(() => ({}))
+  if (!cevap.ok) return { hata: sonuc.hata || `durum-${cevap.status}` }
+  katalogUnut()
+  return sonuc
 }
 
 /** Bir alt montajın parçaları, listedeki sırasıyla. */

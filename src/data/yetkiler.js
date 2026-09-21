@@ -101,7 +101,9 @@ export function yetkiAdi(id) {
 /* ==========================================================================
    Rolün gördüğü talep türü
 
-   Bir rol ya bütün talep türlerini görüyor (`null`) ya da tekini.
+   Bir rol ya bütün talep türlerini görüyor (`null`) ya da seçtiklerini
+   (`talepTurleri`, 21 Eylül 2026'dan beri birden çok; önce tek türdü —
+   okurken ikisini de veri.js → rolunTurleri çözüyor).
    Excel sütunları da buradan süzülüyor: sütun hangi türlerle anlamlıysa
    onu taşıyor, rol kimliğine bakılmıyor (bkz. Talepler.jsx).
    ========================================================================== */
@@ -136,7 +138,7 @@ export const VARSAYILAN_ROLLER = [
     id: 'admin',
     ad: 'Admin',
     aciklama: 'Her şeyi görür ve yapar; rolleri ve personel hesaplarını yönetir.',
-    talepTuru: null,
+    talepTurleri: null,
     izinler: TUM_IZINLER,
     sistem: true,
   },
@@ -144,7 +146,7 @@ export const VARSAYILAN_ROLLER = [
     id: 'yonetici',
     ad: 'Yönetici',
     aciklama: 'Tüm talepleri ve raporları görür; personel listesini görür ancak değiştiremez.',
-    talepTuru: null,
+    talepTurleri: null,
     izinler: [
       'talepler', 'musteriler', 'servisler', 'servisDuzenle', 'personel',
       'geribildirim', 'raporlar', 'yonetimOzeti', 'kayit', 'duyurular', 'destek',
@@ -154,21 +156,21 @@ export const VARSAYILAN_ROLLER = [
     id: 'servis',
     ad: 'Servis',
     aciklama: 'Yalnız servis taleplerini görür.',
-    talepTuru: 'servis',
+    talepTurleri: ['servis'],
     izinler: ['talepler', 'musteriler', 'servisler'],
   },
   {
     id: 'parca',
     ad: 'Yedek Parça',
     aciklama: 'Yalnız yedek parça taleplerini görür.',
-    talepTuru: 'parca',
+    talepTurleri: ['parca'],
     izinler: ['talepler', 'musteriler', 'servisler'],
   },
   {
     id: 'satis',
     ad: 'Satış',
     aciklama: 'Yalnız fiyat teklifi taleplerini görür; servis bölgelerini düzenleyebilir.',
-    talepTuru: 'satinalma',
+    talepTurleri: ['satinalma'],
     /* Satış personeli servisin sorumluluk bölgesini değiştirebiliyor:
        servis ağını tanıyan, hangi servisin nereye baktığını bilen o. */
     izinler: ['talepler', 'musteriler', 'servisler', 'servisDuzenle'],
@@ -189,7 +191,7 @@ export const YETKISIZ_ROL = {
   id: '',
   ad: 'Tanımsız rol',
   aciklama: 'Bu rol silinmiş. Yöneticinize başvurun.',
-  talepTuru: null,
+  talepTurleri: null,
   izinler: [],
 }
 

@@ -14,12 +14,18 @@
 
 export const PARA_BIRIMI = 'TL'
 
+/* Para biriminin işareti. Tutarın yanında yazı olarak `PARA_BIRIMI`
+   duruyor; işaret yalnız simge yerine kullanılıyor (Servisim → Hak Ediş,
+   "Hesabınızdaki Tutar" kartı). Ülkeye ait bilgi olduğu için motorda
+   düz yazılmıyor. */
+export const PARA_SIMGESI = '₺'
+
 /* KDV oranı.
 
    ⚠ KATALOĞUN KDV TEMELİ HENÜZ DOĞRULANMADI. PAKSAN'ın fiyat listesi
    PDF'inden okunan tutarlar katalogda düz sayı olarak duruyor; katalogda
-   ne para birimi ne KDV alanı var (`tools/parca-katalogu.py` ₺ işaretini
-   okuyup atıyor). Listenin KDV dâhil mi hariç mi olduğu kaynakta yazılı
+   ne para birimi ne KDV alanı var (fiyat listesi okuyucusu,
+   `src/lib/fiyatListesiOku.js`, ₺ işaretini okuyup atıyor). Listenin KDV dâhil mi hariç mi olduğu kaynakta yazılı
    değil ve PDF depoda saklanmıyor.
 
    Bu oran yalnızca liste fiyatının KDV HARİÇ olduğu varsayımıyla

@@ -33,6 +33,7 @@ const IKONLAR = {
   [BILDIRIM_TURU.RANDEVU]: IconCalendar,
   [BILDIRIM_TURU.DUYURU]: IconBell,
   [BILDIRIM_TURU.UYARI]: IconAlert,
+  [BILDIRIM_TURU.MAKINE]: IconMachine,
 }
 
 /* Duyuru alt türlerinin ikonları — tablodaki `ikon` adı burada
@@ -53,6 +54,7 @@ const RENKLER = {
   [BILDIRIM_TURU.RANDEVU]: { zemin: 'var(--pk-orange-soft)', renk: 'var(--pk-orange-ink)' },
   [BILDIRIM_TURU.DUYURU]: { zemin: 'var(--pk-blue-soft)', renk: 'var(--pk-blue-yazi)' },
   [BILDIRIM_TURU.UYARI]: { zemin: 'var(--pk-orange-soft)', renk: 'var(--pk-orange-ink)' },
+  [BILDIRIM_TURU.MAKINE]: { zemin: 'var(--pk-blue-soft)', renk: 'var(--pk-blue-yazi)' },
 }
 
 /* PAKSAN duyurusu mu, uygulamanın kendi bildirimi mi?

@@ -14,12 +14,14 @@ import { SIRKET, MARKA, markaEk, PARA_BIRIMI, kdvTutari } from '../marka'
 import { urun } from '../lib/urun'
 import { ASAMA, kaydiDogrula, kaydiCozume, kapininSonucu } from '../lib/servisKaydi.js'
 import { teslimatTemizle } from '../lib/teslimat.js'
-import { servisleriGetir } from '../marka'
+import { servisleriGetir, getProduct } from '../marka'
 import { icerikListe, icerikTazele } from '../lib/icerikDeposu.js'
 import { altBilgi } from '../data/duyuruTurleri.js'
 import { SERI_CAKISMASI } from '../lib/numaraTalebi.js'
 import { telGoster } from '../lib/tel.js'
-import { normalizeSerial, validateSerial } from '../lib/serial.js'
+import { formatSerial, normalizeSerial, validateSerial } from '../lib/serial.js'
+import { makineKayitlari, makineKaydiGuncelle } from '../lib/makineKaydi.js'
+import { kaydinServisi } from '../lib/servisAtama.js'
 import {
   rolKimligi, TUM_IZINLER, VARSAYILAN_ROLLER, YETKISIZ_ROL,
 } from '../data/yetkiler.js'
@@ -107,6 +109,29 @@ export function izinli(rol, is) {
   return (rolBilgi(rol).izinler || []).includes(is)
 }
 
+/* Rolün gördüğü talep türleri — boşsa (null) bütün türler.
+
+   BİRDEN ÇOK TÜR SEÇİLEBİLİYOR (21 Eylül 2026, kullanıcının isteği:
+   "Gördüğü Talepler başlığı altındaki talepler birden fazla
+   seçilebilmeli"). Önce rol tek bir tür taşıyordu (`talepTuru`);
+   depoda o biçimde duran roller burada listeye çevriliyor, yeniden
+   kaydedilince yeni biçime (`talepTurleri`) geçiyor. Ekranların hepsi
+   bu işlevden okuyor, rolün alanına doğrudan bakmıyor. */
+const TALEP_TURLERI = ['servis', 'parca', 'satinalma']
+
+export function rolunTurleri(rol) {
+  const r = typeof rol === 'string' ? rolBilgi(rol) : rol
+  const ham = Array.isArray(r?.talepTurleri) ? r.talepTurleri : r?.talepTuru ? [r.talepTuru] : []
+  const turler = TALEP_TURLERI.filter((t) => ham.includes(t))
+  return turler.length && turler.length < TALEP_TURLERI.length ? turler : null
+}
+
+/* Formdan gelen tür listesini temizler: bilinmeyeni atar, sırayı sabitler,
+   hepsi seçildiyse "hepsi" (null) yazar. */
+function temizTurler(liste) {
+  return rolunTurleri({ talepTurleri: Array.isArray(liste) ? liste : [] })
+}
+
 /* ==========================================================================
    Rolün göreceği talepler
 
@@ -134,11 +159,11 @@ export function izinli(rol, is) {
    ('servis' | 'parca'). Böylece yönlendirme tek karşılaştırma
    kalıyor ve üçüncü bir eşleme tablosu doğmuyor.                    */
 
-/** Rolün göreceği talepler: kendi türü + şu an masasında bekleyenler. */
+/** Rolün göreceği talepler: kendi türleri + şu an masasında bekleyenler. */
 export function rolunTalepleri(liste, rol) {
-  const tur = rolBilgi(rol).talepTuru
-  if (!tur) return liste
-  return liste.filter((t) => t.tur === tur || t.masa === tur)
+  const turler = rolunTurleri(rol)
+  if (!turler) return liste
+  return liste.filter((t) => turler.includes(t.tur) || turler.includes(t.masa))
 }
 
 /* -------------------------------------------------- Rol listesini yazmak
@@ -164,7 +189,7 @@ export function rolunPersoneli(rolId) {
  *
  * @returns {{rol}|{hata}}
  */
-export function rolEkle({ ad, aciklama, talepTuru, izinler }, personel) {
+export function rolEkle({ ad, aciklama, talepTurleri, izinler }, personel) {
   const temizAd = String(ad || '').trim()
   if (temizAd.length < 2) return { hata: 'Rol adını yazın.' }
 
@@ -178,7 +203,7 @@ export function rolEkle({ ad, aciklama, talepTuru, izinler }, personel) {
     id,
     ad: temizAd,
     aciklama: String(aciklama || '').trim(),
-    talepTuru: talepTuru || null,
+    talepTurleri: temizTurler(talepTurleri),
     izinler: temizIzinler(izinler),
   }
   rolleriYaz([...liste, rol], personel, `${rol.ad} rolü oluşturuldu`)
@@ -210,17 +235,19 @@ export function rolGuncelle(id, degisiklik, personel) {
      engelleniyor. Admin rolü kilitli olduğu için bu normalde
      olamıyor — ama admin rolündeki tek kişi silinmişse
      (`personelSil` onu da engelliyor) ikinci bir kapı olarak duruyor. */
-  const yeni = liste.map((r) =>
-    r.id === id
-      ? {
-          ...r,
-          ad: temizAd,
-          aciklama: String(degisiklik.aciklama ?? r.aciklama ?? '').trim(),
-          talepTuru: degisiklik.talepTuru !== undefined ? degisiklik.talepTuru : r.talepTuru,
-          izinler,
-        }
-      : r,
-  )
+  const yeni = liste.map((r) => {
+    if (r.id !== id) return r
+    /* Eski tek-tür alanı yazılmıyor; tür listesi tek alanda. */
+    const { talepTuru: _eski, ...kalan } = r
+    return {
+      ...kalan,
+      ad: temizAd,
+      aciklama: String(degisiklik.aciklama ?? r.aciklama ?? '').trim(),
+      talepTurleri:
+        degisiklik.talepTurleri !== undefined ? temizTurler(degisiklik.talepTurleri) : rolunTurleri(r),
+      izinler,
+    }
+  })
   if (!yonetimKaliyorMu(yeni)) {
     return { hata: 'Personel hesabı açabilecek hiçbir rol kalmıyor. Bu değişiklik yapılamaz.' }
   }
@@ -597,18 +624,25 @@ export const DURUMLAR = [
      kargo firması ve takip numarası kapanış formunda soruluyor
      (bkz. Talepler.jsx → KAPANIS_ALANLARI.parca). Müşteriye giden
      bildirim de aynı yerden çıkıyor, takip numarasıyla birlikte. */
-  /* "BAYİDE" DİYE AYRI BİR DURUM YOK.
+  /* "BAYİYE İLETİLDİ" — FİYAT TEKLİFİNİN KENDİ KAPANIŞI (21 Eylül 2026,
+     kullanıcının kararı).
 
-     Kısa süre vardı ve kaldırıldı. Sebebi "Gönderildi" durumunun
-     kaldırılma sebebiyle aynı: fiyat teklifi bayiye atandığında
-     PAKSAN'ın o talepte işi biter, yani talep KAPANIR. Ayrı bir durum
-     ikinci bir "bitti" hâli üretiyordu ve personel hangisini
-     seçeceğini bilmiyordu.
+     Bir dönem "Bayide" diye bir durum vardı ve kaldırılmıştı: bayiye
+     atanan talep "Kapandı" oluyordu, çünkü iki ayrı "bitti" hâli
+     personelin kafasını karıştırıyordu. Kullanıcı bunu geri istedi ve
+     bu sefer iki hâl gerçekten iki ayrı SONUÇ anlatıyor:
 
-     Talebin bayide olduğu durumdan değil SAHİPLİKTEN okunuyor:
-     `talep.bayi` dolu, `sahip: 'bayi'`, listede "Bayide · <bayi adı>"
-     yazıyor ve Sahiplik süzgecinde kendi seçeneği var. Bilgi
-     kaybolmuyor, yalnız iki yerde birden durmuyor. */
+       Bayiye İletildi   PAKSAN talebi bir bayiye verdi; satışı bayi
+                         yapacak. PAKSAN'ın işi burada biter.
+       Kapandı           PAKSAN talebi kendisi sonuçlandırdı (bayisiz,
+                         doğrudan satış).
+
+     Karışıklık bu sefer kuralla önleniyor: "Bayiye İletildi" yalnız
+     "Yeni" talepten, bayi seçilerek girilir ve o durumdan hiçbir
+     duruma geçilmez; teklif verilmiş talep de bayiye iletilemez
+     (bkz. durumGecisiEngeli). Kapalı durumdur (KAPALI_DURUMLAR).
+     Müşteriye bildirim gitmez: PAKSAN o müşteriyle ilgilenmeyecek. */
+  { id: 'bayiyeIletildi', ad: 'Bayiye İletildi', ton: 'mavi' },
   /* SERVİS KAYDININ ÜRETTİĞİ İKİ AŞAMA.
 
      Servis sahada işi bitirip kaydı gönderdiğinde talep kapanmıyor:
@@ -633,7 +667,7 @@ export const DURUMLAR = [
 
 /* Kapalı = PAKSAN'ın üzerinde iş kalmamış. Not eklemek kapalı talepte
    de serbest. */
-export const KAPALI_DURUMLAR = ['kapandi', 'iptal']
+export const KAPALI_DURUMLAR = ['kapandi', 'iptal', 'bayiyeIletildi']
 
 export function durumBilgi(id) {
   return DURUMLAR.find((d) => d.id === id) || DURUMLAR[0]
@@ -644,12 +678,17 @@ export function durumBilgi(id) {
 
    servis      → yeni · incelemede · planlandı · kapandı · iptal
    parça       → yeni · incelemede · planlandı · kapandı · iptal
-   fiyat teklifi → yeni · incelemede · teklif verildi · kapandı · iptal
+   fiyat teklifi → yeni · bayiye iletildi · teklif verildi · kapandı · iptal
 
    Fiyat teklifinde planlanacak bir iş yok. Buna karşılık teklifin
    verilip müşterinin cevabının beklendiği uzun bir aşama var; o aşama
    "Teklif Verildi". Yedek parçada kargoya verme ayrı bir aşama değil,
-   kapanışın kendisi. */
+   kapanışın kendisi.
+
+   FİYAT TEKLİFİNDE "İNCELEMEDE" YOK (21 Eylül 2026, kullanıcının
+   kararı). Satış personelinin bu talepte vereceği tek karar var:
+   bayiye mi iletilecek, PAKSAN mı teklif verecek. Arada beklenen bir
+   inceleme aşaması yok. */
 /* ONAY BEKLİYOR ve PARÇA BEKLENİYOR bu listede yok — bilerek.
 
    İkisini de servisin gönderdiği kayıt doğuruyor, personel elle
@@ -659,12 +698,47 @@ export function durumBilgi(id) {
    Rozette ve süzgeçte görünüyorlar, elle seçilemiyorlar. */
 const ELLE_SECILMEZ = ['onayBekliyor', 'parcaBekliyor']
 
+/* Sıra kullanıcının verdiği sıra; süzgeç listesi de bu sırayla çıkıyor.
+   DURUMLAR'ın genel sırası değişmedi: veritabanındaki kod listesi ve
+   raporların sütunları ona bakıyor. */
+const TEKLIF_DURUMLARI = ['yeni', 'bayiyeIletildi', 'teklif', 'kapandi', 'iptal']
+
 export function talepDurumlari(tur) {
   const liste = DURUMLAR.filter((d) => !ELLE_SECILMEZ.includes(d.id))
   if (tur === 'satinalma') {
-    return liste.filter((d) => d.id !== 'planlandi')
+    return TEKLIF_DURUMLARI.map((id) => liste.find((d) => d.id === id)).filter(Boolean)
   }
-  return liste.filter((d) => d.id !== 'teklif')
+  return liste.filter((d) => d.id !== 'teklif' && d.id !== 'bayiyeIletildi')
+}
+
+/* ==========================================================================
+   FİYAT TEKLİFİNDE DURUM KAPILARI (21 Eylül 2026, kullanıcının kararı)
+
+   İki kural:
+     1. "Bayiye İletildi" durumundaki talep hiçbir duruma geçmez. Talep
+        bayiye verildi; PAKSAN'ın sonradan teklif vermesi ya da
+        kapatması, müşterinin iki ayrı yerden fiyat alması demek.
+     2. "Bayiye İletildi" durumuna yalnız "Yeni" talepten, bayi seçilerek
+        girilir (talebiBayiyeAta). Teklif verilmiş talep sonradan bayiye
+        iletilmez; PAKSAN müşteriye fiyat vermiş.
+
+   Tek istisna: yanlış tıklamanın düzeltilmesi. "Bayiye İletildi"den
+   "Yeni"ye dönüş ayrı bir işlev (bayiAtamasiniKaldir) ve talep geri
+   açma yetkisi ister; ileri bir durum değil, geri alma.
+
+   Kural ekranda da uygulanıyor (Talepler.jsx) ama asıl yeri burası:
+   sunucu yazıldığında da aynı kapıdan geçilecek.
+   ========================================================================== */
+export function durumGecisiEngeli(talep, yeniDurum) {
+  if (talep?.tur !== 'satinalma') return null
+  const suanki = talep.status || 'yeni'
+  if (suanki === 'bayiyeIletildi') {
+    return 'Bayiye iletilen talebin durumu değiştirilemez.'
+  }
+  if (yeniDurum === 'bayiyeIletildi') {
+    return 'Talebi bayiye iletmek için "Bayiye ilet" bölümünden bayi seçin.'
+  }
+  return null
 }
 
 /* ==========================================================================
@@ -703,7 +777,9 @@ export function talepDurumlari(tur) {
      İptal       gerekçesiyle birlikte.
    ========================================================================== */
 export function elleSecilebilirDurumlar(tur) {
-  const liste = talepDurumlari(tur)
+  /* "Bayiye İletildi" çipte yok: bayi seçmeden girilemez, Bayi
+     bölümündeki düğmeyle giriliyor (bkz. durumGecisiEngeli). */
+  const liste = talepDurumlari(tur).filter((d) => d.id !== 'bayiyeIletildi')
   if (tur === 'servis') return liste.filter((d) => d.id !== 'planlandi')
   return liste
 }
@@ -771,8 +847,13 @@ function talepYaz(id, degisiklik) {
  *   bir talebi admin düzeltme amacıyla geri açtığında kullanılıyor:
  *   müşteri kapandı bildirimini almışken "yeniden açıldı" mesajı
  *   kafa karıştırır, işi PAKSAN kendi içinde toparlıyor.
+ * @param {boolean} servisten true ise değişikliği servis kendisi yaptı;
+ *   servise bildirim gitmez.
  */
-export function talepDurumDegistir(talep, yeniDurum, personel, { bildirme } = {}) {
+export function talepDurumDegistir(talep, yeniDurum, personel, { bildirme, servisten } = {}) {
+  const engel = durumGecisiEngeli(talep, yeniDurum)
+  if (engel) return { hata: engel }
+
   const gecmis = [...(talep.gecmis || []), { durum: yeniDurum, tarih: Date.now(), personel }]
 
   talepYaz(talep.id, { status: yeniDurum, gecmis })
@@ -782,6 +863,12 @@ export function talepDurumDegistir(talep, yeniDurum, personel, { bildirme } = {}
     ozet: `${talep.no} → ${durumBilgi(yeniDurum).ad}${bildirme ? ' (kapalı talep açıldı, bildirim gitmedi)' : ''}`,
     personel,
   })
+
+  /* "Yeni"ye dönüş yanlış tıklamanın düzeltilmesi; servis açısından da
+     olmuş bir şey yok (müşteriye de gitmiyor, bkz. bildirimsizMi). */
+  if (!servisten && yeniDurum !== 'yeni') {
+    serviseBildir(talep, 'durum', { durum: yeniDurum })
+  }
 
   if (bildirme) return
 
@@ -803,50 +890,60 @@ export function talepDurumDegistir(talep, yeniDurum, personel, { bildirme } = {}
    ama teklifi hazırlayacak, müşteriyi arayacak ve satışı yapacak olan
    bayi. Satış personelinin buradaki işi doğru bayiyi seçmek.
 
-   ATAMADAN SONRA PAKSAN'IN İŞİ BİTİYOR — TALEP KAPANIR
+   BAYİYE İLETME BİR ATAMA DEĞİL, BİR KAYIT (21 Eylül 2026,
+   kullanıcının kararı). Bayinin paneli yok; satış personeli bayiye
+   telefonla, mesajla kendisi haber veriyor. Sistemin işi yalnız
+   HANGİ BAYİNİN YETKİLENDİRİLDİĞİNİ yazmak. Talep "Bayiye İletildi"
+   durumuna geçiyor ve orada kalıyor: PAKSAN'ın işi bitti, sonraki bir
+   duruma geçilmiyor (bkz. durumGecisiEngeli).
 
-   Durum **"Kapandı"** oluyor, ayrı bir "Bayide" durumu yok. Bir dönem
-   vardı ve kaldırıldı: ikinci bir "bitti" hâli üretiyordu ve personel
-   hangisini seçeceğini bilmiyordu. Talebin bayide olduğu bilgisi zaten
-   SAHİPLİKTE duruyor — `sahip: 'bayi'`, listede "Bayide · <bayi adı>",
-   Sahiplik süzgecinde kendi seçeneği.
+   YALNIZ YENİ TALEP İLETİLİR. PAKSAN teklif verdiyse müşteri fiyatı
+   PAKSAN'dan almış; aynı talebi sonradan bayiye vermek müşteriye iki
+   ayrı fiyat demek.
 
-   Bayinin paneli olmadığı için takip PAKSAN'ın ekranında değil telefonda
-   yürüyor; sistemin bunu bekleyen bir iş gibi göstermesi yanlış olurdu.
+   MÜŞTERİYE BİLDİRİM GİTMİYOR. PAKSAN bu müşteriyle ilgilenmeyecek;
+   müşteriyi bayi arayacak. Bayinin adı ve telefonu müşterinin talep
+   detayında yine duruyor: tanımadığı bir numaradan arandığında
+   kimin aradığını oradan görebilir.
 
-   PAKSAN kendisi ilgilenecekse atama yapılmıyor: talep her zamanki
+   PAKSAN kendisi ilgilenecekse iletme yapılmıyor: talep her zamanki
    akışta kalıyor, teklif verilip kapanıyor.
-
-   MÜŞTERİ KİMİN ARAYACAĞINI GÖRÜYOR. Bildirim gidiyor ve talep
-   detayında bayinin adı ile telefonu duruyor; yoksa çiftçi tanımadığı
-   bir numaradan gelen aramayı beklemek zorunda kalır.
    ========================================================================== */
 export function talebiBayiyeAta(talep, bayi, personel) {
   if (!bayi?.id) return { hata: 'Bayi seçin.' }
+  if ((talep.status || 'yeni') !== 'yeni') {
+    return { hata: 'Yalnızca "Yeni" durumundaki talepler bayiye iletilebilir.' }
+  }
+  /* Durumu "Yeni"ye geri alınmış olsa da bir kez teklif verilmişse
+     müşteri fiyatı PAKSAN'dan almıştır; kapı geçmişe bakıyor. */
+  if (talep.teklif) return { hata: 'Daha önce teklif verilmiş bir talep bayiye iletilemez.' }
 
   const kayit = { id: bayi.id, ad: bayi.ad, tel: bayi.tel || '', tarih: Date.now() }
-  const gecmis = [...(talep.gecmis || []), { durum: 'kapandi', tarih: Date.now(), personel }]
-  talepYaz(talep.id, { bayi: kayit, sahip: 'bayi', status: 'kapandi', gecmis })
+  const gecmis = [
+    ...(talep.gecmis || []),
+    { durum: 'bayiyeIletildi', tarih: Date.now(), personel },
+  ]
+  talepYaz(talep.id, { bayi: kayit, sahip: 'bayi', status: 'bayiyeIletildi', gecmis })
 
-  islemYaz({ tur: 'durum', ozet: `${talep.no} → Kapandı · bayiye atandı: ${bayi.ad}`, personel })
-
-  musteriyeBildir({
-    musteriId: bildirimAlicisi(talep),
-    tur: 'talep',
-    baslikAnahtar: 'bildirimler.bayiBaslik',
-    metinAnahtar: 'bildirimler.bayiMetin',
-    degerler: { no: talep.no, bayi: bayi.ad, talepTur: talep.tur },
-    talepNo: talep.no,
+  islemYaz({
+    tur: 'durum',
+    ozet: `${talep.no} → ${durumBilgi('bayiyeIletildi').ad} · ${bayi.ad}`,
+    personel,
   })
 
   return { bayi: kayit }
 }
 
-/** Atamayı geri alır: yanlış bayi seçildiğinde talep PAKSAN'a döner. */
+/* Yanlış tıklamanın düzeltilmesi: talep "Yeni"ye döner. İleri bir
+   durum değil, geri alma; ekranda talep geri açma yetkisi istiyor.
+   Müşteriye iletme sırasında bildirim gitmediği için geri alırken de
+   gitmiyor. */
 export function bayiAtamasiniKaldir(talep, personel) {
-  const gecmis = [...(talep.gecmis || []), { durum: 'incelemede', tarih: Date.now(), personel }]
-  talepYaz(talep.id, { bayi: null, sahip: 'paksan', status: 'incelemede', gecmis })
-  islemYaz({ tur: 'durum', ozet: `${talep.no} · bayi ataması kaldırıldı`, personel })
+  if (talep.status !== 'bayiyeIletildi') return { hata: 'Bu talep bayiye iletilmemiş.' }
+  const gecmis = [...(talep.gecmis || []), { durum: 'yeni', tarih: Date.now(), personel }]
+  talepYaz(talep.id, { bayi: null, sahip: 'paksan', status: 'yeni', gecmis })
+  islemYaz({ tur: 'durum', ozet: `${talep.no} · bayiye iletme işlemi geri alındı`, personel })
+  return { tamam: true }
 }
 
 /* Talebe not.
@@ -898,10 +995,10 @@ export function talepNotEkle(
   /* SERVİSE GİDEN NOTA MÜŞTERİ BİLDİRİMİ ÇIKMIYOR.
 
      Not servisin uygulamasında talebin içinde görünüyor
-     (bkz. servis/ekranlar/TalepDetay.jsx) ve servisin haber
-     yoklaması onu yakalıyor (bkz. servis/haber.js). Müşteriyi
-     ilgilendiren bir şey değil: PAKSAN ile servis arasında
-     konuşuluyor. */
+     (bkz. servis/ekranlar/TalepDetay.jsx) ve servise talep bildirimi
+     gidiyor (bkz. serviseBildir). Müşteriyi ilgilendiren bir şey
+     değil: PAKSAN ile servis arasında konuşuluyor. */
+  if (servise && !servisten) serviseBildir(talep, 'not', { metin })
   if (!musteriye) return
 
   /* Personelin yazdığı cümle olduğu gibi gidiyor — çeviremeyiz.
@@ -994,6 +1091,68 @@ export function musteriyeBildir(bildirim) {
   ])
 }
 
+/* ==========================================================================
+   Servise talep bildirimi (21 Eylül 2026, kullanıcının isteği)
+
+   "PAKSAN'ın ilgili talep ile yaptığı işlemlerde servise bildirim
+   gitmeli."
+
+   ÖNCE NE VARDI. Servisim uygulama açıkken 15 saniyede bir depoya bakıp
+   beş şeyi fark ediyordu (yeni iş, parça yolda, kayıt onaylandı, kabul
+   edilmedi, PAKSAN'dan not) ve telefona bildirim düşürüyordu. PAKSAN
+   talebi iptal ettiğinde, kapattığında, durumunu değiştirdiğinde ya da
+   hak edişi düzelttiğinde servisin hiçbir haberi olmuyordu. Olanlar da
+   talebe bağlı değildi ("2 kayıt onaylandı") ve kalıcı değildi:
+   telefondaki bildirim kapatılınca uygulamada izi kalmıyordu.
+
+   ŞİMDİ. PAKSAN'ın servise dokunan her işlemi burada bir kayıt yazıyor.
+   Kayıt talebe bağlı (talep numarası), kalıcı ve Servisim'de iki yerde
+   görünüyor: İşlerim'in üstünde okunmamışlar, talebin içinde o talebin
+   bütün geçmişi (bkz. servis/talepBildirimleri.js). Telefon bildirimi
+   de bu kayıttan çıkıyor (bkz. servis/haber.js).
+
+   AYRI DEPO YOK. Müşteri bildirimleriyle aynı `duyurular` deposu;
+   `alici: 'servis'` ve `servisId` taşıyor, `musteriId` taşımıyor. Süzgeç
+   müşteri kimliği olmayan kişisel kaydı hiçbir müşteriye göstermiyor
+   (lib/duyuruHedef.js), yani bu kayıt müşterinin ekranına sızmaz.
+   Veritabanındaki karşılığı aynı tablo: bildirim.Bildirim.ServisKimlik.
+
+   METİN DEĞİL OLAY SAKLANIYOR (`olay`): yazının kendisi Servisim'in
+   sözlüğünde. Müşteri bildiriminde anahtar saklanmasıyla aynı gerekçe;
+   ayrıca yazı değiştiğinde eski kayıtlar da yeni yazıyla görünür.
+
+   YALNIZ PAKSAN'IN İŞLEMİ. Servisin kendi yaptığı iş kendisine
+   bildirilmez; paylaşılan işlevler servisten çağrıldığında
+   `servisten: true` alıyor ve bu kapı çağrılmıyor.
+   ========================================================================== */
+export function serviseBildir(talep, olay, degerler = {}) {
+  const servisId = talep?.servis?.id
+  if (!servisId) return
+  save(ANAHTAR.duyurular, [
+    {
+      id: uid(),
+      tarih: Date.now(),
+      tur: 'talep',
+      kisisel: true,
+      alici: 'servis',
+      servisId,
+      talepId: talep.id,
+      talepNo: talep.no,
+      olay,
+      degerler,
+    },
+    ...load(ANAHTAR.duyurular, []),
+  ])
+}
+
+/** Bir servisin talep bildirimleri, yeniden eskiye. */
+export function servisBildirimleri(servisId) {
+  if (!servisId) return []
+  return load(ANAHTAR.duyurular, []).filter(
+    (d) => d.alici === 'servis' && d.servisId === servisId,
+  )
+}
+
 /* ------------------------------------------------------------- Gecikme
 
    Bekleyen talep 48 saati geçtiyse gecikmiş sayılıyor; listede kırmızı
@@ -1051,7 +1210,10 @@ export function gecikmisMi(talep) {
    bozuluyor" sorusunun cevabı çıkıyor — imalatçı için en değerli veri
    bu.                                                                */
 
-export function talepKapat(talep, cozum, personel) {
+export function talepKapat(talep, cozum, personel, { servisten } = {}) {
+  const engel = durumGecisiEngeli(talep, 'kapandi')
+  if (engel) return { hata: engel }
+
   const gecmis = [
     ...(talep.gecmis || []),
     { durum: 'kapandi', tarih: Date.now(), personel },
@@ -1067,6 +1229,12 @@ export function talepKapat(talep, cozum, personel) {
     ozet: `${talep.no} kapandı · ${cozum.ozet}`,
     personel,
   })
+
+  /* Servisin kendi parça siparişinde kapanış = parça kargoya verildi;
+     öteki taleplerde PAKSAN işi servisin yerine kapattı. */
+  if (!servisten) {
+    serviseBildir(talep, talep.servisSiparisi ? 'siparisGonderildi' : 'kapandi')
+  }
 
   /* SERVİSİN HAK EDİŞİNDEN DÜŞÜLECEK SİPARİŞ.
 
@@ -1134,7 +1302,10 @@ export function talepKapat(talep, cozum, personel) {
    oluyordu; müşteriye giden bildirimde yalnız "talebiniz kapatıldı"
    yazıyordu. Bildirime dokunan kişi hiçbir şey öğrenemiyordu.        */
 
-export function talepIptal(talep, iptal, personel) {
+export function talepIptal(talep, iptal, personel, { servisten } = {}) {
+  const engel = durumGecisiEngeli(talep, 'iptal')
+  if (engel) return { hata: engel }
+
   const gecmis = [...(talep.gecmis || []), { durum: 'iptal', tarih: Date.now(), personel }]
   talepYaz(talep.id, {
     status: 'iptal',
@@ -1143,6 +1314,10 @@ export function talepIptal(talep, iptal, personel) {
   })
 
   islemYaz({ tur: 'durum', ozet: `${talep.no} iptal edildi · ${iptal.neden}`, personel })
+
+  /* İptal edilen iş servisin listesinden "Tamamlanan"a düşüyor; haber
+     verilmezse servis o müşteriye gitmeye devam edebilir. */
+  if (!servisten) serviseBildir(talep, 'iptal', { neden: iptal.neden })
 
   musteriyeBildir({
     musteriId: bildirimAlicisi(talep),
@@ -1168,6 +1343,9 @@ export function talepIptal(talep, iptal, personel) {
    kapanış ekranında giriliyor.                                       */
 
 export function talepTeklifVer(talep, teklif, personel) {
+  const engel = durumGecisiEngeli(talep, 'teklif')
+  if (engel) return { hata: engel }
+
   const gecmis = [...(talep.gecmis || []), { durum: 'teklif', tarih: Date.now(), personel }]
   talepYaz(talep.id, {
     status: 'teklif',
@@ -1233,6 +1411,11 @@ export function teklifBeklemeGunu(talep) {
 export function odemeOnayla(talep, personel, not) {
   const simdi = Date.now()
   const degisiklik = { odemeOnay: { tarih: simdi, personel, not: not || '' } }
+
+  /* Servisin kendi parça siparişinin ödemesi onaylandıysa servis
+     bilmeli: parçası artık hazırlanıyor. Müşterinin siparişinde talep
+     servise bağlı değil; kapı sessizce geçer. */
+  serviseBildir(talep, 'odemeOnay')
 
   /* ÖDEME ONAYI TALEBİ KENDİLİĞİNDEN AÇIYOR.
 
@@ -1438,7 +1621,7 @@ export function musterininDigerTalepleri(talep, hepsi, { yalnizAcik = false } = 
    zaman yapılacağını bilmek istiyor. Bu yüzden planlanan iş ve tarih
    kaydediliyor, bildirimde de ikisi birden gidiyor.                   */
 
-export function talepPlanla(talep, plan, personel) {
+export function talepPlanla(talep, plan, personel, { servisten } = {}) {
   const gecmis = [
     ...(talep.gecmis || []),
     { durum: 'planlandi', tarih: Date.now(), personel },
@@ -1456,6 +1639,17 @@ export function talepPlanla(talep, plan, personel) {
     }`,
     personel,
   })
+
+  /* Servis randevu verdiğinde de bu işlev çağrılıyor (servisten: true).
+     PAKSAN'ın planı iki şey olabilir: servisin parça siparişinde gönderim
+     günü, servis talebinde ise müşteriyle konuşulmuş ziyaret günü.
+     Servisim ikisini ayrı yazıyor; `siparis` o ayrımı taşıyor. */
+  if (!servisten) {
+    serviseBildir(talep, 'planlandi', {
+      tarih: plan.tarihYazi,
+      siparis: Boolean(talep.servisSiparisi),
+    })
+  }
 
   musteriyeBildir({
     musteriId: bildirimAlicisi(talep),
@@ -1997,6 +2191,21 @@ export function parcaDuzeltmesiYaz(kod, duzeltme, personel, ozet) {
   return hepsi
 }
 
+/**
+ * Yeni fiyat listesinin yayına alındığını işlem kaydına yazar (21 Eylül
+ * 2026). Listeyi sunucu yayına alıyor (lib/parcaKatalogu.js →
+ * fiyatListesiYayinla); burada yalnız "kim, ne zaman, hangi listeyi"
+ * sorusunun cevabı tutuluyor. Fiyatlar bütün müşterileri ve servisleri
+ * etkilediği için bu kayıt olmadan bir zammın kimden çıktığı bilinmez.
+ */
+export function fiyatListesiYayinlandi({ kaynak, parca, surum }, personel) {
+  islemYaz({
+    tur: 'katalog',
+    ozet: `Yeni fiyat listesi yayına alındı · Kaynak: ${kaynak} · ${parca} parça · Sürüm: ${surum}`,
+    personel,
+  })
+}
+
 /* TOPLU GERİ ALMA YOK (18.09.2026, kullanıcının kararı): "Hem riskli hem
    de ne olduğu anlaşılmayan bir buton." Tek dokunuşla bütün düzeltmeleri
    silen bir düğme, ne sildiğini ekranda göstermiyordu. Düzeltmeler tek
@@ -2281,6 +2490,9 @@ export function hakkedisDuzelt(talep, yeniKayit, neden, personel) {
     ozet: `${talep.no} · servis kaydı düzeltildi · ${neden.trim()}`,
     personel,
   })
+  /* Servis kendi kaydının değiştiğini bilmeli: km, işçilik ya da parça
+     değişti ve parası buna göre hesaplanacak. Gerekçe de gidiyor. */
+  serviseBildir(talep, 'hakedisDuzelt', { neden: neden.trim() })
   return { kayit }
 }
 
@@ -2340,6 +2552,7 @@ export function hakkedisOnayla(talep, personel) {
     ozet: `${talep.no} · hak ediş onaylandı · ${hakkedis.toplam} ${PARA_BIRIMI}`,
     personel,
   })
+  serviseBildir(talep, 'hakedisOnay', { tutar: hakkedis.toplam })
   return { hakkedis, durum }
 }
 
@@ -2357,6 +2570,7 @@ export function hakkedisReddet(talep, neden, personel) {
     gecmis: [...(talep.gecmis || []), { durum: 'kapandi', tarih: Date.now(), personel }],
   })
   islemYaz({ tur: 'hakkedis', ozet: `${talep.no} · hak ediş reddedildi · ${neden.trim()}`, personel })
+  serviseBildir(talep, 'hakedisRed', { neden: neden.trim() })
   return { tamam: true }
 }
 
@@ -2407,6 +2621,10 @@ export function servisParcasiGonderildi(talep, kargo, personel) {
       ? `${talep.no} · kargo bilgisi güncellendi${kargoYazi ? ' · ' + kargoYazi : ''}`
       : `${talep.no} · parça gönderildi${kargoYazi ? ' · ' + kargoYazi : ''}`,
     personel,
+  })
+  serviseBildir(talep, onceki ? 'kargoGuncellendi' : 'parcaYolda', {
+    firma: kargo?.firma || '',
+    takipNo: kargo?.takipNo || '',
   })
   return { tamam: true }
 }
@@ -2809,11 +3027,60 @@ export function servisSifreTalebiKapat(talepId, personel) {
 /* --------------------------------------------------------- Makine kayıtları
 
    Müşteri makinesini uygulamaya kaydettiğinde buraya bir satır düşüyor.
-   Logo bağlıysa satırda faturanın kesildiği servis de yazıyor; bağlı
-   değilse servis alanı boş kalıyor (bkz. src/lib/logo.js).             */
+   Logo bağlıysa satırda faturanın kesildiği bayi de yazıyor; bağlı
+   değilse o alan boş kalıyor (bkz. src/lib/logo.js).
+
+   Okuma lib/makineKaydi.js'ten: bir seriye tek satır düşüyor ve eski
+   kopyalar orada birleşiyor (21 Eylül 2026). Depoya doğrudan bakılsaydı
+   Kayıtlı Makineler aynı makineyi yine iki kez gösterirdi.           */
 
 export function makineKayitlariGetir() {
-  return load(ANAHTAR.makineKayitlari, [])
+  return makineKayitlari()
+}
+
+/* MAKİNENİN BAYİSİ YA DA SERVİSİ DEĞİŞTİ — Kayıtlı Makineler ekranından.
+
+   MÜŞTERİYE BİLDİRİM (21 Eylül 2026, kullanıcının isteği): "Müşteriye
+   ait makineye servis atandığında PAKSAN Connect uygulamasında
+   müşteriye bildirim gitmeli." Servisi olmayan makinenin sahibi talep
+   açamıyor ve uygulama ona "PAKSAN en kısa sürede atayacak" diyor; o
+   sözün tutulduğunu müşteri ancak bildirimle öğreniyor.
+
+   NE ZAMAN GİDİYOR: makineye bakan servis — `kaydinServisi`'nin cevabı,
+   müşterinin uygulamasının da okuduğu — gerçekten DEĞİŞTİYSE ve yeni bir
+   servis varsa. Bu yüzden bayi değişikliği de bildirim doğurabiliyor:
+   bayinin servisi makineye geçiyor. Servis aynı kaldıysa (bayinin
+   servisi ile doğrudan atanan aynı servisse) sessiz. Atama kaldırıldıysa
+   bildirim yok; müşteri talep ekranında durumu görüyor.
+
+   KİME: satırdaki hesaba. Hesapsız satırda (servisin elle açtığı, sahibi
+   uygulamayı kullanmayan makine) kimse yok; bildirim yazılmıyor.
+
+   Metin değil anahtar saklanıyor, müşterinin dilinde çıksın diye
+   (bkz. musteriyeBildir). Model adı ve servis adı özel ad; çevrilmiyor. */
+export function makineAtamasiniKaydet(kayitId, yama, { ozet, personel } = {}) {
+  const once = makineKayitlari().find((k) => k.id === kayitId)
+  if (!once) return null
+  const onceki = kaydinServisi(once)?.servis?.id || null
+
+  const sonra = makineKaydiGuncelle(kayitId, yama)
+  islemYaz({ tur: 'makine', ozet, personel })
+
+  const yeni = kaydinServisi(sonra)?.servis || null
+  if (yeni && yeni.id !== onceki && sonra.musteriId) {
+    musteriyeBildir({
+      musteriId: sonra.musteriId,
+      tur: 'makine',
+      baslikAnahtar: 'bildirimler.servisAtandiBaslik',
+      metinAnahtar: 'bildirimler.servisAtandiMetin',
+      degerler: {
+        makine: getProduct(sonra.productId)?.name || '',
+        seri: formatSerial(sonra.seri),
+        servis: yeni.ad,
+      },
+    })
+  }
+  return sonra
 }
 
 /* ------------------------------------------------------- Destek kayıtları

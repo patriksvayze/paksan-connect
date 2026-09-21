@@ -7,7 +7,6 @@ import {
   servisSifreTalebiAc,
   servisinTalepleri,
   destekTalepEt,
-  gecikmisMi,
   talepleriGetir,
   BACKOFFICE_SIFRE_HANE,
 } from '../backoffice/veri'
@@ -36,7 +35,9 @@ import {
 import { altBilgi } from '../data/duyuruTurleri'
 import { makineDurumAdi } from '../data/talepAlanlari'
 import { useBildirimIzni, useServisHaberi } from './haber'
-import { Logo, Amblem, MARKA, SIRKET, getProduct } from '../marka'
+import { bildirimYazisi, okunduSay, okunmamislar } from './talepBildirimleri'
+import { dokunulmamis, servisGecikti } from './isDurumu'
+import { Logo, Amblem, MARKA, SIRKET, getProduct, markaEk } from '../marka'
 /* Çizimler Higgsfield ile üretildi, uygulamanın kendi görsel diline
    (kalın lacivert kontur, düz dolgu, sınırlı palet) referans verilerek.
    Küçültme ve sıkıştırma: tools/gorsel-hazirla.mjs */
@@ -699,6 +700,10 @@ function Uygulama({ oturum, onCikis }) {
         bir kutu ayırmak, boşluğu bilgi diye sunmak.
      2. ACİL duyurular — geri çağırma ve uyarı. Bunlar duyuru değil
         iş emri: "bu makineleri arayıp servise çağırın" diyor.
+        Hemen altında PAKSAN'ın talep bildirimleri — yalnız okunmamış
+        varken (iptal, kapatma, durum değişikliği, onay…). İşin önünde
+        duruyorlar, çünkü çoğu doğrudan işi değiştiriyor: iptal edilen
+        bir işe gidilmemeli.
      3. Bekleyen işler — asıl liste.
      4. Öteki duyurular — tek satırın ardında (kampanya, fuar, yeni
         ürün). Okunmayı hak ediyorlar ama işin önünde değil.
@@ -707,19 +712,15 @@ function Uygulama({ oturum, onCikis }) {
 
    "Yeni Kayıt" gövdeden çıktı, üst çubuktaki "+" düğmesine taşındı.
    ========================================================================== */
+/* "Yeni" / "Devam Eden" ayrımı ve gecikme şeridi kuralı: isDurumu.js. */
+
 function Isler({ oturum, bekleyen, biten, onAc, onYeniKayit }) {
   const [bitenAcik, setBitenAcik] = useState(false)
 
-  /* Servisin henüz el sürmediği iş: randevu verilmemiş, kayıt
-     açılmamış, PAKSAN'a devredilmemiş, parça ya da onay beklemiyor. */
-  const [yeniIsler, devamEden] = useMemo(() => {
-    const dokunulmamis = (t) =>
-      !t.plan &&
-      !t.servisKaydi &&
-      !t.devir &&
-      !['parcaBekliyor', 'onayBekliyor'].includes(t.status)
-    return [bekleyen.filter(dokunulmamis), bekleyen.filter((t) => !dokunulmamis(t))]
-  }, [bekleyen])
+  const [yeniIsler, devamEden] = useMemo(
+    () => [bekleyen.filter(dokunulmamis), bekleyen.filter((t) => !dokunulmamis(t))],
+    [bekleyen],
+  )
 
   return (
     <>
@@ -728,6 +729,8 @@ function Isler({ oturum, bekleyen, biten, onAc, onYeniKayit }) {
       <Bugun bekleyen={bekleyen} onAc={onAc} />
 
       <ServisDuyurulari oturum={oturum} acil />
+
+      <PaksanBildirimleri oturum={oturum} talepler={[...bekleyen, ...biten]} onAc={onAc} />
 
       {/* İKİ DUYURU AÇILIRI ALT ALTA.
 
@@ -916,7 +919,7 @@ function Bugun({ bekleyen, onAc }) {
 
   const bugunku = randevulu.filter((t) => gunBasi(t.plan.tarih) <= bugun)
   const yarinki = randevulu.filter((t) => gunBasi(t.plan.tarih) === yarin)
-  const geciken = bekleyen.filter((t) => !t.plan && gecikmisMi(t))
+  const geciken = bekleyen.filter(servisGecikti)
 
   /* BLOK GÜNÜN PLANIDIR; PLAN YOKSA ÇIKMIYOR.
 
@@ -986,6 +989,71 @@ function Bugun({ bekleyen, onAc }) {
   )
 }
 
+/* ==========================================================================
+   PAKSAN'ın talep bildirimleri — okunmamışlar (21 Eylül 2026)
+
+   PAKSAN bir talepte servise dokunan bir işlem yaptığında (iptal,
+   kapatma, durum değişikliği, parça, kaydın onayı ya da düzeltilmesi,
+   not) kayıt düşüyor; burada okunmamışlar talep talep listeleniyor
+   (bkz. talepBildirimleri.js).
+
+   NEDEN İŞ LİSTESİNİN İÇİNDE DEĞİL. İptal ya da kapatılan iş "Tamamlanan"
+   bölümüne düşüyor ve o bölüm kapalı duruyor; bildirim kartın üstünde
+   olsaydı tam da en önemli haber — "bu işe gitme" — görünmezdi.
+
+   Satıra dokununca bildirim okundu sayılıyor ve talep açılıyor. Hepsini
+   birden okundu saymak için ayrı düğme var: servis haberleri telefonun
+   bildirim perdesinde zaten okumuş olabilir.
+
+   Bölüm yalnız okunmamış varken çiziliyor; okunmuşlar talebin içinde
+   duruyor. */
+function PaksanBildirimleri({ oturum, talepler, onAc }) {
+  const [, setSurum] = useState(0)
+  const liste = okunmamislar(oturum?.servisId)
+  if (!liste.length) return null
+
+  const ac = (b) => {
+    okunduSay([b.id])
+    setSurum((s) => s + 1)
+    const t = talepler.find((x) => x.id === b.talepId)
+    if (t) onAc(t)
+  }
+
+  return (
+    <Bolum ad={`${markaEk('dan')} gelen bildirimler`} sayi={liste.length}>
+      <div className="talep-haberi">
+        {liste.map((b) => {
+          const y = bildirimYazisi(b)
+          const t = talepler.find((x) => x.id === b.talepId)
+          return (
+            <button key={b.id} className="talep-haberi__satir" onClick={() => ac(b)}>
+              <span className="talep-haberi__nokta" aria-hidden="true" />
+              <span className="talep-haberi__govde">
+                <span className="talep-haberi__baslik">{y.baslik}</span>
+                {y.metin && <span className="talep-haberi__metin">{y.metin}</span>}
+                <span className="talep-haberi__alt">
+                  {[b.talepNo, t?.ad, gecenSure(b.tarih)].filter(Boolean).join(' · ')}
+                </span>
+              </span>
+            </button>
+          )
+        })}
+      </div>
+      {liste.length > 1 && (
+        <button
+          className="talep-haberi__hepsi"
+          onClick={() => {
+            okunduSay(liste.map((b) => b.id))
+            setSurum((s) => s + 1)
+          }}
+        >
+          Tümünü Okundu Say
+        </button>
+      )}
+    </Bolum>
+  )
+}
+
 /* Fiyat teklifi burada yok: servis makine satmıyor, o talep bu
    uygulamaya hiç düşmüyor. */
 const TUR_ADI = { servis: 'Servis', parca: 'Yedek Parça' }
@@ -998,7 +1066,7 @@ const TUR_ADI = { servis: 'Servis', parca: 'Yedek Parça' }
    götürürdü, tarlaya değil. Adresi telefonda öğreniyor. */
 function TalepKarti({ talep, onAc }) {
   const paksanda = (talep.sahip || 'paksan') === 'paksan'
-  const gecikti = gecikmisMi(talep)
+  const gecikti = servisGecikti(talep)
   const tel = String(talep.tel || '').replace(/\D/g, '')
   const yer = talep.ilce ? `${talep.ilce} / ${talep.il}` : talep.il || '—'
   /* MAKİNE ADI KÜNYEDE. Servis yola çıkmadan hangi makineye gittiğini

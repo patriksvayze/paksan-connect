@@ -1,6 +1,7 @@
 import { Logo } from '../marka'
 import { IconBack, IconPhone, IconPlus } from '../components/Icons'
 import { ParcaTablosu } from '../components/ParcaTablosu'
+import { ParcaGorselListesi } from './ParcaGorselListesi'
 import { GeriKatmani, useGeri } from './geri'
 
 /* ==========================================================================
@@ -216,8 +217,15 @@ export function Onay({
    Onay yaprağıyla aynı yüzey, ekranın dibinden açılıyor. Farkı: bir
    işlemi onaylatmıyor, bir kaydı özetliyor. İsteğe bağlı tek düğme
    kaydın kendisini açıyor; "Kapat" her zaman var.
+
+   PARÇALAR GÖRSELLİ (21 Eylül 2026, kullanıcının isteği): yaprağı
+   yalnız Hak Ediş ekranı kullanıyor ve orada parçalar resmiyle
+   gösteriliyor (bkz. ParcaGorselListesi.jsx). `parcaBaslik` listenin
+   üstündeki küçük etiket; verilmezse etiket yok.
    ========================================================================== */
-export function Yaprak({ baslik, metin, kalemler = [], parcalar = [], dugme, onDugme, onKapat }) {
+export function Yaprak({
+  baslik, metin, kalemler = [], parcalar = [], parcaBaslik, dugme, onDugme, onKapat,
+}) {
   useGeri(true, () => onKapat())
   return (
     <div
@@ -241,7 +249,8 @@ export function Yaprak({ baslik, metin, kalemler = [], parcalar = [], dugme, onD
 
         {parcalar.length > 0 && (
           <div className="onay__parca">
-            <ParcaTablosu parcalar={parcalar} />
+            {parcaBaslik && <div className="onay__parca-baslik">{parcaBaslik}</div>}
+            <ParcaGorselListesi parcalar={parcalar} />
           </div>
         )}
 

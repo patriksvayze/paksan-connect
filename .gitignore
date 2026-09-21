@@ -64,3 +64,10 @@ skill-observations/
 # Yalniz bos ornek dosya izlenir (bkz. tools/vt/ortam.mjs).
 veritabani/ortam/*.env
 !veritabani/ortam/ornek.env
+
+# Fiyat listesi yayını (sunucu-taklidi/fiyat-listesi-yayini.mjs): arşiv, yarım
+# kalan yayın klasörü ve okunan PDF sunucunun verisi, depoya girmez.
+sunucu-taklidi/parca-katalogu-arsiv/
+sunucu-taklidi/parca-katalogu.yeni/
+sunucu-taklidi/parca-katalogu/kaynak.pdf
+sunucu-taklidi/parca-katalogu/katalog.json.yeni

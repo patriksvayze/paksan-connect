@@ -37,8 +37,13 @@ import { demoTemizle, demoVarMi, demoYukle } from '../backoffice/demo'
 import { DEMO_SERVIS } from '../backoffice/demoServis'
 import { DEMO_HESAP } from './demoKimlik'
 
-/* Servis akışı değiştiğinde bir artırılıyor. */
-const DEMO_SURUMU = 2
+/* Servis akışı değiştiğinde bir artırılıyor.
+   3 (21 Eylül 2026): fiyat teklifinin durumları ve demo talepleri
+   değişti (bkz. backoffice/veri.js → DURUMLAR); eski demo o durumlarla
+   kalmasın.
+   Dışa açık: ekran turu demoyu kapatmak için bu sayıyı yazıyor
+   (tools/ekosistem-turu.mjs); elle yazsaydı sürüm değişince bozulurdu. */
+export const DEMO_SURUMU = 3
 const SURUM_ANAHTARI = 'demoSurumu'
 
 export async function demoKur() {

@@ -3,13 +3,14 @@ import { useApp } from '../context/AppState'
 import { useDil } from '../i18n'
 import { TabBar } from '../components/Chrome'
 import { useKaydirildi } from '../lib/kaydirma'
-import { Rozet, SIRKET } from '../marka'
+import { Rozet } from '../marka'
 import { UrunFoto } from '../components/Gorsel'
 import { MachineCard } from './Machines'
 import { PRODUCTS, VITRIN, urunDilde } from '../marka'
 import { rehberListesi } from '../marka/icerik/rehber'
 import { bildirimListesi, okunmamisSayisi } from '../lib/bildirimler'
 import { musterininServisleri } from '../lib/servisAtama'
+import { KAPALI_DURUMLAR } from '../lib/talepEkleme'
 import { araProps, telFirma } from '../lib/tel'
 import {
   IconBook, IconWrench, IconCart, IconPlus, IconParca,
@@ -37,7 +38,11 @@ export default function Home() {
   const vitrin = VITRIN.map((id) => PRODUCTS.find((p) => p.id === id)).filter(Boolean)
     .filter(Boolean)
     .map((p) => urunDilde(p, dil))
-  const acikTalep = requests.length
+  /* "Aktif taleplerim" yalnız açık talepleri sayıyor. Önceden bütün
+     talepler sayılıyordu; kapanmış, iptal edilmiş ya da bayiye iletilmiş
+     talep de "aktif" görünüyordu. Liste Profil'deki "Açık" sekmesiyle aynı
+     (lib/talepEkleme.js → KAPALI_DURUMLAR). */
+  const acikTalep = requests.filter((r) => !KAPALI_DURUMLAR.includes(r.status || 'yeni')).length
 
   return (
     <div className="app">
@@ -250,9 +255,14 @@ function Stat({ v, k, onClick }) {
    ATANMIŞSA: servisin adı, yeri ve tıklanabilir numarası. Numara
    kartın en büyük düğmesi; bu kartın var oluş sebebi o.
 
-   ATANMAMIŞSA: ne eksik ve ne yapılacağı. "Servis bulunamadı" demek
+   ATANMAMIŞSA: ne eksik ve kimin yapacağı. "Servis bulunamadı" demek
    yetmiyor — çiftçi kendi yapabileceği bir şey olup olmadığını
-   bilmeli. Atama PAKSAN'ın işi, o yüzden merkez numarası veriliyor. */
+   bilmeli. Atama PAKSAN'ın işi ve PAKSAN onu kendisi yapıyor
+   (21 Eylül 2026, kullanıcının kararı): servisi atanmamış makineler
+   backoffice'in yan menüsünde, Kayıtlı Makineler düğmesinde sayılıyor
+   ve atama makine başına orada yapılıyor. Kartta bu yüzden arama
+   düğmesi yok; eskiden "bizi arayın, hemen atayalım" diyordu ve işi
+   müşteriye yüklüyordu. */
 function ServisimKarti({ servis, showToast, t }) {
   if (!servis) {
     return (
@@ -266,13 +276,6 @@ function ServisimKarti({ servis, showToast, t }) {
             <div className="card__sub">{t('servisim.yokAlt')}</div>
           </div>
         </div>
-        <a
-          className="btn btn--soft btn--sm"
-          style={{ marginTop: 12 }}
-          {...araProps(SIRKET.telefonHam, SIRKET.telefon, showToast)}
-        >
-          <IconPhone size={19} /> {t('servisim.markayiAra')}
-        </a>
       </div>
     )
   }

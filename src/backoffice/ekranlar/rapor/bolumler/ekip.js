@@ -94,7 +94,7 @@ const M = {
     'İşlemler kişinin o günkü adıyla kaydedilir. Personel listesinden silinen ya da adı değiştirilen kişinin eski işlemleri bu raporda görünmez.',
     'İşlem: talebin geçmişine düşen durum değişiklikleri (talebin açılışı hariç), eklenen notlar, hak ediş onayı ve reddi, parça gönderimi, kargo bilgisinin sonradan girilmesi, ödeme onayı, teklif, planlama, iptal ve servis kaydında yapılan düzeltmeler. Her işlem kendi tarihine göre döneme girer.',
     'Aynı işlem iki kez sayılmaz. Hak ediş onayı, teklif, planlama, iptal ya da parça gönderimi hem talebin geçmişine bir satır hem kendi kaydını yazar; ikisi tek işlem sayılır.',
-    'Kapattığı talep: kişinin kapattığı talepler. Hak ediş onayı ya da reddiyle kapanan garanti işleri ve bayiye atanarak kapanan fiyat teklifleri de dahildir. Yedek parça talebinde kapanış, parçanın kargoya verilmesidir. Toplam satırında iki kişinin kapattığı aynı talep bir kez sayılır.',
+    'Kapattığı talep: kişinin kapattığı talepler. Hak ediş onayı ya da reddiyle kapanan garanti işleri ve bayiye iletilerek kapanan fiyat teklifleri de dahildir. Yedek parça talebinde kapanış, parçanın kargoya verilmesidir. Toplam satırında iki kişinin kapattığı aynı talep bir kez sayılır.',
     'Garanti parçası gönderim sayısı ve parça gönderimi: garanti işinde servise yapılan gönderimlerin sayısı; bir gönderimde birden çok parça olabilir, parça adedi Garanti ve Hak Ediş sekmesinde. Kargo bilgisini sonradan başka biri girdiyse gönderim ilk gönderen kişiye yazılır.',
     'Onaylanan hak ediş sayısı: personelin seçilen dönemde onayladığı hak edişlerin adedi; tutarı Garanti ve Hak Ediş sekmesinde.',
     'Personelin kapattığı talep ve personelin ilk işlemine kadar: yalnız personelin yaptıkları. Genel Bakış sekmesindeki "Kapanan talep" ve "İlk işleme kadar" bütün talepleri sayar; bu yüzden sayılar farklı olabilir.',
@@ -119,8 +119,17 @@ const ALAN_SATIRI = {
   odeme: 'incelemede',
 }
 
-/* Eşleşmemiş geçmiş satırının türü; listede olmayan durum "durum". */
-const SATIR_TURU = { kapandi: 'kapanis', teklif: 'teklif', planlandi: 'plan', iptal: 'iptal' }
+/* Eşleşmemiş geçmiş satırının türü; listede olmayan durum "durum".
+   Bayiye iletme de bir kapanış (21 Eylül 2026): eskiden geçmişe
+   "kapandı" yazıyordu ve "Kapattığı talep"e giriyordu; kendi durumunu
+   alınca oradan düşmesin. */
+const SATIR_TURU = {
+  kapandi: 'kapanis',
+  bayiyeIletildi: 'kapanis',
+  teklif: 'teklif',
+  planlandi: 'plan',
+  iptal: 'iptal',
+}
 
 /* Eşleşme sırası: özel alanlar önce. Hak ediş onayı ile kapanış formu
    aynı "kapandı" satırını isteyebilir; onay önce alır. */

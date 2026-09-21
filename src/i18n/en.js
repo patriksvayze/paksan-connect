@@ -277,6 +277,7 @@ export const en = {
     parcaBekliyor: 'A part is on its way for your machine',
     kapandi: 'Completed',
     iptal: 'Cancelled',
+    bayiyeIletildi: 'Passed to our dealer',
   },
 
   bildirimler: {
@@ -308,6 +309,8 @@ export const en = {
     cakismaBaslik: 'Your old account',
     cakismaOnay: 'Your old account has been moved to this account. Your machines and earlier requests are now here.',
     cakismaRet: 'The old number you entered does not match the phone number the machine is registered to. Please check the number and send it again, or call {marka}.',
+    servisAtandiBaslik: 'Service Assigned to Your Machine',
+    servisAtandiMetin: '{servis} will now look after your {makine} ({seri}). You can open a service request from the app.',
     baslik: 'Notifications',
     okunmamis: '{n} unread',
     tumunuOku: 'Mark all as read',
@@ -430,6 +433,7 @@ export const en = {
     devamAlindi: 'We have your message — the request is open again.',
     devamBildirildi: 'The problem continues',
     eklemeKapaliServis: 'This request is closed, so nothing more can be added to it. If the problem is still there, reopen it with the button below — the service will arrive knowing what was already done.',
+    eklemeBayide: 'Your request has been passed to our dealer, who will handle it from here. Notes written here will not be read. For any questions, please contact the dealer.',
   },
 
   /* --------------------------------- Spare parts: invoice and payment */
@@ -663,8 +667,9 @@ export const en = {
     talepNo: 'Request No',
     taleplerimiGor: 'View My Requests',
     servisYok: 'No service assigned to you',
-    servisYokAlt: 'Before you can open a service request, the service that looks after your machine has to be assigned. {marka} does that — call us and we will sort it out right away.',
-    servisYokAra: 'Call {marka}',
+    servisYokAlt: 'No service has been assigned to your machine yet, so you cannot open a service request. {marka} will assign one shortly.',
+    makineYokBaslik: 'You have no registered machine yet',
+    makineYokAlt: 'To open a service request, first register your machine with its serial number. The service that looks after it is determined by the machine you register.',
   },
 
   ekle: {
@@ -880,8 +885,7 @@ export const en = {
   servisim: {
     baslik: 'Your service',
     yok: 'No service assigned yet',
-    yokAlt: '{marka} decides which service looks after your machine. Call us and we will assign one.',
-    markayiAra: 'Call {marka}',
+    yokAlt: 'No service has been assigned to your machine yet, so you cannot open a service request. {marka} will assign one shortly.',
   },
   bayi: {
     baslik: 'Dealers and Contact',

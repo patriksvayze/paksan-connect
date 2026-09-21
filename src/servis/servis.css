@@ -435,6 +435,92 @@
   letter-spacing: 0;
 }
 
+/* ------------------------------------------- PAKSAN'ın talep bildirimleri
+
+   İşlerim'in üstünde okunmamış bildirimler (bkz. ServisPanel.jsx →
+   PaksanBildirimleri). İş kartının yüzeyi, kenarı ve gölgesi: yeni bir
+   görsel dil değil, aynı listenin parçası. Satırın tamamı dokunma
+   hedefi; soldaki mavi nokta "okunmadı" diyor ve yanında yazı var —
+   nokta tek başına anlam taşımıyor. */
+.talep-haberi {
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-3);
+  background: var(--yuzey);
+  box-shadow: var(--golge);
+  overflow: hidden;
+}
+
+.talep-haberi__satir {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--bosluk-3);
+  width: 100%;
+  min-height: var(--dokunma);
+  padding: var(--bosluk-3) var(--bosluk-4);
+  border-top: 1px solid var(--cizgi);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.talep-haberi__satir:first-child {
+  border-top: 0;
+}
+
+.talep-haberi__satir:hover {
+  background: var(--yuzey-2);
+}
+
+.talep-haberi__nokta {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  margin-top: 6px;
+  border-radius: var(--r-tam);
+  background: var(--mavi);
+}
+
+.talep-haberi__govde {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.talep-haberi__baslik {
+  font-size: var(--yazi-3);
+  font-weight: 800;
+}
+
+.talep-haberi__metin {
+  font-size: var(--yazi-2);
+  line-height: 1.5;
+  color: var(--murekkep);
+  overflow-wrap: anywhere;
+}
+
+.talep-haberi__alt {
+  font-size: var(--yazi-2);
+  color: var(--murekkep-2);
+}
+
+.talep-haberi__hepsi {
+  display: block;
+  min-height: var(--dokunma);
+  margin: var(--bosluk-2) 0 0 auto;
+  padding: 0 var(--bosluk-3);
+  background: none;
+  /* --mavi değil --mavi-rz: --mavi koyu temada dolgu tonunda kalıyor ve
+     zeminde 2,69'da okunmuyordu (21.09.2026 ölçümü). Yazı tonu ayrı. */
+  color: var(--mavi-rz);
+  font: inherit;
+  font-size: var(--yazi-2);
+  font-weight: 700;
+  cursor: pointer;
+}
+
 /* ------------------------------------------------------------ İş kartı
 
    Kart iki kardeşten oluşuyor: soldaki alan detayı açıyor, sağdaki
@@ -3712,6 +3798,39 @@
 .uyg .not--turuncu { background: var(--turuncu-soft); }
 .uyg .not--mavi { background: var(--mavi-soft); }
 
+/* Notun içindeki zorunlu "Anladım" düğmesi (ElleKayit.jsx → başkasının
+   makinesi). Basılmamışken Servisim'in çerçeveli düğmesi; basılınca
+   yeşil ve onay işaretli — renk tek başına anlam taşımıyor, işaret ve
+   aria-pressed da söylüyor. Seçici dört sınıf: üstteki
+   `.uyg .dg:not(.dg--ana)` kuralı zemini ve kenarı eziyor. */
+.uyg .not__onay {
+  margin-top: var(--bosluk-3);
+}
+
+/* TELEFONDA DA İKİ SÜTUN (elle kayıt → Ad / Soyad). Ortak `.esit`
+   sütun başına en az 200 piksel istiyor ve 390 piksellik telefonda tek
+   sütuna iniyor; İl / İlçe öyle kalıyor. Ad ile soyad kısa: Connect'in
+   kayıt ekranındaki gibi yan yana (kullanıcının isteği, 21 Eylül 2026). */
+.uyg .esit--ikili {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+/* Nottaki telefon numarası (dokununca aranıyor). Tarayıcının mavisi
+   karanlık temada turuncu notun zemininde okunmuyordu; yazı rengi,
+   kalınlık ve alt çizgi bağlantı olduğunu iki temada da söylüyor. */
+.uyg .not__tel {
+  color: var(--murekkep);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.uyg .dg.not__onay.not__onay--on {
+  background: var(--yesil-z);
+  border-color: var(--yesil);
+  color: var(--yesil);
+}
+
 /* --------------------------------------------------------------- Bakiye
 
    Connect'in "Servisiniz" kartı anatomisi: soluk turuncu simge karesi,
@@ -3731,15 +3850,40 @@
   box-shadow: var(--sh-1);
 }
 
+/* KARE, ETİKET + RAKAM BLOĞU BOYUNDA (21 Eylül 2026). Önce 48 piksellik
+   dokunma karesiydi ve içinde 22 piksellik ikon vardı: kare yalnız
+   etiketin hizasında başlıyor, altındaki 32 piksellik rakamın ortasına
+   gelmiyordu. Etiket (21) + ara (2) + rakam satırı (35) = 58; kare 56
+   ile o bloğun yanında ortalanıyor. Dokunulan bir düğme değil, dokunma
+   ölçüsüne bağlı kalması gerekmiyor. */
 .bakiye__ikon {
   flex: none;
   display: grid;
   place-items: center;
-  width: var(--dokunma);
-  height: var(--dokunma);
+  width: 56px;
+  height: 56px;
+  margin-top: 1px;
   border-radius: var(--r-sm);
   background: var(--turuncu-soft);
   color: var(--turuncu-yazi);
+}
+
+/* Para işareti yazı olarak: rakamla aynı kalınlıkta, karenin yarısı
+   kadar yüksek. Satır yüksekliği 1, yoksa yazı tipinin alt boşluğu
+   işareti karenin tepesine iter. */
+.bakiye__simge {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* KARANLIK TEMADA AÇIK TURUNCU. `--turuncu-yazi` (#8f3a00) açık kart
+   için ölçülmüş; karanlıkta zemin (--turuncu-soft) değişiyor, o
+   değişmiyordu: işaret karede 1,75:1 kalıyordu (ölçüldü, 21 Eylül 2026;
+   eski onay işareti de aynı renkteydi). --turuncu karanlıkta #ff8a3d:
+   5,66:1. Parça kartındaki fiyatla aynı çözüm. */
+[data-tema='koyu'] .uyg .bakiye__ikon {
+  color: var(--turuncu);
 }
 
 .bakiye__govde {
@@ -4091,6 +4235,106 @@ button.hareket:active {
 .onay__satir strong {
   color: var(--murekkep);
   text-align: right;
+}
+
+/* Parça listesinin kutusu. Bir dönem kuralı hiç yoktu ve liste üstteki
+   özet kutusuna yapışıyordu. */
+.onay__parca {
+  margin-top: var(--bosluk-4);
+}
+
+.onay__parca-baslik {
+  margin-bottom: var(--bosluk-2);
+  font-size: var(--y-alt);
+  font-weight: 600;
+  color: var(--murekkep-2);
+}
+
+/* ------------------------------------------------ Görselli parça listesi
+   Hak Ediş yaprağında (bkz. ParcaGorselListesi.jsx). Satır: 72 piksellik
+   görsel, kod ve ad, sağda adet. */
+
+.parca-gorselli {
+  display: grid;
+  gap: var(--bosluk-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.parca-gorselli__satir {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--bosluk-3);
+  padding: var(--bosluk-2);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-2);
+}
+
+.parca-gorselli__resim {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: var(--r-1);
+  background: #fff;
+  overflow: hidden;
+}
+
+.parca-gorselli__resim img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Katalog yolda: boş, soluk kutu — "Görsel yok" yazısı bir an görünüp
+   kaybolmasın. */
+.parca-gorselli__resim--bekliyor {
+  background: var(--yuzey-2);
+}
+
+.parca-gorselli__resimsiz {
+  padding: 0 4px;
+  font-size: 11px;
+  line-height: 1.25;
+  text-align: center;
+  color: #5b6472;
+}
+
+.parca-gorselli__govde {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.parca-gorselli__kod {
+  font-size: var(--y-alt);
+  color: var(--murekkep-2);
+}
+
+.parca-gorselli__ad {
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--murekkep);
+  overflow-wrap: anywhere;
+}
+
+.parca-gorselli__adet {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+.parca-gorselli__adet-ad {
+  font-size: var(--y-alt);
+  color: var(--murekkep-2);
+}
+
+.parca-gorselli__adet strong {
+  font-size: var(--y-govde);
+  color: var(--murekkep);
 }
 
 .onay .dg--ana {

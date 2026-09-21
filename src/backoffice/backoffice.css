@@ -1967,6 +1967,22 @@ tbody tr.secili .rz,
   gap: 4px;
 }
 
+/* ONAY KUTUSU OLAN SÜZGEÇ (Kayıtlı Makineler → "Servis atanmamış").
+   Çubuk alanları alttan hizalıyor; 13 piksellik kutu 36 piksellik
+   açılır listelerin yanında aşağı iniyor ve adı öteki adlardan 17 piksel
+   aşağıda kalıyordu (ölçüldü, 21 Eylül 2026). Alan satır boyunca
+   uzuyor, ad üstte ötekilerle aynı hizada, kutu kalan yüksekliğin — yani
+   yanındaki kontrolün — ortasında. Kontrol yüksekliği sabit yazılmadı. */
+.secim-alan--kutu {
+  align-self: stretch;
+}
+
+.secim-alan__kutu {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
 /* Arama kutusu tek başına 963 piksele kadar büyüyordu (ölçüldü);
    yanındaki "Makine" süzgeci 249 pikselde kalıyordu. Büyümesi
    sınırlandı, artan yer kayıt sayısına bırakıldı. */
@@ -3569,6 +3585,48 @@ select.sec {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   text-align: right;
+}
+
+/* Fiyat listesi okunurken: 48 sayfalık listede birkaç saniye sürüyor;
+   ilerlemeyi görmeyen personel düğmeye ikinci kez basıyordu. */
+.katalog-okuma {
+  display: grid;
+  gap: 6px;
+  max-width: 420px;
+}
+
+.katalog-okuma progress {
+  width: 100%;
+  height: 8px;
+  accent-color: var(--mavi-acik);
+}
+
+/* Önizlemedeki üç açılır liste (fiyatı değişen, yeni, çıkan). */
+.katalog-degisim {
+  display: grid;
+  gap: 6px;
+  margin-top: var(--bosluk-3);
+}
+
+.katalog-degisim details {
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-2);
+  background: var(--yuzey);
+}
+
+.katalog-degisim summary {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--bosluk-3);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.katalog-degisim .tablo-sar {
+  max-height: 360px;
+  overflow: auto;
+  border-top: 1px solid var(--cizgi);
 }
 
 /* Düzeltme penceresinin tepesi: görsel + ad + kod. Personel doğru

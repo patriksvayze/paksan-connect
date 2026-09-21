@@ -142,6 +142,8 @@ export function ortamYukle(secenek = {}) {
     veritabani,
     sunucu: d.PAKSAN_VT_SUNUCU || 'tcp:127.0.0.1,1433',
     sqlcmd: d.PAKSAN_VT_SQLCMD || '',
+    /* Boşsa SQL Server'ın varsayılan yedek klasörü (bkz. vt/yedekle.mjs). */
+    yedekKlasoru: d.PAKSAN_VT_YEDEK_KLASORU || '',
     /* Kurulum (veritabanı ve giriş oluşturma) sunucu yöneticisiyle
        yapılır: yerelde Windows girişi, VPS'te ayrı bir yönetici. */
     kurulumGirisi: {

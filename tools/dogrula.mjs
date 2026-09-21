@@ -22,7 +22,7 @@
      5. Marka sınırı     — motor marka klasörüne yalnız kapıdan bakıyor mu
      6. Marka adı        — firma adı motor kodunda düz yazıyla geçiyor mu
      7. Bayi kalıntısı   — servis uygulamasında bayi kelimesi kalmış mı
-     8. Sınamalar — tools/ altındaki altı sınama betiği
+     8. Sınamalar — tools/ altındaki sekiz sınama betiği
      9. Yedek parça      — katalog tutarlı mı, uydurma fiyat geri geldi mi
     10. Sürüm numarası   — Connect'in üç yeri tutuyor mu, Servisim ayrı mı
     11. Yayın anahtarları — geliştirme ayarı APK'ya gidiyor mu (saymıyor)
@@ -495,11 +495,13 @@ if (!kalintilar.length) {
    Ayrı süreçte çalıştırılıyorlar: her biri kendi başına da
    çalıştırılabilsin ve biri çökerse ötekiler etkilenmesin.
 
-   Son ikisi ötekilerden farklı. Dördü metin okuyor; `ekosistem-sinamasi`
-   üç uygulamanın paylaştığı veri katmanını gerçekten ÇALIŞTIRIYOR ve bu
-   yüzden daha yavaş (Vite ile modülleri yüklüyor, ~10 sn). Yavaşlığı
-   karşılığında aldığı şey şu: bir uygulamanın ötekinin okuyamayacağı bir
-   kayıt yazdığını başka hiçbir kontrol göremiyor. */
+   Son üçü ötekilerden farklı. Dördü metin okuyor; `ekosistem-sinamasi`
+   ve `veritabani-eslesme-denetimi` üç uygulamanın paylaştığı veri
+   katmanını gerçekten ÇALIŞTIRIYOR ve bu yüzden daha yavaş (Vite ile
+   modülleri yüklüyor, ~10 sn her biri). Yavaşlığın karşılığı: bir
+   uygulamanın ötekinin okuyamayacağı bir kayıt yazdığını, ya da
+   veritabanında karşılığı olmayan bir alan yazdığını başka hiçbir
+   kontrol göremiyor. */
 
 baslik('8. Sınamalar')
 
@@ -521,6 +523,19 @@ const SINAMALAR = [
      yazdığını ancak zinciri yürüten görür. Ayrıntısı betiğin başında;
      her senaryonun taşıdığı, bilerek bozularak gösterildi. */
   ['ekosistem-sinamasi.mjs', 'ekosistem akışları'],
+  /* Uygulama ile veritabanı arasındaki kayma. Uygulama veritabanına
+     henüz bağlı değil; yeni bir alan, karşılığı olmasa da hata
+     vermiyordu. Aynı senaryoları koşturup depoya düşen her alanı
+     veritabani/uygulama-eslesmesi.mjs ile karşılaştırıyor; eşlemesiz
+     alan, betiklerde olmayan sütun ya da eşlemesiz veri.js işlevi
+     burayı düşürür. Ayrıntısı betiğin başında. */
+  ['veritabani-eslesme-denetimi.mjs', 'uygulama–veritabanı eşlemesi'],
+  /* Yeni fiyat listesi backoffice'ten PDF olarak yükleniyor (21 Eylül
+     2026). Okuyucu aynı PDF'ten bugünkü katalogla birebir aynı sonucu
+     vermeli; sunucunun yayına alma adımı bozuk listeyi reddetmeli ve
+     eski listeyi arşive taşımalı. PDF bulunamazsa okuma kısmı
+     "atlandı" der, yayına alma kısmı yine koşar. */
+  ['fiyat-listesi-okuma-sinamasi.mjs', 'fiyat listesi okuma ve yayına alma'],
   /* Ekran tarafı. Geliştirme sunucusu ya da Chrome yoksa kendini
      `atlandı` deyip 0 ile bitiriyor — bu yüzden etiketi "sunucu varsa"
      diyor: burada "ok" görmek her zaman turun koştuğu anlamına gelmez.

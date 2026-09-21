@@ -36,13 +36,19 @@ import { uid } from './storage'
 
 /* Kapalı sayılan durumlar. Backoffice'teki KAPALI_DURUMLAR ile aynı
    liste; uygulama backoffice'in kodunu almadığı için burada tekrar
-   yazılı (bkz. src/backoffice/veri.js). */
-const KAPALI = ['kapandi', 'iptal']
+   yazılı (bkz. src/backoffice/veri.js). Connect'te bu listenin tek yeri
+   burası; Profil ekranı da buradan alıyor.
+
+   "Bayiye İletildi" de kapalı (21 Eylül 2026, kullanıcının kararı):
+   fiyat teklifini bundan sonra bayi yürütüyor, PAKSAN talebe bakmıyor.
+   Oraya yazılan not kimseye ulaşmaz. Eşitliği ekosistem sınaması
+   denetliyor (AK-06). */
+export const KAPALI_DURUMLAR = ['kapandi', 'iptal', 'bayiyeIletildi']
 
 /** Bu talebe şu an ekleme yapılabilir mi? */
 export function eklemeYapilabilir(talep) {
   if (!talep) return false
-  return !KAPALI.includes(talep.status || 'yeni')
+  return !KAPALI_DURUMLAR.includes(talep.status || 'yeni')
 }
 
 /**

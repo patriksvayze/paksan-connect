@@ -20,9 +20,25 @@
    ========================================================================== */
 
 import { fileURLToPath } from 'node:url'
-import { dirname, join } from 'node:path'
+import { dirname, join, relative } from 'node:path'
+import { readdirSync, readFileSync, statSync } from 'node:fs'
 
 export const KOK = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
+
+/* İki senaryo (AK-08 yetki sözleşmesi, AK-10 sabit tekrarı) kaynak
+   metnine bakıyor: bir izin adı yanlış yazıldığında ya da bir sabit
+   üçüncü kez kopyalandığında bunu çalışan kod göstermiyor, yalnız
+   metin gösteriyor. Dosyalar bir kez okunup senaryolara veriliyor.
+   Senaryoları koşturan her betik (ekosistem sınaması, eşleme denetimi)
+   bunu buradan alır. */
+export function kaynaklariTopla(klasor = join(KOK, 'src'), toplam = []) {
+  for (const ad of readdirSync(klasor)) {
+    const yol = join(klasor, ad)
+    if (statSync(yol).isDirectory()) kaynaklariTopla(yol, toplam)
+    else if (/\.(js|jsx)$/.test(ad)) toplam.push([relative(KOK, yol), readFileSync(yol, 'utf8')])
+  }
+  return toplam
+}
 
 /* Projede tek bir "şimdi" olsun diye tools/ekran-goruntusu.mjs:90'daki
    SIMDI ile aynı an. İki araç aynı tarihi üretirse ekran görüntüsündeki

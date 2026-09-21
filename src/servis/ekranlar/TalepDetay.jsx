@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useGeri } from '../geri'
 import {
   talepDurumDegistir,
@@ -11,6 +11,7 @@ import {
   ASAMA, GARANTI_DISI_OZET, KAPI, parcaYazisiKodlu as parcaYazisi, talebinParcalari, temizParcalar,
 } from '../../lib/servisKaydi'
 import { DikteliKutu } from '../Dikte'
+import { bildirimYazisi, okunduSay, talebinBildirimleri } from '../talepBildirimleri'
 import { ParcaTablosu } from '../../components/ParcaTablosu'
 import { teslimatYazisi } from '../../lib/teslimat'
 import { bugunGirdi, ileriTarihMi } from '../../lib/tarih'
@@ -88,6 +89,12 @@ export function TalepDetay({
   onYenile,
 }) {
   const [pencere, setPencere] = useState(null)
+
+  /* Talep açıldıysa PAKSAN'ın bu talepteki bildirimleri okunmuş sayılır;
+     İşlerim'in üstündeki listeden düşerler (bkz. talepBildirimleri.js). */
+  useEffect(() => {
+    okunduSay(talebinBildirimleri(oturum?.servisId, talep.id).map((b) => b.id))
+  }, [oturum?.servisId, talep.id])
   const paksanda = (talep.sahip || 'paksan') === 'paksan'
   const kapali = ['kapandi', 'iptal'].includes(talep.status)
   /* Servis kaydının doğurduğu iki bekleme. İkisi de AÇIK talep: iş
@@ -162,6 +169,16 @@ export function TalepDetay({
      servise ulaşacağı başka bir yol yoktu; telefon ediliyordu ve
      talepte izi kalmıyordu. */
   const bizeNotlar = (talep.notlar || []).filter((n) => n.servise)
+  /* PAKSAN'IN BU TALEPTE YAPTIKLARI (21 Eylül 2026).
+
+     Durum değişikliği, iptal, kapatma, parça, kaydın onayı ya da
+     düzeltilmesi — her biri servise bildirim olarak gitti (bkz.
+     talepBildirimleri.js). Burada o talebin bütün geçmişi, okunmuş
+     olsun olmasın. Notlar hemen altındaki kartta zaten yazılı; burada
+     tekrar edilmiyor. */
+  const paksanIslemleri = talebinBildirimleri(oturum?.servisId, talep.id).filter(
+    (b) => b.olay !== 'not',
+  )
   /* SERVİSİN KENDİ NOTLARI.
 
      Not Ekle ile yazılan not talebe iç not olarak düşüyordu: PAKSAN
@@ -420,6 +437,28 @@ export function TalepDetay({
         </div>
       )}
 
+      {paksanIslemleri.length > 0 && (
+        <div className="kart" style={{ padding: 16 }}>
+          <div className="kucuk sonuk" style={{ marginBottom: 10 }}>
+            {MARKA} tarafından yapılan işlemler
+          </div>
+          {paksanIslemleri.map((b) => {
+            const y = bildirimYazisi(b)
+            return (
+              <div key={b.id} style={{ marginBottom: 12 }}>
+                <div style={{ fontWeight: 700 }}>{y.baslik}</div>
+                {y.metin && (
+                  <p style={{ whiteSpace: 'pre-wrap', margin: '2px 0 0' }}>{y.metin}</p>
+                )}
+                <div className="kucuk sonuk" style={{ marginTop: 4 }}>
+                  {gecenSure(b.tarih)}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
       {bizeNotlar.length > 0 && (
         <div className="kart" style={{ padding: 16 }}>
           <div className="kucuk sonuk" style={{ marginBottom: 10 }}>
@@ -671,6 +710,7 @@ export function TalepDetay({
                   : {}),
               },
               servisAd,
+              { servisten: true },
             )
             onKapat()
           }}
@@ -685,7 +725,7 @@ export function TalepDetay({
           kalemler={[{ ad: 'Talep', deger: talep.no }]}
           dugme="Parçayı Taktım"
           onOnayla={() => {
-            talepDurumDegistir(talep, 'kapandi', servisAd)
+            talepDurumDegistir(talep, 'kapandi', servisAd, { servisten: true })
             onKapat()
           }}
           onVazgec={() => setPencere(null)}
@@ -961,6 +1001,7 @@ function Randevu({ talep, servisAd, onKapat, onBitti }) {
         gorusuldu: true,
       },
       servisAd,
+      { servisten: true },
     )
     onBitti()
   }
@@ -1094,6 +1135,7 @@ function Iptal({ talep, servisAd, onKapat, onBitti }) {
         aciklama: baska ? '' : aciklama.trim(),
       },
       servisAd,
+      { servisten: true },
     )
     onBitti()
   }

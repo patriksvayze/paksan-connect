@@ -39,13 +39,32 @@ Sunucudan beklenen tek şey bu klasörün aynısını yayınlaması:
     <kok>/katalog.json
     <kok>/gorseller/<parça kodu>.webp
 
-## Katalog nasıl üretiliyor
+Bir de yeni fiyat listesini kabul etmesi (aşağıda).
 
-PAKSAN'ın bastığı fiyat listesi PDF'inden:
+## Yeni fiyat listesi nasıl yayına giriyor (21 Eylül 2026'dan beri)
 
-    pip install pymupdf pillow
-    python tools/parca-katalogu.py "<liste.pdf>"
+Personel backoffice'te **Yedek Parça Kataloğu** ekranından PAKSAN'ın PDF
+fiyat listesini seçiyor. Liste onun tarayıcısında okunuyor
+(`src/lib/fiyatListesiOku.js`), ekran neyin değiştiğini gösteriyor,
+personel "Yayına Al" deyince liste buraya gönderiliyor:
 
-Yeni liste geldiğinde aynı komut yeniden çalıştırılıyor. Elle
-düzenlenmiyor: 538 satırlık bir liste elle yazılırsa ilk güncellemede
-eskir.
+    POST <kok>/yayinla
+
+İşi `fiyat-listesi-yayini.mjs` yapıyor; sözleşme (ne gelir, ne döner,
+neler reddedilir) dosyanın başında. Sunucu yazıldığında aynı sözleşmeyi
+uygulayacak.
+
+Yayından sonra bu klasörde:
+
+| Yer | Ne |
+|---|---|
+| `parca-katalogu/katalog.json` | Yürürlükteki liste; `surum` her yeni listede bir artıyor, `yayinTarihi` ve `yayinlayan` yazılı |
+| `parca-katalogu/gorseller/` | Yürürlükteki listenin görselleri |
+| `parca-katalogu/kaynak.pdf` | Listenin okunduğu PDF (git'e girmez) |
+| `parca-katalogu-arsiv/<sürüm>-<zaman>/` | Önceki listeler, olduğu gibi (git'e girmez). Hangi siparişin hangi fiyattan verildiğinin kanıtı |
+
+Liste elle düzenlenmiyor: 538 satırlık bir liste elle yazılırsa ilk
+güncellemede eskir. Önceden PDF komut satırından bir Python betiğiyle
+okunuyordu (`tools/parca-katalogu.py`, 21 Eylül 2026'da kaldırıldı);
+yeni okuyucunun aynı PDF'ten birebir aynı kataloğu verdiği her
+`npm run dogrula`'da denetleniyor (`tools/fiyat-listesi-okuma-sinamasi.mjs`).

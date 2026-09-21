@@ -9,6 +9,7 @@ import { AYDINLATMA, TICARI_ILETI, metinDilde, metinListesi } from '../data/kvkk
 import { Metin, OnayKutusu } from '../components/Metin'
 import { KaydirilirSatir } from '../components/Kaydir'
 import { talepTuru } from '../lib/talep'
+import { KAPALI_DURUMLAR } from '../lib/talepEkleme'
 import { formatSerial } from '../lib/serial'
 import { telKullanici } from '../lib/tel'
 import { adTemizle } from '../lib/ad'
@@ -69,11 +70,11 @@ export default function Profile() {
   const taleplerRef = useRef(null)
   /* Açık ve tamamlanmış talepler.
 
-     "Tamamlanmış" = üzerinde iş kalmamış: kapandı ya da iptal edildi.
-     Yedek parçada kargoya verilmek ayrı bir durum değil, kapanışın
-     kendisi. Backoffice’in KAPALI_DURUMLAR listesiyle aynı mantık;
-     uygulama backoffice’in kodunu almadığı için burada tekrar yazılı. */
-  const KAPALI = ['kapandi', 'iptal']
+     "Tamamlanmış" = üzerinde iş kalmamış: kapandı, iptal edildi ya da
+     fiyat teklifi bayiye iletildi. Yedek parçada kargoya verilmek ayrı
+     bir durum değil, kapanışın kendisi. Liste lib/talepEkleme.js'te;
+     talebe ekleme kapısı da aynı listeye bakıyor. */
+  const KAPALI = KAPALI_DURUMLAR
   const acikTalepler = requests.filter((r) => !KAPALI.includes(r.status || 'yeni'))
   const kapaliTalepler = requests.filter((r) => KAPALI.includes(r.status || 'yeni'))
   const seciliListe = talepSekme === 'acik' ? acikTalepler : kapaliTalepler

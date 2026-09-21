@@ -6,6 +6,7 @@ import { extname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { yayinIsleyicisi } from './sunucu-taklidi/fiyat-listesi-yayini.mjs'
 
 /* Bu ayar YALNIZCA müşterinin uygulamasını derliyor (index.html).
 
@@ -60,6 +61,12 @@ function tarayicidaAc(adres) {
 
    Böylece taklit gerçeğe benziyor: uygulama gerçek bir HTTP isteği
    atıyor, yükleme göstergesi ve hata ekranı gerçekten çalışıyor.
+
+   YENİ FİYAT LİSTESİ DE BURADAN YAYINA GİRİYOR (21 Eylül 2026).
+   Backoffice personelin yüklediği PDF'i okuyup onaylanan listeyi
+   `POST /parca-katalogu/yayinla` ile gönderiyor; işi
+   `sunucu-taklidi/fiyat-listesi-yayini.mjs` yapıyor (sözleşmesi orada).
+   Sunucu yazıldığında aynı sözleşmeyi uygulayacak.
    -------------------------------------------------------------------------- */
 
 function katalogSun() {
@@ -75,6 +82,11 @@ function katalogSun() {
     name: 'paksan-katalog-sun',
     apply: 'serve',
     configureServer(server) {
+      const yayinla = yayinIsleyicisi(KOK)
+      server.middlewares.use('/parca-katalogu/yayinla', (istek, cevap, sonraki) => {
+        if (istek.method !== 'POST') return sonraki()
+        yayinla(istek, cevap)
+      })
       server.middlewares.use('/parca-katalogu', (istek, cevap, sonraki) => {
         /* Adres çözümlemesi kök dışına çıkamıyor: `..` içeren bir
            istek geliştirme makinesindeki başka dosyaları okuyabilirdi. */

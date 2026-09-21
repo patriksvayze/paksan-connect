@@ -28,31 +28,40 @@
 
    CEVAP YOKSA NE OLUYOR
 
-   Müşteri servis talebi açamıyor; uygulama PAKSAN'la iletişime
-   geçmesini söylüyor (bkz. screens/RequestForm.jsx). Bu bir eksiklik
-   değil, kasıtlı bir kapı: atama PAKSAN'ın kararı.
+   Müşteri servis talebi açamıyor; uygulama servisin henüz atanmadığını
+   ve PAKSAN'ın en kısa sürede atayacağını söylüyor (bkz.
+   screens/RequestForm.jsx). Bu bir eksiklik değil, kasıtlı bir kapı:
+   atama PAKSAN'ın kararı. Sözü tutan backoffice'teki Kayıtlı Makineler
+   ekranı: yan menüdeki sayı servisi olmayan makineleri sayıyor
+   (servisiAtanmamisKayitlar), atama o ekrandan yapılıyor.
+
+   ATAMA MAKİNE BAŞINA, MÜŞTERİ BAŞINA DEĞİL (21 Eylül 2026, kullanıcının
+   kararı): "Her servis her makine üzerinde uzman sayılamaz. Müşteri 1
+   adet yem karma ve 1 adet balya makinesine sahip olabilir ve bunlar
+   ile aynı servis ilgilenemeyebilir." Aynı gün Müşteriler ekranına
+   müşteri başına bir atama yeri ve müşteri sayacı eklenmiş, sonra geri
+   alınmıştı.
    ========================================================================== */
 
-import { load } from './storage'
 import { bayininServisleri, servisGetir, bayiGetir } from '../marka'
-import { normalizeSerial } from './serial'
-
-const KAYIT_DEPOSU = 'makineKayitlari'
+import { seriSatiri } from './makineKaydi'
 
 /* Seri numarasının kayıt defterindeki satırı.
 
+   DEFTER TEK YERDEN OKUNUYOR (21 Eylül 2026): lib/makineKaydi.js →
+   seriSatiri. Burada bir dönem deftere doğrudan bakılıyordu ve aynı
+   serinin kopyaları arasından en yenisi seçiliyordu; müşteri makinesini
+   silip yeniden ekleyince o en yeni kopya servissizdi ve PAKSAN'ın
+   atadığı servis kayboluyordu. Artık bir seriye tek satır düşüyor.
+
    NORMALİZE EDİLEREK ARANIYOR. Defter seriyi GELDİĞİ GİBİ saklıyor
-   (lib/makineKaydi.js:160 → `seri: makine.serial`); aynı defteri okurken
-   karşılaştırmayı `normalizeSerial` ile yapıyor (:75, :84). Burada ise bir
-   dönem yalnız `.trim()` vardı — yani tek defteri iki ayrı kuralla okuyan
-   iki dosya. Sonucu ölçüldü: `ORK1270-2024-00157` servise bağlanıyor,
-   `ork1270-2024-00157` null dönüyor ve o müşteri servis talebi AÇAMIYOR.
-   Artık iki taraf da aynı kuralı kullanıyor: büyük harfe çevir, harf ve
-   rakam dışındaki her şeyi at. */
+   (`seri: makine.serial`). Burada bir dönem yalnız `.trim()` vardı —
+   tek defteri iki ayrı kuralla okuyan iki dosya. Sonucu ölçüldü:
+   `ORK1270-2024-00157` servise bağlanıyor, `ork1270-2024-00157` null
+   dönüyor ve o müşteri servis talebi AÇAMIYORDU. `seriSatiri` büyük
+   harfe çeviriyor, harf ve rakam dışındaki her şeyi atıyor. */
 export function makineninKaydi(seri) {
-  const temiz = normalizeSerial(seri)
-  if (!temiz) return null
-  return load(KAYIT_DEPOSU, []).find((k) => normalizeSerial(k.seri) === temiz) || null
+  return seriSatiri(seri)
 }
 
 /**
@@ -63,7 +72,18 @@ export function makineninKaydi(seri) {
  */
 export function makineninServisi(makine) {
   const seri = typeof makine === 'string' ? makine : makine?.serial
-  const kayit = makineninKaydi(seri)
+  return kaydinServisi(makineninKaydi(seri))
+}
+
+/**
+ * Kayıt defterindeki bir satırın servisi. Müşterinin tarafı
+ * (makineninServisi) ve backoffice'in Kayıtlı Makineler ekranı aynı
+ * işlevden okuyor; iki ayrı kural olsaydı biri "atanmış" derken öteki
+ * "atanmamış" derdi.
+ *
+ * @returns {null|{servis: object, kaynak: 'atama'|'bayi', bayi: object|null}}
+ */
+export function kaydinServisi(kayit) {
   if (!kayit) return null
 
   const bayi = bayiGetir(kayit.bayiId)
@@ -101,4 +121,16 @@ export function musterininServisleri(makineler = []) {
 /** Müşteri servis talebi açabilir mi? */
 export function servisTalebiAcilabilirMi(makineler = []) {
   return Boolean(musterininServisleri(makineler).ana)
+}
+
+/**
+ * Servisi olmayan kayıt satırları: ne elle atanmış servisi var ne de
+ * satan bayinin servisi. Backoffice'in yan menüsündeki Kayıtlı Makineler
+ * sayısı ve o ekrandaki uyarı kartı bu listeyi sayıyor — ikisi aynı
+ * sayıyı göstermeli.
+ *
+ * @param {Array<object>} kayitlar makineKayitlariGetir() çıktısı
+ */
+export function servisiAtanmamisKayitlar(kayitlar = []) {
+  return kayitlar.filter((k) => !kaydinServisi(k))
 }

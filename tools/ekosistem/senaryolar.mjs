@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Ekosistem senaryoları — AK-01 … AK-14
+   Ekosistem senaryoları — AK-01 … AK-17
 
    Her senaryo temiz depoyla başlıyor, kendi dünyasını tohumluyor ve
    gerçek modülleri çağırıyor. Hiçbir iddia ekran metnine, CSS sınıfına
@@ -42,8 +42,16 @@ function bul(m, id) {
    türlerini süzüyor (veri.js:1345). Tek anahtarda iki cins kayıt var;
    kişisel olanı okumak için ham depoya bakmak gerekiyor — müşteri
    uygulaması da öyle yapıyor. */
+/* MÜŞTERİNİN kişisel bildirimleri. 21 Eylül 2026'dan beri aynı depoya
+   servise giden talep bildirimleri de yazılıyor (`alici: 'servis'`,
+   bkz. veri.js → serviseBildir); onlar müşterinin sayımına girmemeli.
+   Servise gidenler ayrı yardımcıda. */
 function kisiselBildirimler(m) {
-  return m.depo.load('duyurular', []).filter((x) => x.kisisel)
+  return m.depo.load('duyurular', []).filter((x) => x.kisisel && x.alici !== 'servis')
+}
+
+function servisBildirimleriDepodan(m) {
+  return m.depo.load('duyurular', []).filter((x) => x.alici === 'servis')
 }
 
 /** Garanti kaydının bitmiş hâli. */
@@ -367,33 +375,107 @@ export function AK05(m) {
 
 /* ========================================================== AK-06 */
 
-export function AK06(m) {
-  const d = defter('AK-06', 'Fiyat teklifi bayiye')
+/* BEKLENTİ DEĞİŞTİ (21 Eylül 2026, kullanıcının kararı): "Bayi Atama'dan
+   ziyade hangi bayinin yetkilendirildiği belirtilsin … Yeni, Bayiye
+   İletildi, Teklif Verildi, Kapandı ve İptal olmalı … Bayiye İletilen
+   talep aslında kapanmış sayılmalı ve sonraki statülere geçmemeli.
+   Teklif Verilen talepler de bayiye iletilememeli … müşteri ile PAKSAN
+   ilgilenmeyecekse müşteriye bildirim gitmemeli."
+
+   Senaryonun eski asıl iddiası tam tersiydi ("Bayide bir durum değil,
+   türetilmiş etiket"). Kural bilerek değiştiği için iddia da değişti;
+   yeni kuralların her biri aşağıda ayrı bir iddia. */
+export async function AK06(m, ctx) {
+  const d = defter('AK-06', 'Fiyat teklifi bayiye iletilir')
   depoTemizle()
   const { urunId, kisi } = dunyaKur(m)
 
-  const r = talebiYaz(
-    m,
-    m.talepOlustur.talepKaydiOlustur(talepVerisi('satinalma', urunId, null, { urunId }), kisi),
-  )
+  const acTeklif = () =>
+    talebiYaz(
+      m,
+      m.talepOlustur.talepKaydiOlustur(talepVerisi('satinalma', urunId, null, { urunId }), kisi),
+    )
+
+  const r = acTeklif()
   d.esit(r.servis, null, 'teklif talebi servise atanmıyor')
   d.dogru(/^TKF/.test(r.no || ''), 'talep numarası TKF önekli')
 
+  /* Durum listesi: fiyat teklifinde "İncelemede" yok, "Bayiye İletildi" var. */
+  const teklifDurumlari = m.veri.talepDurumlari('satinalma').map((x) => x.id)
+  d.esit(
+    teklifDurumlari.join(','),
+    'yeni,bayiyeIletildi,teklif,kapandi,iptal',
+    'fiyat teklifinin durumları kullanıcının saydığı beş durum',
+  )
+  d.yanlis(
+    m.veri.elleSecilebilirDurumlar('satinalma').some((x) => x.id === 'bayiyeIletildi'),
+    '"Bayiye İletildi" çipte yok — bayi seçilmeden girilemez',
+  )
+  for (const tur of ['servis', 'parca']) {
+    d.yanlis(
+      m.veri.talepDurumlari(tur).some((x) => x.id === 'bayiyeIletildi'),
+      `${tur} talebinde "Bayiye İletildi" durumu yok`,
+    )
+  }
+  d.dogru(m.veri.KAPALI_DURUMLAR.includes('bayiyeIletildi'), '"Bayiye İletildi" kapalı durum')
+  /* Connect kapalı listesini ayrıca tutuyor (lib/talepEkleme.js; uygulama
+     backoffice kodunu almıyor). İkisi ayrılırsa müşteri bayiye iletilmiş
+     talebi açık görür ve kimsenin okumayacağı not ekler. */
+  const ekleme = await ctx.modulYukle('/src/lib/talepEkleme.js')
+  d.esit(
+    [...ekleme.KAPALI_DURUMLAR].sort().join(','),
+    [...m.veri.KAPALI_DURUMLAR].sort().join(','),
+    'Connect\'in kapalı listesi backoffice\'inkiyle aynı',
+  )
+
+  /* Bayiye iletme: durum, sahiplik, bayi kaydı — ve MÜŞTERİYE BİLDİRİM YOK. */
+  const onceBildirim = kisiselBildirimler(m).length
   const bayi = m.marka.bayiGetir(BAYI.atanmis)
-  m.veri.talebiBayiyeAta(r, bayi, 'Sınama Yöneticisi')
+  const ilet = m.veri.talebiBayiyeAta(r, bayi, 'Sınama Yöneticisi')
   const t2 = bul(m, r.id)
-
+  d.dogru(!ilet?.hata, 'yeni talep bayiye iletilebiliyor')
+  d.esit(t2?.status, 'bayiyeIletildi', 'durum "Bayiye İletildi"')
   d.esit(t2?.sahip, 'bayi', 'sahiplik bayiye geçti')
-  d.esit(t2?.status, 'kapandi', 'PAKSAN kuyruğundan çıktı')
-  d.esit(t2?.bayi?.id, BAYI.atanmis, 'bayi kaydı yazıldı')
-
+  d.esit(t2?.bayi?.id, BAYI.atanmis, 'yetkilendirilen bayi yazıldı')
   d.esit(t2?.masa, null, 'hiçbir masada beklemiyor')
+  d.esit(kisiselBildirimler(m).length, onceBildirim, 'müşteriye bildirim GİTMEDİ')
 
-  /* ÖLÇÜLDÜ: `rolunTalepleri` türe VE masaya bakıyor (veri.js:138), duruma
-     değil — kapanmış bir teklif talebi satış rolünün listesinde kalmaya
-     devam ediyor, ekran durumu ayrıca süzüyor. O yüzden "satıştan düştü"
-     diye bir iddia yanlış olurdu. Doğru iddia şu: talep türü kendi
-     masasının dışına SIZMIYOR. */
+  /* "Sonraki statülere geçmemeli": hiçbir kapı açılmıyor. */
+  const denemeler = {
+    'durum değiştirme': m.veri.talepDurumDegistir(t2, 'teklif', 'Sınama Yöneticisi'),
+    kapatma: m.veri.talepKapat(t2, { ozet: 'deneme' }, 'Sınama Yöneticisi'),
+    'teklif verme': m.veri.talepTeklifVer(t2, { tutar: 1000 }, 'Sınama Yöneticisi'),
+    iptal: m.veri.talepIptal(t2, { neden: 'deneme' }, 'Sınama Yöneticisi'),
+  }
+  for (const [ne, sonuc] of Object.entries(denemeler)) {
+    d.dogru(Boolean(sonuc?.hata), `bayiye iletilmiş talepte ${ne} reddedildi`)
+  }
+  d.esit(bul(m, r.id)?.status, 'bayiyeIletildi', 'reddedilen denemelerden sonra durum değişmedi')
+
+  /* Yanlış tıklamanın düzeltilmesi: "Yeni"ye döner, bayi silinir. */
+  m.veri.bayiAtamasiniKaldir(bul(m, r.id), 'Sınama Yöneticisi')
+  const t3 = bul(m, r.id)
+  d.esit(t3?.status, 'yeni', 'geri alınan talep "Yeni"ye döndü')
+  d.esit(t3?.bayi, null, 'geri alınca bayi kaydı silindi')
+  d.esit(t3?.sahip, 'paksan', 'geri alınca sahiplik PAKSAN\'a döndü')
+
+  /* Teklif verilmiş talep bayiye iletilemez — durumu "Yeni"ye geri
+     alınmış olsa bile: kapı talebin teklif geçmişine bakıyor. */
+  const r2 = acTeklif()
+  m.veri.talepTeklifVer(r2, { tutar: 150000 }, 'Sınama Yöneticisi')
+  d.dogru(
+    Boolean(m.veri.talebiBayiyeAta(bul(m, r2.id), bayi, 'Sınama Yöneticisi')?.hata),
+    'teklif verilmiş talep bayiye iletilemiyor',
+  )
+  m.veri.talepDurumDegistir(bul(m, r2.id), 'yeni', 'Sınama Yöneticisi')
+  d.dogru(
+    Boolean(m.veri.talebiBayiyeAta(bul(m, r2.id), bayi, 'Sınama Yöneticisi')?.hata),
+    '"Yeni"ye geri alınsa da teklif verilmiş talep iletilemiyor',
+  )
+  d.esit(bul(m, r2.id)?.status, 'yeni', 'reddedilen iletmeden sonra durum aynı')
+
+  /* Masa sınırı eskisi gibi: talep türü kendi masasının dışına SIZMIYOR.
+     `rolunTalepleri` türe ve masaya bakıyor, duruma değil (veri.js). */
   const liste = m.veri.talepleriGetir()
   d.dogru(
     m.veri.rolunTalepleri(liste, 'satis').some((t) => t.id === r.id),
@@ -406,12 +488,13 @@ export function AK06(m) {
     )
   }
 
-  /* ASIL İDDİA: "Bayide" bir DURUM DEĞİL, türetilmiş bir etikettir.
-     Biri gerçek bir durum eklerse ikinci bir doğruluk kaynağı doğar ve
-     `sahip`/`bayi` ile durum birbirinden ayrılabilir. */
-  const durumIdleri = m.veri.DURUMLAR.map((x) => x.id)
-  d.yanlis(durumIdleri.includes('Bayide'), 'DURUMLAR içinde "Bayide" diye bir durum yok')
-  d.yanlis(durumIdleri.includes('bayide'), 'DURUMLAR içinde "bayide" diye bir durum yok')
+  /* Son talep bayide kalıyor: depoda bir iletilmiş kayıt dursun ki
+     eşleme denetimi bayi alanlarını (id, ad, tel, tarih) görebilsin. */
+  const r3 = acTeklif()
+  m.veri.talebiBayiyeAta(r3, bayi, 'Sınama Yöneticisi')
+  const t4 = bul(m, r3.id)
+  d.esit(t4?.status, 'bayiyeIletildi', 'ikinci iletme de "Bayiye İletildi"')
+  d.dogru(Boolean(t4?.bayi?.tel), 'bayinin telefonu talepte — satış personeli arayacak')
 
   return d
 }
@@ -455,6 +538,17 @@ export function AK07(m) {
     m.duyuruHedef.duyuruGecerliMi(kisisel[0], { user: kime, makineler, servis: null })
   d.dogru(gorur(MUSTERI2), 'alıcı kendi bildirimini görüyor')
   d.yanlis(gorur(MUSTERI), 'başka müşteri o bildirimi GÖRMÜYOR')
+
+  /* Aynı işlem servise de bir kayıt yazdı (talebin servisi var). O kayıt
+     aynı depoda ama HİÇBİR MÜŞTERİYE görünmemeli: müşteri kimliği yok. */
+  const servise = servisBildirimleriDepodan(m)
+  d.esit(servise.length, 1, 'aynı işlem servise de bir bildirim yazdı')
+  for (const kime of [MUSTERI, MUSTERI2]) {
+    d.yanlis(
+      m.duyuruHedef.duyuruGecerliMi(servise[0], { user: kime, makineler, servis: null }),
+      `servise giden bildirim ${kime.ad}'a görünmüyor`,
+    )
+  }
 
   /* Eşleşmeyen telefon: kayıt yazılıyor ama KİMSEYE görünmüyor —
      bildirimi sahibinden saklamak, yabancıya göstermekten iyidir. */
@@ -547,6 +641,53 @@ export function AK08(m, ctx) {
   /* Tanınmayan rol yetkisiz dönüyor — silinmiş rolle çalışmaya devam
      edilmesin diye (veri.js → YETKISIZ_ROL). */
   d.esit(m.veri.izinli('olmayan-rol', 'talepler'), false, 'tanınmayan rol yetkisiz')
+
+  /* (c) ROL BİRDEN ÇOK TALEP TÜRÜ GÖREBİLİYOR (21 Eylül 2026, kullanıcının
+     isteği: "Gördüğü Talepler başlığı altındaki talepler birden fazla
+     seçilebilmeli"). Tür listesi tek işlevden okunuyor
+     (veri.js → rolunTurleri); eski biçimde (tek tür) kayıtlı rol de
+     çalışmaya devam etmeli. */
+  const ornekTalepler = [
+    { id: 's', tur: 'servis' },
+    { id: 'p', tur: 'parca' },
+    { id: 't', tur: 'satinalma' },
+    { id: 'm', tur: 'servis', masa: 'parca' },
+  ]
+  const gorulen = (rolId) => m.veri.rolunTalepleri(ornekTalepler, rolId).map((t) => t.id).join(',')
+
+  const karma = m.veri.rolEkle(
+    { ad: 'Sınama Karma Masa', talepTurleri: ['satinalma', 'servis'], izinler: ['talepler'] },
+    'Sınama',
+  )
+  d.dogru(!karma.hata, 'iki türlü rol açılabiliyor')
+  d.esit((m.veri.rolunTurleri(karma.rol?.id) || []).join(','), 'servis,satinalma', 'rol seçilen iki türü taşıyor')
+  d.esit(gorulen(karma.rol?.id), 's,t,m', 'iki türlü rol iki türün taleplerini görüyor, üçüncüyü görmüyor')
+
+  const hepsi = m.veri.rolEkle(
+    { ad: 'Sınama Her Tür', talepTurleri: ['servis', 'parca', 'satinalma'], izinler: ['talepler'] },
+    'Sınama',
+  )
+  d.esit(m.veri.rolunTurleri(hepsi.rol?.id), null, 'üç tür birden seçilince rol "hepsi" sayılıyor')
+  d.esit(gorulen(hepsi.rol?.id), 's,p,t,m', '"hepsi" rolü bütün talepleri görüyor')
+
+  d.esit(
+    (m.veri.rolunTurleri({ talepTuru: 'parca' }) || []).join(','),
+    'parca',
+    'eski biçimde (tek tür) kayıtlı rol okunuyor',
+  )
+  d.esit(gorulen('parca'), 'p,m', 'varsayılan yedek parça rolü kendi türünü ve masasındakini görüyor')
+
+  /* Depoda eski biçimde duran bir rol: tek tür, `talepTuru` alanında.
+     Güncellenince yeni biçime geçmeli, eski alan kalmamalı — kalsaydı
+     iki alan birbirini tutmaz, hangisinin geçerli olduğu belirsizleşirdi. */
+  const eskiRol = { id: 'sinama-eski-masa', ad: 'Sınama Eski Masa', talepTuru: 'parca', izinler: ['talepler'] }
+  m.depo.save('panelIcerik', { ...m.depo.load('panelIcerik', {}), roller: [...m.veri.rolleriGetir(), eskiRol] })
+  m.icerik.icerikTazele()
+  d.esit(gorulen(eskiRol.id), 'p,m', 'eski biçimdeki rol kendi türünü görüyor')
+  m.veri.rolGuncelle(eskiRol.id, { talepTurleri: ['servis', 'parca'] }, 'Sınama')
+  const guncel = m.veri.rolBilgi(eskiRol.id)
+  d.esit((guncel.talepTurleri || []).join(','), 'servis,parca', 'güncellenen rol yeni tür listesini yazdı')
+  d.dogru(!('talepTuru' in guncel), 'güncellenen rolde eski tek-tür alanı kalmadı')
 
   m.depo.remove('panelIcerik')
   m.icerik.icerikTazele()
@@ -933,4 +1074,392 @@ export async function AK14(m, ctx) {
   return d
 }
 
-export const SENARYOLAR = [AK01, AK02, AK03, AK04, AK05, AK06, AK07, AK08, AK09, AK10, AK11, AK12, AK13, AK14]
+/* ========================================================== AK-15 */
+
+/* PAKSAN'IN İŞLEMİ SERVİSE BİLDİRİLİR (21 Eylül 2026, kullanıcının
+   isteği): "PAKSAN'ın ilgili talep ile yaptığı işlemlerde servise
+   bildirim gitmeli." Bildirim `duyurular` deposuna `alici: 'servis'`
+   ile yazılıyor (veri.js → serviseBildir) ve Servisim onu talebe bağlı,
+   kalıcı olarak gösteriyor (servis/talepBildirimleri.js).
+
+   Üç soru: PAKSAN'ın işlemi yazılıyor mu, servisin KENDİ işlemi
+   yazılmıyor mu (kendi yaptığını kendisine bildirmek gürültü), her
+   olayın Servisim'de kendi yazısı var mı (yoksa "işlem yaptı" diye
+   genel bir cümle çıkar ve servis ne olduğunu anlamaz). */
+export async function AK15(m, ctx) {
+  const d = defter('AK-15', 'PAKSAN işlemi servise bildirilir')
+  depoTemizle()
+  const { urunId, kisi, makineler } = dunyaKur(m)
+  const tb = await ctx.modulYukle('/src/servis/talepBildirimleri.js')
+  const genel = tb.bildirimYazisi({ olay: '__tanimsiz__' }).baslik
+
+  const bildirimler = () => m.veri.servisBildirimleri(SERVIS.id)
+  const sonOlay = () => bildirimler()[0]?.olay
+
+  const r = talebiYaz(
+    m,
+    m.talepOlustur.talepKaydiOlustur(talepVerisi('servis', urunId, makineler[0]), kisi),
+  )
+  d.esit(bildirimler().length, 0, 'talep açılışı servis bildirimi yazmıyor (yeni iş ayrı sayılıyor)')
+
+  /* PAKSAN durumu değiştirdi. */
+  m.veri.talepDurumDegistir(r, 'incelemede', 'Sınama Yöneticisi')
+  const ilk = bildirimler()[0]
+  d.esit(ilk?.olay, 'durum', 'PAKSAN\'ın durum değişikliği servise bildirildi')
+  d.esit(ilk?.talepId, r.id, 'bildirim talebe bağlı')
+  d.esit(ilk?.degerler?.durum, 'incelemede', 'yeni durum bildirimde')
+
+  /* "Yeni"ye geri alma yanlış tıklamanın düzeltilmesi: bildirilmiyor. */
+  let sayi = bildirimler().length
+  m.veri.talepDurumDegistir(bul(m, r.id), 'yeni', 'Sınama Yöneticisi')
+  d.esit(bildirimler().length, sayi, '"Yeni"ye geri alma servise bildirilmedi')
+
+  /* Servisin kendi işlemleri kendisine bildirilmiyor. */
+  m.veri.talepPlanla(
+    bul(m, r.id),
+    { tarih: saat.simdi() + 86400000, tarihYazi: 'yarın', is: 'Ziyaret', gorusuldu: true },
+    SERVIS.ad,
+    { servisten: true },
+  )
+  m.veri.talepNotEkle(bul(m, r.id), 'müşteriyi aradım', SERVIS.ad, { servisten: true })
+  d.esit(bildirimler().length, sayi, 'servisin kendi randevusu ve notu kendisine bildirilmedi')
+
+  /* PAKSAN servise not yazdı. */
+  m.veri.talepNotEkle(bul(m, r.id), 'iki koli gitti', 'Sınama Yöneticisi', { servise: true })
+  d.esit(sonOlay(), 'not', 'PAKSAN\'ın notu servise bildirildi')
+
+  /* PAKSAN servis talebine gün verdi: servis bunu "siparişinizin
+     gönderim günü" diye okumamalı, ziyaret günü diye okumalı. */
+  m.veri.talepPlanla(
+    bul(m, r.id),
+    { tarih: saat.simdi() + 2 * 86400000, tarihYazi: '2 gün sonra', is: 'Ziyaret', gorusuldu: true },
+    'Sınama Yöneticisi',
+  )
+  const plan = bildirimler()[0]
+  d.esit(plan?.olay, 'planlandi', 'PAKSAN\'ın verdiği gün servise bildirildi')
+  d.esit(plan?.degerler?.siparis, false, 'servis talebinin günü sipariş diye işaretlenmedi')
+  d.dogru(
+    tb.bildirimYazisi(plan).baslik !==
+      tb.bildirimYazisi({ olay: 'planlandi', degerler: { siparis: true } }).baslik,
+    'ziyaret günü ile sipariş gönderim günü Servisim\'de ayrı yazılıyor',
+  )
+
+  /* PAKSAN talebi iptal etti: servis o işe gitmemeli. */
+  m.veri.talepIptal(bul(m, r.id), { neden: 'Müşteri vazgeçti' }, 'Sınama Yöneticisi')
+  d.esit(sonOlay(), 'iptal', 'PAKSAN\'ın iptali servise bildirildi')
+  d.esit(bildirimler()[0]?.degerler?.neden, 'Müşteri vazgeçti', 'iptal gerekçesi bildirimde')
+
+  /* Servisin iptali kendisine bildirilmiyor. */
+  const r2 = talebiYaz(
+    m,
+    m.talepOlustur.talepKaydiOlustur(talepVerisi('servis', urunId, makineler[0]), kisi),
+  )
+  sayi = bildirimler().length
+  m.veri.talepIptal(r2, { neden: 'Yanlış açılmış' }, SERVIS.ad, { servisten: true })
+  d.esit(bildirimler().length, sayi, 'servisin kendi iptali kendisine bildirilmedi')
+
+  /* Hak ediş: servisin kaydı bildirim yazmıyor, PAKSAN'ın onayı yazıyor. */
+  const r3 = talebiYaz(
+    m,
+    m.talepOlustur.talepKaydiOlustur(talepVerisi('servis', urunId, makineler[0]), kisi),
+  )
+  sayi = bildirimler().length
+  m.veri.servisKaydiGonder(r3, bitmisKayit(), SERVIS.ad)
+  d.esit(bildirimler().length, sayi, 'servisin gönderdiği kayıt kendisine bildirilmedi')
+  m.veri.hakkedisOnayla(bul(m, r3.id), 'Sınama Yöneticisi')
+  d.esit(sonOlay(), 'hakedisOnay', 'hak edişin onayı servise bildirildi')
+  d.dogru(bildirimler()[0]?.degerler?.tutar > 0, 'onaylanan tutar bildirimde')
+
+  /* Servisi olmayan talep (fiyat teklifi) servis bildirimi yazmıyor. */
+  const teklif = talebiYaz(
+    m,
+    m.talepOlustur.talepKaydiOlustur(talepVerisi('satinalma', urunId, null, { urunId }), kisi),
+  )
+  sayi = m.depo.load('duyurular', []).filter((x) => x.alici === 'servis').length
+  m.veri.talepTeklifVer(teklif, { tutar: 150000 }, 'Sınama Yöneticisi')
+  d.esit(
+    m.depo.load('duyurular', []).filter((x) => x.alici === 'servis').length,
+    sayi,
+    'servisi olmayan talepte servis bildirimi yazılmadı',
+  )
+
+  /* Her olayın Servisim'de kendi yazısı var. */
+  for (const olay of [...new Set(bildirimler().map((b) => b.olay))]) {
+    d.bak(
+      tb.bildirimYazisi({ olay, degerler: {} }).baslik !== genel,
+      `"${olay}" olayının Servisim'de kendi yazısı var`,
+      'olaya özel başlık',
+      genel,
+    )
+  }
+
+  /* Okunmuşluk: talep açılınca o talebin bildirimleri listeden düşer. */
+  d.esit(tb.okunmamislar(SERVIS.id).length, bildirimler().length, 'hepsi okunmamış başlıyor')
+  tb.okunduSay(tb.talebinBildirimleri(SERVIS.id, r.id).map((b) => b.id))
+  d.yanlis(
+    tb.okunmamislar(SERVIS.id).some((b) => b.talepId === r.id),
+    'okundu sayılan talebin bildirimleri okunmamışlardan düştü',
+  )
+  d.dogru(
+    tb.okunmamislar(SERVIS.id).some((b) => b.talepId === r3.id),
+    'öteki talebin bildirimi okunmamış kaldı',
+  )
+
+  return d
+}
+
+/* ========================================================== AK-16 */
+
+/* SERVİSİ ATANMAMIŞ MAKİNE SAYIMI.
+
+   BEKLENTİ DEĞİŞTİ (21 Eylül 2026, kullanıcının kararı): "Servis ataması
+   müşteri bazında değil makine bazında olmalı … Müşteri 1 adet yem karma
+   ve 1 adet balya makinesine sahip olabilir ve bunlar ile aynı servis
+   ilgilenemeyebilir yetkinlik bakımından." Senaryo aynı gün müşteri
+   sayımını denetliyordu (hiçbir makinesine servis bakmayan müşteri);
+   sayaç Kayıtlı Makineler düğmesine taşındı ve makine sayıyor
+   (lib/servisAtama.js → servisiAtanmamisKayitlar).
+
+   Sınama verisinde AYNI müşterinin üç makinesi var: biri elle atanmış,
+   biri bayisinin servisinden, biri servissiz. Müşteri sayımı bu
+   müşteriyi hiç saymıyordu — servissiz makine gözden kaçıyordu. */
+export function AK16(m) {
+  const d = defter('AK-16', 'Servisi atanmamış makine sayımı')
+  depoTemizle()
+  dunyaKur(m)
+
+  const kayitlar = () => m.depo.load('makineKayitlari', [])
+  const sayilan = () => m.servisAtama.servisiAtanmamisKayitlar(kayitlar()).map((k) => k.seri)
+
+  d.esit(sayilan().join(','), SERI.sahipsiz, 'yalnız servissiz makine sayıldı')
+  d.esit(
+    new Set(kayitlar().map((k) => k.musteriId)).size,
+    1,
+    'üç makine aynı müşterinin — sayım müşteriye değil makineye bakıyor',
+  )
+
+  /* Tek tanım: Kayıtlı Makineler'in cevabı müşterinin uygulamasındakiyle
+     aynı (ikisi de kaydinServisi'den). */
+  for (const k of kayitlar()) {
+    d.esit(
+      Boolean(m.servisAtama.kaydinServisi(k)),
+      Boolean(m.servisAtama.makineninServisi(k.seri)),
+      `${k.seri}: backoffice ve müşteri uygulaması aynı cevabı veriyor`,
+    )
+  }
+
+  /* Bayisinin servisi olan makine atanmış sayılıyor (atama zinciri). */
+  d.yanlis(sayilan().includes(SERI.bayili), 'bayisinin servisi olan makine sayılmadı')
+
+  /* Servis atanınca makine sayıdan düşüyor. */
+  const kayit = m.servisAtama.makineninKaydi(SERI.sahipsiz)
+  d.dogru(Boolean(kayit), 'servissiz makinenin kayıt defterinde satırı var')
+  m.makineKaydi.makineKaydiGuncelle(kayit.id, { servisId: SERVIS.id, servisAd: SERVIS.ad })
+  d.esit(sayilan().length, 0, 'servis atanınca makine sayıdan düştü')
+
+  return d
+}
+
+/* ========================================================== AK-17 */
+
+/* SERVİSİM'DE GECİKME ŞERİDİ YALNIZ SERVİSİN ELİNDEKİ İŞTE (21 Eylül
+   2026, kullanıcının bildirdiği sorun): "Yeni başlığı altındaki
+   taleplerde belli bir süreyi geçtikten sonra turuncu border rengi
+   oluyor. Bu border rengi Devam Eden başlığı altındaki taleplerde de
+   var. Burası biraz karışıyor." Şerit artık yalnız servisin el
+   sürmediği işte (servis/isDurumu.js → servisGecikti). */
+export async function AK17(m, ctx) {
+  const d = defter('AK-17', 'Servisim gecikme şeridi')
+  depoTemizle()
+  const is = await ctx.modulYukle('/src/servis/isDurumu.js')
+
+  const eski = saat.simdi() - 72 * 3600000
+  const yeniAcilan = saat.simdi() - 2 * 3600000
+  const talep = (ek) => ({ id: 'x', tur: 'servis', status: 'yeni', createdAt: eski, ...ek })
+
+  d.dogru(is.servisGecikti(talep()), 'el sürülmemiş, 72 saatlik iş gecikti')
+  d.yanlis(is.servisGecikti(talep({ createdAt: yeniAcilan })), 'iki saatlik yeni iş gecikmedi')
+
+  const devamEden = {
+    'randevusu verilmiş': { plan: { tarih: saat.simdi() + 86400000 } },
+    'parça bekleyen': { status: 'parcaBekliyor' },
+    'onay bekleyen': { status: 'onayBekliyor' },
+    'PAKSAN\'a devredilmiş': { devir: { tarih: eski } },
+    'kaydı açılmış': { servisKaydi: { asama: 'parca' } },
+  }
+  for (const [ad, ek] of Object.entries(devamEden)) {
+    const t = talep(ek)
+    d.yanlis(is.dokunulmamis(t), `${ad} iş "Devam Eden" bölümünde`)
+    d.yanlis(is.servisGecikti(t), `${ad} 72 saatlik iş servise gecikmiş gösterilmiyor`)
+    /* Backoffice'in ölçüsü değişmedi: PAKSAN için bu talep hâlâ 48 saati
+       geçmiş açık bir talep. */
+    d.dogru(m.veri.gecikmisMi(t), `${ad} iş backoffice'te yine gecikmiş (ölçü orada değişmedi)`)
+  }
+
+  return d
+}
+
+/* ========================================================== AK-18 */
+
+/* BİR MAKİNE, BİR KAYIT SATIRI — ve servis atanınca müşteriye bildirim.
+
+   KULLANICININ BULDUĞU (21 Eylül 2026): "Paksan Connect üzerinden demo
+   makinelerden birini ekliyorum, çıkarıyorum, tekrar ekliyorum ama
+   Kayıtlı Makineler ekranında hepsi için yeni kayıt açılıyor. Servisim
+   uygulamasında ise halihazırda bir müşteriye kayıtlı gözüken bir
+   makineyi elle servis kaydı ile, kayıtlı olmayan bir müşteri üzerinden
+   açtığımda da kaydı tamamlıyor." Kayıt yazan iki işlev de var olan
+   satıra hiç bakmıyordu (bkz. lib/makineKaydi.js başı). Hiçbir senaryo
+   aynı seriyi ikinci kez yazmıyordu; bu senaryo bunu yapıyor.
+
+   İkinci yarı: "Müşteriye ait makineye servis atandığında Paksan Connect
+   uygulamasında müşteriye bildirim gitmeli" (veri.js →
+   makineAtamasiniKaydet). */
+export async function AK18(m, ctx) {
+  const d = defter('AK-18', 'Bir makine, bir kayıt satırı')
+  depoTemizle()
+  const { urunId, makineler } = dunyaKur(m)
+  const mk = m.makineKaydi
+  const ham = () => m.depo.load('makineKayitlari', [])
+  const satirSayisi = (seri) => {
+    const a = m.serial.normalizeSerial(seri)
+    return ham().filter((k) => m.serial.normalizeSerial(k.seri) === a).length
+  }
+  const bildirimler = () => kisiselBildirimler(m).filter((b) => b.tur === 'makine')
+
+  /* 1. Connect: aynı müşteri makineyi silip yeniden ekliyor — küçük harfle. */
+  const once = mk.seriSatiri(SERI.atanmis)
+  const tekrar = await mk.makineKaydet({ serial: SERI.atanmis.toLowerCase(), productId: urunId }, MUSTERI)
+  d.esit(satirSayisi(SERI.atanmis), 1, 'yeniden ekleme yeni satır açmadı')
+  d.esit(ham().length, 3, 'defterde hâlâ üç makine')
+  d.esit(tekrar.kayit?.id, once.id, 'var olan satır güncellendi, kimliği aynı')
+  d.esit(tekrar.kutlama, false, 'yeniden eklemede kutlama yok')
+  d.esit(
+    m.servisAtama.makineninServisi(SERI.atanmis)?.servis.id,
+    SERVIS.id,
+    'PAKSAN\'ın atadığı servis yeniden eklemede kaybolmadı',
+  )
+
+  /* 2. Servisim: başka müşteride kayıtlı seri, hesapsız biri için elle. */
+  const yabanci = mk.servisMakineKaydi({
+    seri: SERI.bayili,
+    productId: urunId,
+    musteriAd: 'Kayıtsız Kişi',
+    il: 'Ankara',
+    servisId: SERVIS.id,
+    servisAd: SERVIS.ad,
+  })
+  d.esit(yabanci.yeni, false, 'Servisim kayıtlı seriye satır açmadı')
+  d.esit(satirSayisi(SERI.bayili), 1, 'seri yine tek satırda')
+  d.esit(mk.seriSatiri(SERI.bayili).musteriId, MUSTERI.id, 'makinenin sahibi değişmedi')
+  d.esit(
+    m.servisAtama.makineninServisi(SERI.bayili)?.kaynak,
+    'bayi',
+    'talebi açan servis kendini atayamadı: servis hâlâ bayiden',
+  )
+
+  /* 3. Servisim: sistemde olmayan seri — satır açılıyor, hesapsız. */
+  const YENI = 'ORK1270-2024-00777'
+  const ilk = mk.servisMakineKaydi({
+    seri: YENI, productId: urunId, musteriAd: 'Kayıtsız Kişi', il: 'Konya', ilce: 'Meram',
+    servisId: SERVIS.id, servisAd: SERVIS.ad,
+  })
+  d.esit(ilk.yeni, true, 'yeni seri için satır açıldı')
+  d.esit(ilk.kayit.kaynak, 'servis', 'kaynağı servis')
+  /* Servis kayıtlı müşteriyi telefonundan bulduysa satır o hesaba
+     bağlanıyor (form alanı gönderiyordu, işlev sessizce null yazıyordu). */
+  const hesapli = mk.servisMakineKaydi({
+    seri: 'ORK1270-2024-00888', productId: urunId, musteriId: MUSTERI2.id, musteriNo: MUSTERI2.no,
+    musteriAd: MUSTERI2.ad, servisId: SERVIS.id, servisAd: SERVIS.ad,
+  })
+  d.esit(hesapli.kayit.musteriId, MUSTERI2.id, 'kayıtlı müşterinin hesabı satıra yazıldı')
+
+  /* 4. Müşteri o makineyi Connect'ten ekliyor: hesapsız satırı sahipleniyor. */
+  const sahiplen = await mk.makineKaydet({ serial: YENI, productId: urunId }, MUSTERI2)
+  d.esit(satirSayisi(YENI), 1, 'sahiplenmek ikinci satır açmadı')
+  d.esit(sahiplen.kayit?.musteriId, MUSTERI2.id, 'satır müşterinin hesabına geçti')
+  d.esit(sahiplen.kayit?.kaynak, 'servis', 'ilk kaynağı (servis) yerinde kaldı')
+  d.esit(sahiplen.kayit?.servisId, SERVIS.id, 'makineyi kaydeden servis yerinde kaldı')
+
+  /* 5. Başka hesabın makinesi: yazılmıyor, sahibi değişmiyor. */
+  const baska = await mk.makineKaydet({ serial: SERI.sahipsiz, productId: urunId }, MUSTERI2)
+  d.esit(baska.kayit, null, 'başka hesaptaki seri yazılmadı')
+  d.esit(mk.seriSatiri(SERI.sahipsiz).musteriId, MUSTERI.id, 'sahibi ilk müşteri')
+  d.dogru(Boolean(mk.seriBaskaHesaptaMi(SERI.sahipsiz, MUSTERI2)), 'Connect çakışmayı görüyor')
+
+  /* 6. Düzeltmeden önce açılmış kopyalar okurken birleşiyor. En eski
+     satır PAKSAN'ın atamasını taşıyor; sonra müşterinin servissiz
+     yeniden eklemesi; en yenisi başka bir servisin elle açtığı satır. */
+  const t0 = saat.simdi()
+  const kopya = (ek) => ({
+    seri: SERI.atanmis, productId: urunId, musteriId: null, musteriNo: null, musteriAd: '',
+    il: '', ilce: '', bayiId: null, bayiAd: '', servisId: null, servisAd: '',
+    uretimTarihi: null, faturaTarihi: null, logoBildi: false, yeniSatis: false, ...ek,
+  })
+  m.depo.save('makineKayitlari', [
+    kopya({ id: 'k3', tarih: t0 - 1000, kaynak: 'servis', musteriAd: 'Başkası', servisId: BAYI_SERVISI }),
+    kopya({ id: 'k2', tarih: t0 - 2000, kaynak: 'musteri', musteriId: MUSTERI.id, musteriNo: MUSTERI.no, musteriAd: MUSTERI.ad }),
+    kopya({ id: 'k1', tarih: t0 - 3000, kaynak: 'musteri', musteriId: MUSTERI.id, musteriNo: MUSTERI.no, musteriAd: MUSTERI.ad, servisId: SERVIS.id, servisAd: SERVIS.ad }),
+  ])
+  const birlesik = mk.makineKayitlari()
+  d.esit(birlesik.length, 1, 'üç kopya tek satır görünüyor')
+  d.esit(birlesik[0].id, 'k1', 'kimlik ve ilk kayıt tarihi en eski satırdan')
+  d.esit(birlesik[0].servisId, SERVIS.id, 'PAKSAN\'ın ataması korundu, sonraki elle kayıt yok sayıldı')
+  d.esit(m.veri.makineKayitlariGetir().length, 1, 'backoffice de tek satır görüyor')
+  mk.makineKaydiGuncelle('k1', { bayiId: BAYI.atanmis })
+  d.esit(ham().length, 1, 'ilk yazmada depo da temizlendi')
+
+  /* 7. Servis atanınca müşteriye bildirim. */
+  depoTemizle()
+  dunyaKur(m)
+  const sahipsiz = mk.seriSatiri(SERI.sahipsiz)
+  m.veri.makineAtamasiniKaydet(sahipsiz.id, { servisId: SERVIS.id, servisAd: SERVIS.ad }, { ozet: 'atama', personel: 'Deneme' })
+  const b = bildirimler()
+  d.esit(b.length, 1, 'servis atanınca müşteriye bir bildirim yazıldı')
+  d.esit(b[0]?.musteriId, MUSTERI.id, 'bildirim makinenin sahibine')
+  d.esit(b[0]?.degerler?.servis, SERVIS.ad, 'bildirimde servisin adı')
+  d.esit(b[0]?.degerler?.seri, m.serial.formatSerial(SERI.sahipsiz), 'bildirimde makinenin seri numarası')
+  d.dogru(
+    m.duyuruHedef.duyuruGecerliMi(b[0], { user: MUSTERI, makineler, servis: null }),
+    'sahibinin Bildirimler ekranında görünüyor',
+  )
+  d.yanlis(
+    m.duyuruHedef.duyuruGecerliMi(b[0], { user: MUSTERI2, makineler: [], servis: null }),
+    'başka müşterinin ekranında görünmüyor',
+  )
+  d.yanlis(
+    m.duyuruHedef.duyuruGecerliMi(b[0], { user: null, makineler: [], servis: SERVIS }),
+    'servisin ekranında görünmüyor',
+  )
+
+  const bl = await ctx.modulYukle('/src/lib/bildirimler.js')
+  const satir = bl.bildirimListesi({ requests: [], user: MUSTERI, makineler }).find((x) => x.tur === 'makine')
+  d.esit(satir?.yol, '/makine/mk-sahipsiz', 'bildirime dokununca o makinenin ekranı açılıyor')
+
+  /* Servis değişmediyse sessiz: aynı servisi yeniden seçmek, ya da
+     bayisi değişip servisi doğrudan atanmış kalan makine. */
+  m.veri.makineAtamasiniKaydet(sahipsiz.id, { servisId: SERVIS.id, servisAd: SERVIS.ad }, { ozet: 'aynı', personel: 'Deneme' })
+  m.veri.makineAtamasiniKaydet(sahipsiz.id, { bayiId: BAYI.bayili }, { ozet: 'bayi', personel: 'Deneme' })
+  d.esit(bildirimler().length, 1, 'servis değişmeyince ikinci bildirim yok')
+
+  /* Bayi değişikliği servisi değiştiriyorsa bildirim gidiyor: ankara
+     bayisinin servisi ankara-servis, konya-merkez'inki konya-servis
+     (marka/katalog/servisler.js → bayiler). */
+  const bayili = mk.seriSatiri(SERI.bayili)
+  m.veri.makineAtamasiniKaydet(bayili.id, { bayiId: BAYI.atanmis }, { ozet: 'bayi', personel: 'Deneme' })
+  d.esit(m.servisAtama.makineninServisi(SERI.bayili)?.servis.id, SERVIS.id, 'yeni bayinin servisi makineye geçti')
+  d.esit(bildirimler().length, 2, 'bayi değişince makinenin servisi değişti, bildirim gitti')
+
+  /* Hesapsız makinede kimseye bildirim yazılmıyor. */
+  const hesapsiz = mk.servisMakineKaydi({ seri: YENI, productId: urunId, musteriAd: 'Kayıtsız', servisId: null })
+  const onceSay = bildirimler().length
+  m.veri.makineAtamasiniKaydet(hesapsiz.kayit.id, { servisId: SERVIS.id, servisAd: SERVIS.ad }, { ozet: 'x', personel: 'Deneme' })
+  d.esit(bildirimler().length, onceSay, 'hesapsız makinede bildirim yazılmadı')
+
+  return d
+}
+
+export const SENARYOLAR = [
+  AK01, AK02, AK03, AK04, AK05, AK06, AK07, AK08, AK09, AK10, AK11, AK12, AK13, AK14,
+  AK15, AK16, AK17, AK18,
+]

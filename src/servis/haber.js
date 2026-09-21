@@ -4,6 +4,7 @@ import { servisinTalepleri, talepleriGetir } from '../backoffice/veri'
 import { duyuruGecerliMi } from '../lib/duyuruHedef'
 import { load } from '../lib/storage'
 import { MARKA } from '../marka'
+import { bildirimYazisi, okunmamislar } from './talepBildirimleri'
 
 /* ==========================================================================
    Servis uygulamasının bildirimleri
@@ -17,18 +18,24 @@ import { MARKA } from '../marka'
    tarayıcıda tarayıcının kendi bildirimi. Burada yalnız NE ZAMAN
    gösterileceği yazıyor.
 
-   SERVİSİN HABER BEKLEDİĞİ DÖRT ŞEY
+   SERVİSİN HABER BEKLEDİĞİ ÜÇ ŞEY
 
      YENİ İŞ        kendisine bir talep düştü. Sabah uygulamayı
                     açmadan önce bilmek istiyor.
-     PARÇA YOLDA    istediği parça kargoya verildi. Bu haber doğrudan
-                    bir işe dönüşüyor: parça gelince makineye gidecek.
-     PARA           hak edişi onaylandı ya da reddedildi. Servisin bu
-                    uygulamada en çok merak ettiği şey.
-     PAKSAN'DAN NOT PAKSAN talebin içine servise not yazdı. Eskiden
-                    telefon ediliyordu ve talepte izi kalmıyordu.
+     PAKSAN'IN      PAKSAN talepte servise dokunan bir işlem yaptı:
+     İŞLEMİ         durumu değiştirdi, iptal etti, kapattı, parça
+                    gönderdi, kaydı onayladı, düzeltti ya da reddetti,
+                    not yazdı. Her biri talebe bağlı, kalıcı bir kayıt
+                    (bkz. talepBildirimleri.js).
      ACİL DUYURU    geri çağırma ve uyarı. Bunlar duyuru değil iş
                     emri: "bu makineleri arayıp servise çağırın".
+
+   PARÇA, PARA VE NOT ESKİDEN AYRI AYRI SAYILIYORDU (21 Eylül 2026'ya
+   kadar): talebin üstünde `parcaSevk` doğdu mu, hak ediş onaylandı mı,
+   servise not düştü mü diye önceki hâlle karşılaştırılıyordu. PAKSAN'ın
+   iptal, kapatma ve durum değişikliğinin karşılığı yoktu. Şimdi hepsi
+   tek kaynaktan, PAKSAN'ın yazdığı kayıttan geliyor; eski sayımlar
+   kaldırıldı, yoksa aynı olay iki bildirim olurdu.
 
    Kampanya ve fuar duyurusu bildirim ÜRETMİYOR. Tarlada çalışan bir
    ustanın telefonunu çaldıran şey, telefonunu çaldırmayı hak etmeli;
@@ -57,17 +64,8 @@ function durumOku(servisId) {
     /* Servisin kendi parça siparişi "iş" değil; onun haberi ayrı
        verilmiyor, listede zaten görünüyor. */
     isler: talepler.filter((t) => !t.servisSiparisi).map((t) => t.id),
-    /* Kargoya verilen parçalar: talebin üstünde `parcaSevk` doğduğu an
-       servisin haberi olmalı. */
-    sevk: talepler.filter((t) => t.parcaSevk).map((t) => t.id),
-    onayli: talepler.filter((t) => t.hakkedis?.durum === 'onaylandi').map((t) => t.id),
-    redli: talepler.filter((t) => t.hakkedis?.durum === 'reddedildi').map((t) => t.id),
-    /* Notun kimliği yok; talep numarası ile tarihi birleştirilerek
-       üretiliyor. Aynı talebe ikinci not geldiğinde tarih değiştiği
-       için yeni sayılıyor. */
-    notlar: talepler.flatMap((t) =>
-      (t.notlar || []).filter((n) => n.servise).map((n) => `${t.id}:${n.tarih}`),
-    ),
+    /* PAKSAN'ın bu servise yazdığı, henüz okunmamış talep bildirimleri. */
+    bildirimler: okunmamislar(servisId),
   }
 }
 
@@ -127,35 +125,21 @@ export function useServisHaberi(oturum, tazele) {
         })
       }
 
-      const yeniSevk = artan(yeni.sevk, eski.sevk)
-      if (yeniSevk) {
+      /* TEK BİLDİRİMSE NE OLDUĞUNU SÖYLÜYOR, birden çoksa sayıyor.
+         Telefonun bildirim perdesinde talep numarası duruyor: servis
+         uygulamayı açmadan hangi işe dokunulduğunu biliyor. */
+      const eskiKimlik = new Set(eski.bildirimler.map((b) => b.id))
+      const gelen = yeni.bildirimler.filter((b) => !eskiKimlik.has(b.id))
+      if (gelen.length === 1) {
+        const y = bildirimYazisi(gelen[0])
         bildirimGoster({
-          baslik: `${sayili(yeniSevk, 'parça', 'Parça')} yola çıktı`,
-          metin: 'Parça elinize geçtiğinde takıp işi tamamlayabilirsiniz.',
+          baslik: `${gelen[0].talepNo} · ${y.baslik}`,
+          metin: y.metin || 'Ayrıntıları görmek için talebi açın.',
         })
-      }
-
-      const yeniOnay = artan(yeni.onayli, eski.onayli)
-      if (yeniOnay) {
+      } else if (gelen.length > 1) {
         bildirimGoster({
-          baslik: `${sayili(yeniOnay, 'kayıt', 'Kayıt')} onaylandı`,
-          metin: 'Tutar hesabınıza eklendi.',
-        })
-      }
-
-      const yeniRed = artan(yeni.redli, eski.redli)
-      if (yeniRed) {
-        bildirimGoster({
-          baslik: `${sayili(yeniRed, 'kayıt', 'Kayıt')} kabul edilmedi`,
-          metin: 'Gerekçeyi talebin içinde görebilirsiniz.',
-        })
-      }
-
-      const yeniNot = artan(yeni.notlar, eski.notlar)
-      if (yeniNot) {
-        bildirimGoster({
-          baslik: `${MARKA} size not bıraktı`,
-          metin: 'Notu talebin içinde okuyabilirsiniz.',
+          baslik: `${MARKA} · ${gelen.length} yeni bildirim`,
+          metin: 'Bildirimleri İşlerim ekranının üst bölümünde görebilirsiniz.',
         })
       }
 
@@ -167,7 +151,7 @@ export function useServisHaberi(oturum, tazele) {
         })
       }
 
-      if (yeniIs || yeniSevk || yeniOnay || yeniRed || yeniNot || yeniDuyuru) tazele()
+      if (yeniIs || gelen.length || yeniDuyuru) tazele()
 
       onceki.current = yeni
     }, ARALIK)

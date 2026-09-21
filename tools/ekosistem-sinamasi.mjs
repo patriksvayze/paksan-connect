@@ -30,15 +30,37 @@
      AK-03  veri.js:2086 teslimat kapısı kaldırılırsa          düştü
      AK-04  talepOlustur.js tür kapısı kaldırılırsa            düştü
      AK-05  veri.js:1091 zincirden `tutarKdvli` çıkarılırsa    düştü
-     AK-06  veri.js DURUMLAR'a `Bayide` eklenirse              düştü
+     AK-06  veri.js durumGecisiEngeli hep boş dönerse          düştü
+     AK-06  talebiBayiyeAta teklif geçmişine bakmazsa          düştü
+     AK-06  talebiBayiyeAta müşteriye yine bildirirse          düştü
+     AK-06  talepEkleme.js kapalı listesi ayrılırsa            düştü
      AK-07  veri.js:947 eşleşme son dört haneye indirilirse    düştü
      AK-08  Talepler.jsx:1586 izin adı yanlış yazılırsa        düştü
+     AK-08  rolunTalepleri yalnız ilk türe bakarsa             düştü
+     AK-08  rolunTurleri eski tek-tür alanını okumazsa         düştü
+     AK-08  rolGuncelle eski tek-tür alanını bırakırsa         düştü
      AK-09  duyuruHedef.js:159 il süzgeci kapatılırsa          düştü
      AK-10  veri.js ANAHTAR.islemKaydi adı değişirse           düştü
      AK-11  servisKaydi.js garanti kapısı kaldırılırsa         düştü
      AK-12  veri.js birleştirmede defter yazılmazsa            düştü
      AK-13  veri.js:2086 teslimat kapısı kaldırılırsa          düştü
      AK-14  dikteMotoru.js duraklamada yine bitirilirse       düştü
+     AK-15  talepPlanla `servisten`e bakmazsa                  düştü
+     AK-15  talepIptal servise bildirmezse                     düştü
+     AK-15  ziyaret günü sipariş diye işaretlenirse            düştü
+     AK-16  sayım bayinin servisini hesaba katmazsa           düştü
+     AK-16  sayım müşteri düzeyine dönerse                    düştü
+     AK-17  isDurumu.js şerit eski kurala (gecikmisMi) dönerse düştü
+     AK-18  makineKaydet var olan satırı aramazsa              düştü
+     AK-18  servisMakineKaydi kayıtlı seride de yazarsa        düştü
+     AK-18  kayitIsle Servisim kopyasını kabul ederse          düştü
+     AK-18  okuma kopyaları birleştirmezse                     düştü
+     AK-18  servisMakineKaydi müşteri hesabını yazmazsa        düştü
+     AK-18  atama bildirimi servis değişmeden de giderse       düştü
+     AK-18  atama bildirimi hiç gitmezse                       düştü
+     AK-18  hesapsız makineye bildirim yazılırsa               düştü
+     AK-18  bildirim makine ekranına yönlenmezse               düştü
+     AK-18  bildirimler.js 'makine' türünü tanımazsa           düştü
      ---    ortam.mjs'te depo taklidi kaldırılırsa    0. ADIM DURDURUR
 
    Son satır en önemlisi: src/lib/storage.js her hatayı yutup
@@ -53,26 +75,11 @@ import {
   depoTemizle,
   kapat,
   tohumla,
-  KOK,
+  kaynaklariTopla,
   modulYukle,
   TOHUM,
 } from './ekosistem/ortam.mjs'
 import { SENARYOLAR } from './ekosistem/senaryolar.mjs'
-import { readdirSync, readFileSync, statSync } from 'node:fs'
-import { join, relative } from 'node:path'
-
-/* İki senaryo (AK-08 yetki sözleşmesi, AK-10 sabit tekrarı) kaynak
-   metnine bakıyor: bir izin adı yanlış yazıldığında ya da bir sabit
-   üçüncü kez kopyalandığında bunu çalışan kod göstermiyor, yalnız
-   metin gösteriyor. Dosyalar bir kez okunup senaryolara veriliyor. */
-function kaynaklariTopla(klasor, toplam = []) {
-  for (const ad of readdirSync(klasor)) {
-    const yol = join(klasor, ad)
-    if (statSync(yol).isDirectory()) kaynaklariTopla(yol, toplam)
-    else if (/\.(js|jsx)$/.test(ad)) toplam.push([relative(KOK, yol), readFileSync(yol, 'utf8')])
-  }
-  return toplam
-}
 
 const arg = process.argv.slice(2)
 const deger = (ad) => {
@@ -87,7 +94,7 @@ ortamKur()
 tohumla(tohum)
 
 const m = await modulleriYukle()
-const ctx = { kaynaklar: kaynaklariTopla(join(KOK, 'src')), modulYukle }
+const ctx = { kaynaklar: kaynaklariTopla(), modulYukle }
 
 /* ----------------------------------------------------------- 0. adım */
 

@@ -251,7 +251,8 @@
     "talep": { "Ad": "Talep" },
     "numara": { "Ad": "Numara değişikliği" },
     "gorus": { "Ad": "Geri bildirim" },
-    "randevu": { "Ad": "Randevu" }
+    "randevu": { "Ad": "Randevu" },
+    "makine": { "Ad": "Makine" }
   },
   "kod.AliciTuru": {
     "musteri": { "Ad": "Müşteri" },

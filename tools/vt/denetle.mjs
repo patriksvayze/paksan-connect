@@ -228,6 +228,53 @@ function kaliciTablolar(metin) {
   return sonuc
 }
 
+/**
+ * Şemanın tabloları ve sütunları, betiklerden okunarak:
+ * Map('talep.Talep' → Set(['Kimlik', 'Aciklama', ...])).
+ *
+ * Veritabanına bağlanmaz; `veritabani/semalar` ve `veritabani/kurulum`
+ * betiklerini okur. `CREATE TABLE` gövdesi ve sonradan gelen
+ * `ALTER TABLE … ADD <sütun>` satırları (kısıt ekleyenler değil) sayılır.
+ * Hesaplanmış sütunlar da sütundur. Uygulama ile veritabanı eşlemesinin
+ * denetimi bunu kullanıyor (tools/veritabani-eslesme-denetimi.mjs):
+ * eşlemenin gösterdiği sütun betiklerde yoksa orada düşer.
+ */
+export function tablolarVeSutunlar(klasor = VT_KLASORU) {
+  const sonuc = new Map()
+  const ekle = (tablo, kolon) => {
+    const t = tablo.replace(/[\[\]]/g, '')
+    if (!sonuc.has(t)) sonuc.set(t, new Set())
+    if (kolon) sonuc.get(t).add(kolon.replace(/[\[\]]/g, ''))
+  }
+  const dosyalar = ['semalar', 'kurulum']
+    .flatMap((k) => sqlDosyalari(join(klasor, k)))
+    .sort((a, b) => a.localeCompare(b))
+  for (const yol of dosyalar) {
+    const metin = yorumsuz(readFileSync(yol, 'utf8'))
+    for (const t of kaliciTablolar(metin)) {
+      ekle(t.tam)
+      for (const parca of ustDuzeyParcalar(t.govde)) {
+        const govde = parca.metin.trim()
+        if (!govde) continue
+        if (/^(?:CONSTRAINT|PRIMARY|UNIQUE|FOREIGN|CHECK|INDEX|PERIOD)\b/i.test(govde)) continue
+        ekle(t.tam, govde.split(/\s+/)[0])
+      }
+    }
+    for (const m of metin.matchAll(/ALTER\s+TABLE\s+(\[?\w+\]?\.\[?\w+\]?)(?:\s+WITH\s+(?:NO)?CHECK)?\s+ADD\s+/gi)) {
+      /* Bir ADD birden çok sütun alabilir; ifade ';' ya da GO'da biter. */
+      const bas = m.index + m[0].length
+      const son = metin.slice(bas).search(/;|\n\s*GO\b/i)
+      const govde = son < 0 ? metin.slice(bas) : metin.slice(bas, bas + son)
+      for (const parca of ustDuzeyParcalar(govde)) {
+        const g = parca.metin.trim()
+        if (!g || /^(?:CONSTRAINT|PRIMARY|UNIQUE|FOREIGN|CHECK|INDEX|DEFAULT)\b/i.test(g)) continue
+        ekle(m[1], g.split(/\s+/)[0])
+      }
+    }
+  }
+  return sonuc
+}
+
 /* Adsız kısıt: kısıt sözcüğünün hemen öncesinde CONSTRAINT <ad> olmalı. */
 function adsizKisitlar(metin, ad, ekle) {
   const KISIT = /\bCONSTRAINT\s+\w+|\bPRIMARY\s+KEY\b|\bUNIQUE\b|\bFOREIGN\s+KEY\b|\bREFERENCES\b|\bCHECK\s*\(|(?<!DATABASE_)\bDEFAULT\b/gi

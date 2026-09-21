@@ -82,17 +82,28 @@ Karanlık/aydınlık tema `data-tema='koyu'/'acik'` attribute'u ile uygulanıyor
 ## Sınama altyapısı — ne var, ne yok
 
 Çerçeve (vitest/jest/playwright) **yok** ve eklenmeyecek; hiçbir
-otomasyon paketi kurulu değil. Buna karşılık üç şey var:
+otomasyon paketi kurulu değil. Buna karşılık dört şey var:
 
-- **`npm run dogrula`** — 13 kontrol. 8. kontrol altı sınama betiğini
+- **`npm run dogrula`** — 13 kontrol. 8. kontrol sekiz sınama betiğini
   ayrı süreçlerde koşturuyor (`tools/` altında). Kural: *bir sınama
   çağrılmıyorsa yoktur.*
 - **Ekosistem sınaması** (`tools/ekosistem-sinamasi.mjs`) — üç
   uygulamanın PAYLAŞTIĞI veri katmanını Node içinde gerçekten
-  çalıştırıyor: on üç akış senaryosu (AK-01…AK-13), talep açılışından
+  çalıştırıyor: on sekiz akış senaryosu (AK-01…AK-18), talep açılışından
   hak edişin cariye yazılmasına kadar. Modüller Vite'ın
   `ssrLoadModule`'üyle yükleniyor, depo taklit ediliyor, saat donmuş,
   rastgelelik tohumlu. Ayrıntısı betiğin başında.
+- **Uygulama–veritabanı eşleme denetimi**
+  (`tools/veritabani-eslesme-denetimi.mjs`, 21 Eylül 2026) — uygulama
+  veritabanına henüz bağlı değil; yeni bir alan, veritabanında
+  karşılığı olmasa da hata vermiyordu. Aynı senaryoları koşturup depoya
+  düşen HER ALANI `veritabani/uygulama-eslesmesi.mjs` ile karşılaştırıyor.
+  Eşlemesiz alan ya da anahtar, SQL betiklerinde olmayan sütun,
+  eşlemesiz `veri.js` işlevi doğrulamayı düşürür. Karşılığı bilerek
+  olmayanlar eşlemede `yok(gerekçe)` diye durur ve "bilinen boşluk"
+  sayılır — sunucu aşamasının iş listesi. Senaryoların yazmadığı
+  anahtarları göremez; onları "sınanmıyor" diye ayrı sayar.
+  `--envanter` her alanın karşılığını basar.
 - **Ekosistem ekran turu** (`tools/ekosistem-turu.mjs`) — üç uygulamanın
   **gezilebilir yüzeyinin tamamını** Chrome'da açıyor: envanter
   `tools/ekosistem/ekranlar.mjs` içinde (Connect 25, backoffice 16,
@@ -133,12 +144,38 @@ servis hak edişini PAKSAN'dan alıyor, PAKSAN kime iş verdiğini bilmek
 zorunda ve "en yakın" bir kayıt değil tahmindir.
 
 Zincir boş dönerse müşteri **servis talebi açamıyor**; uygulama
-PAKSAN'la iletişime geçmesini söylüyor. Atama backoffice'te
-Kayıtlı Makineler ekranından yapılıyor.
+servisin henüz atanmadığını ve PAKSAN'ın en kısa sürede atayacağını
+söylüyor — müşteriden arama istenmiyor (21 Eylül 2026). Sözü tutan
+backoffice: yan menüdeki **Kayıtlı Makineler** sayacı servisi olmayan
+MAKİNELERİ sayıyor (`servisiAtanmamisKayitlar`), atama yalnız o
+ekrandan yapılıyor. **Atama makine başına, müşteri başına değil**
+(kullanıcının kararı): her servis her makinede uzman değil; aynı
+müşterinin yem karmasına bir servis, balya makinesine başka bir servis
+bakabilir. Müşteriler ekranında atama yeri YOK — aynı gün denenip geri
+alındı. Makinenin servisi değişince (atama ya da bayi değişikliği)
+müşteriye Connect'te bildirim gider (`veri.js → makineAtamasiniKaydet`).
 
-**Fiyat teklifi servise değil bayiye gider.** Talep PAKSAN'a düşüyor,
-satış personeli bayiye atıyor (`talebiBayiyeAta`), talep "Bayide"
-durumuna geçiyor ve PAKSAN'ın kuyruğundan çıkıyor.
+**BİR SERİ NUMARASI, DEFTERDE TEK SATIR** (21 Eylül 2026). Müşteri
+makinesini silip yeniden ekleyince ya da servis Servisim'den kayıtlı
+bir seriyle elle talep açınca yeni satır açılıyordu: makine iki kişide
+görünüyor, en yeni satır PAKSAN'ın atadığı servisi gölgeliyor, servis
+kendini atamış oluyordu. Artık yazan işlevler var olan satırı buluyor;
+Servisim'in elle kaydı var olan makineye hiç dokunmuyor, talep yine
+açılıyor (`lib/makineKaydi.js` başı, sınaması AK-18).
+
+**Fiyat teklifi servise değil bayiye gider.** Bayinin paneli yok:
+satış personeli bayiye telefonla haber veriyor, sistemde yalnız hangi
+bayinin yetkilendirildiği yazılıyor (`talebiBayiyeAta`). Talep
+"Bayiye İletildi" durumuna geçiyor — KAPALI bir durum, sonraki
+aşamalara geçmiyor, müşteriye bildirim gitmiyor. Teklif verilmiş
+talep bayiye iletilemiyor. Fiyat teklifinin durumları: Yeni, Bayiye
+İletildi, Teklif Verildi, Kapandı, İptal (21 Eylül 2026, kullanıcının
+kararı; PAKSAN bayisiz de satabildiği için son üçü duruyor).
+
+**PAKSAN'ın talepteki işlemi servise bildirilir** (`serviseBildir`,
+aynı `duyurular` deposu, `alici: 'servis'`). Servisin kendi işlemi
+kendisine bildirilmez: paylaşılan işlevler `servisten: true` alıyor.
+Yazısı Servisim'de `src/servis/talepBildirimleri.js`.
 
 **Yedek parça talebi servise gitmez.** Müşterinin PAKSAN Connect'ten
 açtığı parça talebi yalnız backoffice'e düşer: tedarikçi PAKSAN, müşteri
@@ -260,6 +297,9 @@ Bir değişikliği "bitti" demeden önce:
    atamasına, duyuru hedeflemesine ya da yetki kataloğuna dokunduysan →
    `ekosistem-sinamasi` subagent'ını çalıştır. Bir uygulamanın ötekinin
    okuyamayacağı bir kayıt yazdığını başka hiçbir kontrol görmüyor.
+   Depoya YENİ BİR ALAN yazdıysan `npm run dogrula` "YENİ ALAN" diye
+   düşer: `veritabani/uygulama-eslesmesi.mjs`'e satırını ekle — sütunu,
+   türediği yer ya da `yok(gerekçe)`. Sessizce geçirmek yasak.
 5. Yeni/değişen ikon varsa → `ikon-uretici` subagent'ını kullan, ikonu elle
    `ikonYollari.js`'e yazma
 
@@ -351,7 +391,7 @@ On üç şeye bakıyor:
  5. Motorun marka klasörüne yalnızca kapıdan bakıp bakmadığı
  6. Motor kodunda marka adının düz yazıyla geçip geçmediği
  7. Servis uygulamasında bayi kalıntısı kalıp kalmadığı
- 8. `tools/` altındaki dört birim sınamasının geçip geçmediği
+ 8. `tools/` altındaki sekiz sınama betiğinin geçip geçmediği
  9. Yedek parça kataloğunun tutarlılığı ve uydurma fiyat izi
 10. Connect'in üç yerdeki sürüm numarasının tutması, Servisim'in ayrı hattı
 11. Yayına çıkışı engelleyen geliştirme ayarları (saymıyor, yalnız listeler)
@@ -363,13 +403,17 @@ On üç şeye bakıyor:
 5. ve 6. kontroller marka sınırını koruyor: ürünün başka bir firmaya
 kurulabilmesi buna bağlı. 7. kontrol bayi–servis ayrımını koruyor:
 panel bayiden servise devredildi; yarım kalan bir devir, altı ay sonra
-hangi adın ne anlama geldiğini belirsizleştirir. 8. kontrol altı
+hangi adın ne anlama geldiğini belirsizleştirir. 8. kontrol sekiz
 sınama betiğini çağırıyor: `marka-ek-testi`, `bolge-testi`,
 `duyuru-hedef-testi`, `destek-dogrula` (dördü metin okuyor, ayrı
 dururken unutuluyorlardı ve biri haftalarca kırık kaldı), artı
-`ekosistem-sinamasi` ve `ekosistem-turu`. Son ikisi metin okumuyor,
-üç uygulamanın paylaştığı katmanı ÇALIŞTIRIYOR; bkz. "Sınama
-altyapısı". Ekran turu sunucu ya da Chrome yoksa kendini atlıyor,
+`ekosistem-sinamasi`, `veritabani-eslesme-denetimi` ve
+`ekosistem-turu` (üçü metin okumuyor, üç uygulamanın paylaştığı
+katmanı ÇALIŞTIRIYOR; bkz. "Sınama altyapısı"), bir de
+`fiyat-listesi-okuma-sinamasi`: backoffice'e yüklenen fiyat listesi
+PDF'ini okuyan kodun gerçek PDF'ten bugünkü katalogla birebir aynı
+sonucu verdiğini ve sunucunun yayına alma adımının bozuk listeyi
+reddettiğini denetliyor (PDF yoksa okuma kısmı "atlandı" der). Ekran turu sunucu ya da Chrome yoksa kendini atlıyor,
 bu yüzden orada "ok" görmek her zaman turun koştuğu anlamına gelmez.
 9. kontrol uydurma
 parça listesinin geri gelmesini engelliyor ve kataloğa yeni bir grup

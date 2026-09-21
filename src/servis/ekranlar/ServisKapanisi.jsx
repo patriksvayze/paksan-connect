@@ -28,6 +28,7 @@ import { AdresSecici, teslimatHatasi } from '../AdresSecici'
 import { firmaAdresiOnerisi } from '../adresler'
 import { adresYazisi, teslimatTemizle, teslimatYazisi } from '../../lib/teslimat'
 import { servisleriGetir } from '../../marka'
+import { makineDurumAdi } from '../../data/talepAlanlari'
 import {
   IconAlert,
   IconCamera,
@@ -387,7 +388,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
         }
       >
         {/* ------------------------------- 1. aşamanın cevapları (2. aşama) */}
-        {ikinci && <IlkAsama kayit={onceki} />}
+        {ikinci && <IlkAsama kayit={onceki} talep={talep} />}
 
         {/* ------------------------------------------- Müşteri ve makine */}
         {!ikinci && (
@@ -452,6 +453,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
             sorunun kendisi oluyor. */}
         {!ikinci && (
           <Bolum ad="Servis Talebi Nedeni">
+            <TalepBelirtileri talep={talep} />
             <Kutu
               etiket="Servis Talebi Nedeni"
               deger={ariza}
@@ -642,14 +644,36 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
   )
 }
 
+/* ------------------------------------------------- Müşterinin seçtikleri
+
+   MAKİNENİN DURUMU VE BELİRTİLER BU EKRANDA YOKTU (21 Eylül 2026,
+   kullanıcının bildirdiği eksik). Müşteri talebi açarken makinenin
+   durumunu ve belirtileri listeden seçiyor; talep ayrıntısında
+   görünüyordu ama servis kaydını doldururken — teşhisi yazdığı anda —
+   görünmüyordu. Servis ya ayrıntıya geri dönüyor ya da ezberden
+   yazıyordu. Etiketler talep ayrıntısındakilerle aynı
+   (ekranlar/TalepDetay.jsx): iki ekranda aynı bilgi aynı adla.
+   Telefonla açılan talepte bu alanlar boş; o zaman kart hiç çıkmıyor. */
+function TalepBelirtileri({ talep }) {
+  const belirtiler = talep?.belirtiler || []
+  if (!talep?.durum && !belirtiler.length) return null
+  return (
+    <div className="kart" style={{ padding: 16, marginBottom: 12 }}>
+      {talep.durum && <Satir ad="Makinenin Durumu" deger={makineDurumAdi(talep.durum)} />}
+      {belirtiler.length > 0 && <Satir ad="Belirtiler" deger={belirtiler.join(', ')} />}
+    </div>
+  )
+}
+
 /* --------------------------------------------------------------- Parçalar */
 
 /* İkinci aşamada 1. aşamada yazılanlar okunur duruyor: servis aradan
    günler geçmiş olabilecek bir işe dönüyor ve neyi neden istediğini
    hatırlamak zorunda değil. */
-function IlkAsama({ kayit }) {
+function IlkAsama({ kayit, talep }) {
   return (
     <Bolum ad="Bu İş İçin Yazdıklarınız">
+      <TalepBelirtileri talep={talep} />
       <div className="kart" style={{ padding: 16 }}>
         <Satir ad="Müşterinin Anlattığı" deger={kayit.ariza} />
         <Satir ad="Bulduğunuz" deger={kayit.sonuc} />

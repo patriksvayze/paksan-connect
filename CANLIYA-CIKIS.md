@@ -123,29 +123,32 @@ Canlıya çıkarken:
    (ayrıntı: `kilavuzlar/BENIOKU.md`). Sunucu yeni indeksi kendisi
    yükler; uygulamada değişen bir şey olmaz.
 5. `PARCA_KATALOG.taklitGecikme` 0 yapılır.
-6. **YENİ FİYAT LİSTESİNİ SUNUCU DÖNÜŞTÜRECEK** (kullanıcının kararı,
-   18 Eylül 2026). Bugün fiyat listesi basılı bir PDF olarak geliyor ve
-   parçalara, fiyatlara ve görsellere ayrılması için komut satırından
-   bir betik çalıştırılıyor: `python tools/parca-katalogu.py "<liste.pdf>"`
-   (pymupdf + pillow ister). Yani yeni liste yayına girene kadar
-   geliştirici gerekiyor.
+6. **YENİ FİYAT LİSTESİ BACKOFFICE'TEN YÜKLENİYOR** (18 Eylül 2026
+   kararı, 21 Eylül 2026'da yapıldı). Personel **Yedek Parça Kataloğu**
+   ekranından PDF'i seçer → liste okunur → ekran neyin değiştiğini
+   gösterir (kaç parça geldi/düştü, kaçının fiyatı değişti, ortalama ve
+   en büyük artış, yeni parça grubu var mı, fiyatı okunamayan parça var
+   mı) → personel onaylar → liste yayına girer, eskisi arşive gider.
+   Geliştirici devreye girmez.
 
-   Sunucuda bu iş bir uç noktanın arkasına taşınacak ve akış şu olacak:
-   personel backoffice'teki **Yedek Parça Kataloğu** ekranından PDF'i
-   seçer → sunucu dönüştürür → ekran neyin değiştiğini gösterir (kaç
-   parça geldi/düştü, kaçının fiyatı değişti, ortalama ve en büyük
-   artış, yeni parça grubu var mı) → personel onaylar → liste yayına
-   girer. Geliştirici devreye girmez.
+   18 Eylül'de dönüştürmenin SUNUCUDA yapılması planlanmıştı; okuma
+   personelin tarayıcısında yapılıyor (`src/lib/fiyatListesiOku.js`),
+   sunucu yalnız sonucu denetleyip saklıyor. Gerekçe: sunucu henüz yok,
+   sunucuya Python kurmak da ek bir bağımlılıktı. Akış aynı.
 
-   Ekranın önizleme ve onay tarafı YAZILDI
-   (`src/backoffice/ekranlar/ParcaKatalogu.jsx`); bugün dönüşmüş dosyayı
-   açıp kontrol ediyor. Eksik olan tek halka, dönüştürmenin sunucuda
-   koşması.
+   **Sunucuda yapılacak:** `POST <kok>/yayinla` uç noktası
+   (sözleşme: `sunucu-taklidi/fiyat-listesi-yayini.mjs`) — gelen listeyi
+   denetler, `katalog.FiyatListesi` (taslak → yürürlükte → arşiv) ve
+   `katalog.FiyatListesiSatiri` tablolarına yazar, görselleri ve kaynak
+   PDF'i saklar. Uygulama rolünün `katalog.*` yazma izni yok (V0015);
+   bu uç nokta için izin kararı verilecek. Yetki denetimi sunucuda da
+   yapılmalı (`parcaKatalogDuzenle`).
 
-   Kalıcı istisna: fiyat listesinin sayfa düzeni değişirse betiğin
-   ızgara ölçüleri yeniden ayarlanmalı — o geliştirici işi kalıyor.
-   Önizleme bunu sessiz olmaktan çıkarıyor: yanlış okunmuş liste
-   ekranda görünür ve onaylanmaz.
+   Kalıcı istisna: fiyat listesinin sayfa düzeni değişirse okuyucunun
+   ızgara ölçüleri (`fiyatListesiOku.js` → `IZGARA`) yeniden ayarlanmalı
+   — o geliştirici işi kalıyor. Önizleme bunu sessiz olmaktan
+   çıkarıyor: yanlış okunmuş liste ekranda "şu ankinden çok farklı"
+   uyarısıyla görünür.
 
 ### 2.2 Sunucuyu kim yazacak — üç yol
 

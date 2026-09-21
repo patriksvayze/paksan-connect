@@ -2,7 +2,7 @@ import { useState } from 'react'
 import {
   DURUMLAR, durumBilgi, geriBildirimGetir, izinli, KAPALI_DURUMLAR,
   islemKaydiGetir, makineKayitlariGetir, musterileriGetir, numaraTalepleriGetir,
-  rolBilgi, rolunTalepleri, TALEP_ADI, talepleriGetir, teklifBekliyorMu,
+  rolBilgi, rolunTalepleri, rolunTurleri, TALEP_ADI, talepleriGetir, teklifBekliyorMu,
 } from '../veri'
 import { useVeri } from '../kanca'
 import { Baslik, Bekleme } from './ortak'
@@ -99,7 +99,7 @@ export function Ozet({ rol, git, surum }) {
             Rol kimliği yerine ROLÜN GÖRDÜĞÜ TALEP TÜRÜ soruluyor: fiyat
             teklifi görmeyen rolde bu kutu zaten hep sıfır çıkar. Yeni
             bir satış rolü açıldığında kendiliğinden doğru çalışıyor. */}
-        {(rolBilgi(rol).talepTuru === null || rolBilgi(rol).talepTuru === 'satinalma') && (
+        {(!rolunTurleri(rol) || rolunTurleri(rol).includes('satinalma')) && (
           <Sayi
             deger={v.teklifBekleyen}
             ad="Cevap Beklenen Teklif"
@@ -320,7 +320,10 @@ function hesapla(rol, gunSayisi) {
     enYogun,
     buHafta,
     haftaFark,
-    kapananSayi: talepler.filter((t) => t.status === 'kapandi').length,
+    /* Bayiye iletilen fiyat teklifi de kapanmış sayılır: PAKSAN'ın işi
+       bitti (bkz. veri.js → DURUMLAR, "Bayiye İletildi"). İptal değil. */
+    kapananSayi: talepler.filter((t) => ['kapandi', 'bayiyeIletildi'].includes(t.status))
+      .length,
 
     /* Orta dilim SARI, turuncu değil.
 

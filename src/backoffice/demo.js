@@ -525,7 +525,9 @@ export async function demoYukle() {
   const DURUM = {
     servis: ['yeni', 'incelemede', 'planlandi', 'parcaBekliyor', 'onayBekliyor', 'kapandi', 'iptal'],
     parca: ['yeni', 'incelemede', 'planlandi', 'kapandi', 'iptal'],
-    satinalma: ['yeni', 'incelemede', 'teklif', 'kapandi', 'iptal'],
+    /* Fiyat teklifinde 'İncelemede' yok; 'Bayiye İletildi' aşağıda, bayi
+       seçilerek kuruluyor (21 Eylül 2026, bkz. veri.js → talepDurumlari). */
+    satinalma: ['yeni', 'teklif', 'kapandi', 'iptal'],
   }
 
   /* Ağırlıklı seçim: talep havuzunun çoğu açık işten oluşsun, kapanmış
@@ -594,7 +596,7 @@ export async function demoYukle() {
   gorevler.push({ tur: 'satinalma', durum: 'yeni', yasGun: 0 })
 
   /* İHRACAT — yurtdışı talebi ayrı yoldan gidiyor, örneği olsun */
-  gorevler.push({ tur: 'satinalma', durum: 'incelemede', ihracat: true })
+  gorevler.push({ tur: 'satinalma', durum: 'yeni', ihracat: true })
 
   /* SAHNE SERVİSİNİN İŞLERİ — servis uygulamasının demo hesabında her
      hâlden bir iş görünsün (bkz. demoServis.js → SAHNE_GOREVLERI). */
@@ -787,15 +789,18 @@ export async function demoYukle() {
         cariHareketler.push(...akis.cari)
       }
 
-      /* FİYAT TEKLİFİNİN BİR KISMI BAYİYE ATANARAK KAPANDI. Satış
-         personeli teklifi bayiye yönlendirdiğinde PAKSAN'ın işi bitiyor
-         ve talep kapanıyor (bkz. veri.js → talebiBayiyeAta). Demo yalnız
-         teklif verip kapatılan satışı gösteriyordu. */
+      /* FİYAT TEKLİFİNİN BİR KISMI BAYİYE İLETİLDİ. Satış personeli
+         talebi bayiye verdiğinde PAKSAN'ın işi biter ve talep 'Bayiye
+         İletildi' durumunda kalır (bkz. veri.js → talebiBayiyeAta). Teklif
+         verilmiş talep iletilemediği için geçmişte yalnız iletme satırı
+         var. Demo yalnız teklif verip kapatılan satışı gösteriyordu. */
       if (tur === 'satinalma' && durum === 'kapandi' && !gorev.ihracat && Math.random() < 0.5) {
         const bayi = sec(BAYILER)
         Object.assign(talep, {
           bayi: { id: bayi.id, ad: bayi.ad, tel: bayi.tel || '', tarih: sonTarih },
           sahip: 'bayi',
+          status: 'bayiyeIletildi',
+          gecmis: [{ durum: 'bayiyeIletildi', tarih: sonTarih, personel }],
           teklif: null,
           cozum: null,
         })
