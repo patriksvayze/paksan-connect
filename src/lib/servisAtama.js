@@ -35,14 +35,24 @@
 
 import { load } from './storage'
 import { bayininServisleri, servisGetir, bayiGetir } from '../marka'
+import { normalizeSerial } from './serial'
 
 const KAYIT_DEPOSU = 'makineKayitlari'
 
-/** Seri numarasının kayıt defterindeki satırı. */
+/* Seri numarasının kayıt defterindeki satırı.
+
+   NORMALİZE EDİLEREK ARANIYOR. Defter seriyi GELDİĞİ GİBİ saklıyor
+   (lib/makineKaydi.js:160 → `seri: makine.serial`); aynı defteri okurken
+   karşılaştırmayı `normalizeSerial` ile yapıyor (:75, :84). Burada ise bir
+   dönem yalnız `.trim()` vardı — yani tek defteri iki ayrı kuralla okuyan
+   iki dosya. Sonucu ölçüldü: `ORK1270-2024-00157` servise bağlanıyor,
+   `ork1270-2024-00157` null dönüyor ve o müşteri servis talebi AÇAMIYOR.
+   Artık iki taraf da aynı kuralı kullanıyor: büyük harfe çevir, harf ve
+   rakam dışındaki her şeyi at. */
 export function makineninKaydi(seri) {
-  const temiz = String(seri || '').trim()
+  const temiz = normalizeSerial(seri)
   if (!temiz) return null
-  return load(KAYIT_DEPOSU, []).find((k) => String(k.seri || '').trim() === temiz) || null
+  return load(KAYIT_DEPOSU, []).find((k) => normalizeSerial(k.seri) === temiz) || null
 }
 
 /**
