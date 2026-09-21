@@ -61,10 +61,10 @@ BEGIN
     WHERE h.Kimlik = @HakEdisKimlik;
 
     IF @DurumKodu IS NULL
-        THROW 51102, N'<Codex metni: hak ediş kaydı bulunamadı>', 1;
+        THROW 51102, N'hak ediş kaydı bulunamadı; hak ediş kimliğini kontrol edip yeniden deneyin', 1;
 
     IF @DurumKodu <> N'bekliyor'
-        THROW 51043, N'<Codex metni: hak ediş onay beklemiyor; tutarı yalnız onay bekleyen hak edişte yeniden hesaplanabilir>', 1;
+        THROW 51043, N'hak ediş onay beklemiyor; tutarı yeniden hesaplamak için onay bekleyen bir hak ediş seçin', 1;
 
     SELECT @Km = z.Km,
            @IscilikTutari = z.IscilikTutari,
@@ -77,7 +77,7 @@ BEGIN
        işçilik tutarı başka para birimindeyse toplanamaz; kur tutulmaz. */
     IF @ZiyaretParaBirimiKodu IS NOT NULL
        AND @ZiyaretParaBirimiKodu <> @ParaBirimiKodu
-        THROW 51045, N'<Codex metni: ziyaretin para birimi hak edişin para biriminden farklı; tutar hesaplanamaz>', 1;
+        THROW 51045, N'ziyaretin para birimi hak edişin para biriminden farklı; tutar hesaplanamaz. Ziyaret ve hak ediş kayıtlarının para birimlerini kontrol edip uyumsuzluğu giderin', 1;
 
     /* Tarifenin günü ziyaretin tamamlandığı Türkiye günüdür; tamamlanma
        zamanı boşsa hak edişin oluştuğu gün. */
@@ -102,7 +102,7 @@ BEGIN
                  t.KayitNo DESC;
 
         IF @TarifeKimlik IS NULL
-            THROW 51041, N'<Codex metni: ziyaretin tamamlandığı gün için geçerli yol tarifesi yok>', 1;
+            THROW 51041, N'ziyaretin tamamlandığı gün için geçerli yol tarifesi bulunamadı; o tarih için geçerli bir yol tarifesi tanımlayın', 1;
 
         /* servisKaydi.js:171 ile aynı: tam lira */
         SET @YolTutari = ROUND(@Km * @TarifeBirimTutar, 0);
@@ -190,7 +190,7 @@ BEGIN
     DECLARE @DurumKodu nvarchar(40);
 
     IF @KalemTuruKodu IN (N'yol', N'iscilik')
-        THROW 51044, N'<Codex metni: yol ve işçilik kalemi elle yazılamaz; ziyaretin km ve işçilik tutarından hesaplanır>', 1;
+        THROW 51044, N'yol ve işçilik kalemi elle yazılamaz; ziyaretin km ve işçilik tutarından hesaplanır. Ziyaret bilgilerini kontrol edip hak ediş tutarını yeniden hesaplayın', 1;
 
     IF @@TRANCOUNT = 0
     BEGIN
@@ -203,10 +203,10 @@ BEGIN
     WHERE h.Kimlik = @HakEdisKimlik;
 
     IF @DurumKodu IS NULL
-        THROW 51102, N'<Codex metni: hak ediş kaydı bulunamadı>', 1;
+        THROW 51102, N'hak ediş kaydı bulunamadı; hak ediş kimliğini kontrol edip yeniden deneyin', 1;
 
     IF @DurumKodu <> N'bekliyor'
-        THROW 51043, N'<Codex metni: hak ediş onay beklemiyor; kalem yalnız onay bekleyen hak edişe yazılabilir>', 1;
+        THROW 51043, N'hak ediş onay beklemiyor; kalem eklemek için onay bekleyen bir hak ediş seçin', 1;
 
     IF @Tutar = 0
         DELETE hakedis.HakEdisKalemi
@@ -281,7 +281,7 @@ BEGIN
     SET XACT_ABORT ON;
 
     /* Anonim metni: tek sabit (tasarim.md 1.13.5). */
-    DECLARE @Anonim nvarchar(1000) = N'<Codex metni: anonimleştirildi>';
+    DECLARE @Anonim nvarchar(1000) = N'anonimleştirildi';
     DECLARE @Simdi datetime2(3) = SYSUTCDATETIME();
     DECLARE @IslemAcildi bit = 0;
     DECLARE @Kok uniqueidentifier;
@@ -300,7 +300,7 @@ BEGIN
     DECLARE @Sonuc TABLE (Sira int NOT NULL PRIMARY KEY, Tablo nvarchar(128) COLLATE DATABASE_DEFAULT NOT NULL, SatirSayisi int NOT NULL);
 
     IF NOT EXISTS (SELECT 1 FROM musteri.Hesap WHERE Kimlik = @HesapKimlik)
-        THROW 51102, N'<Codex metni: müşteri hesabı bulunamadı>', 1;
+        THROW 51102, N'müşteri hesabı bulunamadı; müşteri kimliğini kontrol edip yeniden deneyin', 1;
 
     IF @@TRANCOUNT = 0
     BEGIN

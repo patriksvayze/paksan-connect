@@ -55,8 +55,9 @@ import { Secim, SuzgecCubugu } from './suzgec'
    elle konuyor; ekran listeyi önizliyor ve birleştirilmiş dosyayı
    veriyor, yerine koymak dağıtım adımı.
 
-   METİNLER TASLAK: Codex sınırı dolu (bkz. CODEX-BEKLEYEN.md). Hepsi
-   aşağıdaki METIN nesnesinde; Codex'e olduğu gibi verilir.
+   METİNLER TEK NESNEDE: hepsi aşağıdaki METIN nesnesinde toplu.
+   Codex'ten 19 Eylül 2026'da geçti; yeni metin eklenirse o da buraya
+   yazılır, tek tek dağıtılmaz.
    ========================================================================== */
 
 const METIN = {
@@ -66,11 +67,11 @@ const METIN = {
      sorusu "fiyatı nereden değiştiririm" oluyor; cevabı en başta ve
      tek cümlede veriliyor. Kalıp Servisler ekranındaki "Şifre Yardımı
      Bekleyen Servis" kartıyla aynı. */
-  uyariBaslik: 'Fiyat buradan değiştirilmez',
+  uyariBaslik: 'Fiyatlar toplu listeyle güncellenir',
   uyariMetin:
-    'Parça adını ve grubunu düzeltebilir, satılmayan parçayı pasife alabilirsiniz. Fiyat tek tek değiştirilmez: zam ya da indirim geldiğinde güncel fiyat listesini yükleyin.',
+    'Burada parça adını ve grubunu düzeltebilir, satılmayan parçayı pasife alabilirsiniz; fiyatlar tek tek değil, yeni fiyat listesiyle topluca güncellenir.',
   uyariAlt:
-    'Eski fiyatlar verilmiş siparişlerin kanıtı olarak olduğu gibi kalır.',
+    'Daha önce verilmiş siparişlerdeki fiyatlar değişmez.',
 
   // Süzgeç
   tumGruplar: 'Tüm gruplar',
@@ -89,19 +90,19 @@ const METIN = {
   rozetDuzeltildi: 'Düzeltildi',
   rozetPasif: 'Pasif',
   asilAd: 'Listedeki adı:',
-  bosSuzgec: 'Bu süzgeçle parça bulunamadı.',
+  bosSuzgec: 'Aradığınız parça bulunamadı. Parça adını veya kodunu kontrol edin, farklı bir grup seçin ya da pasif parçaları gösterin.',
 
   // Düzeltme penceresi
-  formBaslik: 'Parçayı Düzenle',
-  alanAd: 'Parça Adı',
+  formBaslik: 'Parçayı düzenle',
+  alanAd: 'Parça adı',
   alanGrup: 'Grup',
   alanPasif: 'Pasife al',
   pasifIpucu:
-    'Pasif parça müşteriye ve servise gösterilmez. Fiyat listesinden silinmez; bu listede "Pasif Olanları Göster" ile bulunup geri alınabilir.',
+    'Pasif parça müşteriye ve servise gösterilmez, fiyat listesinden silinmez. Yeniden göstermek için "Pasif Olanları Göster" ile parçayı bulun ve "Pasife al" işaretini kaldırın.',
   gorselYok: 'Bu parçanın görseli yok.',
   kaydet: 'Düzeltmeyi Kaydet',
   vazgec: 'Vazgeç',
-  adBos: 'Parça adı boş bırakılamaz.',
+  adBos: 'Parça adını yazın.',
 
   /* YENİ FİYAT LİSTESİ — bu bölüm bir YÜKLEME değil, bir KONTROL yeri.
 
@@ -112,26 +113,26 @@ const METIN = {
      yükleyin" demiyor; "dönüşen listeyi açın, neyin değiştiğini
      görün" diyor. Onay adımı asıl değeri burada: yanlış okunmuş bir
      liste yayına girmeden yakalanıyor. */
-  listeBaslik: 'Yeni Fiyat Listesi Geldiğinde',
+  listeBaslik: 'Yeni fiyat listesini kontrol edin',
   listeAciklama:
-    'Yeni fiyat listesini bize gönderin; parçalara ve görsellere ayrılmış hâlini size geri veririz. Aşağıdan açtığınızda neyin değiştiğini görür, yayına girmeden önce kontrol edersiniz.',
+    'Yeni fiyat listesini bize gönderin. Parçaları, fiyatları ve görselleri kontrol edebileceğiniz bir dosya hazırlayıp size göndeririz. Gelen dosyayı aşağıdan açıp değişiklikleri liste yayına girmeden önce kontrol edin.',
   dosyaSec: 'Gelen Listeyi Aç',
-  dosyaIpucu: 'Kontrol için: size gönderdiğimiz liste dosyası',
+  dosyaIpucu: 'Kontrol için size gönderdiğimiz liste dosyasını seçin.',
   okunamadi:
-    'Bu dosya okunamadı. Fiyat listesinin size gönderdiğimiz hâlini seçtiğinizden emin olun; basılı listenin kendisi (PDF) burada açılmıyor.',
-  onizlemeBaslik: 'Yeni listede ne değişiyor',
-  toplamParca: 'Parça',
-  yeniParca: 'Yeni gelen',
-  dusenParca: 'Listeden düşen',
-  fiyatiDegisen: 'Fiyatı değişen',
-  ortalamaDegisim: 'Ortalama değişim',
-  enBuyukArtis: 'En büyük artış',
+    'Bu dosya okunamadı. Kontrol için size gönderdiğimiz liste dosyasını seçin. Fiyat listesinin PDF dosyası burada açılamaz.',
+  onizlemeBaslik: 'Yeni listede değişenler',
+  toplamParca: 'Toplam parça',
+  yeniParca: 'Yeni eklenen parça',
+  dusenParca: 'Listeden çıkarılan parça',
+  fiyatiDegisen: 'Fiyatı değişen parça',
+  ortalamaDegisim: 'Ortalama fiyat değişimi',
+  enBuyukArtis: 'En yüksek fiyat artışı',
   yeniGrup: 'Yeni grup',
   yeniGrupUyari:
-    'Yeni gelen parça grupları bir makine ailesine bağlanmadan müşteri ekranında görünmez. Bu bağ bugün kod içinde tutuluyor; listeyi yayına almadan önce bize bildirin.',
+    'Yeni parça grupları bir makine ailesiyle eşleştirilmeden müşteri ekranında görünmez. Eşleştirme yapılması için liste yayına alınmadan önce yeni grupları bize bildirin.',
   indir: 'Düzeltmelerimle Birlikte İndir',
   indirIpucu:
-    'Listeyi onaylıyorsanız bu dosyayı bize geri gönderin: yaptığınız ad ve grup düzeltmeleri de içinde gelir. Sunucu açıldığında bu adım tek düğmeye inecek.',
+    'Kontrolü tamamlayıp listeyi onayladığınızda dosyayı indirin ve bize geri gönderin. Dosya, yaptığınız parça adı ve grup düzeltmelerini de içerir.',
   onizlemeKapat: 'Önizlemeyi Kapat',
 }
 

@@ -2,7 +2,6 @@ import { gonderimGecikti, KAPALI_DURUMLAR } from '../../../veri'
 import { talebinParcalari } from '../../../../lib/servisKaydi'
 import { markaEk } from '../../../../marka'
 import { tarihYaz } from '../../ortak'
-import { codexBekliyor } from '../metin'
 import {
   dilim, fark, farkPuan, kapanisZamani, kovayaDagit, musteriTalebiMi, oran, ortalama, paraHucre,
   paraKutu, parcaGoruntusu, RENK, SAAT, servisZiyaretleri, sureYaz, talepModeli, topla, yuzde,
@@ -50,7 +49,7 @@ import {
    önceki ziyaretten sonra, sevkten önce) İLK satır alınıyor.
    ========================================================================== */
 
-const M = codexBekliyor({
+const M = {
   ad: 'Yedek Parça',
   soru: 'Hangi parçalar isteniyor, siparişler ne hızla gönderiliyor?',
 
@@ -74,25 +73,25 @@ const M = codexBekliyor({
   odemedenGonderimAlt: (n, p90) => `${n} talep ortalaması · en yavaş %10: ${p90}`,
   garantiSevk: 'Garanti parçasının gönderilme süresi',
   garantiSevkAlt: (n, p90) => `Servis istedikten sonra · ${n} gönderim · en yavaş %10: ${p90}`,
-  soz: 'Söz verilen tarihte gönderim',
+  soz: 'Söz verilen zamana kadar gönderim',
   sozAlt: (tutulan, n) =>
-    n ? `Tarih ve saat verilen ${n} talebin ${tutulan} tanesi` : 'Bu dönemde tarih verilip gönderilen talep yok',
+    n ? `Bu dönemde gönderilen, tarih ve saat sözü verilmiş ${n} talebin ${tutulan} tanesi` : 'Bu dönemde gönderilen, tarih ve saat sözü verilmiş talep yok',
 
   grafik: 'Yedek parça talepleri',
   /* Kova boyu döneme göre gün, hafta ya da ay olabiliyor
      (bkz. hesap.js → zamanKovalari); alt yazı "o günün talepleri"
      diyordu. */
-  grafikAlt: 'Seçilen dönemde açılan talepler. Bir sütuna tıklayınca o aralığın talepleri açılır.',
+  grafikAlt: 'Seçilen dönemde açılan müşteri parça talepleri ve servis siparişleri. Sütunlar döneme göre gün, hafta veya ayı gösterir. Bir sütuna tıklayınca ilgili aralığın talepleri açılır.',
   seriMusteri: 'Müşteri talebi',
   seriSiparis: 'Servis siparişi',
 
   tabloParca: 'En çok istenen parçalar',
   tabloParcaAciklama: `Seçilen dönemde istenen parçalar, adet olarak. Garanti işinde, servisin istediği ve ${markaEk('in')} bedelsiz gönderdiği parçalar.`,
   tabloServis: 'Servislere göre parça siparişi',
-  tabloServisAciklama: 'Sipariş sayısı ve tutarlar seçilen dönemde verilen, iptal edilmemiş siparişlerden; açık sipariş şu anki durum. "Bakiyeden ödenen" servisin hak edişinden düşülmesini seçtiği siparişlerin tutarı; kapanmış siparişte düşüm yapılmış, açık siparişte kapanınca yapılacak. Tutarlar KDV dâhil.',
+  tabloServisAciklama: 'Sipariş sayısı ve tutarlar, seçilen dönemde verilen ve iptal edilmemiş siparişleri gösterir. Açık sipariş sayısı tarih süzgecinden bağımsız olarak şu anki durumu gösterir. "Bakiyeden ödenen" servisin hak edişinden düşülmesini seçtiği siparişlerin tutarı; kapanmış siparişlerde tutar hak edişten düşülmüştür, açık siparişlerde sipariş kapanınca düşülecektir. Tutarlar KDV dâhil.',
   tabloGecikme: 'Gönderimi geciken parça talepleri',
-  tabloGecikmeAciklama: 'Şu an, tarih süzgecinden bağımsız: müşteriye söylenen gönderim tarihi ve saati geçtiği hâlde gönderilmemiş müşteri parça talepleri. Servislerin kendi siparişleri bu tabloda yoktur.',
-  tabloGecikmeBos: 'Söz verilen tarihi geçmiş, gönderilmemiş parça talebi yok.',
+  tabloGecikmeAciklama: 'Müşteriye söz verilen gönderim tarihi ve saati geçtiği hâlde henüz gönderilmemiş müşteri parça talepleri. Liste tarih süzgecinden bağımsız olarak şu anki durumu gösterir. Servislerin kendi siparişleri bu tabloda yer almaz.',
+  tabloGecikmeBos: 'Söz verilen tarih ve saati geçmiş, gönderilmemiş müşteri parça talebi yok. Diğer talepleri Talepler ekranından takip edebilirsiniz.',
   /* Parça tablosunun üç sütunu ADET; üstteki "Müşteri parça talebi" ve
      "Servis siparişi" kutuları talep sayısı. Ad aynı kalınca 4 sipariş
      ile 7 adet yan yana aynı adla okunuyordu. */
@@ -106,7 +105,7 @@ const M = codexBekliyor({
        "0,0" çıkıyor, satır kırmızı dururken rakam "gecikme yok" diye
        okunuyordu. Tablo sıralaması süre yazısını saate çevirip
        karşılaştırıyor (bkz. ortak.jsx → hucreDegeri). */
-    no: 'Talep no', musteriAd: 'Müşteri', il: 'İl', sozTarihi: 'Söz verilen tarih', gecikme: 'Gecikme',
+    no: 'Talep no', musteriAd: 'Müşteri', il: 'İl', sozTarihi: 'Söz verilen tarih ve saat', gecikme: 'Gecikme süresi',
   },
   toplam: 'Toplam',
 
@@ -117,11 +116,11 @@ const M = codexBekliyor({
     'Ödeme onayı bekleyen: şu an açık, dekontu gelmiş ama ödemesi onaylanmamış müşteri parça talepleri. Tarih süzgecinden bağımsızdır.',
     'Ödemeden gönderime: seçilen dönemde gönderilen (kapanan) müşteri parça taleplerinde ödeme onayından kapanışa geçen süre. Ödemesi onaylanmadan gönderilen talep ortalamaya girmez.',
     `Garanti parçasının gönderilme süresi: servisin garanti işinde parçayı istediği andan ${markaEk('in')} parçayı gönderdiği ana kadar geçen süre. Gönderim tarihi seçilen döneme düşen parçalar sayılır.`,
-    'Söz verilen tarihte gönderim: müşteriye gönderim tarihi verilmiş ve seçilen dönemde gönderilmiş taleplerden, verilen tarih ve saate kadar gönderilenlerin payı. Müşteriye söz saatiyle bildirildiği için saat de sayılır; "Gönderimi geciken parça talepleri" tablosu da aynı ölçüte bakar. Tarih verilmemiş talep hesaba girmez.',
+    'Söz verilen zamana kadar gönderim: müşteriye gönderim tarihi verilmiş ve seçilen dönemde gönderilmiş taleplerden, verilen tarih ve saate kadar gönderilenlerin payı. Gönderimin zamanında yapılıp yapılmadığı belirlenirken hem tarih hem saat dikkate alınır; "Gönderimi geciken parça talepleri" tablosu da aynı ölçüte bakar. Tarih verilmemiş talep hesaba girmez.',
     'En çok istenen parçalar: müşteri talebi ve servis siparişi seçilen dönemde açılana göre, garanti parçası servisin parçayı istediği güne göre sayılır. Parçalar koduna göre ayrılır; kodu olmayan eski kayıt adıyla sayılır. İptal edilen talebin parçası da istenmiş sayılır.',
     'Yüzde farklar bir önceki eşit uzunluktaki dönemle karşılaştırılır. "Tüm zamanlar" seçiliyse karşılaştırma yapılmaz.',
   ],
-})
+}
 
 function acikMi(t) {
   return !KAPALI_DURUMLAR.includes(t.status || 'yeni')

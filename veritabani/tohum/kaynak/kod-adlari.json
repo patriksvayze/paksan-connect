@@ -1,366 +1,366 @@
 {
   "_aciklama": "Kaynakta etiketi olmayan kodların Türkçe adı ve bayrakları (tasarim.md 1.15.1, 5.6). Ad Codex'ten geçerek bu dosyaya girer; geçmemiş ad <Codex metni: taslak> yer tutucusuyla durur. Tohum --denetle, npm run dogrula (kontrol 12) ve test/canlıda vt guncelle yer tutucuyu hata sayar. Sıra: listedeki yazılış sırası. Kaynakta kodu bulunan listelerde (ör. BildirimIzni: src/lib/bildirim.js BILDIRIM) kod kümesi kaynakla birebir tutmalıdır.",
   "kod.ParaBirimi": {
-    "TRY": { "Ad": "<Codex metni: Türk lirası>", "Sembol": null }
+    "TRY": { "Ad": "Türk lirası", "Sembol": null }
   },
   "kod.KayitTuru": {
-    "talep": { "Ad": "<Codex metni: Talep>" },
-    "hesap": { "Ad": "<Codex metni: Müşteri hesabı>" },
-    "makine": { "Ad": "<Codex metni: Makine>" },
-    "servis": { "Ad": "<Codex metni: Servis>" },
-    "bayi": { "Ad": "<Codex metni: Bayi>" },
-    "personel": { "Ad": "<Codex metni: Personel>" },
-    "rol": { "Ad": "<Codex metni: Rol>" },
-    "duyuru": { "Ad": "<Codex metni: Duyuru>" },
-    "bildirim": { "Ad": "<Codex metni: Bildirim>" },
-    "geriBildirim": { "Ad": "<Codex metni: Geri bildirim>" },
-    "telefonDegisikligi": { "Ad": "<Codex metni: Numara değişikliği talebi>" },
-    "hakEdis": { "Ad": "<Codex metni: Hak ediş>" },
-    "donemDokumu": { "Ad": "<Codex metni: Aylık hak ediş dökümü>" },
-    "dosya": { "Ad": "<Codex metni: Dosya>" },
-    "ayar": { "Ad": "<Codex metni: Ayar>" },
-    "kvkkBasvurusu": { "Ad": "<Codex metni: KVKK başvurusu>" },
-    "iceAktarim": { "Ad": "<Codex metni: İçe aktarım>" },
-    "oturum": { "Ad": "<Codex metni: Oturum>" },
-    "dogrulamaKodu": { "Ad": "<Codex metni: Doğrulama kodu>" },
-    "sifreSifirlamaJetonu": { "Ad": "<Codex metni: Şifre sıfırlama kodu>" },
-    "girisDenemesi": { "Ad": "<Codex metni: Giriş denemesi>" },
-    "destekOturumu": { "Ad": "<Codex metni: Destek sohbeti>" },
-    "giden": { "Ad": "<Codex metni: Giden mesaj>" },
-    "logoSeriSorgusu": { "Ad": "<Codex metni: LOGO seri sorgusu>" },
-    "iceAktarimSatiri": { "Ad": "<Codex metni: İçe aktarım satırı>" },
-    "tekrarAnahtari": { "Ad": "<Codex metni: Tekrar anahtarı>" },
-    "iptalTalepDosyasi": { "Ad": "<Codex metni: İptal edilen talebin dosyası>" },
-    "dekont": { "Ad": "<Codex metni: Dekont>" },
-    "islemKaydi": { "Ad": "<Codex metni: İşlem kaydı>" },
-    "rizaOlayi": { "Ad": "<Codex metni: Rıza kaydı>" }
+    "talep": { "Ad": "Talep" },
+    "hesap": { "Ad": "Müşteri hesabı" },
+    "makine": { "Ad": "Makine" },
+    "servis": { "Ad": "Servis" },
+    "bayi": { "Ad": "Bayi" },
+    "personel": { "Ad": "Personel" },
+    "rol": { "Ad": "Rol" },
+    "duyuru": { "Ad": "Duyuru" },
+    "bildirim": { "Ad": "Bildirim" },
+    "geriBildirim": { "Ad": "Geri bildirim" },
+    "telefonDegisikligi": { "Ad": "Numara değişikliği talebi" },
+    "hakEdis": { "Ad": "Hak ediş" },
+    "donemDokumu": { "Ad": "Aylık hak ediş dökümü" },
+    "dosya": { "Ad": "Dosya" },
+    "ayar": { "Ad": "Ayar" },
+    "kvkkBasvurusu": { "Ad": "KVKK başvurusu" },
+    "iceAktarim": { "Ad": "İçe aktarım" },
+    "oturum": { "Ad": "Oturum" },
+    "dogrulamaKodu": { "Ad": "Doğrulama kodu" },
+    "sifreSifirlamaJetonu": { "Ad": "Şifre sıfırlama kodu" },
+    "girisDenemesi": { "Ad": "Giriş denemesi" },
+    "destekOturumu": { "Ad": "Destek sohbeti" },
+    "giden": { "Ad": "Giden mesaj" },
+    "logoSeriSorgusu": { "Ad": "LOGO seri sorgusu" },
+    "iceAktarimSatiri": { "Ad": "İçe aktarım satırı" },
+    "tekrarAnahtari": { "Ad": "Tekrar anahtarı" },
+    "iptalTalepDosyasi": { "Ad": "İptal edilen talebin dosyası" },
+    "dekont": { "Ad": "Dekont" },
+    "islemKaydi": { "Ad": "İşlem kaydı" },
+    "rizaOlayi": { "Ad": "Rıza kaydı" }
   },
   "kod.KaynakUygulama": {
-    "connect": { "Ad": "<Codex metni: Müşteri uygulaması>" },
-    "backoffice": { "Ad": "<Codex metni: Personel paneli>" },
-    "servisim": { "Ad": "<Codex metni: Servis uygulaması>" },
-    "api": { "Ad": "<Codex metni: Sunucu>" },
-    "betik": { "Ad": "<Codex metni: Kurulum betiği>" },
-    "entegrasyon": { "Ad": "<Codex metni: Dış sistem aktarımı>" },
-    "yonetim": { "Ad": "<Codex metni: Yönetim komutu>" }
+    "connect": { "Ad": "Müşteri uygulaması" },
+    "backoffice": { "Ad": "Personel paneli" },
+    "servisim": { "Ad": "Servis uygulaması" },
+    "api": { "Ad": "Sunucu" },
+    "betik": { "Ad": "Kurulum betiği" },
+    "entegrasyon": { "Ad": "Dış sistem aktarımı" },
+    "yonetim": { "Ad": "Yönetim komutu" }
   },
   "kod.AktorTuru": {
-    "musteri": { "Ad": "<Codex metni: Müşteri>" },
-    "personel": { "Ad": "<Codex metni: Personel>" },
-    "servis": { "Ad": "<Codex metni: Servis>" },
-    "sistem": { "Ad": "<Codex metni: Sistem>" },
-    "entegrasyon": { "Ad": "<Codex metni: Dış sistem>" }
+    "musteri": { "Ad": "Müşteri" },
+    "personel": { "Ad": "Personel" },
+    "servis": { "Ad": "Servis" },
+    "sistem": { "Ad": "Sistem" },
+    "entegrasyon": { "Ad": "Dış sistem" }
   },
   "kod.KayitKaynagi": {
-    "musteri": { "Ad": "<Codex metni: Müşteri uygulaması>" },
-    "servis": { "Ad": "<Codex metni: Servis uygulaması>" },
-    "personel": { "Ad": "<Codex metni: Personel paneli>" },
-    "logo": { "Ad": "<Codex metni: LOGO>" },
-    "iceAktarim": { "Ad": "<Codex metni: Excel içe aktarımı>" },
-    "entegrasyon": { "Ad": "<Codex metni: Dış sistem aktarımı>" }
+    "musteri": { "Ad": "Müşteri uygulaması" },
+    "servis": { "Ad": "Servis uygulaması" },
+    "personel": { "Ad": "Personel paneli" },
+    "logo": { "Ad": "LOGO" },
+    "iceAktarim": { "Ad": "Excel içe aktarımı" },
+    "entegrasyon": { "Ad": "Dış sistem aktarımı" }
   },
   "kod.DisSistem": {
-    "logo": { "Ad": "<Codex metni: LOGO muhasebe>" },
-    "fcm": { "Ad": "<Codex metni: Android bildirim servisi>" },
-    "webPush": { "Ad": "<Codex metni: Tarayıcı bildirimi>" }
+    "logo": { "Ad": "LOGO muhasebe sistemi" },
+    "fcm": { "Ad": "Android bildirim servisi" },
+    "webPush": { "Ad": "Tarayıcı bildirim servisi" }
   },
   "kod.BildirimKanali": {
-    "sms": { "Ad": "<Codex metni: SMS>" },
-    "eposta": { "Ad": "<Codex metni: E-posta>" },
-    "push": { "Ad": "<Codex metni: Telefon bildirimi>" },
-    "webPush": { "Ad": "<Codex metni: Tarayıcı bildirimi>" }
+    "sms": { "Ad": "SMS" },
+    "eposta": { "Ad": "E-posta" },
+    "push": { "Ad": "Telefon bildirimi" },
+    "webPush": { "Ad": "Tarayıcı bildirimi" }
   },
   "kod.IslemKategorisi": {
-    "devir": { "Ad": "<Codex metni: Üreticiye devir>", "_not": "Kaynakta etiket sabit değil (IslemKaydi.jsx TURLER: markaEk('a') + ' devir'); marka adı kod listesine düz yazılmaz." },
-    "bayi": { "Ad": "<Codex metni: Bayi listesi>" },
-    "servisKaydi": { "Ad": "<Codex metni: Servis kaydı>" },
-    "hakEdis": { "Ad": "<Codex metni: Hak ediş>" },
-    "sevk": { "Ad": "<Codex metni: Parça sevki>" },
-    "kvkk": { "Ad": "<Codex metni: KVKK>" },
-    "sistem": { "Ad": "<Codex metni: Sistem>" }
+    "devir": { "Ad": "Üreticiye devir", "_not": "Kaynakta etiket sabit değil (IslemKaydi.jsx TURLER: markaEk('a') + ' devir'); marka adı kod listesine düz yazılmaz." },
+    "bayi": { "Ad": "Bayi listesi" },
+    "servisKaydi": { "Ad": "Servis kaydı" },
+    "hakEdis": { "Ad": "Hak ediş" },
+    "sevk": { "Ad": "Parça sevki" },
+    "kvkk": { "Ad": "KVKK" },
+    "sistem": { "Ad": "Sistem" }
   },
   "kod.IslemTuru": {
-    "talepOlusturuldu": { "Ad": "<Codex metni: Talep oluşturuldu>", "KategoriKodu": "talep" },
-    "talepElleAcildi": { "Ad": "<Codex metni: Talep elle açıldı>", "KategoriKodu": "talep" },
-    "eklemeYapildi": { "Ad": "<Codex metni: Talebe ekleme yapıldı>", "KategoriKodu": "talep" },
-    "talepGizlendi": { "Ad": "<Codex metni: Talep gizlendi>", "KategoriKodu": "talep" },
-    "talepYenidenAcildi": { "Ad": "<Codex metni: Talep yeniden açıldı>", "KategoriKodu": "talep" },
-    "durumDegisti": { "Ad": "<Codex metni: Talep durumu değişti>", "KategoriKodu": "durum" },
-    "talepKapatildi": { "Ad": "<Codex metni: Talep kapatıldı>", "KategoriKodu": "durum" },
-    "talepIptalEdildi": { "Ad": "<Codex metni: Talep iptal edildi>", "KategoriKodu": "durum" },
-    "teklifVerildi": { "Ad": "<Codex metni: Teklif verildi>", "KategoriKodu": "durum" },
-    "randevuPlanlandi": { "Ad": "<Codex metni: Randevu planlandı>", "KategoriKodu": "durum" },
-    "bayiyeAtandi": { "Ad": "<Codex metni: Talep bayiye atandı>", "KategoriKodu": "durum" },
-    "bayiAtamasiKaldirildi": { "Ad": "<Codex metni: Bayi ataması kaldırıldı>", "KategoriKodu": "durum" },
-    "talepDurumuElleDegisti": { "Ad": "<Codex metni: Talep durumu elle değiştirildi>", "KategoriKodu": "durum" },
-    "talepElleKapatildi": { "Ad": "<Codex metni: Talep elle kapatıldı>", "KategoriKodu": "durum" },
-    "talepElleIptalEdildi": { "Ad": "<Codex metni: Talep elle iptal edildi>", "KategoriKodu": "durum" },
-    "talepElleYenidenAcildi": { "Ad": "<Codex metni: Talep elle yeniden açıldı>", "KategoriKodu": "durum" },
-    "notEklendi": { "Ad": "<Codex metni: Talebe not eklendi>", "KategoriKodu": "not" },
-    "dekontYuklendi": { "Ad": "<Codex metni: Dekont yüklendi>", "KategoriKodu": "odeme" },
-    "dekontGecersizKilindi": { "Ad": "<Codex metni: Dekont geçersiz sayıldı>", "KategoriKodu": "odeme" },
-    "odemeOnaylandi": { "Ad": "<Codex metni: Ödeme onaylandı>", "KategoriKodu": "odeme" },
-    "odemeOnayiGeriAlindi": { "Ad": "<Codex metni: Ödeme onayı geri alındı>", "KategoriKodu": "odeme" },
-    "makineKaydedildi": { "Ad": "<Codex metni: Makine kaydedildi>", "KategoriKodu": "makine" },
-    "makineServisiAtandi": { "Ad": "<Codex metni: Makineye servis atandı>", "KategoriKodu": "makine" },
-    "makineServisAtamasiKaldirildi": { "Ad": "<Codex metni: Makinenin servis ataması kaldırıldı>", "KategoriKodu": "makine" },
-    "makineSahibiDegisti": { "Ad": "<Codex metni: Makinenin sahibi değişti>", "KategoriKodu": "makine" },
-    "makineSatisiKaydedildi": { "Ad": "<Codex metni: Makine satışı kaydedildi>", "KategoriKodu": "makine" },
-    "garantiBelgesiKararlandi": { "Ad": "<Codex metni: Garanti belgesi karara bağlandı>", "KategoriKodu": "makine" },
-    "telefonDegisikligiIstendi": { "Ad": "<Codex metni: Numara değişikliği istendi>", "KategoriKodu": "numara" },
-    "telefonDegisikligiKararlandi": { "Ad": "<Codex metni: Numara değişikliği karara bağlandı>", "KategoriKodu": "numara" },
-    "telefonDegistirildi": { "Ad": "<Codex metni: Müşterinin telefonu değiştirildi>", "KategoriKodu": "numara" },
-    "hesapAcildi": { "Ad": "<Codex metni: Müşteri hesabı açıldı>", "KategoriKodu": "musteri" },
-    "hesapGuncellendi": { "Ad": "<Codex metni: Müşteri hesabı güncellendi>", "KategoriKodu": "musteri" },
-    "tcVergiNoGoruntulendi": { "Ad": "<Codex metni: T.C. kimlik ya da vergi numarası görüntülendi>", "KategoriKodu": "musteri" },
-    "hesaplarBirlestirildi": { "Ad": "<Codex metni: Müşteri hesapları birleştirildi>", "KategoriKodu": "musteri" },
-    "geriBildirimGeldi": { "Ad": "<Codex metni: Geri bildirim geldi>", "KategoriKodu": "geribildirim" },
-    "geriBildirimOkundu": { "Ad": "<Codex metni: Geri bildirim okundu>", "KategoriKodu": "geribildirim" },
-    "geriBildirimCevaplandi": { "Ad": "<Codex metni: Geri bildirim cevaplandı>", "KategoriKodu": "geribildirim" },
-    "duyuruYayinlandi": { "Ad": "<Codex metni: Duyuru yayımlandı>", "KategoriKodu": "duyuru" },
-    "duyuruKaldirildi": { "Ad": "<Codex metni: Duyuru kaldırıldı>", "KategoriKodu": "duyuru" },
-    "personelEklendi": { "Ad": "<Codex metni: Personel eklendi>", "KategoriKodu": "personel" },
-    "personelGuncellendi": { "Ad": "<Codex metni: Personel güncellendi>", "KategoriKodu": "personel" },
-    "personelPasiflestirildi": { "Ad": "<Codex metni: Personelin girişi kapatıldı>", "KategoriKodu": "personel" },
-    "rolEklendi": { "Ad": "<Codex metni: Rol eklendi>", "KategoriKodu": "rol" },
-    "rolGuncellendi": { "Ad": "<Codex metni: Rol güncellendi>", "KategoriKodu": "rol" },
-    "rolSilindi": { "Ad": "<Codex metni: Rol silindi>", "KategoriKodu": "rol" },
-    "sifreSifirlamaIstendi": { "Ad": "<Codex metni: Şifre sıfırlama istendi>", "KategoriKodu": "sifre" },
-    "sifreDegistirildi": { "Ad": "<Codex metni: Şifre değiştirildi>", "KategoriKodu": "sifre" },
-    "servisSifreYardimIstendi": { "Ad": "<Codex metni: Servis şifre yardımı istedi>", "KategoriKodu": "sifre" },
-    "servisSifreYardimKapatildi": { "Ad": "<Codex metni: Servisin şifre yardımı talebi kapatıldı>", "KategoriKodu": "sifre" },
-    "girisSifresiSifirlandi": { "Ad": "<Codex metni: Giriş şifresi sıfırlandı>", "KategoriKodu": "sifre" },
-    "servisEklendi": { "Ad": "<Codex metni: Servis eklendi>", "KategoriKodu": "servis" },
-    "servisGuncellendi": { "Ad": "<Codex metni: Servis güncellendi>", "KategoriKodu": "servis" },
-    "servisHesabiAcildi": { "Ad": "<Codex metni: Servis giriş hesabı açıldı>", "KategoriKodu": "servis" },
-    "servisHesabiKapatildi": { "Ad": "<Codex metni: Servis giriş hesabı kapatıldı>", "KategoriKodu": "servis" },
-    "servisYetkisiDegisti": { "Ad": "<Codex metni: Servisin marka yetkisi değişti>", "KategoriKodu": "servis" },
-    "bayiEklendi": { "Ad": "<Codex metni: Bayi eklendi>", "KategoriKodu": "bayi" },
-    "bayiGuncellendi": { "Ad": "<Codex metni: Bayi güncellendi>", "KategoriKodu": "bayi" },
-    "servisSiparisiOlusturuldu": { "Ad": "<Codex metni: Servis parça siparişi oluşturuldu>", "KategoriKodu": "siparis" },
-    "servisDestekIstedi": { "Ad": "<Codex metni: Servis destek istedi>", "KategoriKodu": "devir" },
-    "logoCariKoduEslendi": { "Ad": "<Codex metni: LOGO cari kodu eşlendi>", "KategoriKodu": "excel" },
-    "excelDisaAktarildi": { "Ad": "<Codex metni: Excel dosyası indirildi>", "KategoriKodu": "excel" },
-    "excelIceAktarildi": { "Ad": "<Codex metni: Excel dosyası içe aktarıldı>", "KategoriKodu": "excel" },
-    "girisYapildi": { "Ad": "<Codex metni: Giriş yapıldı>", "KategoriKodu": "oturum" },
-    "cikisYapildi": { "Ad": "<Codex metni: Çıkış yapıldı>", "KategoriKodu": "oturum" },
-    "servisKaydiGonderildi": { "Ad": "<Codex metni: Servis kaydı gönderildi>", "KategoriKodu": "servisKaydi" },
-    "garantiDisiKapatildi": { "Ad": "<Codex metni: Garanti dışında kapatıldı>", "KategoriKodu": "servisKaydi" },
-    "parcaTakildi": { "Ad": "<Codex metni: Parça takıldı>", "KategoriKodu": "servisKaydi" },
-    "hakEdisDuzeltildi": { "Ad": "<Codex metni: Hak ediş düzeltildi>", "KategoriKodu": "hakEdis" },
-    "hakEdisOnaylandi": { "Ad": "<Codex metni: Hak ediş onaylandı>", "KategoriKodu": "hakEdis" },
-    "hakEdisReddedildi": { "Ad": "<Codex metni: Hak ediş reddedildi>", "KategoriKodu": "hakEdis" },
-    "hakEdisOnayiGeriAlindi": { "Ad": "<Codex metni: Hak ediş onayı geri alındı>", "KategoriKodu": "hakEdis" },
-    "hesapHareketiDuzeltildi": { "Ad": "<Codex metni: Servis hesap hareketi düzeltildi>", "KategoriKodu": "hakEdis" },
-    "donemDokumuOlusturuldu": { "Ad": "<Codex metni: Aylık döküm oluşturuldu>", "KategoriKodu": "hakEdis" },
-    "donemDokumuOdendi": { "Ad": "<Codex metni: Aylık döküm ödendi>", "KategoriKodu": "hakEdis" },
-    "parcaGonderildi": { "Ad": "<Codex metni: Parça gönderildi>", "KategoriKodu": "sevk" },
-    "kargoBilgisiGuncellendi": { "Ad": "<Codex metni: Kargo bilgisi güncellendi>", "KategoriKodu": "sevk" },
-    "rizaKaydedildi": { "Ad": "<Codex metni: Rıza kaydedildi>", "KategoriKodu": "kvkk" },
-    "basvuruAlindi": { "Ad": "<Codex metni: KVKK başvurusu alındı>", "KategoriKodu": "kvkk" },
-    "hesapAnonimlestirildi": { "Ad": "<Codex metni: Müşteri hesabı anonimleştirildi>", "KategoriKodu": "kvkk" },
-    "kisiselVeriAnonimlestirildi": { "Ad": "<Codex metni: Kişisel veriler anonimleştirildi>", "KategoriKodu": "kvkk" },
-    "ayarDegisti": { "Ad": "<Codex metni: Ayar değiştirildi>", "KategoriKodu": "sistem" },
-    "saklamaUygulandi": { "Ad": "<Codex metni: Saklama süreleri uygulandı>", "KategoriKodu": "sistem" }
+    "talepOlusturuldu": { "Ad": "Talep oluşturuldu", "KategoriKodu": "talep" },
+    "talepElleAcildi": { "Ad": "Talep elle açıldı", "KategoriKodu": "talep" },
+    "eklemeYapildi": { "Ad": "Talebe ekleme yapıldı", "KategoriKodu": "talep" },
+    "talepGizlendi": { "Ad": "Talep gizlendi", "KategoriKodu": "talep" },
+    "talepYenidenAcildi": { "Ad": "Talep yeniden açıldı", "KategoriKodu": "talep" },
+    "durumDegisti": { "Ad": "Talep durumu değişti", "KategoriKodu": "durum" },
+    "talepKapatildi": { "Ad": "Talep kapatıldı", "KategoriKodu": "durum" },
+    "talepIptalEdildi": { "Ad": "Talep iptal edildi", "KategoriKodu": "durum" },
+    "teklifVerildi": { "Ad": "Teklif verildi", "KategoriKodu": "durum" },
+    "randevuPlanlandi": { "Ad": "Randevu planlandı", "KategoriKodu": "durum" },
+    "bayiyeAtandi": { "Ad": "Talep bayiye atandı", "KategoriKodu": "durum" },
+    "bayiAtamasiKaldirildi": { "Ad": "Bayi ataması kaldırıldı", "KategoriKodu": "durum" },
+    "talepDurumuElleDegisti": { "Ad": "Talep durumu elle değiştirildi", "KategoriKodu": "durum" },
+    "talepElleKapatildi": { "Ad": "Talep elle kapatıldı", "KategoriKodu": "durum" },
+    "talepElleIptalEdildi": { "Ad": "Talep elle iptal edildi", "KategoriKodu": "durum" },
+    "talepElleYenidenAcildi": { "Ad": "Talep elle yeniden açıldı", "KategoriKodu": "durum" },
+    "notEklendi": { "Ad": "Talebe not eklendi", "KategoriKodu": "not" },
+    "dekontYuklendi": { "Ad": "Dekont yüklendi", "KategoriKodu": "odeme" },
+    "dekontGecersizKilindi": { "Ad": "Dekont geçersiz sayıldı", "KategoriKodu": "odeme" },
+    "odemeOnaylandi": { "Ad": "Ödeme onaylandı", "KategoriKodu": "odeme" },
+    "odemeOnayiGeriAlindi": { "Ad": "Ödeme onayı geri alındı", "KategoriKodu": "odeme" },
+    "makineKaydedildi": { "Ad": "Makine kaydedildi", "KategoriKodu": "makine" },
+    "makineServisiAtandi": { "Ad": "Makineye servis atandı", "KategoriKodu": "makine" },
+    "makineServisAtamasiKaldirildi": { "Ad": "Makinenin servis ataması kaldırıldı", "KategoriKodu": "makine" },
+    "makineSahibiDegisti": { "Ad": "Makinenin sahibi değişti", "KategoriKodu": "makine" },
+    "makineSatisiKaydedildi": { "Ad": "Makine satışı kaydedildi", "KategoriKodu": "makine" },
+    "garantiBelgesiKararlandi": { "Ad": "Garanti belgesi karara bağlandı", "KategoriKodu": "makine" },
+    "telefonDegisikligiIstendi": { "Ad": "Numara değişikliği istendi", "KategoriKodu": "numara" },
+    "telefonDegisikligiKararlandi": { "Ad": "Numara değişikliği karara bağlandı", "KategoriKodu": "numara" },
+    "telefonDegistirildi": { "Ad": "Müşterinin telefon numarası değiştirildi", "KategoriKodu": "numara" },
+    "hesapAcildi": { "Ad": "Müşteri hesabı açıldı", "KategoriKodu": "musteri" },
+    "hesapGuncellendi": { "Ad": "Müşteri hesabı güncellendi", "KategoriKodu": "musteri" },
+    "tcVergiNoGoruntulendi": { "Ad": "T.C. kimlik ya da vergi numarası görüntülendi", "KategoriKodu": "musteri" },
+    "hesaplarBirlestirildi": { "Ad": "Müşteri hesapları birleştirildi", "KategoriKodu": "musteri" },
+    "geriBildirimGeldi": { "Ad": "Geri bildirim alındı", "KategoriKodu": "geribildirim" },
+    "geriBildirimOkundu": { "Ad": "Geri bildirim okundu", "KategoriKodu": "geribildirim" },
+    "geriBildirimCevaplandi": { "Ad": "Geri bildirim cevaplandı", "KategoriKodu": "geribildirim" },
+    "duyuruYayinlandi": { "Ad": "Duyuru yayımlandı", "KategoriKodu": "duyuru" },
+    "duyuruKaldirildi": { "Ad": "Duyuru kaldırıldı", "KategoriKodu": "duyuru" },
+    "personelEklendi": { "Ad": "Personel eklendi", "KategoriKodu": "personel" },
+    "personelGuncellendi": { "Ad": "Personel bilgileri güncellendi", "KategoriKodu": "personel" },
+    "personelPasiflestirildi": { "Ad": "Personelin girişi kapatıldı", "KategoriKodu": "personel" },
+    "rolEklendi": { "Ad": "Rol eklendi", "KategoriKodu": "rol" },
+    "rolGuncellendi": { "Ad": "Rol güncellendi", "KategoriKodu": "rol" },
+    "rolSilindi": { "Ad": "Rol silindi", "KategoriKodu": "rol" },
+    "sifreSifirlamaIstendi": { "Ad": "Şifre sıfırlama istendi", "KategoriKodu": "sifre" },
+    "sifreDegistirildi": { "Ad": "Şifre değiştirildi", "KategoriKodu": "sifre" },
+    "servisSifreYardimIstendi": { "Ad": "Servis şifre yardımı istedi", "KategoriKodu": "sifre" },
+    "servisSifreYardimKapatildi": { "Ad": "Servisin şifre yardımı talebi kapatıldı", "KategoriKodu": "sifre" },
+    "girisSifresiSifirlandi": { "Ad": "Giriş şifresi sıfırlandı", "KategoriKodu": "sifre" },
+    "servisEklendi": { "Ad": "Servis eklendi", "KategoriKodu": "servis" },
+    "servisGuncellendi": { "Ad": "Servis güncellendi", "KategoriKodu": "servis" },
+    "servisHesabiAcildi": { "Ad": "Servis giriş hesabı açıldı", "KategoriKodu": "servis" },
+    "servisHesabiKapatildi": { "Ad": "Servis giriş hesabı kapatıldı", "KategoriKodu": "servis" },
+    "servisYetkisiDegisti": { "Ad": "Servisin marka yetkisi değişti", "KategoriKodu": "servis" },
+    "bayiEklendi": { "Ad": "Bayi eklendi", "KategoriKodu": "bayi" },
+    "bayiGuncellendi": { "Ad": "Bayi güncellendi", "KategoriKodu": "bayi" },
+    "servisSiparisiOlusturuldu": { "Ad": "Servis parça siparişi oluşturuldu", "KategoriKodu": "siparis" },
+    "servisDestekIstedi": { "Ad": "Servis destek istedi", "KategoriKodu": "devir" },
+    "logoCariKoduEslendi": { "Ad": "LOGO cari kodu eşlendi", "KategoriKodu": "excel" },
+    "excelDisaAktarildi": { "Ad": "Excel dosyası indirildi", "KategoriKodu": "excel" },
+    "excelIceAktarildi": { "Ad": "Excel dosyası içe aktarıldı", "KategoriKodu": "excel" },
+    "girisYapildi": { "Ad": "Giriş yapıldı", "KategoriKodu": "oturum" },
+    "cikisYapildi": { "Ad": "Çıkış yapıldı", "KategoriKodu": "oturum" },
+    "servisKaydiGonderildi": { "Ad": "Servis kaydı gönderildi", "KategoriKodu": "servisKaydi" },
+    "garantiDisiKapatildi": { "Ad": "Garanti dışında kapatıldı", "KategoriKodu": "servisKaydi" },
+    "parcaTakildi": { "Ad": "Parça takıldı", "KategoriKodu": "servisKaydi" },
+    "hakEdisDuzeltildi": { "Ad": "Hak ediş düzeltildi", "KategoriKodu": "hakEdis" },
+    "hakEdisOnaylandi": { "Ad": "Hak ediş onaylandı", "KategoriKodu": "hakEdis" },
+    "hakEdisReddedildi": { "Ad": "Hak ediş reddedildi", "KategoriKodu": "hakEdis" },
+    "hakEdisOnayiGeriAlindi": { "Ad": "Hak ediş onayı geri alındı", "KategoriKodu": "hakEdis" },
+    "hesapHareketiDuzeltildi": { "Ad": "Servis hesap hareketi düzeltildi", "KategoriKodu": "hakEdis" },
+    "donemDokumuOlusturuldu": { "Ad": "Aylık döküm oluşturuldu", "KategoriKodu": "hakEdis" },
+    "donemDokumuOdendi": { "Ad": "Aylık döküm tutarı ödendi", "KategoriKodu": "hakEdis" },
+    "parcaGonderildi": { "Ad": "Parça gönderildi", "KategoriKodu": "sevk" },
+    "kargoBilgisiGuncellendi": { "Ad": "Kargo bilgisi güncellendi", "KategoriKodu": "sevk" },
+    "rizaKaydedildi": { "Ad": "Rıza kaydedildi", "KategoriKodu": "kvkk" },
+    "basvuruAlindi": { "Ad": "KVKK başvurusu alındı", "KategoriKodu": "kvkk" },
+    "hesapAnonimlestirildi": { "Ad": "Müşteri hesabı anonimleştirildi", "KategoriKodu": "kvkk" },
+    "kisiselVeriAnonimlestirildi": { "Ad": "Kişisel veriler anonimleştirildi", "KategoriKodu": "kvkk" },
+    "ayarDegisti": { "Ad": "Ayar değiştirildi", "KategoriKodu": "sistem" },
+    "saklamaUygulandi": { "Ad": "Saklama süreleri uygulandı", "KategoriKodu": "sistem" }
   },
   "kod.TalepKaynagi": {
-    "connect": { "Ad": "<Codex metni: Müşteri uygulaması>" },
-    "servisElle": { "Ad": "<Codex metni: Servis uygulamasından elle>" },
-    "servisSiparisi": { "Ad": "<Codex metni: Servisin parça siparişi>" },
-    "backoffice": { "Ad": "<Codex metni: Personel paneli>" }
+    "connect": { "Ad": "Müşteri uygulaması" },
+    "servisElle": { "Ad": "Servis uygulaması (elle giriş)" },
+    "servisSiparisi": { "Ad": "Servisin parça siparişi" },
+    "backoffice": { "Ad": "Personel paneli" }
   },
   "kod.TalepDurumu": {
-    "odemeBekliyor": { "Ad": "<Codex metni: Ödeme Bekleniyor>", "Kapali": 0, "GecikmeSayilir": 0, "Ton": null, "SonraGelir": "parcaBekliyor" }
+    "odemeBekliyor": { "Ad": "Ödeme bekliyor", "Kapali": 0, "GecikmeSayilir": 0, "Ton": null, "SonraGelir": "parcaBekliyor" }
   },
   "kod.Masa": {
-    "servisMasasi": { "Ad": "<Codex metni: Servis masası>", "TalepTuruKodu": "servis" },
-    "parcaMasasi": { "Ad": "<Codex metni: Yedek parça masası>", "TalepTuruKodu": "parca" }
+    "servisMasasi": { "Ad": "Servis masası", "TalepTuruKodu": "servis" },
+    "parcaMasasi": { "Ad": "Yedek parça masası", "TalepTuruKodu": "parca" }
   },
   "kod.Sahip": {
-    "paksan": { "Ad": "<Codex metni: Üreticide>" },
-    "servis": { "Ad": "<Codex metni: Serviste>" },
-    "bayi": { "Ad": "<Codex metni: Bayide>" }
+    "paksan": { "Ad": "Üreticide" },
+    "servis": { "Ad": "Serviste" },
+    "bayi": { "Ad": "Bayide" }
   },
   "kod.ServisAtamaKaynagi": {
-    "makineAtamasi": { "Ad": "<Codex metni: Makineye atanmış servis>" },
-    "bayiServisi": { "Ad": "<Codex metni: Satan bayinin servisi>" },
-    "servisElle": { "Ad": "<Codex metni: Servis talebi kendisi açtı>" }
+    "makineAtamasi": { "Ad": "Makineye servis ataması" },
+    "bayiServisi": { "Ad": "Makineyi satan bayinin servisi" },
+    "servisElle": { "Ad": "Servisin kendi açtığı talep" }
   },
   "kod.DestekAilesi": {
-    "balya": { "Ad": "<Codex metni: Balya makineleri>" },
-    "rulo": { "Ad": "<Codex metni: Rulo balya makineleri>" },
-    "yem": { "Ad": "<Codex metni: Yem karma makineleri>" },
-    "silaj": { "Ad": "<Codex metni: Silaj ekipmanları>" },
-    "cayir": { "Ad": "<Codex metni: Çayır biçme ve ot toplama>" },
-    "toprak": { "Ad": "<Codex metni: Toprak işleme>" },
-    "genel": { "Ad": "<Codex metni: Genel>" }
+    "balya": { "Ad": "Balya makinesi" },
+    "rulo": { "Ad": "Rulo balya makinesi" },
+    "yem": { "Ad": "Yem karma makinesi" },
+    "silaj": { "Ad": "Silaj ekipmanı" },
+    "cayir": { "Ad": "Çayır biçme ve ot toplama ekipmanı" },
+    "toprak": { "Ad": "Toprak işleme ekipmanı" },
+    "genel": { "Ad": "Genel" }
   },
   "kod.IptalNedeni": {
-    "odemeSuresiDoldu": { "Ad": "<Codex metni: Ödeme süresi doldu>", "AciklamaZorunlu": 0 }
+    "odemeSuresiDoldu": { "Ad": "Ödeme süresi doldu", "AciklamaZorunlu": 0 }
   },
   "kod.ZiyaretAsamasi": {
-    "parca": { "Ad": "<Codex metni: Parça bekleniyor>" },
-    "bitti": { "Ad": "<Codex metni: İş bitti>" },
-    "yarimKaldi": { "Ad": "<Codex metni: Yarıda kaldı>" }
+    "parca": { "Ad": "Parça bekliyor" },
+    "bitti": { "Ad": "Tamamlandı" },
+    "yarimKaldi": { "Ad": "Yarıda kaldı" }
   },
   "kod.KapanisTuru": {
-    "personelFormu": { "Ad": "<Codex metni: Personel kapattı>" },
-    "servisKaydi": { "Ad": "<Codex metni: Servis kaydıyla kapandı>" },
-    "garantiDisi": { "Ad": "<Codex metni: Garanti dışında tamamlandı>" },
-    "parcaTakildi": { "Ad": "<Codex metni: Parça takılınca kapandı>" },
-    "bayiAtamasi": { "Ad": "<Codex metni: Bayiye atanınca kapandı>" },
-    "hakEdisOnayi": { "Ad": "<Codex metni: Hak ediş onaylanınca kapandı>" },
-    "hakEdisReddi": { "Ad": "<Codex metni: Hak ediş reddedilince kapandı>" }
+    "personelFormu": { "Ad": "Personel formuyla kapanış" },
+    "servisKaydi": { "Ad": "Servis kaydıyla kapanış" },
+    "garantiDisi": { "Ad": "Garanti dışı kapanış" },
+    "parcaTakildi": { "Ad": "Parça takılmasıyla kapanış" },
+    "bayiAtamasi": { "Ad": "Bayi atamasıyla kapanış" },
+    "hakEdisOnayi": { "Ad": "Hak ediş onayıyla kapanış" },
+    "hakEdisReddi": { "Ad": "Hak ediş reddiyle kapanış" }
   },
   "kod.OdemeYontemi": {
-    "havale": { "Ad": "<Codex metni: Havale>" },
-    "bakiye": { "Ad": "<Codex metni: Servis hesabından>" },
-    "fatura": { "Ad": "<Codex metni: Faturayla>" }
+    "havale": { "Ad": "Havaleyle ödeme" },
+    "bakiye": { "Ad": "Servis hesabından ödeme" },
+    "fatura": { "Ad": "Faturayla ödeme" }
   },
   "kod.HakEdisDurumu": {
-    "bekliyor": { "Ad": "<Codex metni: Onay bekliyor>" },
-    "onaylandi": { "Ad": "<Codex metni: Onaylandı>" },
-    "reddedildi": { "Ad": "<Codex metni: Reddedildi>" }
+    "bekliyor": { "Ad": "Onay bekliyor" },
+    "onaylandi": { "Ad": "Onaylandı" },
+    "reddedildi": { "Ad": "Reddedildi" }
   },
   "kod.Birim": {
-    "km": { "Ad": "<Codex metni: km>" },
-    "adet": { "Ad": "<Codex metni: adet>" },
-    "saat": { "Ad": "<Codex metni: saat>" },
-    "sabit": { "Ad": "<Codex metni: sabit tutar>" }
+    "km": { "Ad": "Kilometre" },
+    "adet": { "Ad": "Adet" },
+    "saat": { "Ad": "Saat" },
+    "sabit": { "Ad": "Sabit tutar" }
   },
   "kod.HakEdisKalemTuru": {
-    "yol": { "Ad": "<Codex metni: Yol>" },
-    "iscilik": { "Ad": "<Codex metni: İşçilik>" },
-    "diger": { "Ad": "<Codex metni: Diğer>" }
+    "yol": { "Ad": "Yol" },
+    "iscilik": { "Ad": "İşçilik" },
+    "diger": { "Ad": "Diğer" }
   },
   "kod.HesapHareketTuru": {
-    "hakEdisAlacagi": { "Ad": "<Codex metni: Hak ediş alacağı>", "YonKodu": "alacak" },
-    "parcaSiparisiBorcu": { "Ad": "<Codex metni: Parça siparişi borcu>", "YonKodu": "borc" },
-    "odeme": { "Ad": "<Codex metni: Ödeme>", "YonKodu": "borc" },
-    "duzeltmeAlacak": { "Ad": "<Codex metni: Düzeltme (alacak)>", "YonKodu": "alacak" },
-    "duzeltmeBorc": { "Ad": "<Codex metni: Düzeltme (borç)>", "YonKodu": "borc" }
+    "hakEdisAlacagi": { "Ad": "Hak ediş alacağı", "YonKodu": "alacak" },
+    "parcaSiparisiBorcu": { "Ad": "Parça siparişi borcu", "YonKodu": "borc" },
+    "odeme": { "Ad": "Ödeme", "YonKodu": "borc" },
+    "duzeltmeAlacak": { "Ad": "Düzeltme (alacak)", "YonKodu": "alacak" },
+    "duzeltmeBorc": { "Ad": "Düzeltme (borç)", "YonKodu": "borc" }
   },
   "kod.DonemDokumuDurumu": {
-    "taslak": { "Ad": "<Codex metni: Taslak>" },
-    "kesinlesti": { "Ad": "<Codex metni: Kesinleşti>" },
-    "faturaGeldi": { "Ad": "<Codex metni: Fatura geldi>" },
-    "odendi": { "Ad": "<Codex metni: Ödendi>" },
-    "iptal": { "Ad": "<Codex metni: İptal>" }
+    "taslak": { "Ad": "Taslak" },
+    "kesinlesti": { "Ad": "Kesinleşti" },
+    "faturaGeldi": { "Ad": "Fatura alındı" },
+    "odendi": { "Ad": "Ödendi" },
+    "iptal": { "Ad": "İptal edildi" }
   },
   "kod.BildirimTuru": {
-    "talep": { "Ad": "<Codex metni: Talep>" },
-    "numara": { "Ad": "<Codex metni: Numara değişikliği>" },
-    "gorus": { "Ad": "<Codex metni: Geri bildirim>" },
-    "randevu": { "Ad": "<Codex metni: Randevu>" }
+    "talep": { "Ad": "Talep" },
+    "numara": { "Ad": "Numara değişikliği" },
+    "gorus": { "Ad": "Geri bildirim" },
+    "randevu": { "Ad": "Randevu" }
   },
   "kod.AliciTuru": {
-    "musteri": { "Ad": "<Codex metni: Müşteri>" },
-    "servis": { "Ad": "<Codex metni: Servis>" },
-    "personel": { "Ad": "<Codex metni: Personel>" }
+    "musteri": { "Ad": "Müşteri" },
+    "servis": { "Ad": "Servis" },
+    "personel": { "Ad": "Personel" }
   },
   "kod.KararDurumu": {
-    "bekliyor": { "Ad": "<Codex metni: Bekliyor>" },
-    "onaylandi": { "Ad": "<Codex metni: Onaylandı>" },
-    "reddedildi": { "Ad": "<Codex metni: Reddedildi>" }
+    "bekliyor": { "Ad": "Karar bekliyor" },
+    "onaylandi": { "Ad": "Onaylandı" },
+    "reddedildi": { "Ad": "Reddedildi" }
   },
   "kod.DestekOlayTuru": {
-    "konu": { "Ad": "<Codex metni: Konu seçildi>" },
-    "soru": { "Ad": "<Codex metni: Hazır soru seçildi>" },
-    "serbest": { "Ad": "<Codex metni: Soru yazıldı>" },
-    "cevap": { "Ad": "<Codex metni: Cevap verildi>" },
-    "cevapsiz": { "Ad": "<Codex metni: Cevap bulunamadı>" },
-    "cozulmedi": { "Ad": "<Codex metni: Sorun çözülmedi>" },
-    "yonlendirme": { "Ad": "<Codex metni: Servise yönlendirildi>" },
-    "temizlendi": { "Ad": "<Codex metni: Sohbet temizlendi>" }
+    "konu": { "Ad": "Konu seçildi" },
+    "soru": { "Ad": "Hazır soru seçildi" },
+    "serbest": { "Ad": "Soru yazıldı" },
+    "cevap": { "Ad": "Cevap verildi" },
+    "cevapsiz": { "Ad": "Cevap bulunamadı" },
+    "cozulmedi": { "Ad": "Sorun çözülmedi" },
+    "yonlendirme": { "Ad": "Servise yönlendirildi" },
+    "temizlendi": { "Ad": "Sohbet temizlendi" }
   },
   "kod.DosyaTuru": {
-    "foto": { "Ad": "<Codex metni: Fotoğraf>" },
-    "video": { "Ad": "<Codex metni: Video>" },
-    "ses": { "Ad": "<Codex metni: Ses kaydı>" },
-    "pdf": { "Ad": "<Codex metni: PDF>" },
-    "belge": { "Ad": "<Codex metni: Belge>" }
+    "foto": { "Ad": "Fotoğraf" },
+    "video": { "Ad": "Video" },
+    "ses": { "Ad": "Ses kaydı" },
+    "pdf": { "Ad": "PDF" },
+    "belge": { "Ad": "Belge" }
   },
   "kod.FirmaDurumu": {
-    "aktif": { "Ad": "<Codex metni: Aktif>" },
-    "pasif": { "Ad": "<Codex metni: Pasif>" }
+    "aktif": { "Ad": "Aktif" },
+    "pasif": { "Ad": "Pasif" }
   },
   "kod.KisiRolu": {
-    "hesapSahibi": { "Ad": "<Codex metni: Hesap sahibi>" },
-    "yetkili": { "Ad": "<Codex metni: Yetkili>" }
+    "hesapSahibi": { "Ad": "Hesap sahibi" },
+    "yetkili": { "Ad": "Yetkili" }
   },
   "kod.SahiplikBitisNedeni": {
-    "musteriKaldirdi": { "Ad": "<Codex metni: Müşteri kaldırdı>" },
-    "devir": { "Ad": "<Codex metni: Devredildi>" },
-    "personel": { "Ad": "<Codex metni: Personel kaldırdı>" },
-    "anonimlestirme": { "Ad": "<Codex metni: Anonimleştirildi>" },
-    "birlestirme": { "Ad": "<Codex metni: Hesaplar birleştirildi>" }
+    "musteriKaldirdi": { "Ad": "Müşterinin kaydı kaldırması" },
+    "devir": { "Ad": "Makinenin devredilmesi" },
+    "personel": { "Ad": "Personelin kaydı kaldırması" },
+    "anonimlestirme": { "Ad": "Hesabın anonimleştirilmesi" },
+    "birlestirme": { "Ad": "Hesapların birleştirilmesi" }
   },
   "kod.RizaSecimi": {
-    "okundu": { "Ad": "<Codex metni: Okundu>" },
-    "onay": { "Ad": "<Codex metni: Onay>" },
-    "ret": { "Ad": "<Codex metni: Ret>" },
-    "geriCekme": { "Ad": "<Codex metni: Geri çekildi>" }
+    "okundu": { "Ad": "Okundu" },
+    "onay": { "Ad": "Onaylandı" },
+    "ret": { "Ad": "Reddedildi" },
+    "geriCekme": { "Ad": "Geri çekildi" }
   },
   "kod.RizaKanali": {
-    "connectKayit": { "Ad": "<Codex metni: Uygulamada kayıt>" },
-    "connectProfil": { "Ad": "<Codex metni: Uygulamada profil>" },
-    "personel": { "Ad": "<Codex metni: Personel>" },
-    "telefon": { "Ad": "<Codex metni: Telefon>" },
-    "yazili": { "Ad": "<Codex metni: Yazılı>" }
+    "connectKayit": { "Ad": "Uygulama kayıt ekranı" },
+    "connectProfil": { "Ad": "Uygulama profil ekranı" },
+    "personel": { "Ad": "Personel" },
+    "telefon": { "Ad": "Telefon" },
+    "yazili": { "Ad": "Yazılı beyan" }
   },
   "kod.BildirimIzni": {
-    "verildi": { "Ad": "<Codex metni: Verildi>" },
-    "reddedildi": { "Ad": "<Codex metni: Reddedildi>" },
-    "sorulmadi": { "Ad": "<Codex metni: Sorulmadı>" },
-    "desteklenmiyor": { "Ad": "<Codex metni: Desteklenmiyor>" },
-    "engelli": { "Ad": "<Codex metni: Ayarlardan kapalı>" }
+    "verildi": { "Ad": "Verildi" },
+    "reddedildi": { "Ad": "Reddedildi" },
+    "sorulmadi": { "Ad": "Sorulmadı" },
+    "desteklenmiyor": { "Ad": "Desteklenmiyor" },
+    "engelli": { "Ad": "Ayarlardan kapatıldı" }
   },
   "kod.BelgeTuru": {
-    "satisFaturasi": { "Ad": "<Codex metni: Satış faturası>" },
-    "alisFaturasi": { "Ad": "<Codex metni: Alış faturası>" },
-    "giderPusulasi": { "Ad": "<Codex metni: Gider pusulası>" },
-    "irsaliye": { "Ad": "<Codex metni: İrsaliye>" },
-    "siparisFisi": { "Ad": "<Codex metni: Sipariş fişi>" },
-    "tahsilatFisi": { "Ad": "<Codex metni: Tahsilat fişi>" },
-    "bankaFisi": { "Ad": "<Codex metni: Banka fişi>" },
-    "garantiBedelsizCikis": { "Ad": "<Codex metni: Garanti bedelsiz çıkış>" },
-    "satisIadeFaturasi": { "Ad": "<Codex metni: Satış iade faturası>" }
+    "satisFaturasi": { "Ad": "Satış faturası" },
+    "alisFaturasi": { "Ad": "Alış faturası" },
+    "giderPusulasi": { "Ad": "Gider pusulası" },
+    "irsaliye": { "Ad": "İrsaliye" },
+    "siparisFisi": { "Ad": "Sipariş fişi" },
+    "tahsilatFisi": { "Ad": "Tahsilat fişi" },
+    "bankaFisi": { "Ad": "Banka fişi" },
+    "garantiBedelsizCikis": { "Ad": "Garanti kapsamında bedelsiz çıkış" },
+    "satisIadeFaturasi": { "Ad": "Satış iade faturası" }
   },
   "kod.SatisTuru": {
-    "paksanBayiye": { "Ad": "<Codex metni: Üreticiden bayiye>" },
-    "bayiCiftciye": { "Ad": "<Codex metni: Bayiden çiftçiye>" },
-    "dogrudanCiftciye": { "Ad": "<Codex metni: Üreticiden doğrudan çiftçiye>" },
-    "ikinciEl": { "Ad": "<Codex metni: İkinci el>" }
+    "paksanBayiye": { "Ad": "Üreticiden bayiye" },
+    "bayiCiftciye": { "Ad": "Bayiden çiftçiye" },
+    "dogrudanCiftciye": { "Ad": "Üreticiden doğrudan çiftçiye" },
+    "ikinciEl": { "Ad": "İkinci el" }
   },
   "kod.GarantiDayanagi": {
-    "teslimOnayli": { "Ad": "<Codex metni: Onaylı teslim tarihi>" },
-    "faturaArtiSure": { "Ad": "<Codex metni: Fatura tarihi ve ek süre>" },
-    "uretimYili": { "Ad": "<Codex metni: Üretim yılı>" },
-    "bilinmiyor": { "Ad": "<Codex metni: Bilinmiyor>" }
+    "teslimOnayli": { "Ad": "Onaylı teslim tarihi" },
+    "faturaArtiSure": { "Ad": "Fatura tarihi ve ek süre" },
+    "uretimYili": { "Ad": "Üretim yılı" },
+    "bilinmiyor": { "Ad": "Bilinmiyor" }
   },
   "kod.GarantiBaslangicEsasi": {
-    "teslim": { "Ad": "<Codex metni: Teslim tarihi>" },
-    "fatura": { "Ad": "<Codex metni: Fatura tarihi>" },
-    "uretim": { "Ad": "<Codex metni: Üretim yılı>" }
+    "teslim": { "Ad": "Teslim tarihi" },
+    "fatura": { "Ad": "Fatura tarihi" },
+    "uretim": { "Ad": "Üretim yılı" }
   },
   "kod.SeriKurali": {
-    "onekYilSira": { "Ad": "<Codex metni: Model kodu, yıl ve sıra>" }
+    "onekYilSira": { "Ad": "Model kodu, yıl ve sıra" }
   },
   "kod.KargoFirmasi": {},
   "kod.KvkkBasvuruTuru": {
-    "silme": { "Ad": "<Codex metni: Silme>" },
-    "erisim": { "Ad": "<Codex metni: Bilgi alma>" },
-    "duzeltme": { "Ad": "<Codex metni: Düzeltme>" },
-    "itiraz": { "Ad": "<Codex metni: İtiraz>" }
+    "silme": { "Ad": "Silme" },
+    "erisim": { "Ad": "Bilgi alma" },
+    "duzeltme": { "Ad": "Düzeltme" },
+    "itiraz": { "Ad": "İtiraz" }
   },
   "kod.IceAktarimTuru": {
-    "logoCariListesi": { "Ad": "<Codex metni: LOGO cari listesi>" },
-    "logoMalzemeListesi": { "Ad": "<Codex metni: LOGO malzeme listesi>" },
-    "logoSatisFaturalari": { "Ad": "<Codex metni: LOGO satış faturaları>" },
-    "logoServisFaturalari": { "Ad": "<Codex metni: LOGO servis faturaları>" },
-    "logoBankaFisleri": { "Ad": "<Codex metni: LOGO banka fişleri>" },
-    "servisListesi": { "Ad": "<Codex metni: Servis listesi>" },
-    "bayiListesi": { "Ad": "<Codex metni: Bayi listesi>" },
-    "personelListesi": { "Ad": "<Codex metni: Personel listesi>" }
+    "logoCariListesi": { "Ad": "LOGO cari listesi" },
+    "logoMalzemeListesi": { "Ad": "LOGO malzeme listesi" },
+    "logoSatisFaturalari": { "Ad": "LOGO satış faturası" },
+    "logoServisFaturalari": { "Ad": "LOGO servis faturası" },
+    "logoBankaFisleri": { "Ad": "LOGO banka fişi" },
+    "servisListesi": { "Ad": "Servis listesi" },
+    "bayiListesi": { "Ad": "Bayi listesi" },
+    "personelListesi": { "Ad": "Personel listesi" }
   }
 }

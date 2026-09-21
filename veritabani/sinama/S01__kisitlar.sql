@@ -294,7 +294,7 @@ BEGIN TRY
     BEGIN TRANSACTION;
     INSERT duyuru.Duyuru (Kimlik, Baslik, Metin, TurKodu, AltTurKodu, HedefKitleKodu, DilKodu, YayinZamani,
                           YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
-    VALUES (@DuyuruS01, N'<Codex metni: S01 duyuru başlığı>', N'<Codex metni: S01 duyuru metni>',
+    VALUES (@DuyuruS01, N'S01 duyuru başlığı', N'S01 duyuru metni',
             N'duyuru', N'kampanya', N'ikisi', N'tr', SYSUTCDATETIME(),
             N'personel', @Personel, @PersonelAd, N'backoffice');
     INSERT bildirim.Teslimat (DuyuruKimlik, ServisKimlik) VALUES (@DuyuruS01, @Servis);
@@ -313,7 +313,7 @@ BEGIN TRY
     BEGIN TRANSACTION;
     INSERT duyuru.Duyuru (Kimlik, Baslik, Metin, TurKodu, AltTurKodu, HedefKitleKodu, DilKodu, YayinZamani,
                           YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
-    VALUES (@DuyuruS01, N'<Codex metni: S01 duyuru başlığı>', N'<Codex metni: S01 duyuru metni>',
+    VALUES (@DuyuruS01, N'S01 duyuru başlığı', N'S01 duyuru metni',
             N'duyuru', N'kampanya', N'musteri', N'tr', SYSUTCDATETIME(),
             N'personel', @Personel, @PersonelAd, N'backoffice');
     INSERT bildirim.Teslimat (DuyuruKimlik, HesapKimlik) VALUES (@DuyuruS01, @HesapS01);
@@ -347,7 +347,7 @@ BEGIN TRY
     BEGIN TRANSACTION;
     INSERT duyuru.Duyuru (Baslik, Metin, TurKodu, AltTurKodu, HedefKitleKodu, DilKodu, YayinZamani,
                           YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
-    VALUES (N'<Codex metni: S01 geri çağırma başlığı>', N'<Codex metni: S01 geri çağırma metni>',
+    VALUES (N'S01 geri çağırma başlığı', N'S01 geri çağırma metni',
             N'uyari', N'geriCagirma', N'musteri', N'tr', SYSUTCDATETIME(),
             N'personel', @Personel, @PersonelAd, N'backoffice');
     ROLLBACK TRANSACTION;
@@ -415,7 +415,7 @@ SET @Adim = N'KS-11'; SET @Beklenen = 547; SET @Gelen = 0;
 BEGIN TRY
     BEGIN TRANSACTION;
     INSERT servis.Servis (Kimlik, Ad, PilotKatilimcisi, TurKodu, DurumKodu, IlKodu, OlusmaZamani)
-    VALUES (@YetkisizServis, N'<Codex metni: S01 yetkisiz servis>', 0, N'sahis', N'aktif', 42, SYSUTCDATETIME());
+    VALUES (@YetkisizServis, N'S01 Yetkisiz Servis', 0, N'sahis', N'aktif', 42, SYSUTCDATETIME());
     INSERT makine.MakineServisAtamasi (MakineKimlik, MarkaKodu, ServisKimlik, KaynakKodu,
                                        YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
     VALUES (@MakineS01, N'paksan', @YetkisizServis, N'personel',
@@ -434,7 +434,7 @@ SET @Adim = N'KS-12a'; SET @Beklenen = 547; SET @Gelen = 0;
 BEGIN TRY
     BEGIN TRANSACTION;
     INSERT servis.Servis (Kimlik, Ad, PilotKatilimcisi, TurKodu, DurumKodu, IlKodu, OlusmaZamani)
-    VALUES (@BitmisServis, N'<Codex metni: S01 yetkisi bitmiş servis>', 0, N'sahis', N'aktif', 42, SYSUTCDATETIME());
+    VALUES (@BitmisServis, N'S01 Yetkisi Bitmiş Servis', 0, N'sahis', N'aktif', 42, SYSUTCDATETIME());
     INSERT servis.MarkaYetkisi (ServisKimlik, MarkaKodu, BaslangicZamani, BitisZamani)
     VALUES (@BitmisServis, N'paksan', DATEADD(day, -30, SYSUTCDATETIME()), DATEADD(day, -1, SYSUTCDATETIME()));
     INSERT makine.MakineServisAtamasi (MakineKimlik, MarkaKodu, ServisKimlik, KaynakKodu,
@@ -454,7 +454,7 @@ SET @Adim = N'KS-12b'; SET @Gelen = 0;
 BEGIN TRY
     BEGIN TRANSACTION;
     INSERT servis.Servis (Kimlik, Ad, PilotKatilimcisi, TurKodu, DurumKodu, IlKodu, OlusmaZamani)
-    VALUES (@BitmisServis, N'<Codex metni: S01 yetkisi bitmiş servis>', 0, N'sahis', N'aktif', 42, SYSUTCDATETIME());
+    VALUES (@BitmisServis, N'S01 Yetkisi Bitmiş Servis', 0, N'sahis', N'aktif', 42, SYSUTCDATETIME());
     INSERT servis.MarkaYetkisi (ServisKimlik, MarkaKodu, BaslangicZamani, BitisZamani)
     VALUES (@BitmisServis, N'paksan', DATEADD(day, -30, SYSUTCDATETIME()), DATEADD(day, -1, SYSUTCDATETIME()));
     UPDATE servis.MarkaYetkisi SET BitisZamani = NULL
@@ -498,7 +498,7 @@ SET @Adim = N'KS-14a'; SET @Beklenen = 51020; SET @Gelen = 0;
 BEGIN TRY
     BEGIN TRANSACTION;
     INSERT servis.Servis (Kimlik, Ad, PilotKatilimcisi, TurKodu, DurumKodu, IlKodu, OlusmaZamani)
-    VALUES (@BitmisServis, N'<Codex metni: S01 yetkisi bitmiş servis>', 0, N'sahis', N'aktif', 42, SYSUTCDATETIME());
+    VALUES (@BitmisServis, N'S01 Yetkisi Bitmiş Servis', 0, N'sahis', N'aktif', 42, SYSUTCDATETIME());
     INSERT servis.MarkaYetkisi (ServisKimlik, MarkaKodu, BaslangicZamani, BitisZamani)
     VALUES (@BitmisServis, N'paksan', DATEADD(day, -30, SYSUTCDATETIME()), DATEADD(day, -1, SYSUTCDATETIME()));
     INSERT talep.Talep (Numara, NumaraOneki, TurKodu, KaynakKodu, MarkaKodu, DurumKodu, Kapali,
@@ -520,7 +520,7 @@ SET @Adim = N'KS-14b'; SET @Beklenen = 51020; SET @Gelen = 0;
 BEGIN TRY
     BEGIN TRANSACTION;
     INSERT servis.Servis (Kimlik, Ad, PilotKatilimcisi, TurKodu, DurumKodu, IlKodu, OlusmaZamani)
-    VALUES (@BitmisServis, N'<Codex metni: S01 yetkisi bitmiş servis>', 0, N'sahis', N'aktif', 42, SYSUTCDATETIME());
+    VALUES (@BitmisServis, N'S01 Yetkisi Bitmiş Servis', 0, N'sahis', N'aktif', 42, SYSUTCDATETIME());
     INSERT servis.MarkaYetkisi (ServisKimlik, MarkaKodu, BaslangicZamani, BitisZamani)
     VALUES (@BitmisServis, N'paksan', DATEADD(day, -30, SYSUTCDATETIME()), DATEADD(day, -1, SYSUTCDATETIME()));
     /* Ziyareti olmayan açık talep: sahnenin talebi kullanılsaydı
@@ -559,7 +559,7 @@ BEGIN TRY
      WHERE ServisKimlik = @Servis AND BitisZamani IS NULL;
     UPDATE servis.MarkaYetkisi SET BitisZamani = SYSUTCDATETIME()
      WHERE ServisKimlik = @Servis AND MarkaKodu = N'paksan';
-    UPDATE talep.Talep SET Aciklama = N'<Codex metni: S01 kapanmış talep güncellemesi>'
+    UPDATE talep.Talep SET Aciklama = N'S01 kapanmış talep güncellemesi'
      WHERE Kimlik = @TalepS01;
     ROLLBACK TRANSACTION;
 END TRY
@@ -955,7 +955,7 @@ SET @Adim = N'KS-35a'; SET @Beklenen = 547; SET @Gelen = 0;
 BEGIN TRY
     BEGIN TRANSACTION;
     INSERT talep.ParcaSatiri (TalepKimlik, MarkaKodu, SiraNo, ParcaAdi, KatalogDisi, ParcaKodu, Adet)
-    VALUES (@TalepS01, N'paksan', 1, N'<Codex metni: S01 parça adı>', 0, @ParcaKodu, NULL);
+    VALUES (@TalepS01, N'paksan', 1, N'S01 Parça Adı', 0, @ParcaKodu, NULL);
     ROLLBACK TRANSACTION;
 END TRY
 BEGIN CATCH
@@ -969,7 +969,7 @@ SET @Adim = N'KS-35b'; SET @Gelen = 0;
 BEGIN TRY
     BEGIN TRANSACTION;
     INSERT talep.ParcaSatiri (TalepKimlik, MarkaKodu, SiraNo, ParcaAdi, KatalogDisi, ParcaKodu, Adet, BirimFiyat, Tutar)
-    VALUES (@TalepS01, N'paksan', 2, N'<Codex metni: S01 katalog dışı parça>', 1, NULL, NULL, NULL, NULL);
+    VALUES (@TalepS01, N'paksan', 2, N'S01 Katalog Dışı Parça', 1, NULL, NULL, NULL, NULL);
     ROLLBACK TRANSACTION;
 END TRY
 BEGIN CATCH
@@ -983,7 +983,7 @@ SET @Adim = N'KS-35c'; SET @Beklenen = 547; SET @Gelen = 0;
 BEGIN TRY
     BEGIN TRANSACTION;
     INSERT talep.ParcaSatiri (TalepKimlik, MarkaKodu, SiraNo, ParcaAdi, KatalogDisi, ParcaKodu, Adet)
-    VALUES (@TalepS01, N'paksan', 3, N'<Codex metni: S01 parça adı>', 0, @ParcaKodu, 0);
+    VALUES (@TalepS01, N'paksan', 3, N'S01 Parça Adı', 0, @ParcaKodu, 0);
     ROLLBACK TRANSACTION;
 END TRY
 BEGIN CATCH
@@ -997,7 +997,7 @@ SET @Adim = N'KS-35d'; SET @Beklenen = 547; SET @Gelen = 0;
 BEGIN TRY
     BEGIN TRANSACTION;
     INSERT talep.ParcaSatiri (TalepKimlik, MarkaKodu, SiraNo, ParcaAdi, KatalogDisi, ParcaKodu, Adet, Tutar)
-    VALUES (@TalepS01, N'paksan', 4, N'<Codex metni: S01 katalog dışı parça>', 1, NULL, NULL, 100);
+    VALUES (@TalepS01, N'paksan', 4, N'S01 Katalog Dışı Parça', 1, NULL, NULL, 100);
     ROLLBACK TRANSACTION;
 END TRY
 BEGIN CATCH
@@ -1012,7 +1012,7 @@ SET @Adim = N'KS-36a'; SET @Beklenen = 547; SET @Gelen = 0;
 BEGIN TRY
     BEGIN TRANSACTION;
     INSERT talep.ZiyaretParcaSatiri (ZiyaretKimlik, MarkaKodu, SiraNo, ParcaAdi, ParcaKodu, Adet)
-    VALUES (@ZiyaretS01, N'paksan', 1, N'<Codex metni: S01 parça adı>', @ParcaKodu, 0);
+    VALUES (@ZiyaretS01, N'paksan', 1, N'S01 Parça Adı', @ParcaKodu, 0);
     ROLLBACK TRANSACTION;
 END TRY
 BEGIN CATCH
@@ -1027,10 +1027,10 @@ BEGIN TRY
     BEGIN TRANSACTION;
     INSERT talep.ZiyaretDuzeltmesi (Kimlik, ZiyaretKimlik, MarkaKodu, Neden,
                                     YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
-    VALUES (@Duzeltme, @ZiyaretS01, N'paksan', N'<Codex metni: S01 düzeltme nedeni>',
+    VALUES (@Duzeltme, @ZiyaretS01, N'paksan', N'S01 düzeltme nedeni',
             N'personel', @Personel, @PersonelAd, N'backoffice');
     INSERT talep.ZiyaretDuzeltmesiParcasi (DuzeltmeKimlik, TarafKodu, MarkaKodu, SiraNo, ParcaAdi, ParcaKodu, Adet)
-    VALUES (@Duzeltme, N'yeni', N'paksan', 1, N'<Codex metni: S01 parça adı>', @ParcaKodu, 0);
+    VALUES (@Duzeltme, N'yeni', N'paksan', 1, N'S01 Parça Adı', @ParcaKodu, 0);
     ROLLBACK TRANSACTION;
 END TRY
 BEGIN CATCH
@@ -1066,8 +1066,8 @@ BEGIN SET @Mesaj = CONCAT(@Adim, N': beklenen ', @Beklenen, N', gelen ', @Gelen,
 SET @Adim = N'KS-40a'; SET @Gelen = 0;
 BEGIN TRY
     BEGIN TRANSACTION;
-    INSERT erisim.Rol (Ad, Aktif) VALUES (N'<Codex metni: S01 rol adı>', 0);
-    INSERT erisim.Rol (Ad, Aktif) VALUES (N'<Codex metni: S01 rol adı>', 1);
+    INSERT erisim.Rol (Ad, Aktif) VALUES (N'S01 Rol Adı', 0);
+    INSERT erisim.Rol (Ad, Aktif) VALUES (N'S01 Rol Adı', 1);
     ROLLBACK TRANSACTION;
 END TRY
 BEGIN CATCH
@@ -1080,8 +1080,8 @@ BEGIN SET @Mesaj = CONCAT(@Adim, N': hata beklenmiyordu, gelen ', @Gelen, N' —
 SET @Adim = N'KS-40b'; SET @Beklenen = 2601; SET @Gelen = 0;
 BEGIN TRY
     BEGIN TRANSACTION;
-    INSERT erisim.Rol (Ad, Aktif) VALUES (N'<Codex metni: S01 rol adı>', 1);
-    INSERT erisim.Rol (Ad, Aktif) VALUES (N'<Codex metni: S01 rol adı>', 1);
+    INSERT erisim.Rol (Ad, Aktif) VALUES (N'S01 Rol Adı', 1);
+    INSERT erisim.Rol (Ad, Aktif) VALUES (N'S01 Rol Adı', 1);
     ROLLBACK TRANSACTION;
 END TRY
 BEGIN CATCH
@@ -1229,7 +1229,7 @@ SET @Adim = N'KS-46'; SET @Beklenen = 547; SET @Gelen = 0;
 BEGIN TRY
     BEGIN TRANSACTION;
     INSERT sistem.Giden (SablonKodu, KanalKodu, DilKodu, DurumKodu, IlgiliKayitTuruKodu, Govde)
-    VALUES (N'S01Sinama', N'sms', N'tr', N'bekliyor', N'dogrulamaKodu', N'<Codex metni: S01 gövde>');
+    VALUES (N'S01Sinama', N'sms', N'tr', N'bekliyor', N'dogrulamaKodu', N'S01 gövde');
     ROLLBACK TRANSACTION;
 END TRY
 BEGIN CATCH
@@ -1572,11 +1572,11 @@ BEGIN TRY
     INSERT sistem.Giden (Kimlik, SablonKodu, KanalKodu, DilKodu, DurumKodu, SaglayiciKodu,
                          Govde, GonderilmeZamani, OlusmaZamani)
     VALUES (@BagsizGiden, N'S01Bagsiz', N'sms', N'tr', N'gonderildi', N'logo',
-            N'<Codex metni: S01 bağsız gövde>', DATEADD(day, -200, SYSUTCDATETIME()), DATEADD(day, -200, SYSUTCDATETIME()));
+            N'S01 bağsız gövde', DATEADD(day, -200, SYSUTCDATETIME()), DATEADD(day, -200, SYSUTCDATETIME()));
     INSERT sistem.Giden (Kimlik, SablonKodu, KanalKodu, DilKodu, DurumKodu, SaglayiciKodu,
                          Govde, GonderilmeZamani, OlusmaZamani)
     VALUES (@BagliGiden, N'S01Bagli', N'sms', N'tr', N'gonderildi', N'logo',
-            N'<Codex metni: S01 bağlı gövde>', DATEADD(day, -200, SYSUTCDATETIME()), DATEADD(day, -200, SYSUTCDATETIME()));
+            N'S01 bağlı gövde', DATEADD(day, -200, SYSUTCDATETIME()), DATEADD(day, -200, SYSUTCDATETIME()));
     INSERT bildirim.Bildirim (Kimlik, BaslikAnahtari, MetinAnahtari, AliciTuruKodu, TurKodu,
                               HesapKimlik, TalepKimlik,
                               YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
@@ -1715,8 +1715,8 @@ SET @Adim = N'KS-03b'; SET @Gelen = 0;
 BEGIN TRY
     BEGIN TRANSACTION;
     INSERT katalog.Marka (Kod, Ad, SirketKodu, GarantiYil, SeriKuraliKodu, KaynakNotu, ParaBirimiKodu, Aktif)
-    VALUES (@Marka2, N'<Codex metni: S01 sınama markası>', N'paksan', 2, N'onekYilSira',
-            N'<Codex metni: S01 marka kaynak notu>', N'TRY', 1);
+    VALUES (@Marka2, N'S01 Sınama Markası', N'paksan', 2, N'onekYilSira',
+            N'S01 marka kaynak notu', N'TRY', 1);
     INSERT makine.Makine (SeriNo, MarkaKodu, OlusmaKaynagiKodu,
                           YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
     VALUES (N'S01PAKSAN0001', @Marka2, N'personel',
@@ -1736,8 +1736,8 @@ BEGIN TRY
     BEGIN TRANSACTION;
     DECLARE @Makine2 uniqueidentifier = '5A010001-0000-4000-8000-0000000000B5';
     INSERT katalog.Marka (Kod, Ad, SirketKodu, GarantiYil, SeriKuraliKodu, KaynakNotu, ParaBirimiKodu, Aktif)
-    VALUES (@Marka2, N'<Codex metni: S01 sınama markası>', N'paksan', 2, N'onekYilSira',
-            N'<Codex metni: S01 marka kaynak notu>', N'TRY', 1);
+    VALUES (@Marka2, N'S01 Sınama Markası', N'paksan', 2, N'onekYilSira',
+            N'S01 marka kaynak notu', N'TRY', 1);
     INSERT makine.Makine (Kimlik, SeriNo, MarkaKodu, OlusmaKaynagiKodu,
                           YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
     VALUES (@Makine2, N'S01MARKA20001', @Marka2, N'personel',
@@ -1764,13 +1764,13 @@ SET @Adim = N'KS-15'; SET @Beklenen = 547; SET @Gelen = 0;
 BEGIN TRY
     BEGIN TRANSACTION;
     INSERT katalog.Marka (Kod, Ad, SirketKodu, GarantiYil, SeriKuraliKodu, KaynakNotu, ParaBirimiKodu, Aktif)
-    VALUES (@Marka2, N'<Codex metni: S01 sınama markası>', N'paksan', 2, N'onekYilSira',
-            N'<Codex metni: S01 marka kaynak notu>', N'TRY', 1);
-    INSERT katalog.ParcaGrubu (MarkaKodu, Kod, Ad) VALUES (@Marka2, N'sinama-grubu', N'<Codex metni: S01 parça grubu>');
+    VALUES (@Marka2, N'S01 Sınama Markası', N'paksan', 2, N'onekYilSira',
+            N'S01 marka kaynak notu', N'TRY', 1);
+    INSERT katalog.ParcaGrubu (MarkaKodu, Kod, Ad) VALUES (@Marka2, N'sinama-grubu', N'S01 Parça Grubu');
     INSERT katalog.Parca (MarkaKodu, Kod, Ad, GrupKodu)
-    VALUES (@Marka2, N'S01PRC0001', N'<Codex metni: S01 parçası>', N'sinama-grubu');
+    VALUES (@Marka2, N'S01PRC0001', N'S01 Parçası', N'sinama-grubu');
     INSERT talep.ParcaSatiri (TalepKimlik, MarkaKodu, SiraNo, ParcaAdi, KatalogDisi, ParcaKodu, Adet)
-    VALUES (@TalepS01, @Marka2, 1, N'<Codex metni: S01 parçası>', 0, N'S01PRC0001', 1);
+    VALUES (@TalepS01, @Marka2, 1, N'S01 Parçası', 0, N'S01PRC0001', 1);
     ROLLBACK TRANSACTION;
 END TRY
 BEGIN CATCH
@@ -1860,8 +1860,8 @@ BEGIN TRY
     EXEC sistem.YapanAyarla @YapanTuruKodu = N'personel', @YapanKullaniciKimlik = @Personel,
          @YapanAdi = @PersonelAd, @KaynakUygulamaKodu = N'backoffice';
     INSERT sirket.Sirket (Kod, Ad, KisaAd, Unvan)
-    VALUES (@Sirket2, N'<Codex metni: S01 sınama şirketi>', N'<Codex metni: S01 kısa ad>',
-            N'<Codex metni: S01 unvan>');
+    VALUES (@Sirket2, N'S01 Sınama Şirketi', N'S01 Kısa Ad',
+            N'S01 Unvan');
     INSERT hakedis.DonemDokumu (Numara, ServisKimlik, SirketKodu, ParaBirimiKodu, DurumKodu,
                                 DonemYili, DonemAyi, OdenecekTutar,
                                 YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
@@ -1905,7 +1905,7 @@ SET @Adim = N'KS-38a'; SET @Beklenen = 547; SET @Gelen = 0;
 BEGIN TRY
     BEGIN TRANSACTION;
     INSERT sistem.Ayar (Anahtar, DegerTuru, Deger, Aciklama)
-    VALUES (N'S01SinamaSayisi', N'tamsayi', N'72 saat', N'<Codex metni: S01 ayar açıklaması>');
+    VALUES (N'S01SinamaSayisi', N'tamsayi', N'72 saat', N'S01 ayar açıklaması');
     ROLLBACK TRANSACTION;
 END TRY
 BEGIN CATCH
@@ -1919,9 +1919,9 @@ SET @Adim = N'KS-38b'; SET @Beklenen = 2601; SET @Gelen = 0;
 BEGIN TRY
     BEGIN TRANSACTION;
     INSERT sistem.Ayar (Anahtar, DegerTuru, Deger, Aciklama)
-    VALUES (N'S01SinamaSayisi', N'tamsayi', N'72', N'<Codex metni: S01 ayar açıklaması>');
+    VALUES (N'S01SinamaSayisi', N'tamsayi', N'72', N'S01 ayar açıklaması');
     INSERT sistem.Ayar (Anahtar, DegerTuru, Deger, Aciklama)
-    VALUES (N'S01SinamaSayisi', N'tamsayi', N'96', N'<Codex metni: S01 ayar açıklaması>');
+    VALUES (N'S01SinamaSayisi', N'tamsayi', N'96', N'S01 ayar açıklaması');
     ROLLBACK TRANSACTION;
 END TRY
 BEGIN CATCH
@@ -1935,11 +1935,11 @@ SET @Adim = N'KS-38c'; SET @Gelen = 0;
 BEGIN TRY
     BEGIN TRANSACTION;
     INSERT sistem.Ayar (Anahtar, DegerTuru, Deger, Aciklama)
-    VALUES (N'S01SinamaSayisi', N'tamsayi', N'72', N'<Codex metni: S01 ayar açıklaması>');
+    VALUES (N'S01SinamaSayisi', N'tamsayi', N'72', N'S01 ayar açıklaması');
     INSERT sistem.Ayar (Anahtar, MarkaKodu, DegerTuru, Deger, Aciklama)
-    VALUES (N'S01SinamaSayisi', N'paksan', N'tamsayi', N'96', N'<Codex metni: S01 ayar açıklaması>');
+    VALUES (N'S01SinamaSayisi', N'paksan', N'tamsayi', N'96', N'S01 ayar açıklaması');
     INSERT sistem.Ayar (Anahtar, SirketKodu, DegerTuru, Deger, Aciklama)
-    VALUES (N'S01SinamaSayisi', N'paksan', N'tamsayi', N'120', N'<Codex metni: S01 ayar açıklaması>');
+    VALUES (N'S01SinamaSayisi', N'paksan', N'tamsayi', N'120', N'S01 ayar açıklaması');
     ROLLBACK TRANSACTION;
 END TRY
 BEGIN CATCH
@@ -1954,7 +1954,7 @@ SET @Adim = N'KS-39'; SET @Beklenen = 547; SET @Gelen = 0;
 BEGIN TRY
     BEGIN TRANSACTION;
     INSERT sistem.Ayar (Anahtar, SirketKodu, MarkaKodu, DegerTuru, Deger, Aciklama)
-    VALUES (N'S01SinamaSayisi', N'paksan', N'paksan', N'tamsayi', N'72', N'<Codex metni: S01 ayar açıklaması>');
+    VALUES (N'S01SinamaSayisi', N'paksan', N'paksan', N'tamsayi', N'72', N'S01 ayar açıklaması');
     ROLLBACK TRANSACTION;
 END TRY
 BEGIN CATCH
@@ -2018,12 +2018,12 @@ SET @Adim = N'KS-44d'; SET @Gelen = 0;
 BEGIN TRY
     BEGIN TRANSACTION;
     DECLARE @BayiKul uniqueidentifier = '5A010001-0000-4000-8000-0000000000C8';
-    INSERT kod.AktorTuru (Kod, Ad) VALUES (N'bayi', N'<Codex metni: S01 bayi aktör türü>');
+    INSERT kod.AktorTuru (Kod, Ad) VALUES (N'bayi', N'S01 bayi aktör türü');
     INSERT erisim.Kullanici (Kimlik, GirisAdi, TurKodu) VALUES (@BayiKul, N's01.bayi.sinama', N'bayi');
     INSERT makine.Makine (SeriNo, MarkaKodu, OlusmaKaynagiKodu,
                           YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
     VALUES (N'S01YAPAN0004', N'paksan', N'personel',
-            N'bayi', @BayiKul, N'<Codex metni: S01 bayi adı>', N'backoffice');
+            N'bayi', @BayiKul, N'S01 Bayi Adı', N'backoffice');
     ROLLBACK TRANSACTION;
 END TRY
 BEGIN CATCH
@@ -2083,7 +2083,7 @@ BEGIN SET @Mesaj = CONCAT(@Adim, N': beklenen ', @Beklenen, N', gelen ', @Gelen,
 SET @Adim = N'KS-48b'; SET @Beklenen = 51014; SET @Gelen = 0;
 BEGIN TRY
     BEGIN TRANSACTION;
-    UPDATE TOP (1) kvkk.MetinSurumu SET Baslik = N'<Codex metni: S01 değiştirilmiş başlık>';
+    UPDATE TOP (1) kvkk.MetinSurumu SET Baslik = N'S01 değiştirilmiş başlık';
     ROLLBACK TRANSACTION;
 END TRY
 BEGIN CATCH
@@ -2199,8 +2199,8 @@ BEGIN
         EXEC sistem.YapanAyarla @YapanTuruKodu = N'personel', @YapanKullaniciKimlik = @Personel,
              @YapanAdi = @PersonelAd, @KaynakUygulamaKodu = N'backoffice';
         INSERT katalog.Marka (Kod, Ad, SirketKodu, GarantiYil, SeriKuraliKodu, KaynakNotu, ParaBirimiKodu, Aktif)
-        VALUES (@Marka2, N'<Codex metni: S01 sınama markası>', N'paksan', 2, N'onekYilSira',
-                N'<Codex metni: S01 marka kaynak notu>', N'TRY', 1);
+        VALUES (@Marka2, N'S01 Sınama Markası', N'paksan', 2, N'onekYilSira',
+                N'S01 marka kaynak notu', N'TRY', 1);
         INSERT servis.MarkaYetkisi (ServisKimlik, MarkaKodu) VALUES (@Servis, @Marka2);
         IF @Sira = 1
             INSERT talep.ServisZiyareti (ZiyaretNo, TalepKimlik, TurKodu, UyduKodu, MarkaKodu, ServisKimlik,
@@ -2211,20 +2211,20 @@ BEGIN
                     N'servis', @ServisKul, N'S01', N'servisim');
         ELSE IF @Sira = 2
             INSERT talep.ZiyaretParcaSatiri (ZiyaretKimlik, MarkaKodu, SiraNo, ParcaAdi, ParcaKodu, Adet)
-            VALUES (@ZiyaretS01, @Marka2, 9, N'<Codex metni: S01 katalog dışı parça>', NULL, 1);
+            VALUES (@ZiyaretS01, @Marka2, 9, N'S01 Katalog Dışı Parça', NULL, 1);
         ELSE IF @Sira = 3
             INSERT talep.ZiyaretDuzeltmesi (ZiyaretKimlik, MarkaKodu, Neden,
                                             YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
-            VALUES (@ZiyaretS01, @Marka2, N'<Codex metni: S01 düzeltme nedeni>',
+            VALUES (@ZiyaretS01, @Marka2, N'S01 düzeltme nedeni',
                     N'personel', @Personel, @PersonelAd, N'backoffice');
         ELSE
         BEGIN
             INSERT talep.ZiyaretDuzeltmesi (Kimlik, ZiyaretKimlik, MarkaKodu, Neden,
                                             YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
-            VALUES (@KS67Duzeltme, @ZiyaretS01, N'paksan', N'<Codex metni: S01 düzeltme nedeni>',
+            VALUES (@KS67Duzeltme, @ZiyaretS01, N'paksan', N'S01 düzeltme nedeni',
                     N'personel', @Personel, @PersonelAd, N'backoffice');
             INSERT talep.ZiyaretDuzeltmesiParcasi (DuzeltmeKimlik, TarafKodu, MarkaKodu, SiraNo, ParcaAdi, ParcaKodu, Adet)
-            VALUES (@KS67Duzeltme, N'yeni', @Marka2, 1, N'<Codex metni: S01 katalog dışı parça>', NULL, 1);
+            VALUES (@KS67Duzeltme, N'yeni', @Marka2, 1, N'S01 Katalog Dışı Parça', NULL, 1);
         END;
         ROLLBACK TRANSACTION;
     END TRY
@@ -2255,7 +2255,7 @@ BEGIN
                     N'parca', N'parcaIste',
                     N'servis', @ServisKul, N'S01', N'servisim');
         ELSE
-            INSERT katalog.Urun (Kod, Ad, KategoriKodu) VALUES (N'sinama-urun', N'<Codex metni: S01 ürünü>', N'rulo-balya');
+            INSERT katalog.Urun (Kod, Ad, KategoriKodu) VALUES (N'sinama-urun', N'S01 Ürünü', N'rulo-balya');
         ROLLBACK TRANSACTION;
     END TRY
     BEGIN CATCH
@@ -2273,7 +2273,7 @@ SET @Adim = N'KS-69a'; SET @Gelen = 0;
 BEGIN TRY
     BEGIN TRANSACTION;
     INSERT sirket.Sirket (Kod, Ad, KisaAd, Unvan)
-    VALUES (@Sirket2, N'<Codex metni: S01 sınama şirketi>', N'<Codex metni: S01 kısa ad>', N'<Codex metni: S01 unvan>');
+    VALUES (@Sirket2, N'S01 Sınama Şirketi', N'S01 Kısa Ad', N'S01 Unvan');
     INSERT entegrasyon.CariKarti (DisSistemKodu, SirketKodu, CariKodu, KaynakKodu, ServisKimlik)
     VALUES (N'logo', N'paksan', N'320.S01.0009', N'personel', @Servis);
     INSERT entegrasyon.CariKarti (DisSistemKodu, SirketKodu, CariKodu, KaynakKodu, ServisKimlik)
@@ -2329,9 +2329,9 @@ SET @Adim = N'KS-70'; SET @Beklenen = 547; SET @Gelen = 0;
 BEGIN TRY
     BEGIN TRANSACTION;
     INSERT katalog.UrunVaryanti (MarkaKodu, UrunKodu, Kod, Ad)
-    VALUES (N'paksan', N'ipak-rulo', N'sinama-varyant', N'<Codex metni: S01 varyantı>');
+    VALUES (N'paksan', N'ipak-rulo', N'sinama-varyant', N'S01 Varyantı');
     INSERT katalog.UrunVaryantiCevirisi (MarkaKodu, UrunKodu, VaryantKodu, DilKodu, Ad)
-    VALUES (N'paksan', N'ipak-rulo', N'sinama-varyant', N'tr', N'<Codex metni: S01 varyantı>');
+    VALUES (N'paksan', N'ipak-rulo', N'sinama-varyant', N'tr', N'S01 Varyantı');
     ROLLBACK TRANSACTION;
 END TRY
 BEGIN CATCH

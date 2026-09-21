@@ -26,11 +26,11 @@ BEGIN
 
     IF @Zaman IS NOT NULL
        AND NOT EXISTS (SELECT 1 FROM sistem.Ortam WHERE OrnekVeriIzinli = 1)
-        THROW 51002, N'<Codex metni: zaman yalnız yerel ve sınama ortamında verilir>', 1;
+        THROW 51002, N'zaman yalnız yerel ve sınama ortamında belirtilebilir; diğer ortamlarda zaman belirtmeden yeniden çalıştırın', 1;
 
     IF NOT EXISTS (SELECT 1 FROM sistem.NumaraOneki
                    WHERE Onek = @Onek COLLATE Latin1_General_100_BIN2 AND Aktif = 1)
-        THROW 51003, N'<Codex metni: önek yok ya da pasif>', 1;
+        THROW 51003, N'önek bulunamadı ya da pasif; tanımlı ve aktif bir önek kullanın', 1;
 
     DECLARE @Yil smallint = YEAR(ISNULL(@Zaman, SYSUTCDATETIME())
                                  AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time');
@@ -46,7 +46,7 @@ BEGIN
     BEGIN
         IF EXISTS (SELECT 1 FROM sistem.NumaraSayaci WITH (UPDLOCK, HOLDLOCK)
                    WHERE Onek = @Onek AND Yil = @Yil)
-            THROW 51001, N'<Codex metni: bu önek ve yıl için numara doldu>', 1;
+            THROW 51001, N'bu önek ve yıl için numara sınırına ulaşıldı; numaralandırma tanımını veritabanı yöneticisiyle kontrol edin', 1;
 
         SET @Sira = 1;
         INSERT sistem.NumaraSayaci (Onek, Yil, SonSira) VALUES (@Onek, @Yil, 1);
@@ -99,13 +99,13 @@ BEGIN
           OR (@YapanTuruKodu NOT IN (N'musteri', N'sistem', N'entegrasyon')
                 AND @YapanKullaniciKimlik IS NOT NULL AND @YapanHesapKimlik IS NULL AND @YapanAdi IS NOT NULL)
        )
-        THROW 51010, N'<Codex metni: işlemi yapan bilgisi eksik ya da tutarsız>', 1;
+        THROW 51010, N'işlemi yapan bilgisi eksik ya da tutarsız; işlemi yapanın kimlik ve tür bilgilerini kontrol edip tamamlayın', 1;
 
     /* Kodlar kod listesinde olmalı: yazılacak satırın yabancı anahtarı
        547 vermeden önce, isteğin başında ve açık numarayla reddedilir. */
     IF NOT EXISTS (SELECT 1 FROM kod.AktorTuru WHERE Kod = @YapanTuruKodu)
        OR NOT EXISTS (SELECT 1 FROM kod.KaynakUygulama WHERE Kod = @KaynakUygulamaKodu)
-        THROW 51010, N'<Codex metni: işlemi yapanın türü ya da kaynak uygulaması tanımlı değil>', 1;
+        THROW 51010, N'işlemi yapanın türü ya da kaynak uygulaması tanımlı değil; tanımlı bir kullanıcı türü ve kaynak uygulama belirtin', 1;
 
     /* Kullanıcı gerçekten o türden ve aktif olmalı. Yukarıdaki denetim yalnız
        "hangi kolon dolu, hangisi boş" kalıbına bakıyordu; servis türündeki bir
@@ -119,7 +119,7 @@ BEGIN
                        WHERE Kimlik = @YapanKullaniciKimlik
                          AND TurKodu = @YapanTuruKodu
                          AND Aktif = 1)
-        THROW 51010, N'<Codex metni: işlemi yapan kullanıcı yok, pasif ya da verilen türde değil>', 1;
+        THROW 51010, N'işlemi yapan kullanıcı bulunamadı, pasif ya da belirtilen türde değil; kullanıcı kimliğini, türünü ve etkinlik durumunu kontrol edin', 1;
 
     EXEC sys.sp_set_session_context @key = N'YapanTuruKodu',        @value = @YapanTuruKodu,        @read_only = 0;
     EXEC sys.sp_set_session_context @key = N'YapanKullaniciKimlik', @value = @YapanKullaniciKimlik, @read_only = 0;
@@ -168,7 +168,7 @@ BEGIN
     DECLARE @BelirlemeGerekli bit;
 
     IF @SifreKaydi IS NULL OR @SifreKaydi NOT LIKE N'$%$%'
-        THROW 51030, N'<Codex metni: şifre kaydı boş ya da biçimi geçersiz>', 1;
+        THROW 51030, N'şifre kaydı boş ya da biçimi geçersiz; şifre kaydını beklenen biçimde oluşturup yeniden deneyin', 1;
 
     BEGIN TRANSACTION;
 
@@ -178,10 +178,10 @@ BEGIN
     WHERE k.Kimlik = @KullaniciKimlik;
 
     IF @@ROWCOUNT = 0
-        THROW 51102, N'<Codex metni: kullanıcı bulunamadı>', 1;
+        THROW 51102, N'kullanıcı bulunamadı; kullanıcı kimliğini kontrol edip yeniden deneyin', 1;
 
     IF (@MevcutKayit IS NULL OR @BelirlemeGerekli = 1) AND @JetonKimlik IS NULL
-        THROW 51030, N'<Codex metni: şifre belirlemek için geçerli ve kullanılmamış bir kod gerekir>', 1;
+        THROW 51030, N'şifre belirlemek için geçerli ve kullanılmamış bir kod gerekir; yeni bir kod alıp yeniden deneyin', 1;
 
     IF @JetonKimlik IS NOT NULL
     BEGIN
@@ -194,7 +194,7 @@ BEGIN
            AND SonGecerlilikZamani > @Simdi;
 
         IF @@ROWCOUNT = 0
-            THROW 51030, N'<Codex metni: şifre belirlemek için geçerli ve kullanılmamış bir kod gerekir>', 1;
+            THROW 51030, N'şifre belirlemek için geçerli ve kullanılmamış bir kod gerekir; yeni bir kod alıp yeniden deneyin', 1;
     END;
 
     UPDATE erisim.SifreSifirlamaJetonu
@@ -250,7 +250,7 @@ BEGIN
     DECLARE @DegistirmeZamani datetime2(3);
 
     IF @SifreKaydi IS NULL OR @SifreKaydi NOT LIKE N'$%$%'
-        THROW 51030, N'<Codex metni: şifre kaydı boş ya da biçimi geçersiz>', 1;
+        THROW 51030, N'şifre kaydı boş ya da biçimi geçersiz; şifre kaydını beklenen biçimde oluşturup yeniden deneyin', 1;
 
     BEGIN TRANSACTION;
 
@@ -261,10 +261,10 @@ BEGIN
     WHERE h.Kimlik = @HesapKimlik;
 
     IF @@ROWCOUNT = 0
-        THROW 51102, N'<Codex metni: hesap bulunamadı>', 1;
+        THROW 51102, N'hesap bulunamadı; hesap bilgilerini kontrol edip yeniden deneyin', 1;
 
     IF @MevcutKayit IS NULL AND @DogrulamaKoduKimlik IS NULL
-        THROW 51030, N'<Codex metni: şifre belirlemek için doğrulanmış bir kod gerekir>', 1;
+        THROW 51030, N'şifre belirlemek için doğrulanmış bir kod gerekir; kodu doğrulayıp yeniden deneyin', 1;
 
     IF @DogrulamaKoduKimlik IS NOT NULL
        AND NOT EXISTS (
@@ -277,7 +277,7 @@ BEGIN
              AND d.KullanilmaZamani IS NOT NULL
              AND d.KullanilmaZamani >= DATEADD(minute, -15, @Simdi)
              AND (@DegistirmeZamani IS NULL OR @DegistirmeZamani < d.KullanilmaZamani))
-        THROW 51030, N'<Codex metni: şifre belirlemek için doğrulanmış bir kod gerekir>', 1;
+        THROW 51030, N'şifre belirlemek için doğrulanmış bir kod gerekir; kodu doğrulayıp yeniden deneyin', 1;
 
     UPDATE musteri.Hesap
        SET SifreKaydi = @SifreKaydi,

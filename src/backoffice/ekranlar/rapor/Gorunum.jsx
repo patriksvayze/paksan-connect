@@ -3,7 +3,6 @@ import { dosyaAdi, indir, xlsxSayfalarYap, xlsxYap } from '../../excel'
 import { islemYaz } from '../../veri'
 import { Bos, hucreDegeri, Sayfalama, SiraliBaslik, useSiralama } from '../ortak'
 import { RenkAnahtari, YatayBar, YiginSutun } from '../grafik'
-import { codexBekliyor } from './metin'
 
 /* ==========================================================================
    Rapor bölümünün görünümü
@@ -24,7 +23,7 @@ import { codexBekliyor } from './metin'
    biçimde okunuyor, biri ötekinden ayrı bir düzen uydurmuyor.
    ========================================================================== */
 
-const M = codexBekliyor({
+const M = {
   dikkat: 'Dikkat İsteyenler',
   /* İKİ SATIR DÖNEME BAĞLI. Alt yazı "tarih süzgecinden bağımsız"
      diyordu, ama "cevapsız soru" ve "en çok servis isteyen model"
@@ -32,8 +31,8 @@ const M = codexBekliyor({
      hatta satır tümden kayboluyordu. Satırların kendi metninde
      "(seçilen dönemde)" yazılı; kartın alt yazısı da artık tersini
      söylemiyor. */
-  dikkatAlt: 'Şu an açık olan işler; "(seçilen dönemde)" yazan iki satır dışında tarih süzgecinden bağımsız',
-  temiz: 'Şu an bekleyen, gecikmiş ya da cevapsız kalan bir iş yok.',
+  dikkatAlt: 'İşlem veya inceleme gerektiren kayıtlar. Cevapsız sorular ve en çok servis isteyen model seçilen döneme göre gösterilir; diğer satırlar tarih süzgecinden bağımsızdır.',
+  temiz: 'Bu kartta gösterilecek uyarı yok. İşlerin durumunu ölçülerden ve tablolardan inceleyebilirsiniz.',
   goster: 'Göster →',
   oncekiDonem: 'önceki döneme göre',
   puan: (n) => `${n} puan`,
@@ -44,16 +43,16 @@ const M = codexBekliyor({
      tutmuyor (bağımsız denetimde ölçüldü: "Serviste 19" → liste 31);
      yönetici bunu listeye bakınca değil, burada öğrenmeli. */
   listeNotu:
-    'Bir satıra, sütuna ya da "Göster" düğmesine tıklayınca Talepler ekranı en yakın süzgeçle açılır. O ekran talepleri yalnız açıldıkları tarihe, türe, duruma ve sahipliğe göre süzebiliyor; raporun ayrımlarını (servis siparişi, iptal, iş ya da onay tarihi, kimin elinde beklediği) bilmiyor. Bu yüzden açılan liste rapordaki sayıyla birebir tutmayabilir.',
-  puanNotu: 'Oran gösteren ölçülerde fark yüzde puan olarak verilir: %8\'den %12\'ye çıkış "4 puan" yazar, "%50" değil.',
-  excel: "Excel'e aktar",
+    'Bir satıra, sütuna ya da "Göster" düğmesine tıkladığınızda açılan talep listesinde rapora en yakın süzgeç kullanılır. Talepler ekranı yalnız açılış tarihi, tür, durum ve sahipliğe göre süzer; rapordaki servis siparişi, iptal, iş veya onay tarihi ve bekleme yeri ayrımlarını aynı şekilde uygulamaz. Bu nedenle listedeki kayıt sayısı rapordaki sayıdan farklı olabilir.',
+  puanNotu: 'Oran gösteren ölçülerde fark yüzde puan olarak verilir. Örneğin oran %8 iken %12 olursa fark "4 puan" olarak gösterilir; "%50" yazılmaz.',
+  excel: "Excel'e Aktar",
   satir: 'satır',
   satirSayisi: (n) => `${n} satır`,
-  satirAc: (ilk) => `${ilk} satırının listesini aç`,
-  bos: 'Bu dönemde gösterilecek kayıt yok.',
-  nasil: 'Bu sayılar nasıl hesaplanıyor?',
+  satirAc: (ilk) => `${ilk} Satırının Listesini Aç`,
+  bos: 'Bu dönemde gösterilecek kayıt yok. Başka bir dönem seçerek yeniden bakabilirsiniz.',
+  nasil: 'Bu Sayılar Nasıl Hesaplanıyor?',
   toplam: 'Toplam',
-})
+}
 
 const SAYFA = 15
 

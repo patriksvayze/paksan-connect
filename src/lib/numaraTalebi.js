@@ -147,7 +147,7 @@ export function seriCakismasiTalebi({ user, eskiUlke, eskiTel, seri, eskiHesap }
   save(ANAHTAR, [talep, ...numaraTalepleri()])
   uygulamaKaydi(
     'numara',
-    `${talep.ad} · seri başka hesapta, eski numarasının hesabını istedi · ${talep.seri}`
+    `${talep.ad} · seri numarası başka hesapta kayıtlı; eski hesabındaki kayıtların yeni hesabına taşınmasını istedi · ${talep.seri}`
   )
   return talep
 }

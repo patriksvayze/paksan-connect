@@ -3,7 +3,6 @@ import {
 } from '../../../veri'
 import { makineninServisi } from '../../../../lib/servisAtama'
 import { cevapsizlar } from '../../DestekKayitlari'
-import { codexBekliyor } from '../metin'
 import {
   dilim, fark, ilkIslemSuresi, iptalZamani, kapanisOlayi, kapanisOlaySuresi, kovayaDagit,
   musteriTalebiMi, ortalama, paraKutu, RENK, servisZiyaretleri, sureYaz, talepModeli, topla,
@@ -33,7 +32,7 @@ import {
    söyler.
    ========================================================================== */
 
-const M = codexBekliyor({
+const M = {
   ad: 'Genel Bakış',
   soru: 'İşler nasıl gidiyor, neye yetişmemiz gerekiyor?',
 
@@ -45,12 +44,12 @@ const M = codexBekliyor({
      ad iki ayrı sayıyı göstermesin. */
   parcaVeSiparis: 'Yedek parça ve servis siparişi',
   kapanan: 'Kapanan talep',
-  kapananAlt: 'Bu dönemde kapanan, açıldığı gün fark etmeksizin',
-  ilkIslem: 'İlk işleme kadar',
-  ilkIslemAlt: 'Talebin açılışından ilk işleme kadar geçen ortalama süre',
+  kapananAlt: 'Açılış tarihinden bağımsız olarak seçilen dönemde kapanan talepler; iptaller hariç',
+  ilkIslem: 'İlk işlem süresi',
+  ilkIslemAlt: 'Seçilen dönemde açılan taleplerin ilk işleme kadar geçen ortalama süresi; hiç işlem görmeyenler hariç',
   kapanma: 'Kapanma süresi',
-  kapanmaAlt: (p90) => `Ortalama · en yavaş %10: ${p90}`,
-  acik: 'Açık talep',
+  kapanmaAlt: (p90) => `Seçilen dönemde kapananların ortalaması · en yavaş %10 için eşik: ${p90}`,
+  acik: 'Şu an açık talep',
   /* SAYI SAF YAŞ DEĞİL, İŞ KURALI (bkz. veri.js → gecikmisMi): teklif
      verilip müşterinin yanıtı beklenen talep "bekletiliyor" değil,
      bekliyor. Etiket "48 saati geçti" derken bunu söylemiyordu; teklif
@@ -59,14 +58,14 @@ const M = codexBekliyor({
      tutmuyordu. Kural değişmedi, etiket kuralı söylüyor. */
   acikAlt: (n) =>
     n
-      ? `${n} tanesi 48 saati geçti · teklif verilip yanıt bekleyenler sayılmadı`
-      : 'Teklif verilip yanıt bekleyenler dışında 48 saati geçen yok',
-  yenidenAcilan: 'Yeniden açılan',
-  yenidenAcilanAlt: 'Müşterinin "sorun devam ediyor" dediği talepler',
+      ? `Tüm dönemlerdeki açık taleplerin ${n} tanesi 48 saati geçti; teklif verilip müşteriden yanıt beklenenler 48 saat hesabına dahil değil`
+      : 'Tüm dönemlerdeki açık talepler içinde, teklif verilip müşteriden yanıt beklenenler dışında 48 saati geçen yok',
+  yenidenAcilan: 'Yeniden açılan talep',
+  yenidenAcilanAlt: 'Seçilen dönemde müşterinin "Sorun Devam Ediyor" diyerek yeniden açtığı talepler; her talep bir kez sayılır',
   garantiGideri: 'Garanti gideri',
-  garantiGideriAlt: 'Bu dönemde onaylanan servis hak edişleri',
+  garantiGideriAlt: 'Seçilen dönemde onaylanan yol ve işçilik hak edişleri; parça bedeli dahil değil',
   yeniMusteri: 'Yeni müşteri',
-  yeniMusteriAlt: 'Kayıt tarihi seçilen döneme düşen müşteri hesapları',
+  yeniMusteriAlt: 'Seçilen dönemde oluşturulan müşteri hesapları; telefonla açılan talepler müşteri hesabı oluşturmaz',
 
   grafikGelen: 'Gelen talepler',
   /* KOVA BOYU DÖNEME GÖRE DEĞİŞİYOR (bkz. hesap.js → zamanKovalari):
@@ -74,9 +73,9 @@ const M = codexBekliyor({
      "o günün talepleri" diyordu; haftalık kovada tıklanan sütun bir
      haftalık listeyi açıyor ve sütunun etiketi aralığın ilk günü
      olduğu için yönetici tek gün sandığı bir sayıya bakıyordu. */
-  grafikGelenAlt: 'Türlere göre, aynı ölçekte. Bir sütuna tıklayınca o aralığın talepleri açılır.',
+  grafikGelenAlt: 'Seçilen dönemde açılan talepler, türlerine göre aynı ölçekte gösterilir. Sütunlar dönemin uzunluğuna göre gün, hafta veya ayı gösterir. Bir sütuna tıklayarak ilgili tarih aralığındaki talepleri açabilirsiniz.',
   grafikBekleyen: 'Açık talepler nerede bekliyor?',
-  grafikBekleyenAlt: 'Şu an açık olan bütün talepler. Bir satıra tıklayınca liste açılır.',
+  grafikBekleyenAlt: 'Tarih süzgecinden bağımsız olarak şu an açık olan bütün talepler, bekledikleri yere göre gösterilir. Bir satıra tıkladığınızda en yakın süzgeçle açılan liste, bu gruptakiler dışında talepler de içerebilir.',
   yer: {
     paksan: 'Personelimizin elinde',
     servis: 'Serviste',
@@ -88,20 +87,20 @@ const M = codexBekliyor({
   },
   talepSayisi: (n) => `${n} talep`,
 
-  uyariGecikme: (n) => `${n} açık talep 48 saati geçti`,
+  uyariGecikme: (n) => `${n} açık talep 48 saati geçti (teklif yanıtı bekleyenler hariç)`,
   uyariGecikmeAlt:
-    'Açıldığından beri 48 saatten uzun süredir kapanmamış talepler; teklif verilip müşterinin yanıtı beklenenler sayılmaz, onlar aşağıda kendi süresiyle',
-  uyariOnay: (n, tutar) => `${n} servis kaydı hak ediş onayı bekliyor · ${tutar}`,
+    'Açılışından bu yana 48 saatten fazla geçmiş açık talepler; tarih süzgecinden bağımsızdır. Teklif verilip müşterinin yanıtı beklenenler sayılmaz. Teklif yanıtı 14 günden uzun süredir bekleniyorsa ayrı bir uyarı gösterilir.',
+  uyariOnay: (n, tutar) => `${n} talep hak ediş onayı bekliyor · ${tutar}`,
   uyariOnayAlt: 'Servis işi bitirdi; onaylanana kadar talep kapanmıyor ve servis ödemesini göremiyor',
   uyariParca: (n) => `${n} garanti işinde parça hazırlanmayı bekliyor`,
   uyariParcaAlt: 'Servis parçayı istedi, henüz gönderilmedi; müşterinin makinesi bekliyor',
   uyariOdeme: (n) => `${n} yedek parça talebinde dekont onay bekliyor`,
-  uyariOdemeAlt: 'Müşteri ödemeyi gönderdi, ödemenin hesaba geçtiği henüz onaylanmadı',
+  uyariOdemeAlt: 'Müşteri dekont gönderdi; ödemenin hesaba geçtiği henüz onaylanmadı. Servislerin kendi parça siparişleri bu sayıya dahil değildir.',
   uyariGonderim: (n) => `${n} yedek parça talebinde söz verilen gönderim tarihi geçti`,
-  uyariGonderimAlt: 'Müşteriye bildirilen gönderim tarihi geçti, parça hâlâ gönderilmedi',
+  uyariGonderimAlt: 'Müşteriye bildirilen gönderim tarihi geçti; parça henüz gönderilmedi. Servislerin kendi parça siparişleri bu sayıya dahil değildir.',
   uyariTeklif: (n) => `${n} teklif 14 günden uzun süredir müşterinin yanıtını bekliyor`,
-  uyariTeklifAlt: 'Fiyat verildi, müşteri dönmedi; aranması gerekiyor',
-  uyariServissiz: (n) => `${n} kayıtlı makinenin servisi yok`,
+  uyariTeklifAlt: 'Teklif verildi, müşteriden henüz yanıt gelmedi. Müşteriyi arayarak teklifin durumunu öğrenin.',
+  uyariServissiz: (n) => `${n} kayıtlı makine için atanmış servis bulunamadı`,
   /* Aynı seri defterde birden çok satırda olabiliyor ve servis zinciri
      (bkz. lib/servisAtama.js → makineninKaydi) en yeni satırı okuyor.
      Servisin elle açtığı satırda servis atanmışken müşteri aynı seriyi
@@ -111,39 +110,39 @@ const M = codexBekliyor({
      satırda atanmış bir servis görünüyor ve personel raporu yanlış
      sanıyordu; hangi satıra bakıldığı bu yüzden yazılı. */
   uyariServissizAlt:
-    'Bu makinelerin sahipleri servis talebi açamıyor; makineye ya da satan bayiye servis atanmalı. Aynı seri defterde birden çok satırdaysa en yeni satıra bakılır',
+    'Bu makineler için müşteri uygulamasından servis talebi açılamıyor. Makineye veya makineyi satan bayiye servis atayın. Aynı seri numarası birden çok kayıtta varsa en yeni kayıt esas alınır; eski kayıtta servis atanmış olması yeterli değildir. Her makine bir kez sayılır.',
   uyariDestek: (n) => `Destek asistanında ${n} soru cevapsız kaldı (seçilen dönemde)`,
   uyariDestekAlt: 'Müşterinin uygulamada arayıp bulamadığı konular',
   uyariModel: (ad, n) => `En çok servis isteyen model: ${ad} (${n} talep, seçilen dönemde)`,
-  uyariModelAlt: 'Aynı modelde tekrarlayan arıza üretimin incelemesini gerektirebilir',
+  uyariModelAlt: 'Seçilen dönemde açılan servis talepleri sayılır; iptal edilenler hariçtir. Talep sayısı arıza sıklığını tek başına göstermez. Ayrıntıları Ürün Kalitesi sekmesinden inceleyebilirsiniz.',
 
   tabloTur: 'Talep türüne göre',
   tabloTurAciklama:
-    'Gelen, seçilen dönemde açılan; kapanan, seçilen dönemde kapanan; iptal, seçilen dönemde iptal edilen; açık, şu an açık olan talepler.',
+    'Gelen, kapanan ve iptal edilen talepler ilgili işlemin seçilen dönemdeki tarihine göre sayılır. İptaller kapananlara dahil değildir. Şu an açık ve 48 saati geçen talepler tarih süzgecinden bağımsızdır; 48 saat hesabına teklif verilip müşteriden yanıt beklenenler dahil edilmez.',
   sutun: {
-    tur: 'Talep türü', gelen: 'Gelen', kapanan: 'Kapanan', iptal: 'İptal', acik: 'Şu an açık',
-    gecikmis: '48 saati geçen (teklif bekleyenler hariç)',
-    ilk: 'Ort. ilk işlem', kapanma: 'Ort. kapanma', yavas: 'En yavaş %10',
+    tur: 'Talep türü', gelen: 'Gelen', kapanan: 'Kapanan', iptal: 'İptal edilen', acik: 'Şu an açık',
+    gecikmis: '48 saati geçen (teklif yanıtı bekleyenler hariç)',
+    ilk: 'Ort. ilk işlem süresi', kapanma: 'Ort. kapanma süresi', yavas: 'En yavaş %10 eşiği',
   },
-  diger: 'Diğer',
+  diger: 'Diğer / türü belirtilmemiş',
   toplam: 'Toplam',
 
   notlar: [
     'Gelen talep: seçilen dönemde açılan bütün talepler; servislerin kendi parça siparişleri de dahil.',
     'Kapanan talep: kapanışı seçilen döneme düşen talepler. Yeniden açılıp tekrar kapanan talepte son kapanış sayılır. Dönem içinde kapanıp sonradan yeniden açılan talep de sayılır: kapanış o dönemde gerçekleşti.',
-    'İptal: iptal edildiği gün seçilen döneme düşen talepler. İptal edilen talep kapanan sayılmaz; "Gelen" ile "Kapanan" ve "Şu an açık" arasındaki farkın bir bölümü buradan gelir.',
-    'İlk işleme kadar: talep açıldıktan sonra geçmişine düşen ilk işlemin (durum değişikliği, servis kaydı, planlama) zamanı. Hiç işlem görmemiş talep ortalamaya girmez.',
-    'Kapanma süresi: seçilen dönemde kapanan taleplerin açılıştan kapanışa geçen süresi. En yavaş %10, ortalamanın sakladığı uzun bekleyişleri gösterir.',
-    '48 saati geçen: açıldığından beri 48 saattir kapanmamış açık talepler. Teklif verilip müşterinin yanıtı beklenenler sayılmaz; onların kendi süresi var ve 14 günü geçtiğinde Dikkat İsteyenler\'de ayrı satır olarak çıkar.',
+    'İptal edilen: iptal tarihi seçilen dönemde olan talepler. İptal edilen talep kapanan sayılmaz; "Gelen" ile "Kapanan" ve "Şu an açık" arasındaki farkın bir bölümü buradan gelir.',
+    'İlk işlem süresi: seçilen dönemde açılan taleplerin açılışından, geçmişine kaydedilen ilk işleme (durum değişikliği, servis kaydı, planlama) kadar geçen sürenin ortalaması. Hiç işlem görmemiş talep ortalamaya girmez.',
+    'Kapanma süresi: seçilen dönemde kapanan taleplerin açılıştan kapanışa geçen ortalama süresi. En yavaş %10 eşiği, en uzun sürede kapanan %10 için hesaplanan sınır süredir; bu grubun ortalaması değildir.',
+    '48 saati geçen: açılışından bu yana 48 saatten fazla geçmiş açık talepler; tarih süzgecinden bağımsızdır. Teklif verilip müşterinin yanıtı beklenenler sayılmaz. Teklif yanıtı 14 günden uzun süredir bekleniyorsa Dikkat İsteyenler kartında ayrı bir satırda gösterilir.',
     'Garanti gideri: onay tarihi seçilen döneme düşen servis hak edişlerinin toplamı (yol ve işçilik). Parçanın kendisi bu tutara dahil değildir.',
     'Yeni müşteri: kayıt tarihi seçilen döneme düşen müşteri hesapları. Telefonla açılan talepler müşteri hesabı oluşturmadığı için bu sayı "Gelen talep" ile aynı kaynaktan gelmez.',
     'Yüzde farklar bir önceki eşit uzunluktaki dönemle karşılaştırılır. "Tüm zamanlar" seçiliyse karşılaştırma yapılmaz.',
     'Dikkat İsteyenler tarih süzgecinden bağımsızdır; yalnız "cevapsız soru" ve "en çok servis isteyen model" satırları seçilen döneme bakar.',
     'En çok servis isteyen model: seçilen dönemde açılan servis talepleri, iptal edilenler hariç; Ürün Kalitesi sekmesindeki model karnesiyle aynı sayı.',
     'Yedek parça ve servis siparişi: müşterilerin yedek parça talepleri ile servislerin kendi parça siparişleri birlikte. Yedek Parça ve Müşteriler sekmelerinde bu ikisi ayrı sayılır.',
-    'Türü bu üçünden biri olmayan eski kayıtlar tabloda "Diğer" satırında toplanır; böylece sütunların toplamı her zaman toplam satırını verir.',
+    'Servis, yedek parça veya fiyat teklifi türlerinden birine girmeyen ya da türü belirtilmemiş eski kayıtlar "Diğer / türü belirtilmemiş" satırında toplanır. Böylece hiçbir kayıt toplamın dışında kalmaz; adet sütunlarındaki satırların toplamı, toplam satırındaki adede eşittir.',
   ],
-})
+}
 
 const TURLER = ['servis', 'parca', 'satinalma']
 

@@ -625,11 +625,11 @@ BEGIN
 
     IF @Zaman IS NOT NULL
        AND NOT EXISTS (SELECT 1 FROM sistem.Ortam WHERE OrnekVeriIzinli = 1)
-        THROW 51002, N'<Codex metni: zaman yalnız yerel ve sınama ortamında verilir>', 1;
+        THROW 51002, N'zaman yalnız yerel ve sınama ortamında belirtilebilir; diğer ortamlarda zaman belirtmeden yeniden çalıştırın', 1;
 
     IF NOT EXISTS (SELECT 1 FROM sistem.NumaraOneki
                    WHERE Onek = @Onek COLLATE Latin1_General_100_BIN2 AND Aktif = 1)
-        THROW 51003, N'<Codex metni: önek yok ya da pasif>', 1;
+        THROW 51003, N'önek bulunamadı ya da pasif; tanımlı ve aktif bir önek kullanın', 1;
 
     DECLARE @Yil smallint = YEAR(ISNULL(@Zaman, SYSUTCDATETIME())
                                  AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time');
@@ -645,7 +645,7 @@ BEGIN
     BEGIN
         IF EXISTS (SELECT 1 FROM sistem.NumaraSayaci WITH (UPDLOCK, HOLDLOCK)
                    WHERE Onek = @Onek AND Yil = @Yil)
-            THROW 51001, N'<Codex metni: bu önek ve yıl için numara doldu>', 1;
+            THROW 51001, N'bu önek ve yıl için numara sınırına ulaşıldı; numaralandırma tanımını veritabanı yöneticisiyle kontrol edin', 1;
 
         SET @Sira = 1;
         INSERT sistem.NumaraSayaci (Onek, Yil, SonSira) VALUES (@Onek, @Yil, 1);
@@ -912,7 +912,7 @@ Uygulama rolünün `DELETE` izni yalnız: `erisim.RolIzin`, `servis.Bolge`, `ser
 | `entegrasyon.IceAktarimSatiri` | `EslesenKimlik` bu hesap ya da hesabın makine satışı olan satırlarda `HamVeriJson` → NULL |
 | `kvkk.RizaOlayi`, `denetim.IslemKaydi`, `kvkk.BasvuruTalebi` | Kalır (yasal kanıt) |
 
-- "Anonim metni" tek sabittir: `N'<Codex metni: anonimleştirildi>'` (5–1000 karakter CK'lerine uyar; Codex'ten geçmeden test/canlıya çıkmaz).
+- "Anonim metni" tek sabittir: `N'anonimleştirildi'` (5–1000 karakter CK'lerine uyar; Codex'ten 19.09.2026'da geçti, bkz. R05__hakedis_musteri_prosedurleri.sql).
 - `yonetim.KisiselVerileriAnonimlestir @Telefon` telefonu E.164'e çevirir; hesap(lar) bulunursa `musteri.HesabiAnonimlestir`'i çağırır; ayrıca aynı telefonlu **hesapsız** satırları temizler: `talep.Talep` (`HesapKimlik IS NULL`; iletişim, adres, `Aciklama`, alt tabloların serbest metinleri, varsa `FaturaBilgisi`, `ParcaTalebiAyrinti.TeslimatAdresi`), `musteri.TelefonDegisikligiTalebi` (eski ya da yeni telefon eşleşen; telefon ve ad alanları), `musteri.GeriBildirim` (iletişim alanları, `Metin`), `sistem.Giden` (`AliciAdres` eşleşen), `erisim.DogrulamaKodu`, bu taleplerin makinelerindeki `makine.KayitOlayi.BeyanAdi`. Tablo başına etkilenen satır sayısını döndürür.
 - **Uygulamada değişti (17.09.2026):** hesapsız taleplerin "alt tablolarının serbest metinleri" `talep.ServisZiyareti.ArizaMetni`/`SonucMetni` (anonim metni), `talep.Randevu.IsTanimi` (NULL), `talep.Teklif.TeklifNotu` ve `talep.Devir.Neden` (anonim metni) dahildir.
 - `denetim.IslemKaydi` sözleşmesi: `CK (YapanTuruKodu <> N'musteri' OR IpAdresi IS NULL)`; müşteri IP'si yalnız `erisim.Oturum`'da, saklama süresi boyunca durur.

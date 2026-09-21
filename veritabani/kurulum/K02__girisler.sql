@@ -55,7 +55,7 @@ GO
 /* Bağlanılan veritabanı ortam dosyasındaki veritabanı olmalı: kullanıcı
    ve rol yalnız kendi veritabanında açılır. */
 IF DB_NAME() COLLATE Latin1_General_100_BIN2 <> N'$(PAKSAN_VT_VERITABANI)'
-    THROW 50020, N'<Codex metni: K02 yalnız ortam dosyasındaki veritabanında çalışır; başka veritabanında kullanıcı açılmaz>', 1;
+    THROW 50020, N'kullanıcı oluşturmak için K02 betiğini ortam dosyasında belirtilen veritabanında çalıştırın; başka veritabanında kullanıcı oluşturulmaz', 1;
 
 IF NOT (   (N'$(PAKSAN_VT_ORTAM)' COLLATE Latin1_General_100_BIN2 = N'yerel'
             AND DB_NAME() COLLATE Latin1_General_100_BIN2 = N'Paksan_Yerel')
@@ -65,7 +65,7 @@ IF NOT (   (N'$(PAKSAN_VT_ORTAM)' COLLATE Latin1_General_100_BIN2 = N'yerel'
             AND DB_NAME() COLLATE Latin1_General_100_BIN2 = N'Paksan_Test')
         OR (N'$(PAKSAN_VT_ORTAM)' COLLATE Latin1_General_100_BIN2 = N'canli'
             AND DB_NAME() COLLATE Latin1_General_100_BIN2 = N'Paksan_Canli'))
-    THROW 50021, N'<Codex metni: veritabanı adı ortamla uyuşmuyor>', 1;
+    THROW 50021, N'veritabanı adı ortamla uyuşmuyor; ortam dosyasını kontrol edip doğru veritabanına bağlanın (yerel: Paksan_Yerel, sinama: Paksan_Sinama1-9, test: Paksan_Test, canli: Paksan_Canli)', 1;
 
 /* Giriş adları ortamdan türetilir (tools/vt/ortam.mjs girisAdlari):
    yanlış ortamın girişine yetki verilmesin. */
@@ -73,11 +73,11 @@ IF    N'$(PAKSAN_VT_GIRIS_SAHIP)'     COLLATE Latin1_General_100_BIN2 <> N'paksa
    OR N'$(PAKSAN_VT_GIRIS_UYGULAMA)'  COLLATE Latin1_General_100_BIN2 <> N'paksan_$(PAKSAN_VT_ORTAM)_uygulama'
    OR N'$(PAKSAN_VT_GIRIS_YONETICI)'  COLLATE Latin1_General_100_BIN2 <> N'paksan_$(PAKSAN_VT_ORTAM)_yonetici'
    OR N'$(PAKSAN_VT_GIRIS_RAPOR)'     COLLATE Latin1_General_100_BIN2 <> N'paksan_$(PAKSAN_VT_ORTAM)_rapor'
-    THROW 50022, N'<Codex metni: giriş adları paksan_<ortam>_sahip, _uygulama, _yonetici, _rapor biçiminde olmalı>', 1;
+    THROW 50022, N'giriş adlarını paksan_<ortam>_sahip, _uygulama, _yonetici, _rapor biçimine uygun olarak düzenleyin', 1;
 
 IF CONVERT(nvarchar(128), DATABASEPROPERTYEX(DB_NAME(), 'Collation')) COLLATE Latin1_General_100_BIN2
    <> N'Latin1_General_100_CI_AS'
-    THROW 50023, N'<Codex metni: veritabanının harmanlaması Latin1_General_100_CI_AS değil; önce K01 çalışmalı>', 1;
+    THROW 50023, N'veritabanının harmanlaması Latin1_General_100_CI_AS değil; ortam dosyasındaki veritabanı adını kontrol edip önce K01 betiğini master veritabanında çalıştırın', 1;
 
 /* Ortam işareti varsa bu kurulumla aynı olmalı. Satırı olmayan işaret
    tablosu (yarıda kalmış kurulum) aşağıda tamamlanır. */
@@ -88,7 +88,7 @@ BEGIN
                FROM sistem.Ortam AS o
                WHERE o.OrtamKodu <> N'$(PAKSAN_VT_ORTAM)'
                   OR o.VeritabaniAdi <> N'$(PAKSAN_VT_VERITABANI)')
-        THROW 50024, N'<Codex metni: veritabanı başka bir ortama ait (sistem.Ortam); dokunulmadı>', 1;
+        THROW 50024, N'veritabanı başka bir ortama ait (sistem.Ortam); değişiklik yapılmadı. Ortam dosyasını kontrol edip hedef veritabanını ortama göre seçin (yerel: Paksan_Yerel, sinama: Paksan_Sinama1-9, test: Paksan_Test, canli: Paksan_Canli)', 1;
 END;
 
 /* Aynı adla SQL girişi değil de başka türde bir sunucu sorumlusu varsa
@@ -98,14 +98,14 @@ IF EXISTS (SELECT 1
            WHERE sp.name IN (N'$(PAKSAN_VT_GIRIS_SAHIP)', N'$(PAKSAN_VT_GIRIS_UYGULAMA)',
                              N'$(PAKSAN_VT_GIRIS_YONETICI)', N'$(PAKSAN_VT_GIRIS_RAPOR)')
              AND sp.type <> N'S')
-    THROW 50025, N'<Codex metni: giriş adı SQL girişi olmayan bir sunucu sorumlusunda kullanılıyor>', 1;
+    THROW 50025, N'giriş adı SQL girişi olmayan bir sunucu sorumlusunda kullanılıyor; ad çakışmasını veritabanı yöneticisiyle giderip yeniden deneyin', 1;
 
 IF EXISTS (SELECT 1
            FROM sys.extended_properties AS ep
            WHERE ep.class = 0
              AND ep.name = N'PaksanOrtam'
              AND CONVERT(nvarchar(128), ep.value) COLLATE Latin1_General_100_BIN2 <> N'$(PAKSAN_VT_ORTAM)')
-    THROW 50024, N'<Codex metni: veritabanı başka bir ortama ait (PaksanOrtam özelliği); dokunulmadı>', 1;
+    THROW 50024, N'veritabanı başka bir ortama ait (PaksanOrtam özelliği); değişiklik yapılmadı. Ortam dosyasını kontrol edip doğru veritabanına bağlanın (yerel: Paksan_Yerel, sinama: Paksan_Sinama1-9, test: Paksan_Test, canli: Paksan_Canli)', 1;
 GO
 
 /* --------------------------------------------------------------------------
@@ -204,7 +204,7 @@ BEGIN
                FROM sys.database_principals AS dp
                WHERE dp.sid = SUSER_SID(N'$(PAKSAN_VT_GIRIS_SAHIP)')
                  AND dp.name <> N'dbo')
-        THROW 50026, N'<Codex metni: sahip girişinin bu veritabanında ayrı bir kullanıcısı var; sahiplik verilemedi>', 1;
+        THROW 50026, N'sahip girişinin bu veritabanında ayrı bir kullanıcısı var; sahiplik verilemedi. Kullanıcı eşlemesini veritabanı yöneticisiyle kontrol edip yeniden deneyin', 1;
 
     ALTER AUTHORIZATION ON DATABASE::[$(PAKSAN_VT_VERITABANI)] TO [$(PAKSAN_VT_GIRIS_SAHIP)];
 END;
@@ -353,7 +353,7 @@ IF NOT EXISTS (SELECT 1 FROM sistem.Ortam)
 IF NOT EXISTS (SELECT 1 FROM sistem.Ortam
                WHERE OrtamKodu = N'$(PAKSAN_VT_ORTAM)'
                  AND VeritabaniAdi = N'$(PAKSAN_VT_VERITABANI)')
-    THROW 50024, N'<Codex metni: ortam işareti bu kurulumla uyuşmuyor>', 1;
+    THROW 50024, N'ortam işareti bu kurulumla uyuşmuyor; ortam dosyasını kontrol edip doğru veritabanına bağlanın (yerel: Paksan_Yerel, sinama: Paksan_Sinama1-9, test: Paksan_Test, canli: Paksan_Canli)', 1;
 
 /* Aynı değer veritabanı özelliği olarak: SSMS'te veritabanı özellikleri
    penceresinde ve yedekten geri yüklenmiş kopyada tablo açılmadan görünür. */
@@ -371,6 +371,6 @@ INSTEAD OF UPDATE, DELETE
 AS
 BEGIN
     SET NOCOUNT ON;
-    THROW 51011, N''<Codex metni: ortam işareti değiştirilemez ve silinemez>'', 1;
+    THROW 51011, N''ortam işareti denetim izini ve ortam ayrımını korumak için değiştirilemez ve silinemez; işlem için doğru ortamın veritabanına bağlanın'', 1;
 END;');
 GO

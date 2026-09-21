@@ -1,7 +1,6 @@
 import { extractYear, GARANTI_YIL, normalizeSerial } from '../../../../lib/serial'
 import { YAPILAN_IS } from '../../../../lib/servisKaydi'
 import { araligiCoz } from '../../suzgec'
-import { codexBekliyor } from '../metin'
 import {
   fark, farkPuan, modelAdi, musteriTalebiMi, ondalik, oran, RENK, servisZiyaretleri, talepModeli, yuzde,
 } from '../hesap'
@@ -44,33 +43,33 @@ import {
    açıldığı yıla uygulanıyor.
    ========================================================================== */
 
-const M = codexBekliyor({
+const M = {
   ad: 'Ürün Kalitesi',
   soru: 'Hangi makine ne sıklıkla arızalanıyor?',
 
   talep: 'Servis talebi (iptal hariç)',
-  talepAlt: (iptal) => (iptal ? `Seçilen dönemde açılan · ${iptal} iptal edilen sayılmadı` : 'Seçilen dönemde açılan'),
+  talepAlt: (iptal) => (iptal ? `Seçilen dönemde açılan · iptal edilen ${iptal} talep sayılmadı` : 'Seçilen dönemde açılan'),
   makine: 'Arıza bildirilen makine',
-  makineAlt: 'Servis talebi açılan farklı makine',
+  makineAlt: 'Seri numarasına göre farklı makine sayısı; seri numarası olmayan talepler hariç',
   oran: 'Bütün makinelerde 100 makineye düşen talep',
   oranAlt: (taban) => `Dönem sonunda kayıtlı ${taban} makinenin hepsine göre · modellere göre dağılımı grafikte`,
   tekrar: 'Tekrar arızalanan makine',
-  tekrarAlt: 'Dönemde ikinci talebi gelen ya da talebi yeniden açılan',
+  tekrarAlt: 'Seçilen dönemde en az iki talebi olan ya da bu dönemdeki talebinde sorunun sürdüğü bildirilen',
   arizaYok: '"Arıza bulunamadı" oranı',
-  arizaYokAlt: (n) => `${n} servis ziyaretinde · yüksekse gereksiz ziyaret var demektir`,
+  arizaYokAlt: (n) => `İşi kaydedilen ${n} ziyaret içinde; ilk kurulumlar hariç`,
   garanti: 'Garanti süresindeki arıza',
   garantiAlt: (bilinmeyen) =>
     bilinmeyen
-      ? `Arıza bildirilen makinelerden · ${bilinmeyen} makinenin üretim yılı okunamadı`
-      : 'Arıza bildirilen makinelerden garantisi sürenler',
+      ? `Arıza bildirilen makinelerden · üretim yılı okunamayan ${bilinmeyen} makine hesap dışında`
+      : 'Arıza bildirilen makinelerden talebin açıldığı yıl garantisi sürenlerin oranı',
 
   grafikOran: 'Modellere göre 100 makineye düşen talep',
   grafikOranAlt: (esik, gizli, ortalamaVar) =>
     (ortalamaVar
-      ? `"Bütün makineler" satırı, grafikte olmayan modeller de dahil bütün makinelerin oranı; üstündeki model bu ortalamadan kötü, altındaki iyi. `
+      ? `"Bütün makineler" satırı, grafikte gösterilmeyen modeller dahil bütün makineler için hesaplanan orandır. Üstündeki modellerde 100 makineye düşen talep bu orandan yüksek, altındakilerde düşüktür. `
       : '') +
     (gizli
-      ? `Kayıtlı makinesi ${esik} makineden az olan ${gizli} model gösterilmiyor: birkaç makinelik modelde tek talep oranı çok oynatır, bu da modelin kalitesini değil tesadüfü gösterir. Bu modellerin talep sayısı model karnesinde. `
+      ? `Kayıtlı makinesi ${esik} makineden az olan ${gizli} model gösterilmiyor: birkaç makinelik modelde tek talep oranı çok oynatır, bu nedenle az sayıda makineyle yapılan kalite karşılaştırması yanıltıcı olabilir. Bu modellerin talep sayısı model karnesinde. `
       : '') +
     'Bir satıra tıklayınca o modelin talepleri açılır.',
   grafikModel: 'Model',
@@ -87,7 +86,7 @@ const M = codexBekliyor({
      sayı, öbürünün neden boş olduğunu ekrandan öğrenemiyordu. Notlar da
      eşiği yalnız model başına orana bağlıyordu. */
   tabloYilAciklama: (esik) =>
-    `Üretim yılı seri numarasından okunuyor. Eski makine daha çok servis istiyorsa oran yıllar geriye gittikçe artar. Oran yalnız kayıtlı makinesi en az ${esik} olan üretim yılında gösteriliyor. Toplam satırı yukarıdaki "Bütün makinelerde" kutusuyla aynı sayıdır.`,
+    `Üretim yılı seri numarasından okunur. Her yıl için 100 kayıtlı makineye düşen servis talebi gösterilir. Oran yalnız kayıtlı makinesi en az ${esik} olan üretim yılında gösterilir; az sayıda makinede tek talep oranı büyük ölçüde değiştirebildiği için karşılaştırma yanıltıcı olabilir. Toplam satırındaki oran, yukarıdaki "Bütün makinelerde" kutusuyla aynıdır.`,
   sutun: {
     model: 'Model', kayitli: 'Kayıtlı makine (dönem sonu)', talep: 'Servis talebi (iptal hariç)',
     oran: '100 makineye düşen talep',
@@ -100,19 +99,19 @@ const M = codexBekliyor({
   toplam: 'Toplam',
 
   notlar: (esik) => [
-    'Servis talebi (iptal hariç): seçilen dönemde açılan servis talepleri. İptal edilen talep sayılmaz; yanlış açılmış ya da müşterinin vazgeçtiği talep makinenin arızası değildir. Bu yüzden öteki sekmelerdeki "servis talebi" sayısından (iptal dahil) küçük olabilir.',
+    'Servis talebi (iptal hariç): seçilen dönemde açılan servis talepleri. İptal edilen talep sayılmaz; yanlış açılmış ya da müşterinin vazgeçtiği bir talep, tek başına arıza olduğunu göstermez. Bu yüzden öteki sekmelerdeki "servis talebi" sayısından (iptal dahil) küçük olabilir.',
     'Arıza bildirilen makine: bu taleplerin geldiği farklı makine sayısı (seri numarasına göre). Seri numarası yazılmamış talep makine sayısına girmez.',
     'Kayıtlı makine (dönem sonu): müşterilerin uygulamaya kaydettiği makineler, seçilen dönemin sonundaki hâliyle. Aynı seri numarası bir kez sayılır.',
-    `100 makineye düşen talep: servis talebi (iptal hariç) ÷ kayıtlı makine × 100. "Bütün makinelerde" kutusu bütün makineleri birlikte sayar; grafik ve model karnesi aynı hesabı her model için ayrı yapar. Kutudaki sayı, grafikteki "Bütün makineler" satırı ve iki tablonun toplam satırı birebir aynıdır. Model ve üretim yılı başına oran yalnız kayıtlı makinesi en az ${esik} olan satırda gösterilir: dört makinelik bir modelde tek talep oranı 25 puan oynatır, bu da modelin kalitesini değil tesadüfü gösterir. "Bütün makinelerde" kutusu bu eşikten geçmez, çünkü orada bütün defter paydadır.`,
+    `100 makineye düşen talep: servis talebi (iptal hariç) ÷ kayıtlı makine × 100. "Bütün makinelerde" kutusu bütün makineleri birlikte sayar; grafik ve model karnesi aynı hesabı her model için ayrı yapar. Kutudaki sayı, grafikteki "Bütün makineler" satırı ve iki tablonun toplam satırı birebir aynıdır. Model ve üretim yılı başına oran yalnız kayıtlı makinesi en az ${esik} olan satırda gösterilir: dört makinelik bir modelde tek talep oranı 25 puan oynatır, bu nedenle az sayıda makineyle yapılan kalite karşılaştırması yanıltıcı olabilir. "Bütün makinelerde" kutusu bu eşikten geçmez, çünkü orada bütün defter paydadır.`,
     'Tekrar arızalanan makine: seçilen dönemde iki ya da daha çok servis talebi gelen, ya da talebinde müşterinin "sorun devam ediyor" dediği makineler.',
     '"Arıza bulunamadı" oranı: tarihi seçilen döneme düşen servis ziyaretlerinden, yapılan iş "Arıza Bulunamadı" yazılanların payı. İlk kurulum ziyaretleri ve işi henüz yazılmamış ziyaretler hesaba girmez.',
-    'Ziyaret sayan sütunlar da iptal edilen talebi dışarıda bırakır; talep sayan ölçülerle aynı kural.',
+    'İptal edilen taleplerin servis ziyaretleri de iş, parça ve ziyaret sayımlarına dahil edilmez. Talep sayan ölçülerdeki iptal istisnası bu hesaplarda da geçerlidir.',
     `Garanti süresindeki arıza: arıza bildirilen makinelerden, talebin açıldığı yıl garantisi süren makinelerin payı. Garanti, seri numarasındaki üretim yılından ${GARANTI_YIL} yıl sonrasının sonuna kadar sayılır. Üretim yılı okunamayan makine paydaya girmez.`,
-    'En sık yapılan iş: tarihi seçilen döneme düşen servis ziyaretlerinden, yalnız işi yazılmış olanlar.',
-    'En çok değişen parça: tarihi seçilen döneme düşen bütün servis ziyaretlerinden, adet olarak. Garanti işinin ilk aşamasında servis parçayı istiyor ve parça gönderiliyor; iş henüz yazılmamış olsa da o parça sayılır.',
+    'En sık yapılan iş: seçilen dönemdeki servis ziyaretlerinde kaydedilen işler arasında en sık yapılan iş. Yapılan işi henüz kaydedilmeyen ziyaretler sayılmaz.',
+    'En çok değişen parça: seçilen dönemdeki bütün servis ziyaretlerinde kaydedilen parçalar arasında adedi en yüksek olan parça. Garanti işinin ilk aşamasında servis parçayı ister ve parça gönderilir; yapılan iş henüz kaydedilmemiş olsa da bu parça sayılır.',
     'Yüzde farklar bir önceki eşit uzunluktaki dönemle karşılaştırılır. "Tüm zamanlar" seçiliyse karşılaştırma yapılmaz.',
   ],
-})
+}
 
 /* Oranın gösterildiği en küçük kayıtlı makine sayısı (gerekçesi dosya başında). */
 const ESIK = 5

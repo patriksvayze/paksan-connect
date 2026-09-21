@@ -1,6 +1,5 @@
 import { makineninServisi } from '../../../../lib/servisAtama'
 import { tarihYaz } from '../../ortak'
-import { codexBekliyor } from '../metin'
 import {
   fark, farkPuan, kovayaDagit, modelAdi, musteriTalebiMi, oran, RENK, topla, yuzde, zamanKovalari,
 } from '../hesap'
@@ -37,7 +36,7 @@ import {
    birden çok satırda olabiliyor; ili ilk satırından okunuyor.
    ========================================================================== */
 
-const M = codexBekliyor({
+const M = {
   ad: 'Müşteriler ve Bölgeler',
   soru: 'Müşteri tabanımız nerede ve ne hızla büyüyor?',
 
@@ -56,7 +55,7 @@ const M = codexBekliyor({
   izinAlt: (n, toplam) => `${toplam} müşteriden ${n} tanesi`,
 
   grafikKayit: 'Yeni müşteri ve makine kaydı',
-  grafikKayitAlt: 'Zaman içinde, aynı ölçekte.',
+  grafikKayitAlt: 'Seçilen dönemdeki yeni müşteri ve makine kayıtlarının zaman içindeki dağılımı. İki grafik aynı ölçeği kullanır.',
   parcaMusteri: 'Yeni müşteri',
   parcaMakine: 'Makine kaydı',
 
@@ -85,9 +84,9 @@ const M = codexBekliyor({
      no sütunu kardeş tablodaki ("Yeni kayıt olan müşteriler") ile aynı;
      satır tıklaması ayırt edici olsun diye telefonla gidiyor. */
   tabloMusteriAciklama:
-    'Bu dönemde talep açan müşteriler. Çok talep açan müşteri hem en sadık hem de makinesi en çok bozulan olabilir; ikisi de aranmayı hak ediyor. Bir satıra tıklayınca o müşterinin telefonuyla aranmış talep listesi açılır; telefonu yazılı değilse liste adla açılır ve aynı adı taşıyan başka müşterilerin talepleri de görünebilir.',
+    'Seçilen dönemde talep açan müşteriler, talep sayısına göre sıralanır. Talep sayısı tek başına müşteri sadakatini veya arıza sıklığını göstermez; nedenini anlamak için talepleri inceleyin. Bir satıra tıklayınca müşterinin telefon numarasıyla arama yapılan talep listesi açılır; telefon numarası yoksa adla arama yapılır ve aynı adı taşıyan başka müşterilerin talepleri de görünebilir.',
   sutunMusteri: {
-    no: 'Müşteri no',
+    no: 'Müşteri numarası',
     musteri: 'Müşteri',
     il: 'İl',
     toplam: 'Toplam talep',
@@ -101,7 +100,7 @@ const M = codexBekliyor({
   tabloYeni: 'Yeni kayıt olan müşteriler',
   tabloYeniAciklama: 'Kayıt tarihi seçilen döneme düşen müşteriler. "Makineyi aldığı yer" müşterinin kendi beyanı; satış kaydı değil.',
   sutunYeni: {
-    no: 'Müşteri no',
+    no: 'Müşteri numarası',
     ad: 'Ad soyad',
     il: 'İl',
     tarih: 'Kayıt tarihi',
@@ -117,13 +116,13 @@ const M = codexBekliyor({
     'Yeni makine kaydı: kayıt defterine seçilen dönemde düşen makineler. Aynı seri numarası birden çok kez kaydedildiyse bir kez sayılır.',
     'Talep açan müşteri: seçilen dönemde en az bir talep açan müşteriler. Talep müşteri kaydına kimliğiyle ya da telefonuyla bağlanır; kaydı bulunamayan müşteri telefonuna göre bir kez sayılır. Kimliği ve telefonu olmayan talep sayılmaz. Servislerin kendi parça siparişleri dahil değil.',
     'Tekrar gelen müşteri: seçilen dönemde talep açan müşterilerden birden çok talep açanların payı.',
-    'En çok talep açan müşteriler: satırlar müşterinin kimliğine (kaydı yoksa telefonuna) göre ayrılır; aynı adı taşıyan iki müşteri iki satırdır ve müşteri no sütunundan ayırt edilir.',
+    'En çok talep açan müşteriler: talepler önce müşteri kaydına kimlik veya telefon numarasıyla bağlanır. Kayıt bulunamazsa kimlik, o da yoksa telefon numarası kullanılır. İkisi de yoksa talep sayılmaz. Servislerin kendi parça siparişleri dâhil değildir. Aynı adı taşıyan farklı müşteriler ayrı satırlarda gösterilir; müşteri numarası kayıtlıysa bu sütundan ayırt edilebilir.',
     'Kampanya izni veren ve bildirim izni açık: bugün kayıtlı müşterilerin payı; tarih süzgecinden bağımsız.',
     'İl karnesi: müşteri, kaydındaki ile göre; kayıtlı makine, kayıt defterindeki ile göre sayılır. İli yazılı olmayan kayıt tabloda yok.',
     'Servisi olmayan makine: ildeki kayıtlı makinelerden, ne kendisine ne de satan bayiye servis atanmış olanlar. Servis Ağı sekmesindeki kapsama tablosuyla aynı kuralla sayılır.',
     'Yüzde farklar bir önceki eşit uzunluktaki dönemle karşılaştırılır. "Tüm zamanlar" seçiliyse karşılaştırma yapılmaz.',
   ],
-})
+}
 
 /* Bildirim izninin kayıttaki değeri (bkz. lib/bildirim.js →
    BILDIRIM.VERILDI). O dosya Capacitor eklentilerini içe aldığı için

@@ -36,7 +36,7 @@ IF EXISTS (
       ON h.MetinKodu = k.MetinKodu AND h.Surum = k.Surum AND h.DilKodu = k.DilKodu
     WHERE h.IcerikOzeti <> CONVERT(binary(32), k.IcerikOzeti)
 )
-    THROW 50003, N'<Codex metni: KVKK metninin içeriği değişmiş ama sürüm numarası aynı. src/data/kvkk.js içindeki KVKK_SURUM değerini artırın.>', 1;
+    THROW 50003, N'kişisel verilerin korunması metninin içeriği değişmiş ancak sürüm numarası aynı; src/data/kvkk.js içindeki KVKK_SURUM değerini artırın.', 1;
 
 /* kvkk.MetinSurumu — 6 satır, yalnız eksikler eklenir */
 

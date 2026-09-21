@@ -87,7 +87,7 @@ IF EXISTS (
       ON h.MarkaKodu = k.MarkaKodu AND h.Kod = k.Kod
     WHERE h.KaynakOzeti <> CONVERT(binary(32), k.KaynakOzeti)
 )
-    THROW 50002, N'<Codex metni: Bu fiyat listesi kodu veritabanında başka bir içerikle kayıtlı. Arşivdeki liste değiştirilmez; yeni listeye yeni kod verin.>', 1;
+    THROW 50002, N'bu fiyat listesi kodu veritabanında başka bir içerikle kayıtlı; arşivdeki liste değiştirilemez. Yeni listeye yeni bir kod verin.', 1;
 
 /* katalog.FiyatListesi — paksan: önce eski yürürlükteki liste arşive, sonra 2026-07-1 yürürlüğe (markada tek yürürlükteki liste) */
 UPDATE katalog.FiyatListesi SET DurumKodu = N'arsiv'

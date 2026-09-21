@@ -1798,14 +1798,14 @@ export function numaraTalebiKarar(talep, onay, personel, not) {
     islemYaz({
       tur: 'numara',
       ozet: !sonuc
-        ? `${talep.ad} · seri çakışması reddedildi · ${talep.seri}${not ? ' · ' + not : ''}`
+        ? `${talep.ad} · hesap birleştirme talebi reddedildi; kayıtlar taşınmadı · ${talep.seri}${not ? ' · ' + not : ''}`
         : sonuc.bos
-          ? `${talep.ad} · seri çakışması onaylandı · eski hesap ${
+          ? `${talep.ad} · hesap birleştirme talebi onaylandı · eski hesap ${
               sonuc.eskiNo || '—'
-            } · taşınacak kayıt bulunamadı${not ? ' · ' + not : ''}`
-          : `${talep.ad} · seri çakışması onaylandı · eski hesap ${sonuc.eskiNo || '—'} → ${
+            } · eski hesapta taşınacak kayıt bulunamadı${not ? ' · ' + not : ''}`
+          : `${talep.ad} · hesap birleştirme talebi onaylandı · eski hesap ${sonuc.eskiNo || '—'} → ${
               sonuc.yeniNo || '—'
-            } · ${sonuc.makine} makine, ${sonuc.defter} makine kaydı, ${sonuc.talep} talep taşındı${
+            } · ${sonuc.makine} makine, ${sonuc.defter} makine kaydı, ${sonuc.talep} talep yeni hesaba taşındı${
               sonuc.eskiTelBilinmiyor ? ' · eski numara bilinmiyor, numarayla açılan talepler taşınamadı' : ''
             }${not ? ' · ' + not : ''}`,
       personel,
@@ -2083,7 +2083,7 @@ export function servisKaydiGonder(talep, kayit, servisAd) {
      eski kayıtla birlikte arşive gidiyor. */
   if (kayit.asama === ASAMA.parca) {
     const teslimat = teslimatTemizle(kayit.teslimat)
-    if (!teslimat) return { hata: 'Parçanın gönderileceği adresi seçin.' }
+    if (!teslimat) return { hata: 'Teslimat adresini seçin.' }
     kayit = { ...kayit, teslimat }
   }
 
@@ -2474,7 +2474,7 @@ export function servisParcaSiparisi({
      Düz yazı gelirse (eski çağrı) eskisi gibi yalnız `fatura.adres`. */
   const teslim = teslimatTemizle(teslimat)
   const teslimYazi = teslim ? teslim.yazi : typeof teslimat === 'string' ? teslimat.trim() : ''
-  if (!teslimYazi) return { hata: 'Parçanın gönderileceği adresi seçin.' }
+  if (!teslimYazi) return { hata: 'Teslimat adresini seçin.' }
 
   /* Satırları olmayan bir görüntü kaydedilmiyor: okuyan ekranlar
      `parcaFiyat`ın varlığını "fiyat yazılı" diye anlıyor (bkz.

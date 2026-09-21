@@ -51,7 +51,7 @@ USING (
            CONVERT(smallint, v.Sira) AS Sira,
            CONVERT(nvarchar(5), v.Sembol) AS Sembol
     FROM (VALUES
-        (N'TRY', N'<Codex metni: Türk lirası>', 1, NULL)
+        (N'TRY', N'Türk lirası', 1, NULL)
     ) AS v (Kod, Ad, Sira, Sembol)
 ) AS k
     ON h.Kod = k.Kod
@@ -69,36 +69,36 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'ayar', N'<Codex metni: Ayar>', 15),
-        (N'bayi', N'<Codex metni: Bayi>', 5),
-        (N'bildirim', N'<Codex metni: Bildirim>', 9),
-        (N'dekont', N'<Codex metni: Dekont>', 28),
-        (N'destekOturumu', N'<Codex metni: Destek sohbeti>', 22),
-        (N'dogrulamaKodu', N'<Codex metni: Doğrulama kodu>', 19),
-        (N'donemDokumu', N'<Codex metni: Aylık hak ediş dökümü>', 13),
-        (N'dosya', N'<Codex metni: Dosya>', 14),
-        (N'duyuru', N'<Codex metni: Duyuru>', 8),
-        (N'geriBildirim', N'<Codex metni: Geri bildirim>', 10),
-        (N'giden', N'<Codex metni: Giden mesaj>', 23),
-        (N'girisDenemesi', N'<Codex metni: Giriş denemesi>', 21),
-        (N'hakEdis', N'<Codex metni: Hak ediş>', 12),
-        (N'hesap', N'<Codex metni: Müşteri hesabı>', 2),
-        (N'iceAktarim', N'<Codex metni: İçe aktarım>', 17),
-        (N'iceAktarimSatiri', N'<Codex metni: İçe aktarım satırı>', 25),
-        (N'iptalTalepDosyasi', N'<Codex metni: İptal edilen talebin dosyası>', 27),
-        (N'islemKaydi', N'<Codex metni: İşlem kaydı>', 29),
-        (N'kvkkBasvurusu', N'<Codex metni: KVKK başvurusu>', 16),
-        (N'logoSeriSorgusu', N'<Codex metni: LOGO seri sorgusu>', 24),
-        (N'makine', N'<Codex metni: Makine>', 3),
-        (N'oturum', N'<Codex metni: Oturum>', 18),
-        (N'personel', N'<Codex metni: Personel>', 6),
-        (N'rizaOlayi', N'<Codex metni: Rıza kaydı>', 30),
-        (N'rol', N'<Codex metni: Rol>', 7),
-        (N'servis', N'<Codex metni: Servis>', 4),
-        (N'sifreSifirlamaJetonu', N'<Codex metni: Şifre sıfırlama kodu>', 20),
-        (N'talep', N'<Codex metni: Talep>', 1),
-        (N'tekrarAnahtari', N'<Codex metni: Tekrar anahtarı>', 26),
-        (N'telefonDegisikligi', N'<Codex metni: Numara değişikliği talebi>', 11)
+        (N'ayar', N'Ayar', 15),
+        (N'bayi', N'Bayi', 5),
+        (N'bildirim', N'Bildirim', 9),
+        (N'dekont', N'Dekont', 28),
+        (N'destekOturumu', N'Destek sohbeti', 22),
+        (N'dogrulamaKodu', N'Doğrulama kodu', 19),
+        (N'donemDokumu', N'Aylık hak ediş dökümü', 13),
+        (N'dosya', N'Dosya', 14),
+        (N'duyuru', N'Duyuru', 8),
+        (N'geriBildirim', N'Geri bildirim', 10),
+        (N'giden', N'Giden mesaj', 23),
+        (N'girisDenemesi', N'Giriş denemesi', 21),
+        (N'hakEdis', N'Hak ediş', 12),
+        (N'hesap', N'Müşteri hesabı', 2),
+        (N'iceAktarim', N'İçe aktarım', 17),
+        (N'iceAktarimSatiri', N'İçe aktarım satırı', 25),
+        (N'iptalTalepDosyasi', N'İptal edilen talebin dosyası', 27),
+        (N'islemKaydi', N'İşlem kaydı', 29),
+        (N'kvkkBasvurusu', N'KVKK başvurusu', 16),
+        (N'logoSeriSorgusu', N'LOGO seri sorgusu', 24),
+        (N'makine', N'Makine', 3),
+        (N'oturum', N'Oturum', 18),
+        (N'personel', N'Personel', 6),
+        (N'rizaOlayi', N'Rıza kaydı', 30),
+        (N'rol', N'Rol', 7),
+        (N'servis', N'Servis', 4),
+        (N'sifreSifirlamaJetonu', N'Şifre sıfırlama kodu', 20),
+        (N'talep', N'Talep', 1),
+        (N'tekrarAnahtari', N'Tekrar anahtarı', 26),
+        (N'telefonDegisikligi', N'Numara değişikliği talebi', 11)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -139,13 +139,13 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'api', N'<Codex metni: Sunucu>', 4),
-        (N'backoffice', N'<Codex metni: Personel paneli>', 2),
-        (N'betik', N'<Codex metni: Kurulum betiği>', 5),
-        (N'connect', N'<Codex metni: Müşteri uygulaması>', 1),
-        (N'entegrasyon', N'<Codex metni: Dış sistem aktarımı>', 6),
-        (N'servisim', N'<Codex metni: Servis uygulaması>', 3),
-        (N'yonetim', N'<Codex metni: Yönetim komutu>', 7)
+        (N'api', N'Sunucu', 4),
+        (N'backoffice', N'Personel paneli', 2),
+        (N'betik', N'Kurulum betiği', 5),
+        (N'connect', N'Müşteri uygulaması', 1),
+        (N'entegrasyon', N'Dış sistem aktarımı', 6),
+        (N'servisim', N'Servis uygulaması', 3),
+        (N'yonetim', N'Yönetim komutu', 7)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -163,11 +163,11 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'entegrasyon', N'<Codex metni: Dış sistem>', 5),
-        (N'musteri', N'<Codex metni: Müşteri>', 1),
-        (N'personel', N'<Codex metni: Personel>', 2),
-        (N'servis', N'<Codex metni: Servis>', 3),
-        (N'sistem', N'<Codex metni: Sistem>', 4)
+        (N'entegrasyon', N'Dış sistem', 5),
+        (N'musteri', N'Müşteri', 1),
+        (N'personel', N'Personel', 2),
+        (N'servis', N'Servis', 3),
+        (N'sistem', N'Sistem', 4)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -185,12 +185,12 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'entegrasyon', N'<Codex metni: Dış sistem aktarımı>', 6),
-        (N'iceAktarim', N'<Codex metni: Excel içe aktarımı>', 5),
-        (N'logo', N'<Codex metni: LOGO>', 4),
-        (N'musteri', N'<Codex metni: Müşteri uygulaması>', 1),
-        (N'personel', N'<Codex metni: Personel paneli>', 3),
-        (N'servis', N'<Codex metni: Servis uygulaması>', 2)
+        (N'entegrasyon', N'Dış sistem aktarımı', 6),
+        (N'iceAktarim', N'Excel içe aktarımı', 5),
+        (N'logo', N'LOGO', 4),
+        (N'musteri', N'Müşteri uygulaması', 1),
+        (N'personel', N'Personel paneli', 3),
+        (N'servis', N'Servis uygulaması', 2)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -208,9 +208,9 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'fcm', N'<Codex metni: Android bildirim servisi>', 2),
-        (N'logo', N'<Codex metni: LOGO muhasebe>', 1),
-        (N'webPush', N'<Codex metni: Tarayıcı bildirimi>', 3)
+        (N'fcm', N'Android bildirim servisi', 2),
+        (N'logo', N'LOGO muhasebe sistemi', 1),
+        (N'webPush', N'Tarayıcı bildirim servisi', 3)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -228,10 +228,10 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'eposta', N'<Codex metni: E-posta>', 2),
-        (N'push', N'<Codex metni: Telefon bildirimi>', 3),
-        (N'sms', N'<Codex metni: SMS>', 1),
-        (N'webPush', N'<Codex metni: Tarayıcı bildirimi>', 4)
+        (N'eposta', N'E-posta', 2),
+        (N'push', N'Telefon bildirimi', 3),
+        (N'sms', N'SMS', 1),
+        (N'webPush', N'Tarayıcı bildirimi', 4)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -249,16 +249,16 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'bayi', N'<Codex metni: Bayi listesi>', 22),
+        (N'bayi', N'Bayi listesi', 22),
         (N'demo', N'Demo verisi', 20),
-        (N'devir', N'<Codex metni: Üreticiye devir>', 18),
+        (N'devir', N'Üreticiye devir', 18),
         (N'durum', N'Talep durumu', 2),
         (N'duyuru', N'Duyuru', 9),
         (N'excel', N'Excel aktarımı', 19),
         (N'geribildirim', N'Geri bildirim', 8),
-        (N'hakEdis', N'<Codex metni: Hak ediş>', 24),
+        (N'hakEdis', N'Hak ediş', 24),
         (N'katalog', N'Parça kataloğu', 14),
-        (N'kvkk', N'<Codex metni: KVKK>', 26),
+        (N'kvkk', N'KVKK', 26),
         (N'makine', N'Makine kaydı', 5),
         (N'musteri', N'Müşteri kaydı', 7),
         (N'not', N'Talep notu', 3),
@@ -268,11 +268,11 @@ USING (
         (N'personel', N'Personel', 10),
         (N'rol', N'Rol ve yetki', 11),
         (N'servis', N'Servis listesi', 13),
-        (N'servisKaydi', N'<Codex metni: Servis kaydı>', 23),
-        (N'sevk', N'<Codex metni: Parça sevki>', 25),
+        (N'servisKaydi', N'Servis kaydı', 23),
+        (N'sevk', N'Parça sevki', 25),
         (N'sifre', N'Şifre', 12),
         (N'siparis', N'Servis siparişi', 15),
-        (N'sistem', N'<Codex metni: Sistem>', 27),
+        (N'sistem', N'Sistem', 27),
         (N'stok', N'Servis stoku', 16),
         (N'talep', N'Talep', 1),
         (N'teklif', N'Servis fiyat teklifi', 17)
@@ -294,88 +294,88 @@ USING (
            CONVERT(smallint, v.Sira) AS Sira,
            CONVERT(nvarchar(40), v.KategoriKodu) AS KategoriKodu
     FROM (VALUES
-        (N'ayarDegisti', N'<Codex metni: Ayar değiştirildi>', 81, N'sistem'),
-        (N'basvuruAlindi', N'<Codex metni: KVKK başvurusu alındı>', 78, N'kvkk'),
-        (N'bayiAtamasiKaldirildi', N'<Codex metni: Bayi ataması kaldırıldı>', 12, N'durum'),
-        (N'bayiEklendi', N'<Codex metni: Bayi eklendi>', 56, N'bayi'),
-        (N'bayiGuncellendi', N'<Codex metni: Bayi güncellendi>', 57, N'bayi'),
-        (N'bayiyeAtandi', N'<Codex metni: Talep bayiye atandı>', 11, N'durum'),
-        (N'cikisYapildi', N'<Codex metni: Çıkış yapıldı>', 64, N'oturum'),
-        (N'dekontGecersizKilindi', N'<Codex metni: Dekont geçersiz sayıldı>', 19, N'odeme'),
-        (N'dekontYuklendi', N'<Codex metni: Dekont yüklendi>', 18, N'odeme'),
-        (N'donemDokumuOdendi', N'<Codex metni: Aylık döküm ödendi>', 74, N'hakEdis'),
-        (N'donemDokumuOlusturuldu', N'<Codex metni: Aylık döküm oluşturuldu>', 73, N'hakEdis'),
-        (N'durumDegisti', N'<Codex metni: Talep durumu değişti>', 6, N'durum'),
-        (N'duyuruKaldirildi', N'<Codex metni: Duyuru kaldırıldı>', 39, N'duyuru'),
-        (N'duyuruYayinlandi', N'<Codex metni: Duyuru yayımlandı>', 38, N'duyuru'),
-        (N'eklemeYapildi', N'<Codex metni: Talebe ekleme yapıldı>', 3, N'talep'),
-        (N'excelDisaAktarildi', N'<Codex metni: Excel dosyası indirildi>', 61, N'excel'),
-        (N'excelIceAktarildi', N'<Codex metni: Excel dosyası içe aktarıldı>', 62, N'excel'),
-        (N'garantiBelgesiKararlandi', N'<Codex metni: Garanti belgesi karara bağlandı>', 27, N'makine'),
-        (N'garantiDisiKapatildi', N'<Codex metni: Garanti dışında kapatıldı>', 66, N'servisKaydi'),
-        (N'geriBildirimCevaplandi', N'<Codex metni: Geri bildirim cevaplandı>', 37, N'geribildirim'),
-        (N'geriBildirimGeldi', N'<Codex metni: Geri bildirim geldi>', 35, N'geribildirim'),
-        (N'geriBildirimOkundu', N'<Codex metni: Geri bildirim okundu>', 36, N'geribildirim'),
-        (N'girisSifresiSifirlandi', N'<Codex metni: Giriş şifresi sıfırlandı>', 50, N'sifre'),
-        (N'girisYapildi', N'<Codex metni: Giriş yapıldı>', 63, N'oturum'),
-        (N'hakEdisDuzeltildi', N'<Codex metni: Hak ediş düzeltildi>', 68, N'hakEdis'),
-        (N'hakEdisOnayiGeriAlindi', N'<Codex metni: Hak ediş onayı geri alındı>', 71, N'hakEdis'),
-        (N'hakEdisOnaylandi', N'<Codex metni: Hak ediş onaylandı>', 69, N'hakEdis'),
-        (N'hakEdisReddedildi', N'<Codex metni: Hak ediş reddedildi>', 70, N'hakEdis'),
-        (N'hesapAcildi', N'<Codex metni: Müşteri hesabı açıldı>', 31, N'musteri'),
-        (N'hesapAnonimlestirildi', N'<Codex metni: Müşteri hesabı anonimleştirildi>', 79, N'kvkk'),
-        (N'hesapGuncellendi', N'<Codex metni: Müşteri hesabı güncellendi>', 32, N'musteri'),
-        (N'hesapHareketiDuzeltildi', N'<Codex metni: Servis hesap hareketi düzeltildi>', 72, N'hakEdis'),
-        (N'hesaplarBirlestirildi', N'<Codex metni: Müşteri hesapları birleştirildi>', 34, N'musteri'),
-        (N'kargoBilgisiGuncellendi', N'<Codex metni: Kargo bilgisi güncellendi>', 76, N'sevk'),
-        (N'kisiselVeriAnonimlestirildi', N'<Codex metni: Kişisel veriler anonimleştirildi>', 80, N'kvkk'),
-        (N'logoCariKoduEslendi', N'<Codex metni: LOGO cari kodu eşlendi>', 60, N'excel'),
-        (N'makineKaydedildi', N'<Codex metni: Makine kaydedildi>', 22, N'makine'),
-        (N'makineSahibiDegisti', N'<Codex metni: Makinenin sahibi değişti>', 25, N'makine'),
-        (N'makineSatisiKaydedildi', N'<Codex metni: Makine satışı kaydedildi>', 26, N'makine'),
-        (N'makineServisAtamasiKaldirildi', N'<Codex metni: Makinenin servis ataması kaldırıldı>', 24, N'makine'),
-        (N'makineServisiAtandi', N'<Codex metni: Makineye servis atandı>', 23, N'makine'),
-        (N'notEklendi', N'<Codex metni: Talebe not eklendi>', 17, N'not'),
-        (N'odemeOnayiGeriAlindi', N'<Codex metni: Ödeme onayı geri alındı>', 21, N'odeme'),
-        (N'odemeOnaylandi', N'<Codex metni: Ödeme onaylandı>', 20, N'odeme'),
-        (N'parcaGonderildi', N'<Codex metni: Parça gönderildi>', 75, N'sevk'),
-        (N'parcaTakildi', N'<Codex metni: Parça takıldı>', 67, N'servisKaydi'),
-        (N'personelEklendi', N'<Codex metni: Personel eklendi>', 40, N'personel'),
-        (N'personelGuncellendi', N'<Codex metni: Personel güncellendi>', 41, N'personel'),
-        (N'personelPasiflestirildi', N'<Codex metni: Personelin girişi kapatıldı>', 42, N'personel'),
-        (N'randevuPlanlandi', N'<Codex metni: Randevu planlandı>', 10, N'durum'),
-        (N'rizaKaydedildi', N'<Codex metni: Rıza kaydedildi>', 77, N'kvkk'),
-        (N'rolEklendi', N'<Codex metni: Rol eklendi>', 43, N'rol'),
-        (N'rolGuncellendi', N'<Codex metni: Rol güncellendi>', 44, N'rol'),
-        (N'rolSilindi', N'<Codex metni: Rol silindi>', 45, N'rol'),
-        (N'saklamaUygulandi', N'<Codex metni: Saklama süreleri uygulandı>', 82, N'sistem'),
-        (N'servisDestekIstedi', N'<Codex metni: Servis destek istedi>', 59, N'devir'),
-        (N'servisEklendi', N'<Codex metni: Servis eklendi>', 51, N'servis'),
-        (N'servisGuncellendi', N'<Codex metni: Servis güncellendi>', 52, N'servis'),
-        (N'servisHesabiAcildi', N'<Codex metni: Servis giriş hesabı açıldı>', 53, N'servis'),
-        (N'servisHesabiKapatildi', N'<Codex metni: Servis giriş hesabı kapatıldı>', 54, N'servis'),
-        (N'servisKaydiGonderildi', N'<Codex metni: Servis kaydı gönderildi>', 65, N'servisKaydi'),
-        (N'servisSifreYardimIstendi', N'<Codex metni: Servis şifre yardımı istedi>', 48, N'sifre'),
-        (N'servisSifreYardimKapatildi', N'<Codex metni: Servisin şifre yardımı talebi kapatıldı>', 49, N'sifre'),
-        (N'servisSiparisiOlusturuldu', N'<Codex metni: Servis parça siparişi oluşturuldu>', 58, N'siparis'),
-        (N'servisYetkisiDegisti', N'<Codex metni: Servisin marka yetkisi değişti>', 55, N'servis'),
-        (N'sifreDegistirildi', N'<Codex metni: Şifre değiştirildi>', 47, N'sifre'),
-        (N'sifreSifirlamaIstendi', N'<Codex metni: Şifre sıfırlama istendi>', 46, N'sifre'),
-        (N'talepDurumuElleDegisti', N'<Codex metni: Talep durumu elle değiştirildi>', 13, N'durum'),
-        (N'talepElleAcildi', N'<Codex metni: Talep elle açıldı>', 2, N'talep'),
-        (N'talepElleIptalEdildi', N'<Codex metni: Talep elle iptal edildi>', 15, N'durum'),
-        (N'talepElleKapatildi', N'<Codex metni: Talep elle kapatıldı>', 14, N'durum'),
-        (N'talepElleYenidenAcildi', N'<Codex metni: Talep elle yeniden açıldı>', 16, N'durum'),
-        (N'talepGizlendi', N'<Codex metni: Talep gizlendi>', 4, N'talep'),
-        (N'talepIptalEdildi', N'<Codex metni: Talep iptal edildi>', 8, N'durum'),
-        (N'talepKapatildi', N'<Codex metni: Talep kapatıldı>', 7, N'durum'),
-        (N'talepOlusturuldu', N'<Codex metni: Talep oluşturuldu>', 1, N'talep'),
-        (N'talepYenidenAcildi', N'<Codex metni: Talep yeniden açıldı>', 5, N'talep'),
-        (N'tcVergiNoGoruntulendi', N'<Codex metni: T.C. kimlik ya da vergi numarası görüntülendi>', 33, N'musteri'),
-        (N'teklifVerildi', N'<Codex metni: Teklif verildi>', 9, N'durum'),
-        (N'telefonDegisikligiIstendi', N'<Codex metni: Numara değişikliği istendi>', 28, N'numara'),
-        (N'telefonDegisikligiKararlandi', N'<Codex metni: Numara değişikliği karara bağlandı>', 29, N'numara'),
-        (N'telefonDegistirildi', N'<Codex metni: Müşterinin telefonu değiştirildi>', 30, N'numara')
+        (N'ayarDegisti', N'Ayar değiştirildi', 81, N'sistem'),
+        (N'basvuruAlindi', N'KVKK başvurusu alındı', 78, N'kvkk'),
+        (N'bayiAtamasiKaldirildi', N'Bayi ataması kaldırıldı', 12, N'durum'),
+        (N'bayiEklendi', N'Bayi eklendi', 56, N'bayi'),
+        (N'bayiGuncellendi', N'Bayi güncellendi', 57, N'bayi'),
+        (N'bayiyeAtandi', N'Talep bayiye atandı', 11, N'durum'),
+        (N'cikisYapildi', N'Çıkış yapıldı', 64, N'oturum'),
+        (N'dekontGecersizKilindi', N'Dekont geçersiz sayıldı', 19, N'odeme'),
+        (N'dekontYuklendi', N'Dekont yüklendi', 18, N'odeme'),
+        (N'donemDokumuOdendi', N'Aylık döküm tutarı ödendi', 74, N'hakEdis'),
+        (N'donemDokumuOlusturuldu', N'Aylık döküm oluşturuldu', 73, N'hakEdis'),
+        (N'durumDegisti', N'Talep durumu değişti', 6, N'durum'),
+        (N'duyuruKaldirildi', N'Duyuru kaldırıldı', 39, N'duyuru'),
+        (N'duyuruYayinlandi', N'Duyuru yayımlandı', 38, N'duyuru'),
+        (N'eklemeYapildi', N'Talebe ekleme yapıldı', 3, N'talep'),
+        (N'excelDisaAktarildi', N'Excel dosyası indirildi', 61, N'excel'),
+        (N'excelIceAktarildi', N'Excel dosyası içe aktarıldı', 62, N'excel'),
+        (N'garantiBelgesiKararlandi', N'Garanti belgesi karara bağlandı', 27, N'makine'),
+        (N'garantiDisiKapatildi', N'Garanti dışında kapatıldı', 66, N'servisKaydi'),
+        (N'geriBildirimCevaplandi', N'Geri bildirim cevaplandı', 37, N'geribildirim'),
+        (N'geriBildirimGeldi', N'Geri bildirim alındı', 35, N'geribildirim'),
+        (N'geriBildirimOkundu', N'Geri bildirim okundu', 36, N'geribildirim'),
+        (N'girisSifresiSifirlandi', N'Giriş şifresi sıfırlandı', 50, N'sifre'),
+        (N'girisYapildi', N'Giriş yapıldı', 63, N'oturum'),
+        (N'hakEdisDuzeltildi', N'Hak ediş düzeltildi', 68, N'hakEdis'),
+        (N'hakEdisOnayiGeriAlindi', N'Hak ediş onayı geri alındı', 71, N'hakEdis'),
+        (N'hakEdisOnaylandi', N'Hak ediş onaylandı', 69, N'hakEdis'),
+        (N'hakEdisReddedildi', N'Hak ediş reddedildi', 70, N'hakEdis'),
+        (N'hesapAcildi', N'Müşteri hesabı açıldı', 31, N'musteri'),
+        (N'hesapAnonimlestirildi', N'Müşteri hesabı anonimleştirildi', 79, N'kvkk'),
+        (N'hesapGuncellendi', N'Müşteri hesabı güncellendi', 32, N'musteri'),
+        (N'hesapHareketiDuzeltildi', N'Servis hesap hareketi düzeltildi', 72, N'hakEdis'),
+        (N'hesaplarBirlestirildi', N'Müşteri hesapları birleştirildi', 34, N'musteri'),
+        (N'kargoBilgisiGuncellendi', N'Kargo bilgisi güncellendi', 76, N'sevk'),
+        (N'kisiselVeriAnonimlestirildi', N'Kişisel veriler anonimleştirildi', 80, N'kvkk'),
+        (N'logoCariKoduEslendi', N'LOGO cari kodu eşlendi', 60, N'excel'),
+        (N'makineKaydedildi', N'Makine kaydedildi', 22, N'makine'),
+        (N'makineSahibiDegisti', N'Makinenin sahibi değişti', 25, N'makine'),
+        (N'makineSatisiKaydedildi', N'Makine satışı kaydedildi', 26, N'makine'),
+        (N'makineServisAtamasiKaldirildi', N'Makinenin servis ataması kaldırıldı', 24, N'makine'),
+        (N'makineServisiAtandi', N'Makineye servis atandı', 23, N'makine'),
+        (N'notEklendi', N'Talebe not eklendi', 17, N'not'),
+        (N'odemeOnayiGeriAlindi', N'Ödeme onayı geri alındı', 21, N'odeme'),
+        (N'odemeOnaylandi', N'Ödeme onaylandı', 20, N'odeme'),
+        (N'parcaGonderildi', N'Parça gönderildi', 75, N'sevk'),
+        (N'parcaTakildi', N'Parça takıldı', 67, N'servisKaydi'),
+        (N'personelEklendi', N'Personel eklendi', 40, N'personel'),
+        (N'personelGuncellendi', N'Personel bilgileri güncellendi', 41, N'personel'),
+        (N'personelPasiflestirildi', N'Personelin girişi kapatıldı', 42, N'personel'),
+        (N'randevuPlanlandi', N'Randevu planlandı', 10, N'durum'),
+        (N'rizaKaydedildi', N'Rıza kaydedildi', 77, N'kvkk'),
+        (N'rolEklendi', N'Rol eklendi', 43, N'rol'),
+        (N'rolGuncellendi', N'Rol güncellendi', 44, N'rol'),
+        (N'rolSilindi', N'Rol silindi', 45, N'rol'),
+        (N'saklamaUygulandi', N'Saklama süreleri uygulandı', 82, N'sistem'),
+        (N'servisDestekIstedi', N'Servis destek istedi', 59, N'devir'),
+        (N'servisEklendi', N'Servis eklendi', 51, N'servis'),
+        (N'servisGuncellendi', N'Servis güncellendi', 52, N'servis'),
+        (N'servisHesabiAcildi', N'Servis giriş hesabı açıldı', 53, N'servis'),
+        (N'servisHesabiKapatildi', N'Servis giriş hesabı kapatıldı', 54, N'servis'),
+        (N'servisKaydiGonderildi', N'Servis kaydı gönderildi', 65, N'servisKaydi'),
+        (N'servisSifreYardimIstendi', N'Servis şifre yardımı istedi', 48, N'sifre'),
+        (N'servisSifreYardimKapatildi', N'Servisin şifre yardımı talebi kapatıldı', 49, N'sifre'),
+        (N'servisSiparisiOlusturuldu', N'Servis parça siparişi oluşturuldu', 58, N'siparis'),
+        (N'servisYetkisiDegisti', N'Servisin marka yetkisi değişti', 55, N'servis'),
+        (N'sifreDegistirildi', N'Şifre değiştirildi', 47, N'sifre'),
+        (N'sifreSifirlamaIstendi', N'Şifre sıfırlama istendi', 46, N'sifre'),
+        (N'talepDurumuElleDegisti', N'Talep durumu elle değiştirildi', 13, N'durum'),
+        (N'talepElleAcildi', N'Talep elle açıldı', 2, N'talep'),
+        (N'talepElleIptalEdildi', N'Talep elle iptal edildi', 15, N'durum'),
+        (N'talepElleKapatildi', N'Talep elle kapatıldı', 14, N'durum'),
+        (N'talepElleYenidenAcildi', N'Talep elle yeniden açıldı', 16, N'durum'),
+        (N'talepGizlendi', N'Talep gizlendi', 4, N'talep'),
+        (N'talepIptalEdildi', N'Talep iptal edildi', 8, N'durum'),
+        (N'talepKapatildi', N'Talep kapatıldı', 7, N'durum'),
+        (N'talepOlusturuldu', N'Talep oluşturuldu', 1, N'talep'),
+        (N'talepYenidenAcildi', N'Talep yeniden açıldı', 5, N'talep'),
+        (N'tcVergiNoGoruntulendi', N'T.C. kimlik ya da vergi numarası görüntülendi', 33, N'musteri'),
+        (N'teklifVerildi', N'Teklif verildi', 9, N'durum'),
+        (N'telefonDegisikligiIstendi', N'Numara değişikliği istendi', 28, N'numara'),
+        (N'telefonDegisikligiKararlandi', N'Numara değişikliği karara bağlandı', 29, N'numara'),
+        (N'telefonDegistirildi', N'Müşterinin telefon numarası değiştirildi', 30, N'numara')
     ) AS v (Kod, Ad, Sira, KategoriKodu)
 ) AS k
     ON h.Kod = k.Kod
@@ -413,10 +413,10 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'backoffice', N'<Codex metni: Personel paneli>', 4),
-        (N'connect', N'<Codex metni: Müşteri uygulaması>', 1),
-        (N'servisElle', N'<Codex metni: Servis uygulamasından elle>', 2),
-        (N'servisSiparisi', N'<Codex metni: Servisin parça siparişi>', 3)
+        (N'backoffice', N'Personel paneli', 4),
+        (N'connect', N'Müşteri uygulaması', 1),
+        (N'servisElle', N'Servis uygulaması (elle giriş)', 2),
+        (N'servisSiparisi', N'Servisin parça siparişi', 3)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -440,7 +440,7 @@ USING (
         (N'incelemede', N'İncelemede', 2, 0, 1, N'turuncu'),
         (N'iptal', N'İptal', 9, 1, 0, N'gri'),
         (N'kapandi', N'Kapandı', 8, 1, 0, N'yesil'),
-        (N'odemeBekliyor', N'<Codex metni: Ödeme Bekleniyor>', 7, 0, 0, NULL),
+        (N'odemeBekliyor', N'Ödeme bekliyor', 7, 0, 0, NULL),
         (N'onayBekliyor', N'Onay Bekliyor', 5, 0, 1, N'mor'),
         (N'parcaBekliyor', N'Parça Bekleniyor', 6, 0, 1, N'turuncu'),
         (N'planlandi', N'Planlandı', 3, 0, 1, N'mavi'),
@@ -464,8 +464,8 @@ USING (
            CONVERT(smallint, v.Sira) AS Sira,
            CONVERT(nvarchar(40), v.TalepTuruKodu) AS TalepTuruKodu
     FROM (VALUES
-        (N'parcaMasasi', N'<Codex metni: Yedek parça masası>', 2, N'parca'),
-        (N'servisMasasi', N'<Codex metni: Servis masası>', 1, N'servis')
+        (N'parcaMasasi', N'Yedek parça masası', 2, N'parca'),
+        (N'servisMasasi', N'Servis masası', 1, N'servis')
     ) AS v (Kod, Ad, Sira, TalepTuruKodu)
 ) AS k
     ON h.Kod = k.Kod
@@ -483,9 +483,9 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'bayi', N'<Codex metni: Bayide>', 3),
-        (N'paksan', N'<Codex metni: Üreticide>', 1),
-        (N'servis', N'<Codex metni: Serviste>', 2)
+        (N'bayi', N'Bayide', 3),
+        (N'paksan', N'Üreticide', 1),
+        (N'servis', N'Serviste', 2)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -503,9 +503,9 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'bayiServisi', N'<Codex metni: Satan bayinin servisi>', 2),
-        (N'makineAtamasi', N'<Codex metni: Makineye atanmış servis>', 1),
-        (N'servisElle', N'<Codex metni: Servis talebi kendisi açtı>', 3)
+        (N'bayiServisi', N'Makineyi satan bayinin servisi', 2),
+        (N'makineAtamasi', N'Makineye servis ataması', 1),
+        (N'servisElle', N'Servisin kendi açtığı talep', 3)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -566,13 +566,13 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'balya', N'<Codex metni: Balya makineleri>', 1),
-        (N'cayir', N'<Codex metni: Çayır biçme ve ot toplama>', 5),
-        (N'genel', N'<Codex metni: Genel>', 7),
-        (N'rulo', N'<Codex metni: Rulo balya makineleri>', 2),
-        (N'silaj', N'<Codex metni: Silaj ekipmanları>', 4),
-        (N'toprak', N'<Codex metni: Toprak işleme>', 6),
-        (N'yem', N'<Codex metni: Yem karma makineleri>', 3)
+        (N'balya', N'Balya makinesi', 1),
+        (N'cayir', N'Çayır biçme ve ot toplama ekipmanı', 5),
+        (N'genel', N'Genel', 7),
+        (N'rulo', N'Rulo balya makinesi', 2),
+        (N'silaj', N'Silaj ekipmanı', 4),
+        (N'toprak', N'Toprak işleme ekipmanı', 6),
+        (N'yem', N'Yem karma makinesi', 3)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -713,7 +713,7 @@ USING (
         (N'kapsamDisi', N'Bu talep kapsamımız dışında', 6, 0),
         (N'musteriVazgecti', N'Müşteri vazgeçti', 1, 0),
         (N'musteriyeUlasilamadi', N'Müşteriye ulaşılamadı', 2, 0),
-        (N'odemeSuresiDoldu', N'<Codex metni: Ödeme süresi doldu>', 8, 0),
+        (N'odemeSuresiDoldu', N'Ödeme süresi doldu', 8, 0),
         (N'telefondaCozuldu', N'Sorun telefonda çözüldü', 5, 0),
         (N'yanlisAcilmis', N'Yanlışlıkla açılmış talep', 3, 0)
     ) AS v (Kod, Ad, Sira, AciklamaZorunlu)
@@ -798,9 +798,9 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'bitti', N'<Codex metni: İş bitti>', 2),
-        (N'parca', N'<Codex metni: Parça bekleniyor>', 1),
-        (N'yarimKaldi', N'<Codex metni: Yarıda kaldı>', 3)
+        (N'bitti', N'Tamamlandı', 2),
+        (N'parca', N'Parça bekliyor', 1),
+        (N'yarimKaldi', N'Yarıda kaldı', 3)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -837,13 +837,13 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'bayiAtamasi', N'<Codex metni: Bayiye atanınca kapandı>', 5),
-        (N'garantiDisi', N'<Codex metni: Garanti dışında tamamlandı>', 3),
-        (N'hakEdisOnayi', N'<Codex metni: Hak ediş onaylanınca kapandı>', 6),
-        (N'hakEdisReddi', N'<Codex metni: Hak ediş reddedilince kapandı>', 7),
-        (N'parcaTakildi', N'<Codex metni: Parça takılınca kapandı>', 4),
-        (N'personelFormu', N'<Codex metni: Personel kapattı>', 1),
-        (N'servisKaydi', N'<Codex metni: Servis kaydıyla kapandı>', 2)
+        (N'bayiAtamasi', N'Bayi atamasıyla kapanış', 5),
+        (N'garantiDisi', N'Garanti dışı kapanış', 3),
+        (N'hakEdisOnayi', N'Hak ediş onayıyla kapanış', 6),
+        (N'hakEdisReddi', N'Hak ediş reddiyle kapanış', 7),
+        (N'parcaTakildi', N'Parça takılmasıyla kapanış', 4),
+        (N'personelFormu', N'Personel formuyla kapanış', 1),
+        (N'servisKaydi', N'Servis kaydıyla kapanış', 2)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -881,9 +881,9 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'bakiye', N'<Codex metni: Servis hesabından>', 2),
-        (N'fatura', N'<Codex metni: Faturayla>', 3),
-        (N'havale', N'<Codex metni: Havale>', 1)
+        (N'bakiye', N'Servis hesabından ödeme', 2),
+        (N'fatura', N'Faturayla ödeme', 3),
+        (N'havale', N'Havaleyle ödeme', 1)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -901,9 +901,9 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'bekliyor', N'<Codex metni: Onay bekliyor>', 1),
-        (N'onaylandi', N'<Codex metni: Onaylandı>', 2),
-        (N'reddedildi', N'<Codex metni: Reddedildi>', 3)
+        (N'bekliyor', N'Onay bekliyor', 1),
+        (N'onaylandi', N'Onaylandı', 2),
+        (N'reddedildi', N'Reddedildi', 3)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -921,10 +921,10 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'adet', N'<Codex metni: adet>', 2),
-        (N'km', N'<Codex metni: km>', 1),
-        (N'saat', N'<Codex metni: saat>', 3),
-        (N'sabit', N'<Codex metni: sabit tutar>', 4)
+        (N'adet', N'Adet', 2),
+        (N'km', N'Kilometre', 1),
+        (N'saat', N'Saat', 3),
+        (N'sabit', N'Sabit tutar', 4)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -942,9 +942,9 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'diger', N'<Codex metni: Diğer>', 3),
-        (N'iscilik', N'<Codex metni: İşçilik>', 2),
-        (N'yol', N'<Codex metni: Yol>', 1)
+        (N'diger', N'Diğer', 3),
+        (N'iscilik', N'İşçilik', 2),
+        (N'yol', N'Yol', 1)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -963,11 +963,11 @@ USING (
            CONVERT(smallint, v.Sira) AS Sira,
            CONVERT(nvarchar(40), v.YonKodu) AS YonKodu
     FROM (VALUES
-        (N'duzeltmeAlacak', N'<Codex metni: Düzeltme (alacak)>', 4, N'alacak'),
-        (N'duzeltmeBorc', N'<Codex metni: Düzeltme (borç)>', 5, N'borc'),
-        (N'hakEdisAlacagi', N'<Codex metni: Hak ediş alacağı>', 1, N'alacak'),
-        (N'odeme', N'<Codex metni: Ödeme>', 3, N'borc'),
-        (N'parcaSiparisiBorcu', N'<Codex metni: Parça siparişi borcu>', 2, N'borc')
+        (N'duzeltmeAlacak', N'Düzeltme (alacak)', 4, N'alacak'),
+        (N'duzeltmeBorc', N'Düzeltme (borç)', 5, N'borc'),
+        (N'hakEdisAlacagi', N'Hak ediş alacağı', 1, N'alacak'),
+        (N'odeme', N'Ödeme', 3, N'borc'),
+        (N'parcaSiparisiBorcu', N'Parça siparişi borcu', 2, N'borc')
     ) AS v (Kod, Ad, Sira, YonKodu)
 ) AS k
     ON h.Kod = k.Kod
@@ -985,11 +985,11 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'faturaGeldi', N'<Codex metni: Fatura geldi>', 3),
-        (N'iptal', N'<Codex metni: İptal>', 5),
-        (N'kesinlesti', N'<Codex metni: Kesinleşti>', 2),
-        (N'odendi', N'<Codex metni: Ödendi>', 4),
-        (N'taslak', N'<Codex metni: Taslak>', 1)
+        (N'faturaGeldi', N'Fatura alındı', 3),
+        (N'iptal', N'İptal edildi', 5),
+        (N'kesinlesti', N'Kesinleşti', 2),
+        (N'odendi', N'Ödendi', 4),
+        (N'taslak', N'Taslak', 1)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -1073,10 +1073,10 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'gorus', N'<Codex metni: Geri bildirim>', 3),
-        (N'numara', N'<Codex metni: Numara değişikliği>', 2),
-        (N'randevu', N'<Codex metni: Randevu>', 4),
-        (N'talep', N'<Codex metni: Talep>', 1)
+        (N'gorus', N'Geri bildirim', 3),
+        (N'numara', N'Numara değişikliği', 2),
+        (N'randevu', N'Randevu', 4),
+        (N'talep', N'Talep', 1)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -1094,9 +1094,9 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'musteri', N'<Codex metni: Müşteri>', 1),
-        (N'personel', N'<Codex metni: Personel>', 3),
-        (N'servis', N'<Codex metni: Servis>', 2)
+        (N'musteri', N'Müşteri', 1),
+        (N'personel', N'Personel', 3),
+        (N'servis', N'Servis', 2)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -1114,9 +1114,9 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'bekliyor', N'<Codex metni: Bekliyor>', 1),
-        (N'onaylandi', N'<Codex metni: Onaylandı>', 2),
-        (N'reddedildi', N'<Codex metni: Reddedildi>', 3)
+        (N'bekliyor', N'Karar bekliyor', 1),
+        (N'onaylandi', N'Onaylandı', 2),
+        (N'reddedildi', N'Reddedildi', 3)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -1134,14 +1134,14 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'cevap', N'<Codex metni: Cevap verildi>', 4),
-        (N'cevapsiz', N'<Codex metni: Cevap bulunamadı>', 5),
-        (N'cozulmedi', N'<Codex metni: Sorun çözülmedi>', 6),
-        (N'konu', N'<Codex metni: Konu seçildi>', 1),
-        (N'serbest', N'<Codex metni: Soru yazıldı>', 3),
-        (N'soru', N'<Codex metni: Hazır soru seçildi>', 2),
-        (N'temizlendi', N'<Codex metni: Sohbet temizlendi>', 8),
-        (N'yonlendirme', N'<Codex metni: Servise yönlendirildi>', 7)
+        (N'cevap', N'Cevap verildi', 4),
+        (N'cevapsiz', N'Cevap bulunamadı', 5),
+        (N'cozulmedi', N'Sorun çözülmedi', 6),
+        (N'konu', N'Konu seçildi', 1),
+        (N'serbest', N'Soru yazıldı', 3),
+        (N'soru', N'Hazır soru seçildi', 2),
+        (N'temizlendi', N'Sohbet temizlendi', 8),
+        (N'yonlendirme', N'Servise yönlendirildi', 7)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -1159,11 +1159,11 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'belge', N'<Codex metni: Belge>', 5),
-        (N'foto', N'<Codex metni: Fotoğraf>', 1),
-        (N'pdf', N'<Codex metni: PDF>', 4),
-        (N'ses', N'<Codex metni: Ses kaydı>', 3),
-        (N'video', N'<Codex metni: Video>', 2)
+        (N'belge', N'Belge', 5),
+        (N'foto', N'Fotoğraf', 1),
+        (N'pdf', N'PDF', 4),
+        (N'ses', N'Ses kaydı', 3),
+        (N'video', N'Video', 2)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -1200,8 +1200,8 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'aktif', N'<Codex metni: Aktif>', 1),
-        (N'pasif', N'<Codex metni: Pasif>', 2)
+        (N'aktif', N'Aktif', 1),
+        (N'pasif', N'Pasif', 2)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -1219,8 +1219,8 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'hesapSahibi', N'<Codex metni: Hesap sahibi>', 1),
-        (N'yetkili', N'<Codex metni: Yetkili>', 2)
+        (N'hesapSahibi', N'Hesap sahibi', 1),
+        (N'yetkili', N'Yetkili', 2)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -1238,11 +1238,11 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'anonimlestirme', N'<Codex metni: Anonimleştirildi>', 4),
-        (N'birlestirme', N'<Codex metni: Hesaplar birleştirildi>', 5),
-        (N'devir', N'<Codex metni: Devredildi>', 2),
-        (N'musteriKaldirdi', N'<Codex metni: Müşteri kaldırdı>', 1),
-        (N'personel', N'<Codex metni: Personel kaldırdı>', 3)
+        (N'anonimlestirme', N'Hesabın anonimleştirilmesi', 4),
+        (N'birlestirme', N'Hesapların birleştirilmesi', 5),
+        (N'devir', N'Makinenin devredilmesi', 2),
+        (N'musteriKaldirdi', N'Müşterinin kaydı kaldırması', 1),
+        (N'personel', N'Personelin kaydı kaldırması', 3)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -1280,10 +1280,10 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'geriCekme', N'<Codex metni: Geri çekildi>', 4),
-        (N'okundu', N'<Codex metni: Okundu>', 1),
-        (N'onay', N'<Codex metni: Onay>', 2),
-        (N'ret', N'<Codex metni: Ret>', 3)
+        (N'geriCekme', N'Geri çekildi', 4),
+        (N'okundu', N'Okundu', 1),
+        (N'onay', N'Onaylandı', 2),
+        (N'ret', N'Reddedildi', 3)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -1301,11 +1301,11 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'connectKayit', N'<Codex metni: Uygulamada kayıt>', 1),
-        (N'connectProfil', N'<Codex metni: Uygulamada profil>', 2),
-        (N'personel', N'<Codex metni: Personel>', 3),
-        (N'telefon', N'<Codex metni: Telefon>', 4),
-        (N'yazili', N'<Codex metni: Yazılı>', 5)
+        (N'connectKayit', N'Uygulama kayıt ekranı', 1),
+        (N'connectProfil', N'Uygulama profil ekranı', 2),
+        (N'personel', N'Personel', 3),
+        (N'telefon', N'Telefon', 4),
+        (N'yazili', N'Yazılı beyan', 5)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -1323,11 +1323,11 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'desteklenmiyor', N'<Codex metni: Desteklenmiyor>', 4),
-        (N'engelli', N'<Codex metni: Ayarlardan kapalı>', 5),
-        (N'reddedildi', N'<Codex metni: Reddedildi>', 2),
-        (N'sorulmadi', N'<Codex metni: Sorulmadı>', 3),
-        (N'verildi', N'<Codex metni: Verildi>', 1)
+        (N'desteklenmiyor', N'Desteklenmiyor', 4),
+        (N'engelli', N'Ayarlardan kapatıldı', 5),
+        (N'reddedildi', N'Reddedildi', 2),
+        (N'sorulmadi', N'Sorulmadı', 3),
+        (N'verildi', N'Verildi', 1)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -1345,15 +1345,15 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'alisFaturasi', N'<Codex metni: Alış faturası>', 2),
-        (N'bankaFisi', N'<Codex metni: Banka fişi>', 7),
-        (N'garantiBedelsizCikis', N'<Codex metni: Garanti bedelsiz çıkış>', 8),
-        (N'giderPusulasi', N'<Codex metni: Gider pusulası>', 3),
-        (N'irsaliye', N'<Codex metni: İrsaliye>', 4),
-        (N'satisFaturasi', N'<Codex metni: Satış faturası>', 1),
-        (N'satisIadeFaturasi', N'<Codex metni: Satış iade faturası>', 9),
-        (N'siparisFisi', N'<Codex metni: Sipariş fişi>', 5),
-        (N'tahsilatFisi', N'<Codex metni: Tahsilat fişi>', 6)
+        (N'alisFaturasi', N'Alış faturası', 2),
+        (N'bankaFisi', N'Banka fişi', 7),
+        (N'garantiBedelsizCikis', N'Garanti kapsamında bedelsiz çıkış', 8),
+        (N'giderPusulasi', N'Gider pusulası', 3),
+        (N'irsaliye', N'İrsaliye', 4),
+        (N'satisFaturasi', N'Satış faturası', 1),
+        (N'satisIadeFaturasi', N'Satış iade faturası', 9),
+        (N'siparisFisi', N'Sipariş fişi', 5),
+        (N'tahsilatFisi', N'Tahsilat fişi', 6)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -1371,10 +1371,10 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'bayiCiftciye', N'<Codex metni: Bayiden çiftçiye>', 2),
-        (N'dogrudanCiftciye', N'<Codex metni: Üreticiden doğrudan çiftçiye>', 3),
-        (N'ikinciEl', N'<Codex metni: İkinci el>', 4),
-        (N'paksanBayiye', N'<Codex metni: Üreticiden bayiye>', 1)
+        (N'bayiCiftciye', N'Bayiden çiftçiye', 2),
+        (N'dogrudanCiftciye', N'Üreticiden doğrudan çiftçiye', 3),
+        (N'ikinciEl', N'İkinci el', 4),
+        (N'paksanBayiye', N'Üreticiden bayiye', 1)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -1392,10 +1392,10 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'bilinmiyor', N'<Codex metni: Bilinmiyor>', 4),
-        (N'faturaArtiSure', N'<Codex metni: Fatura tarihi ve ek süre>', 2),
-        (N'teslimOnayli', N'<Codex metni: Onaylı teslim tarihi>', 1),
-        (N'uretimYili', N'<Codex metni: Üretim yılı>', 3)
+        (N'bilinmiyor', N'Bilinmiyor', 4),
+        (N'faturaArtiSure', N'Fatura tarihi ve ek süre', 2),
+        (N'teslimOnayli', N'Onaylı teslim tarihi', 1),
+        (N'uretimYili', N'Üretim yılı', 3)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -1413,9 +1413,9 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'fatura', N'<Codex metni: Fatura tarihi>', 2),
-        (N'teslim', N'<Codex metni: Teslim tarihi>', 1),
-        (N'uretim', N'<Codex metni: Üretim yılı>', 3)
+        (N'fatura', N'Fatura tarihi', 2),
+        (N'teslim', N'Teslim tarihi', 1),
+        (N'uretim', N'Üretim yılı', 3)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -1433,7 +1433,7 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'onekYilSira', N'<Codex metni: Model kodu, yıl ve sıra>', 1)
+        (N'onekYilSira', N'Model kodu, yıl ve sıra', 1)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -1454,10 +1454,10 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'duzeltme', N'<Codex metni: Düzeltme>', 3),
-        (N'erisim', N'<Codex metni: Bilgi alma>', 2),
-        (N'itiraz', N'<Codex metni: İtiraz>', 4),
-        (N'silme', N'<Codex metni: Silme>', 1)
+        (N'duzeltme', N'Düzeltme', 3),
+        (N'erisim', N'Bilgi alma', 2),
+        (N'itiraz', N'İtiraz', 4),
+        (N'silme', N'Silme', 1)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -1475,14 +1475,14 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'bayiListesi', N'<Codex metni: Bayi listesi>', 7),
-        (N'logoBankaFisleri', N'<Codex metni: LOGO banka fişleri>', 5),
-        (N'logoCariListesi', N'<Codex metni: LOGO cari listesi>', 1),
-        (N'logoMalzemeListesi', N'<Codex metni: LOGO malzeme listesi>', 2),
-        (N'logoSatisFaturalari', N'<Codex metni: LOGO satış faturaları>', 3),
-        (N'logoServisFaturalari', N'<Codex metni: LOGO servis faturaları>', 4),
-        (N'personelListesi', N'<Codex metni: Personel listesi>', 8),
-        (N'servisListesi', N'<Codex metni: Servis listesi>', 6)
+        (N'bayiListesi', N'Bayi listesi', 7),
+        (N'logoBankaFisleri', N'LOGO banka fişi', 5),
+        (N'logoCariListesi', N'LOGO cari listesi', 1),
+        (N'logoMalzemeListesi', N'LOGO malzeme listesi', 2),
+        (N'logoSatisFaturalari', N'LOGO satış faturası', 3),
+        (N'logoServisFaturalari', N'LOGO servis faturası', 4),
+        (N'personelListesi', N'Personel listesi', 8),
+        (N'servisListesi', N'Servis listesi', 6)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod

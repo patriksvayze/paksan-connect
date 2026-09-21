@@ -43,7 +43,7 @@ export function NumaraTalepleri({ personel, bildir, tazele, surum }) {
   return (
     <>
       <Baslik
-        ad="Numara Değişikliği Talepleri"
+        ad="Numara değişikliği ve hesap birleştirme talepleri"
         sag={
           <div className="suzgec">
             <button
@@ -66,7 +66,7 @@ export function NumaraTalepleri({ personel, bildir, tazele, surum }) {
         <BeklemeKart satir={3} />
       ) : gosterilen.length === 0 ? (
         <div className="kart">
-          <Bos metin="Numara değişikliği talebi yok." />
+          <Bos metin="Bu görünümde talep yok. Diğer talepleri görmek için Hepsi düğmesini kullanın; yeni talepleri bu ekrandan takip edin." />
         </div>
       ) : (
         gosterilen.map((t) => (
@@ -100,8 +100,8 @@ function Kart({ talep, personel, bildir, tazele }) {
 
   function karar(onay) {
     const soru = cakisma
-      ? 'Kimlik doğrulaması tutmuyor. Onaylanırsa eski hesabın makineleri ve talepleri bu hesaba geçecek. Devam edilsin mi?'
-      : 'Kimlik doğrulaması tutmuyor. Yine de onaylansın mı?'
+      ? 'Eski numara ve seri numarası kontrollerinden en az biri doğrulanamadı. Onay verirseniz eski hesabın makineleri, makine kayıtları ve talepleri yeni hesaba taşınacak. Yanlış onay, başka birinin hesabının devralınmasına yol açabilir. Müşteriyi arayıp iki hesabın da kendisine ait olduğunu doğrulamadan onay vermeyin. Kayıtlar yeni hesaba taşınsın mı?'
+      : 'Eski numara ve seri numarası kontrollerinden en az biri doğrulanamadı. Onay verirseniz hesabın giriş numarası değişecek. Yanlış onay, başka birinin hesaba erişmesine yol açabilir. Müşteriyi arayıp bilgilerini doğrulamadan onay vermeyin. Hesabın numarası değiştirilsin mi?'
     if (onay && !guvenli && !confirm(soru)) {
       return
     }
@@ -114,12 +114,12 @@ function Kart({ talep, personel, bildir, tazele }) {
     const bosBirlesme = Boolean(ozet) && !ozet.makine && !ozet.defter && !ozet.talep
     bildir(
       !onay
-        ? 'Talep reddedildi'
+        ? 'Talep reddedildi. Müşteriye bildirim gönderildi.'
         : cakisma
           ? bosBirlesme
             ? 'Talep onaylandı. Eski hesapta taşınacak kayıt bulunamadı.'
-            : 'Eski hesabın kayıtları bu hesaba geçirildi, müşteriye bildirim gönderildi.'
-          : 'Numara değiştirildi, müşteriye bildirim gönderildi.'
+            : 'Eski hesaptaki taşınabilir kayıtlar yeni hesaba taşındı. Müşteriye bildirim gönderildi.'
+          : 'Hesabın giriş numarası değiştirildi. Müşteriye bildirim gönderildi.'
     )
   }
 
@@ -131,7 +131,7 @@ function Kart({ talep, personel, bildir, tazele }) {
           <div className="kucuk sonuk">{tarihYaz(talep.tarih)}</div>
         </div>
         <span style={{ marginLeft: 'auto', display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-          {cakisma && <span className="rz rz--mor">Seri başka hesapta</span>}
+          {cakisma && <span className="rz rz--mor">Seri numarası başka hesapta</span>}
           <span className={'rz rz--' + DURUM_TON[talep.durum]}>{DURUM_ADI[talep.durum]}</span>
         </span>
       </div>
@@ -148,15 +148,15 @@ function Kart({ talep, personel, bildir, tazele }) {
               lineHeight: 1.55,
             }}
           >
-            Bu makine başka bir hesapta kayıtlı. Müşteri yeni numarasıyla açtığı
-            hesaptan eski hesabını istiyor.
+            Bu makine başka bir hesapta kayıtlı. Müşteri, numarasının değiştiğini belirterek
+            eski hesabındaki kayıtların yeni numarasıyla açtığı hesaba taşınmasını istiyor.
           </p>
         )}
 
         <div className="esit">
           <div>
             <div className="alan__ad">
-              {cakisma ? 'Eklemek istediği makinenin seri numarası' : 'Girdiği seri numarası'}
+              {cakisma ? 'Kaydetmek istediği makinenin seri numarası' : 'Müşterinin yazdığı seri numarası'}
             </div>
             <div className="mono">{formatSerial(talep.seri) || '—'}</div>
           </div>
@@ -176,13 +176,13 @@ function Kart({ talep, personel, bildir, tazele }) {
         <div className="esit" style={{ marginTop: 12 }}>
           <div>
             <div className="alan__ad">
-              {cakisma ? 'Eski numara (müşterinin yazdığı)' : 'Eski numara'}
+              {cakisma ? 'Müşterinin yazdığı eski numara' : 'Eski numara'}
             </div>
             <div className="mono">{talep.eskiTel || '—'}</div>
           </div>
           <div>
             <div className="alan__ad">
-              {cakisma ? 'Yeni numara (talebi açan hesap)' : 'Yeni numara'}
+              {cakisma ? 'Talebi açan hesabın yeni numarası' : 'Yeni numara'}
             </div>
             <div className="mono" style={{ fontWeight: 700 }}>{talep.yeniTel || '—'}</div>
           </div>
@@ -200,8 +200,8 @@ function Kart({ talep, personel, bildir, tazele }) {
         {onaylandi ? (
           <div className="kucuk sonuk" style={{ margin: '14px 0 0', lineHeight: 1.55 }}>
             {cakisma
-              ? 'Eski hesabın kayıtları bu hesaba geçirildi.'
-              : 'Hesabın numarası bu talebe göre değiştirildi.'}
+              ? 'Hesap birleştirme talebi onaylandı. Taşıma sonucunu İşlem Kaydı ekranından kontrol edin.'
+              : 'Hesabın giriş numarası, talepteki yeni numarayla değiştirildi.'}
           </div>
         ) : (
           <div className="kontrol">
@@ -209,14 +209,14 @@ function Kart({ talep, personel, bildir, tazele }) {
               <>
                 <Kontrol
                   tamam={numaraTamam}
-                  yazi="Yazdığı eski numara, makinenin kayıtlı olduğu hesabın numarası"
+                  yazi="Müşterinin yazdığı eski numara, makinenin kayıtlı olduğu hesabın numarasıyla aynı mı?"
                 />
-                <Kontrol tamam={seriTamam} yazi="Seri numarası o hesaba kayıtlı makineye ait" />
+                <Kontrol tamam={seriTamam} yazi="Seri numarası, eski hesaba kayıtlı makinelerden birine ait mi?" />
               </>
             ) : (
               <>
-                <Kontrol tamam={numaraTamam} yazi="Eski numara hesapta kayıtlı numarayla aynı" />
-                <Kontrol tamam={seriTamam} yazi="Seri numarası müşterinin kayıtlı makinesine ait" />
+                <Kontrol tamam={numaraTamam} yazi="Eski numara, hesapta kayıtlı numarayla aynı mı?" />
+                <Kontrol tamam={seriTamam} yazi="Seri numarası, müşterinin kayıtlı makinelerinden birine ait mi?" />
               </>
             )}
           </div>
@@ -227,16 +227,16 @@ function Kart({ talep, personel, bildir, tazele }) {
             {!guvenli && (
               <div className="uyari">
                 {!cakisma
-                  ? 'Kimlik doğrulaması tutmuyor. Onaylamadan önce müşteriyi arayıp makinenin seri numarasını sorun.'
+                  ? 'Kontrollerden en az biri eşleşmiyor. Onaylamadan önce müşteriyi arayıp eski numarasını ve makinenin seri numarasını doğrulayın. Yanlış onay, başka birinin hesaba erişmesine yol açabilir.'
                   : eskiHesap.bulundu
-                    ? 'Kimlik doğrulaması tutmuyor. Onaylamadan önce müşteriyi arayıp eski numarasını sorun; makine başkasından alınmış olabilir.'
-                    : 'Eski hesap bu tarayıcıda bulunamadı, numarası karşılaştırılamıyor. Onaylamadan önce müşteriyi arayıp eski numarasını sorun; makine başkasından alınmış olabilir.'}
+                    ? 'Kontrollerden en az biri eşleşmiyor. Müşteriyi arayıp eski numarasını, seri numarasını ve iki hesabın da kendisine ait olduğunu doğrulamadan onay vermeyin. Makineyi başkasından almış olması, eski hesaptaki tüm kayıtları devralabileceği anlamına gelmez. Yanlış onay, başka birinin hesabının devralınmasına yol açabilir.'
+                    : 'Eski hesap bilgilerine bu tarayıcıdan ulaşılamıyor; telefon numarası karşılaştırılamadı. Müşteriyi arayıp eski numarasını, seri numarasını ve iki hesabın da kendisine ait olduğunu doğrulamadan onay vermeyin. Yanlış onay, başka birinin hesabının devralınmasına yol açabilir.'}
               </div>
             )}
 
             {ozet && (
               <p className="kucuk sonuk" style={{ margin: '0 0 12px', lineHeight: 1.55 }}>
-                Onaylanınca bu hesaba geçecek: {ozet.makine} makine, {ozet.defter} makine
+                Onaylanınca eski hesaptan yeni hesaba taşınacak kayıtlar: {ozet.makine} makine, {ozet.defter} makine
                 kaydı, {ozet.talep} talep.
                 {ozet.eskiTelBilinmiyor &&
                   ' Eski hesabın numarası bilinmediği için eski numarayla açılmış talepler taşınamaz.'}
@@ -244,18 +244,18 @@ function Kart({ talep, personel, bildir, tazele }) {
             )}
 
             <label className="alan">
-              <span className="alan__ad">Not (işlem kaydına yazılır)</span>
+              <span className="alan__ad">İşlem notu (İşlem Kaydı ekranında görünür)</span>
               <input
                 className="gir"
                 value={not}
                 onChange={(e) => setNot(e.target.value)}
-          placeholder="Örnek: Müşteri arandı, seri numarası doğrulandı"
+          placeholder="Örnek: Müşteri arandı; eski numarası, seri numarası ve hesap sahipliği doğrulandı"
               />
             </label>
 
             <div className="satir">
               <button className="dg dg--ana" onClick={() => karar(true)}>
-                {cakisma ? 'Onayla ve eski hesabı bu hesaba geçir' : 'Onayla ve numarayı değiştir'}
+                {cakisma ? 'Onayla ve Kayıtları Yeni Hesaba Taşı' : 'Onayla ve Numarayı Değiştir'}
               </button>
               <button className="dg" onClick={() => karar(false)}>Reddet</button>
             </div>

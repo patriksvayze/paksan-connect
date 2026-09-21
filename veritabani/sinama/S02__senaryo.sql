@@ -236,11 +236,11 @@ BEGIN SET @Mesaj = CONCAT(@Adim, N': satış geri alınınca bayi dönmedi'); TH
 SET @Adim = N'SN-02b';
 BEGIN TRANSACTION;
 EXEC sistem.YapanAyarla @YapanTuruKodu = N'servis', @YapanKullaniciKimlik = @ServisKul,
-     @YapanAdi = N'<Codex metni: S02 servis teknisyeni>', @KaynakUygulamaKodu = N'servisim';
+     @YapanAdi = N'S02 Servis Teknisyeni', @KaynakUygulamaKodu = N'servisim';
 INSERT makine.Makine (Kimlik, SeriNo, MarkaKodu, UrunKodu, OlusmaKaynagiKodu,
                       YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
 VALUES (@Makine2, N'ORK1270202400158', N'paksan', N'orkinos-1270', N'servis',
-        N'servis', @ServisKul, N'<Codex metni: S02 servis teknisyeni>', N'servisim');
+        N'servis', @ServisKul, N'S02 Servis Teknisyeni', N'servisim');
 /* Sahiplik satırı YAZILMAZ: servis makineyi sahibinin ADIYLA kaydeder
    (KayitOlayi.BeyanAdi), hesabına bağlamaz — müşterinin Connect hesabı
    olmayabilir. gorunum.MakineKarti.SahipBilgisininKaynagi bu yüzden
@@ -250,7 +250,7 @@ VALUES (@Makine2, N'ORK1270202400158', N'paksan', N'orkinos-1270', N'servis',
 INSERT makine.KayitOlayi (MakineKimlik, KaynakKodu, ServisKimlik, BeyanAdi,
                           YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
 VALUES (@Makine2, N'servis', @Servis, CONCAT(@Ad, N' ', @Soyad),
-        N'servis', @ServisKul, N'<Codex metni: S02 servis teknisyeni>', N'servisim');
+        N'servis', @ServisKul, N'S02 Servis Teknisyeni', N'servisim');
 COMMIT TRANSACTION;
 
 IF EXISTS (SELECT 1 FROM makine.MakineninServisi WHERE MakineKimlik = @Makine2 AND ServisKimlik IS NOT NULL)
@@ -334,15 +334,15 @@ SELECT @Parca1 = MIN(Kod), @Parca2 = MAX(Kod)
 
 BEGIN TRANSACTION;
 EXEC sistem.YapanAyarla @YapanTuruKodu = N'servis', @YapanKullaniciKimlik = @ServisKul,
-     @YapanAdi = N'<Codex metni: S02 servis teknisyeni>', @KaynakUygulamaKodu = N'servisim';
+     @YapanAdi = N'S02 Servis Teknisyeni', @KaynakUygulamaKodu = N'servisim';
 INSERT talep.ServisZiyareti (Kimlik, ZiyaretNo, TalepKimlik, TurKodu, UyduKodu, MarkaKodu,
                              ServisKimlik, AsamaKodu, KapiKodu, ArizaMetni,
                              GarantiDayanagiKodu, ParcaIstemeZamani,
                              YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
 VALUES (@Ziyaret1, 1, @Talep, N'servis', N'servisZiyareti', N'paksan',
-        @Servis, N'parca', N'garanti', N'<Codex metni: S02 arıza metni>',
+        @Servis, N'parca', N'garanti', N'S02 arıza metni',
         N'uretimYili', SYSUTCDATETIME(),
-        N'servis', @ServisKul, N'<Codex metni: S02 servis teknisyeni>', N'servisim');
+        N'servis', @ServisKul, N'S02 Servis Teknisyeni', N'servisim');
 
 INSERT talep.ZiyaretParcaSatiri (ZiyaretKimlik, MarkaKodu, SiraNo, ParcaAdi, ParcaKodu, Adet)
 SELECT @Ziyaret1, N'paksan', 1, p.Ad, p.Kod, 1 FROM katalog.Parca AS p
@@ -370,7 +370,7 @@ EXEC sistem.YapanAyarla @YapanTuruKodu = N'personel', @YapanKullaniciKimlik = @P
      @YapanAdi = @PersonelAd, @KaynakUygulamaKodu = N'backoffice';
 INSERT talep.ParcaSevki (TalepKimlik, TurKodu, ZiyaretKimlik, KargoFirmasiMetni, TakipNo,
                          YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
-VALUES (@Talep, N'servis', @Ziyaret1, N'<Codex metni: S02 kargo firması>', N'S02TAKIP0001',
+VALUES (@Talep, N'servis', @Ziyaret1, N'S02 Kargo Firması', N'S02TAKIP0001',
         N'personel', @Personel, @PersonelAd, N'backoffice');
 UPDATE talep.Talep SET MasaKodu = NULL WHERE Kimlik = @Talep;
 COMMIT TRANSACTION;
@@ -395,11 +395,11 @@ BEGIN SET @Mesaj = CONCAT(@Adim, N': SonGuncellemeZamani yazılmadı'); THROW 59
 SET @Adim = N'SN-06';
 BEGIN TRANSACTION;
 EXEC sistem.YapanAyarla @YapanTuruKodu = N'servis', @YapanKullaniciKimlik = @ServisKul,
-     @YapanAdi = N'<Codex metni: S02 servis teknisyeni>', @KaynakUygulamaKodu = N'servisim';
+     @YapanAdi = N'S02 Servis Teknisyeni', @KaynakUygulamaKodu = N'servisim';
 UPDATE talep.ServisZiyareti
    SET AsamaKodu = N'bitti', YapilanIsKodu = N'parcaDegisimi',
        Km = 42, IscilikTutari = 750, ParaBirimiKodu = N'TRY',
-       SonucMetni = N'<Codex metni: S02 sonuç metni>', TamamlanmaZamani = SYSUTCDATETIME()
+       SonucMetni = N'S02 sonuç metni', TamamlanmaZamani = SYSUTCDATETIME()
  WHERE Kimlik = @Ziyaret1;
 
 INSERT hakedis.HakEdis (Kimlik, ZiyaretKimlik, TalepKimlik, ServisKimlik, MarkaKodu, SirketKodu,
@@ -429,7 +429,7 @@ EXEC sistem.YapanAyarla @YapanTuruKodu = N'personel', @YapanKullaniciKimlik = @P
 INSERT talep.ZiyaretDuzeltmesi (Kimlik, ZiyaretKimlik, MarkaKodu, Neden,
                                 OncekiKm, YeniKm, OncekiIscilikTutari, YeniIscilikTutari,
                                 YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
-VALUES (@Duzeltme, @Ziyaret1, N'paksan', N'<Codex metni: S02 düzeltme nedeni>',
+VALUES (@Duzeltme, @Ziyaret1, N'paksan', N'S02 düzeltme nedeni',
         42, 30, 750, 750,
         N'personel', @Personel, @PersonelAd, N'backoffice');
 
@@ -562,7 +562,7 @@ EXEC sistem.YapanAyarla @YapanTuruKodu = N'musteri', @YapanHesapKimlik = @Hesap,
      @KaynakUygulamaKodu = N'connect', @UygulamaSurumu = N'0.9.14';
 INSERT talep.YenidenAcma (TalepKimlik, OncekiDurumKodu, Aciklama,
                           YapanTuruKodu, YapanHesapKimlik, KaynakUygulamaKodu)
-VALUES (@Talep, N'kapandi', N'<Codex metni: S02 yeniden açma açıklaması>',
+VALUES (@Talep, N'kapandi', N'S02 yeniden açma açıklaması',
         N'musteri', @Hesap, N'connect');
 UPDATE talep.Talep SET DurumKodu = N'yeni', Kapali = 0, KapanmaZamani = NULL, MasaKodu = N'servisMasasi'
  WHERE Kimlik = @Talep;
@@ -575,17 +575,17 @@ BEGIN SET @Mesaj = CONCAT(@Adim, N': yeniden açmadan sonra beklenen yeni/0/-, g
 
 BEGIN TRANSACTION;
 EXEC sistem.YapanAyarla @YapanTuruKodu = N'servis', @YapanKullaniciKimlik = @ServisKul,
-     @YapanAdi = N'<Codex metni: S02 servis teknisyeni>', @KaynakUygulamaKodu = N'servisim';
+     @YapanAdi = N'S02 Servis Teknisyeni', @KaynakUygulamaKodu = N'servisim';
 INSERT talep.Randevu (TalepKimlik, PlanlananZamani, SaatBelirtildi, MusteriyleGorusuldu, IsTanimi,
                       YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
-VALUES (@Talep, DATEADD(day, 2, SYSUTCDATETIME()), 1, 1, N'<Codex metni: S02 randevu iş tanımı>',
-        N'servis', @ServisKul, N'<Codex metni: S02 servis teknisyeni>', N'servisim');
+VALUES (@Talep, DATEADD(day, 2, SYSUTCDATETIME()), 1, 1, N'S02 randevu iş tanımı',
+        N'servis', @ServisKul, N'S02 Servis Teknisyeni', N'servisim');
 INSERT bildirim.Bildirim (Kimlik, BaslikAnahtari, MetinAnahtari, AliciTuruKodu, TurKodu,
                           HesapKimlik, TalepKimlik,
                           YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
 VALUES (@Bildirim3, N'bildirimler.randevuBaslik', N'bildirimler.randevuMetin',
         N'musteri', N'randevu', @Hesap, @Talep,
-        N'servis', @ServisKul, N'<Codex metni: S02 servis teknisyeni>', N'servisim');
+        N'servis', @ServisKul, N'S02 Servis Teknisyeni', N'servisim');
 INSERT bildirim.Teslimat (BildirimKimlik, HesapKimlik, GonderilmeZamani)
 VALUES (@Bildirim3, @Hesap, SYSUTCDATETIME());
 UPDATE talep.Talep SET DurumKodu = N'planlandi' WHERE Kimlik = @Talep;
@@ -600,13 +600,13 @@ BEGIN SET @Mesaj = CONCAT(@Adim, N': kapanıştan önce hak ediş 1 olmalıydı,
 
 BEGIN TRANSACTION;
 EXEC sistem.YapanAyarla @YapanTuruKodu = N'servis', @YapanKullaniciKimlik = @ServisKul,
-     @YapanAdi = N'<Codex metni: S02 servis teknisyeni>', @KaynakUygulamaKodu = N'servisim';
+     @YapanAdi = N'S02 Servis Teknisyeni', @KaynakUygulamaKodu = N'servisim';
 INSERT talep.Kapanis (TalepKimlik, KapanisTuruKodu, UcretDurumuKodu, UcretTutari, ParaBirimiKodu,
                       YapilanIsMetni,
                       YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
 VALUES (@Talep, N'garantiDisi', N'musteriOdedi', 1500, N'TRY',
-        N'<Codex metni: S02 yapılan iş metni>',
-        N'servis', @ServisKul, N'<Codex metni: S02 servis teknisyeni>', N'servisim');
+        N'S02 yapılan iş metni',
+        N'servis', @ServisKul, N'S02 Servis Teknisyeni', N'servisim');
 UPDATE talep.Talep SET DurumKodu = N'kapandi', Kapali = 1, KapanmaZamani = SYSUTCDATETIME(), MasaKodu = NULL
  WHERE Kimlik = @Talep;
 COMMIT TRANSACTION;
@@ -660,8 +660,8 @@ INSERT talep.ParcaSatiri (TalepKimlik, MarkaKodu, SiraNo, ParcaAdi, KatalogDisi,
 SELECT @ParcaTalep, N'paksan', 2, p.Ad, 0, p.Kod, 1, 400.00, 400.00
   FROM katalog.Parca AS p WHERE p.MarkaKodu = N'paksan' AND p.Kod = @Parca2;
 INSERT talep.ParcaSatiri (TalepKimlik, MarkaKodu, SiraNo, ParcaAdi, KatalogDisi, ParcaKodu, Adet, Aciklama)
-VALUES (@ParcaTalep, N'paksan', 3, N'<Codex metni: S02 katalog dışı parça>', 1, NULL, NULL,
-        N'<Codex metni: S02 katalog dışı parça açıklaması>');
+VALUES (@ParcaTalep, N'paksan', 3, N'S02 Katalog Dışı Parça', 1, NULL, NULL,
+        N'S02 katalog dışı parça açıklaması');
 
 INSERT talep.FaturaBilgisi (TalepKimlik, TurKodu, UyduKodu, FaturaTuruKodu, AdSoyad,
                             TcNoSifreli, TcNoOzeti, TcNoMaskeli, AnahtarNo,
@@ -729,7 +729,7 @@ EXEC sistem.YapanAyarla @YapanTuruKodu = N'personel', @YapanKullaniciKimlik = @P
      @YapanAdi = @PersonelAd, @KaynakUygulamaKodu = N'backoffice';
 INSERT talep.ParcaSevki (TalepKimlik, TurKodu, ZiyaretKimlik, KargoFirmasiMetni, TakipNo,
                          YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
-VALUES (@ParcaTalep, N'parca', NULL, N'<Codex metni: S02 kargo firması>', N'S02TAKIP0003',
+VALUES (@ParcaTalep, N'parca', NULL, N'S02 Kargo Firması', N'S02TAKIP0003',
         N'personel', @Personel, @PersonelAd, N'backoffice');
 INSERT talep.Kapanis (TalepKimlik, KapanisTuruKodu,
                       YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
@@ -755,14 +755,14 @@ DECLARE @Borc    uniqueidentifier = '5A020001-0000-4000-8000-000000000015';
 DECLARE @SiparisNumara nvarchar(10);
 BEGIN TRANSACTION;
 EXEC sistem.YapanAyarla @YapanTuruKodu = N'servis', @YapanKullaniciKimlik = @ServisKul,
-     @YapanAdi = N'<Codex metni: S02 servis teknisyeni>', @KaynakUygulamaKodu = N'servisim';
+     @YapanAdi = N'S02 Servis Teknisyeni', @KaynakUygulamaKodu = N'servisim';
 EXEC sistem.NumaraAl @Onek = N'SPS', @Numara = @SiparisNumara OUTPUT;
 INSERT talep.Talep (Kimlik, Numara, NumaraOneki, TurKodu, KaynakKodu, MarkaKodu,
                     DurumKodu, Kapali, SahipKodu, ServisKimlik, KonumUlkeKodu,
                     YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
 VALUES (@Siparis, @SiparisNumara, N'SPS', N'parca', N'servisSiparisi', N'paksan',
         N'yeni', 0, N'servis', @Servis, N'TR',
-        N'servis', @ServisKul, N'<Codex metni: S02 servis teknisyeni>', N'servisim');
+        N'servis', @ServisKul, N'S02 Servis Teknisyeni', N'servisim');
 INSERT talep.ParcaTalebiAyrinti (TalepKimlik, TurKodu, OdemeYontemiKodu, SirketKodu,
                                  ParaBirimiKodu, KdvOrani, ListeKdvHaric,
                                  AraToplam, KdvTutari, GenelToplam)
@@ -979,13 +979,13 @@ COMMIT TRANSACTION;
 
 BEGIN TRANSACTION;
 EXEC sistem.YapanAyarla @YapanTuruKodu = N'servis', @YapanKullaniciKimlik = @ServisKul,
-     @YapanAdi = N'<Codex metni: S02 servis teknisyeni>', @KaynakUygulamaKodu = N'servisim';
+     @YapanAdi = N'S02 Servis Teknisyeni', @KaynakUygulamaKodu = N'servisim';
 INSERT talep.ServisZiyareti (Kimlik, ZiyaretNo, TalepKimlik, TurKodu, UyduKodu, MarkaKodu,
                              ServisKimlik, AsamaKodu, KapiKodu, ParcaIstemeZamani,
                              YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
 VALUES (@Ziyaret18, 1, @Talep18, N'servis', N'servisZiyareti', N'paksan',
         @Servis, N'parca', N'parcaIste', SYSUTCDATETIME(),
-        N'servis', @ServisKul, N'<Codex metni: S02 servis teknisyeni>', N'servisim');
+        N'servis', @ServisKul, N'S02 Servis Teknisyeni', N'servisim');
 UPDATE talep.Talep SET DurumKodu = N'parcaBekliyor', MasaKodu = N'parcaMasasi' WHERE Kimlik = @Talep18;
 COMMIT TRANSACTION;
 
@@ -998,7 +998,7 @@ BEGIN TRY
                                  YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
     VALUES (2, @Talep18, N'servis', N'servisZiyareti', N'paksan',
             @Servis, N'parca', N'parcaIste',
-            N'servis', @ServisKul, N'<Codex metni: S02 servis teknisyeni>', N'servisim');
+            N'servis', @ServisKul, N'S02 Servis Teknisyeni', N'servisim');
     ROLLBACK TRANSACTION;
 END TRY
 BEGIN CATCH
@@ -1034,13 +1034,13 @@ COMMIT TRANSACTION;
 
 BEGIN TRANSACTION;
 EXEC sistem.YapanAyarla @YapanTuruKodu = N'servis', @YapanKullaniciKimlik = @ServisKul,
-     @YapanAdi = N'<Codex metni: S02 servis teknisyeni>', @KaynakUygulamaKodu = N'servisim';
+     @YapanAdi = N'S02 Servis Teknisyeni', @KaynakUygulamaKodu = N'servisim';
 INSERT talep.ServisZiyareti (ZiyaretNo, TalepKimlik, TurKodu, UyduKodu, MarkaKodu,
                              ServisKimlik, AsamaKodu, KapiKodu, ParcaIstemeZamani,
                              YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
 VALUES (2, @Talep18, N'servis', N'servisZiyareti', N'paksan',
         @Servis, N'parca', N'parcaIste', SYSUTCDATETIME(),
-        N'servis', @ServisKul, N'<Codex metni: S02 servis teknisyeni>', N'servisim');
+        N'servis', @ServisKul, N'S02 Servis Teknisyeni', N'servisim');
 UPDATE talep.Talep SET DurumKodu = N'parcaBekliyor', MasaKodu = N'parcaMasasi' WHERE Kimlik = @Talep18;
 COMMIT TRANSACTION;
 
@@ -1071,7 +1071,7 @@ VALUES (@Aktarim, N'servisListesi', @AktarimDosya, N'uygulandi', 1, 0,
 INSERT entegrasyon.IceAktarimSatiri (IceAktarimKimlik, SatirNo, DurumKodu, HamVeriJson,
                                      EslesenKayitTuruKodu, EslesenKimlik)
 VALUES (@Aktarim, 1, N'eslesti',
-        CONCAT(N'{"ad":"<Codex metni: S02 servis adı>","tcNo":"', @TcMaskeli,
+        CONCAT(N'{"ad":"S02 Servis Adı","tcNo":"', @TcMaskeli,
                N'","iban":"TR** **** **** **** **** **', RIGHT(@Iban, 2), N'"}'),
         N'servis', @Servis);
 COMMIT TRANSACTION;

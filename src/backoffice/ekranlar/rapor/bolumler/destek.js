@@ -1,6 +1,5 @@
 import { cevapsizlar, cozuldu, sorular, yonlendirme } from '../../DestekKayitlari'
 import { tarihYaz } from '../../ortak'
-import { codexBekliyor } from '../metin'
 import {
   fark, farkPuan, kovayaDagit, modelAdi, ondalik, oran, RENK, yuzde, zamanKovalari,
 } from '../hesap'
@@ -37,7 +36,7 @@ import {
    kimin sorduğu, satıra tıklayınca açılan Destek Kayıtları ekranında.
    ========================================================================== */
 
-const M = codexBekliyor({
+const M = {
   ad: 'Destek Asistanı',
   soru: 'Müşteri uygulamada ne arıyor, nerede cevapsız kalıyor?',
 
@@ -46,9 +45,9 @@ const M = codexBekliyor({
   soruSayisi: 'Sorulan soru',
   soruSayisiAlt: 'Müşterinin yazdığı ya da seçtiği sorular',
   cevapsiz: 'Cevapsız kalan soru',
-  cevapsizAlt: 'Müşterinin uygulamada arayıp bulamadığı konular',
+  cevapsizAlt: 'Asistanın cevap bulamadığı veya müşterinin sorunun sürdüğünü belirttiği sorular',
   talebeDonen: 'Talebe dönen konuşma',
-  talebeDonenAlt: (pay) => `Bütün konuşmalar içindeki payı: ${pay}`,
+  talebeDonenAlt: (pay) => `Talep açma düğmesine basılan konuşmaların payı: ${pay}; formun gönderildiğini göstermez`,
   /* Oran. Grafikteki "Ekranda çözülen" dilimi ADET; aynı ad iki ayrı
      ölçüyü göstermesin. */
   cozulen: 'Ekranda çözülme oranı',
@@ -57,7 +56,7 @@ const M = codexBekliyor({
      ise bu satır. Müşteri "çözüldü" dedikten sonra ikinci bir soru
      sorup cevapsız kalırsa konuşma çözülmüş sayılmıyor ve ekranda
      alt yazının tarifine göre %100 beklenen yerde %50 yazıyordu. */
-  cozulenAlt: 'Müşterinin "çözüldü" dediği, talebe dönmemiş ve cevapsız sorusu kalmamış konuşmaların oranı',
+  cozulenAlt: 'Müşterinin "çözüldü" dediği, talebe dönmemiş ve cevapsız sorusu kalmamış konuşmaların tüm konuşmalara oranı',
   basinaSoru: 'Konuşma başına soru',
   basinaSoruAlt: 'Bir konuşmada sorulan ortalama soru sayısı',
 
@@ -74,15 +73,15 @@ const M = codexBekliyor({
      sekizini topluyor ve aynı adı taşıyan iki sayı ayrışıyordu. Kardeş
      sekmeler kesimi yazıyor (bkz. musteri.js, servis.js). */
   grafikCevapsizAlt: (kesim) =>
-    `En çok cevapsız soru kalan ${kesim} makine. Bir satıra tıklayınca Destek Kayıtları açılır.`,
+    `Cevapsız soru sayısına göre ilk ${kesim} makine gösterilir; diğer makineler grafikte yer almaz. Tam liste aşağıdaki tabloda. Bir satıra tıklayınca Destek Kayıtları açılır.`,
 
   makineYok: 'Makine seçilmedi',
 
   tabloMakine: 'Makinelere göre',
   tabloMakineAciklama: 'Seçilen dönemde başlayan konuşmalar, konuşulan makineye göre. Ekranda çözülme oranı, o makinedeki konuşmaların içindeki paydır; öteki sütunlar adet.',
   tabloCevapsiz: 'Cevapsız kalan sorular',
-  tabloCevapsizAciklama: 'Müşterinin destek ekranında arayıp bulamadığı cümleler. Her biri, kılavuzda ya da destek veri setinde eksik olan bir arıza kaydına işaret ediyor.',
-  tabloCevapsizBos: 'Bu dönemde cevapsız kalan soru yok.',
+  tabloCevapsizAciklama: 'Asistanın cevap bulamadığı veya müşterinin sorunun sürdüğünü belirttiği sorular. Yanıtların neden yetersiz kaldığını incelemek için bir satıra tıklayarak Destek Kayıtları ekranını açın.',
+  tabloCevapsizBos: 'Bu dönemde başlayan konuşmalarda cevapsız kalan soru yok. Başka bir dönemi incelemek için tarih aralığını değiştirin.',
   sutun: {
     makine: 'Makine', konusma: 'Konuşma', soru: 'Sorulan soru', cevapsiz: 'Cevapsız kalan',
     talep: 'Talebe dönen', cozulen: 'Ekranda çözülme oranı', tarih: 'Tarih', soruMetni: 'Soru',
@@ -90,18 +89,18 @@ const M = codexBekliyor({
   toplam: 'Toplam',
 
   notlar: [
-    'Destek ekranındaki konuşmalardan üretiliyor; talep kayıtlarından bağımsız. "Cevapsız kalan" sütunu bilgi tabanına yazılması gereken soruları gösteriyor — ayrıntısı Destek Kayıtları ekranında.',
-    'Destek konuşması: seçilen dönemde başlayan konuşmalar. Aynı makinede, iki hareket arasında 30 dakikadan uzun ara olmadıkça hepsi tek konuşma sayılır; 30 dakikadan uzun aradan sonraki hareket yeni konuşmadır. Kesintisiz süren bir konuşma ne kadar uzarsa uzasın tektir.',
+    'Bu rapor destek ekranındaki konuşmalardan hazırlanır; talep kayıtlarından bağımsızdır. "Cevapsız kalan" sütunu, yanıtı bulunamayan veya sorunu çözmeyen soruları sayar. Ayrıntıları Destek Kayıtları ekranında inceleyebilirsiniz.',
+    'Destek konuşması: seçilen dönemde başlayan konuşmalar sayılır. Aynı makinede art arda yapılan işlemler arasındaki ara 30 dakikayı aşmadıkça tek konuşma sayılır. Ara 30 dakikayı aşarsa sonraki işlem yeni bir konuşma başlatır. Tam 30 dakikalık ara yeni konuşma başlatmaz; aralar bu sınırı aşmadıkça toplam süre ne kadar uzun olursa olsun konuşma tek sayılır.',
     'Sorulan soru: müşterinin asistana yazdığı ya da hazır listeden seçtiği sorular.',
     'Cevapsız kalan soru: asistanın kılavuzlarda cevabını bulamadığı sorular ile müşterinin cevaptan sonra "sorun devam ediyor" dediği sorular.',
     'Talebe dönen konuşma: müşterinin destek ekranından talep açma düğmesine bastığı konuşmalar. Talep formunu gönderip göndermediği burada görünmez.',
     'Ekranda çözülme oranı: müşterinin "çözüldü" dediği, talebe dönmemiş ve cevapsız sorusu kalmamış konuşmaların bütün konuşmalara oranı. Grafikteki "Ekranda çözülen" aynı konuşmaların adedidir.',
-    'Grafikte her konuşma tek sonuçla sayılır: talebe döndüyse "Talebe dönen", dönmediyse ve müşteri "çözüldü" dediyse "Ekranda çözülen", kalanlar "Diğer" (çözülmedi ya da yarıda kaldı). Destek Kayıtları ekranındaki Sonuç süzgeci de aynı sırayla ayırıyor.',
+    'Grafikte her konuşma tek sonuçla sayılır: talebe döndüyse "Talebe dönen"; talebe dönmediyse, müşteri "çözüldü" dediyse ve cevapsız sorusu kalmadıysa "Ekranda çözülen"; kalanlar "Diğer" (çözülmedi ya da yarıda kaldı). Destek Kayıtları ekranındaki Sonuç süzgeci de aynı sırayla ayırır.',
     'Makine: konuşmanın geçtiği makine. Müşteri makine seçmeden sorduysa "Makine seçilmedi" satırında sayılır.',
     'Cevapsız kalan sorular tablosundaki tarih, konuşmanın başladığı gündür. Tabloda müşterinin adı ve telefonu yer almaz; kimin sorduğu Destek Kayıtları ekranında görülür.',
     'Yüzde farklar bir önceki eşit uzunluktaki dönemle karşılaştırılır. "Tüm zamanlar" seçiliyse karşılaştırma yapılmaz.',
   ],
-})
+}
 
 /* Cevapsız soru grafiğinde kaç makine çiziliyor (alt yazıda da yazılı). */
 const CEVAPSIZ_KESIM = 8

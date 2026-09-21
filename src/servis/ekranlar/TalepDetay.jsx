@@ -800,7 +800,7 @@ function ServisKaydi({ talep }) {
 
       {/* Parça isteğinde seçilen adres (bkz. ServisKapanisi.jsx): servis
           parçayı nerede bekleyeceğini burada görüyor. */}
-      <Satir ad="Gönderim Adresi" deger={teslimatYazisi(k.teslimat)} />
+      <Satir ad="Teslimat adresi" deger={teslimatYazisi(k.teslimat)} />
 
       {h && (
         <>

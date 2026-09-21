@@ -68,7 +68,7 @@ BEGIN
     SET @Uygula = ISNULL(@Uygula, 0);
     SET @Gerekce = LTRIM(RTRIM(@Gerekce));
     IF LEN(ISNULL(@Gerekce, N'')) < 10
-        THROW 51100, N'<Codex metni: gerekçe en az 10 karakter olmalı>', 1;
+        THROW 51100, N'düzeltmenin gerekçesini en az 10 karakterle yazın', 1;
 
     SELECT @YapanKullaniciKimlik = k.Kimlik, @YapanAdi = p.AdSoyad, @YapanRolAdi = r.Ad
     FROM erisim.Kullanici AS k
@@ -77,13 +77,13 @@ BEGIN
     WHERE k.GirisAdi = (SELECT s.GirisAdi FROM yardim.Sadelestir(@YapanGirisAdi) AS s)
       AND k.TurKodu = N'personel' AND k.Aktif = 1 AND p.AyrilmaZamani IS NULL;
     IF @YapanKullaniciKimlik IS NULL
-        THROW 51101, N'<Codex metni: işlemi yapan giriş adı aktif bir personele ait değil>', 1;
+        THROW 51101, N'işlemi yapan giriş adı aktif bir personele ait değil; işlemi yapan personelin aktif giriş adını verin', 1;
 
     SELECT @TalepKimlik = t.Kimlik
     FROM talep.Talep AS t
     WHERE t.Numara = (SELECT s.Kod FROM yardim.Sadelestir(@TalepNumarasi) AS s);
     IF @TalepKimlik IS NULL
-        THROW 51102, N'<Codex metni: bu numarayla talep bulunamadı>', 1;
+        THROW 51102, N'bu numarayla talep bulunamadı; verilen bilgileri kontrol edip yeniden çalıştırın', 1;
 
     IF @DisIslem = 0
         BEGIN TRANSACTION;
@@ -100,21 +100,21 @@ BEGIN
     WHERE t.Kimlik = @TalepKimlik;
 
     IF @Kapali = 1
-        THROW 51113, N'<Codex metni: talep kapalı; kapalı talebi açmak için yonetim.TalebiYenidenAc kullanın>', 1;
+        THROW 51113, N'talep kapalı; kapalı talebi açmak için yonetim.TalebiYenidenAc kullanın', 1;
     IF @YeniDurum COLLATE Latin1_General_100_BIN2 = @OncekiDurum
-        THROW 51113, N'<Codex metni: talep zaten bu durumda>', 1;
+        THROW 51113, N'talep zaten bu durumda; mevcut durumu kontrol edin, aynı durum için yeniden işlem yapmayın', 1;
     IF NOT EXISTS (SELECT 1
                    FROM kod.TalepTuruDurumu AS td
                    JOIN kod.TalepDurumu AS d ON d.Kod = td.DurumKodu
                    WHERE td.TurKodu = @TurKodu AND td.DurumKodu = @YeniDurum
                      AND td.ElleSecilebilir = 1 AND d.Kapali = 0)
-        THROW 51112, N'<Codex metni: bu durum bu talep türünde elle seçilemez; kapatmak ya da iptal etmek için ilgili prosedürü kullanın>', 1;
+        THROW 51112, N'bu durum bu talep türünde elle seçilemez; kapatmak ya da iptal etmek için ilgili prosedürü kullanın', 1;
     IF EXISTS (SELECT 1 FROM hakedis.HakEdis AS h WHERE h.TalepKimlik = @TalepKimlik AND h.DurumKodu = N'bekliyor')
-        THROW 51110, N'<Codex metni: talepte onay bekleyen hak ediş var; önce hak edişi onaylayın ya da reddedin>', 1;
+        THROW 51110, N'talepte onay bekleyen hak ediş var; önce hak edişi onaylayın ya da reddedin', 1;
     IF @TurKodu = N'parca' AND @KaynakKodu <> N'servisSiparisi'
        AND @YeniDurum COLLATE Latin1_General_100_BIN2 <> N'yeni'
        AND NOT EXISTS (SELECT 1 FROM talep.OdemeOnayi AS o WHERE o.TalepKimlik = @TalepKimlik AND o.GeriAlinmaZamani IS NULL)
-        THROW 51111, N'<Codex metni: ödemesi onaylanmamış parça talebi yalnız yeni durumuna alınabilir>', 1;
+        THROW 51111, N'ödemesi onaylanmamış parça talebi yalnız yeni durumuna alınabilir; yeni durumunu seçin', 1;
 
     UPDATE talep.Talep
     SET DurumKodu = @YeniDurum,
@@ -133,11 +133,11 @@ BEGIN
         (N'talepDurumuElleDegisti', N'talep', @TalepKimlik, @TalepNo, @Ayrinti, @Simdi,
          N'personel', @YapanKullaniciKimlik, NULL, @YapanAdi, @YapanRolAdi, N'yonetim', NULL);
 
-    SELECT N'<Codex metni: Sonuç>' AS Bolum,
+    SELECT N'Sonuç' AS Bolum,
            @Uygula AS Uygulandi,
            CASE WHEN @Uygula = 1
-                THEN N'<Codex metni: talebin durumu değiştirildi; müşteriye bildirim gitmedi>'
-                ELSE N'<Codex metni: önizleme; hiçbir şey kaydedilmedi, uygulamak için @Uygula = 1 ile yeniden çalıştırın>' END AS Mesaj,
+                THEN N'talebin durumu değiştirildi; müşteriye bildirim gitmedi'
+                ELSE N'önizleme; hiçbir şey kaydedilmedi. Sonucu kontrol edin; değişiklikleri kaydetmek için @Uygula = 1 ile yeniden çalıştırın' END AS Mesaj,
            LEFT(@TalepNo, 3) + N'-' + SUBSTRING(@TalepNo, 4, 2) + N'-' + RIGHT(@TalepNo, 5) AS TalepNumarasi,
            @OncekiDurum AS OncekiDurumKodu,
            (SELECT d.Ad FROM kod.TalepDurumu AS d WHERE d.Kod = @OncekiDurum) AS OncekiDurumAdi,
@@ -209,7 +209,7 @@ BEGIN
     SET @Uygula = ISNULL(@Uygula, 0);
     SET @Gerekce = LTRIM(RTRIM(@Gerekce));
     IF LEN(ISNULL(@Gerekce, N'')) < 10
-        THROW 51100, N'<Codex metni: gerekçe en az 10 karakter olmalı>', 1;
+        THROW 51100, N'düzeltmenin gerekçesini en az 10 karakterle yazın', 1;
 
     SELECT @YapanKullaniciKimlik = k.Kimlik, @YapanAdi = p.AdSoyad, @YapanRolAdi = r.Ad
     FROM erisim.Kullanici AS k
@@ -218,13 +218,13 @@ BEGIN
     WHERE k.GirisAdi = (SELECT s.GirisAdi FROM yardim.Sadelestir(@YapanGirisAdi) AS s)
       AND k.TurKodu = N'personel' AND k.Aktif = 1 AND p.AyrilmaZamani IS NULL;
     IF @YapanKullaniciKimlik IS NULL
-        THROW 51101, N'<Codex metni: işlemi yapan giriş adı aktif bir personele ait değil>', 1;
+        THROW 51101, N'işlemi yapan giriş adı aktif bir personele ait değil; işlemi yapan personelin aktif giriş adını verin', 1;
 
     SELECT @TalepKimlik = t.Kimlik
     FROM talep.Talep AS t
     WHERE t.Numara = (SELECT s.Kod FROM yardim.Sadelestir(@TalepNumarasi) AS s);
     IF @TalepKimlik IS NULL
-        THROW 51102, N'<Codex metni: bu numarayla talep bulunamadı>', 1;
+        THROW 51102, N'bu numarayla talep bulunamadı; verilen bilgileri kontrol edip yeniden çalıştırın', 1;
 
     IF @DisIslem = 0
         BEGIN TRANSACTION;
@@ -241,15 +241,15 @@ BEGIN
     WHERE t.Kimlik = @TalepKimlik;
 
     IF @Kapali = 1
-        THROW 51113, N'<Codex metni: talep zaten kapalı>', 1;
+        THROW 51113, N'talep zaten kapalı; mevcut durumu kontrol edin, yeniden kapatma işlemi yapmayın', 1;
     IF NOT EXISTS (SELECT 1 FROM kod.TalepTuruDurumu AS td
                    WHERE td.TurKodu = @TurKodu AND td.DurumKodu = N'kapandi' AND td.ElleSecilebilir = 1)
-        THROW 51112, N'<Codex metni: bu talep türünde kapandı durumu elle seçilemez>', 1;
+        THROW 51112, N'bu talep türünde kapandı durumu elle seçilemez; talebi ilgili iş akışı üzerinden kapatın', 1;
     IF EXISTS (SELECT 1 FROM hakedis.HakEdis AS h WHERE h.TalepKimlik = @TalepKimlik AND h.DurumKodu = N'bekliyor')
-        THROW 51110, N'<Codex metni: talepte onay bekleyen hak ediş var; önce hak edişi onaylayın ya da reddedin>', 1;
+        THROW 51110, N'talepte onay bekleyen hak ediş var; önce hak edişi onaylayın ya da reddedin', 1;
     IF @TurKodu = N'parca' AND @KaynakKodu <> N'servisSiparisi'
        AND NOT EXISTS (SELECT 1 FROM talep.OdemeOnayi AS o WHERE o.TalepKimlik = @TalepKimlik AND o.GeriAlinmaZamani IS NULL)
-        THROW 51111, N'<Codex metni: ödemesi onaylanmamış parça talebi kapatılamaz>', 1;
+        THROW 51111, N'ödemesi onaylanmamış parça talebi kapatılamaz; önce ödeme kaydını kontrol edip onay sürecini tamamlayın', 1;
 
     INSERT talep.Kapanis
         (TalepKimlik, KapanisTuruKodu, KapanisNotu, OlusmaZamani,
@@ -289,11 +289,11 @@ BEGIN
         (N'talepElleKapatildi', N'talep', @TalepKimlik, @TalepNo, @Ayrinti, @Simdi,
          N'personel', @YapanKullaniciKimlik, NULL, @YapanAdi, @YapanRolAdi, N'yonetim', NULL);
 
-    SELECT N'<Codex metni: Sonuç>' AS Bolum,
+    SELECT N'Sonuç' AS Bolum,
            @Uygula AS Uygulandi,
            CASE WHEN @Uygula = 1
-                THEN N'<Codex metni: talep kapatıldı; müşteriye bildirim gitmedi>'
-                ELSE N'<Codex metni: önizleme; hiçbir şey kaydedilmedi, uygulamak için @Uygula = 1 ile yeniden çalıştırın>' END AS Mesaj,
+                THEN N'talep kapatıldı; müşteriye bildirim gitmedi'
+                ELSE N'önizleme; hiçbir şey kaydedilmedi. Sonucu kontrol edin; değişiklikleri kaydetmek için @Uygula = 1 ile yeniden çalıştırın' END AS Mesaj,
            LEFT(@TalepNo, 3) + N'-' + SUBSTRING(@TalepNo, 4, 2) + N'-' + RIGHT(@TalepNo, 5) AS TalepNumarasi,
            @OncekiDurum AS OncekiDurumKodu,
            (SELECT d.Ad FROM kod.TalepDurumu AS d WHERE d.Kod = @OncekiDurum) AS OncekiDurumAdi,
@@ -370,7 +370,7 @@ BEGIN
     SET @Uygula = ISNULL(@Uygula, 0);
     SET @Gerekce = LTRIM(RTRIM(@Gerekce));
     IF LEN(ISNULL(@Gerekce, N'')) < 10
-        THROW 51100, N'<Codex metni: gerekçe en az 10 karakter olmalı>', 1;
+        THROW 51100, N'düzeltmenin gerekçesini en az 10 karakterle yazın', 1;
 
     SELECT @YapanKullaniciKimlik = k.Kimlik, @YapanAdi = p.AdSoyad, @YapanRolAdi = r.Ad
     FROM erisim.Kullanici AS k
@@ -379,19 +379,19 @@ BEGIN
     WHERE k.GirisAdi = (SELECT s.GirisAdi FROM yardim.Sadelestir(@YapanGirisAdi) AS s)
       AND k.TurKodu = N'personel' AND k.Aktif = 1 AND p.AyrilmaZamani IS NULL;
     IF @YapanKullaniciKimlik IS NULL
-        THROW 51101, N'<Codex metni: işlemi yapan giriş adı aktif bir personele ait değil>', 1;
+        THROW 51101, N'işlemi yapan giriş adı aktif bir personele ait değil; işlemi yapan personelin aktif giriş adını verin', 1;
 
     SELECT @TalepKimlik = t.Kimlik
     FROM talep.Talep AS t
     WHERE t.Numara = (SELECT s.Kod FROM yardim.Sadelestir(@TalepNumarasi) AS s);
     IF @TalepKimlik IS NULL
-        THROW 51102, N'<Codex metni: bu numarayla talep bulunamadı>', 1;
+        THROW 51102, N'bu numarayla talep bulunamadı; verilen bilgileri kontrol edip yeniden çalıştırın', 1;
 
     SELECT @AciklamaZorunlu = n.AciklamaZorunlu
     FROM kod.IptalNedeni AS n
     WHERE n.Kod = @Neden;
     IF @AciklamaZorunlu IS NULL
-        THROW 51102, N'<Codex metni: bu iptal nedeni kodu yok; kod.IptalNedeni listesine bakın>', 1;
+        THROW 51102, N'bu iptal nedeni kodu yok; kod.IptalNedeni listesine bakın', 1;
 
     IF @DisIslem = 0
         BEGIN TRANSACTION;
@@ -408,13 +408,13 @@ BEGIN
     WHERE t.Kimlik = @TalepKimlik;
 
     IF @Kapali = 1
-        THROW 51113, N'<Codex metni: talep zaten kapalı>', 1;
+        THROW 51113, N'talep zaten kapalı; mevcut durumu kontrol edin, yeniden kapatma işlemi yapmayın', 1;
     IF @AciklamaZorunlu = 1 AND @Acik IS NULL
-        THROW 51114, N'<Codex metni: bu iptal nedeni açıklama ister; @Aciklama verin>', 1;
+        THROW 51114, N'bu iptal nedeni açıklama ister; @Aciklama verin', 1;
     IF NOT EXISTS (SELECT 1 FROM kod.TalepTuruDurumu AS td WHERE td.TurKodu = @TurKodu AND td.DurumKodu = N'iptal')
-        THROW 51112, N'<Codex metni: bu talep türünde iptal durumu tanımlı değil>', 1;
+        THROW 51112, N'bu talep türünde iptal durumu tanımlı değil; talep türünü ve kullanılabilir durumları kontrol edin', 1;
     IF EXISTS (SELECT 1 FROM hakedis.HakEdis AS h WHERE h.TalepKimlik = @TalepKimlik AND h.DurumKodu = N'bekliyor')
-        THROW 51110, N'<Codex metni: talepte onay bekleyen hak ediş var; önce hak edişi onaylayın ya da reddedin>', 1;
+        THROW 51110, N'talepte onay bekleyen hak ediş var; önce hak edişi onaylayın ya da reddedin', 1;
 
     INSERT talep.Iptal
         (TalepKimlik, IptalNedeniKodu, AciklamaZorunlu, Aciklama, OlusmaZamani,
@@ -454,11 +454,11 @@ BEGIN
         (N'talepElleIptalEdildi', N'talep', @TalepKimlik, @TalepNo, @Ayrinti, @Simdi,
          N'personel', @YapanKullaniciKimlik, NULL, @YapanAdi, @YapanRolAdi, N'yonetim', NULL);
 
-    SELECT N'<Codex metni: Sonuç>' AS Bolum,
+    SELECT N'Sonuç' AS Bolum,
            @Uygula AS Uygulandi,
            CASE WHEN @Uygula = 1
-                THEN N'<Codex metni: talep iptal edildi; müşteriye bildirim gitmedi>'
-                ELSE N'<Codex metni: önizleme; hiçbir şey kaydedilmedi, uygulamak için @Uygula = 1 ile yeniden çalıştırın>' END AS Mesaj,
+                THEN N'talep iptal edildi; müşteriye bildirim gitmedi'
+                ELSE N'önizleme; hiçbir şey kaydedilmedi. Sonucu kontrol edin; değişiklikleri kaydetmek için @Uygula = 1 ile yeniden çalıştırın' END AS Mesaj,
            LEFT(@TalepNo, 3) + N'-' + SUBSTRING(@TalepNo, 4, 2) + N'-' + RIGHT(@TalepNo, 5) AS TalepNumarasi,
            @OncekiDurum AS OncekiDurumKodu,
            (SELECT d.Ad FROM kod.TalepDurumu AS d WHERE d.Kod = @OncekiDurum) AS OncekiDurumAdi,
@@ -536,7 +536,7 @@ BEGIN
     SET @Uygula = ISNULL(@Uygula, 0);
     SET @Gerekce = LTRIM(RTRIM(@Gerekce));
     IF LEN(ISNULL(@Gerekce, N'')) < 10
-        THROW 51100, N'<Codex metni: gerekçe en az 10 karakter olmalı>', 1;
+        THROW 51100, N'düzeltmenin gerekçesini en az 10 karakterle yazın', 1;
 
     SELECT @YapanKullaniciKimlik = k.Kimlik, @YapanAdi = p.AdSoyad, @YapanRolAdi = r.Ad
     FROM erisim.Kullanici AS k
@@ -545,13 +545,13 @@ BEGIN
     WHERE k.GirisAdi = (SELECT s.GirisAdi FROM yardim.Sadelestir(@YapanGirisAdi) AS s)
       AND k.TurKodu = N'personel' AND k.Aktif = 1 AND p.AyrilmaZamani IS NULL;
     IF @YapanKullaniciKimlik IS NULL
-        THROW 51101, N'<Codex metni: işlemi yapan giriş adı aktif bir personele ait değil>', 1;
+        THROW 51101, N'işlemi yapan giriş adı aktif bir personele ait değil; işlemi yapan personelin aktif giriş adını verin', 1;
 
     SELECT @TalepKimlik = t.Kimlik
     FROM talep.Talep AS t
     WHERE t.Numara = (SELECT s.Kod FROM yardim.Sadelestir(@TalepNumarasi) AS s);
     IF @TalepKimlik IS NULL
-        THROW 51102, N'<Codex metni: bu numarayla talep bulunamadı>', 1;
+        THROW 51102, N'bu numarayla talep bulunamadı; verilen bilgileri kontrol edip yeniden çalıştırın', 1;
 
     IF @DisIslem = 0
         BEGIN TRANSACTION;
@@ -568,13 +568,13 @@ BEGIN
     WHERE t.Kimlik = @TalepKimlik;
 
     IF @Kapali = 0
-        THROW 51113, N'<Codex metni: talep zaten açık; durumunu değiştirmek için yonetim.TalepDurumunuDegistir kullanın>', 1;
+        THROW 51113, N'talep zaten açık; durumunu değiştirmek için yonetim.TalepDurumunuDegistir kullanın', 1;
     IF NOT EXISTS (SELECT 1
                    FROM kod.TalepTuruDurumu AS td
                    JOIN kod.TalepDurumu AS d ON d.Kod = td.DurumKodu
                    WHERE td.TurKodu = @TurKodu AND td.DurumKodu = @YeniDurum
                      AND td.ElleSecilebilir = 1 AND d.Kapali = 0)
-        THROW 51112, N'<Codex metni: talep bu duruma açılamaz; bu türde elle seçilebilen açık bir durum verin>', 1;
+        THROW 51112, N'talep bu duruma açılamaz; bu türde elle seçilebilen açık bir durum verin', 1;
 
     INSERT talep.YenidenAcma
         (TalepKimlik, OncekiDurumKodu, Aciklama, MusteriyeBildirilmedi, OlusmaZamani,
@@ -606,11 +606,11 @@ BEGIN
         (N'talepElleYenidenAcildi', N'talep', @TalepKimlik, @TalepNo, @Ayrinti, @Simdi,
          N'personel', @YapanKullaniciKimlik, NULL, @YapanAdi, @YapanRolAdi, N'yonetim', NULL);
 
-    SELECT N'<Codex metni: Sonuç>' AS Bolum,
+    SELECT N'Sonuç' AS Bolum,
            @Uygula AS Uygulandi,
            CASE WHEN @Uygula = 1
-                THEN N'<Codex metni: talep yeniden açıldı; müşteriye bildirim gitmedi>'
-                ELSE N'<Codex metni: önizleme; hiçbir şey kaydedilmedi, uygulamak için @Uygula = 1 ile yeniden çalıştırın>' END AS Mesaj,
+                THEN N'talep yeniden açıldı; müşteriye bildirim gitmedi'
+                ELSE N'önizleme; hiçbir şey kaydedilmedi. Sonucu kontrol edin; değişiklikleri kaydetmek için @Uygula = 1 ile yeniden çalıştırın' END AS Mesaj,
            LEFT(@TalepNo, 3) + N'-' + SUBSTRING(@TalepNo, 4, 2) + N'-' + RIGHT(@TalepNo, 5) AS TalepNumarasi,
            @OncekiDurum AS OncekiDurumKodu,
            (SELECT d.Ad FROM kod.TalepDurumu AS d WHERE d.Kod = @OncekiDurum) AS OncekiDurumAdi,
@@ -690,7 +690,7 @@ BEGIN
     SET @Uygula = ISNULL(@Uygula, 0);
     SET @Gerekce = LTRIM(RTRIM(@Gerekce));
     IF LEN(ISNULL(@Gerekce, N'')) < 10
-        THROW 51100, N'<Codex metni: gerekçe en az 10 karakter olmalı>', 1;
+        THROW 51100, N'düzeltmenin gerekçesini en az 10 karakterle yazın', 1;
 
     SELECT @YapanKullaniciKimlik = k.Kimlik, @YapanAdi = p.AdSoyad, @YapanRolAdi = r.Ad
     FROM erisim.Kullanici AS k
@@ -699,7 +699,7 @@ BEGIN
     WHERE k.GirisAdi = (SELECT s.GirisAdi FROM yardim.Sadelestir(@YapanGirisAdi) AS s)
       AND k.TurKodu = N'personel' AND k.Aktif = 1 AND p.AyrilmaZamani IS NULL;
     IF @YapanKullaniciKimlik IS NULL
-        THROW 51101, N'<Codex metni: işlemi yapan giriş adı aktif bir personele ait değil>', 1;
+        THROW 51101, N'işlemi yapan giriş adı aktif bir personele ait değil; işlemi yapan personelin aktif giriş adını verin', 1;
 
     SELECT @Kod = s.Kod FROM yardim.Sadelestir(@SeriNo) AS s;
 
@@ -707,9 +707,9 @@ BEGIN
     FROM makine.Makine AS m
     WHERE m.SeriNo = @Kod AND (@Marka IS NULL OR m.MarkaKodu = @Marka);
     IF @MakineSayisi = 0
-        THROW 51102, N'<Codex metni: bu seri numarasıyla makine bulunamadı>', 1;
+        THROW 51102, N'bu seri numarasıyla makine bulunamadı; verilen bilgileri kontrol edip yeniden çalıştırın', 1;
     IF @MakineSayisi > 1
-        THROW 51103, N'<Codex metni: bu seri numarası birden çok markada var; @MarkaKodu verin>', 1;
+        THROW 51103, N'bu seri numarası birden çok markada var; @MarkaKodu verin', 1;
 
     SELECT @MakineKimlik = m.Kimlik, @MakineKayitNo = m.KayitNo, @MakineMarka = m.MarkaKodu, @MakineSeri = m.SeriNo
     FROM makine.Makine AS m
@@ -719,7 +719,7 @@ BEGIN
     FROM servis.Servis AS s
     WHERE s.KayitNo = @ServisKayitNo;
     IF @ServisKimlik IS NULL
-        THROW 51102, N'<Codex metni: bu KayitNo ile servis bulunamadı; yardim.ServisGoster ile bakın>', 1;
+        THROW 51102, N'bu KayitNo ile servis bulunamadı; yardim.ServisGoster ile bakın', 1;
 
     IF @DisIslem = 0
         BEGIN TRANSACTION;
@@ -735,14 +735,14 @@ BEGIN
                    JOIN servis.MarkaYetkisi AS y WITH (UPDLOCK, HOLDLOCK) ON y.ServisKimlik = s.Kimlik
                    WHERE s.Kimlik = @ServisKimlik AND s.DurumKodu = N'aktif'
                      AND y.MarkaKodu = @MakineMarka AND y.Etkin = 1)
-        THROW 51131, N'<Codex metni: servis pasif ya da bu makinenin markasında yetkisi yok>', 1;
+        THROW 51131, N'servis pasif ya da bu makinenin markasında yetkisi yok; markada yetkili, aktif bir servis seçin', 1;
 
     SELECT @AcikAtamaKimlik = a.Kimlik, @AcikAtamaKayitNo = a.KayitNo, @OncekiServisKimlik = a.ServisKimlik
     FROM makine.MakineServisAtamasi AS a WITH (UPDLOCK, HOLDLOCK)
     WHERE a.MakineKimlik = @MakineKimlik AND a.BitisZamani IS NULL;
 
     IF @OncekiServisKimlik = @ServisKimlik
-        THROW 51113, N'<Codex metni: makine zaten bu servise atanmış>', 1;
+        THROW 51113, N'makine zaten bu servise atanmış; mevcut atamayı kontrol edin, aynı servis için yeniden atama yapmayın', 1;
 
     IF @AcikAtamaKimlik IS NOT NULL
         UPDATE makine.MakineServisAtamasi
@@ -777,11 +777,11 @@ BEGIN
          CASE WHEN LEN(@MakineSeri) <= 20 THEN @MakineSeri END, @Ayrinti, @Simdi,
          N'personel', @YapanKullaniciKimlik, NULL, @YapanAdi, @YapanRolAdi, N'yonetim', NULL);
 
-    SELECT N'<Codex metni: Sonuç>' AS Bolum,
+    SELECT N'Sonuç' AS Bolum,
            @Uygula AS Uygulandi,
            CASE WHEN @Uygula = 1
-                THEN N'<Codex metni: makine servise atandı>'
-                ELSE N'<Codex metni: önizleme; hiçbir şey kaydedilmedi, uygulamak için @Uygula = 1 ile yeniden çalıştırın>' END AS Mesaj,
+                THEN N'makine servise atandı'
+                ELSE N'önizleme; hiçbir şey kaydedilmedi. Sonucu kontrol edin; değişiklikleri kaydetmek için @Uygula = 1 ile yeniden çalıştırın' END AS Mesaj,
            @MakineSeri AS SeriNo,
            @MakineMarka AS MarkaKodu,
            os.Ad AS OncekiServisAdi,
@@ -866,7 +866,7 @@ BEGIN
     SET @Uygula = ISNULL(@Uygula, 0);
     SET @Gerekce = LTRIM(RTRIM(@Gerekce));
     IF LEN(ISNULL(@Gerekce, N'')) < 10
-        THROW 51100, N'<Codex metni: gerekçe en az 10 karakter olmalı>', 1;
+        THROW 51100, N'düzeltmenin gerekçesini en az 10 karakterle yazın', 1;
 
     SELECT @YapanKullaniciKimlik = k.Kimlik, @YapanAdi = p.AdSoyad, @YapanRolAdi = r.Ad
     FROM erisim.Kullanici AS k
@@ -875,7 +875,7 @@ BEGIN
     WHERE k.GirisAdi = (SELECT s.GirisAdi FROM yardim.Sadelestir(@YapanGirisAdi) AS s)
       AND k.TurKodu = N'personel' AND k.Aktif = 1 AND p.AyrilmaZamani IS NULL;
     IF @YapanKullaniciKimlik IS NULL
-        THROW 51101, N'<Codex metni: işlemi yapan giriş adı aktif bir personele ait değil>', 1;
+        THROW 51101, N'işlemi yapan giriş adı aktif bir personele ait değil; işlemi yapan personelin aktif giriş adını verin', 1;
 
     SELECT @Kod = s.Kod FROM yardim.Sadelestir(@SeriNo) AS s;
 
@@ -883,9 +883,9 @@ BEGIN
     FROM makine.Makine AS m
     WHERE m.SeriNo = @Kod AND (@Marka IS NULL OR m.MarkaKodu = @Marka);
     IF @MakineSayisi = 0
-        THROW 51102, N'<Codex metni: bu seri numarasıyla makine bulunamadı>', 1;
+        THROW 51102, N'bu seri numarasıyla makine bulunamadı; verilen bilgileri kontrol edip yeniden çalıştırın', 1;
     IF @MakineSayisi > 1
-        THROW 51103, N'<Codex metni: bu seri numarası birden çok markada var; @MarkaKodu verin>', 1;
+        THROW 51103, N'bu seri numarası birden çok markada var; @MarkaKodu verin', 1;
 
     SELECT @MakineKimlik = m.Kimlik, @MakineKayitNo = m.KayitNo, @MakineMarka = m.MarkaKodu, @MakineSeri = m.SeriNo
     FROM makine.Makine AS m
@@ -905,7 +905,7 @@ BEGIN
     WHERE a.MakineKimlik = @MakineKimlik AND a.BitisZamani IS NULL;
 
     IF @AtamaKimlik IS NULL
-        THROW 51102, N'<Codex metni: makinenin açık servis ataması yok>', 1;
+        THROW 51102, N'makinenin açık servis ataması yok; mevcut servis atamasını kontrol edin', 1;
 
     UPDATE makine.MakineServisAtamasi
     SET BitisZamani = CASE WHEN BaslangicZamani > @Simdi THEN BaslangicZamani ELSE @Simdi END,
@@ -933,11 +933,11 @@ BEGIN
          CASE WHEN LEN(@MakineSeri) <= 20 THEN @MakineSeri END, @Ayrinti, @Simdi,
          N'personel', @YapanKullaniciKimlik, NULL, @YapanAdi, @YapanRolAdi, N'yonetim', NULL);
 
-    SELECT N'<Codex metni: Sonuç>' AS Bolum,
+    SELECT N'Sonuç' AS Bolum,
            @Uygula AS Uygulandi,
            CASE WHEN @Uygula = 1
-                THEN N'<Codex metni: makinenin servis ataması kaldırıldı; servis artık bayi zincirinden okunur>'
-                ELSE N'<Codex metni: önizleme; hiçbir şey kaydedilmedi, uygulamak için @Uygula = 1 ile yeniden çalıştırın>' END AS Mesaj,
+                THEN N'makinenin servis ataması kaldırıldı; servis artık bayi zincirinden belirlenir'
+                ELSE N'önizleme; hiçbir şey kaydedilmedi. Sonucu kontrol edin; değişiklikleri kaydetmek için @Uygula = 1 ile yeniden çalıştırın' END AS Mesaj,
            @MakineSeri AS SeriNo,
            @MakineMarka AS MarkaKodu,
            s.Ad AS KaldirilanServisAdi,
@@ -1024,7 +1024,7 @@ BEGIN
     SET @Uygula = ISNULL(@Uygula, 0);
     SET @Gerekce = LTRIM(RTRIM(@Gerekce));
     IF LEN(ISNULL(@Gerekce, N'')) < 10
-        THROW 51100, N'<Codex metni: gerekçe en az 10 karakter olmalı>', 1;
+        THROW 51100, N'düzeltmenin gerekçesini en az 10 karakterle yazın', 1;
 
     SELECT @YapanKullaniciKimlik = k.Kimlik, @YapanAdi = p.AdSoyad, @YapanRolAdi = r.Ad
     FROM erisim.Kullanici AS k
@@ -1033,21 +1033,21 @@ BEGIN
     WHERE k.GirisAdi = (SELECT s.GirisAdi FROM yardim.Sadelestir(@YapanGirisAdi) AS s)
       AND k.TurKodu = N'personel' AND k.Aktif = 1 AND p.AyrilmaZamani IS NULL;
     IF @YapanKullaniciKimlik IS NULL
-        THROW 51101, N'<Codex metni: işlemi yapan giriş adı aktif bir personele ait değil>', 1;
+        THROW 51101, N'işlemi yapan giriş adı aktif bir personele ait değil; işlemi yapan personelin aktif giriş adını verin', 1;
 
     SELECT @EskiE164 = s.TelefonE164 FROM yardim.Sadelestir(@EskiTelefon) AS s;
     SELECT @YeniE164 = s.TelefonE164, @YeniUlusal = s.TelefonUlusal FROM yardim.Sadelestir(@YeniTelefon) AS s;
 
     IF @EskiE164 IS NULL
-        THROW 51120, N'<Codex metni: eski telefon numarası geçersiz>', 1;
+        THROW 51120, N'eski telefon numarası geçersiz; numaraları kontrol edip geçerli biçimde verin', 1;
     IF @YeniE164 IS NULL
-        THROW 51120, N'<Codex metni: yeni telefon numarası geçersiz>', 1;
+        THROW 51120, N'yeni telefon numarası geçersiz; numaraları kontrol edip geçerli biçimde verin', 1;
 
     SELECT @HesapKimlik = h.Kimlik, @HesapKayitNo = h.KayitNo
     FROM musteri.Hesap AS h
     WHERE h.TelefonE164 = @EskiE164;
     IF @HesapKimlik IS NULL
-        THROW 51102, N'<Codex metni: eski telefon hiçbir hesabın güncel telefonu değil; yardim.MusteriGoster ile bakın>', 1;
+        THROW 51102, N'eski telefon hiçbir hesabın güncel telefonu değil; yardim.MusteriGoster ile bakın', 1;
 
     IF NULLIF(LTRIM(RTRIM(@TelefonDegisikligiNumarasi)), N'') IS NOT NULL
     BEGIN
@@ -1055,7 +1055,7 @@ BEGIN
         FROM musteri.TelefonDegisikligiTalebi AS d
         WHERE d.Numara = (SELECT s.Kod FROM yardim.Sadelestir(@TelefonDegisikligiNumarasi) AS s);
         IF @TelKimlik IS NULL
-            THROW 51102, N'<Codex metni: bu numarayla numara değişikliği talebi bulunamadı>', 1;
+            THROW 51102, N'bu numarayla numara değişikliği talebi bulunamadı; verilen bilgileri kontrol edip yeniden çalıştırın', 1;
     END;
 
     IF @DisIslem = 0
@@ -1072,12 +1072,12 @@ BEGIN
     WHERE h.Kimlik = @HesapKimlik;
 
     IF @HesapTelefon IS NULL OR @HesapTelefon <> @EskiE164
-        THROW 51102, N'<Codex metni: eski telefon hiçbir hesabın güncel telefonu değil; yardim.MusteriGoster ile bakın>', 1;
+        THROW 51102, N'eski telefon hiçbir hesabın güncel telefonu değil; yardim.MusteriGoster ile bakın', 1;
     IF @YeniE164 = @EskiE164
-        THROW 51113, N'<Codex metni: yeni telefon eskisiyle aynı>', 1;
+        THROW 51113, N'yeni telefon eskisiyle aynı; numaraları kontrol edip farklı bir yeni telefon verin', 1;
     IF EXISTS (SELECT 1 FROM musteri.Hesap AS h WITH (UPDLOCK, HOLDLOCK)
                WHERE h.TelefonE164 = @YeniE164 AND h.Kimlik <> @HesapKimlik)
-        THROW 51121, N'<Codex metni: yeni telefon başka bir hesabın telefonu; aynı kişiyse iki hesabı yonetim.HesaplariBirlestir ile birleştirin>', 1;
+        THROW 51121, N'yeni telefon başka bir hesabın telefonu; aynı kişiyse iki hesabı yonetim.HesaplariBirlestir ile birleştirin', 1;
 
     IF @TelKimlik IS NOT NULL
     BEGIN
@@ -1086,11 +1086,11 @@ BEGIN
         WHERE d.Kimlik = @TelKimlik;
 
         IF @TelDurum <> N'bekliyor'
-            THROW 51113, N'<Codex metni: numara değişikliği talebi artık beklemiyor; karar verilmiş>', 1;
+            THROW 51113, N'numara değişikliği talebi artık beklemiyor; karar verilmiş. Talebin sonucunu kontrol edin', 1;
         IF @TelHesap IS NOT NULL AND @TelHesap <> @HesapKimlik
-            THROW 51104, N'<Codex metni: numara değişikliği talebi başka bir hesaba ait>', 1;
+            THROW 51104, N'numara değişikliği talebi başka bir hesaba ait; hesap ve talep bilgilerini kontrol edip eşleşen talebi verin', 1;
         IF @TelYeni IS NOT NULL AND @TelYeni <> @YeniE164
-            THROW 51104, N'<Codex metni: numara değişikliği talebindeki yeni telefon verilen yeni telefonla aynı değil>', 1;
+            THROW 51104, N'numara değişikliği talebindeki yeni telefon verilen yeni telefonla aynı değil; talepteki numarayı kontrol edip eşleşen telefonu verin', 1;
     END;
 
     /* Ülke: telefon kodu en uzun eşleşen ülke (aynı kodlu ülkelerde hesabın eski ülkesi önce). */
@@ -1159,11 +1159,11 @@ BEGIN
         (N'telefonDegistirildi', N'hesap', @HesapKimlik, @TelNo, @Ayrinti, @Simdi,
          N'personel', @YapanKullaniciKimlik, NULL, @YapanAdi, @YapanRolAdi, N'yonetim', NULL);
 
-    SELECT N'<Codex metni: Sonuç>' AS Bolum,
+    SELECT N'Sonuç' AS Bolum,
            @Uygula AS Uygulandi,
            CASE WHEN @Uygula = 1
-                THEN N'<Codex metni: müşterinin telefonu değiştirildi; açık oturumları kapatıldı, müşteri yeni telefonuyla giriş yapacak>'
-                ELSE N'<Codex metni: önizleme; hiçbir şey kaydedilmedi, uygulamak için @Uygula = 1 ile yeniden çalıştırın>' END AS Mesaj,
+                THEN N'müşterinin telefonu değiştirildi; açık oturumları kapatıldı, müşteri yeni telefonuyla giriş yapacak'
+                ELSE N'önizleme; hiçbir şey kaydedilmedi. Sonucu kontrol edin; değişiklikleri kaydetmek için @Uygula = 1 ile yeniden çalıştırın' END AS Mesaj,
            @HesapKayitNo AS HesapKayitNo,
            @EskiE164 AS EskiTelefon,
            @YeniE164 AS YeniTelefon,
@@ -1240,7 +1240,7 @@ BEGIN
     SET @Uygula = ISNULL(@Uygula, 0);
     SET @Gerekce = LTRIM(RTRIM(@Gerekce));
     IF LEN(ISNULL(@Gerekce, N'')) < 10
-        THROW 51100, N'<Codex metni: gerekçe en az 10 karakter olmalı>', 1;
+        THROW 51100, N'düzeltmenin gerekçesini en az 10 karakterle yazın', 1;
 
     SELECT @YapanKullaniciKimlik = k.Kimlik, @YapanAdi = p.AdSoyad, @YapanRolAdi = r.Ad
     FROM erisim.Kullanici AS k
@@ -1249,24 +1249,24 @@ BEGIN
     WHERE k.GirisAdi = (SELECT s.GirisAdi FROM yardim.Sadelestir(@YapanGirisAdi) AS s)
       AND k.TurKodu = N'personel' AND k.Aktif = 1 AND p.AyrilmaZamani IS NULL;
     IF @YapanKullaniciKimlik IS NULL
-        THROW 51101, N'<Codex metni: işlemi yapan giriş adı aktif bir personele ait değil>', 1;
+        THROW 51101, N'işlemi yapan giriş adı aktif bir personele ait değil; işlemi yapan personelin aktif giriş adını verin', 1;
 
     IF @Neden IS NULL
-        THROW 51100, N'<Codex metni: dekontun neden geçersiz olduğunu @GecersizNedeni ile yazın>', 1;
+        THROW 51100, N'dekontun neden geçersiz olduğunu @GecersizNedeni ile yazın', 1;
 
     SELECT @TalepKimlik = t.Kimlik, @TalepNo = t.Numara
     FROM talep.Talep AS t
     WHERE t.Numara = (SELECT s.Kod FROM yardim.Sadelestir(@TalepNumarasi) AS s);
     IF @TalepKimlik IS NULL
-        THROW 51102, N'<Codex metni: bu numarayla talep bulunamadı>', 1;
+        THROW 51102, N'bu numarayla talep bulunamadı; verilen bilgileri kontrol edip yeniden çalıştırın', 1;
 
     SELECT @DekontKimlik = d.Kimlik, @DekontTalep = d.TalepKimlik
     FROM talep.Dekont AS d
     WHERE d.KayitNo = @DekontKayitNo;
     IF @DekontKimlik IS NULL
-        THROW 51102, N'<Codex metni: bu KayitNo ile dekont bulunamadı; yardim.TalepGoster 12. kümeye bakın>', 1;
+        THROW 51102, N'bu KayitNo ile dekont bulunamadı; yardim.TalepGoster çıktısındaki 12. bölüme bakın', 1;
     IF @DekontTalep <> @TalepKimlik
-        THROW 51104, N'<Codex metni: bu dekont bu talebe ait değil>', 1;
+        THROW 51104, N'bu dekont bu talebe ait değil; talep ve dekont bilgilerini kontrol edip eşleşen dekontu verin', 1;
 
     IF @DisIslem = 0
         BEGIN TRANSACTION;
@@ -1282,10 +1282,10 @@ BEGIN
     WHERE d.Kimlik = @DekontKimlik;
 
     IF @GecersizZamani IS NOT NULL
-        THROW 51113, N'<Codex metni: dekont zaten geçersiz kılınmış>', 1;
+        THROW 51113, N'dekont zaten geçersiz kılınmış; mevcut durumu kontrol edin, yeniden geçersiz kılma işlemi yapmayın', 1;
     IF EXISTS (SELECT 1 FROM talep.OdemeOnayi AS o WITH (UPDLOCK, HOLDLOCK)
                WHERE o.TalepKimlik = @TalepKimlik AND o.GeriAlinmaZamani IS NULL)
-        THROW 51111, N'<Codex metni: talebin ödemesi onaylı; önce yonetim.OdemeOnayiniGeriAl ile onayı geri alın>', 1;
+        THROW 51111, N'talebin ödemesi onaylı; önce yonetim.OdemeOnayiniGeriAl ile onayı geri alın', 1;
 
     UPDATE talep.Dekont
     SET GecersizZamani = @Simdi,
@@ -1316,11 +1316,11 @@ BEGIN
         (N'dekontGecersizKilindi', N'dekont', @DekontKimlik, @TalepNo, @Ayrinti, @Simdi,
          N'personel', @YapanKullaniciKimlik, NULL, @YapanAdi, @YapanRolAdi, N'yonetim', NULL);
 
-    SELECT N'<Codex metni: Sonuç>' AS Bolum,
+    SELECT N'Sonuç' AS Bolum,
            @Uygula AS Uygulandi,
            CASE WHEN @Uygula = 1
-                THEN N'<Codex metni: dekont geçersiz kılındı>'
-                ELSE N'<Codex metni: önizleme; hiçbir şey kaydedilmedi, uygulamak için @Uygula = 1 ile yeniden çalıştırın>' END AS Mesaj,
+                THEN N'dekont geçersiz kılındı'
+                ELSE N'önizleme; hiçbir şey kaydedilmedi. Sonucu kontrol edin; değişiklikleri kaydetmek için @Uygula = 1 ile yeniden çalıştırın' END AS Mesaj,
            LEFT(@TalepNo, 3) + N'-' + SUBSTRING(@TalepNo, 4, 2) + N'-' + RIGHT(@TalepNo, 5) AS TalepNumarasi,
            @DekontKayitNo AS DekontKayitNo,
            @DosyaKayitNo AS DosyaKayitNo,
@@ -1393,7 +1393,7 @@ BEGIN
     SET @Uygula = ISNULL(@Uygula, 0);
     SET @Gerekce = LTRIM(RTRIM(@Gerekce));
     IF LEN(ISNULL(@Gerekce, N'')) < 10
-        THROW 51100, N'<Codex metni: gerekçe en az 10 karakter olmalı>', 1;
+        THROW 51100, N'düzeltmenin gerekçesini en az 10 karakterle yazın', 1;
 
     SELECT @YapanKullaniciKimlik = k.Kimlik, @YapanAdi = p.AdSoyad, @YapanRolAdi = r.Ad
     FROM erisim.Kullanici AS k
@@ -1402,13 +1402,13 @@ BEGIN
     WHERE k.GirisAdi = (SELECT s.GirisAdi FROM yardim.Sadelestir(@YapanGirisAdi) AS s)
       AND k.TurKodu = N'personel' AND k.Aktif = 1 AND p.AyrilmaZamani IS NULL;
     IF @YapanKullaniciKimlik IS NULL
-        THROW 51101, N'<Codex metni: işlemi yapan giriş adı aktif bir personele ait değil>', 1;
+        THROW 51101, N'işlemi yapan giriş adı aktif bir personele ait değil; işlemi yapan personelin aktif giriş adını verin', 1;
 
     SELECT @TalepKimlik = t.Kimlik
     FROM talep.Talep AS t
     WHERE t.Numara = (SELECT s.Kod FROM yardim.Sadelestir(@TalepNumarasi) AS s);
     IF @TalepKimlik IS NULL
-        THROW 51102, N'<Codex metni: bu numarayla talep bulunamadı>', 1;
+        THROW 51102, N'bu numarayla talep bulunamadı; verilen bilgileri kontrol edip yeniden çalıştırın', 1;
 
     IF @DisIslem = 0
         BEGIN TRANSACTION;
@@ -1429,9 +1429,9 @@ BEGIN
     WHERE o.TalepKimlik = @TalepKimlik AND o.GeriAlinmaZamani IS NULL;
 
     IF @OnayKimlik IS NULL
-        THROW 51102, N'<Codex metni: talepte etkin ödeme onayı yok>', 1;
+        THROW 51102, N'talepte etkin ödeme onayı yok; ödeme kayıtlarını kontrol edin', 1;
     IF @Kapali = 1
-        THROW 51113, N'<Codex metni: talep kapalı; kapalı talebin ödeme onayı geri alınamaz, önce yonetim.TalebiYenidenAc>', 1;
+        THROW 51113, N'talep kapalı; kapalı talebin ödeme onayı geri alınamaz. Önce yonetim.TalebiYenidenAc ile talebi yeniden açın', 1;
 
     UPDATE talep.OdemeOnayi
     SET GeriAlinmaZamani = @Simdi,
@@ -1452,11 +1452,11 @@ BEGIN
         (N'odemeOnayiGeriAlindi', N'talep', @TalepKimlik, @TalepNo, @Ayrinti, @Simdi,
          N'personel', @YapanKullaniciKimlik, NULL, @YapanAdi, @YapanRolAdi, N'yonetim', NULL);
 
-    SELECT N'<Codex metni: Sonuç>' AS Bolum,
+    SELECT N'Sonuç' AS Bolum,
            @Uygula AS Uygulandi,
            CASE WHEN @Uygula = 1
-                THEN N'<Codex metni: ödeme onayı geri alındı>'
-                ELSE N'<Codex metni: önizleme; hiçbir şey kaydedilmedi, uygulamak için @Uygula = 1 ile yeniden çalıştırın>' END AS Mesaj,
+                THEN N'ödeme onayı geri alındı'
+                ELSE N'önizleme; hiçbir şey kaydedilmedi. Sonucu kontrol edin; değişiklikleri kaydetmek için @Uygula = 1 ile yeniden çalıştırın' END AS Mesaj,
            LEFT(@TalepNo, 3) + N'-' + SUBSTRING(@TalepNo, 4, 2) + N'-' + RIGHT(@TalepNo, 5) AS TalepNumarasi,
            @OnayKayitNo AS OnayKayitNo,
            @OnaylananTutar AS OnaylananTutar,
@@ -1529,7 +1529,7 @@ BEGIN
     SET @Uygula = ISNULL(@Uygula, 0);
     SET @Gerekce = LTRIM(RTRIM(@Gerekce));
     IF LEN(ISNULL(@Gerekce, N'')) < 10
-        THROW 51100, N'<Codex metni: gerekçe en az 10 karakter olmalı>', 1;
+        THROW 51100, N'düzeltmenin gerekçesini en az 10 karakterle yazın', 1;
 
     SELECT @YapanKullaniciKimlik = k.Kimlik, @YapanAdi = p.AdSoyad, @YapanRolAdi = r.Ad
     FROM erisim.Kullanici AS k
@@ -1538,7 +1538,7 @@ BEGIN
     WHERE k.GirisAdi = (SELECT s.GirisAdi FROM yardim.Sadelestir(@YapanGirisAdi) AS s)
       AND k.TurKodu = N'personel' AND k.Aktif = 1 AND p.AyrilmaZamani IS NULL;
     IF @YapanKullaniciKimlik IS NULL
-        THROW 51101, N'<Codex metni: işlemi yapan giriş adı aktif bir personele ait değil>', 1;
+        THROW 51101, N'işlemi yapan giriş adı aktif bir personele ait değil; işlemi yapan personelin aktif giriş adını verin', 1;
 
     SELECT @Giris = LEFT(s.GirisAdi, 40) FROM yardim.Sadelestir(@GirisAdi) AS s;
 
@@ -1549,7 +1549,7 @@ BEGIN
     LEFT JOIN erisim.Rol AS r ON r.Kimlik = p.RolKimlik
     WHERE k.GirisAdi = @Giris AND k.TurKodu = N'personel';
     IF @KullaniciKimlik IS NULL
-        THROW 51102, N'<Codex metni: bu giriş adıyla personel bulunamadı>', 1;
+        THROW 51102, N'bu giriş adıyla personel bulunamadı; verilen bilgileri kontrol edip yeniden çalıştırın', 1;
 
     IF @DisIslem = 0
         BEGIN TRANSACTION;
@@ -1569,9 +1569,9 @@ BEGIN
     WHERE p.Kimlik = @PersonelKimlik;
 
     IF @Aktif = 0
-        THROW 51113, N'<Codex metni: bu personelin girişi zaten kapalı>', 1;
+        THROW 51113, N'bu personelin girişi zaten kapalı; giriş durumunu kontrol edin, yeniden kapatma işlemi yapmayın', 1;
     IF @KullaniciKimlik = @YapanKullaniciKimlik
-        THROW 51112, N'<Codex metni: kişi kendi girişini kapatamaz; başka bir personelin giriş adıyla çalıştırın>', 1;
+        THROW 51112, N'kişi kendi girişini kapatamaz; başka bir personelin giriş adıyla çalıştırın', 1;
 
     UPDATE erisim.Kullanici
     SET Aktif = 0
@@ -1609,11 +1609,11 @@ BEGIN
         (N'personelPasiflestirildi', N'personel', @PersonelKimlik, NULL, @Ayrinti, @Simdi,
          N'personel', @YapanKullaniciKimlik, NULL, @YapanAdi, @YapanRolAdi, N'yonetim', NULL);
 
-    SELECT N'<Codex metni: Sonuç>' AS Bolum,
+    SELECT N'Sonuç' AS Bolum,
            @Uygula AS Uygulandi,
            CASE WHEN @Uygula = 1
-                THEN N'<Codex metni: personelin girişi kapatıldı, oturumları sonlandırıldı>'
-                ELSE N'<Codex metni: önizleme; hiçbir şey kaydedilmedi, uygulamak için @Uygula = 1 ile yeniden çalıştırın>' END AS Mesaj,
+                THEN N'personelin girişi kapatıldı, oturumları sonlandırıldı'
+                ELSE N'önizleme; hiçbir şey kaydedilmedi. Sonucu kontrol edin; değişiklikleri kaydetmek için @Uygula = 1 ile yeniden çalıştırın' END AS Mesaj,
            @Giris AS GirisAdi,
            @AdSoyad AS AdSoyad,
            @RolAdi AS RolAdi,
@@ -1696,7 +1696,7 @@ BEGIN
     SET @Uygula = ISNULL(@Uygula, 0);
     SET @Gerekce = LTRIM(RTRIM(@Gerekce));
     IF LEN(ISNULL(@Gerekce, N'')) < 10
-        THROW 51100, N'<Codex metni: gerekçe en az 10 karakter olmalı>', 1;
+        THROW 51100, N'düzeltmenin gerekçesini en az 10 karakterle yazın', 1;
 
     SELECT @YapanKullaniciKimlik = k.Kimlik, @YapanAdi = p.AdSoyad, @YapanRolAdi = r.Ad
     FROM erisim.Kullanici AS k
@@ -1705,7 +1705,7 @@ BEGIN
     WHERE k.GirisAdi = (SELECT s.GirisAdi FROM yardim.Sadelestir(@YapanGirisAdi) AS s)
       AND k.TurKodu = N'personel' AND k.Aktif = 1 AND p.AyrilmaZamani IS NULL;
     IF @YapanKullaniciKimlik IS NULL
-        THROW 51101, N'<Codex metni: işlemi yapan giriş adı aktif bir personele ait değil>', 1;
+        THROW 51101, N'işlemi yapan giriş adı aktif bir personele ait değil; işlemi yapan personelin aktif giriş adını verin', 1;
 
     SELECT @Giris = LEFT(s.GirisAdi, 40) FROM yardim.Sadelestir(@GirisAdi) AS s;
 
@@ -1721,7 +1721,7 @@ BEGIN
       AND k.TurKodu IN (N'personel', N'servis')
       AND k.Aktif = 1;
     IF @KullaniciKimlik IS NULL
-        THROW 51102, N'<Codex metni: bu giriş adıyla aktif personel ya da servis girişi bulunamadı>', 1;
+        THROW 51102, N'bu giriş adıyla aktif personel ya da servis girişi bulunamadı; verilen bilgileri kontrol edip yeniden çalıştırın', 1;
 
     IF @DisIslem = 0
         BEGIN TRANSACTION;
@@ -1739,7 +1739,7 @@ BEGIN
     WHERE k.Kimlik = @KullaniciKimlik;
 
     IF @Aktif <> 1
-        THROW 51102, N'<Codex metni: bu giriş adıyla aktif personel ya da servis girişi bulunamadı>', 1;
+        THROW 51102, N'bu giriş adıyla aktif personel ya da servis girişi bulunamadı; verilen bilgileri kontrol edip yeniden çalıştırın', 1;
 
     WHILE LEN(@Kod) < 16
     BEGIN
@@ -1791,11 +1791,11 @@ BEGIN
         (N'girisSifresiSifirlandi', @IlgiliKayitTuru, @IlgiliKimlik, NULL, @Ayrinti, @Simdi,
          N'personel', @YapanKullaniciKimlik, NULL, @YapanAdi, @YapanRolAdi, N'yonetim', NULL);
 
-    SELECT N'<Codex metni: Sonuç>' AS Bolum,
+    SELECT N'Sonuç' AS Bolum,
            @Uygula AS Uygulandi,
            CASE WHEN @Uygula = 1
-                THEN N'<Codex metni: şifre sıfırlandı; tek kullanımlık kodu kişiye telefonda okuyun, 1 saat geçerli, bir daha gösterilmez>'
-                ELSE N'<Codex metni: önizleme; hiçbir şey kaydedilmedi, kod üretmek için @Uygula = 1 ile yeniden çalıştırın>' END AS Mesaj,
+                THEN N'şifre sıfırlandı; tek kullanımlık kodu kişiye telefonda okuyun. Kod 1 saat geçerli ve bir daha gösterilmeyecek'
+                ELSE N'önizleme; hiçbir şey kaydedilmedi. Sonucu kontrol edin; kod üretmek için @Uygula = 1 ile yeniden çalıştırın' END AS Mesaj,
            @Giris AS GirisAdi,
            (SELECT a.Ad FROM kod.AktorTuru AS a WHERE a.Kod = @KullaniciTuru) AS KullaniciTuruAdi,
            @SahipAdi AS SahipAdi,
@@ -1868,7 +1868,7 @@ BEGIN
     SET @Uygula = ISNULL(@Uygula, 0);
     SET @Gerekce = LTRIM(RTRIM(@Gerekce));
     IF LEN(ISNULL(@Gerekce, N'')) < 10
-        THROW 51100, N'<Codex metni: gerekçe en az 10 karakter olmalı>', 1;
+        THROW 51100, N'düzeltmenin gerekçesini en az 10 karakterle yazın', 1;
 
     SELECT @YapanKullaniciKimlik = k.Kimlik, @YapanAdi = p.AdSoyad, @YapanRolAdi = r.Ad
     FROM erisim.Kullanici AS k
@@ -1877,17 +1877,17 @@ BEGIN
     WHERE k.GirisAdi = (SELECT s.GirisAdi FROM yardim.Sadelestir(@YapanGirisAdi) AS s)
       AND k.TurKodu = N'personel' AND k.Aktif = 1 AND p.AyrilmaZamani IS NULL;
     IF @YapanKullaniciKimlik IS NULL
-        THROW 51101, N'<Codex metni: işlemi yapan giriş adı aktif bir personele ait değil>', 1;
+        THROW 51101, N'işlemi yapan giriş adı aktif bir personele ait değil; işlemi yapan personelin aktif giriş adını verin', 1;
 
     SELECT @ServisKimlik = s.Kimlik, @ServisAdi = s.Ad
     FROM servis.Servis AS s
     WHERE s.KayitNo = @ServisKayitNo;
     IF @ServisKimlik IS NULL
-        THROW 51102, N'<Codex metni: bu KayitNo ile servis bulunamadı; yardim.ServisGoster ile bakın>', 1;
+        THROW 51102, N'bu KayitNo ile servis bulunamadı; yardim.ServisGoster ile bakın', 1;
 
     SELECT @MarkaAdi = m.Ad FROM katalog.Marka AS m WHERE m.Kod = @Marka;
     IF @MarkaAdi IS NULL
-        THROW 51102, N'<Codex metni: bu marka kodu yok; katalog.Marka listesine bakın>', 1;
+        THROW 51102, N'bu marka kodu yok; katalog.Marka listesine bakın', 1;
 
     IF @DisIslem = 0
         BEGIN TRANSACTION;
@@ -1903,14 +1903,14 @@ BEGIN
     WHERE s.Kimlik = @ServisKimlik;
 
     IF @ServisDurumu <> N'aktif'
-        THROW 51131, N'<Codex metni: servis pasif; pasif servise marka yetkisi verilemez>', 1;
+        THROW 51131, N'servis pasif; pasif servise marka yetkisi verilemez. Servisin durumunu kontrol edin', 1;
 
     SELECT @SatirVar = 1, @OncekiEtkin = y.Etkin, @OncekiBitis = y.BitisZamani
     FROM servis.MarkaYetkisi AS y WITH (UPDLOCK, HOLDLOCK)
     WHERE y.ServisKimlik = @ServisKimlik AND y.MarkaKodu = @Marka;
 
     IF @OncekiEtkin = 1
-        THROW 51113, N'<Codex metni: servisin bu markada yetkisi zaten var>', 1;
+        THROW 51113, N'servisin bu markada yetkisi zaten var; mevcut yetkiyi kontrol edin, yeniden yetki verme işlemi yapmayın', 1;
 
     IF @SatirVar = 1
         UPDATE servis.MarkaYetkisi
@@ -1937,11 +1937,11 @@ BEGIN
         (N'servisYetkisiDegisti', N'servis', @ServisKimlik, NULL, @Ayrinti, @Simdi,
          N'personel', @YapanKullaniciKimlik, NULL, @YapanAdi, @YapanRolAdi, N'yonetim', NULL);
 
-    SELECT N'<Codex metni: Sonuç>' AS Bolum,
+    SELECT N'Sonuç' AS Bolum,
            @Uygula AS Uygulandi,
            CASE WHEN @Uygula = 1
-                THEN N'<Codex metni: servise marka yetkisi verildi>'
-                ELSE N'<Codex metni: önizleme; hiçbir şey kaydedilmedi, uygulamak için @Uygula = 1 ile yeniden çalıştırın>' END AS Mesaj,
+                THEN N'servise marka yetkisi verildi'
+                ELSE N'önizleme; hiçbir şey kaydedilmedi. Sonucu kontrol edin; değişiklikleri kaydetmek için @Uygula = 1 ile yeniden çalıştırın' END AS Mesaj,
            @ServisAdi AS ServisAdi,
            @ServisKayitNo AS ServisKayitNo,
            @Marka AS MarkaKodu,
@@ -2016,7 +2016,7 @@ BEGIN
     SET @Uygula = ISNULL(@Uygula, 0);
     SET @Gerekce = LTRIM(RTRIM(@Gerekce));
     IF LEN(ISNULL(@Gerekce, N'')) < 10
-        THROW 51100, N'<Codex metni: gerekçe en az 10 karakter olmalı>', 1;
+        THROW 51100, N'düzeltmenin gerekçesini en az 10 karakterle yazın', 1;
 
     SELECT @YapanKullaniciKimlik = k.Kimlik, @YapanAdi = p.AdSoyad, @YapanRolAdi = r.Ad
     FROM erisim.Kullanici AS k
@@ -2025,13 +2025,13 @@ BEGIN
     WHERE k.GirisAdi = (SELECT s.GirisAdi FROM yardim.Sadelestir(@YapanGirisAdi) AS s)
       AND k.TurKodu = N'personel' AND k.Aktif = 1 AND p.AyrilmaZamani IS NULL;
     IF @YapanKullaniciKimlik IS NULL
-        THROW 51101, N'<Codex metni: işlemi yapan giriş adı aktif bir personele ait değil>', 1;
+        THROW 51101, N'işlemi yapan giriş adı aktif bir personele ait değil; işlemi yapan personelin aktif giriş adını verin', 1;
 
     SELECT @ServisKimlik = s.Kimlik, @ServisAdi = s.Ad
     FROM servis.Servis AS s
     WHERE s.KayitNo = @ServisKayitNo;
     IF @ServisKimlik IS NULL
-        THROW 51102, N'<Codex metni: bu KayitNo ile servis bulunamadı; yardim.ServisGoster ile bakın>', 1;
+        THROW 51102, N'bu KayitNo ile servis bulunamadı; yardim.ServisGoster ile bakın', 1;
 
     SELECT @MarkaAdi = m.Ad FROM katalog.Marka AS m WHERE m.Kod = @Marka;
 
@@ -2049,7 +2049,7 @@ BEGIN
     WHERE y.ServisKimlik = @ServisKimlik AND y.MarkaKodu = @Marka;
 
     IF ISNULL(@Etkin, 0) = 0
-        THROW 51102, N'<Codex metni: servisin bu markada etkin yetkisi yok>', 1;
+        THROW 51102, N'servisin bu markada etkin yetkisi yok; marka kodunu ve mevcut yetkileri kontrol edin', 1;
 
     UPDATE makine.MakineServisAtamasi
     SET BitisZamani = CASE WHEN BaslangicZamani > @Simdi THEN BaslangicZamani ELSE @Simdi END,
@@ -2099,11 +2099,11 @@ BEGIN
     FROM @Biten AS b
     JOIN makine.Makine AS m ON m.Kimlik = b.MakineKimlik;
 
-    SELECT N'<Codex metni: Sonuç>' AS Bolum,
+    SELECT N'Sonuç' AS Bolum,
            @Uygula AS Uygulandi,
            CASE WHEN @Uygula = 1
-                THEN N'<Codex metni: servisin marka yetkisi alındı; atamalar bitti, açık taleplerin devrine personel karar verir>'
-                ELSE N'<Codex metni: önizleme; hiçbir şey kaydedilmedi, bitecek atamalar ve açık talepler aşağıda; uygulamak için @Uygula = 1>' END AS Mesaj,
+                THEN N'servisin marka yetkisi kaldırıldı; makine atamaları sonlandırıldı. Açık taleplerin devri için personelin karar vermesi gerekiyor'
+                ELSE N'önizleme; hiçbir şey kaydedilmedi. Sonlandırılacak atamaları ve açık talepleri aşağıda kontrol edin; değişiklikleri kaydetmek için @Uygula = 1 ile yeniden çalıştırın' END AS Mesaj,
            @ServisAdi AS ServisAdi,
            @ServisKayitNo AS ServisKayitNo,
            @Marka AS MarkaKodu,
@@ -2112,7 +2112,7 @@ BEGIN
            @AcikTalepSayisi AS AcikTalepSayisi,
            CONVERT(datetime2(0), @Simdi AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS BitisZamaniTurkiye;
 
-    SELECT N'<Codex metni: Bitirilen makine atamaları>' AS Bolum,
+    SELECT N'Bitirilen makine atamaları' AS Bolum,
            m.SeriNo, m.MarkaKodu, ur.Ad AS UrunAdi, b.KayitNo AS AtamaKayitNo,
            zs.Ad AS ZincirdekiServisAdi, zs.KayitNo AS ZincirdekiServisKayitNo, ms.ServisKaynagiKodu,
            m.KayitNo AS MakineKayitNo
@@ -2123,7 +2123,7 @@ BEGIN
     LEFT JOIN servis.Servis AS zs ON zs.Kimlik = ms.ServisKimlik
     ORDER BY m.SeriNo;
 
-    SELECT N'<Codex metni: Servisin bu markadaki açık talepleri>' AS Bolum, v.*
+    SELECT N'Servisin bu markadaki açık talepleri' AS Bolum, v.*
     FROM talep.Talep AS t
     JOIN gorunum.TalepListesi AS v ON v.KayitNo = t.KayitNo
     WHERE t.ServisKimlik = @ServisKimlik AND t.MarkaKodu = @Marka AND t.Kapali = 0
@@ -2185,7 +2185,7 @@ BEGIN
     DECLARE @Ayrinti nvarchar(max);
 
     /* Anonim metni: musteri.HesabiAnonimlestir'deki sabitle aynı (tasarim.md 1.13.5). */
-    DECLARE @Anonim nvarchar(1000) = N'<Codex metni: anonimleştirildi>';
+    DECLARE @Anonim nvarchar(1000) = N'anonimleştirildi';
     DECLARE @Tel nvarchar(16);
     DECLARE @BasvuruKimlik uniqueidentifier;
     DECLARE @BasvuruHesap uniqueidentifier;
@@ -2212,7 +2212,7 @@ BEGIN
     SET @Uygula = ISNULL(@Uygula, 0);
     SET @Gerekce = LTRIM(RTRIM(@Gerekce));
     IF LEN(ISNULL(@Gerekce, N'')) < 10
-        THROW 51100, N'<Codex metni: gerekçe en az 10 karakter olmalı>', 1;
+        THROW 51100, N'düzeltmenin gerekçesini en az 10 karakterle yazın', 1;
 
     SELECT @YapanKullaniciKimlik = k.Kimlik, @YapanAdi = p.AdSoyad, @YapanRolAdi = r.Ad
     FROM erisim.Kullanici AS k
@@ -2221,11 +2221,11 @@ BEGIN
     WHERE k.GirisAdi = (SELECT s.GirisAdi FROM yardim.Sadelestir(@YapanGirisAdi) AS s)
       AND k.TurKodu = N'personel' AND k.Aktif = 1 AND p.AyrilmaZamani IS NULL;
     IF @YapanKullaniciKimlik IS NULL
-        THROW 51101, N'<Codex metni: işlemi yapan giriş adı aktif bir personele ait değil>', 1;
+        THROW 51101, N'işlemi yapan giriş adı aktif bir personele ait değil; işlemi yapan personelin aktif giriş adını verin', 1;
 
     SELECT @Tel = s.TelefonE164 FROM yardim.Sadelestir(@Telefon) AS s;
     IF @Tel IS NULL
-        THROW 51120, N'<Codex metni: telefon numarası geçersiz>', 1;
+        THROW 51120, N'telefon numarası geçersiz; numaraları kontrol edip geçerli biçimde verin', 1;
 
     IF @BasvuruKayitNo IS NOT NULL
     BEGIN
@@ -2233,7 +2233,7 @@ BEGIN
         FROM kvkk.BasvuruTalebi AS b
         WHERE b.KayitNo = @BasvuruKayitNo;
         IF @BasvuruKimlik IS NULL
-            THROW 51102, N'<Codex metni: bu KayitNo ile KVKK başvurusu bulunamadı>', 1;
+            THROW 51102, N'bu KayitNo ile KVKK başvurusu bulunamadı; verilen bilgileri kontrol edip yeniden çalıştırın', 1;
     END;
 
     IF @DisIslem = 0
@@ -2252,7 +2252,7 @@ BEGIN
         WHERE b.Kimlik = @BasvuruKimlik;
 
         IF @BasvuruDurum IN (N'sonuclandi', N'reddedildi')
-            THROW 51113, N'<Codex metni: KVKK başvurusu zaten sonuçlanmış ya da reddedilmiş>', 1;
+            THROW 51113, N'başvuru zaten sonuçlanmış ya da reddedilmiş; KVKK başvurusunun sonucunu kontrol edin', 1;
     END;
 
     /* 1. Hesaplar ve birleşme zincirleri */
@@ -2526,11 +2526,11 @@ BEGIN
         (N'kisiselVeriAnonimlestirildi', CASE WHEN @BasvuruKimlik IS NOT NULL THEN N'kvkkBasvurusu' END, @BasvuruKimlik, NULL, @Ayrinti, @Simdi,
          N'personel', @YapanKullaniciKimlik, NULL, @YapanAdi, @YapanRolAdi, N'yonetim', NULL);
 
-    SELECT N'<Codex metni: Sonuç>' AS Bolum,
+    SELECT N'Sonuç' AS Bolum,
            @Uygula AS Uygulandi,
            CASE WHEN @Uygula = 1
-                THEN N'<Codex metni: kişisel veriler anonimleştirildi; tablo başına sayılar aşağıda>'
-                ELSE N'<Codex metni: önizleme; hiçbir şey kaydedilmedi, etkilenecek satır sayıları aşağıda; uygulamak için @Uygula = 1>' END AS Mesaj,
+                THEN N'kişisel veriler anonimleştirildi; her tabloda etkilenen satır sayısı aşağıda'
+                ELSE N'önizleme; hiçbir şey kaydedilmedi. Etkilenecek satır sayılarını aşağıda kontrol edin; değişiklikleri kaydetmek için @Uygula = 1 ile yeniden çalıştırın' END AS Mesaj,
            @BasvuruKayitNo AS BasvuruKayitNo,
            CASE WHEN @BasvuruKimlik IS NOT NULL THEN N'sonuclandi' END AS BasvuruDurumKodu,
            (SELECT COUNT(*) FROM @Hesap) AS AnonimlestirilenHesapSayisi,
@@ -2539,7 +2539,7 @@ BEGIN
            (SELECT COUNT(*) FROM @TelDegisikligi) AS NumaraDegisikligiSayisi,
            (SELECT COUNT(*) FROM @GeriBildirim) AS HesapsizGeriBildirimSayisi;
 
-    SELECT N'<Codex metni: Tablo başına etkilenen satır>' AS Bolum,
+    SELECT N'Tablo başına etkilenen satır sayısı' AS Bolum,
            s.Kaynak, s.Tablo, SUM(s.SatirSayisi) AS SatirSayisi
     FROM @Sonuc AS s
     GROUP BY s.Kaynak, s.Tablo
@@ -2623,7 +2623,7 @@ BEGIN
     SET @Uygula = ISNULL(@Uygula, 0);
     SET @Gerekce = LTRIM(RTRIM(@Gerekce));
     IF LEN(ISNULL(@Gerekce, N'')) < 10
-        THROW 51100, N'<Codex metni: gerekçe en az 10 karakter olmalı>', 1;
+        THROW 51100, N'düzeltmenin gerekçesini en az 10 karakterle yazın', 1;
 
     SELECT @YapanKullaniciKimlik = k.Kimlik, @YapanAdi = p.AdSoyad, @YapanRolAdi = r.Ad
     FROM erisim.Kullanici AS k
@@ -2632,25 +2632,25 @@ BEGIN
     WHERE k.GirisAdi = (SELECT s.GirisAdi FROM yardim.Sadelestir(@YapanGirisAdi) AS s)
       AND k.TurKodu = N'personel' AND k.Aktif = 1 AND p.AyrilmaZamani IS NULL;
     IF @YapanKullaniciKimlik IS NULL
-        THROW 51101, N'<Codex metni: işlemi yapan giriş adı aktif bir personele ait değil>', 1;
+        THROW 51101, N'işlemi yapan giriş adı aktif bir personele ait değil; işlemi yapan personelin aktif giriş adını verin', 1;
 
     SELECT @TalepKimlik = t.Kimlik, @TalepNo = t.Numara
     FROM talep.Talep AS t
     WHERE t.Numara = (SELECT s.Kod FROM yardim.Sadelestir(@TalepNumarasi) AS s);
     IF @TalepKimlik IS NULL
-        THROW 51102, N'<Codex metni: bu numarayla talep bulunamadı>', 1;
+        THROW 51102, N'bu numarayla talep bulunamadı; verilen bilgileri kontrol edip yeniden çalıştırın', 1;
 
     SELECT @ZiyaretKimlik = z.Kimlik
     FROM talep.ServisZiyareti AS z
     WHERE z.TalepKimlik = @TalepKimlik AND z.ZiyaretNo = @ZiyaretNo;
     IF @ZiyaretKimlik IS NULL
-        THROW 51102, N'<Codex metni: talepte bu numarada ziyaret yok>', 1;
+        THROW 51102, N'talepte bu numarada ziyaret yok; talep ve ziyaret numaralarını kontrol edin', 1;
 
     SELECT @HakEdisKimlik = h.Kimlik, @HakEdisKayitNo = h.KayitNo
     FROM hakedis.HakEdis AS h
     WHERE h.ZiyaretKimlik = @ZiyaretKimlik;
     IF @HakEdisKimlik IS NULL
-        THROW 51102, N'<Codex metni: bu ziyaretin hak edişi yok>', 1;
+        THROW 51102, N'bu ziyaretin hak edişi yok; ziyaret numarasını ve hak ediş kayıtlarını kontrol edin', 1;
 
     IF @DisIslem = 0
         BEGIN TRANSACTION;
@@ -2673,11 +2673,11 @@ BEGIN
     WHERE h.Kimlik = @HakEdisKimlik;
 
     IF @HakEdisDurum <> N'onaylandi'
-        THROW 51142, N'<Codex metni: hak ediş onaylı değil; geri alınacak onay yok>', 1;
+        THROW 51142, N'hak ediş onaylı değil; geri alınacak onay yok. Hak edişin durumunu kontrol edin', 1;
     IF @HakEdisDokum IS NOT NULL
        AND EXISTS (SELECT 1 FROM hakedis.DonemDokumu AS d WITH (UPDLOCK, HOLDLOCK)
                    WHERE d.Kimlik = @HakEdisDokum AND d.DurumKodu <> N'taslak')
-        THROW 51140, N'<Codex metni: hak ediş kesinleşmiş bir döneme bağlı; taslak olmayan dökümden geri alınamaz>', 1;
+        THROW 51140, N'hak ediş kesinleşmiş bir döneme bağlı; taslak olmayan dökümden geri alınamaz. Düzeltme için muhasebe sorumlusuna başvurun', 1;
 
     SELECT @HareketKimlik = a.Kimlik, @HareketKayitNo = a.KayitNo, @HareketTutar = a.Tutar,
            @HareketBelge = a.BelgeBagiKimlik, @HareketDokum = a.DonemDokumuKimlik
@@ -2687,13 +2687,13 @@ BEGIN
     IF @HareketKimlik IS NULL
        AND EXISTS (SELECT 1 FROM hakedis.ServisHesapHareketi AS a
                    WHERE a.HakEdisKimlik = @HakEdisKimlik AND a.HareketTuruKodu = N'hakEdisAlacagi' AND a.GeriAlinmaZamani IS NOT NULL)
-        THROW 51141, N'<Codex metni: hak edişin alacak hareketi zaten geri alınmış>', 1;
+        THROW 51141, N'hak edişin alacak hareketi zaten geri alınmış; hesap hareketlerini kontrol edin', 1;
     IF @HareketBelge IS NOT NULL
-        THROW 51140, N'<Codex metni: hak edişin alacak hareketi bir LOGO belgesine bağlı; geri alınamaz>', 1;
+        THROW 51140, N'hak edişin alacak hareketi bir LOGO belgesine bağlı; geri alınamaz. Düzeltme için muhasebe sorumlusuna başvurun', 1;
     IF @HareketDokum IS NOT NULL
        AND EXISTS (SELECT 1 FROM hakedis.DonemDokumu AS d WITH (UPDLOCK, HOLDLOCK)
                    WHERE d.Kimlik = @HareketDokum AND d.DurumKodu <> N'taslak')
-        THROW 51140, N'<Codex metni: alacak hareketi kesinleşmiş bir döneme bağlı; taslak olmayan dökümden geri alınamaz>', 1;
+        THROW 51140, N'alacak hareketi kesinleşmiş bir döneme bağlı; taslak olmayan dökümden geri alınamaz. Düzeltme için muhasebe sorumlusuna başvurun', 1;
 
     INSERT @Dokum (Kimlik)
     SELECT x.Kimlik FROM (VALUES (@HakEdisDokum), (@HareketDokum)) AS x (Kimlik)
@@ -2710,7 +2710,7 @@ BEGIN
              HakEdisKimlik, ParcaTalepKimlik, DuzeltilenHareketKimlik, DonemDokumuKimlik, BelgeBagiKimlik, GeriAlinmaZamani,
              YapanTuruKodu, YapanKullaniciKimlik, YapanHesapKimlik, YapanAdi, KaynakUygulamaKodu, UygulamaSurumu, OlusmaZamani)
         OUTPUT inserted.KayitNo INTO @Ters (KayitNo)
-        SELECT a.Tutar, N'<Codex metni: hak ediş onayı geri alındı>', @Simdi, a.ServisKimlik, a.SirketKodu, a.MarkaKodu,
+        SELECT a.Tutar, N'hak ediş onayı geri alındı', @Simdi, a.ServisKimlik, a.SirketKodu, a.MarkaKodu,
                N'duzeltmeBorc', @TersYon, a.ParaBirimiKodu,
                a.HakEdisKimlik, NULL, a.Kimlik, NULL, NULL, NULL,
                N'personel', @YapanKullaniciKimlik, NULL, @YapanAdi, N'yonetim', NULL, @Simdi
@@ -2803,11 +2803,11 @@ BEGIN
         (N'hakEdisOnayiGeriAlindi', N'hakEdis', @HakEdisKimlik, @TalepNo, @Ayrinti, @Simdi,
          N'personel', @YapanKullaniciKimlik, NULL, @YapanAdi, @YapanRolAdi, N'yonetim', NULL);
 
-    SELECT N'<Codex metni: Sonuç>' AS Bolum,
+    SELECT N'Sonuç' AS Bolum,
            @Uygula AS Uygulandi,
            CASE WHEN @Uygula = 1
-                THEN N'<Codex metni: hak ediş onayı geri alındı; hak ediş onay bekliyor, talep servis masasında>'
-                ELSE N'<Codex metni: önizleme; hiçbir şey kaydedilmedi, uygulamak için @Uygula = 1 ile yeniden çalıştırın>' END AS Mesaj,
+                THEN N'hak ediş onayı geri alındı; hak ediş onay bekliyor, talep servis masasında'
+                ELSE N'önizleme; hiçbir şey kaydedilmedi. Sonucu kontrol edin; değişiklikleri kaydetmek için @Uygula = 1 ile yeniden çalıştırın' END AS Mesaj,
            LEFT(@TalepNo, 3) + N'-' + SUBSTRING(@TalepNo, 4, 2) + N'-' + RIGHT(@TalepNo, 5) AS TalepNumarasi,
            @ZiyaretNo AS ZiyaretNo,
            @HakEdisKayitNo AS HakEdisKayitNo,
@@ -2897,7 +2897,7 @@ BEGIN
     SET @Uygula = ISNULL(@Uygula, 0);
     SET @Gerekce = LTRIM(RTRIM(@Gerekce));
     IF LEN(ISNULL(@Gerekce, N'')) < 10
-        THROW 51100, N'<Codex metni: gerekçe en az 10 karakter olmalı>', 1;
+        THROW 51100, N'düzeltmenin gerekçesini en az 10 karakterle yazın', 1;
 
     SELECT @YapanKullaniciKimlik = k.Kimlik, @YapanAdi = p.AdSoyad, @YapanRolAdi = r.Ad
     FROM erisim.Kullanici AS k
@@ -2906,13 +2906,13 @@ BEGIN
     WHERE k.GirisAdi = (SELECT s.GirisAdi FROM yardim.Sadelestir(@YapanGirisAdi) AS s)
       AND k.TurKodu = N'personel' AND k.Aktif = 1 AND p.AyrilmaZamani IS NULL;
     IF @YapanKullaniciKimlik IS NULL
-        THROW 51101, N'<Codex metni: işlemi yapan giriş adı aktif bir personele ait değil>', 1;
+        THROW 51101, N'işlemi yapan giriş adı aktif bir personele ait değil; işlemi yapan personelin aktif giriş adını verin', 1;
 
     SELECT @HareketKimlik = a.Kimlik
     FROM hakedis.ServisHesapHareketi AS a
     WHERE a.KayitNo = @HareketKayitNo;
     IF @HareketKimlik IS NULL
-        THROW 51102, N'<Codex metni: bu KayitNo ile hesap hareketi bulunamadı; gorunum.ServisHesapHareketleri ile bakın>', 1;
+        THROW 51102, N'bu KayitNo ile hesap hareketi bulunamadı; gorunum.ServisHesapHareketleri ile bakın', 1;
 
     IF @DisIslem = 0
         BEGIN TRANSACTION;
@@ -2931,35 +2931,35 @@ BEGIN
     WHERE a.Kimlik = @HareketKimlik;
 
     IF @Duzeltilen IS NOT NULL OR @Tur IN (N'duzeltmeBorc', N'duzeltmeAlacak')
-        THROW 51141, N'<Codex metni: bu bir ters (düzeltme) hareketi; düzeltilemez>', 1;
+        THROW 51141, N'bu bir ters (düzeltme) hareketi; düzeltilemez. Asıl hareketi ve düzeltme kayıtlarını kontrol edin', 1;
     IF @GeriAlinma IS NOT NULL
-        THROW 51141, N'<Codex metni: hareket zaten geri alınmış>', 1;
+        THROW 51141, N'hareket zaten geri alınmış; hesap hareketlerini kontrol edin', 1;
     IF @Belge IS NOT NULL
-        THROW 51140, N'<Codex metni: hareket bir LOGO belgesine bağlı; düzeltilemez>', 1;
+        THROW 51140, N'hareket bir LOGO belgesine bağlı; düzeltilemez. Düzeltme için muhasebe sorumlusuna başvurun', 1;
     IF @Dokum IS NOT NULL
        AND EXISTS (SELECT 1 FROM hakedis.DonemDokumu AS d WITH (UPDLOCK, HOLDLOCK)
                    WHERE d.Kimlik = @Dokum AND d.DurumKodu <> N'taslak')
-        THROW 51140, N'<Codex metni: hareket kesinleşmiş bir döneme bağlı; taslak olmayan dökümden düzeltilemez>', 1;
+        THROW 51140, N'hareket kesinleşmiş bir döneme bağlı; taslak olmayan dökümden düzeltilemez. Düzeltme için muhasebe sorumlusuna başvurun', 1;
     IF @DogruTutar IS NOT NULL AND @Tur IN (N'hakEdisAlacagi', N'parcaSiparisiBorcu')
-        THROW 51143, N'<Codex metni: hak ediş ve parça siparişi hareketinin tutarı kaynağından gelir; yalnız geri alınabilir (hak ediş için yonetim.HakEdisOnayiniGeriAl)>', 1;
+        THROW 51143, N'hak ediş ve parça siparişi hareketinin tutarı kaynağından gelir; yalnız geri alınabilir. Hak ediş için yonetim.HakEdisOnayiniGeriAl kullanın; parça siparişi için kaynak kaydı kontrol edin', 1;
     IF @DogruTutar IS NOT NULL AND @DogruTutar <= 0
-        THROW 51143, N'<Codex metni: doğru tutar sıfırdan büyük olmalı; hareketi yalnız geri almak için @DogruTutar vermeyin>', 1;
+        THROW 51143, N'doğru tutar sıfırdan büyük olmalı; hareketi yalnız geri almak için @DogruTutar vermeyin', 1;
     IF @DogruTutar IS NOT NULL AND @DogruTutar = @Tutar
-        THROW 51113, N'<Codex metni: doğru tutar hareketin bugünkü tutarıyla aynı>', 1;
+        THROW 51113, N'doğru tutar hareketin mevcut tutarıyla aynı; tutarları kontrol edin, aynı tutar için yeniden işlem yapmayın', 1;
 
     SELECT TOP (1) @TersTur = k.Kod, @TersYon = k.YonKodu
     FROM kod.HesapHareketTuru AS k
     WHERE k.Kod IN (N'duzeltmeBorc', N'duzeltmeAlacak') AND k.YonKodu <> @Yon
     ORDER BY k.Kod;
     IF @TersTur IS NULL
-        THROW 51102, N'<Codex metni: ters hareket türü kod listesinde yok (kod.HesapHareketTuru)>', 1;
+        THROW 51102, N'ters hareket türü kod listesinde yok (kod.HesapHareketTuru); kod listesinin kontrolü için veritabanı sorumlusuna başvurun', 1;
 
     INSERT hakedis.ServisHesapHareketi
         (Tutar, Aciklama, HareketZamani, ServisKimlik, SirketKodu, MarkaKodu, HareketTuruKodu, YonKodu, ParaBirimiKodu,
          HakEdisKimlik, ParcaTalepKimlik, DuzeltilenHareketKimlik, DonemDokumuKimlik, BelgeBagiKimlik, GeriAlinmaZamani,
          YapanTuruKodu, YapanKullaniciKimlik, YapanHesapKimlik, YapanAdi, KaynakUygulamaKodu, UygulamaSurumu, OlusmaZamani)
     OUTPUT inserted.KayitNo INTO @Ters (KayitNo)
-    SELECT a.Tutar, N'<Codex metni: hatalı hareket geri alındı>', @Simdi, a.ServisKimlik, a.SirketKodu, a.MarkaKodu,
+    SELECT a.Tutar, N'hatalı hareket geri alındı', @Simdi, a.ServisKimlik, a.SirketKodu, a.MarkaKodu,
            @TersTur, @TersYon, a.ParaBirimiKodu,
            a.HakEdisKimlik, a.ParcaTalepKimlik, a.Kimlik, NULL, NULL, NULL,
            N'personel', @YapanKullaniciKimlik, NULL, @YapanAdi, N'yonetim', NULL, @Simdi
@@ -3032,11 +3032,11 @@ BEGIN
         (N'hesapHareketiDuzeltildi', N'servis', @ServisKimlik, @TalepNo, @Ayrinti, @Simdi,
          N'personel', @YapanKullaniciKimlik, NULL, @YapanAdi, @YapanRolAdi, N'yonetim', NULL);
 
-    SELECT N'<Codex metni: Sonuç>' AS Bolum,
+    SELECT N'Sonuç' AS Bolum,
            @Uygula AS Uygulandi,
            CASE WHEN @Uygula = 1
-                THEN N'<Codex metni: hareket geri alındı; doğru tutar verildiyse yeni hareket yazıldı>'
-                ELSE N'<Codex metni: önizleme; hiçbir şey kaydedilmedi, uygulamak için @Uygula = 1 ile yeniden çalıştırın>' END AS Mesaj,
+                THEN N'hareket geri alındı; doğru tutar verildiyse yeni hareket yazıldı'
+                ELSE N'önizleme; hiçbir şey kaydedilmedi. Sonucu kontrol edin; değişiklikleri kaydetmek için @Uygula = 1 ile yeniden çalıştırın' END AS Mesaj,
            @HareketKayitNo AS HareketKayitNo,
            @Tur AS HareketTuruKodu,
            (SELECT k.Ad FROM kod.HesapHareketTuru AS k WHERE k.Kod = @Tur) AS HareketTuruAdi,
@@ -3130,7 +3130,7 @@ BEGIN
     SET @Uygula = ISNULL(@Uygula, 0);
     SET @Gerekce = LTRIM(RTRIM(@Gerekce));
     IF LEN(ISNULL(@Gerekce, N'')) < 10
-        THROW 51100, N'<Codex metni: gerekçe en az 10 karakter olmalı>', 1;
+        THROW 51100, N'düzeltmenin gerekçesini en az 10 karakterle yazın', 1;
 
     SELECT @YapanKullaniciKimlik = k.Kimlik, @YapanAdi = p.AdSoyad, @YapanRolAdi = r.Ad
     FROM erisim.Kullanici AS k
@@ -3139,21 +3139,21 @@ BEGIN
     WHERE k.GirisAdi = (SELECT s.GirisAdi FROM yardim.Sadelestir(@YapanGirisAdi) AS s)
       AND k.TurKodu = N'personel' AND k.Aktif = 1 AND p.AyrilmaZamani IS NULL;
     IF @YapanKullaniciKimlik IS NULL
-        THROW 51101, N'<Codex metni: işlemi yapan giriş adı aktif bir personele ait değil>', 1;
+        THROW 51101, N'işlemi yapan giriş adı aktif bir personele ait değil; işlemi yapan personelin aktif giriş adını verin', 1;
 
     SELECT @KalacakTel = s.TelefonE164 FROM yardim.Sadelestir(@KalacakTelefon) AS s;
     SELECT @BirlesecekTel = s.TelefonE164 FROM yardim.Sadelestir(@BirlesecekTelefon) AS s;
     IF @KalacakTel IS NULL OR @BirlesecekTel IS NULL
-        THROW 51120, N'<Codex metni: telefon numaralarından biri geçersiz>', 1;
+        THROW 51120, N'telefon numaralarından biri geçersiz; numaraları kontrol edip geçerli biçimde verin', 1;
     IF @KalacakTel = @BirlesecekTel
-        THROW 51122, N'<Codex metni: iki telefon aynı; aynı hesap kendisiyle birleştirilemez>', 1;
+        THROW 51122, N'iki telefon aynı; aynı hesap kendisiyle birleştirilemez. Birleştirilecek iki farklı hesabın güncel telefonlarını verin', 1;
 
     SELECT @Kalacak = h.Kimlik, @KalacakKayitNo = h.KayitNo FROM musteri.Hesap AS h WHERE h.TelefonE164 = @KalacakTel;
     IF @Kalacak IS NULL
-        THROW 51102, N'<Codex metni: kalacak telefon hiçbir hesabın güncel telefonu değil>', 1;
+        THROW 51102, N'kalacak telefon hiçbir hesabın güncel telefonu değil; kalacak hesabın güncel telefonunu kontrol edip verin', 1;
     SELECT @Birlesecek = h.Kimlik, @BirlesecekKayitNo = h.KayitNo FROM musteri.Hesap AS h WHERE h.TelefonE164 = @BirlesecekTel;
     IF @Birlesecek IS NULL
-        THROW 51102, N'<Codex metni: birleşecek telefon hiçbir hesabın güncel telefonu değil>', 1;
+        THROW 51102, N'birleşecek telefon hiçbir hesabın güncel telefonu değil; birleşecek hesabın güncel telefonunu kontrol edip verin', 1;
 
     IF @DisIslem = 0
         BEGIN TRANSACTION;
@@ -3174,11 +3174,11 @@ BEGIN
 
     IF @KalacakTelSimdi IS NULL OR @KalacakTelSimdi <> @KalacakTel
        OR @BirlesecekTelSimdi IS NULL OR @BirlesecekTelSimdi <> @BirlesecekTel
-        THROW 51102, N'<Codex metni: telefonlardan biri artık hesabın güncel telefonu değil; yeniden bakın>', 1;
+        THROW 51102, N'telefonlardan biri artık hesabın güncel telefonu değil; iki hesabın güncel telefonlarını yeniden kontrol edin', 1;
     IF @KalacakDurum <> N'aktif'
-        THROW 51122, N'<Codex metni: kalacak hesap aktif değil; aktif olmayan hesaba birleştirilemez>', 1;
+        THROW 51122, N'kalacak hesap aktif değil; aktif olmayan hesaba birleştirilemez. Kalacak hesabı ve aktiflik durumunu kontrol edin', 1;
     IF @BirlesecekDurum NOT IN (N'aktif', N'kapali')
-        THROW 51122, N'<Codex metni: birleşecek hesap anonim ya da zaten birleştirilmiş>', 1;
+        THROW 51122, N'birleşecek hesap anonim ya da zaten birleştirilmiş; hesabın durumunu kontrol edin, bu hesap için yeniden birleştirme yapmayın', 1;
 
     /* 1. Talepler kalan hesaba taşınır */
     UPDATE talep.Talep
@@ -3268,11 +3268,11 @@ BEGIN
         (N'hesaplarBirlestirildi', N'hesap', @Kalacak, NULL, @Ayrinti, @Simdi,
          N'personel', @YapanKullaniciKimlik, NULL, @YapanAdi, @YapanRolAdi, N'yonetim', NULL);
 
-    SELECT N'<Codex metni: Sonuç>' AS Bolum,
+    SELECT N'Sonuç' AS Bolum,
            @Uygula AS Uygulandi,
            CASE WHEN @Uygula = 1
-                THEN N'<Codex metni: hesaplar birleştirildi; müşteri kalan hesabın telefonuyla giriş yapacak>'
-                ELSE N'<Codex metni: önizleme; hiçbir şey kaydedilmedi, uygulamak için @Uygula = 1 ile yeniden çalıştırın>' END AS Mesaj,
+                THEN N'hesaplar birleştirildi; müşteri kalan hesabın telefonuyla giriş yapacak'
+                ELSE N'önizleme; hiçbir şey kaydedilmedi. Sonucu kontrol edin; değişiklikleri kaydetmek için @Uygula = 1 ile yeniden çalıştırın' END AS Mesaj,
            @KalacakKayitNo AS KalacakHesapKayitNo,
            @KalacakTel AS KalacakTelefon,
            @BirlesecekKayitNo AS BirlesenHesapKayitNo,
@@ -3358,7 +3358,7 @@ BEGIN
     SET @Uygula = ISNULL(@Uygula, 0);
     SET @Gerekce = LTRIM(RTRIM(@Gerekce));
     IF LEN(ISNULL(@Gerekce, N'')) < 10
-        THROW 51100, N'<Codex metni: gerekçe en az 10 karakter olmalı>', 1;
+        THROW 51100, N'düzeltmenin gerekçesini en az 10 karakterle yazın', 1;
 
     SELECT @YapanKullaniciKimlik = k.Kimlik, @YapanAdi = p.AdSoyad, @YapanRolAdi = r.Ad
     FROM erisim.Kullanici AS k
@@ -3367,22 +3367,22 @@ BEGIN
     WHERE k.GirisAdi = (SELECT s.GirisAdi FROM yardim.Sadelestir(@YapanGirisAdi) AS s)
       AND k.TurKodu = N'personel' AND k.Aktif = 1 AND p.AyrilmaZamani IS NULL;
     IF @YapanKullaniciKimlik IS NULL
-        THROW 51101, N'<Codex metni: işlemi yapan giriş adı aktif bir personele ait değil>', 1;
+        THROW 51101, N'işlemi yapan giriş adı aktif bir personele ait değil; işlemi yapan personelin aktif giriş adını verin', 1;
 
     IF @Marka IS NOT NULL AND @Sirket IS NOT NULL
-        THROW 51150, N'<Codex metni: marka ve şirket birlikte verilemez; ikisinden birini ya da hiçbirini verin>', 1;
+        THROW 51150, N'marka ve şirket birlikte verilemez; ikisinden birini ya da hiçbirini verin', 1;
 
     SELECT @AnahtarKayit = a.Anahtar, @DegerTuru = a.DegerTuru, @GenelAciklama = a.Aciklama
     FROM sistem.Ayar AS a
     WHERE UPPER(a.Anahtar COLLATE Latin1_General_100_BIN2) = UPPER(LTRIM(RTRIM(ISNULL(@Anahtar, N''))) COLLATE Latin1_General_100_BIN2)
       AND a.SirketKodu IS NULL AND a.MarkaKodu IS NULL;
     IF @AnahtarKayit IS NULL
-        THROW 51150, N'<Codex metni: bu anahtarla genel ayar yok; gorunum.GecerliAyar listesine bakın>', 1;
+        THROW 51150, N'bu anahtarla genel ayar yok; gorunum.GecerliAyar listesine bakın', 1;
 
     IF @Marka IS NOT NULL AND NOT EXISTS (SELECT 1 FROM katalog.Marka AS m WHERE m.Kod = @Marka)
-        THROW 51102, N'<Codex metni: bu marka kodu yok>', 1;
+        THROW 51102, N'bu marka kodu yok; verilen bilgileri kontrol edip yeniden çalıştırın', 1;
     IF @Sirket IS NOT NULL AND NOT EXISTS (SELECT 1 FROM sirket.Sirket AS s WHERE s.Kod = @Sirket)
-        THROW 51102, N'<Codex metni: bu şirket kodu yok>', 1;
+        THROW 51102, N'bu şirket kodu yok; verilen bilgileri kontrol edip yeniden çalıştırın', 1;
 
     SET @Kapsam = CASE WHEN @Marka IS NOT NULL THEN N'marka' WHEN @Sirket IS NOT NULL THEN N'sirket' ELSE N'genel' END;
     SET @Deger = CASE WHEN @DegerTuru IN (N'tamsayi', N'ondalik', N'mantiksal') THEN NULLIF(LTRIM(RTRIM(@YeniDeger)), N'') ELSE @YeniDeger END;
@@ -3393,7 +3393,7 @@ BEGIN
                 OR (@DegerTuru = N'mantiksal' AND @Deger COLLATE Latin1_General_100_BIN2 IN (N'0', N'1'))
                 OR (@DegerTuru = N'json'      AND ISJSON(@Deger) = 1)
                 OR  @DegerTuru = N'metin')
-        THROW 51150, N'<Codex metni: değer ayarın türüne uymuyor (tamsayı, ondalık, 0/1, JSON ya da metin)>', 1;
+        THROW 51150, N'değer ayarın türüne uymuyor (tamsayı, ondalık, 0/1, JSON ya da metin); ayarın türünü kontrol edip uygun bir değer verin', 1;
 
     IF @DisIslem = 0
         BEGIN TRANSACTION;
@@ -3414,7 +3414,7 @@ BEGIN
     IF @SatirVar = 1
        AND ((@EskiDeger IS NULL AND @Deger IS NULL)
             OR @EskiDeger COLLATE Latin1_General_100_BIN2 = @Deger)
-        THROW 51113, N'<Codex metni: ayar bu kapsamda zaten bu değerde>', 1;
+        THROW 51113, N'ayar bu kapsamda zaten bu değerde; mevcut ayarı kontrol edin, aynı değer için yeniden işlem yapmayın', 1;
 
     SELECT @OncekiGecerli = g.Deger, @OncekiKapsam = g.KapsamTuru
     FROM gorunum.GecerliAyar AS g
@@ -3460,11 +3460,11 @@ BEGIN
         (N'ayarDegisti', N'ayar', @SatirKimlik, NULL, @Ayrinti, @Simdi,
          N'personel', @YapanKullaniciKimlik, NULL, @YapanAdi, @YapanRolAdi, N'yonetim', NULL);
 
-    SELECT N'<Codex metni: Sonuç>' AS Bolum,
+    SELECT N'Sonuç' AS Bolum,
            @Uygula AS Uygulandi,
            CASE WHEN @Uygula = 1
-                THEN N'<Codex metni: ayar değiştirildi; uygulama yeni değeri bir sonraki okumada kullanır>'
-                ELSE N'<Codex metni: önizleme; hiçbir şey kaydedilmedi, uygulamak için @Uygula = 1 ile yeniden çalıştırın>' END AS Mesaj,
+                THEN N'ayar değiştirildi; uygulama yeni değeri bir sonraki okumada kullanır'
+                ELSE N'önizleme; hiçbir şey kaydedilmedi. Sonucu kontrol edin; değişiklikleri kaydetmek için @Uygula = 1 ile yeniden çalıştırın' END AS Mesaj,
            @AnahtarKayit AS Anahtar,
            @Kapsam AS KapsamTuru,
            @Marka AS MarkaKodu,

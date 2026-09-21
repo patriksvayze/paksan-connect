@@ -1,7 +1,6 @@
 import { TEKLIF_BEKLEME_GUN, teklifBekliyorMu } from '../../../veri'
 import { bayileriGetir, bayininServisleri, MARKA } from '../../../../marka'
 import { tarihYaz } from '../../ortak'
-import { codexBekliyor } from '../metin'
 import {
   fark, farkPuan, GUN, iptalZamani, kapanisSuresi, kapanisZamani, kovayaDagit, oran, paraHucre,
   paraKutu, paraOku, RENK, SAAT, sureYaz, talepModeli, topla, yuzde, zamanKovalari,
@@ -42,7 +41,7 @@ import {
    (bkz. servisAtama.js → makineninKaydi).
    ========================================================================== */
 
-const M = codexBekliyor({
+const M = {
   ad: 'Satış ve Bayiler',
   soru: 'Fiyat teklifleri satışa dönüyor mu, bayiler ne durumda?',
 
@@ -60,15 +59,15 @@ const M = codexBekliyor({
   donusum: 'Dönüşüm oranı',
   donusumAlt: (s, n) => `Sonuçlanan ${n} tekliften ${s} tanesi satışa döndü`,
   donusumYok: 'Bu dönemde sonuçlanan teklif yok',
-  huni: 'Hunideki tutar',
+  huni: 'Yanıt beklenen teklif tutarı',
   /* Tutar yalnız rakamla yazılmış tekliflerden hesaplanıyor; alt yazı
      ise bekleyenlerin TAMAMINI sayıyordu. Tutarı üç teklifin ikisinden
      toplanmışken "3 teklifin toplamı" yazıyor, tutarı adede bölen
      yönetici yanılıyordu. */
   huniAlt: (bilinen, hepsi) =>
     bilinen === hepsi
-      ? `Yanıt beklenen ${hepsi} teklifin toplamı`
-      : `Yanıt beklenen ${hepsi} teklifin, tutarı yazılı ${bilinen} tanesinin toplamı`,
+      ? `Şu an yanıt beklenen ${hepsi} teklifin toplam tutarı`
+      : `Şu an yanıt beklenen ${hepsi} tekliften tutarı sayısal olarak kayıtlı ${bilinen} tanesinin toplamı; diğerleri tutara dâhil değil`,
 
   grafikSonuc: 'Teklif talepleri ne oldu?',
   grafikSonucAlt: 'Bu dönemde açılan talepler, bugünkü durumlarıyla. Bir satıra tıklayınca liste açılır.',
@@ -88,8 +87,8 @@ const M = codexBekliyor({
 
   tabloBayi: 'Bayi karnesi',
   tabloBayiAciklama:
-    'Bütün bayiler. Atanan teklif, bu dönem kaydedilen makine ve servis talebi seçilen döneme; kayıtlı makine bütün zamanlara bakar. Yalnız bayisi yazılı makineler sayılır; bu yüzden toplam satırı öteki sekmelerdeki kayıtlı makine, yeni makine kaydı ve servis talebi sayılarından küçük olabilir. Turuncu satırdaki bayinin servisi yok: o bayiden alınan makineye elle servis atanmadıysa müşteri servis talebi açamaz. Bayi listesinden silinmiş bayilerin sayıları "Listede olmayan bayi" satırında toplanır.',
-  listeDisiBayi: 'Listede olmayan bayi',
+    'Bütün bayiler gösterilir. Atanan teklifler, bu dönem kaydedilen makineler ve servis talepleri seçilen döneme aittir; kayıtlı makine sayısı bütün zamanları kapsar. Yalnız bayisi yazılı makineler sayılır; bu yüzden toplam satırı öteki sekmelerdeki kayıtlı makine, yeni makine kaydı ve servis talebi sayılarından küçük olabilir. Turuncu satırdaki bayinin servisi yok: o bayiden alınan makineye elle servis atanmadıysa müşteri servis talebi açamaz. Bayi bilgisi bulunan ancak bayi listesinde kaydı bulunamayanların sayıları "Bayi kaydı bulunamayanlar" satırında toplanır.',
+  listeDisiBayi: 'Bayi kaydı bulunamayanlar',
   sutunBayi: {
     bayi: 'Bayi',
     il: 'İl',
@@ -125,13 +124,13 @@ const M = codexBekliyor({
     `Müşterinin yanıtı beklenen: şu an "Teklif Verildi" durumundaki talepler; tarih süzgecinden bağımsız. ${TEKLIF_BEKLEME_GUN} günü geçen, fiyat verildiği günden sayılır.`,
     'Satışa dönen: sonucu "Satış oldu" yazılıp seçilen dönemde kapanan teklifler. Tutar, kapanışta yazılan satış fiyatlarının toplamıdır.',
     'Dönüşüm oranı: seçilen dönemde sonucu yazılarak kapanan tekliflerden satışa dönenlerin payı. Bayiye atanan, iptal edilen ve hâlâ açık olan teklifler hesaba girmez.',
-    'Hunideki tutar: şu an müşterinin yanıtı beklenen tekliflerin tutarları toplamı; tarih süzgecinden bağımsız. Tutarı rakamla yazılmamış teklif toplama girmez, kaç tanesinin girdiği kutunun altında yazar.',
-    `Teklif talepleri ne oldu: seçilen dönemde açılan taleplerin bugünkü durumu. Olumsuz sonuçlar kapanışta seçildiği gibi ayrı satırlarda. Yanıt bekleyen teklifler ikiye ayrılır: ${TEKLIF_BEKLEME_GUN} günü geçmemişler "Müşterinin yanıtı bekleniyor", geçmişler "Yanıt gecikti"; teklif tablosundaki "Sonuç" sütunu da aynı adları kullanır.`,
+    'Yanıt beklenen teklif tutarı: şu an müşterinin yanıtı beklenen tekliflerin tutarları toplamı; tarih süzgecinden bağımsız. Tutarı rakamla yazılmamış teklif toplama girmez, kaç tanesinin girdiği kutunun altında yazar.',
+    `Teklif talepleri ne oldu: seçilen dönemde açılan taleplerin bugünkü durumu. Olumsuz sonuçlar kapanışta seçildiği gibi ayrı satırlarda. Yanıt bekleyen teklifler, fiyat verildiği tarihten geçen süreye göre ikiye ayrılır: ${TEKLIF_BEKLEME_GUN} günü geçmeyenler "Müşterinin yanıtı bekleniyor", geçmişler "Yanıt gecikti"; teklif tablosundaki "Sonuç" sütunu da aynı adları kullanır.`,
     "Bayi karnesi: kayıtlı makine, makine kayıt defterinde o bayiye bağlı seri numaralarıdır; bir makine bir kez sayılır. Bu bir satış adedi değildir, kesin satış Logo'daki faturadan gelir. Üç makine sütunu da makinenin defterdeki ilk satırına bakar, bu yüzden \"bu dönem kaydedilen\" her zaman \"kayıtlı\"nın alt kümesidir.",
     'Makinelerinden gelen servis talebi: seçilen dönemde açılan ve makinesinin seri numarası kayıt defterinde o bayiye bağlı servis talepleri.',
     'Yüzde farklar bir önceki eşit uzunluktaki dönemle karşılaştırılır. "Tüm zamanlar" seçiliyse karşılaştırma yapılmaz.',
   ],
-})
+}
 
 /* Kapanış formundaki sonuç seçeneği (bkz. Talepler.jsx →
    KAPANIS_ALANLARI.satinalma). Ekran yazısı değil, kayıttaki değer. */

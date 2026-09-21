@@ -1,5 +1,4 @@
 import { rolBilgi } from '../../../veri'
-import { codexBekliyor } from '../metin'
 import {
   fark, ilkIslemSuresi, ilkIslemZamani, ortalama, RENK, servisZiyaretleri, sureYaz,
 } from '../hesap'
@@ -47,14 +46,14 @@ import {
    personel süzgeci yok.
    ========================================================================== */
 
-const M = codexBekliyor({
+const M = {
   ad: 'Ekip',
   soru: 'Kim ne kadar iş üstleniyor, ne kadar sürede sonuçlandırıyor?',
 
   personel: 'İşlem yapan personel',
-  personelAlt: (n) => `Kayıtlı ${n} personelden`,
+  personelAlt: (n) => `Kayıtlı ${n} personel içinde seçilen dönemde işlem yapanlar`,
   islem: 'Toplam işlem',
-  islemAlt: 'Durum değişikliği, not, onay, gönderim ve düzeltmeler',
+  islemAlt: 'Personelin durum değişikliği, not, onay, gönderim ve düzeltme işlemleri; talep sayısı değildir',
   /* ADLAR ÖTEKİ SEKMELERDEN AYRI. Genel Bakış'taki "Kapanan talep" ve
      "İlk işleme kadar" bütün talepleri sayıyor, buradakiler yalnız
      personelin yaptıklarını — aynı dönemde farklı sayı çıkıyor (15'e
@@ -65,11 +64,11 @@ const M = codexBekliyor({
   kapanan: 'Personelin kapattığı talep',
   kapananAlt: 'Personelin bu dönemde kapattığı talepler',
   onay: 'Onaylanan hak ediş sayısı',
-  onayAlt: (n) => `Kabul edilmeyen: ${n}`,
+  onayAlt: (n) => `Seçilen dönemde reddedilen hak ediş sayısı: ${n}`,
   sevk: 'Garanti parçası gönderim sayısı',
-  sevkAlt: 'Garanti işi için servise yapılan gönderim sayısı',
+  sevkAlt: 'Garanti işleri için servise yapılan gönderimler; parça adedi değildir',
   ilkIslem: 'Personelin ilk işlemine kadar',
-  ilkIslemAlt: 'İlk işlemi personelin yaptığı taleplerde ortalama süre',
+  ilkIslemAlt: 'Talebin açılışından personelin yaptığı ilk işleme kadar geçen ortalama süre; ilk işlemi servis yaptıysa dahil edilmez',
 
   grafik: 'Personele göre işlem',
   /* Grafik en çok işlem yapan on iki kişiyle kesiliyor ama alt yazı
@@ -78,10 +77,10 @@ const M = codexBekliyor({
      sayarken hemen altındaki çubuklar daha azını topluyor, aynı ekran
      iki farklı toplam gösteriyordu. Tam liste zaten tabloda. */
   grafikAlt: (kesim) =>
-    `Seçilen dönemde en çok işlem yapan ${kesim} personel; tamamı aşağıdaki tabloda. İş yükünü gösterir, işin kalitesini göstermez.`,
+    `Seçilen dönemde işlem sayısına göre ilk ${kesim} personel gösterilir; diğer personel grafikte yer almaz. Tam liste aşağıdaki tabloda. İş yükünü gösterir, işin kalitesini göstermez.`,
 
   tablo: 'Personel',
-  tabloAciklama: 'Seçilen dönemde yapılan işlemler, her biri kendi tarihine göre. Bu dönemde işlemi olmayan personel listenin sonunda.',
+  tabloAciklama: 'Her işlem, yapıldığı tarihe göre seçilen döneme dahil edilir. Bu dönemde işlemi olmayan aktif personel listenin sonundadır. Hesabı kapatılmış ve bu dönemde işlem yapmamış personel gösterilmez.',
   sutun: {
     personel: 'Personel', rol: 'Rol', islem: 'İşlem', kapanan: 'Kapattığı talep', not: 'Not',
     hakkedis: 'Onayladığı / kabul etmediği hak ediş', sevk: 'Parça gönderimi', odeme: 'Onayladığı ödeme',
@@ -98,12 +97,12 @@ const M = codexBekliyor({
     'Kapattığı talep: kişinin kapattığı talepler. Hak ediş onayı ya da reddiyle kapanan garanti işleri ve bayiye atanarak kapanan fiyat teklifleri de dahildir. Yedek parça talebinde kapanış, parçanın kargoya verilmesidir. Toplam satırında iki kişinin kapattığı aynı talep bir kez sayılır.',
     'Garanti parçası gönderim sayısı ve parça gönderimi: garanti işinde servise yapılan gönderimlerin sayısı; bir gönderimde birden çok parça olabilir, parça adedi Garanti ve Hak Ediş sekmesinde. Kargo bilgisini sonradan başka biri girdiyse gönderim ilk gönderen kişiye yazılır.',
     'Onaylanan hak ediş sayısı: personelin seçilen dönemde onayladığı hak edişlerin adedi; tutarı Garanti ve Hak Ediş sekmesinde.',
-    'Personelin kapattığı talep ve personelin ilk işlemine kadar: yalnız personelin yaptıkları. Genel Bakış\'taki "Kapanan talep" ve "İlk işleme kadar" bütün talepleri sayar; bu yüzden sayılar farklı olabilir.',
+    'Personelin kapattığı talep ve personelin ilk işlemine kadar: yalnız personelin yaptıkları. Genel Bakış sekmesindeki "Kapanan talep" ve "İlk işleme kadar" bütün talepleri sayar; bu yüzden sayılar farklı olabilir.',
     'Onayladığı ödeme: yedek parça talebinde müşterinin gönderdiği ödemenin onayı. Verdiği teklif: fiyat teklifi talebinde müşteriye verilen teklif.',
     'İlk işlemini yaptığı talep: açılışından sonraki ilk işlemi bu kişinin yaptığı talepler; ilk işlemin tarihi seçilen döneme düşüyorsa sayılır. Ortalama süre, talebin açılışından bu ilk işleme kadar geçen süredir. İlk işlemi servisin yaptığı talepler burada yer almaz.',
     'Yüzde farklar bir önceki eşit uzunluktaki dönemle karşılaştırılır. "Tüm zamanlar" seçiliyse karşılaştırma yapılmaz.',
   ],
-})
+}
 
 /* Grafikte kaç personel çiziliyor (alt yazıda da yazılı). */
 const GRAFIK_KESIM = 12

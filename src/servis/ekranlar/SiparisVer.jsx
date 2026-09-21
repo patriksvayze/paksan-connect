@@ -342,7 +342,7 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
               },
               /* Adres de son özette: yanlış adrese çıkan parçanın geri
                  dönüşü günler sürüyor. */
-              { ad: 'Teslim Adresi', deger: adresYazisi(teslimat) },
+              { ad: 'Teslimat adresi', deger: adresYazisi(teslimat) },
             ]}
             dugme="Sipariş Ver"
             onOnayla={gonder}
@@ -735,7 +735,7 @@ function Ozet({
         </div>
       </Bolum>
 
-      <Bolum ad="Teslim Adresi">
+      <Bolum ad="Teslimat adresi">
         <AdresSecici
           servisId={servisId}
           deger={teslimat}

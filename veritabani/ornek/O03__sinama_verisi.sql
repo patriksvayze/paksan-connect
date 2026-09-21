@@ -1,4 +1,4 @@
-IF NOT EXISTS (SELECT 1 FROM sistem.Ortam WHERE OrnekVeriIzinli = 1) THROW 50001, N'<Codex metni: Bu veritabanı örnek veri almaz; örnek veri yalnız yerel ve sınama ortamında yüklenir.>', 1;
+IF NOT EXISTS (SELECT 1 FROM sistem.Ortam WHERE OrnekVeriIzinli = 1) THROW 50001, N'bu veritabanına örnek veri yüklenemez; betiği örnek veriye izin verilen yerel veya sınama veritabanında çalıştırın.', 1;
 -- ÜRETİLDİ, elle düzenlemeyin
 /* ==========================================================================
    O03 — sınama senaryolarının başlangıç verisi (yalnız sınama)

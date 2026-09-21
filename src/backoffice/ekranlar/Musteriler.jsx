@@ -198,7 +198,7 @@ export function Musteriler({ personel, rol, bildir, tazele, surum, git }) {
                         <div className="kucuk sonuk mono">{telGoster(m.ulke, m.tel)}</div>
                         {m.birlesti && (
                           <div className="kucuk sonuk">
-                            {m.birlesti.hesapNo || '—'} hesabına geçirildi
+                            {m.birlesti.hesapNo || '—'} numaralı hesapla birleştirildi
                           </div>
                         )}
                       </td>
@@ -294,10 +294,10 @@ function Detay({ musteri, talepler, duzenleyebilir, onDuzenle, talebeGidebilir, 
               lineHeight: 1.55,
             }}
           >
-            Bu hesabın makineleri ve talepleri{' '}
-            <span className="mono">{musteri.birlesti.hesapNo || '—'}</span> hesabına
-            geçirildi ({tarihYaz(musteri.birlesti.tarih)}). Müşteri makinelerini
-            yeni numarasıyla açtığı hesaptan görüyor.
+            Bu hesaptaki makineler, makine kayıtları ve talepler{' '}
+            <span className="mono">{musteri.birlesti.hesapNo || '—'}</span> numaralı hesaba
+            taşındı ({tarihYaz(musteri.birlesti.tarih)}). Müşteri kayıtlarına
+            yeni numarasıyla açtığı hesaptan erişebilir.
           </p>
         )}
 

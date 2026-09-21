@@ -1,5 +1,4 @@
 import { tarihYaz } from '../../ortak'
-import { codexBekliyor } from '../metin'
 import {
   fark, farkPuan, kovayaDagit, oran, ortalama, paraHucre, paraKutu, RENK, SAAT, servisZiyaretleri, sureYaz,
   talepModeli, topla, yuzde, zamanKovalari,
@@ -38,18 +37,18 @@ import {
    toplama girmiyor, ayrıca sayılıyor.
    ========================================================================== */
 
-const M = codexBekliyor({
+const M = {
   ad: 'Garanti ve Hak Ediş',
   soru: 'Garanti işleri bize neye mal oluyor?',
 
   is: 'Garanti işi',
-  isAlt: 'Servisin bu dönemde bitirip onaya gönderdiği garanti işleri',
+  isAlt: 'Servisin bu dönemde bitirip onaya gönderdiği garanti işleri; kabul edilmeyenler dahil',
   onaylanan: 'Onaylanan hak ediş tutarı',
-  onaylananAlt: (yol, iscilik) => `Yol ${yol} · işçilik ${iscilik}`,
+  onaylananAlt: (yol, iscilik) => `Bu dönemde onaylanan: yol tutarı ${yol} · işçilik tutarı ${iscilik}`,
   isBasina: 'İş başına onaylanan hak ediş',
   isBasinaAlt: 'Bu dönemde onaylanan hak edişlerin ortalaması',
   bekleyen: 'Onay bekleyen',
-  bekleyenAlt: (tutar) => `${tutar} onay bekliyor`,
+  bekleyenAlt: (tutar) => `Şu an onay bekleyen hak ediş toplamı: ${tutar} · seçilen dönemden bağımsız`,
   onaySuresi: 'Onay süresi',
   onaySuresiAlt: 'İşin bitişinden onaya geçen ortalama süre',
   /* Ölçünün adı servis tablosundaki sütunla aynı; ikisi de ADET.
@@ -59,12 +58,12 @@ const M = codexBekliyor({
      oysa "bu dönemde ne kadar hak ediş reddettik" ilk sorulan
      sorulardan biri ve veri elde hazır. */
   red: 'Kabul edilmeyen iş',
-  redAlt: (tutar) => `Bu dönemde kabul edilmeyen işler · ${tutar}`,
+  redAlt: (tutar) => `Bu dönemde kabul edilmeyen işler · hak ediş toplamı: ${tutar}`,
   duzeltme: 'Düzeltilen kayıt oranı',
-  duzeltmeAlt: (n, m) => `Bu dönemdeki ${m} işin ${n} tanesinde kayıt düzeltildi`,
+  duzeltmeAlt: (n, m) => `Bu dönemde biten ${m} işin ${n} tanesinde kayıt düzeltildi`,
   parca: 'Garantide değişen parça',
   parcaAlt: (deger, fiyatsiz) =>
-    `Liste değeri ${deger}` + (fiyatsiz ? ` · ${fiyatsiz} kalemin fiyatı yazılı değil` : ''),
+    `Kabul edilmeyen işler dahil · liste değeri ${deger}` + (fiyatsiz ? ` · ${fiyatsiz} kalemin fiyatı yazılı değil` : ''),
 
   /* Grafik ve model tablosu İŞ TARİHİNE göre onaylanan + bekleyeni
      topluyor; "Onaylanan hak ediş tutarı" kutusu ONAY TARİHİNE göre
@@ -87,14 +86,14 @@ const M = codexBekliyor({
      reddedilenleri saymıyor ve yönetici aynı sekmedeki iki sayı (16 ile
      13) arasındaki farkı ekranda açıklayacak bir cümle bulamıyordu. */
   tabloModelAciklama:
-    'Bu dönemde biten garanti işleri; onaylanan ve onay bekleyen hak edişler. Kabul edilmeyenler dahil değil — iş sayısı, tutar ve parça adedi bu yüzden yukarıdaki "Garanti işi" ve "Garantide değişen parça" kutularından, tutar da onay tarihine bakan "Onaylanan hak ediş tutarı" kutusundan farklı olabilir. Bir satıra tıklayınca o modelin servis talepleri açılır.',
+    'İşin bitiş tarihine göre bu dönemdeki onaylanan ve onay bekleyen garanti işleri gösterilir. Kabul edilmeyen işler; iş sayısına, tutara ve parça adedine dahil değildir. Bu nedenle iş sayısı "Garanti işi", parça adedi "Garantide değişen parça" kutusundan farklı olabilir. Tutar da onay tarihini esas alan "Onaylanan hak ediş tutarı" kutusundan farklı olabilir. Bir satıra tıklayınca o modelin servis talepleri açılır.',
   modelSutun: {
     model: 'Model',
     is: 'Garanti işi (kabul edilmeyen hariç)',
     yol: 'Yol tutarı',
     iscilik: 'İşçilik tutarı',
     toplam: 'Hak ediş (onaylı ve bekleyen)',
-    isBasina: 'İş başına (onaylı ve bekleyen)',
+    isBasina: 'İş başına hak ediş (onaylı ve bekleyen)',
     parca: 'Değişen parça (adet, kabul edilmeyen hariç)',
   },
   modelYok: 'Model yazılı değil',
@@ -128,31 +127,31 @@ const M = codexBekliyor({
 
   tabloServis: 'Servislere göre hak ediş',
   tabloServisAciklama:
-    'Garanti işi ve düzeltilen oranı bu dönemde biten işlere, onaylanan onay tarihine, kabul edilmeyen red tarihine göre; bekleyen tarihten bağımsız, şu an onay bekleyen tutar. Bir satıra tıklayınca servisin talepleri açılır.',
+    'Garanti işi ve düzeltilen kayıt oranı için işin bitiş tarihi, onaylanan tutar için onay tarihi, kabul edilmeyen iş için ret tarihi esas alınır. Bekleyen tutar, seçilen dönemden bağımsız olarak şu an onay bekleyen hak edişlerin toplamıdır. Bir satıra tıklayınca servisin talepleri açılır.',
   servisSutun: {
     servis: 'Servis',
     is: 'Garanti işi',
     onaylanan: 'Onaylanan tutar',
     bekleyen: 'Bekleyen tutar',
     red: 'Kabul edilmeyen iş',
-    duzeltme: 'Düzeltilen oranı',
+    duzeltme: 'Düzeltilen kayıt oranı',
   },
   toplam: 'Toplam',
 
   notlar: [
     'Garanti işi: servisin garanti kapsamında bitirip onaya gönderdiği işler; iş tarihi, servisin işi bitirdiğini kaydettiği andır. Aynı talebe ikinci kez gidildiyse iki iş sayılır. Parça isteği aşaması iş sayılmaz.',
-    'Onaylanan hak ediş tutarı: onay tarihi seçilen döneme düşen hak edişlerin toplamı (yol ve işçilik). Genel Bakış\'taki garanti gideriyle ve Servis Ağı karnesindeki onaylanan hak ediş tutarıyla aynı sayıdır.',
+    'Onaylanan hak ediş tutarı: onay tarihi seçilen döneme düşen hak edişlerin toplamı (yol ve işçilik). Genel Bakış sekmesindeki garanti gideriyle ve Servis Ağı karnesindeki onaylanan hak ediş tutarıyla aynı sayıdır.',
     'İş başına onaylanan hak ediş: seçilen dönemde onaylanan hak edişlerin ortalaması.',
     'Biten işlerin hak edişi (grafik ve model tablosu): iş tarihi seçilen döneme düşen, onaylanan ve onay bekleyen hak edişlerin toplamı; kabul edilmeyenler dahil değil. Onay tarihine bakan "Onaylanan hak ediş tutarı"ndan bu yüzden farklıdır.',
-    'Onay bekleyen: şu an gerçekten onaylanabilecek hak edişler, yani talebi onay kuyruğunda duran ve talebin üstündeki güncel kayda ait olanlar; tarih süzgecinden bağımsızdır. Genel Bakış\'taki "hak ediş onayı bekliyor" uyarısıyla aynı sayıdır.',
+    'Onay bekleyen: talebi onay kuyruğunda olan ve talebin güncel servis kaydına ait hak edişler sayılır. Önceki kayıtlara ait hak edişler sayılmaz. Seçilen dönem dikkate alınmaz. Genel Bakış sekmesindeki "hak ediş onayı bekliyor" uyarısıyla aynı sayıdır.',
     'Onay süresi: seçilen dönemde onaylanan işlerde, işin bitişinden onaya geçen ortalama süre.',
     'Kabul edilmeyen iş: kabul etmeme tarihi seçilen döneme düşen işler; kutunun altındaki tutar bu işlerin hak ediş toplamıdır. Bu işler gidere, model tablosuna ve tutar grafiğine girmez.',
     'Düzeltilen kayıt oranı: seçilen dönemde biten garanti işlerinden, personelimizin kilometre, işçilik ya da parçasını değiştirdiği kayıtların oranı.',
-    'Garantide değişen parça: seçilen dönemde biten garanti işlerinde yazılan parça adetlerinin toplamı; kabul edilmeyen işlerin parçası da sayılır, çünkü parça takıldı. Model tablosundaki parça sütunu kabul edilmeyenleri saymaz, bu yüzden iki sayı farklı olabilir. Liste değeri, kayıttaki birim fiyat çarpı adettir; parçanın bize gerçek maliyeti değildir ve hak edişe dahil değildir. Fiyatı yazılmamış kalem toplama girmez.',
+    'Garantide değişen parça: seçilen dönemde biten garanti işlerinde yazılan parça adetlerinin toplamı; kabul edilmeyen işlerin parçası da sayılır, çünkü parça takıldı. Model tablosundaki parça sütunu kabul edilmeyenleri saymaz, bu yüzden iki sayı farklı olabilir. Liste değeri, kayıttaki birim fiyat çarpı adettir; parçanın bize gerçek maliyeti değildir ve hak edişe dahil değildir. Fiyatı yazılmamış kalem liste değeri toplamına girmez; parça adedinde sayılır.',
     'Servis tablosundaki satırlar servis adına göre birleştirilir: satırın adı ile anahtarı tek kaynaktan gelir, aynı servis iki satıra bölünmez. Arşivlenmiş bir ziyarette işi yapan servis, kaydın kendi adından okunur.',
     'Yüzde farklar bir önceki eşit uzunluktaki dönemle karşılaştırılır. "Tüm zamanlar" seçiliyse karşılaştırma yapılmaz.',
   ],
-})
+}
 
 function sayi(x) {
   const n = Number(x)

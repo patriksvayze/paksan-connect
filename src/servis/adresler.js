@@ -68,9 +68,8 @@ const ANAHTAR = 'servisAdresleri'
 export const FIRMA_ADRES_ID = 'firma'
 
 /* Firma adresinin defterdeki adı. Servis kendi adreslerine istediği adı
-   veriyor; bunun adını PAKSAN kaydı belirlediği için burada sabit.
-   TASLAK METİN — bkz. CODEX-BEKLEYEN.md. */
-export const FIRMA_ADRES_BASLIK = 'Firma Adresim'
+   veriyor; bunun adını PAKSAN kaydı belirlediği için burada sabit. */
+export const FIRMA_ADRES_BASLIK = 'Kayıtlı firma adresi'
 
 function hepsi() {
   const v = load(ANAHTAR, {})

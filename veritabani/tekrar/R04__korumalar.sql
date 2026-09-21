@@ -30,7 +30,7 @@ INSTEAD OF UPDATE, DELETE
 AS
 BEGIN
     SET NOCOUNT ON;
-    THROW 51011, N'<Codex metni: ortam işareti değiştirilemez ve silinemez>', 1;
+    THROW 51011, N'ortam işareti denetim izini ve ortam ayrımını korumak için değiştirilemez ve silinemez; işlem için doğru ortamın veritabanına bağlanın', 1;
 END;
 GO
 
@@ -48,7 +48,7 @@ INSTEAD OF UPDATE, DELETE
 AS
 BEGIN
     SET NOCOUNT ON;
-    THROW 51012, N'<Codex metni: işlem kaydı değiştirilemez ve silinemez>', 1;
+    THROW 51012, N'işlem kaydı denetim izini korumak için değiştirilemez ve silinemez; düzeltmeyi yeni bir işlem olarak kaydedin', 1;
 END;
 GO
 
@@ -77,7 +77,7 @@ BEGIN
                           WHERE k.Kimlik = i.YapanKullaniciKimlik
                             AND k.TurKodu = i.YapanTuruKodu
                             AND k.Aktif = 1))
-        THROW 51010, N'<Codex metni: işlem kaydındaki yapan kullanıcı yok, pasif ya da yazılan türde değil>', 1;
+        THROW 51010, N'işlem kaydında belirtilen kullanıcı bulunamadı, pasif ya da belirtilen türde değil; kullanıcı kimliğini, türünü ve etkinlik durumunu kontrol edin', 1;
 END;
 GO
 
@@ -94,7 +94,7 @@ INSTEAD OF UPDATE, DELETE
 AS
 BEGIN
     SET NOCOUNT ON;
-    THROW 51013, N'<Codex metni: rıza kaydı değiştirilemez ve silinemez>', 1;
+    THROW 51013, N'rıza kaydı denetim izini korumak için değiştirilemez ve silinemez; rıza değişikliğini yeni bir kayıt olarak ekleyin', 1;
 END;
 GO
 
@@ -119,7 +119,7 @@ BEGIN
         RETURN;
 
     IF NOT EXISTS (SELECT 1 FROM inserted)
-        THROW 51014, N'<Codex metni: yayımlanmış metin sürümü silinemez>', 1;
+        THROW 51014, N'yayımlanmış metin sürümü denetim izini korumak için silinemez; değişiklik için yeni bir sürüm ekleyin', 1;
 
     IF (SELECT COUNT(*) FROM inserted) <> (SELECT COUNT(*) FROM deleted)
        OR EXISTS (
@@ -140,7 +140,7 @@ BEGIN
                     SELECT d.Baslik COLLATE Latin1_General_100_BIN2,
                            d.IcerikJson COLLATE Latin1_General_100_BIN2,
                            d.IcerikOzeti, d.AsilMetin, d.MetinTarihi, d.OlusmaZamani))
-        THROW 51014, N'<Codex metni: metin sürümünün içeriği değiştirilemez; yalnız hukuk onayı zamanı bir kez yazılabilir>', 1;
+        THROW 51014, N'metin sürümünün içeriği denetim izini korumak için değiştirilemez; içerik değişikliği için yeni bir sürüm ekleyin. Yalnız hukuk onayı zamanı bir kez yazılabilir', 1;
 
     UPDATE m
        SET HukukOnayiZamani = i.HukukOnayiZamani
@@ -165,7 +165,7 @@ INSTEAD OF UPDATE, DELETE
 AS
 BEGIN
     SET NOCOUNT ON;
-    THROW 51015, N'<Codex metni: talep durum geçmişi değiştirilemez ve silinemez>', 1;
+    THROW 51015, N'talep durum geçmişi denetim izini korumak için değiştirilemez ve silinemez; düzeltmeyi yeni bir durum değişikliği olarak kaydedin', 1;
 END;
 GO
 
@@ -236,7 +236,7 @@ BEGIN
           OR (@YapanTuruKodu NOT IN (N'musteri', N'sistem', N'entegrasyon')
                 AND @YapanKullaniciKimlik IS NOT NULL AND @YapanHesapKimlik IS NULL AND @YapanAdi IS NOT NULL)
        )
-        THROW 51010, N'<Codex metni: talep durumu değişirken işlemi yapan bilgisi eksik ya da tutarsız>', 1;
+        THROW 51010, N'talep durumu değişirken işlemi yapan bilgisi eksik ya da tutarsız; işlemi yapanın kimlik ve tür bilgilerini kontrol edip tamamlayın', 1;
 
     /* Kullanıcı gerçekten o türden ve aktif olmalı (18.09.2026). Yukarıdaki
        denetim yalnız kolon dolulukları kalıbıdır ve sistem.YapanAyarla'daki
@@ -249,7 +249,7 @@ BEGIN
                        WHERE Kimlik = @YapanKullaniciKimlik
                          AND TurKodu = @YapanTuruKodu
                          AND Aktif = 1)
-        THROW 51010, N'<Codex metni: talep durumu değişirken işlemi yapan kullanıcı yok, pasif ya da verilen türde değil>', 1;
+        THROW 51010, N'talep durumu değişirken işlemi yapan kullanıcı bulunamadı, pasif ya da belirtilen türde değil; kullanıcı kimliğini, türünü ve etkinlik durumunu kontrol edin', 1;
 
     INSERT talep.DurumGecmisi
         (TalepKimlik, OncekiDurumKodu, YeniDurumKodu, OncekiSahipKodu, YeniSahipKodu,
@@ -304,7 +304,7 @@ BEGIN
                   AND y.MarkaKodu = i.MarkaKodu
                   AND y.Etkin = 1
                   AND s.DurumKodu = N'aktif'))
-        THROW 51020, N'<Codex metni: talep, yetkisi bitmiş ya da pasif bir servise bağlanamaz>', 1;
+        THROW 51020, N'talep, yetkisi bitmiş ya da pasif bir servise atanamaz; yetkisi geçerli ve aktif bir servis seçin', 1;
 END;
 GO
 
@@ -329,7 +329,7 @@ BEGIN
           AND i.NetTutar <> ISNULL((SELECT SUM(k.Tutar)
                                     FROM hakedis.HakEdisKalemi AS k
                                     WHERE k.HakEdisKimlik = i.Kimlik), 0))
-        THROW 51040, N'<Codex metni: onaylanan hak edişin tutarı kalemlerinin toplamına eşit değil>', 1;
+        THROW 51040, N'onaylanan hak edişin tutarı kalemlerinin toplamına eşit değil; onaylamadan önce kalemleri kontrol edip tutarı yeniden hesaplayın', 1;
 END;
 GO
 
@@ -377,7 +377,7 @@ BEGIN
                       WHERE h.HakEdisKimlik = i.Kimlik
                         AND h.HareketTuruKodu = N'hakEdisAlacagi'
                         AND h.GeriAlinmaZamani IS NULL))
-        THROW 51046, N'<Codex metni: onaylı hak edişin tutarı ve vergileri, alacak hareketi geri alınmadan değiştirilemez>', 1;
+        THROW 51046, N'onaylı hak edişin tutarı ve vergileri değiştirilemez; düzeltmeden önce ilgili alacak hareketini geri alın', 1;
 END;
 GO
 
@@ -416,7 +416,7 @@ BEGIN
                         AND i.SirketKodu = h.SirketKodu
                         AND i.ParaBirimiKodu = h.ParaBirimiKodu
                        THEN 0 ELSE 1 END)
-        THROW 51042, N'<Codex metni: hak ediş alacağının tutarı, şirketi ya da para birimi onaylı hak edişle uyuşmuyor>', 1;
+        THROW 51042, N'hak ediş alacağının tutarı, şirketi ya da para birimi onaylı hak edişle uyuşmuyor; alacak hareketindeki bilgileri onaylı hak edişe göre düzeltin', 1;
 
     IF EXISTS (
         SELECT 1
@@ -430,7 +430,7 @@ BEGIN
                         AND i.SirketKodu = p.SirketKodu
                         AND i.ParaBirimiKodu = p.ParaBirimiKodu
                        THEN 0 ELSE 1 END)
-        THROW 51042, N'<Codex metni: parça siparişi borcunun tutarı, şirketi ya da para birimi parça talebiyle uyuşmuyor>', 1;
+        THROW 51042, N'parça siparişi borcunun tutarı, şirketi ya da para birimi parça talebiyle uyuşmuyor; borç hareketindeki bilgileri parça talebine göre düzeltin', 1;
 
     IF EXISTS (
         SELECT 1
@@ -445,7 +445,7 @@ BEGIN
                         AND i.ParaBirimiKodu = a.ParaBirimiKodu
                         AND i.YonKodu <> a.YonKodu
                        THEN 0 ELSE 1 END)
-        THROW 51042, N'<Codex metni: düzeltme hareketi asıl hareketle aynı tutar, servis, şirket ve para biriminde ve ters yönde olmalı>', 1;
+        THROW 51042, N'düzeltme hareketinin tutarını, servisini, şirketini ve para birimini asıl hareketle aynı, yönünü ise ters olacak şekilde düzenleyin', 1;
 END;
 GO
 

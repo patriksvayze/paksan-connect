@@ -190,7 +190,7 @@ END;
           SELECT gorunum.TalepListesi → 229; SELECT gorunum.GecerliAyar → geçer */
 SET @Adim = N'YS-08.1'; SET @Beklenen = 229; SET @Gelen = 0;
 BEGIN TRY
-    EXEC yonetim.TalebiKapat @TalepNumarasi = N'SRV2600001', @Gerekce = N'<Codex metni: S03 gerekçesi>',
+    EXEC yonetim.TalebiKapat @TalepNumarasi = N'SRV2600001', @Gerekce = N'S03 gerekçesi',
          @YapanGirisAdi = N'ornek.yonetici', @Uygula = 0;
 END TRY
 BEGIN CATCH
@@ -315,7 +315,7 @@ BEGIN TRY
     SELECT @Once = COUNT(*) FROM denetim.IslemKaydi WHERE IslemTuruKodu = N'girisSifresiSifirlandi';
     EXEC yonetim.GirisSifresiniSifirla
          @GirisAdi = N'ornek.satis',
-         @Gerekce = N'<Codex metni: S03 şifre sıfırlama gerekçesi>',
+         @Gerekce = N'S03 şifre sıfırlama gerekçesi',
          @YapanGirisAdi = N'ornek.yonetici',
          @Uygula = 1;
     SELECT @Sayi = COUNT(*) - @Once FROM denetim.IslemKaydi WHERE IslemTuruKodu = N'girisSifresiSifirlandi';

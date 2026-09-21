@@ -93,15 +93,15 @@ BEGIN
     DECLARE @IkinciTur  nvarchar(20) = NULL;
 
     IF @Metin IS NULL OR LEN(LTRIM(RTRIM(@Metin))) = 0
-        THROW 50002, N'<Codex metni: açıklama metni boş olamaz>', 1;
+        THROW 50002, N'açıklama metni boş olamaz; açıklamayı yazıp yeniden deneyin', 1;
 
     IF SCHEMA_ID(@Sema) IS NULL
-        THROW 50002, N'<Codex metni: açıklaması yazılacak şema bulunamadı>', 1;
+        THROW 50002, N'açıklaması yazılacak şema bulunamadı; şema adını kontrol edip yeniden deneyin', 1;
 
     IF @Nesne IS NULL
     BEGIN
         IF @Alt IS NOT NULL
-            THROW 50002, N'<Codex metni: alt nesne için nesne adı da verilmeli>', 1;
+            THROW 50002, N'alt nesnenin açıklamasını yazmak için bağlı olduğu nesnenin adını da belirtin', 1;
     END
     ELSE
     BEGIN
@@ -121,7 +121,7 @@ BEGIN
                           END;
 
         IF @BirinciTur IS NULL
-            THROW 50002, N'<Codex metni: açıklaması yazılacak nesne bulunamadı ya da bu türde açıklama yazılmaz>', 1;
+            THROW 50002, N'açıklaması yazılacak nesne bulunamadı ya da bu nesne türüne açıklama yazılamaz; nesne adını ve türünü kontrol edin', 1;
 
         IF @Alt IS NOT NULL
         BEGIN
@@ -129,7 +129,7 @@ BEGIN
 
             IF @IkinciTur IS NULL
                OR @IkinciTur NOT IN (N'COLUMN', N'PARAMETER', N'TRIGGER', N'CONSTRAINT', N'INDEX')
-                THROW 50002, N'<Codex metni: alt tür COLUMN, PARAMETER, TRIGGER, CONSTRAINT ya da INDEX olmalı>', 1;
+                THROW 50002, N'alt tür olarak COLUMN, PARAMETER, TRIGGER, CONSTRAINT ya da INDEX belirtin', 1;
         END;
     END;
 

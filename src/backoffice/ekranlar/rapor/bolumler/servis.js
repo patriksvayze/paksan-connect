@@ -1,7 +1,6 @@
 import { KAPALI_DURUMLAR } from '../../../veri'
 import { makineninServisi } from '../../../../lib/servisAtama'
 import { markaEk, servisleriGetir } from '../../../../marka'
-import { codexBekliyor } from '../metin'
 import {
   dilim, fark, farkPuan, kapanisOlayi, musteriTalebiMi, oran, ortalama, paraHucre, RENK, SAAT,
   servisSinifi, servisZiyaretleri, sureYaz, topla, yenidenAcilmaSayisi, yuzde,
@@ -42,14 +41,14 @@ import {
    ağda olup iş almayan servis, çok iş alan kadar bilgi.
    ========================================================================== */
 
-const M = codexBekliyor({
+const M = {
   ad: 'Servis Ağı',
   soru: 'Servislerimiz işi ne kadar hızlı ve eksiksiz yapıyor?',
 
   gelen: 'Servise giden talep',
-  gelenAlt: 'Seçilen dönemde açılan ve bir servise yazılan müşteri talepleri',
+  gelenAlt: 'Seçilen dönemde açılan ve bir servise atanan müşteri talepleri',
   tamamlanan: 'Tamamlanan iş',
-  tamamlananAlt: 'Bu dönemde kapanan servis işleri, açıldığı gün fark etmeksizin',
+  tamamlananAlt: 'Açılış tarihinden bağımsız, bu dönemde kapanan işler; sonradan yeniden açılanlar dahil',
   ilkKayit: 'İlk servis kaydına kadar',
   ilkKayitAlt: (p90) => `Ortalama · en yavaş %10: ${p90}`,
   yenidenAcilma: 'Yeniden açılma oranı',
@@ -59,7 +58,7 @@ const M = codexBekliyor({
   garantiDisi: 'Garanti dışı tamamlanan',
   garantiDisiAlt: 'Bu dönemde kapanan, parasını müşterinin ödediği işler',
   isYapan: 'İş yapan servis',
-  isYapanAlt: (n) => `Kayıtlı ${n} servisten, bu dönemde sahaya çıkanlar`,
+  isYapanAlt: (n) => `Kayıtlı ${n} servisten bu dönemde en az bir servis kaydı olanlar`,
 
   grafikServis: 'Servislere göre işler',
   grafikServisAlt:
@@ -91,8 +90,8 @@ const M = codexBekliyor({
     acik: 'Şu an açık',
     garanti: 'Garanti işi',
     garantiDisi: 'Garanti dışı tamamlanan',
-    ilkKayit: 'Ort. ilk kayıt süresi',
-    yenidenAcilan: 'Yeniden açılan (kapanan işte)',
+    ilkKayit: 'Ortalama ilk kayıt süresi',
+    yenidenAcilan: 'Kapanan işlerden yeniden açılan',
     destek: 'Destek istenen',
     hakkedis: 'Onaylanan hak ediş tutarı',
     bakiye: 'Bakiye',
@@ -100,7 +99,7 @@ const M = codexBekliyor({
 
   tabloKapsama: 'Bölgelere göre servis kapsaması',
   tabloKapsamaAciklama:
-    'Kayıtlı makineler, tarihten bağımsız. Servisi olmayan makinenin sahibi servis talebi açamıyor; makineye ya da satan bayiye servis atanmalı. Bir satıra tıklayınca Kayıtlı Makineler açılır.',
+    'Kayıtlı makinelerin güncel servis atamaları gösterilir; seçilen dönem dikkate alınmaz. Servisi olmayan makinenin sahibi servis talebi açamaz. Makineye ya da makineyi satan bayiye servis atayın. Bir satıra tıklayınca Kayıtlı Makineler açılır.',
   kolon: {
     il: 'İl',
     makine: 'Kayıtlı makine',
@@ -113,22 +112,22 @@ const M = codexBekliyor({
 
   notlar: [
     'Servise giden talep: seçilen dönemde açılan ve bir servise yazılan müşteri talepleri. Servislerin kendi parça siparişleri sayılmaz.',
-    'Tamamlanan iş: servise yazılmış taleplerden kapanışı seçilen döneme düşenler. Yeniden açılıp tekrar kapanan talepte son kapanış sayılır. Kapanıp sonradan yeniden açılan ve hâlâ açık olan iş de sayılır: kapanış o dönemde gerçekleşti.',
+    'Tamamlanan iş: servise atanmış taleplerden kapanışı seçilen döneme düşenler. Yeniden açılıp tekrar kapanan talepte son kapanış tarihi esas alınır. Kapanıp sonradan yeniden açılan ve hâlâ açık olan iş de sayılır: kapanış o dönemde gerçekleşti.',
     'İlk servis kaydına kadar: talebin açılışından servisin ilk kaydına (parça isteği, onaya giden kayıt ya da garanti dışı kapanış) geçen süre. İlk kaydı seçilen döneme düşen talepler sayılır. Randevu vermek ve destek istemek kayıt sayılmaz.',
     'Yeniden açılma oranı: kapanışı seçilen döneme düşen servis işlerinden müşterinin en az bir kez "sorun devam ediyor" dediklerinin oranı. Kapandıktan sonra yeniden açılmış ve hâlâ açık olan iş de hem paya hem paydaya girer.',
     `Destek istenen iş: servisin ${markaEk('dan')} destek istediği tarih seçilen döneme düşen talepler.`,
     'Garanti dışı tamamlanan: seçilen dönemde kapanan ve parasını müşterinin ödediği işler. Servisin garanti dışı kapattığı işler ile servis kaydı olmadan kapanış formuna ücret yazılarak kapatılan işler birlikte sayılır.',
     'İş yapan servis: seçilen dönemde en az bir servis kaydı olan farklı servis sayısı.',
     'Garanti işi (karne): servisin seçilen dönemde bitirip onaya gönderdiği garanti işleri; kabul edilmeyenler de dahil. Aynı talebe ikinci kez gidildiyse iki iş sayılır. Garanti ve Hak Ediş sekmesindeki "Garanti işi" ile aynı sayıdır.',
-    'Yeniden açılan (kapanan işte, karne): seçilen dönemde kapanan işlerden müşterinin en az bir kez "sorun devam ediyor" dediği işler. Genel Bakış\'taki "Yeniden açılan" ise "sorun devam ediyor" denen günü seçilen döneme düşen talepleri sayar.',
+    'Yeniden açılan (kapanan işte, karne): seçilen dönemde kapanan işlerden müşterinin en az bir kez "sorun devam ediyor" dediği işler. Genel Bakış sekmesindeki "Yeniden açılan" ise "sorun devam ediyor" denen günü seçilen döneme düşen talepleri sayar.',
     'Onaylanan hak ediş tutarı (karne): onay tarihi seçilen döneme düşen hak edişlerin toplamı.',
     'Bakiye: servisin cari hesabındaki bütün hareketlerin toplamı (onaylanan hak edişler eksi hak edişten düşülen parça siparişleri ve ödemeler). Artı değer servise olan borcumuzdur.',
     'Grafikteki sonuç, seçilen dönemde açılan talebin bugünkü durumudur: garanti işine dönmüş, garanti dışı kapanmış, iptal edilmiş ya da henüz sonuçlanmamış. Karnedeki garanti işi ve garanti dışı tamamlanan sayıları dönemde biten işlere baktığı için grafikle aynı olmak zorunda değildir.',
-    'Servis kapsaması: aynı seri numarası defterde birden çok satırda olsa da makine bir kez sayılır. Servis, makineye atanmış servisten, yoksa makineyi satan bayinin servisinden bulunur. Bölgesinde tanımlı servis, sorumluluk bölgesinde o il yazılı olan servis sayısıdır; hiçbir serviste bölge tanımlı değilse "—" yazar. Bu sütunun toplam satırı yoktur: aynı servis birden çok ilde sayıldığı için toplamının anlamı olmaz.',
-    'Servis karnesi satırları servisin kimliğine göre birleştirilir. Kimliği yazılmamış eski bir kayıt, adı kayıtlı servis listesinde bulunuyorsa o servisin satırına yazılır.',
+    'Servis kapsaması: aynı seri numarası defterde birden çok satırda olsa da makine bir kez sayılır. Servis, makineye atanmış servisten, yoksa makineyi satan bayinin servisinden bulunur. Bölgesinde tanımlı servis, sorumluluk bölgesinde o il yazılı olan servis sayısıdır; hiçbir serviste bölge tanımlı değilse "—" yazar. Toplam satırında bu sütun için sayı gösterilmez; aynı servis birden çok ilde sayılabildiği için il bazındaki sayıları toplamak servis sayısını vermez.',
+    'Servis karnesinde aynı servis kimliğine ait kayıtlar tek satırda birleştirilir. Servis kimliği bulunmayan eski bir kayıtta servis adı kayıtlı servis listesiyle eşleşiyorsa kayıt o servisin satırına eklenir.',
     'Yüzde farklar bir önceki eşit uzunluktaki dönemle karşılaştırılır. "Tüm zamanlar" seçiliyse karşılaştırma yapılmaz.',
   ],
-})
+}
 
 /* Servisin ziyaret olarak yazdığı durumlar (bkz. dosya başı). */
 const ZIYARET_DURUMLARI = ['parcaBekliyor', 'onayBekliyor', 'kapandi']

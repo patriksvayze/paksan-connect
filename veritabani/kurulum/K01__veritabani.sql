@@ -43,13 +43,13 @@ GO
    veritabanı açılmasın ya da değiştirilmesin.
    -------------------------------------------------------------------------- */
 IF DB_NAME() COLLATE Latin1_General_100_BIN2 <> N'master'
-    THROW 50010, N'<Codex metni: K01 yalnız master veritabanında çalışır>', 1;
+    THROW 50010, N'kurulumu başlatmak için K01 betiğini master veritabanında çalıştırın', 1;
 
 IF CONVERT(int, SERVERPROPERTY('ProductMajorVersion')) < 15
-    THROW 50011, N'<Codex metni: en az SQL Server 2019 gerekir>', 1;
+    THROW 50011, N'en az SQL Server 2019 gerekir; kurulumu SQL Server 2019 veya daha yeni bir sürümde çalıştırın', 1;
 
 IF N'$(PAKSAN_VT_VERITABANI)' COLLATE Latin1_General_100_BIN2 NOT LIKE N'Paksan[_]%'
-    THROW 50012, N'<Codex metni: veritabanı adı Paksan_ ile başlamalı; başka veritabanına dokunulmaz>', 1;
+    THROW 50012, N'veritabanı adı Paksan_ ile başlamalı; hedef veritabanı adını ortam dosyasında düzeltin. Başka veritabanında değişiklik yapılmaz', 1;
 
 IF NOT (   (N'$(PAKSAN_VT_ORTAM)' COLLATE Latin1_General_100_BIN2 = N'yerel'
             AND N'$(PAKSAN_VT_VERITABANI)' COLLATE Latin1_General_100_BIN2 = N'Paksan_Yerel')
@@ -59,7 +59,7 @@ IF NOT (   (N'$(PAKSAN_VT_ORTAM)' COLLATE Latin1_General_100_BIN2 = N'yerel'
             AND N'$(PAKSAN_VT_VERITABANI)' COLLATE Latin1_General_100_BIN2 = N'Paksan_Test')
         OR (N'$(PAKSAN_VT_ORTAM)' COLLATE Latin1_General_100_BIN2 = N'canli'
             AND N'$(PAKSAN_VT_VERITABANI)' COLLATE Latin1_General_100_BIN2 = N'Paksan_Canli'))
-    THROW 50013, N'<Codex metni: veritabanı adı ortamla uyuşmuyor (yerel: Paksan_Yerel, sinama: Paksan_Sinama1-9, test: Paksan_Test, canli: Paksan_Canli)>', 1;
+    THROW 50013, N'veritabanı adı ortamla uyuşmuyor; hedef veritabanı adını ortam dosyasında düzeltin (yerel: Paksan_Yerel, sinama: Paksan_Sinama1-9, test: Paksan_Test, canli: Paksan_Canli)', 1;
 GO
 
 /* --------------------------------------------------------------------------
@@ -88,7 +88,7 @@ DECLARE @Harmanlama nvarchar(128) =
 
 IF @Harmanlama IS NULL
    OR @Harmanlama COLLATE Latin1_General_100_BIN2 <> N'Latin1_General_100_CI_AS'
-    THROW 50014, N'<Codex metni: veritabanının harmanlaması Latin1_General_100_CI_AS değil; harmanlama sonradan değiştirilmez>', 1;
+    THROW 50014, N'veritabanının harmanlaması Latin1_General_100_CI_AS değil; harmanlama sonradan değiştirilmez. Hedef veritabanını ve kurulum ayarlarını veritabanı yöneticisiyle kontrol edin', 1;
 
 IF OBJECT_ID(QUOTENAME(@Ad) + N'.sistem.Ortam', N'U') IS NOT NULL
 BEGIN
@@ -108,7 +108,7 @@ BEGIN
     IF @OrtamKodu IS NOT NULL
        AND (   @OrtamKodu COLLATE Latin1_General_100_BIN2 <> N'$(PAKSAN_VT_ORTAM)'
             OR @VeritabaniAdi COLLATE Latin1_General_100_BIN2 <> N'$(PAKSAN_VT_VERITABANI)')
-        THROW 50015, N'<Codex metni: veritabanı başka bir ortama ait (sistem.Ortam); dokunulmadı>', 1;
+        THROW 50015, N'veritabanı başka bir ortama ait (sistem.Ortam); değişiklik yapılmadı. Ortam dosyasını kontrol edip hedef veritabanını ortama göre seçin (yerel: Paksan_Yerel, sinama: Paksan_Sinama1-9, test: Paksan_Test, canli: Paksan_Canli)', 1;
 END;
 GO
 

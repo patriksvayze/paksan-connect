@@ -325,7 +325,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
         baslik: 'Parça isteğiniz gönderilecek',
         metin: `${MARKA} yedek parça birimi parçayı hazırlayıp size gönderecek. Parça elinize geçtiğinde bu talebi açıp "Parçayı Taktım" düğmesine dokunacaksınız. Yol ve işçilik bilgileri o zaman sorulacak.`,
         parcalar: secilenler,
-        kalemler: [{ ad: 'Gönderilecek Adres', deger: adresYazisi(teslimat) }],
+        kalemler: [{ ad: 'Teslimat adresi', deger: adresYazisi(teslimat) }],
         dugme: 'Parça Talebini Gönder',
       }
     : {
@@ -510,7 +510,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
                 parçayı servisin firma adresine yolluyordu. Kayıtlı
                 adres tek dokunuş; varsayılan zaten seçili geliyor. */}
             {parcaIstegi && (
-              <Bolum ad="Parçanın Gönderileceği Adres">
+              <Bolum ad="Teslimat adresi">
                 <AdresSecici
                   servisId={oturum.servisId}
                   deger={teslimat}
@@ -522,7 +522,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
                   elleOneri={musteriAdresi}
                   elleNotu={
                     musteriAdresi.alici || musteriAdresi.acikAdres
-                      ? 'Müşterinin bilgileriyle dolduruldu; değiştirebilirsiniz.'
+                      ? 'Müşterinin adres bilgileri hazır olarak dolduruldu. Parça başka bir adrese gidecekse değiştirebilirsiniz.'
                       : ''
                   }
                 />
@@ -655,7 +655,7 @@ function IlkAsama({ kayit }) {
         <Satir ad="Bulduğunuz" deger={kayit.sonuc} />
         {/* Parçanın nereye istendiği de okunur: servis parçayı nerede
             bekleyeceğini hatırlasın. */}
-        <Satir ad="Gönderim Adresi" deger={teslimatYazisi(kayit.teslimat)} />
+        <Satir ad="Teslimat adresi" deger={teslimatYazisi(kayit.teslimat)} />
       </div>
       <p className="alan__ipucu parca-ipucu">İstediğiniz parça</p>
       <ParcaTablosu parcalar={temizParcalar(kayit.parcalar)} />

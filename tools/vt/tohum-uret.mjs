@@ -1860,7 +1860,7 @@ function t06Yaz(K, markalar) {
       '      ON h.MarkaKodu = k.MarkaKodu AND h.Kod = k.Kod',
       '    WHERE h.KaynakOzeti <> CONVERT(binary(32), k.KaynakOzeti)',
       ')',
-      "    THROW 50002, N'<Codex metni: Bu fiyat listesi kodu veritabanında başka bir içerikle kayıtlı. Arşivdeki liste değiştirilmez; yeni listeye yeni kod verin.>', 1;",
+      "    THROW 50002, N'bu fiyat listesi kodu veritabanında başka bir içerikle kayıtlı; arşivdeki liste değiştirilemez. Yeni listeye yeni bir kod verin.', 1;",
       '',
     ].join('\n'),
   )
@@ -1984,7 +1984,7 @@ function t07Yaz(K) {
         '      ON h.MetinKodu = k.MetinKodu AND h.Surum = k.Surum AND h.DilKodu = k.DilKodu',
         '    WHERE h.IcerikOzeti <> CONVERT(binary(32), k.IcerikOzeti)',
         ')',
-        "    THROW 50003, N'<Codex metni: KVKK metninin içeriği değişmiş ama sürüm numarası aynı. src/data/kvkk.js içindeki KVKK_SURUM değerini artırın.>', 1;",
+        "    THROW 50003, N'kişisel verilerin korunması metninin içeriği değişmiş ancak sürüm numarası aynı; src/data/kvkk.js içindeki KVKK_SURUM değerini artırın.', 1;",
         '',
       ].join('\n'),
       eklemeYaz({ tablo: 'kvkk.MetinSurumu', kolonlar, anahtar: ['MetinKodu', 'Surum', 'DilKodu'], satirlar }),
@@ -2218,7 +2218,7 @@ function b03Yaz(K, eslesme) {
 /* ============================================================ O (örnek) */
 
 const ORNEK_KORUMA =
-  "IF NOT EXISTS (SELECT 1 FROM sistem.Ortam WHERE OrnekVeriIzinli = 1) THROW 50001, N'<Codex metni: Bu veritabanı örnek veri almaz; örnek veri yalnız yerel ve sınama ortamında yüklenir.>', 1;"
+  "IF NOT EXISTS (SELECT 1 FROM sistem.Ortam WHERE OrnekVeriIzinli = 1) THROW 50001, N'bu veritabanına örnek veri yüklenemez; betiği örnek veriye izin verilen yerel veya sınama veritabanında çalıştırın.', 1;"
 
 function ornekBasligi(ad, satirlar) {
   return ORNEK_KORUMA + '\n' + betikBasligi(ad, satirlar)

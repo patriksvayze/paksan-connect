@@ -1536,7 +1536,7 @@ function TeslimatAdresi({ teslimat: t, ust = 14 }) {
           Teslimat adresi
         </span>
         <span className="rz rz--gri">
-          {t.kaynak === 'kayitli' && t.baslik ? t.baslik : 'Servis elle girdi'}
+          {t.kaynak === 'kayitli' && t.baslik ? t.baslik : 'Servis tarafından elle girildi'}
         </span>
         <button
           type="button"
@@ -1549,7 +1549,7 @@ function TeslimatAdresi({ teslimat: t, ust = 14 }) {
       </div>
       <S k="Alıcı" v={t.alici} />
       <S k="Telefon" v={teslimatTelYaz(t.tel)} mono />
-      <S k="İl / İlçe" v={[t.il, t.ilce].filter(Boolean).join(' / ')} />
+      <S k="İl / ilçe" v={[t.il, t.ilce].filter(Boolean).join(' / ')} />
       <S k="Açık adres" v={t.acikAdres} />
     </div>
   )

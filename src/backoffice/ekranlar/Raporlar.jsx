@@ -11,7 +11,6 @@ import { araliktaMi, BOS_ARALIK, SuzgecCubugu, TarihAraligi } from './suzgec'
 import { BOLUMLER } from './rapor/bolumler'
 import { bolumuExceleAktar, RaporBolumu } from './rapor/Gorunum'
 import { karsilastirilabilirMi, oncekiDonemdeMi } from './rapor/hesap'
-import { codexBekliyor } from './rapor/metin'
 
 /* ==========================================================================
    Raporlar — yönetim ekranı
@@ -46,15 +45,15 @@ import { codexBekliyor } from './rapor/metin'
    geri kalanı çalışmaya devam ediyor.
    ========================================================================== */
 
-const M = codexBekliyor({
+const M = {
   baslik: 'Raporlar',
   okumaHatasi: 'Rapor verileri okunamadı. Sayfayı yenileyin; sorun sürerse yöneticinize haber verin.',
-  bolumHatasi: 'Bu raporun hesaplanmasında bir sorun çıktı. Öteki raporlar çalışıyor; sorun sürerse yöneticinize haber verin.',
-  karsilastirma: 'Farklar bir önceki eşit dönemle karşılaştırılıyor',
-  karsilastirmaYok: 'Tüm zamanlar seçili; önceki dönemle karşılaştırma yapılmıyor',
-  sekmeler: 'Rapor bölümleri',
-  bolumExcel: "Bu Bölümü Excel'e Aktar",
-})
+  bolumHatasi: 'Bu rapor hesaplanamadı. Diğer sekmeleri inceleyebilirsiniz. Sayfayı yenileyin; sorun sürerse yöneticinize haber verin.',
+  karsilastirma: 'Farklar, seçilen dönemden önceki eşit uzunluktaki döneme göre hesaplanır.',
+  karsilastirmaYok: 'Tüm zamanlar seçili olduğu için önceki dönemle karşılaştırma yapılmaz.',
+  sekmeler: 'Rapor sekmeleri',
+  bolumExcel: "Bu Sekmeyi Excel'e Aktar",
+}
 
 export function Raporlar({ rol, personel, surum, git, sorgu }) {
   const [bolumId, setBolumId] = useState(sorgu?.bolum || 'genel')

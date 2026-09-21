@@ -85,7 +85,7 @@ INSERT talep.ServisZiyareti (Kimlik, ZiyaretNo, TalepKimlik, TurKodu, UyduKodu, 
 VALUES (@Ziyaret, 1, @Talep, N'servis', N'servisZiyareti', N'paksan',
         @Servis, N'bitti', N'garanti', N'bakim',
         10, 200, N'TRY', SYSUTCDATETIME(),
-        N'servis', @ServisKul, N'<Codex metni: S05 servis teknisyeni>', N'servisim');
+        N'servis', @ServisKul, N'S05 Servis Teknisyeni', N'servisim');
 INSERT hakedis.HakEdis (Kimlik, ZiyaretKimlik, TalepKimlik, ServisKimlik, MarkaKodu, SirketKodu,
                         KapiKodu, AsamaKodu, ParaBirimiKodu, DurumKodu, NetTutar)
 VALUES (@HakEdis, @Ziyaret, @Talep, @Servis, N'paksan', N'paksan',
@@ -199,7 +199,7 @@ VALUES (@Hesap, N'+905321230001', DATEADD(year, -2, SYSUTCDATETIME()), DATEADD(y
 /* Geri bildirim: GBD numarasıyla aranır. */
 INSERT musteri.GeriBildirim (Numara, HesapKimlik, DilKodu, UygulamaSurumu, Metin,
                              IletisimAdi, IletisimTelefonE164)
-VALUES (N'GBD2600001', @Hesap, N'tr', N'0.9.14', N'<Codex metni: S05 geri bildirim metni>',
+VALUES (N'GBD2600001', @Hesap, N'tr', N'0.9.14', N'S05 geri bildirim metni',
         N'Örnek Müşteri', N'+905321234567');
 /* Eski servis numarası: IŞIK Makina SRV014 ile de bulunmalı. */
 UPDATE servis.Servis SET EskiNumara = N'SRV014' WHERE Kimlik = @Servis15;
@@ -219,7 +219,7 @@ EXEC sistem.YapanAyarla @YapanTuruKodu = N'personel', @YapanKullaniciKimlik = @P
 INSERT kvkk.BasvuruTalebi (Kimlik, TurKodu, DurumKodu, BasvuranAdi, IletisimBilgisi,
                            HesapKimlik, KanalKodu, Aciklama, YanitSonTarihi)
 VALUES (@Basvuru, N'silme', N'alindi', N'Örnek Müşteri', N'+905321238888',
-        @Hesap2, N'yazili', N'<Codex metni: S05 başvuru metni>',
+        @Hesap2, N'yazili', N'S05 başvuru metni',
         CONVERT(date, DATEADD(day, 30, SYSUTCDATETIME())));
 COMMIT TRANSACTION;
 
@@ -252,7 +252,7 @@ DECLARE @Sira      int;
 DECLARE @Tarih     date;
 
 DECLARE @Yonetici  nvarchar(40) = N'ornek.yonetici';
-DECLARE @Gerekce   nvarchar(500) = N'<Codex metni: S05 yönetim gerekçesi>';
+DECLARE @Gerekce   nvarchar(500) = N'S05 yönetim gerekçesi';
 
 /* ------------------------------------------------------------------ BS-01
    SSMS'te küçük harfle yazılan nesne ve kolon adları çalışır (207/208 yok);
@@ -722,7 +722,7 @@ SET @Adim = N'BS-15.1'; SET @Beklenen = 51104; SET @Gelen = 0;
 BEGIN TRY
     BEGIN TRANSACTION;
     EXEC yonetim.DekontuGecersizKil @TalepNumarasi = N'SRV2600123', @DekontKayitNo = @DekontNo,
-         @GecersizNedeni = N'<Codex metni: S05 dekont geçersizlik nedeni>',
+         @GecersizNedeni = N'S05 dekont geçersizlik nedeni',
          @Gerekce = @Gerekce, @YapanGirisAdi = @Yonetici, @Uygula = 1;
     ROLLBACK TRANSACTION;
 END TRY
@@ -737,7 +737,7 @@ SET @Adim = N'BS-15.2'; SET @Beklenen = 51111; SET @Gelen = 0;
 BEGIN TRY
     BEGIN TRANSACTION;
     EXEC yonetim.DekontuGecersizKil @TalepNumarasi = N'YPR2600125', @DekontKayitNo = @DekontNo,
-         @GecersizNedeni = N'<Codex metni: S05 dekont geçersizlik nedeni>',
+         @GecersizNedeni = N'S05 dekont geçersizlik nedeni',
          @Gerekce = @Gerekce, @YapanGirisAdi = @Yonetici, @Uygula = 1;
     ROLLBACK TRANSACTION;
 END TRY

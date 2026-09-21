@@ -38,20 +38,21 @@ import { IconPin, IconPlus, IconTrash } from '../../components/Icons'
    başı): silinen ya da değiştirilen adres, önceki siparişlerin nereye
    gittiğini değiştirmiyor. Onay yaprağı bunu da söylüyor.
 
-   METİNLER TASLAK (bkz. CODEX-BEKLEYEN.md); hepsi aşağıdaki nesnede.
+   METİNLER TEK NESNEDE: hepsi aşağıdaki METIN nesnesinde toplu.
+   Codex'ten 19 Eylül 2026'da geçti.
    ========================================================================== */
 const METIN = {
   bolum: 'Adreslerim',
   bosAciklama:
-    'Yedek parça siparişlerinizin ve garanti işlerinde istediğiniz parçaların gönderileceği adresleri burada saklayın. Sipariş verirken tek dokunuşla seçersiniz.',
-  ipucu: 'Siparişte önce varsayılan adresiniz seçili gelir.',
-  firmaNotu: `Firma adresiniz ${MARKA} kaydınızdan geliyor ve buradan değiştirilemez. Taşındıysanız bizi arayın; o zamana kadar yeni adresinizi ekleyip varsayılan yapabilirsiniz.`,
+    'Sipariş ettiğiniz veya garanti işleri için istediğiniz parçaların gönderileceği adresleri ekleyin. Sonraki siparişlerde bu adreslerden birini seçebilirsiniz.',
+  ipucu: 'Sipariş verirken varsayılan adresiniz seçili gelir.',
+  firmaNotu: `Firma adresiniz ${MARKA} kaydınızdan gelir ve uygulamadan değiştirilemez. Taşındıysanız bizi arayın. Adresiniz güncellenene kadar yeni adresinizi ekleyip varsayılan yapabilirsiniz.`,
   duzenle: 'Düzenle',
   sil: 'Sil',
   varsayilanYap: 'Varsayılan Yap',
   silBaslik: 'Adres silinecek',
   silMetin: (ad) =>
-    `"${ad}" Adreslerim listenizden kaldırılacak. Bu adrese daha önce gönderilen siparişler etkilenmez.`,
+    `"${ad}" adlı adres listenizden silinecek. Bu adrese daha önce gönderilen siparişler etkilenmez.`,
   silYeniVarsayilan: (ad) => `Varsayılan adresiniz "${ad}" olacak.`,
   silKalem: 'Adres',
   silDugme: 'Adresi Sil',

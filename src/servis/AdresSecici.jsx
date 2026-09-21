@@ -53,48 +53,49 @@ import { IconPlus } from '../components/Icons'
    Adres düzenleme ve silme burada YOK: seçim ekranı tek iş yapıyor.
    Onlar Hesap → Adreslerim'de (bkz. ekranlar/Adreslerim.jsx).
 
-   METİNLER TASLAK: Codex sınırı dolu (bkz. CODEX-BEKLEYEN.md). Hepsi
-   aşağıdaki ADRES_METNI nesnesinde; Codex'e olduğu gibi verilir.
+   METİNLER TEK NESNEDE: hepsi aşağıdaki ADRES_METNI nesnesinde toplu.
+   Codex'ten 19 Eylül 2026'da geçti; yeni metin eklenirse o da buraya
+   yazılır, tek tek dağıtılmaz.
    ========================================================================== */
 export const ADRES_METNI = {
   // Alanlar
-  baslikAd: 'Adres Adı',
+  baslikAd: 'Adres adı',
   baslikIpucu: 'Listede bu adla görünür.',
   baslikOnerileri: ['İş Yeri', 'Depo', 'Ev'],
-  aliciAd: 'Teslim Alacak Kişi',
+  aliciAd: 'Teslim alacak kişi',
   telAd: 'Telefon',
-  telIpucu: 'Kargo görevlisi bu numarayı arar.',
+  telIpucu: 'Kargo görevlisi gerektiğinde bu numaradan ulaşır.',
   ilAd: 'İl',
   ilceAd: 'İlçe',
   secin: 'Seçin',
-  onceIl: 'Önce il',
-  acikAdresAd: 'Açık Adres',
+  onceIl: 'Önce il seçin',
+  acikAdresAd: 'Açık adres',
   acikAdresIpucu: 'Mahalle, sokak, bina ve kapı numarası',
 
   /* Eksik alan uyarıları — alanların sırasıyla. Uyarı servis kaydında
      sayfanın dibinde çıkıyor ve orada müşterinin telefonu da soruluyor;
      her cümle teslimat alanı olduğunu kendisi söylüyor. */
   eksik: {
-    adres: 'Parçanın gönderileceği adresi seçin.',
-    baslik: 'Adrese bir ad verin. Örnek: İş Yeri, Depo.',
+    adres: 'Teslimat adresini seçin.',
+    baslik: 'Teslimat adresine bir ad verin. Örnek: İş Yeri, Depo.',
     alici: 'Parçayı teslim alacak kişinin adını yazın.',
-    tel: 'Teslim alacak kişinin telefonunu eksiksiz yazın.',
+    tel: 'Parçayı teslim alacak kişinin telefon numarasını eksiksiz yazın.',
     il: 'Teslimat adresinin ilini seçin.',
     ilce: 'Teslimat adresinin ilçesini seçin.',
-    acikAdres: 'Teslimat adresini mahalle, sokak ve kapı numarasıyla yazın.',
+    acikAdres: 'Teslimat adresini mahalle, sokak, bina ve kapı numarasıyla yazın.',
   },
 
   // Seçici
   bosAciklama:
-    'Kaydettiğiniz adres bir sonraki siparişte hazır gelir. Elle girdiğiniz adres yalnız bu seferlik kullanılır.',
+    'Sonraki siparişlerde de kullanmak için adres ekleyin. Yalnız bu siparişte kullanacaksanız adresi elle girin.',
   adresEkle: 'Adres Ekle',
   elleGir: 'Elle Gir',
   varsayilan: 'Varsayılan',
   firmaRozet: `${MARKA} kaydınız`,
-  hesaptanDegistir: `Firma adresiniz ${MARKA} kaydınızdan geliyor; değişmesi gerekiyorsa bizi arayın. Kendi eklediğiniz adresleri Hesap ekranındaki Adreslerim bölümünden değiştirebilirsiniz.`,
+  hesaptanDegistir: `Firma adresiniz ${MARKA} kaydınızdan gelir ve uygulamadan değiştirilemez. Güncellemek için bizi arayın. Kendi eklediğiniz adresleri Hesap ekranındaki Adreslerim bölümünden düzenleyebilirsiniz.`,
   hesaptanDegistirKendi:
-    'Kayıtlı adreslerinizi Hesap ekranındaki Adreslerim bölümünden değiştirebilirsiniz.',
-  elleAciklama: 'Bu adres yalnız bu sefer kullanılır, Adreslerim’e kaydedilmez.',
+    'Kendi eklediğiniz adresleri Hesap ekranındaki Adreslerim bölümünden düzenleyebilirsiniz.',
+  elleAciklama: 'Bu adres yalnız bu siparişte kullanılır, adres listenize kaydedilmez.',
   secimeDon: 'Adres Seçimine Dön',
 
   // Form sayfası
@@ -102,7 +103,7 @@ export const ADRES_METNI = {
   formBaslikDuzenle: 'Adresi Düzenle',
   formAlt: 'Parçalarınızın gönderileceği adres',
   firmaOneriBaslik: 'İş Yeri',
-  firmaOneriNotu: `${MARKA} kaydınızdaki firma adresinizle dolduruldu. Değiştirebilirsiniz.`,
+  firmaOneriNotu: `Form, ${MARKA} kaydınızdaki firma adresiyle dolduruldu. Buradaki bilgileri değiştirip yeni bir adres olarak kaydedebilirsiniz. Firma adresiniz değişmez.`,
   kaydet: 'Adresi Kaydet',
 }
 

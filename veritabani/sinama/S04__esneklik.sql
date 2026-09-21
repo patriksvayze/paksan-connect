@@ -51,18 +51,18 @@ SET @Adim = N'ES-01';
 BEGIN TRANSACTION;
 INSERT katalog.Marka (Kod, Ad, SirketKodu, GarantiYil, SeriKuraliKodu, KaynakNotu,
                       ParaBirimiKodu, KdvOrani, Aktif)
-VALUES (N'globale', N'<Codex metni: Globale markası>', N'paksan', 3, N'onekYilSira',
-        N'<Codex metni: Globale marka kaynak notu>', N'TRY', 0.2000, 1);
+VALUES (N'globale', N'Globale', N'paksan', 3, N'onekYilSira',
+        N'Globale sınama markası', N'TRY', 0.2000, 1);
 
 INSERT katalog.Urun (MarkaKodu, Kod, Ad, KategoriKodu, SeriOneki, Aktif)
-VALUES (N'globale', N'globale-rulo', N'<Codex metni: Globale rulo balya makinesi>',
+VALUES (N'globale', N'globale-rulo', N'Globale Rulo Balya Makinesi',
         N'rulo-balya', N'GLBR', 1);
 
 INSERT katalog.ParcaGrubu (MarkaKodu, Kod, Ad, DestekAilesiKodu)
-VALUES (N'globale', N'globale-sarim', N'<Codex metni: Globale sarım grubu>', N'rulo');
+VALUES (N'globale', N'globale-sarim', N'Globale Sarım Grubu', N'rulo');
 
 INSERT katalog.Parca (MarkaKodu, Kod, Ad, GrupKodu, Aktif)
-VALUES (N'globale', N'GLB0000001', N'<Codex metni: Globale sarım çemberi>', N'globale-sarim', 1);
+VALUES (N'globale', N'GLB0000001', N'Globale Sarım Çemberi', N'globale-sarim', 1);
 
 INSERT katalog.FiyatListesi (MarkaKodu, Kod, KaynakDosyaAdi, KaynakOzeti, ListeKdvHaric,
                              ParaBirimiKodu, DurumKodu, YururlukBaslangicTarihi, OlusmaZamani)
@@ -90,24 +90,24 @@ BEGIN SET @Mesaj = CONCAT(@Adim, N': globale belirti listesi PAKSAN''ınkiyle ay
 SET @Adim = N'ES-04';
 BEGIN TRANSACTION;
 INSERT sirket.Sirket (Kod, Ad, KisaAd, Unvan, LogoFirmaNo)
-VALUES (N'gallignani', N'<Codex metni: Gallignani şirketi>', N'<Codex metni: Gallignani kısa adı>',
-        N'<Codex metni: Gallignani unvanı>', 2);
+VALUES (N'gallignani', N'Gallignani Makina', N'Gallignani',
+        N'Gallignani Makina Sanayi ve Ticaret A.Ş.', 2);
 INSERT sirket.BankaHesabi (SirketKodu, ParaBirimiKodu, BankaAdi, Iban, HesapUnvani, Aktif)
-VALUES (N'gallignani', N'TRY', N'<Codex metni: S04 banka adı>',
-        N'TR330006100519786457841326', N'<Codex metni: Gallignani unvanı>', 1);
+VALUES (N'gallignani', N'TRY', N'S04 Banka Adı',
+        N'TR330006100519786457841326', N'Gallignani Makina Sanayi ve Ticaret A.Ş.', 1);
 INSERT katalog.Marka (Kod, Ad, SirketKodu, GarantiYil, SeriKuraliKodu, KaynakNotu,
                       ParaBirimiKodu, Aktif)
-VALUES (N'gallignani', N'<Codex metni: Gallignani markası>', N'gallignani', 2, N'onekYilSira',
-        N'<Codex metni: Gallignani marka kaynak notu>', N'TRY', 1);
+VALUES (N'gallignani', N'Gallignani', N'gallignani', 2, N'onekYilSira',
+        N'Gallignani sınama markası', N'TRY', 1);
 INSERT katalog.Urun (MarkaKodu, Kod, Ad, KategoriKodu, SeriOneki, Aktif)
-VALUES (N'gallignani', N'gallignani-rulo', N'<Codex metni: Gallignani rulo balya makinesi>',
+VALUES (N'gallignani', N'gallignani-rulo', N'Gallignani Rulo Balya Makinesi',
         N'rulo-balya', N'GLGR', 1);
-INSERT katalog.ParcaGrubu (MarkaKodu, Kod, Ad) VALUES (N'gallignani', N'gallignani-sarim', N'<Codex metni: Gallignani sarım grubu>');
+INSERT katalog.ParcaGrubu (MarkaKodu, Kod, Ad) VALUES (N'gallignani', N'gallignani-sarim', N'Gallignani Sarım Grubu');
 INSERT katalog.Parca (MarkaKodu, Kod, Ad, GrupKodu, Aktif)
-VALUES (N'gallignani', N'GLG0000001', N'<Codex metni: Gallignani sarım çemberi>', N'gallignani-sarim', 1);
+VALUES (N'gallignani', N'GLG0000001', N'Gallignani Sarım Çemberi', N'gallignani-sarim', 1);
 /* Şirket ayarı: aynı anahtarın şirkete özel değeri. */
 INSERT sistem.Ayar (Anahtar, SirketKodu, DegerTuru, Deger, Aciklama)
-VALUES (N'KdvOrani', N'gallignani', N'ondalik', N'0.1', N'<Codex metni: Gallignani KDV oranı açıklaması>');
+VALUES (N'KdvOrani', N'gallignani', N'ondalik', N'0.1', N'Gallignani için KDV oranı');
 INSERT servis.MarkaYetkisi (ServisKimlik, MarkaKodu) VALUES (@Servis, N'gallignani');
 COMMIT TRANSACTION;
 
@@ -115,16 +115,16 @@ COMMIT TRANSACTION;
    Yeni dil: it. Kod çevirisi, ürün çevirisi ve KVKK metni. */
 SET @Adim = N'ES-07';
 BEGIN TRANSACTION;
-INSERT kod.Dil (Kod, Ad, Sira, Aktif) VALUES (N'it', N'<Codex metni: İtalyanca>', 3, 1);
+INSERT kod.Dil (Kod, Ad, Sira, Aktif) VALUES (N'it', N'İtalyanca', 3, 1);
 INSERT kod.Ceviri (ListeAdi, Kod, AlanAdi, DilKodu, Metin)
-VALUES (N'kod.TalepDurumu', N'yeni', N'Ad', N'it', N'<Codex metni: yeni durumun İtalyanca adı>');
+VALUES (N'kod.TalepDurumu', N'yeni', N'Ad', N'it', N'In attesa di ricambi');
 INSERT kod.Ceviri (ListeAdi, Kod, AlanAdi, DilKodu, Metin)
-VALUES (N'katalog.Kategori', N'rulo-balya', N'KisaAd', N'it', N'<Codex metni: rulo balya kategorisinin İtalyanca kısa adı>');
+VALUES (N'katalog.Kategori', N'rulo-balya', N'KisaAd', N'it', N'Rotopresse');
 INSERT katalog.UrunCevirisi (MarkaKodu, UrunKodu, DilKodu, Ad, Slogan, Aciklama)
-VALUES (N'globale', N'globale-rulo', N'it', N'<Codex metni: Globale rulo İtalyanca adı>',
-        N'<Codex metni: Globale rulo İtalyanca sloganı>', N'<Codex metni: Globale rulo İtalyanca açıklaması>');
+VALUES (N'globale', N'globale-rulo', N'it', N'Rotopressa Globale',
+        N'Balla dopo balla', N'Rotopressa a camera variabile');
 INSERT kvkk.MetinSurumu (MetinKodu, Surum, DilKodu, Baslik, IcerikJson, IcerikOzeti, AsilMetin, MetinTarihi)
-SELECT m.MetinKodu, m.Surum, N'it', N'<Codex metni: aydınlatma metninin İtalyanca başlığı>',
+SELECT m.MetinKodu, m.Surum, N'it', N'Informativa sulla privacy',
        m.IcerikJson, m.IcerikOzeti, 0, m.MetinTarihi
   FROM kvkk.MetinSurumu AS m WHERE m.MetinKodu = N'aydinlatma' AND m.Surum = N'1.0' AND m.DilKodu = N'tr';
 COMMIT TRANSACTION;
@@ -145,8 +145,8 @@ BEGIN SET @Mesaj = CONCAT(@Adim, N': kod.Ceviri satırlarında gerçek olmayan l
 SET @Adim = N'ES-08';
 BEGIN TRANSACTION;
 INSERT kod.TalepDurumu (Kod, Ad, Kapali, GecikmeSayilir, Sira, Aktif)
-VALUES (N'tekrarZiyaretBekliyor', N'<Codex metni: tekrar ziyaret bekliyor durumu>', 0, 1, 90, 1),
-       (N'odemeYapilmadi',        N'<Codex metni: ödeme yapılmadı durumu>',        1, 0, 91, 1);
+VALUES (N'tekrarZiyaretBekliyor', N'Tekrar ziyaret bekliyor', 0, 1, 90, 1),
+       (N'odemeYapilmadi',        N'Ödeme yapılmadı',        1, 0, 91, 1);
 INSERT kod.TalepTuruDurumu (TurKodu, DurumKodu, ElleSecilebilir)
 VALUES (N'servis', N'tekrarZiyaretBekliyor', 1),
        (N'parca',  N'odemeYapilmadi', 1);
@@ -156,12 +156,12 @@ COMMIT TRANSACTION;
    Yeni talep türü: kurulum. Tür, önek, numara kuralı, tür uydusu ve masa. */
 SET @Adim = N'ES-09';
 BEGIN TRANSACTION;
-INSERT kod.TalepTuru (Kod, Ad, Sira, Aktif) VALUES (N'kurulum', N'<Codex metni: kurulum talebi türü>', 4, 1);
-INSERT sistem.NumaraOneki (Onek, KayitTuruKodu, Aciklama, Aktif) VALUES (N'KUR', N'talep', N'<Codex metni: kurulum talebi öneki>', 1);
+INSERT kod.TalepTuru (Kod, Ad, Sira, Aktif) VALUES (N'kurulum', N'Kurulum', 4, 1);
+INSERT sistem.NumaraOneki (Onek, KayitTuruKodu, Aciklama, Aktif) VALUES (N'KUR', N'talep', N'Kurulum talebi numarası', 1);
 INSERT kod.TalepNumaraKurali (TurKodu, KaynakKodu, MarkaKodu, NumaraOneki)
 VALUES (N'kurulum', N'backoffice', NULL, N'KUR');
 INSERT kod.TalepTuruUydusu (TurKodu, UyduKodu) VALUES (N'kurulum', N'servisZiyareti');
-INSERT kod.Masa (Kod, Ad, TalepTuruKodu, Sira, Aktif) VALUES (N'kurulumMasasi', N'<Codex metni: kurulum masası>', N'kurulum', 3, 1);
+INSERT kod.Masa (Kod, Ad, TalepTuruKodu, Sira, Aktif) VALUES (N'kurulumMasasi', N'Kurulum', N'kurulum', 3, 1);
 INSERT kod.TalepTuruDurumu (TurKodu, DurumKodu, ElleSecilebilir)
 VALUES (N'kurulum', N'yeni', 1), (N'kurulum', N'planlandi', 1),
        (N'kurulum', N'onayBekliyor', 0), (N'kurulum', N'kapandi', 1), (N'kurulum', N'iptal', 1);
@@ -171,7 +171,7 @@ COMMIT TRANSACTION;
    Yeni hak ediş kalem türü: konaklama; sabit birimli tarife. */
 SET @Adim = N'ES-10';
 BEGIN TRANSACTION;
-INSERT kod.HakEdisKalemTuru (Kod, Ad, Sira, Aktif) VALUES (N'konaklama', N'<Codex metni: konaklama kalemi>', 4, 1);
+INSERT kod.HakEdisKalemTuru (Kod, Ad, Sira, Aktif) VALUES (N'konaklama', N'Konaklama', 4, 1);
 INSERT hakedis.Tarife (KalemTuruKodu, MarkaKodu, BirimKodu, BirimTutar, ParaBirimiKodu, GecerlilikBaslangicTarihi)
 VALUES (N'konaklama', NULL, N'sabit', 900.00, N'TRY', '2026-01-01');
 COMMIT TRANSACTION;
@@ -180,7 +180,7 @@ COMMIT TRANSACTION;
    Markaya özel numara öneki: globale servis talebi GLS alır. */
 SET @Adim = N'ES-11';
 BEGIN TRANSACTION;
-INSERT sistem.NumaraOneki (Onek, KayitTuruKodu, Aciklama, Aktif) VALUES (N'GLS', N'talep', N'<Codex metni: Globale servis talebi öneki>', 1);
+INSERT sistem.NumaraOneki (Onek, KayitTuruKodu, Aciklama, Aktif) VALUES (N'GLS', N'talep', N'Globale servis talebi numarası', 1);
 INSERT kod.TalepNumaraKurali (TurKodu, KaynakKodu, MarkaKodu, NumaraOneki)
 VALUES (N'servis', N'connect', N'globale', N'GLS');
 COMMIT TRANSACTION;
@@ -190,10 +190,10 @@ COMMIT TRANSACTION;
 SET @Adim = N'ES-12';
 DECLARE @BayiKul uniqueidentifier = '5A040001-0000-4000-8000-000000000001';
 BEGIN TRANSACTION;
-INSERT kod.AktorTuru (Kod, Ad, Sira, Aktif) VALUES (N'bayi', N'<Codex metni: bayi aktör türü>', 6, 1);
-INSERT kod.KaynakUygulama (Kod, Ad, Sira, Aktif) VALUES (N'bayiPaneli', N'<Codex metni: bayi paneli>', 8, 1);
-INSERT kod.AliciTuru (Kod, Ad, Sira, Aktif) VALUES (N'bayi', N'<Codex metni: bayi alıcı türü>', 4, 1);
-INSERT kod.KayitKaynagi (Kod, Ad, Sira, Aktif) VALUES (N'bayi', N'<Codex metni: bayi kayıt kaynağı>', 7, 1);
+INSERT kod.AktorTuru (Kod, Ad, Sira, Aktif) VALUES (N'bayi', N'Bayi', 6, 1);
+INSERT kod.KaynakUygulama (Kod, Ad, Sira, Aktif) VALUES (N'bayiPaneli', N'Bayi paneli', 8, 1);
+INSERT kod.AliciTuru (Kod, Ad, Sira, Aktif) VALUES (N'bayi', N'Bayi', 4, 1);
+INSERT kod.KayitKaynagi (Kod, Ad, Sira, Aktif) VALUES (N'bayi', N'Bayi paneli', 7, 1);
 INSERT erisim.Kullanici (Kimlik, GirisAdi, TurKodu) VALUES (@BayiKul, N's04.bayi', N'bayi');
 COMMIT TRANSACTION;
 
@@ -201,22 +201,22 @@ COMMIT TRANSACTION;
    Yeni dış sistem: efatura. */
 SET @Adim = N'ES-14';
 BEGIN TRANSACTION;
-INSERT kod.DisSistem (Kod, Ad, Sira, Aktif) VALUES (N'efatura', N'<Codex metni: e-fatura dış sistemi>', 4, 1);
+INSERT kod.DisSistem (Kod, Ad, Sira, Aktif) VALUES (N'efatura', N'e-Fatura', 4, 1);
 COMMIT TRANSACTION;
 
 /* ------------------------------------------------------------------ ES-15
    Yeni bildirim kanalı: whatsapp. */
 SET @Adim = N'ES-15';
 BEGIN TRANSACTION;
-INSERT kod.BildirimKanali (Kod, Ad, Sira, Aktif) VALUES (N'whatsapp', N'<Codex metni: WhatsApp kanalı>', 5, 1);
-INSERT kod.DisSistem (Kod, Ad, Sira, Aktif) VALUES (N'whatsappBulut', N'<Codex metni: WhatsApp bulut sağlayıcısı>', 5, 1);
+INSERT kod.BildirimKanali (Kod, Ad, Sira, Aktif) VALUES (N'whatsapp', N'WhatsApp', 5, 1);
+INSERT kod.DisSistem (Kod, Ad, Sira, Aktif) VALUES (N'whatsappBulut', N'WhatsApp Bulut', 5, 1);
 COMMIT TRANSACTION;
 
 /* ------------------------------------------------------------------ ES-16
    Yeni para birimi: EUR; EUR fiyat listesi. */
 SET @Adim = N'ES-16';
 BEGIN TRANSACTION;
-INSERT kod.ParaBirimi (Kod, Ad, Sira, Aktif) VALUES (N'EUR', N'<Codex metni: euro>', 2, 1);
+INSERT kod.ParaBirimi (Kod, Ad, Sira, Aktif) VALUES (N'EUR', N'Euro', 2, 1);
 /* EUR listesi gallignani markasına yazılır: UX_katalog_FiyatListesi_Yururlukte
    marka başına tek yürürlükteki liste bırakır, globale'nin TRY listesi
    ES-01'de açıldı. */
@@ -233,19 +233,19 @@ COMMIT TRANSACTION;
    Yeni kişi rolü: muhasebeci. */
 SET @Adim = N'ES-17';
 BEGIN TRANSACTION;
-INSERT kod.KisiRolu (Kod, Ad, Sira, Aktif) VALUES (N'muhasebeci', N'<Codex metni: muhasebeci kişi rolü>', 3, 1);
+INSERT kod.KisiRolu (Kod, Ad, Sira, Aktif) VALUES (N'muhasebeci', N'Muhasebeci', 3, 1);
 COMMIT TRANSACTION;
 
 /* ------------------------------------------------------------------ ES-18
    Öteki kod listelerine yeni satırlar ve markaya özel ayar. */
 SET @Adim = N'ES-18';
 BEGIN TRANSACTION;
-INSERT kod.IceAktarimTuru (Kod, Ad, Sira, Aktif) VALUES (N'bayiStokListesi', N'<Codex metni: bayi stok listesi içe aktarımı>', 9, 1);
-INSERT kod.BelgeTuru (Kod, Ad, Sira, Aktif) VALUES (N'masrafFisi', N'<Codex metni: masraf fişi>', 10, 1);
-INSERT kod.IptalNedeni (Kod, Ad, AciklamaZorunlu, Sira, Aktif) VALUES (N'stokYok', N'<Codex metni: stok yok iptal nedeni>', 0, 9, 1);
-INSERT kod.Birim (Kod, Ad, Sira, Aktif) VALUES (N'metre', N'<Codex metni: metre birimi>', 5, 1);
+INSERT kod.IceAktarimTuru (Kod, Ad, Sira, Aktif) VALUES (N'bayiStokListesi', N'Bayi stok listesi', 9, 1);
+INSERT kod.BelgeTuru (Kod, Ad, Sira, Aktif) VALUES (N'masrafFisi', N'Masraf fişi', 10, 1);
+INSERT kod.IptalNedeni (Kod, Ad, AciklamaZorunlu, Sira, Aktif) VALUES (N'stokYok', N'Parça stokta yok', 0, 9, 1);
+INSERT kod.Birim (Kod, Ad, Sira, Aktif) VALUES (N'metre', N'Metre', 5, 1);
 INSERT sistem.Ayar (Anahtar, MarkaKodu, DegerTuru, Deger, Aciklama)
-VALUES (N'TalepGecikmeSaati', N'globale', N'tamsayi', N'96', N'<Codex metni: Globale gecikme saati açıklaması>');
+VALUES (N'TalepGecikmeSaati', N'globale', N'tamsayi', N'96', N'Globale için talep gecikme eşiği');
 COMMIT TRANSACTION;
 
 /* ES-06 için: markanın şirketi sonradan değişirse eski satırlar donmalı.
@@ -435,7 +435,7 @@ INSERT talep.ServisZiyareti (Kimlik, ZiyaretNo, TalepKimlik, TurKodu, UyduKodu, 
 VALUES (@ZiyaretG, 1, @TalepG, N'servis', N'servisZiyareti', N'globale',
         @Servis, N'bitti', N'garanti', N'ayar',
         20, 80, N'EUR', SYSUTCDATETIME(),
-        N'servis', @ServisKul, N'<Codex metni: S04 servis teknisyeni>', N'servisim');
+        N'servis', @ServisKul, N'S04 Servis Teknisyeni', N'servisim');
 INSERT hakedis.HakEdis (Kimlik, ZiyaretKimlik, TalepKimlik, ServisKimlik, MarkaKodu, SirketKodu,
                         KapiKodu, AsamaKodu, ParaBirimiKodu, DurumKodu, NetTutar)
 VALUES (@HakEdisG, @ZiyaretG, @TalepG, @Servis, N'globale', N'paksan',
@@ -501,7 +501,7 @@ INSERT talep.ServisZiyareti (Kimlik, ZiyaretNo, TalepKimlik, TurKodu, UyduKodu, 
 VALUES (@ZiyaretL, 1, @TalepL, N'servis', N'servisZiyareti', N'gallignani',
         @Servis, N'bitti', N'garanti', N'bakim',
         10, 500, N'TRY', SYSUTCDATETIME(),
-        N'servis', @ServisKul, N'<Codex metni: S04 servis teknisyeni>', N'servisim');
+        N'servis', @ServisKul, N'S04 Servis Teknisyeni', N'servisim');
 INSERT hakedis.HakEdis (Kimlik, ZiyaretKimlik, TalepKimlik, ServisKimlik, MarkaKodu, SirketKodu,
                         KapiKodu, AsamaKodu, ParaBirimiKodu, DurumKodu, NetTutar)
 SELECT @HakEdisL, @ZiyaretL, @TalepL, @Servis, N'gallignani', m.SirketKodu,
@@ -600,7 +600,7 @@ INSERT talep.ServisZiyareti (Kimlik, ZiyaretNo, TalepKimlik, TurKodu, UyduKodu, 
 VALUES (@ZiyaretK, 1, @TalepK, N'kurulum', N'servisZiyareti', N'globale',
         @Servis, N'bitti', N'garanti', N'ilkKurulum',
         5, 250, N'TRY', SYSUTCDATETIME(),
-        N'servis', @ServisKul, N'<Codex metni: S04 servis teknisyeni>', N'servisim');
+        N'servis', @ServisKul, N'S04 Servis Teknisyeni', N'servisim');
 INSERT hakedis.HakEdis (Kimlik, ZiyaretKimlik, TalepKimlik, ServisKimlik, MarkaKodu, SirketKodu,
                         KapiKodu, AsamaKodu, ParaBirimiKodu, DurumKodu, NetTutar)
 VALUES (@HakEdisK, @ZiyaretK, @TalepK, @Servis, N'globale', N'paksan',
@@ -635,7 +635,7 @@ COMMIT TRANSACTION;
 /* Rolü kurulum olan personel talebi görür (Bölüm 1.15.6: rol.TalepTuruKodu). */
 BEGIN TRANSACTION;
 INSERT erisim.Rol (Ad, Kod, TalepTuruKodu, Aktif)
-VALUES (N'<Codex metni: kurulum rolü>', N'kurulum', N'kurulum', 1);
+VALUES (N'Kurulum sorumlusu', N'kurulum', N'kurulum', 1);
 COMMIT TRANSACTION;
 SELECT @Sayi = COUNT(*) FROM talep.Talep AS t
   JOIN erisim.Rol AS r ON r.TalepTuruKodu = t.TurKodu
@@ -683,7 +683,7 @@ BEGIN TRY
                                 YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
     VALUES (@MakineG, N'bayiCiftciye', @Bayi, @Hesap,
             N'bayi', N'bekliyor',
-            N'bayi', @BayiKul, N'<Codex metni: S04 bayi kullanıcısı>', N'bayiPaneli');
+            N'bayi', @BayiKul, N'S04 Bayi Kullanıcısı', N'bayiPaneli');
     COMMIT TRANSACTION;
 END TRY
 BEGIN CATCH
@@ -717,7 +717,7 @@ BEGIN TRY
     INSERT makine.MakineServisAtamasi (MakineKimlik, MarkaKodu, ServisKimlik, KaynakKodu,
                                        YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
     VALUES (@MakineG, N'globale', @Servis, N'bayi',
-            N'bayi', @BayiKul, N'<Codex metni: S04 bayi kullanıcısı>', N'bayiPaneli');
+            N'bayi', @BayiKul, N'S04 Bayi Kullanıcısı', N'bayiPaneli');
     ROLLBACK TRANSACTION;
 END TRY
 BEGIN CATCH
@@ -806,7 +806,7 @@ DECLARE @Giden uniqueidentifier = '5A040001-0000-4000-8000-0000000000F1';
 BEGIN TRY
     BEGIN TRANSACTION;
     INSERT sistem.Giden (Kimlik, SablonKodu, KanalKodu, DilKodu, DurumKodu, AliciHesapKimlik, Govde)
-    VALUES (@Giden, N'S04Whatsapp', N'whatsapp', N'tr', N'bekliyor', @Hesap, N'<Codex metni: S04 whatsapp gövdesi>');
+    VALUES (@Giden, N'S04Whatsapp', N'whatsapp', N'tr', N'bekliyor', @Hesap, N'S04 whatsapp gövdesi');
     COMMIT TRANSACTION;
 END TRY
 BEGIN CATCH
@@ -836,7 +836,7 @@ SET @Adim = N'ES-17'; SET @Gelen = 0;
 BEGIN TRY
     BEGIN TRANSACTION;
     INSERT musteri.HesapKisisi (HesapKimlik, RolKodu, Adi, Soyadi)
-    VALUES (@Hesap, N'muhasebeci', N'<Codex metni: S04 muhasebeci adı>', N'<Codex metni: S04 muhasebeci soyadı>');
+    VALUES (@Hesap, N'muhasebeci', N'S04 Muhasebeci Adı', N'S04 Muhasebeci Soyadı');
     COMMIT TRANSACTION;
 END TRY
 BEGIN CATCH

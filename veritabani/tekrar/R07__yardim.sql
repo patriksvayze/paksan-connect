@@ -74,20 +74,20 @@ BEGIN
     WHERE s.Oncelik = s.EnIyi;
 
     IF @TalepKimlik IS NULL
-        THROW 51102, N'<Codex metni: bu numarayla talep bulunamadı; EXEC yardim.Ara ile arayın>', 1;
+        THROW 51102, N'bu numarayla talep bulunamadı; EXEC yardim.Ara ile arayın', 1;
     IF @Adet > 1
-        THROW 51103, N'<Codex metni: bu numara birden çok talebe uyuyor; EXEC yardim.Ara ile arayıp tam numarayı verin>', 1;
+        THROW 51103, N'bu numara birden çok talebe uyuyor; EXEC yardim.Ara ile arayıp tam numarayı verin', 1;
 
     SELECT @TalepNo = t.Numara FROM talep.Talep AS t WHERE t.Kimlik = @TalepKimlik;
 
     /* 1 · Özet */
-    SELECT N'<Codex metni: 1 · Özet>' AS Bolum, v.*
+    SELECT N'1 · Özet' AS Bolum, v.*
     FROM gorunum.TalepListesi AS v
     JOIN talep.Talep AS t ON t.KayitNo = v.KayitNo
     WHERE t.Kimlik = @TalepKimlik;
 
     /* 2 · Durum geçmişi */
-    SELECT TOP (200) N'<Codex metni: 2 · Durum geçmişi>' AS Bolum, v.*,
+    SELECT TOP (200) N'2 · Durum geçmişi' AS Bolum, v.*,
            CAST(CASE WHEN COUNT(*) OVER () > 200 THEN 1 ELSE 0 END AS bit) AS DahaFazlaVar
     FROM gorunum.TalepDurumGecmisi AS v
     JOIN talep.DurumGecmisi AS d ON d.KayitNo = v.KayitNo
@@ -95,7 +95,7 @@ BEGIN
     ORDER BY d.OlusmaZamani DESC, d.KayitNo DESC;
 
     /* 3 · Ayrıntı ve belirtiler (türe göre dolu olan kolonlar) */
-    SELECT N'<Codex metni: 3 · Ayrıntı ve belirtiler>' AS Bolum,
+    SELECT N'3 · Ayrıntı ve belirtiler' AS Bolum,
            t.Aciklama AS TalepAciklamasi,
            t.IletisimAdi,
            t.IletisimTelefonE164 AS IletisimTelefonu,
@@ -147,7 +147,7 @@ BEGIN
     WHERE t.Kimlik = @TalepKimlik;
 
     /* 4 · Parça satırları (müşterinin gördüğü fiyat görüntüsü) */
-    SELECT TOP (200) N'<Codex metni: 4 · Parça satırları>' AS Bolum,
+    SELECT TOP (200) N'4 · Parça satırları' AS Bolum,
            ps.SiraNo, ps.MarkaKodu, ps.ParcaKodu, ps.ParcaAdi, ps.KatalogDisi, ps.Aciklama,
            ps.Adet, ps.BirimFiyat, ps.Tutar, ps.KayitNo,
            CAST(CASE WHEN COUNT(*) OVER () > 200 THEN 1 ELSE 0 END AS bit) AS DahaFazlaVar
@@ -156,7 +156,7 @@ BEGIN
     ORDER BY ps.SiraNo;
 
     /* 5 · Fatura bilgisi (şifreli ve özet kolon yok) */
-    SELECT N'<Codex metni: 5 · Fatura bilgisi>' AS Bolum,
+    SELECT N'5 · Fatura bilgisi' AS Bolum,
            ft.Ad AS FaturaTuruAdi,
            f.AdSoyad, f.Unvan, f.TcNoMaskeli, f.VergiNoMaskeli, f.VergiDairesi, f.Eposta,
            f.TelefonE164 AS Telefon,
@@ -170,7 +170,7 @@ BEGIN
     WHERE f.TalepKimlik = @TalepKimlik;
 
     /* 6 · Notlar */
-    SELECT TOP (200) N'<Codex metni: 6 · Notlar>' AS Bolum,
+    SELECT TOP (200) N'6 · Notlar' AS Bolum,
            CONVERT(datetime2(0), n.OlusmaZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS ZamanTurkiye,
            n.Metin, n.MusteriGorur, n.ServisGorur, n.ServistenGeldi,
            ya.Ad AS YapanTuruAdi, n.YapanAdi, ku.Ad AS KaynakUygulamaAdi, n.KayitNo,
@@ -182,7 +182,7 @@ BEGIN
     ORDER BY n.OlusmaZamani DESC, n.KayitNo DESC;
 
     /* 7 · Randevular */
-    SELECT TOP (200) N'<Codex metni: 7 · Randevular>' AS Bolum,
+    SELECT TOP (200) N'7 · Randevular' AS Bolum,
            CONVERT(datetime2(0), r.PlanlananZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS PlanlananZamanTurkiye,
            r.SaatBelirtildi, r.IsTanimi, r.MusteriyleGorusuldu,
            CONVERT(datetime2(0), r.IptalZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS IptalZamaniTurkiye,
@@ -195,7 +195,7 @@ BEGIN
     ORDER BY r.OlusmaZamani DESC, r.KayitNo DESC;
 
     /* 8 · Teklifler */
-    SELECT TOP (200) N'<Codex metni: 8 · Teklifler>' AS Bolum,
+    SELECT TOP (200) N'8 · Teklifler' AS Bolum,
            tk.SiraNo, tk.Tutar, tk.ParaBirimiKodu, tk.KdvDahil, tk.GecerlilikBitisTarihi, tk.GecerlilikMetni,
            tk.TeklifNotu, tk.YapanAdi,
            CONVERT(datetime2(0), tk.OlusmaZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS ZamanTurkiye,
@@ -206,7 +206,7 @@ BEGIN
     ORDER BY tk.OlusmaZamani DESC, tk.SiraNo DESC;
 
     /* 9 · Servis ziyaretleri */
-    SELECT TOP (200) N'<Codex metni: 9 · Servis ziyaretleri>' AS Bolum,
+    SELECT TOP (200) N'9 · Servis ziyaretleri' AS Bolum,
            z.ZiyaretNo, s.Ad AS ServisAdi, s.KayitNo AS ServisKayitNo,
            kp.Ad AS KapiAdi, ase.Ad AS AsamaAdi, yi.Ad AS YapilanIsAdi, gd.Ad AS GarantiDayanagiAdi,
            z.ArizaMetni, z.SonucMetni, z.Km, z.IscilikTutari, z.ParaBirimiKodu, z.TeknisyenAdi,
@@ -264,7 +264,7 @@ BEGIN
         JOIN talep.ZiyaretDuzeltmesiParcasi AS dp ON dp.DuzeltmeKimlik = zd.Kimlik
         WHERE z.TalepKimlik = @TalepKimlik
     )
-    SELECT TOP (200) N'<Codex metni: 10 · Ziyaret parçaları ve düzeltmeler>' AS Bolum,
+    SELECT TOP (200) N'10 · Ziyaret parçaları ve düzeltmeler' AS Bolum,
            s.ZiyaretNo, s.Liste, s.DuzeltmeKayitNo, s.DuzeltmeNedeni,
            s.SiraNo, s.ParcaKodu, s.ParcaAdi, s.Adet, s.BirimFiyat,
            s.OncekiKm, s.YeniKm, s.OncekiIscilikTutari, s.YeniIscilikTutari,
@@ -275,7 +275,7 @@ BEGIN
     ORDER BY s.ZiyaretNo DESC, s.ListeSira, s.DuzeltmeKayitNo DESC, s.SiraNo;
 
     /* 11 · Hak edişler ve kalemler (kalem başına bir satır; kalemsiz hak ediş bir satır) */
-    SELECT TOP (200) N'<Codex metni: 11 · Hak edişler ve kalemler>' AS Bolum,
+    SELECT TOP (200) N'11 · Hak edişler ve kalemler' AS Bolum,
            v.*, h.RedNedeni,
            kt.Ad AS KalemTuruAdi, k.Miktar, bi.Ad AS BirimAdi, k.BirimTutar, k.Tutar,
            CAST(CASE WHEN COUNT(*) OVER () > 200 THEN 1 ELSE 0 END AS bit) AS DahaFazlaVar
@@ -306,7 +306,7 @@ BEGIN
         FROM talep.OdemeOnayi AS o
         WHERE o.TalepKimlik = @TalepKimlik
     )
-    SELECT TOP (200) N'<Codex metni: 12 · Dekontlar ve ödeme onayları>' AS Bolum,
+    SELECT TOP (200) N'12 · Dekontlar ve ödeme onayları' AS Bolum,
            x.DekontKayitNo,
            CONVERT(datetime2(0), x.YuklemeZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS YuklemeZamaniTurkiye,
            x.DosyaKayitNo,
@@ -321,7 +321,7 @@ BEGIN
     ORDER BY x.Zaman DESC;
 
     /* 13 · Sevkler (Guncel = 1: talebin son ziyaretinin, parça talebinde son sevk) */
-    SELECT TOP (200) N'<Codex metni: 13 · Sevkler>' AS Bolum,
+    SELECT TOP (200) N'13 · Sevkler' AS Bolum,
            z.ZiyaretNo, kf.Ad AS KargoFirmasiAdi, sv.KargoFirmasiMetni, sv.TakipNo,
            CONVERT(datetime2(0), sv.SevkZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS SevkZamaniTurkiye,
            CONVERT(datetime2(0), sv.SonGuncellemeZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS SonGuncellemeZamaniTurkiye,
@@ -337,7 +337,7 @@ BEGIN
     ORDER BY sv.SevkZamani DESC, sv.KayitNo DESC;
 
     /* 14 · Kapanışlar */
-    SELECT TOP (200) N'<Codex metni: 14 · Kapanışlar>' AS Bolum,
+    SELECT TOP (200) N'14 · Kapanışlar' AS Bolum,
            kt.Ad AS KapanisTuruAdi, z.ZiyaretNo, yi.Ad AS YapilanIsAdi, k.YapilanIsMetni, k.DegisenParcalarMetni,
            ud.Ad AS UcretDurumuAdi, k.UcretTutari, ts.Ad AS TeklifSonucuAdi, k.SatisFiyati, k.ParaBirimiKodu,
            k.KapanisNotu, ya.Ad AS YapanTuruAdi, k.YapanAdi, ku.Ad AS KaynakUygulamaAdi,
@@ -356,7 +356,7 @@ BEGIN
     ORDER BY k.OlusmaZamani DESC, k.KayitNo DESC;
 
     /* 15 · İptaller */
-    SELECT TOP (200) N'<Codex metni: 15 · İptaller>' AS Bolum,
+    SELECT TOP (200) N'15 · İptaller' AS Bolum,
            ine.Ad AS IptalNedeniAdi, i.Aciklama, ya.Ad AS YapanTuruAdi, i.YapanAdi, ku.Ad AS KaynakUygulamaAdi,
            CONVERT(datetime2(0), i.OlusmaZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS ZamanTurkiye,
            i.KayitNo,
@@ -369,7 +369,7 @@ BEGIN
     ORDER BY i.OlusmaZamani DESC, i.KayitNo DESC;
 
     /* 16 · Yeniden açmalar */
-    SELECT TOP (200) N'<Codex metni: 16 · Yeniden açmalar>' AS Bolum,
+    SELECT TOP (200) N'16 · Yeniden açmalar' AS Bolum,
            od.Ad AS OncekiDurumAdi, y.Aciklama, y.MusteriyeBildirilmedi,
            ya.Ad AS YapanTuruAdi, y.YapanAdi, ku.Ad AS KaynakUygulamaAdi,
            CONVERT(datetime2(0), y.OlusmaZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS ZamanTurkiye,
@@ -383,7 +383,7 @@ BEGIN
     ORDER BY y.OlusmaZamani DESC, y.KayitNo DESC;
 
     /* 17 · Sonradan eklemeler */
-    SELECT TOP (200) N'<Codex metni: 17 · Sonradan eklemeler>' AS Bolum,
+    SELECT TOP (200) N'17 · Sonradan eklemeler' AS Bolum,
            e.EklemeNotu,
            CAST(CASE WHEN e.SesDosyaKimlik IS NULL THEN 0 ELSE 1 END AS bit) AS SesVar,
            (SELECT COUNT(*) FROM talep.EklemeEki AS ee WHERE ee.EklemeKimlik = e.Kimlik) AS EkSayisi,
@@ -430,7 +430,7 @@ BEGIN
         FROM talep.Dekont AS d
         WHERE d.TalepKimlik = @TalepKimlik
     )
-    SELECT TOP (200) N'<Codex metni: 18 · Dosyalar>' AS Bolum,
+    SELECT TOP (200) N'18 · Dosyalar' AS Bolum,
            b.Nereden, b.ZiyaretNo, dt.Ad AS DosyaTuruAdi, ds.MimeTuru, ds.BoyutBayt,
            ds.DepolamaSaglayiciKodu, ds.DepolamaYolu, ds.OrijinalAd, ds.DurumKodu, ds.SaklamaSinifiKodu,
            CONVERT(datetime2(0), ds.GecersizZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS GecersizZamaniTurkiye,
@@ -466,7 +466,7 @@ BEGIN
         JOIN musteri.Hesap AS h ON h.Kimlik = g.HesapKimlik
         WHERE g.TalepKimlik = @TalepKimlik
     )
-    SELECT TOP (200) N'<Codex metni: 19 · Bayi atamaları, devirler, gizleme>' AS Bolum,
+    SELECT TOP (200) N'19 · Bayi atamaları, devirler ve gizleme' AS Bolum,
            o.Tur, o.BayiAdi, o.BayiKayitNo, o.ServisAdi, o.Neden, o.HesapKayitNo,
            CONVERT(datetime2(0), o.Zaman AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS ZamanTurkiye,
            CASE WHEN o.Tur = N'gizleme'
@@ -478,7 +478,7 @@ BEGIN
     ORDER BY o.Zaman DESC;
 
     /* 20 · Bildirimler ve teslimat */
-    SELECT TOP (200) N'<Codex metni: 20 · Bildirimler ve teslimat>' AS Bolum,
+    SELECT TOP (200) N'20 · Bildirimler ve teslimat' AS Bolum,
            atr.Ad AS AliciTuruAdi, bt.Ad AS BildirimTuruAdi, b.BaslikAnahtari, b.MetinAnahtari, b.SerbestMetin,
            CONVERT(datetime2(0), b.OlusmaZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS ZamanTurkiye,
            CONVERT(datetime2(0), tl.GonderilmeZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS GonderilmeZamaniTurkiye,
@@ -495,7 +495,7 @@ BEGIN
     ORDER BY b.OlusmaZamani DESC, b.KayitNo DESC;
 
     /* 21 · Belge bağları */
-    SELECT TOP (200) N'<Codex metni: 21 · Belge bağları>' AS Bolum,
+    SELECT TOP (200) N'21 · Belge bağları' AS Bolum,
            dsi.Ad AS DisSistemAdi, bb.FirmaNo, bb.DonemNo, btu.Ad AS BelgeTuruAdi, bb.BelgeNo, bb.BelgeTarihi,
            CONVERT(nvarchar(36), bb.Ettn) AS Ettn, bb.Tutar, bb.KdvHaricTutar, bb.ParaBirimiKodu,
            CONVERT(datetime2(0), bb.IptalZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS IptalZamaniTurkiye,
@@ -510,7 +510,7 @@ BEGIN
     ORDER BY tb.OlusmaZamani DESC;
 
     /* 22 · İşlem kaydı (talep ve alt kayıtları) */
-    SELECT TOP (200) N'<Codex metni: 22 · İşlem kaydı>' AS Bolum, v.*,
+    SELECT TOP (200) N'22 · İşlem kaydı' AS Bolum, v.*,
            CAST(CASE WHEN COUNT(*) OVER () > 200 THEN 1 ELSE 0 END AS bit) AS DahaFazlaVar
     FROM gorunum.IslemGecmisi AS v
     JOIN denetim.IslemKaydi AS i ON i.KayitNo = v.KayitNo
@@ -565,7 +565,7 @@ BEGIN
     IF @DokumKimlik IS NOT NULL
     BEGIN
         /* 1 · Döküm özeti */
-        SELECT N'<Codex metni: 1 · Döküm özeti>' AS Bolum,
+        SELECT N'1 · Döküm özeti' AS Bolum,
                LEFT(d.Numara, 3) + N'-' + SUBSTRING(d.Numara, 4, 2) + N'-' + RIGHT(d.Numara, 5) AS DokumNumarasi,
                s.Ad AS ServisAdi, s.KayitNo AS ServisKayitNo, sr.Ad AS SirketAdi, d.ParaBirimiKodu,
                d.DonemYili, d.DonemAyi, d.DurumKodu, dd.Ad AS DurumAdi,
@@ -582,7 +582,7 @@ BEGIN
         WHERE d.Kimlik = @DokumKimlik;
 
         /* 2 · Bağlı hak edişler */
-        SELECT TOP (200) N'<Codex metni: 2 · Bağlı hak edişler>' AS Bolum, v.*, h.RedNedeni,
+        SELECT TOP (200) N'2 · Bağlı hak edişler' AS Bolum, v.*, h.RedNedeni,
                CAST(CASE WHEN COUNT(*) OVER () > 200 THEN 1 ELSE 0 END AS bit) AS DahaFazlaVar
         FROM hakedis.HakEdis AS h
         JOIN gorunum.HakEdisListesi AS v ON v.KayitNo = h.KayitNo
@@ -590,7 +590,7 @@ BEGIN
         ORDER BY h.OlusmaZamani DESC, h.KayitNo DESC;
 
         /* 3 · Belgeler */
-        SELECT TOP (200) N'<Codex metni: 3 · Belgeler>' AS Bolum,
+        SELECT TOP (200) N'3 · Belgeler' AS Bolum,
                dsi.Ad AS DisSistemAdi, bb.FirmaNo, bb.DonemNo, btu.Ad AS BelgeTuruAdi, bb.BelgeNo, bb.BelgeTarihi,
                CONVERT(nvarchar(36), bb.Ettn) AS Ettn, bb.Tutar, bb.KdvHaricTutar, bb.ParaBirimiKodu,
                CONVERT(datetime2(0), bb.IptalZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS IptalZamaniTurkiye,
@@ -606,7 +606,7 @@ BEGIN
         ORDER BY db.OlusmaZamani DESC;
 
         /* 4 · Döküme bağlı hareketler */
-        SELECT TOP (200) N'<Codex metni: 4 · Döküme bağlı hareketler>' AS Bolum, v.*, x.Aciklama,
+        SELECT TOP (200) N'4 · Döküme bağlı hareketler' AS Bolum, v.*, x.Aciklama,
                CAST(CASE WHEN COUNT(*) OVER () > 200 THEN 1 ELSE 0 END AS bit) AS DahaFazlaVar
         FROM hakedis.ServisHesapHareketi AS x
         JOIN gorunum.ServisHesapHareketleri AS v ON v.KayitNo = x.KayitNo
@@ -643,12 +643,12 @@ BEGIN
     WHERE s.Oncelik = s.EnIyi;
 
     IF @TalepKimlik IS NULL
-        THROW 51102, N'<Codex metni: bu numarayla dönem dökümü ya da talep bulunamadı; EXEC yardim.Ara ile arayın>', 1;
+        THROW 51102, N'bu numarayla dönem dökümü ya da talep bulunamadı; EXEC yardim.Ara ile arayın', 1;
     IF @Adet > 1
-        THROW 51103, N'<Codex metni: bu numara birden çok talebe uyuyor; EXEC yardim.Ara ile arayıp tam numarayı verin>', 1;
+        THROW 51103, N'bu numara birden çok talebe uyuyor; EXEC yardim.Ara ile arayıp tam numarayı verin', 1;
 
     /* 1 · Talebin hak edişleri (RedNedeni dahil) */
-    SELECT TOP (200) N'<Codex metni: 1 · Talebin hak edişleri>' AS Bolum, v.*, h.RedNedeni,
+    SELECT TOP (200) N'1 · Talebin hak edişleri' AS Bolum, v.*, h.RedNedeni,
            CAST(CASE WHEN COUNT(*) OVER () > 200 THEN 1 ELSE 0 END AS bit) AS DahaFazlaVar
     FROM hakedis.HakEdis AS h
     JOIN talep.ServisZiyareti AS z ON z.Kimlik = h.ZiyaretKimlik
@@ -658,7 +658,7 @@ BEGIN
     ORDER BY z.ZiyaretNo DESC;
 
     /* 2 · Kalemler */
-    SELECT TOP (200) N'<Codex metni: 2 · Kalemler>' AS Bolum,
+    SELECT TOP (200) N'2 · Kalemler' AS Bolum,
            z.ZiyaretNo, kt.Ad AS KalemTuruAdi, k.Miktar, bi.Ad AS BirimAdi, k.BirimTutar, k.Tutar,
            tr.BirimTutar AS TarifeBirimTutari, tr.GecerlilikBaslangicTarihi AS TarifeBaslangicTarihi,
            h.ParaBirimiKodu, h.KayitNo AS HakEdisKayitNo, k.KayitNo,
@@ -709,7 +709,7 @@ BEGIN
         JOIN talep.ZiyaretDuzeltmesiParcasi AS dp ON dp.DuzeltmeKimlik = zd.Kimlik
         WHERE z.TalepKimlik = @TalepKimlik AND (@ZiyaretNo IS NULL OR z.ZiyaretNo = @ZiyaretNo)
     )
-    SELECT TOP (200) N'<Codex metni: 3 · Ziyaret düzeltmeleri ve güncel parça listesi>' AS Bolum,
+    SELECT TOP (200) N'3 · Ziyaret düzeltmeleri ve güncel parça listesi' AS Bolum,
            s.ZiyaretNo, s.Liste, s.DuzeltmeKayitNo, s.DuzeltmeNedeni,
            s.SiraNo, s.ParcaKodu, s.ParcaAdi, s.Adet, s.BirimFiyat,
            s.OncekiKm, s.YeniKm, s.OncekiIscilikTutari, s.YeniIscilikTutari,
@@ -727,7 +727,7 @@ BEGIN
         WHERE h.TalepKimlik = @TalepKimlik
           AND (@ZiyaretNo IS NULL OR z.ZiyaretNo = @ZiyaretNo)
     )
-    SELECT TOP (200) N'<Codex metni: 4 · İlgili hesap hareketleri>' AS Bolum, v.*, x.Aciklama,
+    SELECT TOP (200) N'4 · İlgili hesap hareketleri' AS Bolum, v.*, x.Aciklama,
            CAST(CASE WHEN COUNT(*) OVER () > 200 THEN 1 ELSE 0 END AS bit) AS DahaFazlaVar
     FROM hakedis.ServisHesapHareketi AS x
     JOIN gorunum.ServisHesapHareketleri AS v ON v.KayitNo = x.KayitNo
@@ -770,10 +770,10 @@ BEGIN
                       FOR JSON PATH);
 
     IF @Makineler IS NULL
-        THROW 51102, N'<Codex metni: bu seri numarasıyla makine bulunamadı; EXEC yardim.Ara ile seri numarasının başıyla arayın>', 1;
+        THROW 51102, N'bu seri numarasıyla makine bulunamadı; seri numarasının ilk karakterlerini kullanarak EXEC yardim.Ara ile arayın', 1;
 
     /* 1 · Makine kartı */
-    SELECT TOP (200) N'<Codex metni: 1 · Makine kartı>' AS Bolum, v.*,
+    SELECT TOP (200) N'1 · Makine kartı' AS Bolum, v.*,
            CAST(CASE WHEN COUNT(*) OVER () > 200 THEN 1 ELSE 0 END AS bit) AS DahaFazlaVar
     FROM gorunum.MakineKarti AS v
     JOIN makine.Makine AS m ON m.KayitNo = v.MakineKayitNo
@@ -781,7 +781,7 @@ BEGIN
     ORDER BY m.OlusmaZamani DESC;
 
     /* 2 · Sahiplik geçmişi */
-    SELECT TOP (200) N'<Codex metni: 2 · Sahiplik geçmişi>' AS Bolum,
+    SELECT TOP (200) N'2 · Sahiplik geçmişi' AS Bolum,
            m.MarkaKodu, m.SeriNo, hs.AdSoyad AS SahibiAdi, h.TelefonE164 AS SahibiTelefonu, h.KayitNo AS SahibiHesapKayitNo,
            s.TakmaAd,
            CONVERT(datetime2(0), s.BaslangicZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS BaslangicZamaniTurkiye,
@@ -801,7 +801,7 @@ BEGIN
     ORDER BY s.BaslangicZamani DESC, s.KayitNo DESC;
 
     /* 3 · Servis atama geçmişi */
-    SELECT TOP (200) N'<Codex metni: 3 · Servis atama geçmişi>' AS Bolum,
+    SELECT TOP (200) N'3 · Servis atama geçmişi' AS Bolum,
            m.MarkaKodu, m.SeriNo, sv.Ad AS ServisAdi, sv.KayitNo AS ServisKayitNo,
            CONVERT(datetime2(0), a.BaslangicZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS BaslangicZamaniTurkiye,
            CONVERT(datetime2(0), a.BitisZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS BitisZamaniTurkiye,
@@ -815,7 +815,7 @@ BEGIN
     ORDER BY a.BaslangicZamani DESC, a.KayitNo DESC;
 
     /* 4 · Satışlar */
-    SELECT TOP (200) N'<Codex metni: 4 · Satışlar>' AS Bolum,
+    SELECT TOP (200) N'4 · Satışlar' AS Bolum,
            m.MarkaKodu, m.SeriNo, st.Ad AS SatisTuruAdi, sb.Ad AS SaticiBayiAdi, ab.Ad AS AliciBayiAdi,
            ah.KayitNo AS AliciHesapKayitNo, ms.FaturaTarihi, ms.TeslimTarihi, ms.GarantiYil,
            ge.Ad AS GarantiBaslangicEsasiAdi, ms.GarantiFaturaEkGun,
@@ -839,7 +839,7 @@ BEGIN
     ORDER BY ms.OlusmaZamani DESC, ms.KayitNo DESC;
 
     /* 5 · Kayıt olayları */
-    SELECT TOP (200) N'<Codex metni: 5 · Kayıt olayları>' AS Bolum,
+    SELECT TOP (200) N'5 · Kayıt olayları' AS Bolum,
            m.MarkaKodu, m.SeriNo, kk.Ad AS KaynakAdi, sv.Ad AS ServisAdi, ko.BeyanAdi, h.KayitNo AS HesapKayitNo,
            ko.LogoBildi, ko.YeniSatis, il.Ad AS KonumIlAdi, ilc.Ad AS KonumIlceAdi, ko.YapanAdi,
            CONVERT(datetime2(0), ko.OlusmaZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS ZamanTurkiye,
@@ -856,7 +856,7 @@ BEGIN
     ORDER BY ko.OlusmaZamani DESC, ko.KayitNo DESC;
 
     /* 6 · Talepler */
-    SELECT TOP (200) N'<Codex metni: 6 · Talepler>' AS Bolum, v.*,
+    SELECT TOP (200) N'6 · Talepler' AS Bolum, v.*,
            CAST(CASE WHEN COUNT(*) OVER () > 200 THEN 1 ELSE 0 END AS bit) AS DahaFazlaVar
     FROM gorunum.TalepListesi AS v
     JOIN talep.Talep AS t ON t.KayitNo = v.KayitNo
@@ -864,7 +864,7 @@ BEGIN
     ORDER BY t.OlusmaZamani DESC, t.KayitNo DESC;
 
     /* 7 · Bakım tamamlama */
-    SELECT TOP (200) N'<Codex metni: 7 · Bakım tamamlama>' AS Bolum,
+    SELECT TOP (200) N'7 · Tamamlanan bakımlar' AS Bolum,
            m.MarkaKodu, m.SeriNo, bt.BakimSablonuKodu, bt.Saat, ba.Baslik AS AdimBasligi, h.KayitNo AS HesapKayitNo,
            CONVERT(datetime2(0), bt.IsaretlemeZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS IsaretlemeZamaniTurkiye,
            CONVERT(datetime2(0), bt.KaldirmaZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS KaldirmaZamaniTurkiye,
@@ -878,7 +878,7 @@ BEGIN
     ORDER BY bt.IsaretlemeZamani DESC, bt.KayitNo DESC;
 
     /* 8 · LOGO seri sorguları */
-    SELECT TOP (200) N'<Codex metni: 8 · LOGO seri sorguları>' AS Bolum,
+    SELECT TOP (200) N'8 · LOGO seri sorguları' AS Bolum,
            q.MarkaKodu, q.SeriNo,
            CONVERT(datetime2(0), q.SorguZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS SorguZamaniTurkiye,
            q.SonucKodu, q.LogoFirmaNo, q.MalzemeKodu, q.CariKodu, q.FaturaTarihi,
@@ -932,7 +932,7 @@ BEGIN
     IF @Telefon IS NULL
     BEGIN
         IF LEN(ISNULL(@Arama, N'')) < 3
-            THROW 51105, N'<Codex metni: telefon numarası ya da en az 3 harflik ad yazın>', 1;
+            THROW 51105, N'telefon numarası ya da en az 3 harflik ad yazın', 1;
         SET @Desen = N'%' + REPLACE(REPLACE(REPLACE(@Arama, N'[', N'[[]'), N'%', N'[%]'), N'_', N'[_]') + N'%';
     END;
 
@@ -1008,10 +1008,10 @@ BEGIN
         SET @HesapsizVar = 1;
 
     IF @HesapSayisi = 0 AND @HesapsizVar = 0
-        THROW 51102, N'<Codex metni: bu telefonla ya da adla müşteri kaydı bulunamadı; EXEC yardim.Ara ile arayın>', 1;
+        THROW 51102, N'bu telefonla ya da adla müşteri kaydı bulunamadı; EXEC yardim.Ara ile arayın', 1;
 
     /* 1 · Müşteri kartı */
-    SELECT TOP (200) N'<Codex metni: 1 · Müşteri kartı>' AS Bolum, v.*, j.BulunduguYer,
+    SELECT TOP (200) N'1 · Müşteri kartı' AS Bolum, v.*, j.BulunduguYer,
            CAST(CASE WHEN COUNT(*) OVER () > 200 THEN 1 ELSE 0 END AS bit) AS DahaFazlaVar
     FROM OPENJSON(@Hesaplar) WITH (KayitNo bigint, BulunduguYer nvarchar(400)) AS j
     JOIN gorunum.MusteriKarti AS v ON v.HesapKayitNo = j.KayitNo
@@ -1022,7 +1022,7 @@ BEGIN
         RETURN;
 
     /* 2 · Kişiler */
-    SELECT TOP (200) N'<Codex metni: 2 · Kişiler>' AS Bolum,
+    SELECT TOP (200) N'2 · Kişiler' AS Bolum,
            h.KayitNo AS HesapKayitNo, kr.Ad AS RolAdi, k.Adi, k.Soyadi, k.TelefonE164 AS Telefon,
            CONVERT(datetime2(0), k.PasifZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS PasifZamaniTurkiye,
            CONVERT(datetime2(0), k.OlusmaZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS OlusmaZamaniTurkiye,
@@ -1035,7 +1035,7 @@ BEGIN
     ORDER BY h.KayitNo, CASE WHEN k.RolKodu = N'hesapSahibi' THEN 0 ELSE 1 END, k.OlusmaZamani;
 
     /* 3 · Telefon geçmişi */
-    SELECT TOP (200) N'<Codex metni: 3 · Telefon geçmişi>' AS Bolum,
+    SELECT TOP (200) N'3 · Telefon geçmişi' AS Bolum,
            h.KayitNo AS HesapKayitNo, g.TelefonE164 AS Telefon,
            CONVERT(datetime2(0), g.BaslangicZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS BaslangicZamaniTurkiye,
            CONVERT(datetime2(0), g.BitisZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS BitisZamaniTurkiye,
@@ -1049,7 +1049,7 @@ BEGIN
     ORDER BY g.BaslangicZamani DESC, g.KayitNo DESC;
 
     /* 4 · Makineler (güncel ve geçmiş sahiplik; servis ve garanti bugünkü haliyle) */
-    SELECT TOP (200) N'<Codex metni: 4 · Makineler>' AS Bolum,
+    SELECT TOP (200) N'4 · Makineler' AS Bolum,
            h.KayitNo AS HesapKayitNo, mr.Ad AS MarkaAdi, m.SeriNo, ur.Ad AS UrunAdi, s.TakmaAd,
            CAST(CASE WHEN s.BitisZamani IS NULL THEN 1 ELSE 0 END AS bit) AS GuncelSahiplik,
            CONVERT(datetime2(0), s.BaslangicZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS BaslangicZamaniTurkiye,
@@ -1069,7 +1069,7 @@ BEGIN
     ORDER BY CASE WHEN s.BitisZamani IS NULL THEN 0 ELSE 1 END, s.BaslangicZamani DESC;
 
     /* 5 · Talepler (hesaplı ve hesapsız) */
-    SELECT TOP (200) N'<Codex metni: 5 · Talepler>' AS Bolum, v.*,
+    SELECT TOP (200) N'5 · Talepler' AS Bolum, v.*,
            CAST(CASE WHEN t.HesapKimlik IS NULL THEN 1 ELSE 0 END AS bit) AS HesapsizEslesme,
            CAST(CASE WHEN COUNT(*) OVER () > 200 THEN 1 ELSE 0 END AS bit) AS DahaFazlaVar
     FROM talep.Talep AS t
@@ -1081,7 +1081,7 @@ BEGIN
     ORDER BY t.OlusmaZamani DESC, t.KayitNo DESC;
 
     /* 6 · Numara değişikliği talepleri */
-    SELECT TOP (200) N'<Codex metni: 6 · Numara değişikliği talepleri>' AS Bolum,
+    SELECT TOP (200) N'6 · Numara değişikliği talepleri' AS Bolum,
            LEFT(d.Numara, 3) + N'-' + SUBSTRING(d.Numara, 4, 2) + N'-' + RIGHT(d.Numara, 5) AS TelNumarasi,
            kd.Ad AS KararDurumuAdi, d.EskiTelefonE164 AS EskiTelefon, d.YeniTelefonE164 AS YeniTelefon,
            d.BeyanAdi, d.KanitSeriNo, d.KanitMarkaKodu, d.SeriEslesti, d.EskiTelefonEslesti, d.YeniTelefonBaskaHesapta,
@@ -1099,7 +1099,7 @@ BEGIN
     ORDER BY d.OlusmaZamani DESC, d.KayitNo DESC;
 
     /* 7 · Geri bildirimler */
-    SELECT TOP (200) N'<Codex metni: 7 · Geri bildirimler>' AS Bolum,
+    SELECT TOP (200) N'7 · Geri bildirimler' AS Bolum,
            LEFT(g.Numara, 3) + N'-' + SUBSTRING(g.Numara, 4, 2) + N'-' + RIGHT(g.Numara, 5) AS GbdNumarasi,
            g.Metin,
            CAST(CASE WHEN g.OkunmaZamani IS NULL THEN 0 ELSE 1 END AS bit) AS OkunduMu,
@@ -1119,7 +1119,7 @@ BEGIN
     ORDER BY g.OlusmaZamani DESC, g.KayitNo DESC;
 
     /* 8 · Güncel rıza */
-    SELECT TOP (200) N'<Codex metni: 8 · Güncel rıza>' AS Bolum,
+    SELECT TOP (200) N'8 · Güncel rıza' AS Bolum,
            h.KayitNo AS HesapKayitNo, r.MetinKodu, rm.Ad AS MetinAdi, r.SecimKodu, rs.Ad AS SecimAdi, r.Surum, r.DilKodu,
            CONVERT(datetime2(0), r.OlayZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS OlayZamaniTurkiye,
            CAST(CASE WHEN COUNT(*) OVER () > 200 THEN 1 ELSE 0 END AS bit) AS DahaFazlaVar
@@ -1131,7 +1131,7 @@ BEGIN
     ORDER BY h.KayitNo, rm.Sira, r.MetinKodu;
 
     /* 9 · KVKK başvuruları (hesabın; telefonla aranınca iletişim bilgisinde bu numara geçenler de) */
-    SELECT TOP (200) N'<Codex metni: 9 · KVKK başvuruları>' AS Bolum,
+    SELECT TOP (200) N'9 · KVKK başvuruları' AS Bolum,
            b.KayitNo AS BasvuruKayitNo, bt.Ad AS TurAdi, b.DurumKodu, b.YanitSonTarihi, rk.Ad AS KanalAdi,
            b.BasvuranAdi, b.IletisimBilgisi, h.KayitNo AS HesapKayitNo,
            CONVERT(datetime2(0), b.SonuclanmaZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS SonuclanmaZamaniTurkiye,
@@ -1147,7 +1147,7 @@ BEGIN
     ORDER BY b.OlusmaZamani DESC, b.KayitNo DESC;
 
     /* 10 · Cihazlar (push jetonu yok) */
-    SELECT TOP (200) N'<Codex metni: 10 · Cihazlar>' AS Bolum,
+    SELECT TOP (200) N'10 · Cihazlar' AS Bolum,
            h.KayitNo AS HesapKayitNo, ku.Ad AS UygulamaAdi, c.PlatformKodu, bi.Ad AS BildirimIzniAdi, c.DilKodu,
            c.UygulamaSurumu, c.IsletimSistemiSurumu,
            CONVERT(datetime2(0), c.SonGorulmeZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS SonGorulmeZamaniTurkiye,
@@ -1162,7 +1162,7 @@ BEGIN
     ORDER BY c.SonGorulmeZamani DESC, c.KayitNo DESC;
 
     /* 11 · Cari kartları */
-    SELECT TOP (200) N'<Codex metni: 11 · Cari kartları>' AS Bolum,
+    SELECT TOP (200) N'11 · Cari kartları' AS Bolum,
            h.KayitNo AS HesapKayitNo, dsi.Ad AS DisSistemAdi, sr.Ad AS SirketAdi, c.FirmaNo, c.CariKodu, c.Aktif,
            kk.Ad AS KaynakAdi, c.DogrulayanAdi,
            CONVERT(datetime2(0), c.DogrulamaZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS DogrulamaZamaniTurkiye,
@@ -1215,7 +1215,7 @@ BEGIN
         SET @KayitNo = TRY_CONVERT(bigint, @Kirpik);
 
     IF LEN(ISNULL(@Kod, N'')) < 3 AND LEN(ISNULL(@Arama, N'')) < 3 AND @KayitNo IS NULL
-        THROW 51105, N'<Codex metni: servisin adını, giriş adını, eski numarasını, cari kodunu, telefonunu ya da kayıt numarasını yazın>', 1;
+        THROW 51105, N'servisin adını, giriş adını, eski numarasını, cari kodunu, telefonunu ya da kayıt numarasını yazın', 1;
 
     IF LEN(ISNULL(@Arama, N'')) >= 3
         SET @Desen = N'%' + REPLACE(REPLACE(REPLACE(@Arama, N'[', N'[[]'), N'%', N'[%]'), N'_', N'[_]') + N'%';
@@ -1264,10 +1264,10 @@ BEGIN
     SELECT @ServisSayisi = COUNT(*) FROM OPENJSON(@Servisler) AS j;
 
     IF @ServisSayisi = 0
-        THROW 51102, N'<Codex metni: bu bilgiyle servis bulunamadı; EXEC yardim.Ara ile arayın>', 1;
+        THROW 51102, N'bu bilgiyle servis bulunamadı; EXEC yardim.Ara ile arayın', 1;
 
     /* 1 · Servis kartı */
-    SELECT TOP (200) N'<Codex metni: 1 · Servis kartı>' AS Bolum, v.*,
+    SELECT TOP (200) N'1 · Servis kartı' AS Bolum, v.*,
            CAST(CASE WHEN COUNT(*) OVER () > 200 THEN 1 ELSE 0 END AS bit) AS DahaFazlaVar
     FROM gorunum.ServisKarti AS v
     JOIN servis.Servis AS s ON s.KayitNo = v.ServisKayitNo
@@ -1281,7 +1281,7 @@ BEGIN
     SELECT @ServisKimlik = j.Kimlik FROM OPENJSON(@Servisler) WITH (Kimlik uniqueidentifier) AS j;
 
     /* 2 · Giriş hesapları */
-    SELECT TOP (200) N'<Codex metni: 2 · Giriş hesapları>' AS Bolum,
+    SELECT TOP (200) N'2 · Giriş hesapları' AS Bolum,
            k.GirisAdi, k.Aktif, k.SifreBelirlemeGerekli, k.BasarisizGirisSayisi,
            CONVERT(datetime2(0), k.KilitBitisZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS KilitBitisZamaniTurkiye,
            CONVERT(datetime2(0), k.SonGirisZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS SonGirisZamaniTurkiye,
@@ -1306,7 +1306,7 @@ BEGIN
     ORDER BY gh.OlusmaZamani DESC;
 
     /* 3 · Şifre yardım talepleri */
-    SELECT TOP (200) N'<Codex metni: 3 · Şifre yardım talepleri>' AS Bolum,
+    SELECT TOP (200) N'3 · Şifre yardım talepleri' AS Bolum,
            y.GirisAdiBeyani, y.DurumKodu,
            CONVERT(datetime2(0), y.OlusmaZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS ZamanTurkiye,
            CONVERT(datetime2(0), y.KapanmaZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS KapanmaZamaniTurkiye,
@@ -1317,7 +1317,7 @@ BEGIN
     ORDER BY y.OlusmaZamani DESC, y.KayitNo DESC;
 
     /* 4 · Marka yetkileri ve geçmişi (her sürüm bir satır; GuncelSurum = 1 bugünkü satır) */
-    SELECT TOP (200) N'<Codex metni: 4 · Marka yetkileri ve geçmişi>' AS Bolum,
+    SELECT TOP (200) N'4 · Marka yetkileri ve geçmişi' AS Bolum,
            y.MarkaKodu, mr.Ad AS MarkaAdi, y.Etkin,
            CONVERT(datetime2(0), y.BaslangicZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS BaslangicZamaniTurkiye,
            CONVERT(datetime2(0), y.BitisZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS BitisZamaniTurkiye,
@@ -1335,7 +1335,7 @@ BEGIN
     ORDER BY y.MarkaKodu, y.GecerlilikBaslangici DESC;
 
     /* 5 · Bölgeler */
-    SELECT TOP (200) N'<Codex metni: 5 · Bölgeler>' AS Bolum,
+    SELECT TOP (200) N'5 · Bölgeler' AS Bolum,
            il.Ad AS IlAdi, ilc.Ad AS IlceAdi, b.KayitNo,
            CAST(CASE WHEN COUNT(*) OVER () > 200 THEN 1 ELSE 0 END AS bit) AS DahaFazlaVar
     FROM servis.Bolge AS b
@@ -1345,7 +1345,7 @@ BEGIN
     ORDER BY il.Ad, ilc.Ad;
 
     /* 6 · Bağlı bayiler */
-    SELECT TOP (200) N'<Codex metni: 6 · Bağlı bayiler>' AS Bolum,
+    SELECT TOP (200) N'6 · Bağlı bayiler' AS Bolum,
            ba.Ad AS BayiAdi, ba.KayitNo AS BayiKayitNo, bb.Oncelik, fd.Ad AS BayiDurumAdi, il.Ad AS IlAdi,
            CONVERT(datetime2(0), bb.BaslangicZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS BaslangicZamaniTurkiye,
            CAST(CASE WHEN COUNT(*) OVER () > 200 THEN 1 ELSE 0 END AS bit) AS DahaFazlaVar
@@ -1357,7 +1357,7 @@ BEGIN
     ORDER BY bb.Oncelik, ba.Ad;
 
     /* 7 · Ad ve durum geçmişi */
-    SELECT TOP (200) N'<Codex metni: 7 · Ad ve durum geçmişi>' AS Bolum,
+    SELECT TOP (200) N'7 · Ad ve durum geçmişi' AS Bolum,
            s.Ad, st.Ad AS ServisTuruAdi, fd.Ad AS DurumAdi, s.PilotKatilimcisi, il.Ad AS IlAdi, ilc.Ad AS IlceAdi,
            s.Adres, s.TelefonE164 AS Telefon,
            CONVERT(datetime2(0), s.PasifZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS PasifZamaniTurkiye,
@@ -1375,7 +1375,7 @@ BEGIN
     ORDER BY s.GecerlilikBaslangici DESC;
 
     /* 8 · Açık talepler */
-    SELECT TOP (200) N'<Codex metni: 8 · Açık talepler>' AS Bolum, v.*,
+    SELECT TOP (200) N'8 · Açık talepler' AS Bolum, v.*,
            CAST(CASE WHEN COUNT(*) OVER () > 200 THEN 1 ELSE 0 END AS bit) AS DahaFazlaVar
     FROM talep.Talep AS t
     JOIN gorunum.TalepListesi AS v ON v.KayitNo = t.KayitNo
@@ -1383,7 +1383,7 @@ BEGIN
     ORDER BY t.OlusmaZamani DESC, t.KayitNo DESC;
 
     /* 9 · Bu ayın hak edişleri (Türkiye ayı) */
-    SELECT TOP (200) N'<Codex metni: 9 · Bu ayın hak edişleri>' AS Bolum, v.*,
+    SELECT TOP (200) N'9 · Bu ayın hak edişleri' AS Bolum, v.*,
            CAST(CASE WHEN COUNT(*) OVER () > 200 THEN 1 ELSE 0 END AS bit) AS DahaFazlaVar
     FROM hakedis.HakEdis AS h
     JOIN gorunum.HakEdisListesi AS v ON v.KayitNo = h.KayitNo
@@ -1392,7 +1392,7 @@ BEGIN
     ORDER BY h.OlusmaZamani DESC, h.KayitNo DESC;
 
     /* 10 · Dönem dökümleri */
-    SELECT TOP (200) N'<Codex metni: 10 · Dönem dökümleri>' AS Bolum,
+    SELECT TOP (200) N'10 · Dönem dökümleri' AS Bolum,
            LEFT(d.Numara, 3) + N'-' + SUBSTRING(d.Numara, 4, 2) + N'-' + RIGHT(d.Numara, 5) AS DokumNumarasi,
            sr.Ad AS SirketAdi, d.ParaBirimiKodu, d.DonemYili, d.DonemAyi, d.DurumKodu, dd.Ad AS DurumAdi,
            d.NetToplam, d.KdvToplam, d.TevkifatToplam, d.StopajToplam, d.MahsupToplam, d.OdenecekTutar,
@@ -1409,7 +1409,7 @@ BEGIN
     ORDER BY d.DonemYili DESC, d.DonemAyi DESC, d.KayitNo DESC;
 
     /* 11 · Son 50 hesap hareketi (açıklama dahil) ve bakiye (satırın şirketi ve para birimi için) */
-    SELECT TOP (50) N'<Codex metni: 11 · Son hesap hareketleri ve bakiye>' AS Bolum, v.*, x.Aciklama,
+    SELECT TOP (50) N'11 · Son hesap hareketleri ve bakiye' AS Bolum, v.*, x.Aciklama,
            sb.AlacakToplami, sb.BorcToplami, sb.Bakiye,
            CAST(CASE WHEN COUNT(*) OVER () > 50 THEN 1 ELSE 0 END AS bit) AS DahaFazlaVar
     FROM hakedis.ServisHesapHareketi AS x
@@ -1422,7 +1422,7 @@ BEGIN
     ORDER BY x.HareketZamani DESC, x.KayitNo DESC;
 
     /* 12 · Cari kartları */
-    SELECT TOP (200) N'<Codex metni: 12 · Cari kartları>' AS Bolum,
+    SELECT TOP (200) N'12 · Cari kartları' AS Bolum,
            dsi.Ad AS DisSistemAdi, sr.Ad AS SirketAdi, c.FirmaNo, c.CariKodu, c.Aktif,
            kk.Ad AS KaynakAdi, c.DogrulayanAdi,
            CONVERT(datetime2(0), c.DogrulamaZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS DogrulamaZamaniTurkiye,
@@ -1485,7 +1485,7 @@ BEGIN
     SET @UlusalBoy = LEN(ISNULL(@TelefonUlusal, N''));
 
     IF @KodBoy < 3 AND LEN(ISNULL(@Rakam, N'')) < 4 AND @AramaBoy < 3
-        THROW 51105, N'<Codex metni: arama metni çok kısa; en az 3 harf ya da 4 rakam yazın>', 1;
+        THROW 51105, N'arama metni çok kısa; en az 3 harf ya da 4 rakam yazın', 1;
 
     IF @KodBoy = 10 AND @Kod LIKE N'[A-Z][A-Z][A-Z][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'
         SET @NumaraBicimi = 1;
@@ -1496,59 +1496,59 @@ BEGIN
     /* Adım 1 — eşleşmeler */
     WITH eslesme AS (
         /* Okunur numara */
-        SELECT N'talep' AS TurKodu, t.Kimlik, N'<Codex metni: numara>' AS EslesenAlan, 1 AS Tam, 1 AS Oncelik
+        SELECT N'talep' AS TurKodu, t.Kimlik, N'numara' AS EslesenAlan, 1 AS Tam, 1 AS Oncelik
         FROM talep.Talep AS t
         WHERE @NumaraBicimi = 1 AND t.Numara = @Kod
         UNION ALL
-        SELECT N'telefonDegisikligi', d.Kimlik, N'<Codex metni: numara>', 1, 1
+        SELECT N'telefonDegisikligi', d.Kimlik, N'numara', 1, 1
         FROM musteri.TelefonDegisikligiTalebi AS d
         WHERE @NumaraBicimi = 1 AND d.Numara = @Kod
         UNION ALL
-        SELECT N'geriBildirim', g.Kimlik, N'<Codex metni: numara>', 1, 1
+        SELECT N'geriBildirim', g.Kimlik, N'numara', 1, 1
         FROM musteri.GeriBildirim AS g
         WHERE @NumaraBicimi = 1 AND g.Numara = @Kod
         UNION ALL
-        SELECT N'donemDokumu', d.Kimlik, N'<Codex metni: numara>', 1, 1
+        SELECT N'donemDokumu', d.Kimlik, N'numara', 1, 1
         FROM hakedis.DonemDokumu AS d
         WHERE @NumaraBicimi = 1 AND d.Numara = @Kod
         /* Eski numara, cihaz numarası */
         UNION ALL
-        SELECT N'talep', t.Kimlik, N'<Codex metni: eski numara>', 1, 2
+        SELECT N'talep', t.Kimlik, N'eski numara', 1, 2
         FROM talep.Talep AS t
         WHERE @KodBoy BETWEEN 3 AND 20 AND t.EskiNumara IS NOT NULL
           AND (UPPER(t.EskiNumara COLLATE Latin1_General_100_BIN2) = @Ham
                OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(UPPER(t.EskiNumara COLLATE Latin1_General_100_BIN2),
                           N'-', N''), N' ', N''), N'.', N''), N'/', N''), N'_', N'') = @Kod)
         UNION ALL
-        SELECT N'talep', t.Kimlik, N'<Codex metni: cihaz numarası>', 1, 3
+        SELECT N'talep', t.Kimlik, N'cihaz numarası', 1, 3
         FROM talep.Talep AS t
         WHERE @KodBoy BETWEEN 3 AND 20 AND t.CihazNumarasi IS NOT NULL
           AND (UPPER(t.CihazNumarasi COLLATE Latin1_General_100_BIN2) = @Ham
                OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(UPPER(t.CihazNumarasi COLLATE Latin1_General_100_BIN2),
                           N'-', N''), N' ', N''), N'.', N''), N'/', N''), N'_', N'') = @Kod)
         UNION ALL
-        SELECT N'servis', s.Kimlik, N'<Codex metni: eski numara>', 1, 2
+        SELECT N'servis', s.Kimlik, N'eski numara', 1, 2
         FROM servis.Servis AS s
         WHERE @KodBoy BETWEEN 3 AND 20 AND s.EskiNumara IS NOT NULL
           AND (UPPER(s.EskiNumara COLLATE Latin1_General_100_BIN2) = @Ham
                OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(UPPER(s.EskiNumara COLLATE Latin1_General_100_BIN2),
                           N'-', N''), N' ', N''), N'.', N''), N'/', N''), N'_', N'') = @Kod)
         UNION ALL
-        SELECT N'bayi', b.Kimlik, N'<Codex metni: eski numara>', 1, 2
+        SELECT N'bayi', b.Kimlik, N'eski numara', 1, 2
         FROM bayi.Bayi AS b
         WHERE @KodBoy BETWEEN 3 AND 20 AND b.EskiNumara IS NOT NULL
           AND (UPPER(b.EskiNumara COLLATE Latin1_General_100_BIN2) = @Ham
                OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(UPPER(b.EskiNumara COLLATE Latin1_General_100_BIN2),
                           N'-', N''), N' ', N''), N'.', N''), N'/', N''), N'_', N'') = @Kod)
         UNION ALL
-        SELECT N'personel', p.Kimlik, N'<Codex metni: eski numara>', 1, 2
+        SELECT N'personel', p.Kimlik, N'eski numara', 1, 2
         FROM personel.Personel AS p
         WHERE @KodBoy BETWEEN 3 AND 20 AND p.EskiNumara IS NOT NULL
           AND (UPPER(p.EskiNumara COLLATE Latin1_General_100_BIN2) = @Ham
                OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(UPPER(p.EskiNumara COLLATE Latin1_General_100_BIN2),
                           N'-', N''), N' ', N''), N'.', N''), N'/', N''), N'_', N'') = @Kod)
         UNION ALL
-        SELECT N'hesap', h.Kimlik, N'<Codex metni: eski numara>', 1, 2
+        SELECT N'hesap', h.Kimlik, N'eski numara', 1, 2
         FROM musteri.Hesap AS h
         WHERE @KodBoy BETWEEN 3 AND 20 AND h.EskiNumara IS NOT NULL
           AND (UPPER(h.EskiNumara COLLATE Latin1_General_100_BIN2) = @Ham
@@ -1556,11 +1556,11 @@ BEGIN
                           N'-', N''), N' ', N''), N'.', N''), N'/', N''), N'_', N'') = @Kod)
         /* Seri numarası: tam, sonra baştan */
         UNION ALL
-        SELECT N'makine', m.Kimlik, N'<Codex metni: seri numarası>', 1, 4
+        SELECT N'makine', m.Kimlik, N'seri numarası', 1, 4
         FROM makine.Makine AS m
         WHERE @KodBoy >= 3 AND m.SeriNo = @Kod
         UNION ALL
-        SELECT N'makine', m.Kimlik, N'<Codex metni: seri numarasının başı>', 0, 5
+        SELECT N'makine', m.Kimlik, N'seri numarasının başı', 0, 5
         FROM makine.Makine AS m
         WHERE @KodBoy >= 3 AND m.SeriNo LIKE @Kod + N'%' AND m.SeriNo <> @Kod
         /* LOGO cari kodu (noktalama atılmış karşılaştırma dahil) */
@@ -1569,7 +1569,7 @@ BEGIN
                     WHEN c.BayiKimlik IS NOT NULL THEN N'bayi'
                     ELSE N'hesap' END,
                COALESCE(c.ServisKimlik, c.BayiKimlik, c.HesapKimlik),
-               N'<Codex metni: cari kodu>', 1, 6
+               N'cari kodu', 1, 6
         FROM entegrasyon.CariKarti AS c
         WHERE @KodBoy >= 3
           AND (UPPER(c.CariKodu COLLATE Latin1_General_100_BIN2) = @Ham
@@ -1577,83 +1577,83 @@ BEGIN
                           N'.', N''), N'-', N''), N' ', N''), N'/', N''), N'_', N'') = @Kod)
         /* Telefon (E.164) */
         UNION ALL
-        SELECT N'hesap', h.Kimlik, N'<Codex metni: telefon>', 1, 7
+        SELECT N'hesap', h.Kimlik, N'telefon', 1, 7
         FROM musteri.Hesap AS h
         WHERE @Telefon IS NOT NULL AND h.TelefonE164 = @Telefon
         UNION ALL
-        SELECT N'hesap', g.HesapKimlik, N'<Codex metni: eski telefon>', 1, 8
+        SELECT N'hesap', g.HesapKimlik, N'eski telefon', 1, 8
         FROM musteri.HesapTelefonGecmisi AS g
         WHERE @Telefon IS NOT NULL AND g.TelefonE164 = @Telefon
         UNION ALL
-        SELECT N'hesap', k.HesapKimlik, N'<Codex metni: hesaptaki kişinin telefonu>', 1, 9
+        SELECT N'hesap', k.HesapKimlik, N'hesaptaki kişinin telefonu', 1, 9
         FROM musteri.HesapKisisi AS k
         WHERE @Telefon IS NOT NULL AND k.TelefonE164 = @Telefon
         UNION ALL
-        SELECT N'talep', t.Kimlik, N'<Codex metni: talepteki iletişim telefonu>', 1, 10
+        SELECT N'talep', t.Kimlik, N'talepteki iletişim telefonu', 1, 10
         FROM talep.Talep AS t
         WHERE @Telefon IS NOT NULL AND t.IletisimTelefonE164 = @Telefon
         UNION ALL
-        SELECT N'telefonDegisikligi', d.Kimlik, N'<Codex metni: numara değişikliğindeki eski telefon>', 1, 11
+        SELECT N'telefonDegisikligi', d.Kimlik, N'numara değişikliğindeki eski telefon', 1, 11
         FROM musteri.TelefonDegisikligiTalebi AS d
         WHERE @Telefon IS NOT NULL AND d.EskiTelefonE164 = @Telefon
         UNION ALL
-        SELECT N'telefonDegisikligi', d.Kimlik, N'<Codex metni: numara değişikliğindeki yeni telefon>', 1, 12
+        SELECT N'telefonDegisikligi', d.Kimlik, N'numara değişikliğindeki yeni telefon', 1, 12
         FROM musteri.TelefonDegisikligiTalebi AS d
         WHERE @Telefon IS NOT NULL AND d.YeniTelefonE164 = @Telefon
         UNION ALL
-        SELECT N'geriBildirim', g.Kimlik, N'<Codex metni: geri bildirimdeki iletişim telefonu>', 1, 13
+        SELECT N'geriBildirim', g.Kimlik, N'geri bildirimdeki iletişim telefonu', 1, 13
         FROM musteri.GeriBildirim AS g
         WHERE @Telefon IS NOT NULL AND g.IletisimTelefonE164 = @Telefon
         UNION ALL
-        SELECT N'personel', p.Kimlik, N'<Codex metni: telefon>', 1, 14
+        SELECT N'personel', p.Kimlik, N'telefon', 1, 14
         FROM personel.Personel AS p
         WHERE @Telefon IS NOT NULL AND p.TelefonE164 = @Telefon
         /* Telefonun ulusal kısmı */
         UNION ALL
-        SELECT N'hesap', h.Kimlik, N'<Codex metni: telefonun ülke kodsuz hâli>', 1, 15
+        SELECT N'hesap', h.Kimlik, N'ülke kodu olmadan telefon numarası', 1, 15
         FROM musteri.Hesap AS h
         WHERE @UlusalBoy >= 7 AND h.TelefonUlusal = @TelefonUlusal
         UNION ALL
-        SELECT N'talep', t.Kimlik, N'<Codex metni: telefonun ülke kodsuz hâli>', 1, 16
+        SELECT N'talep', t.Kimlik, N'ülke kodu olmadan telefon numarası', 1, 16
         FROM talep.Talep AS t
         WHERE @UlusalBoy >= 7 AND t.IletisimTelefonUlusal = @TelefonUlusal
         /* Giriş adı */
         UNION ALL
         SELECT CASE WHEN p.Kimlik IS NOT NULL THEN N'personel' ELSE N'servis' END,
                COALESCE(p.Kimlik, gh.ServisKimlik),
-               N'<Codex metni: giriş adı>', 1, 17
+               N'giriş adı', 1, 17
         FROM erisim.Kullanici AS k
         LEFT JOIN personel.Personel AS p ON p.KullaniciKimlik = k.Kimlik
         LEFT JOIN servis.GirisHesabi AS gh ON gh.KullaniciKimlik = k.Kimlik
         WHERE @GirisBoy >= 3 AND k.GirisAdi = @GirisAdi
           AND COALESCE(p.Kimlik, gh.ServisKimlik) IS NOT NULL
         UNION ALL
-        SELECT N'servis', y.ServisKimlik, N'<Codex metni: şifre yardım talebine yazılan giriş adı>', 1, 18
+        SELECT N'servis', y.ServisKimlik, N'şifre yardım talebine yazılan giriş adı', 1, 18
         FROM servis.SifreYardimTalebi AS y
         WHERE @GirisBoy >= 3 AND LOWER(y.GirisAdiBeyani COLLATE Latin1_General_100_BIN2) = @GirisAdi
         /* Ad (aksansız, parça) */
         UNION ALL
-        SELECT N'hesap', k.HesapKimlik, N'<Codex metni: kişi adı>',
+        SELECT N'hesap', k.HesapKimlik, N'kişi adı',
                CASE WHEN k.AdSoyadArama = @Arama THEN 1 ELSE 0 END, 19
         FROM musteri.HesapKisisi AS k
         WHERE @Desen IS NOT NULL AND k.AdSoyadArama LIKE @Desen
         UNION ALL
-        SELECT N'talep', t.Kimlik, N'<Codex metni: talepteki ad>',
+        SELECT N'talep', t.Kimlik, N'talepteki ad',
                CASE WHEN t.IletisimAdArama = @Arama THEN 1 ELSE 0 END, 20
         FROM talep.Talep AS t
         WHERE @Desen IS NOT NULL AND t.IletisimAdArama LIKE @Desen
         UNION ALL
-        SELECT N'servis', s.Kimlik, N'<Codex metni: firma adı>',
+        SELECT N'servis', s.Kimlik, N'firma adı',
                CASE WHEN s.AdArama = @Arama THEN 1 ELSE 0 END, 21
         FROM servis.Servis AS s
         WHERE @Desen IS NOT NULL AND s.AdArama LIKE @Desen
         UNION ALL
-        SELECT N'bayi', b.Kimlik, N'<Codex metni: firma adı>',
+        SELECT N'bayi', b.Kimlik, N'firma adı',
                CASE WHEN b.AdArama = @Arama THEN 1 ELSE 0 END, 21
         FROM bayi.Bayi AS b
         WHERE @Desen IS NOT NULL AND b.AdArama LIKE @Desen
         UNION ALL
-        SELECT N'personel', p.Kimlik, N'<Codex metni: personel adı>',
+        SELECT N'personel', p.Kimlik, N'personel adı',
                CASE WHEN p.AdArama = @Arama THEN 1 ELSE 0 END, 22
         FROM personel.Personel AS p
         WHERE @Desen IS NOT NULL AND p.AdArama LIKE @Desen
@@ -1798,7 +1798,7 @@ BEGIN
                p.AdSoyad COLLATE DATABASE_DEFAULT,
                CONCAT_WS(N' · ', r.Ad, k.GirisAdi COLLATE DATABASE_DEFAULT,
                          CASE WHEN p.AyrilmaZamani IS NOT NULL
-                              THEN N'<Codex metni: ayrıldı>' + N' '
+                              THEN N'ayrıldı' + N' '
                                    + CONVERT(nvarchar(10), CONVERT(date, p.AyrilmaZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time'), 23) END) COLLATE DATABASE_DEFAULT,
                u.EslesenAlan, u.Tam, p.OlusmaZamani,
                (N'SELECT p.AdSoyad, k.GirisAdi, k.Aktif, p.AyrilmaZamani FROM personel.Personel p JOIN erisim.Kullanici k ON k.Kimlik = p.KullaniciKimlik WHERE p.KayitNo = '
@@ -1814,7 +1814,7 @@ BEGIN
                COALESCE(h.TelefonE164, kh.TelefonE164, CAST(h.KayitNo AS nvarchar(20))) COLLATE DATABASE_DEFAULT,
                CONCAT_WS(N' · ', hs.AdSoyad, h.DurumKodu COLLATE DATABASE_DEFAULT, il.Ad,
                          CASE WHEN kh.KayitNo IS NOT NULL
-                              THEN N'<Codex metni: birleşti, kalan hesap no>' + N' ' + CAST(kh.KayitNo AS nvarchar(20)) END) COLLATE DATABASE_DEFAULT,
+                              THEN N'hesap birleştirildi; kalan hesap numarası:' + N' ' + CAST(kh.KayitNo AS nvarchar(20)) END) COLLATE DATABASE_DEFAULT,
                u.EslesenAlan, u.Tam, h.OlusmaZamani,
                (CASE WHEN COALESCE(kh.TelefonE164, h.TelefonE164) IS NOT NULL
                      THEN N'EXEC yardim.MusteriGoster N''' + COALESCE(kh.TelefonE164, h.TelefonE164) + N''';'
@@ -1830,7 +1830,7 @@ BEGIN
                      ORDER BY CASE WHEN k.PasifZamani IS NULL THEN 0 ELSE 1 END, k.OlusmaZamani DESC) AS hs
         WHERE u.TurKodu = N'hesap'
     )
-    SELECT TOP (200) N'<Codex metni: Arama sonuçları>' AS Bolum,
+    SELECT TOP (200) N'Arama sonuçları' AS Bolum,
            COALESCE(kt.Ad, s.TurKodu) AS KayitTuru,
            s.Gosterim, s.Ozet, s.EslesenAlan, s.Tam,
            CONVERT(datetime2(0), s.Zaman AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS ZamanTurkiye,
