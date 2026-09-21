@@ -79,10 +79,40 @@ kontrol et.
 
 Karanlık/aydınlık tema `data-tema='koyu'/'acik'` attribute'u ile uygulanıyor.
 
-## Test altyapısı yok
+## Sınama altyapısı — ne var, ne yok
 
-Unit/e2e test yok. Doğrulama: manuel + `tools/ekran-goruntusu.mjs` +
-tarayıcıda ölçülen JS (kontrast, taşma, dokunma hedefi).
+Çerçeve (vitest/jest/playwright) **yok** ve eklenmeyecek; hiçbir
+otomasyon paketi kurulu değil. Buna karşılık üç şey var:
+
+- **`npm run dogrula`** — 13 kontrol. 8. kontrol altı sınama betiğini
+  ayrı süreçlerde koşturuyor (`tools/` altında). Kural: *bir sınama
+  çağrılmıyorsa yoktur.*
+- **Ekosistem sınaması** (`tools/ekosistem-sinamasi.mjs`) — üç
+  uygulamanın PAYLAŞTIĞI veri katmanını Node içinde gerçekten
+  çalıştırıyor: on üç akış senaryosu (AK-01…AK-13), talep açılışından
+  hak edişin cariye yazılmasına kadar. Modüller Vite'ın
+  `ssrLoadModule`'üyle yükleniyor, depo taklit ediliyor, saat donmuş,
+  rastgelelik tohumlu. Ayrıntısı betiğin başında.
+- **Ekosistem ekran turu** (`tools/ekosistem-turu.mjs`) — üç uygulamanın
+  **gezilebilir yüzeyinin tamamını** Chrome'da açıyor: envanter
+  `tools/ekosistem/ekranlar.mjs` içinde (Connect 25, backoffice 16,
+  Servisim 8; artı rol bazlı menü, uygulamalar arası ispat, "gezinmek
+  kayıt yazmıyor" denetimi ve **on formun boş gönderimi**
+  (`tools/ekosistem/formlar.mjs`) — toplam 63 denetim). Her ekranda
+  üç soru: boş mu açıldı, hata verdi mi, ekili değer basılı mı.
+  Gidilemeyen ekran "ERİŞİLEMEDİ" diye AYRI sayılıyor; sessizce
+  atlanmıyor. Yalnız ekilen değerleri arar (talep numarası, seri,
+  tutar, ad), ekrandaki kelimelere bakmaz — Codex metinleri
+  yenilediğinde kırmızıya dönmesin diye.
+
+Geri kalanı elle: `tools/ekran-goruntusu.mjs` ve tarayıcıda ölçülen JS
+(kontrast, taşma, dokunma hedefi). Veritabanı tarafının kendi koşumu
+var: `npm run vt -- sinama`.
+
+**Her senaryonun taşıdığı, bilerek bozularak gösterildi.** Bozma listesi
+`tools/ekosistem-sinamasi.mjs` başlığında; yeni senaryo yazan aynısını
+yapar. Hiç düştüğü görülmemiş bir sınama, hiçbir şey iddia etmeyen
+sınamadan ayırt edilemez.
 
 ## Ekosistemin Temeli — Dört Taraf, Eşit Değil
 
@@ -226,16 +256,24 @@ Bir değişikliği "bitti" demeden önce:
    `{markadan}`, `{markada}`, `{markanin}` (bkz. `src/i18n/index.jsx`).
 3. Görsel bir değişiklikse → `ekran-dogrulama` subagent'ı ile ekran
    görüntülerini tazele, `ui-dogrulama` subagent'ı ile son QA turu yap
-4. Yeni/değişen ikon varsa → `ikon-uretici` subagent'ını kullan, ikonu elle
+4. Veri katmanına, talep / hak ediş / yedek parça / cari akışına, servis
+   atamasına, duyuru hedeflemesine ya da yetki kataloğuna dokunduysan →
+   `ekosistem-sinamasi` subagent'ını çalıştır. Bir uygulamanın ötekinin
+   okuyamayacağı bir kayıt yazdığını başka hiçbir kontrol görmüyor.
+5. Yeni/değişen ikon varsa → `ikon-uretici` subagent'ını kullan, ikonu elle
    `ikonYollari.js`'e yazma
 
 ## Subagent'lar
 
-Bu projede üç proje-özel subagent var (`.claude/agents/`):
+Bu projede dört proje-özel subagent var (`.claude/agents/`):
 
 - **ekran-dogrulama** — ekran görüntülerini yeniler, kırık CSS seçicileri onarır
 - **ikon-uretici** — Higgsfield PNG'sini vektör ikona çevirir
 - **ui-dogrulama** — tamamlanmış bir değişikliğin son görsel QA turu (salt okunur)
+- **ekosistem-sinamasi** — üç uygulamanın paylaştığı veri katmanını ve
+  ekranları uçtan uca koşturur (`tools/ekosistem-sinamasi.mjs` +
+  `tools/ekosistem-turu.mjs`), düşen adımı "uygulama bozuldu" /
+  "beklenti eskidi" diye ayırır; `src/` altında hiçbir şey değiştirmez
 
 Genel kod tabanı keşfi için ayrıca proje-özel bir agent yazmaya gerek yok —
 global `Explore` agent tipi yeterli, bu dosya ona gereken bağlamı zaten veriyor.
@@ -272,6 +310,16 @@ Genel diff incelemesi için `/code-review` komutu kullanılır.
   Claude'un yazması denendi ve geri alındı: kısa etiketler tam da
   ekranın ne anlattığını belirleyen yer ve orada üretilen Türkçe kötü
   çıkıyordu ("Stoklu model" gibi).
+- **SINAMA VERİSİ EKRAN METNİ DEĞİL (19 Eylül 2026, kullanıcının
+  kararı): "Sınama verilerini sen yazabilirsin, Codex'e vermene gerek
+  yok."** `veritabani/sinama/` betiklerinin `Paksan_Sinama1/2`
+  veritabanına yazdığı sahte kayıtlar ("S02 servis teknisyeni",
+  "S01 duyuru başlığı") ve `tools/ekosistem/tohum.mjs` fikstürleri
+  Claude'un. Ölçü şu: **o veritabanına hiçbir uygulama bağlanmıyor ve
+  sınama bitince siliniyor** — metin hiçbir ekrana ulaşmıyor. Aynı
+  ölçü `tools/` betiklerinin terminal çıktısı için de geçerli.
+  Sınırda kalırsa bakılacak yer: değer bir ekranda görünebiliyor mu?
+  Görünüyorsa Codex'in.
 - Yeni ekran yazıldığında, İÇİNDEKİ BÜTÜN TÜRKÇE metinler tek seferde
   Codex'e verilir — yalnız uzun cümleler değil.
 - **Brief'e EV KURALLARI da yazılır.** Codex bu projenin yazım
@@ -315,10 +363,15 @@ On üç şeye bakıyor:
 5. ve 6. kontroller marka sınırını koruyor: ürünün başka bir firmaya
 kurulabilmesi buna bağlı. 7. kontrol bayi–servis ayrımını koruyor:
 panel bayiden servise devredildi; yarım kalan bir devir, altı ay sonra
-hangi adın ne anlama geldiğini belirsizleştirir. 8. kontrol
-`marka-ek-testi`, `bolge-testi`, `duyuru-hedef-testi` ve
-`destek-dogrula` betiklerini çağırıyor — ayrı dururken
-unutuluyorlardı ve biri haftalarca kırık kaldı. 9. kontrol uydurma
+hangi adın ne anlama geldiğini belirsizleştirir. 8. kontrol altı
+sınama betiğini çağırıyor: `marka-ek-testi`, `bolge-testi`,
+`duyuru-hedef-testi`, `destek-dogrula` (dördü metin okuyor, ayrı
+dururken unutuluyorlardı ve biri haftalarca kırık kaldı), artı
+`ekosistem-sinamasi` ve `ekosistem-turu`. Son ikisi metin okumuyor,
+üç uygulamanın paylaştığı katmanı ÇALIŞTIRIYOR; bkz. "Sınama
+altyapısı". Ekran turu sunucu ya da Chrome yoksa kendini atlıyor,
+bu yüzden orada "ok" görmek her zaman turun koştuğu anlamına gelmez.
+9. kontrol uydurma
 parça listesinin geri gelmesini engelliyor ve kataloğa yeni bir grup
 eklendiğinde o grubun müşteri ekranından sessizce kaybolmasını
 yakalıyor. 11. kontrol bulduğunu SORUN SAYMIYOR: o ayarların bugün

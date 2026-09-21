@@ -23,7 +23,7 @@ personeli backoffice'ten yürütür.
 |---|---|
 | `src/` | **Bütün uygulama kodu.** Üç uygulama da buradan derleniyor. Alt klasörleri aşağıda. |
 | `veritabani/` | SQL Server veritabanının tasarımı ve kurulum betikleri. Henüz kalıcı olarak kurulmadı; ekosistem tamamlanınca kurulacak. |
-| `tools/` | Otomasyon betikleri: doğrulama, ekran görüntüsü, ikon üretimi, veritabanı araçları. Uygulamanın içine girmez. |
+| `tools/` | Otomasyon betikleri: doğrulama (`dogrula.mjs`), **ekosistem sınaması** (`ekosistem-sinamasi.mjs` üç uygulamanın paylaştığı veri katmanını 13 akış senaryosuyla, `ekosistem-turu.mjs` gezilebilir 49 ekranın tamamını tarayıcıda koşturur; envanter `ekosistem/ekranlar.mjs`), ekran görüntüsü, ikon üretimi, veritabanı araçları. Uygulamanın içine girmez. |
 | `sunucu-taklidi/` | Sunucu gelene kadar sunucunun yerini tutan dosyalar — bugün yalnız **yedek parça kataloğu** (538 parça, görselleriyle). Geliştirme sunucusu bunları ağdan yayınlıyor. |
 | `android/` | PAKSAN Connect'in Android projesi. Capacitor üretiyor. |
 | `android-servis/` | PAKSAN Servisim'in Android projesi. |
@@ -64,9 +64,10 @@ Her belgenin tek bir sorusu var.
 | `GELISTIRICI-BAGIMLILIGI.md` | Canlıya çıkıldığında hangi işler için geliştirici çağırmak gerekecek? Rol rol döküm ve bağımlılığı kaldırma sırası. |
 | `KOD-SISTEMI.md` | Ekosistemdeki numaralar (talep, sipariş, makine, hak ediş) nasıl üretiliyor, hedeflenen düzen ne? |
 | `MARKA-DEVIR.md` | Bu ürün başka bir firmaya nasıl kurulur? |
-| `CODEX-BEKLEYEN.md` | Ekrana çıkacak hangi Türkçe metinler henüz Codex'ten geçmedi? Sınır yenilenince topluca verilecek liste. |
+| `CODEX-BEKLEYEN.md` | Codex'in sınırı dolduğunda yazılan Türkçe metinler nasıl işaretlenip biriktirilir, sınır yenilenince nasıl topluca verilir? Kuyruk şu an boş. |
 | `VT-TASARIM-EKLERI.md` | Uygulamaya sonradan giren akışların veritabanında karşılığı ne olmalı? Tasarıma işlenmeyi bekliyor. |
 | `PLAN-COKLU-MARKA.md` | Globale ve Gallignani markaları eklenirse ne değişir? Marka verileri gelmeden uygulanmayacak. |
+| `DESTEK-EKRANI-PLANI.md` | Connect'in Destek ekranı nasıl yeniden kurulacak? **Askıda** — kılavuz verisi tamamlanmadan uygulanmayacak, gerekçesi belgenin başında. |
 | `veritabani/tasarim.md` | Veritabanının tamamı: tablolar, kurallar, gerekçeler. Veritabanı konusunda **asıl kaynak budur.** |
 
 ### Geçerliliğini yitirmiş — okunabilir, uygulanmaz
@@ -90,7 +91,7 @@ Her belgenin tek bir sorusu var.
 
 ```bash
 npm run dev              geliştirme sunucusu (üç uygulama da açılır)
-npm run dogrula          değişiklik sonrası 13 kontrol
+npm run dogrula          değişiklik sonrası 13 kontrol (ekosistem sınaması dahil)
 npm run build            PAKSAN Connect derlemesi
 npm run build:backoffice backoffice derlemesi
 npm run build:servis     PAKSAN Servisim derlemesi
