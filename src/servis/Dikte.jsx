@@ -26,8 +26,14 @@ import { IconMic, IconStop } from '../components/Icons'
      · Söylenen, kutudaki yazının SONUNA ekleniyor; var olan yazı
        silinmiyor (bkz. dikteMotoru.js → yaziyaEkle). Konuşma sürerken yazı
        kutuda akıyor; teknisyen bitince bakıp elle düzeltebiliyor.
-     · Sessizlik olunca kendiliğinden duruyor; aynı düğme "Durdur" olup
-       elle de durduruyor.
+     · DİNLEME KULLANICI DURDURANA KADAR SÜRÜYOR (18 Eylül 2026,
+       kullanıcının isteği: "en ufak ses kesilmesinde dikteyi kapatıyor;
+       dikteyi kullanıcı kendi kapatması gerekmez mi işi bittiğinde?").
+       İki cümle arasındaki duraklama dikteyi kapatmıyor; aynı düğme
+       "Durdur" olup elle durduruyor. Uzun sessizlikte güvenlik valfi
+       devreye giriyor (bkz. dikteMotoru.js → SESSIZ_SINIR_MS).
+       Bu yüzden `onSonuc` bir oturumda birden çok kez geliyor ve her
+       cümle yazının sonuna ekleniyor.
      · Mikrofon izni ilk kullanımda, telefon sormadan önce ne işe
        yaradığı söylenerek isteniyor (bildirim izniyle aynı kalıp).
      · İzin yoksa, internet yoksa ya da söylenen anlaşılamadıysa uyarı
