@@ -22,7 +22,7 @@
      5. Marka sınırı     — motor marka klasörüne yalnız kapıdan bakıyor mu
      6. Marka adı        — firma adı motor kodunda düz yazıyla geçiyor mu
      7. Bayi kalıntısı   — servis uygulamasında bayi kelimesi kalmış mı
-     8. Birim sınamaları — tools/ altındaki dört sınama betiği
+     8. Sınamalar — tools/ altındaki altı sınama betiği
      9. Yedek parça      — katalog tutarlı mı, uydurma fiyat geri geldi mi
     10. Sürüm numarası   — Connect'in üç yeri tutuyor mu, Servisim ayrı mı
     11. Yayın anahtarları — geliştirme ayarı APK'ya gidiyor mu (saymıyor)
@@ -33,7 +33,7 @@
    4. kontrol yalnız dist/ varsa çalışır; yoksa atlanır.
    13. kontrol yalnız veritabani/ klasörü varsa çalışır; yoksa atlanır.
 
-   8. kontrol tek tek çalıştırılan dört betiği bir araya getiriyor. Ayrı
+   8. kontrol tek tek çalıştırılan betikleri bir araya getiriyor. Ayrı
    dururken unutuluyorlardı: `bolge-testi.mjs` marka klasörü taşınırken
    kırıldı ve haftalarca kırık kaldı, çünkü hiçbir komut onu
    çağırmıyordu. `destek-dogrula.mjs` aynı şeyi yaşadı: veri paketi
@@ -486,16 +486,22 @@ if (!kalintilar.length) {
   for (const x of kalintilar) bildir(`bayi kalıntısı: ${x}`)
 }
 
-/* ------------------------------------------------ 8. Birim sınamaları
+/* ------------------------------------------------------ 8. Sınamalar
 
-   Üç betik ayrı ayrı çalıştırılıyordu ve unutuluyorlardı. Şimdi
-   `npm run dogrula` üçünü de çağırıyor; biri düşerse bütün doğrulama
-   düşüyor.
+   Betikler ayrı ayrı çalıştırılıyordu ve unutuluyorlardı. Şimdi
+   `npm run dogrula` hepsini çağırıyor; biri düşerse bütün doğrulama
+   düşüyor. Kural tek cümle: BİR SINAMA ÇAĞRILMIYORSA YOKTUR.
 
    Ayrı süreçte çalıştırılıyorlar: her biri kendi başına da
-   çalıştırılabilsin ve biri çökerse ötekiler etkilenmesin. */
+   çalıştırılabilsin ve biri çökerse ötekiler etkilenmesin.
 
-baslik('8. Birim sınamaları')
+   Son ikisi ötekilerden farklı. Dördü metin okuyor; `ekosistem-sinamasi`
+   üç uygulamanın paylaştığı veri katmanını gerçekten ÇALIŞTIRIYOR ve bu
+   yüzden daha yavaş (Vite ile modülleri yüklüyor, ~10 sn). Yavaşlığı
+   karşılığında aldığı şey şu: bir uygulamanın ötekinin okuyamayacağı bir
+   kayıt yazdığını başka hiçbir kontrol göremiyor. */
+
+baslik('8. Sınamalar')
 
 const { spawnSync } = await import('node:child_process')
 
@@ -508,6 +514,19 @@ const SINAMALAR = [
      2026'da girdi — dosya taşınınca kırılmış, çağıran komut olmadığı
      için haftalarca kırık kalmıştı. */
   ['destek-dogrula.mjs', 'destek veri paketi'],
+  /* Ötekilerden farklı: bu metin okumuyor, üç uygulamanın PAYLAŞTIĞI
+     veri katmanını gerçekten çalıştırıyor. Talep açılıyor, servise
+     düşüyor, servis kaydı gidiyor, hak ediş doğuyor, cariye alacak
+     yazılıyor. Bir uygulamanın ötekinin okuyamayacağı bir kayıt
+     yazdığını ancak zinciri yürüten görür. Ayrıntısı betiğin başında;
+     her senaryonun taşıdığı, bilerek bozularak gösterildi. */
+  ['ekosistem-sinamasi.mjs', 'ekosistem akışları'],
+  /* Ekran tarafı. Geliştirme sunucusu ya da Chrome yoksa kendini
+     `atlandı` deyip 0 ile bitiriyor — bu yüzden etiketi "sunucu varsa"
+     diyor: burada "ok" görmek her zaman turun koştuğu anlamına gelmez.
+     Koştuğundan emin olmak için doğrudan çalıştırın:
+     node tools/ekosistem-turu.mjs */
+  ['ekosistem-turu.mjs', 'ekosistem ekran turu (sunucu varsa)'],
 ]
 
 for (const [dosya, ad] of SINAMALAR) {

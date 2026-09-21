@@ -3,20 +3,12 @@ import { load, save, remove, uid, oturumYukle, oturumKaydet, oturumSil } from '.
 import { telAnahtar } from '../lib/tel'
 import { yeniNo } from '../lib/numara'
 import { uygulamaKaydi } from '../lib/kayit'
-import { talepNo } from '../lib/talep'
 import { sunucuyaGonder } from '../lib/sunucu'
-import { ihracatPostasi, talepUlkesi, yurtdisiTalepMi } from '../lib/ihracat'
-import { makineninServisi } from '../lib/servisAtama'
+import { ihracatPostasi } from '../lib/ihracat'
+import { talepKaydiOlustur } from '../lib/talepOlustur'
 import { SUNUCU } from '../config'
 import { cihazDili, DilSaglayici } from '../i18n'
 
-/* Talep türü hangi servis hizmetini gerektiriyor.
-
-   FİYAT TEKLİFİ BURADA YOK VE OLMAYACAK. Makineyi satan taraf bayi;
-   servis satış yapmıyor. Fiyat teklifi talebi hiçbir servise
-   atanmıyor: PAKSAN'a düşüyor, satış personeli müşteriye en uygun
-   bayiye atıyor (bkz. backoffice/ekranlar/Talepler.jsx → BayiyeAta).
-   Listede karşılığı olmayan tür atanmadan geçiyor. */
 const Ctx = createContext(null)
 
 export function useApp() {
@@ -265,56 +257,13 @@ export function AppProvider({ children }) {
      denesin. */
   const addRequest = useCallback(
     async (data) => {
-      /* Yurtdışı talebi ayrı yoldan gidiyor: backoffice’e düşmüyor, ihracat
-         ekibinin e-postasına gidiyor (bkz. src/lib/ihracat.js). Karar
-         BURADA veriliyor ki her talep ekranı aynı davransın. */
-      const ihracat = yurtdisiTalepMi(user)
-
-      /* Talep MÜŞTERİNİN KENDİ SERVİSİNE düşüyor — coğrafyaya değil.
-
-         Servis, makineden bayiye, bayiden servise giden zincirden
-         çıkıyor (bkz. lib/servisAtama.js). Bir zamanlar burada il ve
-         ilçeye bakıp en yakın servis seçiliyordu; o yol bırakıldı.
-         Servis hak edişini PAKSAN'dan alıyor ve PAKSAN kime iş
-         verdiğini bilmek zorunda; "en yakın" bir kayıt değil, tahmin.
-
-         Servis talebi zaten servis atanmadan açılamıyor (form o kapıyı
-         tutuyor).
-
-         YEDEK PARÇA TALEBİ SERVİSE DÜŞMÜYOR. Tedarikçi PAKSAN: müşteri
-         parayı dekontla PAKSAN'a ödüyor, parçayı PAKSAN gönderiyor.
-         Bir dönem makineye bakan servis "parça hizmeti" veriyorsa talep
-         ona gidiyordu. Servis parçayı kendi elinden gönderiyor, parası
-         PAKSAN'da kalıyordu ve servise karşılığı hiçbir yere
-         yazılmıyordu. Elle atanmış servis parça hizmeti vermese de
-         talebi alıyordu. Servisin parça ihtiyacı kendi siparişiyle
-         (Parça sekmesi) ya da servis kaydının içinden karşılanıyor.
-
-         Yurtdışı talebi ve fiyat teklifi de düşmüyor: servis ağı
-         Türkiye içinde, teklif satışın işi.
-
-         SERVİS, TALEBİN AÇILDIĞI MAKİNEDEN ÇIKIYOR. Bir zamanlar
-         müşterinin İLK makinesinin servisi yazılıyordu; iki ayrı
-         bayiden makine almış müşteri B makinesi için talep açınca iş
-         A makinesinin servisine düşüyordu. Yanlış servis tanımadığı
-         bir işi görüyor, doğru servis hiç görmüyor. */
-      const makineServisi =
-        ihracat || data.tur !== 'servis' ? null : makineninServisi(data.makine)
-      const servis = makineServisi?.servis || null
-
-      const r = {
-        id: uid(),
-        no: talepNo(data.tur),
-        createdAt: Date.now(),
-        status: 'yeni',
-        ulke: talepUlkesi(user),
-        ihracat,
-        servis: servis
-          ? { id: servis.id, ad: servis.ad, tel: servis.tel || '', tarih: Date.now() }
-          : null,
-        sahip: servis ? 'servis' : 'paksan',
-        ...data,
-      }
+      /* Kaydın kendisi src/lib/talepOlustur.js'te kuruluyor: ihracat mı,
+         hangi ülkeye ait, hangi servise düşecek, sahibi kim. Gerekçeleri
+         orada yazılı. O karar bu bileşenin içinde dururken uygulama
+         dışından çalıştırılamıyordu, yani sınanamıyordu. Burada yalnız
+         gönderim, yazım ve işlem kaydı kaldı. */
+      const r = talepKaydiOlustur(data, user)
+      const ihracat = r.ihracat
 
       const cevap = ihracat
         ? await sunucuyaGonder(SUNUCU.ihracatEndpoint, {
