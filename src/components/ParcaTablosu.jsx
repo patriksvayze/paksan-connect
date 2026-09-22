@@ -28,7 +28,21 @@
    TABLO DEĞİL IZGARA. `<table>` telefonda parça adını kırpıyor ya da
    yatay kaydırma açıyordu. Izgarada ad sütunu sarıyor, kod ve adet
    sabit kalıyor.
+
+   GÖRSEL SÜTUNU (22 Eylül 2026, kullanıcının isteği): satırın başında
+   parçanın küçük resmi (bkz. ParcaResmi.jsx). Servisim'in Hak Ediş
+   yaprağı bunun için ayrı bir görselli liste taşıyordu; o liste bu
+   bileşene katıldı, parça her ekranda aynı biçimde görünüyor.
+
+   DAR KUTUDA KOD ADIN ÜSTÜNE ÇIKIYOR. Resim, kod, ad ve adet yan yana
+   telefonda ada yer bırakmıyordu. Kutu dar olduğunda (Servisim, kargo
+   penceresi) kod ile ad aynı hücrede alt alta duruyor; geniş panelde
+   dört sütun. Karar kutunun genişliğine göre, ekranınkine göre değil:
+   backoffice'in dar penceresi de telefon gibi davranıyor
+   (bkz. backoffice.css → .parca-tablo).
    ========================================================================== */
+
+import { ParcaResmi, useParcaKatalogu } from './ParcaResmi'
 
 /**
  * @param {{parcalar: Array<{kod?: string, ad: string, adet: number}>, baslik?: boolean}} p
@@ -36,19 +50,25 @@
  */
 export function ParcaTablosu({ parcalar = [], baslik = true }) {
   const liste = parcalar.filter((p) => p?.ad && Number(p.adet) > 0)
+  /* Katalog yalnız görseli kayıtta yazmayan (eski) satır için iniyor. */
+  const katalog = useParcaKatalogu(liste.some((p) => p.kod && p.gorsel === undefined))
   if (!liste.length) return null
 
   return (
     <div className="parca-tablo" role="table">
       {baslik && (
         <div className="parca-tablo__baslik" role="row">
-          <span role="columnheader">Parça kodu</span>
-          <span role="columnheader">Parça adı</span>
-          <span role="columnheader">Adet</span>
+          <span className="parca-tablo__resim" role="columnheader" />
+          <span className="parca-tablo__kod" role="columnheader">Parça kodu</span>
+          <span className="parca-tablo__ad" role="columnheader">Parça adı</span>
+          <span className="parca-tablo__adet" role="columnheader">Adet</span>
         </div>
       )}
       {liste.map((p, i) => (
         <div className="parca-tablo__satir" role="row" key={(p.kod || p.ad) + i}>
+          <span className="parca-tablo__resim" role="cell">
+            <ParcaResmi katalog={katalog} kod={p.kod} gorsel={p.gorsel} />
+          </span>
           <span className="parca-tablo__kod mono" role="cell">
             {p.kod || '—'}
           </span>

@@ -261,143 +261,627 @@
   text-align: center;
 }
 
-/* ------------------------------------------------------------ Gün özeti
-
-   Servis uygulamayı açtığında ilk sorusu "bugün ne var". Cevabı kartları
-   sayarak buluyordu. */
-
 /* ==========================================================================
-   Bugün
+   İşlerim (22 Eylül 2026, baştan)
 
-   Burada "1 iş sizi bekliyor" yazan bir sayaç vardı. Kaldırıldı;
-   gerekçesi ServisPanel.jsx içindeki `Bugun` bileşeninin başında.
+   Kod: servis/ekranlar/Islerim.jsx. Eski düzenin (lacivert "Bugün"
+   kutusu, pembe geri çağırma kartı, ListeKarti'yla çizilen iş kartı)
+   yedeği yedekler/servisim-islerim-22-eylul-2026/ klasöründe.
 
-   Kart lacivert kalıyor — ekranın en üstündeki tek koyu yüzey, göz
-   oraya ilk gidiyor. Karanlık temada `--lacivert` sayfa zeminine çok
-   yaklaştığı için (ölçülen ayrım 1,08) beyazın saydamıyla bir sınır
-   çiziliyor: aydınlıkta ince bir iç kenar, karanlıkta ayırıcı.
+   Üç parça, üçü de beyaz yüzey ve aynı köşe:
+
+     .plan    Randevular — yedi günlük şerit ve seçili günün randevuları
+     .acil    Geri çağırma / güvenlik uyarısı — tek satırlık şerit
+     .iskart  İş kartı — üstte ad, makine, arıza; dipte durum ve "Ara"
+
+   SEÇİLİ GÜN MAVİ, LACİVERT DEĞİL. `--lacivert` karanlık temada sayfa
+   zeminine çok yakın (#111c33 · #161f36); marka mavisi iki temada da
+   beyaz yazıyla okunuyor.
    ========================================================================== */
 
-.bugun {
-  padding: var(--bosluk-4);
+/* ------------------------------------------------------------ Randevular */
+
+.plan {
   margin-bottom: var(--bosluk-4);
-  /* Kart yarıçapı uygulamanın kendi değeri; `--r-3` (16px) genel
-     ölçü dosyasından geliyordu ve yanındaki kartlarla tutmuyordu. */
+  padding: var(--bosluk-4);
   border-radius: var(--r-kart);
-  background: var(--lacivert);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  color: #fff;
-
-  /* GECİKME RENGİ BURAYA ÖZEL.
-
-     `--turuncu-d` kullanılıyordu ve YANLIŞTI. O ton (#9b5208) kendi
-     soluk turuncu zemini için ölçülmüş bir rozet yazısı rengi;
-     lacivertin üstünde ölçülen kontrast 2,98 — eşik 4,5. Ekranda
-     okunur duruyordu ama tarlada güneş altında okunmuyor.
-
-     Bu ton aynı zeminde 8,73 veriyor. Değer yerel bir belirteç:
-     iki CSS kökünün paylaştığı bir renk değil, yalnız bu koyu
-     kartın içinde geçerli. */
-  --bugun-uyari: #f2a94b;
+  background: var(--yuzey);
+  box-shadow: var(--sh-2);
 }
 
-.bugun__ust {
+.plan__ust {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--bosluk-3);
+  margin-bottom: var(--bosluk-3);
+}
+
+.plan__baslik {
+  display: inline-flex;
   align-items: center;
   gap: var(--bosluk-2);
-  font-size: var(--yazi-3);
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--murekkep);
 }
 
-.bugun__tarih {
-  margin-left: auto;
-  font-size: var(--yazi-2);
-  color: rgba(255, 255, 255, 0.72);
+.plan__baslik svg {
+  color: var(--mavi-rz);
 }
 
-.bugun__liste {
-  margin-top: var(--bosluk-3);
+.plan__toplam {
+  font-size: var(--y-alt);
+  font-weight: 600;
+  color: var(--murekkep-3);
+  white-space: nowrap;
 }
 
-/* Randevu satırı. Sıra soldan sağa servisin sorduğu sırayla: ne zaman,
-   kim, nerede. Satırın tamamı dokunma hedefi. */
-.bugun__satir {
+/* DOKUNMA ALANI SÜTUNUN TAMAMI (QA ölçümü): kutular arasında 6
+   piksel boşluk bırakılınca düğme 390 pikselde 41, 320 pikselde 31
+   piksel eniyordu — 48 hedefinin altı. Artık düğme sütunun tamamını
+   kaplıyor, görünen kutu `::before` ile içeride çiziliyor; şerit de
+   kartın iç boşluğuna 8 piksel taşıyor. 390'da 49, 360'ta 45. */
+.plan__serit {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  margin: 0 calc(var(--bosluk-2) * -1);
+}
+
+.plan__gun {
+  position: relative;
+  isolation: isolate;
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 66px;
+  padding: 8px 0 7px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--murekkep);
+  font: inherit;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.plan__gun::before {
+  content: '';
+  position: absolute;
+  inset: 0 3px;
+  z-index: -1;
+  border-radius: var(--r-sm);
+  background: var(--yuzey-2);
+  transition: background 0.15s ease;
+}
+
+.plan__gun:active {
+  transform: scale(0.96);
+}
+
+.plan__gun-ad {
+  font-size: var(--y-mini);
+  font-weight: 600;
+  color: var(--murekkep-3);
+}
+
+.plan__gun-no {
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Bugün: rakam mavi — seçili değilken de "neredeyim" belli. */
+.plan__gun--bugun .plan__gun-no {
+  color: var(--mavi-rz);
+}
+
+.plan__nokta {
+  width: 6px;
+  height: 6px;
+  margin-top: 3px;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.plan__nokta--var {
+  background: var(--turuncu-dugme);
+}
+
+.plan__nokta--gec {
+  background: var(--kirmizi);
+}
+
+.plan__gun--secili {
+  color: #fff;
+}
+
+.plan__gun--secili::before {
+  background: var(--mavi);
+  box-shadow: var(--sh-mavi);
+}
+
+.plan__gun--secili .plan__gun-ad,
+.plan__gun--secili .plan__gun-no {
+  color: #fff;
+}
+
+.plan__gun--secili .plan__nokta--var {
+  background: #fff;
+}
+
+.plan__gun-etiket {
+  margin: var(--bosluk-4) 0 var(--bosluk-1);
+  font-size: var(--y-alt);
+  font-weight: 700;
+  color: var(--murekkep-2);
+}
+
+.plan__liste {
+  display: flex;
+  flex-direction: column;
+}
+
+.plan__satir {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--bosluk-3);
-  width: 100%;
-  min-height: var(--dokunma);
-  padding: var(--bosluk-2) 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  color: inherit;
+  min-height: 60px;
+  padding: 10px 0;
+  border: 0;
+  border-bottom: 1px solid var(--cizgi);
+  background: none;
+  color: var(--murekkep);
   font: inherit;
   text-align: left;
+  cursor: pointer;
 }
 
-.bugun__saat {
-  flex: none;
-  min-width: 62px;
-  font-size: var(--yazi-2);
+.plan__satir:last-child {
+  border-bottom: 0;
+}
+
+.plan__satir > svg {
+  color: var(--murekkep-3);
+}
+
+.plan__saat {
+  display: flex;
+  flex-direction: column;
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--mavi-rz);
+  font-variant-numeric: tabular-nums;
+}
+
+.plan__satir--gec .plan__saat {
+  color: var(--kirmizi);
+  font-size: 15px;
+}
+
+.plan__gecti {
+  margin-top: 2px;
+  font-size: var(--y-mini);
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.9);
 }
 
-/* Tarihi geçmiş randevu turuncu: servis o gün gitmemiş ve gitmeli.
-   Ton `.bugun` içinde tanımlı; gerekçesi orada yazılı. */
-.bugun__satir--gec .bugun__saat {
-  color: var(--bugun-uyari);
-}
-
-.bugun__ad {
-  flex: 1;
+/* Saatin yanındaki ince çizgi: satırlar bir zaman çizelgesi gibi okunuyor. */
+.plan__govde {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   min-width: 0;
-  font-size: var(--yazi-3);
+  padding-left: var(--bosluk-3);
+  border-left: 2px solid var(--mavi-soft-2);
+}
+
+.plan__satir--gec .plan__govde {
+  border-left-color: var(--kirmizi);
+}
+
+.plan__ad {
+  font-size: var(--y-govde);
   font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.bugun__yer {
-  flex: none;
-  font-size: var(--yazi-2);
-  color: rgba(255, 255, 255, 0.72);
+.plan__alt {
+  font-size: var(--y-alt);
+  color: var(--murekkep-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.bugun__bos {
+.plan__bos {
   margin: var(--bosluk-2) 0 0;
-  font-size: var(--yazi-3);
-  line-height: 1.55;
-  color: rgba(255, 255, 255, 0.82);
+  padding: var(--bosluk-3) 0 var(--bosluk-1);
+  font-size: var(--y-alt);
+  color: var(--murekkep-2);
 }
 
-/* Sayılar altta ve küçük: randevu somut bir plan, bunlar hatırlatma.
-   Aynı ağırlıkta durmamaları gerekiyor.
+.plan__uyari {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  margin-top: var(--bosluk-3);
+  padding-top: var(--bosluk-3);
+  border-top: 1px solid var(--cizgi);
+  font-size: var(--y-alt);
+  font-weight: 700;
+  color: var(--kirmizi);
+}
 
-   ÖNCE DOLU ROZETLERDİ VE İKİSİ KIRMIZIYDI. Yan yana dizilip üç satıra
-   sarıyor, bloğun yarısını kaplıyordu; randevuların kendisinden daha
-   çok yer tutan bir hatırlatma listesi. Üstelik "geciken iş" demo
-   verisinde neredeyse her kartta çıkıyor — her şey kırmızıysa hiçbir
-   şey kırmızı değildir.
+/* ------------------------------------------------------------ Acil şerit */
 
-   Şimdi alt alta sönük satırlar, üstlerinde ince bir ayırıcı. Renk
-   yalnız gecikmiş işte; o da dolgu değil, yazı rengi. */
-.bugun__sayilar {
+.acil {
+  --acil-renk: var(--kirmizi);
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  width: 100%;
+  margin-bottom: var(--bosluk-3);
+  padding: 12px 14px 12px 16px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: var(--yuzey);
+  /* Sol şerit gölgeyle çiziliyor: tek taraflı kenar yuvarlak köşede
+     kıvrılıyor. */
+  box-shadow: inset 4px 0 0 var(--acil-renk), var(--sh-1);
+  color: var(--murekkep);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.acil--kampanya { --acil-renk: var(--turuncu-d); }
+.acil--yeniUrun { --acil-renk: var(--mavi-rz); }
+.acil--etkinlik { --acil-renk: var(--mor); }
+.acil--guvenlik,
+.acil--geriCagirma { --acil-renk: var(--kirmizi); }
+
+.acil__ikon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--yuzey-2);
+  color: var(--acil-renk);
+}
+
+.acil__govde {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.acil__tur {
+  font-size: var(--y-mini);
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--acil-renk);
+}
+
+.acil__baslik {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.acil__oku {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--mavi-rz);
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------- İş sekmeleri
+
+   Yeni · Devam Eden · Tamamlanan (22 Eylül 2026). Beyaz kapsülün içinde
+   üç eşit sekme; seçili olan marka mavisi — planlayıcıdaki seçili günle
+   aynı dil. Yeni işi olan "Yeni" sekmesinin adedi turuncu: servisin
+   sabah ilk bakacağı yer.
+
+   KAYDIRINCA ÜSTE YAPIŞIYOR, üst çubuğun hemen altına. Arkası sayfa
+   zemini rengiyle dolu: altından geçen kartlar sekmelerin arasından
+   görünmesin. */
+.is-sekmeler {
+  position: sticky;
+  top: calc(60px + var(--ust)); /* üst çubuğun yüksekliği (ölçüldü: 60) */
+  z-index: 15;
+  /* ÜÇ SEKME EŞİT GENİŞLİKTE (22 Eylül 2026, kullanıcının isteği). İlk
+     sürümde genişlik yazıya göre paylaşılıyordu, çünkü eşit bölününce
+     390 pikselde "Devam Eden" ve "Tamamlanan" kesiliyordu. Artık adet
+     yazının yanında değil altında: yazı sekmenin bütün genişliğini
+     kullanıyor ve 320–430 piksel arası hiçbir ad kesilmiyor (ölçüldü). */
+  display: flex;
+  gap: 2px;
+  margin: 0 calc(var(--bosluk-4) * -1) var(--bosluk-3);
+  padding: var(--bosluk-2) var(--bosluk-4);
+  background: var(--zemin);
+}
+
+/* Kapsül: sekmelerin arkasındaki beyaz yüzey. Ayrı bir sarmalayıcı
+   yerine gölgeli bir zemin katmanı — ızgara bozulmasın. */
+.is-sekmeler::before {
+  content: '';
+  position: absolute;
+  inset: var(--bosluk-2) var(--bosluk-4);
+  z-index: -1;
+  border-radius: var(--r-tam);
+  background: var(--yuzey);
+  box-shadow: var(--sh-1);
+}
+
+.is-sekme {
+  flex: 1 1 0;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 0;
+  min-height: 54px;
+  padding: 4px;
+  border: 0;
+  border-radius: var(--r-tam);
+  background: transparent;
+  color: var(--murekkep-2);
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 700;
+  line-height: 1.15;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.is-sekme:first-child {
+  margin-left: 4px;
+}
+
+.is-sekme:last-child {
+  margin-right: 4px;
+}
+
+.is-sekme__ad {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.is-sekme__sayi {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: var(--r-tam);
+  background: var(--yuzey-2);
+  color: var(--murekkep-2);
+  font-size: 11.5px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.is-sekme--yeni .is-sekme__sayi {
+  background: var(--turuncu-dugme);
+  color: #fff;
+}
+
+.is-sekme--on {
+  background: var(--mavi);
+  color: #fff;
+  box-shadow: var(--sh-mavi);
+}
+
+.is-sekme--on .is-sekme__sayi {
+  background: rgba(255, 255, 255, 0.24);
+  color: #fff;
+}
+
+/* Dar telefonlarda yazı bir boy küçülüyor ki eşit genişlikteki üç
+   sekmenin adı kesilmeden sığsın (360 ve 320 piksel ölçüldü). */
+@media (max-width: 370px) {
+  .is-sekme {
+    font-size: 13.5px;
+  }
+}
+
+@media (max-width: 340px) {
+  .is-sekme {
+    font-size: 12.5px;
+  }
+}
+
+/* Sekmenin boş hâli: küçük simge ve iki satır; kart gibi değil, sessiz. */
+.is-liste .bos--kucuk {
+  padding-top: var(--bosluk-5);
+}
+
+/* --------------------------------------------------------------- İş kartı */
+
+.iskart {
+  position: relative;
+  margin-bottom: var(--bosluk-3);
+  border-radius: var(--r-kart);
+  background: var(--yuzey);
+  box-shadow: var(--sh-1);
+  overflow: hidden;
+}
+
+/* Gecikme: sol kenarda kırmızı şerit (bkz. isDurumu.js). */
+.iskart--gec::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--kirmizi);
+}
+
+.iskart__ac {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  margin-top: var(--bosluk-3);
-  padding-top: var(--bosluk-3);
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  width: 100%;
+  padding: var(--bosluk-4) var(--bosluk-4) var(--bosluk-3);
+  border: 0;
+  background: none;
+  color: var(--murekkep);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
-.bugun__rozet {
-  font-size: var(--yazi-2);
-  color: rgba(255, 255, 255, 0.78);
+.iskart__ac:active {
+  background: var(--yuzey-2);
 }
 
-.bugun__rozet--gec {
+.iskart__bas {
+  display: flex;
+  align-items: baseline;
+  gap: var(--bosluk-3);
+}
+
+.iskart__ad {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--y-kart);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.iskart__zaman {
+  flex: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--murekkep-3);
+}
+
+.iskart__zaman--gec {
+  color: var(--kirmizi);
   font-weight: 700;
-  color: var(--bugun-uyari);
+}
+
+.iskart__makine,
+.iskart__ozet {
+  font-size: var(--y-alt);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.iskart__makine {
+  color: var(--murekkep-2);
+}
+
+.iskart__ozet {
+  margin-top: 2px;
+  color: var(--murekkep);
+}
+
+.iskart__uyari {
+  margin-top: 2px;
+  font-size: var(--y-alt);
+  font-weight: 700;
+  color: var(--kirmizi);
+}
+
+.iskart__dip {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  padding: 10px var(--bosluk-4) 12px;
+  border-top: 1px solid var(--cizgi);
+}
+
+.iskart__etiketler {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.iskart__etiket {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: var(--r-tam);
+  background: var(--yuzey-2);
+  color: var(--murekkep-2);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.iskart__etiket--randevu {
+  background: var(--mavi-soft);
+  color: var(--mavi-rz);
+}
+
+.iskart__etiket--parca {
+  background: var(--turuncu-soft);
+  color: var(--turuncu-yazi);
+}
+
+/* `--turuncu-yazi` açık zemin için ölçülmüş; karanlıkta 1,75:1 kalıyordu
+   (QA ölçümü). Bakiye simgesindeki düzeltmenin aynısı. */
+[data-tema='koyu'] .uyg .iskart__etiket--parca {
+  color: var(--turuncu);
+}
+
+.iskart__etiket--tur {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--cizgi-koyu);
+}
+
+/* "Ara": yazılı düğme, simge tek başına değil (bkz. CLAUDE.md). Sağa
+   yaslı; etiket yoksa da sağda duruyor. */
+.iskart__ara {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--dokunma);
+  margin-left: auto;
+  padding: 0 18px;
+  border-radius: var(--r-tam);
+  background: var(--mavi-soft);
+  color: var(--mavi-rz);
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.iskart__ara:active {
+  background: var(--mavi-soft-2);
 }
 
 /* ---------------------------------------------------------- Bölüm başı */
@@ -4250,91 +4734,28 @@ button.hareket:active {
   color: var(--murekkep-2);
 }
 
-/* ------------------------------------------------ Görselli parça listesi
-   Hak Ediş yaprağında (bkz. ParcaGorselListesi.jsx). Satır: 72 piksellik
-   görsel, kod ve ad, sağda adet. */
-
-.parca-gorselli {
-  display: grid;
-  gap: var(--bosluk-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
+/* Parça görseli Servisim'de büyük: ekran telefonda, ayakta, çoğu zaman
+   güneşte okunuyor ve usta parçayı resminden tanıyor. Hak Ediş
+   yaprağının görselli listesi 72 pikseldi; ortak tabloya katılınca
+   (bkz. components/ParcaTablosu.jsx) 64 piksel oldu: tablo artık
+   talep ve onay ekranlarında da var ve 360 piksellik ekranda koda ve
+   ada yer bırakması gerekiyor. */
+.uyg .parca-tablo {
+  --parca-resmi: 64px;
 }
 
-.parca-gorselli__satir {
-  display: grid;
-  grid-template-columns: 72px minmax(0, 1fr) auto;
+/* Sipariş kartındaki parça şeridi (bkz. Kabuk.jsx → ParcaSeridi). */
+.is__parcalar {
+  display: flex;
   align-items: center;
-  gap: var(--bosluk-3);
-  padding: var(--bosluk-2);
-  border: 1px solid var(--cizgi);
-  border-radius: var(--r-2);
+  gap: 6px;
+  margin-top: var(--bosluk-2);
 }
 
-.parca-gorselli__resim {
-  display: grid;
-  place-items: center;
-  width: 72px;
-  height: 72px;
-  border-radius: var(--r-1);
-  background: #fff;
-  overflow: hidden;
-}
-
-.parca-gorselli__resim img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-/* Katalog yolda: boş, soluk kutu — "Görsel yok" yazısı bir an görünüp
-   kaybolmasın. */
-.parca-gorselli__resim--bekliyor {
-  background: var(--yuzey-2);
-}
-
-.parca-gorselli__resimsiz {
-  padding: 0 4px;
-  font-size: 11px;
-  line-height: 1.25;
-  text-align: center;
-  color: #5b6472;
-}
-
-.parca-gorselli__govde {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-}
-
-.parca-gorselli__kod {
+.is__parca-fazla {
   font-size: var(--y-alt);
+  font-weight: 700;
   color: var(--murekkep-2);
-}
-
-.parca-gorselli__ad {
-  font-weight: 600;
-  line-height: 1.3;
-  color: var(--murekkep);
-  overflow-wrap: anywhere;
-}
-
-.parca-gorselli__adet {
-  display: grid;
-  justify-items: end;
-  gap: 2px;
-  font-variant-numeric: tabular-nums;
-}
-
-.parca-gorselli__adet-ad {
-  font-size: var(--y-alt);
-  color: var(--murekkep-2);
-}
-
-.parca-gorselli__adet strong {
-  font-size: var(--y-govde);
-  color: var(--murekkep);
 }
 
 .onay .dg--ana {
@@ -4824,12 +5245,6 @@ button.hareket:active {
   box-shadow: inset 0 0 0 1px var(--cizgi-koyu);
 }
 
-/* Firma kartının altındaki açıklama: düzenle/sil düğmelerinin yerine
-   geçiyor, onların boşluğunu da o dolduruyor. */
-.adres-kart__not {
-  margin: var(--bosluk-3) 0 0;
-}
-
 /* Form alanlarını toplayan kart (Adres Ekle sayfası ve Elle Gir). */
 .uyg .adres-form {
   padding: var(--bosluk-4);
@@ -4852,64 +5267,117 @@ button.hareket:active {
   margin: 0 0 var(--bosluk-3);
 }
 
-/* ------------------------------------------------------- Defter kartı */
+/* ------------------------------------------------------- Defter listesi
 
-.adres-kart {
+   22 Eylül 2026'dan beri adres tek satır (bkz. ekranlar/Adreslerim.jsx
+   başı): önce her adres üç düğmeli bir kart, firma adresi de dört
+   satırlık açıklamalıydı. Ayrıntı ve düğmeler alttan açılan yaprakta. */
+
+.adres-liste {
   margin-bottom: var(--bosluk-3);
-  padding: var(--bosluk-4);
   border-radius: var(--r-kart);
   background: var(--yuzey);
   box-shadow: var(--sh-1);
+  overflow: hidden;
 }
 
-.adres-kart__ust {
+.adres-satir {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--bosluk-3);
+  width: 100%;
+  min-height: 64px;
+  padding: 10px var(--bosluk-4);
+  border: 0;
+  border-bottom: 1px solid var(--cizgi);
+  background: none;
+  color: var(--murekkep);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
-.adres-kart__bilgi {
+.adres-satir:last-child {
+  border-bottom: 0;
+}
+
+.adres-satir:active {
+  background: var(--yuzey-2);
+}
+
+.adres-satir > svg {
+  flex: none;
+  color: var(--murekkep-3);
+}
+
+.adres-satir__govde {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.adres-satir__bas {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-2);
   min-width: 0;
 }
 
-.adres-kart__bas {
+.adres-satir__ad {
+  min-width: 0;
+  font-size: var(--y-govde);
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.adres-satir__bas .adres-rozet {
+  flex: none;
+}
+
+.adres-satir__adres {
+  font-size: var(--y-alt);
+  color: var(--murekkep-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Yaprak: adresin tamamı, rozetler ve işler. */
+.adres-yaprak__rozetler {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: var(--bosluk-1) var(--bosluk-2);
-  min-height: 34px;
+  gap: var(--bosluk-2);
+  margin: var(--bosluk-1) 0 var(--bosluk-3);
 }
 
-.adres-kart__ad {
-  font-size: var(--y-kart);
-  font-weight: 700;
-  letter-spacing: -0.015em;
-  color: var(--murekkep);
-  overflow-wrap: anywhere;
+.adres-yaprak__rozetler:empty {
+  display: none;
 }
 
-.adres-kart__satir {
-  margin-top: 2px;
+.adres-yaprak__bilgi {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: var(--bosluk-4);
+  padding: var(--bosluk-3) var(--bosluk-4);
+  border-radius: var(--r-sm);
+  background: var(--yuzey-2);
   font-size: var(--y-alt);
   line-height: 1.45;
-  color: var(--murekkep-2);
-  overflow-wrap: anywhere;
+  color: var(--murekkep);
 }
 
-/* Düzenle ve Sil yan yana; "Varsayılan Yap" varsa üstlerinde tam
-   genişlik. Üçü tek satıra 375 piksellik telefonda sığmıyordu. */
-.adres-kart__islemler {
+.adres-yaprak__islemler {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--bosluk-2);
-  margin-top: var(--bosluk-4);
+  margin-top: var(--bosluk-2);
 }
 
-.uyg .adres-kart__islemler .dg {
+.uyg .adres-yaprak__islemler .dg {
   width: 100%;
-}
-
-.adres-kart__varsayilan {
-  grid-column: 1 / -1;
 }

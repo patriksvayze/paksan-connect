@@ -55,6 +55,47 @@ const M = {
   bolumExcel: "Bu Sekmeyi Excel'e Aktar",
 }
 
+/* ------------------------------------------- Dashboard ile ortak adımlar
+
+   Dashboard'un yönetim özeti bölümlerin kendi hesabını "Son 30 gün"
+   için çağırıyor (22 Eylül 2026): özet ayrı bir hesapla yazılsaydı
+   Dashboard ile rapor aynı ölçüye farklı rakam verebilirdi. Veri ve
+   bağlam bu yüzden tek yerde kuruluyor. */
+
+/** Raporların okuduğu bütün kayıtlar. */
+export function raporVerisiOku() {
+  return {
+    talepler: talepleriGetir(),
+    musteriler: musterileriGetir(),
+    personel: personelGetir(),
+    makineler: makineKayitlariGetir(),
+    /* Backoffice'te liste hiç değiştirilmemişse bu iki okuyucu null
+       dönüyor; asıl liste katalogda (marka kapısı). */
+    servisler: servisleriGetirBackoffice() || servisleriGetir(),
+    bayiler: bayileriGetirBackoffice() || bayileriGetir(),
+    cari: cariHareketleri(),
+    destekOturumlari: destekOturumlariGetir(),
+    islemKaydi: islemKaydiGetir(),
+  }
+}
+
+/** Bir bölümü verilen dönem için hesaplar. */
+export function bolumuHesapla(bolum, veri, aralik, { git, rol } = {}) {
+  const donemde = (z) => Number.isFinite(z) && araliktaMi(z, aralik)
+  const oncekide = (z) => Number.isFinite(z) && oncekiDonemdeMi(z, aralik)
+  return bolum.uret({
+    veri,
+    aralik,
+    donemde,
+    oncekide,
+    karsilastir: karsilastirilabilirMi(aralik),
+    donem: veri.talepler.filter((t) => donemde(t.createdAt)),
+    onceki: veri.talepler.filter((t) => oncekide(t.createdAt)),
+    git,
+    rol,
+  })
+}
+
 export function Raporlar({ rol, personel, surum, git, sorgu }) {
   const [bolumId, setBolumId] = useState(sorgu?.bolum || 'genel')
   const [aralik, setAralik] = useState({ ...BOS_ARALIK, tur: 'gun30' })
@@ -63,23 +104,7 @@ export function Raporlar({ rol, personel, surum, git, sorgu }) {
     if (sorgu?.bolum) setBolumId(sorgu.bolum)
   }, [sorgu])
 
-  const { veri, yukleniyor, hata } = useVeri(
-    () => ({
-      talepler: talepleriGetir(),
-      musteriler: musterileriGetir(),
-      personel: personelGetir(),
-      makineler: makineKayitlariGetir(),
-      /* Backoffice'te liste hiç değiştirilmemişse bu iki okuyucu null
-         dönüyor; asıl liste katalogda (marka kapısı). */
-      servisler: servisleriGetirBackoffice() || servisleriGetir(),
-      bayiler: bayileriGetirBackoffice() || bayileriGetir(),
-      cari: cariHareketleri(),
-      destekOturumlari: destekOturumlariGetir(),
-      islemKaydi: islemKaydiGetir(),
-    }),
-    [surum],
-    null,
-  )
+  const { veri, yukleniyor, hata } = useVeri(raporVerisiOku, [surum], null)
 
   const bolum = BOLUMLER.find((b) => b.id === bolumId) || BOLUMLER[0]
 
@@ -87,21 +112,8 @@ export function Raporlar({ rol, personel, surum, git, sorgu }) {
      tablo sıralaması ve sayfa geçişi hesabı tekrarlatmıyor. */
   const hesap = useMemo(() => {
     if (!veri) return null
-    const donemde = (z) => Number.isFinite(z) && araliktaMi(z, aralik)
-    const oncekide = (z) => Number.isFinite(z) && oncekiDonemdeMi(z, aralik)
-    const baglam = {
-      veri,
-      aralik,
-      donemde,
-      oncekide,
-      karsilastir: karsilastirilabilirMi(aralik),
-      donem: veri.talepler.filter((t) => donemde(t.createdAt)),
-      onceki: veri.talepler.filter((t) => oncekide(t.createdAt)),
-      git,
-      rol,
-    }
     try {
-      return { sonuc: bolum.uret(baglam) }
+      return { sonuc: bolumuHesapla(bolum, veri, aralik, { git, rol }) }
     } catch (e) {
       console.error('Rapor hesaplanamadı:', bolum.id, e)
       return { hata: e }

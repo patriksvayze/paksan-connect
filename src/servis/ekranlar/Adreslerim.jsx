@@ -11,7 +11,8 @@ import {
 } from '../adresler'
 import { ADRES_METNI, AdresFormu } from '../AdresSecici'
 import { Bolum, Onay } from '../Kabuk'
-import { IconPin, IconPlus, IconTrash } from '../../components/Icons'
+import { useGeri } from '../geri'
+import { IconPin, IconPlus, IconRight, IconTrash } from '../../components/Icons'
 
 /* ==========================================================================
    Hesap → Adreslerim
@@ -40,6 +41,15 @@ import { IconPin, IconPlus, IconTrash } from '../../components/Icons'
 
    METİNLER TEK NESNEDE: hepsi aşağıdaki METIN nesnesinde toplu.
    Codex'ten 19 Eylül 2026'da geçti.
+
+   LİSTE TEK SATIRLIK (22 Eylül 2026, kullanıcının isteği: "adresler
+   ekranda çok kalabalık yapıyor… çok yer kaplıyor"). Her adres bir
+   kart, altında üç düğmelik bir sıra ve firma adresinde dört satırlık
+   bir açıklamaydı; tek adresle bile ekranın yarısını tutuyordu. Artık
+   her adres tek satır: başlığı, varsayılan rozeti ve adresi tek satırda.
+   Satıra dokununca ayrıntı ve düğmeler (Varsayılan Yap, Düzenle, Sil)
+   alttan açılan yaprakta; firma adresinin açıklaması da orada. Gizli
+   etkileşim değil: satırın sağında ok var, dokunmak tek iş.
    ========================================================================== */
 const METIN = {
   bolum: 'Adreslerim',
@@ -64,6 +74,8 @@ export function Adreslerim({ oturum }) {
   /* null | { yeni: true } | { adres } */
   const [form, setForm] = useState(null)
   const [silinecek, setSilinecek] = useState(null)
+  /* Ayrıntısı alttan açılan adres. */
+  const [acik, setAcik] = useState(null)
 
   const oneri = useMemo(
     () => firmaAdresiOnerisi(servisleriGetir().find((s) => s.id === servisId) || null, oturum.ad),
@@ -96,60 +108,23 @@ export function Adreslerim({ oturum }) {
       ) : (
         <>
           <p className="alan__ipucu adres-bos">{METIN.ipucu}</p>
-          {liste.map((a) => (
-            <div key={a.id} className="adres-kart">
-              <div className="adres-kart__ust">
+          <div className="adres-liste">
+            {liste.map((a) => (
+              <button key={a.id} type="button" className="adres-satir" onClick={() => setAcik(a)}>
                 <span className="calisilan__ikon" aria-hidden="true">
                   <IconPin size={18} />
                 </span>
-                <div className="adres-kart__bilgi">
-                  <div className="adres-kart__bas">
-                    <span className="adres-kart__ad">{a.baslik}</span>
+                <span className="adres-satir__govde">
+                  <span className="adres-satir__bas">
+                    <span className="adres-satir__ad">{a.baslik}</span>
                     {a.varsayilan && <span className="adres-rozet">{ADRES_METNI.varsayilan}</span>}
-                    {a.firma && (
-                      <span className="adres-rozet adres-rozet--firma">
-                        {ADRES_METNI.firmaRozet}
-                      </span>
-                    )}
-                  </div>
-                  <div className="adres-kart__satir">
-                    {[a.alici, teslimatTelYaz(a.tel)].filter(Boolean).join(' · ')}
-                  </div>
-                  <div className="adres-kart__satir">{adresYazisi(a)}</div>
-                </div>
-              </div>
-
-              {/* Firma kartında yalnız "Varsayılan Yap" var; düzenleme ve
-                  silme PAKSAN'ın kaydına dokunurdu. Kart o zaman tek
-                  düğmeyle kalıyor, varsayılansa hiç düğmesiz — yerine
-                  kartın altında nedenini söyleyen satır çıkıyor. */}
-              {(!a.firma || !a.varsayilan) && (
-                <div className="adres-kart__islemler">
-                  {!a.varsayilan && (
-                    <button
-                      type="button"
-                      className="dg adres-kart__varsayilan"
-                      onClick={() => setListe(varsayilanYap(servisId, a.id))}
-                    >
-                      {METIN.varsayilanYap}
-                    </button>
-                  )}
-                  {!a.firma && (
-                    <>
-                      <button type="button" className="dg" onClick={() => setForm({ adres: a })}>
-                        {METIN.duzenle}
-                      </button>
-                      <button type="button" className="dg" onClick={() => setSilinecek(a)}>
-                        <IconTrash size={18} />
-                        {METIN.sil}
-                      </button>
-                    </>
-                  )}
-                </div>
-              )}
-              {a.firma && <p className="alan__ipucu adres-kart__not">{METIN.firmaNotu}</p>}
-            </div>
-          ))}
+                  </span>
+                  <span className="adres-satir__adres">{adresYazisi(a)}</span>
+                </span>
+                <IconRight size={18} />
+              </button>
+            ))}
+          </div>
         </>
       )}
 
@@ -178,6 +153,25 @@ export function Adreslerim({ oturum }) {
         />
       )}
 
+      {acik && (
+        <AdresYapragi
+          adres={acik}
+          onKapat={() => setAcik(null)}
+          onVarsayilan={() => {
+            setListe(varsayilanYap(servisId, acik.id))
+            setAcik(null)
+          }}
+          onDuzenle={() => {
+            setForm({ adres: acik })
+            setAcik(null)
+          }}
+          onSil={() => {
+            setSilinecek(acik)
+            setAcik(null)
+          }}
+        />
+      )}
+
       {silinecek && (
         <Onay
           baslik={METIN.silBaslik}
@@ -195,5 +189,49 @@ export function Adreslerim({ oturum }) {
         />
       )}
     </Bolum>
+  )
+}
+
+/* Adresin ayrıntısı ve işleri — onay yaprağıyla aynı yüzey, ekranın
+   dibinden açılıyor. Firma adresinde "Düzenle" ve "Sil" yok (kayıt
+   PAKSAN'ın, bkz. dosyanın başı); nedeni açıklamada yazıyor. Varsayılan
+   adreste "Varsayılan Yap" yok, rozet duruyor. */
+function AdresYapragi({ adres: a, onKapat, onVarsayilan, onDuzenle, onSil }) {
+  useGeri(true, () => onKapat())
+  return (
+    <div className="onay-perde" onClick={(e) => e.target === e.currentTarget && onKapat()}>
+      <div className="onay" role="dialog" aria-label={a.baslik}>
+        <h2 className="onay__baslik">{a.baslik}</h2>
+        <div className="adres-yaprak__rozetler">
+          {a.varsayilan && <span className="adres-rozet">{ADRES_METNI.varsayilan}</span>}
+          {a.firma && <span className="adres-rozet adres-rozet--firma">{ADRES_METNI.firmaRozet}</span>}
+        </div>
+        <div className="adres-yaprak__bilgi">
+          <div>{[a.alici, teslimatTelYaz(a.tel)].filter(Boolean).join(' · ')}</div>
+          <div>{adresYazisi(a)}</div>
+        </div>
+        {a.firma && <p className="onay__metin">{METIN.firmaNotu}</p>}
+
+        {!a.varsayilan && (
+          <button type="button" className="dg dg--ana dg--blok" onClick={onVarsayilan}>
+            {METIN.varsayilanYap}
+          </button>
+        )}
+        {!a.firma && (
+          <div className="adres-yaprak__islemler">
+            <button type="button" className="dg" onClick={onDuzenle}>
+              {METIN.duzenle}
+            </button>
+            <button type="button" className="dg" onClick={onSil}>
+              <IconTrash size={18} />
+              {METIN.sil}
+            </button>
+          </div>
+        )}
+        <button type="button" className="dg dg--blok onay__vazgec" onClick={onKapat}>
+          Kapat
+        </button>
+      </div>
+    </div>
   )
 }

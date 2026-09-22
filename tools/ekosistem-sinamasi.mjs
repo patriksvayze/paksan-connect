@@ -27,6 +27,7 @@
      AK-01  talepOlustur.js `sahip` sabitlenirse               düştü
      AK-01  veri.js:2312 `tur:'alacak'` → `'borc'`             düştü
      AK-02  servisAtama.js normalizeSerial → .trim()           düştü
+     AK-02  servisGruplari her makineyi ilk servise yazarsa     düştü
      AK-03  veri.js:2086 teslimat kapısı kaldırılırsa          düştü
      AK-04  talepOlustur.js tür kapısı kaldırılırsa            düştü
      AK-05  veri.js:1091 zincirden `tutarKdvli` çıkarılırsa    düştü
@@ -61,6 +62,12 @@
      AK-18  hesapsız makineye bildirim yazılırsa               düştü
      AK-18  bildirim makine ekranına yönlenmezse               düştü
      AK-18  bildirimler.js 'makine' türünü tanımazsa           düştü
+     AK-19  servisKaydi.js temizParcalar görseli düşürürse     düştü
+     AK-19  parcaKatalogu.js fiyatGoruntusu görsel yazmazsa    düştü
+     AK-19  talebinParcalari görüntüden görseli düşürürse      düştü
+     AK-20  eski kayıt bugünkü saat ücretiyle hesaplanırsa     düştü
+     AK-20  hakkedisDuzelt satıra süreyi yazmazsa              düştü
+     AK-20  saatOku virgüllü süreyi ("2,5") okumazsa           düştü
      ---    ortam.mjs'te depo taklidi kaldırılırsa    0. ADIM DURDURUR
 
    Son satır en önemlisi: src/lib/storage.js her hatayı yutup

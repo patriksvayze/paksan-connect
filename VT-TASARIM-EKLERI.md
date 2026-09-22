@@ -1,6 +1,6 @@
 # Uygulamadan gelen veritabanı tasarımı ekleri
 
-18 Eylül 2026'da uygulamaya iki yeni akış girdi (21 Eylül'de üçüncüsü eklendi). Hepsi bugün
+18 Eylül 2026'da uygulamaya iki yeni akış girdi (21 Eylül'de üçüncüsü, 22 Eylül'de dördüncüsü eklendi). Hepsi bugün
 tarayıcının hafızasında çalışıyor; sunucuya geçerken veritabanı
 tasarımına (`veritabani/tasarim.md`) aşağıdaki maddeler işlenmeli.
 
@@ -147,3 +147,40 @@ Uygulamada alan `talepTurleri` (dizi); tek türlü eski kayıtlar okunurken
   yazıyor; varsayılan rollerden biri birden çok tür alırsa üretim
   "veritabanında yeri yok" diye duruyor. Tablo gelince B03 satırları ona
   yazacak.
+
+## 4. Geçmiş işlemde parçanın görseli (22 Eylül 2026)
+
+Kullanıcının kararı: yedek parça kataloğu değişirse geçmiş işlemlerdeki
+parça kodu, adı ve **görseli** değişmemeli. Kod ve ad şemada zaten o
+günün hâliyle satıra yazılıyor (`talep.ParcaSatiri.ParcaAdi`,
+`talep.ZiyaretParcaSatiri.ParcaAdi`). Görsel için yer yok:
+`katalog.Parca.GorselVar` yalnız "görseli var mı" diyor ve sistem
+sürümlemesi resmin kendisini değil bu biti saklıyor.
+
+Uygulamada parça satırı o günkü görselin dosya adını taşıyor (`gorsel`;
+`src/lib/parcaKatalogu.js` → `fiyatGoruntusu`,
+`src/servis/ekranlar/ParcaSec.jsx`, `src/servis/ekranlar/SiparisVer.jsx`)
+ve ekranlar resmi bugünkü katalogtan değil oradan okuyor
+(`src/components/ParcaResmi.jsx`). Sınaması AK-19.
+
+- **Görsel dosyası değişmez olmalı.** Sunucu görseli hiçbir zaman
+  ezmiyor ve silmiyor: resmi değişen parçanın yeni resmi yeni adla
+  (`<kod>.<içerikten 8 hane>.webp`) yazılıyor, eski ad eski resmi
+  göstermeye devam ediyor (`sunucu-taklidi/fiyat-listesi-yayini.mjs`,
+  sınaması `tools/fiyat-listesi-okuma-sinamasi.mjs`). Gerçek sunucu da
+  bu kuralı uygulamalı; dosyalar nesne deposuna taşınırsa anahtarlar
+  yine değişmez olmalı.
+- **`katalog.FiyatListesiSatiri.GorselDosyasi nvarchar(260) NULL`:**
+  o listede parçanın gösterdiği dosya. Satırlar yalnız eklendiği için
+  her liste kendi resmini saklıyor.
+- **`talep.ParcaSatiri.GorselDosyasi` ve
+  `talep.ZiyaretParcaSatiri.GorselDosyasi nvarchar(260) NULL`:** satırın
+  yazıldığı günkü dosya. `NULL` iki anlama gelmemeli: sütun eklenmeden
+  önceki satırlar için ayrı bir işaret (ya da taşımada
+  `FiyatListesiSatiri`'ndan doldurma) düşünülmeli; uygulamada alan hiç
+  yoksa resim bugünkü katalogtan bulunuyor, `null` ise "o gün görseli
+  yoktu".
+- **Alternatif:** satır `FiyatListesiKodu` ile listenin satırına
+  bağlanırsa (`ParcaTalebiAyrinti.FiyatListesiKodu` zaten var) görsel
+  oradan okunabilir; ama servis kaydının satırı listeye bağlı değil ve
+  sipariş fiyatı servis fiyatı. Satıra yazmak iki yolu da kapatıyor.

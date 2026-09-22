@@ -14,7 +14,7 @@
    bulgudur — AK-10 tam onu arıyor.
    ========================================================================== */
 
-import { defter, depoTemizle, saat } from './ortam.mjs'
+import { defter, depoTemizle, modulYukle, saat } from './ortam.mjs'
 import {
   SERI,
   SERVIS,
@@ -62,7 +62,11 @@ function bitmisKayit(ek = {}) {
     yapilanIs: 'Ayar Yapıldı',
     parcalar: [],
     km: 40,
-    iscilik: 500,
+    /* İşçilik 22 Eylül 2026'dan beri süreyle yazılıyor; Servisim'in
+       yazdığı üç alan (bkz. lib/servisKaydi.js → iscilikAlanlari). */
+    iscilikSaat: 5,
+    saatUcreti: 50,
+    iscilik: 250,
     ariza: 'İp sürekli kopuyor',
     ...ek,
   }
@@ -136,7 +140,7 @@ export function AK01(m) {
 export function AK02(m) {
   const d = defter('AK-02', 'Servis atama zinciri')
   depoTemizle()
-  dunyaKur(m)
+  const { urunId, kisi, makineler } = dunyaKur(m)
 
   /* Üç dal. */
   const atanmis = m.servisAtama.makineninServisi(SERI.atanmis)
@@ -173,6 +177,32 @@ export function AK02(m) {
     const c = m.servisAtama.makineninServisi(y)
     d.bak(c?.servis?.id === SERVIS.id, `"${y}" aynı servise çıkıyor`, SERVIS.id, c?.servis?.id ?? null)
   }
+
+  /* MAKİNE BAŞINA SERVİS (22 Eylül 2026). Sınama müşterisinin üç makinesi
+     var: birine PAKSAN servis atamış, birine satan bayinin servisi
+     bakıyor, birinin servisi yok. Connect'in ana ekranı ve servis talebi
+     formu bu gruplamadan okuyor; önce yalnız İLK bulunan servis
+     gösteriliyordu ve ikinci servis ekranda hiç çıkmıyordu. */
+  const g = m.servisAtama.servisGruplari(makineler)
+  d.esit(g.gruplar.length, 2, 'iki makineye bakan iki servis, iki ayrı grup')
+  d.esit(
+    g.gruplar.map((x) => x.servis.id).join(','),
+    `${SERVIS.id},${BAYI_SERVISI}`,
+    'her grubun servisi o makinenin kendi servisi',
+  )
+  d.esit(
+    g.gruplar.map((x) => x.makineler.map((k) => k.id).join('+')).join(','),
+    'mk-atanmis,mk-bayili',
+    'her grup yalnız kendi makinesini taşıyor',
+  )
+  d.esit(g.atanmamis.map((k) => k.id).join(','), 'mk-sahipsiz', 'servisi olmayan makine ayrı listede')
+
+  /* İkinci makinenin talebi ikinci servise, servisi olmayanınki hiçbir
+     servise düşmüyor (Connect o makine için talebi göndermiyor). */
+  const ikinci = m.talepOlustur.talepKaydiOlustur(talepVerisi('servis', urunId, makineler[1]), kisi)
+  d.esit(ikinci.servis?.id, BAYI_SERVISI, 'ikinci makinenin talebi kendi servisine düşüyor')
+  const ucuncu = m.talepOlustur.talepKaydiOlustur(talepVerisi('servis', urunId, makineler[2]), kisi)
+  d.esit(ucuncu.servis, null, 'servisi olmayan makinenin talebine servis uydurulmuyor')
 
   return d
 }
@@ -1459,7 +1489,227 @@ export async function AK18(m, ctx) {
   return d
 }
 
+/* ========================================================== AK-19 */
+
+/* KATALOG DEĞİŞİNCE GEÇMİŞ İŞLEM DEĞİŞMİYOR.
+
+   KULLANICININ KARARI (22 Eylül 2026): "İleride yedek parça kataloğunun
+   değişmesi halinde geçmiş işlemlerdeki yedek parça kodları, isimleri
+   ve görselleri değişmemeli." Kod, ad ve tutar zaten kaydın içine o
+   günün hâliyle yazılıyordu; görsel ise ekranlarda bugünkü katalogtan
+   bulunuyordu. Artık parça satırı o günkü görselin dosya adını taşıyor
+   (lib/parcaKatalogu.js → fiyatGoruntusu, servis/ekranlar/ParcaSec.jsx)
+   ve sunucu o dosyayı ne eziyor ne siliyor
+   (sunucu-taklidi/fiyat-listesi-yayini.mjs; onu
+   tools/fiyat-listesi-okuma-sinamasi.mjs sınıyor).
+
+   Bu senaryo üç yolu koşturuyor — Connect'in parça talebi, Servisim'in
+   servis kaydı, Servisim'in parça siparişi — ve kayıt yazıldıktan sonra
+   liste değişince okuyan işlevlerin (talebinParcalari, temizParcalar)
+   o günkü kodu, adı ve görseli vermeye devam ettiğini doğruluyor. Asıl
+   yakaladığı şey, bu alanı yolda düşüren bir değişiklik: görsel
+   satırdan düşerse ekran bugünkü katalogtaki resme döner. */
+export async function AK19(m) {
+  const d = defter('AK-19', 'Katalog değişince geçmiş işlem değişmiyor')
+  depoTemizle()
+  const { urunId, kisi, makineler } = dunyaKur(m)
+  const pk = await modulYukle('/src/lib/parcaKatalogu.js')
+
+  const TEMMUZ = {
+    surum: 1,
+    kaynak: 'temmuz.pdf',
+    parcalar: [
+      { kod: 'PRC-1', ad: 'Rulman', fiyat: 100, grup: 'g', gorsel: 'PRC-1.webp' },
+      { kod: 'PRC-2', ad: 'Kayış', fiyat: 50, grup: 'g', gorsel: null },
+    ],
+  }
+  /* Yeni liste: aynı kodlar; ad, fiyat ve resim değişti, resmi
+     olmayan parçaya resim geldi. */
+  const EKIM = {
+    surum: 2,
+    kaynak: 'ekim.pdf',
+    parcalar: [
+      { kod: 'PRC-1', ad: 'Rulman 6204', fiyat: 180, grup: 'g', gorsel: 'PRC-1.1a2b3c4d.webp' },
+      { kod: 'PRC-2', ad: 'Kayış A42', fiyat: 70, grup: 'g', gorsel: 'PRC-2.webp' },
+    ],
+  }
+  const secim = [{ kod: 'PRC-1', adet: 2 }, { kod: 'PRC-2', adet: 1 }]
+
+  /* 1 · Connect: müşteri Temmuz listesinden parça istiyor. */
+  const talep = talebiYaz(
+    m,
+    m.talepOlustur.talepKaydiOlustur(
+      talepVerisi('parca', urunId, makineler[0], {
+        parcalar: ['Rulman', 'Kayış'],
+        parcaFiyat: pk.fiyatGoruntusu(TEMMUZ, secim),
+      }),
+      kisi,
+    ),
+  )
+
+  /* 2 · Servisim: servis kaydında Temmuz listesinden iki parça
+     (ParcaSec.jsx → bitir()'in yazdığı satır biçimi). */
+  const servisTalebi = talebiYaz(
+    m,
+    m.talepOlustur.talepKaydiOlustur(talepVerisi('servis', urunId, makineler[0]), kisi),
+  )
+  const secilen = TEMMUZ.parcalar.map((p) => ({
+    kod: p.kod, ad: p.ad, fiyat: p.fiyat, gorsel: p.gorsel ?? null, adet: 1,
+  }))
+  const gonder = m.veri.servisKaydiGonder(servisTalebi, bitmisKayit({ parcalar: secilen }), SERVIS.ad)
+  d.esit(gonder?.hata, undefined, 'servis kaydı parçalarla kabul edildi')
+
+  /* 3 · Servisim: Temmuz listesinden parça siparişi
+     (SiparisVer.jsx'in kurduğu görüntü). */
+  const siparis = m.veri.servisParcaSiparisi({
+    servisId: SERVIS.id,
+    servisAd: SERVIS.ad,
+    servisNo: SERVIS.no,
+    servisTel: '3323450014',
+    il: SERVIS.il,
+    ilce: 'Selçuklu',
+    kalemler: [{ kod: 'PRC-1', ad: 'Rulman', adet: 1 }],
+    parcaFiyat: {
+      surum: 1,
+      kaynak: 'temmuz.pdf',
+      satirlar: [{ kod: 'PRC-1', ad: 'Rulman', gorsel: 'PRC-1.webp', adet: 1, birimFiyat: 80, tutar: 80 }],
+      araToplam: 80,
+      kdv: 16,
+      toplam: 96,
+      eksikFiyat: false,
+    },
+    not: '',
+    teslimat: { ...ADRES },
+    odeme: 'bakiye',
+  })
+  d.esit(siparis?.hata, undefined, 'parça siparişi kabul edildi')
+
+  /* 4 · Liste değişti. Yeni talep yeni listeyi alıyor — değişikliğin
+     gerçekten görünür olduğunu gösteren kontrol. */
+  const ekimGoruntusu = pk.fiyatGoruntusu(EKIM, secim)
+  d.esit(ekimGoruntusu.satirlar[0].gorsel, 'PRC-1.1a2b3c4d.webp', 'yeni talep yeni listenin görselini alıyor')
+  d.esit(ekimGoruntusu.satirlar[0].ad, 'Rulman 6204', 'yeni talep yeni listenin adını alıyor')
+
+  /* 5 · Geçmiş parça talebi: kod, ad, görsel, tutar o günkü. */
+  const t = m.servisKaydi.talebinParcalari(bul(m, talep.id))
+  d.esit(t[0]?.kod, 'PRC-1', 'parça talebinde kod o günkü')
+  d.esit(t[0]?.ad, 'Rulman', 'parça talebinde ad o günkü')
+  d.esit(t[0]?.gorsel, 'PRC-1.webp', 'parça talebinde görsel o günkü dosya')
+  d.esit(t[0]?.tutar, 200, 'parça talebinde tutar o günkü')
+  d.esit(t[1]?.gorsel, null, 'o gün görseli olmayan parçaya yeni listenin resmi taşınmadı')
+  d.esit(bul(m, talep.id)?.parcaFiyat?.surum, 1, 'görüntü hangi listeden alındığını söylüyor')
+
+  /* 6 · Geçmiş servis kaydı: backoffice'in kayıt kartı, Servisim'in
+     talep ekranı ve hak ediş yaprağı bu okumadan geçiyor. */
+  const k = m.servisKaydi.temizParcalar(bul(m, servisTalebi.id)?.servisKaydi?.parcalar)
+  d.esit(k.length, 2, 'servis kaydında iki parça')
+  d.esit(k[0]?.ad, 'Rulman', 'servis kaydında ad o günkü')
+  d.esit(k[0]?.gorsel, 'PRC-1.webp', 'servis kaydında görsel o günkü dosya')
+  d.esit(k[1]?.gorsel, null, 'servis kaydında görselsiz parça görselsiz kaldı')
+
+  /* 7 · Geçmiş parça siparişi: Servisim'in Parça sekmesi ve
+     backoffice'in talep detayı bu okumadan geçiyor. */
+  const s = m.servisKaydi.talebinParcalari(bul(m, siparis?.talep?.id || siparis?.id))
+  d.esit(s[0]?.gorsel, 'PRC-1.webp', 'parça siparişinde görsel o günkü dosya')
+  d.esit(s[0]?.ad, 'Rulman', 'parça siparişinde ad o günkü')
+
+  return d
+}
+
+/* ========================================================== AK-20 */
+
+/* İŞÇİLİK SÜREYLE HESAPLANIYOR.
+
+   KULLANICININ KARARI (22 Eylül 2026): "İşçilik tutarı yerine saat başı
+   ücret ile hesaplanacak bir hesaplama gelsin. Servis personeli talep
+   için harcadığı süreyi girecek, bu süre sabit bir çarpan ile
+   çarpılacak." Servisim süreyi, o günün saat ücretini ve tutarı kayda
+   yazıyor (lib/servisKaydi.js → iscilikAlanlari); hak ediş, cari ve
+   rapor tutarı okumaya devam ediyor.
+
+   Senaryonun taşıdığı dört şey:
+     1  hak ediş süre × ücretten doğuyor ve cariye o tutar yazılıyor
+     2  tarife sonradan değişse de gönderilmiş kaydın tutarı değişmiyor
+        (kayıt kendi ücretini taşıyor — AK-19'daki ilkenin parası)
+     3  PAKSAN süreyi düzeltince tutar yeniden hesaplanıyor, düzeltme
+        satırı eski ve yeni süreyi taşıyor, servise bildirim gidiyor
+     4  süresi olmayan ESKİ kayıt servisin yazdığı tutarla okunuyor */
+export function AK20(m) {
+  const d = defter('AK-20', 'İşçilik süreyle hesaplanıyor')
+  depoTemizle()
+  const { urunId, kisi, makineler } = dunyaKur(m)
+  const sk = m.servisKaydi
+  const ucret = sk.TARIFE.iscilikSaat
+
+  /* 1 · Servis 2,5 saat yazıyor. */
+  const r = talebiYaz(m, m.talepOlustur.talepKaydiOlustur(talepVerisi('servis', urunId, makineler[0]), kisi))
+  const kayit = bitmisKayit({ km: 10, iscilikSaat: undefined, saatUcreti: undefined, iscilik: undefined, ...sk.iscilikAlanlari('2,5') })
+  d.esit(kayit.iscilikSaat, 2.5, 'virgüllü süre sayıya çevrildi')
+  d.esit(kayit.saatUcreti, ucret, 'kayda bugünün saat ücreti yazıldı')
+  d.esit(sk.kaydiDogrula(kayit), null, 'süreli kayıt doğrulamadan geçiyor')
+
+  const sonuc = m.veri.servisKaydiGonder(r, kayit, SERVIS.ad)
+  d.esit(sonuc?.hata, undefined, 'kayıt hatasız kabul edildi')
+  const t1 = bul(m, r.id)
+  const beklenenIscilik = Math.round(2.5 * ucret)
+  d.esit(t1?.servisKaydi?.iscilikSaat, 2.5, 'depodaki kayıtta süre duruyor')
+  d.esit(t1?.servisKaydi?.saatUcreti, ucret, 'depodaki kayıtta ücret duruyor')
+  d.esit(t1?.hakkedis?.iscilik, beklenenIscilik, 'hak ediş işçiliği süre × ücret')
+  d.esit(t1?.hakkedis?.toplam, 10 * sk.TARIFE.yolKm + beklenenIscilik, 'hak ediş toplamı yol + işçilik')
+  d.dogru(
+    (t1?.hakkedis?.kalemler || []).some((k) => k.ad === 'İşçilik · 2,5 saat' && k.tutar === beklenenIscilik),
+    'kalem satırı süreyi yazıyor',
+  )
+
+  /* 2 · Tarife değişiyor; gönderilmiş kaydın tutarı değişmiyor. */
+  const eskiUcret = sk.TARIFE.iscilikSaat
+  sk.TARIFE.iscilikSaat = eskiUcret + 30
+  try {
+    d.esit(sk.hakkedisHesapla(bul(m, r.id).servisKaydi).iscilik, beklenenIscilik, 'tarife değişince eski kaydın işçiliği aynı')
+    d.esit(sk.iscilikAlanlari(1).saatUcreti, eskiUcret + 30, 'yeni kayıt yeni ücreti alıyor')
+  } finally {
+    sk.TARIFE.iscilikSaat = eskiUcret
+  }
+
+  /* 3 · PAKSAN süreyi 1 saate düzeltiyor. */
+  const t2 = bul(m, r.id)
+  const duz = m.veri.hakkedisDuzelt(
+    t2,
+    { ...t2.servisKaydi, ...sk.iscilikAlanlari(1, t2.servisKaydi.saatUcreti) },
+    'Süre fazla yazılmış',
+    'Sınama Yöneticisi',
+  )
+  d.esit(duz?.hata, undefined, 'düzeltme kabul edildi')
+  const t3 = bul(m, r.id)
+  d.esit(t3?.hakkedis?.iscilik, ucret, 'düzeltilen hak ediş yeni süreden')
+  d.esit(t3?.servisKaydi?.iscilikSaat, 1, 'kayıttaki süre düzeltildi')
+  const satir = (t3?.servisKaydi?.duzeltmeler || [])[0]
+  d.esit(satir?.onceki?.iscilikSaat, 2.5, 'düzeltme satırında eski süre')
+  d.esit(satir?.yeni?.iscilikSaat, 1, 'düzeltme satırında yeni süre')
+  d.esit(
+    sk.duzeltmeYazisi(satir),
+    'Yol 10 km → 10 km · İşçilik 2,5 saat → 1 saat',
+    "servisin ve PAKSAN'ın gördüğü düzeltme satırı",
+  )
+  d.dogru(servisBildirimleriDepodan(m).some((x) => x.talepNo === r.no), 'düzeltme servise bildirildi')
+
+  m.veri.hakkedisOnayla(t3, 'Sınama Yöneticisi')
+  d.esit(m.veri.cariBakiye(SERVIS.id), 10 * sk.TARIFE.yolKm + ucret, 'cariye düzeltilmiş tutar yazıldı')
+
+  /* 4 · Süresi olmayan eski kayıt. */
+  const eski = { kapi: 'garanti', asama: 'bitti', yapilanIs: 'Ayar Yapıldı', parcalar: [], km: 0, iscilik: 700 }
+  d.esit(sk.hakkedisHesapla(eski).iscilik, 700, 'eski kayıtta servisin yazdığı tutar')
+  d.esit(sk.iscilikYazisi(eski), sk.iscilikYazisi({ iscilik: 700 }), 'eski kayıt süresiz yazılıyor')
+  d.esit(
+    sk.kaydiDogrula({ ...eski, iscilik: 0, ...sk.iscilikAlanlari('') }),
+    'Gidilen yolu ya da işçilik süresini yazın.',
+    'süre de yol da yoksa kayıt geçmiyor',
+  )
+
+  return d
+}
+
 export const SENARYOLAR = [
   AK01, AK02, AK03, AK04, AK05, AK06, AK07, AK08, AK09, AK10, AK11, AK12, AK13, AK14,
-  AK15, AK16, AK17, AK18,
+  AK15, AK16, AK17, AK18, AK19, AK20,
 ]

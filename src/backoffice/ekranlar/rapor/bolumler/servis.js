@@ -272,6 +272,8 @@ export const servisBolumu = {
         alt: M.gelenAlt,
       },
       {
+        /* Dashboard'un yönetim özeti bu ölçüyü kimliğiyle buluyor (bkz. Ozet.jsx). */
+        id: 'tamamlanan',
         ad: M.tamamlanan,
         deger: tamamDonem.length,
         fark: f(tamamDonem.length, tamamOnceki.length),
@@ -279,6 +281,8 @@ export const servisBolumu = {
         alt: M.tamamlananAlt,
       },
       {
+        /* Dashboard'un yönetim özeti bu ölçüyü kimliğiyle buluyor (bkz. Ozet.jsx). */
+        id: 'ilkKayit',
         ad: M.ilkKayit,
         deger: sureYaz(ortalama(ilkDonem)),
         fark: f(ortalama(ilkDonem), ortalama(ilkOnceki)),
@@ -286,6 +290,8 @@ export const servisBolumu = {
         alt: M.ilkKayitAlt(sureYaz(dilim(ilkDonem, 0.9))),
       },
       {
+        /* Dashboard'un yönetim özeti bu ölçüyü kimliğiyle buluyor (bkz. Ozet.jsx). */
+        id: 'yenidenAcilma',
         ad: M.yenidenAcilma,
         deger: yuzde(tekrarDonem, tamamDonem.length),
         fark: karsilastir ? farkPuan(oran(tekrarDonem, tamamDonem.length), oran(tekrarOnceki, tamamOnceki.length)) : null,
@@ -455,6 +461,7 @@ export const servisBolumu = {
 
     const tablolar = [
       {
+        id: 'karne',
         baslik: M.tabloKarne,
         aciklama: M.tabloKarneAciklama,
         basliklar: [

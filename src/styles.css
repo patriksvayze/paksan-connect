@@ -1698,6 +1698,44 @@ p {
   line-height: 1.45;
 }
 
+/* Servis talebinde seçilen makinenin servisi yoksa makine kutusunun
+   altındaki not uyarıya dönüyor: talep bu makine için gönderilemiyor
+   (bkz. RequestForm.jsx → seciliServis). Ana ekrandaki "servis
+   atanmadı" kartının renkleri. */
+.talep-servis-yok {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: var(--r);
+  background: var(--pk-orange-soft);
+  color: var(--pk-orange-ink);
+  font-weight: 500;
+}
+
+/* Servis kartında "Baktığı makineler: …" satırı (bkz.
+   components/ServisKarti.jsx). Adres satırından bir nefes aşağıda. */
+.servis-karti__makine {
+  margin-top: 6px;
+}
+
+/* Makinenin adı bağlantı: kalın, marka mavisinde, altı çizili; dokununca
+   makinenin sayfası açılıyor. Cümlenin içinde durduğu için dokunma alanı
+   dikeyde dolguyla büyütülüyor, satır aralığı bozulmuyor. */
+.servis-karti__makine-ad {
+  display: inline;
+  margin: -6px 0;
+  padding: 6px 0;
+  border: 0;
+  background: none;
+  color: var(--pk-blue-yazi);
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
 .field__error {
   font-size: 14px;
   color: var(--pk-red-yazi);
@@ -2426,6 +2464,21 @@ p {
   background: var(--pk-blue-soft-2);
   border-color: transparent;
   color: var(--pk-blue-yazi);
+}
+
+/* Yeni gelen makine / servis kartındaki rozet: dolu kırmızı, bildirim
+   sayısıyla aynı renk — kartların öbür rozetlerinden ayrılsın. */
+.badge--yeni {
+  background: var(--pk-red);
+  border-color: transparent;
+  color: #fff;
+}
+
+.baslik-rozeti {
+  margin-left: 8px;
+  padding: 3px 9px;
+  font-size: 11.5px;
+  vertical-align: 2px;
 }
 
 .badge--on-dark {
@@ -3198,6 +3251,7 @@ p {
 
 /* Sayı marka mavisiyle: bağlantı rengi, dokunulabildiğini söylüyor */
 .statstrip__v {
+  position: relative;
   font-size: 24px;
   font-weight: 700;
   letter-spacing: -0.04em;
@@ -3223,6 +3277,26 @@ p {
   align-items: center;
   justify-content: center;
   gap: 1px;
+}
+
+/* Görülmemiş makine / servis işareti (22 Eylül 2026): sayının sağ
+   üstünde kırmızı "Yeni" — üst köşedeki bildirim sayısıyla aynı renk.
+   Sayıya yaslanıyor; sütunun ortasından ölçülüyor ki bir ya da iki
+   haneli sayıda yeri kaymasın. */
+.statstrip__yeni {
+  position: absolute;
+  top: -12px;
+  left: calc(50% + 12px);
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--pk-red);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.3;
+  white-space: nowrap;
+  box-shadow: 0 0 0 2px var(--surface);
 }
 
 .statstrip__k svg {
@@ -4163,6 +4237,64 @@ p {
   line-height: 1.5;
 }
 
+/* Parça satırı resimli (22 Eylül 2026): ödeme özeti ve talep detayı.
+   Resim ve yazı solda birlikte, tutar sağda. Hizalama ortadan: 48
+   piksellik resmin yanında taban çizgisine göre hizalamak tutarı
+   resmin tepesine yapıştırıyordu. */
+.detay-satir--gorselli {
+  align-items: center;
+}
+
+/* Tutar kırılmıyor: resim yer alınca "960 TL" rakam ve birim olarak
+   iki satıra bölünüyordu. Sıkışan taraf parça adı, o sarıyor. */
+.detay-satir--gorselli > span:last-child {
+  flex: none;
+  white-space: nowrap;
+}
+
+.parca-satir {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  text-align: left;
+}
+
+/* Parçanın küçük görseli (bkz. components/ParcaResmi.jsx). Backoffice
+   ve Servisim aynı kuralı backoffice.css'ten okuyor; müşteri uygulaması
+   kendi kökünde. Zemin her temada beyaz: katalog görselleri beyaz
+   zemine basılmış. */
+.parca-resmi {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--parca-resmi, 48px);
+  height: var(--parca-resmi, 48px);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+}
+
+.parca-resmi img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.parca-resmi--bekliyor {
+  background: var(--surface-3);
+}
+
+/* Beyaz zeminde 5.9:1; zemin temayla değişmediği için renk sabit. */
+.parca-resmi__yok {
+  padding: 0 3px;
+  font-size: 10px;
+  line-height: 1.2;
+  text-align: center;
+  color: #5b6472;
+}
+
 .detay-satir__vurgu {
   font-weight: 800;
   font-size: 16px !important;
@@ -4653,6 +4785,15 @@ p {
   color: var(--ink-2);
   font-size: 12px;
   font-variant-numeric: tabular-nums;
+}
+
+/* Öbür sekmede görülmemiş bir şey var: adetin yanında kırmızı nokta. */
+.sekme__yeni {
+  width: 9px;
+  height: 9px;
+  margin-left: -3px;
+  border-radius: 50%;
+  background: var(--pk-red);
 }
 
 .sekme--on .sekme__sayi {

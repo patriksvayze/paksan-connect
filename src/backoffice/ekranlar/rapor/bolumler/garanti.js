@@ -244,6 +244,8 @@ export const garantiBolumu = {
         alt: M.isAlt,
       },
       {
+        /* Dashboard'un yönetim özeti bu ölçüyü kimliğiyle buluyor (bkz. Ozet.jsx). */
+        id: 'onaylanan',
         ad: M.onaylanan,
         deger: paraKutu(tutar(onayDonem)),
         fark: f(tutar(onayDonem), tutar(onayOnceki)),
@@ -294,6 +296,8 @@ export const garantiBolumu = {
         alt: M.duzeltmeAlt(duzeltilen(olusanDonem).length, olusanDonem.length),
       },
       {
+        /* Dashboard'un yönetim özeti bu ölçüyü kimliğiyle buluyor (bkz. Ozet.jsx). */
+        id: 'parca',
         ad: M.parca,
         deger: parcaDonem.adet,
         fark: f(parcaDonem.adet, parcaOnceki.adet),

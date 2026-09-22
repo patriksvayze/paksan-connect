@@ -101,7 +101,6 @@ BEGIN
            t.IletisimTelefonE164 AS IletisimTelefonu,
            t.Adres,
            t.YurtdisiIlce,
-           uz.Ad AS UlasimZamaniAdi,
            md.Ad AS MakineDurumuAdi,
            (SELECT STRING_AGG(CAST(COALESCE(b.Ad, tb.BelirtiKodu COLLATE DATABASE_DEFAULT) AS nvarchar(max)), N', ') WITHIN GROUP (ORDER BY b.Sira, tb.BelirtiKodu)
             FROM talep.TalepBelirtisi AS tb
@@ -135,7 +134,6 @@ BEGIN
            sr.Ad AS SirketAdi,
            p.TeslimatAdresi
     FROM talep.Talep AS t
-    LEFT JOIN kod.UlasimZamani AS uz ON uz.Kod = t.UlasimZamaniKodu
     LEFT JOIN talep.ServisTalebiAyrinti AS sa ON sa.TalepKimlik = t.Kimlik
     LEFT JOIN kod.MakineDurumu AS md ON md.Kod = sa.MakineDurumuKodu
     LEFT JOIN talep.TeklifTalebiAyrinti AS ta ON ta.TalepKimlik = t.Kimlik
@@ -209,7 +207,7 @@ BEGIN
     SELECT TOP (200) N'9 · Servis ziyaretleri' AS Bolum,
            z.ZiyaretNo, s.Ad AS ServisAdi, s.KayitNo AS ServisKayitNo,
            kp.Ad AS KapiAdi, ase.Ad AS AsamaAdi, yi.Ad AS YapilanIsAdi, gd.Ad AS GarantiDayanagiAdi,
-           z.ArizaMetni, z.SonucMetni, z.Km, z.IscilikTutari, z.ParaBirimiKodu, z.TeknisyenAdi,
+           z.ArizaMetni, z.SonucMetni, z.Km, z.IscilikSaati, z.IscilikTutari, z.ParaBirimiKodu, z.TeknisyenAdi,
            CONVERT(datetime2(0), z.ParcaIstemeZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS ParcaIstemeZamaniTurkiye,
            CONVERT(datetime2(0), z.TamamlanmaZamani AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS TamamlanmaZamaniTurkiye,
            z.YapanAdi,
@@ -234,6 +232,7 @@ BEGIN
                CAST(NULL AS bigint) AS DuzeltmeKayitNo, CAST(NULL AS nvarchar(500)) AS DuzeltmeNedeni,
                g.SiraNo, g.ParcaKodu, g.ParcaAdi, g.Adet, g.BirimFiyat,
                CAST(NULL AS decimal(9,1)) AS OncekiKm, CAST(NULL AS decimal(9,1)) AS YeniKm,
+               CAST(NULL AS decimal(5,1)) AS OncekiIscilikSaati, CAST(NULL AS decimal(5,1)) AS YeniIscilikSaati,
                CAST(NULL AS decimal(18,2)) AS OncekiIscilikTutari, CAST(NULL AS decimal(18,2)) AS YeniIscilikTutari,
                CAST(NULL AS nvarchar(150)) AS DuzeltenAdi, CAST(NULL AS datetime2(3)) AS Zaman
         FROM talep.ServisZiyareti AS z
@@ -242,14 +241,14 @@ BEGIN
         UNION ALL
         SELECT z.ZiyaretNo, 2, N'servisinGonderdigi', NULL, NULL,
                zp.SiraNo, zp.ParcaKodu, zp.ParcaAdi, zp.Adet, zp.BirimFiyat,
-               NULL, NULL, NULL, NULL, z.YapanAdi, z.OlusmaZamani
+               NULL, NULL, NULL, NULL, NULL, NULL, z.YapanAdi, z.OlusmaZamani
         FROM talep.ServisZiyareti AS z
         JOIN talep.ZiyaretParcaSatiri AS zp ON zp.ZiyaretKimlik = z.Kimlik
         WHERE z.TalepKimlik = @TalepKimlik
         UNION ALL
         SELECT z.ZiyaretNo, 3, N'duzeltme', zd.KayitNo, zd.Neden,
                NULL, NULL, NULL, NULL, NULL,
-               zd.OncekiKm, zd.YeniKm, zd.OncekiIscilikTutari, zd.YeniIscilikTutari, zd.YapanAdi, zd.OlusmaZamani
+               zd.OncekiKm, zd.YeniKm, zd.OncekiIscilikSaati, zd.YeniIscilikSaati, zd.OncekiIscilikTutari, zd.YeniIscilikTutari, zd.YapanAdi, zd.OlusmaZamani
         FROM talep.ServisZiyareti AS z
         JOIN talep.ZiyaretDuzeltmesi AS zd ON zd.ZiyaretKimlik = z.Kimlik
         WHERE z.TalepKimlik = @TalepKimlik
@@ -258,7 +257,7 @@ BEGIN
                CASE WHEN dp.TarafKodu = N'onceki' THEN N'duzeltmeOncesi' ELSE N'duzeltmeSonrasi' END,
                zd.KayitNo, zd.Neden,
                dp.SiraNo, dp.ParcaKodu, dp.ParcaAdi, dp.Adet, dp.BirimFiyat,
-               NULL, NULL, NULL, NULL, zd.YapanAdi, zd.OlusmaZamani
+               NULL, NULL, NULL, NULL, NULL, NULL, zd.YapanAdi, zd.OlusmaZamani
         FROM talep.ServisZiyareti AS z
         JOIN talep.ZiyaretDuzeltmesi AS zd ON zd.ZiyaretKimlik = z.Kimlik
         JOIN talep.ZiyaretDuzeltmesiParcasi AS dp ON dp.DuzeltmeKimlik = zd.Kimlik
@@ -267,7 +266,7 @@ BEGIN
     SELECT TOP (200) N'10 · Ziyaret parçaları ve düzeltmeler' AS Bolum,
            s.ZiyaretNo, s.Liste, s.DuzeltmeKayitNo, s.DuzeltmeNedeni,
            s.SiraNo, s.ParcaKodu, s.ParcaAdi, s.Adet, s.BirimFiyat,
-           s.OncekiKm, s.YeniKm, s.OncekiIscilikTutari, s.YeniIscilikTutari,
+           s.OncekiKm, s.YeniKm, s.OncekiIscilikSaati, s.YeniIscilikSaati, s.OncekiIscilikTutari, s.YeniIscilikTutari,
            s.DuzeltenAdi,
            CONVERT(datetime2(0), s.Zaman AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS ZamanTurkiye,
            CAST(CASE WHEN COUNT(*) OVER () > 200 THEN 1 ELSE 0 END AS bit) AS DahaFazlaVar
@@ -679,6 +678,7 @@ BEGIN
                CAST(NULL AS bigint) AS DuzeltmeKayitNo, CAST(NULL AS nvarchar(500)) AS DuzeltmeNedeni,
                g.SiraNo, g.ParcaKodu, g.ParcaAdi, g.Adet, g.BirimFiyat,
                CAST(NULL AS decimal(9,1)) AS OncekiKm, CAST(NULL AS decimal(9,1)) AS YeniKm,
+               CAST(NULL AS decimal(5,1)) AS OncekiIscilikSaati, CAST(NULL AS decimal(5,1)) AS YeniIscilikSaati,
                CAST(NULL AS decimal(18,2)) AS OncekiIscilikTutari, CAST(NULL AS decimal(18,2)) AS YeniIscilikTutari,
                CAST(NULL AS nvarchar(150)) AS DuzeltenAdi, CAST(NULL AS datetime2(3)) AS Zaman
         FROM talep.ServisZiyareti AS z
@@ -687,14 +687,14 @@ BEGIN
         UNION ALL
         SELECT z.ZiyaretNo, 2, N'servisinGonderdigi', NULL, NULL,
                zp.SiraNo, zp.ParcaKodu, zp.ParcaAdi, zp.Adet, zp.BirimFiyat,
-               NULL, NULL, NULL, NULL, z.YapanAdi, z.OlusmaZamani
+               NULL, NULL, NULL, NULL, NULL, NULL, z.YapanAdi, z.OlusmaZamani
         FROM talep.ServisZiyareti AS z
         JOIN talep.ZiyaretParcaSatiri AS zp ON zp.ZiyaretKimlik = z.Kimlik
         WHERE z.TalepKimlik = @TalepKimlik AND (@ZiyaretNo IS NULL OR z.ZiyaretNo = @ZiyaretNo)
         UNION ALL
         SELECT z.ZiyaretNo, 3, N'duzeltme', zd.KayitNo, zd.Neden,
                NULL, NULL, NULL, NULL, NULL,
-               zd.OncekiKm, zd.YeniKm, zd.OncekiIscilikTutari, zd.YeniIscilikTutari, zd.YapanAdi, zd.OlusmaZamani
+               zd.OncekiKm, zd.YeniKm, zd.OncekiIscilikSaati, zd.YeniIscilikSaati, zd.OncekiIscilikTutari, zd.YeniIscilikTutari, zd.YapanAdi, zd.OlusmaZamani
         FROM talep.ServisZiyareti AS z
         JOIN talep.ZiyaretDuzeltmesi AS zd ON zd.ZiyaretKimlik = z.Kimlik
         WHERE z.TalepKimlik = @TalepKimlik AND (@ZiyaretNo IS NULL OR z.ZiyaretNo = @ZiyaretNo)
@@ -703,7 +703,7 @@ BEGIN
                CASE WHEN dp.TarafKodu = N'onceki' THEN N'duzeltmeOncesi' ELSE N'duzeltmeSonrasi' END,
                zd.KayitNo, zd.Neden,
                dp.SiraNo, dp.ParcaKodu, dp.ParcaAdi, dp.Adet, dp.BirimFiyat,
-               NULL, NULL, NULL, NULL, zd.YapanAdi, zd.OlusmaZamani
+               NULL, NULL, NULL, NULL, NULL, NULL, zd.YapanAdi, zd.OlusmaZamani
         FROM talep.ServisZiyareti AS z
         JOIN talep.ZiyaretDuzeltmesi AS zd ON zd.ZiyaretKimlik = z.Kimlik
         JOIN talep.ZiyaretDuzeltmesiParcasi AS dp ON dp.DuzeltmeKimlik = zd.Kimlik
@@ -712,7 +712,7 @@ BEGIN
     SELECT TOP (200) N'3 · Ziyaret düzeltmeleri ve güncel parça listesi' AS Bolum,
            s.ZiyaretNo, s.Liste, s.DuzeltmeKayitNo, s.DuzeltmeNedeni,
            s.SiraNo, s.ParcaKodu, s.ParcaAdi, s.Adet, s.BirimFiyat,
-           s.OncekiKm, s.YeniKm, s.OncekiIscilikTutari, s.YeniIscilikTutari,
+           s.OncekiKm, s.YeniKm, s.OncekiIscilikSaati, s.YeniIscilikSaati, s.OncekiIscilikTutari, s.YeniIscilikTutari,
            s.DuzeltenAdi,
            CONVERT(datetime2(0), s.Zaman AT TIME ZONE 'UTC' AT TIME ZONE 'Turkey Standard Time') AS ZamanTurkiye,
            CAST(CASE WHEN COUNT(*) OVER () > 200 THEN 1 ELSE 0 END AS bit) AS DahaFazlaVar

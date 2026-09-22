@@ -71,6 +71,27 @@ export const ANAHTAR = {
    yönetiyor. Varsayılan liste ve yetki kataloğu src/data/yetkiler.js
    içinde, gerekçeleriyle birlikte.                                     */
 
+/* YETKİ BÖLÜNÜNCE ESKİ ROLLER TAŞINIYOR.
+
+   Yukarıdaki kural "yeni izin kimseye sessizce dağıtılmaz" diyor; bu
+   onun tek istisnası ve bir izin YENİ DEĞİL, BÖLÜNDÜĞÜNDE geçerli.
+   22 Eylül 2026'da Kayıtlı Makineler `musteriler` izninden ayrılıp
+   `makineler` oldu. Depodaki rol o gün Müşteriler'i görüyorsa makineleri
+   de görüyordu; taşınmasaydı ekranı bir sabah kendiliğinden kaybolurdu.
+
+   `izinSurumu` taşımanın bir kez yapıldığını söylüyor. Olmasaydı,
+   personel satış rolünden `makineler` kutusunu kaldırdığında bir
+   sonraki okumada izin geri eklenirdi. Taşınan rol bir sonraki
+   kaydedişte bu alanla birlikte depoya yazılıyor. */
+const IZIN_SURUMU = 2
+
+function rolIzinleriniTasi(r) {
+  if ((r.izinSurumu || 1) >= IZIN_SURUMU) return r
+  const izinler = r.izinler || []
+  const makineEkle = izinler.includes('musteriler') && !izinler.includes('makineler')
+  return { ...r, izinSurumu: IZIN_SURUMU, izinler: makineEkle ? [...izinler, 'makineler'] : izinler }
+}
+
 /** Yürürlükteki rol listesi — düzenlenmediyse koddaki varsayılan. */
 /* ADMİNİN İZİNLERİ KATALOGTAN OKUNUYOR, DEPODAN DEĞİL.
 
@@ -91,7 +112,7 @@ export const ANAHTAR = {
    dağıtılmaz: hangi rolün neyi göreceğine PAKSAN karar veriyor. */
 export function rolleriGetir() {
   return icerikListe('roller', VARSAYILAN_ROLLER).map((r) =>
-    r.id === 'admin' ? { ...r, izinler: TUM_IZINLER } : r,
+    r.id === 'admin' ? { ...r, izinler: TUM_IZINLER } : rolIzinleriniTasi(r),
   )
 }
 
@@ -205,6 +226,7 @@ export function rolEkle({ ad, aciklama, talepTurleri, izinler }, personel) {
     aciklama: String(aciklama || '').trim(),
     talepTurleri: temizTurler(talepTurleri),
     izinler: temizIzinler(izinler),
+    izinSurumu: IZIN_SURUMU,
   }
   rolleriYaz([...liste, rol], personel, `${rol.ad} rolü oluşturuldu`)
   return { rol }
@@ -249,7 +271,7 @@ export function rolGuncelle(id, degisiklik, personel) {
     }
   })
   if (!yonetimKaliyorMu(yeni)) {
-    return { hata: 'Personel hesabı açabilecek hiçbir rol kalmıyor. Bu değişiklik yapılamaz.' }
+    return { hata: 'Personel hesabı açma yetkisine sahip hiçbir rol kalmıyor. Bu değişiklik yapılamaz.' }
   }
 
   rolleriYaz(yeni, personel, `${temizAd} rolünün yetkileri güncellendi`)
@@ -287,7 +309,7 @@ export function rolSil(id, tasima, personel) {
 
   const kalan = liste.filter((r) => r.id !== id)
   if (!yonetimKaliyorMu(kalan)) {
-    return { hata: 'Personel hesabı açabilecek hiçbir rol kalmıyor. Bu rol silinemez.' }
+    return { hata: 'Personel hesabı açma yetkisine sahip hiçbir rol kalmıyor. Bu rol silinemez.' }
   }
 
   /* Önce personel taşınıyor, sonra rol siliniyor. Ters sırada olsaydı
@@ -313,7 +335,7 @@ function silmeOzeti(rol, kisiler, harita, liste) {
 
   const adi = (rolId) => liste.find((r) => r.id === rolId)?.ad || rolId
   const parcalar = Object.entries(sayac).map(([rolId, n]) => `${n} kişi ${adi(rolId)}`)
-  return `${rol.ad} rolü silindi · ${parcalar.join(', ')} rolüne taşındı`
+  return `${rol.ad} rolü silindi · Taşınan kişilerin yeni rolleri: ${parcalar.join(', ')}`
 }
 
 /** Katalogda olmayan izin kaydedilmiyor; ekran dışından gelen çöp durmasın. */
@@ -2474,8 +2496,22 @@ export function hakkedisDuzelt(talep, yeniKayit, neden, personel) {
         tarih: simdi,
         personel,
         neden: neden.trim(),
-        onceki: { km: onceki.km, iscilik: onceki.iscilik, parcalar: onceki.parcalar },
-        yeni: { km: yeniKayit.km, iscilik: yeniKayit.iscilik, parcalar },
+        /* Süre de yazılıyor (22 Eylül 2026'dan beri işçilik süreyle
+           soruluyor); servis "5 saat → 3 saat" satırını görüyor. Süresi
+           olmayan eski kayıtta alan boş kalıyor, satır tutarı gösteriyor
+           (bkz. lib/servisKaydi.js → duzeltmeYazisi). */
+        onceki: {
+          km: onceki.km,
+          iscilik: onceki.iscilik,
+          ...(onceki.iscilikSaat != null ? { iscilikSaat: onceki.iscilikSaat } : {}),
+          parcalar: onceki.parcalar,
+        },
+        yeni: {
+          km: yeniKayit.km,
+          iscilik: yeniKayit.iscilik,
+          ...(yeniKayit.iscilikSaat != null ? { iscilikSaat: yeniKayit.iscilikSaat } : {}),
+          parcalar,
+        },
       },
     ],
   }

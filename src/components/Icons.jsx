@@ -120,11 +120,56 @@ export const IconGrid = simge('izgara')
 export const IconChat = simge('balon')
 export const IconUser = simge('kisi')
 
-/* Alt menüdeki "Makineler" ve genel makine simgesi aynı çizim.
+/* ------------------------------------------------ Makine: balya makinesi
 
-   Aynı kavramı iki ayrı resimle göstermek kullanıcıya iki şey
-   öğretmeye çalışmak demek; oysa ikisi de "makine" diyor. */
-export const IconBaler = simge('makine')
+   Alt menüdeki "Makinelerim", makine kartlarının boş hâli, bildirimler,
+   Servisim ve backoffice'in "Kayıtlı Makineler" menüsü aynı çizimi
+   kullanıyor. Aynı kavramı iki ayrı resimle göstermek kullanıcıya iki
+   şey öğretmeye çalışmak demek; oysa ikisi de "makine" diyor.
+
+   YENİDEN ÇİZİLDİ (22 Eylül 2026, kullanıcı eskisini beğenmedi). Eskisi
+   boş liste resminin (assets/gorseller/bos-makine.png) izlenmiş hâliydi:
+   geniş bir çizimdi, 24 pikselde komşularının yarısı kadar kalıyordu ve
+   çizgileri titrekti; menüde 36 piksele büyütülerek idare ediliyordu.
+
+   Açık kaynaklı ikon setlerinin hiçbirinde balya makinesi yok (Lucide,
+   Tabler, Phosphor, Fluent, Material ve Iconify'daki öteki setler tarandı;
+   hepsinde traktör var). Atıf isteyen sitelerdeki çizimler de öteki
+   simgelerle uyuşmuyordu. Bu yüzden:
+
+     1. Higgsfield'a (gpt_image_2_5) çizgi ikonu üslubunda bir RULO BALYA
+        makinesi taslağı çizdirildi: yuvarlak arka kapak, önde eğimli
+        gövde, göbekli tekerlek, dişli toplayıcı, çeki oku.
+     2. Taslak izlenmedi; ölçüleri okunup 24 birimlik ızgarada düz çizgi
+        ve yaylarla YENİDEN KURULDU. İzlenen çizim titrek bir dış hat
+        verir; kurulan çizim her boyda temiz kalır.
+
+   Öteki simgelerden farkı: dış hat dolgusu değil ÇİZGİ (stroke). Kalınlık
+   1,5 — menüdeki komşularıyla aynı görünen kalınlık; `currentColor`
+   geçerli, simge bulunduğu yerin rengini alıyor. Çizim lisanssız, PAKSAN'ın. */
+const BALYA_MAKINESI =
+  'M6.40 4.58A5.63 5.63 0 0 0 6.22 15.84 M6.40 4.58L14.49 5.54Q15.67 5.70 16.20 6.60L18.16 9.40Q18.60 10.02 18.60 10.96L18.60 13.76Q18.60 14.75 17.60 14.82L13.95 15.10 M6.40 4.58L6.40 13.76 M6.90 16.00a3.24 3.24 0 1 0 6.47 0a3.24 3.24 0 1 0 -6.47 0 M9.01 16.00a1.12 1.12 0 1 0 2.24 0a1.12 1.12 0 1 0 -2.24 0 M14.05 15.87L19.16 15.87 M15.42 16.87L15.92 18.36 M17.91 16.87L18.41 18.36 M18.60 13.38L21.64 14.94L22.89 14.94'
+
+export function IconBaler({ size = 24, className, style }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      style={style}
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d={BALYA_MAKINESI} />
+    </svg>
+  )
+}
 export const IconMachine = IconBaler
 
 /* ----------------------------------------------------------- Yön okları */

@@ -41,9 +41,12 @@ import { DEMO_HESAP } from './demoKimlik'
    3 (21 Eylül 2026): fiyat teklifinin durumları ve demo talepleri
    değişti (bkz. backoffice/veri.js → DURUMLAR); eski demo o durumlarla
    kalmasın.
+   4 (22 Eylül 2026): işçilik tutar yerine süreyle yazılıyor ve talep
+   formundaki aranma tercihi kaldırıldı; eski demo kayıtları eski
+   biçimde kalmasın.
    Dışa açık: ekran turu demoyu kapatmak için bu sayıyı yazıyor
    (tools/ekosistem-turu.mjs); elle yazsaydı sürüm değişince bozulurdu. */
-export const DEMO_SURUMU = 3
+export const DEMO_SURUMU = 4
 const SURUM_ANAHTARI = 'demoSurumu'
 
 export async function demoKur() {

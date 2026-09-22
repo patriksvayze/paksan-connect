@@ -109,6 +109,11 @@ VALUES (N'gallignani', N'GLG0000001', N'Gallignani Sarım Çemberi', N'gallignan
 INSERT sistem.Ayar (Anahtar, SirketKodu, DegerTuru, Deger, Aciklama)
 VALUES (N'KdvOrani', N'gallignani', N'ondalik', N'0.1', N'Gallignani için KDV oranı');
 INSERT servis.MarkaYetkisi (ServisKimlik, MarkaKodu) VALUES (@Servis, N'gallignani');
+/* Markaya özel işçilik tarifesi (22.09.2026, işçilik süreyle yazılıyor):
+   gallignani ziyaretinin saati B02'nin genel tarifesiyle (50,00) değil
+   bununla çarpılır. İkinci bölümde ES-04 sınar. */
+INSERT hakedis.Tarife (KalemTuruKodu, MarkaKodu, BirimKodu, BirimTutar, ParaBirimiKodu, GecerlilikBaslangicTarihi)
+VALUES (N'iscilik', N'gallignani', N'saat', 80.00, N'TRY', '2026-01-01');
 COMMIT TRANSACTION;
 
 /* ------------------------------------------------------------------ ES-07
@@ -448,6 +453,26 @@ SELECT @Sayi = CAST(NetTutar AS int) FROM hakedis.HakEdis WHERE Kimlik = @HakEdi
 IF @Sayi <> 100
 BEGIN SET @Mesaj = CONCAT(@Adim, N': EUR hak edişi 100 olmalıydı (yol 20 + işçilik 80), ', @Sayi); THROW 59999, @Mesaj, 1; END;
 
+/* İşçilik süreyle yazılsaydı: EUR'da işçilik tarifesi yok, hesap 51041
+   ile durur (tarife hak edişin para biriminde aranır, yol kalemindeki
+   kural). İşlem geri alınır; ziyaret süresiz, hak ediş 100 olarak kalır. */
+SET @Beklenen = 51041; SET @Gelen = 0;
+BEGIN TRY
+    BEGIN TRANSACTION;
+    UPDATE talep.ServisZiyareti SET IscilikSaati = 1.5 WHERE Kimlik = @ZiyaretG;
+    EXEC hakedis.HakEdisHesapla @HakEdisKimlik = @HakEdisG;
+    ROLLBACK TRANSACTION;
+END TRY
+BEGIN CATCH
+    SET @Gelen = ERROR_NUMBER(); SET @HataMetni = ERROR_MESSAGE();
+    IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+END CATCH;
+IF @Gelen <> @Beklenen
+BEGIN SET @Mesaj = CONCAT(@Adim, N' (EUR işçilik tarifesi yok): beklenen ', @Beklenen, N', gelen ', @Gelen, N' — ', ISNULL(@HataMetni, N'hata yok')); THROW 59999, @Mesaj, 1; END;
+SELECT @Sayi = CAST(NetTutar AS int) FROM hakedis.HakEdis WHERE Kimlik = @HakEdisG;
+IF @Sayi <> 100 OR EXISTS (SELECT 1 FROM talep.ServisZiyareti WHERE Kimlik = @ZiyaretG AND IscilikSaati IS NOT NULL)
+BEGIN SET @Mesaj = CONCAT(@Adim, N': geri alınan denemeden sonra EUR hak edişi 100 ve ziyaret süresiz kalmalıydı, ', @Sayi); THROW 59999, @Mesaj, 1; END;
+
 /* ------------------------------------------------------------------ ES-10
    Yeni kalem türü konaklama: HakEdisKalemiYaz ile yazılır, NetTutar'a girer,
    onay geçer. */
@@ -480,7 +505,10 @@ IF @Gelen <> 0
 BEGIN SET @Mesaj = CONCAT(@Adim, N': konaklama kalemli hak edişin onayı geçmeliydi, gelen ', @Gelen, N' — ', ISNULL(@HataMetni, N'')); THROW 59999, @Mesaj, 1; END;
 
 /* ------------------------------------------------------------------ ES-04
-   Gallignani: talep, ziyaret ve hak ediş; şirket gallignani'ye düşer. */
+   Gallignani: talep, ziyaret ve hak ediş; şirket gallignani'ye düşer.
+   İşçilik süreyle (2,5 saat): markaya özel işçilik tarifesi (80,00)
+   genel tarifenin (50,00) önüne geçer → işçilik 200, yol 10 km × 12,00 =
+   120, NetTutar 320. Sonra PAKSAN süreyi 2 saate düzeltir → 160 + 120. */
 SET @Adim = N'ES-04';
 BEGIN TRANSACTION;
 EXEC sistem.NumaraAl @Onek = N'SRV', @Numara = @Numara OUTPUT;
@@ -496,11 +524,11 @@ INSERT talep.ServisTalebiAyrinti (TalepKimlik, TurKodu, MakineDurumuKodu)
 VALUES (@TalepL, N'servis', N'sorunlu');
 INSERT talep.ServisZiyareti (Kimlik, ZiyaretNo, TalepKimlik, TurKodu, UyduKodu, MarkaKodu,
                              ServisKimlik, AsamaKodu, KapiKodu, YapilanIsKodu,
-                             Km, IscilikTutari, ParaBirimiKodu, TamamlanmaZamani,
+                             Km, IscilikSaati, IscilikTutari, ParaBirimiKodu, TamamlanmaZamani,
                              YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
 VALUES (@ZiyaretL, 1, @TalepL, N'servis', N'servisZiyareti', N'gallignani',
         @Servis, N'bitti', N'garanti', N'bakim',
-        10, 500, N'TRY', SYSUTCDATETIME(),
+        10, 2.5, 200, N'TRY', SYSUTCDATETIME(),
         N'servis', @ServisKul, N'S04 Servis Teknisyeni', N'servisim');
 INSERT hakedis.HakEdis (Kimlik, ZiyaretKimlik, TalepKimlik, ServisKimlik, MarkaKodu, SirketKodu,
                         KapiKodu, AsamaKodu, ParaBirimiKodu, DurumKodu, NetTutar)
@@ -513,6 +541,38 @@ COMMIT TRANSACTION;
 SELECT @Metin = SirketKodu FROM hakedis.HakEdis WHERE Kimlik = @HakEdisL;
 IF @Metin <> N'gallignani'
 BEGIN SET @Mesaj = CONCAT(@Adim, N': gallignani hak edişinin şirketi gallignani olmalıydı, ', ISNULL(@Metin, N'(boş)')); THROW 59999, @Mesaj, 1; END;
+
+SELECT @Metin = CONCAT(k.Miktar, N'/', k.BirimTutar, N'/', ISNULL(t.MarkaKodu, N'genel'), N'/', k.Tutar, N'/', h.NetTutar)
+  FROM hakedis.HakEdis AS h
+  JOIN hakedis.HakEdisKalemi AS k ON k.HakEdisKimlik = h.Kimlik AND k.KalemTuruKodu = N'iscilik'
+  LEFT JOIN hakedis.Tarife AS t ON t.Kimlik = k.TarifeKimlik
+ WHERE h.Kimlik = @HakEdisL;
+IF @Metin IS NULL OR @Metin <> N'2.5/80.00/gallignani/200.00/320.00'
+BEGIN SET @Mesaj = CONCAT(@Adim, N': işçilik 2,5 saat × gallignani tarifesi 80,00 = 200, net 320 olmalıydı (miktar/birim/tarife/tutar/net), gelen ', ISNULL(@Metin, N'(boş)')); THROW 59999, @Mesaj, 1; END;
+
+/* PAKSAN düzeltmesi: süre 2,5 → 2 saat. Düzeltme satırı eski ve yeni
+   süreyi taşır; API ziyaretin süresini ve tutarını günceller ve aynı
+   işlemde HakEdisHesapla'yı çağırır (tasarim.md 1.9.4). */
+BEGIN TRANSACTION;
+INSERT talep.ZiyaretDuzeltmesi (ZiyaretKimlik, MarkaKodu, Neden,
+                                OncekiIscilikSaati, YeniIscilikSaati, OncekiIscilikTutari, YeniIscilikTutari,
+                                YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
+VALUES (@ZiyaretL, N'gallignani', N'S04 süre fazla yazılmış',
+        2.5, 2, 200, 160,
+        N'personel', @Personel, @PersonelAd, N'backoffice');
+UPDATE talep.ServisZiyareti SET IscilikSaati = 2, IscilikTutari = 160 WHERE Kimlik = @ZiyaretL;
+EXEC hakedis.HakEdisHesapla @HakEdisKimlik = @HakEdisL;
+COMMIT TRANSACTION;
+
+SELECT @Metin = CONCAT(k.Miktar, N'/', k.Tutar, N'/', h.NetTutar)
+  FROM hakedis.HakEdis AS h
+  JOIN hakedis.HakEdisKalemi AS k ON k.HakEdisKimlik = h.Kimlik AND k.KalemTuruKodu = N'iscilik'
+ WHERE h.Kimlik = @HakEdisL;
+IF @Metin IS NULL OR @Metin <> N'2.0/160.00/280.00'
+BEGIN SET @Mesaj = CONCAT(@Adim, N': düzeltmeden sonra işçilik 2 saat × 80,00 = 160, net 280 olmalıydı (miktar/tutar/net), gelen ', ISNULL(@Metin, N'(boş)')); THROW 59999, @Mesaj, 1; END;
+IF NOT EXISTS (SELECT 1 FROM talep.ZiyaretDuzeltmesi
+                WHERE ZiyaretKimlik = @ZiyaretL AND OncekiIscilikSaati = 2.5 AND YeniIscilikSaati = 2.0)
+BEGIN SET @Mesaj = CONCAT(@Adim, N': düzeltme satırı eski ve yeni süreyi (2,5 → 2) taşımalıydı'); THROW 59999, @Mesaj, 1; END;
 
 /* Müşterinin iki firmada iki cari kodu durur (FirmaNo 1 ve 2). */
 BEGIN TRANSACTION;
@@ -612,6 +672,13 @@ COMMIT TRANSACTION;
 SELECT @Sayi = CAST(NetTutar AS int) FROM hakedis.HakEdis WHERE Kimlik = @HakEdisK;
 IF @Sayi <> 310
 BEGIN SET @Mesaj = CONCAT(@Adim, N': kurulum hak edişi 310 olmalıydı (yol 60 + işçilik 250), ', @Sayi); THROW 59999, @Mesaj, 1; END;
+
+/* Süresiz (22.09.2026'dan önceki biçimde) kayıt: genel işçilik tarifesi
+   varken de servisin yazdığı tutar alınır; kalemde miktar ve tarife boş. */
+IF NOT EXISTS (SELECT 1 FROM hakedis.HakEdisKalemi
+                WHERE HakEdisKimlik = @HakEdisK AND KalemTuruKodu = N'iscilik'
+                  AND Tutar = 250 AND Miktar IS NULL AND BirimKodu IS NULL AND TarifeKimlik IS NULL)
+BEGIN SET @Mesaj = CONCAT(@Adim, N': süresiz kayıtta işçilik kalemi servisin yazdığı 250 olmalıydı (miktar ve tarife boş)'); THROW 59999, @Mesaj, 1; END;
 
 /* Kurulum hak edişi onaylanıp cariye yazılır: servisin paksan/TRY bakiyesi
    böylece oluşur; ES-05 üç satır (paksan/TRY, paksan/EUR, gallignani/TRY)

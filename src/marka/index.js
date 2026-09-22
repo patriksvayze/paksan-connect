@@ -60,6 +60,12 @@ export { Logo, Rozet, RozetMini, Amblem } from './logo.jsx'
    doğrudan varlık klasörüne giriyordu. */
 export { default as LOGO_DOSYASI } from './varliklar/paksan-logo.png'
 
+/* Amblemin dosyası: Servisim'in servis formu PDF'i onu tuvale çiziyor
+   (bkz. servis/servisFormu.js). Logo dosyası 225 piksel; A4'te
+   bulanıklaşıyordu, amblem 192 piksel ve formun başındaki yere
+   yetiyor — basılı formda da amblemin yanında unvan yazıyor. */
+export { default as AMBLEM_DOSYASI } from './varliklar/paksan-amblem.png'
+
 /* ------------------------------------------------------- Ürün kataloğu */
 
 export {

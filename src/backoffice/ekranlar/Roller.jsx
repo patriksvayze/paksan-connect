@@ -207,11 +207,20 @@ export function Roller({ personel, bildir, tazele, surum }) {
           </div>
 
           <div className="kart__ic">
+            {/* ADMİN HER YETKİYİ TAŞIYOR, YAZILI (22 Eylül 2026). Personel
+                "T.C. kimlik numarasının tamamını görür" kutusunu başka
+                rollerden kaldırıp Admin hesabıyla talebe baktı; "Göster"
+                düğmesi durdu ve bunu hata sandı. Admin'in bu yetkiyi
+                taşımaya devam etmesi kullanıcının kararı; ekran bunu
+                söylüyor (bkz. veri.js → rolleriGetir). */}
             {kilitli && (
               <div className="uyari" style={{ marginTop: 0 }}>
                 <span>
-                  Admin rolü değiştirilemez ve silinemez. Yetkisi kaldırılan admin
-                  bu ekranı bir daha açamaz; geri dönüş yolu yoktur.
+                  Admin rolü değiştirilemez ve silinemez. Bu kısıtlama, Roller ve
+                  Yetkiler ekranına erişimin korunmasını sağlar. Admin her zaman tüm
+                  yetkilere sahiptir. Başka rollerden kaldırılan yetkiler Admin'de
+                  kalır. Talepteki T.C. kimlik veya vergi numarasının tamamını görme
+                  yetkisi de buna dahildir.
                 </span>
               </div>
             )}
@@ -237,7 +246,7 @@ export function Roller({ personel, bildir, tazele, surum }) {
                 value={taslak.aciklama}
                 disabled={kilitli}
                 onChange={(e) => setTaslak({ ...taslak, aciklama: e.target.value })}
-                placeholder="Personel ekranında bu rolün altında görünür."
+                placeholder="Personel ekranında rol adının altında görünür."
                 maxLength={120}
               />
             </label>
@@ -299,8 +308,8 @@ export function Roller({ personel, bildir, tazele, surum }) {
 
             {!kilitli && kaydedilmemis && (
               <p className="kucuk sonuk" style={{ margin: '0 0 10px' }}>
-                Değişiklikler kaydedilmedi. Kaydet düğmesine basana kadar hiçbir şey
-                yazılmaz.
+                Değişiklikler kaydedilmedi. Kaydet düğmesine basana kadar değişiklikler
+                uygulanmaz.
               </p>
             )}
 
@@ -336,8 +345,8 @@ export function Roller({ personel, bildir, tazele, surum }) {
             tazele()
             bildir(
               sonuc.tasinan
-                ? `${sonuc.silinen.ad} silindi · ${sonuc.tasinan} kişi taşındı`
-                : `${sonuc.silinen.ad} silindi`,
+                ? `${sonuc.silinen.ad} rolü silindi · ${sonuc.tasinan} kişi yeni rollerine taşındı`
+                : `${sonuc.silinen.ad} rolü silindi`,
             )
             return null
           }}
@@ -352,7 +361,7 @@ export function Roller({ personel, bildir, tazele, surum }) {
         >
           <div className="kart pencere__kart" style={{ maxWidth: 440 }}>
             <div className="kart__tepe">
-              <h2>Kaydedilmemiş değişiklik var</h2>
+              <h2>Kaydedilmemiş Değişiklik Var</h2>
             </div>
             <div className="kart__ic">
               <p style={{ margin: '0 0 18px', lineHeight: 1.6 }}>

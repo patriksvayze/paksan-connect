@@ -6,8 +6,8 @@ import { getProduct, PRODUCTS, supportGroup, urunDilde } from '../marka'
 import { GonderButonu } from '../components/GonderButonu'
 import { alanaGit } from '../lib/formOdak'
 import {
-  ULASIM_ZAMANI, PARCA_DIGER, alanEtiketi,
-  makineDurumu, ulasimSecenekleri, urunTipiSecenekleri, ARIZA_DURUMLARI,
+  PARCA_DIGER, alanEtiketi,
+  makineDurumu, urunTipiSecenekleri, ARIZA_DURUMLARI,
   araziSecenekleri, traktorSecenekleri, belirtiSecenekleri,
 } from '../data/talepAlanlari'
 import {
@@ -21,10 +21,11 @@ import {
   fiyatGoruntusu, katalogGetir, parcaBul, parcaToplami,
 } from '../lib/parcaKatalogu'
 import { ParcaSecEkrani } from './ParcaSecEkrani'
+import { ParcaResmi } from '../components/ParcaResmi'
 import { formatSerial } from '../lib/serial'
 import { telKullanici } from '../lib/tel'
 import { CIZIM } from '../marka/icerik/cizimler'
-import { musterininServisleri } from '../lib/servisAtama'
+import { makineninServisi, musterininServisleri } from '../lib/servisAtama'
 import { SesKaydi } from '../components/SesKaydi'
 import { EkAlani } from '../components/EkAlani'
 import { KonumAlani } from '../components/KonumAlani'
@@ -81,6 +82,10 @@ function TalepFormu() {
       const ayni = machines.filter((m) => m.productId === model)
       return ayni.length === 1 ? ayni[0].id : ''
     }
+    /* Servis talebinde ilk seçili makine SERVİSİ OLAN ilk makine: atama
+       makine başına ve servisi olmayan makine için talep gönderilemiyor
+       (aşağıda, makine kutusunun altında). */
+    if (tur === 'servis') return (machines.find((m) => makineninServisi(m)) || machines[0])?.id || ''
     return machines[0]?.id || ''
   })
   const [urunId, setUrunId] = useState(params.get('urun') || '')
@@ -128,7 +133,6 @@ function TalepFormu() {
   const [urunTipi, setUrunTipi] = useState([])
   const [arazi, setArazi] = useState([])
   const [traktor, setTraktor] = useState('')
-  const [ulasim, setUlasim] = useState(ULASIM_ZAMANI[0])
 
   /* Belirti listesi uzun. Hepsi birden açılınca ekran düğme duvarına
      dönüyordu; ilk altısı gösteriliyor, gerisi isteyene. */
@@ -231,6 +235,16 @@ function TalepFormu() {
      Rulo balyacısı olan kullanıcıya "helezon sıkışıyor" sormuyoruz. */
   const secilen = machines.find((m) => m.id === makineId)
   const grup = supportGroup(getProduct(secilen?.productId))
+
+  /* SERVİS TALEBİ SEÇİLEN MAKİNENİN SERVİSİNE GİDİYOR (bkz.
+     lib/talepOlustur.js → talebinServisi). Atama makine başına; aynı
+     müşterinin öteki makinesine başka servis bakabiliyor. Ekran önce
+     yalnız "müşterinin HİÇ servisi var mı" diye bakıyordu: bir makinenin
+     servisi varsa servisi olmayan makine için de talep gidiyor ve
+     talep hiçbir servise düşmüyordu (22 Eylül 2026). Artık makine
+     kutusunun altında talebin gideceği servis yazıyor; servis yoksa
+     gönderim duruyor. */
+  const seciliServis = tur === 'servis' && secilen ? makineninServisi(secilen)?.servis || null : null
 
   /* AÇIKLAMA NE ZAMAN ZORUNLU?
 
@@ -489,6 +503,10 @@ function TalepFormu() {
       alanaGit(alan)
     }
 
+    if (tur === 'servis' && !secilen)
+      return sorunlu('makine', t('talep.makineSecinServis'))
+    if (tur === 'servis' && !seciliServis)
+      return sorunlu('makine', t('servisim.yokAlt'))
     if (tur === 'servis' && !durum)
       return sorunlu('durum', t('talep.durumSecin'))
     if (tur === 'servis' && arizaVar && belirtiler.length === 0)
@@ -691,7 +709,6 @@ function TalepFormu() {
         urunTipi: tur === 'satinalma' ? urunTipi.join(', ') : '',
         arazi: tur === 'satinalma' ? arazi.join(', ') : '',
         traktor: tur === 'satinalma' ? traktor : '',
-        ulasim,
         /* Ad ve telefon hesaptan alınıyor; kullanıcıya tekrar
            yazdırılmıyor, burada değiştirilemiyor. */
         ad: user?.ad || '',
@@ -797,10 +814,7 @@ function TalepFormu() {
                 fiyatı telefonda konuşuyor. Orada söz duruyor. */}
             <p className="muted" style={{ marginTop: 8, lineHeight: 1.6 }}>
               {sonuc.tur === 'satinalma'
-                ? t('talep.arayacagiz', {
-                    ne: sonuc.ulasim === ULASIM_ZAMANI[0] ? t('talep.enKisaSurede') : sonuc.ulasim,
-                    tel: sonuc.tel,
-                  })
+                ? t('talep.arayacagiz', { tel: sonuc.tel })
                 : t('talep.uygulamadanBilgi')}
             </p>
             <div className="divider" />
@@ -924,15 +938,21 @@ function TalepFormu() {
               {/* Satırda kod da yazıyor: müşteri havale açıklamasını ya
                   da telefonu açtığında parçayı koduyla söylüyor. Ad
                   tekil değil, kod tekil. */}
+              {/* Satırın başında parçanın resmi (22 Eylül 2026): müşteri
+                  havale etmeden önce doğru parçayı seçtiğini resimden
+                  görüyor (bkz. components/ParcaResmi.jsx). */}
               {hesap.satirlar.map((r) => (
-                <div key={r.kod} className="detay-satir">
-                  <span>
-                    {r.ad}
-                    <span
-                      className="small muted serial-mono"
-                      style={{ display: 'block', marginTop: 2 }}
-                    >
-                      {r.kod} · {adetYaz(r.adet)}
+                <div key={r.kod} className="detay-satir detay-satir--gorselli">
+                  <span className="parca-satir">
+                    <ParcaResmi katalog={katalog} kod={r.kod} yok={t('parcaSec.gorselYok')} />
+                    <span>
+                      {r.ad}
+                      <span
+                        className="small muted serial-mono"
+                        style={{ display: 'block', marginTop: 2 }}
+                      >
+                        {r.kod} · {adetYaz(r.adet)}
+                      </span>
                     </span>
                   </span>
                   <span className="detay-satir__vurgu">
@@ -1277,7 +1297,7 @@ function TalepFormu() {
         <div className="stack" style={{ gap: 20 }}>
           {/* Makine seçimi */}
           {(tur === 'servis' || tur === 'parca') && (
-            <label className="field">
+            <label className="field" data-alan="makine">
               <span className="field__label">{t('talep.hangiMakine')}</span>
               {machines.length > 0 ? (
                 <select
@@ -1319,6 +1339,16 @@ function TalepFormu() {
                   </div>
                   <IconRight size={20} />
                 </button>
+              )}
+              {/* Talebin gideceği servis ya da neden gidemeyeceği. */}
+              {tur === 'servis' && secilen && (
+                seciliServis ? (
+                  <span className="field__hint">
+                    {t('talep.servisineGidecek', { servis: seciliServis.ad })}
+                  </span>
+                ) : (
+                  <span className="field__hint talep-servis-yok">{t('servisim.yokAlt')}</span>
+                )
               )}
             </label>
           )}
@@ -1719,31 +1749,9 @@ function TalepFormu() {
             </div>
           )}
 
-          {/* Çiftçi gün boyu tarlada; ne zaman ulaşılabildiğini
-              söylerse boşa arama sayısı düşer.
-
-              SORU "SİZİ NE ZAMAN ARAYALIM?" DEĞİL. Öyle sorulduğunda
-              müşteri sanki yarın belirli bir saatte aranacağı sözü
-              verilmiş gibi anlıyordu; aranmayınca da kendisi arıyor ve
-              operasyona iki kat yük biniyordu. Şimdi önce aramanın
-              koşullu olduğu söyleniyor, sonra genel müsaitlik
-              soruluyor — saat sözü verilmiyor. */}
-          <div className="field">
-            <span className="field__label">{t('talep.neZamanArayalim')}</span>
-            <span className="field__aciklama">{t('talep.aramaAciklamasi')}</span>
-            <div className="secenekler">
-              {ulasimSecenekleri(dil).map((z) => (
-                <button
-                  key={z.deger}
-                  className={'secenek' + (ulasim === z.deger ? ' secenek--on' : '')}
-                  onClick={() => setUlasim(z.deger)}
-                >
-                  {z.etiket}
-                </button>
-              ))}
-            </div>
-          </div>
-
+          {/* "Gün içinde ne zaman müsait olursunuz?" sorusu burada
+              duruyordu; 22 Eylül 2026'da kaldırıldı (bkz.
+              data/talepAlanlari.js başı). */}
           {hata && (
             <div className="hata-kutu">
               <span className="hata-kutu__ikon"><IconAlert size={20} /></span>

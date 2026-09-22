@@ -18,13 +18,6 @@
    iki dilde de aynı ve parçayı ayırt eden şey o.
    ========================================================================== */
 
-export const ULASIM_ZAMANI_EN = [
-  'Any time',
-  'Morning (09:00 - 12:00)',
-  'Afternoon (12:00 - 15:00)',
-  'Late afternoon (15:00 - 18:00)',
-]
-
 export const MAKINE_DURUMU_EN = {
   durdu: { ad: 'The machine will not run at all' },
   sorunlu: { ad: 'It runs but there is a problem' },

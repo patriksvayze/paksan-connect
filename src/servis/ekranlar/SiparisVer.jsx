@@ -186,6 +186,7 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
         kod,
         ad: parca?.ad || kod,
         grup: parca?.grup || null,
+        gorsel: parca?.gorsel ?? null,
         adet,
         birimFiyat: f ? f.alis : null,
         satirTutari: f ? f.alis * adet : null,
@@ -249,9 +250,13 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
       parcaFiyat: {
         surum: katalog?.surum ?? null,
         kaynak: katalog?.kaynak || null,
+        /* O günkü görselin dosya adı da satırda: katalog değişse de
+           sipariş kendi resmini gösteriyor (bkz. lib/parcaKatalogu.js →
+           fiyatGoruntusu). */
         satirlar: secili.map((k) => ({
           kod: k.kod,
           ad: k.ad,
+          gorsel: k.gorsel,
           adet: k.adet,
           birimFiyat: k.birimFiyat,
           tutar: k.satirTutari,

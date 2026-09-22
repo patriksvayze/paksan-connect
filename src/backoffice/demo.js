@@ -21,7 +21,7 @@ import { yeniNo } from '../lib/numara'
 import { talepNo } from '../lib/talep'
 import { normalizeSerial } from '../lib/serial'
 import { ANAHTAR, islemYaz, personelGetir, rolleriGetir } from './veri'
-import { MAKINE_DURUMU, ULASIM_ZAMANI } from '../data/talepAlanlari'
+import { MAKINE_DURUMU } from '../data/talepAlanlari'
 import { PRODUCTS, SIRKET } from '../marka'
 import { SERVISLER, BAYILER } from '../marka'
 import { makineninServisi } from '../lib/servisAtama'
@@ -711,9 +711,6 @@ export async function demoYukle() {
             : '',
         ulke: gorev.ihracat ? 'DE' : 'TR',
         ihracat: Boolean(gorev.ihracat),
-        /* Uygulamanın sakladığı değerlerin aynısı — backoffice'te saat
-           aralıkları da görünsün. */
-        ulasim: sec(ULASIM_ZAMANI),
         makine: tur === 'satinalma'
           ? null
           : { id: makine.id, serial: makine.serial, productId: makine.productId },

@@ -43,11 +43,16 @@ export const CONNECT_OTURUMSUZ = [
  */
 export const CONNECT = [
   /* Ana sayfada müşterinin TAM adı geçmiyor, yalnız ilk adı
-     ("Merhaba Ahmet"). Buradaki asıl iddia zaten daha değerli:
-     makine → bayi → servis zincirinin sonucu müşterinin ana
-     sayfasında çiziliyor mu. */
-  { kod: 'C-05', ad: 'Ana Sayfa', yol: '/', iz: 'servisAdi' },
+     ("Merhaba Ahmet"). Ekili seri numarası ana sayfanın makine
+     kartında basılı.
+
+     SERVİS ADI ARTIK AŞAĞIDAKİ C-26'DA (22 Eylül 2026): servis kartları
+     ana sayfadan Makinelerim ekranının Servislerim sekmesine taşındı
+     (kullanıcının isteği). "Makine → bayi → servis zincirinin sonucu
+     müşteriye çiziliyor mu" iddiası o sekmeyle birlikte oraya geçti. */
+  { kod: 'C-05', ad: 'Ana Sayfa', yol: '/', iz: 'seri' },
   { kod: 'C-06', ad: 'Makinelerim', yol: '/makinelerim', iz: 'seri' },
+  { kod: 'C-26', ad: 'Makinelerim · Servislerim', yol: '/makinelerim?sekme=servisler', iz: 'servisAdi' },
   { kod: 'C-07', ad: 'Makine Ekle', yol: '/makine-ekle' },
   { kod: 'C-08', ad: 'Makine Detayı', yol: '/makine/{makineId}', iz: 'seri' },
   { kod: 'C-09', ad: 'Destek', yol: '/destek' },

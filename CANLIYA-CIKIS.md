@@ -566,3 +566,102 @@ Sunucu geldiğinde numarayı **sunucu üretmeli.**
    açılış. Her adım en az bir ay.
 
 Toplam gerçekçi takvim: **6-9 ay.**
+
+
+---
+
+## 11. Maliyet (22 Eylül 2026)
+
+Kullanıcının isteği: "Bu projenin canlıya çıkma maliyetini hesaplamamız
+lazım." Varsayımlar:
+
+- **Yalnız Android.** iOS ilk aşamada yok (bkz. 5.6).
+- **Sunucu:** şirketin Vodafone bulutunda kiraladığı sunucu. Kurulum
+  oraya yapılacak; **sunucu kirası bu hesaba girmedi.** Bulut sunucusu
+  olduğu için `SUNUCU-VE-VERITABANI.md` §14'teki şirket içi kalemler
+  (yedek internet hattı, elektrik ve soğutma, ağ ayrımı) gerekmiyor.
+- Rakamlar **KDV hariç** (aksi yazılan yerde dahil). Kur: 1 ABD doları
+  = 48,8 TL (TCMB, 22 Eylül 2026).
+- Fiyatı bilinen kalemler kaynağından alındı; bilinmeyenler
+  **aralık** olarak verildi ve dayanağı yazıldı. Kesin rakam için her
+  tahmini kalemde 2-3 teklif alınmalı.
+
+### 11.1 Fiyatı belli kalemler
+
+| Kalem | Ne zaman | Tutar | Not |
+|---|---|---|---|
+| Google Play geliştirici hesabı | tek sefer | 25 USD ≈ **1.220 TL** | Connect ve Servisim aynı hesapta |
+| D-U-N-S numarası (kurumsal Play hesabı için) | tek sefer | 0 | Dun & Bradstreet ücretsiz veriyor; birkaç hafta sürebilir |
+| SSL sertifikası (Let's Encrypt) | — | 0 | 90 günde bir kendiliğinden yenileniyor |
+| Alt alan adları (`api.`, `backoffice.`) | — | 0 | `paksanmakina.com.tr` zaten şirketin |
+| Bildirim gönderimi (Firebase Cloud Messaging) | — | 0 | Push bildirimi ücretsiz |
+| Veritabanı (SQL Server Express) | — | 0 | 10 GB sınırı; talep ve kayıt verisine yıllarca yeter. Fotoğraf ve video veritabanında değil diskte duruyor |
+| Uygulama imza anahtarı (Play App Signing) | — | 0 | |
+| Uygulama hata takibi (Firebase Crashlytics) | — | 0 | |
+| İYS temel hizmetleri | — | 0 | Yalnız ticari SMS / e-posta gönderilirse gerekiyor; uygulama içi duyuru ve push bir İYS kanalı değil. Hukuk danışmanına teyit ettirilmeli |
+| Doğrulama SMS'i (OTP) | kullandıkça | **0,18–0,48 TL/adet** (ÖİV ve KDV dahil) | Netgsm OTP tarifesi: 10.000'lik paket 2.790 TL, 1 yıl geçerli; yeni abonede 1.999 TL |
+| Logo Tiger 3 Objects lisansı *(gerekirse)* | tek sefer | **63.100 TL** (LEM'i olan) / **69.500 TL** (LEM'i olmayan) | LOGO'nun REST servisi ayrı lisanslanmıyor, bu lisansı şart koşuyor. PAKSAN'da Objects lisansı zaten varsa 0. Logo tavsiye edilen fiyat listesi, 7 Ocak 2026 |
+
+**SMS hacmi.** SMS yalnız kayıt, şifre sıfırlama ve numara
+değişikliğinde gidiyor. Yılda 3.000 yeni müşteri ≈ 5.000 SMS ≈ **1.500–2.500
+TL/yıl.** Talep bildirimleri SMS'le değil push'la gidiyor ve öyle
+kalmalı: binlerce kullanıcıya SMS, bütün sunucu masrafından pahalıya
+gelir.
+
+### 11.2 Fiyatı belli olmayan, önerilen kalemler (tahmin)
+
+| Kalem | Tahmin | Dayanak |
+|---|---|---|
+| **Sunucu yazılımı (API)** — hesaplar, talepler, yetki denetimi, dosya yükleme, SMS ve bildirim bağlantısı, test. Veritabanı tasarımı ve betikleri hazır (`veritabani/`) | **Dış firma: 0,8–2,3 milyon TL** | 2.4'teki süreler 65–125 adam/gün ediyor; 2026'da yazılım firmalarının adam/gün fiyatı ~12.000–18.000 TL |
+| (Aynı iş) **içeriden bir yazılımcı + yapay zekâ araçları** | **0,5–1,0 milyon TL** | 4–6 ay × işveren maliyeti ~110.000–150.000 TL/ay (2026 back-end ortalama maaşı ~72.700 TL) + araçlar ~20.000 TL/ay (Claude ve Codex abonelikleri; bu proje bugüne kadar böyle yazıldı) |
+| LOGO iş ortağı hizmeti — REST servisinin kurulumu, okuma yetkisi, veri eşleme | 20.000–100.000 TL | İş ortağının tarifesine ve LOGO tarafındaki işin büyüklüğüne bağlı |
+| Sızma testi — backoffice + API + iki Android uygulaması | 60.000–200.000 TL | 2026'da tek web uygulaması 40.000–90.000 TL; mobil ve API kapsamı ekleniyor |
+| Hukuk — KVKK metinleri, servis ve bayilerle veri paylaşım sözleşmesi | 20.000–75.000 TL | Hukuk danışmanının tarifesi |
+| Yedeklerin sunucu dışında, Türkiye'de tutulması | 500–2.000 TL/ay | Vodafone'un yedekleme hizmeti ya da nesne depolama; teklif alınmalı. Aynı sunucudaki yedek, yedek değildir (bkz. 7.1) |
+| Çalışma izleme (sunucu çökünce haber) | 0–400 TL/ay | Ücretsiz katman (ör. UptimeRobot) başlangıçta yeter |
+| E-posta gönderimi (backoffice şifre sıfırlama, ihracat talepleri) | 0 | Şirketin kendi e-posta sunucusundan |
+| Yayından sonra bakım ve destek | 20.000–60.000 TL/ay | Dış firmayla çalışılırsa sözleşme; içeriden yazılımcıda maaşın içinde |
+
+### 11.3 Hesaba katılmayanlar — ama sunucu kararını etkileyenler
+
+- **Sunucu kirası** (Vodafone).
+- **Destek asistanının dil modeli sunucuda çalışıyor.** Ücretli bir
+  yapay zekâ servisine bağlı değil, soru başına ücret yok. Ama modelin
+  hep bellekte durması için sunucuda **yaklaşık 8 GB ek bellek**
+  gerekiyor (bkz. 2.1.1). Vodafone sunucusunun belleği yetmezse kira
+  artar — bilgi işleme sorulmalı.
+- **Talep ekleri** (fotoğraf, video, ses): ayda 1.000 talepte yılda
+  yaklaşık 100–300 GB disk. Sunucunun diski buna göre seçilmeli.
+- **Test ortamı:** aynı sunucuda ayrı bir veritabanı olarak kurulabilir;
+  ayrı küçük bir sunucu istenirse kira.
+- **iOS:** Apple geliştirici hesabı yıllık 99 USD ≈ 4.830 TL; şimdilik
+  yok.
+
+### 11.4 İlk yıl — kaba toplam (KDV hariç)
+
+| | Dış firmayla | İçeriden yazılımcı + yapay zekâ |
+|---|---|---|
+| Fiyatı belli kalemler (Play hesabı, SMS) | ~5.000 TL | ~5.000 TL |
+| Logo Objects lisansı *(gerekirse)* | 0–69.500 TL | 0–69.500 TL |
+| Sunucu yazılımı | 0,8–2,3 milyon TL | 0,5–1,0 milyon TL |
+| LOGO iş ortağı | 20.000–100.000 TL | 20.000–100.000 TL |
+| Sızma testi | 60.000–200.000 TL | 60.000–200.000 TL |
+| Hukuk | 20.000–75.000 TL | 20.000–75.000 TL |
+| Yedek + izleme (12 ay) | 6.000–29.000 TL | 6.000–29.000 TL |
+| Yayından sonraki bakım (ilk yılın kalan ~6 ayı) | 120.000–360.000 TL | yazılımcının maaşında |
+| **Toplam** | **~1,0–3,1 milyon TL** | **~0,6–1,5 milyon TL** |
+
+İçeriden yolda yazılımcı yayından sonra da kalırsa aylık maliyeti
+(~130.000–170.000 TL, araçlar dahil) sürer; karşılığında her değişiklik
+için firmanın sırasını beklemek gerekmez.
+
+**En büyük kalem sunucu yazılımı, gerisi küçük.** Uygulamaların üçü ve
+veritabanı tasarımı bitmiş durumda (işin %60-70'i, bkz. 1) — onlar bu
+hesapta yer almıyor. Toplamı asıl belirleyecek iki soru: sunucuyu kim
+yazacak (2.2) ve PAKSAN'da Logo Objects lisansı var mı.
+
+**Kaynaklar (22 Eylül 2026):** Netgsm OTP SMS fiyatları
+(netgsm.com.tr/fiyatlar/otp-sms), Logo Tiger 3 tavsiye edilen fiyat
+listesi (7 Ocak 2026), İYS sıkça sorulan sorular (iys.org.tr),
+Eleman.net 2026 back-end maaşları, Most Idea 2026 özel yazılım maliyet
+rehberi, 2026 sızma testi fiyat rehberleri, TCMB kuru.

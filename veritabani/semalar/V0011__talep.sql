@@ -71,7 +71,6 @@ CREATE TABLE talep.Talep (
     MakineKimlik           uniqueidentifier NULL,
     ServisKimlik           uniqueidentifier NULL,
     ServisAtamaKaynagiKodu nvarchar(40) COLLATE Latin1_General_100_BIN2 NULL,
-    UlasimZamaniKodu       nvarchar(40) COLLATE Latin1_General_100_BIN2 NULL,
     SesDosyaKimlik         uniqueidentifier NULL,
     KonumUlkeKodu          nvarchar(2) COLLATE Latin1_General_100_BIN2 NOT NULL,
     IlKodu                 tinyint NULL,
@@ -113,7 +112,6 @@ CREATE TABLE talep.Talep (
     CONSTRAINT FK_talep_Talep_makine_Makine FOREIGN KEY (MakineKimlik, MarkaKodu) REFERENCES makine.Makine (Kimlik, MarkaKodu),
     CONSTRAINT FK_talep_Talep_servis_MarkaYetkisi FOREIGN KEY (ServisKimlik, MarkaKodu) REFERENCES servis.MarkaYetkisi (ServisKimlik, MarkaKodu),
     CONSTRAINT FK_talep_Talep_kod_ServisAtamaKaynagi FOREIGN KEY (ServisAtamaKaynagiKodu) REFERENCES kod.ServisAtamaKaynagi (Kod),
-    CONSTRAINT FK_talep_Talep_kod_UlasimZamani FOREIGN KEY (UlasimZamaniKodu) REFERENCES kod.UlasimZamani (Kod),
     CONSTRAINT FK_talep_Talep_dosya_Dosya_Ses FOREIGN KEY (SesDosyaKimlik) REFERENCES dosya.Dosya (Kimlik),
     CONSTRAINT FK_talep_Talep_cografya_Ulke FOREIGN KEY (KonumUlkeKodu) REFERENCES cografya.Ulke (Kod),
     CONSTRAINT FK_talep_Talep_cografya_Il FOREIGN KEY (IlKodu) REFERENCES cografya.Il (IlKodu),
@@ -166,7 +164,6 @@ CREATE INDEX IX_talep_Talep_ServisKimlikMarkaKodu ON talep.Talep (ServisKimlik, 
 CREATE INDEX IX_talep_Talep_IlKoduIlceKodu ON talep.Talep (IlKodu, IlceKodu) WHERE IlKodu IS NOT NULL;
 CREATE INDEX IX_talep_Talep_SahipKodu ON talep.Talep (SahipKodu);
 CREATE INDEX IX_talep_Talep_ServisAtamaKaynagiKodu ON talep.Talep (ServisAtamaKaynagiKodu) WHERE ServisAtamaKaynagiKodu IS NOT NULL;
-CREATE INDEX IX_talep_Talep_UlasimZamaniKodu ON talep.Talep (UlasimZamaniKodu) WHERE UlasimZamaniKodu IS NOT NULL;
 CREATE INDEX IX_talep_Talep_SesDosyaKimlik ON talep.Talep (SesDosyaKimlik) WHERE SesDosyaKimlik IS NOT NULL;
 CREATE INDEX IX_talep_Talep_KonumUlkeKodu ON talep.Talep (KonumUlkeKodu);
 CREATE INDEX IX_talep_Talep_YapanTuruKodu ON talep.Talep (YapanTuruKodu);
@@ -193,7 +190,6 @@ EXEC dbo.AciklamaYaz N'talep', N'Talep', N'HesapKimlik', @Metin = N'Talebin bağ
 EXEC dbo.AciklamaYaz N'talep', N'Talep', N'MakineKimlik', @Metin = N'Talebin ilgili olduğu makine (makine.Makine); makinenin markası talebin markasıyla aynı olmalı. Connect''ten açılan servis talebinde zorunlu.';
 EXEC dbo.AciklamaYaz N'talep', N'Talep', N'ServisKimlik', @Metin = N'Talebin müşterisi olduğu servis (servis.Servis). Bir kez yazılınca değişmez; servisin talebin markasında yetkisi olmalı (servis.MarkaYetkisi).';
 EXEC dbo.AciklamaYaz N'talep', N'Talep', N'ServisAtamaKaynagiKodu', @Metin = N'Servisin talebe nereden geldiği: makineAtamasi, bayiServisi, servisElle (kod.ServisAtamaKaynagi). Servis yoksa boş.';
-EXEC dbo.AciklamaYaz N'talep', N'Talep', N'UlasimZamaniKodu', @Metin = N'Müşterinin aranmak istediği zaman: farkEtmez, sabah, ogledenSonra, aksamustu (kod.UlasimZamani).';
 EXEC dbo.AciklamaYaz N'talep', N'Talep', N'SesDosyaKimlik', @Metin = N'Talebe eklenen ses kaydı (dosya.Dosya).';
 EXEC dbo.AciklamaYaz N'talep', N'Talep', N'KonumUlkeKodu', @Metin = N'Hizmet yerinin ülkesi (cografya.Ulke; Türkiye TR).';
 EXEC dbo.AciklamaYaz N'talep', N'Talep', N'IlKodu', @Metin = N'Hizmet yerinin ili, plaka kodu (cografya.Il). Yalnız Türkiye''de dolu.';
@@ -1200,6 +1196,7 @@ CREATE TABLE talep.ServisZiyareti (
     ArizaMetni           nvarchar(2000) COLLATE Turkish_100_CI_AS NULL,
     SonucMetni           nvarchar(1000) COLLATE Turkish_100_CI_AS NULL,
     Km                   decimal(9,1) NULL,
+    IscilikSaati         decimal(5,1) NULL,
     IscilikTutari        decimal(18,2) NULL,
     TeknisyenAdi         nvarchar(100) COLLATE Turkish_100_CI_AS NULL,
     TalepKimlik          uniqueidentifier NOT NULL,
@@ -1247,6 +1244,7 @@ CREATE TABLE talep.ServisZiyareti (
     CONSTRAINT CK_talep_ServisZiyareti_ZiyaretNo CHECK (ZiyaretNo >= 1),
     CONSTRAINT CK_talep_ServisZiyareti_YapilanIs CHECK (AsamaKodu <> N'bitti' OR YapilanIsKodu IS NOT NULL),
     CONSTRAINT CK_talep_ServisZiyareti_Km CHECK (Km IS NULL OR Km >= 0),
+    CONSTRAINT CK_talep_ServisZiyareti_IscilikSaati CHECK (IscilikSaati IS NULL OR IscilikSaati >= 0),
     CONSTRAINT CK_talep_ServisZiyareti_IscilikTutari CHECK (IscilikTutari IS NULL OR IscilikTutari >= 0),
     CONSTRAINT CK_talep_ServisZiyareti_ParaBirimi CHECK (IscilikTutari IS NULL OR ParaBirimiKodu IS NOT NULL),
     CONSTRAINT CK_talep_ServisZiyareti_UyduKodu CHECK (UyduKodu = N'servisZiyareti'),
@@ -1284,7 +1282,8 @@ EXEC dbo.AciklamaYaz N'talep', N'ServisZiyareti', N'ZiyaretNo', @Metin = N'Ziyar
 EXEC dbo.AciklamaYaz N'talep', N'ServisZiyareti', N'ArizaMetni', @Metin = N'Servisin sahada bulduğu arıza.';
 EXEC dbo.AciklamaYaz N'talep', N'ServisZiyareti', N'SonucMetni', @Metin = N'Servisin iş sonunda yazdığı not.';
 EXEC dbo.AciklamaYaz N'talep', N'ServisZiyareti', N'Km', @Metin = N'Servisin gidiş-dönüş toplam yol kilometresi. Yol hak edişi bundan ve tarifeden hesaplanır.';
-EXEC dbo.AciklamaYaz N'talep', N'ServisZiyareti', N'IscilikTutari', @Metin = N'Servisin yazdığı işçilik tutarı, KDV hariç (para birimi ParaBirimiKodu kolonunda).';
+EXEC dbo.AciklamaYaz N'talep', N'ServisZiyareti', N'IscilikSaati', @Metin = N'Servisin yazdığı işçilik süresi, saat cinsinden (yarım saat 0,5). Tutar bu süre ile ziyaretin tamamlandığı gün geçerli işçilik tarifesinin çarpımıdır (hakedis.Tarife, kalem türü iscilik).';
+EXEC dbo.AciklamaYaz N'talep', N'ServisZiyareti', N'IscilikTutari', @Metin = N'İşçilik tutarı, KDV hariç (para birimi ParaBirimiKodu sütununda): işçilik süresi ile saat ücretinin çarpımı. Süre yazılmamış eski kayıtlarda servisin yazdığı tutardır.';
 EXEC dbo.AciklamaYaz N'talep', N'ServisZiyareti', N'TeknisyenAdi', @Metin = N'İşi yapan teknisyenin adı (servisin yazdığı).';
 EXEC dbo.AciklamaYaz N'talep', N'ServisZiyareti', N'TalepKimlik', @Metin = N'Ziyaretin ait olduğu talep (talep.Talep).';
 EXEC dbo.AciklamaYaz N'talep', N'ServisZiyareti', N'TurKodu', @Metin = N'Talebin türü. Talebin kendi türüyle aynı olmalı ve bu türün bu kaydı alabildiği kod.TalepTuruUydusu tablosunda yazılı olmalı (yeni tür = kod satırı).';
@@ -1381,6 +1380,8 @@ CREATE TABLE talep.ZiyaretDuzeltmesi (
     Neden                nvarchar(500) COLLATE Turkish_100_CI_AS NOT NULL,
     OncekiKm             decimal(9,1) NULL,
     YeniKm               decimal(9,1) NULL,
+    OncekiIscilikSaati   decimal(5,1) NULL,
+    YeniIscilikSaati     decimal(5,1) NULL,
     OncekiIscilikTutari  decimal(18,2) NULL,
     YeniIscilikTutari    decimal(18,2) NULL,
     ZiyaretKimlik        uniqueidentifier NOT NULL,
@@ -1403,6 +1404,8 @@ CREATE TABLE talep.ZiyaretDuzeltmesi (
     CONSTRAINT FK_talep_ZiyaretDuzeltmesi_kod_KaynakUygulama FOREIGN KEY (KaynakUygulamaKodu) REFERENCES kod.KaynakUygulama (Kod),
     CONSTRAINT CK_talep_ZiyaretDuzeltmesi_OncekiKm CHECK (OncekiKm IS NULL OR OncekiKm >= 0),
     CONSTRAINT CK_talep_ZiyaretDuzeltmesi_YeniKm CHECK (YeniKm IS NULL OR YeniKm >= 0),
+    CONSTRAINT CK_talep_ZiyaretDuzeltmesi_OncekiIscilikSaati CHECK (OncekiIscilikSaati IS NULL OR OncekiIscilikSaati >= 0),
+    CONSTRAINT CK_talep_ZiyaretDuzeltmesi_YeniIscilikSaati CHECK (YeniIscilikSaati IS NULL OR YeniIscilikSaati >= 0),
     CONSTRAINT CK_talep_ZiyaretDuzeltmesi_OncekiIscilikTutari CHECK (OncekiIscilikTutari IS NULL OR OncekiIscilikTutari >= 0),
     CONSTRAINT CK_talep_ZiyaretDuzeltmesi_YeniIscilikTutari CHECK (YeniIscilikTutari IS NULL OR YeniIscilikTutari >= 0),
     CONSTRAINT CK_talep_ZiyaretDuzeltmesi_Yapan CHECK (
@@ -1429,6 +1432,8 @@ EXEC dbo.AciklamaYaz N'talep', N'ZiyaretDuzeltmesi', @Metin = N'PAKSAN''ın serv
 EXEC dbo.AciklamaYaz N'talep', N'ZiyaretDuzeltmesi', N'Neden', @Metin = N'Düzeltmenin gerekçesi (servis görür).';
 EXEC dbo.AciklamaYaz N'talep', N'ZiyaretDuzeltmesi', N'OncekiKm', @Metin = N'Düzeltmeden önceki kilometre; km değişmediyse boş.';
 EXEC dbo.AciklamaYaz N'talep', N'ZiyaretDuzeltmesi', N'YeniKm', @Metin = N'Düzeltmeden sonraki kilometre; km değişmediyse boş.';
+EXEC dbo.AciklamaYaz N'talep', N'ZiyaretDuzeltmesi', N'OncekiIscilikSaati', @Metin = N'Düzeltmeden önceki işçilik süresi (saat); değişmediyse boş.';
+EXEC dbo.AciklamaYaz N'talep', N'ZiyaretDuzeltmesi', N'YeniIscilikSaati', @Metin = N'Düzeltmeden sonraki işçilik süresi (saat); değişmediyse boş.';
 EXEC dbo.AciklamaYaz N'talep', N'ZiyaretDuzeltmesi', N'OncekiIscilikTutari', @Metin = N'Düzeltmeden önceki işçilik tutarı (ziyaretin para biriminde); değişmediyse boş.';
 EXEC dbo.AciklamaYaz N'talep', N'ZiyaretDuzeltmesi', N'YeniIscilikTutari', @Metin = N'Düzeltmeden sonraki işçilik tutarı (ziyaretin para biriminde); değişmediyse boş.';
 EXEC dbo.AciklamaYaz N'talep', N'ZiyaretDuzeltmesi', N'ZiyaretKimlik', @Metin = N'Düzeltilen ziyaret (talep.ServisZiyareti).';

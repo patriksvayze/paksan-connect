@@ -282,13 +282,13 @@ INSERT talep.Talep (Kimlik, Numara, NumaraOneki, TurKodu, KaynakKodu, MarkaKodu,
                     DurumKodu, Kapali, SahipKodu, MasaKodu, HesapKimlik, MakineKimlik,
                     ServisKimlik, ServisAtamaKaynagiKodu, ServisAtamaZamani,
                     KonumUlkeKodu, IlKodu, Adres, IletisimAdi, IletisimTelefonE164, IletisimTelefonUlusal,
-                    SesDosyaKimlik, UlasimZamaniKodu,
+                    SesDosyaKimlik,
                     YapanTuruKodu, YapanHesapKimlik, KaynakUygulamaKodu, UygulamaSurumu)
 VALUES (@Talep, @Numara, N'SRV', N'servis', N'connect', N'paksan',
         N'yeni', 0, N'servis', N'servisMasasi', @Hesap, @Makine,
         @Servis, N'bayiServisi', SYSUTCDATETIME(),
         N'TR', 42, @Adres, CONCAT(@Ad, N' ', @Soyad), @Telefon, N'5321110001',
-        @Ses, N'sabah',
+        @Ses,
         N'musteri', @Hesap, N'connect', N'0.9.14');
 
 INSERT talep.ServisTalebiAyrinti (TalepKimlik, TurKodu, MakineDurumuKodu)
@@ -389,16 +389,24 @@ IF NOT EXISTS (SELECT 1 FROM talep.ParcaSevki WHERE ZiyaretKimlik = @Ziyaret1 AN
 BEGIN SET @Mesaj = CONCAT(@Adim, N': SonGuncellemeZamani yazılmadı'); THROW 59999, @Mesaj, 1; END;
 
 /* ------------------------------------------------------------------ SN-06
-   Ziyaret bitti (parcaDegisimi, Km 42, işçilik 750); hak ediş bekliyor;
+   Ziyaret bitti (parcaDegisimi, Km 42, işçilik 15 saat); hak ediş bekliyor;
    HakEdisHesapla → yol 504,00 + işçilik 750,00 = 1254,00; talep
-   onayBekliyor, masa servisMasasi. */
+   onayBekliyor, masa servisMasasi.
+
+   İşçilik 22.09.2026'dan beri SÜRE olarak yazılır: API servisin yazdığı
+   saati (IscilikSaati) ve o günün ücretiyle hesapladığı tutarı
+   (IscilikTutari) birlikte gönderir; hak ediş kalemini HakEdisHesapla
+   süre × geçerli işçilik tarifesinden yazar. 15 saat × B02'nin genel
+   işçilik tarifesi 50,00 = 750,00 (B02 değişirse bu adım ve sonraki
+   tutarlar da değişir; yol 42 km × 12,00 ile aynı bağ). Süresiz eski
+   kayıt S01 sahnesinde ve S04 ES-09'da sınanır. */
 SET @Adim = N'SN-06';
 BEGIN TRANSACTION;
 EXEC sistem.YapanAyarla @YapanTuruKodu = N'servis', @YapanKullaniciKimlik = @ServisKul,
      @YapanAdi = N'S02 Servis Teknisyeni', @KaynakUygulamaKodu = N'servisim';
 UPDATE talep.ServisZiyareti
    SET AsamaKodu = N'bitti', YapilanIsKodu = N'parcaDegisimi',
-       Km = 42, IscilikTutari = 750, ParaBirimiKodu = N'TRY',
+       Km = 42, IscilikSaati = 15, IscilikTutari = 750, ParaBirimiKodu = N'TRY',
        SonucMetni = N'S02 sonuç metni', TamamlanmaZamani = SYSUTCDATETIME()
  WHERE Kimlik = @Ziyaret1;
 
@@ -418,6 +426,18 @@ SELECT @Metin = CONCAT(
 IF @Metin <> N'504.00/750.00/1254.00'
 BEGIN SET @Mesaj = CONCAT(@Adim, N': beklenen yol/işçilik/net 504.00/750.00/1254.00, gelen ', ISNULL(@Metin, N'(boş)')); THROW 59999, @Mesaj, 1; END;
 
+/* İşçilik kalemi süreden: miktar 15 saat, birim saat, genel işçilik
+   tarifesi (markasız, TRY) ve tutar = ROUND(15 × tarife, 0). Süresiz
+   kayıtta bu üç kolon boş kalırdı; tutar eşitliği tek başına yolu ayırt
+   etmez (IscilikTutari da 750). */
+SELECT @Metin = CONCAT(k.Miktar, N'/', k.BirimKodu, N'/', t.KalemTuruKodu, N'/', ISNULL(t.MarkaKodu, N'genel'), N'/',
+                       CASE WHEN k.BirimTutar = t.BirimTutar AND k.Tutar = ROUND(k.Miktar * t.BirimTutar, 0) THEN N'tutar' ELSE N'TUTMUYOR' END)
+  FROM hakedis.HakEdisKalemi AS k
+  LEFT JOIN hakedis.Tarife AS t ON t.Kimlik = k.TarifeKimlik
+ WHERE k.HakEdisKimlik = @HakEdis AND k.KalemTuruKodu = N'iscilik';
+IF @Metin IS NULL OR @Metin <> N'15.0/saat/iscilik/genel/tutar'
+BEGIN SET @Mesaj = CONCAT(@Adim, N': işçilik kalemi süre × tarifeden yazılmalıydı (15.0/saat/iscilik/genel/tutar), gelen ', ISNULL(@Metin, N'(boş)')); THROW 59999, @Mesaj, 1; END;
+
 /* ------------------------------------------------------------------ SN-07
    PAKSAN düzeltmesi: Km 42 → 30; parçalardan biri çıkarılır, diğeri adet 2
    olur; HakEdisHesapla → NetTutar 1110,00; ZiyaretGuncelParcasi yalnız
@@ -427,10 +447,11 @@ BEGIN TRANSACTION;
 EXEC sistem.YapanAyarla @YapanTuruKodu = N'personel', @YapanKullaniciKimlik = @Personel,
      @YapanAdi = @PersonelAd, @KaynakUygulamaKodu = N'backoffice';
 INSERT talep.ZiyaretDuzeltmesi (Kimlik, ZiyaretKimlik, MarkaKodu, Neden,
-                                OncekiKm, YeniKm, OncekiIscilikTutari, YeniIscilikTutari,
+                                OncekiKm, YeniKm, OncekiIscilikSaati, YeniIscilikSaati,
+                                OncekiIscilikTutari, YeniIscilikTutari,
                                 YapanTuruKodu, YapanKullaniciKimlik, YapanAdi, KaynakUygulamaKodu)
 VALUES (@Duzeltme, @Ziyaret1, N'paksan', N'S02 düzeltme nedeni',
-        42, 30, 750, 750,
+        42, 30, 15, 15, 750, 750,
         N'personel', @Personel, @PersonelAd, N'backoffice');
 
 /* Önceki taraf: ziyaretin iki satırı. */

@@ -118,6 +118,35 @@ export function musterininServisleri(makineler = []) {
   return { ana: hepsi[0]?.servis || null, hepsi }
 }
 
+/**
+ * Müşterinin makineleri, onlara bakan servise göre gruplanmış.
+ *
+ * ATAMA MAKİNE BAŞINA (21 Eylül 2026, kullanıcının kararı): aynı
+ * müşterinin iki makinesine iki ayrı servis bakabiliyor. Connect bir
+ * süre yalnız `musterininServisleri().ana`yı — İLK bulunan servisi —
+ * gösterdi; ikinci servis ekranda hiç çıkmadı, "Servisim" sayısı hep 1
+ * dedi (22 Eylül 2026, kullanıcı ekran görüntüsüyle bildirdi). Ana
+ * ekran ve talep formu artık bu gruplamadan okuyor: her servis kendi
+ * kartında, hangi makineye baktığıyla; servisi olmayan makineler ayrı.
+ *
+ * @returns {{gruplar: Array<{servis: object, makineler: Array}>, atanmamis: Array}}
+ */
+export function servisGruplari(makineler = []) {
+  const gruplar = []
+  const atanmamis = []
+  for (const m of makineler) {
+    const servis = makineninServisi(m)?.servis
+    if (!servis) {
+      atanmamis.push(m)
+      continue
+    }
+    const grup = gruplar.find((g) => g.servis.id === servis.id)
+    if (grup) grup.makineler.push(m)
+    else gruplar.push({ servis, makineler: [m] })
+  }
+  return { gruplar, atanmamis }
+}
+
 /** Müşteri servis talebi açabilir mi? */
 export function servisTalebiAcilabilirMi(makineler = []) {
   return Boolean(musterininServisleri(makineler).ana)

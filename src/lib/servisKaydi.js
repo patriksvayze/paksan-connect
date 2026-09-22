@@ -80,7 +80,7 @@
    soruluyor (bkz. `eksikAlanlar`).
    ========================================================================== */
 
-import { MARKA, markaEk } from '../marka'
+import { MARKA, markaEk, PARA_BIRIMI, paraYaz } from '../marka'
 
 /* KAYDIN AŞAMASI.
 
@@ -142,19 +142,96 @@ export const YAPILAN_IS = [
            yazdırmak, aynı mesafeye her servisten başka rakam gelmesi
            demekti.
 
-     İŞÇİLİK  servis tutarı kendisi yazıyor. İşçilik işe göre
-           değişiyor — yarım saatlik ayar ile gün süren şase işi aynı
-           tarifeden ödenemez. Servis rakamı koyuyor, PAKSAN onaylıyor
-           ya da gerekçesiyle düzeltiyor (bkz. veri.js → hakkedisDuzelt).
+     İŞÇİLİK  servis işe harcadığı SÜREYİ yazıyor, parasını PAKSAN
+           saat ücretinden hesaplıyor (22 Eylül 2026, kullanıcının
+           kararı: "Servis personeli talep için harcadığı süreyi girecek,
+           bu süre sabit bir çarpan ile çarpılacak"). Önce servis
+           tutarın kendisini yazıyordu; aynı işe her servisten başka
+           rakam geliyordu, yoldaki sorunun aynısı. Süre işe göre
+           değişiyor — yarım saatlik ayar ile gün süren şase işi — ama
+           saatin fiyatı herkese aynı. PAKSAN süreyi onaylıyor ya da
+           gerekçesiyle düzeltiyor (bkz. veri.js → hakkedisDuzelt).
 
-   YOL TARİFESİ BUGÜN KODDA. Sunucu geldiğinde PAKSAN'ın kendi
-   tarifesinden gelecek; o gün yalnız bu sabit yer değiştirecek,
-   hesabın kendisi değişmeyecek.
+   İKİ TARİFE BUGÜN KODDA. Sunucu geldiğinde PAKSAN'ın kendi tarifesinden
+   gelecek (veritabanında hakedis.Tarife, kalem türü yol ve iscilik); o
+   gün yalnız bu sabit yer değiştirecek, hesabın kendisi değişmeyecek.
+
+   SAAT ÜCRETİ KAYDA YAZILIYOR (`saatUcreti`). Tarife değişince geçmiş
+   hak edişin tutarı değişmesin: kayıt gönderildiği günün ücretini
+   taşıyor, hesap onu okuyor. Katalogdaki parça görseliyle aynı ilke
+   (bkz. CLAUDE.md "Katalog değişince geçmiş işlem değişmez");
+   veritabanında aynı işi tarifenin tarih aralığı görüyor.
+
+   `iscilik` ALANI TUTAR OLARAK KALIYOR. Rapor, cari ve hak ediş ekranları
+   o alanı okuyor; artık servis yazmıyor, süre × ücretten doluyor. Süre
+   alanı olmayan eski kayıtta servisin yazdığı tutar olduğu gibi okunuyor.
    ========================================================================== */
 
 export const TARIFE = {
   /* Gidiş-dönüş toplam kilometre üzerinden, kilometre başına. */
   yolKm: 12,
+  /* İşçilik, saat başına. 50 kullanıcının verdiği örnek rakam
+     ("saatlik servis ücreti 50 TL olsun"); PAKSAN'ın gerçek ücreti
+     gelince yalnız bu satır değişir. */
+  iscilikSaat: 50,
+}
+
+/* Süre yazımı: "2,5" ya da "2.5" → 2.5. Yarım saat yazılabiliyor; ondalık
+   bir haneye yuvarlanıyor. Boş ya da anlamsızsa 0. */
+export function saatOku(deger) {
+  const n = Number(String(deger ?? '').replace(',', '.'))
+  return Number.isFinite(n) && n > 0 ? Math.round(n * 10) / 10 : 0
+}
+
+/* Süre kutusunun süzgeci (Servisim ve backoffice düzeltme formu):
+   "2,5" biçimi. En çok üç hane, bir virgül, virgülden sonra bir hane;
+   nokta yazan da virgüle çevriliyor. */
+export function saatGirdisi(v) {
+  const [tam = '', ...kalan] = String(v).replace(/\./g, ',').replace(/[^\d,]/g, '').split(',')
+  const kesir = kalan.join('').slice(0, 1)
+  return tam.slice(0, 3) + (kalan.length ? ',' + kesir : '')
+}
+
+/** 2.5 → "2,5" (ekranda ve PDF'te). */
+export function saatYaz(saat) {
+  return String(saatOku(saat)).replace('.', ',')
+}
+
+/**
+ * Kayda yazılacak işçilik alanları: süre, o günün saat ücreti ve tutar.
+ * Ücret verilmezse bugünkü tarife.
+ */
+export function iscilikAlanlari(saat, saatUcreti = TARIFE.iscilikSaat) {
+  const s = saatOku(saat)
+  return { iscilikSaat: s, saatUcreti, iscilik: Math.round(s * saatUcreti) }
+}
+
+/* Servis kaydının "İşçilik" satırı — Servisim'de ve backoffice'te aynı
+   yazı: "5 saat · 250 TL". Süresi olmayan eski kayıtta yalnız tutar. */
+export function iscilikYazisi(kayit) {
+  const tutar = iscilikTutari(kayit)
+  if (!tutar) return ''
+  const tl = `${paraYaz(tutar)} ${PARA_BIRIMI}`
+  return saatOku(kayit.iscilikSaat) ? `${saatYaz(kayit.iscilikSaat)} saat · ${tl}` : tl
+}
+
+/* PAKSAN'ın düzeltmesinin tek satırlık özeti (Servisim ve backoffice).
+   Düzeltme süreyle yapıldıysa süreler, eski kayıtta tutarlar. */
+export function duzeltmeYazisi(d) {
+  const yol = `Yol ${d.onceki?.km || 0} km → ${d.yeni?.km || 0} km`
+  if (d.onceki?.iscilikSaat != null || d.yeni?.iscilikSaat != null) {
+    return `${yol} · İşçilik ${saatYaz(d.onceki?.iscilikSaat || 0)} saat → ${saatYaz(d.yeni?.iscilikSaat || 0)} saat`
+  }
+  return `${yol} · İşçilik ${paraYaz(d.onceki?.iscilik || 0)} → ${paraYaz(d.yeni?.iscilik || 0)} ${PARA_BIRIMI}`
+}
+
+/* Kaydın işçilik tutarı. Süre varsa süre × kaydın ücreti; süresi olmayan
+   eski kayıtta servisin yazdığı tutar. */
+function iscilikTutari(kayit) {
+  if (kayit?.iscilikSaat != null) {
+    return Math.round(saatOku(kayit.iscilikSaat) * (Number(kayit.saatUcreti) || TARIFE.iscilikSaat))
+  }
+  return Math.max(0, Math.round(Number(kayit?.iscilik) || 0))
 }
 
 /**
@@ -169,11 +246,12 @@ export function hakkedisHesapla(kayit) {
   }
   const km = Math.max(0, Number(kayit.km) || 0)
   const yol = Math.round(km * TARIFE.yolKm)
-  const iscilik = Math.max(0, Math.round(Number(kayit.iscilik) || 0))
+  const iscilik = iscilikTutari(kayit)
+  const saat = saatOku(kayit.iscilikSaat)
 
   const kalemler = []
   if (km) kalemler.push({ ad: `Yol · ${km} km`, tutar: yol })
-  if (iscilik) kalemler.push({ ad: 'İşçilik', tutar: iscilik })
+  if (iscilik) kalemler.push({ ad: saat ? `İşçilik · ${saatYaz(saat)} saat` : 'İşçilik', tutar: iscilik })
 
   return { yol, iscilik, toplam: yol + iscilik, kalemler }
 }
@@ -224,8 +302,8 @@ export function kaydiDogrula(kayit) {
   if (!kayit.yapilanIs) return 'Yapılan işi seçin.'
 
   if (kayit.kapi === 'garanti') {
-    if (!parcalar.length && !Number(kayit.km) && !Number(kayit.iscilik)) {
-      return 'Gidilen yolu ya da işçilik tutarını yazın.'
+    if (!parcalar.length && !Number(kayit.km) && !iscilikTutari(kayit)) {
+      return 'Gidilen yolu ya da işçilik süresini yazın.'
     }
   }
 
@@ -264,6 +342,10 @@ export function temizParcalar(parcalar = []) {
       adet: Number(p.adet),
       ...(p.kod ? { kod: p.kod } : {}),
       ...(Number.isFinite(p.fiyat) ? { fiyat: p.fiyat } : {}),
+      /* O günkü görselin dosya adı; alan hiç yoksa (22 Eylül 2026'dan
+         önceki kayıt) eklenmiyor, `null` ise "o gün görseli yoktu"
+         diye korunuyor (bkz. components/ParcaResmi.jsx). */
+      ...('gorsel' in p ? { gorsel: p.gorsel ?? null } : {}),
     }))
 }
 
@@ -343,6 +425,7 @@ export function talebinParcalari(talep) {
       ad: s?.ad || s?.kod || '',
       adet: Math.max(1, Number(s?.adet) || 1),
       ...(s?.tutar === null || s?.tutar === undefined ? {} : { tutar: s.tutar }),
+      ...(s && 'gorsel' in s ? { gorsel: s.gorsel ?? null } : {}),
       goruntuden: true,
     }))
   }
@@ -353,7 +436,11 @@ export function talebinParcalari(talep) {
     }
     const kod = p?.kod || ''
     const ad = p?.ad || kod
-    return { kod, ad, adet: adetBul(talep, p, kod, p?.ad || ''), goruntuden: false }
+    return {
+      kod, ad, adet: adetBul(talep, p, kod, p?.ad || ''),
+      ...(p && 'gorsel' in p ? { gorsel: p.gorsel ?? null } : {}),
+      goruntuden: false,
+    }
   })
 }
 

@@ -649,35 +649,6 @@ EXEC dbo.AciklamaYaz @Sema = N'kod', @Nesne = N'ServisAtamaKaynagi', @Alt = N'Ac
 GO
 
 /* --------------------------------------------------------------------------
-   kod.UlasimZamani
-   -------------------------------------------------------------------------- */
-CREATE TABLE kod.UlasimZamani (
-    Kod      nvarchar(40) COLLATE Latin1_General_100_BIN2 NOT NULL
-        CONSTRAINT CK_kod_UlasimZamani_Kod CHECK (LEN(Kod) >= 2 AND Kod NOT LIKE N'%[^A-Za-z0-9]%'),
-    Ad       nvarchar(150) COLLATE Turkish_100_CI_AS NOT NULL,
-    Sira     smallint NOT NULL
-        CONSTRAINT DF_kod_UlasimZamani_Sira DEFAULT 0,
-    Aktif    bit NOT NULL
-        CONSTRAINT DF_kod_UlasimZamani_Aktif DEFAULT 1,
-    Aciklama nvarchar(400) COLLATE Turkish_100_CI_AS NULL,
-    CONSTRAINT PK_kod_UlasimZamani PRIMARY KEY CLUSTERED (Kod)
-);
-GO
-EXEC dbo.AciklamaYaz @Sema = N'kod', @Nesne = N'UlasimZamani',
-     @Metin = N'Müşterinin aranmayı tercih ettiği zaman: farkEtmez, sabah, ogledenSonra, aksamustu.';
-EXEC dbo.AciklamaYaz @Sema = N'kod', @Nesne = N'UlasimZamani', @Alt = N'Kod',
-     @Metin = N'Uygulamanın ve bu listeye bağlı tabloların sakladığı kod (ör. sabah). Yalnız İngilizce harf ve rakam, en az 2 karakter. Bu koda bağlı kayıt varken değiştirilemez.';
-EXEC dbo.AciklamaYaz @Sema = N'kod', @Nesne = N'UlasimZamani', @Alt = N'Ad',
-     @Metin = N'Ekranda görünen Türkçe adı. Başka dillerdeki karşılığı kod.Ceviri tablosundadır.';
-EXEC dbo.AciklamaYaz @Sema = N'kod', @Nesne = N'UlasimZamani', @Alt = N'Sira',
-     @Metin = N'Listelerde gösterim sırası; küçük sayı önce gelir.';
-EXEC dbo.AciklamaYaz @Sema = N'kod', @Nesne = N'UlasimZamani', @Alt = N'Aktif',
-     @Metin = N'1: yeni kayıtta seçilebilir. 0: artık kullanılmıyor; eski kayıtlarda görünmeye devam eder. Satır silinmez.';
-EXEC dbo.AciklamaYaz @Sema = N'kod', @Nesne = N'UlasimZamani', @Alt = N'Aciklama',
-     @Metin = N'Bu seçeneğin ne zaman kullanıldığını anlatan iç not; ekranda görünmez.';
-GO
-
-/* --------------------------------------------------------------------------
    kod.MakineDurumu
    -------------------------------------------------------------------------- */
 CREATE TABLE kod.MakineDurumu (

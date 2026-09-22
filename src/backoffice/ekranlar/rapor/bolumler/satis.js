@@ -264,6 +264,8 @@ export const satisBolumu = {
         alt: M.bekleyenAlt(geciken.length),
       },
       {
+        /* Dashboard'un yönetim özeti bu ölçüyü kimliğiyle buluyor (bkz. Ozet.jsx). */
+        id: 'satis',
         ad: M.satis,
         deger: satisDonem.length,
         fark: f(satisDonem.length, satisOnceki.length),
@@ -271,6 +273,8 @@ export const satisBolumu = {
         alt: satisDonem.length ? M.satisAlt(paraKutu(satisTutari)) : undefined,
       },
       {
+        /* Dashboard'un yönetim özeti bu ölçüyü kimliğiyle buluyor (bkz. Ozet.jsx). */
+        id: 'donusum',
         ad: M.donusum,
         deger: yuzde(satisDonem.length, sonucDonem.length),
         fark: karsilastir ? farkPuan(oran(satisDonem.length, sonucDonem.length), oran(satisOnceki.length, sonucOnceki.length)) : null,

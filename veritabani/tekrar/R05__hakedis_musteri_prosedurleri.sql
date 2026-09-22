@@ -35,6 +35,7 @@ BEGIN
     DECLARE @ZiyaretKimlik uniqueidentifier;
     DECLARE @HakEdisOlusmaZamani datetime2(3);
     DECLARE @Km decimal(9,1);
+    DECLARE @IscilikSaati decimal(5,1);
     DECLARE @IscilikTutari decimal(18,2);
     DECLARE @ZiyaretParaBirimiKodu nvarchar(3);
     DECLARE @TamamlanmaZamani datetime2(3);
@@ -44,6 +45,9 @@ BEGIN
     DECLARE @TarifeBirimTutar decimal(18,2);
     DECLARE @YolTutari decimal(18,2) = 0;
     DECLARE @IscilikKalemTutari decimal(18,2) = 0;
+    DECLARE @IscilikTarifeKimlik uniqueidentifier;
+    DECLARE @IscilikTarifeBirimKodu nvarchar(40);
+    DECLARE @IscilikTarifeBirimTutar decimal(18,2);
 
     IF @@TRANCOUNT = 0
     BEGIN
@@ -67,6 +71,7 @@ BEGIN
         THROW 51043, N'hak ediş onay beklemiyor; tutarı yeniden hesaplamak için onay bekleyen bir hak ediş seçin', 1;
 
     SELECT @Km = z.Km,
+           @IscilikSaati = z.IscilikSaati,
            @IscilikTutari = z.IscilikTutari,
            @ZiyaretParaBirimiKodu = z.ParaBirimiKodu,
            @TamamlanmaZamani = z.TamamlanmaZamani
@@ -129,24 +134,56 @@ BEGIN
         WHERE HakEdisKimlik = @HakEdisKimlik
           AND KalemTuruKodu = N'yol';
 
-    /* iscilik kalemi (servisKaydi.js:172) */
-    SET @IscilikKalemTutari = ROUND(ISNULL(@IscilikTutari, 0), 0);
+    /* iscilik kalemi (servisKaydi.js hakkedisHesapla). 22.09.2026'dan beri
+       servis işçiliği SÜRE olarak yazar: IscilikSaati doluysa tutar süre ×
+       ziyaretin tamamlandığı gün geçerli iscilik tarifesidir; tarife yol
+       kalemindeki kuralla seçilir (önce hak edişin markası, yoksa markasız;
+       hak edişin para biriminde). IscilikSaati boşsa (süreden önceki kayıt)
+       servisin yazdığı IscilikTutari olduğu gibi alınır. */
+    IF @IscilikSaati IS NOT NULL
+    BEGIN
+        IF @IscilikSaati > 0
+        BEGIN
+            SELECT TOP (1)
+                   @IscilikTarifeKimlik = t.Kimlik,
+                   @IscilikTarifeBirimKodu = t.BirimKodu,
+                   @IscilikTarifeBirimTutar = t.BirimTutar
+            FROM hakedis.Tarife AS t
+            WHERE t.KalemTuruKodu = N'iscilik'
+              AND t.ParaBirimiKodu = @ParaBirimiKodu
+              AND (t.MarkaKodu = @MarkaKodu OR t.MarkaKodu IS NULL)
+              AND t.GecerlilikBaslangicTarihi <= @Gun
+              AND (t.GecerlilikBitisTarihi IS NULL OR t.GecerlilikBitisTarihi >= @Gun)
+            ORDER BY CASE WHEN t.MarkaKodu IS NULL THEN 1 ELSE 0 END,
+                     t.GecerlilikBaslangicTarihi DESC,
+                     t.KayitNo DESC;
 
+            IF @IscilikTarifeKimlik IS NULL
+                THROW 51041, N'ziyaretin tamamlandığı gün için geçerli işçilik tarifesi bulunamadı; o tarih için geçerli bir işçilik tarifesi tanımlayın', 1;
+
+            /* yol kalemiyle aynı: tam lira */
+            SET @IscilikKalemTutari = ROUND(@IscilikSaati * @IscilikTarifeBirimTutar, 0);
+        END;
+    END
+    ELSE
+        SET @IscilikKalemTutari = ROUND(ISNULL(@IscilikTutari, 0), 0);
+
+    /* Süreli kayıtta miktar, birim ve tarife yazılır; eski kayıtta boştur. */
     IF @IscilikKalemTutari > 0
     BEGIN
         UPDATE k
-        SET Miktar = NULL,
-            BirimKodu = NULL,
-            BirimTutar = NULL,
-            TarifeKimlik = NULL,
+        SET Miktar = @IscilikSaati,
+            BirimKodu = @IscilikTarifeBirimKodu,
+            BirimTutar = @IscilikTarifeBirimTutar,
+            TarifeKimlik = @IscilikTarifeKimlik,
             Tutar = @IscilikKalemTutari
         FROM hakedis.HakEdisKalemi AS k
         WHERE k.HakEdisKimlik = @HakEdisKimlik
           AND k.KalemTuruKodu = N'iscilik';
 
         IF @@ROWCOUNT = 0
-            INSERT hakedis.HakEdisKalemi (HakEdisKimlik, KalemTuruKodu, Tutar)
-            VALUES (@HakEdisKimlik, N'iscilik', @IscilikKalemTutari);
+            INSERT hakedis.HakEdisKalemi (HakEdisKimlik, KalemTuruKodu, Miktar, BirimKodu, BirimTutar, TarifeKimlik, Tutar)
+            VALUES (@HakEdisKimlik, N'iscilik', @IscilikSaati, @IscilikTarifeBirimKodu, @IscilikTarifeBirimTutar, @IscilikTarifeKimlik, @IscilikKalemTutari);
     END
     ELSE
         DELETE hakedis.HakEdisKalemi
@@ -167,7 +204,7 @@ END;
 GO
 
 EXEC dbo.AciklamaYaz @Sema = N'hakedis', @Nesne = N'HakEdisHesapla',
-    @Metin = N'Hak edişin yol ve işçilik kalemlerini ziyaretin Km ve IscilikTutari değerinden yeniden yazar, sonra NetTutar''ı bütün kalemlerin toplamı yapar (tasarim.md 1.9.4). Yol tarifesi: ziyaretin tamamlandığı Türkiye günü geçerli, hak edişin para biriminde olan hakedis.Tarife satırı; önce hak edişin markasına ait satır, yoksa markasız satır. Tutarlar tam liraya yuvarlanır (servisKaydi.js:171-172). Tutarı 0 çıkan yol/iscilik kalemi silinir; öteki kalem türleri korunur. Hatalar: hak ediş yoksa 51102; bekliyor durumunda değilse 51043; ziyaretin para birimi hak edişinkinden farklıysa 51045; Km > 0 iken tarife yoksa 51041. API servis kaydını gönderirken ve PAKSAN düzeltmesinde (ZiyaretDuzeltmesi + ServisZiyareti.Km/IscilikTutari) aynı işlemde çağırır. Uygulama rolü kalem tablosuna ve NetTutar''a doğrudan yazamaz; yalnız bu prosedür ve hakedis.HakEdisKalemiYaz yazar.';
+    @Metin = N'Hak edişin yol ve işçilik kalemlerini ziyaretin Km, IscilikSaati ve IscilikTutari değerlerinden yeniden yazar, sonra NetTutar''ı bütün kalemlerin toplamına eşitler (tasarim.md 1.9.4). Tarife: ziyaretin Türkiye saatine göre tamamlandığı gün geçerli, hak edişin para biriminde olan hakedis.Tarife satırı; önce hak edişin markasına ait satır, yoksa markasız satır. Yol: Km × yol tarifesi. İşçilik: IscilikSaati doluysa süre × işçilik tarifesi (aynı seçim kuralı); boşsa servisin yazdığı IscilikTutari (süre yazılmamış eski kayıtlar). Tutarlar tam liraya yuvarlanır (servisKaydi.js). Tutarı 0 çıkan yol/iscilik kalemi silinir; öteki kalem türleri korunur. Hatalar: hak ediş yoksa 51102; bekliyor durumunda değilse 51043; ziyaretin para birimi hak edişinkinden farklıysa 51045; Km > 0 iken yol tarifesi ya da IscilikSaati > 0 iken işçilik tarifesi yoksa 51041. API servis kaydını gönderirken ve PAKSAN düzeltmesinde (ZiyaretDuzeltmesi + ServisZiyareti.Km/IscilikSaati/IscilikTutari) aynı işlemde çağırır. Uygulama rolü kalem tablosuna ve NetTutar''a doğrudan yazamaz; yalnız bu prosedür ve hakedis.HakEdisKalemiYaz yazar.';
 EXEC dbo.AciklamaYaz @Sema = N'hakedis', @Nesne = N'HakEdisHesapla', @Alt = N'@HakEdisKimlik', @AltTuru = N'PARAMETER',
     @Metin = N'Hesaplanacak hakedis.HakEdis satırının Kimlik değeri.';
 GO

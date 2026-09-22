@@ -32,7 +32,12 @@ export function Musteriler({ personel, rol, bildir, tazele, surum, git }) {
   const [duzenlenen, setDuzenlenen] = useState(null)
 
   const { veri: musteriler, yukleniyor } = useVeri(() => musterileriGetir(), [surum], [])
-  const { veri: talepler } = useVeri(() => talepleriGetir(), [surum], [])
+  /* Rolün görmediği talep türü burada da görünmüyor (22 Eylül 2026,
+     kullanıcının kuralı: servis, yedek parça ve satış birbirinin
+     talebini görmez). Önce müşteri detayındaki ve makine geçmişindeki
+     listeler bütün talepleri gösteriyordu; satır tıklanmasa da içeriği
+     okunuyordu. Sayılar da aynı listeden çıkıyor. */
+  const { veri: talepler } = useVeri(() => rolunTalepleri(talepleriGetir(), rol), [surum, rol], [])
 
   const { siralama, cevir } = useSiralama('createdAt', 'azalan')
 

@@ -1,7 +1,7 @@
 import { Logo } from '../marka'
 import { IconBack, IconPhone, IconPlus } from '../components/Icons'
 import { ParcaTablosu } from '../components/ParcaTablosu'
-import { ParcaGorselListesi } from './ParcaGorselListesi'
+import { ParcaResmi, useParcaKatalogu } from '../components/ParcaResmi'
 import { GeriKatmani, useGeri } from './geri'
 
 /* ==========================================================================
@@ -64,17 +64,20 @@ function Cubuk({ baslik, alt, onGeri, islem }) {
 
 /**
  * Sekmeli ana ekran.
- * @param {{ sekmeler: {id, ad, Icon, rozet?}[] }} props
+ * @param {{ sekmeler: {id, ad, Icon, rozet?}[], onGeri?: Function }} props
+ *        onGeri verilirse sol üstte "Geri" düğmesi çıkıyor ve telefonun
+ *        geri tuşu onu çağırıyor — sekmelerin üstüne açılan ama alt menüyü
+ *        gizlemeyen ekranlar için (bugün Hesap).
  */
-export function Kabuk({ baslik, alt, islem, fab, sekmeler, sekme, onSekme, children }) {
+export function Kabuk({ baslik, alt, islem, fab, sekmeler, sekme, onSekme, onGeri, children }) {
   /* Geri tuşu: başka sekmedeyken ilk sekmeye döner; ilk sekmede
      karşılamaz, uygulama arka plana alınır (bkz. geri.jsx). */
   const ilk = sekmeler[0]?.id
-  const derinlik = useGeri(sekme !== ilk, () => onSekme(ilk))
+  const derinlik = useGeri(Boolean(onGeri) || sekme !== ilk, () => (onGeri ? onGeri() : onSekme(ilk)))
   return (
     <GeriKatmani derinlik={derinlik}>
     <div className={'uyg' + (fab ? ' uyg--fabli' : '')}>
-      <Cubuk baslik={baslik} alt={alt} islem={islem} />
+      <Cubuk baslik={baslik} alt={alt} islem={islem} onGeri={onGeri} />
       <main className="uyg__ic">{children}</main>
 
       {/* YÜZEN DÜĞME: sekmenin asıl işlemi (Kayıt Aç, Sipariş Ver).
@@ -219,8 +222,9 @@ export function Onay({
    kaydın kendisini açıyor; "Kapat" her zaman var.
 
    PARÇALAR GÖRSELLİ (21 Eylül 2026, kullanıcının isteği): yaprağı
-   yalnız Hak Ediş ekranı kullanıyor ve orada parçalar resmiyle
-   gösteriliyor (bkz. ParcaGorselListesi.jsx). `parcaBaslik` listenin
+   yalnız Hak Ediş ekranı kullanıyor. Önce ayrı bir görselli listesi
+   vardı; 22 Eylül'de görsel ortak parça tablosuna girince o liste
+   kaldırıldı (bkz. components/ParcaTablosu.jsx). `parcaBaslik` listenin
    üstündeki küçük etiket; verilmezse etiket yok.
    ========================================================================== */
 export function Yaprak({
@@ -250,7 +254,7 @@ export function Yaprak({
         {parcalar.length > 0 && (
           <div className="onay__parca">
             {parcaBaslik && <div className="onay__parca-baslik">{parcaBaslik}</div>}
-            <ParcaGorselListesi parcalar={parcalar} />
+            <ParcaTablosu parcalar={parcalar} />
           </div>
         )}
 
@@ -310,18 +314,42 @@ export function Bolum({ ad, sayi, children }) {
    Kart iç içe düğme DEĞİL: soldaki alan detayı açıyor, sağdaki
    bağlantı müşteriyi arıyor. İkisi kardeş — `<button>` içine
    `<button>` geçerli değil.
+
+   PARÇA ŞERİDİ (22 Eylül 2026, kullanıcının isteği: parça olan her
+   yerde parçanın görseli). Sipariş kartında künyenin altında parçaların
+   küçük resimleri. Kartın adı "2013101010 Pikap dişi × 2, …" diye kod
+   ve adla yazıyor ve tek satırda kesiliyor; usta hangi siparişin ne
+   olduğunu listeyi açmadan resimden tanıyor. En çok dört resim, fazlası
+   "+2" gibi sayı. Yalnız kodu olan parça: kodu olmayan eski satırın
+   resmi bulunamaz, şeritte boş kutu olurdu.
    ========================================================================== */
 
+function ParcaSeridi({ parcalar }) {
+  const katalog = useParcaKatalogu(parcalar.some((p) => p.gorsel === undefined))
+  const gorunen = parcalar.slice(0, 4)
+  const kalan = parcalar.length - gorunen.length
+  return (
+    <div className="is__parcalar" aria-hidden="true">
+      {gorunen.map((p, i) => (
+        <ParcaResmi key={p.kod + i} katalog={katalog} kod={p.kod} gorsel={p.gorsel} boyut={44} />
+      ))}
+      {kalan > 0 && <span className="is__parca-fazla">+{kalan}</span>}
+    </div>
+  )
+}
+
 /**
- * @param {{ad, tur, turAdi, kunye, sol, sag, sagGec, gec, onAc, tel, telAd}} p
+ * @param {{ad, tur, turAdi, kunye, parcalar, sol, sag, sagGec, gec, onAc, tel, telAd}} p
  *        sol/sag: durum satırının iki yakası · sagGec: sağdaki yazı uyarı
- *        rengine geçiyor · gec: kartın sol kenarında kırmızı şerit
+ *        rengine geçiyor · gec: kartın sol kenarında kırmızı şerit ·
+ *        parcalar: [{kod, gorsel}] verilirse künyenin altında parça görselleri
  */
 export function ListeKarti({
   ad,
   tur,
   turAdi,
   kunye,
+  parcalar = [],
   ozet,
   uyari,
   sol,
@@ -341,6 +369,8 @@ export function ListeKarti({
         </div>
 
         <div className="is__alt">{kunye}</div>
+
+        {parcalar.length > 0 && <ParcaSeridi parcalar={parcalar} />}
 
         {/* ARIZANIN KENDİSİ.
 

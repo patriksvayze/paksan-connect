@@ -95,6 +95,7 @@ export function Parca({ oturum, onAc, onSiparis, surum }) {
               tur="parca"
               turAdi="Sipariş"
               kunye={`${s.no} · ${adet} adet`}
+              parcalar={parcalar.filter((p) => p.kod)}
               /* Ödeme biçimi kartta: servis "bunun parası hak edişimden
                  mi düşecek" sorusunu listeyi açmadan görüyor. */
               ozet={

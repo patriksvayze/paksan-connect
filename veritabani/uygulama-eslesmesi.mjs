@@ -108,6 +108,7 @@ export const ANAHTARLAR = {
   // Yalnız cihazda
   dil: { depo: 'yerel', tur: 'cihaz', ne: 'Seçilen dil (hesabın dili ayrıca musteri.Hesap.DilKodu)' },
   tema: { depo: 'yerel', tur: 'cihaz', ne: 'Connect teması' },
+  gorulenler: { depo: 'yerel', tur: 'cihaz', ne: 'Connect ana ekranındaki "Yeni" işareti için görülmüş makine ve servis kimlikleri (22.09.2026); telefon değişince sıfırdan sayılır, kayıp değil' },
   backofficeTema: { depo: 'yerel', tur: 'cihaz', ne: 'Backoffice teması' },
   servisTema: { depo: 'yerel', tur: 'cihaz', ne: 'Servisim teması' },
   hatirla: { depo: 'yerel', tur: 'cihaz', ne: 'Connect "beni hatırla"' },
@@ -195,13 +196,38 @@ export const ALANLAR = {
   'requests[].servisKaydi.asama': sutun('talep.ServisZiyareti.AsamaKodu'),
   'requests[].servisKaydi.kapi': sutun('talep.ServisZiyareti.KapiKodu'),
   'requests[].servisKaydi.km': sutun('talep.ServisZiyareti.Km'),
-  'requests[].servisKaydi.iscilik': sutun('talep.ServisZiyareti.IscilikTutari'),
+  /* 22.09.2026: işçilik süreyle yazılıyor. Tutar (`iscilik`) süre × o günün
+     saat ücretinden doluyor; hak ediş kalemini HakEdisHesapla süre × tarifeden
+     yazar (AK-20). Süresi olmayan eski kayıtta yalnız tutar var. */
+  'requests[].servisKaydi.iscilik': sutun('talep.ServisZiyareti.IscilikTutari', 'süreli kayıtta süre × saat ücreti; eski kayıtta servisin yazdığı tutar'),
+  'requests[].servisKaydi.iscilikSaat': sutun('talep.ServisZiyareti.IscilikSaati'),
+  'requests[].servisKaydi.saatUcreti': turer('hakedis.Tarife.BirimTutar', 'kalem türü iscilik, ziyaretin tamamlandığı gün geçerli tarife; hak ediş kaleminde HakEdisKalemi.BirimTutar'),
   'requests[].servisKaydi.tarih': sutun('talep.ServisZiyareti.TamamlanmaZamani'),
   'requests[].servisKaydi.servisAd': turer('servis.Servis.Ad', 'talep.ServisZiyareti.ServisKimlik üzerinden'),
   'requests[].servisKaydi.parcalar[].kod': sutun('talep.ZiyaretParcaSatiri.ParcaKodu'),
   'requests[].servisKaydi.parcalar[].ad': sutun('talep.ZiyaretParcaSatiri.ParcaAdi'),
   'requests[].servisKaydi.parcalar[].adet': sutun('talep.ZiyaretParcaSatiri.Adet'),
+  'requests[].servisKaydi.parcalar[].fiyat': sutun('talep.ZiyaretParcaSatiri.BirimFiyat', 'Servisim parçayı katalogtan seçerken yazıyor'),
+  /* 22.09.2026: satırın yazıldığı günkü görselin dosya adı — katalog
+     değişince geçmiş kayıt kendi resmini göstersin (AK-19). */
+  'requests[].servisKaydi.parcalar[].gorsel': yok('talep.ZiyaretParcaSatiri görselin dosya adını tutmuyor (GorselDosyasi sütunu gerekiyor)', `${EKLER} §4`),
   'requests[].servisKaydi.teslimat.*': yok('Garanti parçasının gideceği adres için tablo yok (talep.TeslimatAdresi)', `${EKLER} §2`),
+
+  /* PAKSAN'ın servis kaydında yaptığı düzeltmeler (veri.js → hakkedisDuzelt;
+     AK-20'den beri bir senaryo yazıyor). Uygulama önceki ve yeni değeri her
+     düzeltmede yazıyor; veritabanında değişmeyen değer boş kalır. Süre
+     yalnız süreli kayıtta yazılıyor. */
+  'requests[].servisKaydi.duzeltmeler[].tarih': sutun('talep.ZiyaretDuzeltmesi.OlusmaZamani'),
+  'requests[].servisKaydi.duzeltmeler[].personel': sutun('talep.ZiyaretDuzeltmesi.YapanAdi'),
+  'requests[].servisKaydi.duzeltmeler[].neden': sutun('talep.ZiyaretDuzeltmesi.Neden'),
+  'requests[].servisKaydi.duzeltmeler[].onceki.km': sutun('talep.ZiyaretDuzeltmesi.OncekiKm'),
+  'requests[].servisKaydi.duzeltmeler[].onceki.iscilik': sutun('talep.ZiyaretDuzeltmesi.OncekiIscilikTutari'),
+  'requests[].servisKaydi.duzeltmeler[].onceki.iscilikSaat': sutun('talep.ZiyaretDuzeltmesi.OncekiIscilikSaati'),
+  'requests[].servisKaydi.duzeltmeler[].onceki.parcalar[]': sutun('talep.ZiyaretDuzeltmesiParcasi.ParcaAdi', 'TarafKodu onceki; kod, adet ve fiyat aynı satırda'),
+  'requests[].servisKaydi.duzeltmeler[].yeni.km': sutun('talep.ZiyaretDuzeltmesi.YeniKm'),
+  'requests[].servisKaydi.duzeltmeler[].yeni.iscilik': sutun('talep.ZiyaretDuzeltmesi.YeniIscilikTutari'),
+  'requests[].servisKaydi.duzeltmeler[].yeni.iscilikSaat': sutun('talep.ZiyaretDuzeltmesi.YeniIscilikSaati'),
+  'requests[].servisKaydi.duzeltmeler[].yeni.parcalar[]': sutun('talep.ZiyaretDuzeltmesiParcasi.ParcaAdi', 'TarafKodu yeni; kod, adet ve fiyat aynı satırda'),
 
   'requests[].hakkedis.durum': sutun('hakedis.HakEdis.DurumKodu'),
   'requests[].hakkedis.toplam': sutun('hakedis.HakEdis.NetTutar', 'hakedis.HakEdisHesapla yazar'),
@@ -216,6 +242,21 @@ export const ALANLAR = {
   'requests[].parcalar[]': sutun('talep.ParcaSatiri.ParcaAdi'),
   'requests[].parcaAdet{}': sutun('talep.ParcaSatiri.Adet', 'parça başına bir satır'),
   'requests[].parcaFiyat': sutun('talep.ParcaTalebiAyrinti.GenelToplam', 'fiyat görüntüsü; satır fiyatları talep.ParcaSatiri.BirimFiyat'),
+  /* Fiyat görüntüsünün içi (AK-19 dolu bir görüntü yazana kadar hiçbir
+     senaryo içine girmiyordu). */
+  'requests[].parcaFiyat.surum': turer('talep.ParcaTalebiAyrinti.FiyatListesiKodu', 'uygulamadaki sürüm numarası listenin koduyla anılır; sayı katalog.FiyatListesi.KaynakSurumNo'),
+  'requests[].parcaFiyat.kaynak': turer('katalog.FiyatListesi.KaynakDosyaAdi', 'ParcaTalebiAyrinti.FiyatListesiKodu üzerinden'),
+  'requests[].parcaFiyat.araToplam': sutun('talep.ParcaTalebiAyrinti.AraToplam'),
+  'requests[].parcaFiyat.kdv': sutun('talep.ParcaTalebiAyrinti.KdvTutari'),
+  'requests[].parcaFiyat.toplam': sutun('talep.ParcaTalebiAyrinti.GenelToplam'),
+  'requests[].parcaFiyat.eksikFiyat': sutun('talep.ParcaTalebiAyrinti.EksikFiyatVar'),
+  'requests[].parcaFiyat.satirlar[].kod': sutun('talep.ParcaSatiri.ParcaKodu'),
+  'requests[].parcaFiyat.satirlar[].ad': sutun('talep.ParcaSatiri.ParcaAdi'),
+  'requests[].parcaFiyat.satirlar[].adet': sutun('talep.ParcaSatiri.Adet'),
+  'requests[].parcaFiyat.satirlar[].birimFiyat': sutun('talep.ParcaSatiri.BirimFiyat'),
+  'requests[].parcaFiyat.satirlar[].tutar': sutun('talep.ParcaSatiri.Tutar'),
+  /* 22.09.2026: talebin açıldığı günkü görselin dosya adı (AK-19). */
+  'requests[].parcaFiyat.satirlar[].gorsel': yok('talep.ParcaSatiri görselin dosya adını tutmuyor (GorselDosyasi sütunu gerekiyor)', `${EKLER} §4`),
   'requests[].tutar': sutun('talep.ParcaTalebiAyrinti.AraToplam'),
   'requests[].tutarKdvli': sutun('talep.ParcaTalebiAyrinti.GenelToplam'),
   'requests[].odeme': sutun('talep.ParcaTalebiAyrinti.OdemeYontemiKodu'),
@@ -387,6 +428,12 @@ export const ALANLAR = {
   /* Rol birden çok talep türü görebiliyor (21.09.2026). Şema tek tür
      tutuyor; tablo gerekiyor. Tek türlü eski kayıtlardaki `talepTuru`
      okunurken listeye çevriliyor (veri.js → rolunTurleri). */
+  /* 22.09.2026: Kayıtlı Makineler `musteriler` izninden ayrılıp
+     `makineler` oldu. Tarayıcı deposundaki eski roller okunurken bir kez
+     taşınıyor; bu alan taşımanın yapıldığını söylüyor (veri.js →
+     rolIzinleriniTasi). Veritabanında RolIzin satırları doğrudan
+     yazılacağı için karşılığı gerekmiyor. */
+  'panelIcerik.roller[].izinSurumu': yok('yalnız tarayıcı deposundaki eski rol kayıtlarını bir kez taşımak için; veritabanında erisim.RolIzin satırları geçiş betiğiyle yazılır'),
   'panelIcerik.roller[].talepTurleri[]': yok('erisim.Rol.TalepTuruKodu tek tür tutuyor; birden çok tür için erisim.RolTalepTuru ara tablosu gerekiyor', `${EKLER} §3`),
 
   // --------------------------------------------------------- Oturumlar

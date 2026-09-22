@@ -2,15 +2,6 @@
   "_aciklama": "Kod listelerinin kaynakla eşleşmesi (tasarim.md 5.6). 'etiketler': kaynakta yalnız ekran yazısı olan seçeneğin kodu; yazı birebir (büyük/küçük harf ve Türkçe harf korunur) aranır, eşleşmesi olmayan yazı üretimi durdurur. Bu yazılar eski veride saklandığı için kod.EskiDegerEslesmesi'ne de girer. 'ingilizce': kodun İngilizcesinin src/i18n/en.js'teki anahtarı. 'bayraklar': kaynakta veri olarak bulunmayan liste kolonları. 'eskiDegerler': eski uygulama verisindeki kodların bugünkü karşılığı. 'pasif': Aktif = 0 yapılacak kodlar (tohum başka hiçbir satırı pasifleştirmez).",
   "ingilizceAnahtarKalibi": "İngilizce metin src/i18n/en.js içinde aynı anahtarla ya da kaynak dosyanın .en.js eşindeki aynı sıradaki öğeyle bulunur; bulunamayan kodun kod.Ceviri satırı yazılmaz (ekran Türkçesini gösterir).",
   "listeler": {
-    "kod.UlasimZamani": {
-      "kaynak": "src/data/talepAlanlari.js ULASIM_ZAMANI",
-      "etiketler": {
-        "Fark etmez": "farkEtmez",
-        "Sabah (09.00 - 12.00)": "sabah",
-        "Öğleden sonra (12.00 - 15.00)": "ogledenSonra",
-        "Akşamüstü (15.00 - 18.00)": "aksamustu"
-      }
-    },
     "kod.UrunTipi": {
       "kaynak": "src/data/talepAlanlari.js URUN_TIPI",
       "etiketler": {
@@ -188,7 +179,7 @@
         "Talepler": "talepler",
         "Müşteriler": "musteriler",
         "Servisler": "servisler",
-        "Yedek parça kataloğu": "parcaKatalogu",
+        "Yedek Parça Kataloğu": "parcaKatalogu",
         "Yönetim": "yonetim",
         "Hesaplar": "hesaplar"
       }

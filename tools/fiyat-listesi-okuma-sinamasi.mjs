@@ -38,7 +38,10 @@
      fiyat-listesi-yayini.mjs fiyat denetimi kaldırılırsa   düştü
      fiyat-listesi-yayini.mjs görsel adı kalıbı gevşerse    düştü
      fiyat-listesi-yayini.mjs arşive kopyalama kaldırılırsa düştü
-     fiyat-listesi-yayini.mjs çıkan parçanın görselini silmezse düştü
+     (22 Eylül 2026, görseller ezilmiyor ve silinmiyor:)
+     fiyat-listesi-yayini.mjs yeni resmi eski adın üstüne yazarsa düştü
+     fiyat-listesi-yayini.mjs çıkan parçanın görselini silerse    düştü
+     fiyat-listesi-yayini.mjs aynı resme her yayında yeni ad verirse düştü
 
    DÜŞMEYENLER DE YAZILI, çünkü neyi iddia etmediğimiz de bilgi:
    okuyucudaki yazı yükseltisi düzeltmesi ve resimlerin satır bütününde
@@ -225,7 +228,14 @@ async function yayinSinamasi() {
     iddia(yeni.surum === 2 && yeni.kaynak === 'yeni.pdf' && yeni.yayinlayan === 'Sınama', 'yeni katalogda sürüm, kaynak ve yayınlayan yazılı')
     iddia(yeni.parcalar[0].ad === 'YENİ AD' && yeni.parcalar[1].gorsel === null, 'yeni katalogdaki parçalar gelen liste')
     iddia(yeni.gruplar[0].adet === 2, 'grup sayısı sunucuda yeniden sayıldı')
-    iddia(readFileSync(join(canli, 'gorseller', '100.webp'), 'utf8') === 'yeni-gorsel', 'yeni görsel yazıldı')
+    /* GÖRSEL EZİLMİYOR (22 Eylül 2026): resmi değişen parçanın yeni
+       resmi yeni adla geliyor, eski ad eski resmi göstermeye devam
+       ediyor — geçmiş talepler o adı taşıyor. */
+    const yeniAd = yeni.parcalar[0].gorsel
+    iddia(/^100\.[0-9a-f]{8}\.webp$/.test(yeniAd || ''), 'resmi değişen parça yeni bir görsel adı aldı', yeniAd)
+    iddia(yeniAd && readFileSync(join(canli, 'gorseller', yeniAd), 'utf8') === 'yeni-gorsel', 'yeni görsel yeni adla yazıldı')
+    const eski100 = join(canli, 'gorseller', '100.webp')
+    iddia(existsSync(eski100) && readFileSync(eski100, 'utf8') === 'eski-gorsel', 'eski görselin üstüne yazılmadı ve silinmedi (geçmiş talep eski resmi görüyor)')
     iddia(readFileSync(join(canli, 'kaynak.pdf'), 'latin1').startsWith('%PDF'), 'kaynak PDF listeyle birlikte saklandı')
 
     const arsivler = existsSync(join(kok, 'parca-katalogu-arsiv')) ? readdirSync(join(kok, 'parca-katalogu-arsiv')) : []
@@ -235,9 +245,19 @@ async function yayinSinamasi() {
       iddia(eski.parcalar[0].ad === 'ESKİ', 'arşivdeki liste eskisinin aynısı')
       iddia(existsSync(join(kok, 'parca-katalogu-arsiv', arsivler[0], 'gorseller', '999.webp')), 'listeden çıkan parçanın görseli arşivde duruyor')
     }
-    iddia(!existsSync(join(canli, 'gorseller', '999.webp')), 'listeden çıkan parçanın görseli yürürlükten kalktı')
+    iddia(existsSync(join(canli, 'gorseller', '999.webp')), 'listeden çıkan parçanın görseli silinmedi (geçmiş talep hâlâ gösteriyor)')
     iddia(!existsSync(join(kok, 'parca-katalogu.yeni')) && !existsSync(join(canli, 'katalog.json.yeni')), 'yayından sonra yan klasör ve geçici dosya kalmadı')
-    console.log('  yayına alma: 8 bozuk liste reddedildi, geçerli liste arşivle birlikte yayına girdi')
+
+    /* Aynı resim yeniden gelirse yeni dosya açılmıyor, ad değişmiyor:
+       her yayında bütün görseller yeniden gönderiliyor; her seferinde
+       yeni ad verilseydi dosyalar boşuna birikir, ekranlar aynı resmi
+       yeniden indirirdi. */
+    const dosyaSayisi = readdirSync(join(canli, 'gorseller')).length
+    fiyatListesiniYayinla(kok, gecerli(), new Date('2026-09-22T10:00:00Z'))
+    const ucuncu = JSON.parse(readFileSync(join(canli, 'katalog.json'), 'utf8'))
+    iddia(ucuncu.surum === 3 && ucuncu.parcalar[0].gorsel === yeniAd, 'aynı resim yeniden gelince görsel adı değişmedi', ucuncu.parcalar[0].gorsel)
+    iddia(readdirSync(join(canli, 'gorseller')).length === dosyaSayisi, 'aynı resim yeniden gelince yeni dosya açılmadı')
+    console.log('  yayına alma: 8 bozuk liste reddedildi, geçerli liste arşivle birlikte yayına girdi, görseller ezilmedi ve silinmedi')
   } finally {
     rmSync(kok, { recursive: true, force: true })
   }

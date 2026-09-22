@@ -689,9 +689,6 @@ async function t01Verisi(K, eslesme, adlar) {
   L.push(kodListesi('kod.Sahip', adlardan(adlar, 'kod.Sahip')))
   L.push(kodListesi('kod.ServisAtamaKaynagi', adlardan(adlar, 'kod.ServisAtamaKaynagi')))
 
-  /* kod.UlasimZamani — talepAlanlari.js */
-  L.push(etiketliListe(eslesme, 'kod.UlasimZamani', K.talepAlanlari.ULASIM_ZAMANI, K.talepAlanlariEn.ULASIM_ZAMANI_EN))
-
   /* kod.MakineDurumu — MAKINE_DURUMU, ARIZA_DURUMLARI */
   L.push(
     kodListesi(
@@ -2107,25 +2104,30 @@ function b01Yaz(K, markalar, v01) {
 /* ============================================================ B02 */
 
 function b02Yaz(K) {
-  const birimTutar = K.servisKaydi.TARIFE?.yolKm
-  if (typeof birimTutar !== 'number' || birimTutar < 0) dur('servisKaydi.js TARIFE.yolKm okunamadı')
-  const satir = {
-    KalemTuruKodu: 'yol',
-    MarkaKodu: null,
-    BirimKodu: 'km',
-    BirimTutar: birimTutar,
-    ParaBirimiKodu: paraBirimiKodu(K),
-    GecerlilikBaslangicTarihi: '2026-01-01',
+  /* İki tarife: yol km başına, işçilik saat başına (22.09.2026'dan beri
+     servis işçiliği süre olarak yazıyor; bkz. lib/servisKaydi.js başı). */
+  const tarife = (anahtar, KalemTuruKodu, BirimKodu) => {
+    const birimTutar = K.servisKaydi.TARIFE?.[anahtar]
+    if (typeof birimTutar !== 'number' || birimTutar < 0) dur(`servisKaydi.js TARIFE.${anahtar} okunamadı`)
+    return {
+      KalemTuruKodu,
+      MarkaKodu: null,
+      BirimKodu,
+      BirimTutar: birimTutar,
+      ParaBirimiKodu: paraBirimiKodu(K),
+      GecerlilikBaslangicTarihi: '2026-01-01',
+    }
   }
+  const satirlar = [tarife('yolKm', 'yol', 'km'), tarife('iscilikSaat', 'iscilik', 'saat')]
   const kolonlar = [k('KalemTuruKodu', KOD40), k('MarkaKodu', 'nvarchar(20)'), k('BirimKodu', KOD40), k('BirimTutar', 'decimal(18,2)'), k('ParaBirimiKodu', 'nvarchar(3)'), k('GecerlilikBaslangicTarihi', 'date')]
   return (
     betikBasligi('B02 — hak ediş tarifesi (başlangıç değeri)', [
-      '1 tarife: yol, bütün markalar, km başına.',
+      '2 tarife: yol için km başına, işçilik için saat başına; ikisi de bütün markalar için.',
       '',
-      'Kaynak: src/lib/servisKaydi.js TARIFE.yolKm; para birimi src/marka/katalog/para.js;',
-      'geçerlilik başlangıcı tasarim.md 5.3 B02. Yalnız yoksa ekler: markasız bir',
-      'yol tarifesi (açık ya da kapanmış) varsa hiçbir şey yazılmaz; tarifeyi',
-      'PAKSAN değiştirir.',
+      'Kaynak: src/lib/servisKaydi.js TARIFE.yolKm ve TARIFE.iscilikSaat; para birimi',
+      'src/marka/katalog/para.js; geçerlilik başlangıcı tasarim.md 5.3 B02. Yalnız',
+      'yoksa ekler: aynı kalem türünde markasız bir tarife (açık ya da kapanmış)',
+      'varsa o satır yazılmaz; tarifeyi PAKSAN değiştirir.',
     ]) +
     '\n' +
     eklemeYaz({
@@ -2133,7 +2135,7 @@ function b02Yaz(K) {
       kolonlar,
       anahtar: ['KalemTuruKodu', 'MarkaKodu'],
       bosOlabilenAnahtar: ['MarkaKodu'],
-      satirlar: [satir],
+      satirlar,
     })
   )
 }

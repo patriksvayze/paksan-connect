@@ -6,7 +6,7 @@
    düzenlemeyin: kaynak değişince yeniden üretilir ve el değişikliği
    kaybolur. Kaynağı değiştirin, sonra "npm run vt -- tohum" çalıştırın.
 
-   6 izin grubu, 19 izin.
+   6 izin grubu, 20 izin.
 
    Kaynak: src/data/yetkiler.js YETKI_KATALOG; grup kodları
    tohum/kaynak/kod-eslesmeleri.json. Tasarım: tasarim.md 5.2 T03.
@@ -28,7 +28,7 @@ USING (
     FROM (VALUES
         (N'hesaplar', N'Hesaplar', 6),
         (N'musteriler', N'Müşteriler', 2),
-        (N'parcaKatalogu', N'Yedek parça kataloğu', 4),
+        (N'parcaKatalogu', N'Yedek Parça Kataloğu', 4),
         (N'servisler', N'Servisler', 3),
         (N'talepler', N'Talepler', 1),
         (N'yonetim', N'Yönetim', 5)
@@ -41,7 +41,7 @@ WHEN NOT MATCHED BY TARGET THEN
     INSERT (Kod, Ad, Sira, Aktif)
     VALUES (k.Kod, k.Ad, k.Sira, 1);
 
-/* erisim.Izin — 19 satır */
+/* erisim.Izin — 20 satır */
 
 MERGE erisim.Izin AS h
 USING (
@@ -54,18 +54,19 @@ USING (
         (N'duyurular', N'Duyuru ve uyarı yayımlar', N'yonetim', 3),
         (N'geribildirim', N'Geri bildirimleri görür', N'yonetim', 4),
         (N'kayit', N'İşlem kaydını görür', N'yonetim', 6),
-        (N'kimlikNo', N'Talepteki T.C. kimlik veya vergi numarasının tamamını görür', N'musteriler', 4),
-        (N'musteriDuzenle', N'Müşteri bilgisini düzeltir', N'musteriler', 2),
-        (N'musteriler', N'Müşteri ve makine kayıtlarını görür', N'musteriler', 1),
-        (N'numara', N'Numara değişikliği talebini onaylar', N'musteriler', 3),
+        (N'kimlikNo', N'Talepteki T.C. kimlik veya vergi numarasının tamamını görür', N'musteriler', 5),
+        (N'makineler', N'Kayıtlı makineleri görür', N'musteriler', 2),
+        (N'musteriDuzenle', N'Müşteri bilgisini düzeltir', N'musteriler', 3),
+        (N'musteriler', N'Müşterileri görür', N'musteriler', 1),
+        (N'numara', N'Numara değişikliği talebini onaylar', N'musteriler', 4),
         (N'parcaKatalogDuzenle', N'Parça adını ve grubunu düzeltir, parçayı listeden kaldırır', N'parcaKatalogu', 2),
         (N'parcaKatalogu', N'Yedek parça kataloğunu görür', N'parcaKatalogu', 1),
         (N'personel', N'Personel listesini görür', N'hesaplar', 1),
         (N'personelDuzenle', N'Personel hesabı açar, kapatır ve rolünü değiştirir', N'hesaplar', 2),
         (N'raporlar', N'Raporları görür', N'yonetim', 1),
         (N'rolYonetimi', N'Rolleri ve yetkilerini düzenler', N'hesaplar', 3),
-        (N'servisDuzenle', N'Servis kaydını ve sorumluluk bölgesini değiştirir', N'servisler', 2),
-        (N'servisler', N'Servisleri, siparişleri ve teklifleri görür', N'servisler', 1),
+        (N'servisDuzenle', N'Servis kaydını, sorumluluk bölgesini ve makineye servis atamasını değiştirir', N'servisler', 2),
+        (N'servisler', N'Servisleri ve bayileri görür', N'servisler', 1),
         (N'talepGeriAc', N'Kapanmış talebi yeniden açar', N'talepler', 2),
         (N'talepler', N'Talepleri görür', N'talepler', 1),
         (N'yonetimOzeti', N'Dashboard’da şirket genelindeki sayıları görür', N'yonetim', 2)

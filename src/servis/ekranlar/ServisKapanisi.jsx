@@ -16,6 +16,9 @@ import {
   YAPILAN_IS,
   eksikAlanlar,
   hakkedisHesapla,
+  iscilikAlanlari,
+  saatGirdisi,
+  saatYaz,
   temizParcalar,
 } from '../../lib/servisKaydi'
 import { ekYaz, fotoKucult } from '../../lib/ekler'
@@ -145,7 +148,10 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
   const [parcalar, setParcalar] = useState(onceki?.parcalar || [])
   const [foto, setFoto] = useState(onceki?.foto || null)
   const [km, setKm] = useState(onceki?.km ? String(onceki.km) : '')
-  const [iscilik, setIscilik] = useState(onceki?.iscilik ? String(onceki.iscilik) : '')
+  /* İşçilik SÜRE olarak soruluyor, tutar hesaplanıyor (bkz.
+     lib/servisKaydi.js → TARIFE). Süresi olmayan eski bir kayda
+     dönülürse kutu boş açılıyor: eski tutardan süre uydurulmuyor. */
+  const [saat, setSaat] = useState(onceki?.iscilikSaat ? saatYaz(onceki.iscilikSaat) : '')
   const [hata, setHata] = useState('')
   const [onay, setOnay] = useState(false)
   const [katalogAcik, setKatalogAcik] = useState(false)
@@ -243,7 +249,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
     parcalar,
     foto,
     km: Number(km) || 0,
-    iscilik: Number(iscilik) || 0,
+    ...iscilikAlanlari(saat),
   }
   const hakkedis = hakkedisHesapla(kayit)
 
@@ -597,12 +603,14 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
               tur="sayi"
               ipucu={`Gidiş ve dönüş toplamı · kilometre başına ${paraYaz(TARIFE.yolKm)} ${PARA_BIRIMI}`}
             />
+            {/* Süre yarım saatle yazılabiliyor: rakam ve tek bir virgül,
+                virgülden sonra tek hane. Nokta yazan da virgüle çevriliyor. */}
             <Kutu
-              ad={`İşçilik Tutarı (${PARA_BIRIMI})`}
-              deger={iscilik}
-              onDegis={(v) => setIscilik(v.replace(/\D/g, ''))}
-              tur="sayi"
-              ipucu="İşçilik almadıysanız boş bırakın"
+              ad="İşçilik Süresi (saat)"
+              deger={saat}
+              onDegis={(v) => setSaat(saatGirdisi(v))}
+              tur="ondalik"
+              ipucu={`İşe harcadığınız toplam süre · saat başına ${paraYaz(TARIFE.iscilikSaat)} ${PARA_BIRIMI} · yarım saat için 0,5 yazın`}
             />
 
             {hakkedis.kalemler.length > 0 && (
@@ -728,7 +736,9 @@ function Kutu({ ad, etiket, deger, onDegis, satir, ipucu, tur }) {
       ) : (
         <input
           className="gir"
-          inputMode={tur === 'sayi' ? 'numeric' : tur === 'tel' ? 'tel' : undefined}
+          inputMode={
+            tur === 'sayi' ? 'numeric' : tur === 'ondalik' ? 'decimal' : tur === 'tel' ? 'tel' : undefined
+          }
           value={deger}
           onChange={(e) => onDegis(e.target.value)}
         />

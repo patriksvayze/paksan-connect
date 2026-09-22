@@ -39,10 +39,26 @@
      2. yürürlükteki liste arşive KOPYALANIR
      3. yeni görseller ve PDF yerine konur
      4. katalog.json geçici dosyadan tek bir yeniden adlandırmayla değişir
-     5. eski listeye özgü görseller silinir (arşivde kopyaları var)
    Uygulamalar listeyi katalog.json'dan okuyor; o dosya değişmeden yeni
    liste yürürlüğe girmiş sayılmaz. 1. ya da 2. adımda bir şey ters
    giderse yürürlükteki listeye hiç dokunulmamış olur.
+
+   GÖRSEL DOSYASI EZİLMİYOR VE SİLİNMİYOR (22 Eylül 2026, kullanıcının
+   kararı: "katalog değişirse geçmiş işlemlerdeki yedek parça kodları,
+   isimleri ve görselleri değişmemeli"). Talep ve servis kaydı, parçanın
+   o günkü görselinin DOSYA ADINI kendi içinde taşıyor (bkz.
+   src/lib/parcaKatalogu.js → fiyatGoruntusu). Önceden:
+     - resmi değişen parçanın yeni resmi aynı adın (`<kod>.webp`)
+       üstüne yazılıyordu: altı ay önceki talep yeni resmi gösterirdi;
+     - yeni listede olmayan parçanın görseli siliniyordu (5. adım):
+       eski talep "Görsel yok" derdi. Arşivdeki kopyaya uygulamalardan
+       ulaşılamıyor.
+   Artık gelen resim yürürlükteki dosyayla birebir aynıysa o ad
+   kullanılıyor; farklıysa ve ad doluysa resim içeriğinden türeyen yeni
+   bir adla (`<kod>.<8 hane>.webp`) yazılıyor ve katalog o adı gösteriyor.
+   Hiçbir görsel silinmiyor. Bedeli disk: bugünkü listenin bütün
+   görselleri 2 MB; her yeni listede yalnız resmi değişen parçalar
+   birikiyor.
 
    NEDEN KLASÖR TAŞINMIYOR. İlk sürüm yürürlükteki klasörü arşive
    taşıyordu. Windows'ta geliştirme sunucusu proje klasörlerini izlediği
@@ -60,6 +76,7 @@ import {
   copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync,
 } from 'node:fs'
 import { join } from 'node:path'
+import { createHash } from 'node:crypto'
 
 const KOD = /^[0-9A-Za-z][0-9A-Za-z.]*$/
 const GRUP = /^[a-z0-9][a-z0-9-]*$/
@@ -114,6 +131,20 @@ export function yayiniDenetle(istek) {
   }
 }
 
+/* Gelen görselin yürürlükte yazılacağı ad. Aynı içerik varsa onun adı
+   (yeni dosya yok), `<kod>.<uzantı>` boşsa o, ikisi de değilse içerikten
+   türeyen ad. Hiçbir durumda var olan farklı bir dosyanın üstüne
+   yazılmıyor. `oncekiAd` yürürlükteki katalogda bu parçanın gösterdiği
+   dosya — daha önce yeniden adlandırılmış olabilir. */
+function gorselAdiSec(klasor, gelenAd, veri, oncekiAd) {
+  const [, kod, uzanti] = GORSEL.exec(gelenAd)
+  const ayni = (ad) => existsSync(join(klasor, ad)) && readFileSync(join(klasor, ad)).equals(veri)
+  for (const ad of [oncekiAd, gelenAd]) if (ad && ayni(ad)) return ad
+  if (!existsSync(join(klasor, gelenAd))) return gelenAd
+  const iz = createHash('sha256').update(veri).digest('hex').slice(0, 8)
+  return `${kod}.${iz}.${uzanti}`
+}
+
 /**
  * Listeyi yayına alır.
  *
@@ -130,8 +161,11 @@ export function fiyatListesiniYayinla(kok, istek, simdi = new Date()) {
   const arsiv = join(kok, 'parca-katalogu-arsiv')
 
   let eskiSurum = 0
+  let eskiGorsel = new Map()
   try {
-    eskiSurum = Number(JSON.parse(readFileSync(join(canli, 'katalog.json'), 'utf8')).surum) || 0
+    const eski = JSON.parse(readFileSync(join(canli, 'katalog.json'), 'utf8'))
+    eskiSurum = Number(eski.surum) || 0
+    eskiGorsel = new Map((eski.parcalar || []).map((p) => [p.kod, p.gorsel]))
   } catch {
     /* Yürürlükte liste yoksa ilk liste bu. */
   }
@@ -145,8 +179,14 @@ export function fiyatListesiniYayinla(kok, istek, simdi = new Date()) {
   rmSync(yeni, { recursive: true, force: true })
   mkdirSync(join(yeni, 'gorseller'), { recursive: true })
   try {
-    for (const [ad, veri] of Object.entries(istek.gorseller || {})) {
-      writeFileSync(join(yeni, 'gorseller', ad), Buffer.from(veri, 'base64'))
+    /* Gelen ad → yürürlükte yazılacak ad (bkz. gorselAdiSec). */
+    const adlar = new Map()
+    for (const [ad, taban64] of Object.entries(istek.gorseller || {})) {
+      const veri = Buffer.from(taban64, 'base64')
+      const [, kod] = GORSEL.exec(ad)
+      const son = gorselAdiSec(join(canli, 'gorseller'), ad, veri, eskiGorsel.get(kod))
+      adlar.set(ad, son)
+      writeFileSync(join(yeni, 'gorseller', son), veri)
     }
     if (istek.kaynakPdf) writeFileSync(join(yeni, 'kaynak.pdf'), Buffer.from(istek.kaynakPdf, 'base64'))
     const katalog = {
@@ -155,7 +195,10 @@ export function fiyatListesiniYayinla(kok, istek, simdi = new Date()) {
       yayinTarihi,
       yayinlayan: String(istek.personel || ''),
       gruplar: gruplar.map((g) => ({ id: g.id, ad: g.ad, adet: parcalar.filter((p) => p.grup === g.id).length })),
-      parcalar: parcalar.map((p) => ({ kod: p.kod, ad: p.ad.trim(), fiyat: p.fiyat, grup: p.grup, gorsel: p.gorsel ?? null })),
+      parcalar: parcalar.map((p) => ({
+        kod: p.kod, ad: p.ad.trim(), fiyat: p.fiyat, grup: p.grup,
+        gorsel: p.gorsel == null ? null : adlar.get(p.gorsel),
+      })),
     }
     writeFileSync(join(yeni, 'katalog.json'), JSON.stringify(katalog, null, 1) + '\n', 'utf8')
 
@@ -170,11 +213,13 @@ export function fiyatListesiniYayinla(kok, istek, simdi = new Date()) {
       }
     }
 
-    /* 3. Görseller ve PDF yerine. */
+    /* 3. Görseller ve PDF yerine. Aynı adla var olan dosya zaten aynı
+       içerik (gorselAdiSec); yeniden kopyalanmıyor. */
     mkdirSync(join(canli, 'gorseller'), { recursive: true })
-    const yeniGorseller = new Set(readdirSync(join(yeni, 'gorseller')))
-    for (const ad of yeniGorseller) {
-      copyFileSync(join(yeni, 'gorseller', ad), join(canli, 'gorseller', ad))
+    for (const ad of readdirSync(join(yeni, 'gorseller'))) {
+      if (!existsSync(join(canli, 'gorseller', ad))) {
+        copyFileSync(join(yeni, 'gorseller', ad), join(canli, 'gorseller', ad))
+      }
     }
     if (existsSync(join(yeni, 'kaynak.pdf'))) {
       copyFileSync(join(yeni, 'kaynak.pdf'), join(canli, 'kaynak.pdf'))
@@ -185,11 +230,8 @@ export function fiyatListesiniYayinla(kok, istek, simdi = new Date()) {
     copyFileSync(join(yeni, 'katalog.json'), gecici)
     renameSync(gecici, join(canli, 'katalog.json'))
 
-    /* 5. Eski listeye özgü görseller ANCAK şimdi siliniyor: önce silinse
-       arada eski liste olmayan resimleri gösterirdi. Arşivde kopyaları var. */
-    for (const ad of readdirSync(join(canli, 'gorseller'))) {
-      if (!yeniGorseller.has(ad)) rmSync(join(canli, 'gorseller', ad), { force: true })
-    }
+    /* 5. adım (eski listeye özgü görselleri silmek) KALDIRILDI:
+       geçmiş talepler o dosyalara bakıyor (bkz. başlık). */
   } finally {
     rmSync(yeni, { recursive: true, force: true })
   }

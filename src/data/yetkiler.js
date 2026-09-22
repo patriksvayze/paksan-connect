@@ -41,7 +41,14 @@ export const YETKI_KATALOG = [
   {
     grup: 'Müşteriler',
     izinler: [
-      { id: 'musteriler', ad: 'Müşteri ve makine kayıtlarını görür' },
+      { id: 'musteriler', ad: 'Müşterileri görür' },
+      /* Kayıtlı Makineler ekranı 22 Eylül 2026'ya kadar `musteriler`
+         yetkisine bağlıydı: satış personeline Müşteriler'i açmak
+         makine defterini de açıyordu (kullanıcının isteği: satış
+         müşterileri görsün, makineleri görmesin). Ayrılırken eski
+         rollere kendiliğinden eklendi, kimsenin ekranı kaybolmadı
+         (bkz. veri.js → rolIzinleriniTasi). */
+      { id: 'makineler', ad: 'Kayıtlı makineleri görür' },
       { id: 'musteriDuzenle', ad: 'Müşteri bilgisini düzeltir' },
       { id: 'numara', ad: 'Numara değişikliği talebini onaylar' },
       { id: 'kimlikNo', ad: 'Talepteki T.C. kimlik veya vergi numarasının tamamını görür' },
@@ -50,12 +57,12 @@ export const YETKI_KATALOG = [
   {
     grup: 'Servisler',
     izinler: [
-      { id: 'servisler', ad: 'Servisleri, siparişleri ve teklifleri görür' },
-      { id: 'servisDuzenle', ad: 'Servis kaydını ve sorumluluk bölgesini değiştirir' },
+      { id: 'servisler', ad: 'Servisleri ve bayileri görür' },
+      { id: 'servisDuzenle', ad: 'Servis kaydını, sorumluluk bölgesini ve makineye servis atamasını değiştirir' },
     ],
   },
   {
-    grup: 'Yedek parça kataloğu',
+    grup: 'Yedek Parça Kataloğu',
     izinler: [
       { id: 'parcaKatalogu', ad: 'Yedek parça kataloğunu görür' },
       /* Düzeltme müşterinin ve servisin gördüğü parça adını değiştiriyor;
@@ -148,7 +155,7 @@ export const VARSAYILAN_ROLLER = [
     aciklama: 'Tüm talepleri ve raporları görür; personel listesini görür ancak değiştiremez.',
     talepTurleri: null,
     izinler: [
-      'talepler', 'musteriler', 'servisler', 'servisDuzenle', 'personel',
+      'talepler', 'musteriler', 'makineler', 'servisler', 'servisDuzenle', 'personel',
       'geribildirim', 'raporlar', 'yonetimOzeti', 'kayit', 'duyurular', 'destek',
     ],
   },
@@ -157,14 +164,14 @@ export const VARSAYILAN_ROLLER = [
     ad: 'Servis',
     aciklama: 'Yalnız servis taleplerini görür.',
     talepTurleri: ['servis'],
-    izinler: ['talepler', 'musteriler', 'servisler'],
+    izinler: ['talepler', 'musteriler', 'makineler', 'servisler'],
   },
   {
     id: 'parca',
     ad: 'Yedek Parça',
     aciklama: 'Yalnız yedek parça taleplerini görür.',
     talepTurleri: ['parca'],
-    izinler: ['talepler', 'musteriler', 'servisler'],
+    izinler: ['talepler', 'musteriler', 'makineler', 'servisler'],
   },
   {
     id: 'satis',
@@ -173,7 +180,7 @@ export const VARSAYILAN_ROLLER = [
     talepTurleri: ['satinalma'],
     /* Satış personeli servisin sorumluluk bölgesini değiştirebiliyor:
        servis ağını tanıyan, hangi servisin nereye baktığını bilen o. */
-    izinler: ['talepler', 'musteriler', 'servisler', 'servisDuzenle'],
+    izinler: ['talepler', 'musteriler', 'makineler', 'servisler', 'servisDuzenle'],
   },
 ]
 
@@ -189,7 +196,7 @@ export const VARSAYILAN_ROLLER = [
    da zaten kapatılıyor (bkz. veri.js → oturumGetir). */
 export const YETKISIZ_ROL = {
   id: '',
-  ad: 'Tanımsız rol',
+  ad: 'Tanımsız Rol',
   aciklama: 'Bu rol silinmiş. Yöneticinize başvurun.',
   talepTurleri: null,
   izinler: [],

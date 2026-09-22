@@ -74,6 +74,28 @@ const MAKINELER = [
   },
 ]
 
+/* Makine defteri: iki makineye İKİ AYRI servis bakıyor (atama makine
+   başına, bkz. src/lib/servisAtama.js → servisGruplari). Defter satırı
+   olmadan servis zinciri boş dönüyordu ve Connect'in ana ekranı
+   "Servisiniz henüz atanmadı", servis talebi ekranı da dolu form yerine
+   o uyarıyı çiziyordu. Servis kimlikleri marka kataloğundaki gerçek
+   kayıtlar (src/marka/katalog/servisler.js). Tohumlanırken defterdeki
+   öteki satırlara dokunulmuyor: backoffice'in demo satırları duruyor. */
+const DEFTER = [
+  {
+    id: 'mkd-ekran-1', tarih: 1787293021675, seri: 'HMR202400123', productId: 'hammer',
+    musteriId: MUSTERI.id, musteriNo: MUSTERI.no, musteriAd: MUSTERI.ad, il: MUSTERI.il, ilce: MUSTERI.ilce,
+    bayiId: null, bayiAd: '', servisId: 'bandirma-servis', servisAd: 'Kemal Aydın Tarım Servisi',
+    uretimTarihi: null, faturaTarihi: null, logoBildi: false, yeniSatis: false, kaynak: 'musteri',
+  },
+  {
+    id: 'mkd-ekran-2', tarih: 1787293021675, seri: 'IPAK202300456', productId: 'ipak-rulo',
+    musteriId: MUSTERI.id, musteriNo: MUSTERI.no, musteriAd: MUSTERI.ad, il: MUSTERI.il, ilce: MUSTERI.ilce,
+    bayiId: null, bayiAd: '', servisId: 'konya-servis', servisAd: 'Selçuk Tarım Servisi',
+    uretimTarihi: null, faturaTarihi: null, logoBildi: false, yeniSatis: false, kaynak: 'musteri',
+  },
+]
+
 const FATURA = {
   tuzel: false, tel: '+90 539 847 27 84', adres: 'Yeni Mahalle, Bahçe Sokak No:12',
   il: 'Balıkesir', ilce: 'Bandırma', ulke: 'TR', farkliKisi: false,
@@ -84,7 +106,7 @@ const ORTAK_TALEP = {
   ulke: 'TR', ihracat: false, ses: null, ekler: [], urunId: null,
   ad: 'Onur Gökay', tel: '+90 539 847 27 84', telUlke: 'TR',
   telHam: '5398472784', il: 'Balıkesir', ilce: 'Bandırma',
-  urunTipi: '', arazi: '', traktor: '', ulasim: 'Farketmez',
+  urunTipi: '', arazi: '', traktor: '',
 }
 
 const GUN = 86400000
@@ -97,7 +119,22 @@ const TALEPLER = [
     tur: 'parca', aciklama: 'Düğüm atıcı bıçağı kırıldı, yenisi gerekiyor.',
     makine: { id: 'mk1', serial: 'HMR202400123', productId: 'hammer' },
     durum: null, belirtiler: [],
-    parcalar: ['Düğüm atıcı bıçağı'], parcaAdet: { 'Düğüm atıcı bıçağı': 1 },
+    /* Görselli tablo (components/ParcaTablosu.jsx) için gerçek bir
+       anlık görüntü (bkz. lib/parcaKatalogu.js → fiyatGoruntusu). Kod,
+       ad, görsel dosya adı ve fiyat çalışan sunucudaki gerçek
+       kataloğun (http://localhost:3000/parca-katalogu/katalog.json)
+       "baglama-grubu" grubundan — uydurma değil. `parcalar`/`parcaAdet`
+       eski biçim okuyucular için aynı adlarla tutuluyor. */
+    parcalar: ['İPLİ BIÇAK', 'İPLİ BIÇAK KOLU MİLİ'],
+    parcaAdet: { 'İPLİ BIÇAK': 1, 'İPLİ BIÇAK KOLU MİLİ': 1 },
+    parcaFiyat: {
+      surum: 1, kaynak: 'PAKSAN TEMMUZ 2026 FİYAT LİSTESİ.pdf',
+      satirlar: [
+        { kod: '20131010104.01', ad: 'İPLİ BIÇAK', adet: 1, gorsel: '20131010104.01.webp', birimFiyat: 285, tutar: 285 },
+        { kod: '20131010102.01', ad: 'İPLİ BIÇAK KOLU MİLİ', adet: 1, gorsel: '20131010102.01.webp', birimFiyat: 250, tutar: 250 },
+      ],
+      araToplam: 535, kdv: 107, toplam: 642, eksikFiyat: false,
+    },
     fatura: FATURA,
     dekont: { id: 'dk1', tur: 'pdf', ad: 'dekont.pdf', boyut: 8 },
     odemeOnay: { tarih: SIMDI + 36000, personel: 'Sistem Yöneticisi', not: '' },
@@ -189,7 +226,7 @@ const BILDIRIM_SERVIS_ATANDI = {
   degerler: {
     makine: 'Hammer 2 İpli Haşbaysız',
     seri: 'HMR2024-00123',
-    servis: 'Marmara Ziraat Makineleri',
+    servis: 'Kemal Aydın Tarım Servisi',
   },
 }
 
@@ -206,6 +243,12 @@ function tohum() {
     const d = ${JSON.stringify(d)};
     for (const [k, v] of Object.entries(d)) localStorage.setItem(k, JSON.stringify(v));
     sessionStorage.setItem('paksan.user', JSON.stringify(d['paksan.user']));
+    const defter = ${JSON.stringify(DEFTER)};
+    const anahtar = (x) => String(x || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const seriler = defter.map((k) => anahtar(k.seri));
+    const oteki = JSON.parse(localStorage.getItem('paksan.makineKayitlari') || '[]')
+      .filter((k) => !seriler.includes(anahtar(k.seri)));
+    localStorage.setItem('paksan.makineKayitlari', JSON.stringify([...defter, ...oteki]));
     return Object.keys(localStorage).length;
   })()`
 }
@@ -350,6 +393,7 @@ const UYGULAMA = [
   { ad: '03-kayit', baslik: 'Hesap açma', yol: '/kayit', cikisYap: true },
   { ad: '04-ana-sayfa', baslik: 'Ana Sayfa', yol: '/' },
   { ad: '05-makinelerim', baslik: 'Makinelerim', yol: '/makinelerim' },
+  { ad: '05b-servislerim', baslik: 'Makinelerim — Servislerim sekmesi', yol: '/makinelerim?sekme=servisler' },
   { ad: '06-makine-detay', baslik: 'Makine detayı', yol: '/makine/mk1' },
   { ad: '07-makine-ekle', baslik: 'Makine ekleme', yol: '/makine-ekle' },
   { ad: '08-urunler', baslik: 'Ürünler', yol: '/urunler' },
@@ -558,7 +602,7 @@ const SERVIS = [
     ],
   },
   /* Hesap hareketine dokununca açılan yaprakta, işin değiştirilen
-     parçaları artık görselli listeleniyor (ParcaGorselListesi.jsx).
+     parçaları görselli listeleniyor (components/ParcaTablosu.jsx).
      Demo hareketleri karışık (servis ödemesi / parça siparişi /
      ödeme); parçası olan ilk satır bulunana kadar sırayla açılıp
      kapatılıyor — sabit bir sıra numarası her demo turunda aynı
@@ -574,7 +618,7 @@ const SERVIS = [
           for (const s of satirlar) {
             s.click();
             await new Promise((r) => setTimeout(r, 400));
-            if (document.querySelector('.parca-gorselli')) { coz('OK'); return; }
+            if (document.querySelector('.onay .parca-tablo')) { coz('OK'); return; }
             const perde = document.querySelector('.onay-perde');
             if (perde) perde.click();
             await new Promise((r) => setTimeout(r, 250));

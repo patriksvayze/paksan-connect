@@ -686,6 +686,12 @@ yaşanmasın.
 
 ## 14. Maliyet
 
+> **Rakamlı ve güncel hesap `CANLIYA-CIKIS.md` §11'de (22 Eylül 2026).** Bu
+> bölüm sunucunun fabrikada, şirket içinde kurulacağı varsayımıyla
+> yazılmıştı. Sunucunun şirketin Vodafone bulutunda kiraladığı sunucu
+> olacağı öğrenildi; bu durumda aşağıdaki yedek internet hattı,
+> elektrik ve soğutma, ağ ayrımı (DMZ) kalemleri gerekmiyor.
+
 Şirket içinde kurulum, maliyet tablosunu belirgin şekilde değiştiriyor.
 
 ### Bir kerelik

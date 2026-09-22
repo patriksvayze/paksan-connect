@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
-  durumBilgi, makineKayitlariGetir, talepleriGetir, izinli, makineAtamasiniKaydet,
+  durumBilgi, makineKayitlariGetir, talepleriGetir, izinli, makineAtamasiniKaydet, rolunTalepleri,
 } from '../veri'
 import { useVeri } from '../kanca'
 import {
@@ -97,7 +97,7 @@ function atamayiKaydet(kayit, yama, ozet, { personel, tazele, bildir }) {
    ve yan menüdeki sayı da oradan okuyor, üçü aynı cevabı veriyor. */
 const kayitServisi = kaydinServisi
 
-export function Makineler({ personel, rol, bildir, tazele, surum }) {
+export function Makineler({ personel, rol, bildir, tazele, surum, sorgu }) {
   const duzenleyebilir = izinli(rol, 'servisDuzenle')
   const [ara, setAra] = useState('')
   const [aralik, setAralik] = useState(BOS_ARALIK)
@@ -114,11 +114,21 @@ export function Makineler({ personel, rol, bildir, tazele, surum }) {
      açılır listesinin içinde bir seçenekti ve gözden kaçıyordu; ayrı
      kutu oldu, arama kutusunun solunda. */
   const [atanmamis, setAtanmamis] = useState(false)
+  /* Dashboard'un "Servisi Atanmamış Makine" kutusu ekranı bu süzgeçle
+     açıyor: kutudaki sayı ile liste aynı olsun. */
+  useEffect(() => {
+    if (sorgu?.atanmamis) setAtanmamis(true)
+  }, [sorgu])
   const [kaynak, setKaynak] = useState('hepsi')
   const [secili, setSecili] = useState(null)
 
   const { veri: kayitlar, yukleniyor } = useVeri(() => makineKayitlariGetir(), [surum], [])
-  const { veri: talepler } = useVeri(() => talepleriGetir(), [surum], [])
+  /* Rolün görmediği talep türü burada da görünmüyor (22 Eylül 2026,
+     kullanıcının kuralı: servis, yedek parça ve satış birbirinin
+     talebini görmez). Önce müşteri detayındaki ve makine geçmişindeki
+     listeler bütün talepleri gösteriyordu; satır tıklanmasa da içeriği
+     okunuyordu. Sayılar da aynı listeden çıkıyor. */
+  const { veri: talepler } = useVeri(() => rolunTalepleri(talepleriGetir(), rol), [surum, rol], [])
   const { siralama, cevir } = useSiralama('tarih', 'azalan')
 
   /* Her kayda bayisi ve servisi yazılıyor; süzgeç, sıralama ve tablo

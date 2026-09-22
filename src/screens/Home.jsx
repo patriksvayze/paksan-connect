@@ -9,28 +9,33 @@ import { MachineCard } from './Machines'
 import { PRODUCTS, VITRIN, urunDilde } from '../marka'
 import { rehberListesi } from '../marka/icerik/rehber'
 import { bildirimListesi, okunmamisSayisi } from '../lib/bildirimler'
-import { musterininServisleri } from '../lib/servisAtama'
+import { servisGruplari } from '../lib/servisAtama'
 import { KAPALI_DURUMLAR } from '../lib/talepEkleme'
-import { araProps, telFirma } from '../lib/tel'
 import {
   IconBook, IconWrench, IconCart, IconPlus, IconParca,
-  IconCalendar, IconRight, IconBell, IconPhone, IconShield,
+  IconCalendar, IconRight, IconBell,
 } from '../components/Icons'
 
 
 export default function Home() {
   const nav = useNavigate()
   const { t, dil } = useDil()
-  const { user, machines, requests, okunanBildirimler, showToast } = useApp()
-  /* Müşteriye bakan servis. Makineden bayiye, bayiden servise giden
-     zincirin sonucu (bkz. lib/servisAtama.js). Zincir boşsa kart
-     çıkmıyor ve servis talebi de açılamıyor. */
-  const servis = musterininServisleri(machines).ana
+  const { user, machines, requests, okunanBildirimler, gorulenler } = useApp()
+  /* Müşterinin makinelerine bakan servisler. Her makinenin servisi
+     makineden bayiye, bayiden servise giden zincirin sonucu (bkz.
+     lib/servisAtama.js); atama makine başına, aynı müşterinin iki
+     makinesine iki servis bakabiliyor. Önce yalnız İLK bulunan servis
+     gösteriliyordu (22 Eylül 2026, kullanıcı bildirdi). */
+  const { gruplar } = servisGruplari(machines)
   const okunmamis = okunmamisSayisi(
     bildirimListesi({ requests, user, makineler: machines }),
     okunanBildirimler
   )
   const kaydirildi = useKaydirildi()
+  /* Görülmemiş makine ve servis: sayı şeridinde kırmızı "Yeni" işareti
+     (bkz. context/AppState.jsx → gorulenler). */
+  const yeniMakine = gorulenler ? machines.some((m) => !gorulenler.makine.includes(m.id)) : false
+  const yeniServis = gorulenler ? gruplar.some((g) => !gorulenler.servis.includes(g.servis.id)) : false
   const ilkAd = user?.ad?.split(' ')[0] || ''
   /* Katalogda karşılığı olmayan kimlik atlanıyor: Vitrin listesi
      firmanın elle doldurduğu yer; yanlış yazılan bir model, ana ekranı
@@ -84,6 +89,7 @@ export default function Home() {
               <Stat
                 v={machines.length}
                 k={t('anasayfa.kayitliMakine')}
+                yeni={yeniMakine && t('anasayfa.yeni')}
                 onClick={() => nav('/makinelerim')}
               />
               <Stat
@@ -93,29 +99,23 @@ export default function Home() {
                    aradığı yeri kendisi aramasın. */
                 onClick={() => nav('/profil', { state: { odak: 'talepler' } })}
               />
+              {/* Kaç AYRI servis bakıyor. Dokununca Makinelerim ekranının
+                  Servislerim sekmesi açılıyor (22 Eylül 2026'dan beri servis
+                  kartları orada; önce bu ekranda duruyorlardı). */}
               <Stat
-                v={machines.length ? (servis ? 1 : 0) : 0}
-                k={t('anasayfa.servisim')}
-                onClick={() => nav('/bayiler')}
+                v={gruplar.length}
+                k={t(gruplar.length > 1 ? 'anasayfa.servislerim' : 'anasayfa.servisim')}
+                yeni={yeniServis && t('anasayfa.yeni')}
+                onClick={() => nav('/makinelerim?sekme=servisler')}
               />
             </div>
           </div>
         )}
 
-        {/* ==================================================== Servisim
-
-            Çiftçinin "makineme kim bakıyor" sorusunun cevabı; talep
-            açmasına gerek kalmadan burada duruyor. Telefon numarası
-            doğrudan aramaya gidiyor: sahada yapılan iş bu.
-
-            Servis atanmamışsa kart yine çıkıyor ama farklı: sessizce
-            kaybolsaydı çiftçi eksikliği fark etmezdi, servis talebine
-            bastığında engellendiğinde de nedenini anlamazdı. */}
-        {machines.length > 0 && (
-          <div className="wrap" style={{ marginTop: 16 }}>
-            <ServisimKarti servis={servis} showToast={showToast} t={t} />
-          </div>
-        )}
+        {/* SERVİS KARTLARI BURADA DEĞİL (22 Eylül 2026, kullanıcının
+            isteği). Makinelerim ekranının Servislerim sekmesinde duruyorlar;
+            sayı şeridindeki "Servislerim" kutusu oraya götürüyor. Ana ekranda
+            iki servis kartı hızlı işlemleri ekranın dışına itiyordu. */}
 
         {/* Hızlı işlemler — üç ana iş, belirgin karolar.
             Destek zaten alt menüde duruyor; buradaki yer servis talebine
@@ -237,11 +237,17 @@ export default function Home() {
 
    Bunlar bilgi gibi görünüp dokunulabilir olduğu anlaşılmıyordu.
    İki işaret eklendi: sayı marka mavisiyle yazılıyor (bağlantı rengi)
-   ve etiketin sonunda küçük bir ok duruyor. */
-function Stat({ v, k, onClick }) {
+   ve etiketin sonunda küçük bir ok duruyor.
+
+   `yeni` doluysa sayının sağ üstünde kırmızı "Yeni" rozeti çıkıyor:
+   görülmemiş bir makine ya da servis var, kullanıcı dokunsun. */
+function Stat({ v, k, yeni, onClick }) {
   return (
     <button className="statstrip__item" onClick={onClick}>
-      <div className="statstrip__v">{v}</div>
+      <div className="statstrip__v">
+        {v}
+        {yeni && <span className="statstrip__yeni">{yeni}</span>}
+      </div>
       <div className="statstrip__k">
         <span>{k}</span>
         <IconRight size={13} />
@@ -250,68 +256,8 @@ function Stat({ v, k, onClick }) {
   )
 }
 
-/* Servisim kartı — iki hâli var ve ikisi de bir şey söylüyor.
-
-   ATANMIŞSA: servisin adı, yeri ve tıklanabilir numarası. Numara
-   kartın en büyük düğmesi; bu kartın var oluş sebebi o.
-
-   ATANMAMIŞSA: ne eksik ve kimin yapacağı. "Servis bulunamadı" demek
-   yetmiyor — çiftçi kendi yapabileceği bir şey olup olmadığını
-   bilmeli. Atama PAKSAN'ın işi ve PAKSAN onu kendisi yapıyor
-   (21 Eylül 2026, kullanıcının kararı): servisi atanmamış makineler
-   backoffice'in yan menüsünde, Kayıtlı Makineler düğmesinde sayılıyor
-   ve atama makine başına orada yapılıyor. Kartta bu yüzden arama
-   düğmesi yok; eskiden "bizi arayın, hemen atayalım" diyordu ve işi
-   müşteriye yüklüyordu. */
-function ServisimKarti({ servis, showToast, t }) {
-  if (!servis) {
-    return (
-      <div className="card" style={{ background: 'var(--pk-orange-soft)', boxShadow: 'none' }}>
-        <div className="row" style={{ alignItems: 'flex-start' }}>
-          <span style={{ color: 'var(--pk-orange-ink)', flex: 'none' }}>
-            <IconShield size={22} />
-          </span>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="card__title">{t('servisim.yok')}</div>
-            <div className="card__sub">{t('servisim.yokAlt')}</div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  const numara = telFirma(servis.tel)
-
-  return (
-    <div className="card">
-      <div className="row" style={{ alignItems: 'flex-start' }}>
-        <div
-          className="listitem__icon"
-          style={{ background: 'var(--pk-green-soft)', color: 'var(--pk-green-yazi)' }}
-        >
-          <IconWrench size={22} />
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="card__sub">{t('servisim.baslik')}</div>
-          <div className="card__title" style={{ fontSize: 17 }}>{servis.ad}</div>
-          <div className="card__sub" style={{ marginTop: 2 }}>
-            {[servis.ilce, servis.il].filter(Boolean).join(' / ')}
-          </div>
-        </div>
-      </div>
-
-      {numara && (
-        <a
-          className="btn btn--blue"
-          style={{ marginTop: 12 }}
-          {...araProps(servis.tel, numara, showToast)}
-        >
-          <IconPhone size={20} /> {numara}
-        </a>
-      )}
-    </div>
-  )
-}
+/* Servis kartları components/ServisKarti.jsx'te: makine detayı da
+   aynı kartı kullanıyor. */
 
 function QuickAction({ icon, label, onClick }) {
   return (

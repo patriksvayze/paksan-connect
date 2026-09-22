@@ -4,6 +4,7 @@ import { fiyatGoruntusu, katalogGetir } from '../lib/parcaKatalogu'
 import {
   ASAMA,
   GARANTI_DISI_OZET,
+  iscilikAlanlari,
   kaydiCozume,
   kaydiDogrula,
   kapininSonucu,
@@ -373,7 +374,9 @@ export function servisAkisi(talep, senaryo, { servis, havuz, personel, secenek =
     asama: ASAMA.bitti,
     yapilanIs: onceki ? 'Parça Değişti' : sec(['Ayar Yapıldı', 'Bakım Yapıldı', 'Arıza Bulunamadı']),
     km: tamsayi(12, 140),
-    iscilik: tamsayi(3, 20) * 100,
+    /* İşçilik süreyle (bkz. lib/servisKaydi.js → TARIFE): yarım saatlik
+       adımlarla 1-8 saat. */
+    ...iscilikAlanlari(tamsayi(2, 16) / 2),
     sonuc: sec(IS_AYRINTI),
   })
 

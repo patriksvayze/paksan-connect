@@ -27,6 +27,15 @@
    randevu alınıp öğleden sonra gidilebilir. Gün ve saat sorulduğunda
    (backoffice planı) geçmiş SAAT de geçersiz — bugünün sabahı için
    randevu verilemez.
+
+   ÜÇÜNCÜ KATMAN: KUTUDAN ÇIKINCA (22 Eylül 2026, kullanıcının isteği:
+   "bugünden öncesi seçilememeli"). Takvim geçmiş günleri kapatıyor
+   ama klavyeyle gün/ay/yıl yazılınca Chrome geçmiş tarihi kutuda
+   bırakıyordu; hata ancak kaydet düğmesinde çıkıyordu. Artık kutudan
+   çıkıldığı anda geçmiş tarih siliniyor ve uyarı görünüyor. Yazarken
+   DEĞİL, çıkarken: yıl hane hane yazılırken kutu 0002, 0020, 0202
+   gibi ara değerlerden geçiyor; her değişiklikte silinseydi yıl hiç
+   yazılamazdı.
    ========================================================================== */
 
 /** Verilen zamanın gün başlangıcı (00:00). */
@@ -52,6 +61,25 @@ export function bugunGirdi(t = Date.now()) {
 export function simdiGirdi(t = Date.now()) {
   const d = new Date(t)
   return `${bugunGirdi(t)}T${iki(d.getHours())}:${iki(d.getMinutes())}`
+}
+
+/**
+ * Serbest yazıdaki tarih bugünden önce mi? Tarih kutusu olmayan,
+ * "30 gün / 30.09.2026" gibi iki biçimi de kabul eden alanlar için
+ * (teklifin geçerliliği). Yazıda tarih yoksa ya da takvimde olmayan
+ * bir günse (31.02) false: "30 gün" yazan satışçı engellenmez.
+ * @param {string} metin
+ * @returns {boolean}
+ */
+export function metindeGecmisTarihVar(metin, t = Date.now()) {
+  const bulunanlar = String(metin || '').matchAll(/(?<!\d)(\d{1,2})[./-](\d{1,2})[./-](\d{4}|\d{2})(?!\d)/g)
+  for (const [, g, a, y] of bulunanlar) {
+    const yil = y.length === 2 ? 2000 + Number(y) : Number(y)
+    const d = new Date(yil, Number(a) - 1, Number(g))
+    if (d.getMonth() !== Number(a) - 1 || d.getDate() !== Number(g)) continue
+    if (d.getTime() < gunBasi(t)) return true
+  }
+  return false
 }
 
 /**

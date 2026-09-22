@@ -275,7 +275,7 @@ Kapattığı bağımlılıklar:
 
 ### 11. Kod listeleri yönetim ekranı
 
-Sık değişen kod listeleri için backoffice'te yönetim ekranı: arıza belirtisi (makine ailesi + TR + EN), iptal sebebi, duyuru alt türü, talep formu seçenekleri (aranma saati, makine durumu, ürün tipi, arazi, traktör gücü). kod.* tabloları şemada hazır.
+Sık değişen kod listeleri için backoffice'te yönetim ekranı: arıza belirtisi (makine ailesi + TR + EN), iptal sebebi, duyuru alt türü, talep formu seçenekleri (makine durumu, ürün tipi, arazi, traktör gücü). kod.* tabloları şemada hazır.
 
 **Büyüklük:** orta · **Önce bitmesi gereken:** yok
 
@@ -284,7 +284,6 @@ Kapattığı bağımlılıklar:
 - Arıza belirtilerinin servis ekibinin gerçek diliyle düzeltilmesi (dosyanın kendi uyarısı: 'buradaki adlar taslaktır')
 - Yeni duyuru türü açmak
 - İptal sebebi eklemek
-- Çalışma saati değişince aranma saati seçeneklerini güncellemek
 - 61 kod listesi / 406 kodun kaynak dosyalara dağılmış olması
 
 ### 12. Servise özel iskonto ve ikinci hesap

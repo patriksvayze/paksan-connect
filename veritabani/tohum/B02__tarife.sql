@@ -6,18 +6,18 @@
    düzenlemeyin: kaynak değişince yeniden üretilir ve el değişikliği
    kaybolur. Kaynağı değiştirin, sonra "npm run vt -- tohum" çalıştırın.
 
-   1 tarife: yol, bütün markalar, km başına.
+   2 tarife: yol için km başına, işçilik için saat başına; ikisi de bütün markalar için.
 
-   Kaynak: src/lib/servisKaydi.js TARIFE.yolKm; para birimi src/marka/katalog/para.js;
-   geçerlilik başlangıcı tasarim.md 5.3 B02. Yalnız yoksa ekler: markasız bir
-   yol tarifesi (açık ya da kapanmış) varsa hiçbir şey yazılmaz; tarifeyi
-   PAKSAN değiştirir.
+   Kaynak: src/lib/servisKaydi.js TARIFE.yolKm ve TARIFE.iscilikSaat; para birimi
+   src/marka/katalog/para.js; geçerlilik başlangıcı tasarim.md 5.3 B02. Yalnız
+   yoksa ekler: aynı kalem türünde markasız bir tarife (açık ya da kapanmış)
+   varsa o satır yazılmaz; tarifeyi PAKSAN değiştirir.
 
    Araç betiği tek işlemde, sahip girişiyle çalıştırır (BEGIN/COMMIT
    burada yazılmaz). İkinci çalıştırmada hiçbir satır değişmez.
    ========================================================================== */
 
-/* hakedis.Tarife — 1 satır, yalnız eksikler eklenir */
+/* hakedis.Tarife — 2 satır, yalnız eksikler eklenir */
 
 INSERT INTO hakedis.Tarife (KalemTuruKodu, MarkaKodu, BirimKodu, BirimTutar, ParaBirimiKodu, GecerlilikBaslangicTarihi)
 SELECT k.KalemTuruKodu, k.MarkaKodu, k.BirimKodu, k.BirimTutar, k.ParaBirimiKodu, k.GecerlilikBaslangicTarihi
@@ -29,6 +29,7 @@ FROM (
            CONVERT(nvarchar(3), v.ParaBirimiKodu) AS ParaBirimiKodu,
            CONVERT(date, v.GecerlilikBaslangicTarihi) AS GecerlilikBaslangicTarihi
     FROM (VALUES
+        (N'iscilik', NULL, N'saat', 50, N'TRY', N'2026-01-01'),
         (N'yol', NULL, N'km', 12, N'TRY', N'2026-01-01')
     ) AS v (KalemTuruKodu, MarkaKodu, BirimKodu, BirimTutar, ParaBirimiKodu, GecerlilikBaslangicTarihi)
 ) AS k

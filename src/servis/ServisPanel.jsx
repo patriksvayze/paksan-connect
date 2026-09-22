@@ -10,38 +10,14 @@ import {
   talepleriGetir,
   BACKOFFICE_SIFRE_HANE,
 } from '../backoffice/veri'
-import { gecenSure } from '../backoffice/ekranlar/ortak'
 import { TemaSecici } from '../backoffice/Tema'
 import { load, save, remove } from '../lib/storage'
 import { ozetHatasiMi } from '../lib/hesap'
-import { duyuruGecerliMi } from '../lib/duyuruHedef'
-import { Kabuk, Sayfa, Bolum, Bos, ListeKarti, Onay } from './Kabuk'
+import { Kabuk, Sayfa, Bolum, Onay } from './Kabuk'
 import { DEMO_HESAP, demoAPKmi } from './demoKimlik'
-import {
-  IconWrench,
-  IconParca,
-  IconPlus,
-  IconBell,
-  IconCalendar,
-  IconShield,
-  IconMachine,
-  IconTag,
-  IconAlert,
-  IconCheckCircle,
-  IconUndo,
-  IconChevronDown as IconChevron,
-  IconRight,
-} from '../components/Icons'
-import { altBilgi } from '../data/duyuruTurleri'
-import { makineDurumAdi } from '../data/talepAlanlari'
-import { useBildirimIzni, useServisHaberi } from './haber'
-import { bildirimYazisi, okunduSay, okunmamislar } from './talepBildirimleri'
-import { dokunulmamis, servisGecikti } from './isDurumu'
-import { Logo, Amblem, MARKA, SIRKET, getProduct, markaEk } from '../marka'
-/* Çizimler Higgsfield ile üretildi, uygulamanın kendi görsel diline
-   (kalın lacivert kontur, düz dolgu, sınırlı palet) referans verilerek.
-   Küçültme ve sıkıştırma: tools/gorsel-hazirla.mjs */
-import bosIsGorseli from '../assets/gorseller/servis-bos-is.png'
+import { IconWrench, IconParca, IconShield, IconTag, IconRight } from '../components/Icons'
+import { useServisHaberi } from './haber'
+import { Logo, Amblem, MARKA, SIRKET } from '../marka'
 /* Giriş ekranının görseli: PAKSAN ORKINOS 1270'İN BAŞINDA SERVİS
    TEKNİSYENİ, ŞAFAKTA TARLADA.
 
@@ -76,6 +52,7 @@ import bosIsGorseli from '../assets/gorseller/servis-bos-is.png'
    işlenmemiş üretim); uygulamadaki dosya 1200x1607 JPEG. */
 import girisGorseli from '../assets/gorseller/servis-giris-orkinos.jpg'
 import { TalepDetay } from './ekranlar/TalepDetay'
+import { Isler } from './ekranlar/Islerim'
 import { Parca } from './ekranlar/Parca'
 import { Bayilerim } from './ekranlar/Bayilerim'
 import { SiparisVer } from './ekranlar/SiparisVer'
@@ -477,6 +454,10 @@ function Uygulama({ oturum, onCikis }) {
   const [alt, setAlt] = useState(null)
   const [tazele, setTazele] = useState(0)
   const [talepler, setTalepler] = useState([])
+  /* İşlerim'in seçili sekmesi (Yeni · Devam Eden · Tamamlanan). Burada
+     tutuluyor: iş detayı açılınca İşlerim ekrandan kalkıyor, dönünce
+     aynı sekme açık gelmeli (bkz. ekranlar/Islerim.jsx). */
+  const [isSekme, setIsSekme] = useState(null)
 
   useEffect(() => {
     setTalepler(servisinTalepleri(talepleriGetir(), oturum.servisId))
@@ -586,17 +567,6 @@ function Uygulama({ oturum, onCikis }) {
     )
   }
 
-  if (alt === 'hesap') {
-    return (
-      <Sayfa
-        baslik="Hesap"
-        alt={oturum.no + ' · ' + oturum.il}
-        onGeri={() => setAlt(null)}
-      >
-        <Hesap oturum={oturum} onCikis={onCikis} />
-      </Sayfa>
-    )
-  }
 
   /* ÜÇ SEKME VE ÜÇÜ DE SERVİSİN KENDİ İŞİ.
 
@@ -623,6 +593,32 @@ function Uygulama({ oturum, onCikis }) {
     isler: { baslik: 'İşlerim', alt: `Merhaba, ${oturum.ad}` },
     parca: { baslik: 'Parça', alt: `${MARKA} siparişleriniz` },
     hakkedis: { baslik: 'Hak Ediş', alt: `${MARKA} ile hesabınız` },
+  }
+
+  /* HESAP ALT MENÜYÜ GİZLEMİYOR (22 Eylül 2026, kullanıcının sorusu:
+     "profil ekranındayken neden navigasyon bar kayboluyor?"). Hesap, iş
+     detayı gibi tam ekran bir alt sayfa olarak açılıyordu; o kalıp alt
+     menüyü bilerek gizliyor — bir formun ortasındayken yanlışlıkla başka
+     sekmeye geçilmesin diye. Hesap ekranında yarım kalan bir iş yok:
+     artık sekmeli kabuğun içinde açılıyor, sol üstte "Geri" var, alt
+     menüden bir sekmeye dokunmak Hesap'ı kapatıp o sekmeyi açıyor. Yeni
+     Kayıt ve Sipariş Ver birer form; onlar alt sayfa olarak kalıyor. */
+  if (alt === 'hesap') {
+    return (
+      <Kabuk
+        baslik="Hesap"
+        alt={oturum.no + ' · ' + oturum.il}
+        onGeri={() => setAlt(null)}
+        sekmeler={sekmeler}
+        sekme={null}
+        onSekme={(id) => {
+          setAlt(null)
+          setSekme(id)
+        }}
+      >
+        <Hesap oturum={oturum} onCikis={onCikis} />
+      </Kabuk>
+    )
   }
 
   return (
@@ -664,7 +660,8 @@ function Uygulama({ oturum, onCikis }) {
           bekleyen={bekleyen}
           biten={biten}
           onAc={setAcik}
-          onYeniKayit={() => setAlt('kayit')}
+          sekme={isSekme}
+          onSekme={setIsSekme}
         />
       )}
       {sekme === 'parca' && (
@@ -680,646 +677,11 @@ function Uygulama({ oturum, onCikis }) {
   )
 }
 
-/* ---------------------------------------------------------------- İşler */
-
-/* ==========================================================================
-   İşlerim — ekranın sırası
-
-   ÖNCEKİ SIRA İŞİ EN ALTA İTİYORDU
-
-   Bugün bloğu · Yeni Kayıt düğmesi · üç duyuru kartı · bekleyen işler.
-   Servis sabah uygulamayı açtığında ekranda fuar duyurusu ve yeni
-   model tanıtımı görüyor, gideceği işi görmek için iki ekran boyu
-   aşağı kaydırıyordu. Bir saha uygulamasında ilk ekranda duracak tek
-   şey vardır: BUGÜN NEREYE GİDİLECEK.
-
-   YENİ SIRA
-
-     1. Bugünün planı — yalnız plan varken. Randevu da gecikme de
-        yoksa blok hiç çizilmiyor; "randevunuz yok" demek için koca
-        bir kutu ayırmak, boşluğu bilgi diye sunmak.
-     2. ACİL duyurular — geri çağırma ve uyarı. Bunlar duyuru değil
-        iş emri: "bu makineleri arayıp servise çağırın" diyor.
-        Hemen altında PAKSAN'ın talep bildirimleri — yalnız okunmamış
-        varken (iptal, kapatma, durum değişikliği, onay…). İşin önünde
-        duruyorlar, çünkü çoğu doğrudan işi değiştiriyor: iptal edilen
-        bir işe gidilmemeli.
-     3. Bekleyen işler — asıl liste.
-     4. Öteki duyurular — tek satırın ardında (kampanya, fuar, yeni
-        ürün). Okunmayı hak ediyorlar ama işin önünde değil.
-     5. Tamamlananlar — tek satırın ardında. Biten iş bir kayıt,
-        bir görev değil.
-
-   "Yeni Kayıt" gövdeden çıktı, üst çubuktaki "+" düğmesine taşındı.
-   ========================================================================== */
-/* "Yeni" / "Devam Eden" ayrımı ve gecikme şeridi kuralı: isDurumu.js. */
-
-function Isler({ oturum, bekleyen, biten, onAc, onYeniKayit }) {
-  const [bitenAcik, setBitenAcik] = useState(false)
-
-  const [yeniIsler, devamEden] = useMemo(
-    () => [bekleyen.filter(dokunulmamis), bekleyen.filter((t) => !dokunulmamis(t))],
-    [bekleyen],
-  )
-
-  return (
-    <>
-      <BildirimIzni />
-
-      <Bugun bekleyen={bekleyen} onAc={onAc} />
-
-      <ServisDuyurulari oturum={oturum} acil />
-
-      <PaksanBildirimleri oturum={oturum} talepler={[...bekleyen, ...biten]} onAc={onAc} />
-
-      {/* İKİ DUYURU AÇILIRI ALT ALTA.
-
-          "PAKSAN duyuruları" bekleyen işlerin ALTINDA duruyordu;
-          "Okuduğunuz uyarılar" üstünde. İkisi de tek satırlık kapalı
-          bir başlık ve ikisi de aynı şeyi barındırıyor — okunmayı
-          bekleyen ama işin önüne geçmeyen duyurular. Ekranın iki ayrı
-          ucunda durmaları için sebep yoktu; ayrıca aradaki liste
-          uzadıkça alttaki hiç görünmüyordu.
-
-          Sıra korunuyor: acil olanlar hâlâ kart hâlinde ve en üstte.
-          Kapalı iki satır bekleyen işleri 96 piksel aşağı itmiyor. */}
-      <ServisDuyurulari oturum={oturum} />
-
-      {/* YENİ VE DEVAM EDEN AYRI.
-
-          Açık işlerin hepsi "Bekleyen" başlığı altında tek listedeydi:
-          dün gelmiş, kimsenin dokunmadığı bir talep ile randevusu
-          verilmiş, parçası yolda olan bir iş aynı görünüyordu. Servisin
-          sabah sorduğu ilk soru "bana yeni ne düştü" ve cevabı listenin
-          içinde kayboluyordu.
-
-          Yeni: servisin henüz el sürmediği iş.
-          Devam Eden: geri kalan açık işler. Her kartın altında neyi
-          beklediği yazıyor (randevu günü, parça, onay).
-
-          İKİSİ DE BOŞSA TEK BİR BOŞ EKRAN. İş yokken de bölüm
-          çiziliyor: yalnız "Tamamlanan" görünseydi servis bekleyen
-          işinin olup olmadığını bilemezdi. */}
-      {yeniIsler.length === 0 && devamEden.length === 0 ? (
-        <Bolum ad="Yeni" sayi={0}>
-          <Bos
-            gorsel={bosIsGorseli}
-            baslik="Bekleyen işiniz yok"
-            alt={
-              biten.length > 0
-                ? 'Tüm işleri tamamladınız. Dükkâna gelen bir müşteri için aşağıdaki Kayıt Aç düğmesine dokunun.'
-                : 'Size bir talep geldiğinde burada görünecek. Dükkâna gelen bir müşteri için aşağıdaki Kayıt Aç düğmesine dokunun.'
-            }
-          />
-        </Bolum>
-      ) : (
-        <>
-          {yeniIsler.length > 0 && (
-            <Bolum ad="Yeni" sayi={yeniIsler.length}>
-              {yeniIsler.map((t) => (
-                <TalepKarti key={t.id} talep={t} onAc={() => onAc(t)} />
-              ))}
-            </Bolum>
-          )}
-          {devamEden.length > 0 && (
-            <Bolum ad="Devam Eden" sayi={devamEden.length}>
-              {devamEden.map((t) => (
-                <TalepKarti key={t.id} talep={t} onAc={() => onAc(t)} />
-              ))}
-            </Bolum>
-          )}
-        </>
-      )}
-
-      {/* Tamamlananlar kapalı başlıyor: biten iş bir kayıt, bir görev
-          değil. Açık dururken bekleyen işlerle aynı ağırlıkta
-          görünüyor ve listeyi uzatıyordu. */}
-      {biten.length > 0 && (
-        <div className="bolum">
-          <button
-            className="katla"
-            onClick={() => setBitenAcik((x) => !x)}
-            aria-expanded={bitenAcik}
-          >
-            <IconCheckCircle size={18} />
-            <span>Tamamlanan işler</span>
-            <span className="katla__sayi">{biten.length}</span>
-            <IconChevron size={18} className={bitenAcik ? 'katla__ok--acik' : ''} />
-          </button>
-          {bitenAcik &&
-            biten.map((t) => (
-              <TalepKarti key={t.id} talep={t} onAc={() => onAc(t)} />
-            ))}
-        </div>
-      )}
-    </>
-  )
-}
-
-/* İzin şeridi. Karar verilmişse hiç çıkmıyor; verilmediyse ne için
-   izin istendiğini yazıyor. "Bildirimlere izin verin" tek başına bir
-   şey anlatmıyor — servis neyi kaçırdığını bilmeli. */
-function BildirimIzni() {
-  const { durum, destekli, iste, BILDIRIM: B } = useBildirimIzni()
-
-  if (!destekli || durum === null) return null
-  if (durum === B.VERILDI || durum === B.DESTEKLENMIYOR) return null
-
-  if (durum === B.ENGELLI || durum === B.REDDEDILDI) {
-    return (
-      <div className="not not--mavi">
-        <IconBell size={19} />
-        <div>
-          <strong>Bildirimler kapalı</strong>
-          <p>
-            Yeni işlerden ve yola çıkan parçalardan haber alamıyorsunuz.
-            Telefonunuzun ayarlarından bu uygulamaya bildirim izni
-            verebilirsiniz.
-          </p>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="not not--mavi">
-      <IconBell size={19} />
-      <div>
-        <strong>Yeni iş geldiğinde haberiniz olsun</strong>
-        <p>
-          Size bir iş düştüğünde, istediğiniz parça yola çıktığında ve
-          kaydınız onaylandığında telefonunuza bildirim gelir.
-        </p>
-        <button
-          className="dg dg--ana dg--blok"
-          style={{ marginTop: 12 }}
-          onClick={iste}
-        >
-          Bildirimlere İzin Ver
-        </button>
-      </div>
-    </div>
-  )
-}
-
-/* ==========================================================================
-   Bugün
-
-   BURADA ÖNCE BİR SAYAÇ VARDI
-
-   "1 iş sizi bekliyor" yazan büyük bir blok. Sorun şuydu: sayı zaten
-   listenin kendisinde duruyor — kartları görüyorsunuz. Ekranın en
-   değerli yerini, hiçbir soruyu cevaplamayan bir tekrar tutuyordu.
-
-   Saha uygulamalarında o alanın karşılığı bellidir: teknisyen
-   uygulamayı açtığında GÜNÜN PROGRAMINI görür, iş sayısını değil.
-   Servisin sabah sorduğu soru "kaç işim var" değil, "bugün nereye
-   gideceğim".
-
-   Bu yüzden blok üç şeyi bu sırayla söylüyor:
-
-     1. BUGÜNKÜ RANDEVULAR — tarih, müşteri, yer. Dokununca talep açılıyor.
-     2. GECİKEN İŞ — 48 saati aşmış, randevusu da yok.
-     3. RANDEVUSUZ İŞ — sırada bekleyen, henüz gün verilmemiş.
-
-   Randevusu olan iş varsa o listeleniyor. Yoksa blok bir cümleye
-   iniyor. Hiç iş yoksa hiç çıkmıyor — boş bir kutu, boşluğun
-   kendisinden daha kötü.
-
-   YARINI DA GÖSTERİYOR: randevu bugün yoksa ama yarın varsa, servis bunu
-   akşamdan bilmek istiyor.
-   ========================================================================== */
-
-function gunBasi(t = Date.now()) {
-  return new Date(t).setHours(0, 0, 0, 0)
-}
-
-/* Randevu gün ve saat olarak; yıl yazılmıyor. "03.09.2026 20:11"
-   satırın üçte birini kaplıyor ve servisin randevusu bu hafta içinde:
-   yıl hiçbir soruya cevap vermiyor.
-
-   Tarih elle kuruluyor: `toLocaleString` yıl istenmediğinde Türkçe
-   yerelde bile eğik çizgi veriyor ("05/09"), oysa Türkçe tarih
-   noktayla yazılıyor. */
-function randevuYazi(plan) {
-  if (!plan?.tarih) return plan?.tarihYazi || ''
-  const d = new Date(plan.tarih)
-  const iki = (n) => String(n).padStart(2, '0')
-  const saat = d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
-  return `${iki(d.getDate())}.${iki(d.getMonth() + 1)} · ${saat}`
-}
-
-function Bugun({ bekleyen, onAc }) {
-  const bugun = gunBasi()
-  const yarin = bugun + 86400000
-
-  const randevulu = bekleyen
-    .filter((t) => t.plan?.tarih)
-    .sort((a, b) => a.plan.tarih - b.plan.tarih)
-
-  const bugunku = randevulu.filter((t) => gunBasi(t.plan.tarih) <= bugun)
-  const yarinki = randevulu.filter((t) => gunBasi(t.plan.tarih) === yarin)
-  const geciken = bekleyen.filter(servisGecikti)
-
-  /* BLOK GÜNÜN PLANIDIR; PLAN YOKSA ÇIKMIYOR.
-
-     Önceden bekleyen iş varsa hep çiziliyor ve çoğu sabah "Bugün için
-     verilmiş randevunuz yok" yazan koca bir kutu oluyordu. Bir kutu
-     bir şeyin olduğunu söylemek için vardır; olmadığını söylemek için
-     ekranın en değerli yerini tutmaz.
-
-     Gecikme özeti de blok zaten çıkıyorsa yazılıyor. Tek başına bir
-     kutuya değmiyor: gecikmiş işin kartında kendi kırmızı satırı
-     duruyor ve liste hemen altında. */
-  if (!bugunku.length && !yarinki.length) return null
-
-  return (
-    <div className="bugun">
-      <div className="bugun__ust">
-        <IconCalendar size={17} />
-        <strong>Bugün</strong>
-        <span className="bugun__tarih">
-          {new Date().toLocaleDateString('tr-TR', {
-            day: 'numeric',
-            month: 'long',
-            weekday: 'long',
-          })}
-        </span>
-      </div>
-
-      {bugunku.length > 0 && (
-        <div className="bugun__liste">
-          {bugunku.map((t) => {
-            /* Tarihi geçmiş randevu da bu listede: servis o işe gitmedi
-               ve gitmesi gerekiyor. Sessizce düşerse unutuluyor. */
-            const gecti = gunBasi(t.plan.tarih) < bugun
-            return (
-              <button
-                key={t.id}
-                className={'bugun__satir' + (gecti ? ' bugun__satir--gec' : '')}
-                onClick={() => onAc(t)}
-              >
-                <span className="bugun__saat">
-                  {gecti ? randevuYazi(t.plan) : 'bugün'}
-                </span>
-                <span className="bugun__ad">{t.ad || '—'}</span>
-                <span className="bugun__yer">{t.ilce || t.il || ''}</span>
-              </button>
-            )
-          })}
-        </div>
-      )}
-
-      {!bugunku.length && yarinki.length > 0 && (
-        <p className="bugun__bos">
-          Bugün randevunuz yok; yarın {yarinki.length} randevunuz var.
-        </p>
-      )}
-
-      {/* Gecikme altta ve tek satır: randevu somut bir plan, bu bir
-          hatırlatma. Aynı ağırlıkta gösterilmemeleri gerekiyor. */}
-      {geciken.length > 0 && (
-        <div className="bugun__sayilar">
-          <span className="bugun__rozet bugun__rozet--gec">
-            {geciken.length} işin üzerinden 48 saat geçti
-          </span>
-        </div>
-      )}
-    </div>
-  )
-}
-
-/* ==========================================================================
-   PAKSAN'ın talep bildirimleri — okunmamışlar (21 Eylül 2026)
-
-   PAKSAN bir talepte servise dokunan bir işlem yaptığında (iptal,
-   kapatma, durum değişikliği, parça, kaydın onayı ya da düzeltilmesi,
-   not) kayıt düşüyor; burada okunmamışlar talep talep listeleniyor
-   (bkz. talepBildirimleri.js).
-
-   NEDEN İŞ LİSTESİNİN İÇİNDE DEĞİL. İptal ya da kapatılan iş "Tamamlanan"
-   bölümüne düşüyor ve o bölüm kapalı duruyor; bildirim kartın üstünde
-   olsaydı tam da en önemli haber — "bu işe gitme" — görünmezdi.
-
-   Satıra dokununca bildirim okundu sayılıyor ve talep açılıyor. Hepsini
-   birden okundu saymak için ayrı düğme var: servis haberleri telefonun
-   bildirim perdesinde zaten okumuş olabilir.
-
-   Bölüm yalnız okunmamış varken çiziliyor; okunmuşlar talebin içinde
-   duruyor. */
-function PaksanBildirimleri({ oturum, talepler, onAc }) {
-  const [, setSurum] = useState(0)
-  const liste = okunmamislar(oturum?.servisId)
-  if (!liste.length) return null
-
-  const ac = (b) => {
-    okunduSay([b.id])
-    setSurum((s) => s + 1)
-    const t = talepler.find((x) => x.id === b.talepId)
-    if (t) onAc(t)
-  }
-
-  return (
-    <Bolum ad={`${markaEk('dan')} gelen bildirimler`} sayi={liste.length}>
-      <div className="talep-haberi">
-        {liste.map((b) => {
-          const y = bildirimYazisi(b)
-          const t = talepler.find((x) => x.id === b.talepId)
-          return (
-            <button key={b.id} className="talep-haberi__satir" onClick={() => ac(b)}>
-              <span className="talep-haberi__nokta" aria-hidden="true" />
-              <span className="talep-haberi__govde">
-                <span className="talep-haberi__baslik">{y.baslik}</span>
-                {y.metin && <span className="talep-haberi__metin">{y.metin}</span>}
-                <span className="talep-haberi__alt">
-                  {[b.talepNo, t?.ad, gecenSure(b.tarih)].filter(Boolean).join(' · ')}
-                </span>
-              </span>
-            </button>
-          )
-        })}
-      </div>
-      {liste.length > 1 && (
-        <button
-          className="talep-haberi__hepsi"
-          onClick={() => {
-            okunduSay(liste.map((b) => b.id))
-            setSurum((s) => s + 1)
-          }}
-        >
-          Tümünü Okundu Say
-        </button>
-      )}
-    </Bolum>
-  )
-}
-
-/* Fiyat teklifi burada yok: servis makine satmıyor, o talep bu
-   uygulamaya hiç düşmüyor. */
-const TUR_ADI = { servis: 'Servis', parca: 'Yedek Parça' }
-
-/* Talep kartı. İskeleti `ListeKarti` (Kabuk.jsx) veriyor; burada
-   yalnız talebin hangi alanının hangi yuvaya gireceği yazıyor.
-
-   Yol tarifi düğmesi EKLENMEDİ. Talepte koordinat yok, yalnız il ve
-   ilçe var (bkz. KonumAlani.jsx); düğme servisi ilçe merkezine
-   götürürdü, tarlaya değil. Adresi telefonda öğreniyor. */
-function TalepKarti({ talep, onAc }) {
-  const paksanda = (talep.sahip || 'paksan') === 'paksan'
-  const gecikti = servisGecikti(talep)
-  const tel = String(talep.tel || '').replace(/\D/g, '')
-  const yer = talep.ilce ? `${talep.ilce} / ${talep.il}` : talep.il || '—'
-  /* MAKİNE ADI KÜNYEDE. Servis yola çıkmadan hangi makineye gittiğini
-     bilmek zorunda: alet çantası ve yedek parça ona göre hazırlanıyor.
-     Bu bilgi talebin içinde vardı, listede yoktu. */
-  const makine = talep.makine ? getProduct(talep.makine.productId)?.name : null
-  const tekrar = (talep.tekrar || []).length > 0
-
-  /* ARIZA KARTTA. Servis listeye bakarken "ne olmuş" sorusunun
-     cevabını görmek istiyor; o bilgi talebin içinde vardı ama kartta
-     yoktu ve sekiz kartı tek tek açmak gerekiyordu.
-
-     Kaynak sırası müşterinin ne kadar anlattığına göre: belirti
-     seçtiyse onlar, yazdıysa yazdığı, ikisi de yoksa makinenin
-     durumu. */
-  const ozet =
-    (talep.belirtiler || []).join(', ') ||
-    (talep.aciklama || '').trim() ||
-    (talep.durum ? makineDurumAdi(talep.durum) : '')
-
-  /* BEKLEYEN İŞİN NEYİ BEKLEDİĞİ. Parça bekleyen ve onay bekleyen
-     talepler listede öteki işlerle aynı görünüyordu; servis hangisine
-     gidebileceğini ancak açınca anlıyordu. */
-  const bekleme =
-    talep.status === 'parcaBekliyor'
-      ? talep.parcaSevk
-        ? 'Parça yolda'
-        : 'Parça hazırlanıyor'
-      : talep.status === 'onayBekliyor'
-        ? `${MARKA} kaydı inceliyor`
-        : null
-
-  return (
-    <ListeKarti
-      ad={talep.ad || '—'}
-      tur={talep.tur}
-      turAdi={TUR_ADI[talep.tur] || talep.tur}
-      uyari={tekrar ? 'Sorun devam ediyor' : null}
-      kunye={
-        <>
-          {makine ? `${makine} · ` : ''}
-          {yer}
-        </>
-      }
-      ozet={ozet}
-      /* Randevu listede de görünüyor: servis hangi işe gün verdiğini
-         karta girmeden biliyor. Randevu yoksa yerini PAKSAN'ın devraldığı
-         bilgisi alıyor — ikisi birden olmuyor. */
-      /* Bekleme durumu randevunun önünde: parça beklerken verilmiş
-         bir randevunun anlamı yok, servis o gün gidemez. */
-      sol={
-        bekleme ? (
-          bekleme
-        ) : talep.plan ? (
-          <>
-            <IconCalendar size={14} /> {randevuYazi(talep.plan)}
-          </>
-        ) : paksanda && talep.devir ? (
-          `${MARKA} destek veriyor`
-        ) : null
-      }
-      /* GECİKME YAZIYLA DA SÖYLENMİYOR ARTIK.
-
-         Gecikmiş kartta sağda "48 saati geçti" yazıyordu. Kartın sol
-         kenarındaki kırmızı şerit zaten aynı şeyi söylüyor ve yazı,
-         servisin gerçekten kullandığı bilgiyi — işin ne kadar
-         beklediğini — ekrandan siliyordu. Şerit uyarıyor, yazı
-         süreyi veriyor; ikisi aynı yuvada yarışmıyor. */
-      sag={gecenSure(talep.createdAt || talep.tarih)}
-      sagGec={gecikti}
-      gec={gecikti}
-      onAc={onAc}
-      tel={tel}
-      telAd={(talep.ad || 'Müşteriyi') + ' ara'}
-    />
-  )
-}
-
-/* ==========================================================================
-   PAKSAN'ın servislere yönelttiği duyurular
-
-   Ayrı bir bildirim deposu kurulmadı: aynı duyuru deposu okunuyor,
-   kime gideceğine duyuruHedef.js karar veriyor. Servise ulaşması için
-   duyurunun hedefinde "servislere" ya da "ikisine de" seçilmiş olması
-   gerekiyor; hedefsiz duyuru müşteriye gider, servise değil.
-
-   "ANLADIM" ARTIK SİLMİYOR
-
-   Önceden okunan duyuru ekrandan tamamen kayboluyordu ve geri getirmenin
-   yolu yoktu. Müşteri uygulamasında duyuru Bildirimler listesinde
-   kalıyordu, servis panelinde karşılığı hiç yoktu.
-
-   Geri çağırma yalnızca servise gidiyor (bkz. data/duyuruTurleri.js):
-   yanlışlıkla "Anladım" denilen bir geri çağırma, o makineleri servise
-   çağıracak tek kişinin elinden çıkmış oluyordu. Okunanlar artık
-   "Geçmiş duyurular" başlığının altında duruyor.
-
-   TÜRÜN KENDİ RENGİ VAR. Bütün duyurular aynı zilli kutuda çıkıyordu;
-   kampanya ile geri çağırma ayırt edilemiyordu.
-   ========================================================================== */
-
-/* Tablodaki `ikon` adının servis panelindeki karşılığı. */
-const DUYURU_IKON = {
-  etiket: IconTag,
-  makine: IconMachine,
-  takvim: IconCalendar,
-  uyari: IconAlert,
-  geri: IconUndo,
-}
-
-/* METİN ÜÇ SATIRDA KESİLİYOR.
-
-   Geri çağırma metni beş paragraf olabiliyor ve kart 250 pikseli
-   geçince bekleyen işler ekranın dışına düşüyordu. Servisin sabah
-   göreceği ilk şey gideceği iş olmalı; uyarı onun üstünde ama
-   önünde değil.
-
-   Başlık hiç kesilmiyor — uyarının ne olduğu ilk satırda yazılı.
-   "Tamamını oku" tek dokunuş, metnin tamamı açılıyor. */
-function DuyuruKarti({ duyuru, okunmamis, onKapat }) {
-  const bilgi = altBilgi(duyuru)
-  const Ikon = DUYURU_IKON[bilgi.ikon] || IconBell
-  const [tam, setTam] = useState(false)
-  const uzun = (duyuru.metin || '').length > 150
-
-  return (
-    <div className={'duyuru duyuru--' + bilgi.ton}>
-      <div className="duyuru__ust">
-        <Ikon size={17} />
-        <span className="duyuru__tur">{bilgi.ad}</span>
-      </div>
-      <strong className="duyuru__baslik">{duyuru.baslik}</strong>
-      <p className={'duyuru__metin' + (uzun && !tam ? ' duyuru__metin--kisa' : '')}>
-        {duyuru.metin}
-      </p>
-      {/* İki düğme tek satırda: alt alta dizildiklerinde kart 96
-          piksel daha uzuyor ve bekleyen işler ekranın dışına
-          düşüyordu. */}
-      {(uzun || okunmamis) && (
-        <div className="duyuru__dip">
-          {uzun && (
-            <button className="duyuru__daha" onClick={() => setTam((x) => !x)}>
-              {tam ? 'Kısalt' : 'Tamamını oku'}
-            </button>
-          )}
-          {okunmamis && (
-            <button className="dg dg--kucuk" onClick={onKapat}>
-              Anladım
-            </button>
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
-
-/* ACİL DUYURU İŞ EMRİDİR, DUYURU DEĞİL.
-
-   Geri çağırma ve uyarı, servisten BİR ŞEY YAPMASINI istiyor: "bu
-   makineleri kullanan müşterilerinizi arayıp servise çağırın". Fuar
-   duyurusuyla ya da yeni model tanıtımıyla aynı yığında durmaları,
-   ikisini de okunmaz yapıyordu.
-
-   Acil olanlar bekleyen işlerin ÜSTÜNDE, açık hâlde; ötekiler
-   listenin ALTINDA, tek satırın ardında.
-
-   Ayrım duyurunun ÜST TÜRÜNDEN çıkıyor: 'uyari' (güvenlik uyarısı ve
-   geri çağırma) acil, 'duyuru' (kampanya, yeni ürün, etkinlik) değil.
-   Bu ayrım zaten backoffice formunda da var — orada da izin kuralı
-   üst türe bakıyor (bkz. data/duyuruTurleri.js → DUYURU_UST). */
-
-function ServisDuyurulari({ oturum, acil = false }) {
-  const [hepsi, setHepsi] = useState([])
-  const [gorulen, setGorulen] = useState(() => new Set(load(GORULEN, [])))
-  const [acikMi, setAcikMi] = useState(false)
-
-  useEffect(() => {
-    setHepsi(
-      load('duyurular', [])
-        .filter((d) => duyuruGecerliMi(d, { servis: oturum }))
-        .sort((a, b) => b.tarih - a.tarih),
-    )
-  }, [oturum])
-
-  function kapat(id) {
-    const yeni = [...new Set([...load(GORULEN, []), id])]
-    save(GORULEN, yeni)
-    setGorulen(new Set(yeni))
-  }
-
-  const bolum = hepsi.filter((d) => (altBilgi(d).ust === 'uyari') === acil)
-  if (!bolum.length) return null
-
-  /* Acil bölümde okunmamışlar açık duruyor; okunanlar tek satıra
-     iniyor. "Anladım" denen bir geri çağırma ekrandan tamamen
-     kaybolmuyor — geri getirmenin yolu olmalı. */
-  const yeniler = bolum.filter((d) => !gorulen.has(d.id))
-  const okunmus = bolum.filter((d) => gorulen.has(d.id))
-
-  if (acil) {
-    return (
-      <>
-        {yeniler.map((d) => (
-          <DuyuruKarti key={d.id} duyuru={d} okunmamis onKapat={() => kapat(d.id)} />
-        ))}
-        {okunmus.length > 0 && (
-          <>
-            <button
-              className="katla"
-              onClick={() => setAcikMi((x) => !x)}
-              aria-expanded={acikMi}
-            >
-              <IconAlert size={18} />
-              <span>Uyarılar</span>
-              <span className="katla__sayi">{okunmus.length}</span>
-              <IconChevron size={18} className={acikMi ? 'katla__ok--acik' : ''} />
-            </button>
-            {acikMi &&
-              okunmus.map((d) => (
-                <DuyuruKarti key={d.id} duyuru={d} okunmamis={false} />
-              ))}
-          </>
-        )}
-      </>
-    )
-  }
-
-  return (
-    <div className="bolum">
-      <button
-        className="katla"
-        onClick={() => setAcikMi((x) => !x)}
-        aria-expanded={acikMi}
-      >
-        <IconBell size={18} />
-        <span>Duyurular</span>
-        {yeniler.length > 0 && <span className="katla__sayi">{yeniler.length}</span>}
-        <IconChevron size={18} className={acikMi ? 'katla__ok--acik' : ''} />
-      </button>
-      {acikMi &&
-        bolum.map((d) => (
-          <DuyuruKarti
-            key={d.id}
-            duyuru={d}
-            okunmamis={!gorulen.has(d.id)}
-            onKapat={() => kapat(d.id)}
-          />
-        ))}
-    </div>
-  )
-}
-
-const GORULEN = 'gorulenDuyurularServis'
+/* ---------------------------------------------------------------- İşler
+
+   İşlerim ekranı kendi dosyasında: ekranlar/Islerim.jsx (22 Eylül 2026'da
+   baştan tasarlanırken ayrıldı; eski hâlinin yedeği
+   yedekler/servisim-islerim-22-eylul-2026/). */
 
 /* ---------------------------------------------------------------- Hesap */
 

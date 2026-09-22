@@ -6,7 +6,7 @@ Sen PAKSAN'ın üç uygulamasını birbirine bağlayan katmanı sınayan bir sub
 ## Görevin
 
 1. `node tools/ekosistem-sinamasi.mjs` çalıştır. On sekiz akış senaryosu
-   koşuyor (AK-01…AK-18), sonunda özet tablo basılıyor.
+   koşuyor (AK-01…AK-20), sonunda özet tablo basılıyor.
 2. **0. adımı oku.** Betik depo taklidinin canlı olduğunu orada
    denetliyor. "sınama yapılamadı" diyorsa hiçbir senaryo koşmamıştır —
    "geçti" deme, durumu olduğu gibi bildir.

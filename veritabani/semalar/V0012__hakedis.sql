@@ -59,7 +59,7 @@ CREATE NONCLUSTERED INDEX IX_hakedis_Tarife_BirimKodu ON hakedis.Tarife (BirimKo
 CREATE NONCLUSTERED INDEX IX_hakedis_Tarife_ParaBirimiKodu ON hakedis.Tarife (ParaBirimiKodu);
 GO
 
-EXEC dbo.AciklamaYaz @Sema = N'hakedis', @Nesne = N'Tarife', @Metin = N'Servise ödenen hak ediş kalemlerinin birim ücreti (ör. yol için km başına ücret). Tarih aralığıyla geçerlidir: hak edişin hesabında ziyaretin tamamlandığı Türkiye gününde geçerli satır kullanılır; markaya özel satır yoksa genel satır (MarkaKodu boş). Satır silinmez, eski tarifeye bitiş tarihi yazılır. Değişiklik geçmişi gecmis.hakedis_Tarife tablosundadır.';
+EXEC dbo.AciklamaYaz @Sema = N'hakedis', @Nesne = N'Tarife', @Metin = N'Servise ödenen hak ediş kalemlerinin birim ücreti (ör. yol için km başına, işçilik için saat başına ücret). Tarih aralığıyla geçerlidir: hak edişin hesabında ziyaretin tamamlandığı Türkiye gününde geçerli satır kullanılır; markaya özel satır yoksa genel satır (MarkaKodu boş). Satır silinmez, eski tarifeye bitiş tarihi yazılır. Değişiklik geçmişi gecmis.hakedis_Tarife tablosundadır.';
 EXEC dbo.AciklamaYaz @Sema = N'hakedis', @Nesne = N'Tarife', @Alt = N'BirimTutar', @Metin = N'Bir birim için ödenen ücret (ör. 1 km yol için 12,00). Para birimi ParaBirimiKodu kolonundadır.';
 EXEC dbo.AciklamaYaz @Sema = N'hakedis', @Nesne = N'Tarife', @Alt = N'GecerlilikBaslangicTarihi', @Metin = N'Tarifenin geçerli olduğu ilk gün (Türkiye günü).';
 EXEC dbo.AciklamaYaz @Sema = N'hakedis', @Nesne = N'Tarife', @Alt = N'GecerlilikBitisTarihi', @Metin = N'Tarifenin geçerli olduğu son gün (Türkiye günü). Boşsa tarife hâlâ geçerlidir; aynı kalem ve marka için tek açık tarife olur.';

@@ -89,7 +89,7 @@ otomasyon paketi kurulu değil. Buna karşılık dört şey var:
   çağrılmıyorsa yoktur.*
 - **Ekosistem sınaması** (`tools/ekosistem-sinamasi.mjs`) — üç
   uygulamanın PAYLAŞTIĞI veri katmanını Node içinde gerçekten
-  çalıştırıyor: on sekiz akış senaryosu (AK-01…AK-18), talep açılışından
+  çalıştırıyor: yirmi akış senaryosu (AK-01…AK-20), talep açılışından
   hak edişin cariye yazılmasına kadar. Modüller Vite'ın
   `ssrLoadModule`'üyle yükleniyor, depo taklit ediliyor, saat donmuş,
   rastgelelik tohumlu. Ayrıntısı betiğin başında.
@@ -106,10 +106,10 @@ otomasyon paketi kurulu değil. Buna karşılık dört şey var:
   `--envanter` her alanın karşılığını basar.
 - **Ekosistem ekran turu** (`tools/ekosistem-turu.mjs`) — üç uygulamanın
   **gezilebilir yüzeyinin tamamını** Chrome'da açıyor: envanter
-  `tools/ekosistem/ekranlar.mjs` içinde (Connect 25, backoffice 16,
+  `tools/ekosistem/ekranlar.mjs` içinde (Connect 26, backoffice 16,
   Servisim 8; artı rol bazlı menü, uygulamalar arası ispat, "gezinmek
   kayıt yazmıyor" denetimi ve **on formun boş gönderimi**
-  (`tools/ekosistem/formlar.mjs`) — toplam 63 denetim). Her ekranda
+  (`tools/ekosistem/formlar.mjs`) — toplam 64 denetim). Her ekranda
   üç soru: boş mu açıldı, hata verdi mi, ekili değer basılı mı.
   Gidilemeyen ekran "ERİŞİLEMEDİ" diye AYRI sayılıyor; sessizce
   atlanmıyor. Yalnız ekilen değerleri arar (talep numarası, seri,
@@ -151,7 +151,12 @@ MAKİNELERİ sayıyor (`servisiAtanmamisKayitlar`), atama yalnız o
 ekrandan yapılıyor. **Atama makine başına, müşteri başına değil**
 (kullanıcının kararı): her servis her makinede uzman değil; aynı
 müşterinin yem karmasına bir servis, balya makinesine başka bir servis
-bakabilir. Müşteriler ekranında atama yeri YOK — aynı gün denenip geri
+bakabilir. Connect de bunu makine başına gösterir (22 Eylül 2026): ana
+ekranda her servis kendi kartında, baktığı makineyle; makine detayında
+o makinenin servisi; servis talebi seçilen makinenin servisine gider,
+servisi olmayan makine için gönderilmez (`servisAtama.js →
+servisGruplari`, sınaması AK-02). Önce yalnız ilk bulunan servis
+görünüyordu. Müşteriler ekranında atama yeri YOK — aynı gün denenip geri
 alındı. Makinenin servisi değişince (atama ya da bayi değişikliği)
 müşteriye Connect'te bildirim gider (`veri.js → makineAtamasiniKaydet`).
 
@@ -162,6 +167,24 @@ görünüyor, en yeni satır PAKSAN'ın atadığı servisi gölgeliyor, servis
 kendini atamış oluyordu. Artık yazan işlevler var olan satırı buluyor;
 Servisim'in elle kaydı var olan makineye hiç dokunmuyor, talep yine
 açılıyor (`lib/makineKaydi.js` başı, sınaması AK-18).
+
+**KATALOG DEĞİŞİNCE GEÇMİŞ İŞLEM DEĞİŞMEZ** (22 Eylül 2026, kullanıcının
+kararı). Talebin ve servis kaydının parça satırı kodu, adı, tutarı VE o
+günkü görselin dosya adını (`gorsel`) kendi içinde taşır; ekranlar
+bunları bugünkü katalogtan okumaz (`components/ParcaResmi.jsx`). Sunucu
+görsel dosyasını hiç ezmez ve silmez; resmi değişen parça yeni adla
+gelir (`sunucu-taklidi/fiyat-listesi-yayini.mjs`). Parça satırı yazan
+yeni bir yol açan, bu alanı da yazar. Sınaması AK-19; veritabanı
+karşılığı `VT-TASARIM-EKLERI.md` §4.
+
+**İŞÇİLİK SÜREYLE YAZILIR** (22 Eylül 2026, kullanıcının kararı). Servis
+garanti kaydında işçilik TUTARI değil, işe harcadığı SÜREYİ yazar
+(yarım saat yazılabilir); tutar sabit saat ücretinden hesaplanır
+(`lib/servisKaydi.js → TARIFE.iscilikSaat`, bugün kullanıcının örnek
+rakamı 50). Kayıt o günün ücretini de taşır (`saatUcreti`): tarife
+değişince geçmiş hak ediş değişmez. `iscilik` alanı tutar olarak
+kalır; rapor, cari ve hak ediş onu okur. PAKSAN düzeltmeyi de süreyle
+yapar. Sınaması AK-20.
 
 **Fiyat teklifi servise değil bayiye gider.** Bayinin paneli yok:
 satış personeli bayiye telefonla haber veriyor, sistemde yalnız hangi

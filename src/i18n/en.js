@@ -220,6 +220,9 @@ export const en = {
     profilim: 'My Profile',
     tumuSayili: 'See all ({n})',
     servisim: 'My service',
+    servislerim: 'My services',
+    /* Sayı şeridinde ve Makinelerim kartlarında yeni gelen makine/servis işareti */
+    yeni: 'New',
   },
 
   makine: {
@@ -392,7 +395,6 @@ export const en = {
     ilgilenilen: 'Product of interest',
     belirtiler: 'Symptoms',
     parcalar: 'Parts requested',
-    aranmaTercihi: 'Preferred call time',
     gecmis: 'Request History',
     notlar: 'Messages from {marka}',
     servisiAra: 'Call Your Service',
@@ -636,8 +638,6 @@ export const en = {
     servisAdresIpucu: 'Example: Çumra, Alibeyhüyüğü village, behind the cooperative',
     servisAdresEksik:
       'Please describe the address in a little more detail so the service technician can find you.',
-    neZamanArayalim: 'When Are You Usually Available During the Day?',
-    aramaAciklamasi: 'We will get in touch if it turns out to be necessary.',
     durumSecin: 'Please mark the current state of the machine.',
     belirtiSecin: 'Please mark what is happening. If it is not listed, choose “Other” and describe it.',
     aciklamaKisa:
@@ -661,8 +661,9 @@ export const en = {
       'This change is also saved to your account, so you will not be asked again next time. Your request is safe — it will be sent once you have corrected this.',
     alindi: 'Request Received',
     ulasti: 'We have received your request',
-    arayacagiz: 'Our team will call you on {tel} {ne}.',
-    enKisaSurede: 'as soon as possible',
+    arayacagiz: 'Our team will call you on {tel} as soon as possible.',
+    servisineGidecek: "Your request will go to this machine's service: {servis}",
+    makineSecinServis: 'Choose the machine you want to open a service request for.',
     uygulamadanBilgi: 'Your request has been received. You will be kept informed at every step through the app.',
     talepNo: 'Request No',
     taleplerimiGor: 'View My Requests',
@@ -886,6 +887,10 @@ export const en = {
     baslik: 'Your service',
     yok: 'No service assigned yet',
     yokAlt: 'No service has been assigned to your machine yet, so you cannot open a service request. {marka} will assign one shortly.',
+    baktigiMakine: 'Looks after: {liste}',
+    baktigiMakineler: 'Looks after: {liste}',
+    eksik: 'Some of your machines have no service assigned yet',
+    eksikAlt: 'You cannot open a service request for {liste} yet. {marka} will assign a service shortly.',
   },
   bayi: {
     baslik: 'Dealers and Contact',

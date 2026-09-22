@@ -8,7 +8,8 @@ import {
   talepIptal,
 } from '../../backoffice/veri'
 import {
-  ASAMA, GARANTI_DISI_OZET, KAPI, parcaYazisiKodlu as parcaYazisi, talebinParcalari, temizParcalar,
+  ASAMA, duzeltmeYazisi, GARANTI_DISI_OZET, iscilikYazisi, KAPI, parcaYazisiKodlu as parcaYazisi,
+  talebinParcalari, temizParcalar,
 } from '../../lib/servisKaydi'
 import { DikteliKutu } from '../Dikte'
 import { bildirimYazisi, okunduSay, talebinBildirimleri } from '../talepBildirimleri'
@@ -19,6 +20,7 @@ import { makineDurumAdi } from '../../data/talepAlanlari'
 import { getProduct, MARKA, markaEk } from '../../marka'
 import { PARA_BIRIMI, paraYaz } from '../../marka'
 import { ServisKapanisi, Secenekler } from './ServisKapanisi'
+import { servisFormuPaylas, servisFormuVarMi } from '../servisFormu'
 import { Onay, Sayfa } from '../Kabuk'
 import {
   extractYear,
@@ -361,7 +363,6 @@ export function TalepDetay({
           <Satir ad="Fatura Adı" deger={talep.fatura.ad} />
         )}
         {talep.aciklama && <Satir ad="Müşterinin Anlattığı" deger={talep.aciklama} />}
-        {talep.ulasim && <Satir ad="Aranma Tercihi" deger={talep.ulasim} />}
 
         {/* SES KAYDI VE FOTOĞRAF SERVİSE HİÇ GÖSTERİLMİYORDU.
 
@@ -567,7 +568,7 @@ export function TalepDetay({
         </div>
       )}
 
-      {talep.servisKaydi && <ServisKaydi talep={talep} />}
+      {talep.servisKaydi && <ServisKaydi talep={talep} servisAd={oturum?.ad} />}
 
       {/* İptal edilen talep "tamamlandı" demiyor; nedeni burada. */}
       {kapali && talep.status === 'iptal' ? (
@@ -796,7 +797,7 @@ function Makine({ makine }) {
    GEREKÇESİYLE gösteriliyor. Sessiz değişiklik para konusunda güveni
    bitirir; ayrıca servis neyi yanlış girdiğini ancak böyle öğrenir.
    ========================================================================== */
-function ServisKaydi({ talep }) {
+function ServisKaydi({ talep, servisAd }) {
   const k = talep.servisKaydi
   const h = talep.hakkedis
   const duzeltmeler = k.duzeltmeler || []
@@ -820,10 +821,7 @@ function ServisKaydi({ talep }) {
       <Satir ad="Yapılan İş" deger={k.yapilanIs} />
       <Satir ad="Sonuç" deger={k.sonuc} />
       <Satir ad="Gidilen Yol" deger={k.km ? k.km + ' km' : ''} />
-      <Satir
-        ad="İşçilik"
-        deger={k.iscilik ? paraYaz(k.iscilik) + ' ' + PARA_BIRIMI : ''}
-      />
+      <Satir ad="İşçilik" deger={iscilikYazisi(k)} />
 
       {/* Parça listesi satır değil TABLO: kod, ad ve adet ayrı
           sütunlarda (bkz. components/ParcaTablosu.jsx). */}
@@ -882,14 +880,52 @@ function ServisKaydi({ talep }) {
           <div>
             <strong>{MARKA} kaydı düzeltti</strong>
             <p>{d.neden}</p>
-            <p className="kucuk sonuk">
-              Yol {d.onceki.km || 0} km → {d.yeni.km || 0} km · İşçilik{' '}
-              {paraYaz(d.onceki.iscilik || 0)} → {paraYaz(d.yeni.iscilik || 0)}{' '}
-              {PARA_BIRIMI}
-            </p>
+            <p className="kucuk sonuk">{duzeltmeYazisi(d)}</p>
           </div>
         </div>
       ))}
+
+      {servisFormuVarMi(talep) && <ServisFormuDugmesi talep={talep} servisAd={servisAd} />}
+    </div>
+  )
+}
+
+/* ==========================================================================
+   Servis formu düğmesi
+
+   Garanti kapsamında bitmiş işin PAKSAN servis formu, basılı formun
+   düzeninde PDF olarak (bkz. servis/servisFormu.js). Telefonda
+   paylaşma ekranı açılıyor: yazdır, WhatsApp, Dosyalar. Düğme işin
+   kaydının altında, çünkü form o kaydın belgesi.
+
+   PDF telefonda birkaç saniyede üretiliyor; o sırada düğme kapanıyor
+   ve ne olduğunu söylüyor — iki kez basılıp iki paylaşma ekranı
+   açılmasın. */
+function ServisFormuDugmesi({ talep, servisAd }) {
+  const [hazirlaniyor, setHazirlaniyor] = useState(false)
+  const [hata, setHata] = useState('')
+
+  async function al() {
+    setHata('')
+    setHazirlaniyor(true)
+    try {
+      await servisFormuPaylas(talep, servisAd)
+    } catch {
+      setHata('Servis formu hazırlanamadı. Tekrar deneyin.')
+    }
+    setHazirlaniyor(false)
+  }
+
+  return (
+    <div style={{ marginTop: 16 }}>
+      <button className="dg dg--blok" onClick={al} disabled={hazirlaniyor}>
+        {hazirlaniyor ? 'Hazırlanıyor…' : 'Servis Formunu Al'}
+      </button>
+      <p className="kucuk sonuk" style={{ margin: '8px 0 0' }}>
+        Garanti işinin servis formu PDF olarak hazırlanır. Yazdırabilir ya da müşteriye
+        gönderebilirsiniz.
+      </p>
+      {hata && <div className="uyari" style={{ marginTop: 10 }}>{hata}</div>}
     </div>
   )
 }
@@ -972,9 +1008,10 @@ const PLAN_ISI = {
 function Randevu({ talep, servisAd, onKapat, onBitti }) {
   /* Kayıtlı randevu varsa kutular onunla doluyor: servis tarihi
      değiştirmek için baştan yazmıyor. */
-  const [tarih, setTarih] = useState(() =>
-    talep.plan?.tarih ? new Date(talep.plan.tarih).toISOString().slice(0, 10) : '',
-  )
+  /* `toISOString` değil `bugunGirdi`: ISO UTC'ye çeviriyor ve gece
+     yarısına yakın kaydedilmiş randevuyu bir gün geri gösteriyordu
+     (Türkiye UTC+3; 23.09 00:00 → "2026-09-22"). */
+  const [tarih, setTarih] = useState(() => (talep.plan?.tarih ? bugunGirdi(talep.plan.tarih) : ''))
   const [onay, setOnay] = useState(false)
   const [hata, setHata] = useState('')
   const degisiklik = Boolean(talep.plan)
@@ -1015,7 +1052,18 @@ function Randevu({ talep, servisAd, onKapat, onBitti }) {
           type="date"
           min={bugunGirdi()}
           value={tarih}
-          onChange={(e) => setTarih(e.target.value)}
+          onChange={(e) => {
+            setTarih(e.target.value)
+            setHata('')
+          }}
+          /* Klavyeyle yazılan geçmiş gün kutudan çıkınca siliniyor
+             (bkz. lib/tarih.js → "Üçüncü katman"). */
+          onBlur={(e) => {
+            if (e.target.value && !ileriTarihMi(e.target.value)) {
+              setTarih('')
+              setHata('Geçmiş bir gün seçilemez.')
+            }
+          }}
         />
       </label>
 

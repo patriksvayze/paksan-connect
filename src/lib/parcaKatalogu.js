@@ -339,6 +339,15 @@ export function parcaToplami(katalog, secimler = []) {
  * ay sonra aynı talebe bakan personel o günün fiyatını görmemeli.
  * Bu yüzden satırlar, katalog sürümü ve kaynağı kaydın İÇİNE yazılıyor
  * ve rapor ile backoffice canlı fiyata değil bu görüntüye bakıyor.
+ *
+ * GÖRSEL DE GÖRÜNTÜDE (22 Eylül 2026, kullanıcının kararı: "yedek parça
+ * kataloğu değişirse geçmiş işlemlerdeki kodlar, adlar ve görseller
+ * değişmemeli"). Kod ve ad zaten o günün hâliyle yazılıyordu; görsel
+ * ise ekranlarda bugünkü katalogtan bulunuyordu. Satıra o günkü görsel
+ * dosyasının adı yazılıyor, ekranlar onu okuyor
+ * (bkz. components/ParcaResmi.jsx). Dosya sunucuda ezilmiyor ve
+ * silinmiyor (bkz. sunucu-taklidi/fiyat-listesi-yayini.mjs). Görseli
+ * olmayan parçada `null`: "o gün görseli yoktu" da bir bilgi.
  */
 export function fiyatGoruntusu(katalog, secimler = []) {
   const hesap = parcaToplami(katalog, secimler)
@@ -347,6 +356,7 @@ export function fiyatGoruntusu(katalog, secimler = []) {
     kaynak: katalog?.kaynak || null,
     satirlar: hesap.satirlar.map((r) => ({
       kod: r.kod, ad: r.ad, adet: r.adet,
+      gorsel: r.parca?.gorsel ?? null,
       birimFiyat: r.parca ? r.parca.fiyat : null,
       tutar: r.tutar,
     })),

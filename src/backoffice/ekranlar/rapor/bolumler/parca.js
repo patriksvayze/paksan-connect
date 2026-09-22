@@ -266,6 +266,8 @@ export const parcaBolumu = {
         alt: M.siparisAlt,
       },
       {
+        /* Dashboard'un yönetim özeti bu ölçüyü kimliğiyle buluyor (bkz. Ozet.jsx). */
+        id: 'satis',
         ad: M.satis,
         deger: paraKutu(satisDonem.toplam),
         fark: f(satisDonem.toplam, satisOnceki.toplam),
@@ -293,6 +295,8 @@ export const parcaBolumu = {
         alt: M.odemedenGonderimAlt(odemedenDonem.length, sureYaz(dilim(odemedenDonem, 0.9))),
       },
       {
+        /* Dashboard'un yönetim özeti bu ölçüyü kimliğiyle buluyor (bkz. Ozet.jsx). */
+        id: 'garantiSevk',
         ad: M.garantiSevk,
         deger: sureYaz(ortalama(sevkDonem)),
         fark: f(ortalama(sevkDonem), ortalama(sevkOnceki)),

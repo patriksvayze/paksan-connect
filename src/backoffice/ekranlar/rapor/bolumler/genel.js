@@ -2,6 +2,7 @@ import {
   gecikmisMi, gonderimGecikti, KAPALI_DURUMLAR, TALEP_ADI, teklifBekliyorMu,
 } from '../../../veri'
 import { makineninServisi } from '../../../../lib/servisAtama'
+import { bekledigiYer, odemeOnayiBekliyorMu, parcaHazirliktaMi, yerSuzgeci } from '../../../bekleyenIs'
 import { cevapsizlar } from '../../DestekKayitlari'
 import {
   dilim, fark, ilkIslemSuresi, iptalZamani, kapanisOlayi, kapanisOlaySuresi, kovayaDagit,
@@ -155,36 +156,8 @@ function acikMi(t) {
   return !KAPALI_DURUMLAR.includes(t.status || 'yeni')
 }
 
-/* Açık talebin şu an kimin elinde beklediği. Sıra önemli: aynı talep
-   birden çok koşula uyabiliyor (serviste ve parça bekliyor); en dar
-   olan kazanıyor. */
-function bekledigiYer(t) {
-  const d = t.status || 'yeni'
-  if (d === 'onayBekliyor') return 'onay'
-  if (d === 'parcaBekliyor') return t.parcaSevk ? 'yolda' : 'parcaHazirlik'
-  if (d === 'teklif') return 'teklif'
-  if ((t.sahip || 'paksan') === 'servis') return 'servis'
-  if (t.tur === 'parca') return 'parcaTalebi'
-  return 'paksan'
-}
-
-/* Yerin Talepler ekranındaki en yakın süzgeci. Talepler ekranının
-   süzgeçleri bu gruplamayı bilmiyor (örn. "Serviste" orada "Sahiplik:
-   Serviste + açık" ve onay ya da parça bekleyen servis işlerini de
-   içeriyor); bağımsız denetimde "Serviste 19" satırı 31 kayıtlık liste
-   açtı. Fark her bölümün "Bu sayılar nasıl hesaplanıyor?" notunda
-   yazıyor (bkz. Gorunum.jsx → listeNotu). */
-function yerSuzgeci(yer) {
-  switch (yer) {
-    case 'onay': return { durum: 'onayBekliyor' }
-    case 'parcaHazirlik':
-    case 'yolda': return { durum: 'parcaBekliyor' }
-    case 'teklif': return { durum: 'teklif' }
-    case 'servis': return { durum: 'acik', sahiplik: 'servis' }
-    case 'parcaTalebi': return { durum: 'acik', tur: 'parca' }
-    default: return { durum: 'acik', sahiplik: 'paksan' }
-  }
-}
+/* Açık talebin kimde beklediği ve o yerin Talepler süzgeci ortak
+   dosyada: Dashboard da aynı kuralla sayıyor (bkz. backoffice/bekleyenIs.js). */
 
 export const genelBolumu = {
   id: 'genel',
@@ -356,9 +329,11 @@ export const genelBolumu = {
       () => git('talepler', { durum: 'onayBekliyor' }),
     )
 
-    const parcaHazirlik = acik.filter((t) => t.status === 'parcaBekliyor' && !t.parcaSevk)
+    /* Kural ve Talepler'deki tam süzgeç ortak dosyada; satır artık
+       yalnız bu işleri açıyor (bkz. bekleyenIs.js). */
+    const parcaHazirlik = acik.filter(parcaHazirliktaMi)
     ekle(parcaHazirlik.length, M.uyariParca(parcaHazirlik.length), M.uyariParcaAlt, 'turuncu', () =>
-      git('talepler', { durum: 'parcaBekliyor' }),
+      git('talepler', { durum: 'parcaHazirlik' }),
     )
 
     /* İKİ UYARI DA YALNIZ MÜŞTERİ TALEBİ SAYIYOR. Servisin kendi parça
@@ -367,9 +342,9 @@ export const genelBolumu = {
        onu açıkça muaf tutuyor) ve gönderim sözü müşteriye değil servise
        veriliyor. Süzgeç yokken bu sekme "Müşteriye bildirilen gönderim
        tarihi geçti" derken servis siparişlerini de sayıyordu. */
-    const odemeBekleyen = acik.filter((t) => t.tur === 'parca' && musteriTalebiMi(t) && t.dekont && !t.odemeOnay)
+    const odemeBekleyen = acik.filter(odemeOnayiBekliyorMu)
     ekle(odemeBekleyen.length, M.uyariOdeme(odemeBekleyen.length), M.uyariOdemeAlt, 'turuncu', () =>
-      git('talepler', { durum: 'acik', tur: 'parca' }),
+      git('talepler', { durum: 'odemeBekleyen' }),
     )
 
     const gonderimGecen = talepler.filter((t) => musteriTalebiMi(t) && gonderimGecikti(t))

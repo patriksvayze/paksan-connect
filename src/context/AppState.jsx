@@ -7,6 +7,7 @@ import { sunucuyaGonder } from '../lib/sunucu'
 import { ihracatPostasi } from '../lib/ihracat'
 import { talepKaydiOlustur } from '../lib/talepOlustur'
 import { normalizeSerial } from '../lib/serial'
+import { servisGruplari } from '../lib/servisAtama'
 import { SUNUCU } from '../config'
 import { cihazDili, DilSaglayici } from '../i18n'
 
@@ -50,6 +51,17 @@ export function AppProvider({ children }) {
   const [okunanBildirimler, setOkunanBildirimler] = useState(() =>
     load('okunanBildirimler', [])
   )
+  /* GÖRÜLEN MAKİNE VE SERVİSLER (22 Eylül 2026, kullanıcının isteği).
+     Müşterinin hesabına yeni bir makine ya da makinesine yeni bir servis
+     gelince ana ekrandaki sayı şeridinde kırmızı "Yeni" işareti çıkıyor;
+     Makinelerim ekranının ilgili sekmesi açılınca görülmüş sayılıyor.
+     Burada o güne kadar görülenlerin kimlikleri tutuluyor.
+
+     null = henüz hiç sayılmadı: ilk açılışta eldeki her şey görülmüş
+     sayılıyor, uygulamayı ilk kez açan kullanıcı her kutuda işaret
+     görmesin. Müşterinin kendi eklediği makine eklendiği an görülmüş
+     sayılıyor (addMachine); işaret yalnız dışarıdan geleni haber veriyor. */
+  const [gorulenler, setGorulenler] = useState(() => load('gorulenler', null))
   const [toast, setToast] = useState(null)
 
   /* Dil. Kullanıcı bir kez seçtiyse onun seçimi geçerli; hiç
@@ -80,6 +92,22 @@ export function AppProvider({ children }) {
     })
   }, [user])
   useEffect(() => save('machines', machines), [machines])
+  useEffect(() => {
+    if (gorulenler) save('gorulenler', gorulenler)
+    else
+      setGorulenler({
+        makine: machines.map((m) => m.id),
+        servis: servisGruplari(machines).gruplar.map((g) => g.servis.id),
+      })
+  }, [gorulenler, machines])
+  /** tur: 'makine' | 'servis'. Verilen kimlikleri görülmüş sayar. */
+  const gorulduIsaretle = useCallback((tur, kimlikler) => {
+    setGorulenler((g) => {
+      if (!g) return g
+      const eksik = kimlikler.filter((k) => !g[tur].includes(k))
+      return eksik.length ? { ...g, [tur]: [...g[tur], ...eksik] } : g
+    })
+  }, [])
   useEffect(() => {
     requestsRef.current = requests
     save('requests', requests)
@@ -154,6 +182,7 @@ export function AppProvider({ children }) {
     const anahtar = (h) => (h ? telAnahtar(h.ulke, h.tel) : '')
     if (onceki && anahtar(onceki) !== anahtar(data)) {
       setMachines([])
+      setGorulenler(null)
       requestsGuncelle(() => [])
       setChats({})
       setGizlenenTalepler([])
@@ -221,6 +250,7 @@ export function AppProvider({ children }) {
         doneMaintenance: [],
       }
       setMachines((list) => [m, ...list])
+      setGorulenler((g) => (g ? { ...g, makine: [...g.makine, m.id] } : g))
       return m
     },
     []
@@ -356,6 +386,8 @@ export function AppProvider({ children }) {
       okunanBildirimler,
       bildirimOku,
       bildirimleriOku,
+      gorulenler,
+      gorulduIsaretle,
       toast,
       showToast,
       dil,
@@ -367,6 +399,7 @@ export function AppProvider({ children }) {
       gorunenTalepler, addRequest, updateRequest, removeRequest,
       getChat, pushChat, clearChat,
       okunanBildirimler, bildirimOku, bildirimleriOku,
+      gorulenler, gorulduIsaretle,
       toast, showToast, dil, setDil,
     ]
   )

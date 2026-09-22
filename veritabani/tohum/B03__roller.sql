@@ -6,7 +6,7 @@
    düzenlemeyin: kaynak değişince yeniden üretilir ve el değişikliği
    kaybolur. Kaynağı değiştirin, sonra "npm run vt -- tohum" çalıştırın.
 
-   5 rol, 21 rol izni.
+   5 rol, 25 rol izni.
 
    Kaynak: src/data/yetkiler.js VARSAYILAN_ROLLER; rol kodları
    tohum/kaynak/kod-eslesmeleri.json. Kimlik UUIDv5 (ad alanı tasarim.md 1.6,
@@ -53,9 +53,11 @@ FROM (
     SELECT CONVERT(uniqueidentifier, v.RolKimlik) AS RolKimlik,
            CONVERT(nvarchar(40), v.IzinKodu) AS IzinKodu
     FROM (VALUES
+        (N'7defff91-b3ae-5910-82ac-fe7159047ecc', N'makineler'),
         (N'7defff91-b3ae-5910-82ac-fe7159047ecc', N'musteriler'),
         (N'7defff91-b3ae-5910-82ac-fe7159047ecc', N'servisler'),
         (N'7defff91-b3ae-5910-82ac-fe7159047ecc', N'talepler'),
+        (N'8345a847-3bd9-5f34-9f8c-aa4dcb97c351', N'makineler'),
         (N'8345a847-3bd9-5f34-9f8c-aa4dcb97c351', N'musteriler'),
         (N'8345a847-3bd9-5f34-9f8c-aa4dcb97c351', N'servisler'),
         (N'8345a847-3bd9-5f34-9f8c-aa4dcb97c351', N'talepler'),
@@ -63,6 +65,7 @@ FROM (
         (N'9f30df05-459c-5571-a344-bf55e833e378', N'duyurular'),
         (N'9f30df05-459c-5571-a344-bf55e833e378', N'geribildirim'),
         (N'9f30df05-459c-5571-a344-bf55e833e378', N'kayit'),
+        (N'9f30df05-459c-5571-a344-bf55e833e378', N'makineler'),
         (N'9f30df05-459c-5571-a344-bf55e833e378', N'musteriler'),
         (N'9f30df05-459c-5571-a344-bf55e833e378', N'personel'),
         (N'9f30df05-459c-5571-a344-bf55e833e378', N'raporlar'),
@@ -70,6 +73,7 @@ FROM (
         (N'9f30df05-459c-5571-a344-bf55e833e378', N'servisler'),
         (N'9f30df05-459c-5571-a344-bf55e833e378', N'talepler'),
         (N'9f30df05-459c-5571-a344-bf55e833e378', N'yonetimOzeti'),
+        (N'eeeafab2-0df0-57cf-8c30-69d0ae856d04', N'makineler'),
         (N'eeeafab2-0df0-57cf-8c30-69d0ae856d04', N'musteriler'),
         (N'eeeafab2-0df0-57cf-8c30-69d0ae856d04', N'servisDuzenle'),
         (N'eeeafab2-0df0-57cf-8c30-69d0ae856d04', N'servisler'),

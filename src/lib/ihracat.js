@@ -191,7 +191,6 @@ export function ihracatPostasi(talep) {
     /* Kod · ad · adet · tutar, her parça kendi satırında */
     satirCok('Parts requested', parcalar),
     satirCok('Parts total (domestic list, as shown in the app)', parcaTutari),
-    satir('Preferred call time', talep.ulasim),
     satir('Voice note', talep.ses?.veri ? `Yes (${talep.ses.sure}s) — see the app record` : ''),
     satir('Attachments', (talep.ekler || []).length ? `${talep.ekler.length} file(s)` : ''),
   ].join('')

@@ -14,12 +14,22 @@ import {
 /* Kodlu biçim: yedek parça personeli 538 parçalık katalogta hangi
    kaydı hazırlayacağını addan çıkaramıyor. */
 import {
+  duzeltmeYazisi,
+  iscilikAlanlari,
+  iscilikYazisi,
   KAPI,
   parcaYazisiKodlu as kayitParcaYazisi,
+  saatGirdisi,
+  saatYaz as sureYaz,
   talebinParcalari,
+  TARIFE,
   temizParcalar,
 } from '../../lib/servisKaydi'
 import { ParcaTablosu } from '../../components/ParcaTablosu'
+import { ParcaResmi, useParcaKatalogu } from '../../components/ParcaResmi'
+import {
+  bizdeGecikmisMi, odemeOnayiBekliyorMu, parcaHazirliktaMi, servisteGecikmisMi,
+} from '../bekleyenIs'
 import { useVeri } from '../kanca'
 import {
   Baslik, Bekleme, Bos, DurumRozet, saatYaz, Sayfalama, siraliListe, SiraliBaslik,
@@ -32,7 +42,7 @@ import { araliktaMi, BOS_ARALIK, Secim, SuzgecCubugu, TarihAraligi } from './suz
 import { Dekont, Ekler } from './Ekler'
 import { getProduct, markaEk } from '../../marka'
 import { formatSerial, warrantyStatus } from '../../lib/serial'
-import { ileriTarihMi, simdiGirdi } from '../../lib/tarih'
+import { ileriTarihMi, metindeGecmisTarihVar, simdiGirdi } from '../../lib/tarih'
 import { makineDurumAdi } from '../../data/talepAlanlari'
 import { BANKA } from '../../marka'
 import { servisleriGetir, bayileriGetir, MARKA } from '../../marka'
@@ -130,9 +140,22 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
      "Cevap bekleyen teklifler" kısayolu da yalnız fiyat teklifi
      görünürken çıkıyor; başka türde karşılığı yok. */
   const suzgecTuru = tekTur || tur
+  /* ONAY VE PARÇA BEKLEYEN SÜZGEÇTE VAR (22 Eylül 2026). `talepDurumlari`
+     elle SEÇİLEBİLEN durumları veriyor; bu ikisini servis kaydı kuruyor,
+     personel seçemiyor (ELLE_SECILMEZ). Süzgeç ise aramak için: liste
+     o işlevden kurulunca tek türe bağlı rolde (servis masası) "Onay
+     Bekliyor" hiç çıkmıyordu, Dashboard'dan ya da Genel Bakış'tan o
+     listeye gelen personel "Açık olanlar"a düşüyordu. */
   const durumSecenekleri =
-    suzgecTuru && suzgecTuru !== 'hepsi' ? talepDurumlari(suzgecTuru) : DURUMLAR
+    suzgecTuru && suzgecTuru !== 'hepsi'
+      ? suzgecTuru === 'satinalma'
+        ? talepDurumlari(suzgecTuru)
+        : DURUMLAR.filter((d) => d.id !== 'teklif' && d.id !== 'bayiyeIletildi')
+      : DURUMLAR
   const teklifVar = !suzgecTuru || suzgecTuru === 'hepsi' || suzgecTuru === 'satinalma'
+  /* Parça kuyruklarının kısayolları yalnız parça ya da servis talebi
+     görünürken: garanti parçası servis talebinde bekliyor. */
+  const parcaVar = suzgecTuru !== 'satinalma'
 
   /* Excel sütunları rolüne göre süzülüyor (bkz. aktarSutunlari) */
   const aktarSutun = useMemo(() => aktarSutunlari(rol), [rol])
@@ -142,11 +165,12 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
      zaman hiçbir şey döndürmezdi ve kullanıcı sebebini anlamazdı.
      Karşılığı kalmayan seçim "Açık olanlar"a düşüyor. */
   useEffect(() => {
-    const gecerli = ['acik', 'gecikmis', 'hepsi']
+    const gecerli = ['acik', 'gecikmis', 'bizdeGeciken', 'servisteGeciken', 'hepsi']
+    if (parcaVar) gecerli.push('parcaHazirlik', 'odemeBekleyen')
     if (teklifVar) gecerli.push('teklifBekleyen')
     for (const d of durumSecenekleri) gecerli.push(d.id)
     if (!gecerli.includes(durum)) setDurum('acik')
-  }, [durum, durumSecenekleri, teklifVar])
+  }, [durum, durumSecenekleri, teklifVar, parcaVar])
 
   /* Süzgeç seçenekleri elimizdeki kayıtlardan çıkarılıyor; boş il
      listelemenin anlamı yok. */
@@ -180,10 +204,19 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
       const d = t.status || 'yeni'
       if (durum === 'acik' && KAPALI_DURUMLAR.includes(d)) return false
       if (durum === 'gecikmis' && !gecikmisMi(t)) return false
+      /* Dashboard'un iki kutusunun listesi: top PAKSAN'da 48 saattir
+         bekleyen ve serviste 48 saattir el sürülmemiş iş
+         (bkz. backoffice/bekleyenIs.js). Kutudaki sayı ile açılan
+         liste aynı kuraldan geliyor. */
+      if (durum === 'bizdeGeciken' && !bizdeGecikmisMi(t)) return false
+      if (durum === 'servisteGeciken' && !servisteGecikmisMi(t)) return false
+      if (durum === 'parcaHazirlik' && !parcaHazirliktaMi(t)) return false
+      if (durum === 'odemeBekleyen' && !odemeOnayiBekliyorMu(t)) return false
       if (durum === 'teklifBekleyen' && !teklifBekliyorMu(t)) return false
       if (
-        durum !== 'acik' && durum !== 'gecikmis' && durum !== 'teklifBekleyen' &&
-        durum !== 'hepsi' && d !== durum
+        !['acik', 'gecikmis', 'bizdeGeciken', 'servisteGeciken', 'parcaHazirlik', 'odemeBekleyen',
+          'teklifBekleyen', 'hepsi'].includes(durum) &&
+        d !== durum
       ) {
         return false
       }
@@ -299,6 +332,14 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
           secenekler={[
             { deger: 'acik', ad: 'Açık olanlar' },
             { deger: 'gecikmis', ad: 'Gecikmiş talepler' },
+            { deger: 'bizdeGeciken', ad: 'Bizde 48 saati geçenler' },
+            { deger: 'servisteGeciken', ad: 'Serviste gecikenler' },
+            ...(parcaVar
+              ? [
+                  { deger: 'parcaHazirlik', ad: 'Parça hazırlığı bekleyenler' },
+                  { deger: 'odemeBekleyen', ad: 'Ödeme onayı bekleyenler' },
+                ]
+              : []),
             ...(teklifVar
               ? [{ deger: 'teklifBekleyen', ad: 'Cevap Beklenen Teklifler' }]
               : []),
@@ -559,6 +600,7 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
      (`rol !== 'admin'`). Roller ekrandan açılabildiği için yetkiye
      taşındı; hangi rolün açabileceği Roller ekranından işaretleniyor. */
   const kapali = KAPALI_DURUMLAR.includes(suanki)
+  const devirUstte = Boolean(talep.devir) && !kapali && (talep.sahip || 'paksan') === 'paksan'
   /* BAYİYE İLETİLEN TALEP HİÇ AÇILMIYOR (21 Eylül 2026, kullanıcının
      kararı): geri açma yetkisi olan da çiple başka bir duruma geçiremez.
      Yanlış tıklamanın tek düzeltmesi Bayi bölümündeki geri alma
@@ -744,14 +786,22 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
           </div>
         )}
 
+        {/* SERVİSİN DESTEK İSTEME NEDENİ EN ÜSTTE (22 Eylül 2026).
+            Kutu "Servis" bölümünün dibindeydi: müşteri bilgisinin altında,
+            ekranın katlanan yerinde kalıyordu ve personel nedeni
+            göremediğini bildirdi. Talep PAKSAN'dayken bu cümle yapılacak
+            işin kendisi; "Müşteri sorunun devam ettiğini bildirdi" kutusuyla
+            aynı yerde duruyor. İş servise döndüyse ya da kapandıysa kutu
+            geçmiş bilgi olarak Servis bölümünde kalıyor. */}
+        {devirUstte && <DevirNedeni devir={talep.devir} />}
+
         <Bolum ad="Müşteri">
           <S k="Ad Soyad" v={talep.ad} />
           <S k="Telefon" v={talep.tel} mono />
           <S k="Konum" v={talep.ilce ? `${talep.ilce} / ${talep.il}` : talep.il} />
-          <S k="Aranma Tercihi" v={talep.ulasim} />
         </Bolum>
 
-        <ServisDurumu talep={talep} />
+        <ServisDurumu talep={talep} devirGoster={!devirUstte} />
 
         {talep.tur === 'satinalma' && (
           <BayiAtama
@@ -834,7 +884,20 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
           <S k="Adres" v={talep.adres} />
           <S k="Makinenin Durumu" v={makineDurumAdi(talep.durum)} />
           <S k="Belirtiler" v={talep.belirtiler?.join(' · ')} />
-          <S k="İstenen Parçalar" v={parcaYazisi(talep)} />
+          {/* MÜŞTERİNİN SEÇTİĞİ PARÇALAR GÖRSELLİ (22 Eylül 2026,
+              kullanıcının isteği). Satır "Pikap dişi × 2 · Düğüm atıcı
+              bıçağı" diye düz yazıydı: parçayı hazırlayan personel
+              kodu da resmi de görmüyordu, katalogta aynı adı taşıyan
+              parçalar var. Servis kaydının parça listesiyle aynı
+              tablo (bkz. components/ParcaTablosu.jsx). */}
+          {talebinParcalari(talep).length > 0 && (
+            <div style={{ margin: '6px 0 10px' }}>
+              <div className="alan__ad" style={{ marginBottom: 6 }}>
+                İstenen Parçalar
+              </div>
+              <ParcaTablosu parcalar={talebinParcalari(talep)} />
+            </div>
+          )}
           <S k="Balyalanacak ürün" v={talep.urunTipi} />
           <S k="Arazi" v={talep.arazi} />
           <S k="Traktör Gücü" v={talep.traktor} />
@@ -1700,7 +1763,6 @@ const AKTAR_SUTUNLARI = [
   { ad: 'İstenen parçalar', deger: (t) => parcaYazisi(t), turler: ['parca'] },
 
   { ad: 'Açıklama', deger: (t) => t.aciklama || '' },
-  { ad: 'Aranma tercihi', deger: (t) => t.ulasim || '' },
   {
     ad: 'Ek sayısı',
     deger: (t) => String((t.ekler || []).length + (t.ses?.veri ? 1 : 0)),
@@ -2210,7 +2272,23 @@ function BayiAtama({ talep, personel, geriAlabilir, tazele, bildir }) {
   )
 }
 
-function ServisDurumu({ talep }) {
+/* Servisin "PAKSAN'dan Destek İste" ile yazdığı neden (bkz. veri.js →
+   destekTalepEt). */
+function DevirNedeni({ devir, ust = 16 }) {
+  return (
+    <div className="uyari" style={{ marginTop: ust ? 0 : 12, marginBottom: ust, display: 'block' }}>
+      <b>Servis bu talep için {markaEk('dan')} destek istedi.</b>
+      {devir.neden && (
+        <p style={{ whiteSpace: 'pre-wrap', margin: '8px 0 0' }}>{devir.neden}</p>
+      )}
+      <div className="kucuk" style={{ marginTop: 8 }}>
+        {[devir.servisAd, devir.tarih ? tarihYaz(devir.tarih) : ''].filter(Boolean).join(' · ')}
+      </div>
+    </div>
+  )
+}
+
+function ServisDurumu({ talep, devirGoster = true }) {
   if (!talep.servis) return null
 
   const kayit = servisleriGetir().find((b) => b.id === talep.servis.id) || null
@@ -2236,19 +2314,7 @@ function ServisDurumu({ talep }) {
       {kayit && <S k="Telefon" v={telFirma(kayit.tel)} mono />}
       <S k="Servise düştü" v={talep.servis.tarih ? tarihYaz(talep.servis.tarih) : ''} />
 
-      {talep.devir && (
-        <div className="uyari" style={{ marginTop: 12, marginBottom: 0, display: 'block' }}>
-          <b>Servis bu talep için {markaEk('dan')} destek istedi.</b>
-          {talep.devir.neden && (
-            <p style={{ whiteSpace: 'pre-wrap', margin: '8px 0 0' }}>{talep.devir.neden}</p>
-          )}
-          <div className="kucuk" style={{ marginTop: 8 }}>
-            {[talep.devir.servisAd, talep.devir.tarih ? tarihYaz(talep.devir.tarih) : '']
-              .filter(Boolean)
-              .join(' · ')}
-          </div>
-        </div>
-      )}
+      {devirGoster && talep.devir && <DevirNedeni devir={talep.devir} ust={0} />}
     </Bolum>
   )
 }
@@ -2310,12 +2376,19 @@ function ServisKaydiBolumu({
           servis/ekranlar/ServisKapanisi.jsx); satır her kayıtta aynı
           şeyi söylüyordu. */}
       {k.kapi !== 'garanti' && <S k="Garanti Durumu" v={KAPI[k.kapi]} />}
+      {/* SERVİSİN YAZDIĞI TALEP NEDENİ (22 Eylül 2026). Servis kaydında
+          "Servis Talebi Nedeni" alanı müşterinin anlattığıyla dolu
+          açılıyor, servis sahada gördüğünü ekliyor. Kayda yazılıyordu,
+          servis formu PDF'inde "Arızanın Tanımı" olarak basılıyordu ama
+          backoffice'te hiçbir yerde görünmüyordu. PAKSAN hak edişi ve
+          garanti parçasını bu cümleye bakarak onaylıyor. */}
+      <S k="Servis Talebi Nedeni" v={k.ariza} />
       <S k="Yapılan İş" v={k.yapilanIs} />
       {k.sonuc && (
         <p style={{ whiteSpace: 'pre-wrap', margin: '0 0 8px' }}>{k.sonuc}</p>
       )}
       <S k="Gidilen Yol" v={k.km ? k.km + ' km' : ''} />
-      <S k="İşçilik" v={k.iscilik ? paraYaz(k.iscilik) + ' ' + PARA_BIRIMI : ''} />
+      <S k="İşçilik" v={iscilikYazisi(k)} />
 
       {/* PARÇA LİSTESİ VİRGÜLLE DEĞİL TABLOYLA.
 
@@ -2361,11 +2434,7 @@ function ServisKaydiBolumu({
         <div key={i} className="uyari" style={{ marginTop: 10 }}>
           <strong>Düzeltildi · {d.personel}</strong>
           <p style={{ margin: '4px 0 0' }}>{d.neden}</p>
-          <p className="kucuk" style={{ margin: '4px 0 0' }}>
-            Yol {d.onceki.km || 0} → {d.yeni.km || 0} km · İşçilik{' '}
-            {paraYaz(d.onceki.iscilik || 0)} → {paraYaz(d.yeni.iscilik || 0)}{' '}
-            {PARA_BIRIMI}
-          </p>
+          <p className="kucuk" style={{ margin: '4px 0 0' }}>{duzeltmeYazisi(d)}</p>
         </div>
       ))}
 
@@ -2482,15 +2551,25 @@ function ServisKaydiBolumu({
 function HakkedisFormu({ talep, onKapat, onKaydet }) {
   const k = talep.servisKaydi || {}
   const [km, setKm] = useState(String(k.km || ''))
-  const [iscilik, setIscilik] = useState(String(k.iscilik || ''))
+  /* İŞÇİLİK SÜREYLE DÜZELTİLİYOR (22 Eylül 2026): servis süreyi
+     yazıyor, tutar saat ücretinden çıkıyor (bkz. lib/servisKaydi.js →
+     TARIFE). Ücret kaydın kendi ücreti — tarife sonradan değiştiyse
+     düzeltme eski işi yeni ücretle hesaplamasın. Süresi olmayan eski
+     kayıtta kutu boş açılıyor; boş bırakılırsa eski tutar korunuyor,
+     süre yazılırsa tutar süreden hesaplanıyor. */
+  const saatUcreti = Number(k.saatUcreti) || TARIFE.iscilikSaat
+  const eskiTutar = k.iscilikSaat == null && Number(k.iscilik) > 0
+  const [saat, setSaat] = useState(k.iscilikSaat ? sureYaz(k.iscilikSaat) : '')
+  const iscilik = eskiTutar && !saat ? {} : iscilikAlanlari(saat, saatUcreti)
   const [parcalar, setParcalar] = useState(() => temizParcalar(k.parcalar))
+  const katalog = useParcaKatalogu(parcalar.some((p) => p.kod && p.gorsel === undefined))
   const [neden, setNeden] = useState('')
   const [hata, setHata] = useState('')
 
   function kaydet() {
     if (neden.trim().length < 5) return setHata('Düzeltme gerekçesini yazın.')
     onKaydet({
-      kayit: { ...k, km: Number(km) || 0, iscilik: Number(iscilik) || 0, parcalar },
+      kayit: { ...k, km: Number(km) || 0, ...iscilik, parcalar },
       neden: neden.trim(),
     })
   }
@@ -2518,13 +2597,18 @@ function HakkedisFormu({ talep, onKapat, onKaydet }) {
           </label>
 
           <label className="alan">
-            <span className="alan__ad">İşçilik ({PARA_BIRIMI})</span>
+            <span className="alan__ad">İşçilik Süresi (saat)</span>
             <input
               className="gir"
-              inputMode="numeric"
-              value={iscilik}
-              onChange={(e) => setIscilik(e.target.value.replace(/\D/g, ''))}
+              inputMode="decimal"
+              value={saat}
+              onChange={(e) => setSaat(saatGirdisi(e.target.value))}
             />
+            <span className="kucuk sonuk" style={{ display: 'block', marginTop: 4 }}>
+              {`Saat başına ${paraYaz(saatUcreti)} ${PARA_BIRIMI} · işçilik tutarı ${paraYaz(
+                iscilik.iscilik ?? (Number(k.iscilik) || 0),
+              )} ${PARA_BIRIMI}`}
+            </span>
           </label>
 
           {parcalar.length > 0 && (
@@ -2533,8 +2617,14 @@ function HakkedisFormu({ talep, onKapat, onKaydet }) {
                 Parçalar
               </div>
               {parcalar.map((p, i) => (
-                <div key={p.ad} className="satir" style={{ gap: 8, marginBottom: 6 }}>
-                  <span style={{ flex: 1 }}>{p.ad}</span>
+                <div key={p.ad} className="satir" style={{ gap: 10, marginBottom: 6 }}>
+                  {/* Adedi düzelten personel parçayı resminden de tanısın
+                      (bkz. components/ParcaResmi.jsx). */}
+                  <ParcaResmi katalog={katalog} kod={p.kod} gorsel={p.gorsel} boyut={48} />
+                  <span style={{ flex: 1 }}>
+                    {p.ad}
+                    {p.kod && <span className="kucuk sonuk mono" style={{ display: 'block' }}>{p.kod}</span>}
+                  </span>
                   <input
                     className="gir"
                     style={{ width: 80 }}
@@ -2785,7 +2875,18 @@ function PlanFormu({ talep, onKapat, onKaydet }) {
               type="datetime-local"
               min={simdiGirdi()}
               value={tarih}
-              onChange={(e) => setTarih(e.target.value)}
+              onChange={(e) => {
+                setTarih(e.target.value)
+                setHata('')
+              }}
+              /* Klavyeyle yazılan geçmiş zaman kutudan çıkınca siliniyor
+                 (bkz. lib/tarih.js → "Üçüncü katman"). */
+              onBlur={(e) => {
+                if (e.target.value && !ileriTarihMi(e.target.value, { saatli: true })) {
+                  setTarih('')
+                  setHata('Geçmiş bir tarih veya saat seçilemez.')
+                }
+              }}
               autoFocus
             />
           </label>
@@ -3077,6 +3178,8 @@ function KapanisFormu({ talep, onKapat, onKaydet }) {
    sonucu tahmin etmeye zorlardı; o kutu boş bırakılır ve hiçbir işe
    yaramazdı. Sonuç, müşteri döndüğünde kapanışta giriliyor.
    ========================================================================== */
+const GECERLILIK_GECMIS = 'Geçerlilik tarihi bugünden önce olamaz.'
+
 function TeklifFormu({ talep, onKapat, onKaydet }) {
   const [tutar, setTutar] = useState('')
   const [gecerlilik, setGecerlilik] = useState('')
@@ -3110,7 +3213,13 @@ function TeklifFormu({ talep, onKapat, onKaydet }) {
             <input
               className="gir"
               value={gecerlilik}
-              onChange={(e) => setGecerlilik(e.target.value)}
+              onChange={(e) => {
+                setGecerlilik(e.target.value)
+                setHata('')
+              }}
+              onBlur={() => {
+                if (metindeGecmisTarihVar(gecerlilik)) setHata(GECERLILIK_GECMIS)
+              }}
               placeholder="30 gün / 30.09.2026"
             />
           </label>
@@ -3140,6 +3249,10 @@ function TeklifFormu({ talep, onKapat, onKaydet }) {
               className="dg dg--ana"
               onClick={() => {
                 if (!tutar.trim()) return setHata('Teklif tutarını yazın.')
+                /* Geçerlilik serbest yazı ("30 gün" de yazılabiliyor);
+                   içinde tarih varsa bugünden önce olamaz: müşteri
+                   süresi dolmuş bir teklif görürdü. */
+                if (metindeGecmisTarihVar(gecerlilik)) return setHata(GECERLILIK_GECMIS)
                 onKaydet({ tutar: tutar.trim(), gecerlilik: gecerlilik.trim(), not: not.trim() })
               }}
             >

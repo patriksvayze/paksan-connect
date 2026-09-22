@@ -9,6 +9,8 @@ import { VideoOynatici, videoTuru, VideoSure } from '../components/Video'
 import { getProduct, urunDilde } from '../marka'
 import { formatSerial, warrantyStatus } from '../lib/serial'
 import { SIRKET } from '../marka'
+import { makineninServisi } from '../lib/servisAtama'
+import { ServisKarti, ServisYokKarti } from '../components/ServisKarti'
 import {
   IconMachine, IconChat, IconBook, IconWrench, IconParca, IconPlay, IconCheck,
   IconShield, IconTrash, IconAlert, IconRight,
@@ -53,6 +55,7 @@ export default function MachineDetail() {
   }
 
   const g = warrantyStatus(machine.year, t)
+  const servis = makineninServisi(machine)?.servis || null
   const done = machine.doneMaintenance || []
 
   function bakimIsaretle(saat) {
@@ -135,6 +138,16 @@ export default function MachineDetail() {
                 <IconRight size={20} />
               </span>
             </button>
+
+            {/* BU MAKİNEYE BAKAN SERVİS (22 Eylül 2026). Atama makine
+                başına: aynı müşterinin öteki makinesine başka bir servis
+                bakıyor olabilir. Servis talebinin gideceği yer burada
+                görünüyor; atanmamışsa neden talep açılamadığı da. */}
+            {servis ? (
+              <ServisKarti servis={servis} showToast={showToast} t={t} dil={dil} />
+            ) : (
+              <ServisYokKarti hicbiri t={t} dil={dil} />
+            )}
           </div>
         </div>
 

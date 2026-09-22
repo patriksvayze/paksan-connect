@@ -745,94 +745,282 @@ a {
   color: var(--murekkep-3);
 }
 
-/* ------------------------------------------------------------- Sayılar */
+/* ------------------------------------------------ Dashboard (22 Eylül 2026)
 
-/* Hızlı erişim kutuları tek satırda duruyor. Ekran dar kalırsa alt
-   satıra kaymak yerine yana kayıyor: yönetici bir bakışta hepsini
-   aynı hizada görsün. */
-/* Dashboard'un üstündeki sayı kutuları.
+   Ekran baştan kuruldu (bkz. Ozet.jsx başı). Üstteki on sayı kutusunun
+   satırı (.sayilar / .sayi) kaldırıldı; yerine "Bekleyen İşler" listesi
+   ve "Açık talepler kimde?" kartı geldi. Ölçü kartları aşağıdaki
+   .olculer / .deger bloğunda. */
 
-   ÖNCE TEK SATIRA ZORLANIYORDU (`grid-auto-flow: column`) ve sığmayınca
-   yana kaydırılıyordu. Ölçüldü: dokuz kutu 1214 piksel istiyor, 1366
-   piksellik ekranda içeriğe 1023 piksel kalıyor. Yani en yaygın dizüstü
-   çözünürlüğünde kutuların üçte biri ekran dışında kalıyor ve kimse
-   kaydırmayı denemiyordu — dashboard'un işi bir bakışta durum vermek.
-
-   Şimdi sarıyorlar: sığan kadarı ilk satırda, kalanı alta geçiyor.
-   Kaydırma çubuğu da kalktı. */
-/* Dashboard'un üstündeki hızlı erişim kutuları.
-
-   TEK SATIRDA KALIYOR, KAYDIRMA YOK. Kutu sayısı role göre değişiyor
-   (4 ile 9 arası — bkz. Ozet.jsx), bu yüzden sabit sütun sayısı
-   yazılamaz. `flex` ile her kutu satırın eşit bir payını alıyor ve
-   ekran daralınca PAYLAR küçülüyor; satır asla ikiye bölünmüyor,
-   kutular birlikte küçülüyor.
-
-   Önce grid + auto-fit vardı: minmax altında kalan kutu alta
-   düşüyordu (dokuz kutu 1214 piksel istiyor, 1366 piksellik ekranda
-   1023 piksel vardı). Sonra sarmaya bırakılmıştı ama bu kez birden
-   çok satır oluyordu — istenen tam olarak bu değil. flex-shrink ile
-   ikisi de olmuyor: satır hep bir, kutu hep dar. */
-.sayilar {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 8px;
+/* Liste ile "kimde" kartı yan yana: liste geniş, kart dar. Dar ekranda
+   alt alta. */
+.ozet-izgara {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(300px, 2fr);
+  gap: 14px;
   margin-bottom: 18px;
+  align-items: start;
 }
 
-.sayi {
-  background: var(--yuzey);
+.ozet-izgara > .kart {
+  margin-bottom: 0;
+}
+
+@media (max-width: 1100px) {
+  .ozet-izgara {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Bekleyen işler: sayı + ad + ok. Satırın tamamı düğme; kenarlık yok,
+   satırlar ince çizgiyle ayrılıyor — kurumsal liste, kutu kafesi değil. */
+.is-liste__grup + .is-liste__grup {
+  margin-top: 16px;
+}
+
+.is-liste__baslik {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--murekkep-3);
+  padding: 0 8px 4px;
+}
+
+.is-satir {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 48px;
+  padding: 8px;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--cizgi);
+  border-radius: 0;
+  text-align: left;
+  color: var(--murekkep);
+  cursor: pointer;
+  transition: background 0.13s ease;
+}
+
+.is-satir:last-child {
+  border-bottom: 0;
+}
+
+.is-satir:hover {
+  background: var(--yuzey-2);
+}
+
+.is-satir__sayi {
+  flex: none;
+  min-width: 44px;
+  text-align: right;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.is-satir--dikkat .is-satir__sayi {
+  color: var(--kirmizi);
+}
+
+.is-satir__ad {
+  flex: 1;
+  min-width: 0;
+  font-size: 14.5px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+/* Onay bekleyen hak edişin toplam tutarı */
+.is-satir__alt {
+  flex: none;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--murekkep-2);
+  white-space: nowrap;
+}
+
+.is-satir__ok {
+  flex: none;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--murekkep-3);
+}
+
+.is-liste__bos {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 18px 8px;
+}
+
+.is-liste__bos b {
+  font-size: 15px;
+}
+
+.is-liste__bos span {
+  font-size: 13px;
+  color: var(--murekkep-2);
+}
+
+/* Açık talepler kimde: tek çubuk, altında üç satır. */
+/* İki bağlantının tıklama alanı 44 piksel yüksek: yazı boyunda
+   kaldığında 19 pikseldi (QA ölçümü). Dolgu görünmüyor, alan büyüyor. */
+.kimde__toplam {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 0 0 8px;
+  background: none;
+  border: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  /* --mavi değil --mavi-rz: karanlık temada yazı olarak okunur kalan ton
+     (bkz. .yonetim-ozet__baslik). */
+  color: var(--mavi-rz);
+  cursor: pointer;
+}
+
+.kimde__toplam:hover {
+  text-decoration: underline;
+}
+
+.kimde__cubuk {
+  margin-bottom: 8px;
+}
+
+.kimde__satir {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--cizgi);
+}
+
+.kimde__nokta {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.kimde__ad {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.kimde__alt {
+  display: block;
+  margin-top: 2px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--murekkep-2);
+}
+
+.kimde__alt--dikkat {
+  color: var(--kirmizi);
+  font-weight: 700;
+}
+
+.kimde__v {
+  font-size: 18px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.kimde__bag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  margin-top: 2px;
+  padding: 0 8px 0 0;
+  background: none;
+  border: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--mavi-rz);
+  cursor: pointer;
+}
+
+.kimde__bag::after {
+  content: '›';
+  font-size: 16px;
+  line-height: 1;
+}
+
+.kimde__bag:hover {
+  text-decoration: underline;
+}
+
+/* ----------------------------------------------- Dashboard yönetim özeti
+   Raporlar'ın bölümlerinden seçilmiş ölçüler (bkz. Ozet.jsx →
+   YonetimOzeti). Blok başlığı raporu açan bir düğme. */
+.yonetim-ozet {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.yonetim-ozet__blok {
   border: 1px solid var(--cizgi);
   border-radius: var(--r);
-  padding: 11px 10px;
-  box-shadow: var(--golge);
-  text-align: left;
-  display: block;
-  /* Eşit pay + serbestçe küçülme. min-width:0 olmazsa flex ögeleri
-     içeriği kadar genişlik ister ve yine taşardı. */
-  flex: 1 1 0;
-  min-width: 0;
-  transition: border-color 0.14s ease, transform 0.1s ease;
+  padding: 12px 14px;
+  background: var(--yuzey-2);
 }
 
-button.sayi:hover {
-  border-color: var(--mavi);
+.yonetim-ozet__baslik {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  padding: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  /* --mavi değil --mavi-rz: --mavi karanlık temada dolgu rengi, yazı
+     olarak 2.19:1 kalıyordu (QA ölçümü). --mavi-rz karanlıkta açılıyor. */
+  color: var(--mavi-rz);
+  background: none;
+  border: 0;
+  cursor: pointer;
 }
 
-button.sayi:active {
-  transform: translateY(1px);
+.yonetim-ozet__baslik::after {
+  content: '›';
+  font-size: 16px;
+  line-height: 1;
 }
 
-/* Punto sabit değil: dokuz kutu tek satıra sığarken 26 piksellik
-   rakam ve uzun etiketler ("Cevap Bekleyen Teklif") kutuyu iterdi.
-   clamp() ekranın verdiği yere göre küçülüyor, taşma olmuyor. */
-.sayi__v {
-  font-size: clamp(15px, 2.1vw, 26px);
+.yonetim-ozet__baslik:hover {
+  text-decoration: underline;
+}
+
+.yonetim-ozet__olcu + .yonetim-ozet__olcu {
+  margin-top: 10px;
+}
+
+.yonetim-ozet__ad {
+  font-size: 12.5px;
+  color: var(--murekkep-2);
+}
+
+.yonetim-ozet__v {
+  font-size: 20px;
   font-weight: 900;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
-  line-height: 1.1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.sayi__k {
-  color: var(--murekkep-2);
-  font-size: clamp(10px, 1.05vw, 12.5px);
-  margin-top: 2px;
-  line-height: 1.3;
-  /* Etiket gerekirse iki satıra sarıyor ama üçe geçmiyor; kutu
-     boyu böylece bütün rollerde aynı kalıyor. */
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  overflow: hidden;
-}
-
-.sayi--dikkat .sayi__v {
-  color: var(--kirmizi);
+  line-height: 1.2;
 }
 
 /* -------------------------------------------------------------- Tablo */
@@ -2078,6 +2266,25 @@ select.sec {
   font-weight: 700;
   margin-right: 5px;
   font-variant-numeric: tabular-nums;
+}
+
+/* Tıklanabilir ölçü kartı (Dashboard → "Bugün Gelen" listeyi açıyor). */
+/* Düğme içeriği varsayılan olarak dikeyde ortalıyor; yanındaki düz
+   kartlarla aynı hizada, üstten başlasın. */
+button.deger {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 100%;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 0.14s ease;
+}
+
+button.deger:hover {
+  border-color: var(--mavi);
 }
 
 /* ==========================================================================
@@ -3470,13 +3677,61 @@ select.sec {
   background: var(--yuzey);
 }
 
+/* GÖRSEL SÜTUNU VE DAR KUTU (22 Eylül 2026). Satırın başında parçanın
+   küçük resmi. Sütunlar alan adlarıyla yerleşiyor ki dar kutuda kod
+   adın üstüne çıkabilsin: resim · kod · ad · adet yan yana 360
+   piksellik telefonda ada 60 piksel bırakıyordu. Karar ekranın değil
+   KUTUNUN genişliğine göre (container query): backoffice'in 460
+   piksellik kargo penceresi de telefon gibi davranıyor. Kutu sorgusunu
+   bilmeyen eski tarayıcı geniş düzende kalıyor; sıkışık ama okunur. */
+.parca-tablo {
+  container-type: inline-size;
+}
+
 .parca-tablo__baslik,
 .parca-tablo__satir {
   display: grid;
-  grid-template-columns: minmax(88px, auto) 1fr 44px;
-  gap: var(--bosluk-3);
-  align-items: baseline;
+  grid-template-columns: var(--parca-resmi, 56px) minmax(88px, auto) 1fr 44px;
+  grid-template-areas: 'resim kod ad adet';
+  column-gap: var(--bosluk-3);
+  row-gap: 2px;
+  align-items: center;
   padding: var(--bosluk-2) var(--bosluk-3);
+}
+
+.parca-tablo__resim { grid-area: resim; }
+.parca-tablo__kod { grid-area: kod; }
+.parca-tablo__ad { grid-area: ad; }
+.parca-tablo__adet { grid-area: adet; }
+
+@container (max-width: 520px) {
+  .parca-tablo__baslik,
+  .parca-tablo__satir {
+    grid-template-columns: var(--parca-resmi, 56px) minmax(0, 1fr) 44px;
+    grid-template-areas:
+      'resim kod adet'
+      'resim ad adet';
+  }
+
+  .parca-tablo__kod { align-self: end; }
+  .parca-tablo__ad { align-self: start; }
+}
+
+/* Çok dar kutu (320 piksellik eski telefon, kartın içindeki kart):
+   resim ve boşluklar küçülüyor ki ada harf harf kırılmayacak yer
+   kalsın. 264 piksellik kutuda ölçüldü: 64 piksellik resimle ada 42
+   piksel kalıyordu, burada 90. */
+@container (max-width: 280px) {
+  .parca-tablo__baslik,
+  .parca-tablo__satir {
+    grid-template-columns: 44px minmax(0, 1fr) 32px;
+    column-gap: var(--bosluk-2);
+    padding: var(--bosluk-2);
+  }
+
+  .parca-tablo .parca-resmi {
+    --parca-resmi: 44px;
+  }
 }
 
 .parca-tablo__baslik {
@@ -3487,6 +3742,13 @@ select.sec {
   color: var(--murekkep-2);
   background: var(--yuzey-2);
   border-bottom: 1px solid var(--cizgi);
+}
+
+/* Başlık hücreleri satırın kod/ad/adet biçimini almıyor. */
+.parca-tablo__baslik > span {
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
 }
 
 .parca-tablo__baslik > :last-child,
@@ -3513,6 +3775,47 @@ select.sec {
   font-size: var(--yazi-2);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------- Parçanın küçük görseli
+   Bkz. components/ParcaResmi.jsx. 56 piksel: ParcaKarti'nin ölçümünde
+   44 piksellik resimde parça tanınmıyordu. Ölçü `--parca-resmi` ile
+   değişiyor (Servisim kendi kabuğunda büyütüyor, servis.css); :root'a
+   yazılmadı, çünkü iki CSS kökünün token'ları eşit tutuluyor ve bu
+   yalnız bu bileşenin ölçüsü. Zemin her temada beyaz: katalog görselleri
+   beyaz zemine basılmış. */
+.parca-resmi {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--parca-resmi, 56px);
+  height: var(--parca-resmi, 56px);
+  border-radius: var(--r-1);
+  background: #fff;
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+}
+
+.parca-resmi img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Katalog yolda: boş, soluk kutu — "Görsel yok" bir an görünüp
+   kaybolmasın. */
+.parca-resmi--bekliyor {
+  background: var(--yuzey-2);
+}
+
+/* Beyaz zeminde 5.9:1; tema değişse de zemin beyaz kaldığı için renk
+   sabit. */
+.parca-resmi__yok {
+  padding: 0 3px;
+  font-size: 10.5px;
+  line-height: 1.2;
+  text-align: center;
+  color: #5b6472;
 }
 
 /* ==========================================================================

@@ -107,16 +107,16 @@ const TABS = [
     to: '/makinelerim',
     anahtar: 'menu.makinelerim',
     Icon: IconBaler,
-    /* MAKİNE SİMGESİ DAHA BÜYÜK ÇİZİLİYOR.
+    /* MAKİNE SİMGESİ BİRAZ BÜYÜK ÇİZİLİYOR (28 piksel).
 
-       Öteki simgeler kare; 24 pikselde eni de boyu da 24 oluyor. Makine
-       ise geniş bir çizim (en/boy oranı 1,6): 24 pikselde boyu 15
-       piksele düşüyor, komşularının yanında yarım kalmış gibi duruyor
-       ve ne olduğu anlaşılmıyordu.
-
-       36 pikselde makinenin boyu 20 piksele çıkıyor — kareler kadar.
-       Eni 33 piksel oluyor; kapsül 46'ya 36, ikisi de sığıyor. */
-    ikonBoyut: 36,
+       Öteki simgeler kare; balya makinesi yatay bir çizim (en/boy oranı
+       yaklaşık 1,5): 24 pikselde boyu 15 piksele düşüyor ve komşularının
+       yanında küçük kalıyor. 28 pikselde eni 26, boyu 18 oluyor —
+       komşularıyla aynı ağırlıkta; kapsül 58'e 46, rahat sığıyor.
+       Eski (izlenmiş) çizim daha geniş olduğu için 36 pikselde
+       çiziliyordu; 22 Eylül 2026'da yeni çizimle 28'e indi
+       (bkz. Icons.jsx → IconBaler). */
+    ikonBoyut: 28,
     altYollar: ['/makine-ekle', '/makine/'],
   },
   {

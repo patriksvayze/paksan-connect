@@ -15,6 +15,7 @@ import {
   rolBilgi, rolunTalepleri, sifreJetonuGecerli, sifreJetonuKullan, sifreTalebiOlustur,
   talepleriGetir, geriBildirimGetir, numaraTalepleriGetir, teklifBekliyorMu,
   makineKayitlariGetir, BACKOFFICE_SIFRE_HANE,
+  servisSifreTalepleriGetir,
 } from './veri'
 import { servisiAtanmamisKayitlar } from '../lib/servisAtama'
 import { ozetHatasiMi } from '../lib/hesap'
@@ -84,8 +85,8 @@ const MENU = [
      her makinede uzman değil. Personel sayıyı buradan görüyor, atamayı
      Kayıtlı Makineler ekranından yapıyor. Aynı gün önce Müşteriler
      düğmesinde müşteri sayısı olarak denenmiş, geri alınmıştı. */
-  { id: 'makineler', ad: 'Kayıtlı Makineler', izin: 'musteriler', sayac: 'servissiz', Ikon: IconMachine },
-  { id: 'servisler', ad: 'Servisler', izin: 'servisler', Ikon: IconPin },
+  { id: 'makineler', ad: 'Kayıtlı Makineler', izin: 'makineler', sayac: 'servissiz', Ikon: IconMachine },
+  { id: 'servisler', ad: 'Servisler', izin: 'servisler', sayac: 'sifreYardimi', Ikon: IconPin },
   /* Bayi ayrı bir ekran: kaydı var, paneli yok. Servisin çalıştığı
      bayiler Servisler ekranından bağlanıyor; burası künye. */
   { id: 'bayiler', ad: 'Bayiler', izin: 'servisler', Ikon: IconCart },
@@ -162,6 +163,14 @@ export function Backoffice() {
          yapamayacağı bir işi hatırlatmak olur. */
       servissiz: izinli(oturum.rol, 'servisDuzenle')
         ? servisiAtanmamisKayitlar(makineKayitlariGetir()).length
+        : 0,
+      /* Servisim'den "Şifremi Unuttum" diyen, aranmayı bekleyen servisler
+         (22 Eylül 2026, kullanıcının isteği). Talep yalnız Servisler
+         ekranının üstündeki kartta görünüyordu; ekranı açmayan personel
+         haberdar olmuyordu, servis de "arayacaklar" diye bekliyordu. Kartı
+         görebilen ve şifre sıfırlayabilen personele gösteriliyor. */
+      sifreYardimi: izinli(oturum.rol, 'servisDuzenle')
+        ? servisSifreTalepleriGetir().filter((t) => t.durum === 'bekliyor').length
         : 0,
     }
   }, [surum, oturum])
@@ -453,6 +462,11 @@ function useYeniIsHaberi(oturum, tazele) {
            Kimse yeni bir olay üretmediği için bunlar sessizce
            unutuluyordu; sayı arttığında satış ekibine haber gidiyor. */
         teklif: talepler.filter(teklifBekliyorMu).length,
+        /* Servisim'den "Şifremi Unuttum" (22 Eylül 2026): artınca
+           tarayıcı bildirimi gidiyor ve yan menüdeki Servisler sayacı
+           sayfa yenilenmeden tazeleniyor. Yalnız şifre sıfırlayabilen
+           personele — sayaçla aynı kural. */
+        sifre: !izinli(oturum.rol, 'servisDuzenle') ? 0 : servisSifreTalepleriGetir().filter((t) => t.durum === 'bekliyor').length,
       }
     }
 
@@ -474,10 +488,14 @@ function useYeniIsHaberi(oturum, tazele) {
           'teklif'
         )
       }
+      if (yeni.sifre > eski.sifre) {
+        bildirimGonder(sayiliBaslik(yeni.sifre - eski.sifre, 'Şifre Yardımı Talebi'), 'sifre')
+      }
       if (
         yeni.talep !== eski.talep ||
         yeni.gorus !== eski.gorus ||
-        yeni.teklif !== eski.teklif
+        yeni.teklif !== eski.teklif ||
+        yeni.sifre !== eski.sifre
       ) {
         tazele()
       }

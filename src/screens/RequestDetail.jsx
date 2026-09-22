@@ -13,6 +13,7 @@ import { servisleriGetir } from '../marka'
 import { PARA_BIRIMI, paraYaz } from '../marka'
 import { talepTuru } from '../lib/talep'
 import { talebinParcalari } from '../lib/servisKaydi'
+import { ParcaResmi, useParcaKatalogu } from '../components/ParcaResmi'
 import { ekAdresi } from '../lib/ekler'
 import { SIRKET } from '../marka'
 import { araProps, telFirma } from '../lib/tel'
@@ -319,7 +320,6 @@ export default function RequestDetail() {
             v={(r.belirtiler || []).map((x) => alanEtiketi(x, dil)).join(' · ')}
           />
           <Parcalar r={r} dil={dil} t={t} />
-          <Satir k={t('talepDetay.aranmaTercihi')} v={alanEtiketi(r.ulasim, dil)} />
           {r.aciklama && <p className="detay-metin">{r.aciklama}</p>}
           {r.ses?.veri && (
             <div className="row small muted" style={{ gap: 5, marginTop: 8 }}>
@@ -675,6 +675,10 @@ function Imza({ personel, tarih }) {
 function Parcalar({ r, dil, t }) {
   const gorunti = r.parcaFiyat
   const satirlar = (gorunti?.satirlar || []).filter((s) => s?.ad && Number(s.adet) > 0)
+  /* Satırın başında parçanın resmi (22 Eylül 2026, kullanıcının isteği);
+     ödeme adımındaki satırın aynısı. Resim talebin açıldığı günkü
+     görsel: dosya adı satırda yazılı (bkz. components/ParcaResmi.jsx). */
+  const katalog = useParcaKatalogu(satirlar.some((s) => s.kod && s.gorsel === undefined))
 
   /* Görüntüsü olmayan kayıt: eski ad/adet alanları. */
   if (!satirlar.length) {
@@ -696,16 +700,19 @@ function Parcalar({ r, dil, t }) {
         {t('talepDetay.parcalar')}
       </div>
       {satirlar.map((s, i) => (
-        <div className="detay-satir" key={(s.kod || s.ad) + i}>
-          <span>
-            {s.ad}
-            <span
-              className="small muted serial-mono"
-              style={{ display: 'block', marginTop: 2 }}
-            >
-              {[s.kod, Number(s.adet) > 1 ? '× ' + s.adet : null]
-                .filter(Boolean)
-                .join(' · ')}
+        <div className="detay-satir detay-satir--gorselli" key={(s.kod || s.ad) + i}>
+          <span className="parca-satir">
+            <ParcaResmi katalog={katalog} kod={s.kod} gorsel={s.gorsel} yok={t('parcaSec.gorselYok')} />
+            <span>
+              {s.ad}
+              <span
+                className="small muted serial-mono"
+                style={{ display: 'block', marginTop: 2 }}
+              >
+                {[s.kod, Number(s.adet) > 1 ? '× ' + s.adet : null]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </span>
             </span>
           </span>
           <span className="detay-satir__vurgu">

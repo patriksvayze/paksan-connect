@@ -139,7 +139,7 @@ const { urunId, kisi, makineler } = dunyaKur(m)
 const talep = talebiYaz(m, m.talepOlustur.talepKaydiOlustur(talepVerisi('servis', urunId, makineler[0]), kisi))
 m.veri.servisKaydiGonder(
   talep,
-  { asama: 'bitti', kapi: 'garanti', yapilanIs: 'Ayar Yapıldı', parcalar: [], km: 40, iscilik: 500 },
+  { asama: 'bitti', kapi: 'garanti', yapilanIs: 'Ayar Yapıldı', parcalar: [], km: 40, iscilikSaat: 5, saatUcreti: 50, iscilik: 250 },
   SERVIS.ad,
 )
 const bitmis = m.veri.talepleriGetir().find((t) => t.id === talep.id)

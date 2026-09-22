@@ -434,9 +434,14 @@ const kalintilar = []
    Ekran bayiyi servisin kendisi gibi değil, AYRI BİR TARAF olarak
    gösteriyor; kuralın koruduğu kimlik karışması burada doğmuyor.
 
+   `servisFormu.js` üçüncü istisna (22 Eylül 2026), sebebi yine aynı:
+   PAKSAN'ın basılı servis formunda "Bayi adı" kutusu var ve form
+   makineyi satan bayiyi AYRI BİR TARAF olarak yazıyor — servisin
+   kendisi değil.
+
    İstisna DOSYA ADINA yazılı, klasöre değil: `src/servis/` içinde
    yazılacak yeni bir dosya yine kurala giriyor. */
-const BAYI_GECEBILIR = new Set(['servisAtama.js', 'Bayilerim.jsx'])
+const BAYI_GECEBILIR = new Set(['servisAtama.js', 'Bayilerim.jsx', 'servisFormu.js'])
 
 /* O dosyanın ADI da öteki dosyalarda geçiyor: `ServisPanel.jsx` onu
    içe aktarıyor ve bir satır çiziyor. Bileşen adını uydurma bir

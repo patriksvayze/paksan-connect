@@ -101,7 +101,10 @@ export function ParcaSec({ secili = [], onBitti, onKapat }) {
     const secilenler = []
     for (const [kod, adet] of secim) {
       const p = (katalog?.parcalar || []).find((x) => x.kod === kod)
-      if (p) secilenler.push({ kod: p.kod, ad: p.ad, fiyat: p.fiyat, adet })
+      /* Görselin dosya adı da satırda: servis kaydı katalog değişse de
+         o günkü resmi gösteriyor (bkz. lib/parcaKatalogu.js →
+         fiyatGoruntusu, aynı kural). */
+      if (p) secilenler.push({ kod: p.kod, ad: p.ad, fiyat: p.fiyat, gorsel: p.gorsel ?? null, adet })
     }
     onBitti(secilenler)
   }

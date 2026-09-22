@@ -227,7 +227,9 @@ export default function Profile() {
             sabit yükseklik verilip ortalanıyor. */}
         <div className="ozet" style={{ marginTop: 14 }}>
           <button className="card card--tap center" onClick={() => nav('/makinelerim')}>
-            <div className="ozet__ikon" style={{ color: 'var(--pk-blue-yazi)' }}><IconBaler size={26} /></div>
+            {/* Balya makinesi yatay bir çizim; komşu kutudaki anahtarla aynı
+                ağırlıkta görünsün diye biraz büyük (bkz. Icons.jsx → IconBaler). */}
+            <div className="ozet__ikon" style={{ color: 'var(--pk-blue-yazi)' }}><IconBaler size={30} /></div>
             <div style={{ fontWeight: 700, fontSize: 24, marginTop: 6 }}>{machines.length}</div>
             <div className="small muted">{t('profil.kayitliMakine')}</div>
           </button>

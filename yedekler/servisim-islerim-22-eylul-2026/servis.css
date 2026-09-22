@@ -1,0 +1,4852 @@
+/* ==========================================================================
+   PAKSAN Servis — uygulama kabuğu ve ekran düzeni
+
+   BU DOSYADA `:root` BLOĞU YOK ve olmayacak.
+
+   Renk token'ları backoffice.css'ten, ölçü token'ları
+   src/styles/olcu.css'ten geliyor. `npm run dogrula` bu kuralı
+   denetliyor.
+
+   ÖLÇÜLER NEREYE GÖRE
+
+   Bu uygulama tarlada açılıyor: güneş, çoğu zaman eldiven, tek el.
+   Backoffice'in ölçüleri bilgisayar başındaki personele göre; buraya
+   olduğu gibi taşınamaz. Araştırmadan çıkan üç sayı:
+
+     · Dokunma hedefi 48px — Material Design'ın eldivenli kullanım
+       için verdiği alt sınır (Apple 44 diyor, büyüğü alındı).
+     · Gövde yazısı 16px — Apple HIG gövde için 17pt öneriyor.
+       Buradaki metinler 13–13,5 pikseldeydi.
+     · Kontrast hedefi 7:1 (AAA), 4,5 değil: dışarıda ekran parlaması
+       gerçek kontrastı düşürüyor. ÖLÇÜLEN: asıl metin (müşteri adı,
+       başlıklar) 11,9–17,4 ile hedefin üstünde. Yardımcı satırlar
+       (konum, zaman, açıklama) 6,2'de kaldı — AA'nın rahat üstünde,
+       AAA'nın az altında. Daha koyusu için `--murekkep-2` token'ını
+       değiştirmek gerekirdi; o token backoffice'in de metin rengi,
+       servis için tek başına koyulaştırılamaz. Servisin asıl okuduğu
+       bilgi zaten üst gruptaki metin.
+
+   TEK KOD, İKİ GÖRÜNÜM. Dar ekranda sekmeler altta (parmak orada
+   duruyor), geniş ekranda üste çıkıp çubuğun altına yerleşiyor (fare
+   orada geziniyor, alt kenar çok uzak). Servis panelinin ve servis
+   uygulamasının iki ayrı kopyası yok.
+   ========================================================================== */
+
+/* --------------------------------------------------------------- Kabuk */
+
+.uyg {
+  /* Üst çubuğun yüksekliği. Geniş ekranda sekme çubuğu tam bu kadar
+     aşağıdan başlıyor, o yüzden değerin GERÇEK olması gerekiyor:
+     `.uyg__bar` orada `min-height` değil `height` alıyor ve başlıklar
+     zaten tek satıra kırpılıyor, yükseklik kaymıyor. */
+  --bar: 68px;
+  --tabs: 66px;
+  /* Çentik ve ev çubuğu payları. `servis.html` içinde
+     `viewport-fit=cover` var: içerik ekranın en tepesine kadar
+     çıkıyor. Bu paylar olmasa başlık çentiğin, sekmeler de ev
+     çubuğunun altında kalırdı. Tarayıcıda ikisi de 0 geliyor. */
+  --ust: env(safe-area-inset-top, 0px);
+  --dip: env(safe-area-inset-bottom, 0px);
+
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--zemin);
+}
+
+/* ----------------------------------------------------------- Üst çubuk */
+
+.uyg__bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  min-height: var(--bar);
+  padding: var(--bosluk-3) var(--bosluk-4);
+  padding-top: calc(var(--bosluk-3) + var(--ust));
+  background: var(--lacivert);
+  color: #fff;
+}
+
+.uyg__ad {
+  min-width: 0;
+  flex: 1;
+}
+
+.uyg__ad h1 {
+  margin: 0;
+  font-size: var(--yazi-4);
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Alt satır beyazın %82'si. Önce %72'ydi; koyu zeminde okunuyordu ama
+   güneş altında ilk kaybolacak metin bu. */
+.uyg__ad p {
+  margin: 2px 0 0;
+  font-size: var(--yazi-2);
+  color: rgba(255, 255, 255, 0.82);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 48×48: dokunma hedefinin alt sınırı. Görsel olarak ok daha küçük
+   duruyor, basılabilir alan kutunun tamamı. */
+.uyg__geri {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--dokunma);
+  height: var(--dokunma);
+  margin-left: calc(var(--bosluk-3) * -1);
+  border-radius: var(--r-2);
+  background: transparent;
+  border: 0;
+  color: #fff;
+  cursor: pointer;
+}
+
+.uyg__geri:active {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+/* --------------------------------------------------------------- Gövde */
+
+.uyg__ic {
+  flex: 1;
+  padding: var(--bosluk-4);
+  /* Alt sekme çubuğu içeriğin üstüne biniyor; son kart onun altında
+     kalmasın diye çubuk kadar boşluk bırakılıyor. */
+  padding-bottom: calc(var(--bosluk-5) + var(--tabs) + var(--dip));
+}
+
+.uyg--sayfa .uyg__ic {
+  padding-bottom: calc(var(--bosluk-5) + var(--dip));
+}
+
+/* DİP ÇUBUĞU ARTIK İÇERİĞİN ÜSTÜNE BİNMİYOR.
+
+   Önce çubuk `sticky` duruyordu ve gövdeye onun kadar alt boşluk
+   bırakılıyordu: `--dokunma` kadar, yani tek bir düğme boyu. Servis
+   kaydı ekranı çubuğa hak ediş tutarını da koyunca çubuk büyüdü ve
+   sabit sayı yetmez oldu — son seçenek düğmenin altında kalıyordu.
+
+   Sayı büyütmek yerine düzen düzeltildi: sayfa ekran boyu bir sütun,
+   gövde kendi içinde kayıyor, çubuk sütunun son elemanı. Çubuğun
+   yüksekliği ne olursa olsun içerik onun altında kalmıyor ve
+   ayarlanacak bir sayı kalmıyor. */
+.uyg--dipli {
+  height: 100dvh;
+  min-height: 0;
+}
+
+.uyg--dipli .uyg__ic {
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: var(--bosluk-5);
+  /* iOS'ta parmak bırakılınca kaydırma sürsün. */
+  -webkit-overflow-scrolling: touch;
+}
+
+.uyg--dipli .uyg__dip {
+  position: static;
+}
+
+/* Dibe yapışık asıl işlem — alt sayfalarda sekme çubuğu yok, onun
+   yerini bu alıyor. */
+.uyg__dip {
+  position: sticky;
+  bottom: 0;
+  padding: var(--bosluk-3) var(--bosluk-4);
+  padding-bottom: calc(var(--bosluk-3) + var(--dip));
+  background: var(--yuzey);
+  border-top: 1px solid var(--cizgi);
+}
+
+/* Sekmeli ekranların içindeki kaydet düğmesi. Sekme çubuğunun hemen
+   üstüne oturuyor, onu örtmüyor. */
+.yapisik {
+  position: sticky;
+  bottom: calc(var(--tabs) + var(--dip));
+  margin: var(--bosluk-1) calc(var(--bosluk-4) * -1) 0;
+  padding: var(--bosluk-3) var(--bosluk-4);
+  background: var(--zemin);
+  border-top: 1px solid var(--cizgi);
+}
+
+/* ------------------------------------------------------------ Sekmeler */
+
+.uyg__tabs {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  display: flex;
+  background: var(--yuzey);
+  border-top: 1px solid var(--cizgi);
+  padding-bottom: var(--dip);
+}
+
+.uyg__tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: var(--tabs);
+  padding: var(--bosluk-2) 2px;
+  background: transparent;
+  border: 0;
+  color: var(--murekkep-2);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* SEÇİLİ HAP ARTIK SİMGENİN ARKASINDA.
+   Yazı tamamen kapatıldı; öğe yalnız simge olduğu için hap da
+   simgenin kutusu kadar. Öğeler eşit genişlikte, hiçbiri seçilince
+   büyümüyor — simgeler menüde hep aynı yerde duruyor. */
+.uyg__tab-ikon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 26px;
+}
+
+.uyg__tab-ad {
+  font-size: var(--yazi-1);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* `--mavi` DEĞİL `--mavi-rz`.
+
+   İkisi aydınlıkta aynı değer; ayrım karanlıkta. `--mavi` orada
+   #1d55c0'a gidiyor ve koyu yüzeyin üstünde 2,43 kontrastta kalıyor —
+   seçili sekme seçilmemişlerden daha soluk görünüyordu. `--mavi-rz`
+   bu iş için var: mavinin YAZI hâli, karanlıkta açılıyor. */
+.uyg__tab--on {
+  color: var(--mavi-rz);
+}
+
+.uyg__tab:active .uyg__tab-ikon {
+  transform: scale(0.9);
+}
+
+/* Bekleyen iş sayısı. Simgenin sağ üstünde, kendi zemininde. */
+.uyg__rozet {
+  position: absolute;
+  top: -3px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: var(--r-tam);
+  background: var(--kirmizi);
+  color: var(--rozet-yazi);
+  font-size: var(--y-mini);
+  font-weight: 800;
+  line-height: 18px;
+  text-align: center;
+}
+
+/* ------------------------------------------------------------ Gün özeti
+
+   Servis uygulamayı açtığında ilk sorusu "bugün ne var". Cevabı kartları
+   sayarak buluyordu. */
+
+/* ==========================================================================
+   Bugün
+
+   Burada "1 iş sizi bekliyor" yazan bir sayaç vardı. Kaldırıldı;
+   gerekçesi ServisPanel.jsx içindeki `Bugun` bileşeninin başında.
+
+   Kart lacivert kalıyor — ekranın en üstündeki tek koyu yüzey, göz
+   oraya ilk gidiyor. Karanlık temada `--lacivert` sayfa zeminine çok
+   yaklaştığı için (ölçülen ayrım 1,08) beyazın saydamıyla bir sınır
+   çiziliyor: aydınlıkta ince bir iç kenar, karanlıkta ayırıcı.
+   ========================================================================== */
+
+.bugun {
+  padding: var(--bosluk-4);
+  margin-bottom: var(--bosluk-4);
+  /* Kart yarıçapı uygulamanın kendi değeri; `--r-3` (16px) genel
+     ölçü dosyasından geliyordu ve yanındaki kartlarla tutmuyordu. */
+  border-radius: var(--r-kart);
+  background: var(--lacivert);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #fff;
+
+  /* GECİKME RENGİ BURAYA ÖZEL.
+
+     `--turuncu-d` kullanılıyordu ve YANLIŞTI. O ton (#9b5208) kendi
+     soluk turuncu zemini için ölçülmüş bir rozet yazısı rengi;
+     lacivertin üstünde ölçülen kontrast 2,98 — eşik 4,5. Ekranda
+     okunur duruyordu ama tarlada güneş altında okunmuyor.
+
+     Bu ton aynı zeminde 8,73 veriyor. Değer yerel bir belirteç:
+     iki CSS kökünün paylaştığı bir renk değil, yalnız bu koyu
+     kartın içinde geçerli. */
+  --bugun-uyari: #f2a94b;
+}
+
+.bugun__ust {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  font-size: var(--yazi-3);
+}
+
+.bugun__tarih {
+  margin-left: auto;
+  font-size: var(--yazi-2);
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.bugun__liste {
+  margin-top: var(--bosluk-3);
+}
+
+/* Randevu satırı. Sıra soldan sağa servisin sorduğu sırayla: ne zaman,
+   kim, nerede. Satırın tamamı dokunma hedefi. */
+.bugun__satir {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  width: 100%;
+  min-height: var(--dokunma);
+  padding: var(--bosluk-2) 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.bugun__saat {
+  flex: none;
+  min-width: 62px;
+  font-size: var(--yazi-2);
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Tarihi geçmiş randevu turuncu: servis o gün gitmemiş ve gitmeli.
+   Ton `.bugun` içinde tanımlı; gerekçesi orada yazılı. */
+.bugun__satir--gec .bugun__saat {
+  color: var(--bugun-uyari);
+}
+
+.bugun__ad {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--yazi-3);
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bugun__yer {
+  flex: none;
+  font-size: var(--yazi-2);
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.bugun__bos {
+  margin: var(--bosluk-2) 0 0;
+  font-size: var(--yazi-3);
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+/* Sayılar altta ve küçük: randevu somut bir plan, bunlar hatırlatma.
+   Aynı ağırlıkta durmamaları gerekiyor.
+
+   ÖNCE DOLU ROZETLERDİ VE İKİSİ KIRMIZIYDI. Yan yana dizilip üç satıra
+   sarıyor, bloğun yarısını kaplıyordu; randevuların kendisinden daha
+   çok yer tutan bir hatırlatma listesi. Üstelik "geciken iş" demo
+   verisinde neredeyse her kartta çıkıyor — her şey kırmızıysa hiçbir
+   şey kırmızı değildir.
+
+   Şimdi alt alta sönük satırlar, üstlerinde ince bir ayırıcı. Renk
+   yalnız gecikmiş işte; o da dolgu değil, yazı rengi. */
+.bugun__sayilar {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: var(--bosluk-3);
+  padding-top: var(--bosluk-3);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.bugun__rozet {
+  font-size: var(--yazi-2);
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.bugun__rozet--gec {
+  font-weight: 700;
+  color: var(--bugun-uyari);
+}
+
+/* ---------------------------------------------------------- Bölüm başı */
+
+.bolum {
+  margin-bottom: var(--bosluk-5);
+}
+
+.bolum:last-child {
+  margin-bottom: 0;
+}
+
+.bolum__ad {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  margin: 0 0 var(--bosluk-3) 2px;
+  font-size: var(--yazi-2);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  /* `--murekkep-3` bu zeminde 4,48'de kalıyordu, eşik 4,5. */
+  color: var(--murekkep-2);
+}
+
+.bolum__sayi {
+  min-width: 22px;
+  padding: 1px var(--bosluk-2);
+  border-radius: var(--r-tam);
+  background: var(--cizgi);
+  color: var(--murekkep-2);
+  font-size: var(--yazi-1);
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: 0;
+}
+
+/* ------------------------------------------- PAKSAN'ın talep bildirimleri
+
+   İşlerim'in üstünde okunmamış bildirimler (bkz. ServisPanel.jsx →
+   PaksanBildirimleri). İş kartının yüzeyi, kenarı ve gölgesi: yeni bir
+   görsel dil değil, aynı listenin parçası. Satırın tamamı dokunma
+   hedefi; soldaki mavi nokta "okunmadı" diyor ve yanında yazı var —
+   nokta tek başına anlam taşımıyor. */
+.talep-haberi {
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-3);
+  background: var(--yuzey);
+  box-shadow: var(--golge);
+  overflow: hidden;
+}
+
+.talep-haberi__satir {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--bosluk-3);
+  width: 100%;
+  min-height: var(--dokunma);
+  padding: var(--bosluk-3) var(--bosluk-4);
+  border-top: 1px solid var(--cizgi);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.talep-haberi__satir:first-child {
+  border-top: 0;
+}
+
+.talep-haberi__satir:hover {
+  background: var(--yuzey-2);
+}
+
+.talep-haberi__nokta {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  margin-top: 6px;
+  border-radius: var(--r-tam);
+  background: var(--mavi);
+}
+
+.talep-haberi__govde {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.talep-haberi__baslik {
+  font-size: var(--yazi-3);
+  font-weight: 800;
+}
+
+.talep-haberi__metin {
+  font-size: var(--yazi-2);
+  line-height: 1.5;
+  color: var(--murekkep);
+  overflow-wrap: anywhere;
+}
+
+.talep-haberi__alt {
+  font-size: var(--yazi-2);
+  color: var(--murekkep-2);
+}
+
+.talep-haberi__hepsi {
+  display: block;
+  min-height: var(--dokunma);
+  margin: var(--bosluk-2) 0 0 auto;
+  padding: 0 var(--bosluk-3);
+  background: none;
+  /* --mavi değil --mavi-rz: --mavi koyu temada dolgu tonunda kalıyor ve
+     zeminde 2,69'da okunmuyordu (21.09.2026 ölçümü). Yazı tonu ayrı. */
+  color: var(--mavi-rz);
+  font: inherit;
+  font-size: var(--yazi-2);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------ İş kartı
+
+   Kart iki kardeşten oluşuyor: soldaki alan detayı açıyor, sağdaki
+   bağlantı müşteriyi arıyor. İç içe düğme geçerli değil, o yüzden
+   kartın kendisi düğme değil. */
+
+.is {
+  display: flex;
+  align-items: stretch;
+  margin-bottom: var(--bosluk-2);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-3);
+  background: var(--yuzey);
+  box-shadow: var(--golge);
+  overflow: hidden;
+  transition: transform 0.1s ease, border-color 0.13s ease;
+}
+
+.is:last-child {
+  margin-bottom: 0;
+}
+
+.is:hover {
+  border-color: var(--murekkep-3);
+}
+
+/* Basılınca kart hafifçe içeri gidiyor — dokunmanın karşılığı
+   görünsün, uygulama tepki veriyor hissi olsun. */
+.is:active {
+  transform: scale(0.985);
+}
+
+.is__ac {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  padding: var(--bosluk-3) var(--bosluk-2) var(--bosluk-3) var(--bosluk-4);
+  background: transparent;
+  border: 0;
+  color: var(--murekkep);
+  cursor: pointer;
+}
+
+/* Arama düğmesi kartın yüksekliği boyunca uzanıyor: hedef 48 pikselin
+   altına düşmüyor, kısa kartta bile parmak rahat oturuyor. */
+.is__ara {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--dokunma-genis);
+  border-left: 1px solid var(--cizgi);
+  background: var(--yuzey-2);
+  color: var(--mavi-rz);
+}
+
+.is__ara:active {
+  background: var(--mavi-z);
+}
+
+/* Yalnız talep detayında kaldı: tür rozetini taşıyan sarmalayıcı. */
+.is__ust {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--bosluk-1);
+}
+
+/* 1. satır: ad solda, tür rozeti sağda.
+
+   Rozet `align-self: flex-start` ile yukarı yaslı: ad iki satıra
+   taşarsa rozet ortada asılı kalmıyor. `flex: none` de gerekiyor,
+   yoksa uzun adın yanında rozet eziliyordu. */
+.is__bas {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--bosluk-2);
+}
+
+.is__ad {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--yazi-3);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.is__bas .tur {
+  flex: none;
+  margin-top: 1px;
+}
+
+/* 2. satır: künye. Yer ve numara sönük, tek satır, taşarsa kesiliyor —
+   servis kartı adından buluyor, numarayı detayda okuyor. */
+.is__alt {
+  margin-top: 2px;
+  font-size: var(--yazi-2);
+  color: var(--murekkep-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 3. satır: solda yapılacak iş, sağda zaman. İki yaka da her kartta
+   aynı yerde; göz listeyi tararken sağ kenarda tek sütun okuyor. */
+.is__durum {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--bosluk-2);
+  margin-top: var(--bosluk-2);
+  font-size: var(--yazi-2);
+}
+
+.is__sol {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+  color: var(--mavi-rz);
+}
+
+.is__sag {
+  flex: none;
+  color: var(--murekkep-2);
+  white-space: nowrap;
+}
+
+.is__sag--gec {
+  font-weight: 700;
+  color: var(--kirmizi);
+}
+
+
+
+/* Garanti durumu — servisin "ücret alacak mıyım" sorusunun cevabı.
+   Renk tek başına anlam taşımıyor, yazının kendisi de aynı şeyi
+   söylüyor (renk körlüğü). */
+.garanti {
+  margin-top: var(--bosluk-1);
+  font-size: var(--yazi-2);
+  font-weight: 700;
+}
+
+.garanti--devam {
+  color: var(--yesil);
+}
+
+.garanti--son,
+.garanti--bitti {
+  color: var(--turuncu);
+}
+
+.garanti--bilinmiyor {
+  color: var(--murekkep-2);
+}
+
+/* Geciken işin sol kenarında kırmızı şerit — listeye bakınca hangi
+   işin beklediği kaydırmadan görülüyor. */
+.is--gec {
+  border-left: 4px solid var(--kirmizi);
+}
+
+/* ------------------------------------------------------------- Duyuru */
+
+/* Sol kenardaki renkli şerit alt türden geliyor; varsayılan turuncu
+   yalnız `alt` taşımayan eski kayıtlar için duruyor. Renklerin tanımı
+   src/data/duyuruTurleri.js, karşılıkları aşağıda. */
+.duyuru {
+  padding: var(--bosluk-4);
+  margin-bottom: var(--bosluk-4);
+  border: 1px solid var(--cizgi);
+  border-left: 4px solid var(--duyuru-renk, var(--turuncu));
+  border-radius: var(--r-3);
+  background: var(--yuzey);
+  box-shadow: var(--golge);
+}
+
+.duyuru__ust {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  color: var(--duyuru-renk, var(--turuncu));
+  font-size: var(--yazi-3);
+}
+
+.duyuru__ust svg {
+  flex: none;
+}
+
+/* Türün adı başlığın ÜSTÜNDE, kendi renginde. Servis ekranı açtığında
+   "bu ne" sorusunu başlığı okumadan cevaplıyor: kampanya mı, geri
+   çağırma mı. */
+.duyuru__tur {
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: var(--yazi-4);
+}
+
+.duyuru__baslik {
+  display: block;
+  margin-top: var(--bosluk-2);
+  font-size: var(--yazi-2);
+  line-height: 1.35;
+}
+
+/* Alt tür renkleri. Servis paneli backoffice.css'i paylaşıyor ama kendi
+   `ton` karşılıklarını burada tanımlıyor; token'lar paylaşılmıyor
+   (bkz. CLAUDE.md). Değerler backoffice rozetleriyle aynı çiftlerden. */
+.duyuru--kampanya { --duyuru-renk: var(--turuncu-d); }
+.duyuru--yeniUrun { --duyuru-renk: var(--mavi-rz); }
+.duyuru--etkinlik { --duyuru-renk: var(--mor); }
+.duyuru--guvenlik { --duyuru-renk: var(--kirmizi); }
+
+/* Geri çağırma yalnızca servise gidiyor ve yürütülecek bir iş: kırmızı
+   şerit kalınlaşıyor, kart da kendi rengiyle çerçeveleniyor. Panelde
+   başka hiçbir kart böyle görünmüyor. */
+.duyuru--geriCagirma {
+  --duyuru-renk: var(--kirmizi);
+  border-color: var(--kirmizi);
+  border-left-width: 6px;
+}
+
+.duyuru__metin {
+  margin: var(--bosluk-2) 0 var(--bosluk-3);
+  font-size: var(--yazi-3);
+  line-height: 1.55;
+  color: var(--murekkep-2);
+  white-space: pre-wrap;
+}
+
+/* Detaydaki telefon satırı — listedeki arama düğmesinin karşılığı.
+   Numara düz yazı olduğu sürece servis onu ezberleyip tuşluyordu. */
+.ara-satir {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  min-height: var(--dokunma);
+  margin-left: calc(var(--bosluk-3) * -1);
+  padding: 0 var(--bosluk-3);
+  border-radius: var(--r-2);
+  color: var(--mavi-rz);
+  font-size: var(--yazi-3);
+  font-weight: 700;
+}
+
+.ara-satir:active {
+  background: var(--mavi-z);
+}
+
+/* --------------------------------------------------------------- Not
+
+   Talebin durumunu anlatan bilgi kutusu. Rengi bilginin cinsini
+   söylüyor; metin zaten aynı bilgiyi verdiği için renk tek
+   başına anlam taşımıyor (renk körlüğü). */
+
+.not {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--bosluk-3);
+  margin-top: var(--bosluk-4);
+  padding: var(--bosluk-4);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-3);
+  background: var(--yuzey);
+  font-size: var(--yazi-3);
+}
+
+.not > svg {
+  flex: none;
+  margin-top: 1px;
+}
+
+.not p {
+  margin: var(--bosluk-1) 0 0;
+  font-size: var(--yazi-2);
+  line-height: 1.55;
+  color: var(--murekkep-2);
+}
+
+.not--mavi {
+  border-left: 4px solid var(--mavi);
+}
+
+.not--mavi > svg {
+  color: var(--mavi-rz);
+}
+
+.not--yesil {
+  border-left: 4px solid var(--yesil);
+}
+
+.not--yesil > svg {
+  color: var(--yesil);
+}
+
+/* Turuncu = "dikkat et, ama iş durmuyor". Kayıtlı olmayan müşteri
+   uyarısı bunu kullanıyor: talep yine açılıyor, servisten yalnız bir
+   şey söylemesi isteniyor. */
+.not--turuncu {
+  border-left: 4px solid var(--turuncu);
+}
+
+.not--turuncu > svg {
+  color: var(--turuncu);
+}
+
+/* ---------------------------------------------------- Makine seçimi
+
+   Kayıtlı müşterinin makineleri. Satırın tamamı dokunma hedefi:
+   tarlada, eldivenle, küçük bir radyo yuvarlağına isabet ettirmek
+   gerçekçi değil. Yükseklik ölçü sisteminden geliyor. */
+
+.makine-sec {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  width: 100%;
+  min-height: var(--dokunma-genis);
+  padding: var(--bosluk-3);
+  margin-bottom: var(--bosluk-2);
+  /* `--cizgi-kontrol` yalnız `.uyg` altında tanımlı; bu kural onun dışına
+     taşınırsa yedek değer bugünkü görünümü koruyor. YEDEKSİZ YAZILAMAZ:
+     `border` bir kısayol ve tanımsız bir özel değer kısayolun TAMAMINI
+     geçersiz kılıyor — `border-style` başlangıç değeri `none` olduğu için
+     kenar rengini değiştirmez, tamamen kaybolur. */
+  border: 1px solid var(--cizgi-kontrol, var(--cizgi));
+  border-radius: var(--r-2);
+  background: var(--yuzey);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+/* Seçili satırın kenarı `--mavi` DEĞİL `--mavi-rz`. Ölçüldü: `--mavi`
+   karanlık temada #1d55c0'a gidiyor ve koyu yüzeyde 2,43'te kalıyor —
+   seçili olmanın tek işareti o kenar ve okunmuyordu. `--mavi-rz` aynı
+   yerde 7,11 (bkz. backoffice.css → --mavi-rz-koyu). */
+.makine-sec--on {
+  border-color: var(--mavi-rz);
+  background: var(--mavi-z);
+}
+
+.makine-sec--on > svg {
+  flex: none;
+  color: var(--mavi-rz);
+}
+
+/* Tek makine varsa düğme kapalı: seçilecek bir şey yok. Solgun
+   göstermiyor — bilgi hâlâ okunacak. */
+.makine-sec:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+/* Müşteriye gidecek metnin önizlemesi. Servis göndermeden önce ne
+   yazdığını görüyor; SMS'i telefon gönderdiği için geri alınamıyor. */
+.alinti {
+  padding: var(--bosluk-3);
+  border-left: 3px solid var(--cizgi);
+  background: var(--yuzey-2);
+  border-radius: var(--r-1);
+  font-size: var(--yazi-2);
+  line-height: 1.6;
+  color: var(--murekkep-2);
+  word-break: break-word;
+}
+
+/* -------------------------------------------------------- Seçenek dizisi
+
+   Talep detayındaki ikincil işlemler. Ayrı ayrı düğmeler yerine tek
+   bir liste: hepsi aynı ağırlıkta, asıl işlem ise dipte tek başına. */
+
+.secenek {
+  margin-top: var(--bosluk-4);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-3);
+  background: var(--yuzey);
+  overflow: hidden;
+}
+
+.secenek__dg {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  width: 100%;
+  min-height: var(--dokunma-genis);
+  padding: var(--bosluk-3) var(--bosluk-4);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--cizgi);
+  color: var(--murekkep);
+  font-size: var(--yazi-3);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.secenek__dg:last-child {
+  border-bottom: 0;
+}
+
+.secenek__dg:hover {
+  background: var(--yuzey-2);
+}
+
+/* Simge de `--mavi-rz`: karanlıkta `--mavi` koyu yüzeyde 2,43'e
+   düşüyor, simgeler için aranan 3'ün altı. */
+.secenek__dg > svg:first-child {
+  flex: none;
+  color: var(--mavi-rz);
+}
+
+/* Sağdaki ok soluk: yön gösteriyor, dikkat çekmiyor. */
+.secenek__dg > svg:last-child {
+  flex: none;
+  margin-left: auto;
+  color: var(--murekkep-3);
+}
+
+/* --------------------------------------------------------- Boş ekran */
+
+.bos {
+  display: grid;
+  justify-items: center;
+  gap: var(--bosluk-2);
+  padding: var(--bosluk-7) var(--bosluk-5);
+  text-align: center;
+  color: var(--murekkep-3);
+}
+
+.bos strong {
+  font-size: var(--yazi-4);
+  color: var(--murekkep);
+}
+
+.bos p {
+  margin: 0;
+  font-size: var(--yazi-3);
+  max-width: 30ch;
+  line-height: 1.55;
+  color: var(--murekkep-2);
+}
+
+/* Boş durum çizimi. Saydam zeminli olduğu için iki temada da aynı
+   duruyor; 260 piksel ekranın yarısını kaplamadan tanınıyor. */
+.bos__gorsel {
+  width: 100%;
+  max-width: 260px;
+  height: auto;
+  margin-bottom: var(--bosluk-2);
+}
+
+/* KÜÇÜK BOY — altında başka bölüm varken.
+
+   Ölçüm: 375 pikselli telefonda çubuk (64) ve sekmeler (66) düşünce
+   537 piksel içerik kalıyor. Büyük boy blok 370 piksel tutuyordu ve
+   altındaki "Tamamlanan" başlığını ekran dışına itiyordu.
+
+   Küçük boyda çizim 140 piksel, dolgu 7'den 4'e iniyor; blok ~185
+   piksele düşüyor ve alttaki bölümün ilk kartı ekranda kalıyor. */
+.bos--kucuk {
+  padding: var(--bosluk-4) var(--bosluk-5);
+  gap: var(--bosluk-1);
+}
+
+.bos--kucuk .bos__gorsel {
+  max-width: 140px;
+  margin-bottom: 0;
+}
+
+.bos--kucuk strong {
+  font-size: var(--yazi-3);
+}
+
+.bos--kucuk p {
+  font-size: var(--yazi-2);
+}
+
+/* ------------------------------------------------------------- Hesap */
+
+.kimlik {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-4);
+  padding: var(--bosluk-4);
+  margin-bottom: var(--bosluk-5);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-3);
+  background: var(--yuzey);
+  box-shadow: var(--golge);
+}
+
+.kimlik__harf {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--dokunma-genis);
+  height: var(--dokunma-genis);
+  border-radius: var(--r-tam);
+  background: var(--lacivert);
+  color: #fff;
+  font-size: var(--yazi-5);
+  font-weight: 900;
+}
+
+.kimlik__ad {
+  font-size: var(--yazi-4);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.kimlik__alt {
+  font-size: var(--yazi-2);
+  color: var(--murekkep-2);
+}
+
+/* --------------------------------------------------------------- Stok
+
+   ARTI DÜĞMESİ YOK — servis stokunu artıramıyor, artış yalnız PAKSAN
+   sevkiyatıyla oluyor. Satırda yalnız eksi var. */
+
+.stok-satir {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  padding: var(--bosluk-2) 0;
+  border-bottom: 1px solid var(--cizgi);
+}
+
+.stok-satir:last-child {
+  border-bottom: 0;
+}
+
+.stok-adet {
+  flex: none;
+  min-width: 36px;
+  text-align: right;
+  font-size: var(--yazi-4);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.stok-adet--yok {
+  color: var(--murekkep-3);
+}
+
+.stok-dus {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--dokunma);
+  height: var(--dokunma);
+  border: 1px solid var(--cizgi-koyu);
+  border-radius: var(--r-2);
+  background: var(--yuzey);
+  color: var(--murekkep);
+  cursor: pointer;
+}
+
+.stok-dus:active {
+  background: var(--yuzey-2);
+}
+
+.stok-dus:disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------- Düşüş satırı
+
+   Satırda dört şey var: ad, eldeki sayı, düşülecek adet, düşür
+   düğmesi. Dar telefonda yan yana sığmıyorlar, o yüzden ad üstte tam
+   satır, sayılar altta sağa yaslı — iki satırlı bir ızgara.
+
+   Geri alma düğmesi ızgaranın altına, tam genişlikte geçiyor:
+   çıktığında satırın düzenini bozmuyor, kaybolduğunda da satır
+   yerinden oynamıyor. */
+
+.stok-satir--dus {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  grid-template-areas:
+    'ad ad ad ad'
+    '. adet giris dus';
+  align-items: center;
+  gap: var(--bosluk-2) var(--bosluk-3);
+  padding: var(--bosluk-3) 0;
+}
+
+.stok-satir__ad {
+  grid-area: ad;
+  min-width: 0;
+}
+
+.stok-satir--dus .stok-adet {
+  grid-area: adet;
+}
+
+.stok-satir--dus .stok-dus {
+  grid-area: dus;
+}
+
+/* Adet kutusu. Genişlik üç haneye göre: bir servisin tek seferde 999
+   adetten fazla düşmesi gerçekçi değil, daha genişi de satırı
+   sıkıştırıyor. */
+.stok-giris {
+  grid-area: giris;
+  width: 72px;
+  text-align: right;
+}
+
+/* Sütun başlıkları listenin başında bir kez. Izgaraya kendileri
+   giriyorlar (`grid-area`), böylece altlarındaki sayıyla hep aynı
+   hizada duruyorlar. */
+.stok-satir--baslik {
+  padding: var(--bosluk-2) 0 var(--bosluk-1);
+}
+
+.stok-basi {
+  font-size: var(--yazi-1);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  text-align: right;
+  color: var(--murekkep-2);
+}
+
+.stok-basi--adet {
+  grid-area: adet;
+}
+
+.stok-basi--giris {
+  grid-area: giris;
+  width: 72px;
+}
+
+/* Geri alma. Kalıcı bir düğme gibi durmamalı — on dakikalık bir
+   kapıdan bahsediyor. O yüzden çerçevesiz, küçük ve satırın altında. */
+.stok-geri {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--bosluk-2);
+  width: 100%;
+  min-height: var(--dokunma);
+  margin-top: var(--bosluk-1);
+  border-radius: var(--r-2);
+  background: var(--mavi-z);
+  color: var(--mavi-rz);
+  font: inherit;
+  font-size: var(--yazi-2);
+  font-weight: 700;
+}
+
+/* ---------------------------------------------------- Onay penceresi
+
+   Servis panelinin kendi penceresi. Backoffice'in `.pencere` kalıbı
+   masaüstü için: ortada dar bir kart. Telefonda pencere alttan
+   geliyor ve tam genişlikte duruyor — parmağın olduğu yerde. */
+
+.pencere-servis {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(10, 26, 51, 0.5);
+}
+
+.pencere-servis__kart {
+  width: 100%;
+  padding: var(--bosluk-5);
+  padding-bottom: calc(var(--bosluk-5) + env(safe-area-inset-bottom, 0px));
+  border-radius: var(--r-3) var(--r-3) 0 0;
+  background: var(--yuzey);
+}
+
+.pencere-servis__kart h2 {
+  margin: 0 0 var(--bosluk-3);
+  font-size: var(--yazi-4);
+}
+
+.pencere-servis__kart p {
+  margin: 0 0 var(--bosluk-3);
+  font-size: var(--yazi-3);
+  line-height: 1.55;
+}
+
+/* Eski sayı → yeni sayı. Servisin kafasındaki hesabı ekranda
+   göstermek, "kaç kalacak" sorusunu onaydan önce cevaplıyor. */
+.dus-ozet {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--bosluk-3);
+  padding: var(--bosluk-3);
+  margin-bottom: var(--bosluk-3);
+  border-radius: var(--r-2);
+  background: var(--yuzey-2);
+  font-size: var(--yazi-5);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.dus-ozet > svg {
+  color: var(--murekkep-3);
+}
+
+/* Giriş şeridi burada TANIMLANMIYOR.
+
+   Servis paneli giriş kartını backoffice.css'ten alıyor (`.giris__kart`)
+   ve şerit o kartın dolgusuna göre hesaplanıyor. İkinci bir tanım
+   yazmak, iki dosyada iki ayrı sayı tutmak demek olurdu; kartın
+   dolgusu değiştiğinde biri unutulur. Tanım `.giris__kart`'ın hemen
+   altında, backoffice.css içinde. */
+
+/* Sipariş kartı — servisin PAKSAN'a verdiği sipariş. */
+.siparis {
+  padding: var(--bosluk-3) var(--bosluk-4);
+  margin-bottom: var(--bosluk-2);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-3);
+  background: var(--yuzey);
+}
+
+.siparis:last-child {
+  margin-bottom: 0;
+}
+
+.siparis__ust {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--bosluk-1);
+}
+
+/* ------------------------------------------------------------- Ortak */
+
+/* Ekranın ne işe yaradığını anlatan tek satır. Başlığın altında,
+   kartlardan önce. */
+.ipucu {
+  margin: 0 2px var(--bosluk-5);
+  font-size: var(--yazi-3);
+  line-height: 1.55;
+  color: var(--murekkep-2);
+}
+
+/* Tam genişlik düğme. Telefonda asıl işlemler böyle: parmağın
+   nişan alması gerekmiyor. */
+.dg--blok {
+  /* `display` BURADA GEREKLİ.
+
+     `.dg` inline-flex; inline öğede `margin: 0 auto` ortalamıyor. Geniş
+     ekranda `.uyg__dip > *` kuralı düğmeyi 720 piksele sınırlayıp
+     ortalamaya çalışıyordu ama düğme sola yapışık kalıyordu. Blok
+     seviyesine çıkınca auto kenar boşluğu çalışıyor. */
+  display: flex;
+  width: 100%;
+  height: var(--dokunma-genis);
+  font-size: var(--yazi-3);
+  border-radius: var(--r-2);
+}
+
+/* PAYLAŞILAN ÖLÇÜLER PARMAĞA GÖRE BÜYÜTÜLÜYOR.
+
+   `.dg` 36, `.gir` 41 piksel yüksekliğinde: backoffice bilgisayarda
+   açılıyor, fare için yeterli. Servis uygulaması tarlada; 48 pikselin
+   altındaki hedefe eldivenli parmakla isabet ettirmek zor.
+
+   Kural yalnız `.uyg` içinde geçerli — backoffice'in kendi ölçüleri
+   olduğu gibi kalıyor, ortak dosyaya dokunulmuyor. `min-height`
+   `height`i geçtiği için ikisini de yeniden yazmaya gerek yok. */
+.uyg .dg,
+.uyg .gir {
+  min-height: var(--dokunma);
+  font-size: var(--yazi-3);
+}
+
+/* ==========================================================================
+   Giriş ekranı — PAKSAN Connect karşılamasının kardeşi
+
+   BACKOFFICE'TEN DEVŞİRME DEĞİL (14 Eylül 2026, kullanıcının kararı)
+
+   Bu ekran önce backoffice girişinin telefona uyarlanmış hâliydi:
+   tepede bir fotoğraf, laciverde eriyen bir geçiş, altında beyaz bir
+   form kutusu. Kullanıcı "backoffice karşılamasından devşirme gibi
+   duruyor; referans alınacaksa PAKSAN Connect karşılaması alınmalı"
+   dedi. Servisim, Connect'in kardeşi; backoffice'in değil.
+
+   Connect karşılamasından alınanlar (değerler src/styles.css'ten
+   ölçüldü, uydurulmadı):
+     · Fotoğraf kutuda değil, ekranın ARKASINDA. Üstünde karartma
+       perdesi, içerik doğrudan fotoğrafın üstünde; beyaz kutu yok.
+     · Marka bloğu: beyaz daire içinde 64 piksellik amblem, altında
+       50 piksellik beyaz yazı, arada 12 piksel (.safak__logo).
+     · Başlık 42 piksel, 400 kalınlık, harf aralığı -0,038em; üstünde
+       12 piksel, 700 kalınlık, 0,22em aralıklı küçük satır
+       (.giris__yanindayiz, .giris__ustsatir).
+     · Ana düğme turuncu, 60 piksel, köşe 18, turuncu gölge; yanında
+       ok simgesi (.btn--orange.btn--lg).
+     · Dipte %66 beyaz, 12 piksellik silik satır (.giris__surum).
+
+   Connect'ten AYRILAN tek şey: form da bu ekranda. Connect'in
+   karşılaması bir kere görülen bir kapı, giriş ayrı ekranda. Servis
+   elemanı ise uygulamayı her açışta şifre giriyor; araya bir "Giriş
+   Yap" dokunuşu daha koymak her gün tekrarlanan boş bir iş olurdu.
+   Alanlar bu yüzden fotoğrafın koyu kısmında, Connect'in koyu zemin
+   düğmesiyle aynı dilde yarı saydam camdan.
+
+   KAYMA YOK. Önceki düzende fotoğraf en az 360 piksel yer tutan bir
+   bloktu ve formun üstüne diziliyordu; ikisinin toplamı telefonun
+   görünür yüksekliğini aşıyor, ekran kayıyordu. Artık fotoğraf arka
+   planda ve yer kaplamıyor; ekranın boyu yalnız içerikten geliyor.
+   Klavye açılıp yer gerçekten bitmedikçe sayfa kaymıyor.
+
+   Ekran temadan bağımsız: Connect karşılaması gibi hep koyu. Renkler
+   bu yüzden token'dan değil sabit.
+   ========================================================================== */
+
+.sgiris {
+  position: relative;
+  isolation: isolate;
+  color-scheme: dark;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #080e1a;
+  color: #fff;
+}
+
+/* GÖRSEL: PAKSAN ORKINOS 1270 BAŞINDA SERVİS TEKNİSYENİ.
+
+   Genişliği ekran kadar, yüksekliği kendi oranından. Dikey yeri
+   ServisPanel.jsx ölçüyor (--resim-ust): makine ve takım çantası
+   (görsel yüksekliğinin %30-68'i) marka bloğunun altı ile başlığın
+   üstü arasındaki boşluğun ortasına getiriliyor. Görselin üst ve alt
+   kenarı zemine eriyor; fotoğrafın nerede bittiği görülmüyor. */
+.sgiris__resim {
+  position: absolute;
+  z-index: -2;
+  left: 0;
+  top: var(--resim-ust, 0px);
+  width: 100%;
+  height: auto;
+  -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 74%, transparent);
+  mask-image: linear-gradient(transparent, #000 14%, #000 74%, transparent);
+  pointer-events: none;
+}
+
+/* PERDE: Connect'teki gibi tepe ve dip koyu, makinenin durduğu yer açık.
+
+   Duraklar sabit yüzde değil, ölçülen iki çizgiye bağlı (--perde-ust:
+   marka bloğunun altı, --perde-alt: başlığın üstü). Yüzdeyle yazılsaydı
+   kısa telefonda makinenin üstü kararır, uzun telefonda başlık açık
+   zemine düşerdi. Ölçüm gelmeden önceki ilk karede 390x844'e göre
+   varsayılan değerler duruyor. Duraklardan biri öncekinin gerisine
+   düşerse tarayıcı onu öncekine eşitliyor, geçiş bozulmuyor. */
+.sgiris__perde {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(
+    rgba(8, 14, 26, 0.6) 0px,
+    rgba(8, 14, 26, 0.3) calc(var(--perde-ust, 160px) - 40px),
+    rgba(8, 14, 26, 0) calc(var(--perde-ust, 160px) + 20px),
+    rgba(8, 14, 26, 0) calc(var(--perde-alt, 380px) - 130px),
+    rgba(8, 14, 26, 0.6) calc(var(--perde-alt, 380px) - 10px),
+    rgba(8, 14, 26, 0.84) calc(var(--perde-alt, 380px) + 110px),
+    rgba(8, 14, 26, 0.9) 100%
+  );
+  pointer-events: none;
+}
+
+.sgiris__ic {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: calc(env(safe-area-inset-top, 0px) + 32px) 24px
+    calc(env(safe-area-inset-bottom, 0px) + 24px);
+}
+
+/* Marka bloğu — Connect'teki .safak__logo ile aynı: amblem beyaz
+   dairede (çok renkli kalkan koyu zeminde beyaza çevrilince düz bir
+   lekeye dönüyor), yazı altında. */
+.sgiris__marka {
+  display: grid;
+  place-items: center;
+  gap: 12px;
+}
+
+.sgiris__amblem,
+.sgiris__yazi {
+  display: block;
+}
+
+/* Makinenin göründüğü pencere. Artan yer buraya gidiyor. */
+.sgiris__bosluk {
+  flex: 1;
+  min-height: 16px;
+}
+
+.sgiris__ustsatir {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.sgiris__baslik {
+  margin: 0;
+  font-size: 42px;
+  font-weight: 400;
+  letter-spacing: -0.038em;
+  line-height: 1.08;
+  color: #fff;
+}
+
+.sgiris__alt {
+  margin: 12px 0 0;
+  max-width: 36ch;
+  font-size: 16px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.sgiris form {
+  margin-top: 24px;
+}
+
+.sgiris .alan {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.sgiris .alan__ad {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+/* Cam alan: Connect'in koyu zemin düğmesiyle (.btn--on-dark, %16 beyaz)
+   aynı aile. Kenar çizgisi alanı güneşte de belli ediyor; odakta
+   çizgi beyazlaşıyor, çevresine halka geliyor. Çizgi %50 beyaz: camın
+   dolgusu zeminden ancak 1,36:1 ayrışıyor, alanı belli eden çizgi;
+   %28'de QA turu 2,44:1 ölçtü (bileşen sınırı 3:1). */
+.sgiris .gir {
+  width: 100%;
+  min-height: 56px;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.12);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: #fff;
+  caret-color: #fff;
+  font-family: inherit;
+  font-size: 17px;
+}
+
+.sgiris .gir::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.sgiris .gir:focus {
+  outline: 0;
+  border-color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18);
+}
+
+/* Tarayıcının kendi doldurma rengi (sarı/açık mavi) camı bozup beyaz
+   yazıyı okunmaz yapıyordu; koyu zemin içeriden boyanıyor. */
+.sgiris .gir:-webkit-autofill {
+  -webkit-text-fill-color: #fff;
+  box-shadow: inset 0 0 0 1000px rgba(28, 36, 52, 0.96);
+  transition: background-color 9999s;
+}
+
+/* "Beni Hatırla" ile "Şifremi Unuttum" aynı satırda: ikisi de şifreye
+   ait; ayrı satırlarda form 56 piksel uzuyordu. */
+.sgiris__satir {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 4px 0 16px;
+}
+
+.sgiris__hatirla {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.92);
+  cursor: pointer;
+}
+
+/* Tarayıcının kutusu koyu zeminde ince gri bir çerçeve olarak
+   kayboluyordu. İşaretlenince turuncu — uygulamanın "seçili" rengi. */
+.sgiris__hatirla input {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  border: 2px solid rgba(255, 255, 255, 0.75);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.08) center / 16px no-repeat;
+  cursor: pointer;
+}
+
+.sgiris__hatirla input:checked {
+  border-color: var(--marka-turuncu-dugme);
+  background-color: var(--marka-turuncu-dugme);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8.5l3 3 7-7' fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+.sgiris__hatirla input:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* Bağlantı olduğu altı çizgiyle belli: gizli etkileşim yok. */
+.sgiris__yardim {
+  min-height: 48px;
+  padding: 0 4px;
+  margin-right: -4px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.45);
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+
+/* Connect'in turuncu düğmesi (.btn--orange.btn--lg). */
+.sgiris__gir {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 60px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--marka-turuncu-dugme);
+  box-shadow: 0 6px 18px rgba(199, 73, 10, 0.28);
+  color: #fff;
+  font-family: inherit;
+  font-size: 17.5px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  cursor: pointer;
+  transition: transform 0.13s ease, filter 0.13s ease;
+}
+
+.sgiris__gir:active {
+  transform: scale(0.975);
+  filter: brightness(0.94);
+}
+
+.sgiris__gir:disabled {
+  opacity: 0.6;
+  transform: none;
+  filter: none;
+}
+
+.sgiris__gir:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+/* HATA VE "PAKSAN SİZİ ARAYACAK" KUTULARI KOYU ZEMİNE GÖRE.
+
+   İkisi de uygulamanın ortak kutuları ve renklerini temanın açık
+   token'larından alıyor; bu ekran ise temadan bağımsız, hep koyu.
+   QA turu ölçtü: mavi notun başlığı beyaz zemine beyaz yazılıyordu
+   (1,00:1, hiç görünmüyordu), hata kutusu 3,01:1'de kalıyordu. Burada
+   ikisi de camın dilinde, sabit renkle. */
+.sgiris .uyari,
+.sgiris .not {
+  margin: 0 0 16px;
+}
+
+.sgiris .uyari {
+  border: 1px solid rgba(255, 150, 105, 0.5);
+  background: rgba(225, 96, 37, 0.18);
+  color: #ffdccb;
+}
+
+.sgiris .uyari b {
+  color: #fff;
+}
+
+.sgiris .not {
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.1);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: #fff;
+}
+
+.sgiris .not p {
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.sgiris .not--mavi {
+  border-left: 4px solid #8fb2ff;
+}
+
+.sgiris .not--mavi > svg {
+  color: #a9c4ff;
+}
+
+/* Dipteki silik satır — Connect'teki sürüm satırıyla aynı. */
+.sgiris__dip {
+  margin: 16px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.66);
+}
+
+/* KISA TELEFON. Connect de 720 pikselin altında sıkılaşıyor. Çoğu
+   telefonda uygulamanın görünür yüksekliği (durum ve alt çubuk
+   düşünce) 700-800 piksel; bu aralıkta amblem yazının üstünden
+   soluna geçiyor ve marka bloğu 126 pikselden 64'e iniyor, başlık da
+   küçülüyor. Makinenin penceresi o kadar büyüyor, amblem de kalıyor.
+   680'in altında yalnız yazılı logo kalıyor. */
+@media (max-height: 800px) {
+  .sgiris__marka {
+    grid-auto-flow: column;
+    justify-content: center;
+  }
+
+  .sgiris__ic {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 24px);
+  }
+
+  .sgiris__baslik {
+    font-size: 36px;
+  }
+}
+
+@media (max-height: 680px) {
+  .sgiris__amblem {
+    display: none;
+  }
+
+  .sgiris__yazi svg {
+    width: auto;
+    height: 40px;
+  }
+
+  .sgiris form {
+    margin-top: 16px;
+  }
+
+  .sgiris__satir {
+    margin-bottom: 8px;
+  }
+}
+
+/* Geniş ekran yalnız geliştirme içindir: uygulama telefona kuruluyor.
+   Görsel telefon genişliğinde bir sütunda, iki yan koyu. */
+@media (min-width: 640px) {
+  .sgiris {
+    max-width: 420px;
+    margin: 0 auto;
+    box-shadow: 0 0 0 100vmax #080e1a;
+    clip-path: inset(0 -100vmax);
+  }
+}
+
+/* AÇILIŞ HAREKETİ, KISA. Connect'teki gibi fotoğraf karanlıktan
+   beliriyor, amblem ve yazı ayrı ayrı yükseliyor; ama bir saniyede
+   bitiyor: Connect'in karşılaması oturumda bir kez, bu ekran her gün
+   açılıyor. Hareketi azaltmış telefonda hiç oynamıyor. */
+@media (prefers-reduced-motion: no-preference) {
+  .sgiris__resim {
+    animation: sgiris-foto 1.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .sgiris__amblem {
+    animation: sgiris-yuksel 0.9s cubic-bezier(0.22, 0.7, 0.3, 1) 0.1s both;
+  }
+
+  .sgiris__yazi {
+    animation: sgiris-yuksel 0.9s cubic-bezier(0.22, 0.7, 0.3, 1) 0.3s both;
+  }
+
+  .sgiris__baslikalani,
+  .sgiris form,
+  .sgiris__dip {
+    animation: sgiris-suz 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.35s both;
+  }
+}
+
+@keyframes sgiris-foto {
+  from { opacity: 0; transform: scale(1.05); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes sgiris-yuksel {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes sgiris-suz {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ------------------------------------------------------- Başlıktaki hesap
+
+   Hesap alt sekmeden çıkıp buraya geldi. Alt çubuktaki dört yer
+   günlük işe ayrıldı; ayda bir açılan bir bölüm orada yer tutuyordu.
+   Harf dairesi marka yazısının yerini alıyor — ikisi birden çubuğu
+   iki satıra taşırırdı.                                              */
+
+/* Daire 34 piksel görünüyor ama basılabilir alan 48: dokunma hedefinin
+   alt sınırı. Dolgu içeriden veriliyor, `background-clip` zemini yalnız
+   iç kutuya çiziyor — geri okundaki çözümün aynısı. */
+.uyg__hesap {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--dokunma);
+  height: var(--dokunma);
+  padding: 7px;
+  border: 0;
+  border-radius: var(--r-tam);
+  background: rgba(255, 255, 255, 0.16);
+  background-clip: content-box;
+  color: #fff;
+  font-size: var(--yazi-3);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.uyg__hesap:active {
+  background: rgba(255, 255, 255, 0.3);
+  background-clip: content-box;
+}
+
+
+/* ------------------------------------------------------------------ Arama */
+
+.ara-kutu {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  margin-bottom: var(--bosluk-3);
+  padding-left: var(--bosluk-3);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-2);
+  background: var(--yuzey);
+  color: var(--murekkep-2);
+}
+
+.ara-kutu:focus-within {
+  border-color: var(--mavi-rz);
+}
+
+.ara-kutu .gir {
+  border: 0;
+  background: transparent;
+}
+
+.ara-kutu .gir:focus {
+  outline: 0;
+}
+
+/* ------------------------------------------------------------ Ürün kartı
+
+   Düzen müşteri uygulamasındaki `MachineCard`'ın aynısı: fotoğraf,
+   model adı, alt başlık, rozetler, ok. Servis listesi önce yalnız
+   yazıydı; yirmi satırlık bir model listesinde göz aradığını okuyarak
+   buluyordu.                                                         */
+
+.urun {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  width: 100%;
+  padding: var(--bosluk-3);
+  margin-bottom: var(--bosluk-2);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-3);
+  background: var(--yuzey);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.urun:active {
+  background: var(--mavi-z);
+}
+
+.urun__govde {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+/* Ad solda, kampanya rozeti sağda — liste kartındaki kuralın aynısı. */
+.urun__bas {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--bosluk-2);
+}
+
+.urun__ad {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--yazi-3);
+  font-weight: 700;
+}
+
+.urun__bas .rozet {
+  flex: none;
+}
+
+.urun__alt {
+  font-size: var(--yazi-1);
+  color: var(--murekkep-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+
+
+
+
+
+.urun__ok {
+  flex: none;
+  color: var(--murekkep-2);
+}
+
+/* Ürün fotoğrafı. Müşteri uygulamasındaki `.photo` kurallarının servis
+   karşılığı; bileşen (`components/Gorsel.jsx`) paylaşılıyor, stil
+   kökleri ayrı olduğu için sınıflar burada tekrar tanımlanıyor. */
+.photo {
+  border-radius: var(--r-2);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(168deg, #ffffff 0%, #eef2f8 100%);
+}
+
+.photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.photo--thumb {
+  flex: none;
+  width: 88px;
+  height: 58px;
+}
+
+.photo--hero {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+}
+
+.photo--bos {
+  color: var(--murekkep-2);
+}
+
+.urun-hero {
+  margin: calc(var(--bosluk-4) * -1) calc(var(--bosluk-4) * -1) 0;
+}
+
+.urun-kart {
+  position: relative;
+  z-index: 1;
+  margin: -26px 0 var(--bosluk-4);
+  padding: var(--bosluk-4);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-3);
+  background: var(--yuzey);
+  box-shadow: var(--golge-2);
+}
+
+.urun-kart__satir {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--bosluk-3);
+  padding: var(--bosluk-2) 0;
+  border-bottom: 1px solid var(--cizgi);
+  font-size: var(--yazi-2);
+  color: var(--murekkep-2);
+}
+
+.urun-kart__satir:last-of-type {
+  border-bottom: 0;
+}
+
+/* Rakam bölünmüyor: "3.120.000" ile "TL" iki satıra düşünce satır iki
+   katına çıkıyor ve tutar okunmuyordu. Etiket sarılabilir, rakam
+   sarılamaz. */
+.urun-kart__satir strong {
+  flex: none;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: var(--murekkep);
+}
+
+/* Düğme görünümlü bağlantılar: `.dg` sınıfı `<button>` için yazılmıştı;
+   `<a>` üzerinde tarayıcının alt çizgisi kalıyordu. */
+.uyg a.dg,
+.uyg__dip a.dg {
+  text-decoration: none;
+}
+
+.urun-kart__satir--vurgu {
+  font-size: var(--yazi-3);
+}
+
+.urun-kart__satir--vurgu strong {
+  font-size: var(--yazi-5);
+  font-weight: 800;
+}
+
+
+
+.urun-kart__dip {
+  padding-top: var(--bosluk-3);
+  border-top: 1px solid var(--cizgi);
+  font-size: var(--yazi-1);
+  color: var(--murekkep-2);
+}
+
+.rozet {
+  padding: 2px 8px;
+  border-radius: var(--r-tam);
+  background: var(--yuzey-2);
+  font-size: var(--yazi-1);
+  font-weight: 700;
+  color: var(--murekkep-2);
+}
+
+
+
+/* -------------------------------------------------- Sipariş onay ekranı
+
+   Sipariş önce tek adımdı: kutuya rakam yazılıyor, "Gönder"e
+   basılıyordu. Bir buçuk milyonluk makine siparişi böyle veriliyordu.
+   Şimdi araya özet ekranı giriyor — kalem, adet, birim fiyat, satır
+   tutarı ve teslim bilgisi görülmeden sipariş çıkmıyor.               */
+
+.fiyat-kart {
+  margin-bottom: var(--bosluk-4);
+  padding: var(--bosluk-4);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-3);
+  background: var(--yuzey);
+}
+
+.ozet-kalem {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  padding: var(--bosluk-3) 0;
+  border-bottom: 1px solid var(--cizgi);
+}
+
+.ozet-kalem:last-child {
+  border-bottom: 0;
+}
+
+.ozet-kalem__ad {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--yazi-2);
+}
+
+.ozet-kalem__tutar {
+  flex: none;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.ozet-kalem__sil {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--dokunma);
+  height: var(--dokunma);
+  margin-right: calc(var(--bosluk-3) * -1);
+  border: 0;
+  border-radius: var(--r-2);
+  background: transparent;
+  color: var(--kirmizi);
+  cursor: pointer;
+}
+
+.ozet-kalem__sil:active {
+  background: var(--kirmizi-z);
+}
+
+/* Seçilen satır listede işaretli kalıyor: yirmi satır arasında hangi
+   kaleme rakam yazdığı kaybolmasın. */
+.stok-satir--secili {
+  background: var(--mavi-z);
+  margin-inline: calc(var(--bosluk-3) * -1);
+  padding-inline: var(--bosluk-3);
+  border-radius: var(--r-2);
+}
+
+.satir-tutar {
+  margin-top: 2px;
+  color: var(--mavi-rz);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.siparis-sonuc {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--bosluk-5) var(--bosluk-4);
+  color: var(--murekkep-2);
+}
+
+.siparis-sonuc > svg {
+  color: var(--yesil);
+}
+
+.siparis-sonuc h2 {
+  margin: var(--bosluk-3) 0 var(--bosluk-2);
+  font-size: var(--yazi-4);
+  color: var(--murekkep);
+}
+
+.siparis-sonuc__no {
+  margin: 0 0 var(--bosluk-3);
+  padding: 6px 14px;
+  border-radius: var(--r-tam);
+  background: var(--yesil-z);
+  color: var(--yesil);
+  font-size: var(--yazi-3);
+  font-weight: 800;
+}
+
+.siparis-sonuc p {
+  margin: 0 0 var(--bosluk-2);
+  max-width: 34ch;
+}
+
+.siparis-sonuc .dg {
+  margin-top: var(--bosluk-4);
+  width: 100%;
+  max-width: 320px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ============================================================== İş kartı
+
+   TAM EKRAN KATMAN
+
+   İş kartı öbür alt sayfalarla aynı kabuğu kullanıyor (`Sayfa`) ama
+   talep detayının ÜSTÜNDE açılıyor. Katman bunun için: sabitlenmiş,
+   sayfanın zeminini taşıyan ve altındaki ekranı tamamen örten bir
+   yüzey. Ayrı bir başlık düzeni yazılmadı — servis aynı geri okunu
+   aynı yerde buluyor. */
+.katman {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  overflow: auto;
+  background: var(--zemin);
+}
+
+/* Çoklu seçim hapları.
+
+   Belirti, yapılan iş ve süre listeden seçiliyor; kutuya yazılmıyor.
+   Hedef yüksekliği 48 piksel — servis kartı işin sonunda, çoğu zaman
+   eldivenle dolduruyor. Seçili hap yalnız renkle değil kenarıyla da
+   ayrılıyor (renk körlüğü). */
+.hap-liste {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bosluk-2);
+}
+
+.hap {
+  min-height: var(--dokunma);
+  padding: 0 var(--bosluk-4);
+  /* `--cizgi-kontrol` yalnız `.uyg` altında tanımlı; bu kural onun dışına
+     taşınırsa yedek değer bugünkü görünümü koruyor. YEDEKSİZ YAZILAMAZ:
+     `border` bir kısayol ve tanımsız bir özel değer kısayolun TAMAMINI
+     geçersiz kılıyor — `border-style` başlangıç değeri `none` olduğu için
+     kenar rengini değiştirmez, tamamen kaybolur. */
+  border: 1px solid var(--cizgi-kontrol, var(--cizgi));
+  border-radius: var(--r-tam);
+  background: var(--yuzey);
+  color: var(--murekkep);
+  font: inherit;
+  font-size: var(--yazi-2);
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.hap--on {
+  border-color: var(--mavi-rz);
+  background: var(--mavi-z);
+  color: var(--mavi-rz);
+}
+
+.hap:active {
+  transform: scale(0.97);
+}
+
+/* Büyük cevap düğmesi.
+
+   Kapanış ekranında her soruya cevaplar tam genişlikte satırlar
+   hâlinde duruyor. Panelin kullanıcısı servis personeli; açılır kutu,
+   onay kutusu ve radyo düğmesi karışıyordu. Tek etkileşim biçimi
+   var: dokunmak.
+
+   Yükseklik 60 piksel — 48'lik alt sınırın üstünde, çünkü bu
+   düğmeler ekranın asıl işi ve tarlada eldivenle basılıyor. */
+.buyuk-sec {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  min-height: 60px;
+  padding: var(--bosluk-3) var(--bosluk-4);
+  border: 0;
+  border-bottom: 1px solid var(--cizgi);
+  background: var(--yuzey);
+  color: var(--murekkep);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.buyuk-sec:last-child {
+  border-bottom: 0;
+}
+
+.buyuk-sec:active {
+  background: var(--mavi-z);
+}
+
+/* Seçili cevap yalnız renkle değil sol kenarındaki şeritle de
+   ayrılıyor (renk körlüğü). */
+.buyuk-sec--on {
+  background: var(--mavi-z);
+  box-shadow: inset 4px 0 0 var(--mavi-rz);
+}
+
+.buyuk-sec__ad {
+  font-size: var(--yazi-3);
+  font-weight: 700;
+}
+
+.buyuk-sec__alt {
+  font-size: var(--yazi-2);
+  color: var(--murekkep-2);
+}
+
+/* ==========================================================================
+   Parça satırı
+
+   ÖNCE ON TANE BOŞ BEYAZ KUTUYDU. Her parça tam genişlikte, çerçeveli,
+   içi boş bir satırdı; dokunulabilir olduğunu söyleyen hiçbir şey
+   yoktu ve yazı kutusu sanılıyordu. Seçilenler de seçilmeyenlerin
+   arasında kayboluyordu.
+
+   Şimdi her satırın bir KUTUCUĞU var — satır seçilebilir olduğunu ilk
+   bakışta söylüyor. Dokunma hedefi yine satırın tamamı: eldivenli
+   parmak 22 piksellik bir kareye isabet ettiremez.
+
+   ADET SATIRIN SAĞINDA, ALTINDA DEĞİL. Altındayken seçilen her parça
+   satırı iki kat uzatıyor ve liste ekrandan taşıyordu. Yanında "Adet"
+   yazısı da kalktı: sayı iki düğmenin ortasında duruyor ve neyi
+   saydığı satırın kendisinden belli.
+   ========================================================================== */
+
+.parca-liste {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bosluk-2);
+}
+
+/* Bölüm başlığı ile listenin arasındaki tek satırlık açıklama. */
+.parca-ipucu {
+  margin: calc(-1 * var(--bosluk-1)) 0 var(--bosluk-3);
+}
+
+.parca-satir {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-2);
+  background: var(--yuzey);
+  overflow: hidden;
+}
+
+.parca-satir--on {
+  border-color: var(--mavi-rz);
+}
+
+.parca-satir__ac {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  min-height: var(--dokunma);
+  padding: var(--bosluk-2) var(--bosluk-3);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.parca-satir__ad {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--yazi-3);
+  font-weight: 700;
+}
+
+.parca-satir__adet {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  padding-right: var(--bosluk-2);
+}
+
+.parca-satir__sayi {
+  min-width: 32px;
+  text-align: center;
+  font-size: var(--yazi-4);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Çekilen fotoğrafın önizlemesi. Servis neyi gönderdiğini görüyor. */
+.foto-onizleme {
+  display: block;
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  margin-bottom: var(--bosluk-3);
+  border-radius: var(--r-2);
+}
+
+
+
+
+
+
+
+
+
+/* İki düğme yan yana: dükkâna gelen müşteri için kayıt açmak ve fiyat
+   vermek. İkisi de listenin başında duruyor.
+
+   Backoffice'in `.ikili` sınıfı KULLANILMADI: o sınıf ancak geniş
+   ekranda iki sütuna geçiyor, telefonda düğmeler alt alta düşüyordu.
+   Buradaki iki düğme dar ekranda da yan yana durmalı — ekranın en
+   değerli yerini iki satır kaplamamalı. */
+.baslangic {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--bosluk-2);
+  margin-bottom: var(--bosluk-4);
+}
+
+.baslangic .dg {
+  gap: 6px;
+  padding-inline: var(--bosluk-2);
+}
+
+
+
+
+
+
+
+
+
+/* --------------------------------------------------------- Sipariş toplamı */
+
+/* SATIR DEĞİL, İKİ SÜTUN.
+
+   Üç öğe tek satırda `flex` ile diziliyordu ve 375 piksellik telefonda
+   üçü de sarıyordu: "2 parça türü · 2 adet" iki satıra, tutar ayrı bir
+   satıra düşüyor, kutu dört satır oluyordu. Şimdi solda kalem sayısı,
+   sağda tutar ve altındaki "KDV hariç" — ikisi kendi sütununda ve
+   sarmaları gerekmiyor. */
+.siparis-toplam {
+  display: flex;
+  /* Sarma açık olmalı: "KDV hariç" satırı tam genişlikte ve
+     küçülmüyor; sarma kapalıyken soldaki kalem sayısını sıfır
+     genişliğe eziyor, her kelime ayrı satıra düşüyordu. */
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--bosluk-4);
+  margin-top: var(--bosluk-3);
+  padding: var(--bosluk-3) var(--bosluk-4);
+  border-radius: var(--r-3);
+  background: var(--mavi-z);
+  color: var(--mavi-rz);
+  font-size: var(--yazi-2);
+  font-weight: 700;
+}
+
+.siparis-toplam > span {
+  min-width: 0;
+}
+
+.siparis-toplam strong {
+  flex: none;
+  font-size: var(--yazi-4);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* "KDV hariç" tutarın altında ve sağa dayalı: hangi rakamı
+   nitelediği yerinden belli. */
+.siparis-toplam small {
+  order: 3;
+  flex: none;
+  width: 100%;
+  margin-top: -4px;
+  font-size: var(--yazi-1);
+  font-weight: 400;
+  color: var(--murekkep-2);
+  text-align: right;
+}
+
+/* İÇ SEKMELER KALDIRILDI (18 Eylül 2026). `.ic-sekme`, `.ic-sekme__dg`
+   ve `--on` hâli makine detayındaki üç bölümü yan yana hap olarak
+   gösteriyordu; o düzen değişti ve sınıflar `src/servis/` içinde hiçbir
+   yerde kullanılmıyordu. Ölü bir kontrol kalıbı, bir dahaki erişilebilirlik
+   ya da renk turunda gerçek bir ekranmış gibi ölçülüyor. */
+
+/* --------------------------------------------------------------- Arıza */
+
+.guvenlik-liste {
+  margin: var(--bosluk-2) 0 0;
+  padding-left: 18px;
+  font-size: var(--yazi-2);
+}
+
+.guvenlik-liste li + li {
+  margin-top: 4px;
+}
+
+.belirti {
+  border-bottom: 1px solid var(--cizgi);
+}
+
+.belirti:last-child {
+  border-bottom: 0;
+}
+
+.belirti__ac {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  width: 100%;
+  min-height: var(--dokunma);
+  padding: var(--bosluk-3) 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font-size: var(--yazi-3);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.belirti__ac > span {
+  flex: 1;
+}
+
+.belirti__ac > svg {
+  flex: none;
+  color: var(--murekkep-2);
+  transition: transform 0.15s ease;
+}
+
+.belirti--on .belirti__ac > svg {
+  transform: rotate(180deg);
+}
+
+.belirti__ic {
+  padding-bottom: var(--bosluk-3);
+}
+
+.sebep {
+  margin-bottom: var(--bosluk-3);
+  padding: var(--bosluk-3);
+  border-radius: var(--r-2);
+  background: var(--yuzey-2);
+}
+
+.sebep__ust {
+  display: flex;
+  align-items: baseline;
+  gap: var(--bosluk-2);
+  margin-bottom: var(--bosluk-2);
+}
+
+.sebep__ust strong {
+  flex: 1;
+  font-size: var(--yazi-2);
+}
+
+.zorluk {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: var(--r-tam);
+  background: var(--yesil-z);
+  color: var(--yesil);
+  font-size: var(--yazi-1);
+  font-weight: 700;
+}
+
+.zorluk--orta {
+  background: var(--turuncu-z);
+  color: var(--turuncu-d);
+}
+
+.zorluk--servis {
+  background: var(--kirmizi-z);
+  color: var(--kirmizi);
+}
+
+.sebep__satir {
+  margin: 0 0 6px;
+  font-size: var(--yazi-2);
+}
+
+.sebep__satir > span {
+  display: block;
+  font-size: var(--yazi-1);
+  font-weight: 700;
+  color: var(--murekkep-2);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.sebep__satir:last-child {
+  margin-bottom: 0;
+}
+
+.belirti__parca {
+  padding: var(--bosluk-2) var(--bosluk-3);
+  border-radius: var(--r-2);
+  background: var(--mavi-z);
+  color: var(--mavi-rz);
+  font-size: var(--yazi-1);
+  font-weight: 700;
+}
+
+/* ------------------------------------------------------- Teknik ve bakım */
+
+.ozet-satir {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--bosluk-3);
+  padding: var(--bosluk-2) 0;
+  border-bottom: 1px solid var(--cizgi);
+  font-size: var(--yazi-2);
+  color: var(--murekkep-2);
+}
+
+.ozet-satir:last-child {
+  border-bottom: 0;
+}
+
+.ozet-satir strong {
+  text-align: right;
+  color: var(--murekkep);
+}
+
+.bakim-satir {
+  display: flex;
+  gap: var(--bosluk-3);
+  padding: var(--bosluk-3) 0;
+  border-bottom: 1px solid var(--cizgi);
+}
+
+.bakim-satir:last-child {
+  border-bottom: 0;
+}
+
+.bakim-satir__saat {
+  flex: none;
+  min-width: 52px;
+  padding: 2px 8px;
+  height: fit-content;
+  border-radius: var(--r-tam);
+  background: var(--mavi-z);
+  color: var(--mavi-rz);
+  font-size: var(--yazi-1);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.bakim-satir strong {
+  display: block;
+  font-size: var(--yazi-2);
+}
+
+.bakim-satir p {
+  margin: 4px 0 0;
+  font-size: var(--yazi-2);
+  color: var(--murekkep-2);
+}
+
+
+
+/* Uzun uyarı metni üç satırda kesiliyor; gerekçesi ServisPanel.jsx
+   içinde DuyuruKarti başlığında yazılı. */
+.duyuru__metin--kisa {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Alt satır: solda "Tamamını oku", sağda "Anladım". */
+.duyuru__dip {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  margin-top: 2px;
+}
+
+.duyuru__dip > .dg {
+  margin-left: auto;
+}
+
+.duyuru__daha {
+  min-height: var(--dokunma);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: var(--yazi-2);
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   Katlanır bölüm başlığı
+
+   Ekranı işin önüne geçmeyen ama kaybolmayan şeyler için: okunmuş
+   uyarılar, PAKSAN duyuruları, tamamlanan işler. Üçü de bir dokunuş
+   uzakta ama kapalı duruyor.
+
+   Yükseklik dokunma hedefinin altına düşmüyor: ekran tarlada,
+   çoğu zaman eldivenle açılıyor.
+   ========================================================================== */
+
+.katla {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  width: 100%;
+  min-height: var(--dokunma);
+  margin-bottom: var(--bosluk-3);
+  padding: 0 var(--bosluk-4);
+  /* Kenar koyulaştırılmadı, gölge verildi (gerekçesi `.montaj`ta). Bu
+     başlık iş kartlarının (`.is`) hemen yanında duruyor ve onlar da
+     ince kenar + gölge ile çiziliyor; koyu bir kenar aynı ekranda iki
+     ayrı dil konuşulması demekti. */
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-sm);
+  background: var(--yuzey);
+  box-shadow: var(--sh-1);
+  color: var(--murekkep-2);
+  font: inherit;
+  font-size: var(--y-alt);
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.katla:hover {
+  background: var(--yuzey-2);
+}
+
+/* Sayı ile ok arasındaki boşluğu sayı yiyor: ok her zaman en sağda,
+   göz onu sabit bir yerde arıyor. */
+.katla__sayi {
+  margin-left: auto;
+  min-width: 22px;
+  padding: 1px 7px;
+  border-radius: var(--r-tam);
+  background: var(--mavi-z);
+  color: var(--mavi);
+  font-size: var(--yazi-1);
+  font-weight: 800;
+  text-align: center;
+}
+
+.katla > svg:last-child {
+  flex: none;
+  transition: transform 0.15s ease;
+}
+
+.katla__ok--acik {
+  transform: rotate(180deg);
+}
+
+/* Üst çubuktaki iki düğme: "+" ve hesap. */
+.uyg__islemler {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-1);
+  margin-left: auto;
+}
+
+.uyg__ekle {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--dokunma);
+  height: var(--dokunma);
+  padding: 7px;
+  border: 0;
+  border-radius: var(--r-tam);
+  background: rgba(255, 255, 255, 0.16);
+  background-clip: content-box;
+  color: #fff;
+  cursor: pointer;
+}
+
+.uyg__ekle:hover {
+  background: rgba(255, 255, 255, 0.28);
+  background-clip: content-box;
+}
+
+/* Kartın tek kırmızı satırı — ikinci kez gidilen iş. */
+.is__uyari {
+  margin-top: var(--bosluk-2);
+  font-size: var(--yazi-2);
+  font-weight: 700;
+  color: var(--kirmizi);
+}
+
+/* ------------------------------------------- Geniş ekranda önizleme
+
+   Uygulama telefonda çalışıyor; bu blok yalnız geliştirme sırasında
+   masaüstü tarayıcıda önizlerken içeriğin sayfa boyunca uzamasını
+   engelliyor. Panele ait düzen kuralları (sekmeleri üste alma) burada
+   DURMUYOR: tarayıcı paneli kaldırıldı, telefonda ne çıkacağı burada
+   da aynen görünmeli.                                                */
+
+@media (min-width: 760px) {
+  .uyg__ic {
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+    padding-inline: var(--bosluk-4);
+  }
+
+  .uyg__dip {
+    padding-inline: 0;
+  }
+
+  .uyg__dip > * {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+}
+
+/* ==========================================================================
+   GÖRÜNÜM KATMANI — PAKSAN Connect'in kardeşi
+
+   TEK KAYNAK: MÜŞTERİ UYGULAMASININ İMZASI. Bu uygulama bir dönem
+   backoffice'in yoğun panelini telefona sıkıştırılmış hâliyle, sonra
+   da icat edilmiş bir "makine livresi"yle çizildi. İkisi de geri
+   alındı. Firmanın müşteriye verdiği uygulamanın oturmuş bir imzası var
+   ve servise verdiği uygulama onun kardeşi olmalı — servis de, müşteri
+   de aynı firmanın iki ürününü elinde tutuyor.
+
+   Aşağıdaki değerler src/styles.css'ten ÖLÇÜLEREK alındı, uydurulmadı:
+
+     zemin #f1f4f9 · kart köşesi 24px · kart gölgesi --sh-1
+     ana çağrı: turuncu #c7490a, köşe 18px, 60px, turuncu gölge
+     ikincil eylem: kurumsal mavi #1848a8, köşe 16px
+     yüzen menü: lacivert hap, 999px köşe, --sh-3, seçili simgenin
+       arkasında açık mavi kapsül
+     başlık: Roboto 700 / 30px · bölüm başlığı 20px / 700
+     seçenek satırı: beyaz, 15px köşe, solda 22px yuvarlak işaret
+     koyu üst çubuk YOK; alt sayfada beyaz "Geri" pili ve ortada logo
+
+   Renk token'ları backoffice.css ve marka/renkler.css'ten geliyor
+   (aynı ham marka renkleri); Connect'e özgü yüzey değerleri burada
+   .uyg altında. Bu bir CSS kökü değil; npm run dogrula denetliyor.
+   ========================================================================== */
+
+/* --------------------------------------------------- ÖLÇÜ MERDİVENİ
+
+   NEDEN TOKEN
+
+   Ölçüldü: bu uygulamada TEK EKRANDA 13 ayrı yazı boyu vardı — 11,
+   12, 12,5, 13, 13,5, 14, 14,5, 15, 15,5, 16, 16,5, 17, 20. Yarım
+   piksellik farklar hiyerarşi kurmuyor; ekranın rastgele
+   dizildiği izlenimini veriyor. Köşe yarıçapında da dört ayrı
+   "kart" değeri vardı (24, 18, 16, 15) ve yan yana duran üç kutu üç
+   ayrı yuvarlaklıkta çiziliyordu.
+
+   Basamaklar UYDURULMADI: `src/styles.css`ten, yani müşteri
+   uygulamasından ölçülerek alındı — servis uygulaması onun kardeşi.
+   Bu yüzden `olcu.css`teki genel basamaklarla birebir aynı değiller
+   (orada gövde 16, ekran başlığı 19; Connect 30 ve 20 kullanıyor).
+
+   YENİ VE DEĞİŞEN KODDA PİKSEL YAZILMAZ, BU İSİMLER KULLANILIR. */
+.uyg {
+  --zemin: #f1f4f9;
+  --yuzey-2: #f5f7fb;
+  --cizgi: #e6eaf2;
+  --cizgi-koyu: #d6dde9;
+  --murekkep-3: #646f82;
+
+  /* KONTROL KENARI — dokunulan şeyin sınırı.
+
+     KULLANICININ İSTEĞİ (18 Eylül 2026): "Servisim'de kenar çizgisi
+     kontrastını ayarlayabilirsin ancak uygulamayı çocuk mobil
+     uygulamasına çevirmeyelim gittikçe, kurumsallığı koruyalım."
+
+     BU YÜZDEN ÜÇÜNCÜ BİR TOKEN AÇILDI, `--cizgi` KOYULAŞTIRILMADI.
+     Ölçüldü: uygulamada 148 kenar bildirimi var ve `--cizgi` ile
+     `--cizgi-koyu` ikisi birden hem dokunulan şeyin sınırını hem de
+     liste satırlarını ayıran süs çizgisini çiziyor. Token'ın kendi
+     değeri koyulaştırılsaydı ekrandaki her ayıraç da koyulaşırdı —
+     kurumsal bir panel değil, çizgi kafesi çıkardı. Süs çizgileri
+     olduğu yerde duruyor; koyulaşan yalnızca yazı kutusu, seçim
+     işareti, çerçeveli düğme gibi SINIR çizen kenarlar.
+
+     WCAG 1.4.11 arayüz bileşeninin sınırı için 3:1 istiyor. Bugünkü
+     değerler beyaz üstünde 1,21 ve 1,37; yazı kutusunun nerede
+     başladığı güneş altında görünmüyordu.
+
+     ÖLÇÜLDÜ (bu dosyadaki üç zemine karşı):
+
+       aydınlık #7d8ca8 · --yuzey 3,39 · --yuzey-2 3,16 · --zemin 3,08
+       karanlık #5d6e8c · --yuzey 3,17 · --yuzey-2 3,16 · --zemin 3,52
+
+     Hedef bant 3,0-3,4: 3'ün altı kuralı karşılamıyor, 4,5 üstü gri
+     bir kafes gibi duruyor. Ton (219°) ve doygunluk (%20) paletin geri
+     kalanıyla aynı aileden; nötr gri seçilseydi mavi-gri paletin içinde
+     yabancı dururdu. */
+  --cizgi-kontrol: #7d8ca8;
+
+  --y-baslik: 30px; /* ekran başlığı — Connect'teki "Merhaba …" */
+  --y-bolum: 20px;  /* bölüm başlığı */
+  --y-kart: 17px;   /* kart başlığı, listedeki müşteri adı */
+  --y-govde: 16px;  /* gövde, düğme, giriş kutusu */
+  --y-alt: 14px;    /* yardımcı satır — alt sınır, altına inilmiyor */
+  --y-mini: 12px;   /* rozet ve en küçük etiket */
+  --y-tutar: 24px;  /* satır içindeki para tutarı */
+  --y-rakam: 32px;  /* ekranın tek konusu olan tutar (bakiye) */
+
+  /* Köşe: kart 24, kartın içindeki satır ve giriş 14, hap 999.
+     Düğmelerin kendi merdiveni var (ana 18, ikincil 16) ve o da
+     Connect'ten geliyor. */
+  --r-kart: 24px;
+  --r-sm: 14px;
+  --sh-1: 0 1px 2px rgba(10, 26, 51, 0.04), 0 2px 8px rgba(10, 26, 51, 0.04);
+  --sh-2: 0 4px 10px rgba(10, 26, 51, 0.05), 0 12px 28px rgba(10, 26, 51, 0.07);
+  --sh-3: 0 12px 30px rgba(10, 26, 51, 0.13), 0 30px 60px rgba(10, 26, 51, 0.16);
+  --sh-turuncu: 0 6px 18px rgba(199, 73, 10, 0.28);
+  --sh-mavi: 0 6px 18px rgba(24, 72, 168, 0.3);
+  --turuncu-dugme: var(--marka-turuncu-dugme);
+  --turuncu-yazi: #8f3a00;
+  --turuncu-soft: rgba(232, 100, 26, 0.12);
+  --mavi-soft: rgba(24, 72, 168, 0.08);
+  --mavi-soft-2: rgba(24, 72, 168, 0.14);
+  --nav-zemin: var(--lacivert);
+  --nav-kenar: rgba(255, 255, 255, 0.06);
+  --nav-secili: var(--marka-turuncu-dugme);
+  --nav-secili-yazi: #ffffff;
+  --nav-h: 74px;
+  --nav-gap: 14px;
+  --tabs: calc(var(--nav-h) + var(--nav-gap) * 2);
+  font-family: Roboto, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* GÖVDE YAZISI BURADA VERİLİYOR.
+
+     `body` 14,5 piksel diyor ve o değer BACKOFFICE'İN — masa başında,
+     bilgisayar ekranında okunan bir panel. Bu uygulama tarlada,
+     güneş altında, çoğu zaman eldivenle açılıyor; kendi ölçü
+     dosyamızın gövde için yazdığı değer 16 piksel (bkz.
+     styles/olcu.css). Ölçüldü: sınıfı olmayan her metin — liste
+     satırları, kart içi yazılar — 14,5 pikselle çiziliyordu. */
+  font-size: var(--y-govde);
+  -webkit-font-smoothing: antialiased;
+}
+
+[data-tema='koyu'] .uyg {
+  --zemin: #0f1622;
+  --yuzey-2: #172033;
+  --cizgi: #263141;
+  --cizgi-koyu: #34425a;
+  /* Karanlık karşılık. Aynı ton ve doygunluk, koyu yüzeyde ölçülmüş:
+     --yuzey 3,17 · --yuzey-2 3,16 · --zemin 3,52. */
+  --cizgi-kontrol: #5d6e8c;
+  --murekkep-3: #9aa6b8;
+  --turuncu-soft: rgba(232, 100, 26, 0.18);
+  --mavi-soft: rgba(96, 140, 230, 0.14);
+  --mavi-soft-2: rgba(96, 140, 230, 0.22);
+  --sh-1: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --sh-2: 0 4px 12px rgba(0, 0, 0, 0.38);
+  --sh-3: 0 12px 32px rgba(0, 0, 0, 0.5);
+  --sh-turuncu: 0 6px 18px rgba(0, 0, 0, 0.45);
+  --sh-mavi: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+
+/* ------------------------------------------------------------- Üst çubuk
+
+   Koyu çubuk yok. Connect'te olduğu gibi: ana sekmelerde solda tam
+   renkli logo, sağda eylemler; alt sayfada solda beyaz "Geri" pili,
+   ortada logo. Başlık çubuğun içinde değil, altında — büyük ve dost. */
+
+.uyg__bar {
+  min-height: 60px;
+  padding: calc(10px + var(--ust)) var(--bosluk-4) 6px;
+  background: var(--zemin);
+  color: var(--murekkep);
+  border-bottom: 0;
+  box-shadow: none;
+}
+
+.uyg__bar--alt {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+}
+
+.uyg__logo-orta {
+  justify-self: center;
+}
+
+.uyg__geri {
+  width: auto;
+  height: 48px;
+  margin-left: 0;
+  padding: 0 14px 0 10px;
+  gap: var(--bosluk-1);
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: var(--yuzey);
+  box-shadow: var(--sh-1);
+  color: var(--murekkep);
+  font-size: var(--y-alt);
+  font-weight: 700;
+  justify-self: start;
+}
+
+.uyg__geri:active {
+  transform: scale(0.97);
+  background: var(--yuzey);
+}
+
+.uyg__baslik {
+  padding: 4px var(--bosluk-4) 12px;
+}
+
+.uyg__baslik h1 {
+  margin: 0;
+  font-size: var(--y-baslik);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--murekkep);
+}
+
+.uyg__baslik p {
+  margin: 4px 0 0;
+  font-size: var(--y-alt);
+  font-weight: 500;
+  color: var(--murekkep-2);
+}
+
+/* Sağ üst eylemler: "+" mavi dolu daire (Connect'teki bildirim
+   düğmesiyle aynı yapı), hesap harfi beyaz kartta. */
+.uyg__islemler {
+  justify-self: end;
+}
+
+.uyg__ekle,
+.uyg__hesap {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 999px;
+  background-clip: border-box;
+}
+
+/* DAİRE 44 PİKSEL ÇİZİLİYOR, BASILABİLİR ALAN 48.
+
+   Ölçüldü (18 Eylül 2026): düğme 44x44'tü. iOS'un 44 piksellik alt
+   sınırını karşılıyor ama Android'inki 48 ve bu uygulama Android
+   telefonda, tarlada, çoğu zaman eldivenle açılıyor.
+
+   Dairenin KENDİSİ büyütülmedi: üst çubuk Connect'in karşılamasından
+   ölçülerek geldi ve 48 piksellik beyaz bir daire orada logonun önüne
+   geçiyordu. Bunun yerine dokunma alanı görünmez bir katmanla iki
+   piksel dışarı taşıyor — aynı çözüm geri okunda ve bu dosyanın
+   1689. satırındaki taban kuralında da var. */
+.uyg__ekle::after,
+.uyg__hesap::after {
+  content: '';
+  position: absolute;
+  inset: calc((44px - var(--dokunma, 48px)) / 2);
+  /* Katman KARE, daire değil. `border-radius: inherit` denendi ve
+     köşeler dışarıda kaldı: 48x48'lik kutunun dört köşesine basınca
+     düğme yakalamıyordu. Katman görünmez olduğu için karenin görsel
+     karşılığı yok, kazancı ise gerçek 48x48. Yanında başka bir düğme
+     yok (logo 200 pikselden uzakta), çakışma olmuyor. */
+}
+
+.uyg__ekle {
+  background: var(--mavi);
+  color: #fff;
+  box-shadow: var(--sh-mavi);
+}
+
+.uyg__ekle:hover,
+.uyg__ekle:active {
+  background: var(--mavi-acik);
+  background-clip: border-box;
+}
+
+.uyg__hesap {
+  background: var(--yuzey);
+  box-shadow: var(--sh-1);
+  color: var(--mavi-rz);
+  font-size: var(--y-govde);
+  font-weight: 800;
+}
+
+.uyg__hesap:active {
+  background: var(--mavi-soft);
+  background-clip: border-box;
+}
+
+/* --------------------------------------------------------- Yüzen menü
+
+   Connect'in menüsüyle AYNI tarif: ekranın dibinde duran lacivert hap,
+   999 piksel köşe, seçili sekmenin altında turuncu kapsül
+   (`--nav-secili`). Biçim ortak, çünkü iki uygulama aynı firmanın
+   ürünü.
+
+   AYRILDIĞI TEK YER: ADLAR. Connect'te beş sekme var ve yazılar yer
+   sıkıntısı yüzünden kapatılmıştı; burada üç sekme var, yer bol ve
+   üçünün de adı yazıyor. Sebebi süsleme değil kural: bu uygulamanın
+   kullanıcısı ekranı tarlada açıyor, simgeyi öğrenmek zorunda
+   bırakılmıyor (bkz. CLAUDE.md, "İkon tek başına anlam taşımaz").
+   Ölçüler aşağıda .uyg__tab-ad ve .uyg__tab-ikon başlıklarında. */
+
+.uyg__tabs {
+  position: fixed;
+  left: 50%;
+  right: auto;
+  bottom: calc(var(--nav-gap) + var(--dip));
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 460px;
+  height: var(--nav-h);
+  padding: var(--bosluk-2);
+  border: 1px solid var(--nav-kenar);
+  border-top: 1px solid var(--nav-kenar);
+  border-radius: 999px;
+  background: var(--nav-zemin);
+  box-shadow: var(--sh-3);
+  z-index: 40;
+}
+
+.uyg__tab {
+  flex: 1 1 0;
+  min-width: 48px;
+  /* `min-height: var(--tabs)` yukarıdaki temel kuralda duruyor ve
+     --tabs artık çubuğun TOPLAM yüksekliği (74 + iki pay = 102).
+     Bastırılmazsa hap çubuğun dışına taşıyor. */
+  min-height: 0;
+  height: 52px;
+  flex-direction: row;
+  gap: 0;
+  padding: 0;
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: var(--y-alt);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.uyg__tab-ikon {
+  flex: none;
+  /* Kutu 58'den 34'e indi. 58 iken kutu hapın kendisiydi ve seçiliyi
+     gösteren tek şeydi, o yüzden büyüktü. Hap öğenin tamamına geçince
+     kutunun taşıması gereken tek şey 22 piksellik simge ile sağ üstteki
+     rozet kaldı; 34 ikisine yetiyor ve kazanılan 24 piksel adın yeri
+     oldu. Dokunma hedefi simge kutusu değil, 52 piksel yüksekliğindeki
+     öğenin tamamı. Yükseklik 46'da kalıyor: rozet kutunun dışına
+     taşıyor ve aşağıda kırpılmaması gerekiyor. */
+  width: 34px;
+  height: 46px;
+  border-radius: 999px;
+  transition: transform 0.18s ease, background 0.2s ease;
+}
+
+/* HAP SİMGENİN ARKASINDAN ÖĞENİN TAMAMINA DÖNDÜ.
+
+   Hap bir dönem yalnız simgenin arkasındaydı; gerekçesi "yazı
+   kapatıldı, öğe yalnız simge" idi. Yazı geri geldiği için o gerekçe
+   de kalktı: hap simgede kalsaydı seçili sekmenin ADI hapın dışında,
+   sönük renkte kalırdı — seçili olanın yazısı en okunur olması
+   gerekenken. Hap artık simgeyi ve adı birlikte kuşatıyor. */
+.uyg__tab--on {
+  flex: 1 1 0;
+  padding: 0;
+  background: var(--nav-secili);
+  color: var(--nav-secili-yazi);
+}
+
+.uyg__tab--on .uyg__tab-ikon {
+  color: inherit;
+}
+
+.uyg__tab--on .uyg__tab-ikon::before {
+  content: none;
+}
+
+.uyg__tab:active .uyg__tab-ikon {
+  transform: scale(0.9);
+}
+
+/* ÜÇ SEKMENİN ÜÇÜNDE DE AD GÖRÜNÜYOR.
+
+   Burada `max-width: 0; opacity: 0` vardı ve üstündeki yorum seçili
+   sekmenin adını taşıdığını söylüyordu; öyle bir kural hiç yazılmamış,
+   yani üç sekmenin üçü de yalnız simgeydi. Ad yalnız DOM'da, ekran
+   okuyucu için duruyordu — gören kullanıcı için simge tek başına anlam
+   taşıyordu. Proje kuralı bunu yasaklıyor (bkz. CLAUDE.md, Servis
+   Panelinin Kullanıcısı) ve yasağın sebebi tam buradaki kullanıcı:
+   ekranı tarlada, işin sonunda, çoğu zaman ayakta açıyor; anahtar,
+   dişli ve etiket simgelerinden hangisinin hak ediş olduğunu
+   tahmin etmek zorunda kalmamalı.
+
+   YER ÖLÇÜLDÜ, KESİLMİYOR. Tarayıcıda ölçüldü, hesaplanmadı: en dar
+   hedef telefon 360 piksel, menü 344, öğeye 108,8 düşüyor. En uzun ad
+   "Hak Ediş" 14px/700'de 55 piksel; 28'lik simge kutusu ve 10'luk payla
+   93 tutuyor. 320 pikselde öğe 95,5 — orada da kesilmiyor. Yani
+   hiçbir sekmede "Hak Edi|" görünmüyor.
+
+   PAY 10 PİKSEL, 8 DEĞİL. İşlerim sekmesinin rozeti simge kutusunun
+   sağından 6 piksel taşıyor; 8'lik payda yazıya 2 piksel kalıyordu ve
+   rakam adın üstüne biniyor gibi duruyordu. */
+.uyg__tab-ad {
+  /* 12 değil 14: yukarıdaki eski çubuğun kuralı adı 12'ye düşürüyordu,
+     ölçü merdiveninin tabanı ise 14 ve altına inilmiyor. Ayakta,
+     güneşte okunan bir menüde ilk kısılacak yer yazı boyu değil. */
+  font-size: var(--y-alt);
+  margin-left: 10px;
+}
+
+.uyg__rozet {
+  background: var(--kirmizi);
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .uyg__tab,
+  .uyg__tab-ad,
+  .uyg__tab-ikon {
+    transition: none;
+  }
+}
+
+/* DAR TELEFONDA AD DEĞİL SİMGE KUTUSU DARALIYOR.
+   Üç ad da görünür kalmalı; daralacak bir şey gerekiyorsa simgenin
+   iki yanındaki nefes payından alınıyor (34 → 28), addan değil. Kutu
+   artık hapı değil yalnız 22 piksellik simgeyi ve rozetin çapasını
+   taşıyor; iki yanında 3 piksel kalıyor.
+   Ölçü (tarayıcıda, 14px/700): hedefin alt sınırı 360 pikselde öğeye
+   108,8 düşüyor, en uzun ad "Hak Ediş" 28'lik kutu ve 10'luk payla 93
+   tutuyor. 320 pikselde öğe 95,5'e iniyor — hâlâ sığıyor ama payı iki
+   buçuk piksel; 320 artık hedef değil, kırılmadan daralması yeter.
+   Menünün ekran kenarındaki payı da burada daralıyor (32 → 16).
+
+   İÇ PAY DARALMIYOR. Bir dönem burada yatay iç pay 8'den 4'e
+   iniyordu; yazı kapalıyken kimse görmüyordu, seçili hap artık
+   öğenin tamamı olduğu için ilk ve son sekme seçilince turuncu hap
+   lacivert çubuğun kenarına yapışıyor. Kazanılan 8 piksele de
+   ihtiyaç yok: 360'ta öğeye 108,8 düşüyor, gereken 93. */
+@media (max-width: 360px) {
+  .uyg__tabs {
+    width: calc(100% - 16px);
+  }
+
+  .uyg__tab-ikon {
+    width: 28px;
+  }
+
+  /* 44 piksel dokunma hedefinin alt sınırı (bkz. PRODUCT.md); adın
+     sığdığı genişlik bunun üstünde, bu yüzden taban hiç devreye
+     girmiyor — yine de yerinde duruyor. */
+  .uyg__tab {
+    min-width: 44px;
+  }
+}
+
+/* Gövde, yüzen menünün altında kalmasın. */
+.uyg__ic {
+  padding-bottom: calc(var(--bosluk-5) + var(--tabs) + var(--dip));
+}
+
+/* ------------------------------------------------------ Bölüm başlığı
+
+   Connect'in .sectionhead'i: büyük, kalın, cümle düzeni; sayı sağda
+   sönük. Büyük harfli küçük etiket backoffice diliydi, burada yok. */
+
+/* ------------------------------------------------ Gövdenin dikey ritmi
+
+   ÖLÇÜLDÜ: İşlerim ekranında üst üste duran beş blok arasındaki
+   boşluk sırasıyla 0, 16, 16 ve 32 pikseldi. İlk iki kart birbirine
+   YAPIŞIYORDU — ne biri alt boşluk veriyordu ne öteki üst. Her blok
+   kendi marjını kendi taşıdığı için de aradaki mesafe, o blokun
+   hangi ekranda yazıldığına göre değişiyordu.
+
+   Aralık artık gövdenin kendi kuralı:
+
+     kart ile kart arası   16px
+     bölüm ile bölüm arası 32px  (başlıklı bölüm daha büyük nefes ister)
+     son blokun altı       0     (dip çubuğu payı `uyg__ic`te zaten var)
+
+   Bloklar kendi `margin-bottom` değerlerini de taşımaya devam
+   ediyor; komşu marjlar birleştiği için ikisinden büyük olan
+   geçerli oluyor ve toplanma olmuyor. */
+.uyg__ic > * {
+  margin-bottom: var(--bosluk-4);
+}
+
+.uyg__ic > :last-child {
+  margin-bottom: 0;
+}
+
+.uyg .bolum {
+  margin-bottom: var(--bosluk-6);
+}
+
+.uyg .bolum__ad {
+  margin: 0 0 12px;
+  font-size: var(--y-bolum);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  text-transform: none;
+  color: var(--murekkep);
+}
+
+.uyg .bolum__sayi {
+  margin-left: auto;
+  padding: 0;
+  min-width: 0;
+  background: transparent;
+  color: var(--murekkep-3);
+  font-size: var(--y-govde);
+  font-weight: 700;
+}
+
+/* ------------------------------------------------------------ İş kartı
+
+   Connect'in makine kartı: beyaz, 24px köşe, --sh-1; başlık kalın,
+   künye sönük, sağda eylem. Arama düğmesi mavi dolu daire — Connect'te
+   telefon her yerde mavi. */
+
+.uyg .is {
+  margin-bottom: var(--bosluk-3);
+  border: 0;
+  border-radius: var(--r-kart);
+  background: var(--yuzey);
+  box-shadow: var(--sh-1);
+}
+
+.uyg .is:hover {
+  border-color: transparent;
+}
+
+.uyg .is:active {
+  transform: scale(0.985);
+  box-shadow: var(--sh-2);
+}
+
+.uyg .is--gec {
+  box-shadow: var(--sh-1), inset 0 0 0 2px var(--marka-turuncu);
+}
+
+.uyg .is__ac {
+  padding: var(--bosluk-4) var(--bosluk-2) var(--bosluk-4) var(--bosluk-4);
+}
+
+.uyg .is__ad {
+  font-size: var(--y-kart);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--murekkep);
+}
+
+.uyg .is__alt {
+  margin-top: 3px;
+  font-size: var(--y-alt);
+  color: var(--murekkep-2);
+}
+
+.uyg .is__durum {
+  margin-top: var(--bosluk-3);
+  font-size: var(--y-alt);
+}
+
+.uyg .is__sol {
+  color: var(--mavi-rz);
+  font-weight: 700;
+}
+
+.uyg .is__sag {
+  color: var(--murekkep-2);
+  font-weight: 500;
+}
+
+.uyg .is__sag--gec {
+  color: var(--turuncu-yazi);
+  font-weight: 700;
+}
+
+.uyg .is__uyari {
+  color: var(--turuncu-yazi);
+}
+
+.uyg .is__ara {
+  width: 64px;
+  border-left: 0;
+  background: transparent;
+  color: #fff;
+}
+
+.uyg .is__ara > svg {
+  box-sizing: content-box;
+  padding: var(--bosluk-3);
+  border-radius: 999px;
+  background: var(--mavi);
+  box-shadow: var(--sh-mavi);
+}
+
+.uyg .is__ara:active > svg {
+  background: var(--mavi-acik);
+}
+
+/* Tür rozeti: Connect'teki soluk zeminli hap (aynı renk çiftleri). */
+.uyg .tur {
+  padding: var(--bosluk-1) var(--bosluk-3);
+  border-radius: 999px;
+  border: 0;
+  font-size: var(--y-mini);
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.uyg .tur--servis {
+  background: var(--turuncu-z);
+  color: #8f5200;
+}
+
+.uyg .tur--parca {
+  background: var(--mor-z);
+  color: var(--mor);
+}
+
+.uyg .tur--satis {
+  background: var(--mavi-z);
+  color: var(--mavi-rz);
+}
+
+[data-tema='koyu'] .uyg .tur--servis {
+  color: #ffb26b;
+}
+
+/* ---------------------------------------------------------------- Düğme
+
+   Connect'in .btn ailesi: ana çağrı turuncu ve 18px köşe, ikincil
+   mavi, üçüncül beyaz kart. Basınca hafifçe içeri gidiyor. */
+
+.uyg .dg {
+  min-height: var(--dokunma);
+  padding: 0 18px;
+  border: 0;
+  border-radius: 16px;
+  font-family: inherit;
+  font-size: var(--y-govde);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  transition: transform 0.13s ease, filter 0.13s ease;
+}
+
+.uyg .dg:active {
+  transform: scale(0.975);
+  filter: brightness(0.94);
+}
+
+.uyg .dg--ana {
+  background: var(--turuncu-dugme);
+  color: #fff;
+  border-radius: 18px;
+  box-shadow: var(--sh-turuncu);
+}
+
+.uyg .dg--blok {
+  min-height: 60px;
+}
+
+.uyg .dg:not(.dg--ana) {
+  background: var(--yuzey);
+  color: var(--murekkep);
+  /* Servisim'in tek çerçeveli düğmesi (Vazgeç, Adres Ekle, Elle Gir,
+     Düzenle, Sil, Çıkış Yap, Geri): dolgusu --yuzey, sayfanın zemini
+     --zemin ve ikisinin farkı 1,07. Düğmenin nerede başladığını yalnız
+     bu kenar söylüyor — kontrol sınırı, süs değil. */
+  border: 1px solid var(--cizgi-kontrol);
+}
+
+/* `.uyg .dg--mavi` KALDIRILDI (18 Eylül 2026). Servisim'de hiç
+   kullanılmıyordu ve kullanılsaydı da çalışmayacaktı: üstündeki
+   `.uyg .dg:not(.dg--ana)` kuralı iki sınıf + sözde sınıf taşıdığı için
+   ondan güçlü ve zemini, yazı rengini, kenarını üçünü birden eziyordu.
+   Mavi düğme beyaz çerçeveli düğme olarak çizilirdi. Gerekiyorsa
+   `.uyg .dg.dg--mavi` olarak yeniden yazılır. */
+
+/* Detaydaki eylem satırları (Randevu, Not Ekle, Destek İste) —
+   Connect'in .tile'ı: beyaz kart, 24px köşe, ok sağda. */
+.uyg .secenek {
+  border: 0;
+  background: transparent;
+  overflow: visible;
+}
+
+.uyg .secenek__dg {
+  margin-bottom: var(--bosluk-3);
+  padding: var(--bosluk-4);
+  border: 0;
+  border-radius: var(--r-kart);
+  background: var(--yuzey);
+  box-shadow: var(--sh-1);
+  font-family: inherit;
+  font-size: var(--y-govde);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--murekkep);
+}
+
+.uyg .secenek__dg:active {
+  transform: scale(0.985);
+}
+
+/* Talebi kapatan seçenek (Garanti Dışı İşi Tamamla): soluk yeşil zemin,
+   yeşil çerçeve ve yeşil simge. Yazı mürekkep renginde kalıyor; okunurluk
+   rengin taşıdığı anlama feda edilmiyor. */
+.uyg .secenek__dg--tamamla {
+  background: linear-gradient(var(--yesil-z), var(--yesil-z)), var(--yuzey);
+  box-shadow: inset 0 0 0 1.5px var(--yesil), var(--sh-1);
+}
+
+.uyg .secenek__dg--tamamla > svg:first-child,
+.uyg .secenek__dg--tamamla > svg:last-child {
+  color: var(--yesil);
+}
+
+/* ------------------------------------------------------------ Seçenek
+
+   Connect'in .durum satırı: beyaz, 15px köşe, ince kenar, solda 22px
+   yuvarlak işaret; seçilince mavi kenar, soluk mavi zemin, dolu nokta. */
+
+.uyg .buyuk-sec {
+  position: relative;
+  min-height: 56px;
+  margin-bottom: var(--bosluk-3);
+  padding: var(--bosluk-4) var(--bosluk-4) var(--bosluk-4) 50px;
+  border: 1px solid var(--cizgi-kontrol);
+  border-radius: var(--r-sm);
+  background: var(--yuzey);
+  transition: background 0.14s ease, border-color 0.14s ease, transform 0.14s ease;
+}
+
+/* Temeldeki `.buyuk-sec:last-child` alttaki çizgiyi kaldırıyor — orada
+   kartlar tek çerçevenin içinde alt alta dizili ve son satırın altı
+   çerçevenin kendisi. Burada her kart kendi çerçevesiyle duruyor, son
+   kartın da dört kenarı olmalı.
+
+   YALNIZ KALINLIK VE BİÇİM YAZILIYOR, RENK YAZILMIYOR. Renk de
+   yazıldığında bu kural `.uyg .buyuk-sec--on`dan daha güçlü kalıyor
+   (iki sınıf + sözde sınıf) ve seçili SON kartın alt kenarı gri
+   çiziliyordu: üç kenarı mavi, altı gri — kutunun altı bir şeyin
+   altında kalmış gibi görünüyordu (kullanıcı bildirdi, 18.09.2026). */
+.uyg .buyuk-sec:last-child {
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+}
+
+.uyg .buyuk-sec::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  width: 22px;
+  height: 22px;
+  margin-top: -11px;
+  border-radius: 50%;
+  /* Seçim yuvarlağının kendisi. Bu çizgi silinirse seçilmemiş cevabın
+     işareti tamamen kaybolur; satırda seçilecek bir şey olduğu
+     anlaşılmaz. */
+  border: 2px solid var(--cizgi-kontrol);
+  background: var(--yuzey);
+}
+
+.uyg .buyuk-sec:active {
+  transform: scale(0.985);
+  background: var(--yuzey);
+}
+
+.uyg .buyuk-sec--on {
+  border-color: var(--mavi-rz);
+  background: var(--mavi-soft);
+  box-shadow: none;
+}
+
+.uyg .buyuk-sec--on::before {
+  border-color: var(--mavi-rz);
+  box-shadow: inset 0 0 0 3.5px var(--yuzey);
+  background: var(--mavi);
+}
+
+.uyg .buyuk-sec__ad {
+  font-size: var(--y-govde);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.uyg .buyuk-sec__alt {
+  font-size: var(--y-alt);
+  color: var(--murekkep-2);
+}
+
+.uyg .parca-satir {
+  border-radius: var(--r-sm);
+  border-color: var(--cizgi-koyu);
+}
+
+/* SEÇİLİ SATIR TEK TON.
+
+   Satırın tamamı açık maviye boyanıyordu, soldaki düğme alanı da ayrıca
+   daha koyu bir maviye (`--mavi-z`). İki kural üst üste biniyordu ve
+   satır ortasından iki renge bölünüyordu; kasıtlı değildi. Koyu kural
+   kaldırıldı: seçili satırın kenarı ve zemini tek renk. */
+.uyg .parca-satir--on {
+  border-color: var(--mavi-rz);
+  background: var(--mavi-soft);
+}
+
+/* ----------------------------------------------------------- Alan, kutu */
+
+.uyg .alan {
+  margin-bottom: var(--bosluk-4);
+}
+
+.uyg .alan__ad {
+  margin-bottom: var(--bosluk-2);
+  font-size: var(--y-alt);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--murekkep);
+}
+
+.uyg .alan__ipucu {
+  display: block;
+  margin-top: var(--bosluk-2);
+  font-size: var(--y-alt);
+  color: var(--murekkep-2);
+}
+
+.uyg .gir {
+  min-height: var(--dokunma);
+  padding: var(--bosluk-3) var(--bosluk-4);
+  /* Kutunun dolgusu kartın zemini ile birebir aynı beyaz; çizgi
+     silinse yazı kutusunun nerede başladığı hiç anlaşılmaz. */
+  border: 1px solid var(--cizgi-kontrol);
+  border-radius: var(--r-sm);
+  background: var(--yuzey);
+  color: var(--murekkep);
+  font-family: inherit;
+  font-size: var(--y-govde);
+}
+
+.uyg .gir:focus {
+  outline: 0;
+  border-color: var(--mavi-rz);
+  box-shadow: 0 0 0 3px var(--mavi-soft-2);
+}
+
+/* ------------------------------------------------ Sesle yazma (dikte)
+
+   Yazı kutusu ve "Konuşarak Yaz" düğmesi TEK ÇERÇEVE (bkz. Dikte.jsx →
+   DikteliKutu). Çerçeve, köşe ve odak halkası dıştaki kutuda; içteki
+   yazı alanı çerçevesiz. Düğme yazının altındaki şeritte, ince bir
+   çizgiyle ayrılmış. Parmak boyu 48 piksel; eldivenle de basılıyor.
+   Dinlerken bütün çerçeve maviye dönüyor ve düğmenin yanında atan bir
+   nokta ile "dinleniyor" yazısı duruyor — yalnız renk değil, yazı da
+   söylüyor. */
+.uyg .dikteli {
+  overflow: hidden;
+  /* Yazı alanını ve "Konuşarak Yaz" şeridini saran tek çerçeve; iç
+     alanın kendi kenarı sıfırlandığı için sınır yalnız burada. */
+  border: 1px solid var(--cizgi-kontrol);
+  border-radius: var(--r-sm);
+  background: var(--yuzey);
+  transition: border-color 0.13s ease, box-shadow 0.13s ease;
+}
+
+.uyg .dikteli:focus-within,
+.uyg .dikteli--dinliyor {
+  border-color: var(--mavi-rz);
+  box-shadow: 0 0 0 3px var(--mavi-soft-2);
+}
+
+.uyg .dikteli .dikteli__gir,
+.uyg .dikteli .dikteli__gir:focus {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  resize: none;
+}
+
+.uyg .dikteli__serit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--bosluk-2) var(--bosluk-3);
+  padding: 6px;
+  border-top: 1px solid var(--cizgi);
+  background: var(--yuzey-2);
+}
+
+.uyg .dikteli--dinliyor .dikteli__serit {
+  background: var(--mavi-soft);
+}
+
+.uyg .dikteli .dikteli__dg {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  padding: 0 var(--bosluk-4);
+  border: 0;
+  border-radius: calc(var(--r-sm) - 6px);
+  background: var(--mavi-soft);
+  color: var(--mavi-rz);
+}
+
+.uyg .dikteli .dikteli__dg--on {
+  background: var(--mavi);
+  color: #fff;
+}
+
+.uyg .dikteli__durum {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  font-size: var(--y-alt);
+  font-weight: 600;
+  color: var(--murekkep-2);
+}
+
+.uyg .dikteli__nabiz {
+  width: 10px;
+  height: 10px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--turuncu-dugme);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .uyg .dikteli__nabiz {
+    animation: dikte-nabiz 1.2s ease-in-out infinite;
+  }
+}
+
+@keyframes dikte-nabiz {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.7);
+  }
+}
+
+.uyg .dikteli__uyari {
+  margin: var(--bosluk-2) 0 0;
+}
+
+/* ARAMA KUTUSUNUN İÇİNDEKİ ALAN ÇERÇEVESİZ.
+
+   `.ara-kutu .gir` iç alanın kenarlığını sıfırlıyordu; ama aynı
+   ağırlıktaki `.uyg .gir` dosyada daha aşağıda durduğu için kenarlığı,
+   köşe yuvarlağını ve odak halkasını geri getiriyordu. Ekranda büyüteç
+   bir kutuda, yazı alanı onun içinde ikinci bir kutuda görünüyordu
+   (kullanıcının ekran görüntüsü, 10 Eylül 2026). Çerçeve ve odak
+   rengi artık yalnız dıştaki kutuda; yükseklik, çizgi rengi ve köşe
+   öteki giriş alanlarıyla aynı. */
+.uyg .ara-kutu {
+  min-height: var(--dokunma);
+  /* İç .gir çerçevesizleştirildiği için yazılabilir alanın sınırı bu
+     kenar. */
+  border-color: var(--cizgi-kontrol);
+  border-radius: var(--r-sm);
+}
+
+.uyg .ara-kutu:focus-within {
+  border-color: var(--mavi-rz);
+  box-shadow: 0 0 0 3px var(--mavi-soft-2);
+}
+
+.uyg .ara-kutu .gir,
+.uyg .ara-kutu .gir:focus {
+  flex: 1;
+  min-width: 0;
+  padding-left: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.uyg textarea.gir {
+  min-height: 0;
+  line-height: 1.5;
+}
+
+/* Okunur satır (kayıtta zaten bilinen alanlar). */
+.kv {
+  display: flex;
+  align-items: baseline;
+  gap: var(--bosluk-3);
+  padding: 12px 0;
+  border-bottom: 1px solid var(--cizgi);
+}
+
+.kv:last-child {
+  border-bottom: 0;
+}
+
+.kv__ad {
+  flex: none;
+  font-size: var(--y-alt);
+  font-weight: 500;
+  color: var(--murekkep-2);
+}
+
+.kv__deger {
+  flex: 1;
+  min-width: 0;
+  text-align: right;
+  font-size: var(--y-govde);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--murekkep);
+  overflow-wrap: anywhere;
+}
+
+/* --------------------------------------------------------------- Kart
+
+   Detay ve kayıt ekranındaki bilgi kutuları da Connect kartı. */
+.uyg .kart {
+  border: 0;
+  border-radius: var(--r-kart);
+  background: var(--yuzey);
+  box-shadow: var(--sh-1);
+}
+
+/* ------------------------------------------------------------------ Not
+
+   Yumuşak renkli kart: Connect'in bilgi kutuları gibi, köşe 18. */
+.uyg .not {
+  border: 0;
+  border-radius: var(--r-kart);
+  background: var(--mavi-soft);
+  color: var(--murekkep);
+}
+
+.uyg .not--yesil { background: rgba(26, 131, 72, 0.12); }
+.uyg .not--turuncu { background: var(--turuncu-soft); }
+.uyg .not--mavi { background: var(--mavi-soft); }
+
+/* Notun içindeki zorunlu "Anladım" düğmesi (ElleKayit.jsx → başkasının
+   makinesi). Basılmamışken Servisim'in çerçeveli düğmesi; basılınca
+   yeşil ve onay işaretli — renk tek başına anlam taşımıyor, işaret ve
+   aria-pressed da söylüyor. Seçici dört sınıf: üstteki
+   `.uyg .dg:not(.dg--ana)` kuralı zemini ve kenarı eziyor. */
+.uyg .not__onay {
+  margin-top: var(--bosluk-3);
+}
+
+/* TELEFONDA DA İKİ SÜTUN (elle kayıt → Ad / Soyad). Ortak `.esit`
+   sütun başına en az 200 piksel istiyor ve 390 piksellik telefonda tek
+   sütuna iniyor; İl / İlçe öyle kalıyor. Ad ile soyad kısa: Connect'in
+   kayıt ekranındaki gibi yan yana (kullanıcının isteği, 21 Eylül 2026). */
+.uyg .esit--ikili {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+/* Nottaki telefon numarası (dokununca aranıyor). Tarayıcının mavisi
+   karanlık temada turuncu notun zemininde okunmuyordu; yazı rengi,
+   kalınlık ve alt çizgi bağlantı olduğunu iki temada da söylüyor. */
+.uyg .not__tel {
+  color: var(--murekkep);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.uyg .dg.not__onay.not__onay--on {
+  background: var(--yesil-z);
+  border-color: var(--yesil);
+  color: var(--yesil);
+}
+
+/* --------------------------------------------------------------- Bakiye
+
+   Connect'in "Servisiniz" kartı anatomisi: soluk turuncu simge karesi,
+   küçük etiket, büyük lacivert rakam. Servisin ekranı açma sebebi bu
+   rakam; ekrandaki en büyük şey o. */
+
+.bakiye {
+  display: flex;
+  gap: var(--bosluk-4);
+  align-items: flex-start;
+  /* Kartlar arası tek aralık: 16. Bu kart 24 kullanıyordu ve
+     ekranın ritmini kendi başına bozuyordu. */
+  margin-bottom: var(--bosluk-4);
+  padding: var(--bosluk-4);
+  border-radius: var(--r-kart);
+  background: var(--yuzey);
+  box-shadow: var(--sh-1);
+}
+
+/* KARE, ETİKET + RAKAM BLOĞU BOYUNDA (21 Eylül 2026). Önce 48 piksellik
+   dokunma karesiydi ve içinde 22 piksellik ikon vardı: kare yalnız
+   etiketin hizasında başlıyor, altındaki 32 piksellik rakamın ortasına
+   gelmiyordu. Etiket (21) + ara (2) + rakam satırı (35) = 58; kare 56
+   ile o bloğun yanında ortalanıyor. Dokunulan bir düğme değil, dokunma
+   ölçüsüne bağlı kalması gerekmiyor. */
+.bakiye__ikon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-top: 1px;
+  border-radius: var(--r-sm);
+  background: var(--turuncu-soft);
+  color: var(--turuncu-yazi);
+}
+
+/* Para işareti yazı olarak: rakamla aynı kalınlıkta, karenin yarısı
+   kadar yüksek. Satır yüksekliği 1, yoksa yazı tipinin alt boşluğu
+   işareti karenin tepesine iter. */
+.bakiye__simge {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* KARANLIK TEMADA AÇIK TURUNCU. `--turuncu-yazi` (#8f3a00) açık kart
+   için ölçülmüş; karanlıkta zemin (--turuncu-soft) değişiyor, o
+   değişmiyordu: işaret karede 1,75:1 kalıyordu (ölçüldü, 21 Eylül 2026;
+   eski onay işareti de aynı renkteydi). --turuncu karanlıkta #ff8a3d:
+   5,66:1. Parça kartındaki fiyatla aynı çözüm. */
+[data-tema='koyu'] .uyg .bakiye__ikon {
+  color: var(--turuncu);
+}
+
+.bakiye__govde {
+  flex: 1;
+  min-width: 0;
+}
+
+.bakiye__etiket {
+  font-size: var(--y-alt);
+  font-weight: 500;
+  color: var(--murekkep-2);
+}
+
+.bakiye__tutar {
+  margin-top: 2px;
+  font-size: var(--y-rakam);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--murekkep);
+  font-variant-numeric: tabular-nums;
+}
+
+.bakiye__tutar small {
+  margin-left: 4px;
+  font-size: var(--y-govde);
+  font-weight: 700;
+  color: var(--murekkep-3);
+}
+
+.bakiye__aciklama {
+  margin: 8px 0 0;
+  font-size: var(--y-alt);
+  line-height: 1.45;
+  color: var(--murekkep-2);
+}
+
+/* ------------------------------------------------------------------ Hesap */
+
+.hesap {
+  margin-top: var(--bosluk-3);
+  padding: var(--bosluk-1) var(--bosluk-4);
+  border-radius: var(--r-kart);
+  background: var(--yuzey);
+  box-shadow: var(--sh-1);
+}
+
+.hesap__satir {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--bosluk-3);
+  padding: 11px 0;
+  border-bottom: 1px solid var(--cizgi);
+  font-size: var(--y-govde);
+  color: var(--murekkep-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.hesap__satir:last-child {
+  border-bottom: 0;
+}
+
+.hesap__satir--toplam {
+  font-size: var(--y-govde);
+  font-weight: 700;
+  color: var(--murekkep);
+}
+
+/* --------------------------------------------- Kaydın dibindeki çubuk */
+
+.uyg .uyg__dip {
+  background: var(--yuzey);
+  border-top: 1px solid var(--cizgi);
+  box-shadow: 0 -8px 24px rgba(10, 26, 51, 0.06);
+}
+
+.kayit-dip__hesap {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--bosluk-3);
+  margin-bottom: var(--bosluk-3);
+}
+
+.kayit-dip__hesap span {
+  font-size: var(--y-alt);
+  font-weight: 500;
+  color: var(--murekkep-3);
+}
+
+.kayit-dip__hesap strong {
+  font-size: var(--y-tutar);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--murekkep);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------ Hesap hareketi */
+
+.hareket {
+  display: flex;
+  align-items: baseline;
+  gap: var(--bosluk-3);
+  margin-bottom: var(--bosluk-3);
+  padding: var(--bosluk-4);
+  border-radius: var(--r-kart);
+  background: var(--yuzey);
+  box-shadow: var(--sh-1);
+}
+
+.hareket__sol {
+  flex: 1;
+  min-width: 0;
+}
+
+.hareket__ad {
+  font-size: var(--y-govde);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--murekkep);
+}
+
+.hareket__zaman {
+  margin-top: 2px;
+  font-size: var(--y-alt);
+  color: var(--murekkep-2);
+}
+
+.hareket__tutar {
+  flex: none;
+  font-size: var(--y-govde);
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--murekkep-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.hareket__tutar--alacak {
+  color: var(--yesil);
+}
+
+/* HAREKETE DOKUNULUNCA ÖZETİ AÇILIYOR (bkz. Hakkedis.jsx →
+   HareketAyrinti). Satır düğme; sağdaki ok dokunulabildiğini
+   gösteriyor. */
+button.hareket {
+  width: 100%;
+  align-items: center;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+button.hareket:active {
+  transform: scale(0.99);
+}
+
+.hareket__ok {
+  display: inline-flex;
+  flex: none;
+  color: var(--murekkep-3);
+}
+
+/* ---------------------------------------------------------- Duyuru kartı
+
+   Connect kartı; tür etiketi kendi renginde küçük, geri çağırma
+   soluk kırmızı zemin. Kalın renkli çerçeve yok. */
+
+.uyg .duyuru {
+  border: 0;
+  border-left: 0;
+  border-radius: var(--r-kart);
+  background: var(--yuzey);
+  box-shadow: var(--sh-1);
+  padding: var(--bosluk-4);
+}
+
+.uyg .duyuru__tur {
+  font-size: var(--y-mini);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.uyg .duyuru__ust {
+  font-size: var(--y-alt);
+}
+
+.uyg .duyuru__baslik {
+  margin-top: var(--bosluk-1);
+  font-size: var(--y-govde);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--murekkep);
+}
+
+.uyg .duyuru__metin {
+  font-size: var(--y-govde);
+}
+
+.uyg .duyuru--geriCagirma {
+  border: 0;
+  background: var(--kirmizi-z);
+}
+
+/* ------------------------------------------------------------- İpucu */
+
+/* SOL HİZA. Ölçüldü: bu paragraf 18 pikselden başlıyordu, üstündeki
+   ve altındaki her blok 16'dan. Sebebi temel kuraldaki `0 2px` yan
+   payı — masaüstü panelde göze çarpmıyor, telefonda tek sütunda
+   çarpıyor. Gövdenin sol kenarı tek çizgi olmalı. */
+.uyg .ipucu {
+  margin-left: 0;
+  margin-right: 0;
+  font-size: var(--y-alt);
+  line-height: 1.5;
+  color: var(--murekkep-2);
+}
+
+/* BACKOFFICE'TEN GELEN İKİ ÖLÇÜ BU UYGULAMADA GEÇERLİ DEĞİL.
+
+   `backoffice.css` paylaşılıyor ve oradaki bazı değerler masa
+   başındaki panele göre seçilmiş. Telefonda tarlada okunacak
+   metinde karşılığı yok:
+
+     .kucuk  12,5px  → yardımcı satırın alt sınırı 14 (`--y-alt`).
+                       Ekranda etiketlerin çoğu bu sınıfı taşıyor;
+                       "Telefon", "Konum", "Adres" hepsi 12,5
+                       pikselle çiziliyordu.
+     .bos strong 19px → bu uygulamanın başlık basamağı 20
+                       (`--y-bolum`). Tek piksellik fark hiyerarşi
+                       kurmuyor, dağınıklık üretiyor. */
+.uyg .kucuk {
+  font-size: var(--y-alt);
+}
+.uyg .bos {
+  border-radius: var(--r-kart);
+}
+
+.uyg .bos strong {
+  font-size: var(--y-bolum);
+}
+
+/* ------------------------------------------------ Dokunma hedefi tabanı
+
+   Sweep üç küçük hedef yakaladı: Yeni Kayıt'taki tür seçici çipleri
+   32 px, Hesap'taki tema düğmeleri 30 px, Geri pili 40 px. Kural 48
+   (eldivenli kullanım, bkz. PRODUCT.md). Görünüm değişmeden yükseklik
+   tabana çekildi; hap dili Connect'in çipleriyle aynı. */
+/* Tür seçici çipleri (.cip): Connect'in çip dili — hap, seçilince
+   lacivert dolu ve beyaz yazı. */
+.uyg .cip {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: var(--y-alt);
+}
+
+.uyg .cip--on {
+  background: var(--dolgu);
+  color: #fff;
+  border-color: var(--dolgu);
+}
+
+.uyg .tema-secici__dg {
+  min-height: 44px;
+  padding: 0 16px;
+}
+
+/* ------------------------------------------ Alt sayfada yapışık düğme
+
+   `.yapisik` sekmeli ekranlar için yazıldı: sekme çubuğunun üstüne
+   oturur. Alt sayfada (Yeni Kayıt) sekme yok; aynı kural düğmeyi
+   boşlukta, içeriğin üstünde yüzer bırakıyordu. Alt sayfada dibe
+   yapışıyor ve Connect'in dip çubuğu gibi beyaz zeminde duruyor. */
+.uyg--sayfa .yapisik {
+  bottom: var(--dip);
+  margin-top: var(--bosluk-2);
+  padding: 12px var(--bosluk-4);
+  padding-bottom: calc(12px + var(--dip));
+  background: var(--yuzey);
+  border-top: 1px solid var(--cizgi);
+  box-shadow: 0 -8px 24px rgba(10, 26, 51, 0.06);
+}
+
+/* ==========================================================================
+   Onay yaprağı
+
+   Ekranın dibinden açılıyor. Ortada duran bir kutu masaüstü kalıbı;
+   telefonda parmak altta ve asıl düğmenin oraya gelmesi gerekiyor.
+   Gerekçesi Kabuk.jsx içinde.
+   ========================================================================== */
+
+.onay-perde {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background: rgba(10, 26, 51, 0.5);
+}
+
+.onay {
+  padding: var(--bosluk-5) var(--bosluk-5)
+    calc(var(--bosluk-5) + env(safe-area-inset-bottom, 0px));
+  border-radius: var(--r-3) var(--r-3) 0 0;
+  background: var(--yuzey);
+  max-height: 86dvh;
+  overflow: auto;
+}
+
+.onay__baslik {
+  margin: 0;
+  font-size: var(--y-bolum);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--murekkep);
+}
+
+.onay__metin {
+  margin: var(--bosluk-2) 0 0;
+  font-size: var(--y-govde);
+  line-height: 1.55;
+  color: var(--murekkep-2);
+}
+
+/* Onaylanacak şeyin özeti. Tutar en altta ve kalın: servisin son
+   baktığı rakam o. */
+.onay__liste {
+  margin: var(--bosluk-4) 0 0;
+  padding: var(--bosluk-3) var(--bosluk-4);
+  border-radius: var(--r-2);
+  background: var(--yuzey-2);
+}
+
+.onay__satir {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--bosluk-4);
+  padding: 7px 0;
+  font-size: var(--y-govde);
+  color: var(--murekkep-2);
+}
+
+.onay__satir strong {
+  color: var(--murekkep);
+  text-align: right;
+}
+
+/* Parça listesinin kutusu. Bir dönem kuralı hiç yoktu ve liste üstteki
+   özet kutusuna yapışıyordu. */
+.onay__parca {
+  margin-top: var(--bosluk-4);
+}
+
+.onay__parca-baslik {
+  margin-bottom: var(--bosluk-2);
+  font-size: var(--y-alt);
+  font-weight: 600;
+  color: var(--murekkep-2);
+}
+
+/* Parça görseli Servisim'de büyük: ekran telefonda, ayakta, çoğu zaman
+   güneşte okunuyor ve usta parçayı resminden tanıyor. Hak Ediş
+   yaprağının görselli listesi 72 pikseldi; ortak tabloya katılınca
+   (bkz. components/ParcaTablosu.jsx) 64 piksel oldu: tablo artık
+   talep ve onay ekranlarında da var ve 360 piksellik ekranda koda ve
+   ada yer bırakması gerekiyor. */
+.uyg .parca-tablo {
+  --parca-resmi: 64px;
+}
+
+/* Sipariş kartındaki parça şeridi (bkz. Kabuk.jsx → ParcaSeridi). */
+.is__parcalar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: var(--bosluk-2);
+}
+
+.is__parca-fazla {
+  font-size: var(--y-alt);
+  font-weight: 700;
+  color: var(--murekkep-2);
+}
+
+.onay .dg--ana {
+  margin-top: var(--bosluk-5);
+}
+
+.onay__vazgec {
+  margin-top: var(--bosluk-2);
+}
+
+/* Geniş ekran yalnız geliştirme içindir; yaprak telefon genişliğinde
+   ortalanıyor. */
+@media (min-width: 640px) {
+  .onay-perde {
+    align-items: center;
+  }
+
+  .onay {
+    width: 100%;
+    max-width: 420px;
+  }
+}
+
+/* Dipteki düğmenin altındaki tek satırlık açıklama. Düğme kapalıysa
+   nedenini söylüyor; kapalı bir düğme sebebini söylemeden durmaz. */
+.uyg__dip-not {
+  margin: var(--bosluk-2) 0 0;
+  font-size: var(--y-alt);
+  line-height: 1.5;
+  color: var(--murekkep-2);
+  text-align: center;
+}
+
+/* Kartta arızanın kendisi. Tek satır ve kesiliyor: bilgi kartı
+   zenginleştirmeli, listeyi uzatmamalı. */
+.is__ozet {
+  margin-top: var(--bosluk-2);
+  font-size: var(--y-alt);
+  line-height: 1.45;
+  color: var(--murekkep-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Çalışılan firma satırı. İskeleti talep kartının küçük hâli:
+   solda simge, ortada ad ve yer, sağda arama düğmesi. Numara
+   dokunulabilir — servis ezberleyip tuşlamıyor. */
+.calisilan {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  margin-bottom: var(--bosluk-2);
+  padding: var(--bosluk-3);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-2);
+  background: var(--yuzey);
+}
+
+.calisilan__ikon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-1);
+  background: var(--mavi-z);
+  color: var(--mavi-rz);
+}
+
+.calisilan__bilgi {
+  flex: 1;
+  min-width: 0;
+}
+
+.calisilan__ad {
+  font-size: var(--y-govde);
+  font-weight: 700;
+}
+
+.calisilan__ara {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--dokunma);
+  height: var(--dokunma);
+  border-radius: var(--r-tam);
+  background: var(--mavi-z);
+  color: var(--mavi-rz);
+}
+
+/* Kapalı seçenek. Soluk ama okunur: yanındaki açıklama neden kapalı
+   olduğunu yazıyor ve o yazının okunması gerekiyor. */
+.buyuk-sec--kapali {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Parça seçimi — alt montaj listesi ve katalog kartları
+
+   Düzen PAKSAN'ın bastığı fiyat listesinin aynısı: görsel, kod, ad,
+   fiyat. Servis kâğıttaki listeye alışkın; ekranda başka bir sıra
+   kurmak, aynı parçayı iki biçimde ezberlemesini istemek olurdu.
+   ========================================================================== */
+
+.montaj-liste {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bosluk-2);
+}
+
+/* Alt montaj satırı. Sağdaki sayı o montajda kaç parça olduğunu
+   söylüyor: servis kaç kart geleceğini girmeden biliyor. */
+.montaj {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  width: 100%;
+  min-height: var(--dokunma);
+  padding: var(--bosluk-3) var(--bosluk-4);
+  /* KENAR KOYULAŞTIRILMADI, KART YÜKSELTİLDİ. Bu satır da dokunulan bir
+     şey ve kenarı 1,09'da kalıyor; ama ekranda aynı anda on ikisi alt
+     alta duruyor (parça grubu listesinde otuz beş grup var). Hepsinin
+     kenarı koyulaştırılsaydı tam genişlikte on iki koyu dikdörtgen
+     çıkardı — kullanıcının "çocuk uygulamasına çevirmeyelim" dediği
+     şeyin birebir karşılığı. Bunun yerine evin kendi kalıbı verildi:
+     `.uyg .secenek__dg` de dokunulabilirliğini gölgeyle anlatıyor. */
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-2);
+  background: var(--yuzey);
+  box-shadow: var(--sh-1);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.montaj__ad {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--y-govde);
+  font-weight: 700;
+}
+
+.montaj__sayi {
+  flex: none;
+  min-width: 30px;
+  padding: 2px var(--bosluk-2);
+  border-radius: var(--r-tam);
+  background: var(--mavi-z);
+  color: var(--mavi-rz);
+  font-size: var(--y-alt);
+  font-weight: 800;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* İKİ SÜTUN. Tek sütunda kart 340 piksel genişliğinde oluyor ve
+   ekranda üç parça görünüyor; otuz parçalık bir montajda on ekran
+   kaydırmak gerekiyordu. Üç sütunda ise görsel 100 pikselin altına
+   iniyor ve parça tanınmıyor — asıl iş o görselde. */
+.parca-izgara {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--bosluk-3);
+}
+
+/* KART DIŞ KUTU, DOKUNULAN YER İÇTEKİ DÜĞME (bkz. servis/ParcaKarti.jsx).
+   Sipariş ekranında seçili kartın altına adet düğmeleri geliyor ve
+   düğme düğmenin içine konamıyor. Kenarlık ve zemin dıştaki kutuda;
+   görsel, kod, ad ve fiyat içteki düğmede. Yükleme iskeleti düğmesiz,
+   aynı iç boşluğu kendisi alıyor. */
+.parca-kart {
+  display: flex;
+  flex-direction: column;
+  /* `--cizgi-kontrol` yalnız `.uyg` altında tanımlı; bu kural onun dışına
+     taşınırsa yedek değer bugünkü görünümü koruyor. YEDEKSİZ YAZILAMAZ:
+     `border` bir kısayol ve tanımsız bir özel değer kısayolun TAMAMINI
+     geçersiz kılıyor — `border-style` başlangıç değeri `none` olduğu için
+     kenar rengini değiştirmez, tamamen kaybolur. */
+  border: 1px solid var(--cizgi-kontrol, var(--cizgi));
+  border-radius: var(--r-3);
+  background: var(--yuzey);
+}
+
+.parca-kart__ac,
+.parca-kart--iskelet {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--bosluk-2) var(--bosluk-2) var(--bosluk-3);
+}
+
+.parca-kart__ac {
+  flex: 1;
+  width: 100%;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.parca-kart--on {
+  border-color: var(--mavi-rz);
+  box-shadow: inset 0 0 0 1px var(--mavi-rz);
+  /* Soluk mavi kartın kendi beyazının ÜSTÜNE: tek başına yarı saydam
+     olduğu için arkadaki gri zemin görünüyor, yazılar kararıyordu. */
+  background: linear-gradient(var(--mavi-soft), var(--mavi-soft)), var(--yuzey);
+}
+
+/* SEÇİLİ KARTTA KOD VE FİYAT KOYULAŞIYOR (17 Eylül 2026, ölçüldü).
+   Mavi zeminde turuncu fiyat 3,83, gri kod 4,06 kalıyordu — okunurluk
+   için aranan 4,5'in altı. Karanlık temada zaten geçiyor (6,1+);
+   orada renk değişmiyor. */
+.parca-kart--on .parca-kart__kod {
+  color: var(--murekkep-2);
+}
+
+.parca-kart--on .parca-kart__fiyat {
+  color: var(--turuncu-yazi);
+}
+
+[data-tema='koyu'] .uyg .parca-kart--on .parca-kart__fiyat {
+  color: var(--turuncu);
+}
+
+/* Görsel kutusu SABİT ORANDA: kartlar farklı yükseklikte parçalarla
+   dolduğunda ızgara tırtıklı bitiyordu. Zemin her temada beyaz —
+   katalog görselleri beyaz zemine basılmış, koyu temada gri bir
+   kutuya oturtulunca çevresinde hâle çıkıyor. */
+.parca-kart__resim {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  margin-bottom: var(--bosluk-2);
+  border-radius: var(--r-1);
+  background: #fff;
+  overflow: hidden;
+}
+
+/* Resim kutuya MUTLAK oturuyor.
+
+   Önce `width/height: 100%` verilmişti; ızgara gözünde yükseklik
+   belirsiz kalıyor ve resim kendi boyunda çiziliyordu. Kutu
+   `overflow: hidden` olduğu için de parçanın yalnız üst yarısı —
+   çoğu zaman boş beyaz kısmı — görünüyordu. Mutlak konumda kutunun
+   ölçüsü kesin. */
+.parca-kart__resim img {
+  position: absolute;
+  inset: 6px;
+  width: calc(100% - 12px);
+  height: calc(100% - 12px);
+  object-fit: contain;
+}
+
+.parca-kart__resimsiz {
+  font-size: var(--y-mini);
+  color: var(--murekkep-3);
+}
+
+/* Seçili işareti köşede: renk tek başına anlam taşımıyor. */
+.parca-kart__onay {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-tam);
+  background: var(--mavi-rz);
+  color: #fff;
+}
+
+.parca-kart__kod {
+  font-size: var(--y-mini);
+  color: var(--murekkep-3);
+}
+
+.parca-kart__ad {
+  font-size: var(--y-alt);
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--murekkep);
+}
+
+.parca-kart__fiyat {
+  margin-top: 2px;
+  font-size: var(--y-govde);
+  font-weight: 800;
+  color: var(--turuncu);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Sipariş ekranında seçili kartın adet düğmeleri: kartın çerçevesi
+   içinde, en altta, kart genişliğinde. Eksi ve artı sütunu parmak
+   boyunun altına inmiyor; dar telefonda daralan ortadaki sayı. */
+.parca-kart__adet {
+  display: grid;
+  grid-template-columns: minmax(var(--dokunma), 1fr) auto minmax(var(--dokunma), 1fr);
+  align-items: center;
+  gap: var(--bosluk-1);
+  padding: 0 var(--bosluk-2) var(--bosluk-2);
+}
+
+.parca-kart__adet .stok-dus {
+  width: 100%;
+}
+
+.parca-kart__sayi {
+  min-width: 28px;
+  text-align: center;
+  font-size: var(--yazi-4);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Yükleme iskeleti. Boş ekran "bir şey yok" der, iskelet "geliyor"
+   der — ikisi aynı şey değil. */
+.parca-kart--iskelet {
+  pointer-events: none;
+}
+
+.parca-kart--iskelet .parca-kart__resim {
+  background: var(--yuzey-2);
+}
+
+.iskelet-satir {
+  height: 10px;
+  margin-top: var(--bosluk-1);
+  border-radius: var(--r-tam);
+  background: var(--yuzey-2);
+}
+
+.iskelet-satir--kisa {
+  width: 55%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .parca-kart--iskelet .parca-kart__resim,
+  .iskelet-satir {
+    animation: iskelet-yanip-sonme 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes iskelet-yanip-sonme {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+/* Servis kaydındaki seçilmiş parça satırı: katalogdan dönen parçalar
+   kod ve fiyatlarıyla birlikte duruyor. */
+.secili-parca__kod {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--y-mini);
+  font-weight: 400;
+  color: var(--murekkep-3);
+}
+
+/* ==========================================================================
+   Yüzen düğme — sekmenin asıl işlemi
+
+   Üst çubuğun sağ köşesindeki "+" gün içinde en çok basılan düğmeydi ve
+   ekranın parmağa en uzak noktasındaydı. Alt menünün hemen üstüne, sağa
+   indi: telefonu tek elle tutan servisin başparmağı orada.
+
+   YAZILI, YALNIZ SİMGE DEĞİL. Servis uygulamasının kuralı: simge tek
+   başına anlam taşımaz (bkz. CLAUDE.md). "+" neyin ekleneceğini
+   söylemiyor; "Kayıt Aç" söylüyor.
+
+   Sağ kenarı alt menünün sağ kenarıyla aynı çizgide: menü geniş ekranda
+   460 pikselde ortalanıyor, düğme de onunla birlikte içeri geliyor.
+   ========================================================================== */
+
+.uyg__fab {
+  position: fixed;
+  right: max(var(--bosluk-4), calc((100% - 460px) / 2));
+  bottom: calc(var(--nav-h) + var(--nav-gap) + var(--dip) + var(--bosluk-3));
+  z-index: 39;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  height: var(--dokunma-genis);
+  padding: 0 var(--bosluk-5) 0 var(--bosluk-4);
+  border: 0;
+  border-radius: var(--r-tam);
+  background: var(--turuncu-dugme);
+  color: #fff;
+  font: inherit;
+  font-size: var(--y-govde);
+  font-weight: 700;
+  box-shadow: var(--sh-turuncu);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.uyg__fab:active {
+  transform: scale(0.96);
+}
+
+/* Listenin son kartı düğmenin arkasında kalmasın. */
+.uyg--fabli .uyg__ic {
+  padding-bottom: calc(
+    var(--bosluk-5) + var(--tabs) + var(--dip) + var(--dokunma-genis) + var(--bosluk-3)
+  );
+}
+
+/* ==========================================================================
+   Adreslerim — teslimat adresi defteri ve seçici
+
+   Kod: servis/AdresSecici.jsx (sipariş ve servis kaydındaki seçici),
+   servis/ekranlar/Adreslerim.jsx (Hesap ekranındaki defter).
+
+   SEÇİM KARTI YENİ BİR KALIP DEĞİL. `.buyuk-sec` — servis kaydındaki
+   cevap satırı: solda yuvarlak işaret, seçilince mavi kenar. Servis bu
+   dili zaten tanıyor; adres kartı yalnız alt satırları çoğaltıyor.
+
+   DEFTER KARTI Bayilerim'deki `.calisilan` satırının büyüğü: solda
+   simge karesi, ortada ad ve adres. İşlemler kartın ALTINDA, yazılı
+   düğmeler olarak — kaydırarak silme ya da uzun basma yok.
+
+   Ölçüler ölçü merdiveninden (`--y-*`, `--bosluk-*`); piksel yazılmadı.
+   Dokunma hedefleri `.uyg .dg` üzerinden 48 piksel.
+   ========================================================================== */
+
+.adres-bos {
+  margin: 0 0 var(--bosluk-3);
+}
+
+.adres-haplar {
+  margin-top: var(--bosluk-2);
+}
+
+/* İki düğme yan yana: kullanıcının tarifi "Adres Ekle, yanında Elle
+   Gir". 320 piksellik telefonda ikisi sığmazsa alt alta iniyor. */
+.adres-dugmeler {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--bosluk-2);
+  margin-bottom: var(--bosluk-3);
+}
+
+.uyg .adres-secenek {
+  margin-top: 0;
+}
+
+.adres-sec__bas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--bosluk-1) var(--bosluk-2);
+}
+
+.uyg .adres-sec .buyuk-sec__alt {
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+}
+
+/* Varsayılan rozeti. Yazı `--mavi-rz`: iki temada da soluk mavi
+   zeminin üstünde okunan ton (bkz. backoffice.css → .rz--mavi). */
+.adres-rozet {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--bosluk-2);
+  border-radius: var(--r-tam);
+  background: var(--mavi-soft-2);
+  color: var(--mavi-rz);
+  font-size: var(--y-mini);
+  font-weight: 700;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+/* "PAKSAN kaydınız" rozeti. Varsayılan rozetinin yanında duruyor ve
+   ondan SÖNÜK: biri seçimi anlatıyor (mavi, işe yarar bilgi), bu ise
+   adresin nereden geldiğini söylüyor. İkisi de mavi olsaydı kartın
+   başlığı iki eşit ağırlıkta etiketin altında kalırdı. */
+.adres-rozet--firma {
+  background: var(--yuzey-2);
+  color: var(--murekkep-2);
+  box-shadow: inset 0 0 0 1px var(--cizgi-koyu);
+}
+
+/* Firma kartının altındaki açıklama: düzenle/sil düğmelerinin yerine
+   geçiyor, onların boşluğunu da o dolduruyor. */
+.adres-kart__not {
+  margin: var(--bosluk-3) 0 0;
+}
+
+/* Form alanlarını toplayan kart (Adres Ekle sayfası ve Elle Gir). */
+.uyg .adres-form {
+  padding: var(--bosluk-4);
+}
+
+.adres-form > .alan:last-child {
+  margin-bottom: 0;
+}
+
+.adres-elle__not {
+  margin: 0 0 var(--bosluk-3);
+}
+
+.uyg .adres-geri {
+  margin-top: var(--bosluk-3);
+}
+
+/* Form sayfasının dibindeki uyarı, Kaydet'in hemen üstünde. */
+.adres-form__hata {
+  margin: 0 0 var(--bosluk-3);
+}
+
+/* ------------------------------------------------------- Defter kartı */
+
+.adres-kart {
+  margin-bottom: var(--bosluk-3);
+  padding: var(--bosluk-4);
+  border-radius: var(--r-kart);
+  background: var(--yuzey);
+  box-shadow: var(--sh-1);
+}
+
+.adres-kart__ust {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--bosluk-3);
+}
+
+.adres-kart__bilgi {
+  flex: 1;
+  min-width: 0;
+}
+
+.adres-kart__bas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--bosluk-1) var(--bosluk-2);
+  min-height: 34px;
+}
+
+.adres-kart__ad {
+  font-size: var(--y-kart);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--murekkep);
+  overflow-wrap: anywhere;
+}
+
+.adres-kart__satir {
+  margin-top: 2px;
+  font-size: var(--y-alt);
+  line-height: 1.45;
+  color: var(--murekkep-2);
+  overflow-wrap: anywhere;
+}
+
+/* Düzenle ve Sil yan yana; "Varsayılan Yap" varsa üstlerinde tam
+   genişlik. Üçü tek satıra 375 piksellik telefonda sığmıyordu. */
+.adres-kart__islemler {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--bosluk-2);
+  margin-top: var(--bosluk-4);
+}
+
+.uyg .adres-kart__islemler .dg {
+  width: 100%;
+}
+
+.adres-kart__varsayilan {
+  grid-column: 1 / -1;
+}

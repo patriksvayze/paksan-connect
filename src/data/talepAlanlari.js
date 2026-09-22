@@ -37,23 +37,18 @@
    ========================================================================== */
 
 import {
-  ULASIM_ZAMANI_EN, MAKINE_DURUMU_EN, URUN_TIPI_EN,
+  MAKINE_DURUMU_EN, URUN_TIPI_EN,
   ARAZI_EN, TRAKTOR_EN, ORTAK_BELIRTI_EN, BELIRTILER_EN, DIGER_EN,
 } from './talepAlanlari.en'
 
 /* -------------------------------------------------- Her talepte sorulan */
 
-/* Çiftçi gün boyu tarlada; telefonu duymadığı saat çok olur. Ne zaman
-   aranmak istediğini söylerse boşa arama sayısı düşer.
-
-   Saatler PAKSAN'ın çalışma saatlerine göre: 09.00 - 18.00. Bunun
-   dışında bir saat sunmak, tutulamayacak bir söz vermek olurdu. */
-export const ULASIM_ZAMANI = [
-  'Fark etmez',
-  'Sabah (09.00 - 12.00)',
-  'Öğleden sonra (12.00 - 15.00)',
-  'Akşamüstü (15.00 - 18.00)',
-]
+/* "NE ZAMAN ARANACAK" SORUSU YOK (22 Eylül 2026, kullanıcının kararı).
+   Talep formunda "Gün içinde ne zaman müsait olursunuz?" diye saat
+   aralığı soruluyordu (`ulasim`); soru formdan ve onu okuyan her yerden
+   kaldırıldı: talep detayları, Servisim, Excel, ihracat e-postası,
+   veritabanı (kod.UlasimZamani, talep.Talep.UlasimZamaniKodu). Eski
+   kayıtlarda alan durabilir; okuyan ekran kalmadı. */
 
 /* ------------------------------------------------------------- Servis */
 
@@ -207,10 +202,6 @@ function eslestir(trListe, enListe, dil) {
   }))
 }
 
-export function ulasimSecenekleri(dil = 'tr') {
-  return eslestir(ULASIM_ZAMANI, ULASIM_ZAMANI_EN, dil)
-}
-
 export function urunTipiSecenekleri(dil = 'tr') {
   return eslestir(URUN_TIPI, URUN_TIPI_EN, dil)
 }
@@ -275,7 +266,6 @@ function sozlukKur() {
       if (en[i]) s[x] = en[i]
     })
   }
-  ekle(ULASIM_ZAMANI, ULASIM_ZAMANI_EN)
   ekle(URUN_TIPI, URUN_TIPI_EN)
   ekle(ARAZI, ARAZI_EN)
   ekle(TRAKTOR, TRAKTOR_EN)

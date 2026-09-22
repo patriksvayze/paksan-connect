@@ -6,7 +6,7 @@
    düzenlemeyin: kaynak değişince yeniden üretilir ve el değişikliği
    kaybolur. Kaynağı değiştirin, sonra "npm run vt -- tohum" çalıştırın.
 
-   61 kod listesi, 409 kod; 91 çeviri; 102 eski değer eşleşmesi.
+   60 kod listesi, 405 kod; 87 çeviri; 98 eski değer eşleşmesi.
 
    Kaynak: src/lib/talep.js, src/backoffice/veri.js, src/data/talepAlanlari.js
    (+ .en.js), src/backoffice/ekranlar/Talepler.jsx, IslemKaydi.jsx,
@@ -507,27 +507,6 @@ USING (
         (N'bayiServisi', N'Makineyi satan bayinin servisi', 2),
         (N'makineAtamasi', N'Makineye servis ataması', 1),
         (N'servisElle', N'Servisin kendi açtığı talep', 3)
-    ) AS v (Kod, Ad, Sira)
-) AS k
-    ON h.Kod = k.Kod
-WHEN MATCHED AND EXISTS (SELECT k.Ad COLLATE Latin1_General_100_BIN2, k.Sira EXCEPT SELECT h.Ad COLLATE Latin1_General_100_BIN2, h.Sira) THEN
-    UPDATE SET Ad = k.Ad, Sira = k.Sira
-WHEN NOT MATCHED BY TARGET THEN
-    INSERT (Kod, Ad, Sira, Aktif)
-    VALUES (k.Kod, k.Ad, k.Sira, 1);
-
-/* kod.UlasimZamani — 4 satır */
-
-MERGE kod.UlasimZamani AS h
-USING (
-    SELECT CONVERT(nvarchar(40), v.Kod) AS Kod,
-           CONVERT(nvarchar(150), v.Ad) AS Ad,
-           CONVERT(smallint, v.Sira) AS Sira
-    FROM (VALUES
-        (N'aksamustu', N'Akşamüstü (15.00 - 18.00)', 4),
-        (N'farkEtmez', N'Fark etmez', 1),
-        (N'ogledenSonra', N'Öğleden sonra (12.00 - 15.00)', 3),
-        (N'sabah', N'Sabah (09.00 - 12.00)', 2)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -1570,7 +1549,7 @@ WHEN NOT MATCHED BY TARGET THEN
     INSERT (TurKodu, UyduKodu)
     VALUES (k.TurKodu, k.UyduKodu);
 
-/* kod.Ceviri — 91 satır; kod listeleri */
+/* kod.Ceviri — 87 satır; kod listeleri */
 
 MERGE kod.Ceviri AS h
 USING (
@@ -1657,10 +1636,6 @@ USING (
         (N'kod.TraktorGucu', N'yuzonYuzelliBeygir', N'Ad', N'en', N'110 - 150 hp'),
         (N'kod.UcretDurumu', N'garanti', N'Ad', N'en', N'Covered by warranty'),
         (N'kod.UcretDurumu', N'musteriOdedi', N'Ad', N'en', N'Paid by customer'),
-        (N'kod.UlasimZamani', N'aksamustu', N'Ad', N'en', N'Late afternoon (15:00 - 18:00)'),
-        (N'kod.UlasimZamani', N'farkEtmez', N'Ad', N'en', N'Any time'),
-        (N'kod.UlasimZamani', N'ogledenSonra', N'Ad', N'en', N'Afternoon (12:00 - 15:00)'),
-        (N'kod.UlasimZamani', N'sabah', N'Ad', N'en', N'Morning (09:00 - 12:00)'),
         (N'kod.UrunTipi', N'diger', N'Ad', N'en', N'Other'),
         (N'kod.UrunTipi', N'misirSilaji', N'Ad', N'en', N'Maize silage'),
         (N'kod.UrunTipi', N'otCayir', N'Ad', N'en', N'Grass / meadow hay'),
@@ -1680,7 +1655,7 @@ WHEN NOT MATCHED BY TARGET THEN
     INSERT (ListeAdi, Kod, AlanAdi, DilKodu, Metin)
     VALUES (k.ListeAdi, k.Kod, k.AlanAdi, k.DilKodu, k.Metin);
 
-/* kod.EskiDegerEslesmesi — 102 satır */
+/* kod.EskiDegerEslesmesi — 98 satır */
 
 MERGE kod.EskiDegerEslesmesi AS h
 USING (
@@ -1693,7 +1668,7 @@ USING (
         (N'erisim.IzinGrubu', N'Müşteriler', N'musteriler', N'Eski veride ekran yazısı (src/data/yetkiler.js YETKI_KATALOG[].grup)'),
         (N'erisim.IzinGrubu', N'Servisler', N'servisler', N'Eski veride ekran yazısı (src/data/yetkiler.js YETKI_KATALOG[].grup)'),
         (N'erisim.IzinGrubu', N'Talepler', N'talepler', N'Eski veride ekran yazısı (src/data/yetkiler.js YETKI_KATALOG[].grup)'),
-        (N'erisim.IzinGrubu', N'Yedek parça kataloğu', N'parcaKatalogu', N'Eski veride ekran yazısı (src/data/yetkiler.js YETKI_KATALOG[].grup)'),
+        (N'erisim.IzinGrubu', N'Yedek Parça Kataloğu', N'parcaKatalogu', N'Eski veride ekran yazısı (src/data/yetkiler.js YETKI_KATALOG[].grup)'),
         (N'erisim.IzinGrubu', N'Yönetim', N'yonetim', N'Eski veride ekran yazısı (src/data/yetkiler.js YETKI_KATALOG[].grup)'),
         (N'kod.Arazi', N'150 - 500 dönüm', N'yuzelliBesyuzDonum', N'Eski veride ekran yazısı (src/data/talepAlanlari.js ARAZI)'),
         (N'kod.Arazi', N'50 - 150 dönüm', N'elliYuzelliDonum', N'Eski veride ekran yazısı (src/data/talepAlanlari.js ARAZI)'),
@@ -1777,10 +1752,6 @@ USING (
         (N'kod.TraktorGucu', N'Bilmiyorum', N'bilmiyor', N'Eski veride ekran yazısı (src/data/talepAlanlari.js TRAKTOR)'),
         (N'kod.UcretDurumu', N'Garanti kapsamında', N'garanti', N'Eski veride ekran yazısı (src/lib/servisKaydi.js UCRET_YAZI)'),
         (N'kod.UcretDurumu', N'Müşteri ödedi', N'musteriOdedi', N'Eski veride ekran yazısı (src/lib/servisKaydi.js UCRET_YAZI)'),
-        (N'kod.UlasimZamani', N'Akşamüstü (15.00 - 18.00)', N'aksamustu', N'Eski veride ekran yazısı (src/data/talepAlanlari.js ULASIM_ZAMANI)'),
-        (N'kod.UlasimZamani', N'Fark etmez', N'farkEtmez', N'Eski veride ekran yazısı (src/data/talepAlanlari.js ULASIM_ZAMANI)'),
-        (N'kod.UlasimZamani', N'Sabah (09.00 - 12.00)', N'sabah', N'Eski veride ekran yazısı (src/data/talepAlanlari.js ULASIM_ZAMANI)'),
-        (N'kod.UlasimZamani', N'Öğleden sonra (12.00 - 15.00)', N'ogledenSonra', N'Eski veride ekran yazısı (src/data/talepAlanlari.js ULASIM_ZAMANI)'),
         (N'kod.UrunTipi', N'Diğer', N'diger', N'Eski veride ekran yazısı (src/data/talepAlanlari.js URUN_TIPI)'),
         (N'kod.UrunTipi', N'Mısır silajı', N'misirSilaji', N'Eski veride ekran yazısı (src/data/talepAlanlari.js URUN_TIPI)'),
         (N'kod.UrunTipi', N'Ot / çayır', N'otCayir', N'Eski veride ekran yazısı (src/data/talepAlanlari.js URUN_TIPI)'),
