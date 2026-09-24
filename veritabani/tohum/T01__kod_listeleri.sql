@@ -445,7 +445,7 @@ USING (
         (N'kapandi', N'Kapandı', 9, 1, 0, N'yesil'),
         (N'odemeBekliyor', N'Ödeme bekliyor', 8, 0, 0, NULL),
         (N'onayBekliyor', N'Onay Bekliyor', 6, 0, 1, N'mor'),
-        (N'parcaBekliyor', N'Parça Bekleniyor', 7, 0, 1, N'turuncu'),
+        (N'parcaBekliyor', N'Parça Hazırlanıyor', 7, 0, 1, N'turuncu'),
         (N'planlandi', N'Planlandı', 3, 0, 1, N'mavi'),
         (N'teklif', N'Teklif Verildi', 4, 0, 0, N'mor'),
         (N'yeni', N'Yeni', 1, 0, 1, N'kirmizi')

@@ -29,7 +29,7 @@ import { DikteliKutu } from '../Dikte'
 import { AdresSecici, teslimatHatasi } from '../AdresSecici'
 import { firmaAdresiOnerisi } from '../adresler'
 import { adresYazisi, teslimatTemizle, teslimatYazisi } from '../../lib/teslimat'
-import { servisleriGetir } from '../../marka'
+import { getProduct, servisleriGetir } from '../../marka'
 import { makineDurumAdi } from '../../data/talepAlanlari'
 import {
   IconAlert,
@@ -123,8 +123,8 @@ const GARANTI_YAZI = {
        istiyor.
    ========================================================================== */
 const GARANTI_METNI = {
-  garantiDayanak: 'Garanti süresi satış tarihine değil, şase numarasındaki üretim yılına göre hesaplanır.',
-  garantiDisiUyari: `Kaydı yine de gönderebilirsiniz. Garanti süresi üretim yılına göre hesaplanır; satış tarihi burada yazılı olmadığı için sonradan satılan makinenin garantisi devam ediyor olabilir. Şase numarasını kontrol edin; hâlâ emin değilseniz göndermeden önce ${MARKA} yetkilisiyle doğrulayın.`,
+  garantiDayanak: 'Garanti süresi satış tarihine değil, seri numarasındaki üretim yılına göre hesaplanır.',
+  garantiDisiUyari: `Kaydı yine de gönderebilirsiniz. Garanti süresi üretim yılına göre hesaplanır; satış tarihi burada yazılı olmadığı için sonradan satılan makinenin garantisi devam ediyor olabilir. Seri numarasını kontrol edin; hâlâ emin değilseniz göndermeden önce ${MARKA} yetkilisiyle doğrulayın.`,
 }
 
 export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
@@ -159,6 +159,10 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
   const [teslimat, setTeslimat] = useState(onceki?.teslimat || null)
 
   const seriDegeri = seri.trim() || talep.makine?.serial || ''
+  /* Talep seri numarası olmadan açıldı (ElleKayit → seriYok): numara
+     sorulmuyor, yerinde "Yok" yazıyor; makine talepteki model ve
+     tahmini yıldan okunuyor. */
+  const seriYok = !seriDegeri && Boolean(talep.makine?.seriYok)
   const urun = useMemo(() => matchProduct(seriDegeri)?.product || null, [seriDegeri])
 
   /* "son" = garantinin SON YILI, yani garanti hâlâ sürüyor. */
@@ -243,9 +247,19 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
   /* ÜCRET SERVİSİN VE MAKİNENİN KENDİ ÜCRETİ (23 Eylül 2026). Tarife
      artık backoffice'ten değişiyor; servise ve makinenin modeline göre
      farklı olabiliyor (bkz. lib/servisTarifesi.js). Ön hesap ve ipuçları
-     aynı işlevden; kaydı gönderirken veri katmanı ücreti bir kez daha
-     okuyup kayda yazıyor (veri.js → servisKaydiGonder). */
-  const tarife = servisinTarifesi(oturum.servisId, urun?.id || talep.makine?.productId || null)
+     aynı işlevden.
+
+     ONAYDA GÖRÜLEN TUTAR GEÇER (24 Eylül 2026, kullanıcının kararı:
+     "sipariş verildiği zamanki tutar üzerinden ücretlendirilmeli müşteri
+     veya servis"). Onay penceresi açılırken ücret okunup donduruluyor
+     (`onayUcreti`); pencere açıkken "Hesabınıza eklenecek tutar" o
+     ücretle, kayıt da o ücret ve okunma anıyla (`ucretZamani`)
+     gidiyor. PAKSAN ücreti tam o sırada değiştirse de servisin
+     onayladığı geçiyor (veri.js → servisKaydiGonder). Önce veri katmanı
+     ekranın ücretini sessizce bugünküyle değiştiriyordu. */
+  const [onayUcreti, setOnayUcreti] = useState(null)
+  const urunId = urun?.id || talep.makine?.productId || null
+  const tarife = (onay && onayUcreti?.tarife) || servisinTarifesi(oturum.servisId, urunId)
   const kayit = {
     asama,
     kapi: 'garanti',
@@ -256,6 +270,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
     km: Number(km) || 0,
     kmUcreti: tarife.yolKm,
     ...iscilikAlanlari(saat, tarife.iscilikSaat),
+    ...(onay && onayUcreti ? { ucretZamani: onayUcreti.zaman } : {}),
   }
   const hakkedis = hakkedisHesapla(kayit)
 
@@ -286,7 +301,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
         return 'Telefon numarasını eksiksiz yazın.'
       }
       if (eksik.includes('seri') && seri.trim() && !validateSerial(normalizeSerial(seri)).ok) {
-        return 'Şase numarasını kontrol edip yeniden yazın.'
+        return 'Seri numarasını kontrol edip yeniden yazın.'
       }
       if (ariza.trim().length < 5) return 'Servis talebinin nedenini yazın.'
     }
@@ -304,6 +319,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
     const h = formHatasi()
     if (h) return setHata(h)
     setHata('')
+    setOnayUcreti({ tarife: servisinTarifesi(oturum.servisId, urunId), zaman: Date.now() })
     setOnay(true)
   }
 
@@ -431,13 +447,15 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
 
             {eksik.includes('seri') ? (
               <Kutu
-                ad="Şase Numarası"
+                ad="Seri Numarası"
                 deger={seri}
                 onDegis={setSeri}
                 ipucu="Makinenin üstündeki etiket"
               />
+            ) : seriYok ? (
+              <Satir ad="Seri Numarası" deger="Yok" />
             ) : (
-              <Satir ad="Şase Numarası" deger={formatSerial(seri)} mono />
+              <Satir ad="Seri Numarası" deger={formatSerial(seri)} mono />
             )}
 
             {/* MODEL, KOD VE İMAL YILI SORULMUYOR: ŞASEDEN OKUNUYOR.
@@ -449,6 +467,19 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
             {urun?.code && <Satir ad="Kod" deger={urun.code} mono />}
             {extractYear(seriDegeri) && (
               <Satir ad="İmal Yılı" deger={String(extractYear(seriDegeri))} />
+            )}
+            {/* SERİSİZ AÇILAN TALEP (24 Eylül 2026, bkz. ElleKayit.jsx
+                başı): model ve tahmini yıl talebi açarken yazıldı. Seri
+                kutusu ilk hâlinde burada yine açıktı; kullanıcı
+                kaldırttı: servis numaranın olmadığını talebi açarken
+                söyledi, aynı soru ikinci kez sorulmuyor. */}
+            {seriYok && (
+              <>
+                <Satir ad="Makine" deger={getProduct(talep.makine.productId)?.name} />
+                {talep.makine.tahminiYil && (
+                  <Satir ad="Tahmini İmal Yılı" deger={String(talep.makine.tahminiYil)} />
+                )}
+              </>
             )}
 
             {/* GARANTİ KARTI ŞASENİN YANINDA. Kaldırılan "Hizmet

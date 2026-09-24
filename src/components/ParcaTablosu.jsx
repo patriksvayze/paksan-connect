@@ -40,28 +40,46 @@
    dört sütun. Karar kutunun genişliğine göre, ekranınkine göre değil:
    backoffice'in dar penceresi de telefon gibi davranıyor
    (bkz. backoffice.css → .parca-tablo).
+
+   SATIR NOTU (24 Eylül 2026): satır `not` taşıyorsa adın altında turuncu
+   bir etiket — eksik gönderilen serviste siparişinde "gönderilmedi"
+   (bkz. backoffice/veri.js → kalanParcalariGonder). Yazıyı çağıran
+   ekran veriyor; bu bileşen Connect'te kullanılmıyor.
+
+   TUTAR SÜTUNU (24 Eylül 2026, kullanıcının isteği: backoffice'te
+   servis siparişinin parça tablosunda tutarlar yazmıyordu). `tutarli`
+   verilirse satırın sonunda satır tutarı, adet birden çoksa altında
+   birim fiyat. Rakam kaydın fiyat görüntüsünden (satırın `tutar` ve
+   `birimFiyat` alanları, sipariş anının fiyatı); bileşen hesaplamıyor.
+   Tutarı olmayan satırda "—". Genel toplam tabloda değil, çağıran
+   ekranın dökümünde: KDV ve indirimler satıra bölünmüyor.
    ========================================================================== */
 
+import { PARA_BIRIMI, paraYaz } from '../marka'
 import { ParcaResmi, useParcaKatalogu } from './ParcaResmi'
 
 /**
- * @param {{parcalar: Array<{kod?: string, ad: string, adet: number}>, baslik?: boolean}} p
+ * @param {{parcalar: Array<{kod?: string, ad: string, adet: number, tutar?: number, birimFiyat?: number}>,
+ *          baslik?: boolean, tutarli?: boolean}} p
  *   `baslik` false verilirse sütun adları çizilmiyor (dar kutular için).
  */
-export function ParcaTablosu({ parcalar = [], baslik = true }) {
+export function ParcaTablosu({ parcalar = [], baslik = true, tutarli = false }) {
   const liste = parcalar.filter((p) => p?.ad && Number(p.adet) > 0)
   /* Katalog yalnız görseli kayıtta yazmayan (eski) satır için iniyor. */
   const katalog = useParcaKatalogu(liste.some((p) => p.kod && p.gorsel === undefined))
   if (!liste.length) return null
 
   return (
-    <div className="parca-tablo" role="table">
+    <div className={'parca-tablo' + (tutarli ? ' parca-tablo--tutarli' : '')} role="table">
       {baslik && (
         <div className="parca-tablo__baslik" role="row">
           <span className="parca-tablo__resim" role="columnheader" />
           <span className="parca-tablo__kod" role="columnheader">Parça kodu</span>
           <span className="parca-tablo__ad" role="columnheader">Parça adı</span>
           <span className="parca-tablo__adet" role="columnheader">Adet</span>
+          {tutarli && (
+            <span className="parca-tablo__tutar" role="columnheader">Tutar</span>
+          )}
         </div>
       )}
       {liste.map((p, i) => (
@@ -74,10 +92,21 @@ export function ParcaTablosu({ parcalar = [], baslik = true }) {
           </span>
           <span className="parca-tablo__ad" role="cell">
             {p.ad}
+            {p.not && <span className="rz rz--turuncu parca-tablo__not">{p.not}</span>}
           </span>
           <span className="parca-tablo__adet" role="cell">
             {p.adet}
           </span>
+          {tutarli && (
+            <span className="parca-tablo__tutar" role="cell">
+              {typeof p.tutar === 'number' ? `${paraYaz(p.tutar)} ${PARA_BIRIMI}` : '—'}
+              {typeof p.birimFiyat === 'number' && Number(p.adet) > 1 && (
+                <span className="parca-tablo__birim">
+                  Birim {paraYaz(p.birimFiyat)} {PARA_BIRIMI}
+                </span>
+              )}
+            </span>
+          )}
         </div>
       ))}
     </div>

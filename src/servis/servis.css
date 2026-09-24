@@ -45,8 +45,12 @@
      `viewport-fit=cover` var: içerik ekranın en tepesine kadar
      çıkıyor. Bu paylar olmasa başlık çentiğin, sekmeler de ev
      çubuğunun altında kalırdı. Tarayıcıda ikisi de 0 geliyor. */
-  --ust: env(safe-area-inset-top, 0px);
-  --dip: env(safe-area-inset-bottom, 0px);
+  --ust: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --dip: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  /* Capacitor 8 (24 Eylül 2026): pay önce Capacitor'ın yazdığı
+     `--safe-area-inset-*` değişkeninden — 140'tan eski Android WebView
+     `env()` ile doğru değer vermiyor. Bu dosyadaki öteki güvenli alan
+     payları da aynı sırayla okuyor. */
 
   min-height: 100dvh;
   display: flex;
@@ -1005,6 +1009,82 @@
   cursor: pointer;
 }
 
+/* BİLDİRİM GEÇMİŞİ (24 Eylül 2026, ekranlar/Bildirimler.jsx). Aynı satır;
+   okunmuş olanda nokta yok ve başlık normal ağırlıkta. Okunmamışın
+   noktası tek başına kalmıyor: başlığın üstünde "Okunmadı" yazıyor. */
+.talep-haberi__satir--okundu .talep-haberi__nokta {
+  visibility: hidden;
+}
+
+.talep-haberi__satir--okundu .talep-haberi__baslik {
+  font-weight: 600;
+}
+
+.talep-haberi__yeni {
+  font-size: var(--yazi-1);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--mavi-rz);
+}
+
+/* Uzun duyuru listede üç satır; tamamı dokununca yaprakta. */
+.talep-haberi__metin--kisa {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Üst çubuktaki Bildirimler düğmesi: zil ve yazı yan yana (servis
+   ekranında simge tek başına anlam taşımıyor), okunmamış varsa sayısı.
+   Hesap dairesiyle aynı beyaz kart, aynı gölge ve yükseklik; basılabilir
+   alan 48 piksel (dış düğme), görünen hap 44. */
+.uyg__bildirim {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--dokunma);
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.uyg__bildirim-ic {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: var(--r-tam);
+  background: var(--yuzey);
+  box-shadow: var(--sh-1);
+  color: var(--mavi-rz);
+  font-size: var(--y-alt);
+  font-weight: 800;
+}
+
+.uyg__bildirim:active .uyg__bildirim-ic {
+  background: var(--mavi-soft);
+}
+
+.uyg__bildirim-sayi {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--r-tam);
+  /* `--turuncu` DEĞİL: koyu temada o, koyu zeminde okunacak AÇIK yazı
+     tonuna dönüyor ve beyaz sayı üstünde 2,35'e düşüyordu (24 Eylül 2026
+     ölçümü). Düğme turuncusu iki temada da aynı dolgu: 4,79. */
+  background: var(--marka-turuncu-dugme);
+  color: #fff;
+  font-size: var(--yazi-1);
+  font-weight: 800;
+  line-height: 20px;
+  text-align: center;
+}
+
 /* ------------------------------------------------------------ İş kartı
 
    Kart iki kardeşten oluşuyor: soldaki alan detayı açıyor, sağdaki
@@ -1687,7 +1767,7 @@
 .pencere-servis__kart {
   width: 100%;
   padding: var(--bosluk-5);
-  padding-bottom: calc(var(--bosluk-5) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(var(--bosluk-5) + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
   border-radius: var(--r-3) var(--r-3) 0 0;
   background: var(--yuzey);
 }
@@ -1898,8 +1978,8 @@
   width: 100%;
   max-width: 420px;
   margin: 0 auto;
-  padding: calc(env(safe-area-inset-top, 0px) + 32px) 24px
-    calc(env(safe-area-inset-bottom, 0px) + 24px);
+  padding: calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 32px) 24px
+    calc(var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 24px);
 }
 
 /* Marka bloğu — Connect'teki .safak__logo ile aynı: amblem beyaz
@@ -2169,7 +2249,7 @@
   }
 
   .sgiris__ic {
-    padding-top: calc(env(safe-area-inset-top, 0px) + 24px);
+    padding-top: calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 24px);
   }
 
   .sgiris__baslik {
@@ -4675,7 +4755,7 @@ button.hareket:active {
 
 .onay {
   padding: var(--bosluk-5) var(--bosluk-5)
-    calc(var(--bosluk-5) + env(safe-area-inset-bottom, 0px));
+    calc(var(--bosluk-5) + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
   border-radius: var(--r-3) var(--r-3) 0 0;
   background: var(--yuzey);
   max-height: 86dvh;

@@ -75,9 +75,13 @@ gradlew.bat assembleDebug
 
 Çıkan dosya: `android/app/build/outputs/apk/debug/app-debug.apk`
 
-Gereken kurulumlar bu bilgisayarda hazır: Android Studio (SDK 34) ve
-onunla gelen Java 17. Gradle, `JAVA_HOME` olarak
-`C:\Program Files\Android\Android Studio\jbr` klasörünü kullanmalı.
+**24 Eylül 2026'dan beri Capacitor 8** (Google Play'in hedef API 36
+şartı): SDK 36, Android Gradle Plugin 8.13, Gradle 8.14.3 ve **Java 21**
+gerekiyor. Android Studio'nun kendi Java'sı (`jbr`) şu an 25 ve Gradle
+8.14 onunla çalışmıyor; Gradle'a JDK 21 gösterilmeli (`JAVA_HOME` ya
+da `org.gradle.java.home`). Eski not: Capacitor 6 döneminde SDK 34 ve
+Java 17 yetiyordu; taşınabilir JDK 17 `D:\PAKSAN\_araclar\jdk-17`
+klasöründe.
 
 ### Sürüm numarası
 

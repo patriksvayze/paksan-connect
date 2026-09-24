@@ -15,8 +15,11 @@ import { load, save, remove } from '../lib/storage'
 import { ozetHatasiMi } from '../lib/hesap'
 import { Kabuk, Sayfa, Bolum, Onay } from './Kabuk'
 import { DEMO_HESAP, demoAPKmi } from './demoKimlik'
-import { IconWrench, IconParca, IconShield, IconTag, IconRight } from '../components/Icons'
+import { IconWrench, IconParca, IconShield, IconTag, IconRight, IconBell } from '../components/Icons'
 import { useServisHaberi } from './haber'
+import { koyuZeminIcinBoya, temayaGoreBoya } from '../lib/sistemCubuklari'
+import { Bildirimler } from './ekranlar/Bildirimler'
+import { okunmamisSayisi } from './talepBildirimleri'
 import { Logo, Amblem, MARKA, SIRKET } from '../marka'
 /* Giriş ekranının görseli: PAKSAN ORKA 870'İN BAŞINDA SERVİS
    TEKNİSYENİ, ŞAFAKTA TARLADA.
@@ -182,6 +185,13 @@ function resimYerlesimi(kok) {
 
 function GirisEkrani({ ustSatir, baslik, aciklama, children }) {
   const kok = useRef(null)
+
+  /* Giriş fotoğrafın üstünde: telefonun saat ve pil simgeleri açık
+     renk, ekrandan çıkınca temaya göre (lib/sistemCubuklari.js). */
+  useEffect(() => {
+    koyuZeminIcinBoya()
+    return temayaGoreBoya
+  }, [])
 
   useLayoutEffect(() => {
     const el = kok.current
@@ -480,6 +490,13 @@ function Uygulama({ oturum, onCikis }) {
     setTalepler(servisinTalepleri(talepleriGetir(), oturum.servisId))
   }, [oturum.servisId, tazele])
 
+  /* Üst çubuktaki Bildirimler düğmesinin sayısı. Ekran değiştikçe ve
+     yeni haber geldikçe (tazele) yeniden sayılıyor. */
+  const okunmamis = useMemo(
+    () => okunmamisSayisi(oturum),
+    [oturum, tazele, alt, acik],
+  )
+
   /* Yeni iş, yola çıkan parça ve onaylanan hak ediş telefonun
      bildirim perdesine düşüyor (bkz. haber.js). */
   const yenile = useCallback(() => setTazele((x) => x + 1), [])
@@ -620,6 +637,33 @@ function Uygulama({ oturum, onCikis }) {
      artık sekmeli kabuğun içinde açılıyor, sol üstte "Geri" var, alt
      menüden bir sekmeye dokunmak Hesap'ı kapatıp o sekmeyi açıyor. Yeni
      Kayıt ve Sipariş Ver birer form; onlar alt sayfa olarak kalıyor. */
+  /* BİLDİRİM GEÇMİŞİ (24 Eylül 2026, kullanıcının isteği). Hesap gibi
+     sekmeli kabuğun içinde açılıyor: yarım kalan bir iş yok, alt menü
+     duruyor. Bir bildirime dokununca talep açılıyor; talep kapanınca
+     buraya dönülüyor (talep detayı bu kontrolden önce çiziliyor). */
+  if (alt === 'bildirimler') {
+    return (
+      <Kabuk
+        baslik="Bildirimler"
+        alt={`${MARKA} size ne yazdı`}
+        onGeri={() => setAlt(null)}
+        sekmeler={sekmeler}
+        sekme={null}
+        onSekme={(id) => {
+          setAlt(null)
+          setSekme(id)
+        }}
+      >
+        <Bildirimler
+          oturum={oturum}
+          talepler={talepler}
+          onAc={setAcik}
+          onUcretler={() => setAlt('ucretler')}
+        />
+      </Kabuk>
+    )
+  }
+
   /* `ucretler`: Hesap açılıp "Ücretlendirmeler" bölümüne kayılıyor —
      Hak Ediş'teki özet satırdan ve ücret/indirim bildiriminden gelindi. */
   if (alt === 'hesap' || alt === 'ucretler') {
@@ -653,6 +697,17 @@ function Uygulama({ oturum, onCikis }) {
            (bkz. Kabuk.jsx → fab). Hesap ayda bir açılıyor; üstte kalması
            doğru. */
         <div className="uyg__islemler">
+          {/* BİLDİRİMLER (24 Eylül 2026): zil yazısıyla birlikte;
+              okunmamış varsa sayısı. Geçmişin tamamı arkasında. */}
+          <button className="uyg__bildirim" onClick={() => setAlt('bildirimler')}>
+            <span className="uyg__bildirim-ic">
+              <IconBell size={18} />
+              Bildirimler
+              {okunmamis > 0 && (
+                <span className="uyg__bildirim-sayi">{okunmamis > 9 ? '9+' : okunmamis}</span>
+              )}
+            </span>
+          </button>
           <button
             className="uyg__hesap"
             onClick={() => setAlt('hesap')}
@@ -678,6 +733,7 @@ function Uygulama({ oturum, onCikis }) {
           oturum={oturum}
           bekleyen={bekleyen}
           biten={biten}
+          tumTalepler={talepler}
           onAc={setAcik}
           onUcretler={() => setAlt('ucretler')}
           sekme={isSekme}

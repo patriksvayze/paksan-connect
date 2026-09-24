@@ -20,11 +20,15 @@ import './styles.css'
 import App from './App'
 import { HataSiniri } from './components/HataSiniri'
 import { temayiUygula } from './components/TemaSecici'
+import { temayiIzle } from './lib/sistemCubuklari'
 
 /* Kayıtlı görünüm tercihi ilk çizimden ÖNCE uygulanıyor. Sonra
    uygulanırsa koyu tema seçmiş kullanıcı bir an beyaz ekran görüyor —
    gece kullanımda tam da kaçınmak istediğimiz şey. */
 temayiUygula()
+/* Telefonda saat ve pil simgelerinin rengi temayı izliyor (bkz.
+   lib/sistemCubuklari.js — Capacitor 8, ekranın tamamına çizim). */
+temayiIzle()
 
 /* Sınır KÖKTE duruyor: altında ne patlarsa patlasın ekranda bir şey
    kalıyor. Sınır olmadan tek bir çizim hatası kalıcı beyaz ekran

@@ -112,7 +112,8 @@ export const SERVISIM_OTURUMSUZ = [{ kod: 'S-00', ad: 'Servis Girişi', tikla: n
 /**
  * Servisim — alt çubuk sekmeleri ve onlardan açılan ekranlar.
  * `sekme` alt çubuktaki sıra, `tikla` ise o sekmedeyken basılacak seçici.
- * `.uyg__fab` yüzen düğme, `.uyg__hesap` başlıktaki hesap harfi.
+ * `.uyg__fab` yüzen düğme, `.uyg__hesap` başlıktaki hesap harfi,
+ * `.uyg__bildirim` başlıktaki Bildirimler düğmesi.
  */
 export const SERVISIM = [
   { kod: 'S-01', ad: 'İşlerim', sekme: 0, iz: 'musteriAdi' },
@@ -125,6 +126,8 @@ export const SERVISIM = [
   { kod: 'S-07', ad: 'Hesap', sekme: 0, tikla: '.uyg__hesap', iz: 'servisAdi' },
   /* Hesap'taki "Ücretlendirmeler": servisin özel saat ücreti (23 Eylül 2026). */
   { kod: 'S-08', ad: 'Hesap · Ücretlendirmeler', sekme: 0, tikla: '.uyg__hesap', iz: 'saatUcreti' },
+  /* Bildirim geçmişi (24 Eylül 2026): üst çubuktaki "Bildirimler". */
+  { kod: 'S-09', ad: 'Bildirimler', sekme: 0, tikla: '.uyg__bildirim' },
 ]
 
 export const TOPLAM =

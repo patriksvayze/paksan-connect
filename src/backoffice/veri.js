@@ -12,7 +12,7 @@ import { yeniNo } from '../lib/numara'
 import { talepNo } from '../lib/talep'
 import { SIRKET, MARKA, markaEk, PARA_BIRIMI, kdvTutari } from '../marka'
 import { urun } from '../lib/urun'
-import { ASAMA, iscilikAlanlari, kaydiDogrula, kaydiCozume, kapininSonucu } from '../lib/servisKaydi.js'
+import { ASAMA, iscilikAlanlari, kaydiDogrula, kaydiCozume, kapininSonucu, siparisGonderimi } from '../lib/servisKaydi.js'
 import { teslimatTemizle } from '../lib/teslimat.js'
 import { servisleriGetir, getProduct } from '../marka'
 import { icerikListe, icerikTazele } from '../lib/icerikDeposu.js'
@@ -25,7 +25,10 @@ import { kaydinServisi } from '../lib/servisAtama.js'
 import {
   KALEMLER, ozelleriKaldir, tarifeCoz, tarifeFarki, tarifeleriDuzenle, ucretOku,
 } from '../lib/servisTarifesi.js'
-import { bakiyeIskontosu, iskontoCoz, iskontolariDuzenle, oranOku, yuzdeYap } from '../lib/servisFiyat.js'
+import {
+  ONAY_TUTAR_SURESI, bakiyeIskontosu, gonderilenTutar, iskontoCoz, iskontolariDuzenle, onayTazeMi, oranOku,
+  iptalEdilenSatirlar, siparisNetTutari, siparisToplami, yuzdeYap,
+} from '../lib/servisFiyat.js'
 import {
   rolKimligi, TUM_IZINLER, VARSAYILAN_ROLLER, YETKISIZ_ROL,
 } from '../data/yetkiler.js'
@@ -686,10 +689,62 @@ export const DURUMLAR = [
      ünlemi alıyorlar. Kapalı sayılsalardı iki tarafın da unuttuğu
      işler olurdu. */
   { id: 'onayBekliyor', ad: 'Onay Bekliyor', ton: 'mor' },
-  { id: 'parcaBekliyor', ad: 'Parça Bekleniyor', ton: 'turuncu' },
+  /* Ekranda iki hâli var: gönderilmemişken "Parça Hazırlanıyor",
+     gönderildikten sonra "Parça Yolda" (bkz. gorunenDurum). Kodu tek:
+     iş, servis parçayı takana kadar aynı durumda. */
+  { id: 'parcaBekliyor', ad: 'Parça Hazırlanıyor', ton: 'turuncu' },
   { id: 'kapandi', ad: 'Kapandı', ton: 'yesil' },
   { id: 'iptal', ad: 'İptal', ton: 'gri' },
 ]
+
+/* ==========================================================================
+   EKRANDA GÖRÜNEN DURUM (24 Eylül 2026, kullanıcının isteği: "Talepler
+   ekranındaki etiket ve filtre sistemini bir elden geçir")
+
+   Kullanıcının gördüğü karışıklık: "Parça hazırlığı bekleyenler"
+   süzgeci "Parça Bekleniyor" rozetli talepleri, "Parça Bekleniyor"
+   süzgeci ise hem "Parça Bekleniyor" hem "Parça Yolda" rozetlilerini
+   listeliyordu. Sebep: "Parça Yolda" bir durum değil, `parcaBekliyor`
+   durumunun gönderim kaydı (`parcaSevk`) olan hâli; rozet onu
+   ayırıyordu, süzgeç ayırmıyordu. Üç ad (hazırlık, bekleniyor, yolda)
+   iki şeyi anlatıyordu.
+
+   Artık ekranda İKİ ad var ve rozet, süzgeç, sıralama, Excel ve geçmiş
+   aynı işlevden okuyor:
+
+     Parça Hazırlanıyor   parcaBekliyor, gönderim yok    (turuncu: iş PAKSAN'da)
+     Parça Yolda          parcaBekliyor, gönderim var    (turkuaz: iş serviste)
+
+   Veritabanındaki kod değişmedi (`parcaBekliyor`); bu ayrım yalnız
+   gösterim. `id`ler süzgeç anahtarı: 'parcaHazirlik' Dashboard'un
+   kutusunun eski anahtarı, aynen kaldı.
+   ========================================================================== */
+export const PARCA_YOLDA = { id: 'parcaYolda', ad: 'Parça Yolda', ton: 'turkuaz' }
+const PARCA_HAZIRLIK = { ...DURUMLAR.find((d) => d.id === 'parcaBekliyor'), id: 'parcaHazirlik' }
+
+/** Talebin ekranda görünen durumu: {id, ad, ton}. */
+export function gorunenDurum(talep) {
+  const s = talep?.status || 'yeni'
+  if (s === 'parcaBekliyor') return talep?.parcaSevk ? PARCA_YOLDA : PARCA_HAZIRLIK
+  return durumBilgi(s)
+}
+
+/* Geçmiş satırının adı. Gönderim kaydı geçmişe `parcaBekliyor` diye
+   ikinci bir satır yazıyor (servisParcasiGonderildi) ve bu satır ekranda
+   ikinci kez aynı ad olarak görünüyordu. Gönderimin anına denk gelen
+   satır "Parça Yolda". */
+export function gecmisDurumu(talep, satir) {
+  if (satir?.durum === 'parcaBekliyor' && talep?.parcaSevk && satir.tarih === talep.parcaSevk.tarih) {
+    return PARCA_YOLDA
+  }
+  return durumBilgi(satir?.durum)
+}
+
+/* Süzgecin durum seçenekleri ve sıralamanın sırası: `parcaBekliyor`un
+   yerinde iki görünen hâli. */
+export const GORUNEN_DURUMLAR = DURUMLAR.flatMap((d) =>
+  d.id === 'parcaBekliyor' ? [PARCA_HAZIRLIK, PARCA_YOLDA] : [d],
+)
 
 /* Kapalı = PAKSAN'ın üzerinde iş kalmamış. Not eklemek kapalı talepte
    de serbest. */
@@ -889,6 +944,11 @@ export function talepDurumDegistir(talep, yeniDurum, personel, { bildirme, servi
     ozet: `${talep.no} → ${durumBilgi(yeniDurum).ad}${bildirme ? ' (kapalı talep açıldı, bildirim gitmedi)' : ''}`,
     personel,
   })
+
+  /* Kapanmış siparişi durum düğmesiyle "İptal"e almak da iptal: düşülen
+     tutar bakiyeye dönüyor (bkz. siparisIadesiniYaz). Backoffice servis
+     siparişinde iptali formdan geçiriyor; bu, formu atlayan çağrı için. */
+  if (yeniDurum === 'iptal') siparisIadesiniYaz(talep, personel)
 
   /* "Yeni"ye dönüş yanlış tıklamanın düzeltilmesi; servis açısından da
      olmuş bir şey yok (müşteriye de gitmiyor, bkz. bildirimsizMi). */
@@ -1229,6 +1289,304 @@ export function gecikmisMi(talep) {
   return Date.now() - (talep.createdAt || 0) > GECIKME_SAAT * 3600000
 }
 
+
+/* ---------------------------------------------- Servis siparişinin gönderimi
+
+   EKSİK GÖNDERİLEN SİPARİŞ (24 Eylül 2026, kullanıcının kararı:
+   "kapanışta gönderilen parçalar işaretlensin"). Siparişteki bir parça
+   stokta yoksa personel talebi kapatırken onun işaretini kaldırıyor.
+   Bakiyeden ödenen siparişte servisin bakiyesinden yalnız GÖNDERİLEN
+   parçaların tutarı düşülüyor, sipariş anındaki fiyatla; kalan parça
+   stok gelince kalanParcalariGonder ile gidiyor ve tutarı o gün
+   düşülüyor. Önce kapanışta siparişin tamamı düşülüyordu: zincir
+   gönderilemese de servisin bakiyesinden onun parası da kesiliyordu.
+
+   Satırlar siparişin fiyat görüntüsündeki sırayla anılıyor (0'dan);
+   gönderimler talepte `gonderimler: [{no, tarih, personel, satirlar}]`. */
+
+/* Kapanıştaki seçimden yeni gönderimi kurar. Servis siparişi değilse
+   ya da görüntüsü yoksa hiçbir şey yapmaz. */
+function servisSiparisiGonderimi(talep, secim, personel) {
+  const satirlar = talep?.parcaFiyat?.satirlar
+  if (!talep?.servisSiparisi || !Array.isArray(satirlar) || !satirlar.length) return {}
+  const tum = satirlar.map((_, i) => i)
+  const secilen = Array.isArray(secim)
+    ? [...new Set(secim.map(Number))].filter((i) => Number.isInteger(i) && i >= 0 && i < satirlar.length)
+    : tum
+  if (!secilen.length) return { hata: 'En az bir parçayı işaretleyin.' }
+  const once = Array.isArray(talep.gonderimler) ? talep.gonderimler : []
+  const gitmis = new Set(once.flatMap((g) => g?.satirlar || []))
+  /* İptal edilmiş kalem (kalanParcalariIptalEt) yeniden kapanışta
+     gönderilemiyor: siparişte artık yok. */
+  const iptal = new Set(iptalEdilenSatirlar(talep))
+  const yeni = secilen.filter((i) => !gitmis.has(i) && !iptal.has(i)).sort((a, b) => a - b)
+  const gonderimler = yeni.length
+    ? [...once, { no: once.length + 1, tarih: Date.now(), personel, satirlar: yeni }]
+    : once
+  const giden = new Set([...gitmis, ...yeni])
+  return { gonderimler, kismi: tum.some((i) => !giden.has(i) && !iptal.has(i)) }
+}
+
+/* SİPARİŞİN BORCU: gönderilenlerin tutarı eksi önce yazılan borç.
+
+   Tek yer: kapanış da kalan parçaların gönderimi de buradan yazıyor.
+   Deftere yazılan her zaman FARK: gönderilenlerin KDV dâhil tutarı
+   (lib/servisFiyat.js → gonderilenTutar) eksi bu talebe daha önce
+   yazılmış borç. Böylece
+     · iki gönderime bölünen siparişte düşülenlerin toplamı siparişin
+       toplamına eşit kalıyor;
+     · "Geri Aç" ile açılıp yeniden kapanan sipariş ikinci kez
+       düşülmüyor (fark sıfır).
+   Borç talep KİMLİĞİYLE aranıyor: talep numarası tekil değil (gün +
+   dört rastgele hane). Kimliği olmayan eski borçta numaraya bakılıyor.
+   Veritabanında talep başına tek etkin borç var (V0012,
+   ParcaTalepKimlik); ikinci gönderimin nasıl yazılacağı
+   VT-TASARIM-EKLERI §9'da. */
+function siparisBorcunuYaz(talep, personel) {
+  if (!talep?.servisSiparisi || talep.odeme !== 'bakiye') return
+  const g = siparisGonderimi(talep)
+  const hedef = g ? gonderilenTutar(talep.parcaFiyat, g.gonderilen, 'bakiye') : siparisToplami(talep)
+  const fark = hedef - siparisHesabi(talep).dusulen
+  if (fark <= 0) return
+  /* Hareket hangi gönderimin karşılığı olduğunu taşıyor: iki gönderime
+     bölünen siparişte Servisim'in Hak Ediş ekranı o hareketin
+     parçalarını ve siparişin kalanını gösterebilsin. */
+  const son = Array.isArray(talep.gonderimler) ? talep.gonderimler[talep.gonderimler.length - 1] : null
+  cariHareketEkle({
+    servisId: talep.servis?.id,
+    servisAd: talep.servis?.ad,
+    tur: 'borc',
+    tutar: fark,
+    aciklama: `${talep.no} · parça siparişi`,
+    talepNo: talep.no,
+    talepId: talep.id,
+    ...(son?.no ? { gonderimNo: son.no } : {}),
+    personel,
+  })
+}
+
+/* Cari hareket bu siparişin mi: talep kimliğiyle; kimliği olmayan eski
+   harekette numarayla (numara tekil değil, bkz. siparisBorcunuYaz). */
+function siparisinHareketi(h, talep) {
+  return h.talepId ? h.talepId === talep.id : Boolean(talep.no) && h.talepNo === talep.no
+}
+
+/**
+ * Servis siparişinin para durumu — ekranların "ne kadar düşüldü, ne
+ * kadar kaldı" sorusunun tek cevabı (24 Eylül 2026).
+ *
+ * Kullanıcı siparişin tutarı ile hak edişten düşen rakamı
+ * karşılaştırıp tutmadığını gördü: liste KDV hariç tutarı, hak ediş KDV
+ * dâhil ve kısmen gönderilmiş siparişte yalnız gönderilen parçaların
+ * tutarını gösteriyordu, hiçbir ekran aradaki farkı söylemiyordu.
+ * Artık üç ekran da bu işlevden okuyor.
+ *
+ *   toplam       siparişin tutarı, KDV dâhil (lib/servisFiyat.js → siparisToplami)
+ *   iptalEdilen  PAKSAN'ın iptal ettiği kalemlerin payı (kalanParcalariIptalEt)
+ *   net          iptal edilenler çıktıktan sonra servisin ödeyeceği
+ *                (lib/servisFiyat.js → siparisNetTutari); iptal yoksa toplam
+ *   dusulen      bu sipariş için bakiyeden düşülen, iadeler çıkarılmış
+ *   bekleyen     parçalar gönderildikçe düşülecek kalan (iptal edilen
+ *                siparişte sıfır)
+ *   iade         iptalde bakiyeye geri eklenen
+ *
+ * Her zaman  toplam = iptalEdilen + net  ve bakiye siparişinde, bütün
+ * kalan gönderildiğinde  net = dusulen.
+ *
+ * Faturayla ödenen siparişte bakiyeye hiçbir şey yazılmıyor; yalnız
+ * `toplam`, `iptalEdilen` ve `net` anlamlı.
+ */
+export function siparisHesabi(talep) {
+  const toplam = siparisToplami(talep)
+  const net = talep?.servisSiparisi ? siparisNetTutari(talep) : toplam
+  const iptalEdilen = toplam - net
+  if (!talep?.servisSiparisi || talep.odeme !== 'bakiye') {
+    return { toplam, iptalEdilen, net, dusulen: 0, bekleyen: 0, iade: 0 }
+  }
+  let borc = 0
+  let iade = 0
+  for (const h of cariHareketleri(talep.servis?.id)) {
+    if (h.tur === 'borc' && siparisinHareketi(h, talep)) borc += Number(h.tutar) || 0
+    /* İade yalnız kimlikle: numara eşleşmesi başka bir işin alacağını
+       iade sanabilirdi. İade hareketi her zaman kimlik taşıyor. */
+    else if (h.tur === 'alacak' && h.talepId && h.talepId === talep.id) iade += Number(h.tutar) || 0
+  }
+  const dusulen = borc - iade
+  return {
+    toplam,
+    iptalEdilen,
+    net,
+    dusulen,
+    bekleyen: talep.status === 'iptal' ? 0 : Math.max(0, net - dusulen),
+    iade,
+  }
+}
+
+/* İPTAL EDİLEN SİPARİŞİN TUTARI BAKİYEYE GERİ EKLENİYOR (24 Eylül 2026,
+   kullanıcının kararı: "İptal edilen taleplerde bakiyeden düşüldüyse
+   düşülen tutar bakiyeye geri eklenmeli").
+
+   Borç parça gönderilince yazılıyor (siparisBorcunuYaz); gönderilmeden
+   iptal edilen siparişte düşülmüş bir şey yok, iade de yok. Gönderildikten
+   sonra (tamamı ya da bir kısmı) iptal edilen siparişte bu siparişe
+   düşülmüş NET tutar tek bir alacak hareketiyle geri yazılıyor. Hareket
+   talep kimliğini taşıyor; siparisHesabi onu iade olarak sayıyor. İptal
+   edilmiş sipariş sonra yeniden açılıp kapanırsa borç yeniden yazılıyor
+   (fark, iadeyi hesaba katıyor).
+
+   Faturayla ödenen siparişte uygulama para yazmıyor: fatura LOGO'da,
+   iadesi de orada (bkz. VT-TASARIM-EKLERI §9). */
+function siparisIadesiniYaz(talep, personel) {
+  if (!talep?.servisSiparisi || talep.odeme !== 'bakiye') return 0
+  const { dusulen } = siparisHesabi(talep)
+  if (dusulen <= 0) return 0
+  cariHareketEkle({
+    servisId: talep.servis?.id,
+    servisAd: talep.servis?.ad,
+    tur: 'alacak',
+    tutar: dusulen,
+    aciklama: `${talep.no} · sipariş iptali, bakiyeye iade`,
+    talepNo: talep.no,
+    talepId: talep.id,
+    personel,
+  })
+  return dusulen
+}
+
+/**
+ * Servisin kendi parça siparişini iptal etmesi (24 Eylül 2026,
+ * kullanıcının kararı). Yalnız sipariş "Yeni" iken: PAKSAN işleme
+ * aldıktan sonra servis iptal edemiyor, backoffice'e yazıyor.
+ * Durum depodan yeniden okunuyor — servis ekranı açıkken PAKSAN
+ * siparişi işleme almış olabilir. Parça gönderilmediği için bakiyeden
+ * düşülmüş bir şey yok.
+ */
+export function servisSiparisiniIptalEt(talep, servisAd) {
+  const guncel = talepleriGetir().find((t) => t.id === talep?.id)
+  if (!guncel?.servisSiparisi) return { hata: 'Sipariş bulunamadı.' }
+  if (guncel.status !== 'yeni') {
+    return {
+      hata: `${MARKA} siparişi işleme aldığı için artık buradan iptal edilemiyor. İptal için ${markaEk('in')} yedek parça birimine ulaşın.`,
+      durumDegisti: true,
+    }
+  }
+  return talepIptal(guncel, { neden: 'Servis siparişten vazgeçti' }, servisAd, { servisten: true })
+}
+
+/**
+ * Servisin bakiyesi ve siparişlere ayrılan kısmı (24 Eylül 2026).
+ *
+ * Bakiyeden ödenen sipariş verildiği anda bakiyeden düşülmüyor; düşüm
+ * parça gönderilince yapılıyor. Arada bakiye, bekleyen siparişi hiç
+ * bilmiyordu: bakiyesi 1.000 TL olan servis 900'er TL'lik üç sipariş
+ * verebiliyor, parçalar gönderildikçe bakiye eksiye düşüyordu. Artık
+ * gönderilmeyi bekleyen tutar "ayrılan" sayılıyor; yeni siparişin
+ * bakiyeden ödenip ödenemeyeceği kullanılabilir kısma bakıyor. İptal
+ * edilen siparişin ayrılan tutarı kendiliğinden serbest kalıyor
+ * (siparisHesabi → bekleyen sıfır).
+ *
+ * @returns {{bakiye: number, ayrilan: number, kullanilabilir: number}}
+ */
+export function bakiyeDurumu(servisId) {
+  const bakiye = cariBakiye(servisId)
+  const ayrilan = servisinSiparisleri(talepleriGetir(), servisId)
+    .filter((t) => t.odeme === 'bakiye' && t.status !== 'iptal')
+    .reduce((top, t) => top + siparisHesabi(t).bekleyen, 0)
+  return { bakiye, ayrilan, kullanilabilir: bakiye - ayrilan }
+}
+
+/**
+ * Kapanmış servis siparişinin bekleyen parçalarını gönderir: gönderimi
+ * talebe yazar, bakiyeden ödenen siparişte o parçaların tutarını düşer,
+ * servise bildirir.
+ *
+ * @param {number[]} secim  gönderilen satırların sırası (0'dan)
+ */
+export function kalanParcalariGonder(talep, secim, personel) {
+  const g = siparisGonderimi(talep)
+  if (!g || talep.status !== 'kapandi' || !g.kalan.length) {
+    return { hata: 'Gönderilecek kalan parça yok.' }
+  }
+  const yeni = [...new Set((secim || []).map(Number))]
+    .filter((i) => g.kalan.includes(i))
+    .sort((a, b) => a - b)
+  if (!yeni.length) return { hata: 'En az bir parçayı işaretleyin.' }
+  const once = Array.isArray(talep.gonderimler) ? talep.gonderimler : []
+  const gonderimler = [...once, { no: once.length + 1, tarih: Date.now(), personel, satirlar: yeni }]
+  talepYaz(talep.id, { gonderimler })
+  const guncel = { ...talep, gonderimler }
+  siparisBorcunuYaz(guncel, personel)
+  serviseBildir(guncel, 'kalanGonderildi', { kalan: siparisGonderimi(guncel).kalan.length })
+  islemYaz({
+    tur: 'talep',
+    ozet: `${talep.no} · kalan parçalar gönderildi · ${yeni.length} kalem`,
+    personel,
+  })
+  return { gonderimler }
+}
+
+/**
+ * KALAN PARÇALARIN İPTALİ (24 Eylül 2026, kullanıcının onayı).
+ *
+ * Kısmen gönderilmiş siparişte bekleyen parça stoktan kalkmışsa ya da
+ * servis ondan vazgeçtiyse, o kalemi kapatmanın tek yolu siparişin
+ * tamamını iptal etmekti; gönderilmiş parçaların parası da geri
+ * dönüyordu. Artık yalnız seçilen BEKLEYEN kalemler siparişten
+ * çıkıyor, gönderilenler yerinde kalıyor.
+ *
+ * Para: bakiyeden düşüm parça gönderilince yapılıyor
+ * (siparisBorcunuYaz), bekleyen kalem için düşülmüş bir şey yok; bu
+ * yüzden cariye hiçbir şey yazılmıyor. Siparişin tutarı iptal edilen
+ * pay kadar iniyor (siparisHesabi → net) ve o pay bakiyeden ayrılmış
+ * olmaktan çıkıyor (bakiyeDurumu). Faturalı siparişte fatura LOGO'da;
+ * uygulama para yazmıyor.
+ *
+ * Sebep ve açıklama servise gidiyor (sipariş iptaliyle aynı:
+ * IptalFormu → SIPARIS_IPTAL_SEBEPLERI).
+ *
+ * @param {number[]} secim  iptal edilen satırların sırası (0'dan)
+ */
+export function kalanParcalariIptalEt(talep, secim, { neden, aciklama } = {}, personel) {
+  const g = siparisGonderimi(talep)
+  if (!g || talep.status !== 'kapandi' || !g.kalan.length) {
+    return { hata: 'İptal edilecek kalan parça yok.' }
+  }
+  const satirlar = [...new Set((secim || []).map(Number))]
+    .filter((i) => g.kalan.includes(i))
+    .sort((a, b) => a - b)
+  if (!satirlar.length) return { hata: 'En az bir parçayı işaretleyin.' }
+  if (!neden) return { hata: 'İptal sebebini seçin.' }
+  const once = Array.isArray(talep.kalemIptalleri) ? talep.kalemIptalleri : []
+  const kalemIptalleri = [
+    ...once,
+    {
+      no: once.length + 1,
+      tarih: Date.now(),
+      personel,
+      neden,
+      ...(aciklama ? { aciklama } : {}),
+      satirlar,
+    },
+  ]
+  const tutar = siparisNetTutari(talep) - siparisNetTutari({ ...talep, kalemIptalleri })
+  talepYaz(talep.id, { kalemIptalleri })
+  const guncel = { ...talep, kalemIptalleri }
+  serviseBildir(guncel, 'kalanIptalEdildi', {
+    adet: satirlar.length,
+    kalan: siparisGonderimi(guncel).kalan.length,
+    neden,
+    ...(aciklama ? { aciklama } : {}),
+    tutar,
+    odeme: talep.odeme,
+  })
+  islemYaz({
+    tur: 'talep',
+    ozet: `${talep.no} · kalan parçalar iptal edildi · ${satirlar.length} kalem · ${neden}`,
+    personel,
+  })
+  return { kalemIptalleri, tutar }
+}
+
 /* --------------------------------------------------- Talep kapanışı
 
    Kapatırken ne yapıldığı yazılmazsa makinenin arıza geçmişi
@@ -1240,6 +1598,17 @@ export function talepKapat(talep, cozum, personel, { servisten } = {}) {
   const engel = durumGecisiEngeli(talep, 'kapandi')
   if (engel) return { hata: engel }
 
+  /* EKSİK GÖNDERİM (24 Eylül 2026, kullanıcının kararı). Servis
+     siparişi kapanırken personel gönderdiği satırları işaretliyor
+     (`cozum.gonderilen`, satır sıraları); gönderilmeyen satır talepte
+     bekliyor ve sonra kalanParcalariGonder ile gidiyor. Seçim yoksa
+     (eski çağrı) hepsi gönderilmiş sayılıyor. Seçim `cozum`a değil
+     talebin `gonderimler` listesine yazılıyor: üç uygulamanın okuduğu
+     kapanış nesnesi aynı kalıyor. */
+  const gonderim = servisSiparisiGonderimi(talep, cozum?.gonderilen, personel)
+  if (gonderim.hata) return { hata: gonderim.hata }
+  const { gonderilen: _secim, ...cozumKaydi } = cozum || {}
+
   const gecmis = [
     ...(talep.gecmis || []),
     { durum: 'kapandi', tarih: Date.now(), personel },
@@ -1247,7 +1616,8 @@ export function talepKapat(talep, cozum, personel, { servisten } = {}) {
   talepYaz(talep.id, {
     status: 'kapandi',
     gecmis,
-    cozum: { ...cozum, tarih: Date.now(), personel },
+    cozum: { ...cozumKaydi, tarih: Date.now(), personel },
+    ...(gonderim.gonderimler ? { gonderimler: gonderim.gonderimler } : {}),
   })
 
   islemYaz({
@@ -1259,19 +1629,24 @@ export function talepKapat(talep, cozum, personel, { servisten } = {}) {
   /* Servisin kendi parça siparişinde kapanış = parça kargoya verildi;
      öteki taleplerde PAKSAN işi servisin yerine kapattı. */
   if (!servisten) {
-    serviseBildir(talep, talep.servisSiparisi ? 'siparisGonderildi' : 'kapandi')
+    serviseBildir(
+      talep,
+      talep.servisSiparisi ? (gonderim.kismi ? 'siparisKismenGonderildi' : 'siparisGonderildi') : 'kapandi',
+    )
   }
 
   /* SERVİSİN HAK EDİŞİNDEN DÜŞÜLECEK SİPARİŞ.
 
      Servis siparişi verirken bedelin hak edişinden düşülmesini
      istemiş olabiliyor (bkz. servisParcaSiparisi → odeme). Düşüm o an
-     yapılmıyor: sipariş henüz onaylanmamış, tutar da bağlayıcı değil.
+     yapılmıyor: sipariş henüz onaylanmamış.
      Parça kargoya verildiğinde iş kesinleşiyor ve borç deftere o
      zaman yazılıyor.
 
-     Tutar sipariş anındaki fiyattan; sunucu geldiğinde faturanın
-     kendi tutarı gelecek ve değişecek tek şey bu satır olacak.
+     Tutar sipariş anındaki fiyattan ve BAĞLAYICI (24 Eylül 2026,
+     kullanıcının kararı: "sipariş verildiği zamanki tutar üzerinden
+     ücretlendirilmeli"). Fatura da bu tutarla kesilir; faturanın
+     tutarı bu satırın yerine geçmiyor. Önce öyle planlanmıştı.
 
      RAKAM KAYDIN İÇİNDEKİ FİYAT GÖRÜNTÜSÜNDEN OKUNUYOR.
 
@@ -1287,20 +1662,14 @@ export function talepKapat(talep, cozum, personel, { servisten } = {}) {
      BAKİYEDEN ÖDEMEDE EK İSKONTO bu toplamın İÇİNDE (24 Eylül 2026):
      görüntünün `toplam`ı ek iskonto düşülmüş ara toplam + KDV
      (lib/servisFiyat.js → siparisTutari). Burada ayrıca düşülmüyor;
-     düşülseydi servis iki kez indirim almış olurdu. */
-  const dusulecek =
-    Number(talep.parcaFiyat?.toplam) || Number(talep.tutarKdvli) || Number(talep.tutar) || 0
-  if (talep.servisSiparisi && talep.odeme === 'bakiye' && dusulecek > 0) {
-    cariHareketEkle({
-      servisId: talep.servis?.id,
-      servisAd: talep.servis?.ad,
-      tur: 'borc',
-      tutar: dusulecek,
-      aciklama: `${talep.no} · parça siparişi`,
-      talepNo: talep.no,
-      personel,
-    })
-  }
+     düşülseydi servis iki kez indirim almış olurdu.
+
+     EKSİK GÖNDERİMDE yalnız gönderilen satırlar düşülüyor, kalanı
+     gönderildiği gün (bkz. siparisBorcunuYaz, kalanParcalariGonder). */
+  siparisBorcunuYaz(
+    { ...talep, status: 'kapandi', gonderimler: gonderim.gonderimler ?? talep.gonderimler },
+    personel,
+  )
 
   /* YEDEK PARÇADA KAPANIŞ = KARGOYA VERİLDİ.
 
@@ -1321,6 +1690,7 @@ export function talepKapat(talep, cozum, personel, { servisten } = {}) {
     degerler: { no: talep.no, durum: 'kapandi', talepTur: talep.tur },
     talepNo: talep.no,
   })
+  return { kismi: Boolean(gonderim.kismi) }
 }
 
 /* ------------------------------------------------------- Talep iptali
@@ -1346,9 +1716,13 @@ export function talepIptal(talep, iptal, personel, { servisten } = {}) {
 
   islemYaz({ tur: 'durum', ozet: `${talep.no} iptal edildi · ${iptal.neden}`, personel })
 
+  /* Bakiyeden ödenmiş ve parçası gönderilmiş siparişte düşülen tutar
+     bakiyeye geri ekleniyor (bkz. siparisIadesiniYaz). */
+  const iade = siparisIadesiniYaz(talep, personel)
+
   /* İptal edilen iş servisin listesinden "Tamamlanan"a düşüyor; haber
      verilmezse servis o müşteriye gitmeye devam edebilir. */
-  if (!servisten) serviseBildir(talep, 'iptal', { neden: iptal.neden })
+  if (!servisten) serviseBildir(talep, 'iptal', { neden: iptal.neden, ...(iade ? { iade } : {}) })
 
   musteriyeBildir({
     musteriId: bildirimAlicisi(talep),
@@ -2299,10 +2673,51 @@ function servisHesapBildir(servisId, olay, degerler) {
   ])
 }
 
+/* ÜCRETİN KISA GEÇMİŞİ (24 Eylül 2026).
+
+   Servisim onay penceresinde gördüğü oranla ya da ücretle gönderiyor ve
+   o değer PAKSAN'ın tam o sırada değiştirdiği değer olabiliyor (bkz.
+   servisParcaSiparisi, servisKaydiGonder). Veri katmanı bunu kabul
+   ederken "bu değer, ekranın okuduğu anda gerçekten geçerli miydi?"
+   diye bakabilmeli; yoksa taze okuma anı taşıyan her rakam geçerdi
+   (son inceleme bir %90 iskontoyla ve 999 TL/km'yle bunu gösterdi).
+
+   Hizmet tarifesi ve parça iskontosu her değiştiğinde ÖNCEKİ hâli,
+   bittiği anla birlikte saklanıyor. Yalnız son ONAY_TUTAR_SURESI (30
+   dakika) tutuluyor: daha eskisini hiçbir onay kullanamaz. Değer JSON
+   yazısı olarak duruyor — geçmiş, kayıt biçiminin kopyası değil,
+   yalnız "o an neydi" sorusunun cevabı. Sunucuda karşılığı sistem
+   sürümlü tablolar ve tarifenin tarih aralığı (VT-TASARIM-EKLERI §9). */
+const GECMISLI_ALANLAR = ['parcaIskontosu', 'hizmetTarifesi']
+
 function icerikAlaniYaz(alan, deger) {
   const mevcut = load(ANAHTAR.icerik, {})
-  save(ANAHTAR.icerik, { ...mevcut, [alan]: deger })
+  const sonraki = { ...mevcut, [alan]: deger }
+  const eski = JSON.stringify(mevcut[alan] ?? null)
+  if (GECMISLI_ALANLAR.includes(alan) && eski !== JSON.stringify(deger ?? null)) {
+    const simdi = Date.now()
+    const liste = [...(mevcut.ucretGecmisi?.[alan] || []), { deger: eski, bitis: simdi }].filter(
+      (x) => simdi - x.bitis <= ONAY_TUTAR_SURESI,
+    )
+    sonraki.ucretGecmisi = { ...(mevcut.ucretGecmisi || {}), [alan]: liste }
+  }
+  save(ANAHTAR.icerik, sonraki)
   icerikTazele()
+}
+
+/* Ekranın `zaman` anında okuduğu kayıt: o andan SONRA kapanmış en eski
+   önceki hâl; öyle bir hâl yoksa o andan beri değişmemiş, yani bugünkü. */
+function okunduguAnkiIcerik(alan, zaman) {
+  const icerik = load(ANAHTAR.icerik, {})
+  const onceki = (icerik.ucretGecmisi?.[alan] || [])
+    .filter((x) => x.bitis > zaman)
+    .sort((a, b) => a.bitis - b.bitis)[0]
+  if (!onceki) return icerik[alan] ?? null
+  try {
+    return JSON.parse(onceki.deger)
+  } catch {
+    return null
+  }
 }
 
 const ucretYazisi = (t) =>
@@ -2681,26 +3096,72 @@ export function servisKaydiGonder(talep, kayit, servisAd) {
 
   /* ÜCRET KAYDA BURADA YAZILIYOR (23 Eylül 2026).
 
-     Hizmet ücreti artık backoffice'ten değişiyor ve servise, makineye
-     göre farklı olabiliyor (bkz. lib/servisTarifesi.js). Servisim ön
-     hesabı aynı işlevle yapıyor ama karar veri katmanının: kayıt, o
-     servisin o makinedeki GÜNCEL ücretini taşıyarak kaydediliyor.
-     Servisim eski bir ekranda eski ücreti göstermiş olsa da hak ediş
-     bugünkü ücretle doğuyor; sonra tarife değişse de bu kayıt
-     değişmiyor (hakkedisHesapla kaydın kendi ücretini okuyor).
+     Hizmet ücreti backoffice'ten değişiyor ve servise, makineye göre
+     farklı olabiliyor (bkz. lib/servisTarifesi.js). Kayıt ücretini
+     taşıyor; sonra tarife değişse de bu kayıt değişmiyor
+     (hakkedisHesapla kaydın kendi ücretini okuyor).
+
+     SERVİSİN ONAYLADIĞI ÜCRET GEÇER (24 Eylül 2026, kullanıcının
+     kararı: "sipariş verildiği zamanki tutar üzerinden
+     ücretlendirilmeli müşteri veya servis"). Servisim onay penceresinde
+     "Hesabınıza eklenecek tutar"ı gösteriyor ve kayıt o tutarın
+     ücretlerini (`kmUcreti`, `saatUcreti`) ve ekranın onları okuduğu
+     anı (`ucretZamani`) taşıyor. PAKSAN ücreti tam o sırada
+     değiştirdiyse servisin gördüğü ücret geçiyor. Önce ekranın ücreti
+     sessizce bugünküyle değiştiriliyordu: servis 300 TL onaylıyor,
+     hesabına 330 TL (ya da 270 TL) yazılıyordu.
+
+     Bugünküyle tutmayan ücret iki şartla geçiyor: okuma anı taze
+     (ONAY_TUTAR_SURESI, 30 dakika; bkz. lib/servisFiyat.js →
+     onayTazeMi) ve ücret O ANDA o servisin o makinedeki ücretiydi
+     (ücretin kısa geçmişinden, bkz. okunduguAnkiIcerik). Tutmazsa kayıt
+     GÖNDERİLMİYOR, ekran yeni tutarı gösteriyor. Okuma anını taşımayan
+     çağrı (eski ekran) eskisi gibi bugünkü ücretle kaydediliyor.
+
+     Makine, ekranın kullandığı sırayla seçiliyor: kaydın kendi makinesi
+     (servisin yazdığı şaseden), yoksa talebinki. Önce tersiydi; ikisi
+     ayrışırsa ekran bir modelin ücretini gösterip veri katmanı
+     ötekininkini yazıyordu.
 
      Yalnız garanti kaydının 2. aşamasında: parça istenirken yol ve
      işçilik sorulmuyor. Süresi olmayan eski biçimli kayıtta işçilik
      tutarına dokunulmuyor. */
   if (kayit.kapi === 'garanti' && kayit.asama !== ASAMA.parca) {
-    const urunId = talep.makine?.productId || kayit.makine?.productId || null
+    const urunId = kayit.makine?.productId || talep.makine?.productId || null
     const tarife = servisinTarifesi(talep.servis?.id || null, urunId)
+    const sureli = kayit.iscilikSaat !== undefined && kayit.iscilikSaat !== null
+    const gorulenKm = Number(kayit.kmUcreti)
+    const gorulenSaat = Number(kayit.saatUcreti)
+    const gecerliSayi = (n) => Number.isFinite(n) && n >= 0
+    const ayni = gorulenKm === tarife.yolKm && (!sureli || gorulenSaat === tarife.iscilikSaat)
+    let ucret = tarife
+    if (kayit.ucretZamani !== undefined && !ayni) {
+      /* Bugünküyle tutmayan ücret ancak ekranın okuduğu anda GERÇEKTEN
+         geçerliyse kabul ediliyor (bkz. okunduguAnkiIcerik). */
+      const onayda = onayTazeMi(kayit.ucretZamani)
+        ? tarifeCoz(
+            tarifeleriDuzenle(okunduguAnkiIcerik('hizmetTarifesi', kayit.ucretZamani)),
+            talep.servis?.id || null,
+            urunId,
+          )
+        : null
+      const taze =
+        !!onayda &&
+        gecerliSayi(gorulenKm) &&
+        gorulenKm === onayda.yolKm &&
+        (!sureli || (gecerliSayi(gorulenSaat) && gorulenSaat === onayda.iscilikSaat))
+      if (!taze) {
+        return {
+          hata: 'Onay penceresi 30 dakikadan uzun açık kaldığı ve hizmet ücreti değiştiği için kayıt gönderilmedi. Ekrandaki tutar güncellendi; kontrol edip kaydı yeniden gönderin.',
+          ucretDegisti: true,
+        }
+      }
+      ucret = { yolKm: gorulenKm, iscilikSaat: sureli ? gorulenSaat : tarife.iscilikSaat }
+    }
     kayit = {
       ...kayit,
-      kmUcreti: tarife.yolKm,
-      ...(kayit.iscilikSaat !== undefined && kayit.iscilikSaat !== null
-        ? iscilikAlanlari(kayit.iscilikSaat, tarife.iscilikSaat)
-        : {}),
+      kmUcreti: ucret.yolKm,
+      ...(sureli ? iscilikAlanlari(kayit.iscilikSaat, ucret.iscilikSaat) : {}),
     }
   }
 
@@ -2799,7 +3260,11 @@ export function servisKaydiGonder(talep, kayit, servisAd) {
   }
   if (!talep.adres && kayit.musteri?.adres) yama.adres = kayit.musteri.adres
   if (!talep.makine?.serial && kayit.makine?.serial) {
-    yama.makine = { ...(talep.makine || {}), ...kayit.makine }
+    /* Seri numarası olmadan açılmış talepte (ElleKayit → seriYok) servis
+       şaseyi sahada bulduysa makine seriyle tamamlanıyor; tahmini yıl ve
+       "seri yok" işareti artık doğru değil, düşüyor. */
+    const { seriYok: _seriYok, tahminiYil: _tahminiYil, ...onceki } = talep.makine || {}
+    yama.makine = { ...onceki, ...kayit.makine }
   }
   if (!talep.aciklama?.trim() && kayit.ariza) yama.aciklama = kayit.ariza
 
@@ -3125,37 +3590,74 @@ export function servisParcaSiparisi({
       ? parcaFiyat
       : null
 
-  /* İSKONTO ORANINI VERİ KATMANI DOĞRULUYOR (23 Eylül 2026).
+  /* SERVİSİN ONAYLADIĞI ORAN GEÇER (24 Eylül 2026, kullanıcının
+     kararı: "sipariş verildiği zamanki tutar üzerinden
+     ücretlendirilmeli").
 
      Oran backoffice'ten değişiyor (genel ya da servise özel, bkz.
-     parcaIskontosuGetir) ve servisin ekranı onu sipariş ekranı
-     açıldığında okuyor. Servis sepeti hazırlarken PAKSAN oranı
-     değiştirirse ekranda gördüğü tutarla kaydedilecek tutar ayrışırdı.
-     Görüntü kendi oranını taşıyor (`iskontoOrani`); bugünkü oranla
-     tutmuyorsa sipariş KAYDEDİLMİYOR, ekran oranı yenileyip servise
-     yeni tutarı gösteriyor. Oranı taşımayan eski çağrılara dokunulmuyor. */
+     parcaIskontosuGetir). Görüntü, servisin onay penceresinde gördüğü
+     oranı (`iskontoOrani`) ve ekranın onu okuduğu anı (`fiyatZamani`)
+     taşıyor. PAKSAN oranı tam o sırada değiştirdiyse sipariş yine
+     SERVİSİN GÖRDÜĞÜ oranla kaydediliyor — ister lehine ister aleyhine.
+
+     Önce tersiydi (23 Eylül): bugünkü oranla tutmayan sipariş
+     reddediliyor, ekran yeni tutarı gösterip yeniden onay istiyordu.
+     Şimdi bugünküyle tutmayan oran iki şartla geçiyor: okuma anı taze
+     (ONAY_TUTAR_SURESI, 30 dakika; bkz. lib/servisFiyat.js →
+     onayTazeMi) ve oran O ANDA gerçekten geçerliydi (ücretin kısa
+     geçmişinden, bkz. okunduguAnkiIcerik). İkisinden biri tutmazsa
+     sipariş kaydedilmiyor, ekran yeni tutarı gösteriyor. Ekran okuma
+     anını hiç yazmadıysa (eski çağrı) oran bugünküyle tutmalı. Oranı
+     taşımayan eski çağrılara dokunulmuyor.
+
+     Sunucu istemcinin oranına güvenmeyecek; onay penceresi açılırken
+     kendi verdiği süreli fiyat teklifine bakacak (VT-TASARIM-EKLERI §9). */
   const oranDegisti = {
-    hata: 'Siparişi hazırlarken indirim oranınız değişti. Tutarlar güncellendi. Sipariş özetini kontrol edip yeniden gönderin.',
+    hata: 'Onay penceresi 30 dakikadan uzun açık kaldığı ve indirim oranınız değiştiği için sipariş kaydedilmedi. Tutarlar güncellendi; sipariş özetini kontrol edip yeniden gönderin.',
     iskontoDegisti: true,
   }
+  /* Bugünküyle tutmayan değer ancak ekranın okuduğu anda GERÇEKTEN
+     geçerliyse kabul ediliyor (bkz. okunduguAnkiIcerik). */
+  const onaydakiOranlar =
+    goruntu && onayTazeMi(goruntu.fiyatZamani)
+      ? iskontolariDuzenle(okunduguAnkiIcerik('parcaIskontosu', goruntu.fiyatZamani))
+      : null
   if (goruntu && goruntu.iskontoOrani !== undefined) {
+    const gorulen = oranOku(goruntu.iskontoOrani)
+    if (gorulen === null) return oranDegisti
     const gecerli = servisinIskontosu(servisId).oran
-    if (goruntu.iskontoOrani !== gecerli) return oranDegisti
+    const onaydaGecerli = onaydakiOranlar && gorulen === iskontoCoz(onaydakiOranlar, servisId).oran
+    if (gorulen !== gecerli && !onaydaGecerli) return oranDegisti
   }
 
-  /* BAKİYEDEN ÖDEMEDE EK İSKONTO DA DOĞRULANIYOR (24 Eylül 2026).
+  /* BAKİYEDEN ÖDEMEDE EK İSKONTO: AYNI KURAL (24 Eylül 2026).
 
-     Aynı kural: servis sepeti hazırlarken PAKSAN ek iskontoyu açar,
-     kapatır ya da değiştirirse ekrandaki tutar kaydedilecek tutardan
-     ayrışırdı. Bakiyeden ödenen siparişin taşıdığı oran bugünkü oranla
-     aynı olmalı — oranı taşımayan görüntü 0 sayılıyor, yani servis ek
-     iskonto açılmadan hazırladığı sepeti açıldıktan sonra gönderemiyor
-     ve yeni (daha düşük) tutarı görüyor. Faturayla ödenen sipariş ek
-     iskonto taşıyamaz. Görüntüsü olmayan eski çağrılara dokunulmuyor. */
+     Bakiyeden ödenen siparişin taşıdığı ek oran (taşımayan görüntü 0
+     sayılıyor) servisin onayda gördüğü oran; tutar tazeyse ve oran
+     okunduğu anda geçerliyse bugünkü oranla tutmasa da geçiyor. PAKSAN
+     ek iskontoyu tam o sırada açtı ya da kapattıysa da öyle.
+
+     FATURAYLA ÖDENEN SİPARİŞ EK İSKONTO TAŞIYAMAZ — bu bir tazelik
+     sorunu değil, kuralın kendisi: ek iskonto yalnız bakiyeden ödemenin
+     karşılığı. Ekran bunu hiç göndermiyor; gelirse bozuk ya da
+     kurcalanmış bir çağrıdır. Kendi uyarısı var, "oran değişti" demiyor. */
   if (goruntu) {
-    const tasinan = Number(goruntu.bakiyeIskontoOrani) || 0
-    const beklenen = odeme === 'bakiye' ? bakiyeIskontosuGetir() : 0
-    if (tasinan !== beklenen) return oranDegisti
+    const tasinan = oranOku(goruntu.bakiyeIskontoOrani ?? 0)
+    if (tasinan === null) return oranDegisti
+    if (odeme !== 'bakiye' && tasinan > 0) {
+      return {
+        hata: 'Sipariş kaydedilmedi; tutarlar güncellendi. Sipariş özetini kontrol edip yeniden gönderin.',
+        iskontoDegisti: true,
+        faturayaEkIndirim: true,
+      }
+    }
+    if (
+      odeme === 'bakiye' &&
+      tasinan !== bakiyeIskontosuGetir() &&
+      !(onaydakiOranlar && tasinan === bakiyeIskontosu(onaydakiOranlar))
+    ) {
+      return oranDegisti
+    }
   }
 
   /* TUTAR TEK YERDEN: kaydedilen görüntüden. Ayrıca gelen `tutar` ve
@@ -3165,6 +3667,17 @@ export function servisParcaSiparisi({
   const araToplam = Number(goruntu ? goruntu.araToplam : tutar) || 0
   const kdvliToplam =
     Number(goruntu ? goruntu.toplam : tutarKdvli) || araToplam + kdvTutari(araToplam)
+
+  /* BAKİYE YETMELİ — GÖNDERİLMEYİ BEKLEYEN SİPARİŞLER DÜŞÜLEREK
+     (24 Eylül 2026, bkz. bakiyeDurumu). Ekran seçeneği zaten kapatıyor;
+     bu kapı ekranı atlayan ya da iki cihazdan aynı anda verilen sipariş
+     için. Önce hiç bakılmıyordu. */
+  if (odeme === 'bakiye' && kdvliToplam > bakiyeDurumu(servisId).kullanilabilir) {
+    return {
+      hata: 'Bakiyeniz bu sipariş için yetmiyor; gönderilmeyi bekleyen siparişlerinizin tutarı bakiyenizden ayrıldı. Faturayla ödemeyi seçin.',
+      bakiyeYetmiyor: true,
+    }
+  }
 
   const simdi = Date.now()
   const talep = {
@@ -3207,9 +3720,10 @@ export function servisParcaSiparisi({
 
        ÖDEME BİÇİMİ ONUN YERİNE GELDİ. Servis cari hesaplı çalışıyor;
        bu siparişin bedelinin hak edişinden düşülmesini isteyebiliyor.
-       Karar burada kaydediliyor, PARA BURADA İŞLENMİYOR: tutar
-       bağlayıcı değil ve sipariş henüz onaylanmadı. Düşüm, parça
-       gönderilip talep kapandığında yapılıyor (bkz. talepKapat). */
+       Karar burada kaydediliyor, PARA BURADA İŞLENMİYOR: sipariş henüz
+       onaylanmadı. Tutar ise bugünden bağlayıcı (24 Eylül 2026): düşüm,
+       parça gönderilip talep kapandığında bu kayıttaki tutarla yapılıyor
+       (bkz. talepKapat). */
     odeme: odeme === 'bakiye' ? 'bakiye' : 'fatura',
     /* Sipariş anındaki tutar kaydediliyor: fiyat listesi sonradan
        değişince "bu siparişi hangi fiyattan verdim" sorusunun cevabı

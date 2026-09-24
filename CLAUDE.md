@@ -1,6 +1,6 @@
 # PAKSAN Connect
 
-Tarım makineleri üreticisi PAKSAN Makina için React 19 + Vite 6 + Capacitor 6
+Tarım makineleri üreticisi PAKSAN Makina için React 19 + Vite 6 + Capacitor 8
 mobil uygulama, artı ayrı derlenen bir "backoffice" (personel paneli). Kod
 tabanı ~170 dosya / ~41.000 satır (`src/`). Kullanıcı geliştirici değil —
 uygulama içi tüm metin ve yorumlar sade Türkçe.
@@ -89,7 +89,7 @@ otomasyon paketi kurulu değil. Buna karşılık dört şey var:
   çağrılmıyorsa yoktur.*
 - **Ekosistem sınaması** (`tools/ekosistem-sinamasi.mjs`) — üç
   uygulamanın PAYLAŞTIĞI veri katmanını Node içinde gerçekten
-  çalıştırıyor: yirmi üç akış senaryosu (AK-01…AK-23), talep açılışından
+  çalıştırıyor: yirmi yedi akış senaryosu (AK-01…AK-27), talep açılışından
   hak edişin cariye yazılmasına kadar. Modüller Vite'ın
   `ssrLoadModule`'üyle yükleniyor, depo taklit ediliyor, saat donmuş,
   rastgelelik tohumlu. Ayrıntısı betiğin başında.
@@ -107,9 +107,9 @@ otomasyon paketi kurulu değil. Buna karşılık dört şey var:
 - **Ekosistem ekran turu** (`tools/ekosistem-turu.mjs`) — üç uygulamanın
   **gezilebilir yüzeyinin tamamını** Chrome'da açıyor: envanter
   `tools/ekosistem/ekranlar.mjs` içinde (Connect 26, backoffice 17,
-  Servisim 9; artı rol bazlı menü, uygulamalar arası ispat, "gezinmek
+  Servisim 10; artı rol bazlı menü, uygulamalar arası ispat, "gezinmek
   kayıt yazmıyor" denetimi ve **on formun boş gönderimi**
-  (`tools/ekosistem/formlar.mjs`) — toplam 66 denetim). Her ekranda
+  (`tools/ekosistem/formlar.mjs`) — toplam 67 denetim). Her ekranda
   üç soru: boş mu açıldı, hata verdi mi, ekili değer basılı mı.
   Gidilemeyen ekran "ERİŞİLEMEDİ" diye AYRI sayılıyor; sessizce
   atlanmıyor. Yalnız ekilen değerleri arar (talep numarası, seri,
@@ -199,9 +199,8 @@ iskontoCoz`). Genel değer değişirken özel değeri olan servis varsa
 pencere onları adıyla listeleyip "onlar da değişsin mi" diye soruyor;
 evet denirse yalnız DEĞİŞEN kalemin özel değeri kalkar. İki ayrı yetki:
 `servisUcreti`, `servisIskontosu`. Ücret servis kaydına
-`servisKaydiGonder`'de, oran siparişe `servisParcaSiparisi`'nde yazılır;
-servis eski oranla hazırladığı siparişi gönderemez (veri katmanı
-reddeder, ekran tutarı yeniler). Değeri gerçekten değişen servise
+`servisKaydiGonder`'de, oran siparişe `servisParcaSiparisi`'nde yazılır
+(onayda görülen değer, aşağıda). Değeri gerçekten değişen servise
 Servisim'de talebe bağlı olmayan bildirim gider (`tur: 'hesap'`);
 Servisim Hesap'ta "Ücretlendirmeler", Hak Ediş'te tek satırlık özet, sipariş
 ekranında indirim şeridi ve özet satırı gösterir. Servis ekranında
@@ -224,11 +223,113 @@ ikinci kutusu, yetkisi `servisIskontosu`. Tutar tek yerden:
 toplamdan düşülür, KDV ondan sonra; satır fiyatları değişmez. "Bakiye
 yeter" indirimli toplama bakar. Oran siparişe yazılır
 (`parcaFiyat.bakiyeIskontoOrani`, `bakiyeIskontoTutari`);
-`servisParcaSiparisi` eski oranı ve faturalı siparişin bu indirimi
-taşımasını reddeder. Oran değişince her servise bildirim gider (`olay:
+`servisParcaSiparisi` faturalı siparişin bu indirimi taşımasını
+reddeder. Oran değişince her servise bildirim gider (`olay:
 'bakiyeIskonto'`). Servisim: seçenekte rozet, özet ve onayda satır,
 Ücretlendirmeler'de kutu, sipariş detayında satır; oran sıfırken
 hiçbiri görünmez. Sınaması AK-23; veritabanı `VT-TASARIM-EKLERI.md` §8.
+
+**ONAYDA GÖRÜLEN TUTAR BAĞLAYICI** (24 Eylül 2026, kullanıcının kararı:
+"sipariş verildiği zamanki tutar üzerinden ücretlendirilmeli müşteri
+veya servis"). Servisim parça siparişinde ve servis kaydında tutarı onay
+penceresi açılırken yeniden okur; pencerede görülen tutar kaydedilen
+tutardır. PAKSAN iskontoyu ya da ücreti tam o sırada değiştirse de
+servisin onayladığı geçer. Önce tersiydi: sipariş eski oranla
+reddediliyor, hak edişte ekranın ücreti sessizce bugünküyle
+değiştiriliyordu. Sınır: bugünküyle tutmayan değer yalnız okuma anı
+(`parcaFiyat.fiyatZamani`, `servisKaydi.ucretZamani`) 30 dakikadan
+yeniyse VE değer o anda gerçekten geçerliyse geçer; yoksa gönderim
+kaydedilmez, ekran yeni tutarı gösterir (`lib/servisFiyat.js →
+ONAY_TUTAR_SURESI`, `onayTazeMi`; o anın değeri `veri.js →
+okunduguAnkiIcerik`, oranın ve ücretin son 30 dakikalık geçmişinden:
+`panelIcerik.ucretGecmisi`). Connect'in
+parça talebi zaten müşterinin gördüğü fiyatla kaydediliyor. Aynı gün:
+yeniden kapatılan bakiye siparişi cariden ikinci kez düşülmüyor
+(`talepKapat`, talep kimliğiyle — numara tekil değil). Sınaması AK-21
+(11), AK-22 (3), AK-23 (5-10); sunucu tasarımı — süreli fiyat teklifi —
+`VT-TASARIM-EKLERI.md` §9, orada karar bekleyen dört madde de var.
+
+**EKSİK GÖNDERİLEN SERVİS SİPARİŞİ** (24 Eylül 2026, kullanıcının
+kararı). Backoffice kapanış formunda sipariş kalemleri işaretli
+geliyor; personel stokta olmayan parçanın işaretini kaldırıyor.
+Bakiyeden ödenen siparişte servisin bakiyesinden yalnız gönderilenlerin
+tutarı düşülüyor (sipariş anındaki satır fiyatı, siparişin ek
+iskontosu, KDV; `lib/servisFiyat.js → gonderilenTutar`). Kalan parça
+talepte bekliyor, "Kalan Parçaları Gönder" ile gidiyor ve tutarı o gün
+düşülüyor. Deftere hep fark yazılıyor (`veri.js → siparisBorcunuYaz`):
+düşülenlerin toplamı siparişin toplamına eşit, yeniden kapanış ikinci
+kez düşmüyor. Gönderimler talepte `gonderimler`; hangi satırın beklediği
+`lib/servisKaydi.js → siparisGonderimi`. Servisim sipariş ayrıntısında
+gönderilmeyen parçayı ve ne olacağını gösteriyor; servise kısmi ve
+kalan gönderim için ayrı bildirim gidiyor. Sınaması AK-24; veritabanı
+`VT-TASARIM-EKLERI.md` §9.
+
+**SİPARİŞİN TUTARI HER EKRANDA KDV DÂHİL** (24 Eylül 2026, kullanıcının
+bildirdiği hata). Servisim'in sipariş listesi ve backoffice'in "Sipariş
+tutarı" satırı kaydın `tutar` alanını (KDV HARİÇ) gösteriyordu, bakiyeden
+düşülen KDV dâhil tutardı; iki ekran birbirini tutuyor, hak ediş ikisini
+de tutmuyordu. Tutar gösteren her yer `lib/servisFiyat.js →
+siparisToplami`'yi çağırıyor; KDV hariç rakam yalnız dökümde, adıyla.
+"Ne kadar düşüldü, ne kadar kaldı" tek yerden: `veri.js → siparisHesabi`
+(Servisim sipariş detayı ve Hak Ediş yaprağı, backoffice sipariş dökümü).
+Borç hareketi hangi gönderimin karşılığı olduğunu taşıyor (`gonderimNo`).
+Backoffice'te servis siparişinin parça tablosu tutarlı
+(`ParcaTablosu tutarli`). Sınaması AK-25.
+
+**SERVİS SİPARİŞİNİN İPTALİ VE İADE** (24 Eylül 2026, kullanıcının
+kararı). Servis kendi siparişini Servisim'den YALNIZ "Yeni" iken iptal
+ediyor (`servisSiparisiniIptalEt`, durumu depodan yeniden okuyarak);
+işleme alınmışsa backoffice iptal ediyor, kapanmış (gönderilmiş) sipariş
+de formdan geçiyor. İptalde bakiyeden düşülmüş NET tutar tek alacakla
+geri yazılıyor (`siparisIadesiniYaz`, hem `talepIptal` hem durum
+düğmesi); faturalı siparişte uygulama para yazmıyor, iade faturası
+LOGO'da. Aynı gün: gönderilmeyi bekleyen bakiye siparişleri bakiyeden
+AYRILIYOR, yeni bakiye siparişi kullanılabilir kısma bakıyor
+(`bakiyeDurumu`; Servisim seçeneği ve `servisParcaSiparisi`). Sınaması
+AK-25; veritabanı `VT-TASARIM-EKLERI.md` §9.
+
+**KALAN PARÇALARIN İPTALİ** (24 Eylül 2026, kullanıcının onayı).
+Kısmen gönderilmiş siparişin bekleyen kalemleri backoffice'ten "Kalan
+Parçaları İptal Et" ile siparişten çıkıyor; gönderilenler yerinde,
+siparişin tamamını iptal etmek gerekmiyor (`veri.js →
+kalanParcalariIptalEt`, talepte `kalemIptalleri`). Bekleyen kalemin
+borcu henüz yazılmadığı için cariye bir şey yazılmıyor; siparişin
+ödenecek tutarı iptal edilen pay kadar iniyor: `siparisHesabi` →
+`iptalEdilen`, `net` (`lib/servisFiyat.js → siparisNetTutari`).
+Genel toplam siparişin ilk hâli olarak kalıyor, iptal edilen pay ve
+yeni tutar altında ayrı; Servisim'in sipariş kartı yeni tutarı
+gösteriyor. Servise bildirim `kalanIptalEdildi`. Sınaması AK-26;
+veritabanı `VT-TASARIM-EKLERI.md` §9.
+
+**TALEPLER'DE GÖRÜNEN DURUM** (24 Eylül 2026, kullanıcının isteği).
+`parcaBekliyor` ekranda iki ad: "Parça Hazırlanıyor" (gönderim yok) ve
+"Parça Yolda" (gönderim var). Rozet, süzgeç, sıralama, Excel ve geçmiş
+aynı işlevden okuyor: `veri.js → gorunenDurum`, `gecmisDurumu`,
+`GORUNEN_DURUMLAR`. Süzgeç iki gruplu ("Dikkat isteyenler", "Duruma
+göre"); seçili türde oluşmayan durum listede çıkmıyor. Kod değişmedi.
+
+**SERVİSİM BİLDİRİM GEÇMİŞİ** (24 Eylül 2026, kullanıcının isteği):
+üst çubukta "Bildirimler" (okunmamış sayısıyla), ekranı
+`servis/ekranlar/Bildirimler.jsx` — talep ve hesap bildirimleri ile
+duyurular tek listede, Connect'teki gibi günlere göre. İşlerim'deki
+okunmamış bölümü duruyor.
+
+**ELLE KAYITTA SERİ YOKSA MODEL VE TAHMİNİ YIL** (24 Eylül 2026,
+kullanıcının kararı): seri ya yazılıyor ya da "Seri Numarası Yok"
+seçilip model ve tahmini üretim yılı giriliyor (`makine.seriYok`,
+`makine.tahminiYil`); makinesiz talep açılmıyor. Servis kaydı böyle bir
+talepte seriyi bir daha sormuyor, yerinde "Yok" yazıyor (aynı gün,
+kullanıcının bildirdiği hata; `lib/servisKaydi.js → eksikAlanlar`).
+Servis ekranlarında makinenin numarası "Seri Numarası" diye geçiyor,
+"şase" değil (kullanıcı: "seri numarası zaten doğrusu"). Sınaması
+AK-27; veritabanı `VT-TASARIM-EKLERI.md` §10.
+
+**CAPACITOR 8** (24 Eylül 2026): Google Play'in hedef API 36 şartı.
+İki Android projesi compileSdk/targetSdk 36, minSdk 24, AGP 8.13,
+Gradle 8.14.3, Java 21. Uygulama ekranın tamamına çiziliyor
+(edge-to-edge): güvenli alan payları önce Capacitor'ın
+`--safe-area-inset-*` değişkeninden, sistem çubuğu simgelerinin rengi
+temaya göre (`lib/sistemCubuklari.js`).
 
 **PARÇA KARTI ORTAK** (24 Eylül 2026, kullanıcının isteği): Connect'in
 yedek parça talebindeki parça seçimi Servisim'inkiyle aynı büyük

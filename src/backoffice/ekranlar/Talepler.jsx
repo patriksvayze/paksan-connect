@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  DURUMLAR, durumBilgi, gecikmisMi, gonderimGecikti, gonderimGecikmeSaati,
+  durumBilgi, gecikmisMi, gecmisDurumu, gonderimGecikti, gonderimGecikmeSaati,
+  GORUNEN_DURUMLAR, gorunenDurum,
   izinli, KAPALI_DURUMLAR, musterininDigerTalepleri,
   odemeOnayla, parcaIlerlemeEngeli, rolBilgi, rolunTalepleri, rolunTurleri, TALEP_ADI,
   talepDurumDegistir,
@@ -10,7 +11,10 @@ import {
   hakkedisOnayla, hakkedisDuzelt, hakkedisReddet, servisParcasiGonderildi,
   hakkedisIlerlemeEngeli,
   islemYaz,
+  kalanParcalariGonder, kalanParcalariIptalEt, siparisHesabi,
 } from '../veri'
+import { gonderilenTutar, siparisNetTutari } from '../../lib/servisFiyat'
+import { KDV_HARIC_LISTE, KDV_ORANI } from '../../marka'
 /* Kodlu biçim: yedek parça personeli 538 parçalık katalogta hangi
    kaydı hazırlayacağını addan çıkaramıyor. */
 import {
@@ -24,6 +28,7 @@ import {
   talebinParcalari,
   kmUcretiOku,
   saatUcretiOku,
+  siparisGonderimi,
   temizParcalar,
 } from '../../lib/servisKaydi'
 import { ParcaTablosu } from '../../components/ParcaTablosu'
@@ -146,17 +151,39 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
      personel seçemiyor (ELLE_SECILMEZ). Süzgeç ise aramak için: liste
      o işlevden kurulunca tek türe bağlı rolde (servis masası) "Onay
      Bekliyor" hiç çıkmıyordu, Dashboard'dan ya da Genel Bakış'tan o
-     listeye gelen personel "Açık olanlar"a düşüyordu. */
-  const durumSecenekleri =
-    suzgecTuru && suzgecTuru !== 'hepsi'
-      ? suzgecTuru === 'satinalma'
-        ? talepDurumlari(suzgecTuru)
-        : DURUMLAR.filter((d) => d.id !== 'teklif' && d.id !== 'bayiyeIletildi')
-      : DURUMLAR
+     listeye gelen personel "Açık olanlar"a düşüyordu.
+
+     SÜZGEÇ ROZETLE AYNI ADLARI KULLANIYOR (24 Eylül 2026, kullanıcının
+     isteği). "Parça Bekleniyor" seçeneği iki rozeti ("Parça Bekleniyor",
+     "Parça Yolda") birden listeliyordu, "Parça hazırlığı bekleyenler"
+     kısayolu da rozeti "Parça Bekleniyor" olan satırları. Artık seçenek
+     listesi rozetin kendisi: "Parça Hazırlanıyor" ve "Parça Yolda" iki
+     ayrı seçenek (veri.js → GORUNEN_DURUMLAR, gorunenDurum); eski
+     kısayol birincisinin içinde eridi, anahtarı aynı ('parcaHazirlik').
+
+     KARŞILIĞI OLMAYAN SEÇENEK ÇIKMIYOR. Onay ve parça durumları yalnız
+     servis talebinde oluşuyor: admin türü "Yedek parça" seçince listede
+     kalıyorlardı ve seçilince liste boş geliyordu. Yedek parça masasının
+     rolü (tek tür: parça) bu durumları görüyor, çünkü servis talebinin
+     parçası onun masasına düşüyor (bkz. veri.js → rolunTalepleri).
+     "Ödeme onayı bekleyenler" müşterinin parça talebine ait; servis
+     talebinde yok. */
   const teklifVar = !suzgecTuru || suzgecTuru === 'hepsi' || suzgecTuru === 'satinalma'
-  /* Parça kuyruklarının kısayolları yalnız parça ya da servis talebi
-     görünürken: garanti parçası servis talebinde bekliyor. */
-  const parcaVar = suzgecTuru !== 'satinalma'
+  const servisDurumlariVar = suzgecTuru !== 'satinalma' && !(tur === 'parca' && !tekTur)
+  const odemeVar = !suzgecTuru || suzgecTuru === 'hepsi' || suzgecTuru === 'parca'
+  const SERVIS_DURUMLARI = ['onayBekliyor', 'parcaHazirlik', 'parcaYolda']
+  const durumSecenekleri = GORUNEN_DURUMLAR.filter((d) => {
+    if (SERVIS_DURUMLARI.includes(d.id)) return servisDurumlariVar
+    if (d.id === 'teklif' || d.id === 'bayiyeIletildi') return teklifVar
+    if (suzgecTuru === 'satinalma') return talepDurumlari('satinalma').some((x) => x.id === d.id)
+    return true
+  })
+  /* Durumun adı ekranda başka bir şey değilse sıra: teklifte kullanıcının
+     verdiği sıra (bkz. veri.js → TEKLIF_DURUMLARI). */
+  const durumSecenekleriSirali =
+    suzgecTuru === 'satinalma'
+      ? talepDurumlari('satinalma').map((x) => durumSecenekleri.find((d) => d.id === x.id)).filter(Boolean)
+      : durumSecenekleri
 
   /* Excel sütunları rolüne göre süzülüyor (bkz. aktarSutunlari) */
   const aktarSutun = useMemo(() => aktarSutunlari(rol), [rol])
@@ -167,11 +194,11 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
      Karşılığı kalmayan seçim "Açık olanlar"a düşüyor. */
   useEffect(() => {
     const gecerli = ['acik', 'gecikmis', 'bizdeGeciken', 'servisteGeciken', 'hepsi']
-    if (parcaVar) gecerli.push('parcaHazirlik', 'odemeBekleyen')
+    if (odemeVar) gecerli.push('odemeBekleyen')
     if (teklifVar) gecerli.push('teklifBekleyen')
     for (const d of durumSecenekleri) gecerli.push(d.id)
     if (!gecerli.includes(durum)) setDurum('acik')
-  }, [durum, durumSecenekleri, teklifVar, parcaVar])
+  }, [durum, durumSecenekleri, teklifVar, odemeVar])
 
   /* Süzgeç seçenekleri elimizdeki kayıtlardan çıkarılıyor; boş il
      listelemenin anlamı yok. */
@@ -212,11 +239,12 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
       if (durum === 'bizdeGeciken' && !bizdeGecikmisMi(t)) return false
       if (durum === 'servisteGeciken' && !servisteGecikmisMi(t)) return false
       if (durum === 'parcaHazirlik' && !parcaHazirliktaMi(t)) return false
+      if (durum === 'parcaYolda' && gorunenDurum(t).id !== 'parcaYolda') return false
       if (durum === 'odemeBekleyen' && !odemeOnayiBekliyorMu(t)) return false
       if (durum === 'teklifBekleyen' && !teklifBekliyorMu(t)) return false
       if (
-        !['acik', 'gecikmis', 'bizdeGeciken', 'servisteGeciken', 'parcaHazirlik', 'odemeBekleyen',
-          'teklifBekleyen', 'hepsi'].includes(durum) &&
+        !['acik', 'gecikmis', 'bizdeGeciken', 'servisteGeciken', 'parcaHazirlik', 'parcaYolda',
+          'odemeBekleyen', 'teklifBekleyen', 'hepsi'].includes(durum) &&
         d !== durum
       ) {
         return false
@@ -272,7 +300,9 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
         makine: (t) => (t.makine ? getProduct(t.makine.productId)?.name : null),
         tel: (t) => t.tel,
         createdAt: (t) => t.createdAt,
-        status: (t) => DURUMLAR.findIndex((d) => d.id === (t.status || 'yeni')),
+        /* Görünen duruma göre: "Parça Hazırlanıyor" ile "Parça Yolda"
+           aynı koddan geliyor ama sırada ayrı duruyor. */
+        status: (t) => GORUNEN_DURUMLAR.findIndex((d) => d.id === gorunenDurum(t).id),
       }),
     [suzulmus, siralama]
   )
@@ -332,20 +362,21 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
           onDegis={setDurum}
           secenekler={[
             { deger: 'acik', ad: 'Açık olanlar' },
-            { deger: 'gecikmis', ad: 'Gecikmiş talepler' },
-            { deger: 'bizdeGeciken', ad: 'Bizde 48 saati geçenler' },
-            { deger: 'servisteGeciken', ad: 'Serviste gecikenler' },
-            ...(parcaVar
-              ? [
-                  { deger: 'parcaHazirlik', ad: 'Parça hazırlığı bekleyenler' },
-                  { deger: 'odemeBekleyen', ad: 'Ödeme onayı bekleyenler' },
-                ]
-              : []),
-            ...(teklifVar
-              ? [{ deger: 'teklifBekleyen', ad: 'Cevap Beklenen Teklifler' }]
-              : []),
-            ...durumSecenekleri.map((d) => ({ deger: d.id, ad: d.ad })),
             { deger: 'hepsi', ad: 'Hepsi' },
+            {
+              grup: 'Dikkat isteyenler',
+              secenekler: [
+                { deger: 'gecikmis', ad: 'Gecikmiş talepler' },
+                { deger: 'bizdeGeciken', ad: 'Bizde 48 saati geçenler' },
+                { deger: 'servisteGeciken', ad: 'Serviste gecikenler' },
+                ...(odemeVar ? [{ deger: 'odemeBekleyen', ad: 'Ödeme onayı bekleyenler' }] : []),
+                ...(teklifVar ? [{ deger: 'teklifBekleyen', ad: 'Cevap Beklenen Teklifler' }] : []),
+              ],
+            },
+            {
+              grup: 'Duruma göre',
+              secenekler: durumSecenekleriSirali.map((d) => ({ deger: d.id, ad: d.ad })),
+            },
           ]}
           genislik={165}
         />
@@ -653,7 +684,13 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
     if (!kapali && yeni === 'kapandi') return setForm('kapanis')
     if (!kapali && yeni === 'planlandi') return setForm('plan')
     if (!kapali && yeni === 'teklif') return setForm('teklif')
-    if (!kapali && yeni === 'iptal') return setForm('iptal')
+    /* Kapanmış (gönderilmiş) servis siparişinin iptali de formdan geçiyor
+       (24 Eylül 2026): sebep servise gidiyor ve pencere bakiyeye dönecek
+       tutarı önceden söylüyor. Kapanmış talebi açma yetkisi yine şart
+       (yukarıdaki `kilitli`). */
+    if ((!kapali || (talep.servisSiparisi && suanki === 'kapandi')) && yeni === 'iptal') {
+      return setForm('iptal')
+    }
     setOnay(yeni)
   }
 
@@ -864,8 +901,24 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
         {talep.makine && (
           <Bolum ad="Makine">
             <S k="Model" v={p?.name} />
-            <S k="Seri numarası" v={formatSerial(talep.makine.serial)} mono />
-            <S k="Üretim Yılı" v={makineYili(talep) || ''} />
+            {/* SERİSİZ ELLE KAYIT (24 Eylül 2026): servis seri numarasını
+                okuyamadıysa modeli ve tahmini yılı yazdı (Servisim →
+                ElleKayit). Seri satırı bunu söylüyor; yıl tahmini diye
+                işaretli, garanti hesaplanmıyor. */}
+            {talep.makine.seriYok && !talep.makine.serial ? (
+              <>
+                <S k="Seri numarası" v="Yok · servis seri numarasını okuyamadı" />
+                <S
+                  k="Üretim Yılı"
+                  v={talep.makine.tahminiYil ? `${talep.makine.tahminiYil} (tahmini)` : ''}
+                />
+              </>
+            ) : (
+              <>
+                <S k="Seri numarası" v={formatSerial(talep.makine.serial)} mono />
+                <S k="Üretim Yılı" v={makineYili(talep) || ''} />
+              </>
+            )}
             {garanti && (
               <div className="satir" style={{ gap: 10, alignItems: 'baseline', marginBottom: 5 }}>
                 <span className="kucuk sonuk" style={{ minWidth: 118 }}>Garanti</span>
@@ -896,7 +949,37 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
               <div className="alan__ad" style={{ marginBottom: 6 }}>
                 İstenen Parçalar
               </div>
-              <ParcaTablosu parcalar={talebinParcalari(talep)} />
+              {/* EKSİK GÖNDERİM (24 Eylül 2026). Kapanmış servis
+                  siparişinde gönderilmemiş satırın altında etiket;
+                  bekleyen parça varsa gönderme düğmesi (bkz. veri.js →
+                  kalanParcalariGonder).
+
+                  SERVİS SİPARİŞİNDE TUTARLAR (24 Eylül 2026, kullanıcının
+                  isteği). Tabloda yalnız kod, ad ve adet vardı; tutar
+                  aşağıdaki bölümde KDV hariç tek bir rakamdı ve servisin
+                  bakiyesinden düşen KDV dâhil tutarla tutmuyordu. Şimdi
+                  satır tutarları tabloda, altında siparişin dökümü ve
+                  bakiye durumu (bkz. SiparisDokumu). Müşterinin parça
+                  talebinde tutarlar "Fatura ve Teslimat" bölümünde
+                  (BeklenenTutar), orada değişen bir şey yok. */}
+              <ParcaTablosu
+                parcalar={gonderimliParcalar(talep, 'Gönderilmedi')}
+                tutarli={Boolean(talep.servisSiparisi && talep.parcaFiyat)}
+              />
+              {talep.servisSiparisi && <SiparisDokumu talep={talep} />}
+              {/* KALAN PARÇALARIN İPTALİ (24 Eylül 2026): stoktan kalkmış
+                  bekleyen parça siparişin tamamı iptal edilmeden
+                  kapatılıyor (bkz. veri.js → kalanParcalariIptalEt). */}
+              {suanki === 'kapandi' && siparisGonderimi(talep)?.kalan.length > 0 && (
+                <div className="satir" style={{ gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+                  <button className="dg" onClick={() => setForm('kalan')}>
+                    Kalan Parçaları Gönder
+                  </button>
+                  <button className="dg" onClick={() => setForm('kalanIptal')}>
+                    Kalan Parçaları İptal Et
+                  </button>
+                </div>
+              )}
             </div>
           )}
           <S k="Balyalanacak ürün" v={talep.urunTipi} />
@@ -980,7 +1063,13 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
         {talep.servisSiparisi && (
           <Bolum ad="Servis Siparişi">
             <S k="Servis" v={talep.servis?.ad} />
-            <S k="Sipariş tutarı" v={talep.tutar ? paraYaz(talep.tutar) + ' ' + PARA_BIRIMI : ''} />
+            {/* Tutar burada KDV hariç tek satırdı ("Sipariş tutarı");
+                dökümüyle birlikte parça tablosunun altına taşındı. Burada
+                ödemenin biçimi kaldı. */}
+            <S
+              k="Ödeme"
+              v={talep.odeme === 'bakiye' ? 'Servisin bakiyesinden düşülür' : 'Faturayla'}
+            />
             <S
               k="İstenen tarih"
               v={talep.istenenTarih ? tarihYaz(talep.istenenTarih, false) : ''}
@@ -1343,10 +1432,44 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
             talep={talep}
             onKapat={() => setForm(null)}
             onKaydet={(cozum) => {
-              talepKapat(talep, cozum, personel)
+              const sonuc = talepKapat(talep, cozum, personel)
               setForm(null)
               tazele()
-              bildir(`${talep.no} kapandı · müşteriye bildirim gitti`)
+              bildir(
+                sonuc?.kismi
+                  ? `${talep.no} · bir kısmı gönderildi, kalan parçalar talepte bekliyor`
+                  : `${talep.no} kapandı · müşteriye bildirim gitti`,
+              )
+            }}
+          />
+        )}
+
+        {form === 'kalan' && (
+          <KalanParcaFormu
+            talep={talep}
+            onKapat={() => setForm(null)}
+            onKaydet={(secim) => {
+              const sonuc = kalanParcalariGonder(talep, secim, personel)
+              if (sonuc.hata) return sonuc.hata
+              setForm(null)
+              tazele()
+              bildir(`${talep.no} · kalan parçalar gönderildi, servise bildirim gitti`)
+              return null
+            }}
+          />
+        )}
+
+        {form === 'kalanIptal' && (
+          <KalanIptalFormu
+            talep={talep}
+            onKapat={() => setForm(null)}
+            onKaydet={(secim, iptal) => {
+              const sonuc = kalanParcalariIptalEt(talep, secim, iptal, personel)
+              if (sonuc.hata) return sonuc.hata
+              setForm(null)
+              tazele()
+              bildir(`${talep.no} · kalan parçalar iptal edildi, servise bildirim gitti`)
+              return null
             }}
           />
         )}
@@ -1382,10 +1505,16 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
             talep={talep}
             onKapat={() => setForm(null)}
             onKaydet={(iptal) => {
+              const iade = talep.servisSiparisi ? siparisHesabi(talep).dusulen : 0
               talepIptal(talep, iptal, personel)
               setForm(null)
               tazele()
-              bildir(`${talep.no} iptal edildi · sebep müşteriye gitti`)
+              bildir(
+                talep.servisSiparisi
+                  ? `${talep.no} iptal edildi · servise bildirim gitti` +
+                      (iade > 0 ? ` · ${paraYaz(iade)} ${PARA_BIRIMI} bakiyesine geri eklendi` : '')
+                  : `${talep.no} iptal edildi · sebep müşteriye gitti`,
+              )
             }}
           />
         )}
@@ -1536,7 +1665,7 @@ Durum "${durumBilgi(hakkedisKapisi).ad}" yapılırsa kayıt ` +
                   key={i}
                   className={'zaman__a' + (i === talep.gecmis.length - 1 ? ' zaman__a--son' : '')}
                 >
-                  <div>{durumBilgi(g.durum).ad}</div>
+                  <div>{gecmisDurumu(talep, g).ad}</div>
                   <div className="kucuk sonuk">{g.personel} · {tarihYaz(g.tarih)}</div>
                 </div>
               ))}
@@ -2987,6 +3116,19 @@ function KapanisFormu({ talep, onKapat, onKaydet }) {
   })
   const [hata, setHata] = useState('')
 
+  /* GÖNDERİLEN PARÇALAR — yalnız servis siparişinde (24 Eylül 2026,
+     kullanıcının kararı). Stokta olmayan parçanın işareti kaldırılıyor;
+     bakiyeden ödenen siparişte servisin bakiyesinden yalnız işaretli
+     parçaların tutarı düşülüyor (veri.js → talepKapat). Daha önce
+     gönderilmiş satır (yeniden açılmış talep) işaretli ve kilitli. */
+  const gonderim = siparisGonderimi(talep)
+  /* İptal edilmiş kalem (yeniden açılmış siparişte) listede çıkmıyor:
+     siparişte artık yok (veri.js → kalanParcalariIptalEt). */
+  const gonderilebilir = gonderim
+    ? talep.parcaFiyat.satirlar.map((_, i) => i).filter((i) => !gonderim.iptal.includes(i))
+    : []
+  const [secili, setSecili] = useState(() => gonderilebilir)
+
   /* SERVİS FİŞİ — yalnız servis taleplerinde.
 
      Teknisyen işi sahada bitirip fişi orada dolduruyor. Fiş bugüne
@@ -3048,7 +3190,13 @@ function KapanisFormu({ talep, onKapat, onKaydet }) {
   function kaydet() {
     const temiz = {}
     alanlar.forEach((a) => (temiz[a.ad] = String(deger[a.ad] || '').trim()))
-    onKaydet({ ...temiz, fis, ozet: kapanisOzeti(talep.tur, temiz) })
+    if (gonderim && !secili.length) return setHata('En az bir parçayı işaretleyin.')
+    onKaydet({
+      ...temiz,
+      fis,
+      ozet: kapanisOzeti(talep.tur, temiz),
+      ...(gonderim ? { gonderilen: secili } : {}),
+    })
   }
 
   const yaz = (a) => (e) =>
@@ -3068,6 +3216,24 @@ function KapanisFormu({ talep, onKapat, onKaydet }) {
             <div style={{ marginBottom: 14 }}>
               <TeslimatAdresi teslimat={talep.teslimat} ust={0} />
             </div>
+          )}
+
+          {gonderim && (
+            <GonderimSecimi
+              talep={talep}
+              kilitli={gonderim.gonderilen}
+              yalniz={gonderim.iptal.length ? gonderilebilir : undefined}
+              secili={secili}
+              setSecili={(x) => {
+                setSecili(x)
+                setHata('')
+              }}
+              aciklama={
+                talep.odeme === 'bakiye'
+                  ? 'Göndermediğiniz parçanın işaretini kaldırın. Servisin bakiyesinden yalnız gönderilen parçaların tutarı düşülür; kalanlar gönderildiği gün düşülür.'
+                  : 'Göndermediğiniz parçanın işaretini kaldırın. Servis hangi parçanın gönderilmediğini uygulamasında görür.'
+              }
+            />
           )}
 
           {alanlar.map((a, i) => (
@@ -3296,16 +3462,32 @@ const IPTAL_SEBEPLERI = [
   'Bu talep kapsamımız dışında',
 ]
 
+/* SERVİS SİPARİŞİNİN İPTALİ (24 Eylül 2026, kullanıcının kararı). Sebep
+   ve açıklama servise gidiyor, müşteriye değil. Parçası gönderilmiş
+   bakiye siparişinde düşülen tutar bakiyeye geri ekleniyor ve pencere
+   rakamı önceden söylüyor (veri.js → siparisIadesiniYaz). Faturalı
+   siparişte uygulama para yazmıyor; fatura kesildiyse iadesi LOGO'da. */
+const SIPARIS_IPTAL_SEBEPLERI = [
+  'Servis siparişten vazgeçti',
+  'Parça temin edilemiyor',
+  'Yanlış parça sipariş edilmiş',
+  'Parçalar iade alındı',
+  'Aynı sipariş iki kez verilmiş',
+]
+
 function IptalFormu({ talep, onKapat, onKaydet }) {
   const [neden, setNeden] = useState('')
   const [aciklama, setAciklama] = useState('')
   const [hata, setHata] = useState('')
+  const siparis = Boolean(talep.servisSiparisi)
+  const hesap = siparis ? siparisHesabi(talep) : null
+  const gonderildi = siparis && (talep.status === 'kapandi' || (talep.gonderimler?.length || 0) > 0)
 
   return (
     <div className="pencere" onClick={(e) => e.target === e.currentTarget && onKapat()}>
       <div className="kart pencere__kart" style={{ maxWidth: 520 }}>
         <div className="kart__tepe">
-          <h2>Talebi İptal Et · {talep.no}</h2>
+          <h2>{siparis ? 'Siparişi İptal Et' : 'Talebi İptal Et'} · {talep.no}</h2>
         </div>
 
         <div className="kart__ic">
@@ -3313,7 +3495,7 @@ function IptalFormu({ talep, onKapat, onKaydet }) {
             <span className="alan__ad">İptal Sebebi</span>
             <select className="sec" value={neden} onChange={(e) => setNeden(e.target.value)}>
               <option value="">Seçilmedi</option>
-              {IPTAL_SEBEPLERI.map((x) => (
+              {(siparis ? SIPARIS_IPTAL_SEBEPLERI : IPTAL_SEBEPLERI).map((x) => (
                 <option key={x} value={x}>{x}</option>
               ))}
             </select>
@@ -3321,23 +3503,50 @@ function IptalFormu({ talep, onKapat, onKaydet }) {
 
           <label className="alan">
             <span className="alan__ad">
-              Müşteriye açıklama<span className="sonuk"> · isteğe bağlı</span>
+              {siparis ? 'Servise açıklama' : 'Müşteriye açıklama'}
+              <span className="sonuk"> · isteğe bağlı</span>
             </span>
             <textarea
               className="metin"
               style={{ minHeight: 78 }}
               value={aciklama}
               onChange={(e) => setAciklama(e.target.value)}
-              placeholder="Örnek: Aradığımızda makinenin satıldığını öğrendik."
+              placeholder={
+                siparis
+                  ? 'Örnek: Parça üretimden kalktı, yerine geçen parçayı ayrıca önereceğiz.'
+                  : 'Örnek: Aradığımızda makinenin satıldığını öğrendik.'
+              }
             />
           </label>
 
           {hata && <div className="uyari">{hata}</div>}
 
+          {siparis && talep.odeme === 'bakiye' && (
+            <div className="bilgi" style={{ marginBottom: 14 }}>
+              {hesap.dusulen > 0
+                ? `Bu sipariş için servisin bakiyesinden ${paraYaz(hesap.dusulen)} ${PARA_BIRIMI} düşülmüştü. İptal edildiğinde bu tutar servisin bakiyesine geri eklenir.`
+                : 'Bu sipariş için servisin bakiyesinden henüz bir şey düşülmedi. İptal edildiğinde bakiyede değişiklik olmaz.'}
+            </div>
+          )}
+          {siparis && talep.odeme !== 'bakiye' && gonderildi && (
+            <div className="bilgi" style={{ marginBottom: 14 }}>
+              Bu sipariş faturayla ödeniyor. Fatura kesildiyse parçalar geri geldiğinde iade faturasını
+              LOGO'da işleyin. Uygulama bakiyede değişiklik yapmaz.
+            </div>
+          )}
+
           <div className="uyari" style={{ marginBottom: 14 }}>
             <span>
-              Buraya yazdıklarınız müşterinin uygulamasında <b>aynen</b> görünecek.
-              Müşteri "talebim neden iptal oldu?" sorusunun yanıtını burada okuyacak.
+              {siparis ? (
+                <>
+                  Buraya yazdıklarınız servisin uygulamasında <b>aynen</b> görünecek.
+                </>
+              ) : (
+                <>
+                  Buraya yazdıklarınız müşterinin uygulamasında <b>aynen</b> görünecek.
+                  Müşteri "talebim neden iptal oldu?" sorusunun yanıtını burada okuyacak.
+                </>
+              )}
             </span>
           </div>
 
@@ -3476,5 +3685,343 @@ function BeklenenTutar({ talep }) {
         </div>
       )}
     </>
+  )
+}
+
+/* ==========================================================================
+   Servis siparişinin eksik gönderimi (24 Eylül 2026)
+
+   Kullanıcının kararı: siparişteki bir parça stokta yoksa personel
+   talebi kapatırken onun işaretini kaldırıyor; bakiyeden ödenen
+   siparişte servisin bakiyesinden yalnız gönderilen parçaların tutarı
+   düşülüyor. Kalan parça stok gelince "Kalan Parçaları Gönder" ile
+   gidiyor ve tutarı o gün düşülüyor. Hesap veri katmanında
+   (veri.js → talepKapat, kalanParcalariGonder); bu ekran seçimi alıyor
+   ve düşülecek tutarı önceden gösteriyor.
+   ========================================================================== */
+
+/* Servis siparişinin dökümü ve bakiye durumu (24 Eylül 2026).
+
+   KULLANICININ BULDUĞU HATA. Bu bölümde "Sipariş tutarı" diye KDV
+   hariç ara toplam yazıyordu, Servisim'in sipariş listesi de aynı
+   rakamı gösteriyordu; servisin bakiyesinden düşen ise KDV dâhil
+   tutardı. İki ekran birbirini tutuyor, bakiyeden düşen rakam ikisini
+   de tutmuyordu. Şimdi tutar döküm olarak yazıyor: indirimler, KDV
+   hariç ara toplam adıyla, KDV dâhil genel toplam. Altında bakiyeden
+   ödenen siparişin durumu: ne kadar düşüldü, ne kadar gönderilince
+   düşülecek (veri.js → siparisHesabi). Kısmi gönderimde düşülen
+   genel toplamdan azdır ve bu satır nedenini söyler.
+
+   Rakamlar kaydın fiyat görüntüsünden; katalog açılmıyor. Görüntüsü
+   olmayan eski siparişte yalnız toplam. */
+function SiparisDokumu({ talep }) {
+  const g = talep.parcaFiyat
+  const hesap = siparisHesabi(talep)
+  const para = (n) => `${paraYaz(n)} ${PARA_BIRIMI}`
+  const satir = (ad, deger, { sonuk, eksi } = {}) => (
+    <div className={'satir kucuk' + (sonuk ? ' sonuk' : '')} style={{ gap: 10, marginTop: 2 }}>
+      <span>{ad}</span>
+      <span className="mono" style={{ marginLeft: 'auto' }}>
+        {eksi ? '−' : ''}
+        {para(deger)}
+      </span>
+    </div>
+  )
+
+  return (
+    <div style={{ marginTop: 10 }}>
+      {g && g.listeToplam !== undefined && g.iskontoOrani !== undefined && (
+        <>
+          {satir('Liste fiyatıyla toplam', g.listeToplam, { sonuk: true })}
+          {satir(`Servis iskontosu (%${Math.round(g.iskontoOrani * 100)})`, g.iskontoTutari, { eksi: true })}
+        </>
+      )}
+      {g && Number(g.bakiyeIskontoTutari) > 0 &&
+        satir(
+          `Bakiyeden ödeme ek iskontosu (%${Math.round(g.bakiyeIskontoOrani * 100)})`,
+          g.bakiyeIskontoTutari,
+          { eksi: true },
+        )}
+      {g && g.araToplam !== undefined && satir('Ara toplam (KDV hariç)', g.araToplam)}
+      {g && KDV_HARIC_LISTE && g.kdv !== undefined && satir(`KDV %${Math.round(KDV_ORANI * 100)}`, g.kdv)}
+      <div
+        className="satir"
+        style={{ gap: 10, marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--cizgi)' }}
+      >
+        <b>Genel toplam (KDV dâhil)</b>
+        <b className="mono" style={{ marginLeft: 'auto' }}>{para(hesap.toplam)}</b>
+      </div>
+      {g?.eksikFiyat && (
+        <div className="uyari" style={{ marginTop: 10, marginBottom: 0 }}>
+          <span>Fiyatı listede olmayan parça var. Yukarıdaki toplam eksik.</span>
+        </div>
+      )}
+
+      {/* İPTAL EDİLEN KALEMLER (24 Eylül 2026, veri.js →
+          kalanParcalariIptalEt). Genel toplam siparişin ilk hâli olarak
+          kalıyor — yukarıdaki satırlar onu topluyor; iptal edilen pay ve
+          servisin ödeyeceği yeni tutar altında ayrı. Kim, ne zaman, neden
+          iptal etti, satırın altında. */}
+      {hesap.iptalEdilen > 0 && (
+        <>
+          {satir('İptal edilen parçalar', hesap.iptalEdilen, { eksi: true })}
+          <div className="satir" style={{ gap: 10, marginTop: 4 }}>
+            <b>Siparişin yeni tutarı (KDV dâhil)</b>
+            <b className="mono" style={{ marginLeft: 'auto' }}>{para(hesap.net)}</b>
+          </div>
+        </>
+      )}
+      {(talep.kalemIptalleri || []).map((k) => (
+        <div key={k.no} className="kucuk sonuk" style={{ marginTop: 6 }}>
+          {k.satirlar?.length} kalem iptal edildi · {k.neden}
+          {k.aciklama ? ` · ${k.aciklama}` : ''} · {k.personel} · {tarihYaz(k.tarih)}
+        </div>
+      ))}
+
+      {talep.odeme === 'bakiye' && (
+        <div className="siparis-bakiye">
+          {/* İptal edilip iadesi yapılmış siparişte net düşülen sıfır;
+              satır yerine iade satırı konuşuyor. */}
+          {(hesap.dusulen > 0 || talep.status !== 'iptal') &&
+            satir('Servisin bakiyesinden düşülen', hesap.dusulen)}
+          {hesap.bekleyen > 0 &&
+            satir(
+              talep.status === 'kapandi'
+                ? 'Kalan parçalar gönderilince düşülecek'
+                : 'Parçalar gönderilince düşülecek',
+              hesap.bekleyen,
+            )}
+          {hesap.iade > 0 && satir('İptalde bakiyeye geri eklenen', hesap.iade)}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* Talebin parça satırları, gönderilmemiş olanın altında etiketle.
+   Talep kapanmadıysa "gönderilmedi" etiketi yok: henüz hiçbir şey
+   gönderilmedi, etiket her satırda aynı şeyi söylerdi. İptal edilen
+   kalemin etiketi her durumda (veri.js → kalanParcalariIptalEt). */
+function gonderimliParcalar(talep, etiket) {
+  const parcalar = talebinParcalari(talep)
+  const g = siparisGonderimi(talep)
+  if (!g) return parcalar
+  const kalan = talep.status === 'kapandi' ? g.kalan : []
+  if (!kalan.length && !g.iptal.length) return parcalar
+  return parcalar.map((p, i) =>
+    g.iptal.includes(i) ? { ...p, not: 'İptal edildi' } : kalan.includes(i) ? { ...p, not: etiket } : p,
+  )
+}
+
+/* İşaret kutulu satır listesi ve bakiyeden düşülecek tutar.
+   `kilitli`: daha önce gönderilmiş satırlar (işaretli, değiştirilemez).
+   `tutarsiz`: alttaki "bakiyeden düşülecek" satırı çıkmıyor (kalemi
+   iptal ederken bakiyeden bir şey düşülmüyor). */
+function GonderimSecimi({
+  talep, kilitli = [], secili, setSecili, aciklama, yalniz,
+  baslik = 'Gönderilen Parçalar', tutarsiz = false,
+}) {
+  const satirlar = talep.parcaFiyat?.satirlar || []
+  const gorunen = satirlar.map((s, i) => ({ s, i })).filter(({ i }) => !yalniz || yalniz.includes(i))
+  const dusulecek =
+    talep.odeme === 'bakiye' && !tutarsiz
+      ? gonderilenTutar(talep.parcaFiyat, [...new Set([...kilitli, ...secili])], 'bakiye') -
+        (kilitli.length ? gonderilenTutar(talep.parcaFiyat, kilitli, 'bakiye') : 0)
+      : null
+
+  function degis(i, acik) {
+    setSecili(acik ? [...new Set([...secili, i])].sort((a, b) => a - b) : secili.filter((x) => x !== i))
+  }
+
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <div className="alan__ad" style={{ marginBottom: 4 }}>{baslik}</div>
+      <p className="kucuk sonuk" style={{ margin: '0 0 8px' }}>{aciklama}</p>
+      {gorunen.map(({ s, i }) => {
+        const once = kilitli.includes(i)
+        return (
+          <label className="secim" key={i} style={{ alignItems: 'flex-start' }}>
+            <input
+              type="checkbox"
+              checked={once || secili.includes(i)}
+              disabled={once}
+              onChange={(e) => degis(i, e.target.checked)}
+            />
+            <span style={{ flex: 1 }}>
+              {s.ad || s.kod || '—'}
+              {Number(s.adet) > 1 ? ` × ${s.adet}` : ''}
+              {s.kod ? <span className="sonuk"> · {s.kod}</span> : null}
+            </span>
+            <span className="kucuk mono">
+              {typeof s.tutar === 'number' ? `${paraYaz(s.tutar)} ${PARA_BIRIMI}` : '—'}
+            </span>
+          </label>
+        )
+      })}
+      {dusulecek !== null && (
+        <div className="satir" style={{ gap: 10, marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--cizgi)' }}>
+          <b>Bakiyeden düşülecek tutar</b>
+          <b className="mono" style={{ marginLeft: 'auto' }}>
+            {paraYaz(dusulecek)} {PARA_BIRIMI}
+          </b>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* Kapanmış siparişin bekleyen parçalarını gönderme penceresi. Kalan
+   satırların hepsi işaretli açılıyor; stok yine eksikse işaret
+   kaldırılıyor ve o satır beklemeye devam ediyor. */
+function KalanParcaFormu({ talep, onKapat, onKaydet }) {
+  const g = siparisGonderimi(talep)
+  const [secili, setSecili] = useState(() => g?.kalan || [])
+  const [hata, setHata] = useState('')
+
+  function kaydet() {
+    if (!secili.length) return setHata('En az bir parçayı işaretleyin.')
+    const h = onKaydet(secili)
+    if (h) setHata(h)
+  }
+
+  return (
+    <div className="pencere" onClick={(e) => e.target === e.currentTarget && onKapat()}>
+      <div className="kart pencere__kart" style={{ maxWidth: 520 }}>
+        <div className="kart__tepe">
+          <h2>Kalan Parçaları Gönder · {talep.no}</h2>
+        </div>
+        <div className="kart__ic">
+          {talep.teslimat && (
+            <div style={{ marginBottom: 14 }}>
+              <TeslimatAdresi teslimat={talep.teslimat} ust={0} />
+            </div>
+          )}
+          <GonderimSecimi
+            talep={talep}
+            kilitli={g?.gonderilen || []}
+            yalniz={g?.kalan || []}
+            secili={secili}
+            setSecili={(x) => {
+              setSecili(x)
+              setHata('')
+            }}
+            aciklama="Şimdi gönderdiğiniz parçaları işaretleyin. Bakiyeden ödenen siparişte bu parçaların tutarı servisin bakiyesinden düşülür."
+          />
+          {hata && <div className="uyari">{hata}</div>}
+          <div className="satir" style={{ gap: 8 }}>
+            <button className="dg dg--ana" onClick={kaydet}>Kalan Parçaları Gönder</button>
+            <button className="dg" onClick={onKapat}>Vazgeç</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* KALAN PARÇALARIN İPTALİ (24 Eylül 2026, kullanıcının onayı). Kısmen
+   gönderilmiş siparişin bekleyen kalemleri siparişten çıkarılıyor;
+   gönderilenler yerinde kalıyor. Bekleyen kalemin parası bakiyeden
+   henüz düşülmediği için bakiyeye bir şey yazılmıyor; pencere
+   siparişin yeni tutarını önceden söylüyor (veri.js →
+   kalanParcalariIptalEt). Sebep ve açıklama servise gidiyor. */
+const KALAN_IPTAL_SEBEPLERI = [
+  'Parça temin edilemiyor',
+  'Parça üretimden kalktı',
+  'Servis kalan parçalardan vazgeçti',
+  'Yanlış parça sipariş edilmiş',
+]
+
+function KalanIptalFormu({ talep, onKapat, onKaydet }) {
+  const g = siparisGonderimi(talep)
+  const [secili, setSecili] = useState(() => g?.kalan || [])
+  const [neden, setNeden] = useState('')
+  const [aciklama, setAciklama] = useState('')
+  const [hata, setHata] = useState('')
+  const once = siparisNetTutari(talep)
+  const sonra = siparisNetTutari({
+    ...talep,
+    kalemIptalleri: [...(talep.kalemIptalleri || []), { satirlar: secili }],
+  })
+  const para = (n) => `${paraYaz(n)} ${PARA_BIRIMI}`
+
+  function kaydet() {
+    if (!secili.length) return setHata('En az bir parçayı işaretleyin.')
+    if (!neden) return setHata('İptal sebebini seçin.')
+    const h = onKaydet(secili, { neden, aciklama: aciklama.trim() })
+    if (h) setHata(h)
+  }
+
+  return (
+    <div className="pencere" onClick={(e) => e.target === e.currentTarget && onKapat()}>
+      <div className="kart pencere__kart" style={{ maxWidth: 520 }}>
+        <div className="kart__tepe">
+          <h2>Kalan Parçaları İptal Et · {talep.no}</h2>
+        </div>
+        <div className="kart__ic">
+          <GonderimSecimi
+            talep={talep}
+            baslik="İptal Edilecek Parçalar"
+            tutarsiz
+            yalniz={g?.kalan || []}
+            secili={secili}
+            setSecili={(x) => {
+              setSecili(x)
+              setHata('')
+            }}
+            aciklama="Gönderilmeyecek parçaları işaretleyin. Gönderilmiş parçalar siparişte kalır."
+          />
+
+          <label className="alan">
+            <span className="alan__ad">İptal Sebebi</span>
+            <select
+              className="sec"
+              value={neden}
+              onChange={(e) => {
+                setNeden(e.target.value)
+                setHata('')
+              }}
+            >
+              <option value="">Seçilmedi</option>
+              {KALAN_IPTAL_SEBEPLERI.map((x) => (
+                <option key={x} value={x}>{x}</option>
+              ))}
+            </select>
+          </label>
+
+          <label className="alan">
+            <span className="alan__ad">
+              Servise açıklama<span className="sonuk"> · isteğe bağlı</span>
+            </span>
+            <textarea
+              className="metin"
+              style={{ minHeight: 78 }}
+              value={aciklama}
+              onChange={(e) => setAciklama(e.target.value)}
+              placeholder="Örnek: Parça üretimden kalktı, yerine geçen parçayı ayrıca önereceğiz."
+            />
+          </label>
+
+          {hata && <div className="uyari">{hata}</div>}
+
+          <div className="bilgi" style={{ marginBottom: 14 }}>
+            {talep.odeme === 'bakiye'
+              ? 'Bu parçaların tutarı servisin bakiyesinden henüz düşülmedi; iptal edilince düşülmeyecek.'
+              : "Bu sipariş faturayla ödeniyor. İptal edilen parçaları faturaya yansıtmayın; fatura kesildiyse düzeltmeyi LOGO'da yapın."}{' '}
+            Siparişin tutarı {para(once)} iken {para(sonra)} olacak.
+          </div>
+
+          <div className="uyari" style={{ marginBottom: 14 }}>
+            <span>
+              Buraya yazdıklarınız servisin uygulamasında <b>aynen</b> görünecek.
+            </span>
+          </div>
+
+          <div className="satir" style={{ gap: 8 }}>
+            <button className="dg dg--ana" onClick={kaydet}>Kalan Parçaları İptal Et</button>
+            <button className="dg" onClick={onKapat}>Vazgeç</button>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }

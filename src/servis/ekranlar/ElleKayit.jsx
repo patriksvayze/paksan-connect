@@ -8,7 +8,7 @@ import { servisMakineKaydi, seriSatiri } from '../../lib/makineKaydi'
 import { telGoster } from '../../lib/tel'
 import { adBicimle } from '../../lib/adBicimi'
 import { islemYaz, musterileriGetir } from '../../backoffice/veri'
-import { getProduct } from '../../marka'
+import { CATEGORIES, PRODUCTS, getProduct } from '../../marka'
 import { Bolum } from '../Kabuk'
 import { DikteliKutu } from '../Dikte'
 import { IconAlert, IconCheckCircle, IconSend } from '../../components/Icons'
@@ -97,7 +97,28 @@ import { IconAlert, IconCheckCircle, IconSend } from '../../components/Icons'
    servis "Anladım"a basmadan talep açılmıyor (aynı gün sonraki karar:
    önce "Talebi Aç"tan sonra bir onay yaprağı açılıyordu ve telefon
    gösterilmiyordu).
+
+   SERİ NUMARASI YOKSA MODEL VE TAHMİNİ YIL (24 Eylül 2026, kullanıcının
+   kararı). Aynı gün önce seri numarası zorunlu yapıldı; amaç LOGO'daki
+   kayıtla eşleştirip makineyi bulmaktı, çünkü serisiz kayıtta hangi
+   makineye servis yapıldığı anlaşılmıyordu. Ama etiketi okunmayan ya
+   da sökülmüş makine hiç kayıt açamıyordu. Şimdi seri yine isteğe
+   bağlı değil: ya yazılıyor ya da "Seri Numarası Yok" seçilip modeli
+   ve tahmini üretim yılı giriliyor. Talepte `makine.seriYok` ve
+   `makine.tahminiYil` duruyor; makine defterine satır açılmıyor (defter
+   seri numarasıyla tutuluyor), garanti de hesaplanmıyor — tahmini yıl
+   garantinin dayanağı olamaz. Servis kaydı seri numarasını bir daha
+   sormuyor, yerine "Yok" yazıyor (kullanıcının isteği, aynı gün: servis
+   "yok" dedi). Seri başka bir yoldan gelirse veri katmanı talebin
+   makinesini seriyle tamamlıyor (veri.js → servisKaydiGonder).
    ========================================================================== */
+
+/* Tahmini üretim yılı seçenekleri: bu yıldan geriye. Firma 1970'ten
+   beri üretiyor; en eski makine için alt sınır o. */
+const YILLAR = (() => {
+  const bu = new Date().getFullYear()
+  return Array.from({ length: bu - 1970 + 1 }, (_, i) => bu - i)
+})()
 
 /* Numaranın yalnız rakamları karşılaştırılıyor: müşteri "0532 111 22 33"
    yazmış olabilir, servis "532 111 22 33". */
@@ -127,6 +148,10 @@ export function ElleKayit({ oturum, onKaydedildi }) {
   const [ilce, setIlce] = useState('')
   const [adres, setAdres] = useState('')
   const [seri, setSeri] = useState('')
+  /* Seri numarası yoksa model ve tahmini yıl (bkz. dosyanın başı). */
+  const [seriYok, setSeriYok] = useState(false)
+  const [model, setModel] = useState('')
+  const [tahminiYil, setTahminiYil] = useState('')
   const [makineId, setMakineId] = useState('')
   const [aciklama, setAciklama] = useState('')
   const [hata, setHata] = useState('')
@@ -160,9 +185,9 @@ export function ElleKayit({ oturum, onKaydedildi }) {
   /* Yazılan seri defterde var mı, varsa kimde. Seri tanınmıyorsa soru
      sorulmuyor: kaydet zaten hata veriyor. */
   const kayitliSatir = useMemo(() => {
-    const sonuc = seri.trim() ? validateSerial(normalizeSerial(seri)) : null
+    const sonuc = !seriYok && seri.trim() ? validateSerial(normalizeSerial(seri)) : null
     return sonuc?.ok ? seriSatiri(sonuc.serial) : null
-  }, [seri])
+  }, [seri, seriYok])
   const buMusteride = Boolean(
     kayitliSatir &&
       eslesen &&
@@ -287,18 +312,29 @@ export function ElleKayit({ oturum, onKaydedildi }) {
         serial: secilenMakine.serial,
         productId: secilenMakine.productId,
       }
+    } else if (makineler.length === 0 && seriYok) {
+      if (!model) return setHata('Makinenin modelini seçin.')
+      if (!tahminiYil) return setHata('Makinenin tahmini üretim yılını seçin.')
+      makine = { id: uid(), productId: model, seriYok: true, tahminiYil: Number(tahminiYil) }
     } else if (seri.trim()) {
       /* validateSerial başarıda { ok, product, serial, year } döndürüyor,
          hatada { ok: false, hata }. Modeli de o dönüyor, ayrıca
          matchProduct çağırmaya gerek yok. */
       const sonuc = validateSerial(normalizeSerial(seri))
       if (!sonuc.ok) {
-        return setHata('Seri numarası tanınmadı. Boş bırakabilirsiniz.')
+        return setHata('Seri numarası tanınmadı. Makinenin etiketindeki numarayı kontrol edip yeniden yazın.')
       }
       makine = { id: uid(), serial: sonuc.serial, productId: sonuc.product?.id || null }
       yeniKayit = true
     } else if (makineler.length > 1) {
       return setHata('Hangi makine için geldiğini seçin.')
+    } else {
+      /* MAKİNESİZ TALEP AÇILMIYOR (24 Eylül 2026, kullanıcının isteği).
+         Önce seri "varsa" diye isteğe bağlıydı ve makinesiz talep
+         açılabiliyordu: iş hiçbir makinenin geçmişine yazılmıyor,
+         PAKSAN hangi modelde ne arıza olduğunu göremiyordu. Seri yoksa
+         model ve tahmini yıl yeterli (bkz. dosyanın başı). */
+      return setHata('Makinenin seri numarasını yazın ya da Seri Numarası Yok seçeneğini işaretleyip modelini seçin.')
     }
 
     /* Seri başkasının adına kayıtlıysa servis uyarıdaki "Anladım"a
@@ -346,7 +382,9 @@ export function ElleKayit({ oturum, onKaydedildi }) {
       tur: 'talep',
       ozet: `${talep.no} · elle açıldı · ${talep.ad}${
         eslesen ? ' · kayıtlı müşteri' : ''
-      }${yeniKayit && baskaMusteride ? ' · makine başka müşteride kayıtlı' : ''}`,
+      }${yeniKayit && baskaMusteride ? ' · makine başka müşteride kayıtlı' : ''}${
+        makine.seriYok ? ' · seri numarası yok' : ''
+      }`,
       personel: oturum.ad,
     })
 
@@ -521,8 +559,9 @@ export function ElleKayit({ oturum, onKaydedildi }) {
           </div>
         ) : (
           <>
+            {!seriYok && (
             <label className="alan">
-              <span className="alan__ad">Makine Seri Numarası (varsa)</span>
+              <span className="alan__ad">Makine Seri Numarası</span>
               <input
                 className="gir mono"
                 value={seri}
@@ -538,11 +577,68 @@ export function ElleKayit({ oturum, onKaydedildi }) {
                   {buMusteride
                     ? 'Bu makine bu müşterinin adına zaten kayıtlı.'
                     : eslesen
-                      ? 'Bu müşterinin kayıtlı makinesi yok. Seri numarasını elle yazabilirsiniz.'
-                      : 'Yazarsanız makine sizin kaydınıza bağlanır. Model seri numarasından bulunuyor.'}
+                      ? 'Bu müşterinin kayıtlı makinesi yok. Makinenin seri numarasını yazın.'
+                      : 'Makine sizin kaydınıza bağlanır. Model seri numarasından bulunuyor.'}
                 </span>
               )}
             </label>
+            )}
+
+            {/* SERİ NUMARASI YOK (24 Eylül 2026, kullanıcının kararı).
+                Görünür bir seçenek, gizli etkileşim değil: makine seçimiyle
+                aynı satır biçimi. Seçilince seri kutusu kalkıyor, yerine
+                model ve tahmini yıl geliyor. */}
+            {!seri.trim() && (
+              <button
+                type="button"
+                className={'makine-sec' + (seriYok ? ' makine-sec--on' : '')}
+                aria-pressed={seriYok}
+                onClick={() => {
+                  setSeriYok((x) => !x)
+                  setHata('')
+                }}
+                style={{ marginBottom: 14 }}
+              >
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div>Seri Numarası Yok</div>
+                  <div className="kucuk sonuk">Etiket okunmuyor ya da makinede yok</div>
+                </div>
+                {seriYok && <IconCheckCircle size={20} />}
+              </button>
+            )}
+
+            {seriYok && (
+              <>
+                <label className="alan">
+                  <span className="alan__ad">Makine Modeli</span>
+                  <select className="gir" value={model} onChange={(e) => { setModel(e.target.value); setHata('') }}>
+                    <option value="">Seçin</option>
+                    {CATEGORIES.map((k) => {
+                      const urunler = PRODUCTS.filter((u) => u.category === k.id)
+                      return urunler.length ? (
+                        <optgroup key={k.id} label={k.name}>
+                          {urunler.map((u) => (
+                            <option key={u.id} value={u.id}>{u.name}</option>
+                          ))}
+                        </optgroup>
+                      ) : null
+                    })}
+                  </select>
+                </label>
+                <label className="alan">
+                  <span className="alan__ad">Tahmini Üretim Yılı</span>
+                  <select className="gir" value={tahminiYil} onChange={(e) => { setTahminiYil(e.target.value); setHata('') }}>
+                    <option value="">Seçin</option>
+                    {YILLAR.map((y) => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                  <span className="kucuk sonuk">
+                    Müşteriye makinenin kaç yıllık olduğunu sorun. Seri numarası olmadan garanti hesaplanamaz.
+                  </span>
+                </label>
+              </>
+            )}
 
             {/* BAŞKASININ MAKİNESİ: sahibi ve telefonu yazılıyor
                 (gerekçe dosyanın başında). Talep engellenmiyor ama

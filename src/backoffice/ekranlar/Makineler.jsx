@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  durumBilgi, makineKayitlariGetir, talepleriGetir, izinli, makineAtamasiniKaydet, rolunTalepleri,
+  gorunenDurum, makineKayitlariGetir, talepleriGetir, izinli, makineAtamasiniKaydet, rolunTalepleri,
 } from '../veri'
 import { useVeri } from '../kanca'
 import {
@@ -664,8 +664,10 @@ function MakineGecmisi({ kayit, talepler, duzenleyebilir, onAta, onKapat }) {
                       </td>
                       <td className="kucuk">{TUR_ADI[t.tur] || t.tur}</td>
                       <td>
-                        <span className={'rz rz--' + durumBilgi(t.status).ton}>
-                          {durumBilgi(t.status).ad}
+                        {/* Talepler'deki rozetin aynısı: parça bekleyen iş
+                            "Parça Hazırlanıyor" ya da "Parça Yolda". */}
+                        <span className={'rz rz--' + gorunenDurum(t).ton}>
+                          {gorunenDurum(t).ad}
                         </span>
                       </td>
                       <td className="kucuk">

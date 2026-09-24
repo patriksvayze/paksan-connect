@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Logo, Amblem } from '../marka'
 import sahne from '../assets/gorseller/karsilama-sahne.jpg'
+import { koyuZeminIcinBoya, temayaGoreBoya } from '../lib/sistemCubuklari'
 
 /* ==========================================================================
    Şafak — karşılama ekranının açılış sahnesi
@@ -167,6 +168,14 @@ export function Safak({ children }) {
   const kok = useRef(null)
   /* İlk açılışta animasyonlu, sonrasında bitmiş hâlde. */
   const [bitti, setBitti] = useState(() => oynadi || azalt.current)
+
+  /* Sahne gökyüzü, tema ne olursa olsun: telefonun saat ve pil
+     simgeleri açık renk; ekrandan çıkınca yeniden temaya göre
+     (bkz. lib/sistemCubuklari.js). */
+  useEffect(() => {
+    koyuZeminIcinBoya()
+    return temayaGoreBoya
+  }, [])
 
   useEffect(() => {
     if (bitti) return

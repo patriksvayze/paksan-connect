@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react'
-import { cariBakiye, cariHareketleri, servisinTalepleri, talepleriGetir } from '../../backoffice/veri'
+import { cariBakiye, cariHareketleri, servisinTalepleri, siparisHesabi, talepleriGetir } from '../../backoffice/veri'
 import { PARA_BIRIMI, PARA_SIMGESI, paraYaz, MARKA, markaEk, getProduct } from '../../marka'
 import { gecenSure, tarihYaz } from '../../backoffice/ekranlar/ortak'
 import { Bolum, Bos, ListeKarti, Yaprak } from '../Kabuk'
 import { IconAlert, IconRight } from '../../components/Icons'
 import { formatSerial } from '../../lib/serial'
-import { talebinParcalari, temizParcalar } from '../../lib/servisKaydi'
+import { siparisGonderimi, talebinParcalari, temizParcalar } from '../../lib/servisKaydi'
 import bosIsGorseli from '../../assets/gorseller/servis-bos-is.png'
 import { UcretOzeti } from './Ucretlerim'
 
@@ -131,7 +131,7 @@ export function Hakkedis({ oturum, onAc, surum, onUcretler }) {
               onClick={() => setSecili(h)}
             >
               <div className="hareket__sol">
-                <div className="hareket__ad">{h.aciklama}</div>
+                <div className="hareket__ad">{hareketAdi(h, talepler)}</div>
                 <div className="hareket__zaman">{gecenSure(h.tarih)}</div>
               </div>
               {/* Alacak artı, ödeme eksi. İşaret rakamın önünde ve renk
@@ -198,8 +198,35 @@ export function Hakkedis({ oturum, onAc, surum, onUcretler }) {
    lookup her gerçek parçada boş dönüyordu. Ekranda kodun yerinde
    hiçbir şey olmaması, kodu olmayan bir parça gibi görünüyordu. */
 
+/* Hareketin işi: talep kimliğiyle, kimliği olmayan eski harekette
+   numarayla (numara tekil değil). */
+function hareketinTalebi(h, talepler) {
+  if (h.talepId) {
+    const t = talepler.find((x) => x.id === h.talepId)
+    if (t) return t
+  }
+  return h.talepNo ? talepler.find((x) => x.no === h.talepNo) || null : null
+}
+
+/* Siparişin parçaları birden fazla gönderimde gittiyse ya da gidecekse
+   hareket hangi gönderimin karşılığı olduğunu söylüyor. */
+function gonderimiBolunmus(t) {
+  const g = siparisGonderimi(t)
+  /* Kalemi iptal edilmiş siparişte de: hareketin parçaları siparişin
+     bütün parçaları değil (veri.js → kalanParcalariIptalEt). */
+  return (t.gonderimler?.length || 0) > 1 || Boolean(g?.kalan.length) || Boolean(g?.iptal.length)
+}
+
+/* Satırdaki ad. EKSİK GÖNDERİMDE bir sipariş iki harekete bölünüyor;
+   ikisi de "YPR… · parça siparişi" yazıp farklı tutar gösterince servis
+   hangisinin ne olduğunu çıkaramıyordu (kullanıcı, 24 Eylül 2026). */
+function hareketAdi(h, talepler) {
+  const t = h.gonderimNo ? hareketinTalebi(h, talepler) : null
+  return t?.servisSiparisi && gonderimiBolunmus(t) ? `${h.aciklama} · ${h.gonderimNo}. gönderim` : h.aciklama
+}
+
 function HareketAyrinti({ hareket: h, talepler, onKapat, onAc }) {
-  const t = h.talepNo ? talepler.find((x) => x.no === h.talepNo) : null
+  const t = hareketinTalebi(h, talepler)
   const tutar = `${h.tur === 'alacak' ? '+' : '−'}${paraYaz(h.tutar)} ${PARA_BIRIMI}`
   const son = [
     { ad: 'Tutar', deger: tutar },
@@ -210,20 +237,55 @@ function HareketAyrinti({ hareket: h, talepler, onKapat, onAc }) {
     return <Yaprak baslik="Hesap Hareketi" metin={h.aciklama} kalemler={son} onKapat={onKapat} />
   }
 
+  /* SİPARİŞİN TUTARI VE BU HAREKETİN PAYI (24 Eylül 2026). Yaprak
+     yalnız hareketin tutarını gösteriyordu. Sipariş listesi başka rakam
+     (KDV hariç), hak ediş başka rakam (KDV dâhil ya da yalnız gönderilen
+     parçalar) gösterince servis bakiyesinden yanlış para düştüğünü
+     düşünüyordu. Şimdi siparişin KDV dâhil tutarı, bu hareketin hangi
+     gönderim olduğu ve o gönderimin parçaları, kalan varsa ne zaman
+     düşüleceği yazıyor (bkz. veri.js → siparisHesabi). */
   if (t.servisSiparisi) {
-    const parcalar = talebinParcalari(t)
+    const hesap = siparisHesabi(t)
+    const tum = talebinParcalari(t)
+    const bolunmus = gonderimiBolunmus(t)
+    const gonderim = bolunmus && h.gonderimNo ? t.gonderimler?.find((g) => g.no === h.gonderimNo) : null
+    const parcalar = gonderim ? tum.filter((_, i) => gonderim.satirlar?.includes(i)) : tum
+    const para = (n) => `${paraYaz(n)} ${PARA_BIRIMI}`
     return (
       <Yaprak
         baslik="Parça Siparişi"
         kalemler={[
           { ad: 'Sipariş no.', deger: t.no },
+          { ad: 'Siparişin tutarı', deger: `${para(hesap.toplam)} (KDV dâhil)` },
+          /* Kalemi iptal edilmiş siparişte ödenecek tutar iptal edilen
+             pay kadar az (veri.js → siparisHesabi → net). */
+          ...(hesap.iptalEdilen > 0
+            ? [
+                { ad: 'İptal edilen parçalar', deger: `−${para(hesap.iptalEdilen)}` },
+                { ad: 'Siparişin yeni tutarı', deger: para(hesap.net) },
+              ]
+            : []),
           {
             ad: 'Ödeme',
-            deger: t.odeme === 'bakiye' ? 'Bakiyenizden düşüldü' : `${MARKA} tarafından faturalandırıldı`,
+            deger:
+              t.odeme !== 'bakiye'
+                ? `${MARKA} tarafından faturalandırıldı`
+                : h.tur === 'alacak'
+                  ? 'Bakiyenizden ödenmişti'
+                  : 'Bakiyenizden düşüldü',
           },
+          ...(h.tur === 'alacak'
+            ? [{ ad: 'İşlem', deger: 'Sipariş iptal edildi, tutar bakiyenize geri eklendi' }]
+            : gonderim
+              ? [{ ad: 'Gönderim', deger: `${gonderim.no}. gönderim` }]
+              : []),
           ...son,
+          ...(t.odeme === 'bakiye' && hesap.bekleyen > 0
+            ? [{ ad: 'Kalan parçalar gönderilince düşülecek', deger: para(hesap.bekleyen) }]
+            : []),
         ]}
         parcalar={parcalar}
+        parcaBaslik={gonderim ? 'Bu gönderimdeki parçalar' : undefined}
         dugme="Siparişi Aç"
         onDugme={() => onAc(t)}
         onKapat={onKapat}

@@ -81,6 +81,7 @@
    ========================================================================== */
 
 import { MARKA, markaEk, PARA_BIRIMI, paraYaz } from '../marka'
+import { iptalEdilenSatirlar } from './servisFiyat'
 
 /* KAYDIN AŞAMASI.
 
@@ -296,7 +297,11 @@ export function eksikAlanlar(talep) {
   if (!talep?.ad?.trim()) eksik.push('ad')
   if (!talep?.telHam && !talep?.tel) eksik.push('tel')
   if (!talep?.adres && !talep?.fatura?.adres) eksik.push('adres')
-  if (!talep?.makine?.serial) eksik.push('seri')
+  /* Seri numarası olmadan açılmış talepte (ElleKayit → seriYok) servis
+     numaranın olmadığını zaten söyledi; model ve tahmini yıl talepte.
+     Aynı soruyu servis kaydında yeniden sormak, onun "yok" cevabını
+     duymamak demekti (24 Eylül 2026, kullanıcının bildirdiği hata). */
+  if (!talep?.makine?.serial && !talep?.makine?.seriYok) eksik.push('seri')
   if (!talep?.makine?.productId) eksik.push('urun')
   return eksik
 }
@@ -427,7 +432,8 @@ export function parcaYazisiKodlu(parcalar = []) {
 
      4. Parçası olmayan kayıt — boş dizi dönüyor.
 
-   DÖNEN SATIR: `kod`, `ad`, `adet`, görüntüde varsa `tutar`, ve
+   DÖNEN SATIR: `kod`, `ad`, `adet`, görüntüde varsa `tutar` ve
+   `birimFiyat`, ve
    `goruntuden`. Son alan "adet kesin mi" sorusunun cevabı: görüntüden
    gelen satırda adet yazılı, eski kayıtta bulunamamış olabilir. Tutarı
    okuyan taraf (bkz. lib/ihracat.js) buna bakıp "× 1" yazıp yazmayacağına
@@ -450,6 +456,9 @@ export function talebinParcalari(talep) {
       ad: s?.ad || s?.kod || '',
       adet: Math.max(1, Number(s?.adet) || 1),
       ...(s?.tutar === null || s?.tutar === undefined ? {} : { tutar: s.tutar }),
+      /* Birim fiyat tabloda adet birden çoksa tutarın altında
+         (bkz. components/ParcaTablosu.jsx → tutarli). */
+      ...(typeof s?.birimFiyat === 'number' ? { birimFiyat: s.birimFiyat } : {}),
       ...(s && 'gorsel' in s ? { gorsel: s.gorsel ?? null } : {}),
       goruntuden: true,
     }))
@@ -467,6 +476,40 @@ export function talebinParcalari(talep) {
       goruntuden: false,
     }
   })
+}
+
+/**
+ * Servis siparişinin hangi satırları gönderildi, hangileri bekliyor
+ * (24 Eylül 2026, kısmi gönderim). Satırlar siparişin fiyat
+ * görüntüsündeki sırayla (0'dan); `talebinParcalari` aynı sırayı
+ * veriyor. Gönderimler talepte `gonderimler` listesinde duruyor
+ * (bkz. backoffice/veri.js → talepKapat, kalanParcalariGonder).
+ * Gönderim kaydı olmayan kapanmış sipariş bu özellikten önce kapandı:
+ * hepsi gönderilmiş sayılıyor.
+ *
+ * İPTAL EDİLEN KALEMLER (24 Eylül 2026, kalanParcalariIptalEt): PAKSAN
+ * gönderemeyeceği bekleyen parçayı siparişten çıkarabiliyor. O satır
+ * artık "kalan" değil; `iptal` listesinde duruyor ve tutarı siparişin
+ * tutarından düşüyor (lib/servisFiyat.js → siparisNetTutari). İptaller
+ * talepte `kalemIptalleri: [{no, tarih, personel, neden, aciklama,
+ * satirlar}]`. Gönderilmiş satır iptal edilemiyor.
+ *
+ * @returns {null|{gonderilen: number[], kalan: number[], iptal: number[]}}
+ *   servis siparişi değilse ya da görüntüsü yoksa null
+ */
+export function siparisGonderimi(talep) {
+  const satirlar = talep?.parcaFiyat?.satirlar
+  if (!talep?.servisSiparisi || !Array.isArray(satirlar) || !satirlar.length) return null
+  const tum = satirlar.map((_, i) => i)
+  const gitmis = Array.isArray(talep.gonderimler)
+    ? new Set(talep.gonderimler.flatMap((g) => g?.satirlar || []))
+    : new Set(talep.status === 'kapandi' ? tum : [])
+  const iptal = new Set(iptalEdilenSatirlar(talep))
+  return {
+    gonderilen: tum.filter((i) => gitmis.has(i)),
+    kalan: tum.filter((i) => !gitmis.has(i) && !iptal.has(i)),
+    iptal: tum.filter((i) => !gitmis.has(i) && iptal.has(i)),
+  }
 }
 
 /* ==========================================================================

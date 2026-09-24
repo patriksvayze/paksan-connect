@@ -48,7 +48,9 @@ export function yerSuzgeci(yer) {
   switch (yer) {
     case 'onay': return { durum: 'onayBekliyor' }
     case 'parcaHazirlik': return { durum: 'parcaHazirlik' }
-    case 'yolda': return { durum: 'parcaBekliyor' }
+    /* 24 Eylül 2026'dan beri Talepler'in kendi "Parça Yolda" süzgeci var;
+       önce hazırlanan ve yolda olan birlikte açılıyordu. */
+    case 'yolda': return { durum: 'parcaYolda' }
     case 'teklif': return { durum: 'teklif' }
     case 'servis': return { durum: 'acik', sahiplik: 'servis' }
     case 'parcaTalebi': return { durum: 'acik', tur: 'parca' }

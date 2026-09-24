@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useGeri } from '../geri'
 import {
+  servisSiparisiniIptalEt,
+  siparisHesabi,
   talepDurumDegistir,
   talepKapat,
   talepNotEkle,
@@ -9,7 +11,7 @@ import {
 } from '../../backoffice/veri'
 import {
   ASAMA, duzeltmeYazisi, GARANTI_DISI_OZET, iscilikYazisi, KAPI, parcaYazisiKodlu as parcaYazisi,
-  talebinParcalari, temizParcalar,
+  siparisGonderimi, talebinParcalari, temizParcalar,
 } from '../../lib/servisKaydi'
 import { DikteliKutu } from '../Dikte'
 import { bildirimYazisi, okunduSay, talebinBildirimleri } from '../talepBildirimleri'
@@ -133,6 +135,14 @@ export function TalepDetay({
      açıldıysa (parça istendi, onay bekliyor) iptal parçayı ve
      ödemeyi de ilgilendiriyor; o karar PAKSAN'ın. */
   const iptalVar = islemVar && !talep.servisKaydi
+
+  /* SERVİS KENDİ SİPARİŞİNİ YALNIZ "YENİ" İKEN İPTAL EDEBİLİYOR (24 Eylül
+     2026, kullanıcının kararı). PAKSAN siparişi işleme aldıysa parça
+     hazırlanıyor; iptal kararı backoffice'in. Parça gönderilmeden
+     bakiyeden bir şey düşülmüyor, bu iptalde para hareketi yok
+     (bkz. veri.js → servisSiparisiniIptalEt). */
+  const siparisIptalVar = Boolean(talep.servisSiparisi) && talep.status === 'yeni'
+  const [iptalHatasi, setIptalHatasi] = useState('')
 
   /* GARANTİ DIŞI İŞ KAYITSIZ KAPANIYOR (15 Eylül 2026, kullanıcının
      kararı).
@@ -329,7 +339,11 @@ export function TalepDetay({
             çıkmadan önce burada okuyor. Telefonla açılan taleplerde
             boş; o zaman servis kayıt ekranında kendisi dolduruyor. */}
         <Satir ad="Adres" deger={talep.adres} />
-        {talep.makine?.serial && <Makine makine={talep.makine} />}
+        {talep.makine?.serial ? (
+          <Makine makine={talep.makine} />
+        ) : talep.makine?.seriYok ? (
+          <SerisizMakine makine={talep.makine} />
+        ) : null}
 
         {/* Kimlik değil okunur karşılık: ekranda "sorunlu" yazıyordu. */}
         {talep.durum && (
@@ -654,6 +668,58 @@ export function TalepDetay({
         </div>
       )}
 
+      {talep.servisSiparisi && !kapali && (
+        <>
+          {iptalHatasi && (
+            <div className="not not--turuncu">
+              <IconAlert size={19} />
+              <div>{iptalHatasi}</div>
+            </div>
+          )}
+          {siparisIptalVar ? (
+            <div className="secenek">
+              <button className="secenek__dg" onClick={() => setPencere('siparisIptal')}>
+                <IconClose size={19} />
+                Siparişi İptal Et
+                <IconRight size={17} />
+              </button>
+            </div>
+          ) : (
+            <p className="ipucu">
+              {MARKA} siparişinizi işleme aldı. Siparişi iptal etmek isterseniz {markaEk('in')} yedek
+              parça birimine ulaşın.
+            </p>
+          )}
+        </>
+      )}
+
+      {pencere === 'siparisIptal' && (
+        <Onay
+          baslik="Sipariş iptal edilecek"
+          metin={
+            talep.odeme === 'bakiye'
+              ? `${MARKA} bu siparişi hazırlamayacak. Parçalar gönderilmediği için bakiyenizden bir şey düşülmedi; bakiyeniz değişmez.`
+              : `${MARKA} bu siparişi hazırlamayacak ve fatura kesilmeyecek.`
+          }
+          kalemler={[
+            { ad: 'Sipariş', deger: talep.no },
+            { ad: 'Tutar', deger: `${paraYaz(siparisHesabi(talep).toplam)} ${PARA_BIRIMI}` },
+          ]}
+          dugme="Siparişi İptal Et"
+          onOnayla={() => {
+            const s = servisSiparisiniIptalEt(talep, servisAd)
+            setPencere(null)
+            if (s?.hata) {
+              setIptalHatasi(s.hata)
+              onYenile?.()
+              return
+            }
+            onKapat()
+          }}
+          onVazgec={() => setPencere(null)}
+        />
+      )}
+
       {pencere === 'randevu' && (
         <Randevu
           talep={talep}
@@ -779,6 +845,25 @@ function Makine({ makine }) {
       <div className={'garanti garanti--' + durum.state}>
         {(GARANTI_YAZI[durum.state] || GARANTI_YAZI.bilinmiyor)(kalan)}
         {yil ? ` · ${yil} üretimi` : ''}
+      </div>
+    </div>
+  )
+}
+
+/* Seri numarası olmadan elle açılan talebin makinesi (24 Eylül 2026,
+   bkz. ElleKayit.jsx başı): model ve tahmini yıl servisin yazdığı.
+   Garanti hesaplanmıyor; tahmini yıl dayanak olamaz. */
+function SerisizMakine({ makine }) {
+  const model = getProduct(makine.productId)?.name
+  return (
+    <div style={{ marginTop: 10 }}>
+      <div className="kucuk sonuk">Makine</div>
+      <div>{model || '—'}</div>
+      <div className="kucuk">
+        Seri numarası yok{makine.tahminiYil ? ` · tahmini ${makine.tahminiYil} üretimi` : ''}
+      </div>
+      <div className="garanti garanti--bilinmiyor">
+        Seri numarası olmadan garanti hesaplanamaz
       </div>
     </div>
   )
@@ -957,20 +1042,73 @@ function ServisFormuDugmesi({ talep, servisAd }) {
    listesinde üç kez yazılmıştı; hangi biçimin neden durduğu ve eski
    kayıtta koda niçin uydurulmadığı orada yazılı. */
 function ParcaDurumu({ talep }) {
-  const parcalar = talebinParcalari(talep)
-  if (!parcalar.length) return null
+  const tum = talebinParcalari(talep)
+  if (!tum.length) return null
   const g = talep.servisSiparisi ? talep.parcaFiyat : null
+  /* EKSİK GÖNDERİM (24 Eylül 2026). PAKSAN siparişin bir kısmını
+     gönderdiyse gönderilmeyen parçanın altında not, listenin altında
+     ne olacağı (bkz. backoffice/veri.js → kalanParcalariGonder). */
+  const gonderim = talep.servisSiparisi ? siparisGonderimi(talep) : null
+  const kalan = talep.status === 'kapandi' ? gonderim?.kalan || [] : []
+  const kalanVar = kalan.length > 0
+  /* İPTAL EDİLEN KALEMLER (24 Eylül 2026): PAKSAN gönderemeyeceği
+     bekleyen parçayı siparişten çıkardıysa satırın altında etiket,
+     listenin altında nedeni ve paranın ne olduğu (backoffice/veri.js →
+     kalanParcalariIptalEt). */
+  const iptal = gonderim?.iptal || []
+  const parcalar =
+    kalanVar || iptal.length
+      ? tum.map((p, i) =>
+          iptal.includes(i)
+            ? { ...p, not: 'İptal edildi' }
+            : kalan.includes(i)
+              ? { ...p, not: 'Henüz gönderilmedi' }
+              : p,
+        )
+      : tum
+  const iptaller = talep.kalemIptalleri || []
+  const tamKart = Boolean(g && g.iskontoOrani !== undefined && g.listeToplam !== undefined)
   return (
     <div style={{ marginTop: 10 }}>
       <div className="kucuk sonuk" style={{ marginBottom: 6 }}>
         İstenen Parçalar
       </div>
-      <ParcaTablosu parcalar={parcalar} />
+      <ParcaTablosu parcalar={parcalar} tutarli={Boolean(g)} />
+      {kalanVar && (
+        <p className="kucuk sonuk" style={{ margin: '8px 0 0' }}>
+          {talep.odeme === 'bakiye'
+            ? 'Gönderilmeyen parçalar hazır olunca ayrıca gönderilecek. Tutarları gönderildikleri gün bakiyenizden düşülür.'
+            : 'Gönderilmeyen parçalar hazır olunca ayrıca gönderilecek.'}
+        </p>
+      )}
+      {iptaller.map((k) => (
+        <p key={k.no} className="kucuk sonuk" style={{ margin: '8px 0 0' }}>
+          {`${MARKA} ${k.satirlar?.length || 0} parçayı siparişten çıkardı. İptal nedeni: ${k.neden}.`}
+          {k.aciklama ? ` ${k.aciklama}` : ''}{' '}
+          {talep.odeme === 'bakiye'
+            ? 'Bu parçaların tutarı bakiyenizden düşülmez.'
+            : 'Bu parçalar için sizden ücret alınmaz.'}
+        </p>
+      ))}
+      {/* İndirim dökümü olmayan eski siparişte aşağıdaki kart çıkmıyor;
+          iptal edilen pay ve yeni tutar yine de görünsün. */}
+      {iptal.length > 0 && !tamKart && (
+        <div className="fiyat-kart" style={{ marginTop: 10, marginBottom: 0 }}>
+          <div className="urun-kart__satir">
+            <span>Genel toplam</span>
+            <strong>
+              {paraYaz(siparisHesabi(talep).toplam)} {PARA_BIRIMI}
+            </strong>
+          </div>
+          <IptalPayi talep={talep} />
+          {talep.odeme === 'bakiye' && <BakiyeDurumu talep={talep} />}
+        </div>
+      )}
       {/* SİPARİŞİN İNDİRİMİ (23 Eylül 2026). Sipariş o günkü indirim
           oranını taşıyor (veri.js → servisParcaSiparisi); servis
           verdiği siparişte ne kadar indirim aldığını burada da görüyor.
           Oranı taşımayan eski siparişte bölüm çıkmıyor. */}
-      {g && g.iskontoOrani !== undefined && g.listeToplam !== undefined && (
+      {tamKart && (
         <div className="fiyat-kart" style={{ marginTop: 10, marginBottom: 0 }}>
           <div className="urun-kart__satir">
             <span>Liste fiyatıyla toplam</span>
@@ -1021,9 +1159,65 @@ function ParcaDurumu({ talep }) {
               {paraYaz(g.toplam)} {PARA_BIRIMI}
             </strong>
           </div>
+          {/* İptal edilen kalem varsa genel toplam siparişin ilk hâli;
+              servisin ödeyeceği yeni tutar altında (veri.js →
+              siparisHesabi → net). */}
+          {iptal.length > 0 && <IptalPayi talep={talep} />}
+          {/* BAKİYEDEN NE KADAR DÜŞTÜ (24 Eylül 2026). Servis Hak Ediş'te
+              bu siparişin satırını görüp genel toplamla karşılaştırıyor;
+              kısmi gönderimde ya da parça henüz gönderilmemişken ikisi
+              tutmuyordu ve nedeni hiçbir yerde yazmıyordu
+              (bkz. veri.js → siparisHesabi). */}
+          {talep.odeme === 'bakiye' && <BakiyeDurumu talep={talep} />}
         </div>
       )}
     </div>
+  )
+}
+
+function IptalPayi({ talep }) {
+  const h = siparisHesabi(talep)
+  if (!(h.iptalEdilen > 0)) return null
+  return (
+    <>
+      <div className="urun-kart__satir urun-kart__satir--indirim">
+        <span>İptal edilen parçalar</span>
+        <strong>
+          −{paraYaz(h.iptalEdilen)} {PARA_BIRIMI}
+        </strong>
+      </div>
+      <div className="urun-kart__satir urun-kart__satir--vurgu">
+        <span>Siparişin yeni tutarı</span>
+        <strong>
+          {paraYaz(h.net)} {PARA_BIRIMI}
+        </strong>
+      </div>
+    </>
+  )
+}
+
+function BakiyeDurumu({ talep }) {
+  const h = siparisHesabi(talep)
+  const satir = (ad, n) => (
+    <div className="urun-kart__satir">
+      <span>{ad}</span>
+      <strong>
+        {paraYaz(n)} {PARA_BIRIMI}
+      </strong>
+    </div>
+  )
+  if (talep.status === 'iptal') {
+    return h.iade > 0 ? satir('İptalde bakiyenize geri eklenen', h.iade) : null
+  }
+  return (
+    <>
+      {h.dusulen > 0 && satir('Bakiyenizden düşülen', h.dusulen)}
+      {h.bekleyen > 0 &&
+        satir(
+          h.dusulen > 0 ? 'Kalan parçalar gönderilince düşülecek' : 'Parçalar gönderilince düşülecek',
+          h.bekleyen,
+        )}
+    </>
   )
 }
 

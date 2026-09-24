@@ -1,8 +1,12 @@
 # Codex'i bekleyen Türkçe metinler
 
-**KUYRUK BOŞ (21 Eylül 2026, 18:10).** 21 Eylül'de biriken metinler
-(servis ataması bildirimi, Kayıtlı Makineler kartı, Servisim elle kayıt
-uyarıları, bildirim türü kod adı) Codex'ten geçip yerlerine yazıldı.
+**KUYRUKTA 13 DOSYA (24 Eylül 2026, 17:20).** Codex'in sınırı 24 Eylül
+14:30'da doldu (açılış 18:08). Aynı gün yazılan metinler taslak olarak
+yerinde: eksik gönderim, seri numarası (elle kayıt), sipariş tutarının
+KDV dâhil gösterimi, sipariş iptali ve iadesi, kullanılabilir bakiye,
+Servisim bildirim geçmişi, Talepler süzgeci, kalan parçaların iptali,
+servis kaydında seri numarası. Brief içeriği aşağıdaki
+kuyruk satırlarında. Önceki kuyruk (21 Eylül) boşaltılmıştı.
 
 Dosya SİLİNMEDİ, çünkü anlattığı şey bir iş değil bir YÖNTEM ve o
 yöntem tekrar gerekecek: Codex'in kullanım sınırı 17, 19 ve 21 Eylül'de
@@ -68,5 +72,18 @@ tercihine göre değiştiriyor.
 <!-- /anahtarlar:connect -->
 
 <!-- dosyalar:tekdil -->
+- `src/backoffice/ekranlar/Talepler.jsx` — (2) sipariş dökümü `SiparisDokumu`: "Ara toplam (KDV hariç)", "Genel toplam (KDV dâhil)", eksik fiyat uyarısı, "Servisin bakiyesinden düşülen", "Kalan parçalar gönderilince düşülecek" / "Parçalar gönderilince düşülecek", "İptalde bakiyeye geri eklenen"; Servis Siparişi bölümünde "Ödeme" satırı ("Servisin bakiyesinden düşülür" / "Faturayla"); iptal penceresi: başlık "Siparişi İptal Et", beş sipariş iptal sebebi (`SIPARIS_IPTAL_SEBEPLERI`), "Servise açıklama", örnek cümle, bakiyeye dönecek tutarın iki cümlesi, faturalı sipariş notu (LOGO iade faturası), "servisin uygulamasında aynen görünecek" uyarısı, iptal alt bilgisi (`servise bildirim gitti · … bakiyesine geri eklendi`); makine bölümünde serisiz satır ("Yok · servis seri numarasını okuyamadı", "(tahmini)"); durum süzgecinin iki grup başlığı ("Dikkat isteyenler", "Duruma göre"). (1) eksik gönderim: kapanış formunda "Gönderilen Parçalar" başlığı, bakiye ve fatura için iki açıklama cümlesi, "Bakiyeden düşülecek tutar" etiketi, "En az bir parçayı işaretleyin." hatası; parça tablosunda "Gönderilmedi" etiketi; "Kalan Parçaları Gönder" düğmesi ve penceresi (başlık, açıklama); kapanış ve gönderim sonrası iki alt bilgi cümlesi (`bir kısmı gönderildi, kalan parçalar talepte bekliyor`, `kalan parçalar gönderildi, servise bildirim gitti`) (3) kalan parçaların iptali (17:20): "Kalan Parçaları İptal Et" düğmesi ve penceresi (başlık, "İptal Edilecek Parçalar", açıklama cümlesi, dört sebep `KALAN_IPTAL_SEBEPLERI`, "Servise açıklama" ve örnek, bakiye ve fatura için iki bilgi cümlesi, "Siparişin tutarı … iken … olacak."), alt bilgi (`kalan parçalar iptal edildi, servise bildirim gitti`); parça tablosunda "İptal edildi" etiketi; dökümde "İptal edilen parçalar", "Siparişin yeni tutarı (KDV dâhil)", iptal satırı (`… kalem iptal edildi · sebep · …`)
+- `src/backoffice/veri.js` — (2) durum adı "Parça Hazırlanıyor" (`DURUMLAR`, "Parça Yolda" ile çift); sipariş iptali: `servisSiparisiniIptalEt` iki hatası ("Sipariş bulunamadı.", işleme alınan sipariş iptal edilemiyor), iptal sebebi "Servis siparişten vazgeçti", iade hareketinin açıklaması (`… · sipariş iptali, bakiyeye iade`, Servisim Hak Ediş satırında görünüyor); bakiye yetmediğinde sipariş hatası (`servisParcaSiparisi`, "gönderilmeyi bekleyen siparişlerinizin tutarı ayrıldı"). (1) eksik gönderim: "En az bir parçayı işaretleyin." ve "Gönderilecek kalan parça yok." hataları, işlem kaydı özeti "kalan parçalar gönderildi" (`servisSiparisiGonderimi`, `kalanParcalariGonder`) (3) kalan parçaların iptali: "İptal edilecek kalan parça yok.", "En az bir parçayı işaretleyin.", "İptal sebebini seçin." hataları, işlem kaydı özeti "kalan parçalar iptal edildi" (`kalanParcalariIptalEt`)
+- `src/servis/ekranlar/TalepDetay.jsx` — (2) sipariş iptali: "Siparişi İptal Et" düğmesi, işleme alınmış sipariş ipucu, onay penceresi (başlık "Sipariş iptal edilecek", bakiye ve fatura için iki cümle, "Sipariş", "Tutar"); bakiye satırları (`BakiyeDurumu`: "Bakiyenizden düşülen", "Kalan parçalar gönderilince düşülecek", "Parçalar gönderilince düşülecek", "İptalde bakiyenize geri eklenen"); serisiz makine (`SerisizMakine`: "Seri numarası yok · tahmini … üretimi", "Seri numarası olmadan garanti hesaplanamaz"). (1) eksik gönderim: parça altında "Henüz gönderilmedi" notu, listenin altında bakiye ve fatura için iki açıklama cümlesi (`ParcaDurumu`) (3) kalan parçaların iptali: parça altında "İptal edildi", listenin altında iptal cümlesi (`{MARKA} … parçayı siparişten çıkardı. İptal nedeni: …`, bakiye ve fatura için iki cümle), fiyat kartında "İptal edilen parçalar", "Siparişin yeni tutarı" (`IptalPayi`)
+- `src/servis/talepBildirimleri.js` — eksik gönderim bildirimleri: `siparisKismenGonderildi` ve `kalanGonderildi` başlık ve metinleri; iptal bildiriminde iade cümlesi ("… bakiyenize geri eklendi.") · kalan parçaların iptali (17:20): `kalanIptalEdildi` başlığı ve iki metni
+- `src/servis/ekranlar/ElleKayit.jsx` — seri numarası (24 Eylül, iki karar): alan adı "Makine Seri Numarası" ("(varsa)" kalktı), tanınmayan seri hatası, iki ipucu cümlesi; "Seri Numarası Yok" seçeneği ve alt satırı, "Makine Modeli", "Tahmini Üretim Yılı" ve ipucu cümlesi, üç hata ("modelini seçin", "tahmini üretim yılını seçin", "seri numarasını yazın ya da Seri Numarası Yok"), işlem kaydı eki "seri numarası yok"
+- `src/servis/ekranlar/Hakkedis.jsx` — hesap hareketinin yaprağı: "Siparişin tutarı", "(KDV dâhil)", "İşlem" ve iptal cümlesi, "Gönderim" ve "… gönderim", "Kalan parçalar gönderilince düşülecek", "Bu gönderimdeki parçalar"; satır adındaki "… gönderim" eki · kalan parçaların iptali (17:20): "İptal edilen parçalar", "Siparişin yeni tutarı"
+- `src/servis/ekranlar/Parca.jsx` — sipariş kartı durumu "Kısmen gönderildi"
+- `src/servis/ekranlar/SiparisVer.jsx` — bakiye seçeneğinin alt satırı: "Kullanılabilir bakiyeniz: … · … gönderilmeyi bekleyen siparişlerinize ayrıldı"
+- `src/servis/ekranlar/ServisKapanisi.jsx` — serisiz talepte "Tahmini İmal Yılı" satırı · seri numarası (17:20, kullanıcının isteği): "Şase Numarası" yerine "Seri Numarası" (kutu ve satır), serisiz talepte değer "Yok", iki garanti cümlesinde ve bir hatada "şase numarası" → "seri numarası"
+- `src/servis/ekranlar/Bildirimler.jsx` — yeni ekran (bildirim geçmişi): grup adları "Bugün", "Dün", "Bu hafta", "Daha eski"; "Okunmadı"; boş ekran başlığı ve cümlesi
+- `src/servis/ServisPanel.jsx` — üst çubukta "Bildirimler" düğmesi; Bildirimler ekranının alt başlığı ("… size ne yazdı")
+- `src/servis/servisFormu.js` — servis formu PDF'inde serisiz makine: imal yılı "(tahmini)", şase no "Yok"
+- `src/components/ParcaTablosu.jsx` — tutar sütunu: başlık "Tutar", adet birden çoksa "Birim …"
 <!-- /dosyalar:tekdil -->
 

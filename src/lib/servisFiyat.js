@@ -69,6 +69,36 @@ import { PARCA_SERVIS_ISKONTO, kdvTutari } from '../marka'
 /* Bakiyeden ödemede ek iskontonun başlangıç oranı: kapalı. */
 export const BAKIYE_EK_ISKONTO = 0
 
+/* ONAYDA GÖRÜLEN TUTAR BAĞLAYICI (24 Eylül 2026, kullanıcının kararı:
+   "sipariş verildiği zamanki tutar üzerinden ücretlendirilmeli müşteri
+   veya servis").
+
+   Servis onay penceresinde gördüğü tutarla sipariş verir ya da servis
+   kaydını gönderir. PAKSAN iskontoyu ya da hizmet ücretini tam o
+   sırada değiştirse de servisin onayladığı tutar geçer. Önce tersiydi:
+   veri katmanı eski oranla gelen siparişi reddediyor, servis yeni
+   tutarı görüp yeniden onaylıyordu; hak edişte ise ekranın gösterdiği
+   ücret sessizce bugünküyle değiştiriliyordu.
+
+   SINIR: ekranların tutarı okuduğu an (`fiyatZamani`, `ucretZamani`)
+   en çok bu kadar eski olabilir. Daha eskisiyle gelen gönderim
+   kaydedilmiyor, ekran yeni tutarı gösterip yeniden onay istiyor —
+   sınır olmasaydı günlerce açık bırakılmış bir ekran eski indirimi
+   süresiz taşırdı. Ekranlar tutarı onay penceresi açılırken yeniden
+   okuyor; sınıra yalnız uzun süre açık bırakılan pencere takılıyor.
+
+   Sunucuda istemcinin rakamına güvenilmez: karşılığı, onay penceresi
+   açılırken sunucunun verdiği süreli fiyat teklifi (VT-TASARIM-EKLERI
+   §9). */
+export const ONAY_TUTAR_SURESI = 30 * 60 * 1000
+
+/** Ekranın tutarı okuduğu an hâlâ geçerli mi? Zaman yoksa, bozuksa ya
+ *  da ileri bir tarihse (bir dakikalık saat farkı dışında) hayır. */
+export function onayTazeMi(zaman, simdi = Date.now()) {
+  const z = Number(zaman)
+  return Number.isFinite(z) && z > 0 && z <= simdi + 60 * 1000 && simdi - z <= ONAY_TUTAR_SURESI
+}
+
 /**
  * Bir yedek parçanın servis fiyatı.
  *
@@ -175,4 +205,81 @@ export function siparisTutari(araToplamIskontolu, { odeme, bakiyeOrani = 0 } = {
   const araToplam = taban - bakiyeIskontoTutari
   const kdv = kdvTutari(araToplam)
   return { bakiyeIskontoOrani: oran, bakiyeIskontoTutari, araToplam, kdv, toplam: araToplam + kdv }
+}
+
+/**
+ * Siparişin gönderilen satırlarının KDV dâhil tutarı — kısmi gönderimde
+ * bakiyeden düşülecek rakam (24 Eylül 2026, kullanıcının kararı: eksik
+ * gönderilen siparişte bakiyeden yalnız gönderilen parçalar düşülür).
+ *
+ * Fiyatlar siparişin kendi görüntüsünden: satırın sipariş anındaki
+ * tutarı, siparişin ek iskonto oranı. Fiyatlı satırların HEPSİ
+ * gönderildiyse siparişin kendi toplamı dönüyor, yeniden
+ * hesaplanmıyor: iki gönderime bölünen siparişte düşülenlerin toplamı
+ * siparişin toplamına kuruşu kuruşuna eşit kalsın (ikinci gönderim
+ * "toplam − önce düşülen" olarak yazılıyor, bkz. veri.js →
+ * siparisBorcunuYaz). Fiyatı olmayan satır tutara girmiyor.
+ *
+ * @param {object} parcaFiyat  siparişin fiyat görüntüsü
+ * @param {number[]} satirlar  gönderilen satırların sırası (0'dan)
+ * @param {'bakiye'|'fatura'} odeme
+ */
+export function gonderilenTutar(parcaFiyat, satirlar, odeme) {
+  const hepsi = Array.isArray(parcaFiyat?.satirlar) ? parcaFiyat.satirlar : []
+  const secili = new Set(satirlar || [])
+  const fiyatli = hepsi
+    .map((s, i) => ({ i, tutar: s?.tutar }))
+    .filter((x) => typeof x.tutar === 'number' && Number.isFinite(x.tutar))
+  if (fiyatli.length && fiyatli.every((x) => secili.has(x.i))) return Number(parcaFiyat.toplam) || 0
+  const ara = fiyatli.filter((x) => secili.has(x.i)).reduce((t, x) => t + x.tutar, 0)
+  if (!ara) return 0
+  return siparisTutari(ara, { odeme, bakiyeOrani: Number(parcaFiyat?.bakiyeIskontoOrani) || 0 }).toplam
+}
+
+/**
+ * Servis siparişinin TUTARI: KDV dâhil, ek iskonto düşülmüş — servisin
+ * ödediği rakam. Bakiyeden düşülen de faturaya yazılan da bu.
+ *
+ * EKRANLAR BU RAKAMI GÖSTERİYOR (24 Eylül 2026, kullanıcının bildirdiği
+ * hata). Servisim'in sipariş listesi ve backoffice'in "Sipariş tutarı"
+ * satırı kaydın `tutar` alanını, yani KDV HARİÇ ara toplamı
+ * gösteriyordu; hak edişten düşülen ise KDV dâhil tutardı. İki ekran
+ * birbiriyle tutuyor, bakiyeden düşen rakam ikisinden de %20 fazla
+ * görünüyordu ve hiçbir yerde "KDV hariç" yazmıyordu. Artık tutar
+ * gösteren her yer bu işlevi çağırıyor; KDV hariç rakam yalnız
+ * dökümün "Ara toplam" satırında, adıyla görünüyor.
+ *
+ * Eski kayıtta görüntü yok: önce `tutarKdvli`, o da yoksa `tutar`.
+ */
+export function siparisToplami(talep) {
+  return (
+    Number(talep?.parcaFiyat?.toplam) || Number(talep?.tutarKdvli) || Number(talep?.tutar) || 0
+  )
+}
+
+/** Siparişten iptal edilen satırların sırası (0'dan), tekrarsız. */
+export function iptalEdilenSatirlar(talep) {
+  const iptaller = Array.isArray(talep?.kalemIptalleri) ? talep.kalemIptalleri : []
+  return [...new Set(iptaller.flatMap((k) => k?.satirlar || []))].sort((a, b) => a - b)
+}
+
+/**
+ * Siparişin iptal edilen kalemler çıktıktan sonraki tutarı, KDV dâhil
+ * (24 Eylül 2026, "Kalan Parçaları İptal Et").
+ *
+ * PAKSAN gönderemeyeceği bekleyen parçayı siparişten çıkarınca servis o
+ * parçanın parasını ödemiyor. Ekranlar siparişin ilk tutarını
+ * (siparisToplami) ve iptal edilen payı ayrı ayrı gösteriyor; servisin
+ * ödeyeceği bu rakam. Hesap gonderilenTutar'ın aynısı — kalan satırlar,
+ * siparişin kendi fiyatları ve ek iskontosu — böylece bütün kalan
+ * gönderildiğinde bakiyeden düşülenlerin toplamı bu rakama kuruşu
+ * kuruşuna eşit çıkıyor (veri.js → siparisBorcunuYaz aynı işlevi
+ * çağırıyor). İptal yoksa siparişin kendi toplamı.
+ */
+export function siparisNetTutari(talep) {
+  const iptal = new Set(iptalEdilenSatirlar(talep))
+  const satirlar = talep?.parcaFiyat?.satirlar
+  if (!iptal.size || !Array.isArray(satirlar)) return siparisToplami(talep)
+  const kalan = satirlar.map((_, i) => i).filter((i) => !iptal.has(i))
+  return gonderilenTutar(talep.parcaFiyat, kalan, talep.odeme)
 }

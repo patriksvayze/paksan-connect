@@ -142,9 +142,16 @@ if (!karsiligiYok.length) {
    Bu yüzden birleştirilen anahtarların KAYNAK LİSTESİ ile sözlük
    burada karşılaştırılıyor. Yeni bir durum eklendiğinde sözlük
    unutulursa derleme değil, bu kontrol yakalar. */
+/* Yalnız `DURUMLAR` dizisinin içi okunuyor (24 Eylül 2026). Aynı dosyada
+   aynı biçimde yazılmış bir gösterim nesnesi var (`PARCA_YOLDA`: bir
+   durumun ekrandaki hâli, kendi kodu yok); müşteri uygulaması durumu
+   kodundan çeviriyor, o nesne için sözlük anahtarı aranmamalı. */
+const veriMetni = readFileSync(join(KOK, 'src/backoffice/veri.js'), 'utf8')
+const durumlarBasi = veriMetni.indexOf('export const DURUMLAR = [')
+const durumlarBlogu =
+  durumlarBasi >= 0 ? veriMetni.slice(durumlarBasi, veriMetni.indexOf('\n]\n', durumlarBasi)) : ''
 const talepDurumlari = [
-  ...readFileSync(join(KOK, 'src/backoffice/veri.js'), 'utf8')
-    .matchAll(/\{\s*id:\s*'([a-zA-Z]+)',\s*ad:\s*'[^']*',\s*ton:/g),
+  ...durumlarBlogu.matchAll(/\{\s*id:\s*'([a-zA-Z]+)',\s*ad:\s*'[^']*',\s*ton:/g),
 ].map((e) => e[1])
 
 const durumEksik = []

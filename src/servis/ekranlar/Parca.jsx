@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { servisinSiparisleri, talepleriGetir } from '../../backoffice/veri'
-import { parcaYazisiKodlu, talebinParcalari } from '../../lib/servisKaydi'
+import { parcaYazisiKodlu, siparisGonderimi, talebinParcalari } from '../../lib/servisKaydi'
+import { siparisNetTutari } from '../../lib/servisFiyat'
 import { PARA_BIRIMI, paraYaz, MARKA, markaEk } from '../../marka'
 import { gecenSure } from '../../backoffice/ekranlar/ortak'
 import { Bolum, Bos, ListeKarti } from '../Kabuk'
@@ -56,6 +57,7 @@ const DURUM_YAZI = {
   kapandi: { ad: 'Gönderildi', gec: false },
   iptal: { ad: 'İptal edildi', gec: true },
 }
+const KISMEN_GONDERILDI = { ad: 'Kısmen gönderildi', gec: false }
 
 export function Parca({ oturum, onAc, onSiparis, surum }) {
   const siparisler = useMemo(
@@ -82,7 +84,13 @@ export function Parca({ oturum, onAc, onSiparis, surum }) {
 
       <Bolum ad="Siparişlerim" sayi={siparisler.length}>
         {siparisler.map((s) => {
-          const durum = DURUM_YAZI[s.status] || DURUM_YAZI.yeni
+          /* Eksik gönderilen sipariş "Gönderildi" demiyor: parçanın bir
+             kısmı hâlâ PAKSAN'da (bkz. veri.js → kalanParcalariGonder). */
+          const kismi = s.status === 'kapandi' && siparisGonderimi(s)?.kalan.length > 0
+          const durum = kismi ? KISMEN_GONDERILDI : DURUM_YAZI[s.status] || DURUM_YAZI.yeni
+          /* İptal edilen kalem varsa servisin ödeyeceği yeni tutar
+             (lib/servisFiyat.js → siparisNetTutari); yoksa siparişin toplamı. */
+          const tutar = siparisNetTutari(s)
           const parcalar = talebinParcalari(s)
           /* Toplam adet satırlardan: `parcaAdet` nesnesini toplamak,
              aynı adı taşıyan iki parçanın tek satıra çöktüğü eski
@@ -98,17 +106,24 @@ export function Parca({ oturum, onAc, onSiparis, surum }) {
               parcalar={parcalar.filter((p) => p.kod)}
               /* Ödeme biçimi kartta: servis "bunun parası hak edişimden
                  mi düşecek" sorusunu listeyi açmadan görüyor. */
+              /* İptal edilen siparişte ödeme satırı yok; tamamı
+                 gönderilen bakiye siparişinde para düşüldü (24 Eylül 2026). */
               ozet={
-                s.odeme === 'bakiye'
-                  ? 'Bakiyenizden düşülecek'
-                  : `${MARKA} faturalandıracak`
+                s.status === 'iptal'
+                  ? undefined
+                  : s.odeme === 'bakiye'
+                    ? s.status === 'kapandi' && !kismi
+                      ? 'Bakiyenizden düşüldü'
+                      : 'Bakiyenizden düşülecek'
+                    : `${MARKA} faturalandıracak`
               }
               sol={durum.ad}
-              sag={
-                s.tutar
-                  ? `${paraYaz(s.tutar)} ${PARA_BIRIMI}`
-                  : gecenSure(s.createdAt)
-              }
+              /* KDV DÂHİL TUTAR (24 Eylül 2026). Kart kaydın `tutar`
+                 alanını, yani KDV hariç ara toplamı gösteriyordu; bakiyeden
+                 düşen ve faturaya yazılan KDV dâhil tutar. Servis ikisini
+                 karşılaştırıp bakiyesinden fazla para düştüğünü sandı
+                 (bkz. lib/servisFiyat.js → siparisToplami, siparisNetTutari). */
+              sag={tutar ? `${paraYaz(tutar)} ${PARA_BIRIMI}` : gecenSure(s.createdAt)}
               gec={durum.gec}
               onAc={() => onAc(s)}
             />

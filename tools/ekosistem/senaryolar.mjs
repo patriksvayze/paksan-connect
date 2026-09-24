@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Ekosistem senaryoları — AK-01 … AK-23
+   Ekosistem senaryoları — AK-01 … AK-27
 
    Her senaryo temiz depoyla başlıyor, kendi dünyasını tohumluyor ve
    gerçek modülleri çağırıyor. Hiçbir iddia ekran metnine, CSS sınıfına
@@ -52,6 +52,26 @@ function kisiselBildirimler(m) {
 
 function servisBildirimleriDepodan(m) {
   return m.depo.load('duyurular', []).filter((x) => x.alici === 'servis')
+}
+
+/* SERVİSE BAKİYE (24 Eylül 2026). Bakiyeden ödenen sipariş artık
+   servisin kullanılabilir bakiyesi yetmezse reddediliyor (veri.js →
+   bakiyeDurumu). Bakiye siparişi veren senaryo önce bakiye yüklüyor;
+   yükleme bir alacak hareketi, bu yüzden cariyi sayan iddialar yalnız
+   borç hareketlerine bakıyor (`borcHareketleri`). */
+function bakiyeYukle(m, tutar = 1000000) {
+  m.veri.cariHareketEkle({
+    servisId: SERVIS.id,
+    servisAd: SERVIS.ad,
+    tur: 'alacak',
+    tutar,
+    aciklama: 'sınama bakiyesi',
+    personel: 'Sınama Yöneticisi',
+  })
+}
+
+function borcHareketleri(m) {
+  return m.veri.cariHareketleri(SERVIS.id).filter((h) => h.tur === 'borc')
 }
 
 /** Garanti kaydının bitmiş hâli. */
@@ -327,6 +347,7 @@ export function AK05(m) {
   for (const b of bicimler) {
     depoTemizle()
     dunyaKur(m)
+    bakiyeYukle(m)
     const siparis = m.veri.servisParcaSiparisi({
       servisId: SERVIS.id,
       servisAd: SERVIS.ad,
@@ -346,7 +367,7 @@ export function AK05(m) {
     d.esit(t?.tur, 'parca', `${b.ad}: normal parça talebi olarak yazıldı`)
 
     m.veri.talepKapat(t, { yapilanIs: 'Gönderildi', not: '' }, 'Sınama Yöneticisi')
-    const hareketler = m.veri.cariHareketleri(SERVIS.id)
+    const hareketler = borcHareketleri(m)
     d.esit(hareketler.length, 1, `${b.ad}: tek borç hareketi`)
     d.esit(hareketler[0]?.tur, 'borc', `${b.ad}: hareket borç`)
     d.esit(hareketler[0]?.tutar, b.beklenen, `${b.ad}: doğru dal seçildi`)
@@ -381,6 +402,7 @@ export function AK05(m) {
      borç satırı defteri kirletir. */
   depoTemizle()
   dunyaKur(m)
+  bakiyeYukle(m)
   const bos = m.veri.servisParcaSiparisi({
     servisId: SERVIS.id,
     servisAd: SERVIS.ad,
@@ -398,7 +420,7 @@ export function AK05(m) {
   })
   const tb = bul(m, bos?.talep?.id || bos?.id)
   m.veri.talepKapat(tb, { yapilanIs: 'Gönderildi', not: '' }, 'Sınama Yöneticisi')
-  d.esit(m.veri.cariHareketleri(SERVIS.id).length, 0, 'tutarsız siparişte sıfırlık hareket yazılmıyor')
+  d.esit(borcHareketleri(m).length, 0, 'tutarsız siparişte sıfırlık hareket yazılmıyor')
 
   return d
 }
@@ -1600,6 +1622,7 @@ export async function AK19(m) {
 
   /* 3 · Servisim: Temmuz listesinden parça siparişi
      (SiparisVer.jsx'in kurduğu görüntü). */
+  bakiyeYukle(m)
   const siparis = m.veri.servisParcaSiparisi({
     servisId: SERVIS.id,
     servisAd: SERVIS.ad,
@@ -1768,7 +1791,11 @@ export function AK20(m) {
         kaldırıyor; "değişmesin" hiçbirine dokunmuyor
      4  bildirim yalnız ücreti GERÇEKTEN değişen servise gidiyor ve
         müşterinin bildirimlerine sızmıyor
-     5  hak edişin km kalemi kaydın km ücretiyle — sabit tarifeyle değil */
+     5  hak edişin km kalemi kaydın km ücretiyle — sabit tarifeyle değil
+     6  servisin onay penceresinde gördüğü ücret geçiyor: PAKSAN ücreti
+        o sırada değiştirse de kayıt onu taşıyor; okuma anı 30
+        dakikadan eskiyse ve ücret değiştiyse kayıt gönderilmiyor
+        (24 Eylül 2026, "sipariş verildiği zamanki tutar") */
 export function AK21(m) {
   const d = defter('AK-21', 'Servis hizmet ücreti backoffice\'ten değişiyor')
   depoTemizle()
@@ -1798,8 +1825,8 @@ export function AK21(m) {
   d.esit(kisiselBildirimler(m).length, 0, 'ücret bildirimi müşteriye sızmadı')
   d.dogru(m.veri.islemKaydiGetir().some((x) => x.tur === 'tarife'), 'işlem kaydına tarife satırı yazıldı')
 
-  /* 2 · Servis kaydı gönderiliyor: güncel ücret kayda yazılıyor. Servisim
-     eski ücretle ön hesap yapmış olsa bile veri katmanı düzeltiyor. */
+  /* 2 · Okuma anını taşımayan (eski) çağrı: güncel ücret kayda
+     yazılıyor. Bugünkü Servisim okuma anını taşıyor (bkz. 11). */
   const r = talebiYaz(m, m.talepOlustur.talepKaydiOlustur(talepVerisi('servis', urunId, makineler[0]), kisi))
   const gonder = m.veri.servisKaydiGonder(
     r,
@@ -1913,6 +1940,57 @@ export function AK21(m) {
   d.dogru(Boolean(m.veri.genelTarifeyiKaydet({ yolKm: '', iscilikSaat: 66 }, {}, 'Sınama Yöneticisi')?.hata), 'boş km ücreti reddedildi')
   d.esit(JSON.stringify(m.veri.hizmetTarifesiGetir()), once9, 'reddedilen kayıt tarifeye dokunmadı')
 
+  /* 11 · Onayda görülen ücret geçiyor (24 Eylül 2026, kullanıcının
+     kararı). Servis onay penceresini açtı ve ücreti okudu; PAKSAN tam
+     o sırada servisin ücretini değiştirdi. Okuma anı tazeyse kayıt
+     servisin GÖRDÜĞÜ ücreti taşıyor; 30 dakikadan eskiyse ya da ücret o
+     anda hiç geçerli olmamışsa kayıt gönderilmiyor ve talebe hiçbir
+     şey yazılmıyor. Ücret bugünküyle aynıysa okuma anının yaşı önemli
+     değil. */
+  const okuma = saat.simdi()
+  const gorulen = m.veri.servisinTarifesi(SERVIS.id, urunId)
+  const artir = { yolKm: gorulen.yolKm + 3, iscilikSaat: gorulen.iscilikSaat + 5 }
+  m.veri.servisTarifesiniKaydet(SERVIS.id, { ...artir, modeller: { [urunId]: artir } }, 'Sınama Yöneticisi')
+  const guncel = m.veri.servisinTarifesi(SERVIS.id, urunId)
+  d.dogru(
+    guncel.yolKm !== gorulen.yolKm && guncel.iscilikSaat !== gorulen.iscilikSaat,
+    'ücret servis okuduktan sonra değişti (iki kalem de)',
+  )
+  const yeniTalep = () =>
+    talebiYaz(m, m.talepOlustur.talepKaydiOlustur(talepVerisi('servis', urunId, makineler[0]), kisi))
+  const gonderUcretle = (talep, ucret, zaman) =>
+    m.veri.servisKaydiGonder(
+      talep,
+      bitmisKayit({
+        km: 10,
+        kmUcreti: ucret.yolKm,
+        ...sk.iscilikAlanlari(2, ucret.iscilikSaat),
+        ucretZamani: zaman,
+      }),
+      SERVIS.ad,
+    )
+  const r11 = yeniTalep()
+  const g11 = gonderUcretle(r11, gorulen, okuma)
+  d.esit(g11?.hata, undefined, 'taze onaydaki eski ücretle kayıt kabul edildi')
+  const k11 = bul(m, r11.id)
+  d.esit(k11?.servisKaydi?.kmUcreti, gorulen.yolKm, 'kayıt servisin gördüğü km ücretini taşıyor')
+  d.esit(k11?.servisKaydi?.saatUcreti, gorulen.iscilikSaat, 'kayıt servisin gördüğü saat ücretini taşıyor')
+  d.esit(k11?.hakkedis?.toplam, 10 * gorulen.yolKm + 2 * gorulen.iscilikSaat, 'hak ediş onaylanan tutar')
+  const r11b = yeniTalep()
+  const g11b = gonderUcretle(r11b, gorulen, saat.simdi() - 31 * 60 * 1000)
+  d.dogru(Boolean(g11b?.hata), '30 dakikadan eski onaydaki eski ücret reddedildi')
+  d.esit(g11b?.ucretDegisti, true, 'ret sebebi ücret değişikliği')
+  const g11u = gonderUcretle(r11b, { yolKm: 999, iscilikSaat: 999 }, saat.simdi())
+  d.esit(g11u?.ucretDegisti, true, 'taze okuma anıyla gelen, hiç geçerli olmamış ücret reddedildi')
+  const g11k = gonderUcretle(r11b, { yolKm: 999, iscilikSaat: gorulen.iscilikSaat }, okuma)
+  d.esit(g11k?.ucretDegisti, true, 'yalnız km ücreti o anda geçerli değilse de reddedildi')
+  const g11s = gonderUcretle(r11b, { yolKm: gorulen.yolKm, iscilikSaat: 999 }, okuma)
+  d.esit(g11s?.ucretDegisti, true, 'yalnız saat ücreti o anda geçerli değilse de reddedildi')
+  d.esit(bul(m, r11b.id)?.servisKaydi, undefined, 'reddedilen kayıtlar talebe yazılmadı')
+  const g11c = gonderUcretle(r11b, guncel, saat.simdi() - 31 * 60 * 1000)
+  d.esit(g11c?.hata, undefined, 'eski onay ama ücret aynı: kayıt kabul edildi')
+  d.esit(bul(m, r11b.id)?.servisKaydi?.kmUcreti, guncel.yolKm, 'kayıt güncel ücreti taşıyor')
+
   return d
 }
 
@@ -1929,8 +2007,11 @@ export function AK21(m) {
      1  servise özel oran genelin önünde
      2  sipariş o günkü oranı taşıyor ve oran sonra değişse de kendi
         oranıyla kalıyor
-     3  servis eski oranla hazırladığı siparişi gönderemiyor — veri
-        katmanı reddediyor ve hiçbir şey yazmıyor
+     3  servisin onay penceresinde gördüğü oran geçiyor: PAKSAN oranı
+        o sırada değiştirse de sipariş kabul ediliyor ve gördüğü oranı
+        taşıyor; okuma anı 30 dakikadan eski (ya da hiç yok) ve oran
+        değiştiyse reddediliyor ve hiçbir şey yazmıyor (24 Eylül 2026,
+        kullanıcının kararı: "sipariş verildiği zamanki tutar")
      4  genel oran değişirken "özel oranlar değişsin mi" cevabı doğru
         uygulanıyor; bildirim yalnız oranı değişen servise gidiyor */
 export function AK22(m) {
@@ -1941,8 +2022,10 @@ export function AK22(m) {
   const iskontoBildirimleri = (servisId) =>
     servisBildirimleriDepodan(m).filter((x) => x.olay === 'iskonto' && x.servisId === servisId)
 
-  /* Servisim'in sipariş ekranının gönderdiği görüntü (SiparisVer.jsx). */
-  const siparisVer = (oran) => {
+  /* Servisim'in sipariş ekranının gönderdiği görüntü (SiparisVer.jsx).
+     `yas` verilirse görüntü, oranın o kadar önce okunduğunu söyleyen
+     `fiyatZamani`nı taşıyor (ekran onay penceresi açılırken okuyor). */
+  const siparisVer = (oran, yas) => {
     const f = m.servisFiyat.parcaServisFiyati({ kod: 'PRC-1', ad: 'Rulman', fiyat: 1000 }, oran)
     const adet = 2
     const araToplam = f.alis * adet
@@ -1960,6 +2043,7 @@ export function AK22(m) {
         kaynak: 'sınama',
         satirlar: [{ kod: 'PRC-1', ad: 'Rulman', adet, listeFiyati: f.fiyat, birimFiyat: f.alis, tutar: araToplam }],
         iskontoOrani: oran,
+        ...(yas !== undefined ? { fiyatZamani: saat.simdi() - yas } : {}),
         listeToplam,
         iskontoTutari: listeToplam - araToplam,
         araToplam,
@@ -2002,14 +2086,24 @@ export function AK22(m) {
   d.esit(iskontoBildirimleri(BAYI_SERVISI).length, 0, 'öteki servise bildirim gitmedi')
   d.esit(kisiselBildirimler(m).length, 0, 'iskonto bildirimi müşteriye sızmadı')
 
-  /* 3 · Servis eski oranla hazırladığı siparişi gönderemiyor. */
+  /* 3 · Onayda görülen oran geçiyor, ama süresiz değil. Oran %35'e
+     çıktı; servis onay penceresinde eski oranı (başlangıç) görmüştü. */
   const talepSayisi = m.veri.talepleriGetir().length
   const s3 = siparisVer(baslangic)
-  d.dogru(Boolean(s3?.hata), 'eski oranlı sipariş reddedildi')
+  d.dogru(Boolean(s3?.hata), 'okuma anı olmayan eski oranlı sipariş reddedildi')
   d.esit(s3?.iskontoDegisti, true, 'ret sebebi oran değişikliği')
-  d.esit(m.veri.talepleriGetir().length, talepSayisi, 'reddedilen sipariş yazılmadı')
-  const s3b = siparisVer(0.35)
-  d.esit(s3b?.hata, undefined, 'güncel oranla sipariş kabul edildi')
+  const s3y = siparisVer(baslangic, 31 * 60 * 1000)
+  d.esit(s3y?.iskontoDegisti, true, '30 dakikadan eski onaydaki eski oran reddedildi')
+  d.esit(m.veri.talepleriGetir().length, talepSayisi, 'reddedilen siparişler yazılmadı')
+  const s3t = siparisVer(baslangic, 5 * 60 * 1000)
+  d.esit(s3t?.hata, undefined, 'taze onaydaki eski oranla sipariş kabul edildi')
+  const t3 = bul(m, s3t?.talep?.id)
+  d.esit(t3?.parcaFiyat?.iskontoOrani, baslangic, 'sipariş servisin gördüğü oranı taşıyor')
+  d.esit(t3?.tutar, 2000 - 2000 * baslangic, 'siparişin tutarı onaylanan tutar')
+  const s3u = siparisVer(0.9, 60 * 1000)
+  d.esit(s3u?.iskontoDegisti, true, 'taze okuma anıyla gelen, hiç geçerli olmamış oran reddedildi')
+  const s3b = siparisVer(0.35, 45 * 60 * 1000)
+  d.esit(s3b?.hata, undefined, 'güncel oranla sipariş kabul edildi (okuma anının yaşı önemsiz)')
 
   /* 4 · Genel oran değişiyor, "özel oranlar değişmesin". */
   m.veri.genelIskontoyuKaydet(25, { ozelleriDegistir: false }, 'Sınama Yöneticisi')
@@ -2060,9 +2154,12 @@ export function AK22(m) {
         yeniden kaydedilince hiçbir şey yazılmıyor
      3  ek iskonto KDV'den ÖNCE, servisin iskontolu ara toplamından
         düşülüyor ve siparişe oranıyla, tutarıyla yazılıyor
-     4  eski oranla hazırlanmış bakiye siparişi ve ek iskonto taşıyan
-        faturalı sipariş reddediliyor, hiçbir şey yazılmıyor
-     5  kapanışta cariden düşülen borç ek iskontolu KDV dâhil toplam
+     4  servisin onayda gördüğü ek oran geçiyor (okuma anı tazeyse);
+        30 dakikadan eski ya da okuma anı olmayan eski oran ve ek
+        iskonto taşıyan faturalı sipariş reddediliyor, hiçbir şey
+        yazılmıyor — faturalı olan okuma anı taze olsa da
+     5  kapanışta cariden düşülen borç ek iskontolu KDV dâhil toplam ve
+        talep yeniden açılıp kapatılsa da tek borç
 
    Tutarlar formülden değil elle hesaplanıyor: senaryo siparisTutari'yi
    yalnız Servisim'in yaptığı gibi siparişi KURMAK için çağırıyor;
@@ -2072,6 +2169,7 @@ export async function AK23(m, ctx) {
   const d = defter('AK-23', 'Bakiyeden ödemede ek iskonto')
   depoTemizle()
   dunyaKur(m)
+  bakiyeYukle(m)
   const sf = m.servisFiyat
   const tb = await ctx.modulYukle('/src/servis/talepBildirimleri.js')
   const servisler = m.marka.servisleriGetir().map((x) => x.id)
@@ -2083,9 +2181,11 @@ export async function AK23(m, ctx) {
   /* Servisim'in sipariş ekranının gönderdiği görüntü (SiparisVer.jsx):
      satırlar servisin iskontolu fiyatında, ek iskonto sipariş satırı.
      `ekOran` ekranın o an okuduğu ek iskonto; `ek` görüntünün üstüne
-     yazılır (eski ya da uydurma oran taşıyan istemci için). */
+     yazılır (eski ya da uydurma oran taşıyan istemci için). `yas`
+     verilirse görüntü, tutarların o kadar önce okunduğunu söyleyen
+     `fiyatZamani`nı taşıyor; `okuma` o anı doğrudan veriyor. */
   const ADET = 3
-  const siparisVer = ({ odeme, ekOran = 0, ek = {} }) => {
+  const siparisVer = ({ odeme, ekOran = 0, ek = {}, yas, okuma }) => {
     const oran = m.veri.servisinIskontosu(SERVIS.id).oran
     const f = sf.parcaServisFiyati({ kod: 'PRC-1', ad: 'Rulman', fiyat: 1000 }, oran)
     const taban = f.alis * ADET
@@ -2113,6 +2213,11 @@ export async function AK23(m, ctx) {
         kdv: t.kdv,
         toplam: t.toplam,
         eksikFiyat: false,
+        ...(okuma !== undefined
+          ? { fiyatZamani: okuma }
+          : yas !== undefined
+            ? { fiyatZamani: saat.simdi() - yas }
+            : {}),
         ...ek,
       },
       not: '',
@@ -2191,13 +2296,25 @@ export async function AK23(m, ctx) {
   const hesap4 = sf.siparisTutari(s4.taban, { odeme: 'fatura', bakiyeOrani: 0.05 })
   d.esit(hesap4.bakiyeIskontoTutari, 0, 'formül: faturada ek iskonto yok')
 
-  /* 5 · Eski oranla hazırlanmış bakiye siparişi reddediliyor. */
+  /* 5 · Eski oranla gelen bakiye siparişi: okuma anı yoksa ya da 30
+     dakikadan eskiyse reddediliyor; tazeyse ve oran o anda geçerliyse
+     servisin gördüğü oran geçiyor. Saat donmuş: bütün adımlar aynı
+     dakikada; "5 dakika önce" ek iskonto henüz açılmamıştı (0). */
   const sayi5 = m.veri.talepleriGetir().length
   const s5a = siparisVer({ odeme: 'bakiye', ekOran: 0 })
-  d.esit(s5a.sonuc?.iskontoDegisti, true, 'ek iskonto açılmadan hazırlanan bakiye siparişi reddedildi')
+  d.esit(s5a.sonuc?.iskontoDegisti, true, 'okuma anı olmayan, ek iskontosuz bakiye siparişi reddedildi')
   const s5b = siparisVer({ odeme: 'bakiye', ekOran: 0.03 })
-  d.esit(s5b.sonuc?.iskontoDegisti, true, 'eski ek iskonto oranlı bakiye siparişi reddedildi')
+  d.esit(s5b.sonuc?.iskontoDegisti, true, 'okuma anı olmayan eski ek oranlı bakiye siparişi reddedildi')
+  const s5y = siparisVer({ odeme: 'bakiye', ekOran: 0.03, yas: 31 * 60 * 1000 })
+  d.esit(s5y.sonuc?.iskontoDegisti, true, '30 dakikadan eski onaydaki eski ek oran reddedildi')
   d.esit(m.veri.talepleriGetir().length, sayi5, 'reddedilen siparişler yazılmadı')
+  const s5u = siparisVer({ odeme: 'bakiye', ekOran: 0.03, yas: 60 * 1000 })
+  d.esit(s5u.sonuc?.iskontoDegisti, true, 'taze okuma anıyla gelen, hiç geçerli olmamış ek oran reddedildi')
+  d.esit(m.veri.talepleriGetir().length, sayi5, 'reddedilen siparişler yazılmadı')
+  const s5t = siparisVer({ odeme: 'bakiye', ekOran: 0, yas: 5 * 60 * 1000 })
+  d.esit(s5t.sonuc?.hata, undefined, 'ek iskonto açılmadan onaylanan bakiye siparişi kabul edildi')
+  d.esit(s5t.talep?.parcaFiyat?.bakiyeIskontoOrani, undefined, 'sipariş servisin gördüğü oranı (ek iskontosuz) taşıyor')
+  d.esit(s5t.talep?.tutar, s5t.taban, 'siparişin tutarı onaylanan tutar')
 
   /* 6 · Faturayla sipariş ek iskonto almıyor, uydurursa reddediliyor. */
   const s6 = siparisVer({ odeme: 'fatura', ekOran: m.veri.bakiyeIskontosuGetir() })
@@ -2210,23 +2327,39 @@ export async function AK23(m, ctx) {
     ek: { bakiyeIskontoOrani: 0.05, bakiyeIskontoTutari: Math.round(s6.taban * 0.05) },
   })
   d.esit(s6b.sonuc?.iskontoDegisti, true, 'ek iskonto taşıyan faturalı sipariş reddedildi')
+  d.esit(s6b.sonuc?.faturayaEkIndirim, true, 'ret sebebi faturaya ek indirim (oran değişikliği değil)')
+  const s6c = siparisVer({
+    odeme: 'fatura',
+    yas: 60 * 1000,
+    ek: { bakiyeIskontoOrani: 0.05, bakiyeIskontoTutari: Math.round(s6.taban * 0.05) },
+  })
+  d.esit(s6c.sonuc?.faturayaEkIndirim, true, 'okuma anı taze olsa da faturalı sipariş ek iskonto taşıyamaz')
   d.esit(m.veri.talepleriGetir().length, sayi6, 'reddedilen faturalı sipariş yazılmadı')
 
   /* 7 · Kapanış: cariden ek iskontolu KDV dâhil toplam düşülüyor. */
   m.veri.talepKapat(s6.talep, { yapilanIs: 'Gönderildi', not: '' }, 'Sınama Yöneticisi')
-  d.esit(m.veri.cariHareketleri(SERVIS.id).length, 0, 'faturalı sipariş cariye yazmadı')
+  d.esit(borcHareketleri(m).length, 0, 'faturalı sipariş cariye yazmadı')
   m.veri.talepKapat(s4.talep, { yapilanIs: 'Gönderildi', not: '' }, 'Sınama Yöneticisi')
-  const hareket = m.veri.cariHareketleri(SERVIS.id)
+  const hareket = borcHareketleri(m)
   d.esit(hareket.length, 1, 'bakiye siparişi tek borç hareketi yazdı')
   d.esit(hareket[0]?.tur, 'borc', 'hareket borç')
   d.esit(hareket[0]?.tutar, net + m.marka.kdvTutari(net), 'borç ek iskontolu KDV dâhil toplam')
+  /* Talep geri açılıp yeniden kapatılıyor (backoffice "Geri Aç"):
+     aynı sipariş bakiyeden ikinci kez düşülmüyor. */
+  m.veri.talepDurumDegistir(bul(m, s4.talep.id), 'yeni', 'Sınama Yöneticisi', { bildirme: true })
+  m.veri.talepKapat(bul(m, s4.talep.id), { yapilanIs: 'Gönderildi', not: '' }, 'Sınama Yöneticisi')
+  d.esit(borcHareketleri(m).length, 1, 'yeniden kapanan sipariş ikinci borç yazmadı')
 
   /* 8 · Oran kapatılıyor, sonra yeniden açılıyor. */
+  const okuma8 = saat.simdi()
   const k8 = m.veri.bakiyeIskontosunuKaydet(0, 'Sınama Yöneticisi')
   d.esit(k8?.hata, undefined, 'ek iskonto kapatılabiliyor (0)')
   d.esit(ekBildirimler(SERVIS.id)[0]?.degerler?.simdi, 0, 'kapatma servise bildirildi')
   const s8 = siparisVer({ odeme: 'bakiye', ekOran: 0.05 })
-  d.esit(s8.sonuc?.iskontoDegisti, true, 'kapatıldıktan sonra ek iskontolu sipariş reddedildi')
+  d.esit(s8.sonuc?.iskontoDegisti, true, 'kapatıldıktan sonra okuma anı olmayan ek iskontolu sipariş reddedildi')
+  const s8t = siparisVer({ odeme: 'bakiye', ekOran: 0.05, okuma: okuma8 })
+  d.esit(s8t.sonuc?.hata, undefined, 'kapatılmadan hemen önce onaylanan ek iskontolu sipariş kabul edildi')
+  d.esit(s8t.talep?.parcaFiyat?.bakiyeIskontoOrani, 0.05, 'sipariş servisin gördüğü ek oranı taşıyor')
 
   /* 9 · Sınır: %90'ın üstü ve anlamsız değer kabul edilmiyor. */
   const once9 = JSON.stringify(m.veri.parcaIskontosuGetir())
@@ -2234,6 +2367,32 @@ export async function AK23(m, ctx) {
   d.dogru(Boolean(m.veri.bakiyeIskontosunuKaydet('abc', 'Sınama Yöneticisi')?.hata), 'anlamsız oran reddedildi')
   d.dogru(Boolean(m.veri.bakiyeIskontosunuKaydet('', 'Sınama Yöneticisi')?.hata), 'boş oran reddedildi')
   d.esit(JSON.stringify(m.veri.parcaIskontosuGetir()), once9, 'reddedilen oran hiçbir şey yazmadı')
+
+  /* 10 · Tek borç TALEP KİMLİĞİYLE: talep numarası tekil değil (gün +
+     dört rastgele hane). Aynı numaralı başka bir siparişin borcu, bu
+     siparişin borcunu yutmamalı. */
+  m.veri.bakiyeIskontosunuKaydet(0, 'Sınama Yöneticisi')
+  const s10 = siparisVer({ odeme: 'bakiye', ekOran: 0 })
+  d.esit(s10.sonuc?.hata, undefined, 'yeni bakiye siparişi kabul edildi')
+  m.veri.cariHareketEkle({
+    servisId: SERVIS.id,
+    servisAd: SERVIS.ad,
+    tur: 'borc',
+    tutar: 1,
+    aciklama: 'aynı numaralı başka sipariş',
+    talepNo: s10.talep.no,
+    talepId: 'baska-siparis',
+    personel: 'Sınama Yöneticisi',
+  })
+  m.veri.talepKapat(bul(m, s10.talep.id), { yapilanIs: 'Gönderildi', not: '' }, 'Sınama Yöneticisi')
+  d.esit(
+    m.veri
+      .cariHareketleri(SERVIS.id)
+      .filter((h) => h.tur === 'borc' && h.talepId === s10.talep.id)
+      .reduce((t, h) => t + h.tutar, 0),
+    s10.talep.parcaFiyat.toplam,
+    'aynı numaralı başka siparişin borcu varken bu siparişin tamamı düşüldü',
+  )
 
   /* Son durum: oran açık ve depoda ek iskontolu bir sipariş duruyor —
      veritabanı eşleme denetimi senaryonun sonunda depoya bakıyor ve
@@ -2245,7 +2404,587 @@ export async function AK23(m, ctx) {
   return d
 }
 
+/* ========================================================== AK-24 */
+
+/* EKSİK GÖNDERİLEN SERVİS SİPARİŞİ.
+
+   KULLANICININ KARARI (24 Eylül 2026): siparişteki bir parça stokta
+   yoksa personel talebi kapatırken onun işaretini kaldırıyor;
+   bakiyeden ödenen siparişte servisin bakiyesinden yalnız gönderilen
+   parçaların tutarı düşülüyor. Kalan parça sonra "Kalan Parçaları
+   Gönder" ile gidiyor, tutarı o gün düşülüyor (veri.js → talepKapat,
+   kalanParcalariGonder, siparisBorcunuYaz; lib/servisFiyat.js →
+   gonderilenTutar; lib/servisKaydi.js → siparisGonderimi).
+
+   Senaryonun taşıdığı beş şey:
+     1  işaretlenmeyen satır bekliyor; bakiyeden yalnız gönderilenlerin
+        tutarı düşülüyor — sipariş anındaki satır fiyatı, siparişin ek
+        iskontosu, sonra KDV
+     2  kalan gönderilince yalnız farkı düşülüyor; düşülenlerin toplamı
+        siparişin toplamına kuruşu kuruşuna eşit
+     3  servise kısmi gönderimde ve kalan gönderiminde kendi bildirimi
+     4  faturalı siparişte gönderim yazılıyor, cariye hiçbir şey yok
+     5  işaretsiz kapanış, kalanı olmayan gönderim ve yeniden kapanış
+        hiçbir şey yazmıyor */
+export function AK24(m) {
+  const d = defter('AK-24', 'Eksik gönderilen servis siparişi')
+  depoTemizle()
+  dunyaKur(m)
+  bakiyeYukle(m)
+  const sf = m.servisFiyat
+  const sk = m.servisKaydi
+  const EK = 0.05
+  m.veri.bakiyeIskontosunuKaydet(EK * 100, 'Sınama Yöneticisi')
+  const oran = m.veri.servisinIskontosu(SERVIS.id).oran
+
+  /* Üç satırlık sipariş, Servisim'in gönderdiği görüntüyle
+     (SiparisVer.jsx). Rulman 1000, kayış 500, zincir 300 × 2. */
+  const PARCALAR = [
+    { kod: 'PRC-1', ad: 'Rulman', fiyat: 1000, adet: 1 },
+    { kod: 'PRC-2', ad: 'Kayış', fiyat: 500, adet: 1 },
+    { kod: 'PRC-3', ad: 'Zincir', fiyat: 300, adet: 2 },
+  ]
+  const alis = (x) => Math.round(x.fiyat * (1 - oran))
+  const siparisVer = (odeme) => {
+    const satirlar = PARCALAR.map((x) => ({
+      kod: x.kod, ad: x.ad, adet: x.adet, listeFiyati: x.fiyat, birimFiyat: alis(x), tutar: alis(x) * x.adet,
+    }))
+    const taban = satirlar.reduce((t, x) => t + x.tutar, 0)
+    const listeToplam = PARCALAR.reduce((t, x) => t + x.fiyat * x.adet, 0)
+    const t = sf.siparisTutari(taban, { odeme, bakiyeOrani: EK })
+    const sonuc = m.veri.servisParcaSiparisi({
+      servisId: SERVIS.id, servisAd: SERVIS.ad, servisNo: SERVIS.no, servisTel: '3323450014',
+      il: SERVIS.il, ilce: 'Selçuklu',
+      kalemler: PARCALAR.map((x) => ({ kod: x.kod, ad: x.ad, adet: x.adet })),
+      parcaFiyat: {
+        surum: 1, kaynak: 'sınama', satirlar,
+        iskontoOrani: oran, listeToplam, iskontoTutari: listeToplam - taban,
+        ...(t.bakiyeIskontoOrani > 0
+          ? { bakiyeIskontoOrani: t.bakiyeIskontoOrani, bakiyeIskontoTutari: t.bakiyeIskontoTutari }
+          : {}),
+        araToplam: t.araToplam, kdv: t.kdv, toplam: t.toplam, eksikFiyat: false,
+      },
+      not: '', teslimat: { ...ADRES }, odeme, tutar: t.araToplam, tutarKdvli: t.toplam,
+    })
+    return { sonuc, talep: sonuc?.talep ? bul(m, sonuc.talep.id) : null }
+  }
+  const borclar = (talepId) =>
+    m.veri.cariHareketleri(SERVIS.id).filter((h) => h.tur === 'borc' && h.talepId === talepId)
+  const toplamBorc = (talepId) => borclar(talepId).reduce((t, h) => t + h.tutar, 0)
+  const bildirimi = (talepId) =>
+    servisBildirimleriDepodan(m).filter((x) => x.talepId === talepId).map((x) => x.olay)
+  const kapat = (talep, gonderilen) =>
+    m.veri.talepKapat(bul(m, talep.id), { yapilanIs: 'Gönderildi', not: '', ...(gonderilen ? { gonderilen } : {}) }, 'Sınama Yöneticisi')
+
+  /* 0 · Bakiyeden ödenen sipariş. */
+  const s = siparisVer('bakiye')
+  d.esit(s.sonuc?.hata, undefined, 'bakiye siparişi kabul edildi')
+  const siparisToplami = s.talep.parcaFiyat.toplam
+
+  /* 1 · Hiç parça işaretlenmeden kapanmıyor. */
+  const k0 = kapat(s.talep, [])
+  d.dogru(Boolean(k0?.hata), 'işaretsiz kapanış reddedildi')
+  d.esit(bul(m, s.talep.id)?.status, 'yeni', 'reddedilen kapanış talebi kapatmadı')
+  d.esit(borclar(s.talep.id).length, 0, 'reddedilen kapanış cariye yazmadı')
+
+  /* 2 · Rulman ve kayış gönderildi, zincir stokta yok. */
+  const k1 = kapat(s.talep, [0, 1])
+  d.esit(k1?.kismi, true, 'kapanış kısmi olduğunu söylüyor')
+  const t1 = bul(m, s.talep.id)
+  d.esit(t1?.status, 'kapandi', 'talep kapandı')
+  d.esit(t1?.cozum?.gonderilen, undefined, 'seçim kapanış nesnesine yazılmadı')
+  d.esit(JSON.stringify(t1?.gonderimler?.map((g) => g.satirlar)), '[[0,1]]', 'ilk gönderimde iki satır')
+  d.esit(JSON.stringify(sk.siparisGonderimi(t1)?.kalan), '[2]', 'zincir bekliyor')
+  const ara1 = alis(PARCALAR[0]) + alis(PARCALAR[1])
+  const net1 = ara1 - Math.round(ara1 * EK)
+  const beklenen1 = net1 + m.marka.kdvTutari(net1)
+  d.esit(borclar(s.talep.id).length, 1, 'tek borç yazıldı')
+  d.esit(toplamBorc(s.talep.id), beklenen1, 'borç yalnız gönderilenler: satır fiyatı, ek iskonto, KDV')
+  d.dogru(beklenen1 < siparisToplami, 'düşülen, siparişin toplamından az')
+  d.dogru(bildirimi(s.talep.id).includes('siparisKismenGonderildi'), 'servise kısmi gönderim bildirimi')
+  d.yanlis(bildirimi(s.talep.id).includes('siparisGonderildi'), 'tam gönderim bildirimi gitmedi')
+
+  /* 3 · Kalan parça: geçersiz seçim reddediliyor, sonra zincir gidiyor. */
+  d.dogru(Boolean(m.veri.kalanParcalariGonder(t1, [0], 'Sınama Yöneticisi')?.hata), 'gönderilmiş satır yeniden gönderilemiyor')
+  d.dogru(Boolean(m.veri.kalanParcalariGonder(t1, [], 'Sınama Yöneticisi')?.hata), 'işaretsiz gönderim reddedildi')
+  d.esit(borclar(s.talep.id).length, 1, 'reddedilen gönderimler cariye yazmadı')
+  const g2 = m.veri.kalanParcalariGonder(t1, [2], 'Sınama Yöneticisi')
+  d.esit(g2?.hata, undefined, 'zincir gönderildi')
+  const t2 = bul(m, s.talep.id)
+  d.esit(t2?.gonderimler?.length, 2, 'ikinci gönderim yazıldı')
+  d.esit(sk.siparisGonderimi(t2)?.kalan.length, 0, 'bekleyen parça kalmadı')
+  d.esit(borclar(s.talep.id).length, 2, 'ikinci borç yazıldı')
+  d.esit(toplamBorc(s.talep.id), siparisToplami, 'düşülenlerin toplamı siparişin toplamına eşit')
+  d.esit(borclar(s.talep.id)[0]?.tutar, siparisToplami - beklenen1, 'ikinci borç yalnız fark')
+  d.dogru(bildirimi(s.talep.id).includes('kalanGonderildi'), 'servise kalan gönderim bildirimi')
+  d.dogru(Boolean(m.veri.kalanParcalariGonder(t2, [2], 'Sınama Yöneticisi')?.hata), 'kalanı olmayan siparişte gönderim yok')
+
+  /* 4 · Yeniden açılıp kapanan sipariş yeniden düşülmüyor. */
+  m.veri.talepDurumDegistir(t2, 'yeni', 'Sınama Yöneticisi', { bildirme: true })
+  kapat(t2, [0, 1, 2])
+  d.esit(toplamBorc(s.talep.id), siparisToplami, 'yeniden kapanış borç eklemedi')
+  d.esit(bul(m, s.talep.id)?.gonderimler?.length, 2, 'yeniden kapanış gönderim eklemedi')
+
+  /* 5 · Faturalı sipariş: gönderim yazılıyor, cariye bir şey yok. */
+  const f = siparisVer('fatura')
+  const cariOnce = m.veri.cariHareketleri(SERVIS.id).length
+  const kf = kapat(f.talep, [1])
+  d.esit(kf?.kismi, true, 'faturalı siparişte de kısmi kapanış')
+  d.esit(JSON.stringify(sk.siparisGonderimi(bul(m, f.talep.id))?.kalan), '[0,2]', 'faturalı siparişte iki satır bekliyor')
+  d.esit(m.veri.cariHareketleri(SERVIS.id).length, cariOnce, 'faturalı sipariş cariye yazmadı')
+  m.veri.kalanParcalariGonder(bul(m, f.talep.id), [0, 2], 'Sınama Yöneticisi')
+  d.esit(m.veri.cariHareketleri(SERVIS.id).length, cariOnce, 'faturalı siparişin kalanı da cariye yazmadı')
+
+  /* 6 · Seçimsiz (eski) çağrı: hepsi gönderilmiş sayılıyor. */
+  const e = siparisVer('bakiye')
+  const ke = kapat(e.talep, null)
+  d.esit(ke?.kismi, false, 'seçimsiz kapanış tam gönderim')
+  d.esit(toplamBorc(e.talep.id), e.talep.parcaFiyat.toplam, 'seçimsiz kapanışta siparişin tamamı düşüldü')
+
+  /* Son durum: depoda kısmen gönderilmiş, bekleyen satırı olan bir
+     sipariş dursun — eşleme denetimi yeni alanları ancak böyle görüyor. */
+  const son = siparisVer('bakiye')
+  kapat(son.talep, [0])
+  d.esit(sk.siparisGonderimi(bul(m, son.talep.id))?.kalan.length, 2, 'depoda bekleyen satırlı sipariş var')
+
+  return d
+}
+
+/* ========================================================== AK-25 */
+
+/* SİPARİŞİN TUTARI, İPTALİ VE BAKİYESİ (24 Eylül 2026).
+
+   KULLANICININ BULDUĞU HATA: Servisim'in sipariş listesi ve
+   backoffice'in "Sipariş tutarı" satırı KDV HARİÇ ara toplamı
+   gösteriyordu, bakiyeden düşülen KDV dâhil tutardı. Ekranlar tutarı
+   artık lib/servisFiyat.js → siparisToplami'den okuyor; bu senaryo
+   onun kapanışta düşülen rakamla aynı olduğunu tutuyor.
+
+   KULLANICININ KARARLARI (aynı gün):
+     · servis kendi siparişini yalnız "Yeni" iken iptal edebiliyor
+     · iptal edilen siparişte bakiyeden düşülen tutar bakiyeye dönüyor
+   Ve bunlarla gelen: gönderilmeyi bekleyen bakiye siparişlerinin
+   tutarı bakiyeden "ayrılmış" sayılıyor, yeni sipariş kullanılabilir
+   kısma bakıyor (veri.js → bakiyeDurumu, siparisHesabi,
+   siparisIadesiniYaz, servisSiparisiniIptalEt).
+
+   Taşıdıkları:
+     1  ekranın tutarı = kapanışta düşülen; KDV hariç ara toplam değil
+     2  siparisHesabi: gönderilmeden, kısmen ve tamamen gönderilince
+     3  borç hareketi hangi gönderimin karşılığı olduğunu taşıyor
+     4  bekleyen sipariş bakiyeden ayrılıyor; yetmeyen sipariş reddediliyor
+     5  servis "Yeni" siparişi iptal ediyor, işleme alınanı edemiyor
+     6  gönderilmiş siparişin iptalinde düşülen tutar geri ekleniyor —
+        form yolundan da durum düğmesinden de, bir kez
+     7  iptal edilip yeniden kapanan sipariş yeniden düşülüyor
+     8  faturalı siparişin iptali cariye yazmıyor */
+export function AK25(m) {
+  const d = defter('AK-25', 'Siparişin tutarı, iptali ve bakiyesi')
+  depoTemizle()
+  dunyaKur(m)
+  const sf = m.servisFiyat
+  const oran = m.veri.servisinIskontosu(SERVIS.id).oran
+  const PARCALAR = [
+    { kod: 'PRC-1', ad: 'Rulman', fiyat: 1000, adet: 1 },
+    { kod: 'PRC-2', ad: 'Kayış', fiyat: 500, adet: 2 },
+  ]
+  const alis = (x) => Math.round(x.fiyat * (1 - oran))
+  const siparisVer = (odeme) => {
+    const satirlar = PARCALAR.map((x) => ({
+      kod: x.kod, ad: x.ad, adet: x.adet, listeFiyati: x.fiyat, birimFiyat: alis(x), tutar: alis(x) * x.adet,
+    }))
+    const taban = satirlar.reduce((t, x) => t + x.tutar, 0)
+    const listeToplam = PARCALAR.reduce((t, x) => t + x.fiyat * x.adet, 0)
+    const t = sf.siparisTutari(taban, { odeme })
+    const sonuc = m.veri.servisParcaSiparisi({
+      servisId: SERVIS.id, servisAd: SERVIS.ad, servisNo: SERVIS.no, servisTel: '3323450014',
+      il: SERVIS.il, ilce: 'Selçuklu',
+      kalemler: PARCALAR.map((x) => ({ kod: x.kod, ad: x.ad, adet: x.adet })),
+      parcaFiyat: {
+        surum: 1, kaynak: 'sınama', satirlar,
+        iskontoOrani: oran, listeToplam, iskontoTutari: listeToplam - taban,
+        araToplam: t.araToplam, kdv: t.kdv, toplam: t.toplam, eksikFiyat: false,
+      },
+      not: '', teslimat: { ...ADRES }, odeme, tutar: t.araToplam, tutarKdvli: t.toplam,
+    })
+    return { sonuc, talep: sonuc?.talep ? bul(m, sonuc.talep.id) : null }
+  }
+  const kapat = (talep, gonderilen) =>
+    m.veri.talepKapat(bul(m, talep.id), { yapilanIs: 'Gönderildi', not: '', ...(gonderilen ? { gonderilen } : {}) }, 'Sınama Yöneticisi')
+  const hareketleri = (talepId) => m.veri.cariHareketleri(SERVIS.id).filter((h) => h.talepId === talepId)
+  const bakiye = () => m.veri.cariBakiye(SERVIS.id)
+
+  bakiyeYukle(m, 10000)
+
+  /* 1 · Ekranın gösterdiği tutar kapanışta düşülen tutar. */
+  const a = siparisVer('bakiye')
+  d.esit(a.sonuc?.hata, undefined, 'bakiye siparişi kabul edildi')
+  const toplam = a.talep.parcaFiyat.toplam
+  d.esit(sf.siparisToplami(a.talep), toplam, 'ekranın tutarı siparişin KDV dâhil toplamı')
+  d.dogru(sf.siparisToplami(a.talep) !== a.talep.tutar, 'ekranın tutarı KDV hariç ara toplam değil')
+
+  /* 2 · Gönderilmeden: düşülen yok, tamamı bekliyor ve bakiyeden ayrıldı. */
+  let h = m.veri.siparisHesabi(bul(m, a.talep.id))
+  d.esit(h.dusulen, 0, 'gönderilmeden bakiyeden bir şey düşülmedi')
+  d.esit(h.bekleyen, toplam, 'gönderilmeden tamamı bekliyor')
+  let b = m.veri.bakiyeDurumu(SERVIS.id)
+  d.esit(b.bakiye, 10000, 'hesaptaki tutar değişmedi')
+  d.esit(b.ayrilan, toplam, 'bekleyen sipariş bakiyeden ayrıldı')
+  d.esit(b.kullanilabilir, 10000 - toplam, 'kullanılabilir bakiye ayrılan kadar az')
+
+  /* 4 · Kullanılabilir kısım yetmeyen bakiye siparişi reddediliyor;
+     faturalısı geçiyor. */
+  const sayi = m.veri.talepleriGetir().length
+  const tasan = []
+  for (let i = 0; i < 20 && m.veri.bakiyeDurumu(SERVIS.id).kullanilabilir >= toplam; i++) {
+    tasan.push(siparisVer('bakiye'))
+  }
+  d.dogru(tasan.length >= 3 && tasan.every((x) => !x.sonuc?.hata), 'bakiye yettikçe siparişler kabul edildi')
+  const fazla = siparisVer('bakiye')
+  d.esit(fazla.sonuc?.bakiyeYetmiyor, true, 'bekleyenler düşülünce yetmeyen bakiye siparişi reddedildi')
+  d.esit(m.veri.talepleriGetir().length, sayi + tasan.length, 'reddedilen sipariş yazılmadı')
+  const fat = siparisVer('fatura')
+  d.esit(fat.sonuc?.hata, undefined, 'bakiye yetmese de faturalı sipariş kabul edildi')
+
+  /* 5 · Servis iptali: "Yeni" iken geçiyor, işleme alınanda geçmiyor. */
+  const ilk = tasan[0]
+  const ayrilanOnce = m.veri.bakiyeDurumu(SERVIS.id).ayrilan
+  const si = m.veri.servisSiparisiniIptalEt(ilk.talep, SERVIS.ad)
+  d.esit(si?.hata, undefined, 'servis Yeni siparişini iptal etti')
+  d.esit(bul(m, ilk.talep.id)?.status, 'iptal', 'sipariş iptal durumunda')
+  d.esit(hareketleri(ilk.talep.id).length, 0, 'gönderilmemiş siparişin iptali cariye yazmadı')
+  d.esit(m.veri.bakiyeDurumu(SERVIS.id).ayrilan, ayrilanOnce - toplam, 'iptal edilen siparişin ayrılan tutarı serbest kaldı')
+  const ikinci = tasan[1]
+  m.veri.talepDurumDegistir(bul(m, ikinci.talep.id), 'incelemede', 'Sınama Yöneticisi')
+  const sj = m.veri.servisSiparisiniIptalEt(ikinci.talep, SERVIS.ad)
+  d.dogru(Boolean(sj?.hata), 'işleme alınan siparişi servis iptal edemedi')
+  d.esit(bul(m, ikinci.talep.id)?.status, 'incelemede', 'reddedilen iptal durumu değiştirmedi')
+  /* Ekran eski kopyayla çağırsa da depodaki durum esas. */
+  const sk2 = m.veri.servisSiparisiniIptalEt({ ...ikinci.talep, status: 'yeni' }, SERVIS.ad)
+  d.dogru(Boolean(sk2?.hata), 'ekranın eski kopyası "Yeni" dese de işleme alınan sipariş iptal edilmedi')
+
+  /* 2 · 3 · Kısmi gönderim: düşülen ve bekleyen; borç gönderim no'lu. */
+  kapat(a.talep, [0])
+  h = m.veri.siparisHesabi(bul(m, a.talep.id))
+  const kismi = sf.gonderilenTutar(a.talep.parcaFiyat, [0], 'bakiye')
+  d.esit(h.dusulen, kismi, 'kısmi gönderimde düşülen gönderilenlerin tutarı')
+  d.esit(h.bekleyen, toplam - kismi, 'kısmi gönderimde kalanı bekliyor')
+  d.esit(hareketleri(a.talep.id)[0]?.gonderimNo, 1, 'borç birinci gönderimin karşılığı')
+  m.veri.kalanParcalariGonder(bul(m, a.talep.id), [1], 'Sınama Yöneticisi')
+  h = m.veri.siparisHesabi(bul(m, a.talep.id))
+  d.esit(h.dusulen, toplam, 'tamamı gönderilince düşülen siparişin toplamı')
+  d.esit(h.bekleyen, 0, 'tamamı gönderilince bekleyen yok')
+  d.esit(hareketleri(a.talep.id)[0]?.gonderimNo, 2, 'ikinci borç ikinci gönderimin karşılığı')
+  d.esit(
+    hareketleri(a.talep.id).reduce((t, x) => t + x.tutar, 0),
+    sf.siparisToplami(bul(m, a.talep.id)),
+    'düşülenlerin toplamı ekranın gösterdiği tutar',
+  )
+
+  /* 6 · Gönderilmiş siparişin iptali (backoffice formu): tutar geri. */
+  const bakiyeOnce = bakiye()
+  m.veri.talepIptal(bul(m, a.talep.id), { neden: 'Parçalar iade alındı' }, 'Sınama Yöneticisi')
+  const iade = hareketleri(a.talep.id).filter((x) => x.tur === 'alacak')
+  d.esit(iade.length, 1, 'iptalde tek iade hareketi')
+  d.esit(iade[0]?.tutar, toplam, 'iade düşülen tutarın tamamı')
+  d.esit(bakiye(), bakiyeOnce + toplam, 'bakiye iptalden önceki düşümü geri aldı')
+  h = m.veri.siparisHesabi(bul(m, a.talep.id))
+  d.esit(h.dusulen, 0, 'iptalden sonra net düşülen sıfır')
+  d.esit(h.iade, toplam, 'iptalden sonra iade görünüyor')
+  d.esit(h.bekleyen, 0, 'iptal edilen sipariş bakiyeden bir şey ayırmıyor')
+  const iptalBildirimi = servisBildirimleriDepodan(m).find((x) => x.talepId === a.talep.id && x.olay === 'iptal')
+  d.esit(iptalBildirimi?.degerler?.iade, toplam, 'servise giden iptal bildirimi iade tutarını taşıyor')
+  m.veri.talepIptal(bul(m, a.talep.id), { neden: 'Parçalar iade alındı' }, 'Sınama Yöneticisi')
+  d.esit(hareketleri(a.talep.id).filter((x) => x.tur === 'alacak').length, 1, 'ikinci iptal ikinci iade yazmadı')
+
+  /* 7 · İptal edilip yeniden kapanan sipariş yeniden düşülüyor. */
+  m.veri.talepDurumDegistir(bul(m, a.talep.id), 'yeni', 'Sınama Yöneticisi', { bildirme: true })
+  kapat(a.talep, [0, 1])
+  d.esit(m.veri.siparisHesabi(bul(m, a.talep.id)).dusulen, toplam, 'yeniden kapanan sipariş yeniden düşüldü')
+
+  /* 6 · Durum düğmesiyle kısmen gönderilmiş siparişi iptal: yalnız
+     düşülen kadar geri. */
+  const c = tasan[2]
+  kapat(c.talep, [1])
+  const cDusulen = m.veri.siparisHesabi(bul(m, c.talep.id)).dusulen
+  d.dogru(cDusulen > 0 && cDusulen < toplam, 'kısmen gönderilen siparişten bir kısmı düşüldü')
+  m.veri.talepDurumDegistir(bul(m, c.talep.id), 'iptal', 'Sınama Yöneticisi', { bildirme: true })
+  const cIade = hareketleri(c.talep.id).filter((x) => x.tur === 'alacak')
+  d.esit(cIade.reduce((t, x) => t + x.tutar, 0), cDusulen, 'durum düğmesiyle iptalde düşülen kadar iade')
+
+  /* 8 · Faturalı siparişin iptali cariye yazmıyor. */
+  kapat(fat.talep, [0, 1])
+  const cariOnce = m.veri.cariHareketleri(SERVIS.id).length
+  m.veri.talepIptal(bul(m, fat.talep.id), { neden: 'Parçalar iade alındı' }, 'Sınama Yöneticisi')
+  d.esit(m.veri.cariHareketleri(SERVIS.id).length, cariOnce, 'faturalı siparişin iptali cariye yazmadı')
+
+  return d
+}
+
+/* ========================================================== AK-26 */
+
+/* KALAN PARÇALARIN İPTALİ (24 Eylül 2026, kullanıcının onayı).
+
+   Kısmen gönderilmiş siparişin bekleyen kalemi stoktan kalkınca onu
+   kapatmanın tek yolu siparişin tamamını iptal etmekti. Artık PAKSAN
+   yalnız seçtiği bekleyen kalemleri siparişten çıkarıyor (veri.js →
+   kalanParcalariIptalEt, siparisHesabi; lib/servisFiyat.js →
+   siparisNetTutari; lib/servisKaydi.js → siparisGonderimi).
+
+   Taşıdıkları:
+     1  seçilen bekleyen kalem siparişten çıkıyor; gönderilen ve
+        seçilmeyen kalem yerinde, talebin durumu değişmiyor
+     2  cariye hiçbir şey yazılmıyor; bekleyen ve bakiyeden ayrılan,
+        iptal edilen pay kadar iniyor
+     3  kalanın geri kalanı gönderilince düşülenlerin toplamı yeni
+        tutara, düşülen + iptal edilen siparişin ilk toplamına eşit
+     4  gönderilmiş, zaten iptal edilmiş kalem ve kapanmamış ya da
+        kalanı olmayan sipariş iptal edilemiyor; sebepsiz iptal yok
+     5  servise giden bildirim düşülmeyecek tutarı ve ödeme biçimini
+        taşıyor
+     6  yeniden kapanışta iptal edilen kalem gönderilmiyor, borca girmiyor
+     7  faturalı siparişte de iptal yazılıyor, cariye bir şey yok
+     8  kalemi iptal edilmiş siparişin tamamı iptal edilince yalnız
+        düşülen geri ekleniyor */
+export function AK26(m) {
+  const d = defter('AK-26', 'Kalan parçaların iptali')
+  depoTemizle()
+  dunyaKur(m)
+  bakiyeYukle(m, 100000)
+  const sf = m.servisFiyat
+  const sk = m.servisKaydi
+  const EK = 0.05
+  m.veri.bakiyeIskontosunuKaydet(EK * 100, 'Sınama Yöneticisi')
+  const oran = m.veri.servisinIskontosu(SERVIS.id).oran
+  const PARCALAR = [
+    { kod: 'PRC-1', ad: 'Rulman', fiyat: 1000, adet: 1 },
+    { kod: 'PRC-2', ad: 'Kayış', fiyat: 500, adet: 1 },
+    { kod: 'PRC-3', ad: 'Zincir', fiyat: 300, adet: 2 },
+  ]
+  const alis = (x) => Math.round(x.fiyat * (1 - oran))
+  const siparisVer = (odeme) => {
+    const satirlar = PARCALAR.map((x) => ({
+      kod: x.kod, ad: x.ad, adet: x.adet, listeFiyati: x.fiyat, birimFiyat: alis(x), tutar: alis(x) * x.adet,
+    }))
+    const taban = satirlar.reduce((t, x) => t + x.tutar, 0)
+    const listeToplam = PARCALAR.reduce((t, x) => t + x.fiyat * x.adet, 0)
+    const t = sf.siparisTutari(taban, { odeme, bakiyeOrani: EK })
+    const sonuc = m.veri.servisParcaSiparisi({
+      servisId: SERVIS.id, servisAd: SERVIS.ad, servisNo: SERVIS.no, servisTel: '3323450014',
+      il: SERVIS.il, ilce: 'Selçuklu',
+      kalemler: PARCALAR.map((x) => ({ kod: x.kod, ad: x.ad, adet: x.adet })),
+      parcaFiyat: {
+        surum: 1, kaynak: 'sınama', satirlar,
+        iskontoOrani: oran, listeToplam, iskontoTutari: listeToplam - taban,
+        ...(t.bakiyeIskontoOrani > 0
+          ? { bakiyeIskontoOrani: t.bakiyeIskontoOrani, bakiyeIskontoTutari: t.bakiyeIskontoTutari }
+          : {}),
+        araToplam: t.araToplam, kdv: t.kdv, toplam: t.toplam, eksikFiyat: false,
+      },
+      not: '', teslimat: { ...ADRES }, odeme, tutar: t.araToplam, tutarKdvli: t.toplam,
+    })
+    return { sonuc, talep: sonuc?.talep ? bul(m, sonuc.talep.id) : null }
+  }
+  const PERSONEL = 'Sınama Yöneticisi'
+  const IPTAL = { neden: 'Parça temin edilemiyor', aciklama: 'Üretimden kalktı' }
+  const iptalEt = (talepId, secim, iptal = IPTAL) =>
+    m.veri.kalanParcalariIptalEt(bul(m, talepId), secim, iptal, PERSONEL)
+  const borclar = (talepId) =>
+    m.veri.cariHareketleri(SERVIS.id).filter((h) => h.tur === 'borc' && h.talepId === talepId)
+  const toplamBorc = (talepId) => borclar(talepId).reduce((t, h) => t + h.tutar, 0)
+  const bildirimi = (talepId) =>
+    servisBildirimleriDepodan(m).find((x) => x.talepId === talepId && x.olay === 'kalanIptalEdildi')
+  const kapat = (talep, gonderilen) =>
+    m.veri.talepKapat(bul(m, talep.id), { yapilanIs: 'Gönderildi', not: '', gonderilen }, PERSONEL)
+
+  /* 0 · Bakiye siparişi: rulman gönderildi, kayış ve zincir bekliyor. */
+  const s = siparisVer('bakiye')
+  d.esit(s.sonuc?.hata, undefined, 'bakiye siparişi kabul edildi')
+  const toplam = s.talep.parcaFiyat.toplam
+  kapat(s.talep, [0])
+  d.esit(JSON.stringify(sk.siparisGonderimi(bul(m, s.talep.id))?.kalan), '[1,2]', 'iki kalem bekliyor')
+  const dusulen0 = toplamBorc(s.talep.id)
+  const ayrilan0 = m.veri.bakiyeDurumu(SERVIS.id).ayrilan
+
+  /* 4 · Geçersiz iptaller hiçbir şey yazmıyor. */
+  d.dogru(Boolean(iptalEt(s.talep.id, [0])?.hata), 'gönderilmiş kalem iptal edilemiyor')
+  d.dogru(Boolean(iptalEt(s.talep.id, [])?.hata), 'işaretsiz iptal reddedildi')
+  d.dogru(Boolean(iptalEt(s.talep.id, [2], {})?.hata), 'sebepsiz iptal reddedildi')
+  d.esit(bul(m, s.talep.id)?.kalemIptalleri, undefined, 'reddedilen iptaller talebe yazmadı')
+
+  /* 1 · 2 · Zincir iptal ediliyor. */
+  const cariOnce = m.veri.cariHareketleri(SERVIS.id).length
+  const i1 = iptalEt(s.talep.id, [2])
+  d.esit(i1?.hata, undefined, 'zincir iptal edildi')
+  const t1 = bul(m, s.talep.id)
+  const g1 = sk.siparisGonderimi(t1)
+  d.esit(JSON.stringify(g1?.iptal), '[2]', 'zincir iptal edilenlerde')
+  d.esit(JSON.stringify(g1?.kalan), '[1]', 'kayış hâlâ bekliyor')
+  d.esit(JSON.stringify(g1?.gonderilen), '[0]', 'rulman gönderilmiş olarak kaldı')
+  d.esit(t1?.status, 'kapandi', 'talebin durumu değişmedi')
+  d.esit(t1?.kalemIptalleri?.[0]?.neden, IPTAL.neden, 'iptal sebebi talepte')
+  d.esit(t1?.kalemIptalleri?.[0]?.personel, PERSONEL, 'iptal eden personel talepte')
+  d.esit(m.veri.cariHareketleri(SERVIS.id).length, cariOnce, 'kalem iptali cariye yazmadı')
+  const net1 = sf.gonderilenTutar(t1.parcaFiyat, [0, 1], 'bakiye')
+  let h = m.veri.siparisHesabi(t1)
+  d.esit(h.toplam, toplam, 'siparişin ilk toplamı değişmedi')
+  d.esit(h.net, net1, 'yeni tutar kalan kalemlerin tutarı')
+  d.esit(h.iptalEdilen, toplam - net1, 'iptal edilen pay toplamla yeni tutarın farkı')
+  d.esit(h.bekleyen, net1 - dusulen0, 'bekleyen yalnız kayışın payı')
+  d.esit(m.veri.bakiyeDurumu(SERVIS.id).ayrilan, ayrilan0 - h.iptalEdilen, 'iptal edilen pay bakiyeden ayrılmaktan çıktı')
+  d.esit(sf.siparisNetTutari(t1), net1, 'Servisim kartının tutarı yeni tutar')
+  d.dogru(Boolean(iptalEt(s.talep.id, [2])?.hata), 'iptal edilmiş kalem yeniden iptal edilemiyor')
+
+  /* 5 · Servise bildirim. */
+  const b1 = bildirimi(s.talep.id)
+  d.dogru(Boolean(b1), 'servise kalem iptali bildirimi gitti')
+  d.esit(b1?.degerler?.tutar, toplam - net1, 'bildirim düşülmeyecek tutarı taşıyor')
+  d.esit(b1?.degerler?.odeme, 'bakiye', 'bildirim ödeme biçimini taşıyor')
+  d.esit(b1?.degerler?.neden, IPTAL.neden, 'bildirim iptal sebebini taşıyor')
+
+  /* 3 · Kayış gönderiliyor: düşülenler yeni tutara eşit. */
+  m.veri.kalanParcalariGonder(bul(m, s.talep.id), [1], PERSONEL)
+  const t2 = bul(m, s.talep.id)
+  d.esit(sk.siparisGonderimi(t2)?.kalan.length, 0, 'bekleyen kalem kalmadı')
+  d.esit(toplamBorc(s.talep.id), net1, 'düşülenlerin toplamı siparişin yeni tutarı')
+  h = m.veri.siparisHesabi(t2)
+  d.esit(h.bekleyen, 0, 'bekleyen yok')
+  d.esit(h.dusulen + h.iptalEdilen, toplam, 'düşülen ile iptal edilen siparişin ilk toplamına eşit')
+  d.dogru(Boolean(iptalEt(s.talep.id, [1])?.hata), 'kalanı olmayan siparişte kalem iptali yok')
+
+  /* 6 · Yeniden açılıp kapanan sipariş iptal edilen kalemi göndermiyor. */
+  m.veri.talepDurumDegistir(t2, 'yeni', PERSONEL, { bildirme: true })
+  const k6 = kapat(t2, [0, 1, 2])
+  d.esit(k6?.kismi, false, 'iptal edilen kalem yeniden kapanışı kısmi yapmıyor')
+  const t3 = bul(m, s.talep.id)
+  d.yanlis((t3?.gonderimler || []).some((g) => g.satirlar?.includes(2)), 'iptal edilen kalem gönderime yazılmadı')
+  d.esit(toplamBorc(s.talep.id), net1, 'yeniden kapanış iptal edilen kalemi düşmedi')
+
+  /* 7 · Faturalı sipariş: iptal yazılıyor, cariye bir şey yok. */
+  const f = siparisVer('fatura')
+  kapat(f.talep, [0])
+  const cariF = m.veri.cariHareketleri(SERVIS.id).length
+  d.esit(iptalEt(f.talep.id, [1, 2])?.hata, undefined, 'faturalı siparişte kalem iptali')
+  d.esit(m.veri.cariHareketleri(SERVIS.id).length, cariF, 'faturalı siparişin kalem iptali cariye yazmadı')
+  d.esit(
+    m.veri.siparisHesabi(bul(m, f.talep.id)).net,
+    sf.gonderilenTutar(f.talep.parcaFiyat, [0], 'fatura'),
+    'faturalı siparişin yeni tutarı gönderilenlerin tutarı',
+  )
+  d.esit(sk.siparisGonderimi(bul(m, f.talep.id))?.kalan.length, 0, 'faturalı siparişte bekleyen kalmadı')
+  d.esit(bildirimi(f.talep.id)?.degerler?.odeme, 'fatura', 'faturalı siparişin bildirimi ödeme biçimini taşıyor')
+
+  /* 8 · Kalemi iptal edilmiş siparişin tamamı iptal: yalnız düşülen geri. */
+  const c = siparisVer('bakiye')
+  kapat(c.talep, [1])
+  iptalEt(c.talep.id, [0])
+  const cDusulen = m.veri.siparisHesabi(bul(m, c.talep.id)).dusulen
+  d.dogru(cDusulen > 0, 'kısmen gönderilen siparişten düşüldü')
+  m.veri.talepIptal(bul(m, c.talep.id), { neden: 'Parçalar iade alındı' }, PERSONEL)
+  const cIade = m.veri
+    .cariHareketleri(SERVIS.id)
+    .filter((x) => x.talepId === c.talep.id && x.tur === 'alacak')
+    .reduce((t, x) => t + x.tutar, 0)
+  d.esit(cIade, cDusulen, 'siparişin tamamı iptal edilince yalnız düşülen geri eklendi')
+  d.esit(m.veri.siparisHesabi(bul(m, c.talep.id)).bekleyen, 0, 'iptal edilen sipariş bakiyeden bir şey ayırmıyor')
+
+  /* 4 · Kapanmamış siparişte kalem iptali yok: siparişin kendisi iptal edilir. */
+  const y = siparisVer('bakiye')
+  d.dogru(Boolean(iptalEt(y.talep.id, [0])?.hata), 'kapanmamış siparişte kalem iptali yok')
+
+  /* Son durum: depoda kalemi iptal edilmiş, bekleyeni de olan bir
+     sipariş dursun — eşleme denetimi yeni alanı ancak böyle görüyor. */
+  const son = siparisVer('bakiye')
+  kapat(son.talep, [0])
+  iptalEt(son.talep.id, [1])
+  const gSon = sk.siparisGonderimi(bul(m, son.talep.id))
+  d.esit(`${gSon?.iptal}|${gSon?.kalan}`, '1|2', 'depoda iptal edilmiş ve bekleyen kalemli sipariş var')
+
+  return d
+}
+
+/* ========================================================== AK-27 */
+
+/* SERİ NUMARASI OLMADAN AÇILAN TALEP (24 Eylül 2026).
+
+   KULLANICININ KARARI: Servisim'in elle kaydında seri yazılmadıysa
+   "Seri Numarası Yok" seçilip model ve tahmini üretim yılı giriliyor;
+   talepte `makine.seriYok`, `makine.tahminiYil` (ElleKayit.jsx).
+   KULLANICININ BULDUĞU HATA (aynı gün): servis kaydı ekranı bu talepte
+   seri numarasını yine soruyordu; servis "yok" demişti.
+
+   Taşıdıkları:
+     1  servis kaydı serisiz talepte seriyi ve modeli eksik saymıyor
+        (lib/servisKaydi.js → eksikAlanlar)
+     2  işareti olmayan, serisi boş talepte seri hâlâ soruluyor
+     3  servis kaydı serisiz gidiyor; model, tahmini yıl ve işaret
+        yerinde kalıyor, seri uydurulmuyor (veri.js → servisKaydiGonder)
+     4  seri sonradan gelirse makine seriyle tamamlanıyor, işaret ve
+        tahmini yıl düşüyor */
+export function AK27(m) {
+  const d = defter('AK-27', 'Seri numarası olmadan açılan talep')
+  depoTemizle()
+  const { urunId } = dunyaKur(m)
+  const sk = m.servisKaydi
+  let sira = 0
+  /* ElleKayit.jsx → kaydet'in "Seri Numarası Yok" dalının yazdığı talep. */
+  const serisiz = () =>
+    talebiYaz(m, {
+      id: m.depo.uid(),
+      no: `SRV26092490${++sira}`,
+      createdAt: Date.now(),
+      status: 'yeni',
+      tur: 'servis',
+      ad: MUSTERI.ad,
+      tel: MUSTERI.tel,
+      telHam: MUSTERI.tel,
+      il: MUSTERI.il,
+      ilce: MUSTERI.ilce,
+      adres: MUSTERI.adres,
+      ulke: 'TR',
+      ihracat: false,
+      aciklama: 'Sınama talebi',
+      makine: { id: m.depo.uid(), productId: urunId, seriYok: true, tahminiYil: 2015 },
+      elle: true,
+      musteriId: null,
+      sahip: 'servis',
+      servis: { id: SERVIS.id, ad: SERVIS.ad, kademe: 'elle', tarih: Date.now() },
+    })
+
+  /* 1 · 2 · Eksik alanlar. */
+  const r = serisiz()
+  const eksik = sk.eksikAlanlar(r)
+  d.yanlis(eksik.includes('seri'), 'serisiz talepte seri eksik sayılmıyor')
+  d.yanlis(eksik.includes('urun'), 'serisiz talepte model eksik sayılmıyor')
+  d.dogru(
+    sk.eksikAlanlar({ ...r, makine: { id: r.makine.id, productId: urunId } }).includes('seri'),
+    'işareti olmayan, serisi boş talepte seri soruluyor',
+  )
+
+  /* 3 · Servis kaydı serisiz gidiyor: ServisKapanisi seri yoksa
+     `makine: null` gönderiyor. */
+  const sonuc = m.veri.servisKaydiGonder(r, bitmisKayit({ makine: null }), SERVIS.ad)
+  d.esit(sonuc?.hata, undefined, 'serisiz talebin servis kaydı kabul edildi')
+  const t = bul(m, r.id)
+  d.esit(t?.makine?.seriYok, true, 'seri yok işareti yerinde')
+  d.esit(t?.makine?.tahminiYil, 2015, 'tahmini yıl yerinde')
+  d.esit(t?.makine?.productId, urunId, 'model yerinde')
+  d.esit(t?.makine?.serial, undefined, 'seri uydurulmadı')
+  d.esit(t?.hakkedis?.durum, 'bekliyor', 'serisiz işte de hak ediş doğdu')
+
+  /* 4 · Seri sonradan gelirse makine tamamlanıyor. */
+  const r2 = serisiz()
+  const SERI_SONRA = 'ORK1270-2024-00555'
+  m.veri.servisKaydiGonder(r2, bitmisKayit({ makine: { serial: SERI_SONRA, productId: urunId } }), SERVIS.ad)
+  const t2 = bul(m, r2.id)
+  d.esit(t2?.makine?.serial, SERI_SONRA, 'sonradan gelen seri talebe yazıldı')
+  d.esit(t2?.makine?.seriYok, undefined, 'seri gelince "seri yok" işareti düştü')
+  d.esit(t2?.makine?.tahminiYil, undefined, 'seri gelince tahmini yıl düştü')
+
+  return d
+}
+
 export const SENARYOLAR = [
   AK01, AK02, AK03, AK04, AK05, AK06, AK07, AK08, AK09, AK10, AK11, AK12, AK13, AK14,
-  AK15, AK16, AK17, AK18, AK19, AK20, AK21, AK22, AK23,
+  AK15, AK16, AK17, AK18, AK19, AK20, AK21, AK22, AK23, AK24, AK25, AK26, AK27,
 ]

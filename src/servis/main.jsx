@@ -27,6 +27,7 @@ import './servis.css'
 import { HataSiniri, hataKaydet } from '../components/HataSiniri'
 import { urunAyarla } from '../lib/urun'
 import { temayiUygula } from '../backoffice/Tema'
+import { temayiIzle } from '../lib/sistemCubuklari'
 import { demoAPKmi } from './demoKimlik'
 import { geriTusunuKur } from './geri'
 
@@ -40,6 +41,8 @@ geriTusunuKur()
 
 /* Kayıtlı görünüm tercihi ilk çizimden ÖNCE uygulanıyor. */
 temayiUygula()
+/* Saat ve pil simgelerinin rengi temayı izliyor (lib/sistemCubuklari.js). */
+temayiIzle()
 
 /* DEMO APK'SI KENDİ VERİSİNİ KURUYOR.
 

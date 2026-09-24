@@ -1,5 +1,7 @@
 import { durumBilgi, servisBildirimleri } from '../backoffice/veri'
 import { load, save } from '../lib/storage'
+import { duyuruGecerliMi } from '../lib/duyuruHedef'
+import { servisDuyuruBaglami } from '../lib/servisAtama'
 import { MARKA, PARA_BIRIMI, paraYaz } from '../marka'
 
 /* ==========================================================================
@@ -31,9 +33,17 @@ const METIN = {
     baslik: `${MARKA} talebin durumunu değiştirdi`,
     metin: `Yeni durum: ${durumBilgi(d.durum).ad}`,
   }),
+  /* İptal edilen bakiye siparişinde düşülmüş tutar bakiyeye döndüyse
+     (24 Eylül 2026, veri.js → siparisIadesiniYaz) rakam metinde. */
   iptal: (d) => ({
     baslik: `${MARKA} talebi iptal etti`,
-    metin: d.neden ? `İptal nedeni: ${d.neden}` : 'Bu işe gitmenize gerek kalmadı.',
+    metin:
+      [
+        d.neden ? `İptal nedeni: ${d.neden}` : !d.iade && 'Bu işe gitmenize gerek kalmadı.',
+        d.iade && `${paraYaz(d.iade)} ${PARA_BIRIMI} bakiyenize geri eklendi.`,
+      ]
+        .filter(Boolean)
+        .join(' · '),
   }),
   kapandi: () => ({
     baslik: `${MARKA} talebi kapattı`,
@@ -42,6 +52,34 @@ const METIN = {
   siparisGonderildi: () => ({
     baslik: 'Parça siparişiniz kargoya verildi',
     metin: 'Kargo takip bilgilerini talepte görebilirsiniz.',
+  }),
+  /* Eksik gönderim (24 Eylül 2026): siparişin bir kısmı gitti, kalanı
+     talepte bekliyor (backoffice/veri.js → talepKapat). */
+  siparisKismenGonderildi: () => ({
+    baslik: 'Parça siparişinizin bir kısmı kargoya verildi',
+    metin: 'Gönderilmeyen parçaları talepte görebilirsiniz; hazır olunca ayrıca gönderilecek.',
+  }),
+  /* Bekleyen parçalar sonradan gönderildi (veri.js →
+     kalanParcalariGonder); hâlâ bekleyen olabilir. */
+  kalanGonderildi: () => ({
+    baslik: 'Siparişinizin kalan parçaları kargoya verildi',
+    metin: 'Hangi parçaların gönderildiğini talepte görebilirsiniz.',
+  }),
+  /* PAKSAN bekleyen parçaların bir kısmını ya da hepsini siparişten
+     çıkardı (veri.js → kalanParcalariIptalEt). Bekleyen parçanın parası
+     henüz düşülmediği için bakiyeye bir şey dönmüyor; düşülmeyeceği
+     söyleniyor. */
+  kalanIptalEdildi: (d) => ({
+    baslik: 'Siparişinizdeki bazı parçalar iptal edildi',
+    metin: [
+      d.neden && `İptal nedeni: ${d.neden}`,
+      d.tutar > 0 &&
+        (d.odeme === 'bakiye'
+          ? `Bu parçaların tutarı (${paraYaz(d.tutar)} ${PARA_BIRIMI}) bakiyenizden düşülmeyecek.`
+          : 'Bu parçalar için sizden ücret alınmayacak.'),
+    ]
+      .filter(Boolean)
+      .join(' · '),
   }),
   planlandi: (d) =>
     d.siparis
@@ -144,4 +182,42 @@ export function okunduSay(kimlikler) {
   if (!kimlikler?.length) return
   const hepsi = [...new Set([...kimlikler, ...load(OKUNAN, [])])].slice(0, 500)
   save(OKUNAN, hepsi)
+}
+
+/* ==========================================================================
+   DUYURULAR (24 Eylül 2026, bildirim geçmişi için buraya taşındı)
+
+   PAKSAN'ın servise yönelik duyuruları ve uyarıları talep bildirimi
+   değil, ayrı bir kayıt: hedeflemeye göre süzülüyor (lib/duyuruHedef.js)
+   ve okunmuşluğu "Anladım" ile ayrı anahtarda tutuluyor. İşlerim onları
+   kendi bölümünde, Bildirimler ekranı hepsini tek listede gösteriyor;
+   iki ekran aynı süzgeci ve aynı anahtarı buradan okuyor.
+   ========================================================================== */
+
+export const GORULEN_DUYURU = 'gorulenDuyurularServis'
+
+/** Servise gösterilen duyurular, yeniden eskiye. */
+export function servisDuyurulari(oturum) {
+  const baglam = servisDuyuruBaglami(oturum)
+  return load('duyurular', [])
+    .filter((d) => duyuruGecerliMi(d, baglam))
+    .sort((a, b) => b.tarih - a.tarih)
+}
+
+export function gorulenDuyurular() {
+  return new Set(load(GORULEN_DUYURU, []))
+}
+
+export function duyuruGorulduSay(kimlikler) {
+  if (!kimlikler?.length) return
+  save(GORULEN_DUYURU, [...new Set([...load(GORULEN_DUYURU, []), ...kimlikler])])
+}
+
+/** Üst çubuktaki sayı: okunmamış bildirimler ve duyurular. */
+export function okunmamisSayisi(oturum) {
+  const gorulen = gorulenDuyurular()
+  return (
+    okunmamislar(oturum?.servisId).length +
+    servisDuyurulari(oturum).filter((d) => !gorulen.has(d.id)).length
+  )
 }

@@ -20,6 +20,24 @@ export function SuzgecCubugu({ children }) {
  * Açılır kutu.
  * @param {Array<{deger: string, ad: string}>} secenekler
  */
+/* Seçenek listesinde başlıklı grup olabilir: `{ grup: 'Ad', secenekler: [...] }`
+   (24 Eylül 2026, Talepler'in durum süzgeci — kısayollar ile durumlar
+   aynı listede ayrım olmadan duruyordu). Boş grup çizilmiyor. */
+function secenekCiz(s) {
+  if (s.grup) {
+    return s.secenekler?.length ? (
+      <optgroup key={s.grup} label={s.grup}>
+        {s.secenekler.map(secenekCiz)}
+      </optgroup>
+    ) : null
+  }
+  return (
+    <option key={s.deger} value={s.deger}>
+      {s.ad}
+    </option>
+  )
+}
+
 export function Secim({ ad, deger, onDegis, secenekler, genislik }) {
   const id = useId()
   return (
@@ -31,11 +49,7 @@ export function Secim({ ad, deger, onDegis, secenekler, genislik }) {
         value={deger}
         onChange={(e) => onDegis(e.target.value)}
       >
-        {secenekler.map((s) => (
-          <option key={s.deger} value={s.deger}>
-            {s.ad}
-          </option>
-        ))}
+        {secenekler.map(secenekCiz)}
       </select>
     </label>
   )

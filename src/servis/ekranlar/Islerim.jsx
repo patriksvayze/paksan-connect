@@ -19,7 +19,7 @@ import {
 import { altBilgi } from '../../data/duyuruTurleri'
 import { makineDurumAdi } from '../../data/talepAlanlari'
 import { useBildirimIzni } from '../haber'
-import { bildirimYazisi, okunduSay, okunmamislar } from '../talepBildirimleri'
+import { bildirimYazisi, GORULEN_DUYURU, okunduSay, okunmamislar } from '../talepBildirimleri'
 import { dokunulmamis, servisGecikti } from '../isDurumu'
 import { MARKA, getProduct, markaEk } from '../../marka'
 /* Boş liste çizimi Higgsfield ile üretildi, uygulamanın kendi görsel
@@ -97,7 +97,7 @@ const BOS = {
   biten: { baslik: 'Tamamlanan işiniz yok', alt: 'Kapanan ve iptal edilen işler burada görünür.' },
 }
 
-export function Isler({ oturum, bekleyen, biten, onAc, onUcretler, sekme: secilen, onSekme }) {
+export function Isler({ oturum, bekleyen, biten, tumTalepler, onAc, onUcretler, sekme: secilen, onSekme }) {
   const [yeniIsler, devamEden] = useMemo(
     () => [bekleyen.filter(dokunulmamis), bekleyen.filter((t) => !dokunulmamis(t))],
     [bekleyen],
@@ -117,9 +117,13 @@ export function Isler({ oturum, bekleyen, biten, onAc, onUcretler, sekme: secile
 
       <ServisDuyurulari oturum={oturum} acil />
 
+      {/* Bildirim servisin kendi parça siparişine de ait olabilir;
+          sipariş İşlerim'in listelerinde yok. Önce yalnız işler
+          veriliyordu ve sipariş bildirimine dokunmak hiçbir şey açmıyordu
+          (24 Eylül 2026). */}
       <PaksanBildirimleri
         oturum={oturum}
-        talepler={[...bekleyen, ...biten]}
+        talepler={tumTalepler || [...bekleyen, ...biten]}
         onAc={onAc}
         onUcretler={onUcretler}
       />
@@ -438,7 +442,7 @@ function PaksanBildirimleri({ oturum, talepler, onAc, onUcretler }) {
                 <span className="talep-haberi__baslik">{y.baslik}</span>
                 {y.metin && <span className="talep-haberi__metin">{y.metin}</span>}
                 <span className="talep-haberi__alt">
-                  {[b.talepNo, t?.ad, gecenSure(b.tarih)].filter(Boolean).join(' · ')}
+                  {[b.talepNo, t?.servisSiparisi ? null : t?.ad, gecenSure(b.tarih)].filter(Boolean).join(' · ')}
                 </span>
               </span>
             </button>
@@ -783,5 +787,6 @@ function ServisDuyurulari({ oturum, acil = false }) {
   )
 }
 
-const GORULEN = 'gorulenDuyurularServis'
+/* Anahtar bildirim geçmişiyle ortak (talepBildirimleri.js). */
+const GORULEN = GORULEN_DUYURU
 

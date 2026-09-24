@@ -142,8 +142,14 @@ export function servisFormuVerisi(talep, servisAd) {
     makineKodu: '',
     makineAdi: urun?.name || '',
     model: '',
-    imalYili: extractYear(seri) ? String(extractYear(seri)) : '',
-    saseNo: seri ? formatSerial(seri) : '',
+    /* Serisiz elle kayıtta (ElleKayit → seriYok) yıl servisin tahmini;
+       formda öyle yazıyor. */
+    imalYili: extractYear(seri)
+      ? String(extractYear(seri))
+      : talep.makine?.seriYok && talep.makine?.tahminiYil
+        ? `${talep.makine.tahminiYil} (tahmini)`
+        : '',
+    saseNo: seri ? formatSerial(seri) : talep.makine?.seriYok ? 'Yok' : '',
     arizaTanimi: k.ariza || talep.aciklama || (talep.belirtiler || []).join(', '),
     arizaSonucu: [k.yapilanIs, k.sonuc].filter(Boolean).join('. '),
     parcalar: temizParcalar(k.parcalar).map((p) => ({

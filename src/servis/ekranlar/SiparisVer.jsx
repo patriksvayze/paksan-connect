@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useGeri } from '../geri'
 import {
+  bakiyeDurumu,
   bakiyeIskontosuGetir,
-  cariBakiye,
   servisinIskontosu,
   servisParcaSiparisi,
 } from '../../backoffice/veri'
@@ -83,10 +83,17 @@ import {
    ve servise özel olabiliyor (veri.js → servisinIskontosu). Kartlarda
    liste fiyatı üstü çizili duruyor; özette liste fiyatıyla toplam,
    indirim oranı ve düşülen tutar ayrı satır. Oran siparişin fiyat
-   görüntüsüne yazılıyor (`iskontoOrani`); servis sepeti hazırlarken
-   PAKSAN oranı değiştirirse veri katmanı siparişi reddediyor, ekran
-   yeni oranı okuyup tutarları yeniliyor. Servis ekranında "iskonto"
+   görüntüsüne yazılıyor (`iskontoOrani`). Servis ekranında "iskonto"
    yazmıyor, "indirim" yazıyor (yasak terim).
+
+   ONAYDA GÖRÜLEN TUTAR GEÇER (24 Eylül 2026, kullanıcının kararı:
+   "sipariş verildiği zamanki tutar üzerinden ücretlendirilmeli").
+   Oranlar ve bakiye onay penceresi açılırken yeniden okunuyor;
+   pencerede görünen tutar kaydedilen tutar. PAKSAN oranı tam o sırada
+   değiştirse de servisin onayladığı geçiyor. Önce veri katmanı eski
+   oranla gelen siparişi reddediyordu. Pencere 30 dakikadan uzun açık
+   kalırsa sipariş kaydedilmiyor, ekran yeni tutarı gösteriyor (bkz.
+   lib/servisFiyat.js → ONAY_TUTAR_SURESI).
 
    ADET KUTUYA YAZILMIYOR, DÜĞMEYLE SAYILIYOR
 
@@ -128,9 +135,9 @@ import {
    servise bu seçeneği açabiliyor. Tutar formülü tek yerde
    (`siparisTutari`); veri katmanı ve sınama aynısını kullanıyor.
 
-   Para bu ekranda işlenmiyor: sipariş henüz onaylanmadı ve tutar
-   bağlayıcı değil. Düşüm, parça kargoya verilip talep kapandığında
-   yapılıyor (bkz. backoffice/veri.js → talepKapat).
+   Para bu ekranda işlenmiyor: sipariş henüz onaylanmadı. Tutar ise
+   bağlayıcı; düşüm, parça kargoya verilip talep kapandığında bu
+   siparişin tutarıyla yapılıyor (bkz. backoffice/veri.js → talepKapat).
 
    SİPARİŞ AYRI BİR DEFTERE DEĞİL, TALEPLER'E DÜŞÜYOR
 
@@ -160,14 +167,17 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
   const [hata, setHata] = useState('')
   const [onay, setOnay] = useState(false)
   const [siparis, setSiparis] = useState(null)
-  /* Oran, veri katmanı "değişti" deyince yeniden okunuyor. */
+  /* Oranlar ve bakiye onay penceresi açılırken ve veri katmanı
+     "değişti" deyince yeniden okunuyor. `fiyatZamani` pencerede
+     görünen tutarların okunduğu an; siparişle gidiyor. */
   const [iskontoSurum, setIskontoSurum] = useState(0)
+  const [fiyatZamani, setFiyatZamani] = useState(null)
   const iskonto = useMemo(() => {
     void iskontoSurum
     return servisinIskontosu(oturum.servisId)
   }, [oturum.servisId, iskontoSurum])
   /* Bakiyeden ödemede ek indirim oranı (kesir, 0 = yok). Aynı sürümle
-     yenileniyor: veri katmanı "oran değişti" deyince ikisi birlikte. */
+     yenileniyor: ikisi birlikte okunuyor. */
   const bakiyeOrani = useMemo(() => {
     void iskontoSurum
     return bakiyeIskontosuGetir()
@@ -199,7 +209,16 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
     [oturum.servisId],
   )
 
-  const bakiye = useMemo(() => cariBakiye(oturum.servisId), [oturum.servisId, adim])
+  /* KULLANILABİLİR BAKİYE (24 Eylül 2026). Bakiyeden ödenen sipariş
+     parça gönderilince düşülüyor; gönderilmeyi bekleyen siparişlerin
+     tutarı bu arada "ayrılmış" sayılıyor. Önce yalnız hesaptaki tutara
+     bakılıyordu ve aynı bakiyeyle birkaç sipariş verilebiliyordu
+     (bkz. veri.js → bakiyeDurumu). */
+  const bakiyeBilgi = useMemo(() => {
+    void iskontoSurum
+    return bakiyeDurumu(oturum.servisId)
+  }, [oturum.servisId, adim, iskontoSurum])
+  const bakiye = bakiyeBilgi.kullanilabilir
 
   /* TESLİM ADRESİ ARTIK ADRESLERİM'DEN SEÇİLİYOR (17 Eylül 2026,
      kullanıcının isteği).
@@ -324,14 +343,18 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
           birimFiyat: k.birimFiyat,
           tutar: k.satirTutari,
         })),
-        /* İndirim o günkü oranıyla: oran sonra değişse de bu siparişin
-           tutarı değişmiyor. Veri katmanı oranı bugünküyle doğruluyor. */
+        /* İndirim, servisin onay penceresinde gördüğü oranla: oran
+           sonra değişse de bu siparişin tutarı değişmiyor. Okunma anı
+           da gidiyor; veri katmanı 30 dakikadan eski tutarı kabul
+           etmiyor (bkz. lib/servisFiyat.js → onayTazeMi). */
         iskontoOrani: iskonto.oran,
+        fiyatZamani,
         listeToplam: hesap.listeToplam,
         iskontoTutari: hesap.iskontoTutari,
         /* Bakiyeden ödemede ek indirim: yalnız uygulandıysa. Oran tutar
-           sıfıra yuvarlansa da yazılıyor — veri katmanı oranı bugünküyle
-           karşılaştırıyor. `araToplam` ve `toplam` ek indirim düşülmüş. */
+           sıfıra yuvarlansa da yazılıyor — siparişin hangi oranla
+           verildiği kayıtta kalsın. `araToplam` ve `toplam` ek indirim
+           düşülmüş. */
         ...(hesap.bakiyeIskontoOrani > 0
           ? {
               bakiyeIskontoOrani: hesap.bakiyeIskontoOrani,
@@ -350,7 +373,9 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
       tutarKdvli: hesap.toplam,
     })
     if (sonuc.hata) {
-      if (sonuc.iskontoDegisti) setIskontoSurum((x) => x + 1)
+      /* Bakiye yetmediyse de yeniden okunuyor: seçenek kapanıyor ve
+         ödeme faturaya dönüyor (bkz. veri.js → bakiyeDurumu). */
+      if (sonuc.iskontoDegisti || sonuc.bakiyeYetmiyor) setIskontoSurum((x) => x + 1)
       return setHata(sonuc.hata)
     }
 
@@ -392,6 +417,7 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
           odeme={gecerliOdeme}
           onOdeme={setOdeme}
           bakiye={bakiye}
+          ayrilan={bakiyeBilgi.ayrilan}
           bakiyeYeter={bakiyeYeter}
           bakiyeOrani={bakiyeOrani}
           hata={hata}
@@ -403,6 +429,10 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
             const teslimHatasi = teslimatHatasi(teslimat)
             if (teslimHatasi) return setHata(teslimHatasi)
             setHata('')
+            /* Pencerede görünen tutar o anın tutarı: oranlar ve bakiye
+               burada yeniden okunuyor, okunma anı siparişle gidiyor. */
+            setIskontoSurum((x) => x + 1)
+            setFiyatZamani(Date.now())
             setOnay(true)
           }}
           onSil={(k) => adetDegistir(k.kod, -k.adet)}
@@ -411,7 +441,7 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
         {onay && (
           <Onay
             baslik={`Sipariş ${markaEk('a')} gidecek`}
-            metin={`${MARKA} yedek parça birimi siparişi görecek ve hazırlayacak. Tutar fiyat listesinden hesaplandı; kesin tutar faturada belirlenir.`}
+            metin={`${MARKA} yedek parça birimi siparişi görecek ve hazırlayacak. Tutar, sipariş anındaki fiyat ve indirimle hesaplanır; sipariş verildikten sonra değişmez.`}
             /* Sipariş onayında listenin kendisi duruyor, sayısı değil.
                "3 tür · 7 adet" satırı neyin sipariş edildiğini
                söylemiyordu; yanlış adet ancak parça geldiğinde fark
@@ -739,6 +769,7 @@ function Ozet({
   odeme,
   onOdeme,
   bakiye,
+  ayrilan = 0,
   bakiyeYeter,
   bakiyeOrani,
   hata,
@@ -834,9 +865,10 @@ function Ozet({
           </div>
           <div className="urun-kart__dip">
             {hesap.eksik
-              ? 'Fiyatı listede olmayan parça var; gösterilen toplam eksik. '
+              ? `Fiyatı listede olmayan parça var; gösterilen toplam bu parçayı içermiyor. Bu parçanın tutarını ${MARKA} bildirecek. `
               : ''}
-            Tutar fiyat listesinden hesaplandı; kesin tutar faturada belirlenir.
+            Tutar, sipariş anındaki fiyat ve indirimle hesaplanır. Sipariş verildikten sonra fiyat ya
+            da indirim değişse de tutar değişmez.
           </div>
         </div>
       </Bolum>
@@ -873,7 +905,9 @@ function Ozet({
               )}
             </span>
             <span className="buyuk-sec__alt">
-              {`Bakiyeniz: ${paraYaz(bakiye)} ${PARA_BIRIMI}`}
+              {ayrilan > 0
+                ? `Kullanılabilir bakiyeniz: ${paraYaz(bakiye)} ${PARA_BIRIMI} · ${paraYaz(ayrilan)} ${PARA_BIRIMI} gönderilmeyi bekleyen siparişlerinize ayrıldı`
+                : `Bakiyeniz: ${paraYaz(bakiye)} ${PARA_BIRIMI}`}
             </span>
           </button>
         </div>

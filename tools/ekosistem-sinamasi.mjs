@@ -74,7 +74,15 @@
      AK-21  "özel ücretler de değişsin" uygulanmazsa           düştü
      AK-21  "değişsin" değişmeyen kalemin özel ücretini silerse düştü
      AK-21  ücreti değişmeyen servise de bildirim giderse      düştü
+     AK-21  servisKaydiGonder onaylanan ücreti yok sayarsa     düştü
+     AK-21  süresi geçmiş onaydaki ücret reddedilmezse         düştü
+     AK-21  o anda geçerli olmamış km ücreti taze onayla geçerse düştü
+     AK-21  o anda geçerli olmamış saat ücreti taze onayla geçerse düştü
      AK-22  servisParcaSiparisi eski oranı reddetmezse         düştü
+     AK-22  servisParcaSiparisi taze onaydaki oranı reddederse düştü
+     AK-22  onayTazeMi 30 dakikadan eski tutarı taze sayarsa   düştü
+     AK-22  o anda geçerli olmamış oran taze onayla geçerse    düştü
+     AK-22  ücret geçmişi (icerikAlaniYaz) hiç tutulmazsa      düştü
      AK-22  iskontoCoz servise özel oranı görmezse             düştü
      AK-22  genel oran "özel oranlar da değişsin"i uygulamazsa düştü
      AK-23  siparisTutari KDV'yi iskontosuz tutardan alırsa    düştü
@@ -83,6 +91,39 @@
      AK-23  ek iskonto bildirimi yalnız ilk servise giderse    düştü
      AK-23  talepKapat ek iskontoyu cariden yeniden düşerse    düştü
      AK-23  genelIskontoyuKaydet ek iskontoyu silerse          düştü
+     AK-23  faturalı sipariş taze onayla ek iskonto taşırsa    düştü
+     AK-23  talepKapat yeniden kapanan siparişi yine düşerse   düştü
+     AK-23  tek borç talep kimliğine değil numarasına bakarsa  düştü
+     AK-23  o anda geçerli olmamış ek oran taze onayla geçerse düştü
+     AK-23  bakiye siparişinde taze onaydaki ek oran reddedilirse düştü
+     AK-24  siparisBorcunuYaz önce yazılanı düşmezse           düştü
+     AK-24  talepKapat seçimi yok sayıp hepsini gönderirse     düştü
+     AK-24  işaretsiz kapanış reddedilmezse                    düştü
+     AK-24  gonderilenTutar hep siparişin toplamını verirse    düştü
+     AK-24  gonderilenTutar ek iskontoyu atlarsa               düştü
+     AK-24  kalanParcalariGonder borç yazmazsa                 düştü
+     AK-24  kısmi gönderimde tam gönderim bildirimi giderse    düştü
+     AK-24  kalanParcalariGonder gönderilmiş satırı kabul ederse düştü
+     AK-24  siparisGonderimi gönderim listesine bakmazsa       düştü
+     AK-25  siparisToplami önce KDV hariç tutarı okursa        düştü
+     AK-25  talepIptal iade yazmazsa                           düştü
+     AK-25  durum düğmesiyle iptal iade yazmazsa               düştü
+     AK-25  siparisHesabi iadeyi saymazsa                      düştü
+     AK-25  bakiyeDurumu bekleyen siparişi ayırmazsa           düştü
+     AK-25  servisParcaSiparisi bakiyeye bakmazsa              düştü
+     AK-25  servis işleme alınan siparişi iptal edebilirse     düştü
+     AK-25  servis iptali depodan değil ekranın kopyasından okursa düştü
+     AK-25  borç gönderim numarası taşımazsa                   düştü
+     AK-25  iptal bildirimi iade tutarını taşımazsa            düştü
+     AK-25  siparisBorcunuYaz iadeyi hesaba katmazsa           düştü
+     AK-26  siparisGonderimi iptal edileni kalandan çıkarmazsa düştü
+     AK-26  siparisHesabi bekleyeni toplamdan hesaplarsa       düştü
+     AK-26  yeniden kapanış iptal edilen kalemi gönderirse     düştü
+     AK-26  siparisNetTutari iptali saymazsa                   düştü
+     AK-26  kalem iptali bildirimi tutarı taşımazsa            düştü
+     AK-26  kalem iptali sebepsiz geçerse                      düştü
+     AK-27  eksikAlanlar seri yok işaretine bakmazsa           düştü
+     AK-27  seri gelince işaret ve tahmini yıl düşmezse        düştü
      ---    ortam.mjs'te depo taklidi kaldırılırsa    0. ADIM DURDURUR
 
    Son satır en önemlisi: src/lib/storage.js her hatayı yutup

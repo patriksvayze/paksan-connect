@@ -146,8 +146,15 @@
   --sh-blue: 0 6px 18px rgba(24, 72, 168, 0.3);
   --sh-orange: 0 6px 18px rgba(199, 73, 10, 0.28);
 
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  /* ÇENTİK VE SİSTEM ÇUBUKLARI (24 Eylül 2026, Capacitor 8). Android 15
+     ve sonrasında uygulama ekranın tamamına çiziliyor (edge-to-edge,
+     Play'in hedef API 36 şartı). Pay önce Capacitor'ın verdiği
+     değişkenden okunuyor: 140'tan eski Android WebView `env()` ile doğru
+     değer vermiyor, Capacitor onu `--safe-area-inset-*` olarak
+     yazıyor (SystemBars, insetsHandling "css"). Yoksa tarayıcının kendi
+     değeri; tarayıcıda ikisi de 0. */
+  --safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
   --nav-h: 74px;
   --nav-gap: 12px;
 

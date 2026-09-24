@@ -171,6 +171,13 @@ export const ALANLAR = {
   'requests[].makine.id': sutun('talep.Talep.MakineKimlik'),
   'requests[].makine.productId': turer('makine.Makine.UrunKodu', 'talep.Talep.MakineKimlik üzerinden'),
   'requests[].makine.serial': turer('makine.Makine.SeriNo', 'talep.Talep.MakineKimlik üzerinden'),
+  /* 24.09.2026: Servisim elle kaydında seri numarası yoksa model ve
+     tahmini yıl (ElleKayit.jsx). AK-27 ekranın yazdığı talebi kuruyor. */
+  'requests[].makine.seriYok': yok('seri numarası olmadan açılan talep; makine satırı yok, işaret için sütun yok', `${EKLER} §10`),
+  'requests[].makine.tahminiYil': yok('servisin tahmini üretim yılı; talepte sütunu yok', `${EKLER} §10`),
+  /* Servisim'in elle açtığı talep (AK-27'den beri bir senaryo yazıyor). */
+  'requests[].elle': turer('talep.Talep.KaynakKodu', 'KaynakKodu servisElle'),
+  'requests[].servis.kademe': turer('talep.Talep.KaynakKodu', 'kademe elle = servis talebi kendisi açtı, KaynakKodu servisElle'),
 
   'requests[].servis.id': sutun('talep.Talep.ServisKimlik'),
   'requests[].servis.tarih': sutun('talep.Talep.ServisAtamaZamani'),
@@ -200,6 +207,10 @@ export const ALANLAR = {
   'requests[].cozum.garantiDisi': turer('talep.ServisZiyareti.KapiKodu', 'ziyaretin kapısı "garanti" değilse garanti dışı'),
 
   'requests[].servisKaydi.ariza': sutun('talep.ServisZiyareti.ArizaMetni'),
+  /* Servisin kayıtta yazdığı makine (seri talepte yoksa); veri katmanı talebin
+     makinesine işliyor (veri.js → servisKaydiGonder, AK-27). */
+  'requests[].servisKaydi.makine.serial': turer('makine.Makine.SeriNo', 'talebin makinesine işlenir (talep.Talep.MakineKimlik); ziyaret ayrıca tutmaz'),
+  'requests[].servisKaydi.makine.productId': turer('makine.Makine.UrunKodu', 'talep.Talep.MakineKimlik üzerinden'),
   'requests[].servisKaydi.yapilanIs': sutun('talep.ServisZiyareti.YapilanIsKodu'),
   'requests[].servisKaydi.asama': sutun('talep.ServisZiyareti.AsamaKodu'),
   'requests[].servisKaydi.kapi': sutun('talep.ServisZiyareti.KapiKodu'),
@@ -214,6 +225,8 @@ export const ALANLAR = {
      değişiyor, servise ve ürüne göre farklı olabiliyor. Veritabanında
      hak edişin yol kalemi aynı şeyi zaten tutuyor. */
   'requests[].servisKaydi.kmUcreti': turer('hakedis.HakEdisKalemi.BirimTutar', 'kalem türü yol; ziyaretin tamamlandığı gün servis ve ürün için geçerli hakedis.Tarife satırından (servis/ürün boyutu VT-TASARIM-EKLERI §5)'),
+  /* 24.09.2026: servisin onay penceresinde gördüğü ücret geçiyor (AK-21). */
+  'requests[].servisKaydi.ucretZamani': yok('istemcinin ücreti okuduğu an; sunucu istemcinin saatine ve ücretine güvenmez, yerini onay penceresi açılırken verdiği süreli fiyat teklifi alır', `${EKLER} §9`),
   'requests[].servisKaydi.tarih': sutun('talep.ServisZiyareti.TamamlanmaZamani'),
   'requests[].servisKaydi.servisAd': turer('servis.Servis.Ad', 'talep.ServisZiyareti.ServisKimlik üzerinden'),
   'requests[].servisKaydi.parcalar[].kod': sutun('talep.ZiyaretParcaSatiri.ParcaKodu'),
@@ -272,14 +285,31 @@ export const ALANLAR = {
   'requests[].parcaFiyat.satirlar[].listeFiyati': turer('katalog.FiyatListesiSatiri.BirimFiyat', 'siparişin FiyatListesiKodu + satırın ParcaKodu'),
   'requests[].parcaFiyat.iskontoOrani': sutun('talep.ParcaTalebiAyrinti.IskontoOrani'),
   'requests[].parcaFiyat.listeToplam': turer('katalog.FiyatListesiSatiri.BirimFiyat', 'satırların liste fiyatı × ParcaSatiri.Adet toplamı'),
-  'requests[].parcaFiyat.iskontoTutari': turer('talep.ParcaTalebiAyrinti.AraToplam', 'liste fiyatıyla toplam − AraToplam'),
+  /* 24.09.2026 düzeltme: bakiyeden ödenen siparişte AraToplam ek
+     iskontosu da düşülmüş tutar; servis iskontosu ondan önceki ara
+     toplamdan çıkıyor. Yoksa servis iskontosu satırı ek iskontoyu da
+     içerir, §8 sütunları onu ikinci kez sayardı. */
+  'requests[].parcaFiyat.iskontoTutari': turer('talep.ParcaTalebiAyrinti.AraToplam', 'liste fiyatıyla toplam − (AraToplam + BakiyeIskontoTutari); faturalı siparişte BakiyeIskontoTutari 0'),
   /* 24.09.2026: bakiyeden ödemede ek iskonto (AK-23). Yalnız bakiyeden
      ödenen ve o gün oranı açık siparişte var; AraToplam ve GenelToplam
      ek iskontolu. */
   'requests[].parcaFiyat.bakiyeIskontoOrani': yok('talep.ParcaTalebiAyrinti ek iskonto oranını tutmuyor (BakiyeIskontoOrani sütunu gerekiyor)', `${EKLER} §8`),
   'requests[].parcaFiyat.bakiyeIskontoTutari': yok('talep.ParcaTalebiAyrinti ek iskonto tutarını tutmuyor (BakiyeIskontoTutari sütunu gerekiyor)', `${EKLER} §8`),
+  /* 24.09.2026: servisin onay penceresinde gördüğü tutar bağlayıcı
+     (AK-22, AK-23). Ekranın tutarı okuduğu an; veri katmanı 30 dakikadan
+     eskisini kabul etmiyor. */
+  'requests[].parcaFiyat.fiyatZamani': yok('istemcinin tutarı okuduğu an; sunucu istemcinin saatine ve oranına güvenmez, yerini onay penceresi açılırken verdiği süreli fiyat teklifi alır (FiyatTeklifKimlik)', `${EKLER} §9`),
   /* 22.09.2026: talebin açıldığı günkü görselin dosya adı (AK-19). */
   'requests[].parcaFiyat.satirlar[].gorsel': yok('talep.ParcaSatiri görselin dosya adını tutmuyor (GorselDosyasi sütunu gerekiyor)', `${EKLER} §4`),
+  /* 24.09.2026: eksik gönderilen servis siparişi (AK-24). Her gönderim
+     bir sevk; hangi satırın hangi sevkte gittiği henüz tutulmuyor. */
+  'requests[].gonderimler[].tarih': sutun('talep.ParcaSevki.SevkZamani', 'servis siparişinin her gönderimi bir sevk satırı (ZiyaretKimlik boş)'),
+  'requests[].gonderimler[].no': turer('talep.ParcaSevki.SevkZamani', 'talebin sevklerinin zamana göre sırası'),
+  'requests[].gonderimler[].personel': sutun('talep.ParcaSevki.YapanAdi'),
+  /* 24.09.2026: kalan parçaların iptali (AK-26). Gönderilmemiş sipariş
+     satırı siparişten çıkıyor; satır silinmiyor, iptali ayrı tutuluyor. */
+  'requests[].kalemIptalleri[].*': yok('siparişten iptal edilen satır için tablo yok (talep.ParcaSatiriIptali: ParcaSatiriKimlik, Neden, Aciklama, YapanAdi, OlusmaZamani gerekiyor)', `${EKLER} §9`),
+  'requests[].gonderimler[].satirlar[]': yok('hangi sipariş satırının hangi sevkte gittiği tutulmuyor (talep.ParcaSevkiSatiri: SevkKimlik, ParcaSatiriKimlik, Adet gerekiyor)', `${EKLER} §9`),
   'requests[].tutar': sutun('talep.ParcaTalebiAyrinti.AraToplam'),
   'requests[].tutarKdvli': sutun('talep.ParcaTalebiAyrinti.GenelToplam'),
   'requests[].odeme': sutun('talep.ParcaTalebiAyrinti.OdemeYontemiKodu'),
@@ -446,6 +476,11 @@ export const ALANLAR = {
   'cariHareket[].personel': sutun('hakedis.ServisHesapHareketi.YapanAdi'),
   'cariHareket[].servisAd': turer('servis.Servis.Ad', 'ServisKimlik üzerinden'),
   'cariHareket[].talepNo': turer('talep.Talep.Numara', 'HakEdisKimlik ya da ParcaTalepKimlik üzerinden'),
+  /* 24.09.2026: parça siparişi borcu talebin kimliğini de taşıyor; talep
+     başına tek borç ona bakıyor (numara tekil değil). */
+  'cariHareket[].talepId': sutun('hakedis.ServisHesapHareketi.ParcaTalepKimlik', 'parça siparişi borcunda; talep başına tek etkin borç (UX_…_ParcaSiparisiBorcu). İptal edilen siparişin iadesi (alacak) da aynı kimliği taşıyor'),
+  /* 24.09.2026: eksik gönderimde borç hangi sevkin karşılığı (AK-25). */
+  'cariHareket[].gonderimNo': yok('borcun hangi sevkin karşılığı olduğu; hareket satırında sevk kimliği yok (ParcaSevkKimlik gerekiyor)', `${EKLER} §9`),
 
   // ------------------------------------------------------ İşlem kaydı
   'islemKaydi[].id': sutun('denetim.IslemKaydi.Kimlik'),
@@ -467,6 +502,12 @@ export const ALANLAR = {
   /* Hizmet ücreti (23 Eylül 2026, lib/servisTarifesi.js). Genel satır
      bugünkü tabloya oturuyor; makineye göre ve servise özel satır için
      hakedis.Tarife'de ürün ve servis sütunu yok (VT-TASARIM-EKLERI §5). */
+  /* 24.09.2026: ücretin kısa geçmişi — onayda görülen oran ya da ücret,
+     okunduğu anda gerçekten geçerli miydi (VT-TASARIM-EKLERI §9). */
+  'panelIcerik.ucretGecmisi.parcaIskontosu[].deger': yok('sunucuda katalog.Marka ve servis.ParcaIskontosu sistem sürümlü; o anın oranı FOR SYSTEM_TIME AS OF ile okunur, ayrı geçmiş tutulmaz', `${EKLER} §9`),
+  'panelIcerik.ucretGecmisi.parcaIskontosu[].bitis': yok('sistem sürümlü tablonun satır bitiş zamanı (GecerlilikBitis)', `${EKLER} §9`),
+  'panelIcerik.ucretGecmisi.hizmetTarifesi[].deger': yok('sunucuda hakedis.Tarife satırlarının geçerlilik aralığı ve gecmis.hakedis_Tarife o anın ücretini verir', `${EKLER} §9`),
+  'panelIcerik.ucretGecmisi.hizmetTarifesi[].bitis': yok('tarife satırının kapanış anı (sistem sürümü)', `${EKLER} §9`),
   'panelIcerik.hizmetTarifesi.genel.yolKm': sutun('hakedis.Tarife.BirimTutar', 'KalemTuruKodu yol, BirimKodu km; MarkaKodu boş açık satır'),
   'panelIcerik.hizmetTarifesi.genel.iscilikSaat': sutun('hakedis.Tarife.BirimTutar', 'KalemTuruKodu iscilik, BirimKodu saat; MarkaKodu boş açık satır'),
   'panelIcerik.hizmetTarifesi.genel.guncelleme.tarih': turer('hakedis.Tarife.GecerlilikBaslangicTarihi', 'açık satırın başlangıcı; değişiklik anı gecmis.hakedis_Tarife'),
@@ -529,6 +570,7 @@ export const ISLEVLER = {
   sifreTalepleriGetir: 'okuma', sifreTalebiOlustur: 'yazma', sifreJetonuGecerli: 'okuma',
   sifreJetonuKullan: 'yazma',
   durumBilgi: 'hesap', talepDurumlari: 'hesap', elleSecilebilirDurumlar: 'hesap',
+  gorunenDurum: 'hesap', gecmisDurumu: 'hesap',
   talepleriGetir: 'okuma', talepDurumDegistir: 'yazma', talebiBayiyeAta: 'yazma',
   durumGecisiEngeli: { tur: 'hesap', not: 'fiyat teklifinin durum kapıları; sunucu aynı kuralı uygulamalı' },
   serviseBildir: 'yazma', servisBildirimleri: 'okuma',
@@ -567,6 +609,8 @@ export const ISLEVLER = {
   servisinTalepleri: 'okuma', destekTalepEt: 'yazma', servisKaydiGonder: 'yazma',
   hakkedisDuzelt: 'yazma', hakkedisOnayla: 'yazma', hakkedisReddet: 'yazma',
   servisParcasiGonderildi: 'yazma', servisParcaSiparisi: 'yazma', servisinSiparisleri: 'okuma',
+  kalanParcalariGonder: 'yazma', kalanParcalariIptalEt: 'yazma',
+  siparisHesabi: 'okuma', bakiyeDurumu: 'okuma', servisSiparisiniIptalEt: 'yazma',
   cariHareketleri: 'okuma',
   cariHareketEkle: { tur: 'yazma', not: 'bugün yalnız alacak (hak ediş) ve borç (parça siparişi) yazıyor; ödeme yazan bir yol yok, veritabanında YonKodu ile hazır' },
   cariBakiye: 'okuma',

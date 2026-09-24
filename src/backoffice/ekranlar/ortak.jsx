@@ -1,7 +1,7 @@
 /* Backoffice ekranlarının paylaştığı küçük parçalar. */
 
 import { useCallback, useState } from 'react'
-import { durumBilgi } from '../veri'
+import { durumBilgi, gorunenDurum } from '../veri'
 
 export function tarihYaz(zaman, saatli = true) {
   if (!zaman) return '—'
@@ -45,22 +45,21 @@ export function gecenSure(zaman) {
 
 /* PARÇA YOLDA — durum değil, durumun alt hâli (10 Eylül 2026).
 
-   Parça gönderildikten sonra talep "Parça Bekleniyor" durumunda kalıyor:
-   iş, servis parçayı takıp kaydı tamamlayana kadar açık. Ama rozet aynı
+   Parça gönderildikten sonra talep `parcaBekliyor` durumunda kalıyor:
+   iş, servis parçayı takıp kaydı tamamlayana kadar açık. Rozet aynı
    kalınca personel "Parçayı Gönderdim" dediği hâlde talebin
-   güncellenmediğini sanıyordu (kullanıcı). Gönderim kaydı varsa rozet
-   ve durum yazısı "Parça Yolda" diyor; durum listesi ve süzgeç
-   değişmiyor. */
+   güncellenmediğini sanıyordu (kullanıcı).
+
+   24 Eylül 2026'dan beri süzgeç de bu ayrımı yapıyor ve ad tek yerden
+   geliyor: veri.js → gorunenDurum ("Parça Hazırlanıyor" / "Parça
+   Yolda"). Önce süzgeç ayırmıyordu; "Parça Bekleniyor" seçilince iki
+   ayrı rozet listeleniyordu. */
 export function durumYazisi(talep) {
-  if (talep?.status === 'parcaBekliyor' && talep?.parcaSevk) return 'Parça Yolda'
-  return durumBilgi(talep?.status || 'yeni').ad
+  return gorunenDurum(talep).ad
 }
 
 export function DurumRozet({ durum, talep }) {
-  if (talep?.status === 'parcaBekliyor' && talep?.parcaSevk) {
-    return <span className="rz rz--mavi">Parça Yolda</span>
-  }
-  const d = durumBilgi(durum || 'yeni')
+  const d = talep ? gorunenDurum(talep) : durumBilgi(durum || 'yeni')
   return <span className={'rz rz--' + d.ton}>{d.ad}</span>
 }
 

@@ -29,6 +29,21 @@ gibi).
 İki kaynağı birleştirirken çakışma olursa **kendi ölçümün üstün**:
 skill kodu okuyor, sen çalışan sayfayı ölçüyorsun.
 
+## Tarayıcı verisine dokunursan geri koy
+
+Tarayıcı paneli kullanıcıyla ORTAK: kullanıcı aynı `localhost:3000`
+verisine bakıyor. 24 Eylül 2026'da bir denetim turu ekranı görmek için
+sipariş verip kapattı ve "QA denetimi · bakiye takviyesi" adlı sahte bir
++20.000 TL alacak yazıp `demo: true` diye işaretledi; kullanıcı Hak
+Ediş'te bu kayıtları gerçek sandı ve hesaplara güvenini sorguladı.
+Kural:
+
+- Bir ekranı görmek için veri yazman gerekiyorsa ÖNCE bütün
+  `localStorage`'ı `sessionStorage`'a yedekle, iş bitince aynen geri koy
+  ve yedeği sil.
+- Sahte kaydı `demo: true` diye işaretleme; demo verisinin yerini tutmaz.
+- Geri koyamadığın bir şey kaldıysa raporda adıyla söyle.
+
 ## Yanlış pozitiflerden kaçın
 
 - Tam-kanama (full-bleed) görseller/arka planlar kasıtlı olarak slayt/ekran sınırına taşar — bunu hata sayma.

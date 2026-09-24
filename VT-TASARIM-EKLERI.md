@@ -210,10 +210,18 @@ ayarlanabilse iyi olur". Uygulama: `src/lib/servisTarifesi.js` (hesap),
   yapılmış anlaşma, genel tarifedeki ürün satırı o serviste geçmez
   (gerekçesi `servisTarifesi.js` başında). Uygulamadaki `tarifeCoz`
   aynı sırayı uyguluyor; sınaması AK-21 5. ve 6. adım.
-- **Ziyaret km ücretini de taşımalı mı?** Uygulama kayda `kmUcreti` ve
-  `saatUcreti` yazıyor (tarife değişince eski hak ediş değişmesin).
-  Veritabanında aynı iş tarifenin tarih aralığı ve
-  `HakEdisKalemi.BirimTutar` ile görülüyor; ayrı sütun gerekmez.
+- **Ziyaret ücretini kendisi taşımalı (24 Eylül 2026'da değişti).**
+  Uygulama kayda `kmUcreti` ve `saatUcreti` yazıyor ve bu ücret artık
+  servisin onay penceresinde GÖRDÜĞÜ ücret (§9): PAKSAN ücreti o sırada
+  değiştirdiyse o günün tarife satırıyla tutmayabilir. Önceki karar
+  ("tarifenin tarih aralığı yeter, ayrı sütun gerekmez") bu yüzden
+  geçerli değil. `HakEdisHesapla` bugün tarifeyi ziyaretin tamamlandığı
+  TAKVİM GÜNÜNE göre yeniden seçiyor (R05) ve her PAKSAN düzeltmesinde
+  yeniden çalışıyor; aynı gün eklenen bir tarife satırı gönderilmiş
+  kaydı yeniden fiyatlar. Gereken: ücret kayıt anında §9'daki tekliften
+  alınıp `HakEdisKalemi.BirimTutar`'a (ve `TarifeKimlik`'e) yazılır;
+  düzeltme süreyi ve km'yi değiştirir, BİRİM TUTARI o satırdan yeniden
+  kullanır, tarifeye yeniden bakmaz.
 - **"Özel ücretler de değişsin"** (genel ücret değişirken): değişen
   kalemin açık servis satırlarına bitiş tarihi yazılır; yeni satır
   açılmaz. Değişmeyen kalemin servis satırına dokunulmaz.
@@ -242,10 +250,11 @@ sınaması AK-22.
   GecerlilikBitisTarihi IS NULL`. Siparişin oranı çözülürken önce bu
   tablo, yoksa markanın oranı.
 - **Siparişin oranı zaten saklanıyor:** `talep.ParcaTalebiAyrinti.IskontoOrani`
-  (uygulamada `parcaFiyat.iskontoOrani`). API siparişi kaydederken
-  istemcinin gönderdiği oranı bugünkü oranla karşılaştırmalı; tutmuyorsa
-  reddetmeli (uygulama `iskontoDegisti` diye dönüyor, ekran yeni oranı
-  okuyup tutarları yeniliyor).
+  (uygulamada `parcaFiyat.iskontoOrani`). Bu oran servisin onay
+  penceresinde gördüğü oran; bugünkü oranla tutmayabilir (§9). Önceki
+  kural ("bugünkü oranla tutmuyorsa reddet") 24 Eylül 2026'da
+  kullanıcının kararıyla kaldırıldı. API oranı istemciden değil, §9'daki
+  tekliften alır.
 - **Sınır:** oran en çok %90 (`ISKONTO_EN_COK`). Bugünkü CK 0..1'e izin
   veriyor; %100 iskonto bedava parça demek ve o iş garanti kaydından
   yürüyor.
@@ -313,14 +322,161 @@ Tek oran, bütün servislere; servise özel katmanı yok. Oran 0 ise kapalı
   ise `OdemeYontemiKodu` bakiye olmalı (CK). `AraToplam` ve
   `GenelToplam` ek iskontolu değerler; `CK_…_Toplam` (GenelToplam =
   AraToplam + KdvTutari) olduğu gibi geçerli.
-- **API oranı doğrulamalı — §6'daki kuralın aynısı:** siparişi
-  kaydederken bakiyeden ödenen siparişin taşıdığı oran bugünkü oranla
-  aynı olmalı (taşımıyorsa 0 sayılır); faturayla ödenen sipariş ek
-  iskonto taşıyamaz. Tutmuyorsa reddedilir (uygulama `iskontoDegisti`
-  diye dönüyor, Servisim oranı yeniden okuyup tutarları yeniliyor).
+- **Oran tekliften gelir — §6'daki kuralın aynısı:** bakiyeden ödenen
+  siparişin ek oranı servisin onay penceresinde gördüğü oran (§9); bugünkü
+  oranla karşılaştırılmaz. Faturayla ödenen sipariş ek iskonto
+  TAŞIYAMAZ — bu tazelik değil kuralın kendisi; uygulama
+  `faturayaEkIndirim` diye reddediyor.
 - **Cari düşüm:** parça gönderilip talep kapanınca borç olarak
   `GenelToplam` (ek iskontolu, KDV dâhil) yazılır; ek iskonto ayrıca
   düşülmez.
 - **Bildirim:** oran değişince BÜTÜN servislere `bildirim.Bildirim`,
   `TurKodu = N'hesap'`, `MetinAnahtari = N'bakiyeIskonto'`, değerler eski
   ve yeni yüzde. Aynı oran yeniden kaydedilirse bildirim gitmez.
+
+## 9. Onayda görülen tutar bağlayıcı: süreli fiyat teklifi (24 Eylül 2026)
+
+Kullanıcının kararı: "sipariş verildiği zamanki tutar üzerinden
+ücretlendirilmeli müşteri veya servis." Servis parça siparişinde ve
+servis kaydında (hak ediş) servisin onay penceresinde gördüğü tutar
+geçer; PAKSAN oranı ya da ücreti tam o sırada değiştirse de. Uygulama:
+`src/lib/servisFiyat.js` → `ONAY_TUTAR_SURESI` (30 dakika),
+`onayTazeMi`; `backoffice/veri.js` → `servisParcaSiparisi`,
+`servisKaydiGonder`; Servisim tutarı onay penceresi açılırken yeniden
+okuyor (`SiparisVer.jsx`, `ServisKapanisi.jsx`); sınaması AK-21 11.
+adım, AK-22 3. adım, AK-23 5., 6., 8. adım.
+
+Uygulamada istemci tutarı ve okuma anını (`parcaFiyat.fiyatZamani`,
+`servisKaydi.ucretZamani`) kendisi gönderiyor. Veri katmanı bugünküyle
+tutmayan değeri iki şartla kabul ediyor: okuma anı 30 dakikadan yeni ve
+değer O ANDA gerçekten geçerliydi. İkincisi için oranın ve ücretin
+önceki hâlleri, bittikleri anla birlikte son 30 dakika tutuluyor
+(`panelIcerik.ucretGecmisi`, bkz. `veri.js → icerikAlaniYaz`,
+`okunduguAnkiIcerik`); yoksa taze okuma anı taşıyan her rakam geçerdi.
+Veritabanında bu geçmişe gerek yok: `katalog.Marka` ve önerilen
+`servis.ParcaIskontosu` sistem sürümlü, `hakedis.Tarife` geçerlilik
+aralıklı; o anın değeri oradan okunur. Bu kontrol yalnız demo için
+yeterli: veri katmanı bugün servisin telefonunda çalışıyor. Sunucuda
+istemcinin saatine, oranına ve toplamına güvenilmez:
+
+- **Teklif tablosu:** `talep.FiyatTeklifi` (`Kimlik`, `ServisKimlik`,
+  `TurKodu` — parça siparişi / servis kaydı, `DegerlerJson` — servis
+  iskonto oranı, ek oran, fiyat listesi kodu ya da km ve saat ücreti ve
+  hangi tarife satırından geldikleri, `VerilmeZamani`,
+  `SonGecerlilikZamani` = verilme + 30 dakika, `KullanilmaZamani NULL`).
+  Servisim onay penceresini açarken teklifi ister ve penceredeki tutarı
+  onunla hesaplar.
+- **Gönderim teklif kimliğiyle:** API teklifi okur; servis aynı mı,
+  süresi geçmemiş mi, kullanılmamış mı bakar. Tutarı KENDİSİ hesaplar:
+  fiyat listesinin satırları × teklifin oranları, KDV; istemcinin
+  gönderdiği toplamlara bakmaz. Teklif kullanıldı diye işaretlenir; aynı
+  teklifle ikinci gönderim ikinci kayıt açmaz (çift dokunuş).
+- **Kayıtta:** `talep.ParcaTalebiAyrinti.FiyatTeklifKimlik` ve
+  `talep.ServisZiyareti.FiyatTeklifKimlik` (NULL; teklifsiz eski
+  kayıtlar için). Uygulamanın `fiyatZamani` / `ucretZamani` alanlarının
+  karşılığı bu kimlik (eşlemede `yok`).
+- **Süresi geçen teklif:** gönderim reddedilir; Servisim yeni teklif
+  alıp güncel tutarı gösterir ve yeniden onay ister (uygulamadaki
+  `iskontoDegisti`, `ucretDegisti`).
+
+Aynı günün bulguları (karar bekleyenler; uygulamada değişmedi):
+
+- **Müşteri parça talebinde son tutar.** tasarim.md 1.7.4 PAKSAN'ın
+  sipariş sonrası "KDV dahil son tutarı" yazmasını (`OdenecekTutar`) ve
+  müşterinin onu ödemesini öngörüyor. Uygulamada müşteri dekontu
+  talepten ÖNCE yüklüyor ve backoffice onu siparişin tutarıyla
+  karşılaştırıyor; kullanıcının kararı da gördüğü tutarın geçmesi.
+  `OdenecekTutar` yalnız kargo ve gönderilemeyen satırlar için
+  değişebilmeli: gönderilen satırların sipariş anındaki fiyatları + KDV
+  + `KargoTutari`. Kargonun kimden alındığı da açık (Connect
+  "kargo teslimde kuryeye ödenir" diyor).
+- **Kısmi gönderim — KARARLANDI ve uygulandı (24 Eylül 2026,
+  kullanıcının kararı: "kapanışta gönderilen parçalar işaretlensin").**
+  Kapanışta personel gönderilen satırları işaretliyor; bakiyeden ödenen
+  siparişte yalnız onların tutarı düşülüyor, kalanı "Kalan Parçaları
+  Gönder" ile gittiği gün (sınaması AK-24). Uygulama deftere her
+  gönderimde FARK yazıyor: gönderilenlerin toplamı eksi önce düşülen.
+  Veritabanında talep başına TEK etkin borç var
+  (`UX_…_ParcaSiparisiBorcu`, V0012): ikinci gönderimde önceki borç
+  geri alınıp (`GeriAlinmaZamani`) toplam yeniden yazılmalı ya da indeks
+  sevk kimliğiyle genişletilmeli — sunucu aşamasında seçilecek. Her
+  gönderim bir `talep.ParcaSevki` satırı (`ZiyaretKimlik` boş); hangi
+  sipariş satırının hangi sevkte gittiği için `talep.ParcaSevkiSatiri`
+  (`SevkKimlik`, `ParcaSatiriKimlik`, `Adet`) gerekiyor.
+- **Kapanmış bakiye siparişinin iptali — KARARLANDI ve uygulandı (24
+  Eylül 2026, kullanıcının kararı: "İptal edilen taleplerde bakiyeden
+  düşüldüyse düşülen tutar bakiyeye geri eklenmeli").** Uygulama iptalde
+  siparişe düşülmüş NET tutarı tek bir alacak hareketiyle geri yazıyor;
+  hareket talebin kimliğini taşıyor (`veri.js → siparisIadesiniYaz`,
+  sınaması AK-25). Veritabanında karşılığı: siparişin etkin
+  `parcaSiparisiBorcu` satırları geri alınır (`GeriAlinmaZamani`) ya da
+  her birine `duzeltmeAlacak` yazılır (`DuzeltilenHareketKimlik`) —
+  uygulamanın tek alacak satırı, kısmi gönderimde iki borcun toplamı
+  olabildiği için birebir karşılık değil. Seçim sunucu aşamasında.
+  Servis kendi siparişini yalnız "Yeni" iken iptal edebiliyor
+  (`servisSiparisiniIptalEt`); o anda borç yok, iade de yok. Faturalı
+  siparişte uygulama para yazmıyor: fatura kesildiyse iade faturası
+  LOGO'da.
+- **Kalan parçaların iptali — KARARLANDI ve uygulandı (24 Eylül 2026,
+  kullanıcının onayı).** Kısmen gönderilmiş siparişin bekleyen satırını
+  kapatmak için siparişin tamamını iptal etmek gerekiyordu. Backoffice
+  artık yalnız seçilen bekleyen satırları siparişten çıkarıyor
+  ("Kalan Parçaları İptal Et"; sebep ve açıklama servise gidiyor).
+  Bekleyen satırın borcu henüz yazılmadığı için cariye bir şey
+  yazılmıyor; siparişin ödenecek tutarı iptal edilen pay kadar iniyor
+  ve bakiyeden ayrılan kısım da onunla (`veri.js → kalanParcalariIptalEt`,
+  `siparisHesabi → net`; `lib/servisFiyat.js → siparisNetTutari`;
+  sınaması AK-26). Uygulamada talepte `kalemIptalleri: [{no, tarih,
+  personel, neden, aciklama, satirlar}]`. Veritabanında satır silinmez:
+  `talep.ParcaSatiriIptali` (`ParcaSatiriKimlik`, `Neden`, `Aciklama`,
+  `YapanAdi`, `OlusmaZamani`) ya da `talep.ParcaSatiri`'na `IptalZamani`
+  + `IptalNedeni`; `OdenecekTutar` iptal edilmeyen satırlardan hesaplanır.
+  Faturalı siparişte uygulama para yazmıyor, fatura düzeltmesi LOGO'da.
+- **Bekleyen bakiye siparişi bakiyeden ayrılıyor (24 Eylül 2026).**
+  Borç parça gönderilince yazıldığı için aynı bakiyeyle birkaç sipariş
+  verilebiliyordu. Uygulama gönderilmeyi bekleyen tutarı "ayrılan"
+  sayıyor, yeni bakiye siparişi kullanılabilir kısma bakıyor
+  (`bakiyeDurumu`; ekranda da, `servisParcaSiparisi`'nde de).
+  Veritabanında ayrı bir sütun gerekmiyor: ayrılan, açık bakiye
+  siparişlerinin `ParcaTalebiAyrinti` toplamından etkin borçları
+  çıkararak sorguyla bulunur; sunucu siparişi kaydederken aynı sorguyu
+  kilitle (UPDLOCK) yapmalı, yoksa iki cihazdan aynı anda verilen
+  sipariş ikisi de geçer.
+- **Fiyatı listede olmayan parça.** Servis siparişinde fiyatı olmayan
+  parça toplama girmiyor; Servisim "bu parçanın tutarını PAKSAN
+  bildirecek" diyor. Faturalı siparişte fatura bunu karşılıyor; bakiyeden
+  ödenen siparişte ise borç yalnız fiyatlı satırlardan yazılıyor ve eksik
+  parçayı sonradan düşecek bir yol yok. Karar: böyle bir siparişte
+  "Bakiyemden Düşülsün" kapatılsın mı, yoksa PAKSAN parçanın tutarını
+  ayrı bir borç satırı olarak mı yazsın?
+- **Hak ediş vergileri.** Onay adımı KDV, tevkifat ve stopajı o günkü
+  ayardan yazıyor (tasarim.md); Servisim ise servise yol + işçilik
+  gösteriyor. Vergilerin hangi an sabitleneceği ve servise net mi brüt
+  mü gösterileceği karar bekliyor.
+
+## 10. Seri numarası olmadan açılan servis talebi (24 Eylül 2026)
+
+Kullanıcının kararı: Servisim'in elle kaydında seri numarası zorunlu
+olmasın, ama yazılmadıysa makinenin modeli ve tahmini üretim yılı
+alınsın (amaç: LOGO'dan seriyle makineyi bulmak; seri yoksa en azından
+hangi model olduğu bilinsin). Uygulama: `src/servis/ekranlar/ElleKayit.jsx`
+→ "Seri Numarası Yok" seçeneği; talepte `makine: { id, productId,
+seriYok: true, tahminiYil }`, `serial` yok. Makine defterine satır
+açılmıyor (defter seriyle tutuluyor), garanti hesaplanmıyor. Servis
+kaydı ekranı seriyi bir daha sormuyor, yerinde "Yok" yazıyor
+(kullanıcının bildirdiği hata, aynı gün: servis "yok" demişti;
+`lib/servisKaydi.js → eksikAlanlar`). Seri başka bir yoldan gelirse
+talebin makinesi seriyle tamamlanıyor ve iki işaret düşüyor
+(`veri.js → servisKaydiGonder`). Sınaması AK-27.
+
+Veritabanında `talep.Talep.MakineKimlik` makine satırına bağlı; serisiz
+makinenin satırı yok. İki yol:
+
+- `talep.Talep`'e `UrunKodu` (NULL, `katalog.Urun`'a FK) ve
+  `TahminiUretimYili` (smallint NULL) — `MakineKimlik` boşken dolu
+  olmalı (CHECK). Makine defteri temiz kalır; sonradan seri bulunursa
+  `MakineKimlik` yazılır, iki sütun kalabilir (tarihçe).
+- Ya da `makine.Makine`'de `SeriNo` NULL satır — defterin "bir seri, bir
+  satır" kuralını (UX) filtreli indekse çevirmeyi gerektirir; önerilmez.
+
+Eşlemede iki alan `yok` (bkz. `veritabani/uygulama-eslesmesi.mjs`).

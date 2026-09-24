@@ -1806,6 +1806,30 @@ tbody tr.secili .rz,
   color: var(--turuncu-d);
 }
 
+/* Uyarı değil BİLGİ: işlemin parayı nasıl etkileyeceği gibi, personelin
+   bilmesi gereken ama yanlış bir şey olmayan durum (24 Eylül 2026,
+   sipariş iptalinde bakiyeye dönecek tutar). Turuncu uyarı kutusu
+   "dikkat, bir sorun var" diye okunuyordu. */
+.bilgi {
+  background: var(--yuzey-2);
+  border: 1px solid var(--cizgi);
+  color: var(--murekkep);
+  border-radius: var(--r);
+  padding: 13px 16px;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+/* Servis siparişi dökümünün altındaki bakiye satırları (Talepler.jsx →
+   SiparisDokumu): genel toplamdan ayrı bir kutu, çünkü toplam siparişin,
+   bu satırlar paranın nerede olduğunun cevabı. */
+.siparis-bakiye {
+  margin-top: 10px;
+  padding: 8px 12px 10px;
+  background: var(--yuzey-2);
+  border-radius: var(--r-2);
+}
+
 /* ------------------------------------------------------------- Bildirim */
 
 .tost {
@@ -3782,6 +3806,57 @@ button.deger:hover {
   font-size: var(--yazi-2);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+}
+
+/* TUTAR SÜTUNU (24 Eylül 2026; bkz. ParcaTablosu.jsx → tutarli). Geniş
+   kutuda adetten sonra beşinci sütun. Dar kutuda sağ sütun iki katlı:
+   üstte adet, altta tutar — kod ile adın alt alta durduğu düzenin
+   aynısı, ada ayrılan yer daralmıyor. */
+.parca-tablo--tutarli .parca-tablo__baslik,
+.parca-tablo--tutarli .parca-tablo__satir {
+  grid-template-columns: var(--parca-resmi, 56px) minmax(88px, auto) 1fr 44px minmax(104px, auto);
+  grid-template-areas: 'resim kod ad adet tutar';
+}
+
+.parca-tablo__tutar {
+  grid-area: tutar;
+  text-align: right;
+  font-size: var(--yazi-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.parca-tablo__birim {
+  display: block;
+  font-size: var(--yazi-1);
+  color: var(--murekkep-2);
+}
+
+@container (max-width: 520px) {
+  .parca-tablo--tutarli .parca-tablo__baslik,
+  .parca-tablo--tutarli .parca-tablo__satir {
+    grid-template-columns: var(--parca-resmi, 56px) minmax(0, 1fr) auto;
+    grid-template-areas:
+      'resim kod adet'
+      'resim ad tutar';
+  }
+
+  .parca-tablo--tutarli .parca-tablo__adet { align-self: end; }
+  .parca-tablo--tutarli .parca-tablo__tutar { align-self: start; }
+}
+
+@container (max-width: 280px) {
+  .parca-tablo--tutarli .parca-tablo__baslik,
+  .parca-tablo--tutarli .parca-tablo__satir {
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+  }
+}
+
+/* Satırın notu adın altında, kendi satırında (bkz. ParcaTablosu.jsx). */
+.parca-tablo__not {
+  display: block;
+  width: fit-content;
+  margin-top: 4px;
 }
 
 /* --------------------------------------------- Parçanın küçük görseli

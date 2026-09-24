@@ -224,7 +224,9 @@ function HataEkrani({ urun, hata, onDene }) {
        genişlikte, alt alta (bkz. CLAUDE.md, servis kullanıcısı). */
     return (
       <div className="uyg uyg--sayfa">
-        <div className="uyg__ic">
+        {/* Üst çubuk yok: çentiğin altına girmesin diye durum çubuğu
+            kadar pay (Capacitor 8, ekranın tamamına çizim). */}
+        <div className="uyg__ic" style={{ paddingTop: 'calc(var(--bosluk-4) + var(--ust))' }}>
           <div className="kart">
             <div className="bos">
               {govde}
@@ -245,7 +247,8 @@ function HataEkrani({ urun, hata, onDene }) {
 
   /* Müşteri uygulaması. `.btn` zaten tam genişlikte. */
   return (
-    <div className="screen wrap" style={{ paddingTop: 28 }}>
+    /* Üst başlık yok: durum çubuğu ve çentik payı (Capacitor 8). */
+    <div className="screen wrap" style={{ paddingTop: 'calc(28px + var(--safe-top))' }}>
       <div className="empty">
         {govde}
         <div style={{ display: 'grid', gap: 10 }}>
