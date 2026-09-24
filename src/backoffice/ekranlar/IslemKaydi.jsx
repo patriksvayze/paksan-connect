@@ -47,6 +47,10 @@ const TURLER = [
      gördüğü parça adını, grubunu ve listede olup olmadığını
      değiştiriyor. */
   { deger: 'katalog', ad: 'Parça kataloğu' },
+  /* Servisin eline geçen parayı değiştiren iki ayar (23 Eylül 2026):
+     hizmet ücreti (km ve saat) ve yedek parça iskontosu. */
+  { deger: 'tarife', ad: 'Servis ücreti' },
+  { deger: 'iskonto', ad: 'Servis iskontosu' },
   /* Servis tarafından gelen dört işlem. Sipariş, stok ve fiyat teklifi
      servis panelinde doğuyor, devir de servisin PAKSAN'dan destek
      istemesi. Teklif süzgeci sonradan eklendi: kayıtlar yazılıyordu

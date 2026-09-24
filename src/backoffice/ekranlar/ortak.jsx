@@ -390,3 +390,56 @@ export function siraliSatirlar(satirlar, siralama) {
   })
   return kopya
 }
+
+/* ---------------------------------------------------- Açılır kart başlığı
+
+   Hizmet ücretleri ve servis iskontosu kartları kapalı açılıyor. Başlık
+   tek bir düğme: adı, kapalıyken okunacak özet ve ok. Düğme başlığın
+   İÇİNDE (h2 > button); ekran okuyucu onu hem başlık hem açılır düğme
+   olarak tanıyor. Okun yanında yazı var: ikon tek başına anlam taşımıyor.
+
+   İlk kullanan: Servisler ekranındaki Hizmet Ücretleri ve Yedek Parça
+   Kataloğu'ndaki Servis iskontosu (23 Eylül 2026, kullanıcının isteği:
+   "çok yer kaplıyor … kalan kısım gerektiğinde açılsın"). */
+
+export const ACILIR = { ac: 'Ayrıntıları Göster', kapat: 'Ayrıntıları Gizle' }
+
+/* Ok ikonu: açık kartta yukarı döner (CSS). Duyurular'daki hedefleme
+   kutuları da kullanıyor. */
+export function AcilirOk() {
+  return (
+    <svg className="acilir-tepe__ok" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+      <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+export function AcilirTepe({ baslik, ozet, acik, onDegis, govdeId }) {
+  const parcalar = (ozet || []).filter(Boolean)
+  return (
+    <div className="kart__tepe acilir-tepe">
+      <h2 className="acilir-tepe__baslik">
+        <button
+          type="button"
+          className="acilir-tepe__dugme"
+          aria-expanded={acik}
+          aria-controls={govdeId}
+          onClick={() => onDegis(!acik)}
+        >
+          <span className="acilir-tepe__ad">{baslik}</span>
+          {parcalar.length > 0 && (
+            <span className="acilir-tepe__ozet">
+              {parcalar.map((p) => (
+                <span key={p} className="acilir-tepe__cip">{p}</span>
+              ))}
+            </span>
+          )}
+          <span className="acilir-tepe__ac">
+            {acik ? ACILIR.kapat : ACILIR.ac}
+            <AcilirOk />
+          </span>
+        </button>
+      </h2>
+    </div>
+  )
+}

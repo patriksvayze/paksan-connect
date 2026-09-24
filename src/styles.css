@@ -113,6 +113,18 @@
   --line: #e6eaf2;
   --line-strong: #d6dde9;
 
+  /* Dokunulan kartın SINIRI. `--line` ve `--line-strong` süs çizgisi:
+     beyaz üstünde 1,21 ve 1,37 — kartın nerede bittiği güneşte
+     görünmüyor. Bu ton Servisim'in `--cizgi-kontrol` değeriyle aynı
+     (gerekçesi servis/servis.css içinde) ve yalnız sınır çizen kenarda
+     kullanılıyor, bugün parça kartında. Her ayıracı koyulaştırmak
+     ekranı çizgi kafesine çevirirdi.
+     Ölçüldü: --surface 3,39 · --bg 3,08 (arayüz ögesi için eşik 3). */
+  --kontrol-kenar: #7d8ca8;
+  /* Parça kartındaki fiyat — Servisim'deki kartla aynı turuncu.
+     Ölçüldü: beyaz üstünde 4,79. Karanlıkta açılıyor (aşağıda). */
+  --fiyat-yazi: var(--pk-orange-btn);
+
   --on-dark: rgba(255, 255, 255, 0.95);
   /* Saydamlık ÖLÇÜLEREK seçildi. Bu yazı marka kartlarının mavi
      gradyanı üstüne düşüyor; gradyanın en açık durağı rgb(29,85,192).
@@ -212,6 +224,11 @@
   --ink-3-koyu: #949fb5;
   --line-koyu: #26314f;
   --line-strong-koyu: #35426a;
+  /* Aynı ton ve doygunluk, koyu yüzeyde ölçülmüş:
+     --surface 3,17 · --bg 3,54. */
+  --kontrol-kenar-koyu: #5d6e8c;
+  /* Düğme turuncusu koyu yüzeyde okunmuyor; açık turuncu 6,98. */
+  --fiyat-yazi-koyu: var(--marka-turuncu-acik);
 
   /* Düğme zeminleri koyu kalıyor: üstlerindeki beyaz yazının kontrastı
      zeminin kendi rengine bağlı, sayfaya değil. */
@@ -286,6 +303,8 @@
   --ink-3: var(--ink-3-koyu);
   --line: var(--line-koyu);
   --line-strong: var(--line-strong-koyu);
+  --kontrol-kenar: var(--kontrol-kenar-koyu);
+  --fiyat-yazi: var(--fiyat-yazi-koyu);
   --pk-blue: var(--pk-blue-koyu);
   --pk-navy: var(--pk-navy-koyu);
   --pk-blue-yazi: var(--pk-blue-yazi-koyu);
@@ -329,6 +348,8 @@
     --ink-3: var(--ink-3-koyu);
     --line: var(--line-koyu);
     --line-strong: var(--line-strong-koyu);
+    --kontrol-kenar: var(--kontrol-kenar-koyu);
+    --fiyat-yazi: var(--fiyat-yazi-koyu);
     --pk-blue: var(--pk-blue-koyu);
     --pk-navy: var(--pk-navy-koyu);
     --pk-blue-yazi: var(--pk-blue-yazi-koyu);
@@ -521,7 +542,7 @@ p {
   background: rgba(241, 244, 249, 0.82);
   backdrop-filter: saturate(180%) blur(16px);
   -webkit-backdrop-filter: saturate(180%) blur(16px);
-  padding: calc(var(--safe-top) + 12px) 20px 12px;
+  padding: calc(var(--safe-top) + 10px) 20px 10px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -577,10 +598,37 @@ p {
   overflow: hidden;
 }
 
-/* Başlığın altındaki isim bloğu — geri butonu varken ikinci satıra iner */
-.topbar__titles {
-  display: flex;
+/* Sayfa adı — geri düğmesiyle aynı satırda (22 Eylül 2026).
+
+   Önce sağ üstte logo, sayfa adı geri düğmesinin altında kendi
+   satırındaydı: başlık iki satır yer tutuyordu. Logo kalktı, ad onun
+   yerine geçti; başlık tek satır oldu ve gövdeye yaklaşık 50 piksel yer
+   açıldı. Ad geri düğmesinin yanında olduğu için bir boy küçük (27 → 22).
+   Sığmazsa iki satıra iniyor (yukarıdaki `.topbar h1` kuralı). */
+.topbar__ad {
+  flex: 1;
   min-width: 0;
+}
+
+.topbar__ad--sag {
+  text-align: right;
+}
+
+.topbar__ad--sag h1 {
+  font-size: 22px;
+  line-height: 1.18;
+}
+
+.topbar__ad--sag .sub {
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+/* Sayfanın işlem düğmesi: adın altında, sağda (bkz. Chrome.jsx → TopBar). */
+.topbar__islem-satiri {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -6px;
 }
 
 /* Marka rozeti — YALNIZCA koyu zeminlerde (karşılama ekranı).
@@ -721,6 +769,12 @@ p {
    Bitiş rengi bilerek koyu bırakıldı: gökyüzü açık olsaydı üstündeki
    beyaz yazı okunmazdı. Üstte lacivert, ufka doğru turuncu — marka
    renklerinin ikisi de sahnede.
+
+   24 Eylül 2026'dan beri görsel gerçek bir gündüz fotoğrafı ve gök
+   açık, güneşli mavi (koyu gök "kapalı hava, depresif" duruyordu).
+   Beyaz yazıyı artık gök değil perde okutuyor: amblem açık gökte kendi
+   beyaz dairesiyle duruyor, "paksan" yazısının arkasında yumuşak bir
+   oval gölge var (aşağıda .safak__perde).
    ========================================================================== */
 
 .safak {
@@ -733,18 +787,22 @@ p {
      boşluklar çalışmıyor ve düğmeler logonun üstüne biniyordu. */
   display: flex;
   flex-direction: column;
-  /* Görselin en üst satırının rengi (ölçüldü: #080e1a). Görsel katmanı
+  /* Görselin en üst satırının rengi (ölçüldü: #2f65b2). Görsel katmanı
      ekranın üstünden taşarak başlıyor; bir an yüklenmemişse ya da çok
      uzun bir ekranda üstte pay kalırsa zemin gökyüzünün devamı gibi
      duruyor, beyaz ya da lacivert bir şerit görünmüyor. */
-  background: #080e1a;
+  background: #2f65b2;
 
   /* UFUK: GÖRSELDE NEREDE, EKRANDA NEREDE.
 
-     --ufuk-foto  güneşin görseldeki yüksekliği (ölçüldü: %52,8).
+     --ufuk-foto  görselin amblemin arkasına gelecek noktası: şafak
+                  görsellerinde güneşti; 24 Eylül 2026'dan beri gerçek
+                  gündüz fotoğrafında gökyüzünde bir nokta (%31,1; aynı
+                  gün düğmeler dibe inip gök yukarı uzatılmadan önce
+                  %22,5'ti).
      --ufuk-y     güneşin ekranda duracağı yer, sahne yüksekliğine oran.
                   Safak.jsx amblemin merkezini ölçüp buraya yazıyor. */
-  --ufuk-foto: 0.528;
+  --ufuk-foto: 0.3114;
   /* Amblemin ekranın ortasından yatay farkı; Safak.jsx ölçüyor. */
   --gunes-dx: 0px;
 }
@@ -754,21 +812,21 @@ p {
    KATMAN, GÜNEŞİ --ufuk-y'YE OTURTACAK KADAR UZUN VE YUKARIDA.
 
    Kutunun altı ekranın altına dayalı. Yüksekliği öyle seçiliyor ki
-   görseldeki güneş (%52,8) ekrandaki --ufuk-y noktasına düşsün:
+   görseldeki nokta (%31,1) ekrandaki --ufuk-y noktasına düşsün:
 
-       üst + 0,528 · yükseklik = ufuk      ve      üst + yükseklik = 1
-       yükseklik = (1 − ufuk) / (1 − 0,528)
+       üst + 0,311 · yükseklik = ufuk      ve      üst + yükseklik = 1
+       yükseklik = (1 − ufuk) / (1 − 0,311)
 
-   390x844 telefonda amblem %23'te; kutu ekranın 1,7 katı ve üstünden
-   taşıyor. Görsel bu yüzden 4K'dan hazırlandı: 1,7 kat büyütülmüş
-   2K bir görsel 3x ekranda yumuşak görünürdü.
+   390x844 telefonda amblem %29'da; kutu ekrandan biraz uzun ve
+   üstünden taşıyor. Görsel 1900 piksel genişliğinde: 3x bir telefonun
+   1170 piksellik ekranına büyütülmeden sığıyor.
 
-   `background-position` dikeyde %52,8: kutu görselden kısa kalırsa
+   `background-position` dikeyde %31,1: kutu görselden kısa kalırsa
    (geniş ekran) kırpma ufku yerinden oynatmadan yapılıyor. Yatayda
-   %50: görsel güneş ortada kalacak şekilde kırpıldı (4K'nın ortadaki
-   %64'ü; telefon zaten bundan fazlasını göstermiyor), güneş her ekran
-   genişliğinde amblemin tam altında. Sağdaki balya makinesi 390 piksel
-   telefonda kenara yakın ama kadrajda. */
+   %50. Görsel 1900x4486 ve telefondan dar: telefonda genişliğin
+   tamamı görünüyor, kırpma yalnız dikeyde. Traktör ve Süper S8002 E
+   "paksan" yazısının altında, "1970'ten beri" satırının üstünde
+   (390x844'te ölçüldü). */
 /* YATAYDA AMBLEME HİZA. Görsel güneşi ortada tutacak şekilde kırpıldı;
    kutunun ortası amblemin merkezine kaydırılıyor. Kutu kaydırılmıyor,
    o yöne GENİŞLETİLİYOR: yalnız kaydırılsaydı öbür kenarda --gunes-dx
@@ -810,11 +868,17 @@ p {
   height: 150px;
   margin: -75px 0 0 -160px;
   border-radius: 50%;
+  /* Gündüz fotoğrafında (24 Eylül 2026) turuncu şafak halesi mavi gökte
+     gri bir leke gibi duruyordu: hale artık yalnız hafif, beyaza yakın
+     bir güneş parıltısı. */
+  /* `ellipse closest-side`: degrade kutunun elipsine oturuyor ve
+     kenarda sıfıra iniyor. Önce `circle`dı; daire elipsten taşıyor,
+     kenarı sert bir çizgiyle kesiliyordu (açık gökte belli oldu). */
   background: radial-gradient(
-    circle,
-    rgba(255, 206, 140, 0.55) 0%,
-    rgba(255, 160, 70, 0.22) 38%,
-    rgba(255, 140, 50, 0) 70%
+    ellipse closest-side,
+    rgba(255, 244, 222, 0.3) 0%,
+    rgba(255, 236, 200, 0.1) 50%,
+    rgba(255, 230, 190, 0) 100%
   );
   mix-blend-mode: screen;
   pointer-events: none;
@@ -848,17 +912,24 @@ p {
    seçildi: yazılar gizlenip arkalarındaki gerçek pikseller örneklendi
    (hale, sis ve kameranın son yakınlığı dahil).
 
-     · Tepede hafif: durum çubuğu ikonları okunsun diye. Dil seçici
-       gökyüzünün açık kısmında kalıyor ama kendi koyu zeminini
-       taşıyor (bkz. .dilsec--koyu); gökyüzü perdeyle boğulmuyor.
-     · Güneşte (--ufuk-y, ~%23) en açık: amblem doğan güneşin önünde,
-       sahnenin en parlak yeri perdesiz kalıyor.
-     · Hemen altında yeniden koyulaşıyor: PAKSAN yazısı güneşin 40
-       piksel altında, ufuktaki sisin üstünde.
-     · Aşağı indikçe koyulaşıyor: slogan ve düğmeler tarlanın üstünde.
+     · Gökte perde yok (24 Eylül 2026): açık gök olduğu gibi görünsün.
+       Tepedeki koyuluk durum çubuğu ikonları içindi; uygulama
+       Android'de durum çubuğunun altına çizilmiyor (targetSdk 34,
+       kenardan kenara değil), ikonlar sayfanın üstünde durmuyor. Dil
+       seçici kendi koyu zeminini taşıyor (bkz. .dilsec--koyu).
+     · "paksan" yazısının arkasında yumuşak bir oval (radial-gradient):
+       yazının ortası amblemin merkezinin 70 piksel altında, ufuk
+       çizgisinin üstünde. Önce ekran boyu bir banttı; açık gökte ufka
+       inen gri bir sis gibi duruyordu. Ovalin konumu --ufuk-y ve
+       --gunes-dx'ten, yani amblemin ölçülen yerinden geliyor: yazıyla
+       birlikte kayıyor, ekran boyu ne olursa olsun arkasında kalıyor.
+     · Makinenin üstünde neredeyse yok (%35-52): makine her boyda
+       ekranın %37-52'sinde ve orada soluk görünmemeli.
+     · Sonra koyulaşıyor: söz ve düğmeler ekranın dibinde (24 Eylül
+       2026'dan beri), görselin laciverde indiği yerde.
 
-   Perde durakları --ufuk-y'ye değil ekrana göre: amblem her boyda
-   ekranın %20-26'sında kalıyor.
+   Doğrusal perdenin durakları --ufuk-y'ye değil ekrana göre. Amblem
+   her boyda ekranın %23-30'unda, söz %52-77'sinde.
 
    ÖLÇÜM YAZININ KENDİ SAYDAMLIĞIYLA YAPILIYOR. İlk ölçümde bütün
    yazılar tam beyaz sayıldı ve "1970'ten beri" (%75 beyaz) ile sürüm
@@ -878,6 +949,19 @@ p {
      Sürüm (%66)            7,73 / 8,33 / 8,50
      EN — seçici (%82)      6,18 / 6,90 / 7,43
    320x568'de en düşüğü "1970'ten beri" 5,38.
+   (Tablo eski görsele ait.) 24 Eylül 2026, gerçek fotoğraf ve güneşli
+   gök: harfin 1-4 piksel çevresindeki gerçek pikseller, yazının gölgesi
+   dahil, en kötü %5 (320x568 / 360x640 / 390x844 / 430x932):
+     PAKSAN yazısı          5,13 / 4,78 / 5,54 / 5,81
+     1970'ten beri (%90)    4,71 / 5,46 / 9,15 / 8,69
+     Yanınızdayız           9,69 / 9,01 / 12,62 / 12,29
+   Aynı gün ayrı bir denetim yazının gölgesini hesaba katmadan, yalnız
+   harfin altındaki zemine bakarak PAKSAN için 1,3-1,8 buldu. O ölçü
+   gölgesiz yazının değeri: gölge kaldırılırsa geçerli olur.
+   Düğmeler dibe inip yerleşim değişince, aynı yöntemle:
+     PAKSAN yazısı          5,85 / 5,02 / 5,06 / 5,29
+     1970'ten beri (%90)    7,86 / 11,9 / 9,21 / 9,21
+     Yanınızdayız           12,6 / 16,1 / 19,1 / 19,1
 
    Bir durak değişirse ölçüm yeniden yapılmalı: yazılar gizlenip
    arkalarındaki piksel ekran görüntüsünden örneklenir, yazı rengi
@@ -887,16 +971,23 @@ p {
   position: absolute;
   z-index: 2;
   inset: 0;
-  background: linear-gradient(
+  background:
+    radial-gradient(
+      ellipse 220px 50px at calc(50% + var(--gunes-dx)) calc(var(--ufuk-y) * 100% + 70px),
+      rgba(8, 14, 26, 0.5) 0%,
+      rgba(8, 14, 26, 0.42) 35%,
+      rgba(8, 14, 26, 0.24) 60%,
+      rgba(8, 14, 26, 0.08) 80%,
+      rgba(8, 14, 26, 0) 100%
+    ),
+    linear-gradient(
     180deg,
-    rgba(8, 14, 26, 0.5) 0%,
-    rgba(8, 14, 26, 0.18) 12%,
-    rgba(8, 14, 26, 0) 20%,
-    rgba(8, 14, 26, 0.3) 29%,
-    rgba(8, 14, 26, 0.2) 40%,
-    rgba(8, 14, 26, 0.22) 50%,
-    rgba(8, 14, 26, 0.32) 64%,
-    rgba(8, 14, 26, 0.5) 82%,
+    rgba(8, 14, 26, 0) 0%,
+    rgba(8, 14, 26, 0) 35%,
+    rgba(8, 14, 26, 0.06) 52%,
+    rgba(8, 14, 26, 0.25) 60%,
+    rgba(8, 14, 26, 0.42) 70%,
+    rgba(8, 14, 26, 0.55) 82%,
     rgba(8, 14, 26, 0.72) 100%
   );
   pointer-events: none;
@@ -1029,13 +1120,18 @@ p {
   width: 100%;
   max-width: 560px;
   margin: 0 auto;
-  /* Alt pay. Önceki sahnede burada saman rengi bir tarla şeridi vardı
-     ve içerik onun yüksekliği kadar yukarı itiliyordu. Artık altta
-     perdenin en koyu yeri var; pay yalnız başparmağın ekranın dibine
-     çarpmaması ve jest çubuğu için. Yerleşim korunsun diye önceki
-     şerit ölçüsüne (19vh, en az 96px) yakın tutuldu: amblemin, sloganın
-     ve düğmelerin yeri değişmedi, perde ölçümleri bu yerleşimle yapıldı. */
-  padding-bottom: calc(max(19vh, 96px) + 18px);
+  /* Alt pay: düğmeler ve sürüm satırı ekranın dibine dayalı (24 Eylül
+     2026, kullanıcının isteği). Önce burada ekranın beşte biri kadar
+     pay vardı (max(19vh, 96px) + 18px, eski sahnedeki tarla şeridinin
+     ölçüsü) ve düğmeler ekranın ortasında, altlarında boş lacivertle
+     duruyordu. */
+  padding-bottom: calc(var(--safe-bottom) + 20px);
+}
+
+/* Söz düğmelerin hemen üstünde, sabit arayla: ikisi birlikte dipte.
+   Aradaki esnek boşluk logonun altına taşındı (Welcome.jsx). */
+.giris__islem {
+  margin-top: 28px;
 }
 
 /* İçeriğin girişi — marka bloğu HARİÇ.
@@ -4559,6 +4655,203 @@ p {
 }
 
 /* ==========================================================================
+   Parça seçimi — alt montaj listesi ve katalog kartları
+
+   SERVİSİM'DEKİNİN AYNISI (24 Eylül 2026, kullanıcının isteği:
+   "Servisim'deki sistem daha iyi, daha büyük görseller var"). Kurallar
+   servis/servis.css'teki `.montaj` ve `.parca-kart` kurallarından
+   taşındı; ölçüler aynı, renkler bu dosyanın kendi değişkenleriyle
+   yazıldı — iki CSS kökü renk paylaşmıyor. Kartın düzeni değişirse
+   iki dosya birlikte güncellenir (kart: components/ParcaKarti.jsx).
+
+   Düzen PAKSAN'ın bastığı fiyat listesinin aynısı: görsel, kod, ad,
+   fiyat. Çiftçi de servis de kâğıttaki listeye alışkın.
+
+   Kalınlıklar 700 ve 900: bu uygulamada yalnız 400/500/700/900
+   yükleniyor. Servisim'in yazdığı 800 zaten 900 olarak çiziliyor;
+   burada doğrudan 900 yazıldı.
+   ========================================================================== */
+
+.montaj-liste {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bosluk-2);
+}
+
+/* Alt montaj satırı. Sağdaki hap o bölümde kaç parça olduğunu
+   söylüyor: çiftçi kaç kart geleceğini girmeden biliyor. Kenar
+   koyulaştırılmadı, gölge verildi: ekranda otuz beşe kadar satır alt
+   alta duruyor ve hepsinin koyu kenarı çizgi kafesi çıkarırdı. */
+.montaj {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  width: 100%;
+  min-height: var(--dokunma);
+  padding: var(--bosluk-3) var(--bosluk-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--surface);
+  box-shadow: var(--sh-1);
+  color: var(--ink);
+  text-align: left;
+}
+
+.montaj__ad {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--yazi-3);
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.montaj__sayi {
+  flex: none;
+  min-width: 30px;
+  padding: 2px var(--bosluk-2);
+  border-radius: var(--r-tam);
+  background: var(--pk-blue-soft);
+  color: var(--pk-blue-yazi);
+  font-size: var(--yazi-2);
+  font-weight: 900;
+  text-align: center;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* İKİ SÜTUN. Tek sütunda ekranda üç parça görünüyor ve otuz parçalık
+   bir bölümde on ekran kaydırmak gerekiyor; üç sütunda görsel 100
+   pikselin altına iniyor ve parça tanınmıyor — asıl iş o görselde.
+   `minmax(0, 1fr)`: uzun bir parça kodu ya da adı sütunu genişletip
+   sayfayı yana taşırmasın. */
+.parca-izgara {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--bosluk-3);
+}
+
+/* KART DIŞ KUTU, DOKUNULAN YER İÇTEKİ DÜĞME (bkz. components/
+   ParcaKarti.jsx). Kenarlık ve zemin dıştaki kutuda; görsel, kod, ad
+   ve fiyat içteki düğmede. */
+.parca-kart {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--kontrol-kenar);
+  border-radius: var(--r-3);
+  background: var(--surface);
+}
+
+.parca-kart__ac {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: var(--bosluk-2) var(--bosluk-2) var(--bosluk-3);
+  border-radius: inherit;
+  color: var(--ink);
+  text-align: left;
+}
+
+.parca-kart--on {
+  border-color: var(--pk-blue-yazi);
+  box-shadow: inset 0 0 0 1px var(--pk-blue-yazi);
+  /* Soluk mavi kartın kendi zemininin ÜSTÜNE: tek başına yarı saydam
+     olduğu için arkadaki gri zemin görünüyor, yazılar kararıyordu. */
+  background: linear-gradient(var(--pk-blue-soft), var(--pk-blue-soft)), var(--surface);
+}
+
+/* SEÇİLİ KARTTA KOD VE FİYAT KOYULAŞIYOR (Servisim'de ölçülen kural).
+   Soluk mavi zeminde düğme turuncusu 4,20'de, üçüncül gri 4,45'te
+   kalıyor — eşik 4,5. Koyu turuncu 6,64, ikincil gri 5,45. Karanlıkta
+   `--pk-orange-ink` zaten açık turuncu (5,33). */
+.parca-kart--on .parca-kart__kod {
+  color: var(--ink-2);
+}
+
+.parca-kart--on .parca-kart__fiyat {
+  color: var(--pk-orange-ink);
+}
+
+/* Görsel kutusu SABİT ORANDA: kartlar farklı yükseklikte parçalarla
+   dolduğunda ızgara tırtıklı bitiyordu. Zemin her temada beyaz —
+   katalog görselleri beyaz zemine basılmış, koyu temada gri bir
+   kutuya oturtulunca çevresinde hâle çıkıyor. */
+.parca-kart__resim {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  margin-bottom: var(--bosluk-2);
+  border-radius: var(--r-1);
+  background: #fff;
+  overflow: hidden;
+}
+
+/* Resim kutuya MUTLAK oturuyor: ızgara gözünde yükseklik belirsiz
+   kaldığında `height: 100%` çalışmıyor, resim kendi boyunda çizilip
+   yalnız üst yarısı görünüyordu. */
+.parca-kart__resim img {
+  position: absolute;
+  inset: 6px;
+  width: calc(100% - 12px);
+  height: calc(100% - 12px);
+  max-width: none;
+  object-fit: contain;
+}
+
+/* Resmi olmayan parçanın notu. Görsel kutusu her temada beyaz, bu
+   yüzden yazı rengi temaya göre değişmiyor: açık temanın üçüncül grisi
+   beyaz üstünde 5,07. */
+.parca-kart__resimsiz {
+  padding: 0 var(--bosluk-2);
+  font-size: var(--yazi-1);
+  color: #646f82;
+  text-align: center;
+}
+
+/* Seçili işareti köşede: renk tek başına anlam taşımıyor. Zemin
+   `--pk-blue`: karanlıkta da koyu kalıyor, beyaz onay okunuyor. */
+.parca-kart__onay {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-tam);
+  background: var(--pk-blue);
+  color: #fff;
+}
+
+.parca-kart__kod {
+  font-size: var(--yazi-1);
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
+}
+
+.parca-kart__ad {
+  font-size: var(--yazi-2);
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.parca-kart__fiyat {
+  margin-top: 2px;
+  font-size: var(--yazi-3);
+  font-weight: 900;
+  color: var(--fiyat-yazi);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
    Talep türü rozetleri
 
    Renkler backoffice’tekilerle birebir aynı; aynı talep iki ekranda aynı
@@ -5850,4 +6143,33 @@ p {
 .dst-makineler button:focus-visible {
   outline: 2px solid var(--pk-blue-yazi);
   outline-offset: 2px;
+}
+
+/* YAZI HALESİ (24 Eylül 2026)
+
+   Yeni şafak sahnesinde ufkun hemen altındaki sis öncekinden açık:
+   PAKSAN yazısı ve "1970'ten beri" satırı o sisin üstüne düşüyor ve
+   perdeyle birlikte 2,1-2,6:1'e iniyordu (önceki görselde 6,6). Perdeyi
+   o bantta yeterince koyulaştırmak güneşin altındaki ışıltıyı
+   söndürüyordu. Bu yüzden perde ölçülü koyulaştı, yazıların hemen
+   çevresine yumuşak koyu bir hale eklendi: yalnız harflerin dibini
+   karartıyor, sahnenin kalanı olduğu gibi. */
+.safak .safak__yazi {
+  filter: drop-shadow(0 0 14px rgba(8, 14, 26, 0.75)) drop-shadow(0 1px 3px rgba(8, 14, 26, 0.6));
+}
+
+.safak .giris__ustsatir,
+.safak .giris__yanindayiz {
+  text-shadow: 0 0 18px rgba(8, 14, 26, 0.6), 0 1px 2px rgba(8, 14, 26, 0.5);
+}
+/* "1970'ten beri" küçük ve ince: kısa telefonlarda (320x568, 360x640)
+   fotoğraftaki traktörün ve toz bulutunun üstüne düşüyor, geniş hale
+   yetmiyordu (harfin çevresinde en kötü %5: 3,66 ve 4,19). Harfe yakın
+   ikinci bir gölge dibini koyulaştırıyor. */
+.safak .giris__ustsatir {
+  text-shadow:
+    0 0 4px rgba(8, 14, 26, 0.85),
+    0 0 10px rgba(8, 14, 26, 0.55),
+    0 0 18px rgba(8, 14, 26, 0.6),
+    0 1px 2px rgba(8, 14, 26, 0.5);
 }

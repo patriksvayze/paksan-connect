@@ -22,7 +22,8 @@ import {
   saatGirdisi,
   saatYaz as sureYaz,
   talebinParcalari,
-  TARIFE,
+  kmUcretiOku,
+  saatUcretiOku,
   temizParcalar,
 } from '../../lib/servisKaydi'
 import { ParcaTablosu } from '../../components/ParcaTablosu'
@@ -2557,7 +2558,10 @@ function HakkedisFormu({ talep, onKapat, onKaydet }) {
      düzeltme eski işi yeni ücretle hesaplamasın. Süresi olmayan eski
      kayıtta kutu boş açılıyor; boş bırakılırsa eski tutar korunuyor,
      süre yazılırsa tutar süreden hesaplanıyor. */
-  const saatUcreti = Number(k.saatUcreti) || TARIFE.iscilikSaat
+  const saatUcreti = saatUcretiOku(k)
+  /* Km ücreti de kaydın kendi ücreti (23 Eylül 2026'dan beri kayıt
+     taşıyor; eskisinde başlangıç ücreti — bkz. servisKaydi.js). */
+  const kmUcreti = kmUcretiOku(k)
   const eskiTutar = k.iscilikSaat == null && Number(k.iscilik) > 0
   const [saat, setSaat] = useState(k.iscilikSaat ? sureYaz(k.iscilikSaat) : '')
   const iscilik = eskiTutar && !saat ? {} : iscilikAlanlari(saat, saatUcreti)
@@ -2594,6 +2598,11 @@ function HakkedisFormu({ talep, onKapat, onKaydet }) {
               value={km}
               onChange={(e) => setKm(e.target.value.replace(/\D/g, ''))}
             />
+            <span className="kucuk sonuk" style={{ display: 'block', marginTop: 4 }}>
+              {`Kilometre başına ${paraYaz(kmUcreti)} ${PARA_BIRIMI} · yol tutarı ${paraYaz(
+                Math.round((Number(km) || 0) * kmUcreti),
+              )} ${PARA_BIRIMI}`}
+            </span>
           </label>
 
           <label className="alan">
@@ -3412,6 +3421,41 @@ function BeklenenTutar({ talep }) {
           </span>
         </div>
       ))}
+
+      {/* SERVİS İSKONTOSU (23 Eylül 2026). Servis siparişinin görüntüsü
+          sipariş anındaki oranı ve liste fiyatıyla toplamı taşıyor
+          (bkz. veri.js → servisParcaSiparisi). Satır tutarları zaten
+          iskontolu; burada ne kadar düşüldüğü görünüyor. Oranı taşımayan
+          eski siparişte satır çıkmıyor. */}
+      {goruntu.iskontoOrani !== undefined && goruntu.listeToplam !== undefined && (
+        <>
+          <div className="satir kucuk sonuk" style={{ gap: 10, marginTop: 8 }}>
+            <span>Liste fiyatıyla toplam</span>
+            <span className="mono" style={{ marginLeft: 'auto' }}>
+              {paraYaz(goruntu.listeToplam)} {PARA_BIRIMI}
+            </span>
+          </div>
+          <div className="satir kucuk" style={{ gap: 10, marginTop: 2 }}>
+            <span>Servis iskontosu (%{Math.round(goruntu.iskontoOrani * 100)})</span>
+            <span className="mono" style={{ marginLeft: 'auto' }}>
+              −{paraYaz(goruntu.iskontoTutari)} {PARA_BIRIMI}
+            </span>
+          </div>
+        </>
+      )}
+
+      {/* BAKİYEDEN ÖDEME EK İSKONTOSU (24 Eylül 2026). Servis siparişi
+          bakiyeden ödüyorsa ve o gün ek iskonto açıksa görüntü oranı ve
+          düşülen tutarı taşıyor; KDV dâhil toplam ek iskontolu. Cariden
+          düşülecek tutar bu toplam (veri.js → talepKapat). */}
+      {Number(goruntu.bakiyeIskontoTutari) > 0 && (
+        <div className="satir kucuk" style={{ gap: 10, marginTop: 2 }}>
+          <span>Bakiyeden ödeme ek iskontosu (%{Math.round(goruntu.bakiyeIskontoOrani * 100)})</span>
+          <span className="mono" style={{ marginLeft: 'auto' }}>
+            −{paraYaz(goruntu.bakiyeIskontoTutari)} {PARA_BIRIMI}
+          </span>
+        </div>
+      )}
 
       <div
         className="satir"

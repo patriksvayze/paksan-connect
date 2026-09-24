@@ -7,6 +7,7 @@ import { IconAlert, IconRight } from '../../components/Icons'
 import { formatSerial } from '../../lib/serial'
 import { talebinParcalari, temizParcalar } from '../../lib/servisKaydi'
 import bosIsGorseli from '../../assets/gorseller/servis-bos-is.png'
+import { UcretOzeti } from './Ucretlerim'
 
 /* ==========================================================================
    Servis paneli — hak ediş
@@ -39,7 +40,7 @@ import bosIsGorseli from '../../assets/gorseller/servis-bos-is.png'
    doğru; sunucu geldiğinde yalnız veri katmanı değişecek.
    ========================================================================== */
 
-export function Hakkedis({ oturum, onAc }) {
+export function Hakkedis({ oturum, onAc, surum, onUcretler }) {
   const talepler = useMemo(
     () => servisinTalepleri(talepleriGetir(), oturum.servisId),
     [oturum.servisId],
@@ -85,6 +86,10 @@ export function Hakkedis({ oturum, onAc }) {
           </p>
         </div>
       </section>
+
+      {/* Hak edişin hesaplandığı ücretler bakiyenin hemen altında; dokununca
+          Hesap'taki "Ücretlendirmeler" bölümü açılıyor (bkz. Ucretlerim.jsx). */}
+      <UcretOzeti oturum={oturum} surum={surum} onAc={onUcretler} />
 
       {bekleyen.length > 0 && (
         <Bolum ad="Onay Bekleyen" sayi={bekleyen.length}>

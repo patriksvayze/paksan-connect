@@ -21,7 +21,53 @@ import sahne from '../assets/gorseller/karsilama-sahne.jpg'
    videosundan bir kare makine referansı olarak verildi) ve aynı
    yerde 4K'ya büyütüldü. Kaynak: tools/kaynak/karsilama-sahne-girdi.jpg.
 
-   UFUKTAKİ MAKİNE PAKSAN'IN
+   GERÇEK FOTOĞRAF (24 Eylül 2026)
+
+   Aynı gün yapay zekâyla bir dizi şafak sahnesi denendi: makineyi
+   yeniden çizdirmek (model makineyi bozdu), katalog fotoğrafını
+   sahneye yapıştırmak (iğreti durdu), makineyle birlikte üretmek
+   (Orka 870 doğru çizildi ama balya, rampa gibi ayrıntılarda
+   düzeltme turları bitmedi). Kullanıcı sonunda "neden direkt bu
+   görseli entegre etmiyoruz, hem gerçek hem iyi çekilmiş" dedi ve
+   firmanın gerçek fotoğrafını gösterdi: Süper S8002 E, tarlada
+   balyalarken (backoffice giriş ekranındaki fotoğrafın aynısı,
+   tools/kaynak/backoffice-giris-girdi.jpg, 1900x650).
+
+   Fotoğraf olduğu gibi duruyor; KIRPILMADI ve DEĞİŞTİRİLMEDİ. Yatay
+   fotoğraf dikey ekrana üstüne gökyüzü, altına tarla eklenerek
+   uzatıldı:
+     · Üstte gökyüzü, elle (kredisiz): fotoğrafın kendi açık ufkundan
+       yaz göğünün doygun mavisine geçiş, sağ üstte güneş (fotoğrafta
+       ışık sağdan geliyor). İlk hâlinde ufuk gri pusa, tepe koyu
+       laciverde bağlanıyordu; kullanıcı "kapalı bir hava, depresif"
+       dedi. Renkler doğrusal ışıkta karıştırılıyor: sRGB'de
+       karıştırınca mavi ile güneşin sıcak beyazı arası morumsu griye
+       kayıyordu.
+     · Altta tarla: Higgsfield'ın aynı fotoğraftan dikeye genişlettiği
+       görselin makinesiz tarla kısmı (tools/kaynak/karsilama-sahne-
+       uretim.jpg), parlaklığı fotoğrafa eşlenip 240 piksellik
+       geçişle eklendi; aşağıda markanın laciverdine iniyor. Düğmeler
+       o koyu zeminde duruyor.
+   Yerleşim ölçülerek seçildi: fotoğrafın tam genişliğinde makine
+   "paksan" yazısının hemen altında duruyor. Önce "1970'ten beri"
+   satırının üstüne de sığıyor sanıldı; bu yalnız 390x844'te
+   doğruydu, 320x568 ve 360x640'ta satır traktörün üstüne düşüyordu.
+   Aynı gün düğmeler ekranın dibine indi, söz de onların hemen
+   üstüne (Welcome.jsx); artan boşluk logonun altına gitti ve makine
+   ile söz arasında her boyda tarla kaldı (390x844'te makine
+   yaklaşık 330-430, söz 560 pikselden başlıyor). Amblem aşağı
+   kayınca görselin göğü tepeye yetmedi; gök 500 satır yukarı
+   uzatıldı.
+
+   Şafak kavramı kalktı: fotoğraf gündüz. Güneş halesi hafif bir
+   parıltıya indi (styles.css → .safak__isik). "paksan" yazısını
+   okutan koyuluk artık ekran boyu bir bant değil, yazının arkasında
+   yumuşak bir oval (styles.css → .safak__perde): bant ufukta gri bir
+   sis gibi duruyordu. --ufuk-foto artık güneş
+   değil amblemin hizalandığı gökyüzü noktası (%31,1). Görsel
+   1900x4486. Aşağıdaki iki bölüm önceki görsellere ait.
+
+   UFUKTAKİ MAKİNE PAKSAN'IN (önceki görsel)
 
    Üretilen sahnedeki makine PAKSAN'a benzemiyordu; kullanıcı
    "müşterilerimiz neden PAKSAN olmayan bir makine görsün" dedi.
@@ -41,7 +87,8 @@ import sahne from '../assets/gorseller/karsilama-sahne.jpg'
 
    GÜNEŞ AMBLEMİN ARKASINDA — VE BU ÖLÇÜLEREK KONUYOR
 
-   Görselde güneş ufukta, yüksekliğin %52,8'inde. Olduğu gibi
+   Önceki şafak görselinde güneş ufukta, yüksekliğin %52,8'indeydi
+   (bugünkü görselde amblemin noktası %31,1). Olduğu gibi
    yayılsaydı ufuk ekranın ortasına düşüyor ve "Yanınızdayız" yazısı
    güneşin en parlak ışığının üstünde kalıyordu (ölçüldü: kontrast
    2,34:1). Güneşin amblemin arkasına oturması hem bu sorunu çözüyor
@@ -78,8 +125,8 @@ let oynadi = false
 const SAHNE_SURESI = 7200
 
 /* Amblem ölçülemezse (ilk çizimden önce) kullanılan ufuk: 390x844
-   telefonda amblemin merkezi ekranın %23'ünde. */
-const VARSAYILAN_UFUK = 0.23
+   telefonda amblemin merkezi ekranın %29'unda. */
+const VARSAYILAN_UFUK = 0.29
 
 /** Amblemin merkezi: dikeyde sahne yüksekliğine oran, yatayda sahnenin
  * ortasından piksel farkı.

@@ -152,13 +152,20 @@ export const YAPILAN_IS = [
            saatin fiyatı herkese aynı. PAKSAN süreyi onaylıyor ya da
            gerekçesiyle düzeltiyor (bkz. veri.js → hakkedisDuzelt).
 
-   İKİ TARİFE BUGÜN KODDA. Sunucu geldiğinde PAKSAN'ın kendi tarifesinden
-   gelecek (veritabanında hakedis.Tarife, kalem türü yol ve iscilik); o
-   gün yalnız bu sabit yer değiştirecek, hesabın kendisi değişmeyecek.
+   TARİFE BACKOFFICE'TEN DEĞİŞİYOR (23 Eylül 2026, kullanıcının isteği).
+   Aşağıdaki TARIFE sabiti artık yalnız BAŞLANGIÇ tarifesi: personel
+   hiçbir ücret yazmadıysa geçerli olan ve eski kayıtların hesaplandığı
+   değer. Güncel ücret genel, makineye göre ve servise özel olarak
+   Servisler ekranından yazılıyor (bkz. lib/servisTarifesi.js). Bu sabit
+   ÇALIŞIRKEN DEĞİŞTİRİLMEZ; tohum betiği de (hakedis.Tarife, B02) onu
+   okuyor.
 
-   SAAT ÜCRETİ KAYDA YAZILIYOR (`saatUcreti`). Tarife değişince geçmiş
-   hak edişin tutarı değişmesin: kayıt gönderildiği günün ücretini
-   taşıyor, hesap onu okuyor. Katalogdaki parça görseliyle aynı ilke
+   İKİ ÜCRET DE KAYDA YAZILIYOR (`kmUcreti`, `saatUcreti`). Tarife
+   değişince geçmiş hak edişin tutarı değişmesin: kayıt gönderildiği
+   günün ücretini taşıyor, hesap onu okuyor. Km ücreti 23 Eylül 2026'ya
+   kadar yazılmıyordu — tarife sabitken gerek yoktu; o tarihten önceki
+   kayıtta alan yok ve başlangıç ücretiyle (12) okunuyor, o gün de
+   öyle hesaplanmıştı. Katalogdaki parça görseliyle aynı ilke
    (bkz. CLAUDE.md "Katalog değişince geçmiş işlem değişmez");
    veritabanında aynı işi tarifenin tarih aralığı görüyor.
 
@@ -225,11 +232,29 @@ export function duzeltmeYazisi(d) {
   return `${yol} · İşçilik ${paraYaz(d.onceki?.iscilik || 0)} → ${paraYaz(d.yeni?.iscilik || 0)} ${PARA_BIRIMI}`
 }
 
+/* Kaydın km ücreti: kaydın kendi ücreti, yoksa başlangıç tarifesi
+   (23 Eylül 2026'dan önceki kayıt; bkz. yukarıdaki TARIFE notu). */
+export function kmUcretiOku(kayit) {
+  return ucretVeyaBaslangic(kayit?.kmUcreti, TARIFE.yolKm)
+}
+
+/* Kaydın saat ücreti. Sıfır da geçerli bir ücret (personel bir servise
+   işçilik ödemiyor olabilir); yalnız alan hiç yoksa başlangıç tarifesi. */
+export function saatUcretiOku(kayit) {
+  return ucretVeyaBaslangic(kayit?.saatUcreti, TARIFE.iscilikSaat)
+}
+
+function ucretVeyaBaslangic(deger, baslangic) {
+  if (deger === null || deger === undefined || deger === '') return baslangic
+  const n = Number(deger)
+  return Number.isFinite(n) && n >= 0 ? n : baslangic
+}
+
 /* Kaydın işçilik tutarı. Süre varsa süre × kaydın ücreti; süresi olmayan
    eski kayıtta servisin yazdığı tutar. */
 function iscilikTutari(kayit) {
   if (kayit?.iscilikSaat != null) {
-    return Math.round(saatOku(kayit.iscilikSaat) * (Number(kayit.saatUcreti) || TARIFE.iscilikSaat))
+    return Math.round(saatOku(kayit.iscilikSaat) * saatUcretiOku(kayit))
   }
   return Math.max(0, Math.round(Number(kayit?.iscilik) || 0))
 }
@@ -245,7 +270,7 @@ export function hakkedisHesapla(kayit) {
     return { yol: 0, iscilik: 0, toplam: 0, kalemler: [] }
   }
   const km = Math.max(0, Number(kayit.km) || 0)
-  const yol = Math.round(km * TARIFE.yolKm)
+  const yol = Math.round(km * kmUcretiOku(kayit))
   const iscilik = iscilikTutari(kayit)
   const saat = saatOku(kayit.iscilikSaat)
 

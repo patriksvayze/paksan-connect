@@ -68,6 +68,21 @@
      AK-20  eski kayıt bugünkü saat ücretiyle hesaplanırsa     düştü
      AK-20  hakkedisDuzelt satıra süreyi yazmazsa              düştü
      AK-20  saatOku virgüllü süreyi ("2,5") okumazsa           düştü
+     AK-21  hak ediş km kalemini sabit tarifeyle hesaplarsa    düştü
+     AK-21  servisKaydiGonder ücreti kayda yazmazsa           düştü
+     AK-21  katman sırası: makine servisin önüne geçerse       düştü
+     AK-21  "özel ücretler de değişsin" uygulanmazsa           düştü
+     AK-21  "değişsin" değişmeyen kalemin özel ücretini silerse düştü
+     AK-21  ücreti değişmeyen servise de bildirim giderse      düştü
+     AK-22  servisParcaSiparisi eski oranı reddetmezse         düştü
+     AK-22  iskontoCoz servise özel oranı görmezse             düştü
+     AK-22  genel oran "özel oranlar da değişsin"i uygulamazsa düştü
+     AK-23  siparisTutari KDV'yi iskontosuz tutardan alırsa    düştü
+     AK-23  servisParcaSiparisi ek iskonto oranına bakmazsa    düştü
+     AK-23  aynı ek iskonto yeniden kaydedilince bildirirse    düştü
+     AK-23  ek iskonto bildirimi yalnız ilk servise giderse    düştü
+     AK-23  talepKapat ek iskontoyu cariden yeniden düşerse    düştü
+     AK-23  genelIskontoyuKaydet ek iskontoyu silerse          düştü
      ---    ortam.mjs'te depo taklidi kaldırılırsa    0. ADIM DURDURUR
 
    Son satır en önemlisi: src/lib/storage.js her hatayı yutup

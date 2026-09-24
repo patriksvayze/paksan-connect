@@ -89,7 +89,7 @@ otomasyon paketi kurulu değil. Buna karşılık dört şey var:
   çağrılmıyorsa yoktur.*
 - **Ekosistem sınaması** (`tools/ekosistem-sinamasi.mjs`) — üç
   uygulamanın PAYLAŞTIĞI veri katmanını Node içinde gerçekten
-  çalıştırıyor: yirmi akış senaryosu (AK-01…AK-20), talep açılışından
+  çalıştırıyor: yirmi üç akış senaryosu (AK-01…AK-23), talep açılışından
   hak edişin cariye yazılmasına kadar. Modüller Vite'ın
   `ssrLoadModule`'üyle yükleniyor, depo taklit ediliyor, saat donmuş,
   rastgelelik tohumlu. Ayrıntısı betiğin başında.
@@ -106,10 +106,10 @@ otomasyon paketi kurulu değil. Buna karşılık dört şey var:
   `--envanter` her alanın karşılığını basar.
 - **Ekosistem ekran turu** (`tools/ekosistem-turu.mjs`) — üç uygulamanın
   **gezilebilir yüzeyinin tamamını** Chrome'da açıyor: envanter
-  `tools/ekosistem/ekranlar.mjs` içinde (Connect 26, backoffice 16,
-  Servisim 8; artı rol bazlı menü, uygulamalar arası ispat, "gezinmek
+  `tools/ekosistem/ekranlar.mjs` içinde (Connect 26, backoffice 17,
+  Servisim 9; artı rol bazlı menü, uygulamalar arası ispat, "gezinmek
   kayıt yazmıyor" denetimi ve **on formun boş gönderimi**
-  (`tools/ekosistem/formlar.mjs`) — toplam 64 denetim). Her ekranda
+  (`tools/ekosistem/formlar.mjs`) — toplam 66 denetim). Her ekranda
   üç soru: boş mu açıldı, hata verdi mi, ekili değer basılı mı.
   Gidilemeyen ekran "ERİŞİLEMEDİ" diye AYRI sayılıyor; sessizce
   atlanmıyor. Yalnız ekilen değerleri arar (talep numarası, seri,
@@ -179,12 +179,78 @@ karşılığı `VT-TASARIM-EKLERI.md` §4.
 
 **İŞÇİLİK SÜREYLE YAZILIR** (22 Eylül 2026, kullanıcının kararı). Servis
 garanti kaydında işçilik TUTARI değil, işe harcadığı SÜREYİ yazar
-(yarım saat yazılabilir); tutar sabit saat ücretinden hesaplanır
-(`lib/servisKaydi.js → TARIFE.iscilikSaat`, bugün kullanıcının örnek
-rakamı 50). Kayıt o günün ücretini de taşır (`saatUcreti`): tarife
-değişince geçmiş hak ediş değişmez. `iscilik` alanı tutar olarak
-kalır; rapor, cari ve hak ediş onu okur. PAKSAN düzeltmeyi de süreyle
-yapar. Sınaması AK-20.
+(yarım saat yazılabilir); tutar saat ücretinden hesaplanır. Kayıt o
+günün ücretini de taşır (`saatUcreti`, 23 Eylül 2026'dan beri km için
+`kmUcreti`): tarife değişince geçmiş hak ediş değişmez. `iscilik` alanı
+tutar olarak kalır; rapor, cari ve hak ediş onu okur. PAKSAN düzeltmeyi
+de süreyle yapar ve düzeltme kaydın kendi ücretiyle hesaplanır.
+Sınaması AK-20.
+
+**HİZMET ÜCRETİ VE PARÇA İSKONTOSU BACKOFFICE'TEN** (23 Eylül 2026,
+kullanıcının isteği). İkisi de koddaki bir sabitti (`TARIFE`: 12 TL/km,
+50 TL/saat; `PARCA_SERVIS_ISKONTO`: %30); sabitler artık yalnız
+BAŞLANGIÇ değeri ve çalışırken değiştirilmez (tohum betikleri onları
+okuyor). Ücret Servisler ekranında: genel, makine modeline göre ve
+servise özel (servisin Düzenle penceresi); en özeli geçerli, sıra
+servis+model > servis > model > genel, kalem kalem
+(`lib/servisTarifesi.js`, gerekçe dosyanın başında). İskonto Yedek Parça
+Kataloğu ekranında: genel ve servise özel (`lib/servisFiyat.js →
+iskontoCoz`). Genel değer değişirken özel değeri olan servis varsa
+pencere onları adıyla listeleyip "onlar da değişsin mi" diye soruyor;
+evet denirse yalnız DEĞİŞEN kalemin özel değeri kalkar. İki ayrı yetki:
+`servisUcreti`, `servisIskontosu`. Ücret servis kaydına
+`servisKaydiGonder`'de, oran siparişe `servisParcaSiparisi`'nde yazılır;
+servis eski oranla hazırladığı siparişi gönderemez (veri katmanı
+reddeder, ekran tutarı yeniler). Değeri gerçekten değişen servise
+Servisim'de talebe bağlı olmayan bildirim gider (`tur: 'hesap'`);
+Servisim Hesap'ta "Ücretlendirmeler", Hak Ediş'te tek satırlık özet, sipariş
+ekranında indirim şeridi ve özet satırı gösterir. Servis ekranında
+"iskonto" yazmaz, "indirim" yazar. Connect'te karşılığı yok: ücret ve
+iskonto PAKSAN ile servis arasında. Sınaması AK-21, AK-22; veritabanı
+karşılığı `VT-TASARIM-EKLERI.md` §5, §6.
+İki kart da kapalı açılıyor (kullanıcının isteği, aynı gün): başlıkta
+genel değer ve özel değerli servis sayısı okunuyor, gerisi
+"Ayrıntıları Göster" ile (`ekranlar/ortak.jsx → AcilirTepe`).
+Servis listesinde "Özel Ücret" süzgeci var (24 Eylül 2026): yalnız
+makine modeline göre özel ücreti olan servis de "özel" sayılır.
+
+**BAKİYEDEN ÖDEMEDE EK İSKONTO** (24 Eylül 2026, kullanıcının isteği).
+Servis parça siparişini "Bakiyemden Düşülsün" ile öderse servis
+iskontosuna EK bir oran uygulanır. Tek genel oran:
+`parcaIskontosu.bakiye`, başlangıç `BAKIYE_EK_ISKONTO = 0` (personel
+girene kadar kapalı); Yedek Parça Kataloğu → Servis iskontosu kartının
+ikinci kutusu, yetkisi `servisIskontosu`. Tutar tek yerden:
+`lib/servisFiyat.js → siparisTutari` — servis iskontolu KDV hariç ara
+toplamdan düşülür, KDV ondan sonra; satır fiyatları değişmez. "Bakiye
+yeter" indirimli toplama bakar. Oran siparişe yazılır
+(`parcaFiyat.bakiyeIskontoOrani`, `bakiyeIskontoTutari`);
+`servisParcaSiparisi` eski oranı ve faturalı siparişin bu indirimi
+taşımasını reddeder. Oran değişince her servise bildirim gider (`olay:
+'bakiyeIskonto'`). Servisim: seçenekte rozet, özet ve onayda satır,
+Ücretlendirmeler'de kutu, sipariş detayında satır; oran sıfırken
+hiçbiri görünmez. Sınaması AK-23; veritabanı `VT-TASARIM-EKLERI.md` §8.
+
+**PARÇA KARTI ORTAK** (24 Eylül 2026, kullanıcının isteği): Connect'in
+yedek parça talebindeki parça seçimi Servisim'inkiyle aynı büyük
+görselli kartları ve montaj listesini kullanıyor. Kart
+`src/components/ParcaKarti.jsx`'te; `src/servis/ParcaKarti.jsx` onu
+Servisim'in "Görsel yok" yazısıyla saran ince bir kabuk. Connect servis
+kodunu içe aktarmıyor (`npm run dogrula` 4. kontrol); CSS iki kökte
+ayrı (`styles.css` Connect'in token'larıyla).
+
+**DUYURU HEDEFLEMESİ İKİ TARAFA DA** (23 Eylül 2026, kullanıcının
+isteği). Geri Çağırma yeni duyuru için kaldırıldı (eski kayıtlar doğru
+adla görünüyor, okuma tarafındaki "yalnız servise" kapısı duruyor);
+kalan türler tek "Bildirim Tipi" başlığı altında. Bölge, makine (model
+ya da seri numarası) ve servis süzgeçleri formda açık ve iki alıcıya da
+uygulanıyor: müşteride servis süzgeci makinesine bakan servise, serviste
+makine süzgeci baktığı makinelere, bölge servisin hizmet illerine
+bakıyor. Makine ve servis aynı makinede aranıyor. Kural
+`lib/duyuruHedef.js` başında; bağlamı `lib/servisAtama.js` veriyor
+(`makinelereServisEkle`, `servisDuyuruBaglami`) — Connect ve Servisim
+duyuru süzerken bu ikisini çağırmalı. Sınaması AK-09; veritabanı
+karşılığı `VT-TASARIM-EKLERI.md` §7. Bölge, makine ve servis kutuları
+kapalı açılıyor (24 Eylül 2026); başlıkta seçimin özeti yazıyor.
 
 **Fiyat teklifi servise değil bayiye gider.** Bayinin paneli yok:
 satış personeli bayiye telefonla haber veriyor, sistemde yalnız hangi

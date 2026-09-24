@@ -21,7 +21,8 @@
 
      Connect     `yol` — HashRouter adresi
      Backoffice  `menu` — kenar çubuğundaki sıra (MENU dizisinin sırası;
-                 koddan gelir, çeviriden değil)
+                 koddan gelir, çeviriden değil); ekranın içinde
+                 kapalı bir kart varsa `tikla` ile seçici
      Servisim    `sekme` — alt çubuktaki sıra, artı `tikla` ile seçici
 
    Bir ekrana otomatik gidilemiyorsa listede `erisilemez` gerekçesiyle
@@ -89,7 +90,9 @@ export const BACKOFFICE = [
   { kod: 'B-04', ad: 'Kayıtlı Makineler', menu: 3, iz: 'seri' },
   { kod: 'B-05', ad: 'Servisler', menu: 4, iz: 'servisAdi' },
   { kod: 'B-06', ad: 'Bayiler', menu: 5 },
-  { kod: 'B-07', ad: 'Yedek Parça Kataloğu', menu: 6 },
+  /* 23 Eylül 2026: servise özel iskonto kartı bu ekranda. Kart kapalı
+     açılıyor; tur önce başlığına basıyor (`tikla`). */
+  { kod: 'B-07', ad: 'Yedek Parça Kataloğu', menu: 6, iz: 'iskontoOrani', tikla: '.acilir-tepe__dugme' },
   { kod: 'B-08', ad: 'Geri Bildirimler', menu: 7 },
   { kod: 'B-09', ad: 'Raporlar', menu: 8 },
   { kod: 'B-10', ad: 'Destek Kayıtları', menu: 9 },
@@ -98,6 +101,9 @@ export const BACKOFFICE = [
   { kod: 'B-13', ad: 'Personel', menu: 12 },
   { kod: 'B-14', ad: 'Roller ve Yetkiler', menu: 13 },
   { kod: 'B-15', ad: 'İşlem Kaydı', menu: 14 },
+  /* Aynı Servisler ekranı, ikinci iz: servisin özel saat ücreti listenin
+     "Ücret" sütununda (23 Eylül 2026). Menü sırası değişmedi. */
+  { kod: 'B-16', ad: 'Servisler · Hizmet Ücreti', menu: 4, iz: 'saatUcreti' },
 ]
 
 /** Servisim — giriş ekranı, oturum tohumlanmadan. */
@@ -114,8 +120,11 @@ export const SERVISIM = [
   { kod: 'S-03', ad: 'Hak Ediş', sekme: 2, iz: 'hakkedis' },
   { kod: 'S-04', ad: 'Talep Detayı', sekme: 0, izeTikla: 'musteriAdi', iz: 'talepNo' },
   { kod: 'S-05', ad: 'Yeni Kayıt', sekme: 0, tikla: '.uyg__fab' },
-  { kod: 'S-06', ad: 'Sipariş Ver', sekme: 1, tikla: '.uyg__fab' },
+  /* Sipariş ekranının başında servisin indirim oranı (23 Eylül 2026). */
+  { kod: 'S-06', ad: 'Sipariş Ver', sekme: 1, tikla: '.uyg__fab', iz: 'iskontoOrani' },
   { kod: 'S-07', ad: 'Hesap', sekme: 0, tikla: '.uyg__hesap', iz: 'servisAdi' },
+  /* Hesap'taki "Ücretlendirmeler": servisin özel saat ücreti (23 Eylül 2026). */
+  { kod: 'S-08', ad: 'Hesap · Ücretlendirmeler', sekme: 0, tikla: '.uyg__hesap', iz: 'saatUcreti' },
 ]
 
 export const TOPLAM =

@@ -9,6 +9,7 @@ import { gorseliDosyayaCevir } from '../fiyatListesiGorseli'
 import { MARKA, PARA_BIRIMI, paraYaz } from '../../marka'
 import { Baslik, Bekleme, Bos, Sayfalama, siraliListe, SiraliBaslik, useSiralama } from './ortak'
 import { Secim, SuzgecCubugu } from './suzgec'
+import { ServisIskontosuKarti } from './ServisIskontosu'
 
 /* ==========================================================================
    Yedek Parça Kataloğu — PAKSAN'ın fiyat listesinin ekrandaki yüzü
@@ -486,6 +487,11 @@ export function ParcaKatalogu({ personel, rol, bildir, tazele, surum }) {
           <p className="kucuk sonuk" style={{ margin: '6px 0 0' }}>{METIN.uyariAlt}</p>
         </div>
       </div>
+
+      {/* Servis iskontosu (23 Eylül 2026, kullanıcının isteği: "Bunu Yedek
+          Parça Kataloğu ekranında yapabiliriz"). Ayrıntısı
+          ServisIskontosu.jsx başında. */}
+      <ServisIskontosuKarti personel={personel} rol={rol} bildir={bildir} tazele={tazele} surum={surum} />
 
       {duzenleyebilir && (
         <div className="kart" style={{ marginBottom: 14 }}>

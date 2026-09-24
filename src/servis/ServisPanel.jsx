@@ -18,8 +18,24 @@ import { DEMO_HESAP, demoAPKmi } from './demoKimlik'
 import { IconWrench, IconParca, IconShield, IconTag, IconRight } from '../components/Icons'
 import { useServisHaberi } from './haber'
 import { Logo, Amblem, MARKA, SIRKET } from '../marka'
-/* Giriş ekranının görseli: PAKSAN ORKINOS 1270'İN BAŞINDA SERVİS
+/* Giriş ekranının görseli: PAKSAN ORKA 870'İN BAŞINDA SERVİS
    TEKNİSYENİ, ŞAFAKTA TARLADA.
+
+   ORKA 870 GERÇEK FOTOĞRAFTAN (24 Eylül 2026, kullanıcının isteği:
+   "Orkinos'a müdahale eden servis personeli görseli Orka 870 ile
+   değiştirilecek. Her şey aynı, sadece makine değişecek").
+   İlk deneme makineyi yapay zekâya yeniden çizdirdi; kullanıcı
+   "gerçeğine hiç benzemiyor" dedi. Bu yüzden makine çizdirilmedi:
+   katalogdaki Orka 870 fotoğrafından (marka/varliklar/urunler/
+   orka-870.jpg) arka planı ayrılıp sahneye yerleştirildi, ışığı
+   şafağa göre elle ısıtıldı. Aynı sahnenin makinesiz, teknisyensiz
+   hâli Higgsfield'a (GPT Image 2.5) boşaltıldı; teknisyen ve takım
+   çantası model tarafından eklendi, sonra makinenin pikselleri
+   fotoğraftakiyle geri yazıldı — modelin bozduğu "king of the bale"
+   yazısı dahil. Birleşik girdi: tools/kaynak/servis-giris-orka870-
+   birlesik.jpg. Aşağıdaki not Orkinos'lu önceki görsele ait.
+
+   (Önceki görsel) ORKINOS 1270'İN BAŞINDA SERVİS TEKNİSYENİ.
 
    Konu uygulamanın kullanıcısının kendisi: makine duruyor, teknisyen
    toplayıcının zincir dişlisinde anahtarla çalışıyor, yanında açık
@@ -50,11 +66,12 @@ import { Logo, Amblem, MARKA, SIRKET } from '../marka'
 
    Kaynak tools/kaynak/servis-giris-orkinos-girdi.jpg (1792x2400,
    işlenmemiş üretim); uygulamadaki dosya 1200x1607 JPEG. */
-import girisGorseli from '../assets/gorseller/servis-giris-orkinos.jpg'
+import girisGorseli from '../assets/gorseller/servis-giris-orka870.jpg'
 import { TalepDetay } from './ekranlar/TalepDetay'
 import { Isler } from './ekranlar/Islerim'
 import { Parca } from './ekranlar/Parca'
 import { Bayilerim } from './ekranlar/Bayilerim'
+import { Ucretlerim } from './ekranlar/Ucretlerim'
 import { SiparisVer } from './ekranlar/SiparisVer'
 import { Hakkedis } from './ekranlar/Hakkedis'
 import { ElleKayit } from './ekranlar/ElleKayit'
@@ -603,7 +620,9 @@ function Uygulama({ oturum, onCikis }) {
      artık sekmeli kabuğun içinde açılıyor, sol üstte "Geri" var, alt
      menüden bir sekmeye dokunmak Hesap'ı kapatıp o sekmeyi açıyor. Yeni
      Kayıt ve Sipariş Ver birer form; onlar alt sayfa olarak kalıyor. */
-  if (alt === 'hesap') {
+  /* `ucretler`: Hesap açılıp "Ücretlendirmeler" bölümüne kayılıyor —
+     Hak Ediş'teki özet satırdan ve ücret/indirim bildiriminden gelindi. */
+  if (alt === 'hesap' || alt === 'ucretler') {
     return (
       <Kabuk
         baslik="Hesap"
@@ -616,7 +635,7 @@ function Uygulama({ oturum, onCikis }) {
           setSekme(id)
         }}
       >
-        <Hesap oturum={oturum} onCikis={onCikis} />
+        <Hesap oturum={oturum} onCikis={onCikis} surum={tazele} ucretlereOdak={alt === 'ucretler'} />
       </Kabuk>
     )
   }
@@ -660,6 +679,7 @@ function Uygulama({ oturum, onCikis }) {
           bekleyen={bekleyen}
           biten={biten}
           onAc={setAcik}
+          onUcretler={() => setAlt('ucretler')}
           sekme={isSekme}
           onSekme={setIsSekme}
         />
@@ -672,7 +692,9 @@ function Uygulama({ oturum, onCikis }) {
           surum={tazele}
         />
       )}
-      {sekme === 'hakkedis' && <Hakkedis oturum={oturum} onAc={setAcik} />}
+      {sekme === 'hakkedis' && (
+        <Hakkedis oturum={oturum} onAc={setAcik} surum={tazele} onUcretler={() => setAlt('ucretler')} />
+      )}
     </Kabuk>
   )
 }
@@ -685,7 +707,7 @@ function Uygulama({ oturum, onCikis }) {
 
 /* ---------------------------------------------------------------- Hesap */
 
-function Hesap({ oturum, onCikis }) {
+function Hesap({ oturum, onCikis, surum, ucretlereOdak }) {
   /* ÇIKIŞ ONAYLA YAPILIYOR (14 Eylül 2026, kullanıcının bildirdiği hata).
      Düğmeye basıldığı anda oturum kapanıyordu. Sahada eldivenle, tek
      elle kullanılan ekranda yanlış dokunuş kullanıcıyı giriş ekranına
@@ -709,6 +731,11 @@ function Hesap({ oturum, onCikis }) {
           iş verisi bu; alttaki liste PAKSAN'ın bağladığı, okunur bir
           liste. Gerekçe ve düzen ekranlar/Adreslerim.jsx başında. */}
       <Adreslerim oturum={oturum} />
+
+      {/* ÜCRETLERİNİZ (23 Eylül 2026, kullanıcının isteği: "Servisim
+          uygulamasında da kullanıcının güncel tarifeyi görebileceği bir
+          alan yaratılmalı"). Ayrıntısı ekranlar/Ucretlerim.jsx başında. */}
+      <Ucretlerim oturum={oturum} surum={surum} odak={ucretlereOdak} />
 
       <Bayilerim oturum={oturum} />
 

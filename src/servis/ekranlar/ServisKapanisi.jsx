@@ -12,7 +12,6 @@ import {
 import { telGiris } from '../../lib/tel'
 import {
   ASAMA,
-  TARIFE,
   YAPILAN_IS,
   eksikAlanlar,
   hakkedisHesapla,
@@ -22,7 +21,7 @@ import {
   temizParcalar,
 } from '../../lib/servisKaydi'
 import { ekYaz, fotoKucult } from '../../lib/ekler'
-import { servisKaydiGonder } from '../../backoffice/veri'
+import { servisinTarifesi, servisKaydiGonder } from '../../backoffice/veri'
 import { Bolum, Onay, Sayfa } from '../Kabuk'
 import { ParcaTablosu } from '../../components/ParcaTablosu'
 import { ParcaSec } from './ParcaSec'
@@ -241,6 +240,12 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
     acikAdres: adres.trim(),
   }
 
+  /* ÜCRET SERVİSİN VE MAKİNENİN KENDİ ÜCRETİ (23 Eylül 2026). Tarife
+     artık backoffice'ten değişiyor; servise ve makinenin modeline göre
+     farklı olabiliyor (bkz. lib/servisTarifesi.js). Ön hesap ve ipuçları
+     aynı işlevden; kaydı gönderirken veri katmanı ücreti bir kez daha
+     okuyup kayda yazıyor (veri.js → servisKaydiGonder). */
+  const tarife = servisinTarifesi(oturum.servisId, urun?.id || talep.makine?.productId || null)
   const kayit = {
     asama,
     kapi: 'garanti',
@@ -249,7 +254,8 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
     parcalar,
     foto,
     km: Number(km) || 0,
-    ...iscilikAlanlari(saat),
+    kmUcreti: tarife.yolKm,
+    ...iscilikAlanlari(saat, tarife.iscilikSaat),
   }
   const hakkedis = hakkedisHesapla(kayit)
 
@@ -601,7 +607,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
               deger={km}
               onDegis={(v) => setKm(v.replace(/\D/g, ''))}
               tur="sayi"
-              ipucu={`Gidiş ve dönüş toplamı · kilometre başına ${paraYaz(TARIFE.yolKm)} ${PARA_BIRIMI}`}
+              ipucu={`Gidiş ve dönüş toplamı · kilometre başına ${paraYaz(tarife.yolKm)} ${PARA_BIRIMI}`}
             />
             {/* Süre yarım saatle yazılabiliyor: rakam ve tek bir virgül,
                 virgülden sonra tek hane. Nokta yazan da virgüle çevriliyor. */}
@@ -610,7 +616,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
               deger={saat}
               onDegis={(v) => setSaat(saatGirdisi(v))}
               tur="ondalik"
-              ipucu={`İşe harcadığınız toplam süre · saat başına ${paraYaz(TARIFE.iscilikSaat)} ${PARA_BIRIMI} · yarım saat için 0,5 yazın`}
+              ipucu={`İşe harcadığınız toplam süre · saat başına ${paraYaz(tarife.iscilikSaat)} ${PARA_BIRIMI} · yarım saat için 0,5 yazın`}
             />
 
             {hakkedis.kalemler.length > 0 && (

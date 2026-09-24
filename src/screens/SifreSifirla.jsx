@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppState'
 import { useDil } from '../i18n'
-import { Rozet } from '../marka'
 import { TelefonAlani } from '../components/TelefonAlani'
 import { SifreAlani } from '../components/SifreAlani'
 import { telGecerliMi, telGoster } from '../lib/tel'
@@ -138,15 +137,14 @@ export default function SifreSifirla() {
             <IconBack size={21} />
             {t('ortak.geri')}
           </button>
-          <div className="spacer" />
-          <Rozet />
-        </div>
-        <div className="topbar__titles">
-          <h1>
-            {adim === 'telefon' && t('sifre.unuttumBaslik')}
-            {adim === 'kod' && t('sifre.kodBaslik')}
-            {adim === 'yeni' && t('sifre.yeniBaslik')}
-          </h1>
+          {/* Logo başlıkta yok; sayfa adı onun yerinde (bkz. components/Chrome.jsx → TopBar). */}
+          <div className="topbar__ad topbar__ad--sag">
+            <h1>
+              {adim === 'telefon' && t('sifre.unuttumBaslik')}
+              {adim === 'kod' && t('sifre.kodBaslik')}
+              {adim === 'yeni' && t('sifre.yeniBaslik')}
+            </h1>
+          </div>
         </div>
       </header>
 

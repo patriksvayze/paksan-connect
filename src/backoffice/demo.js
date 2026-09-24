@@ -238,7 +238,9 @@ const DUYURULAR = [
   },
   {
     tur: 'uyari',
-    alt: 'geriCagirma',
+    /* Önce 'geriCagirma' idi; tür yeni duyuru için kaldırıldı (23 Eylül
+       2026). Servise giden güvenlik uyarısı olarak duruyor. */
+    alt: 'guvenlik',
     baslik: 'ORK1270-2024 serisi düğüm atıcı kontrolü',
     metin: 'ORK1270-2024 seri numaralı makinelerin düğüm atıcı yayında üretim kaynaklı kırılma görüldü. Bu makineleri kullanan müşterilerinizi arayıp servise çağırın. Değişim bedelsizdir; yay stoku servislere gönderildi.',
     hedef: { kime: 'servis' },

@@ -101,10 +101,21 @@ export const DUYURU_ALT = [
     varsayilanKime: 'servis',
     kilitliKime: 'servis',
     ipucu: 'Örnek: ORK1270-2024 serisi düğüm atıcı kontrolü',
+    /* YENİ YAYINLANMIYOR (23 Eylül 2026, kullanıcının isteği: "Geri
+       Çağırma önemli uyarısını kaldır"). Backoffice formunda seçenek
+       yok; tür burada eski kayıtlar doğru adla ve renkle görünsün,
+       okuma tarafının "yalnız servise" kapısı da onlar için çalışmaya
+       devam etsin diye duruyor (lib/duyuruHedef.js). Belirli seri
+       numaralı makineler için yapılacak duyuru artık Güvenlik Uyarısı
+       ile ve Hedefleme'deki seri numarası alanıyla gönderiliyor. */
+    yayinlanmaz: true,
   },
 ]
 
-/* Üst tür başlıkları — backoffice formunda iki öbek olarak duruyor. */
+/* Üst tür başlıkları. Backoffice formunda artık öbek başlığı olarak
+   görünmüyor — türler tek "Bildirim Tipi" başlığı altında (23 Eylül
+   2026, kullanıcının isteği) — ama hukuki sınıfın açıklaması (`kime`)
+   seçilen türün altında yazmaya devam ediyor. */
 export const DUYURU_UST = [
   {
     id: 'duyuru',
@@ -134,4 +145,9 @@ export function altBilgi(kayit) {
 /** Bir üst türün alt türleri. */
 export function altTurler(ust) {
   return DUYURU_ALT.filter((x) => x.ust === ust)
+}
+
+/** Backoffice'te yeni duyuru için seçilebilen türler (yayından kalkanlar hariç). */
+export function yayinlanabilirTurler() {
+  return DUYURU_ALT.filter((x) => !x.yayinlanmaz)
 }

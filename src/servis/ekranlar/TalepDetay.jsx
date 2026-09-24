@@ -18,7 +18,7 @@ import { teslimatYazisi } from '../../lib/teslimat'
 import { bugunGirdi, ileriTarihMi } from '../../lib/tarih'
 import { makineDurumAdi } from '../../data/talepAlanlari'
 import { getProduct, MARKA, markaEk } from '../../marka'
-import { PARA_BIRIMI, paraYaz } from '../../marka'
+import { KDV_HARIC_LISTE, KDV_ORANI, PARA_BIRIMI, paraYaz } from '../../marka'
 import { ServisKapanisi, Secenekler } from './ServisKapanisi'
 import { servisFormuPaylas, servisFormuVarMi } from '../servisFormu'
 import { Onay, Sayfa } from '../Kabuk'
@@ -959,12 +959,70 @@ function ServisFormuDugmesi({ talep, servisAd }) {
 function ParcaDurumu({ talep }) {
   const parcalar = talebinParcalari(talep)
   if (!parcalar.length) return null
+  const g = talep.servisSiparisi ? talep.parcaFiyat : null
   return (
     <div style={{ marginTop: 10 }}>
       <div className="kucuk sonuk" style={{ marginBottom: 6 }}>
         İstenen Parçalar
       </div>
       <ParcaTablosu parcalar={parcalar} />
+      {/* SİPARİŞİN İNDİRİMİ (23 Eylül 2026). Sipariş o günkü indirim
+          oranını taşıyor (veri.js → servisParcaSiparisi); servis
+          verdiği siparişte ne kadar indirim aldığını burada da görüyor.
+          Oranı taşımayan eski siparişte bölüm çıkmıyor. */}
+      {g && g.iskontoOrani !== undefined && g.listeToplam !== undefined && (
+        <div className="fiyat-kart" style={{ marginTop: 10, marginBottom: 0 }}>
+          <div className="urun-kart__satir">
+            <span>Liste fiyatıyla toplam</span>
+            <strong>
+              {paraYaz(g.listeToplam)} {PARA_BIRIMI}
+            </strong>
+          </div>
+          <div className="urun-kart__satir urun-kart__satir--indirim">
+            <span>Yedek parça indiriminiz (%{Math.round(g.iskontoOrani * 100)})</span>
+            <strong>
+              −{paraYaz(g.iskontoTutari)} {PARA_BIRIMI}
+            </strong>
+          </div>
+          {/* Bakiyeden ödemede ek indirim (24 Eylül 2026): sipariş o
+              günkü oranı ve düşülen tutarı taşıyor; yalnız uygulandıysa. */}
+          {Number(g.bakiyeIskontoTutari) > 0 && (
+            <div className="urun-kart__satir urun-kart__satir--indirim">
+              <span>Bakiyeden ödeme ek indirimi (%{Math.round(g.bakiyeIskontoOrani * 100)})</span>
+              <strong>
+                −{paraYaz(g.bakiyeIskontoTutari)} {PARA_BIRIMI}
+              </strong>
+            </div>
+          )}
+          {/* ARA TOPLAM VE KDV (24 Eylül 2026). Liste toplamından
+              indirimler düşülünce ara toplam çıkıyor; genel toplam KDV
+              dâhil. Bu iki satır yokken servis satırları toplayınca genel
+              toplamdan %20 eksik bir rakama varıyordu. Sipariş ekranındaki
+              özetle aynı satırlar (bkz. SiparisVer.jsx → Ozet). */}
+          {g.araToplam !== undefined && (
+            <div className="urun-kart__satir">
+              <span>Ara toplam</span>
+              <strong>
+                {paraYaz(g.araToplam)} {PARA_BIRIMI}
+              </strong>
+            </div>
+          )}
+          {KDV_HARIC_LISTE && g.kdv !== undefined && (
+            <div className="urun-kart__satir">
+              <span>KDV %{Math.round(KDV_ORANI * 100)}</span>
+              <strong>
+                {paraYaz(g.kdv)} {PARA_BIRIMI}
+              </strong>
+            </div>
+          )}
+          <div className="urun-kart__satir urun-kart__satir--vurgu">
+            <span>Genel toplam</span>
+            <strong>
+              {paraYaz(g.toplam)} {PARA_BIRIMI}
+            </strong>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

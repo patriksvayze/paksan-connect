@@ -527,6 +527,79 @@ const UYGULAMA = [
   { ad: '29-numara-degisikligi', baslik: 'Numara değişikliği', yol: '/numara-degisikligi' },
 ]
 
+/* HİZMET ÜCRETİ VE SERVİS İSKONTOSU TOHUMU (23 Eylül 2026).
+
+   Ücret ve iskonto ekranları boş hâlde yalnız başlangıç değerlerini
+   gösteriyor; sunum görselinde özelliğin ne işe yaradığı görünsün diye
+   gerçekçi bir durum yazılıyor: iki makinede farklı saat ücreti, iki
+   serviste özel ücret, iki serviste özel iskonto. Değerler uydurma
+   değil, ekranın yapabildiklerinin örneği; kimlikler uygulamanın kendi
+   servis ve ürün kimlikleri. Sahne tohumdan sonra sayfayı yeniliyor. */
+const UCRET_TOHUMU = `(() => {
+  const ic = JSON.parse(localStorage.getItem('paksan.panelIcerik') || '{}');
+  const once = Date.now() - 3 * 86400000;
+  ic.hizmetTarifesi = {
+    genel: { yolKm: 12, iscilikSaat: 50, guncelleme: { tarih: once, personel: 'Sistem Yöneticisi' } },
+    modeller: { 'orkinos-1270': { iscilikSaat: 80 }, 'orkinos-870': { iscilikSaat: 70 } },
+    servisler: {
+      'konya-servis': { iscilikSaat: 60, modeller: { 'orkinos-1270': { iscilikSaat: 90 } }, guncelleme: { tarih: once, personel: 'Sistem Yöneticisi' } },
+      'ankara-servis': { yolKm: 15, modeller: {}, guncelleme: { tarih: once, personel: 'Sistem Yöneticisi' } },
+    },
+  };
+  /* bakiye: bakiyeden ödemede ek iskonto (24 Eylül 2026) — sahnelerde
+     Servis iskontosu kartının ikinci karosu, Servisim'de ödeme rozeti ve
+     Ücretlendirmeler karosu görünsün diye açık. */
+  ic.parcaIskontosu = {
+    genel: 0.3,
+    servisler: { 'konya-servis': 0.35, 'ankara-servis': 0.32 },
+    bakiye: 0.03,
+    guncelleme: { tarih: once, personel: 'Sistem Yöneticisi' },
+  };
+  localStorage.setItem('paksan.panelIcerik', JSON.stringify(ic));
+  setTimeout(() => location.reload(), 50);
+  return 'OK';
+})()`
+
+/* Kapalı açılan kartı (ortak.jsx → AcilirTepe) açar; açıksa dokunmaz —
+   bir önceki sahne açık bırakmış olabilir, basmak onu kapatırdı. */
+const KARTI_AC = `(() => {
+  const b = document.querySelector('.acilir-tepe__dugme');
+  if (!b) return 'YOK';
+  if (b.getAttribute('aria-expanded') !== 'true') b.click();
+  return 'OK';
+})()`
+
+/* Duyurular hedefleme kutularını açar (24 Eylül 2026'dan beri kapalı
+   açılıyorlar); açık olana dokunmaz. */
+const hedefKutulariniAc = `(() => {
+  const d = [...document.querySelectorAll('.hedefleme .hedef-blok__dugme')];
+  if (!d.length) return 'YOK';
+  d.forEach((b) => b.getAttribute('aria-expanded') !== 'true' && b.click());
+  return 'OK';
+})()`
+
+/* Duyurular hedeflemesinde bir çipe basar: kutu sırası (0 bölge, 1 model,
+   2 servis) ve çipin yazısı; yazı boşsa kutudaki ilk çip. */
+const hedefCipi = (kutu, yazi) => `(() => {
+  const k = document.querySelectorAll('.hedefleme .hedef-blok')[${kutu}];
+  if (!k) return 'YOK';
+  const c = [...k.querySelectorAll('.cip')].find((x) => ${JSON.stringify(yazi)} ? x.innerText.trim() === ${JSON.stringify(yazi)} : true);
+  if (!c) return 'YOK';
+  c.click();
+  return 'OK';
+})()`
+
+/* React'in denetlediği kutuya değer yazmak: değer doğrudan atanırsa
+   React değişikliği görmüyor; yerleşik ayarlayıcı ve input olayı. */
+const kutuyaYaz = (secici, sira, deger) => `(() => {
+  const el = document.querySelectorAll(${JSON.stringify(secici)})[${sira}];
+  if (!el) return 'YOK';
+  const p = Object.getOwnPropertyDescriptor(el.constructor.prototype, 'value').set;
+  p.call(el, ${JSON.stringify(deger)});
+  el.dispatchEvent(new Event('input', { bubbles: true }));
+  return 'OK';
+})()`
+
 const BACKOFFICE = [
   { ad: '40-backoffice-giris', baslik: 'Backoffice girişi', giris: false },
   { ad: '41-dashboard', baslik: 'Dashboard', menu: 'Dashboard' },
@@ -540,15 +613,116 @@ const BACKOFFICE = [
      "Servis atanmamış" onay kutusuyla değişti (bkz. Makineler.jsx).
      Sahnesi hiç yoktu — sidebar'da bağlantı var ama liste dışıydı. */
   { ad: '44b-kayitli-makineler', baslik: 'Kayıtlı Makineler', menu: 'Kayıtlı Makineler' },
+  /* Hizmet ücretleri (23 Eylül 2026): Servisler sayfasının üstündeki kart
+     ve listedeki "Ücret" sütunu; genel ücret değişirken özel ücretli
+     servisler için çıkan uyarı; servis formundaki özel ücret alanı. */
+  {
+    ad: '44c-servis-ucretleri', baslik: 'Servisler — hizmet ücretleri', menu: 'Servisler',
+    adimlar: [
+      { js: UCRET_TOHUMU },
+      { bekle: 1800 },
+      { tiklaMetin: 'Servisler', kapsam: '.yan__bag' },
+      { bekle: 900 },
+      /* Kart kapalı açılıyor (kullanıcının isteği); görselde içi görünsün. */
+      { js: KARTI_AC },
+      { bekle: 500 },
+    ],
+  },
+  {
+    ad: '44d-servis-ucret-uyari', baslik: 'Servisler — özel ücretli servis uyarısı', menu: 'Servisler',
+    adimlar: [
+      { js: KARTI_AC },
+      { bekle: 400 },
+      { tiklaMetin: 'Ücretleri Düzenle' },
+      { bekle: 400 },
+      { js: kutuyaYaz('.ucret-kart .esit input', 1, '55') },
+      { bekle: 300 },
+      { tiklaMetin: 'Kaydet', kapsam: '.ucret-kart button' },
+      { bekle: 600 },
+    ],
+  },
+  {
+    ad: '44e-servis-formu-ucret', baslik: 'Servis formu — servise özel ücret', menu: 'Servisler',
+    adimlar: [
+      {
+        js: `(() => {
+          const satir = [...document.querySelectorAll('tbody tr')].find((tr) => tr.innerText.includes('Selçuk'));
+          const d = satir && [...satir.querySelectorAll('button')].find((b) => b.innerText.includes('Düzenle'));
+          if (!d) return 'YOK';
+          d.click();
+          return 'OK';
+        })()`,
+      },
+      { bekle: 600 },
+      /* Pencere kendi içinde kayıyor; sayfa kaydırması oraya inmiyor. */
+      { js: `(() => { const e = document.querySelector('.ucret-ozet'); if (!e) return 'YOK'; e.scrollIntoView({ block: 'center' }); return 'OK' })()` },
+      { bekle: 300 },
+    ],
+  },
+  /* Özel Ücret süzgeci (24 Eylül 2026): yalnız servise özel ücreti olanlar. */
+  {
+    ad: '44f-servis-ozel-ucret-suzgeci', baslik: 'Servisler — özel ücret süzgeci', menu: 'Servisler',
+    adimlar: [
+      { js: UCRET_TOHUMU },
+      { bekle: 1800 },
+      { tiklaMetin: 'Servisler', kapsam: '.yan__bag' },
+      { bekle: 900 },
+      {
+        js: `(() => {
+          const s = [...document.querySelectorAll('select.sec')].find((x) => [...x.options].some((o) => o.value === 'ozel'));
+          if (!s) return 'YOK';
+          const p = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value').set;
+          p.call(s, 'ozel');
+          s.dispatchEvent(new Event('change', { bubbles: true }));
+          return 'OK';
+        })()`,
+      },
+      { bekle: 500 },
+    ],
+  },
   {
     ad: '45-musteri-detay', baslik: 'Müşteri detayı', menu: 'Müşteriler',
     adimlar: [{ tiklaSira: 'tbody tr', sira: 0 }, { bekle: 600 }],
   },
   { ad: '46-bayiler', baslik: 'Bayiler', menu: 'Bayiler' },
+  /* Servis iskontosu (23 Eylül 2026): Yedek Parça Kataloğu ekranı. */
+  {
+    ad: '46b-servis-iskontosu', baslik: 'Yedek Parça Kataloğu — servis iskontosu', menu: 'Yedek Parça Kataloğu',
+    adimlar: [
+      { js: UCRET_TOHUMU },
+      { bekle: 1800 },
+      { tiklaMetin: 'Yedek Parça Kataloğu', kapsam: '.yan__bag' },
+      { bekle: 900 },
+      { js: KARTI_AC },
+      { bekle: 500 },
+      { kaydirSecici: '.iskonto-satir', bosluk: 260 },
+      { bekle: 300 },
+    ],
+  },
   { ad: '47-geri-bildirimler', baslik: 'Geri Bildirimler', menu: 'Geri Bildirimler' },
   { ad: '48-raporlar', baslik: 'Raporlar', menu: 'Raporlar' },
   { ad: '49-destek-kayitlari', baslik: 'Destek Kayıtları', menu: 'Destek Kayıtları' },
   { ad: '50-duyurular', baslik: 'Duyurular', menu: 'Duyurular' },
+  /* Hedefleme (23 Eylül 2026): bölge, makine ve servis formda açık;
+     örnek seçim iki il, bir model, bir servis. */
+  {
+    ad: '50b-duyuru-hedefleme', baslik: 'Duyurular — hedefleme', menu: 'Duyurular',
+    adimlar: [
+      /* Kutular kapalı açılıyor; önce üçü de açılıyor, çipler sonra. */
+      { js: hedefKutulariniAc },
+      { bekle: 300 },
+      { js: hedefCipi(0, 'Konya') },
+      { bekle: 200 },
+      { js: hedefCipi(0, 'Karaman') },
+      { bekle: 200 },
+      { js: hedefCipi(1, '') },
+      { bekle: 200 },
+      { js: hedefCipi(2, '') },
+      { bekle: 300 },
+      { kaydirSecici: '.hedefleme', bosluk: 90 },
+      { bekle: 300 },
+    ],
+  },
   { ad: '51-numara-talepleri', baslik: 'Numara Değişikliği Talepleri', menu: 'Numara Değişikliği' },
   { ad: '52-personel', baslik: 'Personel', menu: 'Personel' },
   { ad: '53-islem-kaydi', baslik: 'İşlem Kaydı', menu: 'İşlem Kaydı' },
@@ -684,6 +858,57 @@ const SERVIS = [
       },
       { bekle: 600 },
       { kaydirSecici: '.not__onay', bosluk: 200 },
+      { bekle: 300 },
+    ],
+  },
+  /* Ücretlendirmeler (23 Eylül 2026): Hesap ekranındaki bölüm; servisin özel
+     saat ücreti, makineye göre farklar ve parça indirimi. */
+  {
+    ad: '66-servisim-ucretlerim', baslik: 'Servisim — ücretlendirmeler',
+    adimlar: [
+      { js: UCRET_TOHUMU },
+      { bekle: 2200 },
+      { tikla: '.uyg__hesap' },
+      { bekle: 700 },
+      { kaydirSecici: '#ucretlerim', bosluk: 80 },
+      { bekle: 300 },
+    ],
+  },
+  /* Sipariş ekranı: indirim şeridi ve liste fiyatı üstü çizili kartlar,
+     sonra özet — liste fiyatıyla toplam, indirim, ara toplam. */
+  {
+    ad: '67-servisim-siparis-indirim', baslik: 'Servisim — sipariş, indirimli fiyatlar',
+    adimlar: [
+      { js: UCRET_TOHUMU },
+      { bekle: 2200 },
+      { tiklaMetin: 'Parça', kapsam: '.uyg__tab' },
+      { bekle: 500 },
+      { tikla: '.uyg__fab' },
+      { bekle: 2600 },
+      { tiklaSira: '.montaj', sira: 0 },
+      { bekle: 900 },
+      { tiklaSira: '.parca-kart__ac', sira: 0 },
+      { tiklaSira: '.parca-kart__ac', sira: 1 },
+      { bekle: 500 },
+      { kaydirSecici: '.parca-izgara', bosluk: 330 },
+      { bekle: 300 },
+    ],
+  },
+  {
+    ad: '67b-servisim-siparis-ozeti', baslik: 'Servisim — sipariş özeti, indirim satırı',
+    adimlar: [
+      { tiklaMetin: 'Parça', kapsam: '.uyg__tab' },
+      { bekle: 500 },
+      { tikla: '.uyg__fab' },
+      { bekle: 2600 },
+      { tiklaSira: '.montaj', sira: 0 },
+      { bekle: 900 },
+      { tiklaSira: '.parca-kart__ac', sira: 0 },
+      { tiklaSira: '.parca-kart__ac', sira: 1 },
+      { bekle: 400 },
+      { tiklaMetin: 'Devam' },
+      { bekle: 800 },
+      { kaydirSecici: '.fiyat-kart', bosluk: 120 },
       { bekle: 300 },
     ],
   },

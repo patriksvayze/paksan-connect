@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom'
 import { useDil } from '../i18n'
-import { Rozet } from '../marka'
 import { NumaraTalepFormu } from '../components/NumaraTalepFormu'
 import { IconBack } from '../components/Icons'
 
@@ -43,11 +42,10 @@ export default function NumaraDegisikligi() {
             <IconBack size={21} />
             {t('ortak.geri')}
           </button>
-          <div className="spacer" />
-          <Rozet />
-        </div>
-        <div className="topbar__titles">
-          <h1>{t('numara.baslik')}</h1>
+          {/* Logo başlıkta yok; sayfa adı onun yerinde (bkz. components/Chrome.jsx → TopBar). */}
+          <div className="topbar__ad topbar__ad--sag">
+            <h1>{t('numara.baslik')}</h1>
+          </div>
         </div>
       </header>
 

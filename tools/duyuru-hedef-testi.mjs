@@ -126,6 +126,70 @@ bak(
   'güvenlik uyarısı müşteriye gider',
 )
 
+/* 11b. BÖLGE, MAKİNE VE SERVİS İKİ TARAFA DA (23 Eylül 2026).
+
+       Müşteride servis süzgeci makinenin servisine bakıyor (`servisId`
+       çağıran ekliyor); makine ve servis AYNI makinede aranıyor.
+       Serviste bölge servisin ili ya da hizmet verdiği iller, makine
+       süzgeci servisin baktığı makineler. */
+const servisliMakineler = [
+  { productId: 'orkinos-1270', serial: 'ORK1270-2024-00157', servisId: 'konya-merkez' },
+  { productId: 'orkinos-870', serial: 'ORK870-2023-00011', servisId: 'eregli' },
+]
+const hedefli = (hedef) => ({ ...uyari, hedef })
+bak(
+  duyuruGecerliMi(hedefli({ kime: 'musteri', servisler: ['eregli'] }), { user: izinli, makineler: servisliMakineler }),
+  true,
+  'servis seçilmiş duyuru o servisin müşterisine gider',
+)
+bak(
+  duyuruGecerliMi(hedefli({ kime: 'musteri', servisler: ['izmir'] }), { user: izinli, makineler: servisliMakineler }),
+  false,
+  'başka servisin müşterisine gitmez',
+)
+bak(
+  duyuruGecerliMi(hedefli({ kime: 'musteri', servisler: ['eregli'], urunler: ['orkinos-1270'] }), {
+    user: izinli,
+    makineler: servisliMakineler,
+  }),
+  false,
+  'servis ve model iki ayrı makineden sağlanırsa gitmez',
+)
+bak(
+  duyuruGecerliMi(hedefli({ kime: 'musteri', servisler: ['eregli'], urunler: ['orkinos-870'] }), {
+    user: izinli,
+    makineler: servisliMakineler,
+  }),
+  true,
+  'servis ve model aynı makinede sağlanırsa gider',
+)
+const bolgeliServis = { servisId: 'konya-merkez', il: 'Konya', iller: ['Karaman'] }
+bak(
+  duyuruGecerliMi(hedefli({ kime: 'servis', iller: ['Karaman'] }), { servis: bolgeliServis }),
+  true,
+  'servis hizmet verdiği ile giden duyuruyu görür',
+)
+bak(
+  duyuruGecerliMi(hedefli({ kime: 'servis', iller: ['Karaman'] }), { servis }),
+  false,
+  'o ile hizmet vermeyen servis görmez',
+)
+bak(
+  duyuruGecerliMi(hedefli({ kime: 'servis', urunler: ['orkinos-870'] }), { servis, makineler: servisliMakineler }),
+  true,
+  'servis baktığı modele giden duyuruyu görür',
+)
+bak(
+  duyuruGecerliMi(hedefli({ kime: 'servis', urunler: ['orkinos-870'] }), { servis, makineler: [] }),
+  false,
+  'o modelde makinesi olmayan servis görmez',
+)
+bak(
+  duyuruGecerliMi(hedefli({ kime: 'servis', seriler: ['ork870 2023 00011'] }), { servis, makineler: servisliMakineler }),
+  true,
+  'serviste seri de biçimden bağımsız eşleşir',
+)
+
 /* 12. KİŞİSEL BİLDİRİM YABANCIYA GİTMİYOR.
 
        `duyurular` anahtarı paylaşıldığı için süzgeç kişisel kaydı

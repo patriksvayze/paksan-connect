@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { BILDIRIM, bildirimDestekleniyorMu, bildirimGoster, izinIste, mevcutIzin } from '../lib/bildirim'
 import { servisinTalepleri, talepleriGetir } from '../backoffice/veri'
 import { duyuruGecerliMi } from '../lib/duyuruHedef'
+import { servisDuyuruBaglami } from '../lib/servisAtama'
 import { load } from '../lib/storage'
 import { MARKA } from '../marka'
 import { bildirimYazisi, okunmamislar } from './talepBildirimleri'
@@ -62,8 +63,10 @@ function durumOku(servisId) {
 
   return {
     /* Servisin kendi parça siparişi "iş" değil; onun haberi ayrı
-       verilmiyor, listede zaten görünüyor. */
-    isler: talepler.filter((t) => !t.servisSiparisi).map((t) => t.id),
+       verilmiyor, listede zaten görünüyor. Servisin kendi açtığı elle
+       kayıt da "yeni iş" değil (22 Eylül 2026, kullanıcı bildirdi):
+       kaydı az önce kendisi açtı, telefonunun çalması anlamsız. */
+    isler: talepler.filter((t) => !t.servisSiparisi && !t.elle).map((t) => t.id),
     /* PAKSAN'ın bu servise yazdığı, henüz okunmamış talep bildirimleri. */
     bildirimler: okunmamislar(servisId),
   }
@@ -72,9 +75,10 @@ function durumOku(servisId) {
 /** Servise yönelmiş, henüz görülmemiş acil duyurular. */
 function acilDuyurular(oturum) {
   const gorulen = new Set(load(GORULEN_DUYURU, []))
+  const baglam = servisDuyuruBaglami(oturum)
   return load('duyurular', [])
     .filter((d) => d.tur === 'uyari' && !gorulen.has(d.id))
-    .filter((d) => duyuruGecerliMi(d, { servis: oturum }))
+    .filter((d) => duyuruGecerliMi(d, baglam))
     .map((d) => d.id)
 }
 
@@ -132,8 +136,10 @@ export function useServisHaberi(oturum, tazele) {
       const gelen = yeni.bildirimler.filter((b) => !eskiKimlik.has(b.id))
       if (gelen.length === 1) {
         const y = bildirimYazisi(gelen[0])
+        /* Ücret ve indirim bildiriminde talep numarası yok (23 Eylül 2026,
+           `tur: 'hesap'`); başlık yalnız olayın kendisi. */
         bildirimGoster({
-          baslik: `${gelen[0].talepNo} · ${y.baslik}`,
+          baslik: gelen[0].talepNo ? `${gelen[0].talepNo} · ${y.baslik}` : y.baslik,
           metin: y.metin || 'Ayrıntıları görmek için talebi açın.',
         })
       } else if (gelen.length > 1) {

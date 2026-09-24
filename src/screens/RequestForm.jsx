@@ -755,9 +755,18 @@ function TalepFormu() {
      yanlış yönlendirmeydi (atanacak makine yok). Ona makinesini
      kaydetmesi söyleniyor ve kayıt ekranına götüren düğme veriliyor.
 
-     YALNIZ SERVİS TALEBİNDE. Yedek parça ve fiyat teklifi PAKSAN'da
-     karşılık buluyor; onları engellemenin sebebi yok. */
-  if (tur === 'servis' && !servisim) {
+     "SERVİS ATANMADI" YALNIZ SERVİS TALEBİNDE. Yedek parça ve fiyat
+     teklifi PAKSAN'da karşılık buluyor; servis beklemeleri gerekmiyor.
+
+     YEDEK PARÇADA DA MAKİNESİ OLMAYAN AYNI EKRANI GÖRÜYOR (22 Eylül
+     2026, kullanıcının isteği). Önce form açılıyor, makine alanında
+     "Önce makinenizi kaydedin" satırı duruyordu; müşteri formun geri
+     kalanını doldurmaya çalışıyordu. Parçalar makinenin modeline göre
+     listeleniyor, makinesiz talep doğru parçayı bulamıyor. Açıklama
+     parçaya göre (talep.makineYokAltParca). Fiyat teklifi makine
+     istemiyor, engellenmiyor. */
+  const parcadaMakineYok = tur === 'parca' && machines.length === 0
+  if ((tur === 'servis' && !servisim) || parcadaMakineYok) {
     const makineYok = machines.length === 0
     return (
       <div className="app">
@@ -767,7 +776,9 @@ function TalepFormu() {
             <div className="empty">
               <img className="empty__cizim" src={CIZIM.bosMakine} alt="" />
               <h2 style={{ fontSize: 18.5, marginBottom: 8 }}>{t('talep.makineYokBaslik')}</h2>
-              <p style={{ lineHeight: 1.6, marginBottom: 24 }}>{t('talep.makineYokAlt')}</p>
+              <p style={{ lineHeight: 1.6, marginBottom: 24 }}>
+                {t(parcadaMakineYok ? 'talep.makineYokAltParca' : 'talep.makineYokAlt')}
+              </p>
               <button className="btn btn--primary btn--lg" onClick={() => nav('/makine-ekle')}>
                 <IconPlus size={22} /> {t('makine.ekle')}
               </button>
@@ -1299,8 +1310,9 @@ function TalepFormu() {
           {(tur === 'servis' || tur === 'parca') && (
             <label className="field" data-alan="makine">
               <span className="field__label">{t('talep.hangiMakine')}</span>
-              {machines.length > 0 ? (
-                <select
+              {/* Makine yoksa form hiç açılmıyor (bkz. yukarıdaki "makine yok"
+                  ekranı); burada seçim her zaman var. */}
+              <select
                   className="select"
                   value={makineId}
                   onChange={(e) => setMakineId(e.target.value)}
@@ -1327,19 +1339,6 @@ function TalepFormu() {
                     )
                   })}
                 </select>
-              ) : (
-                <button className="listitem" onClick={() => nav('/makine-ekle')}>
-                  <div className="listitem__body">
-                    <div className="listitem__title" style={{ fontSize: 15.5 }}>
-                      {t('talep.onceKaydet')}
-                    </div>
-                    <div className="listitem__sub">
-                      {t('talep.onceKaydetAlt')}
-                    </div>
-                  </div>
-                  <IconRight size={20} />
-                </button>
-              )}
               {/* Talebin gideceği servis ya da neden gidemeyeceği. */}
               {tur === 'servis' && secilen && (
                 seciliServis ? (

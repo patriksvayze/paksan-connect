@@ -68,7 +68,7 @@ function Bulunamadi() {
 
 function Yonlendirme() {
   const { user, requests, machines, showToast } = useApp()
-  const { t } = useDil()
+  const { t, dil } = useDil()
 
   /* Android'in geri hareketi ve geri tuşu uygulamayı kapatmasın,
      uygulama içinde gezinsin (bkz. src/lib/android.js) */
@@ -81,6 +81,7 @@ function Yonlendirme() {
     bildirimListesi({ requests, user, makineler: machines }),
     t,
     Boolean(user),
+    dil,
   )
 
   /* Kayıtsız kullanıcı yalnızca karşılama, kayıt ve giriş ekranlarını

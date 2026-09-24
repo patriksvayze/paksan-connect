@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { gecenSure } from '../../backoffice/ekranlar/ortak'
 import { load, save } from '../../lib/storage'
 import { duyuruGecerliMi } from '../../lib/duyuruHedef'
+import { servisDuyuruBaglami } from '../../lib/servisAtama'
 import { Bolum, Bos, Yaprak } from '../Kabuk'
 import {
   IconBell,
@@ -96,7 +97,7 @@ const BOS = {
   biten: { baslik: 'Tamamlanan işiniz yok', alt: 'Kapanan ve iptal edilen işler burada görünür.' },
 }
 
-export function Isler({ oturum, bekleyen, biten, onAc, sekme: secilen, onSekme }) {
+export function Isler({ oturum, bekleyen, biten, onAc, onUcretler, sekme: secilen, onSekme }) {
   const [yeniIsler, devamEden] = useMemo(
     () => [bekleyen.filter(dokunulmamis), bekleyen.filter((t) => !dokunulmamis(t))],
     [bekleyen],
@@ -116,7 +117,12 @@ export function Isler({ oturum, bekleyen, biten, onAc, sekme: secilen, onSekme }
 
       <ServisDuyurulari oturum={oturum} acil />
 
-      <PaksanBildirimleri oturum={oturum} talepler={[...bekleyen, ...biten]} onAc={onAc} />
+      <PaksanBildirimleri
+        oturum={oturum}
+        talepler={[...bekleyen, ...biten]}
+        onAc={onAc}
+        onUcretler={onUcretler}
+      />
 
       {/* İKİ DUYURU AÇILIRI ALT ALTA.
 
@@ -403,14 +409,18 @@ function Planlayici({ bekleyen, onAc }) {
 
    Bölüm yalnız okunmamış varken çiziliyor; okunmuşlar talebin içinde
    duruyor. */
-function PaksanBildirimleri({ oturum, talepler, onAc }) {
+function PaksanBildirimleri({ oturum, talepler, onAc, onUcretler }) {
   const [, setSurum] = useState(0)
   const liste = okunmamislar(oturum?.servisId)
   if (!liste.length) return null
 
+  /* ÜCRET VE İNDİRİM BİLDİRİMİ BİR TALEBE BAĞLI DEĞİL (23 Eylül 2026,
+     `tur: 'hesap'`, bkz. veri.js → servisHesapBildir). Dokununca Hesap'taki
+     "Ücretlendirmeler" bölümü açılıyor; satırında talep numarası yok. */
   const ac = (b) => {
     okunduSay([b.id])
     setSurum((s) => s + 1)
+    if (!b.talepId) return onUcretler?.()
     const t = talepler.find((x) => x.id === b.talepId)
     if (t) onAc(t)
   }
@@ -683,9 +693,12 @@ function ServisDuyurulari({ oturum, acil = false }) {
   const [okunan, setOkunan] = useState(null)
 
   useEffect(() => {
+    /* Bağlam: servisin hizmet verdiği iller ve baktığı makineler; bölge
+       ve makine seçilmiş duyuru bunlara bakıyor (lib/servisAtama.js). */
+    const baglam = servisDuyuruBaglami(oturum)
     setHepsi(
       load('duyurular', [])
-        .filter((d) => duyuruGecerliMi(d, { servis: oturum }))
+        .filter((d) => duyuruGecerliMi(d, baglam))
         .sort((a, b) => b.tarih - a.tarih),
     )
   }, [oturum])

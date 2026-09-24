@@ -4,9 +4,9 @@ import { ILLER } from '../../data/iller'
 import { PRODUCTS, UYGULAMA } from '../../marka'
 import { servisleriGetir } from '../../marka'
 import { useVeri } from '../kanca'
-import { Baslik, Bekleme, Bos, tarihYaz } from './ortak'
+import { ACILIR, AcilirOk, Baslik, Bekleme, Bos, tarihYaz } from './ortak'
 import { boyutYaz, ekAdresi, ekSil, ekYaz, fotoKucult } from '../../lib/ekler'
-import { altBilgi, altTurler, DUYURU_UST } from '../../data/duyuruTurleri'
+import { altBilgi, DUYURU_UST, yayinlanabilirTurler } from '../../data/duyuruTurleri'
 
 /* ==========================================================================
    Duyurular
@@ -33,7 +33,12 @@ import { altBilgi, altTurler, DUYURU_UST } from '../../data/duyuruTurleri'
      UYARI   Hizmete ilişkin bildirim; ticari ileti değil, herkese
              gidiyor. Zaten görülmemesi tehlikeli olan şey bu.
 
-   BEŞ ALT TÜR — VE ARALARINDAKİ FARK GÖRSEL
+   ALT TÜRLER — VE ARALARINDAKİ FARK GÖRSEL
+
+   (23 Eylül 2026, kullanıcının isteği: Geri Çağırma yeni duyuru için
+   kaldırıldı, kalan dört tür tek "Bildirim Tipi" başlığı altında. Eski
+   geri çağırma kayıtları doğru adla görünmeye devam ediyor; bkz.
+   data/duyuruTurleri.js → yayinlanmaz.)
 
    Kampanya ile yeni ürün duyurusu hukuken aynı sınıfta ama okuyan
    için aynı şey değil; güvenlik uyarısı ile geri çağırma da öyle.
@@ -79,91 +84,253 @@ const KIME_ADI = Object.fromEntries(KIMLER.map((k) => [k.id, k.ad]))
    liste karşılaştırması kalıyor.
    ========================================================================== */
 
-const BOS_HEDEF = { kime: 'musteri', iller: [], servisler: [], urunler: [] }
+const BOS_HEDEF = { kime: 'musteri', iller: [], servisler: [], urunler: [], seriler: [] }
+
+/* ==========================================================================
+   Hedefleme — bölge, makine, servis (23 Eylül 2026)
+
+   KULLANICININ İSTEĞİ: "Bildirimler bölgeye, makineye ve servise spesifik
+   gönderilebilsin." Süzgeçler vardı ama "Daraltma · Seç" düğmesinin
+   arkasındaydı, servis süzgeci yalnız servise giden duyuruda çıkıyordu,
+   seri numarası hiç sorulmuyordu. Artık üçü de formda açık duruyor ve iki
+   alıcıya da uygulanıyor; nasıl uygulandığı lib/duyuruHedef.js başında.
+
+   Seri numarası geri çağırmanın yerini tutuyor: belirli seri numaralı
+   makineler için yapılacak uyarı, Güvenlik Uyarısı seçilip seri
+   numaraları yazılarak gönderiliyor.
+   ========================================================================== */
+
+const HEDEF = {
+  baslik: 'Hedefleme',
+  aciklama:
+    'Boş bıraktığınız alanlar alıcıları sınırlamaz. Aynı alandaki seçimlerden en az birine, farklı alanlardaki koşulların ise tümüne uyan alıcılara gönderilir.',
+  bolge: 'Bölge (il)',
+  bolgeAlt:
+    'Müşteriler için hesabın kayıtlı olduğu il; servisler için bulundukları il ve hizmet verdikleri iller esas alınır.',
+  ilAra: 'İl ara',
+  ilSecildi: (n) => `${n} il seçildi`,
+  tumIller: 'Tüm iller',
+  tumMakineler: 'Tüm makineler',
+  tumServisler: 'Tüm servisler',
+  modelSecildi: (n) => `${n} model seçildi`,
+  servisSecildi: (n) => `${n} servis seçildi`,
+  model: 'Makine modeli',
+  modelAlt: {
+    musteri: 'Seçilen modellerden makinesi olan müşterilere gönderilir.',
+    servis: 'Seçilen modellerdeki makinelere hizmet veren servislere gönderilir.',
+    ikisi: 'Seçilen modellerden makinesi olan müşterilere ve bu modellerdeki makinelere hizmet veren servislere gönderilir.',
+  },
+  seri: 'Seri numaraları · isteğe bağlı',
+  seriYerTutucu: 'Örnek: ORK1270-2024-00157, ORK1270-2024-00158',
+  seriAlt: {
+    musteri: 'Seri numaralarını virgülle ayırın veya alt alta yazın. Bu makinelerin sahiplerine gönderilir.',
+    servis: 'Seri numaralarını virgülle ayırın veya alt alta yazın. Bu makinelere hizmet veren servislere gönderilir.',
+    ikisi: 'Seri numaralarını virgülle ayırın veya alt alta yazın. Bu makinelerin sahiplerine ve bu makinelere hizmet veren servislere gönderilir.',
+  },
+  servis: 'Servis',
+  servisAlt: {
+    musteri: 'Seçilen servislerin hizmet verdiği makinelerin sahiplerine gönderilir.',
+    servis: 'Yalnızca seçilen servislere gönderilir.',
+    ikisi: 'Seçilen servislere ve bu servislerin hizmet verdiği makinelerin sahiplerine gönderilir.',
+  },
+  temizle: 'Hedefi Temizle',
+  sinirsiz: (kime) => `${kime} bölge, makine veya servis sınırlaması olmadan gönderilecek.`,
+  seriSayisi: (n) => `${n} seri numarası`,
+  onay: (ozet) => `Yalnızca şu koşullara uyan alıcılara gönderilecek: ${ozet}.`,
+}
+
+/* Seri kutusuna yazılan: virgül, noktalı virgül, boşluk ya da satır
+   sonuyla ayrılmış seri numaraları. Karşılaştırma biçimden bağımsız
+   (lib/duyuruHedef.js); burada yalnız ayrılıyor ve tekilleştiriliyor. */
+const seriAyir = (metin) => [
+  ...new Set(
+    String(metin || '')
+      .split(/[\s,;]+/)
+      .map((x) => x.trim())
+      .filter(Boolean),
+  ),
+]
+
+const hedefVarMi = (h) =>
+  Boolean(h?.iller?.length || h?.servisler?.length || h?.urunler?.length || h?.seriler?.length)
+
+/* ==========================================================================
+   Kapalı hedef kutusu (24 Eylül 2026)
+
+   KULLANICININ İSTEĞİ: "Bölge, Makine modeli ve Servis kısımları çok yer
+   kaplıyor. Başlıklarına tıklandıklarında açılacak şekilde … Servisler
+   ekranındaki Hizmet Ücretleri gibi." Kutu kapalı açılıyor; başlıkta
+   adı, seçimin özeti ("Tüm iller" ya da "2 il seçildi") ve Hizmet
+   Ücretleri kartındaki aynı "Ayrıntıları Göster" yazısı ve oku var.
+   Seçim yapılmış kutu kapansa da özet ne seçildiğini söylüyor; ayrıca
+   formun altındaki özet satırı bütün hedefi yazıyor.
+   ========================================================================== */
+function HedefBlok({ ad, ozet, secili, kimlik, children }) {
+  const [acik, setAcik] = useState(false)
+  return (
+    <div className={'hedef-blok' + (acik ? ' hedef-blok--acik' : '')}>
+      <button
+        type="button"
+        className="hedef-blok__dugme"
+        aria-expanded={acik}
+        aria-controls={kimlik}
+        onClick={() => setAcik(!acik)}
+      >
+        <span className="hedef-blok__ad">{ad}</span>
+        <span className={'hedef-blok__ozet' + (secili ? ' hedef-blok__ozet--secili' : '')}>{ozet}</span>
+        <span className="acilir-tepe__ac">
+          {acik ? ACILIR.kapat : ACILIR.ac}
+          <AcilirOk />
+        </span>
+      </button>
+      {acik && (
+        <div className="hedef-blok__govde" id={kimlik}>
+          {children}
+        </div>
+      )}
+    </div>
+  )
+}
 
 function HedefSecici({ hedef, onDegis, servisler }) {
-  const [acik, setAcik] = useState(false)
+  const [ilAra, setIlAra] = useState('')
+  const [seriMetni, setSeriMetni] = useState(() => (hedef.seriler || []).join(', '))
+
+  /* Hedef dışarıdan boşaltılınca (Hedefi Temizle, yayından sonra) kutu da
+     boşalıyor. Yalnız ayraç yazılmışsa (seri henüz yok) dokunulmuyor. */
+  useEffect(() => {
+    if (!hedef.seriler?.length) setSeriMetni((m) => (seriAyir(m).length ? '' : m))
+  }, [hedef.seriler])
 
   const cevir = (alan, deger) => {
     const mevcut = hedef[alan] || []
     onDegis({
       ...hedef,
-      [alan]: mevcut.includes(deger)
-        ? mevcut.filter((x) => x !== deger)
-        : [...mevcut, deger],
+      [alan]: mevcut.includes(deger) ? mevcut.filter((x) => x !== deger) : [...mevcut, deger],
     })
   }
 
-  const sinirVar = hedef.iller.length || hedef.servisler.length || hedef.urunler.length
+  /* Seçili iller aramadan bağımsız hep görünüyor ve başta duruyor;
+     aranan il yazılınca seçim gözden kaybolmasın. */
+  const aranan = ilAra.trim().toLocaleLowerCase('tr-TR')
+  const iller = [
+    ...hedef.iller,
+    ...ILLER.filter(
+      (il) => !hedef.iller.includes(il) && (!aranan || il.toLocaleLowerCase('tr-TR').includes(aranan)),
+    ),
+  ]
+  const kime = hedef.kime
 
   return (
-    <div className="alan">
-      <div className="satir" style={{ alignItems: 'center' }}>
-        <span className="alan__ad" style={{ margin: 0 }}>Daraltma</span>
-        <button className="dg" style={{ marginLeft: 'auto' }} onClick={() => setAcik(!acik)}>
-          {acik ? 'Kapat' : 'Seç'}
-        </button>
-      </div>
-      <p className="kucuk sonuk" style={{ margin: '4px 0 0' }}>
-        {sinirVar
-          ? ozetle(hedef, servisler)
-          : `${KIME_ADI[hedef.kime]} sınırsız gönderilecek — il, servis ve model süzgeci yok.`}
-      </p>
+    <div className="alan hedefleme">
+      <span className="alan__ad">{HEDEF.baslik}</span>
+      <p className="kucuk sonuk" style={{ margin: '0 0 10px', lineHeight: 1.55 }}>{HEDEF.aciklama}</p>
 
-      {acik && (
-        <div className="kart" style={{ padding: 12, marginTop: 8 }}>
-          <div className="alan">
-            <span className="alan__ad">İller · boş bırakılırsa tüm iller</span>
-            <div className="suzgec" style={{ maxHeight: 140, overflow: 'auto' }}>
-              {ILLER.map((il) => (
-                <button
-                  key={il}
-                  className={'cip' + (hedef.iller.includes(il) ? ' cip--on' : '')}
-                  onClick={() => cevir('iller', il)}
-                >
-                  {il}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {hedef.kime !== 'musteri' && (
-            <div className="alan">
-              <span className="alan__ad">Servisler · boş bırakılırsa tüm servisler</span>
-              <div className="suzgec" style={{ maxHeight: 120, overflow: 'auto' }}>
-                {servisler.map((b) => (
-                  <button
-                    key={b.id}
-                    className={'cip' + (hedef.servisler.includes(b.id) ? ' cip--on' : '')}
-                    onClick={() => cevir('servisler', b.id)}
-                  >
-                    {b.ad}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="alan">
-            <span className="alan__ad">Makine modeli · boş bırakılırsa tüm makineler</span>
-            <div className="suzgec" style={{ maxHeight: 140, overflow: 'auto' }}>
-              {PRODUCTS.map((u) => (
-                <button
-                  key={u.id}
-                  className={'cip' + (hedef.urunler.includes(u.id) ? ' cip--on' : '')}
-                  onClick={() => cevir('urunler', u.id)}
-                >
-                  {u.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <button className="dg" onClick={() => onDegis(BOS_HEDEF)}>
-            Hedefi temizle
-          </button>
+      <HedefBlok
+        ad={HEDEF.bolge}
+        kimlik="hedef-bolge"
+        secili={hedef.iller.length > 0}
+        ozet={hedef.iller.length ? HEDEF.ilSecildi(hedef.iller.length) : HEDEF.tumIller}
+      >
+        <div className="hedef-blok__tepe">
+          <input
+            className="gir hedef-blok__ara"
+            value={ilAra}
+            onChange={(e) => setIlAra(e.target.value)}
+            placeholder={HEDEF.ilAra}
+            aria-label={HEDEF.ilAra}
+          />
         </div>
-      )}
+        <div className="suzgec hedef-blok__liste">
+          {iller.map((il) => (
+            <button
+              key={il}
+              className={'cip' + (hedef.iller.includes(il) ? ' cip--on' : '')}
+              aria-pressed={hedef.iller.includes(il)}
+              onClick={() => cevir('iller', il)}
+            >
+              {il}
+            </button>
+          ))}
+        </div>
+        <span className="kucuk sonuk">{HEDEF.bolgeAlt}</span>
+      </HedefBlok>
+
+      <HedefBlok
+        ad={HEDEF.model}
+        kimlik="hedef-makine"
+        secili={hedef.urunler.length > 0 || hedef.seriler.length > 0}
+        ozet={
+          [
+            hedef.urunler.length && HEDEF.modelSecildi(hedef.urunler.length),
+            hedef.seriler.length && HEDEF.seriSayisi(hedef.seriler.length),
+          ]
+            .filter(Boolean)
+            .join(' · ') || HEDEF.tumMakineler
+        }
+      >
+        <div className="suzgec hedef-blok__liste">
+          {PRODUCTS.map((u) => (
+            <button
+              key={u.id}
+              className={'cip' + (hedef.urunler.includes(u.id) ? ' cip--on' : '')}
+              aria-pressed={hedef.urunler.includes(u.id)}
+              onClick={() => cevir('urunler', u.id)}
+            >
+              {u.name}
+            </button>
+          ))}
+        </div>
+        <span className="kucuk sonuk">{HEDEF.modelAlt[kime]}</span>
+
+        <label className="alan" style={{ margin: '12px 0 0' }}>
+          <span className="alan__ad">{HEDEF.seri}</span>
+          <textarea
+            className="metin mono"
+            style={{ minHeight: 64 }}
+            value={seriMetni}
+            onChange={(e) => {
+              setSeriMetni(e.target.value)
+              onDegis({ ...hedef, seriler: seriAyir(e.target.value) })
+            }}
+            placeholder={HEDEF.seriYerTutucu}
+          />
+          <span className="kucuk sonuk">{HEDEF.seriAlt[kime]}</span>
+        </label>
+      </HedefBlok>
+
+      <HedefBlok
+        ad={HEDEF.servis}
+        kimlik="hedef-servis"
+        secili={hedef.servisler.length > 0}
+        ozet={hedef.servisler.length ? HEDEF.servisSecildi(hedef.servisler.length) : HEDEF.tumServisler}
+      >
+        <div className="suzgec hedef-blok__liste">
+          {servisler.map((b) => (
+            <button
+              key={b.id}
+              className={'cip' + (hedef.servisler.includes(b.id) ? ' cip--on' : '')}
+              aria-pressed={hedef.servisler.includes(b.id)}
+              onClick={() => cevir('servisler', b.id)}
+            >
+              {b.ad}
+            </button>
+          ))}
+        </div>
+        <span className="kucuk sonuk">{HEDEF.servisAlt[kime]}</span>
+      </HedefBlok>
+
+      <div className="hedef-ozet">
+        <span className="kucuk">
+          {hedefVarMi(hedef) ? hedefOzeti(hedef, servisler) : HEDEF.sinirsiz(KIME_ADI[kime])}
+        </span>
+        {hedefVarMi(hedef) && (
+          /* Alıcı kitlesi korunuyor: yalnız süzgeçler temizleniyor. */
+          <button className="dg dg--kucuk" onClick={() => onDegis({ ...BOS_HEDEF, kime })}>
+            {HEDEF.temizle}
+          </button>
+        )}
+      </div>
     </div>
   )
 }
@@ -171,7 +338,14 @@ function HedefSecici({ hedef, onDegis, servisler }) {
 /* Yayınlamadan önceki son cümle. Alıcı kitlesi burada da yazıyor:
    yanlış kitleye giden duyuru geri alınamıyor, kaldırılsa bile
    görülmüş oluyor. */
-function onayMetni(alt, baslik, kime) {
+function onayMetni(alt, baslik, kime, hedef, servisler) {
+  const ana = anaOnayMetni(alt, baslik, kime)
+  /* Süzgeç varsa onay penceresi onu da söylüyor: yanlış kitleye gönderilen
+     duyuru geri alınamıyor. */
+  return hedefVarMi(hedef) ? `${ana} ${HEDEF.onay(hedefOzeti(hedef, servisler))}` : ana
+}
+
+function anaOnayMetni(alt, baslik, kime) {
   const bilgi = altBilgi({ alt })
   const tur = bilgi.ust
   const adKucuk = bilgi.ad.toLocaleLowerCase('tr-TR')
@@ -179,12 +353,6 @@ function onayMetni(alt, baslik, kime) {
     kime === 'servis' ? 'yalnız servislere'
       : kime === 'ikisi' ? 'hem müşterilere hem de servislere'
         : 'müşterilere'
-
-  /* Geri çağırmanın kendi cümlesi var: alıcı kitlesi seçilebilir bir
-     şey değil, kuralın kendisi. */
-  if (alt === 'geriCagirma') {
-    return `“${baslik}” başlıklı geri çağırma yalnızca servislere gidecek. Müşteriye doğrudan bildirim gitmeyecek; makine sahiplerini servis arayacak.`
-  }
 
   if (tur === 'uyari') {
     return `“${baslik}” başlıklı ${adKucuk} ${alici} gidecek. Ekranlarını açtıklarında pencere olarak görecekler; bu bildirim için izin gerekmiyor.`
@@ -198,20 +366,21 @@ function onayMetni(alt, baslik, kime) {
   return `“${baslik}” başlıklı ${adKucuk} duyurusu ${alici} gidecek. Müşteri tarafında yalnızca ticari ileti izni verenlere ulaşır${kime === 'ikisi' ? '; servislerde böyle bir izin aranmaz' : ''}.`
 }
 
-function ozetle(hedef, servisler) {
+/* Süzgeçlerin tek satırlık özeti: "Konya, Karaman · Orkinos 1270 ·
+   Selçuk Servisi". Alıcı kitlesi burada yok; ekranda ayrıca yazıyor.
+   Üçten çok seri numarası sayıyla yazılıyor. */
+function hedefOzeti(hedef, servisler) {
+  if (!hedef) return ''
   const parcalar = []
-  if (hedef.kime === 'servis') parcalar.push('Yalnız servislere')
-  else if (hedef.kime === 'ikisi') parcalar.push('Müşteri ve servislere')
-  if (hedef.iller.length) parcalar.push(hedef.iller.join(', '))
-  if (hedef.servisler.length) {
-    parcalar.push(
-      hedef.servisler.map((id) => servisler.find((b) => b.id === id)?.ad || id).join(', ')
-    )
+  if (hedef.iller?.length) parcalar.push(hedef.iller.join(', '))
+  if (hedef.urunler?.length) {
+    parcalar.push(hedef.urunler.map((id) => PRODUCTS.find((u) => u.id === id)?.name || id).join(', '))
   }
-  if (hedef.urunler.length) {
-    parcalar.push(
-      hedef.urunler.map((id) => PRODUCTS.find((u) => u.id === id)?.name || id).join(', ')
-    )
+  if (hedef.seriler?.length) {
+    parcalar.push(hedef.seriler.length > 3 ? HEDEF.seriSayisi(hedef.seriler.length) : hedef.seriler.join(', '))
+  }
+  if (hedef.servisler?.length) {
+    parcalar.push(hedef.servisler.map((id) => servisler.find((b) => b.id === id)?.ad || id).join(', '))
   }
   return parcalar.join(' · ')
 }
@@ -220,8 +389,8 @@ function ozetle(hedef, servisler) {
 
    Rakamlar keyfî değil: bir hafta kısa duyuru (bir günlük fuar,
    hafta sonu kampanyası), bir ay çoğu kampanyanın süresi, üç ay
-   sezonluk duyuru. Süresiz yalnız güvenlik uyarısı ve geri çağırma
-   için — onların düşeceği bir gün yok. */
+   sezonluk duyuru. Süresiz güvenlik uyarısı için — onun düşeceği bir
+   gün yok. */
 const SURELER = [
   { gun: 7, ad: '1 hafta' },
   { gun: 30, ad: '1 ay' },
@@ -249,17 +418,14 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
   const secili = altBilgi({ alt })
   const tur = secili.ust
   const ustBilgi = DUYURU_UST.find((x) => x.id === tur)
-  /* Geri çağırmada alıcı kitlesi seçilmiyor; gerekçesi
-     data/duyuruTurleri.js içinde yazılı. */
-  const kilitliKime = secili.kilitliKime || null
 
   /* Tür değişince alıcı kitlesi o türün varsayılanına dönüyor.
-     Kilitli türde seçim zorlanıyor: personel önce "ikisine de"
-     seçip sonra geri çağırmaya geçerse kayıt yanlış kitleye gitmez. */
+     (Geri çağırmanın kilitli kitlesi vardı; tür yeni duyuru için
+     kaldırıldı, 23 Eylül 2026.) */
   function turSec(id) {
     const bilgi = altBilgi({ alt: id })
     setAlt(id)
-    setHedef((h) => ({ ...h, kime: bilgi.kilitliKime || bilgi.varsayilanKime }))
+    setHedef((h) => ({ ...h, kime: bilgi.varsayilanKime }))
   }
 
   function kontrolEt() {
@@ -270,10 +436,7 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
   }
 
   function yayinla() {
-    /* Kilit son anda bir kez daha uygulanıyor: hedef başka bir yoldan
-       değişmiş olabilir. */
-    const gidecek = kilitliKime ? { ...hedef, kime: kilitliKime } : hedef
-    duyuruYayinla({ tur, alt, baslik, metin, gorsel, hedef: gidecek, gun }, personel)
+    duyuruYayinla({ tur, alt, baslik, metin, gorsel, hedef, gun }, personel)
     setBaslik('')
     setMetin('')
     setGorsel(null)
@@ -295,29 +458,28 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
           </div>
 
           <div className="kart__ic">
-            {/* TÜR SEÇİMİ İKİ ÖBEK.
-
-                Beş çip tek sırada dizilince kampanya ile geri çağırma
-                yan yana ve eşit görünüyordu; oysa aralarındaki fark
-                hukuki. Öbek başlıkları hangi hukuki sınıfta
-                olunduğunu okumadan gösteriyor. */}
-            {DUYURU_UST.map((ust) => (
-              <div className="alan" key={ust.id}>
-                <span className="alan__ad">{ust.ad}</span>
-                <div className="suzgec" style={{ marginBottom: 4 }}>
-                  {altTurler(ust.id).map((x) => (
-                    <button
-                      key={x.id}
-                      className={'cip duyuru-cip' + (alt === x.id ? ' cip--on' : '')}
-                      onClick={() => turSec(x.id)}
-                    >
-                      <span className={'duyuru-nokta duyuru-nokta--' + x.ton} aria-hidden="true" />
-                      {x.ad}
-                    </button>
-                  ))}
-                </div>
+            {/* TÜR SEÇİMİ TEK BAŞLIK ALTINDA (23 Eylül 2026, kullanıcının
+                isteği). Önce iki öbekti — "Duyuru" ve "Önemli Uyarı" —
+                çünkü kampanya ile geri çağırma yan yana eşit
+                görünüyordu. Geri çağırma kaldırılınca öbeklerin taşıdığı
+                bilgi seçilen türün altındaki hukuki açıklamada kaldı
+                (sarı kutu): izin gerekip gerekmediği orada yazıyor. */}
+            <div className="alan">
+              <span className="alan__ad">Bildirim Tipi</span>
+              <div className="suzgec" style={{ marginBottom: 4 }}>
+                {yayinlanabilirTurler().map((x) => (
+                  <button
+                    key={x.id}
+                    className={'cip duyuru-cip' + (alt === x.id ? ' cip--on' : '')}
+                    aria-pressed={alt === x.id}
+                    onClick={() => turSec(x.id)}
+                  >
+                    <span className={'duyuru-nokta duyuru-nokta--' + x.ton} aria-hidden="true" />
+                    {x.ad}
+                  </button>
+                ))}
               </div>
-            ))}
+            </div>
 
             <p className="kucuk sonuk" style={{ margin: '0 0 12px' }}>{secili.alt}</p>
 
@@ -333,24 +495,21 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
                 {KIMLER.map((x) => (
                   <button
                     key={x.id}
-                    className={
-                      'cip' +
-                      (hedef.kime === x.id ? ' cip--on' : '') +
-                      (kilitliKime && kilitliKime !== x.id ? ' cip--kilitli' : '')
-                    }
-                    disabled={Boolean(kilitliKime) && kilitliKime !== x.id}
+                    className={'cip' + (hedef.kime === x.id ? ' cip--on' : '')}
+                    aria-pressed={hedef.kime === x.id}
                     onClick={() => setHedef({ ...hedef, kime: x.id })}
                   >
                     {x.ad}
                   </button>
                 ))}
               </div>
-              <span className="kucuk sonuk">
-                {kilitliKime
-                  ? 'Geri çağırmayı servis yürütür: makineyi kuran, servis hizmetini veren ve müşteriyi arayacak olan odur. Bu yüzden yalnızca servislere gönderilebiliyor.'
-                  : KIMLER.find((x) => x.id === hedef.kime)?.alt}
-              </span>
+              <span className="kucuk sonuk">{KIMLER.find((x) => x.id === hedef.kime)?.alt}</span>
             </div>
+
+            {/* HEDEFLEME ALICI KİTLESİNİN HEMEN ALTINDA: ikisi birlikte
+                "kime gidecek" sorusunun cevabı. Önce formun sonunda,
+                açılır bir panelin içindeydi. */}
+            <HedefSecici hedef={hedef} onDegis={setHedef} servisler={servisListesi} />
 
             {/* ==================================================== Süre
 
@@ -382,7 +541,7 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
                   ? `Süre dolunca duyuru kendiliğinden yayından kalkar. ${tarihYaz(
                       Date.now() + gun * 86400000
                     )} tarihine kadar görünür.`
-                  : 'Duyuru siz silene kadar ekranda kalır. Geri çağırma ve güvenlik uyarıları için doğru seçim budur.'}
+                  : 'Duyuru, siz silene kadar ekranda kalır. Güvenlik uyarıları için bu seçeneği kullanın.'}
               </span>
             </div>
 
@@ -422,8 +581,6 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
             </label>
 
             <GorselAlani gorsel={gorsel} onDegis={setGorsel} />
-
-            <HedefSecici hedef={hedef} onDegis={setHedef} servisler={servisListesi} />
 
             {/* ÖNİZLEME.
 
@@ -503,6 +660,11 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
                     {[d.personel, tarihYaz(d.tarih), KIME_ADI[d.hedef?.kime || 'musteri']]
                       .filter(Boolean)
                       .join(' · ')}
+                    {/* Süzgeç listede de yazıyor: aynı başlıkla iki ayrı
+                        bölgeye gönderilen duyurular ayırt edilebilsin. */}
+                    {hedefVarMi(d.hedef) && (
+                      <div className="hedef-satir">{hedefOzeti(d.hedef, servisListesi)}</div>
+                    )}
                   </div>
                 </div>
               ))
@@ -514,7 +676,7 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
       {onay && (
         <Pencere
           baslik="Duyuruyu yayınla"
-          metin={onayMetni(alt, baslik, kilitliKime || hedef.kime)}
+          metin={onayMetni(alt, baslik, hedef.kime, hedef, servisListesi)}
           onayYazi="Yayınla"
           onOnayla={yayinla}
           onVazgec={() => setOnay(false)}

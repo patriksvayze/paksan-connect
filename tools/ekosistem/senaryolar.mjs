@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Ekosistem senaryoları — AK-01 … AK-17
+   Ekosistem senaryoları — AK-01 … AK-23
 
    Her senaryo temiz depoyla başlıyor, kendi dünyasını tohumluyor ve
    gerçek modülleri çağırıyor. Hiçbir iddia ekran metnine, CSS sınıfına
@@ -771,6 +771,45 @@ export function AK09(m) {
     m.duyuruHedef.duyuruGecerliMi(uyari, { user: null, makineler: [], servis: SERVIS }),
     'ikisi hedefli uyarı servise de gidiyor',
   )
+
+  /* BÖLGE, MAKİNE VE SERVİS İKİ TARAFA DA (23 Eylül 2026, kullanıcının
+     isteği). Makineye bakan servis uygulamanın kendi zincirinden
+     (servisAtama.js) geliyor; Connect ve Servisim de süzgece aynı
+     yardımcılarla bağlam veriyor. Dünya: müşterinin üç makinesi — biri
+     Selçuk servisine atanmış, biri Ankara bayisi üzerinden Ankara
+     servisinde, biri servissiz; üçü de aynı modelde. */
+  const urunId = makineler[0].productId
+  const baskaModel = m.marka.PRODUCTS.find((p) => p.id !== urunId).id
+  const servisli = m.servisAtama.makinelereServisEkle(makineler)
+  const yayinla = (hedef) => {
+    m.veri.duyuruYayinla({ tur: 'uyari', baslik: 'Hedefli', metin: 'Hedef sınaması', hedef }, 'Sınama Yöneticisi')
+    return m.veri.duyurulariGetir()[0]
+  }
+  const musteriGorur = (dy, liste = servisli) =>
+    m.duyuruHedef.duyuruGecerliMi(dy, { user: MUSTERI, makineler: liste, servis: null })
+  const servisGorur = (dy, servisId) =>
+    m.duyuruHedef.duyuruGecerliMi(dy, m.servisAtama.servisDuyuruBaglami({ ...SERVIS, servisId }))
+
+  const ankaraServisine = yayinla({ kime: 'musteri', servisler: [BAYI_SERVISI] })
+  d.dogru(musteriGorur(ankaraServisine), 'servis seçilmiş duyuru, makinesine o servis bakan müşteriye gidiyor')
+  d.yanlis(
+    musteriGorur(ankaraServisine, servisli.filter((x) => x.serial === SERI.sahipsiz)),
+    'makinesine o servis bakmayan müşteriye gitmiyor',
+  )
+
+  /* Makine ve servis AYNI makinede aranıyor: Selçuk servisinin baktığı
+     makine başka modelde değil. */
+  const selcukBaskaModel = yayinla({ kime: 'musteri', servisler: [SERVIS.id], urunler: [baskaModel] })
+  d.yanlis(musteriGorur(selcukBaskaModel), 'servis ve model iki ayrı makineden sağlanınca duyuru gitmiyor')
+
+  const modele = yayinla({ kime: 'servis', urunler: [urunId] })
+  d.dogru(servisGorur(modele, SERVIS.id), 'model seçilmiş duyuru, o modelde makineye bakan servise gidiyor')
+  const baskaModele = yayinla({ kime: 'servis', urunler: [baskaModel] })
+  d.yanlis(servisGorur(baskaModele, SERVIS.id), 'o modelde makineye bakmayan servise gitmiyor')
+
+  const seriye = yayinla({ kime: 'servis', seriler: [SERI.bayili] })
+  d.yanlis(servisGorur(seriye, SERVIS.id), 'seri seçilmiş duyuru, o makineye bakmayan servise gitmiyor')
+  d.dogru(servisGorur(seriye, BAYI_SERVISI), 'o makineye bayi üzerinden bakan servise gidiyor')
 
   return d
 }
@@ -1709,7 +1748,504 @@ export function AK20(m) {
   return d
 }
 
+/* ========================================================== AK-21 */
+
+/* SERVİS HİZMET ÜCRETİ BACKOFFICE'TEN DEĞİŞİYOR.
+
+   KULLANICININ İSTEĞİ (23 Eylül 2026): km ve saat ücreti backoffice'ten
+   genel, makineye göre ve servise özel olarak değişebilsin; genel ücret
+   değişirken özel ücretli servisler varsa "onlar da değişsin mi" diye
+   sorulsun; Servisim güncel ücreti görsün (lib/servisTarifesi.js,
+   veri.js → genelTarifeyiKaydet, servisTarifesiniKaydet).
+
+   Senaryonun taşıdığı beş şey:
+     1  kayıt gönderildiği günün km ve saat ücretini taşıyor; tarife
+        sonra değişse de hak edişi değişmiyor, PAKSAN'ın düzeltmesi de
+        kaydın kendi ücretiyle hesaplanıyor
+     2  katman sırası: servis+makine > servis > genel+makine > genel,
+        kalem kalem
+     3  "özel ücretler de değişsin" yalnız DEĞİŞEN kalemin özel ücretini
+        kaldırıyor; "değişmesin" hiçbirine dokunmuyor
+     4  bildirim yalnız ücreti GERÇEKTEN değişen servise gidiyor ve
+        müşterinin bildirimlerine sızmıyor
+     5  hak edişin km kalemi kaydın km ücretiyle — sabit tarifeyle değil */
+export function AK21(m) {
+  const d = defter('AK-21', 'Servis hizmet ücreti backoffice\'ten değişiyor')
+  depoTemizle()
+  const { urunId, kisi, makineler } = dunyaKur(m)
+  const sk = m.servisKaydi
+  const baslangic = { ...sk.TARIFE }
+  const baskaUrun = m.marka.PRODUCTS.find((p) => p.id !== urunId).id
+  const tarifeBildirimleri = (servisId) =>
+    servisBildirimleriDepodan(m).filter((x) => x.olay === 'tarife' && x.servisId === servisId)
+
+  /* 0 · Hiçbir şey yazılmamış: başlangıç tarifesi. */
+  const t0 = m.veri.servisinTarifesi(SERVIS.id, urunId)
+  d.esit(t0.yolKm, baslangic.yolKm, 'yazılmamış tarifede km ücreti başlangıç değeri')
+  d.esit(t0.iscilikSaat, baslangic.iscilikSaat, 'yazılmamış tarifede saat ücreti başlangıç değeri')
+  d.esit(t0.kaynak.iscilikSaat, 'genel', 'kaynak genel')
+
+  /* 1 · Genel tarife değişiyor; özel ücretli servis yok. */
+  const g1 = m.veri.genelTarifeyiKaydet({ yolKm: 14, iscilikSaat: 60 }, {}, 'Sınama Yöneticisi')
+  d.esit(g1?.hata, undefined, 'genel tarife kabul edildi')
+  d.dogru(g1.bildirilen >= 2, 'bütün servislere bildirim gitti')
+  const b1 = tarifeBildirimleri(SERVIS.id)
+  d.esit(b1.length, 1, 'servise tek tarife bildirimi')
+  d.esit(b1[0]?.degerler?.yolKm?.once, baslangic.yolKm, 'bildirimde eski km ücreti')
+  d.esit(b1[0]?.degerler?.yolKm?.simdi, 14, 'bildirimde yeni km ücreti')
+  d.esit(b1[0]?.tur, 'hesap', 'bildirim talebe bağlı değil (hesap)')
+  d.esit(b1[0]?.talepId, undefined, 'bildirimde talep kimliği yok')
+  d.esit(kisiselBildirimler(m).length, 0, 'ücret bildirimi müşteriye sızmadı')
+  d.dogru(m.veri.islemKaydiGetir().some((x) => x.tur === 'tarife'), 'işlem kaydına tarife satırı yazıldı')
+
+  /* 2 · Servis kaydı gönderiliyor: güncel ücret kayda yazılıyor. Servisim
+     eski ücretle ön hesap yapmış olsa bile veri katmanı düzeltiyor. */
+  const r = talebiYaz(m, m.talepOlustur.talepKaydiOlustur(talepVerisi('servis', urunId, makineler[0]), kisi))
+  const gonder = m.veri.servisKaydiGonder(
+    r,
+    bitmisKayit({ km: 10, kmUcreti: 1, ...sk.iscilikAlanlari(2, 1) }),
+    SERVIS.ad,
+  )
+  d.esit(gonder?.hata, undefined, 'kayıt kabul edildi')
+  const k1 = bul(m, r.id)
+  d.esit(k1?.servisKaydi?.kmUcreti, 14, 'kayda güncel km ücreti yazıldı (ekranın eski ücreti değil)')
+  d.esit(k1?.servisKaydi?.saatUcreti, 60, 'kayda güncel saat ücreti yazıldı')
+  d.esit(k1?.hakkedis?.toplam, 10 * 14 + 2 * 60, 'hak ediş güncel ücretlerle')
+
+  /* 3 · Tarife yeniden değişiyor; gönderilmiş kayıt değişmiyor. */
+  m.veri.genelTarifeyiKaydet({ yolKm: 20, iscilikSaat: 60 }, {}, 'Sınama Yöneticisi')
+  d.esit(sk.hakkedisHesapla(bul(m, r.id).servisKaydi).toplam, 260, 'tarife değişince eski kaydın hak edişi aynı')
+  d.esit(sk.hakkedisHesapla({ kapi: 'garanti', km: 10, iscilik: 0 }).yol, 10 * baslangic.yolKm, 'km ücreti olmayan eski kayıt başlangıç ücretiyle')
+  const k2 = bul(m, r.id)
+  const duz = m.veri.hakkedisDuzelt(k2, { ...k2.servisKaydi, km: 20 }, 'Yol eksik yazılmış', 'Sınama Yöneticisi')
+  d.esit(duz?.hata, undefined, 'düzeltme kabul edildi')
+  d.esit(bul(m, r.id)?.hakkedis?.yol, 20 * 14, 'düzeltme kaydın kendi km ücretiyle (bugünkü 20 değil)')
+
+  /* 4 · Servise özel saat ücreti. */
+  const oncekiBildirim = tarifeBildirimleri(BAYI_SERVISI).length
+  m.veri.servisTarifesiniKaydet(SERVIS.id, { iscilikSaat: 70 }, 'Sınama Yöneticisi')
+  const t4 = m.veri.servisinTarifesi(SERVIS.id, urunId)
+  d.esit(t4.iscilikSaat, 70, 'servise özel saat ücreti geçerli')
+  d.esit(t4.kaynak.iscilikSaat, 'servis', 'kaynak servis')
+  d.esit(t4.yolKm, 20, 'yazılmayan km ücreti genelden')
+  d.esit(t4.kaynak.yolKm, 'genel', 'km kaynağı genel')
+  d.esit(m.veri.servisinTarifesi(BAYI_SERVISI, urunId).iscilikSaat, 60, 'öteki servis genel ücrette')
+  d.esit(tarifeBildirimleri(BAYI_SERVISI).length, oncekiBildirim, 'özel ücret öteki servise bildirilmedi')
+
+  /* 5 · Makineye göre genel satır: özel ücreti olmayan servise geçiyor,
+     özel ücreti olana geçmiyor (servis katmanı önde). */
+  const servisOnce = tarifeBildirimleri(SERVIS.id).length
+  const bayiOnce = tarifeBildirimleri(BAYI_SERVISI).length
+  m.veri.genelTarifeyiKaydet(
+    { yolKm: 20, iscilikSaat: 60, modeller: { [urunId]: { iscilikSaat: 90 } } },
+    {},
+    'Sınama Yöneticisi',
+  )
+  const t5b = m.veri.servisinTarifesi(BAYI_SERVISI, urunId)
+  d.esit(t5b.iscilikSaat, 90, 'makineye göre genel ücret özel ücreti olmayan serviste geçerli')
+  d.esit(t5b.kaynak.iscilikSaat, 'makine', 'kaynak makine')
+  d.esit(m.veri.servisinTarifesi(BAYI_SERVISI, baskaUrun).iscilikSaat, 60, 'başka makinede genel ücret')
+  d.esit(m.veri.servisinTarifesi(SERVIS.id, urunId).iscilikSaat, 70, 'servise özel ücret makineye göre genel satırın önünde')
+  d.esit(tarifeBildirimleri(BAYI_SERVISI).length, bayiOnce + 1, 'makine ücreti değişen servise bildirildi')
+  d.dogru(tarifeBildirimleri(BAYI_SERVISI)[0]?.degerler?.makine === true, 'bildirim makinede değişim olduğunu söylüyor')
+  d.esit(tarifeBildirimleri(SERVIS.id).length, servisOnce, 'ücreti değişmeyen servise bildirim gitmedi')
+
+  /* 6 · Servisin kendi makineye göre satırı en önde. */
+  m.veri.servisTarifesiniKaydet(
+    SERVIS.id,
+    { yolKm: 25, iscilikSaat: 70, modeller: { [urunId]: { iscilikSaat: 100 } } },
+    'Sınama Yöneticisi',
+  )
+  const t6 = m.veri.servisinTarifesi(SERVIS.id, urunId)
+  d.esit(t6.iscilikSaat, 100, 'servis + makine satırı geçerli')
+  d.esit(t6.kaynak.iscilikSaat, 'servisMakine', 'kaynak servis + makine')
+  d.esit(m.veri.servisinTarifesi(SERVIS.id, baskaUrun).iscilikSaat, 70, 'servisin öteki makinesinde servis ücreti')
+  const r2 = talebiYaz(m, m.talepOlustur.talepKaydiOlustur(talepVerisi('servis', urunId, makineler[0]), kisi))
+  m.veri.servisKaydiGonder(r2, bitmisKayit({ km: 4, ...sk.iscilikAlanlari(1) }), SERVIS.ad)
+  const k6 = bul(m, r2.id)
+  d.esit(k6?.servisKaydi?.saatUcreti, 100, 'kayda servis + makine ücreti yazıldı')
+  d.esit(k6?.servisKaydi?.kmUcreti, 25, 'kayda servisin özel km ücreti yazıldı')
+
+  /* 7 · Genel saat ücreti değişiyor, "özel ücretler değişmesin". */
+  const liste7 = m.servisTarifesi.ozelUcretliServisler(m.veri.hizmetTarifesiGetir(), ['iscilikSaat'])
+  d.dogru(liste7.some((x) => x.servisId === SERVIS.id && x.makineli), 'uyarı listesinde özel ücretli servis (makine satırıyla)')
+  d.yanlis(liste7.some((x) => x.servisId === BAYI_SERVISI), 'özel ücreti olmayan servis uyarı listesinde yok')
+  m.veri.genelTarifeyiKaydet({ yolKm: 20, iscilikSaat: 65, modeller: { [urunId]: { iscilikSaat: 90 } } }, { ozelleriDegistir: false }, 'Sınama Yöneticisi')
+  d.esit(m.veri.servisinTarifesi(SERVIS.id, baskaUrun).iscilikSaat, 70, '"değişmesin": özel saat ücreti yerinde')
+  d.esit(m.veri.servisinTarifesi(BAYI_SERVISI, baskaUrun).iscilikSaat, 65, '"değişmesin": özel ücreti olmayan servis yeni ücrette')
+
+  /* 8 · Genel saat ücreti değişiyor, "özel ücretler de değişsin". Yalnız
+     değişen kalemin (saat) özel ücreti kalkıyor; özel km ücreti kalıyor. */
+  m.veri.genelTarifeyiKaydet({ yolKm: 20, iscilikSaat: 66, modeller: { [urunId]: { iscilikSaat: 90 } } }, { ozelleriDegistir: true }, 'Sınama Yöneticisi')
+  const t8 = m.veri.servisinTarifesi(SERVIS.id, baskaUrun)
+  d.esit(t8.iscilikSaat, 66, '"değişsin": özel saat ücreti kalktı, genel geçerli')
+  d.esit(t8.yolKm, 25, '"değişsin": değişmeyen kalemin özel ücreti (km) yerinde')
+  d.esit(m.veri.servisinTarifesi(SERVIS.id, urunId).iscilikSaat, 90, '"değişsin": servisin makine satırı da kalktı, genel makine ücreti geçerli')
+  d.esit(
+    m.servisTarifesi.ozelUcretliServisler(m.veri.hizmetTarifesiGetir(), ['iscilikSaat']).length,
+    0,
+    'saat ücretinde özel ücretli servis kalmadı',
+  )
+
+  /* 9 · Öteki serviste makineye göre km ücreti: genel makine satırının
+     km'si ve servisin kendi makine satırı. */
+  m.veri.genelTarifeyiKaydet(
+    { yolKm: 20, iscilikSaat: 66, modeller: { [urunId]: { iscilikSaat: 90, yolKm: 22 } } },
+    {},
+    'Sınama Yöneticisi',
+  )
+  m.veri.servisTarifesiniKaydet(
+    BAYI_SERVISI,
+    { iscilikSaat: 55, modeller: { [baskaUrun]: { yolKm: 30, iscilikSaat: 75 } } },
+    'Sınama Yöneticisi',
+  )
+  d.esit(m.veri.servisinTarifesi(BAYI_SERVISI, urunId).yolKm, 22, 'servisin özel km ücreti yoksa genel makine km ücreti')
+  d.esit(m.veri.servisinTarifesi(BAYI_SERVISI, urunId).iscilikSaat, 55, 'servisin özel saat ücreti genel makine satırının önünde')
+  d.esit(m.veri.servisinTarifesi(BAYI_SERVISI, baskaUrun).yolKm, 30, 'servisin makine satırındaki km ücreti')
+  d.esit(
+    m.servisTarifesi.makineFarklari(m.veri.hizmetTarifesiGetir(), BAYI_SERVISI).length,
+    2,
+    'Servisim iki makinede farklı ücret gösteriyor',
+  )
+
+  /* 10 · Geçersiz ücret kabul edilmiyor ve hiçbir şey yazılmıyor. */
+  const once9 = JSON.stringify(m.veri.hizmetTarifesiGetir())
+  d.dogru(Boolean(m.veri.genelTarifeyiKaydet({ yolKm: '', iscilikSaat: 66 }, {}, 'Sınama Yöneticisi')?.hata), 'boş km ücreti reddedildi')
+  d.esit(JSON.stringify(m.veri.hizmetTarifesiGetir()), once9, 'reddedilen kayıt tarifeye dokunmadı')
+
+  return d
+}
+
+/* ========================================================== AK-22 */
+
+/* SERVİS PARÇA İSKONTOSU BACKOFFICE'TEN DEĞİŞİYOR.
+
+   KULLANICININ İSTEĞİ (23 Eylül 2026): servislere genel ya da servise
+   özel iskonto; oran Servisim'in sipariş özetinde görünsün, değişince
+   servise bildirim gitsin (lib/servisFiyat.js → iskontoCoz, veri.js →
+   genelIskontoyuKaydet, servisIskontosunuKaydet, servisParcaSiparisi).
+
+   Senaryonun taşıdığı dört şey:
+     1  servise özel oran genelin önünde
+     2  sipariş o günkü oranı taşıyor ve oran sonra değişse de kendi
+        oranıyla kalıyor
+     3  servis eski oranla hazırladığı siparişi gönderemiyor — veri
+        katmanı reddediyor ve hiçbir şey yazmıyor
+     4  genel oran değişirken "özel oranlar değişsin mi" cevabı doğru
+        uygulanıyor; bildirim yalnız oranı değişen servise gidiyor */
+export function AK22(m) {
+  const d = defter('AK-22', 'Servis parça iskontosu backoffice\'ten değişiyor')
+  depoTemizle()
+  dunyaKur(m)
+  const baslangic = m.marka.PARCA_SERVIS_ISKONTO
+  const iskontoBildirimleri = (servisId) =>
+    servisBildirimleriDepodan(m).filter((x) => x.olay === 'iskonto' && x.servisId === servisId)
+
+  /* Servisim'in sipariş ekranının gönderdiği görüntü (SiparisVer.jsx). */
+  const siparisVer = (oran) => {
+    const f = m.servisFiyat.parcaServisFiyati({ kod: 'PRC-1', ad: 'Rulman', fiyat: 1000 }, oran)
+    const adet = 2
+    const araToplam = f.alis * adet
+    const listeToplam = f.fiyat * adet
+    return m.veri.servisParcaSiparisi({
+      servisId: SERVIS.id,
+      servisAd: SERVIS.ad,
+      servisNo: SERVIS.no,
+      servisTel: '3323450014',
+      il: SERVIS.il,
+      ilce: 'Selçuklu',
+      kalemler: [{ kod: 'PRC-1', ad: 'Rulman', adet }],
+      parcaFiyat: {
+        surum: 1,
+        kaynak: 'sınama',
+        satirlar: [{ kod: 'PRC-1', ad: 'Rulman', adet, listeFiyati: f.fiyat, birimFiyat: f.alis, tutar: araToplam }],
+        iskontoOrani: oran,
+        listeToplam,
+        iskontoTutari: listeToplam - araToplam,
+        araToplam,
+        kdv: m.marka.kdvTutari(araToplam),
+        toplam: araToplam + m.marka.kdvTutari(araToplam),
+        eksikFiyat: false,
+      },
+      not: '',
+      teslimat: { ...ADRES },
+      odeme: 'fatura',
+    })
+  }
+
+  /* 0 · Başlangıç oranı. */
+  const i0 = m.veri.servisinIskontosu(SERVIS.id)
+  d.esit(i0.oran, baslangic, 'yazılmamış iskontoda başlangıç oranı')
+  d.esit(i0.kaynak, 'genel', 'kaynak genel')
+  d.esit(m.servisFiyat.parcaServisFiyati({ kod: 'X', ad: 'X', fiyat: 1000 }, 0.35).alis, 650, 'oranla alış fiyatı')
+
+  /* 1 · Başlangıç oranıyla sipariş. */
+  const s1 = siparisVer(baslangic)
+  d.esit(s1?.hata, undefined, 'başlangıç oranıyla sipariş kabul edildi')
+  const t1 = bul(m, s1?.talep?.id)
+  d.esit(t1?.parcaFiyat?.iskontoOrani, baslangic, 'siparişe oran yazıldı')
+  d.esit(t1?.parcaFiyat?.listeToplam, 2000, 'siparişte liste fiyatıyla toplam')
+  d.esit(t1?.parcaFiyat?.iskontoTutari, 2000 * baslangic, 'siparişte düşülen tutar')
+  d.esit(t1?.tutar, 2000 - 2000 * baslangic, 'siparişin tutarı iskontolu')
+
+  /* 2 · Servise özel oran. */
+  const oz = m.veri.servisIskontosunuKaydet(SERVIS.id, 35, 'Sınama Yöneticisi')
+  d.esit(oz?.hata, undefined, 'özel oran kabul edildi')
+  const i2 = m.veri.servisinIskontosu(SERVIS.id)
+  d.esit(i2.oran, 0.35, 'servise özel oran geçerli')
+  d.esit(i2.kaynak, 'servis', 'kaynak servis')
+  d.esit(m.veri.servisinIskontosu(BAYI_SERVISI).oran, baslangic, 'öteki servis genel oranda')
+  const b2 = iskontoBildirimleri(SERVIS.id)
+  d.esit(b2.length, 1, 'servise iskonto bildirimi gitti')
+  d.esit(b2[0]?.degerler?.once, Math.round(baslangic * 100), 'bildirimde eski oran (yüzde)')
+  d.esit(b2[0]?.degerler?.simdi, 35, 'bildirimde yeni oran (yüzde)')
+  d.esit(iskontoBildirimleri(BAYI_SERVISI).length, 0, 'öteki servise bildirim gitmedi')
+  d.esit(kisiselBildirimler(m).length, 0, 'iskonto bildirimi müşteriye sızmadı')
+
+  /* 3 · Servis eski oranla hazırladığı siparişi gönderemiyor. */
+  const talepSayisi = m.veri.talepleriGetir().length
+  const s3 = siparisVer(baslangic)
+  d.dogru(Boolean(s3?.hata), 'eski oranlı sipariş reddedildi')
+  d.esit(s3?.iskontoDegisti, true, 'ret sebebi oran değişikliği')
+  d.esit(m.veri.talepleriGetir().length, talepSayisi, 'reddedilen sipariş yazılmadı')
+  const s3b = siparisVer(0.35)
+  d.esit(s3b?.hata, undefined, 'güncel oranla sipariş kabul edildi')
+
+  /* 4 · Genel oran değişiyor, "özel oranlar değişmesin". */
+  m.veri.genelIskontoyuKaydet(25, { ozelleriDegistir: false }, 'Sınama Yöneticisi')
+  d.esit(m.veri.servisinIskontosu(SERVIS.id).oran, 0.35, '"değişmesin": özel oran yerinde')
+  d.esit(m.veri.servisinIskontosu(BAYI_SERVISI).oran, 0.25, '"değişmesin": öteki servis yeni genel oranda')
+  d.esit(iskontoBildirimleri(SERVIS.id).length, 1, 'oranı değişmeyen servise yeni bildirim gitmedi')
+  d.esit(iskontoBildirimleri(BAYI_SERVISI).length, 1, 'oranı değişen servise bildirim gitti')
+
+  /* 5 · Genel oran değişiyor, "özel oranlar da değişsin". */
+  m.veri.genelIskontoyuKaydet(20, { ozelleriDegistir: true }, 'Sınama Yöneticisi')
+  d.esit(m.veri.servisinIskontosu(SERVIS.id).oran, 0.2, '"değişsin": özel oran kalktı')
+  d.esit(m.veri.servisinIskontosu(SERVIS.id).kaynak, 'genel', '"değişsin": servis genel orana geçti')
+  d.esit(iskontoBildirimleri(SERVIS.id)[0]?.degerler?.simdi, 20, 'servise yeni oran bildirildi')
+
+  /* 6 · Verilmiş sipariş kendi oranıyla kalıyor. */
+  d.esit(bul(m, s1.talep.id)?.parcaFiyat?.iskontoOrani, baslangic, 'ilk sipariş kendi oranıyla')
+  d.esit(bul(m, s3b.talep.id)?.parcaFiyat?.iskontoOrani, 0.35, 'özel oranlı sipariş kendi oranıyla')
+
+  /* 7 · Öteki servise özel oran; genel orana dönüş. */
+  m.veri.servisIskontosunuKaydet(BAYI_SERVISI, 15, 'Sınama Yöneticisi')
+  d.esit(m.veri.servisinIskontosu(BAYI_SERVISI).oran, 0.15, 'öteki servise özel oran')
+  m.veri.servisIskontosunuKaydet(SERVIS.id, 40, 'Sınama Yöneticisi')
+  m.veri.servisIskontosunuKaydet(SERVIS.id, '', 'Sınama Yöneticisi')
+  d.esit(m.veri.servisinIskontosu(SERVIS.id).kaynak, 'genel', 'boş oran servisi genel orana döndürüyor')
+  d.esit(iskontoBildirimleri(SERVIS.id)[0]?.degerler?.simdi, 20, 'genel orana dönüş servise bildirildi')
+
+  /* 8 · Sınır: %90'ın üstü ve anlamsız değer kabul edilmiyor. */
+  const once7 = JSON.stringify(m.veri.parcaIskontosuGetir())
+  d.dogru(Boolean(m.veri.genelIskontoyuKaydet(95, {}, 'Sınama Yöneticisi')?.hata), '%95 reddedildi')
+  d.dogru(Boolean(m.veri.servisIskontosunuKaydet(SERVIS.id, 'abc', 'Sınama Yöneticisi')?.hata), 'anlamsız oran reddedildi')
+  d.esit(JSON.stringify(m.veri.parcaIskontosuGetir()), once7, 'reddedilen oran hiçbir şey yazmadı')
+
+  return d
+}
+
+/* ========================================================== AK-23 */
+
+/* BAKİYEDEN ÖDEMEDE EK İSKONTO.
+
+   KULLANICININ İSTEĞİ (24 Eylül 2026): Servisim'de bakiyeden ödenen
+   parça siparişine ek indirim; oranı PAKSAN belirler (lib/servisFiyat.js
+   → bakiyeIskontosu, siparisTutari; veri.js → bakiyeIskontosunuKaydet,
+   servisParcaSiparisi, talepKapat).
+
+   Senaryonun taşıdığı beş şey:
+     1  başlangıçta oran 0 ve bakiyeden ödenen sipariş ek iskonto almıyor
+     2  oran değişince BÜTÜN servislere bildirim gidiyor; aynı oran
+        yeniden kaydedilince hiçbir şey yazılmıyor
+     3  ek iskonto KDV'den ÖNCE, servisin iskontolu ara toplamından
+        düşülüyor ve siparişe oranıyla, tutarıyla yazılıyor
+     4  eski oranla hazırlanmış bakiye siparişi ve ek iskonto taşıyan
+        faturalı sipariş reddediliyor, hiçbir şey yazılmıyor
+     5  kapanışta cariden düşülen borç ek iskontolu KDV dâhil toplam
+
+   Tutarlar formülden değil elle hesaplanıyor: senaryo siparisTutari'yi
+   yalnız Servisim'in yaptığı gibi siparişi KURMAK için çağırıyor;
+   iddialar ondan bağımsız rakamlara bakıyor. Yoksa formül bozulunca
+   iki taraf birlikte bozulur ve senaryo yine geçerdi. */
+export async function AK23(m, ctx) {
+  const d = defter('AK-23', 'Bakiyeden ödemede ek iskonto')
+  depoTemizle()
+  dunyaKur(m)
+  const sf = m.servisFiyat
+  const tb = await ctx.modulYukle('/src/servis/talepBildirimleri.js')
+  const servisler = m.marka.servisleriGetir().map((x) => x.id)
+  const ekBildirimler = (servisId) =>
+    servisBildirimleriDepodan(m).filter((x) => x.olay === 'bakiyeIskonto' && x.servisId === servisId)
+  const hepsininBildirimi = () =>
+    servisBildirimleriDepodan(m).filter((x) => x.olay === 'bakiyeIskonto').length
+
+  /* Servisim'in sipariş ekranının gönderdiği görüntü (SiparisVer.jsx):
+     satırlar servisin iskontolu fiyatında, ek iskonto sipariş satırı.
+     `ekOran` ekranın o an okuduğu ek iskonto; `ek` görüntünün üstüne
+     yazılır (eski ya da uydurma oran taşıyan istemci için). */
+  const ADET = 3
+  const siparisVer = ({ odeme, ekOran = 0, ek = {} }) => {
+    const oran = m.veri.servisinIskontosu(SERVIS.id).oran
+    const f = sf.parcaServisFiyati({ kod: 'PRC-1', ad: 'Rulman', fiyat: 1000 }, oran)
+    const taban = f.alis * ADET
+    const listeToplam = f.fiyat * ADET
+    const t = sf.siparisTutari(taban, { odeme, bakiyeOrani: ekOran })
+    const sonuc = m.veri.servisParcaSiparisi({
+      servisId: SERVIS.id,
+      servisAd: SERVIS.ad,
+      servisNo: SERVIS.no,
+      servisTel: '3323450014',
+      il: SERVIS.il,
+      ilce: 'Selçuklu',
+      kalemler: [{ kod: 'PRC-1', ad: 'Rulman', adet: ADET }],
+      parcaFiyat: {
+        surum: 1,
+        kaynak: 'sınama',
+        satirlar: [{ kod: 'PRC-1', ad: 'Rulman', adet: ADET, listeFiyati: f.fiyat, birimFiyat: f.alis, tutar: taban }],
+        iskontoOrani: oran,
+        listeToplam,
+        iskontoTutari: listeToplam - taban,
+        ...(t.bakiyeIskontoOrani > 0
+          ? { bakiyeIskontoOrani: t.bakiyeIskontoOrani, bakiyeIskontoTutari: t.bakiyeIskontoTutari }
+          : {}),
+        araToplam: t.araToplam,
+        kdv: t.kdv,
+        toplam: t.toplam,
+        eksikFiyat: false,
+        ...ek,
+      },
+      not: '',
+      teslimat: { ...ADRES },
+      odeme,
+      tutar: t.araToplam,
+      tutarKdvli: t.toplam,
+    })
+    return { sonuc, taban, birim: f.alis, talep: sonuc?.talep ? bul(m, sonuc.talep.id) : null }
+  }
+
+  /* 0 · Başlangıç: ek iskonto kapalı. */
+  d.esit(sf.BAKIYE_EK_ISKONTO, 0, 'başlangıç sabiti 0 (özellik kapalı)')
+  d.esit(m.veri.bakiyeIskontosuGetir(), 0, 'yazılmamış ek iskonto 0')
+  d.esit(m.veri.parcaIskontosuGetir().bakiye, 0, 'iskonto kaydında ek iskonto 0')
+  const s0 = siparisVer({ odeme: 'bakiye', ekOran: m.veri.bakiyeIskontosuGetir() })
+  d.esit(s0.sonuc?.hata, undefined, 'oran 0 iken bakiye siparişi kabul edildi')
+  d.esit(s0.talep?.parcaFiyat?.bakiyeIskontoTutari, undefined, 'oran 0 iken siparişe ek iskonto yazılmadı')
+  d.esit(s0.talep?.tutarKdvli, s0.taban + m.marka.kdvTutari(s0.taban), 'oran 0 iken tutar iskontolu ara toplam + KDV')
+
+  /* 1 · Personel %5 yazıyor: bütün servislere bildirim. */
+  const islemOnce = m.veri.islemKaydiGetir().length
+  const k1 = m.veri.bakiyeIskontosunuKaydet(5, 'Sınama Yöneticisi')
+  d.esit(k1?.hata, undefined, 'ek iskonto kabul edildi')
+  d.esit(m.veri.bakiyeIskontosuGetir(), 0.05, 'ek iskonto kesir olarak okunuyor')
+  d.dogru(servisler.length >= 2, 'dünyada en az iki servis var')
+  d.esit(k1?.bildirilen, servisler.length, 'bildirim sayısı servis sayısı kadar')
+  for (const id of servisler) {
+    const b = ekBildirimler(id)
+    d.esit(b.length, 1, `${id}: tek ek iskonto bildirimi`)
+    d.esit(b[0]?.degerler?.once, 0, `${id}: bildirimde eski oran (yüzde)`)
+    d.esit(b[0]?.degerler?.simdi, 5, `${id}: bildirimde yeni oran (yüzde)`)
+  }
+  const b1 = ekBildirimler(SERVIS.id)[0]
+  d.esit(b1?.tur, 'hesap', 'bildirim talebe bağlı değil (hesap)')
+  d.esit(b1?.talepId, undefined, 'bildirimde talep kimliği yok')
+  d.bak(
+    tb.bildirimYazisi(b1).baslik !== tb.bildirimYazisi({ olay: '__tanimsiz__' }).baslik,
+    '"bakiyeIskonto" olayının Servisim\'de kendi yazısı var',
+    'olaya özel başlık',
+    tb.bildirimYazisi(b1).baslik,
+  )
+  d.esit(kisiselBildirimler(m).length, 0, 'ek iskonto bildirimi müşteriye sızmadı')
+  d.esit(m.veri.islemKaydiGetir().length, islemOnce + 1, 'işlem kaydına tek satır')
+  d.esit(m.veri.islemKaydiGetir()[0]?.tur, 'iskonto', 'işlem kaydı satırı iskonto türünde')
+
+  /* 2 · Aynı oran yeniden: hiçbir şey yazılmıyor. */
+  const k2 = m.veri.bakiyeIskontosunuKaydet('5', 'Sınama Yöneticisi')
+  d.esit(k2?.bildirilen, 0, 'aynı oran: bildirilen 0')
+  d.esit(hepsininBildirimi(), servisler.length, 'aynı oran: yeni bildirim gitmedi')
+  d.esit(m.veri.islemKaydiGetir().length, islemOnce + 1, 'aynı oran: işlem kaydı yazılmadı')
+
+  /* 3 · Servis iskontosunun kayıtları ek iskontoya dokunmuyor. */
+  m.veri.genelIskontoyuKaydet(25, {}, 'Sınama Yöneticisi')
+  d.esit(m.veri.bakiyeIskontosuGetir(), 0.05, 'genel oran değişince ek iskonto yerinde')
+  m.veri.servisIskontosunuKaydet(BAYI_SERVISI, 20, 'Sınama Yöneticisi')
+  d.esit(m.veri.bakiyeIskontosuGetir(), 0.05, 'servise özel oran yazılınca ek iskonto yerinde')
+  d.esit(hepsininBildirimi(), servisler.length, 'servis iskontosu değişimi ek iskonto bildirimi yazmadı')
+
+  /* 4 · Bakiyeden sipariş: ek iskonto KDV'den önce, ara toplamdan. */
+  const s4 = siparisVer({ odeme: 'bakiye', ekOran: m.veri.bakiyeIskontosuGetir() })
+  d.esit(s4.sonuc?.hata, undefined, 'güncel ek iskontolu bakiye siparişi kabul edildi')
+  const g4 = s4.talep?.parcaFiyat
+  const ekTutar = Math.round(s4.taban * 0.05)
+  const net = s4.taban - ekTutar
+  d.esit(s4.taban, 750 * ADET, 'satırlar servisin iskontolu fiyatında (%25)')
+  d.esit(g4?.bakiyeIskontoOrani, 0.05, 'siparişe ek iskonto oranı yazıldı')
+  d.esit(g4?.bakiyeIskontoTutari, ekTutar, 'siparişe ek iskonto tutarı yazıldı')
+  d.esit(g4?.araToplam, net, 'ara toplam ek iskonto düşülmüş')
+  d.esit(g4?.kdv, m.marka.kdvTutari(net), "KDV ek iskontolu ara toplamdan (iskonto KDV'den önce)")
+  d.esit(g4?.toplam, net + m.marka.kdvTutari(net), 'genel toplam ek iskontolu')
+  d.esit(g4?.satirlar?.[0]?.birimFiyat, s4.birim, 'satır fiyatı ek iskontodan etkilenmedi')
+  d.esit(s4.talep?.tutar, net, 'siparişin tutarı (KDV hariç) ek iskontolu')
+  d.esit(s4.talep?.tutarKdvli, net + m.marka.kdvTutari(net), 'siparişin KDV dâhil tutarı ek iskontolu')
+  d.esit(s4.talep?.odeme, 'bakiye', 'ödeme bakiyeden')
+  const hesap4 = sf.siparisTutari(s4.taban, { odeme: 'fatura', bakiyeOrani: 0.05 })
+  d.esit(hesap4.bakiyeIskontoTutari, 0, 'formül: faturada ek iskonto yok')
+
+  /* 5 · Eski oranla hazırlanmış bakiye siparişi reddediliyor. */
+  const sayi5 = m.veri.talepleriGetir().length
+  const s5a = siparisVer({ odeme: 'bakiye', ekOran: 0 })
+  d.esit(s5a.sonuc?.iskontoDegisti, true, 'ek iskonto açılmadan hazırlanan bakiye siparişi reddedildi')
+  const s5b = siparisVer({ odeme: 'bakiye', ekOran: 0.03 })
+  d.esit(s5b.sonuc?.iskontoDegisti, true, 'eski ek iskonto oranlı bakiye siparişi reddedildi')
+  d.esit(m.veri.talepleriGetir().length, sayi5, 'reddedilen siparişler yazılmadı')
+
+  /* 6 · Faturayla sipariş ek iskonto almıyor, uydurursa reddediliyor. */
+  const s6 = siparisVer({ odeme: 'fatura', ekOran: m.veri.bakiyeIskontosuGetir() })
+  d.esit(s6.sonuc?.hata, undefined, 'faturalı sipariş kabul edildi')
+  d.esit(s6.talep?.parcaFiyat?.bakiyeIskontoTutari, undefined, 'faturalı siparişe ek iskonto yazılmadı')
+  d.esit(s6.talep?.tutarKdvli, s6.taban + m.marka.kdvTutari(s6.taban), 'faturalı siparişin tutarı ek iskontosuz')
+  const sayi6 = m.veri.talepleriGetir().length
+  const s6b = siparisVer({
+    odeme: 'fatura',
+    ek: { bakiyeIskontoOrani: 0.05, bakiyeIskontoTutari: Math.round(s6.taban * 0.05) },
+  })
+  d.esit(s6b.sonuc?.iskontoDegisti, true, 'ek iskonto taşıyan faturalı sipariş reddedildi')
+  d.esit(m.veri.talepleriGetir().length, sayi6, 'reddedilen faturalı sipariş yazılmadı')
+
+  /* 7 · Kapanış: cariden ek iskontolu KDV dâhil toplam düşülüyor. */
+  m.veri.talepKapat(s6.talep, { yapilanIs: 'Gönderildi', not: '' }, 'Sınama Yöneticisi')
+  d.esit(m.veri.cariHareketleri(SERVIS.id).length, 0, 'faturalı sipariş cariye yazmadı')
+  m.veri.talepKapat(s4.talep, { yapilanIs: 'Gönderildi', not: '' }, 'Sınama Yöneticisi')
+  const hareket = m.veri.cariHareketleri(SERVIS.id)
+  d.esit(hareket.length, 1, 'bakiye siparişi tek borç hareketi yazdı')
+  d.esit(hareket[0]?.tur, 'borc', 'hareket borç')
+  d.esit(hareket[0]?.tutar, net + m.marka.kdvTutari(net), 'borç ek iskontolu KDV dâhil toplam')
+
+  /* 8 · Oran kapatılıyor, sonra yeniden açılıyor. */
+  const k8 = m.veri.bakiyeIskontosunuKaydet(0, 'Sınama Yöneticisi')
+  d.esit(k8?.hata, undefined, 'ek iskonto kapatılabiliyor (0)')
+  d.esit(ekBildirimler(SERVIS.id)[0]?.degerler?.simdi, 0, 'kapatma servise bildirildi')
+  const s8 = siparisVer({ odeme: 'bakiye', ekOran: 0.05 })
+  d.esit(s8.sonuc?.iskontoDegisti, true, 'kapatıldıktan sonra ek iskontolu sipariş reddedildi')
+
+  /* 9 · Sınır: %90'ın üstü ve anlamsız değer kabul edilmiyor. */
+  const once9 = JSON.stringify(m.veri.parcaIskontosuGetir())
+  d.dogru(Boolean(m.veri.bakiyeIskontosunuKaydet(95, 'Sınama Yöneticisi')?.hata), '%95 reddedildi')
+  d.dogru(Boolean(m.veri.bakiyeIskontosunuKaydet('abc', 'Sınama Yöneticisi')?.hata), 'anlamsız oran reddedildi')
+  d.dogru(Boolean(m.veri.bakiyeIskontosunuKaydet('', 'Sınama Yöneticisi')?.hata), 'boş oran reddedildi')
+  d.esit(JSON.stringify(m.veri.parcaIskontosuGetir()), once9, 'reddedilen oran hiçbir şey yazmadı')
+
+  /* Son durum: oran açık ve depoda ek iskontolu bir sipariş duruyor —
+     veritabanı eşleme denetimi senaryonun sonunda depoya bakıyor ve
+     yeni alanları ancak böyle görüyor. */
+  m.veri.bakiyeIskontosunuKaydet(3, 'Sınama Yöneticisi')
+  const son = siparisVer({ odeme: 'bakiye', ekOran: m.veri.bakiyeIskontosuGetir() })
+  d.esit(son.talep?.parcaFiyat?.bakiyeIskontoOrani, 0.03, 'yeniden açılan oranla sipariş kabul edildi')
+
+  return d
+}
+
 export const SENARYOLAR = [
   AK01, AK02, AK03, AK04, AK05, AK06, AK07, AK08, AK09, AK10, AK11, AK12, AK13, AK14,
-  AK15, AK16, AK17, AK18, AK19, AK20,
+  AK15, AK16, AK17, AK18, AK19, AK20, AK21, AK22, AK23,
 ]

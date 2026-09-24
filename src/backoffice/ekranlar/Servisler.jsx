@@ -6,7 +6,17 @@ import {
   servisleriYaz,
   izinli,
   kullaniciAdiOner,
+  hizmetTarifesiGetir,
+  servisTarifesiniKaydet,
 } from '../veri'
+import {
+  HizmetUcretleriKarti,
+  ServisUcretHucresi,
+  ServisUcretiAlani,
+  servisUcretTaslagi,
+  taslakDegistiMi,
+  taslaktanOzel,
+} from './HizmetUcretleri'
 import { sifreHazirla } from '../../lib/hesap'
 import { useVeri } from '../kanca'
 import { SERVISLER, SERVIS_TURU, bayileriGetir } from '../../marka'
@@ -107,10 +117,21 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
   const [il, setIl] = useState('hepsi')
   const [ilce, setIlce] = useState('hepsi')
   const [ara, setAra] = useState('')
+  /* ÖZEL ÜCRET SÜZGECİ (24 Eylül 2026, kullanıcının isteği): servise özel
+     ücret tanımlanmış servisleri listeden ayırmak için. Yalnız makine
+     modeline göre özel ücreti olan servis de "özel" sayılıyor — Ücret
+     sütunundaki "özel" rozetiyle aynı ölçü (tarifede servisin satırı var). */
+  const [ucret, setUcret] = useState('hepsi')
 
   const { veri: kayitli, yukleniyor } = useVeri(() => servisleriGetirBackoffice(), [surum], null)
 
   const tumServisler = yerel || kayitli || SERVISLER
+  /* Listedeki "Ücret" sütunu (23 Eylül 2026): hangi serviste özel ücret
+     olduğu listeden görünsün; tek tek formu açmak gerekmesin. */
+  const tarife = useMemo(() => {
+    void surum
+    return hizmetTarifesiGetir()
+  }, [surum])
 
   const iller = [...new Set(tumServisler.map((b) => b.il).filter(Boolean))].sort((a, b) =>
     a.localeCompare(b, 'tr')
@@ -133,6 +154,7 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
   const suzulmus = tumServisler.filter((b) => {
     if (il !== 'hepsi' && b.il !== il) return false
     if (ilce !== 'hepsi' && b.ilce !== ilce) return false
+    if (ucret !== 'hepsi' && Boolean(tarife.servisler[b.id]) !== (ucret === 'ozel')) return false
 
     const q = ara.trim().toLocaleLowerCase('tr-TR')
     if (!q) return true
@@ -207,6 +229,12 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
         }
       />
 
+      {/* HİZMET ÜCRETLERİ LİSTENİN ÜSTÜNDE (23 Eylül 2026, kullanıcının
+          isteği: "Bu alan Servisler sayfasında olabilir. Sayfa içinde tüm
+          servislere ortak atanacak km ve saat başı ücret tanımlaması").
+          Servise özel ücret servisin Düzenle penceresinde. */}
+      <HizmetUcretleriKarti personel={personel} rol={rol} bildir={bildir} tazele={tazele} surum={surum} />
+
       <SuzgecCubugu>
         <Secim
           ad="İl"
@@ -231,6 +259,18 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
             ...ilceler.map((x) => ({ deger: x, ad: x })),
           ]}
           genislik={150}
+        />
+
+        <Secim
+          ad="Özel Ücret"
+          deger={ucret}
+          onDegis={setUcret}
+          secenekler={[
+            { deger: 'hepsi', ad: 'Tüm servisler' },
+            { deger: 'ozel', ad: 'Özel ücreti olanlar' },
+            { deger: 'genel', ad: 'Özel ücreti olmayanlar' },
+          ]}
+          genislik={190}
         />
 
         <label className="secim-alan secim-alan--genis">
@@ -267,6 +307,7 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
                   <SiraliBaslik ad="Konum" alan="konum" siralama={siralama} onSirala={cevir} />
                   <SiraliBaslik ad="Telefon" alan="tel" siralama={siralama} onSirala={cevir} />
                   <SiraliBaslik ad="Bayi" alan="bayi" siralama={siralama} onSirala={cevir} />
+                  <th>Ücret</th>
                   {duzenleyebilir && <th style={{ width: 1 }}></th>}
                 </tr>
               </thead>
@@ -292,6 +333,9 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
                       ) : (
                         <span className="sonuk">Bağ yok</span>
                       )}
+                    </td>
+                    <td>
+                      <ServisUcretHucresi tarife={tarife} servisId={b.id} />
                     </td>
                     {duzenleyebilir && (
                       <td>
@@ -321,8 +365,9 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
       {duzenlenen && (
         <Form
           servis={duzenlenen}
+          rol={rol}
           onKapat={() => setDuzenlenen(null)}
-          onKaydet={async (b) => {
+          onKaydet={async (b, ucret) => {
             sayaciEnAz('servis', liste.length)
             const temiz = { ...b, no: b.no || yeniNo('servis') }
             delete temiz.yeni
@@ -343,6 +388,12 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
               ? [...liste, temiz]
               : liste.map((x) => (x.id === b.id ? temiz : x))
             kaydet(yeni)
+            /* Özel hizmet ücreti formla birlikte kaydediliyor; yetkisi
+               olmayanın taslağı hiç değişmiyor (alan salt okunur). */
+            if (ucret && izinli(rol, 'servisUcreti') && taslakDegistiMi(temiz.id, ucret)) {
+              servisTarifesiniKaydet(temiz.id, taslaktanOzel(ucret), personel)
+              tazele()
+            }
             setDuzenlenen(null)
             bildir(b.yeni ? 'Servis eklendi' : 'Servis güncellendi')
           }}
@@ -676,8 +727,10 @@ function CariHesap({ cari, tur, onDegis, onTur }) {
   )
 }
 
-function Form({ servis, onKapat, onKaydet }) {
+function Form({ servis, rol, onKapat, onKaydet }) {
   const [d, setD] = useState(servis)
+  /* Servise özel hizmet ücreti (bkz. HizmetUcretleri.jsx). */
+  const [ucret, setUcret] = useState(() => servisUcretTaslagi(servis.id))
   const [hata, setHata] = useState('')
   const yaz = (k) => (e) => setD({ ...d, [k]: e.target.value })
 
@@ -695,7 +748,7 @@ function Form({ servis, onKapat, onKaydet }) {
       return setHata('Şifre 6 rakamdan oluşmalı.')
     }
     setHata('')
-    onKaydet(d)
+    onKaydet(d, ucret)
   }
 
   return (
@@ -783,6 +836,10 @@ function Form({ servis, onKapat, onKaydet }) {
             onDegis={(c) => setD({ ...d, cari: c })}
             onTur={(t) => setD({ ...d, tur: t })}
           />
+
+          {/* Hizmet ücreti cari hesabın hemen altında: ikisi de servise
+              ödenen paranın bilgisi. */}
+          <ServisUcretiAlani servisId={d.id} rol={rol} taslak={ucret} onDegis={setUcret} />
 
           {/* ================================================ Uygulama girişi
 

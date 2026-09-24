@@ -160,7 +160,7 @@ export async function modulleriYukle() {
 
   const al = (yol) => sunucu.ssrLoadModule(yol)
 
-  const [veri, servisKaydi, servisAtama, talepOlustur, duyuruHedef, teslimat, depo, icerik, yetkiler, marka, makineKaydi, talep, serial, numaraTalebi, urun, adresler, rehber] =
+  const [veri, servisKaydi, servisAtama, talepOlustur, duyuruHedef, teslimat, depo, icerik, yetkiler, marka, makineKaydi, talep, serial, numaraTalebi, urun, adresler, rehber, servisTarifesi, servisFiyat] =
     await Promise.all([
       al('/src/backoffice/veri.js'),
       al('/src/lib/servisKaydi.js'),
@@ -179,9 +179,12 @@ export async function modulleriYukle() {
       al('/src/lib/urun.js'),
       al('/src/servis/adresler.js'),
       al('/src/marka/icerik/rehber.js'),
+      /* 23 Eylül 2026: hizmet ücreti ve parça iskontosu (AK-21, AK-22; bakiyeden ödemede ek iskonto AK-23). */
+      al('/src/lib/servisTarifesi.js'),
+      al('/src/lib/servisFiyat.js'),
     ])
 
-  return { veri, servisKaydi, servisAtama, talepOlustur, duyuruHedef, teslimat, depo, icerik, yetkiler, marka, makineKaydi, talep, serial, numaraTalebi, urun, adresler, rehber }
+  return { veri, servisKaydi, servisAtama, talepOlustur, duyuruHedef, teslimat, depo, icerik, yetkiler, marka, makineKaydi, talep, serial, numaraTalebi, urun, adresler, rehber, servisTarifesi, servisFiyat }
 }
 
 /**

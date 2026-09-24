@@ -44,7 +44,7 @@
    ========================================================================== */
 
 import { bayininServisleri, servisGetir, bayiGetir } from '../marka'
-import { seriSatiri } from './makineKaydi'
+import { makineKayitlari, seriSatiri } from './makineKaydi'
 
 /* Seri numarasının kayıt defterindeki satırı.
 
@@ -162,4 +162,42 @@ export function servisTalebiAcilabilirMi(makineler = []) {
  */
 export function servisiAtanmamisKayitlar(kayitlar = []) {
   return kayitlar.filter((k) => !kaydinServisi(k))
+}
+
+/* ==========================================================================
+   DUYURU HEDEFLEMESİ İÇİN (23 Eylül 2026)
+
+   Duyuru bölgeye, makineye ve servise özel gönderilebiliyor
+   (lib/duyuruHedef.js). O dosya saf, hiçbir şey içe aktarmıyor; "bu
+   makineye kim bakıyor" sorusunun cevabını buradan alıyor. Servis
+   seçilmiş bir duyuruyu müşteri, makinesine o servis bakıyorsa görüyor;
+   makine seçilmiş bir duyuruyu servis, o makineye bakıyorsa görüyor.
+   İkisi de bu dosyadaki zincirle: coğrafyaya değil, kayda bakarak.
+   ========================================================================== */
+
+/** Müşterinin makineleri, her birine bakan servisin kimliğiyle. */
+export function makinelereServisEkle(makineler = []) {
+  return makineler.map((m) => ({ ...m, servisId: makineninServisi(m)?.servis?.id || null }))
+}
+
+/** Bir servisin baktığı makineler — kayıt defterinden, duyurunun okuduğu biçimde. */
+export function servisinMakineleri(servisId, kayitlar = makineKayitlari()) {
+  if (!servisId) return []
+  return kayitlar
+    .filter((k) => kaydinServisi(k)?.servis?.id === servisId)
+    .map((k) => ({ serial: k.seri, productId: k.productId, servisId }))
+}
+
+/**
+ * Servisim'in duyuru süzgecine verdiği bağlam: oturum, servisin hizmet
+ * verdiği iller (servis kaydındaki bölge) ve baktığı makineler.
+ */
+export function servisDuyuruBaglami(oturum) {
+  if (!oturum) return { servis: null }
+  const kayit = servisGetir(oturum.servisId)
+  const iller = (kayit?.bolge || []).map((b) => b.il).filter(Boolean)
+  return {
+    servis: { ...oturum, il: oturum.il || kayit?.il, iller },
+    makineler: servisinMakineleri(oturum.servisId),
+  }
 }

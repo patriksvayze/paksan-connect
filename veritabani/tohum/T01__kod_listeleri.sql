@@ -6,7 +6,7 @@
    düzenlemeyin: kaynak değişince yeniden üretilir ve el değişikliği
    kaybolur. Kaynağı değiştirin, sonra "npm run vt -- tohum" çalıştırın.
 
-   60 kod listesi, 405 kod; 87 çeviri; 98 eski değer eşleşmesi.
+   60 kod listesi, 407 kod; 87 çeviri; 98 eski değer eşleşmesi.
 
    Kaynak: src/lib/talep.js, src/backoffice/veri.js, src/data/talepAlanlari.js
    (+ .en.js), src/backoffice/ekranlar/Talepler.jsx, IslemKaydi.jsx,
@@ -241,7 +241,7 @@ WHEN NOT MATCHED BY TARGET THEN
     INSERT (Kod, Ad, Sira, Aktif)
     VALUES (k.Kod, k.Ad, k.Sira, 1);
 
-/* kod.IslemKategorisi — 27 satır */
+/* kod.IslemKategorisi — 29 satır */
 
 MERGE kod.IslemKategorisi AS h
 USING (
@@ -249,33 +249,35 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
-        (N'bayi', N'Bayi listesi', 22),
-        (N'demo', N'Demo verisi', 20),
-        (N'devir', N'Üreticiye devir', 18),
+        (N'bayi', N'Bayi listesi', 24),
+        (N'demo', N'Demo verisi', 22),
+        (N'devir', N'Üreticiye devir', 20),
         (N'durum', N'Talep durumu', 2),
         (N'duyuru', N'Duyuru', 9),
-        (N'excel', N'Excel aktarımı', 19),
+        (N'excel', N'Excel aktarımı', 21),
         (N'geribildirim', N'Geri bildirim', 8),
-        (N'hakEdis', N'Hak ediş', 24),
+        (N'hakEdis', N'Hak ediş', 26),
+        (N'iskonto', N'Servis iskontosu', 16),
         (N'katalog', N'Parça kataloğu', 14),
-        (N'kvkk', N'KVKK', 26),
+        (N'kvkk', N'KVKK', 28),
         (N'makine', N'Makine kaydı', 5),
         (N'musteri', N'Müşteri kaydı', 7),
         (N'not', N'Talep notu', 3),
         (N'numara', N'Numara değişikliği', 6),
         (N'odeme', N'Ödeme onayı', 4),
-        (N'oturum', N'Giriş / çıkış', 21),
+        (N'oturum', N'Giriş / çıkış', 23),
         (N'personel', N'Personel', 10),
         (N'rol', N'Rol ve yetki', 11),
         (N'servis', N'Servis listesi', 13),
-        (N'servisKaydi', N'Servis kaydı', 23),
-        (N'sevk', N'Parça sevki', 25),
+        (N'servisKaydi', N'Servis kaydı', 25),
+        (N'sevk', N'Parça sevki', 27),
         (N'sifre', N'Şifre', 12),
-        (N'siparis', N'Servis siparişi', 15),
-        (N'sistem', N'Sistem', 27),
-        (N'stok', N'Servis stoku', 16),
+        (N'siparis', N'Servis siparişi', 17),
+        (N'sistem', N'Sistem', 29),
+        (N'stok', N'Servis stoku', 18),
         (N'talep', N'Talep', 1),
-        (N'teklif', N'Servis fiyat teklifi', 17)
+        (N'tarife', N'Servis ücreti', 15),
+        (N'teklif', N'Servis fiyat teklifi', 19)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod

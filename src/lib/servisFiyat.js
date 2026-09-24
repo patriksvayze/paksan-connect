@@ -12,8 +12,9 @@
    paneli yok; servis makine almıyor, parça alıyor. Makine
    fiyat katmanı bu yüzden kaldırıldı.
 
-   KDV BURADA YOK. Fiyatlar KDV hariç konuşuluyor; KDV'yi gösteren
-   ekran `kdvTutari()` ile kendisi hesaplıyor.
+   PARÇA FİYATINDA KDV YOK. Fiyatlar KDV hariç konuşuluyor. KDV yalnız
+   siparişin toplamında giriyor (`siparisTutari`), o da `kdvTutari()`
+   üzerinden — oranı ve "liste KDV hariç mi" kararını o biliyor.
 
    ARTIK PARÇA ADI DEĞİL, PARÇANIN KENDİSİ GİRİYOR
 
@@ -23,9 +24,50 @@
    `kod` (ad tekil değil), bu yüzden fonksiyon artık katalogdan gelen
    parça nesnesini alıyor. Eski hâli gerçek katalogun hiçbir parçasında
    çalışmıyordu: ada göre arama 538 parçanın tamamında boş dönüyordu.
+
+   İSKONTO ARTIK BACKOFFICE'TEN (23 Eylül 2026, kullanıcının isteği:
+   "Servislerimize genel veya servise özel iskonto uygulayabileceğimiz
+   bir alan oluşturulmalı"). Oran kodda sabitti (%30,
+   marka/katalog/makineFiyat.js → PARCA_SERVIS_ISKONTO). O sabit artık
+   yalnız BAŞLANGIÇ oranı: personel hiçbir oran yazmadıysa geçerli olan.
+   Güncel oran Yedek Parça Kataloğu ekranından yazılıyor — bütün
+   servislere tek oran, istenen servise ayrı oran (bkz. `iskontoCoz`).
+   Depo işi backoffice/veri.js'te (parcaIskontosuGetir,
+   genelIskontoyuKaydet, servisIskontosunuKaydet); bu dosya saf kalıyor.
+
+   GEÇMİŞ SİPARİŞ DEĞİŞMİYOR. Oran siparişin fiyat görüntüsüne
+   (`parcaFiyat.iskontoOrani`) sipariş anında yazılıyor; oran sonra
+   değişse de verilmiş siparişin tutarı aynı kalıyor.
+
+   SERVİS EKRANINDA "İSKONTO" YAZMIYOR: servis ekranlarında yasak terim
+   (CLAUDE.md "Servis Panelinin Kullanıcısı"); Servisim "indirim" diyor.
+   Kodda ve backoffice'te "iskonto".
+
+   BAKİYEDEN ÖDEMEDE EK İSKONTO (24 Eylül 2026, kullanıcının isteği:
+   "Servisim'de yedek parça siparişlerinde bakiyeden düşsün seçeneği ile
+   yapılan siparişlerde ek indirim uygulayabilelim"). Servis siparişini
+   cari bakiyesinden öderse PAKSAN parayı ayrıca tahsil etmiyor; bu
+   oran servisi o yola çekmek için. Tek oran, bütün servislere: servise
+   özel katman yok, çünkü amaç ödeme BİÇİMİNİ ödüllendirmek, servisi
+   değil. Oran aynı depoda (`parcaIskontosu.bakiye`), aynı ekrandan
+   (Yedek Parça Kataloğu → Servis iskontosu) yazılıyor.
+
+   HESAP SIRASI: ek iskonto satır fiyatlarına girmiyor. Satırlar
+   servisin iskontolu fiyatında kalıyor; ek iskonto siparişin KDV hariç
+   ara toplamından tek satır olarak düşülüyor, KDV kalan tutardan
+   hesaplanıyor (bkz. `siparisTutari`). Böylece sipariş ekranı, veri
+   katmanı ve sınama aynı formülü okuyor — iki yerde yazılan formül bir
+   gün ayrışır.
+
+   Başlangıç oranı 0: personel bir oran yazana kadar özellik kapalı.
+   `BAKIYE_EK_ISKONTO` yalnız başlangıç değeri, çalışırken
+   değiştirilmez.
    ========================================================================== */
 
-import { PARCA_SERVIS_ISKONTO } from '../marka'
+import { PARCA_SERVIS_ISKONTO, kdvTutari } from '../marka'
+
+/* Bakiyeden ödemede ek iskontonun başlangıç oranı: kapalı. */
+export const BAKIYE_EK_ISKONTO = 0
 
 /**
  * Bir yedek parçanın servis fiyatı.
@@ -38,16 +80,99 @@ import { PARCA_SERVIS_ISKONTO } from '../marka'
  * @returns {null|{kod, ad, fiyat, tavsiye, alis, iskonto}}
  *   Parça yoksa ya da fiyatı sayı değilse null.
  */
-export function parcaServisFiyati(parca) {
+export function parcaServisFiyati(parca, oran = PARCA_SERVIS_ISKONTO) {
   if (!parca || typeof parca.fiyat !== 'number' || !Number.isFinite(parca.fiyat)) {
     return null
   }
+  const r = oranOku(oran) ?? PARCA_SERVIS_ISKONTO
   return {
     kod: parca.kod,
     ad: parca.ad,
     fiyat: parca.fiyat,
     tavsiye: parca.fiyat,
-    alis: Math.round(parca.fiyat * (1 - PARCA_SERVIS_ISKONTO)),
-    iskonto: PARCA_SERVIS_ISKONTO,
+    alis: Math.round(parca.fiyat * (1 - r)),
+    iskonto: r,
   }
+}
+
+/* İskonto oranı kesir olarak tutuluyor (0,3 = %30); ekranlar yüzde
+   yazıyor. Yüzde tam sayı: "yüzde 27,5" gibi bir oran konuşulmuyor ve
+   yarım yüzde tutarı liranın altına düşürüyor. En çok %90 — %100
+   iskonto bedava parça demek, o bir iskonto değil garanti. */
+export const ISKONTO_EN_COK = 0.9
+
+/** 0,3 → 30. */
+export function yuzdeYap(oran) {
+  return Math.round((Number(oran) || 0) * 100)
+}
+
+/** Kesir ya da yüzde → kesir; anlamsızsa null. `yuzde` true ise 30 → 0,3. */
+export function oranOku(deger, yuzde = false) {
+  if (deger === null || deger === undefined || deger === '') return null
+  const n = Number(String(deger).replace(',', '.'))
+  if (!Number.isFinite(n) || n < 0) return null
+  const kesir = Math.round(yuzde ? n : n * 100) / 100
+  return kesir <= ISKONTO_EN_COK ? kesir : null
+}
+
+/**
+ * Depodaki iskonto kaydını okunur biçime getirir. Hiç yazılmamışsa
+ * başlangıç oranı (PARCA_SERVIS_ISKONTO).
+ *
+ * @returns {{genel: number, servisler: Object<string, number>, bakiye: number, guncelleme?: object}}
+ */
+export function iskontolariDuzenle(ham) {
+  const servisler = {}
+  for (const [servisId, oran] of Object.entries(ham?.servisler || {})) {
+    const r = oranOku(oran)
+    if (servisId && r !== null) servisler[servisId] = r
+  }
+  return {
+    genel: oranOku(ham?.genel) ?? PARCA_SERVIS_ISKONTO,
+    servisler,
+    /* Bakiyeden ödemede ek iskonto; yazılmamışsa kapalı (0). */
+    bakiye: oranOku(ham?.bakiye) ?? BAKIYE_EK_ISKONTO,
+    ...(ham?.guncelleme ? { guncelleme: ham.guncelleme } : {}),
+  }
+}
+
+/**
+ * Bir servisin geçerli iskontosu: servise özel oran varsa o, yoksa genel.
+ * @returns {{oran: number, kaynak: 'servis'|'genel'}}
+ */
+export function iskontoCoz(iskontolar, servisId) {
+  const i = iskontolar || iskontolariDuzenle(null)
+  const ozel = servisId ? i.servisler?.[servisId] : undefined
+  return ozel !== undefined ? { oran: ozel, kaynak: 'servis' } : { oran: i.genel, kaynak: 'genel' }
+}
+
+/**
+ * Bakiyeden ödemede ek iskonto oranı (kesir). Servise göre değişmiyor.
+ * @returns {number}  0 ise ek iskonto yok
+ */
+export function bakiyeIskontosu(iskontolar) {
+  return (iskontolar || iskontolariDuzenle(null)).bakiye ?? BAKIYE_EK_ISKONTO
+}
+
+/**
+ * Siparişin tutarı — ek iskonto ve KDV dâhil. Sipariş ekranı, veri
+ * katmanı ve sınama bu tek formülü kullanıyor.
+ *
+ * Ek iskonto yalnız ödeme bakiyeden ve oran sıfırdan büyükse var;
+ * servisin iskontolu KDV hariç ara toplamından düşülüyor, KDV kalan
+ * tutardan hesaplanıyor. Kuruş yok: tutarlar tam lira (bkz. paraYaz).
+ *
+ * @param {number} araToplamIskontolu  satır tutarlarının toplamı (servis
+ *        iskontosu düşülmüş, KDV hariç)
+ * @param {{odeme?: 'bakiye'|'fatura', bakiyeOrani?: number}} secim
+ * @returns {{bakiyeIskontoOrani: number, bakiyeIskontoTutari: number,
+ *            araToplam: number, kdv: number, toplam: number}}
+ */
+export function siparisTutari(araToplamIskontolu, { odeme, bakiyeOrani = 0 } = {}) {
+  const taban = Number(araToplamIskontolu) || 0
+  const oran = odeme === 'bakiye' ? oranOku(bakiyeOrani) ?? 0 : 0
+  const bakiyeIskontoTutari = oran > 0 ? Math.round(taban * oran) : 0
+  const araToplam = taban - bakiyeIskontoTutari
+  const kdv = kdvTutari(araToplam)
+  return { bakiyeIskontoOrani: oran, bakiyeIskontoTutari, araToplam, kdv, toplam: araToplam + kdv }
 }

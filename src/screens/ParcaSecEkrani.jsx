@@ -1,12 +1,12 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { TopBar } from '../components/Chrome'
-import { PARA_BIRIMI, paraYaz } from '../marka'
+import { ParcaKarti } from '../components/ParcaKarti'
 import {
-  destekGrubununGruplari, gorselAdresi, grubunParcalari, parcaAra,
+  destekGrubununGruplari, grubunParcalari, parcaAra,
 } from '../lib/parcaKatalogu'
 import { useGeriYakala } from '../lib/geriYakala'
 import { useDil } from '../i18n'
-import { IconCheck, IconClose, IconPlus, IconRight, IconSearch } from '../components/Icons'
+import { IconCheck, IconClose, IconRight, IconSearch } from '../components/Icons'
 
 /* ==========================================================================
    Yedek parça talebi — parça seçme ekranı
@@ -38,6 +38,23 @@ import { IconCheck, IconClose, IconPlus, IconRight, IconSearch } from '../compon
    hazırken açılıyor. Servisim'deki ekran listeyi kendisi indiriyordu
    ve liste gelmeden "Seçimi Bitir"e basılırsa seçimi siliyordu. Burada
    o yol yok: taslak katalogdan süzülmüyor, kodlar olduğu gibi dönüyor.
+
+   GÖRÜNÜM DE SERVİSİM'İN AYNISI (24 Eylül 2026, kullanıcının isteği).
+   Akış aynıydı ama parçalar 44 piksellik resimli liste satırlarıyla,
+   bölümler de genel liste satırıyla çiziliyordu. Kullanıcı: "Servisim'deki
+   sistem daha iyi, daha büyük görseller var, direkt aynısını koy."
+   Artık bölümler Servisim'in montaj satırı (`.montaj`), parçalar
+   Servisim'in iki sütunlu büyük görselli kartı (`ParcaKarti`).
+
+   KART ORTAK KLASÖRDEN GELİYOR, SERVİS KLASÖRÜNDEN DEĞİL. Kart
+   `src/components/ParcaKarti.jsx` içinde; Servisim de onu kullanıyor.
+   Müşteri APK'sına servis kodu girmemeli (`npm run dogrula` 4. kontrol);
+   bu yüzden kart `src/servis/` altından import edilmiyor. Görünümü
+   `styles.css` içinde, Connect'in kendi renk değişkenleriyle yeniden
+   yazıldı (iki CSS kökü renk paylaşmıyor, bkz. CLAUDE.md → CSS).
+
+   Müşteri liste fiyatını görüyor; servise tanınan indirim bu ekranda
+   yok, o PAKSAN ile servis arasında.
    ========================================================================== */
 
 export function ParcaSecEkrani({ katalog, grup, secili, onTamam, onVazgec }) {
@@ -153,22 +170,24 @@ export function ParcaSecEkrani({ katalog, grup, secili, onTamam, onVazgec }) {
           </div>
 
           {/* Alt montaj listesi — fiyat listesindeki sırayla. Sıra basılı
-              listenin sırası; çiftçi kâğıttakiyle aynı yerde arıyor. */}
+              listenin sırası; çiftçi kâğıttakiyle aynı yerde arıyor.
+
+              Satır Servisim'in montaj satırı: solda bölümün adı, sağda
+              o bölümde kaç parça olduğu. Servisim sağda yalnız sayıyı
+              yazıyor; burada sayı "12 parça" diye yazıyla duruyor —
+              çiftçi o sayının neyi saydığını tahmin etmek zorunda
+              kalmasın, hap da bu yazıya yetecek kadar geniş. */}
           {!montaj && !aramaVar && (
             <>
               <span className="field__hint" style={{ marginTop: 0 }}>
                 {t('parcaSec.montajSec')}
               </span>
-              <div className="stack" style={{ gap: 8 }}>
+              <div className="montaj-liste">
                 {montajlar.map((g) => (
-                  <button key={g.id} className="listitem" onClick={() => montajAc(g)}>
-                    <span className="listitem__body">
-                      <span className="listitem__title">{g.ad}</span>
-                      <span className="listitem__sub">
-                        {t('parcaSec.grupAdet', { n: g.adet })}
-                      </span>
-                    </span>
-                    <IconRight size={20} className="listitem__chev" />
+                  <button key={g.id} type="button" className="montaj" onClick={() => montajAc(g)}>
+                    <span className="montaj__ad">{g.ad}</span>
+                    <span className="montaj__sayi">{t('parcaSec.grupAdet', { n: g.adet })}</span>
+                    <IconRight size={18} />
                   </button>
                 ))}
               </div>
@@ -194,17 +213,25 @@ export function ParcaSecEkrani({ katalog, grup, secili, onTamam, onVazgec }) {
                 </button>
               )}
 
+              {/* Parçalar Servisim'deki gibi iki sütunlu kartlarda: üstte
+                  büyük görsel, altında kod, ad ve liste fiyatı. Bir
+                  dokunuş parçayı seçiyor, ikincisi bırakıyor; seçili
+                  kart kenarı ve köşedeki onay işaretiyle ayrılıyor. */}
               {listelenen.length === 0 ? (
                 <span className="field__hint">{t('parcaSec.sonucYok')}</span>
               ) : (
-                listelenen.map((p) => (
-                  <ParcaSatiri
-                    key={p.kod}
-                    parca={p}
-                    secili={taslak.has(p.kod)}
-                    onSec={() => cevir(p.kod)}
-                  />
-                ))
+                <div className="parca-izgara">
+                  {listelenen.map((p) => (
+                    <ParcaKarti
+                      key={p.kod}
+                      parca={p}
+                      fiyat={p.fiyat}
+                      secili={taslak.has(p.kod)}
+                      onSec={() => cevir(p.kod)}
+                      gorselYok={t('parcaSec.gorselYok')}
+                    />
+                  ))}
+                </div>
               )}
             </div>
           )}
@@ -228,75 +255,5 @@ export function ParcaSecEkrani({ katalog, grup, secili, onTamam, onVazgec }) {
         </button>
       </div>
     </div>
-  )
-}
-
-/* ==========================================================================
-   Katalogdaki bir parçanın satırı
-
-   Düzen fiyat listesinin aynısı: solda parçanın resmi, yanında kodu,
-   adı ve fiyatı. Çiftçi kâğıttaki listeye alışkın; ekranda başka bir
-   sıra kurmak aynı parçayı iki biçimde ezberlemesini istemek olurdu.
-
-   İKON TEK BAŞINA ANLAM TAŞIMIYOR: resmin yanında kod ve ad her zaman
-   yazıyor. Resmi olmayan parçada kutu boş kalmıyor, yerine yazı
-   giriyor.
-
-   SEÇİLİ OLAN YALNIZ RENKLE AYRILMIYOR: sağdaki onay işareti ve
-   `aria-pressed` de söylüyor. Güneşte ve renk körlüğünde renk tek
-   başına yetmiyor.
-   ========================================================================== */
-function ParcaSatiri({ parca, secili, onSec }) {
-  const { t } = useDil()
-  const adres = gorselAdresi(parca.gorsel)
-
-  return (
-    <button
-      className="listitem"
-      onClick={onSec}
-      aria-pressed={secili}
-      style={
-        secili
-          ? { outline: '2px solid var(--pk-blue-yazi)', outlineOffset: -2 }
-          : undefined
-      }
-    >
-      <span
-        className="listitem__icon"
-        style={{ background: 'var(--surface-3)', overflow: 'hidden' }}
-      >
-        {adres ? (
-          /* Listede otuz satır olabiliyor; hepsini birden indirmek
-             tarlada zayıf şebekede ekranı kilitler. */
-          <img
-            src={adres}
-            alt=""
-            loading="lazy"
-            decoding="async"
-            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-          />
-        ) : (
-          <span className="small muted" style={{ fontSize: 10, textAlign: 'center' }}>
-            {t('parcaSec.gorselYok')}
-          </span>
-        )}
-      </span>
-
-      <span className="listitem__body">
-        <span className="listitem__sub serial-mono" style={{ marginTop: 0 }}>
-          {parca.kod}
-        </span>
-        <span className="listitem__title" style={{ fontSize: 15 }}>
-          {parca.ad}
-        </span>
-        <span className="listitem__sub" style={{ fontWeight: 700 }}>
-          {paraYaz(parca.fiyat)} {PARA_BIRIMI}
-        </span>
-      </span>
-
-      <span style={{ flex: 'none', color: secili ? 'var(--pk-green-yazi)' : 'var(--ink-3)' }}>
-        {secili ? <IconCheck size={20} /> : <IconPlus size={20} />}
-      </span>
-    </button>
   )
 }

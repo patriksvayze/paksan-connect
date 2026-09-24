@@ -1,6 +1,6 @@
 # Uygulamadan gelen veritabanı tasarımı ekleri
 
-18 Eylül 2026'da uygulamaya iki yeni akış girdi (21 Eylül'de üçüncüsü, 22 Eylül'de dördüncüsü eklendi). Hepsi bugün
+18 Eylül 2026'da uygulamaya iki yeni akış girdi (21 Eylül'de üçüncüsü, 22 Eylül'de dördüncüsü, 23 Eylül'de beşincisi, altıncısı ve yedincisi, 24 Eylül'de sekizincisi eklendi). Hepsi bugün
 tarayıcının hafızasında çalışıyor; sunucuya geçerken veritabanı
 tasarımına (`veritabani/tasarim.md`) aşağıdaki maddeler işlenmeli.
 
@@ -184,3 +184,143 @@ ve ekranlar resmi bugünkü katalogtan değil oradan okuyor
   bağlanırsa (`ParcaTalebiAyrinti.FiyatListesiKodu` zaten var) görsel
   oradan okunabilir; ama servis kaydının satırı listeye bağlı değil ve
   sipariş fiyatı servis fiyatı. Satıra yazmak iki yolu da kapatıyor.
+
+## 5. Servis hizmet ücreti: servise ve ürüne göre tarife (23 Eylül 2026)
+
+Kullanıcının isteği: km ve saat ücreti backoffice'ten değişsin; bütün
+servislere genel ücret, istenen servise özel ücret, "makine bazında da
+ayarlanabilse iyi olur". Uygulama: `src/lib/servisTarifesi.js` (hesap),
+`backoffice/veri.js` → `hizmetTarifesiGetir`, `genelTarifeyiKaydet`,
+`servisTarifesiniKaydet`; sınaması AK-21.
+
+`hakedis.Tarife` bugün yalnız `MarkaKodu` boyutunu taşıyor. Gereken:
+
+- **`ServisKimlik uniqueidentifier NULL` → `servis.Servis`** ve
+  **`UrunKimlik uniqueidentifier NULL` → `katalog.Urun`** (makine =
+  ürün modeli; seri numarasına ücret yazılmıyor).
+- **Açık tarife tekilliği dört katmanda:** `(KalemTuruKodu,
+  ParaBirimiKodu)` genel; `+ UrunKimlik`; `+ ServisKimlik`;
+  `+ ServisKimlik + UrunKimlik` — her biri `GecerlilikBitisTarihi IS
+  NULL` ve boş olabilen anahtar için `IS NULL / IS NOT NULL` filtreli
+  ayrı dizin (tasarim.md E-kuralı, CD-UX-NULL).
+- **`HakEdisHesapla` okuma sırası (1.9.4) değişir:** her kalem AYRI
+  AYRI, en özel satır geçerli: servis + ürün → servis → ürün → genel
+  (marka boyutu her katmanın içinde, bugünkü gibi önce marka sonra
+  boş). Servis katmanı ürünün önünde: servise özel ücret o servisle
+  yapılmış anlaşma, genel tarifedeki ürün satırı o serviste geçmez
+  (gerekçesi `servisTarifesi.js` başında). Uygulamadaki `tarifeCoz`
+  aynı sırayı uyguluyor; sınaması AK-21 5. ve 6. adım.
+- **Ziyaret km ücretini de taşımalı mı?** Uygulama kayda `kmUcreti` ve
+  `saatUcreti` yazıyor (tarife değişince eski hak ediş değişmesin).
+  Veritabanında aynı iş tarifenin tarih aralığı ve
+  `HakEdisKalemi.BirimTutar` ile görülüyor; ayrı sütun gerekmez.
+- **"Özel ücretler de değişsin"** (genel ücret değişirken): değişen
+  kalemin açık servis satırlarına bitiş tarihi yazılır; yeni satır
+  açılmaz. Değişmeyen kalemin servis satırına dokunulmaz.
+- **Bildirim:** ücreti değişen servise `bildirim.Bildirim` satırı,
+  `TurKodu = N'hesap'` (talebe bağlı olmayan servis bildirimi; kod
+  listesine eklenmeli), `MetinAnahtari = N'tarife'`, değerler JSON'da
+  kalem kalem eski ve yeni tutar.
+
+## 6. Servise özel yedek parça iskontosu (23 Eylül 2026)
+
+Kullanıcının isteği: servislere genel ya da servise özel iskonto; oran
+Servisim'in sipariş özetinde görünsün, değişince servise bildirim
+gitsin. Uygulama: `src/lib/servisFiyat.js` (`iskontoCoz`),
+`backoffice/veri.js` → `parcaIskontosuGetir`, `genelIskontoyuKaydet`,
+`servisIskontosunuKaydet`; siparişi `servisParcaSiparisi` doğruluyor;
+sınaması AK-22.
+
+- **Genel oran bugünkü yerinde:** `katalog.Marka.ServisIskontoOrani`
+  (boşsa `sistem.Ayar` `ServisParcaIskontoOrani`, katalog.MarkaKurallari).
+  Uygulama rolünün `katalog.*` yazma izni yok (V0015) — parça
+  düzeltmesiyle aynı veritabanı kararı gerekiyor.
+- **Servise özel oran için tablo yok:** `servis.ParcaIskontosu`
+  (`ServisKimlik`, `MarkaKodu`, `IskontoOrani decimal(7,4) CK 0..0,9`,
+  `GecerlilikBaslangicTarihi`, `GecerlilikBitisTarihi`, sistem sürümlü)
+  ve açık satır tekilliği `(ServisKimlik, MarkaKodu) WHERE
+  GecerlilikBitisTarihi IS NULL`. Siparişin oranı çözülürken önce bu
+  tablo, yoksa markanın oranı.
+- **Siparişin oranı zaten saklanıyor:** `talep.ParcaTalebiAyrinti.IskontoOrani`
+  (uygulamada `parcaFiyat.iskontoOrani`). API siparişi kaydederken
+  istemcinin gönderdiği oranı bugünkü oranla karşılaştırmalı; tutmuyorsa
+  reddetmeli (uygulama `iskontoDegisti` diye dönüyor, ekran yeni oranı
+  okuyup tutarları yeniliyor).
+- **Sınır:** oran en çok %90 (`ISKONTO_EN_COK`). Bugünkü CK 0..1'e izin
+  veriyor; %100 iskonto bedava parça demek ve o iş garanti kaydından
+  yürüyor.
+- **Bildirim:** oranı değişen servise `bildirim.Bildirim`,
+  `TurKodu = N'hesap'`, `MetinAnahtari = N'iskonto'`, değerler eski ve
+  yeni yüzde.
+
+## 7. Duyuru hedeflemesi: bölge, makine ve servis iki alıcıya da (23 Eylül 2026)
+
+Kullanıcının isteği: "Geri Çağırma önemli uyarısını kaldır … Bildirimler
+bölgeye, makineye ve servise spesifik gönderilebilsin." Uygulama:
+`src/lib/duyuruHedef.js` (kural), `src/lib/servisAtama.js` →
+`makinelereServisEkle`, `servisDuyuruBaglami` (bağlam),
+`backoffice/ekranlar/Duyurular.jsx` (form); sınaması AK-09 ve
+`tools/duyuru-hedef-testi.mjs` bölüm 11b.
+
+Hedef tabloları V0013'te hazır (`HedefIl`, `HedefServis`, `HedefUrun`,
+`HedefSeri`); değişen, tabloların NASIL okunduğu:
+
+- **Servis süzgeci müşteriye de uygulanıyor.** `HedefServis` satırı olan
+  duyuru, müşteride makinelerinden birine o servis bakıyorsa görünür
+  (`servisAtama` zinciri: makineye atanmış servis, yoksa bayinin
+  servisi). Makine ve servis süzgeci AYNI makinede aranır: "Konya
+  servisinin baktığı Orkinos'ların sahipleri". Görünüm (R06) bunu
+  makine tablosu ve atama zinciri üzerinden çözmeli.
+- **Makine süzgeci servise de uygulanıyor.** `HedefUrun` / `HedefSeri`
+  satırı olan duyuru, serviste baktığı makinelerden en az biri tutuyorsa
+  görünür.
+- **Servisin bölgesi:** `HedefIl` serviste servisin ili VEYA hizmet
+  verdiği illerden biriyle eşleşir (servis kaydındaki bölge listesi).
+- **Açıklama metinleri eskidi** (Türkçe olduğu için Codex'ten geçerek
+  güncellenecek): `HedefServis` "Servise giden duyurunun…", `HedefIl`
+  "serviste servisin ili", `HedefSeri` "(ör. geri çağırma)",
+  `Duyuru.HedefKitleKodu` "Geri çağırma alt türü yalnız servise gider".
+- **Geri çağırma yeni yayınlanmıyor.** `CK_…AltTurKodu <> 'geriCagirma'
+  OR HedefKitleKodu = 'servis'` eski kayıtlar için yerinde kalabilir;
+  `kod.DuyuruAltTur` satırı silinmemeli, yeni kayıtta seçtirilmemeli
+  (ör. `Yayinlanabilir bit` sütunu).
+
+## 8. Bakiyeden ödemede ek iskonto (24 Eylül 2026)
+
+Kullanıcının isteği: "Servisim'de yedek parça siparişlerinde bakiyeden
+düşsün seçeneği ile yapılan siparişlerde ek indirim uygulayabilelim."
+Uygulama: `src/lib/servisFiyat.js` (`bakiyeIskontosu`, `siparisTutari`),
+`backoffice/veri.js` → `bakiyeIskontosuGetir`, `bakiyeIskontosunuKaydet`;
+siparişi `servisParcaSiparisi` doğruluyor, cariden düşümü `talepKapat`
+yapıyor; oran backoffice'te Yedek Parça Kataloğu → Servis iskontosu
+kartında; sınaması AK-23.
+
+Kural: servis siparişini cari bakiyesinden öderse, servis iskontolu KDV
+hariç ara toplamdan bir oran daha düşülür; KDV kalan tutardan hesaplanır.
+Satır fiyatları değişmez, ek iskonto sipariş düzeyinde tek satırdır.
+Tek oran, bütün servislere; servise özel katmanı yok. Oran 0 ise kapalı
+(başlangıç değeri 0).
+
+- **Oranın yeri:** genel servis iskontosuyla aynı düzeyde —
+  `katalog.Marka.BakiyeIskontoOrani decimal(7,4) NULL` (CK 0..0,9),
+  boşsa `sistem.Ayar` `BakiyeIskontoOrani` (katalog.MarkaKurallari ve
+  `gorunum.GecerliAyar` zinciri, `ServisParcaIskontoOrani` ile aynı
+  düşüş sırası). `katalog.*` yazma izni kararı §6 ile aynı (V0015).
+- **Siparişin kendi oranı ve tutarı:** `talep.ParcaTalebiAyrinti`'ye
+  `BakiyeIskontoOrani decimal(7,4) NULL` ve `BakiyeIskontoTutari
+  decimal(18,2) NULL` (uygulamada `parcaFiyat.bakiyeIskontoOrani`,
+  `bakiyeIskontoTutari`). İkisi birlikte boş ya da birlikte dolu; dolu
+  ise `OdemeYontemiKodu` bakiye olmalı (CK). `AraToplam` ve
+  `GenelToplam` ek iskontolu değerler; `CK_…_Toplam` (GenelToplam =
+  AraToplam + KdvTutari) olduğu gibi geçerli.
+- **API oranı doğrulamalı — §6'daki kuralın aynısı:** siparişi
+  kaydederken bakiyeden ödenen siparişin taşıdığı oran bugünkü oranla
+  aynı olmalı (taşımıyorsa 0 sayılır); faturayla ödenen sipariş ek
+  iskonto taşıyamaz. Tutmuyorsa reddedilir (uygulama `iskontoDegisti`
+  diye dönüyor, Servisim oranı yeniden okuyup tutarları yeniliyor).
+- **Cari düşüm:** parça gönderilip talep kapanınca borç olarak
+  `GenelToplam` (ek iskontolu, KDV dâhil) yazılır; ek iskonto ayrıca
+  düşülmez.
+- **Bildirim:** oran değişince BÜTÜN servislere `bildirim.Bildirim`,
+  `TurKodu = N'hesap'`, `MetinAnahtari = N'bakiyeIskonto'`, değerler eski
+  ve yeni yüzde. Aynı oran yeniden kaydedilirse bildirim gitmez.

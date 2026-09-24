@@ -12,9 +12,9 @@ import { useDil } from '../i18n'
    ve slogan yok — ilk ekranın işi bilgi vermek değil, marka duygusu
    verip kullanıcıyı içeri almak.
 
-   Arkasında gün doğumu sahnesi var (bkz. src/components/Safak.jsx):
-   gökyüzü geceden şafağa dönüyor, güneş ufkun arkasından yükseliyor ve
-   PAKSAN yazısı onunla birlikte doğuyor. Altta tarla ve balyalar.
+   Arkasında sahne var (bkz. src/components/Safak.jsx): 24 Eylül
+   2026'dan beri firmanın gerçek bir tarla fotoğrafı, güneşli gök
+   altında. Amblem ve PAKSAN yazısı açılışta gökte beliriyor.
 
    Marka yazısı bu yüzden burada değil, sahnenin içinde: hareket eden
    bir katman.
@@ -38,9 +38,14 @@ export default function Welcome() {
             doğuyor (bkz. src/components/Safak.jsx). Akışın içinde
             duruyor ki altındaki başlıkla hiçbir ekran boyunda
             çakışmasın. */}
-        <div className="spacer" style={{ flexGrow: 1.2 }} />
+        {/* Boşluk oranları (24 Eylül 2026): düğmeler ekranın dibine
+            indi, "Yanınızdayız" onların hemen üstünde. Artan boşluğun
+            büyüğü logonun ALTINA gidiyor: orası fotoğraftaki makinenin
+            yeri. Üstteki pay amblemi ekranın dörtte birinin biraz
+            altında tutuyor. */}
+        <div className="spacer" style={{ flexGrow: 1 }} />
         <SafakLogo />
-        <div className="spacer" style={{ flexGrow: 0.8 }} />
+        <div className="spacer" style={{ flexGrow: 1.6 }} />
 
         {/* ------------------------------------------------------- Söz
 
@@ -57,8 +62,6 @@ export default function Welcome() {
           </p>
         </div>
 
-        <div className="spacer" />
-
         {/* ------------------------------------------------------ İşlem */}
         {/* İki düğme, aynı boyda.
 
@@ -69,8 +72,13 @@ export default function Welcome() {
 
              Ayrım artık boyutla değil renkle: kayıt turuncu, giriş
              saydam. Kayıt yine önde ama giriş küçük düşürülmüş
-             görünmüyor. */}
-        <div className="stack fade-in" style={{ gap: 12 }}>
+             görünmüyor.
+
+             Düğmeler ve sürüm satırı ekranın dibine dayalı (24 Eylül
+             2026, kullanıcının isteği; yaygın uygulamalarda da böyle):
+             başparmağın uzandığı yer. Önce altta ekranın beşte biri
+             kadar boş lacivert pay vardı. */}
+        <div className="stack fade-in giris__islem" style={{ gap: 12 }}>
           <button className="btn btn--orange btn--lg" onClick={() => nav('/kayit')}>
             {t('karsilama.basla')}
             <IconRight size={21} />

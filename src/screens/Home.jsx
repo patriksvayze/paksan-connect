@@ -141,7 +141,11 @@ export default function Home() {
           </div>
 
           {/* İki ana çağrı, aynı biçimde ve hizada:
-              makinesi olan kaydeder (mavi), olmayan satın alır (turuncu). */}
+              makinesi olan kaydeder (mavi), olmayan fiyat teklifi ister
+              (turuncu). Düğmenin yazısı "Satın Al" idi; uygulamadan satış
+              yapılmıyor, düğme fiyat teklifi talebi açıyor — yazı yaptığı
+              işi söylesin diye "Fiyat Teklifi Al" oldu (24 Eylül 2026,
+              kullanıcının isteği). */}
           {machines.length === 0 && (
             <button
               className="btn btn--brand btn--lg"
@@ -157,7 +161,7 @@ export default function Home() {
             style={{ marginTop: 12 }}
             onClick={() => nav('/talep?tur=satinalma')}
           >
-            <IconCart size={22} /> {t('anasayfa.satinAl')}
+            <IconCart size={22} /> {t('anasayfa.teklifAl')}
           </button>
         </div>
 

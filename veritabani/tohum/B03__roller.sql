@@ -6,7 +6,7 @@
    düzenlemeyin: kaynak değişince yeniden üretilir ve el değişikliği
    kaybolur. Kaynağı değiştirin, sonra "npm run vt -- tohum" çalıştırın.
 
-   5 rol, 25 rol izni.
+   5 rol, 27 rol izni.
 
    Kaynak: src/data/yetkiler.js VARSAYILAN_ROLLER; rol kodları
    tohum/kaynak/kod-eslesmeleri.json. Kimlik UUIDv5 (ad alanı tasarim.md 1.6,
@@ -70,6 +70,8 @@ FROM (
         (N'9f30df05-459c-5571-a344-bf55e833e378', N'personel'),
         (N'9f30df05-459c-5571-a344-bf55e833e378', N'raporlar'),
         (N'9f30df05-459c-5571-a344-bf55e833e378', N'servisDuzenle'),
+        (N'9f30df05-459c-5571-a344-bf55e833e378', N'servisIskontosu'),
+        (N'9f30df05-459c-5571-a344-bf55e833e378', N'servisUcreti'),
         (N'9f30df05-459c-5571-a344-bf55e833e378', N'servisler'),
         (N'9f30df05-459c-5571-a344-bf55e833e378', N'talepler'),
         (N'9f30df05-459c-5571-a344-bf55e833e378', N'yonetimOzeti'),

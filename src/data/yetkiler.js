@@ -59,6 +59,11 @@ export const YETKI_KATALOG = [
     izinler: [
       { id: 'servisler', ad: 'Servisleri ve bayileri görür' },
       { id: 'servisDuzenle', ad: 'Servis kaydını, sorumluluk bölgesini ve makineye servis atamasını değiştirir' },
+      /* Servisin eline geçen parayı değiştiriyor (23 Eylül 2026, kullanıcının
+         isteği: "ilgili personel tarafından değiştirilebilsin"). Servis
+         kaydını düzeltmekten ayrı: bölgeyi düzelten satış personeli
+         ücreti değiştirememeli. */
+      { id: 'servisUcreti', ad: 'Servislerin kilometre ve saat başına ücretlerini değiştirir' },
     ],
   },
   {
@@ -68,6 +73,9 @@ export const YETKI_KATALOG = [
       /* Düzeltme müşterinin ve servisin gördüğü parça adını değiştiriyor;
          görmekten ayrı bir yetki. */
       { id: 'parcaKatalogDuzenle', ad: 'Parça adını ve grubunu düzeltir, parçayı listeden kaldırır' },
+      /* Servisin parça siparişinde ödediği tutarı değiştiriyor; parça adını
+         düzeltmekten ayrı bir yetki (23 Eylül 2026). */
+      { id: 'servisIskontosu', ad: 'Servislerin yedek parça iskontosunu değiştirir' },
     ],
   },
   {
@@ -157,6 +165,7 @@ export const VARSAYILAN_ROLLER = [
     izinler: [
       'talepler', 'musteriler', 'makineler', 'servisler', 'servisDuzenle', 'personel',
       'geribildirim', 'raporlar', 'yonetimOzeti', 'kayit', 'duyurular', 'destek',
+      'servisUcreti', 'servisIskontosu',
     ],
   },
   {

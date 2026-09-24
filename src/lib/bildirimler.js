@@ -17,6 +17,7 @@
 
 import { load } from './storage'
 import { duyuruGecerliMi } from './duyuruHedef.js'
+import { makinelereServisEkle } from './servisAtama.js'
 import { yurtdisiTalepMi } from './ihracat'
 import { normalizeSerial } from './serial'
 
@@ -99,13 +100,16 @@ export function bildirimListesi({ requests = [], user = null, makineler = [] } =
   /* Backoffice’ten gelenler. Kampanya duyurusu yalnızca izin verene gidiyor;
      hizmete ilişkin bildirim (talep durumu, güvenlik uyarısı) izinden
      bağımsız. Bu ayrım KVKK / ticari elektronik ileti kuralı. */
+  /* Makineye bakan servis ekleniyor: servis seçilmiş duyuru o servisin
+     baktığı makinelerin sahiplerine gidiyor (lib/duyuruHedef.js). */
+  const servisli = makinelereServisEkle(makineler)
   const backofficeden = load('duyurular', [])
     /* Kime gideceği kararı tek yerde: src/lib/duyuruHedef.js. Kampanya
        izni, yurtdışı ve hedefleme kuralları orada. Talep ve numara
        bildirimleri o yardımcıdan hiç süzülmüyor; onlar zaten kişiye
        özel üretiliyor. */
     .filter((d) =>
-      duyuruGecerliMi(d, { user, makineler, yurtdisi: yurtdisiTalepMi(user) }),
+      duyuruGecerliMi(d, { user, makineler: servisli, yurtdisi: yurtdisiTalepMi(user) }),
     )
     .map((d) => ({
       id: 'duyuru-' + d.id,
@@ -201,3 +205,38 @@ export function tarihObegi(zaman, simdi = Date.now()) {
 }
 
 export const OBEK_SIRASI = ['bugun', 'dun', 'buHafta', 'daha']
+
+/* Sözlük anahtarı taşıyan bildirimin yazısını çözer.
+
+   İki kaynak var: uygulamanın kendi ürettiği ("talebiniz alındı") ve
+   backoffice’ten gelen otomatik durum bildirimi. İkisi de anahtar taşıyor ki
+   müşterinin kendi dilinde çıksın; personelin elle yazdığı duyuru ise
+   hazır metin olarak geliyor.
+
+   Önce Bildirimler ekranının içindeydi; telefonun bildirim perdesine
+   giden yazı (lib/bildirimYayini.js) türün adını çevirmeden basıyordu:
+   "satinalma alındı" (22 Eylül 2026, kullanıcı bildirdi). İkisi artık
+   bu tek işlevi kullanıyor. */
+export function bildirimYazisi(t, b, dil, hangi) {
+  const anahtar = b[hangi]
+  if (!anahtar) return ''
+  const d = b.degerler || {}
+  const turAnahtar = d.tur || d.talepTur
+  /* `baslik` FORMUN EKRAN BAŞLIĞI, talebin adı değil: fiyat
+     teklifinde "Fiyat Teklifi İste" yazıyor ve cümleye konunca
+     "Fiyat teklifi iste alındı" çıkıyordu. Bildirimde talebin ADI
+     kullanılıyor. */
+  return t(anahtar, {
+    ...d,
+    tur: turAnahtar ? cumleBasi(t(`talep.${turAnahtar}.adi`), dil) : '',
+  })
+}
+
+/* "Servis Talebi" gibi başlık biçimindeki tür adını cümle içine
+   yerleştirir: "Servis talebi alındı". Türkçede küçültme kuralı
+   farklı olduğu için dil veriliyor (I → ı). */
+function cumleBasi(metin, dil) {
+  const yerel = dil === 'tr' ? 'tr-TR' : 'en-GB'
+  const kucuk = metin.toLocaleLowerCase(yerel)
+  return kucuk.charAt(0).toLocaleUpperCase(yerel) + kucuk.slice(1)
+}

@@ -7,17 +7,16 @@ import { AYDINLATMA, ACIK_RIZA, TICARI_ILETI, KVKK_SURUM, metinDilde } from '../
 import { telGecerliMi } from '../lib/tel'
 import { adTemizle } from '../lib/ad'
 import { alanaGit } from '../lib/formOdak'
-import { izinIste, bildirimGoster, engelNerede, BILDIRIM } from '../lib/bildirim'
+import { BildirimIzniAdimi } from '../components/BildirimIzni'
 import {
   mevcutHesap, ozetHatasiMi, sifreHazirla, sifreGecerliMi, SIFRE_HANE,
 } from '../lib/hesap'
 import { VARSAYILAN_ULKE } from '../data/ulkeler'
-import { Rozet } from '../marka'
 import { TelefonAlani } from '../components/TelefonAlani'
 import { SifreAlani } from '../components/SifreAlani'
 import { Metin, OnayKutusu } from '../components/Metin'
 import { Sheet } from '../components/Chrome'
-import { IconBack, IconCheck, IconBell, IconRight, IconAlert } from '../components/Icons'
+import { IconBack, IconRight, IconAlert } from '../components/Icons'
 
 /* Kayıt.
 
@@ -45,13 +44,10 @@ export default function Register() {
   const { login, showToast } = useApp()
   const { t, dil } = useDil()
 
-  const [adim, setAdim] = useState('form') // 'form' | 'bildirim'
   /* İzin ekranında "şimdi değil" denirse de kayıt tamamlanıyor;
-     bildirimin cevabı hesaba o hâliyle yazılıyor. */
-  const [bildirimSonuc, setBildirimSonuc] = useState(BILDIRIM.SORULMADI)
-  /* İzin sistem tarafından engellenmişse ekran ilerlemiyor; kullanıcı
-     ne olduğunu ve nereden açacağını okuyor. */
-  const [bildirimEngeli, setBildirimEngeli] = useState(false)
+     bildirimin cevabı hesaba o hâliyle yazılıyor. Adımın kendisi
+     components/BildirimIzni.jsx'te; giriş ekranı da aynısını kullanıyor. */
+  const [adim, setAdim] = useState('form') // 'form' | 'bildirim'
   const [ad, setAd] = useState('')
   const [soyad, setSoyad] = useState('')
   const [ulke, setUlke] = useState(VARSAYILAN_ULKE)
@@ -188,45 +184,6 @@ export default function Register() {
     nav('/', { replace: true })
   }
 
-  async function bildirimeIzinVer() {
-    const sonuc = await izinIste()
-
-    /* İzin alınır alınmaz ilk bildirim çıkıyor.
-
-       İki işi birden görüyor. Kullanıcı iznin gerçekten çalıştığını
-       görüyor — "izin verdim ama bir şey olmadı" hissi kalmıyor. Bir de
-       PAKSAN bildiriminin telefonda nasıl göründüğünü daha ilk anda
-       gösteriyor. */
-    if (sonuc === BILDIRIM.VERILDI) {
-      bildirimGoster({
-        baslik: t('kayit.bildirimOrnekBaslik'),
-        metin: t('kayit.bildirimOrnekMetin'),
-        yol: '/bildirimler',
-      })
-    }
-
-    /* Çok eski bir tarayıcıda bildirim hiç yok; düğme sessizce
-       geçmesin, kullanıcı ne olduğunu bilsin. */
-    if (sonuc === BILDIRIM.DESTEKLENMIYOR) {
-      showToast(t('kayit.bildirimDemo'))
-    }
-
-    setBildirimSonuc(sonuc)
-
-    /* İZİN ENGELLİYSE EKRAN İLERLEMİYOR.
-
-       Daha önce bir kez reddedilmiş izin için ne tarayıcı ne Android
-       pencereyi açıyor; düğmeye basılıyor ve hiçbir şey olmuyordu.
-       Ekran sonraki adıma geçince kullanıcı izin verdiğini sanıyordu.
-       Artık burada kalıyor ve izni nereden geri açacağını okuyor. */
-    if (sonuc === BILDIRIM.ENGELLI) {
-      setBildirimEngeli(true)
-      return
-    }
-
-    kaydiBitir(sonuc)
-  }
-
   return (
     <div className="app">
       <header className="topbar">
@@ -244,13 +201,12 @@ export default function Register() {
           ) : (
             <span />
           )}
-          <div className="spacer" />
-          <Rozet />
-        </div>
-        <div className="topbar__titles">
-          <h1>
-            {adim === 'form' ? t('kayit.baslik') : t('kayit.bildirimBaslik')}
-          </h1>
+          {/* Logo başlıkta yok; sayfa adı onun yerinde (bkz. components/Chrome.jsx → TopBar). */}
+          <div className="topbar__ad topbar__ad--sag">
+            <h1>
+              {adim === 'form' ? t('kayit.baslik') : t('kayit.bildirimBaslik')}
+            </h1>
+          </div>
         </div>
       </header>
 
@@ -419,58 +375,7 @@ export default function Register() {
            İKİ ADIM KALDI. Üçüncü bir adım vardı ve telefonun konum
            iznini istiyordu; kullanan ekran kaldırılınca o adım da
            kalktı (bkz. kaydiBitir). */
-        <div className="screen screen--nonav wrap fade-in" style={{ paddingTop: 26 }}>
-          <div className="center">
-            <div className="bildirim__ikon">
-              <IconBell size={34} />
-            </div>
-            <h2 style={{ fontSize: 21, marginTop: 16 }}>{t('kayit.bildirimUst')}</h2>
-            <p className="muted" style={{ marginTop: 8, lineHeight: 1.6, fontSize: 15.5 }}>
-              {t('kayit.bildirimAlt')}
-            </p>
-          </div>
-
-          <div className="stack" style={{ gap: 10, marginTop: 24 }}>
-            <BildirimSatiri metin={t('kayit.bildirim1')} />
-            <BildirimSatiri metin={t('kayit.bildirim2')} />
-            <BildirimSatiri metin={t('kayit.bildirim3')} />
-            {kampanyaOnay && (
-              <BildirimSatiri metin={t('kayit.bildirim4')} />
-            )}
-          </div>
-
-          {bildirimEngeli && (
-            <div className="uyari-kart" style={{ marginTop: 22 }}>
-              <strong>{t('kayit.bildirimEngelBaslik')}</strong>
-              <p style={{ margin: '6px 0 0' }}>
-                {t(
-                  engelNerede().tarayici
-                    ? 'kayit.bildirimEngelTarayici'
-                    : 'kayit.bildirimEngelTelefon',
-                )}
-              </p>
-            </div>
-          )}
-
-          <div className="stack" style={{ gap: 10, marginTop: 28 }}>
-            <button className="btn btn--orange btn--lg" onClick={bildirimeIzinVer}>
-              {bildirimEngeli ? t('kayit.bildirimTekrarDene') : t('kayit.bildirimIzin')}
-            </button>
-            <button
-              className="btn btn--soft"
-              onClick={() => {
-                if (!bildirimEngeli) setBildirimSonuc(BILDIRIM.SORULMADI)
-                kaydiBitir(BILDIRIM.SORULMADI)
-              }}
-            >
-              {bildirimEngeli ? t('kayit.bildirimEngelDevam') : t('kayit.bildirimSonra')}
-            </button>
-          </div>
-
-          <p className="small muted center" style={{ marginTop: 18, lineHeight: 1.55 }}>
-            {t('kayit.bildirimNot')}
-          </p>
-        </div>
+        <BildirimIzniAdimi kampanya={kampanyaOnay} onBitti={kaydiBitir} />
       )}
 
       {/* Metinler tam hâliyle burada okunur */}
@@ -488,28 +393,6 @@ export default function Register() {
           {t('ortak.kapat')}
         </button>
       </Sheet>
-    </div>
-  )
-}
-
-function BildirimSatiri({ metin }) {
-  return (
-    <div className="listitem listitem--flat" style={{ alignItems: 'flex-start' }}>
-      <div
-        className="listitem__icon"
-        style={{
-          width: 34,
-          height: 34,
-          borderRadius: 11,
-          background: 'var(--pk-green-soft)',
-          color: 'var(--pk-green-yazi)',
-        }}
-      >
-        <IconCheck size={18} />
-      </div>
-      <div className="listitem__body">
-        <div style={{ fontSize: 14.5, lineHeight: 1.5 }}>{metin}</div>
-      </div>
     </div>
   )
 }

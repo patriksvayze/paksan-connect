@@ -12,7 +12,7 @@ import { yeniNo } from '../lib/numara'
 import { talepNo } from '../lib/talep'
 import { SIRKET, MARKA, markaEk, PARA_BIRIMI, kdvTutari } from '../marka'
 import { urun } from '../lib/urun'
-import { ASAMA, kaydiDogrula, kaydiCozume, kapininSonucu } from '../lib/servisKaydi.js'
+import { ASAMA, iscilikAlanlari, kaydiDogrula, kaydiCozume, kapininSonucu } from '../lib/servisKaydi.js'
 import { teslimatTemizle } from '../lib/teslimat.js'
 import { servisleriGetir, getProduct } from '../marka'
 import { icerikListe, icerikTazele } from '../lib/icerikDeposu.js'
@@ -22,6 +22,10 @@ import { telGoster } from '../lib/tel.js'
 import { formatSerial, normalizeSerial, validateSerial } from '../lib/serial.js'
 import { makineKayitlari, makineKaydiGuncelle } from '../lib/makineKaydi.js'
 import { kaydinServisi } from '../lib/servisAtama.js'
+import {
+  KALEMLER, ozelleriKaldir, tarifeCoz, tarifeFarki, tarifeleriDuzenle, ucretOku,
+} from '../lib/servisTarifesi.js'
+import { bakiyeIskontosu, iskontoCoz, iskontolariDuzenle, oranOku, yuzdeYap } from '../lib/servisFiyat.js'
 import {
   rolKimligi, TUM_IZINLER, VARSAYILAN_ROLLER, YETKISIZ_ROL,
 } from '../data/yetkiler.js'
@@ -1278,7 +1282,12 @@ export function talepKapat(talep, cozum, personel, { servisten } = {}) {
      olabilir ve servise söylenen tutar sipariş günündeki tutardır.
 
      Eski siparişlerde görüntü yok, yalnız `tutarKdvli` var; onlar için
-     o alan kullanılıyor. */
+     o alan kullanılıyor.
+
+     BAKİYEDEN ÖDEMEDE EK İSKONTO bu toplamın İÇİNDE (24 Eylül 2026):
+     görüntünün `toplam`ı ek iskonto düşülmüş ara toplam + KDV
+     (lib/servisFiyat.js → siparisTutari). Burada ayrıca düşülmüyor;
+     düşülseydi servis iki kez indirim almış olurdu. */
   const dusulecek =
     Number(talep.parcaFiyat?.toplam) || Number(talep.tutarKdvli) || Number(talep.tutar) || 0
   if (talep.servisSiparisi && talep.odeme === 'bakiye' && dusulecek > 0) {
@@ -2228,6 +2237,358 @@ export function fiyatListesiYayinlandi({ kaynak, parca, surum }, personel) {
   })
 }
 
+/* ==========================================================================
+   Servis hizmet ücreti ve parça iskontosu (23 Eylül 2026)
+
+   KULLANICININ İKİ İSTEĞİ
+
+     ÜCRET   "Servislerin hizmet ücretlendirmelerini, yani KM başına ücret
+             ve saat başına ücret bilgilerinin (makine bazında da
+             ayarlanabilse iyi olur) BackOffice üzerinden ilgili personel
+             tarafından değiştirilebileceği bir alan yaratmalıyız."
+     İSKONTO "Servislerimize genel veya servise özel iskonto
+             uygulayabileceğimiz bir alan oluşturulmalı … yapılan
+             iskontolar veya değişiklikler bildirim olarak da gitmeli."
+
+   İkisi de koddaki bir sabitti (lib/servisKaydi.js → TARIFE,
+   marka/katalog/makineFiyat.js → PARCA_SERVIS_ISKONTO). Sabitler yerinde
+   kalıyor: personel hiçbir şey yazmadıysa geçerli olan BAŞLANGIÇ değeri.
+   Hesabın kendisi saf modüllerde (lib/servisTarifesi.js,
+   lib/servisFiyat.js); burada yalnız depo, işlem kaydı ve bildirim.
+
+   DEPO `panelIcerik` İÇİNDE (`hizmetTarifesi`, `parcaIskontosu`):
+   backoffice'in servise ve parçaya dair düzelttiği her şey orada
+   (servis listesi, parça düzeltmeleri). Veritabanında hakedis.Tarife ve
+   servis iskontosu tablosu (VT-TASARIM-EKLERI.md §5, §6).
+
+   GENEL DEĞİŞİNCE ÖZEL OLANLAR SORULUYOR. Kullanıcının kuralı: özel
+   ücreti olan servisler varken genel ücret değiştirilirse uyarı çıkıyor
+   ve "onlar da değişsin mi" diye soruluyor. Soruyu ekran soruyor; cevap
+   buraya `ozelleriDegistir` diye geliyor. Evet derse yalnız DEĞİŞEN
+   kalemin özel ücreti kalkıyor (yalnız saat ücreti değiştiyse özel yol
+   ücreti yerinde kalıyor).
+
+   SERVİSE BİLDİRİM GİDİYOR — yalnız ücreti GERÇEKTEN değişen servise.
+   Genel ücret değişti ama servisin özel ücreti yerinde kaldıysa o
+   servisin eline geçen para değişmedi; ona bildirim gitmiyor. Bildirim
+   talebe bağlı değil (`tur: 'hesap'`, talep numarası yok); Servisim onu
+   İşlerim'in üstündeki bildirimlerde gösteriyor ve dokununca Hesap
+   ekranındaki ücretleri açıyor (bkz. servis/talepBildirimleri.js).
+
+   GEÇMİŞ DEĞİŞMİYOR. Ücret servis kaydına gönderildiği anda
+   (servisKaydiGonder), iskonto oranı siparişe verildiği anda
+   (servisParcaSiparisi) yazılıyor.
+   ========================================================================== */
+
+/* Servise, bir talebe bağlı olmayan bildirim: ücreti ya da iskontosu
+   değişti. Talep bildirimiyle aynı depo ve aynı biçim (bkz.
+   serviseBildir); farkı `tur: 'hesap'` ve talep alanlarının yokluğu. */
+function servisHesapBildir(servisId, olay, degerler) {
+  save(ANAHTAR.duyurular, [
+    {
+      id: uid(),
+      tarih: Date.now(),
+      tur: 'hesap',
+      kisisel: true,
+      alici: 'servis',
+      servisId,
+      olay,
+      degerler,
+    },
+    ...load(ANAHTAR.duyurular, []),
+  ])
+}
+
+function icerikAlaniYaz(alan, deger) {
+  const mevcut = load(ANAHTAR.icerik, {})
+  save(ANAHTAR.icerik, { ...mevcut, [alan]: deger })
+  icerikTazele()
+}
+
+const ucretYazisi = (t) =>
+  `Yol ${t.yolKm} ${PARA_BIRIMI}/km · İşçilik ${t.iscilikSaat} ${PARA_BIRIMI}/saat`
+
+/* Makineye göre satırları okunur biçime: gelen nesnede boş kutu olabilir. */
+function modelSatirlari(modeller) {
+  const sonuc = {}
+  for (const [urunId, satir] of Object.entries(modeller || {})) {
+    const temiz = {}
+    for (const k of KALEMLER) {
+      const v = ucretOku(satir?.[k])
+      if (v !== null) temiz[k] = v
+    }
+    if (urunId && Object.keys(temiz).length) sonuc[urunId] = temiz
+  }
+  return sonuc
+}
+
+/** Hizmet tarifesinin tamamı: genel, makineye göre, servise özel. */
+export function hizmetTarifesiGetir() {
+  return tarifeleriDuzenle(load(ANAHTAR.icerik, {}).hizmetTarifesi)
+}
+
+/**
+ * Bir servisin bir makinedeki geçerli ücretleri — Servisim kaydın ön
+ * hesabında, veri katmanı kaydı gönderirken bunu okuyor.
+ * @returns {{yolKm, iscilikSaat, kaynak}}
+ */
+export function servisinTarifesi(servisId, urunId = null) {
+  return tarifeCoz(hizmetTarifesiGetir(), servisId, urunId)
+}
+
+/* Tarife değişti; ücreti gerçekten değişen her servise bildirim. */
+function tarifeDegisiminiBildir(onceki, sonraki, servisKimlikleri) {
+  let sayi = 0
+  for (const servisId of servisKimlikleri) {
+    const fark = tarifeFarki(onceki, sonraki, servisId)
+    if (!fark) continue
+    servisHesapBildir(servisId, 'tarife', fark)
+    sayi += 1
+  }
+  return sayi
+}
+
+/* Bütün servislerin kimliği: listedekiler ve tarifede özel satırı
+   duranlar (listeden çıkarılmış bir servis de olsa kaydı var). */
+function butunServisKimlikleri(...tarifeler) {
+  const kimlikler = new Set(servisleriGetir().map((x) => x.id))
+  for (const t of tarifeler) Object.keys(t?.servisler || {}).forEach((id) => kimlikler.add(id))
+  return [...kimlikler]
+}
+
+/**
+ * Genel tarifeyi kaydeder.
+ *
+ * @param {{yolKm, iscilikSaat, modeller?}} yeni  genel ücretler ve
+ *        (verilirse) genel makineye göre satırlar
+ * @param {{ozelleriDegistir?: boolean}} secim  değişen kalemde servislerin
+ *        özel ücreti de kalksın mı
+ * @returns {{hata}|{tarife, bildirilen: number, degisen: string[]}}
+ */
+export function genelTarifeyiKaydet(yeni, { ozelleriDegistir = false } = {}, personel) {
+  const yolKm = ucretOku(yeni?.yolKm)
+  const iscilikSaat = ucretOku(yeni?.iscilikSaat)
+  if (yolKm === null) return { hata: 'Kilometre başına ücreti yazın.' }
+  if (iscilikSaat === null) return { hata: 'Saat başına ücreti yazın.' }
+
+  const onceki = hizmetTarifesiGetir()
+  const degisen = KALEMLER.filter((k) => onceki.genel[k] !== { yolKm, iscilikSaat }[k])
+  let sonraki = tarifeleriDuzenle({
+    ...onceki,
+    genel: { yolKm, iscilikSaat, guncelleme: { tarih: Date.now(), personel: personel || '' } },
+    modeller: yeni.modeller === undefined ? onceki.modeller : modelSatirlari(yeni.modeller),
+  })
+  if (ozelleriDegistir && degisen.length) sonraki = ozelleriKaldir(sonraki, degisen)
+
+  icerikAlaniYaz('hizmetTarifesi', sonraki)
+  const bildirilen = tarifeDegisiminiBildir(onceki, sonraki, butunServisKimlikleri(onceki, sonraki))
+
+  islemYaz({
+    tur: 'tarife',
+    ozet:
+      `Genel servis ücreti güncellendi · ${ucretYazisi(onceki.genel)} → ${ucretYazisi(sonraki.genel)}` +
+      (ozelleriDegistir && degisen.length ? ' · Servislerin özel ücretleri de değiştirildi' : '') +
+      ` · ${bildirilen} servise bildirim gönderildi`,
+    personel,
+  })
+  return { tarife: sonraki, bildirilen, degisen }
+}
+
+/**
+ * Bir servisin özel ücretlerini kaydeder. `ozel` boşsa (ya da null) servis
+ * genel tarifeye döner.
+ *
+ * @param {null|{yolKm?, iscilikSaat?, modeller?}} ozel  boş kutu = genelden
+ * @returns {{tarife, bildirildi: boolean}}
+ */
+export function servisTarifesiniKaydet(servisId, ozel, personel) {
+  if (!servisId) return { hata: 'Servis bulunamadı.' }
+  const onceki = hizmetTarifesiGetir()
+  const servisler = { ...onceki.servisler }
+  const kalemler = {}
+  for (const k of KALEMLER) {
+    const v = ucretOku(ozel?.[k])
+    if (v !== null) kalemler[k] = v
+  }
+  const modeller = modelSatirlari(ozel?.modeller)
+  if (!Object.keys(kalemler).length && !Object.keys(modeller).length) delete servisler[servisId]
+  else {
+    servisler[servisId] = {
+      ...kalemler,
+      modeller,
+      guncelleme: { tarih: Date.now(), personel: personel || '' },
+    }
+  }
+  const sonraki = tarifeleriDuzenle({ ...onceki, servisler })
+
+  const fark = tarifeFarki(onceki, sonraki, servisId)
+  if (!fark) return { tarife: onceki, bildirildi: false }
+
+  icerikAlaniYaz('hizmetTarifesi', sonraki)
+  servisHesapBildir(servisId, 'tarife', fark)
+  const ad = servisleriGetir().find((x) => x.id === servisId)?.ad || servisId
+  islemYaz({
+    tur: 'tarife',
+    ozet: servisler[servisId]
+      ? `${ad} için özel servis ücreti kaydedildi · ${ucretYazisi(tarifeCoz(sonraki, servisId, null))}`
+      : `${ad} genel servis ücretine döndü · ${ucretYazisi(sonraki.genel)}`,
+    personel,
+  })
+  return { tarife: sonraki, bildirildi: true }
+}
+
+/** Parça iskontosunun tamamı: genel oran ve servise özel oranlar. */
+export function parcaIskontosuGetir() {
+  return iskontolariDuzenle(load(ANAHTAR.icerik, {}).parcaIskontosu)
+}
+
+/**
+ * Bir servisin geçerli parça iskontosu.
+ * @returns {{oran: number, kaynak: 'servis'|'genel'}}
+ */
+export function servisinIskontosu(servisId) {
+  return iskontoCoz(parcaIskontosuGetir(), servisId)
+}
+
+/* İskonto değişti; oranı gerçekten değişen her servise bildirim. */
+function iskontoDegisiminiBildir(onceki, sonraki, servisKimlikleri) {
+  let sayi = 0
+  for (const servisId of servisKimlikleri) {
+    const a = iskontoCoz(onceki, servisId).oran
+    const b = iskontoCoz(sonraki, servisId).oran
+    if (a === b) continue
+    servisHesapBildir(servisId, 'iskonto', { once: yuzdeYap(a), simdi: yuzdeYap(b) })
+    sayi += 1
+  }
+  return sayi
+}
+
+/**
+ * Bütün servislere uygulanan iskontoyu kaydeder.
+ *
+ * @param {number|string} yuzde  yüzde olarak (30 = %30)
+ * @param {{ozelleriDegistir?: boolean}} secim  servislerin özel oranları
+ *        da kalksın mı
+ */
+export function genelIskontoyuKaydet(yuzde, { ozelleriDegistir = false } = {}, personel) {
+  const oran = oranOku(yuzde, true)
+  if (oran === null) return { hata: 'İskonto oranını 0 ile 90 arasında bir sayı olarak yazın.' }
+
+  const onceki = parcaIskontosuGetir()
+  const sonraki = iskontolariDuzenle({
+    genel: oran,
+    servisler: ozelleriDegistir ? {} : onceki.servisler,
+    /* Bakiyeden ödemede ek iskonto bu kaydın parçası ama genel orandan
+       bağımsız; genel oran değişince yerinde kalıyor. */
+    bakiye: onceki.bakiye,
+    guncelleme: { tarih: Date.now(), personel: personel || '' },
+  })
+  icerikAlaniYaz('parcaIskontosu', sonraki)
+
+  const kimlikler = new Set([...servisleriGetir().map((x) => x.id), ...Object.keys(onceki.servisler)])
+  const bildirilen = iskontoDegisiminiBildir(onceki, sonraki, [...kimlikler])
+  islemYaz({
+    tur: 'iskonto',
+    ozet:
+      `Genel servis iskontosu güncellendi · %${yuzdeYap(onceki.genel)} → %${yuzdeYap(oran)}` +
+      (ozelleriDegistir && Object.keys(onceki.servisler).length ? ' · Servislerin özel oranları da değiştirildi' : '') +
+      ` · ${bildirilen} servise bildirim gönderildi`,
+    personel,
+  })
+  return { iskonto: sonraki, bildirilen }
+}
+
+/**
+ * Bir servise özel iskonto yazar; `yuzde` boşsa (null, '') servis genel
+ * orana döner.
+ */
+export function servisIskontosunuKaydet(servisId, yuzde, personel) {
+  if (!servisId) return { hata: 'Servis bulunamadı.' }
+  const bos = yuzde === null || yuzde === undefined || yuzde === ''
+  const oran = bos ? null : oranOku(yuzde, true)
+  if (!bos && oran === null) return { hata: 'İskonto oranını 0 ile 90 arasında bir sayı olarak yazın.' }
+
+  const onceki = parcaIskontosuGetir()
+  const servisler = { ...onceki.servisler }
+  if (bos) delete servisler[servisId]
+  else servisler[servisId] = oran
+  const sonraki = iskontolariDuzenle({
+    ...onceki,
+    servisler,
+    guncelleme: { tarih: Date.now(), personel: personel || '' },
+  })
+  icerikAlaniYaz('parcaIskontosu', sonraki)
+
+  const bildirildi = iskontoDegisiminiBildir(onceki, sonraki, [servisId]) > 0
+  const ad = servisleriGetir().find((x) => x.id === servisId)?.ad || servisId
+  islemYaz({
+    tur: 'iskonto',
+    ozet: bos
+      ? `${ad} genel servis iskontosuna döndü · %${yuzdeYap(sonraki.genel)}`
+      : `${ad} için özel iskonto kaydedildi · %${yuzdeYap(oran)}`,
+    personel,
+  })
+  return { iskonto: sonraki, bildirildi }
+}
+
+/* ------------------------------------------ Bakiyeden ödemede ek iskonto
+
+   24 Eylül 2026, kullanıcının isteği: "Servisim'de yedek parça
+   siparişlerinde bakiyeden düşsün seçeneği ile yapılan siparişlerde ek
+   indirim uygulayabilelim." Oran tek ve bütün servislere aynı (gerekçesi
+   lib/servisFiyat.js başında); aynı `parcaIskontosu` kaydında `bakiye`
+   alanı, aynı yetki (`servisIskontosu`).
+
+   BİLDİRİM BÜTÜN SERVİSLERE, YALNIZ ORAN GERÇEKTEN DEĞİŞİNCE. Oran
+   servise göre değişmediği için değişim her servisin eline geçen parayı
+   değiştiriyor. Aynı oran yeniden kaydedilirse hiçbir şey yazılmıyor:
+   ne depo ne işlem kaydı ne bildirim.
+
+   Siparişe oran ve düşülen tutar sipariş anında yazılıyor
+   (`parcaFiyat.bakiyeIskontoOrani`, `bakiyeIskontoTutari`); veri
+   katmanı oranı bugünküyle doğruluyor (bkz. servisParcaSiparisi). */
+
+/** Bakiyeden ödemede ek iskonto oranı (kesir); 0 ise kapalı. */
+export function bakiyeIskontosuGetir() {
+  return bakiyeIskontosu(parcaIskontosuGetir())
+}
+
+/**
+ * Bakiyeden ödemede ek iskontoyu kaydeder.
+ *
+ * @param {number|string} yuzde  yüzde olarak (3 = %3); 0 özelliği kapatır
+ * @returns {{hata}|{iskonto, oran: number, bildirilen: number}}
+ */
+export function bakiyeIskontosunuKaydet(yuzde, personel) {
+  const oran = oranOku(yuzde, true)
+  if (oran === null) return { hata: 'İskonto oranını 0 ile 90 arasında bir sayı olarak yazın.' }
+
+  const onceki = parcaIskontosuGetir()
+  if (oran === onceki.bakiye) return { iskonto: onceki, oran, bildirilen: 0 }
+
+  const sonraki = iskontolariDuzenle({
+    ...onceki,
+    bakiye: oran,
+    guncelleme: { tarih: Date.now(), personel: personel || '' },
+  })
+  icerikAlaniYaz('parcaIskontosu', sonraki)
+
+  const degerler = { once: yuzdeYap(onceki.bakiye), simdi: yuzdeYap(oran) }
+  const kimlikler = servisleriGetir().map((x) => x.id)
+  for (const servisId of kimlikler) servisHesapBildir(servisId, 'bakiyeIskonto', degerler)
+
+  /* İşlem kaydı cümlesi kardeşleriyle aynı yapıda (Codex, 24 Eylül
+     2026): genelIskontoyuKaydet, servisIskontosunuKaydet. */
+  islemYaz({
+    tur: 'iskonto',
+    ozet:
+      `Bakiyeden ödemede ek iskonto güncellendi · %${degerler.once} → %${degerler.simdi}` +
+      ` · ${kimlikler.length} servise bildirim gönderildi`,
+    personel,
+  })
+  return { iskonto: sonraki, oran, bildirilen: kimlikler.length }
+}
+
 /* TOPLU GERİ ALMA YOK (18.09.2026, kullanıcının kararı): "Hem riskli hem
    de ne olduğu anlaşılmayan bir buton." Tek dokunuşla bütün düzeltmeleri
    silen bir düğme, ne sildiğini ekranda göstermiyordu. Düzeltmeler tek
@@ -2316,6 +2677,31 @@ export function servisKaydiGonder(talep, kayit, servisAd) {
     const teslimat = teslimatTemizle(kayit.teslimat)
     if (!teslimat) return { hata: 'Teslimat adresini seçin.' }
     kayit = { ...kayit, teslimat }
+  }
+
+  /* ÜCRET KAYDA BURADA YAZILIYOR (23 Eylül 2026).
+
+     Hizmet ücreti artık backoffice'ten değişiyor ve servise, makineye
+     göre farklı olabiliyor (bkz. lib/servisTarifesi.js). Servisim ön
+     hesabı aynı işlevle yapıyor ama karar veri katmanının: kayıt, o
+     servisin o makinedeki GÜNCEL ücretini taşıyarak kaydediliyor.
+     Servisim eski bir ekranda eski ücreti göstermiş olsa da hak ediş
+     bugünkü ücretle doğuyor; sonra tarife değişse de bu kayıt
+     değişmiyor (hakkedisHesapla kaydın kendi ücretini okuyor).
+
+     Yalnız garanti kaydının 2. aşamasında: parça istenirken yol ve
+     işçilik sorulmuyor. Süresi olmayan eski biçimli kayıtta işçilik
+     tutarına dokunulmuyor. */
+  if (kayit.kapi === 'garanti' && kayit.asama !== ASAMA.parca) {
+    const urunId = talep.makine?.productId || kayit.makine?.productId || null
+    const tarife = servisinTarifesi(talep.servis?.id || null, urunId)
+    kayit = {
+      ...kayit,
+      kmUcreti: tarife.yolKm,
+      ...(kayit.iscilikSaat !== undefined && kayit.iscilikSaat !== null
+        ? iscilikAlanlari(kayit.iscilikSaat, tarife.iscilikSaat)
+        : {}),
+    }
   }
 
   const { cozum, hakkedis, parcalar } = kaydiCozume(kayit)
@@ -2738,6 +3124,39 @@ export function servisParcaSiparisi({
     parcaFiyat && Array.isArray(parcaFiyat.satirlar) && parcaFiyat.satirlar.length
       ? parcaFiyat
       : null
+
+  /* İSKONTO ORANINI VERİ KATMANI DOĞRULUYOR (23 Eylül 2026).
+
+     Oran backoffice'ten değişiyor (genel ya da servise özel, bkz.
+     parcaIskontosuGetir) ve servisin ekranı onu sipariş ekranı
+     açıldığında okuyor. Servis sepeti hazırlarken PAKSAN oranı
+     değiştirirse ekranda gördüğü tutarla kaydedilecek tutar ayrışırdı.
+     Görüntü kendi oranını taşıyor (`iskontoOrani`); bugünkü oranla
+     tutmuyorsa sipariş KAYDEDİLMİYOR, ekran oranı yenileyip servise
+     yeni tutarı gösteriyor. Oranı taşımayan eski çağrılara dokunulmuyor. */
+  const oranDegisti = {
+    hata: 'Siparişi hazırlarken indirim oranınız değişti. Tutarlar güncellendi. Sipariş özetini kontrol edip yeniden gönderin.',
+    iskontoDegisti: true,
+  }
+  if (goruntu && goruntu.iskontoOrani !== undefined) {
+    const gecerli = servisinIskontosu(servisId).oran
+    if (goruntu.iskontoOrani !== gecerli) return oranDegisti
+  }
+
+  /* BAKİYEDEN ÖDEMEDE EK İSKONTO DA DOĞRULANIYOR (24 Eylül 2026).
+
+     Aynı kural: servis sepeti hazırlarken PAKSAN ek iskontoyu açar,
+     kapatır ya da değiştirirse ekrandaki tutar kaydedilecek tutardan
+     ayrışırdı. Bakiyeden ödenen siparişin taşıdığı oran bugünkü oranla
+     aynı olmalı — oranı taşımayan görüntü 0 sayılıyor, yani servis ek
+     iskonto açılmadan hazırladığı sepeti açıldıktan sonra gönderemiyor
+     ve yeni (daha düşük) tutarı görüyor. Faturayla ödenen sipariş ek
+     iskonto taşıyamaz. Görüntüsü olmayan eski çağrılara dokunulmuyor. */
+  if (goruntu) {
+    const tasinan = Number(goruntu.bakiyeIskontoOrani) || 0
+    const beklenen = odeme === 'bakiye' ? bakiyeIskontosuGetir() : 0
+    if (tasinan !== beklenen) return oranDegisti
+  }
 
   /* TUTAR TEK YERDEN: kaydedilen görüntüden. Ayrıca gelen `tutar` ve
      `tutarKdvli` yalnız görüntüsü olmayan çağrılar için duruyor.

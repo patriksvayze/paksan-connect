@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { load, remove, save } from '../lib/storage'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppState'
-import { Rozet } from '../marka'
 import { TelefonAlani } from '../components/TelefonAlani'
 import { SifreAlani } from '../components/SifreAlani'
 import { telGecerliMi } from '../lib/tel'
@@ -12,6 +11,8 @@ import {
 import { VARSAYILAN_ULKE } from '../data/ulkeler'
 import { useDil } from '../i18n'
 import { IconBack } from '../components/Icons'
+import { mevcutIzin, BILDIRIM } from '../lib/bildirim'
+import { BildirimIzniAdimi } from '../components/BildirimIzni'
 
 /* Giriş — daha önce kayıt olmuş kullanıcı için.
 
@@ -37,6 +38,16 @@ export default function Login() {
   const [hata, setHata] = useState('')
   const [bulunamadi, setBulunamadi] = useState(false)
   const [sifreYanlis, setSifreYanlis] = useState(false)
+  /* Giriş tuttu ama bu cihazda bildirim izni henüz sorulmadı: hesap
+     burada bekliyor, izin adımı bitince giriş tamamlanıyor (bkz.
+     components/BildirimIzni.jsx). */
+  const [izinBekleyen, setIzinBekleyen] = useState(null)
+
+  function girisiBitir(user) {
+    girisYap(user)
+    showToast(t('giris.hosgeldiniz', { ad: user.ad?.split(' ')[0] || '' }))
+    nav('/', { replace: true })
+  }
 
   async function dene() {
     if (!telGecerliMi(tel, ulke))
@@ -58,9 +69,17 @@ export default function Login() {
       if (sonuc.durum === GIRIS_SONUC.BULUNDU) {
         if (hatirla) save('hatirla', { ulke, tel })
         else remove('hatirla')
-        girisYap(sonuc.user)
-        showToast(t('giris.hosgeldiniz', { ad: sonuc.user.ad?.split(' ')[0] || '' }))
-        nav('/', { replace: true })
+        /* BİLDİRİM İZNİ GİRİŞTE DE SORULUYOR (22 Eylül 2026, kullanıcı
+           bildirdi). Yalnız kayıtta soruluyordu; yeni telefona geçen ya da
+           uygulamayı yeniden kuran müşteri bildirimsiz kalıyordu. İzin bu
+           cihazda henüz sorulmamışsa kayıttaki adımın aynısı çıkıyor;
+           verilmiş, reddedilmiş ya da desteklenmiyorsa giriş doğrudan
+           bitiyor — her girişte sorulmuyor. */
+        if ((await mevcutIzin()) === BILDIRIM.SORULMADI) {
+          setIzinBekleyen(sonuc.user)
+          return
+        }
+        girisiBitir(sonuc.user)
         return
       }
       /* Şifresiz açılmış eski kayıt: giriş yok, şifre koyma yolu var. */
@@ -89,6 +108,27 @@ export default function Login() {
     }
   }
 
+  if (izinBekleyen) {
+    return (
+      <div className="app">
+        <header className="topbar">
+          <div className="topbar__row">
+            {/* Geri yok: giriş tuttu, çıkış iki düğmeden — izin ver / şimdi değil. */}
+            <span />
+            {/* Logo başlıkta yok; sayfa adı onun yerinde (bkz. components/Chrome.jsx → TopBar). */}
+            <div className="topbar__ad topbar__ad--sag">
+              <h1>{t('kayit.bildirimBaslik')}</h1>
+            </div>
+          </div>
+        </header>
+        <BildirimIzniAdimi
+          kampanya={Boolean(izinBekleyen.onaylar?.kampanya)}
+          onBitti={(izin) => girisiBitir({ ...izinBekleyen, bildirim: { izin, tarih: Date.now() } })}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="app">
       <header className="topbar">
@@ -97,11 +137,10 @@ export default function Login() {
             <IconBack size={21} />
             {t('ortak.geri')}
           </button>
-          <div className="spacer" />
-          <Rozet />
-        </div>
-        <div className="topbar__titles">
-          <h1>{t('giris.baslik')}</h1>
+          {/* Logo başlıkta yok; sayfa adı onun yerinde (bkz. components/Chrome.jsx → TopBar). */}
+          <div className="topbar__ad topbar__ad--sag">
+            <h1>{t('giris.baslik')}</h1>
+          </div>
         </div>
       </header>
 

@@ -1,6 +1,6 @@
 import { durumBilgi, servisBildirimleri } from '../backoffice/veri'
 import { load, save } from '../lib/storage'
-import { MARKA, paraYaz } from '../marka'
+import { MARKA, PARA_BIRIMI, paraYaz } from '../marka'
 
 /* ==========================================================================
    PAKSAN'dan servise gelen talep bildirimleri (21 Eylül 2026)
@@ -82,6 +82,33 @@ const METIN = {
   not: (d) => ({
     baslik: `${MARKA} size not bıraktı`,
     metin: d.metin || '',
+  }),
+
+  /* TALEBE BAĞLI OLMAYAN BİLDİRİMLER (23 Eylül 2026, `tur: 'hesap'`).
+     Değerleri veri.js yazıyor: ücrette kalem kalem eski ve yeni tutar
+     (servisTarifesi.js → tarifeFarki), indirimde eski ve yeni yüzde.
+     Servis ekranında "iskonto" değil "indirim" (yasak terim). */
+  tarife: (d) => ({
+    baslik: 'Hizmet ücretleriniz değişti',
+    metin:
+      [
+        d.yolKm && `Yol: ${paraYaz(d.yolKm.once)} → ${paraYaz(d.yolKm.simdi)} ${PARA_BIRIMI}/km`,
+        d.iscilikSaat && `İşçilik: ${paraYaz(d.iscilikSaat.once)} → ${paraYaz(d.iscilikSaat.simdi)} ${PARA_BIRIMI}/saat`,
+        d.makine && 'Bazı makine modellerinde ücret değişti',
+      ]
+        .filter(Boolean)
+        .join(' · ') || 'Güncel ücretlerinizi Hesap ekranında görebilirsiniz.',
+  }),
+  iskonto: (d) => ({
+    baslik: 'Yedek parça indiriminiz değişti',
+    metin: `%${d.once ?? 0} → %${d.simdi ?? 0}. Yeni oran bundan sonraki siparişlerinizde geçerli.`,
+  }),
+  /* Bakiyeden ödemede ek indirim (24 Eylül 2026): oran bütün servislere
+     tek, değişince hepsine gidiyor (veri.js → bakiyeIskontosunuKaydet).
+     Talebe bağlı değil; dokununca Ücretlendirmeler açılıyor. */
+  bakiyeIskonto: (d) => ({
+    baslik: 'Bakiyeden ödemede ek indiriminiz değişti',
+    metin: `%${d.once ?? 0} → %${d.simdi ?? 0}. Yeni oran, bundan sonra bakiyenizden ödeyeceğiniz siparişlerde geçerli.`,
   }),
 }
 

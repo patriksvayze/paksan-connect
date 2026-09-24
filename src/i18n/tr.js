@@ -208,7 +208,7 @@ export const tr = {
     kilavuzlar: 'Kılavuzlar',
     yedekParcaTalebi: 'Yedek Parça Talebi',
     makineKaydet: 'Makinenizi Kaydedin',
-    satinAl: 'Satın Al',
+    teklifAl: 'Fiyat Teklifi Al',
     makinelerim: 'Makinelerim',
     urunlerimiz: 'Ürünlerimiz',
     bakimRehberi: 'Bakım Rehberi',
@@ -425,8 +425,6 @@ export const tr = {
     },
     hangiMakine: 'Hangi makineniz için?',
     makineSec: 'Makine seçin',
-    onceKaydet: 'Önce makinenizi kaydedin',
-    onceKaydetAlt: 'Seri numarasıyla kaydedince doğru parça ve servis bilgileri gelir',
     neDurumda: 'Makineniz şu an ne durumda?',
     sorunNedir: 'Sorununuz nedir?',
     birdenFazla: 'birden fazla seçebilirsiniz',
@@ -484,6 +482,7 @@ export const tr = {
     servisYokAlt: 'Makinenize henüz servis atanmadığı için servis talebi açamıyorsunuz. {marka} en kısa sürede servis atayacak.',
     makineYokBaslik: 'Henüz kayıtlı makineniz yok',
     makineYokAlt: 'Servis talebi açmak için önce makinenizi seri numarasıyla kaydedin. Makinenize bakacak servis, kaydettiğiniz makineye göre belirlenir.',
+    makineYokAltParca: 'Yedek parça talebi açmak için önce makinenizi seri numarasıyla kaydedin. Parçalar makinenizin modeline göre listelenir, böylece makinenize uygun doğru parça gönderilir.',
   },
 
   /* ------------------------------------------- Yedek parça fiyatları */

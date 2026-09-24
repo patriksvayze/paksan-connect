@@ -136,6 +136,16 @@ const { urunId, kisi, makineler } = dunyaKur(m)
    'acik'` süzgeci (Talepler.jsx:176), Servisim'de açık/kapalı ayrımı
    (ServisPanel.jsx:498). İkisi de kasıtlı; kapanmış bir kayıtla tur
    atılsaydı "ekranda yok" derdi ve bu yanlış alarm olurdu. */
+/* SERVİSE ÖZEL ÜCRET VE İSKONTO (23 Eylül 2026). Değerler bilerek
+   başlangıç tarifesinden ve başlangıç oranından farklı: ekranda
+   görülen rakam gerçekten backoffice'in yazdığı kayıttan gelmeli —
+   sabit yerinde kalsaydı tur onu bulamazdı. Aşağıdaki servis kaydı da
+   bu ücretle hesaplanıyor (hak edişi 40 km × 12 + 5 saat × 73). */
+const OZEL_SAAT = 73
+const OZEL_ISKONTO = 37
+m.veri.servisTarifesiniKaydet(SERVIS.id, { iscilikSaat: OZEL_SAAT }, 'Sınama Yöneticisi')
+m.veri.servisIskontosunuKaydet(SERVIS.id, OZEL_ISKONTO, 'Sınama Yöneticisi')
+
 const talep = talebiYaz(m, m.talepOlustur.talepKaydiOlustur(talepVerisi('servis', urunId, makineler[0]), kisi))
 m.veri.servisKaydiGonder(
   talep,
@@ -228,6 +238,10 @@ const IZ = {
   servisAdi: SERVIS.ad,
   hakkedis: String(bitmis.hakkedis.toplam),
   siparisNo,
+  /* Servise özel saat ücreti ve iskonto: backoffice'in servis listesinde,
+     Yedek Parça Kataloğu'nda, Servisim'in Hesap ve sipariş ekranında. */
+  saatUcreti: `${m.marka.paraYaz(OZEL_SAAT)} ${m.marka.PARA_BIRIMI}`,
+  iskontoOrani: `%${OZEL_ISKONTO}`,
 }
 
 const YER = {
@@ -379,11 +393,14 @@ try {
   await bekle(1200)
 
   const menuSayisi = await s.js(`document.querySelectorAll('.yan__bag').length`)
-  if (menuSayisi !== BACKOFFICE.length) {
+  /* Envanterde aynı menü satırına iki iz olabiliyor (B-05 ve B-16,
+     23 Eylül 2026); sayılan FARKLI menü sırası. */
+  const envanterMenu = new Set(BACKOFFICE.map((e) => e.menu)).size
+  if (menuSayisi !== envanterMenu) {
     kaydet(
       'B-MENU',
       'Menü satır sayısı',
-      `envanterde ${BACKOFFICE.length}, ekranda ${menuSayisi} — envanter eskimiş olabilir`,
+      `envanterde ${envanterMenu}, ekranda ${menuSayisi} — envanter eskimiş olabilir`,
       '',
     )
   } else {
@@ -399,6 +416,21 @@ try {
     if (!bastim) {
       kaydet(e.kod, e.ad, `kenar çubuğunda ${e.menu}. sıra yok — ERİŞİLEMEDİ`, '')
       continue
+    }
+    /* Ekranın içinde açılması gereken bir parça varsa (kapalı açılan
+       kart, 23 Eylül 2026) önce ona basılıyor. Bulunamazsa ERİŞİLEMEDİ:
+       sessizce atlanmıyor. */
+    if (e.tikla) {
+      await bekle(700)
+      const t = await s.js(`(() => {
+        const d = document.querySelector(${JSON.stringify(e.tikla)})
+        if (!d) return 0
+        d.click(); return 1
+      })()`)
+      if (!t) {
+        kaydet(e.kod, e.ad, `${e.tikla} bulunamadı — ERİŞİLEMEDİ`, '')
+        continue
+      }
     }
     await denetle(e)
   }

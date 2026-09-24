@@ -1,6 +1,6 @@
 import { AMBLEM_DOSYASI, getProduct, MARKA, PARA_BIRIMI, paraYaz, SIRKET } from '../marka'
 import { extractYear, formatSerial, matchProduct } from '../lib/serial'
-import { hakkedisHesapla, saatOku, saatYaz, TARIFE, temizParcalar } from '../lib/servisKaydi'
+import { hakkedisHesapla, kmUcretiOku, saatOku, saatUcretiOku, saatYaz, temizParcalar } from '../lib/servisKaydi'
 import { makineninServisi } from '../lib/servisAtama'
 import { telGoster } from '../lib/tel'
 import { jpegdenPdf, tuvaldenJpeg } from '../lib/pdf'
@@ -157,7 +157,8 @@ export function servisFormuVerisi(talep, servisAd) {
     iscilik: h.iscilik ? [iscilikSatiri(k, h)] : [],
     iscilikSaatli: Boolean(saatOku(k.iscilikSaat)),
     netKm: k.km ? String(k.km) : '',
-    kmUcreti: k.km ? tl(TARIFE.yolKm) : '',
+    /* Kaydın kendi km ücreti (23 Eylül 2026'dan beri kayıt taşıyor). */
+    kmUcreti: k.km ? tl(kmUcretiOku(k)) : '',
     yolTutari: k.km ? tl(h.yol) : '',
     toplam: tl(h.toplam || 0),
   }
@@ -175,7 +176,7 @@ function iscilikSatiri(k, h) {
     no: '',
     ad: METIN.iscilikSatiri,
     adet: saatYaz(saat),
-    birimFiyat: tl(Number(k.saatUcreti) || TARIFE.iscilikSaat),
+    birimFiyat: tl(saatUcretiOku(k)),
     garanti: true,
     tutar: tl(h.iscilik),
   }

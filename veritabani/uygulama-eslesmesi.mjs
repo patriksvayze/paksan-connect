@@ -132,7 +132,15 @@ export const DEPO_DISI = {
 /* Anahtarı veri olan nesneler: parça koduna göre adet gibi. Denetim bu
    yolların altındaki anahtarları `{}` diye tek yola indirir; yoksa her
    yeni parça "yeni alan" diye görünürdü. */
-export const HARITALAR = ['requests[].parcaAdet']
+export const HARITALAR = [
+  'requests[].parcaAdet',
+  /* 23 Eylül 2026: hizmet ücreti ve parça iskontosu — ürün kimliğine ve
+     servis kimliğine göre anahtarlı (bkz. lib/servisTarifesi.js). */
+  'panelIcerik.hizmetTarifesi.modeller',
+  'panelIcerik.hizmetTarifesi.servisler',
+  'panelIcerik.hizmetTarifesi.servisler{}.modeller',
+  'panelIcerik.parcaIskontosu.servisler',
+]
 
 /* ------------------------------------------------------------------- Alanlar */
 
@@ -202,6 +210,10 @@ export const ALANLAR = {
   'requests[].servisKaydi.iscilik': sutun('talep.ServisZiyareti.IscilikTutari', 'süreli kayıtta süre × saat ücreti; eski kayıtta servisin yazdığı tutar'),
   'requests[].servisKaydi.iscilikSaat': sutun('talep.ServisZiyareti.IscilikSaati'),
   'requests[].servisKaydi.saatUcreti': turer('hakedis.Tarife.BirimTutar', 'kalem türü iscilik, ziyaretin tamamlandığı gün geçerli tarife; hak ediş kaleminde HakEdisKalemi.BirimTutar'),
+  /* Km ücreti de kayda yazılıyor (23 Eylül 2026): tarife backoffice'ten
+     değişiyor, servise ve ürüne göre farklı olabiliyor. Veritabanında
+     hak edişin yol kalemi aynı şeyi zaten tutuyor. */
+  'requests[].servisKaydi.kmUcreti': turer('hakedis.HakEdisKalemi.BirimTutar', 'kalem türü yol; ziyaretin tamamlandığı gün servis ve ürün için geçerli hakedis.Tarife satırından (servis/ürün boyutu VT-TASARIM-EKLERI §5)'),
   'requests[].servisKaydi.tarih': sutun('talep.ServisZiyareti.TamamlanmaZamani'),
   'requests[].servisKaydi.servisAd': turer('servis.Servis.Ad', 'talep.ServisZiyareti.ServisKimlik üzerinden'),
   'requests[].servisKaydi.parcalar[].kod': sutun('talep.ZiyaretParcaSatiri.ParcaKodu'),
@@ -255,6 +267,17 @@ export const ALANLAR = {
   'requests[].parcaFiyat.satirlar[].adet': sutun('talep.ParcaSatiri.Adet'),
   'requests[].parcaFiyat.satirlar[].birimFiyat': sutun('talep.ParcaSatiri.BirimFiyat'),
   'requests[].parcaFiyat.satirlar[].tutar': sutun('talep.ParcaSatiri.Tutar'),
+  /* Servis siparişinin iskontosu (23 Eylül 2026). Oran siparişin kendi
+     alanı; liste fiyatı ve toplamlar ondan ve fiyat listesinden türer. */
+  'requests[].parcaFiyat.satirlar[].listeFiyati': turer('katalog.FiyatListesiSatiri.BirimFiyat', 'siparişin FiyatListesiKodu + satırın ParcaKodu'),
+  'requests[].parcaFiyat.iskontoOrani': sutun('talep.ParcaTalebiAyrinti.IskontoOrani'),
+  'requests[].parcaFiyat.listeToplam': turer('katalog.FiyatListesiSatiri.BirimFiyat', 'satırların liste fiyatı × ParcaSatiri.Adet toplamı'),
+  'requests[].parcaFiyat.iskontoTutari': turer('talep.ParcaTalebiAyrinti.AraToplam', 'liste fiyatıyla toplam − AraToplam'),
+  /* 24.09.2026: bakiyeden ödemede ek iskonto (AK-23). Yalnız bakiyeden
+     ödenen ve o gün oranı açık siparişte var; AraToplam ve GenelToplam
+     ek iskontolu. */
+  'requests[].parcaFiyat.bakiyeIskontoOrani': yok('talep.ParcaTalebiAyrinti ek iskonto oranını tutmuyor (BakiyeIskontoOrani sütunu gerekiyor)', `${EKLER} §8`),
+  'requests[].parcaFiyat.bakiyeIskontoTutari': yok('talep.ParcaTalebiAyrinti ek iskonto tutarını tutmuyor (BakiyeIskontoTutari sütunu gerekiyor)', `${EKLER} §8`),
   /* 22.09.2026: talebin açıldığı günkü görselin dosya adı (AK-19). */
   'requests[].parcaFiyat.satirlar[].gorsel': yok('talep.ParcaSatiri görselin dosya adını tutmuyor (GorselDosyasi sütunu gerekiyor)', `${EKLER} §4`),
   'requests[].tutar': sutun('talep.ParcaTalebiAyrinti.AraToplam'),
@@ -390,6 +413,14 @@ export const ALANLAR = {
   'duyurular[].pencere': sutun('duyuru.Duyuru.PencereGoster'),
   'duyurular[].gorsel': sutun('duyuru.Duyuru.GorselDosyaKimlik'),
   'duyurular[].hedef.kime': sutun('duyuru.Duyuru.HedefKitleKodu'),
+  /* Hedefleme (23 Eylül 2026): bölge, makine ve servis iki alıcıya da
+     uygulanıyor (lib/duyuruHedef.js). Tablolar V0013'te hazırdı; servis
+     süzgecinin müşteriye, bölgenin servisin hizmet illerine uygulanması
+     ve açıklama metinleri VT-TASARIM-EKLERI.md §7'de. */
+  'duyurular[].hedef.iller[]': sutun('duyuru.HedefIl.IlKodu', 'il adı → cografya.Il kodu'),
+  'duyurular[].hedef.urunler[]': sutun('duyuru.HedefUrun.UrunKodu'),
+  'duyurular[].hedef.seriler[]': sutun('duyuru.HedefSeri.SeriNo', 'yazıldığı gibi; karşılaştırma biçimden bağımsız'),
+  'duyurular[].hedef.servisler[]': sutun('duyuru.HedefServis.ServisKimlik'),
   'duyurular[].personel': sutun('duyuru.Duyuru.YapanAdi'),
   'duyurular[].kisisel': turer('bildirim.Bildirim.Kimlik', 'kişisel olan bildirim.Bildirim\'e, genel duyuru duyuru.Duyuru\'ya yazılır'),
   'duyurular[].musteriId': sutun('bildirim.Bildirim.HesapKimlik'),
@@ -433,6 +464,34 @@ export const ALANLAR = {
      taşınıyor; bu alan taşımanın yapıldığını söylüyor (veri.js →
      rolIzinleriniTasi). Veritabanında RolIzin satırları doğrudan
      yazılacağı için karşılığı gerekmiyor. */
+  /* Hizmet ücreti (23 Eylül 2026, lib/servisTarifesi.js). Genel satır
+     bugünkü tabloya oturuyor; makineye göre ve servise özel satır için
+     hakedis.Tarife'de ürün ve servis sütunu yok (VT-TASARIM-EKLERI §5). */
+  'panelIcerik.hizmetTarifesi.genel.yolKm': sutun('hakedis.Tarife.BirimTutar', 'KalemTuruKodu yol, BirimKodu km; MarkaKodu boş açık satır'),
+  'panelIcerik.hizmetTarifesi.genel.iscilikSaat': sutun('hakedis.Tarife.BirimTutar', 'KalemTuruKodu iscilik, BirimKodu saat; MarkaKodu boş açık satır'),
+  'panelIcerik.hizmetTarifesi.genel.guncelleme.tarih': turer('hakedis.Tarife.GecerlilikBaslangicTarihi', 'açık satırın başlangıcı; değişiklik anı gecmis.hakedis_Tarife'),
+  'panelIcerik.hizmetTarifesi.genel.guncelleme.personel': turer('denetim.IslemKaydi.YapanAdi', 'tarife değişikliğinin işlem kaydı'),
+  'panelIcerik.hizmetTarifesi.modeller{}.yolKm': yok('hakedis.Tarife ürün boyutu taşımıyor (UrunKimlik sütunu gerekiyor)', `${EKLER} §5`),
+  'panelIcerik.hizmetTarifesi.modeller{}.iscilikSaat': yok('hakedis.Tarife ürün boyutu taşımıyor (UrunKimlik sütunu gerekiyor)', `${EKLER} §5`),
+  'panelIcerik.hizmetTarifesi.servisler{}.yolKm': yok('hakedis.Tarife servis boyutu taşımıyor (ServisKimlik sütunu gerekiyor)', `${EKLER} §5`),
+  'panelIcerik.hizmetTarifesi.servisler{}.iscilikSaat': yok('hakedis.Tarife servis boyutu taşımıyor (ServisKimlik sütunu gerekiyor)', `${EKLER} §5`),
+  'panelIcerik.hizmetTarifesi.servisler{}.modeller{}.yolKm': yok('hakedis.Tarife servis ve ürün boyutu taşımıyor', `${EKLER} §5`),
+  'panelIcerik.hizmetTarifesi.servisler{}.modeller{}.iscilikSaat': yok('hakedis.Tarife servis ve ürün boyutu taşımıyor', `${EKLER} §5`),
+  'panelIcerik.hizmetTarifesi.servisler{}.guncelleme.tarih': yok('servise özel tarife satırının başlangıcı; sütun §5 ile gelir', `${EKLER} §5`),
+  'panelIcerik.hizmetTarifesi.servisler{}.guncelleme.personel': turer('denetim.IslemKaydi.YapanAdi', 'tarife değişikliğinin işlem kaydı'),
+  /* Parça iskontosu (23 Eylül 2026, lib/servisFiyat.js). Genel oran tek
+     markalı kurulumda markanın oranı; servise özel oran için tablo yok. */
+  /* Boş kalan eşleme nesneleri (bütün satırları silinmiş): içleri yukarıda. */
+  'panelIcerik.hizmetTarifesi.modeller': yok('makineye göre satırların kabı; boş nesne', `${EKLER} §5`),
+  'panelIcerik.hizmetTarifesi.servisler': yok('servise özel satırların kabı; boş nesne', `${EKLER} §5`),
+  'panelIcerik.hizmetTarifesi.servisler{}.modeller': yok('servisin makineye göre satırlarının kabı; boş nesne', `${EKLER} §5`),
+  'panelIcerik.parcaIskontosu.servisler': yok('servise özel oranların kabı; boş nesne', `${EKLER} §6`),
+  'panelIcerik.parcaIskontosu.genel': sutun('katalog.Marka.ServisIskontoOrani', 'boşsa sistem.Ayar ServisParcaIskontoOrani (katalog.MarkaKurallari)'),
+  'panelIcerik.parcaIskontosu.servisler{}': yok('servise özel iskonto için tablo yok (servis.ParcaIskontosu gerekiyor)', `${EKLER} §6`),
+  /* 24.09.2026: bakiyeden ödemede ek iskonto; tek oran, bütün servislere. */
+  'panelIcerik.parcaIskontosu.bakiye': yok('bakiyeden ödemede ek iskonto oranı için yer yok (katalog.Marka.BakiyeIskontoOrani ya da sistem.Ayar satırı gerekiyor)', `${EKLER} §8`),
+  'panelIcerik.parcaIskontosu.guncelleme.tarih': turer('denetim.IslemKaydi.IslemZamani', 'iskonto değişikliğinin işlem kaydı'),
+  'panelIcerik.parcaIskontosu.guncelleme.personel': turer('denetim.IslemKaydi.YapanAdi', 'iskonto değişikliğinin işlem kaydı'),
   'panelIcerik.roller[].izinSurumu': yok('yalnız tarayıcı deposundaki eski rol kayıtlarını bir kez taşımak için; veritabanında erisim.RolIzin satırları geçiş betiğiyle yazılır'),
   'panelIcerik.roller[].talepTurleri[]': yok('erisim.Rol.TalepTuruKodu tek tür tutuyor; birden çok tür için erisim.RolTalepTuru ara tablosu gerekiyor', `${EKLER} §3`),
 
@@ -491,6 +550,18 @@ export const ISLEVLER = {
   bayileriYaz: { tur: 'yazma', not: 'bütün listeyi yazıyor; sunucuda satır satır komuta dönmeli' },
   bayileriSifirla: 'yazma',
   parcaDuzeltmeleriGetir: 'okuma',
+  /* Hizmet ücreti ve parça iskontosu (23 Eylül 2026). */
+  hizmetTarifesiGetir: 'okuma',
+  servisinTarifesi: { tur: 'okuma', not: 'katman sırası servis+ürün > servis > ürün > genel (lib/servisTarifesi.js); hakedis.HakEdisHesapla aynı sırayla okumalı (VT-TASARIM-EKLERI §5)' },
+  genelTarifeyiKaydet: { tur: 'yazma', not: 'hakedis.Tarife: açık genel satıra bitiş tarihi, yeni satır; "özel ücretler de değişsin" servis satırlarını kapatır; ürün boyutu §5' },
+  servisTarifesiniKaydet: { tur: 'yazma', not: 'hakedis.Tarife servis satırları; ServisKimlik sütunu gerekiyor (VT-TASARIM-EKLERI §5)' },
+  parcaIskontosuGetir: 'okuma',
+  servisinIskontosu: 'okuma',
+  genelIskontoyuKaydet: { tur: 'yazma', not: 'katalog.Marka.ServisIskontoOrani; uygulama rolünün katalog.* yazma izni yok (V0015) — parcaDuzeltmesiYaz ile aynı veritabanı kararı' },
+  servisIskontosunuKaydet: { tur: 'yazma', not: 'servise özel iskonto tablosu yok (VT-TASARIM-EKLERI §6)' },
+  /* 24.09.2026: bakiyeden ödemede ek iskonto. */
+  bakiyeIskontosuGetir: 'okuma',
+  bakiyeIskontosunuKaydet: { tur: 'yazma', not: 'ek iskonto oranı için sütun yok; değişince bütün servislere bildirim (VT-TASARIM-EKLERI §8)' },
   parcaDuzeltmesiYaz: { tur: 'yazma', not: 'katalog.* tablolarına yazmak istiyor; uygulama rolü bunlara yazamaz (V0015) — veritabanı kararı gerekir' },
   fiyatListesiYayinlandi: { tur: 'yazma', not: 'yalnız işlem kaydı (denetim.IslemKaydi); listenin kendisini sunucu yazar → katalog.FiyatListesi + FiyatListesiSatiri (sunucu-taklidi/fiyat-listesi-yayini.mjs sözleşmesi); uygulama rolünün katalog.* yazma izni yok (V0015) — parcaDuzeltmesiYaz ile aynı veritabanı kararı' },
   servisinTalepleri: 'okuma', destekTalepEt: 'yazma', servisKaydiGonder: 'yazma',

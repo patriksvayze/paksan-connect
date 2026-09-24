@@ -5,6 +5,7 @@ import { useDil } from '../i18n'
 import { load, save } from '../lib/storage'
 import { ekAdresi } from '../lib/ekler'
 import { duyuruGecerliMi, personelDuyurusuMu } from '../lib/duyuruHedef'
+import { makinelereServisEkle } from '../lib/servisAtama'
 import { yurtdisiTalepMi } from '../lib/ihracat'
 import { Sheet } from './Chrome'
 import { altBilgi } from '../data/duyuruTurleri'
@@ -74,7 +75,9 @@ export function Duyuru() {
       .filter((d) =>
         duyuruGecerliMi(d, {
           user,
-          makineler: machines,
+          /* Makineye bakan servis de ekleniyor: servis seçilmiş duyuru
+             o servisin baktığı makinelerin sahiplerine gidiyor. */
+          makineler: makinelereServisEkle(machines),
           yurtdisi: yurtdisiTalepMi(user),
         }),
       )

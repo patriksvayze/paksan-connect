@@ -213,7 +213,7 @@ export const en = {
     kilavuzlar: 'Manuals',
     yedekParcaTalebi: 'Spare Part Request',
     makineKaydet: 'Register Your Machine',
-    satinAl: 'Buy a Machine',
+    teklifAl: 'Get a Price Quote',
     makinelerim: 'My Machines',
     urunlerimiz: 'Our Products',
     bakimRehberi: 'Maintenance Guide',
@@ -611,8 +611,6 @@ export const en = {
     },
     hangiMakine: 'Which of Your Machines Is This About?',
     makineSec: 'Select a machine',
-    onceKaydet: 'Register your machine first',
-    onceKaydetAlt: 'With the serial number we send the right part and the right technician',
     neDurumda: 'What State Is the Machine in Right Now?',
     sorunNedir: 'What Is the Problem?',
     birdenFazla: 'you can choose more than one',
@@ -671,6 +669,7 @@ export const en = {
     servisYokAlt: 'No service has been assigned to your machine yet, so you cannot open a service request. {marka} will assign one shortly.',
     makineYokBaslik: 'You have no registered machine yet',
     makineYokAlt: 'To open a service request, first register your machine with its serial number. The service that looks after it is determined by the machine you register.',
+    makineYokAltParca: 'To request a spare part, first register your machine with its serial number. Parts are listed by your machine\'s model, so the right part for your machine is sent.',
   },
 
   ekle: {

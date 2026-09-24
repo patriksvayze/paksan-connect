@@ -3,7 +3,6 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppState'
 import { useKaydirildi } from '../lib/kaydirma'
 import { useDil } from '../i18n'
-import { Rozet, RozetMini } from '../marka'
 import { IconHome, IconBaler, IconChat, IconGrid, IconBack, IconUser } from './Icons'
 
 /* -------------------------------------------------------------- Üst bar
@@ -41,57 +40,36 @@ export function TopBar({ title, sub, back, right }) {
     else nav('/')
   }
 
-  /* Marka her başlıkta durur. Sayfaya ait bir işlem butonu varsa
-     yer kalsın diye logo yerine kalkan amblemi gösterilir. */
-  const marka = right ? (
-    <>
-      {right}
-      <RozetMini />
-    </>
-  ) : (
-    <Rozet />
-  )
+  /* LOGO BAŞLIKTAN KALKTI, SAYFA ADI ONUN YERİNDE (22 Eylül 2026,
+     kullanıcının isteği). Önce sağ üstte logo, geri düğmesinin altında
+     ayrı bir satırda sayfa adı duruyordu; başlık iki satır yer tutuyor,
+     ekranın gövdesine az yer kalıyordu. Artık tek satır: solda "Geri",
+     sağda (logonun yerinde) sayfa adı, varsa en sağda sayfanın işlem
+     düğmesi. Logo yalnız ana sayfada kalıyor (bkz. screens/Home.jsx).
 
+     Geri düğmesi yokken ad solda duruyor — sağa yaslanacak bir şey yok.
+     Sayfanın işlem düğmesi (bugün yalnız Bildirimler'deki "Tümünü
+     okundu olarak işaretle") adın altında kendi satırında, sağda: aynı
+     satıra konunca ad 390 pikselde sıkışıp ortada kalıyordu (ölçüldü). */
   const basliklar = (
-    <div style={{ minWidth: 0, flex: 1 }}>
+    <div className={'topbar__ad' + (geriGoster ? ' topbar__ad--sag' : '')}>
       <h1>{title}</h1>
       {sub && <div className="sub">{sub}</div>}
     </div>
   )
 
-  /* Başlık iki durumda kendi satırına iner:
-
-     - Geri butonu varken: buton net "Geri" yazar, sayfa adıyla yan
-       yana gelip karışmaz.
-     - Sayfaya ait bir işlem butonu varken: başlık, butonla ve amblemle
-       aynı satırı paylaşınca daralıyordu. Bildirimler ekranı doğrudan
-       açıldığında (geri butonu yokken) 390 piksel genişlikte başlığa
-       106 piksel kalıyordu ve "Bildirimler" "Bildirimle" diye kesiliyordu.
-       Artık buton ve amblem üst satırda, başlık altta tüm genişlikte. */
-  if (geriGoster || right) {
-    return (
-      <header className={sinif}>
-        <div className="topbar__row">
-          {geriGoster && (
-            <button className="backbtn" onClick={geri}>
-              <IconBack size={21} />
-              {t('ortak.geri')}
-            </button>
-          )}
-          <div className="spacer" />
-          {marka}
-        </div>
-        <div className="topbar__titles">{basliklar}</div>
-      </header>
-    )
-  }
-
   return (
     <header className={sinif}>
       <div className="topbar__row">
+        {geriGoster && (
+          <button className="backbtn" onClick={geri}>
+            <IconBack size={21} />
+            {t('ortak.geri')}
+          </button>
+        )}
         {basliklar}
-        {marka}
       </div>
+      {right && <div className="topbar__islem-satiri">{right}</div>}
     </header>
   )
 }

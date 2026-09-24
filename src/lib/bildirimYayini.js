@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { bildirimGoster, dokunmayiDinle, mevcutIzin, BILDIRIM } from './bildirim'
 import { load, save } from './storage'
+import { bildirimYazisi } from './bildirimler'
 
 /* ==========================================================================
    Bildirimleri telefonun perdesine düşürmek
@@ -19,6 +20,15 @@ import { load, save } from './storage'
    Hangi satırların perdeye düştüğü kayıt altında (`yayinlananBildirimler`).
    Olmasaydı uygulama her açıldığında aynı duyuru yeniden çıkardı;
    iki günde bildirimleri kapatan bir kullanıcı olurdu.
+
+   LİSTEDE DURAN SATIRIN KAYDI SİLİNMİYOR (22 Eylül 2026). Kayıt 200
+   satırla sınırlanıyordu: bildirim sayısı 200'ü geçince her açılışta
+   birkaç satırın kaydı düşüyor, düşenler bir sonraki açılışta "yeni"
+   sayılıp perdeye yeniden çıkıyordu. Kullanıcı hiçbir şey yapmadığı
+   hâlde aynı "talebiniz alındı" bildirimi aralıklarla geliyordu.
+   Tarayıcıda 210 talepli bir hesapla yeniden üretildi: her açılışta on
+   kaydın yer değiştirdiği görüldü. Artık yalnız listeden çıkmış
+   satırların kaydı budanıyor.
 
    ESKİLER SESSİZ GEÇER
 
@@ -54,8 +64,9 @@ const EN_COK = 3
  * @param {array} liste  bildirimListesi() çıktısı
  * @param {(anahtar: string, degerler?: object) => string} t  sözlük
  * @param {boolean} acik kullanıcı giriş yapmış mı
+ * @param {string} dil  talep türünün adı cümleye bu dile göre giriyor
  */
-export function useBildirimYayini(liste, t, acik) {
+export function useBildirimYayini(liste, t, acik, dil) {
   const nav = useNavigate()
 
   /* Aynı kare içinde iki kez çalışmasın; StrictMode geliştirmede her
@@ -66,7 +77,11 @@ export function useBildirimYayini(liste, t, acik) {
     if (!acik || !liste?.length || calisiyor.current) return
     calisiyor.current = true
 
-    let iptal = false
+    /* İPTAL YOK. Önce etki temizlenince döngü duruyordu; ama satırlar o
+       ana kadar "gösterildi" diye işaretlenmiş oluyordu ve bildirim hiç
+       çıkmıyordu (geliştirmede her açılışta, telefonda liste o sırada
+       değişirse). İşaretlenen her satır gösteriliyor; ikinci bir kopya
+       `calisiyor` ile zaten engelli. */
 
     ;(async () => {
       try {
@@ -82,7 +97,14 @@ export function useBildirimYayini(liste, t, acik) {
         /* Kayıt neyin çıktığını değil, neyin BİLİNDİĞİNİ tutuyor:
            yaşı geçtiği için gösterilmeyen satır da işaretleniyor,
            yoksa her açılışta yeniden değerlendirilirdi. */
-        save(ANAHTAR, [...yayinlanan, ...yeniler.map((b) => b.id)].slice(-200))
+        const listede = new Set(liste.map((b) => b.id))
+        save(ANAHTAR, [
+          /* Listeden çıkmış satırların en fazla yüzü: geri gelirse
+             (duyuru yeniden hedeflendi gibi) ikinci kez çıkmasın. */
+          ...yayinlanan.filter((id) => !listede.has(id)).slice(-100),
+          ...yayinlanan.filter((id) => listede.has(id)),
+          ...yeniler.map((b) => b.id),
+        ])
 
         if (ilkKez) return
 
@@ -94,10 +116,9 @@ export function useBildirimYayini(liste, t, acik) {
           .reverse()
 
         for (const b of cikacaklar) {
-          if (iptal) return
           await bildirimGoster({
-            baslik: yaz(b.baslik, b.baslikAnahtar, b.degerler, t),
-            metin: yaz(b.metin, b.metinAnahtar, b.degerler, t),
+            baslik: b.baslik || bildirimYazisi(t, b, dil, 'baslikAnahtar'),
+            metin: b.metin || bildirimYazisi(t, b, dil, 'metinAnahtar'),
             yol: b.yol || '/bildirimler',
           })
         }
@@ -105,10 +126,6 @@ export function useBildirimYayini(liste, t, acik) {
         calisiyor.current = false
       }
     })()
-
-    return () => {
-      iptal = true
-    }
     /* Liste her çizimde yeniden üretilen bir dizi; bağımlılığa
        konulsaydı etki durmadan yeniden çalışırdı. Uzunluğu yeterli
        işaret: yeni bildirim geldiğinde uzunluk değişiyor. */
@@ -130,12 +147,4 @@ export function useBildirimYayini(liste, t, acik) {
       kaldir()
     }
   }, [nav])
-}
-
-/* Personelin elle yazdığı duyuru hazır metin taşıyor; uygulamanın kendi
-   ürettiği bildirim sözlük anahtarı taşıyor. İkisi de gelebilir. */
-function yaz(hazir, anahtar, degerler, t) {
-  if (hazir) return hazir
-  if (anahtar) return t(anahtar, degerler)
-  return ''
 }

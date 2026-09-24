@@ -296,8 +296,15 @@
 }
 
 
+/* DOKUNMA VURGUSU KAPALI (22 Eylül 2026, kullanıcı bildirdi). Android'in
+   tarayıcı motoru dokunulan öğenin üstüne kendi köşeli mavi kutusunu
+   çiziyordu; yuvarlak düğmelerin şeklini bozuyordu ("Ara" düğmesi gibi).
+   Servisim bu dosyayı paylaştığı için kural burada. Basma geri bildirimi
+   düğmelerin kendi `:active` hâlinden geliyor. Connect'te aynı kural
+   styles.css'te zaten vardı. */
 * {
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Kaydırma çubuğunun yeri her ekranda ayrılı kalıyor.
@@ -3962,4 +3969,440 @@ button.deger:hover {
   place-items: center;
   text-align: center;
   padding: 8px;
+}
+
+/* ==========================================================================
+   Hizmet ücretleri ve servis iskontosu (23 Eylül 2026)
+
+   Servisler sayfasının üstündeki ücret kartı, servis formundaki özel
+   ücret alanı ve Yedek Parça Kataloğu'ndaki iskonto kartı (bkz.
+   ekranlar/HizmetUcretleri.jsx, ekranlar/ServisIskontosu.jsx).
+
+   RAKAM BÜYÜK, ETİKET KÜÇÜK: kart bir bakışta "servise ne ödüyoruz"
+   sorusunu cevaplamalı; ayrıntı (makineye göre farklar, özel ücretli
+   servisler) altında, bölüm bölüm.
+   ========================================================================== */
+
+.ucret-sayilar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+}
+
+.ucret-sayi {
+  padding: 14px 16px;
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r);
+  background: var(--yuzey-2);
+}
+
+.ucret-sayi__ad {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--murekkep-2);
+}
+
+.ucret-sayi__deger {
+  margin-top: 4px;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--murekkep);
+  font-variant-numeric: tabular-nums;
+}
+
+.ucret-sayi__deger small {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--murekkep-2);
+}
+
+.ucret-sayi__birim {
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--murekkep-2);
+}
+
+.ucret-bolum {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--cizgi);
+}
+
+.ucret-bolum__ad {
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--murekkep);
+}
+
+/* Özel ücretli servisler: servis başına bir satır; temel ücret ve altında
+   servise özel makine satırları. */
+.ucret-ozeller {
+  display: grid;
+  gap: 8px;
+}
+
+.ucret-ozel {
+  padding: 9px 12px;
+  border-radius: var(--r);
+  background: var(--yuzey-2);
+  border: 1px solid var(--cizgi);
+}
+
+.ucret-ozel__ad {
+  font-weight: 700;
+  font-size: 13.5px;
+  margin-bottom: 2px;
+}
+
+.ucret-ozel__makine {
+  margin-top: 3px;
+  color: var(--murekkep-2);
+}
+
+.ucret-ozel__model {
+  font-weight: 700;
+  color: var(--murekkep);
+}
+
+.ucret-ozel__model::after {
+  content: ':';
+}
+
+/* Servis listesindeki Ücret hücresinde servise özel makine satırı. */
+.ucret-hucre__makine {
+  margin-top: 2px;
+  line-height: 1.35;
+}
+
+.ucret-makineler {
+  display: grid;
+  gap: 6px;
+}
+
+.ucret-makine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+
+.ucret-makine__ad {
+  min-width: 190px;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* Düzenlenen makine satırı: makine, yol, işçilik, kaldır. */
+.ucret-satirlar {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.ucret-satir {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.ucret-satir--baslik {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--murekkep-2);
+}
+
+/* İskonto kartındaki iki karo (genel oran, bakiyeden ödemede ek iskonto;
+   24 Eylül 2026'ya kadar tek karoydu): karolar sayfa boyu uzamasın, dar
+   ekranda alt alta insin. Sütunun en büyüğü sabit 380px değil 1fr: sabit
+   olunca tarayıcı sütun sayısını 380'e göre hesaplıyor ve 900 piksellik
+   pencerede de karolar alt alta iniyordu (UI denetimi); genişlik sınırı
+   kutunun kendisinde. */
+.ucret-sayilar--iki {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  max-width: 772px;
+}
+
+/* Servis formundaki "Bu servisin ücreti" özeti. */
+.ucret-ozet {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: var(--r);
+  background: var(--yuzey-2);
+  border: 1px solid var(--cizgi);
+}
+
+/* Özel ücretli servisler uyarısındaki liste: ad ve bugünkü özel ücret. */
+.ucret-uyari-liste {
+  display: grid;
+  gap: 2px;
+  max-height: 260px;
+  overflow: auto;
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r);
+}
+
+.ucret-uyari-satir {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  padding: 8px 12px;
+}
+
+.ucret-uyari-satir + .ucret-uyari-satir {
+  border-top: 1px solid var(--cizgi);
+}
+
+/* Servise özel iskonto satırı: servis, oran, kaldır. */
+.iskonto-satir {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 90px auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.iskonto-satir + .iskonto-satir {
+  border-top: 1px solid var(--cizgi);
+}
+
+.iskonto-ekle {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px auto;
+  gap: 10px;
+  align-items: end;
+}
+
+/* ==========================================================================
+   Açılır kart (23 Eylül 2026)
+
+   Hizmet Ücretleri (Servisler) ve Servis iskontosu (Yedek Parça Kataloğu)
+   kapalı açılıyor; kullanıcı "çok yer kaplıyor" dedi. Başlığın tamamı tek
+   düğme (ortak.jsx → AcilirTepe): adı, kapalıyken okunacak özet ve
+   "Ayrıntıları Göster" yazılı ok. Kapalı kartın alt çizgisi yok: kartın
+   tek parçası başlık.
+   ========================================================================== */
+.acilir-tepe {
+  padding: 0;
+}
+
+.acilir-kart:not(.acilir-kart--acik) .acilir-tepe {
+  border-bottom: 0;
+}
+
+.acilir-tepe__baslik {
+  width: 100%;
+  margin: 0;
+}
+
+.acilir-tepe__dugme {
+  all: unset;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 18px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  cursor: pointer;
+  border-radius: var(--r);
+  color: var(--murekkep);
+}
+
+.acilir-tepe__dugme:hover {
+  background: var(--yuzey-2);
+}
+
+.acilir-tepe__dugme:focus-visible {
+  outline: 2px solid var(--mavi-rz);
+  outline-offset: -2px;
+}
+
+.acilir-tepe__ad {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.acilir-tepe__ozet {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.acilir-tepe__cip {
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.3;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--yuzey-2);
+  border: 1px solid var(--cizgi);
+  color: var(--murekkep-2);
+}
+
+.acilir-tepe__ac {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  /* --mavi değil: karanlıkta --mavi dolgu tonu (#1d55c0) ve kart
+     zemininde 2,43:1 kalıyordu (UI denetimi). --mavi-rz yazı için
+     açılan ton; aydınlıkta ikisi aynı renk. */
+  color: var(--mavi-rz);
+  white-space: nowrap;
+}
+
+.acilir-tepe__ok {
+  transition: transform 0.18s ease;
+}
+
+.acilir-kart--acik .acilir-tepe__ok {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .acilir-tepe__ok {
+    transition: none;
+  }
+}
+
+/* Açık kartın üst satırı: açıklama solda, "Ücretleri Düzenle" sağda. */
+.acilir-ust {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.acilir-ust > .dg {
+  flex-shrink: 0;
+}
+
+.acilir-guncelleme {
+  margin: 6px 0 14px;
+  min-height: 1px;
+}
+
+.acilir-guncelleme:empty {
+  margin: 0 0 14px;
+}
+
+/* ==========================================================================
+   Duyurular · Hedefleme (23 Eylül 2026)
+
+   Bölge, makine ve servis süzgeçleri formda açık duruyor (önce "Daraltma
+   · Seç" düğmesinin arkasındaydı). Her süzgeç kendi kutusunda: adı, seçim
+   sayısı, çipler ve alıcıya göre değişen açıklama. Çip listeleri kendi
+   içinde kayıyor; 81 il formu sayfa boyu uzatmasın.
+   ========================================================================== */
+.hedef-blok {
+  margin-bottom: 8px;
+  border-radius: var(--r);
+  border: 1px solid var(--cizgi);
+  background: var(--yuzey-2);
+}
+
+/* Kutunun başlığı tek düğme (24 Eylül 2026: kutular kapalı açılıyor,
+   Hizmet Ücretleri kartıyla aynı dil). */
+.hedef-blok__dugme {
+  all: unset;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  cursor: pointer;
+  border-radius: var(--r);
+  color: var(--murekkep);
+}
+
+.hedef-blok__dugme:hover {
+  background: var(--mavi-z);
+}
+
+.hedef-blok__dugme:focus-visible {
+  outline: 2px solid var(--mavi-rz);
+  outline-offset: -2px;
+}
+
+.hedef-blok--acik .acilir-tepe__ok {
+  transform: rotate(180deg);
+}
+
+.hedef-blok__ozet {
+  font-size: 12.5px;
+  color: var(--murekkep-2);
+}
+
+/* Seçim yapılmış kutunun özeti koyu: kapalıyken de fark edilsin. */
+.hedef-blok__ozet--secili {
+  font-weight: 700;
+  color: var(--murekkep);
+}
+
+.hedef-blok__govde {
+  padding: 2px 12px 12px;
+}
+
+.hedef-blok__tepe {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-bottom: 8px;
+}
+
+.hedef-blok__ad {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.hedef-blok__ara {
+  margin-left: auto;
+  width: 180px;
+  max-width: 100%;
+  min-height: 34px;
+  padding: 6px 10px;
+}
+
+.hedef-blok__liste {
+  max-height: 132px;
+  overflow: auto;
+  margin-bottom: 6px;
+}
+
+.hedef-ozet {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 10px 12px;
+  border-radius: var(--r);
+  border: 1px dashed var(--cizgi-koyu);
+}
+
+.hedef-ozet > .dg {
+  margin-left: auto;
+}
+
+/* Yayındaki duyurunun süzgeç satırı. */
+.hedef-satir {
+  margin-top: 2px;
+  color: var(--murekkep-2);
+}
+
+/* Kutular kapalı açılınca (24 Eylül 2026) il arama kutusu kendi satırında
+   yalnız kaldı; sağa yaslı durunca solda boşluk açılıyordu. */
+.hedef-blok__govde .hedef-blok__ara {
+  margin-left: 0;
+  width: 260px;
 }

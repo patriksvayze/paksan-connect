@@ -6,7 +6,7 @@ import { useDil } from '../i18n'
 import { TopBar, TabBar } from '../components/Chrome'
 import { talepTuru } from '../lib/talep'
 import {
-  bildirimListesi, bildirimleriAyir, tarihObegi, OBEK_SIRASI, BILDIRIM_TURU,
+  bildirimListesi, bildirimleriAyir, tarihObegi, OBEK_SIRASI, BILDIRIM_TURU, bildirimYazisi,
 } from '../lib/bildirimler'
 import {
   IconBell, IconCheckCircle, IconAlert, IconRight, IconCalendar,
@@ -262,34 +262,10 @@ export default function Notifications() {
   )
 }
 
-/* Sözlük anahtarı taşıyan bildirimin yazısını çözer.
-
-   İki kaynak var: uygulamanın kendi ürettiği ("talebiniz alındı") ve
-   backoffice’ten gelen otomatik durum bildirimi. İkisi de anahtar taşıyor ki
-   müşterinin kendi dilinde çıksın; personelin elle yazdığı duyuru ise
-   hazır metin olarak geliyor. */
+/* Anahtarlı bildirimin yazısı lib/bildirimler.js → bildirimYazisi:
+   telefonun bildirim perdesi de aynı yazıyı kullanıyor. */
 function yaz(t, b, dil, hangi) {
-  const anahtar = b[hangi]
-  if (!anahtar) return ''
-  const d = b.degerler || {}
-  const turAnahtar = d.tur || d.talepTur
-  /* `baslik` FORMUN EKRAN BAŞLIĞI, talebin adı değil: fiyat
-     teklifinde "Fiyat Teklifi İste" yazıyor ve cümleye konunca
-     "Fiyat teklifi iste alındı" çıkıyordu. Bildirimde talebin ADI
-     kullanılıyor. */
-  return t(anahtar, {
-    ...d,
-    tur: turAnahtar ? cumleBasi(t(`talep.${turAnahtar}.adi`), dil) : '',
-  })
-}
-
-/* "Servis Talebi" gibi başlık biçimindeki tür adını cümle içine
-   yerleştirir: "Servis talebi alındı". Türkçede küçültme kuralı
-   farklı olduğu için dil veriliyor (I → ı). */
-function cumleBasi(metin, dil) {
-  const yerel = dil === 'tr' ? 'tr-TR' : 'en-GB'
-  const kucuk = metin.toLocaleLowerCase(yerel)
-  return kucuk.charAt(0).toLocaleUpperCase(yerel) + kucuk.slice(1)
+  return bildirimYazisi(t, b, dil, hangi)
 }
 
 /* Saat ve tarih. Bugünün bildiriminde yalnız saat yazıyor — tarihi
