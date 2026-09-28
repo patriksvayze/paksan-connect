@@ -18,9 +18,11 @@ import {
 } from '../../components/Icons'
 import { altBilgi } from '../../data/duyuruTurleri'
 import { makineDurumAdi } from '../../data/talepAlanlari'
+import { kayitTelHref } from '../../lib/tel'
+import { randevuSaatliMi } from '../../lib/tarih'
 import { useBildirimIzni } from '../haber'
-import { bildirimYazisi, GORULEN_DUYURU, okunduSay, okunmamislar } from '../talepBildirimleri'
-import { dokunulmamis, servisGecikti } from '../isDurumu'
+import { bildirimYazisi, GORULEN_DUYURU, musteridenMi, okunduSay, okunmamislar } from '../talepBildirimleri'
+import { dokunulmamis, servisGecikti, yeniIsSirasi } from '../isDurumu'
 import { MARKA, getProduct, markaEk } from '../../marka'
 /* Boş liste çizimi Higgsfield ile üretildi, uygulamanın kendi görsel
    diline (kalın lacivert kontur, düz dolgu, sınırlı palet) referans
@@ -51,7 +53,11 @@ import bosIsGorseli from '../../assets/gorseller/servis-bos-is.png'
         Hemen altında PAKSAN'ın talep bildirimleri — yalnız okunmamış
         varken (iptal, kapatma, durum değişikliği, onay…). İşin önünde
         duruyorlar, çünkü çoğu doğrudan işi değiştiriyor: iptal edilen
-        bir işe gidilmemeli.
+        bir işe gidilmemeli. Müşterinin Connect'ten yaptığı işlem
+        (talebe ekleme, "Sorun Devam Ediyor") ayrı başlık altında,
+        PAKSAN'ınki gibi görünmesin diye.
+        Altında 48 saati geçen işlerin şeridi (25 Eylül 2026): hangi iş
+        olduğunu söylüyor ve dokununca o işe götürüyor.
      3. Bekleyen işler — asıl liste.
      4. Öteki duyurular — tek satırın ardında (kampanya, fuar, yeni
         ürün). Okunmayı hak ediyorlar ama işin önünde değil.
@@ -97,9 +103,12 @@ const BOS = {
   biten: { baslik: 'Tamamlanan işiniz yok', alt: 'Kapanan ve iptal edilen işler burada görünür.' },
 }
 
-export function Isler({ oturum, bekleyen, biten, tumTalepler, onAc, onUcretler, sekme: secilen, onSekme }) {
+export function Isler({ oturum, bekleyen, biten, tumTalepler, onAc, onUcretler, sekme: secilen, onSekme, surum }) {
+  /* 48 saati geçen işler "Yeni" sekmesinin başında, en eskisi önce
+     (isDurumu.js → yeniIsSirasi); şerit de onları aynı sırayla sayıyor. */
+  const geciken = useMemo(() => yeniIsSirasi(bekleyen.filter(servisGecikti)), [bekleyen])
   const [yeniIsler, devamEden] = useMemo(
-    () => [bekleyen.filter(dokunulmamis), bekleyen.filter((t) => !dokunulmamis(t))],
+    () => [yeniIsSirasi(bekleyen.filter(dokunulmamis)), bekleyen.filter((t) => !dokunulmamis(t))],
     [bekleyen],
   )
   const listeler = { yeni: yeniIsler, devam: devamEden, biten }
@@ -115,7 +124,11 @@ export function Isler({ oturum, bekleyen, biten, tumTalepler, onAc, onUcretler, 
 
       <Planlayici bekleyen={bekleyen} onAc={onAc} />
 
-      <ServisDuyurulari oturum={oturum} acil />
+      {/* `surum`: yeni acil duyuru ekranda da hemen çıksın. Telefon
+          "İşlerim ekranının üst bölümünde okuyabilirsiniz" diyor; liste
+          yalnız ekran açılınca okunuyordu (25 Eylül 2026, kullanıcı
+          sınaması O3). */}
+      <ServisDuyurulari oturum={oturum} acil surum={surum} />
 
       {/* Bildirim servisin kendi parça siparişine de ait olabilir;
           sipariş İşlerim'in listelerinde yok. Önce yalnız işler
@@ -126,6 +139,19 @@ export function Isler({ oturum, bekleyen, biten, tumTalepler, onAc, onUcretler, 
         talepler={tumTalepler || [...bekleyen, ...biten]}
         onAc={onAc}
         onUcretler={onUcretler}
+      />
+
+      <GecikmeSeridi
+        geciken={geciken}
+        onGoster={() => {
+          if (geciken.length === 1) return onAc(geciken[0])
+          onSekme('yeni')
+          requestAnimationFrame(() =>
+            document
+              .getElementById('is-' + geciken[0].id)
+              ?.scrollIntoView({ block: 'center', behavior: 'smooth' }),
+          )
+        }}
       />
 
       {/* İKİ DUYURU AÇILIRI ALT ALTA.
@@ -139,7 +165,7 @@ export function Isler({ oturum, bekleyen, biten, tumTalepler, onAc, onUcretler, 
 
           Sıra korunuyor: acil olanlar hâlâ kart hâlinde ve en üstte.
           Kapalı iki satır bekleyen işleri 96 piksel aşağı itmiyor. */}
-      <ServisDuyurulari oturum={oturum} />
+      <ServisDuyurulari oturum={oturum} surum={surum} />
 
       <div className="is-sekmeler" role="tablist" aria-label="İşlerim">
         {SEKMELER.map((x) => (
@@ -247,8 +273,17 @@ function BildirimIzni() {
    GİDİLMEMİŞ RANDEVU bugünün başında, kırmızı: gün geçmiş, iş hâlâ
    açık. Sessizce düşerse unutuluyor.
 
-   48 SAAT UYARISI kartın dibinde tek satır: randevu somut bir plan, o
-   bir hatırlatma; aynı ağırlıkta durmuyorlar.
+   48 SAAT UYARISI ARTIK BURADA DEĞİL (25 Eylül 2026, kullanıcı
+   sınaması). Kartın dibinde tek satırdı: hangi iş olduğunu söylemiyor,
+   dokunulamıyor, yedi günde randevu yoksa kartla birlikte kayboluyordu.
+   Şimdi bildirimlerin altında kendi şeridi var (aşağıda GecikmeSeridi).
+
+   SAATİ GİRİLMEMİŞ RANDEVU (25 Eylül 2026, kullanıcı sınaması).
+   Servisim randevuda yalnız gün soruyor; gün UTC gece yarısı okunuyor
+   ve Türkiye'de "03:00" görünüyordu. Randevu artık saatin girilip
+   girilmediğini taşıyor (lib/tarih.js → randevuSaatliMi): saatsiz
+   randevunun saat sütununda "Gün içi" yazıyor ve günün sonunda
+   sıralanıyor.
 
    KART YALNIZ PLAN VARKEN ÇIKIYOR. Yedi günde de randevu yoksa kutu
    yok: bir kutu bir şeyin olduğunu söylemek için vardır.
@@ -275,22 +310,29 @@ const tarihUzun = (g) =>
 
 function randevuYazi(plan) {
   if (!plan?.tarih) return plan?.tarihYazi || ''
-  return `${gunAyYazi(plan.tarih)} · ${saatYazi(plan.tarih)}`
+  return randevuSaatliMi(plan)
+    ? `${gunAyYazi(plan.tarih)} · ${saatYazi(plan.tarih)}`
+    : gunAyYazi(plan.tarih)
 }
+
+/* Sıralama anı: saatsiz randevu günün sonunda. */
+const randevuSirasi = (p) => (randevuSaatliMi(p) ? p.tarih : gunBasi(p.tarih) + GUN - 1)
 
 function Planlayici({ bekleyen, onAc }) {
   const bugun = gunBasi()
   const gunler = useMemo(() => Array.from({ length: 7 }, (_, i) => bugun + i * GUN), [bugun])
 
   const randevulu = useMemo(
-    () => bekleyen.filter((t) => t.plan?.tarih).sort((a, b) => a.plan.tarih - b.plan.tarih),
+    () =>
+      bekleyen
+        .filter((t) => t.plan?.tarih)
+        .sort((a, b) => randevuSirasi(a.plan) - randevuSirasi(b.plan)),
     [bekleyen],
   )
   const gecmis = randevulu.filter((t) => gunBasi(t.plan.tarih) < bugun)
   const gununkiler = (g) => randevulu.filter((t) => gunBasi(t.plan.tarih) === g)
   const adet = (g) => gununkiler(g).length + (g === bugun ? gecmis.length : 0)
   const haftada = gunler.reduce((n, g) => n + gununkiler(g).length, 0)
-  const geciken = bekleyen.filter(servisGecikti)
 
   /* İlk seçili gün: bugünün planı (ya da gidilmemiş randevusu) varsa
      bugün; yoksa randevusu olan ilk gün. */
@@ -368,8 +410,10 @@ function Planlayici({ bekleyen, onAc }) {
                       <span>{gunAyYazi(t.plan.tarih)}</span>
                       <span className="plan__gecti">Gecikti</span>
                     </>
-                  ) : (
+                  ) : randevuSaatliMi(t.plan) ? (
                     saatYazi(t.plan.tarih)
+                  ) : (
+                    'Gün içi'
                   )}
                 </span>
                 <span className="plan__govde">
@@ -384,14 +428,33 @@ function Planlayici({ bekleyen, onAc }) {
       ) : (
         <p className="plan__bos">Bu tarihte randevunuz yok.</p>
       )}
-
-      {geciken.length > 0 && (
-        <div className="plan__uyari">
-          <IconAlert size={16} />
-          <span>{geciken.length} işin üzerinden 48 saat geçti</span>
-        </div>
-      )}
     </section>
+  )
+}
+
+/* 48 SAATİ GEÇEN İŞ (25 Eylül 2026, kullanıcı sınaması). Uyarı
+   planlayıcının dibinde tek satırdı; hangi iş olduğunu söylemiyor,
+   dokunulamıyor, randevu yoksa hiç çıkmıyordu. Tek işse o iş açılıyor,
+   birden çoksa Yeni sekmesine geçilip ilkine kayılıyor; geciken işler
+   o sekmenin başında (isDurumu.js → yeniIsSirasi). Düğme yazılı:
+   simge ya da renk tek başına bir şey söylemiyor. Yazı eşiği söylüyor,
+   süreyi değil: şerit 48 saati GEÇEN her işte çıkıyor (veri.js →
+   gecikmisMi, üst sınır yok); "48 saattir bekliyor" 96 saatlik işte
+   yanlıştı ve kartın "48 saati geçti" etiketini tutmuyordu. */
+function GecikmeSeridi({ geciken, onGoster }) {
+  if (!geciken.length) return null
+  const tek = geciken.length === 1
+  return (
+    <button type="button" className="gecikme-serit" onClick={onGoster}>
+      <IconAlert size={18} />
+      <span className="gecikme-serit__govde">
+        {tek ? `${geciken[0].ad || '—'} · 48 saati geçti` : `${geciken.length} işte süre 48 saati geçti`}
+      </span>
+      <span className="gecikme-serit__git">
+        {tek ? 'İşi Aç' : 'Göster'}
+        <IconRight size={15} />
+      </span>
+    </button>
   )
 }
 
@@ -412,7 +475,14 @@ function Planlayici({ bekleyen, onAc }) {
    bildirim perdesinde zaten okumuş olabilir.
 
    Bölüm yalnız okunmamış varken çiziliyor; okunmuşlar talebin içinde
-   duruyor. */
+   duruyor.
+
+   MÜŞTERİNİN İŞLEMİ AYRI BAŞLIKTA (25 Eylül 2026). Müşteri Connect'ten
+   talebe bir şey eklediğinde ya da "Sorun Devam Ediyor" dediğinde işi
+   yürüten servise aynı kayıttan bildirim gidiyor (lib/talepEkleme.js).
+   "PAKSAN'dan gelen bildirimler" başlığının altında dursaydı müşterinin
+   işi PAKSAN'ınki gibi okunurdu. Ayrım yeni bir alandan değil, olayın
+   adından (talepBildirimleri.js → musteridenMi). */
 function PaksanBildirimleri({ oturum, talepler, onAc, onUcretler }) {
   const [, setSurum] = useState(0)
   const liste = okunmamislar(oturum?.servisId)
@@ -428,9 +498,35 @@ function PaksanBildirimleri({ oturum, talepler, onAc, onUcretler }) {
     const t = talepler.find((x) => x.id === b.talepId)
     if (t) onAc(t)
   }
+  const okunduYap = (kimlikler) => {
+    okunduSay(kimlikler)
+    setSurum((s) => s + 1)
+  }
 
   return (
-    <Bolum ad={`${markaEk('dan')} gelen bildirimler`} sayi={liste.length}>
+    <>
+      <BildirimBolumu
+        ad={`${markaEk('dan')} gelen bildirimler`}
+        liste={liste.filter((b) => !musteridenMi(b))}
+        talepler={talepler}
+        onAc={ac}
+        onHepsi={okunduYap}
+      />
+      <BildirimBolumu
+        ad="Müşteriden Gelen Bildirimler"
+        liste={liste.filter(musteridenMi)}
+        talepler={talepler}
+        onAc={ac}
+        onHepsi={okunduYap}
+      />
+    </>
+  )
+}
+
+function BildirimBolumu({ ad, liste, talepler, onAc: ac, onHepsi }) {
+  if (!liste.length) return null
+  return (
+    <Bolum ad={ad} sayi={liste.length}>
       <div className="talep-haberi">
         {liste.map((b) => {
           const y = bildirimYazisi(b)
@@ -450,13 +546,7 @@ function PaksanBildirimleri({ oturum, talepler, onAc, onUcretler }) {
         })}
       </div>
       {liste.length > 1 && (
-        <button
-          className="talep-haberi__hepsi"
-          onClick={() => {
-            okunduSay(liste.map((b) => b.id))
-            setSurum((s) => s + 1)
-          }}
-        >
+        <button className="talep-haberi__hepsi" onClick={() => onHepsi(liste.map((b) => b.id))}>
           Tümünü Okundu Say
         </button>
       )}
@@ -495,7 +585,12 @@ const TUR_ADI = { servis: 'Servis', parca: 'Yedek Parça' }
 function TalepKarti({ talep, onAc }) {
   const paksanda = (talep.sahip || 'paksan') === 'paksan'
   const gecikti = servisGecikti(talep)
-  const tel = String(talep.tel || '').replace(/\D/g, '')
+  /* ARA DÜĞMESİ ÜLKE KODUYLA ÇEVİRİYOR (25 Eylül 2026, kullanıcı
+     sınaması). Numaranın rakamları olduğu gibi bağlantıya
+     konuyordu; Connect talebinde "+90 532…" "tel:90532…" oluyor ve
+     Türkiye'den yanlış numara çevriliyordu. Bağlantı artık kayıttaki
+     ülke ve ham numaradan (lib/tel.js → kayitTelHref): tel:+90532… */
+  const tel = kayitTelHref(talep)
   const yer = talep.ilce ? `${talep.ilce} / ${talep.il}` : talep.il || '—'
   /* MAKİNE ADI KARTTA. Servis yola çıkmadan hangi makineye gittiğini
      bilmek zorunda: alet çantası ve yedek parça ona göre hazırlanıyor. */
@@ -512,7 +607,12 @@ function TalepKarti({ talep, onAc }) {
 
   /* DURUM ETİKETİ. Bekleme randevunun önünde: parça beklerken verilmiş
      bir randevunun anlamı yok, servis o gün gidemez. Randevu yoksa
-     PAKSAN'ın devraldığı bilgisi; ikisi birden olmuyor. */
+     PAKSAN'ın devraldığı bilgisi; ikisi birden olmuyor.
+
+     48 SAATİ GEÇEN İŞ yazıyla da belli (25 Eylül 2026, kullanıcı
+     sınaması): gecikme yalnız kırmızı şerit ve kırmızı zamanla
+     anlaşılıyordu; renk tek başına anlam taşımaz. El sürülmemiş işte
+     plan olmadığı için bu dala düşüyor. */
   const durum =
     talep.status === 'parcaBekliyor'
       ? { ton: 'parca', yazi: talep.parcaSevk ? 'Parça yolda' : 'Parça hazırlanıyor' }
@@ -522,11 +622,14 @@ function TalepKarti({ talep, onAc }) {
           ? { ton: 'randevu', yazi: randevuYazi(talep.plan), Ikon: IconCalendar }
           : paksanda && talep.devir
             ? { ton: 'onay', yazi: `${MARKA} destek veriyor` }
-            : null
+            : gecikti
+              ? { ton: 'gec', yazi: '48 saati geçti', Ikon: IconAlert }
+              : null
   const tur = talep.tur !== 'servis' ? TUR_ADI[talep.tur] || talep.tur : null
 
   return (
-    <div className={'iskart' + (gecikti ? ' iskart--gec' : '')}>
+    /* Kimlik gecikme şeridinin kaydırması için (GecikmeSeridi). */
+    <div id={'is-' + talep.id} className={'iskart' + (gecikti ? ' iskart--gec' : '')}>
       <button type="button" className="iskart__ac is__ac" onClick={onAc}>
         <span className="iskart__bas">
           <span className="iskart__ad">{talep.ad || '—'}</span>
@@ -556,7 +659,7 @@ function TalepKarti({ talep, onAc }) {
             )}
           </span>
           {tel && (
-            <a className="iskart__ara" href={'tel:' + tel} aria-label={(talep.ad || 'Müşteriyi') + ' ara'}>
+            <a className="iskart__ara" href={tel} aria-label={(talep.ad || 'Müşteriyi') + ' ara'}>
               <IconPhone size={17} />
               Ara
             </a>
@@ -689,13 +792,19 @@ function AcilSerit({ duyuru, onAc }) {
    Bu ayrım zaten backoffice formunda da var — orada da izin kuralı
    üst türe bakıyor (bkz. data/duyuruTurleri.js → DUYURU_UST). */
 
-function ServisDuyurulari({ oturum, acil = false }) {
+function ServisDuyurulari({ oturum, acil = false, surum }) {
   const [hepsi, setHepsi] = useState([])
   const [gorulen, setGorulen] = useState(() => new Set(load(GORULEN, [])))
   const [acikMi, setAcikMi] = useState(false)
   /* Acil şeritlerden hangisinin yaprağı açık. */
   const [okunan, setOkunan] = useState(null)
 
+  /* `surum` her tazelemede (yeni haber, başka sekmenin yazdığı) listeyi
+     yeniden okutuyor. Önce yalnız oturum değişince okunuyordu: telefon
+     "İşlerim ekranının üst bölümünde okuyabilirsiniz" derken İşlerim
+     açıksa şerit hiç çıkmıyordu (25 Eylül 2026, kullanıcı sınaması O3).
+     Görülenler de aynı anda: Bildirimler ekranında "Anladım" denen
+     duyuru burada da okunmuş görünsün. */
   useEffect(() => {
     /* Bağlam: servisin hizmet verdiği iller ve baktığı makineler; bölge
        ve makine seçilmiş duyuru bunlara bakıyor (lib/servisAtama.js). */
@@ -705,7 +814,8 @@ function ServisDuyurulari({ oturum, acil = false }) {
         .filter((d) => duyuruGecerliMi(d, baglam))
         .sort((a, b) => b.tarih - a.tarih),
     )
-  }, [oturum])
+    setGorulen(new Set(load(GORULEN, [])))
+  }, [oturum, surum])
 
   function kapat(id) {
     const yeni = [...new Set([...load(GORULEN, []), id])]

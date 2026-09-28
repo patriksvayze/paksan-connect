@@ -24,7 +24,10 @@
    anlamsız görünüyor: onay bekleyen iş yok, parça masası boş. Sürüm
    numarası değişince eski demo kayıtları silinip yenisi kuruluyor.
    Servisin elle açtığı kayıtlara dokunulmuyor; onlar demo deposunda
-   değil.
+   değil. Demo taleplerinde yapılmış işlemlerin hesap hareketleri ve
+   bildirimleri ise demoyla birlikte gidiyor (bkz. backoffice/demo.js →
+   demoTemizle): talep silinip onlar kalsaydı bakiye silinmiş işin
+   parasını taşırdı.
 
    ÜRETİMDE ÇALIŞMIYOR. Çağrı `main.jsx` içinde `demoAPKmi()` ile
    koşula bağlı. Sunucu bağlandığında dosya tamamen siliniyor.
@@ -44,9 +47,18 @@ import { DEMO_HESAP } from './demoKimlik'
    4 (22 Eylül 2026): işçilik tutar yerine süreyle yazılıyor ve talep
    formundaki aranma tercihi kaldırıldı; eski demo kayıtları eski
    biçimde kalmasın.
+   5 (25 Eylül 2026): demo kaydı makineye uyuyor — arıza, belirti, parça
+   ve garanti makinenin ailesinden, modelinden ve seri yılından; demo
+   talebine bağlı cari ve bildirim satırları demoyla siliniyor. Aynı
+   sürümde demo, düzeltmelerin son veri biçimini yazıyor: telefon ve
+   müşteri kimliği Connect'in biçiminde, Servisim randevusu yalnız gün
+   (`saatBelirtildi: false`), elle açılan işte `atamaDisi` (kullanıcı
+   sınaması 24.09.2026). Sürüm değişince tarayıcıdaki DEMO talepleri
+   üzerinde yapılmış işlemler de silinir; yeniden sınamadan önce
+   tarayıcı verisinin yedeği alınır (tools/kullanici-sinamasi/README.md).
    Dışa açık: ekran turu demoyu kapatmak için bu sayıyı yazıyor
    (tools/ekosistem-turu.mjs); elle yazsaydı sürüm değişince bozulurdu. */
-export const DEMO_SURUMU = 4
+export const DEMO_SURUMU = 5
 const SURUM_ANAHTARI = 'demoSurumu'
 
 export async function demoKur() {

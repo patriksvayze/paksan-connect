@@ -26,6 +26,8 @@ import { formatSerial } from '../lib/serial'
 import { telKullanici } from '../lib/tel'
 import { CIZIM } from '../marka/icerik/cizimler'
 import { makineninServisi, musterininServisleri } from '../lib/servisAtama'
+import { makineninIsSurenServisTalebi, makineninSonServisAdresi } from '../lib/makineTalepleri'
+import { hesabaIslenecekKonum } from '../lib/talepOlustur'
 import { SesKaydi } from '../components/SesKaydi'
 import { EkAlani } from '../components/EkAlani'
 import { KonumAlani } from '../components/KonumAlani'
@@ -59,7 +61,7 @@ export default function RequestForm() {
 function TalepFormu() {
   const nav = useNavigate()
   const [params] = useSearchParams()
-  const { user, machines, addRequest, updateUser, showToast } = useApp()
+  const { user, machines, requests, addRequest, updateUser, showToast } = useApp()
   const { t, dil } = useDil()
   const numaraM = numaraMetni(dil)
 
@@ -76,6 +78,12 @@ function TalepFormu() {
      modelden tek kayıtlı makine varsa o seçiliyor; yoksa ya da birden
      çoksa kutu boş kalıyor, müşteri kendisi seçiyor. */
   const [makineId, setMakineId] = useState(() => {
+    /* FİYAT TEKLİFİNDE MAKİNE SEÇİLİ BAŞLAMIYOR (25 Eylül 2026,
+       kullanıcı sınaması Y1). Teklif formunda makine kutusu hiç
+       çizilmiyor, yine de ilk makine seçili başlıyor ve kayda
+       gidiyordu: "Süper Yunus teklifi · Makine: Orkinos 1270". Kayıt
+       tarafı da ayrıca makinesiz yazıyor (lib/talepOlustur.js). */
+    if (tur === 'satinalma') return ''
     if (params.get('makine')) return params.get('makine')
     const model = params.get('model')
     if (model) {
@@ -84,10 +92,31 @@ function TalepFormu() {
     }
     /* Servis talebinde ilk seçili makine SERVİSİ OLAN ilk makine: atama
        makine başına ve servisi olmayan makine için talep gönderilemiyor
-       (aşağıda, makine kutusunun altında). */
-    if (tur === 'servis') return (machines.find((m) => makineninServisi(m)) || machines[0])?.id || ''
+       (aşağıda, makine kutusunun altında). Üzerinde işi süren servis
+       talebi olan makine önce gelmiyor: o makine için form açılmıyor,
+       çiftçi süren talebe ekleme yapmaya yönlendiriliyor (aşağıda,
+       acikTalep). */
+    if (tur === 'servis') {
+      const servisli = machines.filter((m) => makineninServisi(m))
+      return (
+        servisli.find((m) => !makineninIsSurenServisTalebi(m, requests)) ||
+        servisli[0] ||
+        machines[0]
+      )?.id || ''
+    }
     return machines[0]?.id || ''
   })
+  /* MAKİNENİN YERİ, HESABIN İLİ DEĞİL (25 Eylül 2026, kullanıcı
+     sınaması O4). Servis talebinin il ve ilçesi hesaptan geliyordu;
+     fiyat teklifinde bayi bölgesi için düzeltilen il hesaba yazılınca
+     sonraki servis talebi makinenin olmadığı ili taşıyordu (adres
+     "Konya Selçuklu", talep "Balıkesir / Bandırma"). Servis talebinde
+     il, ilçe ve adres artık birlikte ve MAKİNENİN yeri olarak soruluyor:
+     önce o makinenin son servis talebindeki yer, yoksa hesaptaki.
+     Açılışta bir kez okunuyor. */
+  const [ilkServisYeri] = useState(() =>
+    tur === 'servis' ? makineninSonServisAdresi(machines.find((m) => m.id === makineId), requests) : null,
+  )
   const [urunId, setUrunId] = useState(params.get('urun') || '')
   /* Destek ekranından gelindiyse konuşulan arıza açıklamaya hazır
      yazılıyor: müşteri aynı şeyi ikinci kez anlatmasın, servis de
@@ -166,10 +195,14 @@ function TalepFormu() {
      çıkıyor: değişikliği Paksan yapıyor.
 
      Konum serbest — orada güvenlik meselesi yok, ilçe teklifi hangi
-     bayinin hazırlayacağını belirlediği için düzeltilebilmesi gerekiyor. */
+     bayinin hazırlayacağını belirlediği için düzeltilebilmesi gerekiyor.
+
+     Servis talebinde il ve ilçe onay penceresinde değil, formun
+     içinde, adresle aynı blokta soruluyor ve makinenin yeri olarak
+     doluyor (yukarıda ilkServisYeri). */
   const [konumUlke, setKonumUlke] = useState(user?.konumUlke || user?.ulke || 'TR')
-  const [il, setIl] = useState(user?.il || '')
-  const [ilce, setIlce] = useState(user?.ilce || '')
+  const [il, setIl] = useState(ilkServisYeri?.il || user?.il || '')
+  const [ilce, setIlce] = useState(ilkServisYeri ? ilkServisYeri.ilce : user?.ilce || '')
 
   /* MAKİNENİN BULUNDUĞU ADRES — YALNIZ SERVİS TALEBİNDE.
 
@@ -180,14 +213,23 @@ function TalepFormu() {
      dolduruluyordu — müşterinin uygulamada zaten söylemiş olması
      gereken bir bilgi.
 
-     BİR KEZ SORULUYOR. Yazılan adres hesaba işleniyor (`updateUser`)
-     ve sonraki taleplerde kutu dolu geliyor; çiftçinin makinesi çoğu
-     zaman aynı yerde duruyor. Kilitli değil, çünkü bazen değişiyor.
+     BİR KEZ SORULUYOR. Hesapta adres yoksa yazılan adres hesaba
+     işleniyor (`updateUser`) ve sonraki taleplerde kutu dolu geliyor;
+     çiftçinin makinesi çoğu zaman aynı yerde duruyor. Kilitli değil,
+     çünkü bazen değişiyor. Hesabın DOLU yerine dokunulmuyor (25 Eylül
+     2026, inceleme): burada yazılan makinenin yeri; kural
+     lib/talepOlustur.js → hesabaIslenecekKonum.
 
      YEDEK PARÇADA SORULMUYOR: orada zaten teslimat adresi var
      (bkz. `faturaBilgisi`). Fiyat teklifinde de yok — ortada gidilecek
-     bir makine yok. */
-  const [servisAdres, setServisAdres] = useState(user?.adres || '')
+     bir makine yok.
+
+     Önce makinenin son servis talebindeki adres geliyor (O4, yukarıda
+     ilkServisYeri); yoksa hesaptaki. Çiftçi il, ilçe ya da adrese
+     dokunmadıysa makine değişince üçü birden o makinenin yerine
+     geçiyor; dokunduysa yazdığı kalıyor. */
+  const [servisAdres, setServisAdres] = useState(ilkServisYeri?.adres || user?.adres || '')
+  const adresDokunuldu = useRef(false)
 
   /* ---------------------------------------------- Yedek parça: 2. adım
 
@@ -245,6 +287,44 @@ function TalepFormu() {
      kutusunun altında talebin gideceği servis yazıyor; servis yoksa
      gönderim duruyor. */
   const seciliServis = tur === 'servis' && secilen ? makineninServisi(secilen)?.servis || null : null
+
+  /* AYNI MAKİNEDE İKİNCİ SERVİS TALEBİ AÇILMIYOR (25 Eylül 2026,
+     kullanıcı sınaması O5). Makinede işi süren bir servis talebi varken
+     form ikinci bir talep açtırıyordu; iki iş aynı arızayı iki kez
+     anlatıyor, servis ikisini ayrı ayrı yürütüyordu. Artık formun
+     yerinde o talebe "ekleme yap" yolu duruyor; ekleme servise bildirim
+     olarak gidiyor (lib/talepEkleme.js → eklemeyiServiseBildir).
+
+     "İşi süren": onay bekleyen talep sayılmıyor (lib/makineTalepleri.js
+     → isSurenServisTalebiMi). Servis ziyareti bitirmiş, kayıt PAKSAN'ın
+     onayında; makinedeki yeni arıza yeni bir iştir. Liste müşterinin
+     kendi talepleri; servisin bu hesaba bağlı açtığı işler de içinde. */
+  const acikTalep = tur === 'servis' && secilen ? makineninIsSurenServisTalebi(secilen, requests) : null
+
+  /* SERVİSİ ATANMAMIŞ MAKİNE SEÇİLİNCE FORM AÇILMIYOR (26 Eylül 2026,
+     ikinci kullanıcı sınaması). Makine kutusunun altında küçük bir not
+     çıkıyor, formun geri kalanı açık kalıyordu: çiftçi durumu, belirtiyi,
+     açıklamayı, fotoğrafı ve adresi doldurdu, "Gönder"de geri çevrildi.
+     Açık talepteki gibi formun yerinde kart duruyor; hesabın hiçbir
+     makinesinde servis yoksa bütün ekran zaten o karttı (yukarıda
+     servisim). Gönderim kapısı (`gonder`) savunma olarak duruyor. */
+  const servisiYokMakine = tur === 'servis' && Boolean(secilen) && !acikTalep && !seciliServis
+
+  /* Makine değişince — çiftçi il, ilçe ya da adrese dokunmadıysa — yer
+     o makinenin son servis talebinden geliyor; talebi yoksa hesaptaki
+     (açılıştaki kuralın aynısı, yukarıda ilkServisYeri). */
+  function makineSec(id) {
+    setMakineId(id)
+    if (tur !== 'servis' || adresDokunuldu.current) return
+    const yer = makineninSonServisAdresi(machines.find((m) => m.id === id), requests) || {
+      il: user?.il || '',
+      ilce: user?.ilce || '',
+      adres: user?.adres || '',
+    }
+    setIl(yer.il)
+    setIlce(yer.ilce)
+    setServisAdres(yer.adres)
+  }
 
   /* AÇIKLAMA NE ZAMAN ZORUNLU?
 
@@ -507,6 +587,9 @@ function TalepFormu() {
       return sorunlu('makine', t('talep.makineSecinServis'))
     if (tur === 'servis' && !seciliServis)
       return sorunlu('makine', t('servisim.yokAlt'))
+    /* Savunma: form bu durumda zaten çizilmiyor (aşağıda acikTalep). */
+    if (tur === 'servis' && acikTalep)
+      return sorunlu('makine', t('talep.acikTalepVar', { no: acikTalep.no }))
     if (tur === 'servis' && !durum)
       return sorunlu('durum', t('talep.durumSecin'))
     if (tur === 'servis' && arizaVar && belirtiler.length === 0)
@@ -515,6 +598,12 @@ function TalepFormu() {
       return sorunlu('parca', t('talep.parcaSecin'))
     if (aciklamaZorunlu && aciklama.trim().length < 10)
       return sorunlu('aciklama', t('talep.aciklamaKisa'))
+    /* Makinenin yeri formda soruluyor (O4); onay penceresinde ayrıca
+       konum düzeltme kipi açılmıyor. */
+    if (tur === 'servis' && !il)
+      return sorunlu('il', t('talep.makineIlSecin'))
+    if (tur === 'servis' && ilceZorunlu && !ilce)
+      return sorunlu('ilce', t('talep.makineIlceSecin'))
     if (tur === 'servis' && servisAdres.trim().length < 15)
       return sorunlu('servisAdres', t('talep.servisAdresEksik'))
 
@@ -531,8 +620,9 @@ function TalepFormu() {
     }
 
     /* Konum eksikse pencere doğrudan düzeltme kipinde açılsın,
-       kullanıcı iki kez dokunmasın. */
-    setPencere(!il || (ilceZorunlu && !ilce) ? 'konum' : 'onay')
+       kullanıcı iki kez dokunmasın. Servis talebinde konum formun
+       içinde ve yukarıda denetlendi; düzeltme kipi yok. */
+    setPencere(tur !== 'servis' && (!il || (ilceZorunlu && !ilce)) ? 'konum' : 'onay')
     setOnayHata('')
     setOnay(true)
   }
@@ -628,6 +718,14 @@ function TalepFormu() {
      aynı yerden yeniden denenebiliyor — doldurulan form kaybolmuyor. */
   async function onayla() {
     if (gonderiliyor) return
+    /* Servis talebinde makinenin yeri formun içinde; eksikse pencere
+       kapanıp o alana gidiliyor (konum düzeltme kipi yalnız parça ve
+       teklifte). */
+    if (tur === 'servis' && (!il || (ilceZorunlu && !ilce))) {
+      setOnay(false)
+      setHata(t(!il ? 'talep.makineIlSecin' : 'talep.makineIlceSecin'))
+      return alanaGit(!il ? 'il' : 'ilce')
+    }
     if (!il) {
       setPencere('konum')
       return setOnayHata(t('talep.ilSecin'))
@@ -638,14 +736,18 @@ function TalepFormu() {
     }
 
     /* Konum düzeltildiyse hesaba da işlensin — bir daha sorulmasın.
-       Telefona burada dokunulmuyor; onu yalnızca Paksan değiştirebiliyor. */
-    const yeniAdres = tur === 'servis' ? servisAdres.trim() : ''
-    if (
-      il !== user?.il ||
-      ilce !== (user?.ilce || '') ||
-      (yeniAdres && yeniAdres !== (user?.adres || ''))
-    ) {
-      updateUser({ konumUlke, il, ilce, ...(yeniAdres ? { adres: yeniAdres } : {}) })
+       Servis talebinde yer makinenin: hesaba yalnız boş olan yazılıyor,
+       dolu yer sessizce değişmiyor (lib/talepOlustur.js →
+       hesabaIslenecekKonum; 25 Eylül 2026, inceleme). Telefona burada
+       dokunulmuyor; onu yalnızca Paksan değiştirebiliyor. */
+    const hesabaYaz = hesabaIslenecekKonum(tur, user, {
+      konumUlke,
+      il,
+      ilce,
+      adres: tur === 'servis' ? servisAdres : '',
+    })
+    if (hesabaYaz) {
+      updateUser(hesabaYaz)
       showToast(t('talep.konumGuncellendi'))
     }
 
@@ -665,7 +767,8 @@ function TalepFormu() {
         ses,
         /* Fotoğraf ve videolar IndexedDB'de; burada yalnız kimlikleri */
         ekler: tur === 'satinalma' ? [] : ekler,
-        makine: makine
+        /* Fiyat teklifi makine taşımaz (Y1; yukarıda makineId). */
+        makine: tur !== 'satinalma' && makine
           ? { id: makine.id, serial: makine.serial, productId: makine.productId }
           : null,
         urunId: tur === 'satinalma' ? urunId || null : null,
@@ -1308,6 +1411,7 @@ function TalepFormu() {
         <div className="stack" style={{ gap: 20 }}>
           {/* Makine seçimi */}
           {(tur === 'servis' || tur === 'parca') && (
+            <>
             <label className="field" data-alan="makine">
               <span className="field__label">{t('talep.hangiMakine')}</span>
               {/* Makine yoksa form hiç açılmıyor (bkz. yukarıdaki "makine yok"
@@ -1315,7 +1419,7 @@ function TalepFormu() {
               <select
                   className="select"
                   value={makineId}
-                  onChange={(e) => setMakineId(e.target.value)}
+                  onChange={(e) => makineSec(e.target.value)}
                 >
                   <option value="">{t('talep.makineSec')}</option>
                   {machines.map((m) => {
@@ -1340,18 +1444,59 @@ function TalepFormu() {
                   })}
                 </select>
               {/* Talebin gideceği servis ya da neden gidemeyeceği. */}
-              {tur === 'servis' && secilen && (
-                seciliServis ? (
-                  <span className="field__hint">
-                    {t('talep.servisineGidecek', { servis: seciliServis.ad })}
-                  </span>
-                ) : (
-                  <span className="field__hint talep-servis-yok">{t('servisim.yokAlt')}</span>
-                )
+              {/* Makinede süren talep varken yeni talep gitmiyor; aşağıdaki
+                  kart o talebe ekleme yolunu gösteriyor. "Talebiniz …
+                  servisine gidecek" o durumda yanlış olurdu. */}
+              {tur === 'servis' && secilen && !acikTalep && seciliServis && (
+                <span className="field__hint">
+                  {t('talep.servisineGidecek', { servis: seciliServis.ad })}
+                </span>
               )}
             </label>
+
+            {/* Makinede işi süren servis talebi var: formun yerinde o
+                talebe ekleme yolu (O5, yukarıda acikTalep). Düğme
+                label'ın DIŞINDA; içinde olsaydı dokunuş seçim kutusuna
+                giderdi. Tek ekranda tek soru: çiftçi formu doldurup
+                sonunda geri çevrilmiyor. */}
+            {/* Seçilen makinenin servisi yok: formun yerinde kart
+                (yukarıda servisiYokMakine). Ana ekranın "servis
+                atanmadı" kartıyla aynı iki cümle. */}
+            {servisiYokMakine && (
+              <div className="uyari-kart" role="status" data-eylem="servis-atanmamis">
+                <strong style={{ display: 'block' }}>{t('talep.servisYok')}</strong>
+                <p style={{ margin: '6px 0 0', lineHeight: 1.55 }}>{t('talep.servisYokAlt')}</p>
+              </div>
+            )}
+
+            {acikTalep && (
+              <div className="uyari-kart" role="status" data-eylem="acik-talebe-ekle">
+                <strong style={{ display: 'block' }}>{t('talep.acikTalepBaslik')}</strong>
+                <p style={{ margin: '6px 0 0', lineHeight: 1.55 }}>
+                  {t('talep.acikTalepAlt', { no: acikTalep.no })}
+                </p>
+                <button
+                  className="btn btn--primary"
+                  style={{ marginTop: 12 }}
+                  /* Formda yazılmış açıklama (Destek'ten gelen arıza
+                     özeti dahil) ekleme penceresinin notuna taşınıyor;
+                     çiftçi aynı şeyi ikinci kez anlatmasın. */
+                  onClick={() =>
+                    nav('/talebim/' + acikTalep.id, { state: { ekleme: true, not: aciklama.trim() } })
+                  }
+                >
+                  <IconPlus size={20} /> {t('talepDetay.eklemeYap')}
+                </button>
+              </div>
+            )}
+            </>
           )}
 
+          {/* Formun geri kalanı, makinede işi süren talep YOKSA ve seçilen
+              makinenin servisi VARSA. İkisi de yalnız serviste dolu; parça
+              ve teklif formu etkilenmiyor. */}
+          {!acikTalep && !servisiYokMakine && (
+          <>
           {/* ---------------------------------------------------- Servis */}
           {tur === 'servis' && (
             <>
@@ -1730,18 +1875,52 @@ function TalepFormu() {
           </div>
           )}
 
-          {/* Servis buraya gelecek. İl/ilçe seçimi onay penceresinde
-              ayrıca duruyor; bu kutu onun tarifi. */}
+          {/* Servis buraya gelecek. MAKİNENİN YERİ TEK BLOKTA (25 Eylül
+              2026, kullanıcı sınaması O4): il ve ilçe onay penceresindeki
+              "Konum" satırından buraya, adresin yanına geldi. Önce ayrı
+              duruyorlardı ve hesaptan geliyorlardı; adres makinenin
+              yerini, il başka bir yeri anlatabiliyordu. Hesaba yalnız boş
+              olan yazılıyor (onayla → hesabaIslenecekKonum); Servisim'in
+              elle kaydı hesabın üçlüsünü birlikte okuyor.
+
+              ÜLKE SEÇİLEBİLİYOR (25 Eylül 2026, inceleme): İngilizce
+              arayüzde hesabının ülkesi Türkiye olmayan çiftçi, Türkiye'deki
+              makinesi için il listesi yerine serbest kutular görüyordu ve
+              ülkeyi değiştirecek yer yoktu (konum penceresi servis talebinde
+              artık açılmıyor). Seçim Türkçe arayüzde görünmüyor
+              (KonumAlani → ulkeGoster varsayılanı). */}
           {tur === 'servis' && (
             <div className="field" data-alan="servisAdres">
-              <label>
+              <span className="field__label">{t('talep.makineninYeri')}</span>
+              <KonumAlani
+                ulke={konumUlke}
+                il={il}
+                onIl={(v) => {
+                  adresDokunuldu.current = true
+                  setIl(v)
+                }}
+                ilce={ilce}
+                onIlce={(v) => {
+                  adresDokunuldu.current = true
+                  setIlce(v)
+                }}
+                ilceZorunlu={ilceZorunlu}
+                onUlke={(v) => {
+                  adresDokunuldu.current = true
+                  setKonumUlke(v)
+                }}
+              />
+              <label style={{ display: 'block', marginTop: 16 }}>
                 <span className="field__label">{t('talep.servisAdres')}</span>
                 <span className="field__aciklama">{t('talep.servisAdresAciklama')}</span>
                 <textarea
                   className="textarea"
                   style={{ minHeight: 84 }}
                   value={servisAdres}
-                  onChange={(e) => setServisAdres(e.target.value)}
+                  onChange={(e) => {
+                    adresDokunuldu.current = true
+                    setServisAdres(e.target.value)
+                  }}
                   placeholder={t('talep.servisAdresIpucu')}
                 />
               </label>
@@ -1764,6 +1943,8 @@ function TalepFormu() {
           <button className="btn btn--primary btn--lg" onClick={gonder}>
             {cfg('buton')}
           </button>
+          </>
+          )}
         </div>
       </div>
 
@@ -1818,22 +1999,53 @@ function TalepFormu() {
                 {t('talep.kullanmiyorum')}
               </button>
 
-              <div className="onay-kutu">
-                <span className="onay-kutu__ikon"><IconPin size={20} /></span>
-                <span className="onay-kutu__body">
-                  <span className="onay-kutu__etiket">{t('talep.konum')}</span>
-                  <span className="onay-kutu__deger">
-                    {ilce ? `${ilce} / ${il}` : il || '—'}
-                  </span>
-                </span>
-              </div>
-              <button
-                className="small"
-                style={{ color: 'var(--pk-blue-yazi)', textDecoration: 'underline', textAlign: 'left' }}
-                onClick={() => setPencere('konum')}
-              >
-                {t('talep.konumDuzelt')}
-              </button>
+              {/* Servis talebinde "Konum" değil, servisin geleceği yer:
+                  formda yazılan adres ve makinenin il/ilçesi birlikte
+                  (O4). Düzeltme penceresi yok; bağlantı forma, adres
+                  bloğuna götürüyor. Parça ve teklifte konum satırı ve
+                  düzeltme kipi aynen duruyor. */}
+              {tur === 'servis' ? (
+                <>
+                  <div className="onay-kutu">
+                    <span className="onay-kutu__ikon"><IconPin size={20} /></span>
+                    <span className="onay-kutu__body">
+                      <span className="onay-kutu__etiket">{t('talep.servisGelecegiAdres')}</span>
+                      <span className="onay-kutu__deger">
+                        {[servisAdres.trim(), ilce ? `${ilce} / ${il}` : il].filter(Boolean).join(' · ') || '—'}
+                      </span>
+                    </span>
+                  </div>
+                  <button
+                    className="small"
+                    style={{ color: 'var(--pk-blue-yazi)', textDecoration: 'underline', textAlign: 'left' }}
+                    onClick={() => {
+                      setOnay(false)
+                      alanaGit('servisAdres')
+                    }}
+                  >
+                    {t('talep.adresiDuzelt')}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="onay-kutu">
+                    <span className="onay-kutu__ikon"><IconPin size={20} /></span>
+                    <span className="onay-kutu__body">
+                      <span className="onay-kutu__etiket">{t('talep.konum')}</span>
+                      <span className="onay-kutu__deger">
+                        {ilce ? `${ilce} / ${il}` : il || '—'}
+                      </span>
+                    </span>
+                  </div>
+                  <button
+                    className="small"
+                    style={{ color: 'var(--pk-blue-yazi)', textDecoration: 'underline', textAlign: 'left' }}
+                    onClick={() => setPencere('konum')}
+                  >
+                    {t('talep.konumDuzelt')}
+                  </button>
+                </>
+              )}
 
               {onayHata && <div className="field__error">{onayHata}</div>}
 

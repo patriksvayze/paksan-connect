@@ -124,8 +124,9 @@ export function Ozet({ rol, git, surum }) {
       sayi: v.servissiz,
       dikkat: true,
       /* Atamayı yapabilen ve o ekranı görebilen rolde — menüdeki Kayıtlı
-         Makineler sayacının aynısı. */
-      goster: izinli(rol, 'servisDuzenle') && izinli(rol, 'makineler'),
+         Makineler sayacının aynısı. Atama 25 Eylül 2026'dan beri ayrı
+         yetki (`makineAtama`; önce `servisDuzenle`). */
+      goster: izinli(rol, 'makineAtama') && izinli(rol, 'makineler'),
       ac: () => git('makineler', { atanmamis: true }),
     },
     { ad: 'Açılmamış talep', sayi: v.yeni, ac: talepler('yeni') },

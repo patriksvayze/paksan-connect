@@ -102,7 +102,7 @@ export function ParcaTablosu({ parcalar = [], baslik = true, tutarli = false }) 
               {typeof p.tutar === 'number' ? `${paraYaz(p.tutar)} ${PARA_BIRIMI}` : '—'}
               {typeof p.birimFiyat === 'number' && Number(p.adet) > 1 && (
                 <span className="parca-tablo__birim">
-                  Birim {paraYaz(p.birimFiyat)} {PARA_BIRIMI}
+                  Birim fiyatı: {paraYaz(p.birimFiyat)} {PARA_BIRIMI}
                 </span>
               )}
             </span>

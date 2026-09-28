@@ -9,24 +9,26 @@
 import { load, save, uid, remove, oturumYukle, oturumKaydet, oturumSil } from '../lib/storage'
 import { sifreHazirla, sifreDogruMu, sifreGecerliMi } from '../lib/hesap'
 import { yeniNo } from '../lib/numara'
-import { talepNo } from '../lib/talep'
+import { talepNo, makinesizTeklif, sevkSatiriMi } from '../lib/talep'
 import { SIRKET, MARKA, markaEk, PARA_BIRIMI, kdvTutari } from '../marka'
 import { urun } from '../lib/urun'
-import { ASAMA, iscilikAlanlari, kaydiDogrula, kaydiCozume, kapininSonucu, siparisGonderimi } from '../lib/servisKaydi.js'
+import { ASAMA, iscilikAlanlari, kaydiDogrula, kaydiCozume, kapininSonucu, satirlarinAdedi, siparisGonderimi } from '../lib/servisKaydi.js'
 import { teslimatTemizle } from '../lib/teslimat.js'
 import { servisleriGetir, getProduct } from '../marka'
 import { icerikListe, icerikTazele } from '../lib/icerikDeposu.js'
 import { altBilgi } from '../data/duyuruTurleri.js'
 import { SERI_CAKISMASI } from '../lib/numaraTalebi.js'
-import { telGoster } from '../lib/tel.js'
-import { formatSerial, normalizeSerial, validateSerial } from '../lib/serial.js'
+import { telGoster, telHamYap } from '../lib/tel.js'
+import { hesabaBaglanirMi, musterininMi, talepSahibiBulucu } from '../lib/musteriEslesmesi.js'
+import { serviseBildirimYaz } from '../lib/serviseBildirim.js'
+import { extractYear, formatSerial, normalizeSerial } from '../lib/serial.js'
 import { makineKayitlari, makineKaydiGuncelle } from '../lib/makineKaydi.js'
 import { kaydinServisi } from '../lib/servisAtama.js'
 import {
   KALEMLER, ozelleriKaldir, tarifeCoz, tarifeFarki, tarifeleriDuzenle, ucretOku,
 } from '../lib/servisTarifesi.js'
 import {
-  ONAY_TUTAR_SURESI, bakiyeIskontosu, gonderilenTutar, iskontoCoz, iskontolariDuzenle, onayTazeMi, oranOku,
+  ONAY_TUTAR_SURESI, bakiyeIskontosu, bakiyeYetmiyor, gonderilenTutar, iskontoCoz, iskontolariDuzenle, onayTazeMi, oranOku,
   iptalEdilenSatirlar, siparisNetTutari, siparisToplami, yuzdeYap,
 } from '../lib/servisFiyat.js'
 import {
@@ -86,17 +88,31 @@ export const ANAHTAR = {
    `makineler` oldu. Depodaki rol o gün Müşteriler'i görüyorsa makineleri
    de görüyordu; taşınmasaydı ekranı bir sabah kendiliğinden kaybolurdu.
 
+   25 Eylül 2026'da (kullanıcı sınaması) makineye servis atama
+   `servisDuzenle`den ayrılıp `makineAtama` oldu: servis birimi atama
+   yapar ama servis hesaplarını düzenlemez. Depoda `servisDuzenle`
+   taşıyan rol dün makineye servis atayabiliyordu; taşınmasaydı bu gücü
+   bir sabah sessizce kaybederdi. Yalnız o rol alıyor, izin kimseye
+   yeni dağıtılmıyor.
+
    `izinSurumu` taşımanın bir kez yapıldığını söylüyor. Olmasaydı,
    personel satış rolünden `makineler` kutusunu kaldırdığında bir
    sonraki okumada izin geri eklenirdi. Taşınan rol bir sonraki
-   kaydedişte bu alanla birlikte depoya yazılıyor. */
-const IZIN_SURUMU = 2
+   kaydedişte bu alanla birlikte depoya yazılıyor. Adımlar sırayla ve
+   tek sürüm sayacıyla: yeni bir bölünme bir sonraki sürüme adım ekler. */
+const IZIN_SURUMU = 3
 
 function rolIzinleriniTasi(r) {
-  if ((r.izinSurumu || 1) >= IZIN_SURUMU) return r
-  const izinler = r.izinler || []
-  const makineEkle = izinler.includes('musteriler') && !izinler.includes('makineler')
-  return { ...r, izinSurumu: IZIN_SURUMU, izinler: makineEkle ? [...izinler, 'makineler'] : izinler }
+  const surum = r.izinSurumu || 1
+  if (surum >= IZIN_SURUMU) return r
+  let izinler = r.izinler || []
+  if (surum < 2 && izinler.includes('musteriler') && !izinler.includes('makineler')) {
+    izinler = [...izinler, 'makineler']
+  }
+  if (surum < 3 && izinler.includes('servisDuzenle') && !izinler.includes('makineAtama')) {
+    izinler = [...izinler, 'makineAtama']
+  }
+  return { ...r, izinSurumu: IZIN_SURUMU, izinler }
 }
 
 /** Yürürlükteki rol listesi — düzenlenmediyse koddaki varsayılan. */
@@ -163,7 +179,7 @@ function temizTurler(liste) {
 /* ==========================================================================
    Rolün göreceği talepler
 
-   İki kapı var ve ikisi de gerekli:
+   Üç kapı var ve üçü de gerekli:
 
      1. KENDİ TÜRÜ — servis rolü servis taleplerini, yedek parça rolü
         parça taleplerini görüyor. Talep türü seçilmemiş rol (admin,
@@ -171,6 +187,17 @@ function temizTurler(liste) {
 
      2. MASASINDA BEKLEYEN — türü başka olsa bile şu an o masanın
         önünde duran talep.
+
+     3. GÖNDERDİĞİ PARÇA YOLDAYKEN (25 Eylül 2026, kullanıcı sınaması
+        O2) — yedek parça rolü, servise gönderdiği garanti parçasının
+        işini parça yolda kaldıkça (durum "parça bekleniyor" ve sevk
+        yazılı) görüyor. Takip numarası girilince masa boşalıyor ve iş
+        listeden düşüyordu: yanlış yazılmış numarayı düzeltmek isteyen
+        kişi talebi bulamıyor, servis "parça gelmedi" diye aradığında
+        paketi gönderen birim takip numarasına ulaşamıyordu. Masanın
+        anlamı değişmedi, sıra serviste; iş tek, satır tek kalıyor.
+        Servis parçayı takıp kaydı gönderince durum değişiyor ve iş
+        listeden kendiliğinden düşüyor.
 
    İKİNCİ KAPI NEDEN VAR
 
@@ -187,11 +214,20 @@ function temizTurler(liste) {
    ('servis' | 'parca'). Böylece yönlendirme tek karşılaştırma
    kalıyor ve üçüncü bir eşleme tablosu doğmuyor.                    */
 
-/** Rolün göreceği talepler: kendi türleri + şu an masasında bekleyenler. */
+function parcasiYoldaMi(t) {
+  return t.status === 'parcaBekliyor' && Boolean(t.parcaSevk)
+}
+
+/** Rolün göreceği talepler: kendi türleri + masasında bekleyenler + gönderdiği parçası yolda olanlar. */
 export function rolunTalepleri(liste, rol) {
   const turler = rolunTurleri(rol)
   if (!turler) return liste
-  return liste.filter((t) => turler.includes(t.tur) || turler.includes(t.masa))
+  return liste.filter(
+    (t) =>
+      turler.includes(t.tur) ||
+      turler.includes(t.masa) ||
+      (turler.includes('parca') && parcasiYoldaMi(t)),
+  )
 }
 
 /* -------------------------------------------------- Rol listesini yazmak
@@ -501,7 +537,34 @@ export function personelSil(id, yapan) {
   return { silindi: true }
 }
 
-/* ------------------------------------------------------------------ Oturum */
+/* ------------------------------------------------------------------ Oturum
+
+   OTURUM SEKMEYE AİT (25 Eylül 2026, kullanıcı sınaması O6).
+
+   Oturum yalnız kalıcı depoda (localStorage) duruyordu ve kalıcı depo
+   tarayıcının bütün sekmelerinde ortak. İkinci sekmede başka bir
+   personel girince birinci sekme yenilendiğinde onun kimliğine
+   geçiyordu; yenilenmeden de işlem kaydına öteki sekmenin rolü
+   yazılıyordu. Kapatılan ya da silinen personelin açık oturumu da
+   sürüyordu, çünkü oturum yalnız rolün varlığına bakıyordu.
+
+   ŞİMDİ:
+     - Her sekmenin oturumu kendi oturum deposunda (sessionStorage).
+       Başka sekmenin girişi bu sekmenin kimliğini değiştirmiyor.
+     - Son giriş kalıcı depoda da duruyor: yeni açılan sekme onu bir kez
+       devralıyor, personel her sekmede yeniden giriş yapmıyor.
+     - Oturum her okumada personel kaydına bağlanıyor. Kayıt yoksa ya da
+       kapatıldıysa oturum düşüyor; rol ve ad kayıttan geliyor, oturumun
+       kopyasından değil. Rolü değişen kişi yeni rolle çalışıyor.
+     - Çıkış bu sekmenin oturumunu ve (çıkan kişininse) son girişi
+       siliyor; son giriş başka birininse yerinde kalıyor. İşlem kaydı
+       da rolü kayıttan okuyor (islemYaz). Aynı kişinin bu tarayıcıdaki öteki
+       sekmelerini ekran kapatıyor (Backoffice.jsx, sekmeler arası
+       kanal); başkasının oturumuna dokunulmuyor.
+
+   Sunucuda da aynı kural: sunucu istemcinin taşıdığı role güvenmez,
+   oturumun kullanıcısından okur (bkz. uygulama-eslesmesi.mjs →
+   panelOturum.rol). */
 
 export async function backofficeGiris(kullanici, sifre) {
   await personelBaslat()
@@ -525,31 +588,66 @@ export async function backofficeGiris(kullanici, sifre) {
     rol: kayit.rol,
     giris: Date.now(),
   }
-  save(ANAHTAR.oturum, oturum)
+  oturumKaydet(ANAHTAR.oturum, oturum) // bu sekme
+  save(ANAHTAR.oturum, oturum) // son giriş: yeni açılan sekme devralır
   islemYaz({ tur: 'oturum', ozet: 'Backoffice girişi', personel: kayit.ad, rol: kayit.rol })
   return { oturum }
 }
 
 export function oturumGetir() {
-  const o = load(ANAHTAR.oturum, null)
+  /* Önce bu sekmenin oturumu. Yoksa (yeni sekme) son giriş devralınıyor
+     ve bu sekmeye yazılıyor; bundan sonra başka sekmenin girişi bu
+     sekmeyi etkilemiyor. Oturum deposuna yazmak `storage` olayı
+     doğurmuyor, öteki sekmeleri tetiklemez. */
+  let o = oturumYukle(ANAHTAR.oturum, null)
+  if (!o) {
+    o = load(ANAHTAR.oturum, null)
+    if (o?.personelId) oturumKaydet(ANAHTAR.oturum, o)
+  }
+
   /* Eski biçimdeki oturum kayıtlarında rol yok; yetkisi
      belirsiz biriyle backoffice açılmasın, yeniden giriş istensin. */
   if (!o?.rol || !o?.personelId) return null
+
+  /* KAPATILAN YA DA SİLİNEN PERSONELİN OTURUMU DÜŞÜYOR. Bu sekmenin
+     oturumu siliniyor; kalıcı depodaki son giriş de AYNI kişininse
+     siliniyor, yoksa yeni açılan sekme onu yeniden devralırdı.
+     Başkasının son girişine dokunulmuyor. */
+  const kisi = personelGetir().find((p) => p.id === o.personelId)
+  if (!kisi || kisi.aktif === false) {
+    oturumSil(ANAHTAR.oturum)
+    if (load(ANAHTAR.oturum, null)?.personelId === o.personelId) remove(ANAHTAR.oturum)
+    return null
+  }
 
   /* ROLÜ SİLİNMİŞ KİŞİNİN OTURUMU KAPANIYOR.
 
      Roller silinebiliyor; açık bir sekmenin oturumu, artık var olmayan
      bir rolü taşıyor olabilir. Kişinin rolü silinirken başka bir role
-     taşınıyor (bkz. rolSil) ama oturumdaki kopya eski kimliği tutuyor.
-     Yeniden giriş isteniyor; girişte güncel rol okunuyor. */
-  if (!rolleriGetir().some((r) => r.id === o.rol)) return null
+     taşınıyor (bkz. rolSil); rol artık kayıttan okunduğu için kişi
+     taşındığı rolle devam ediyor. Kayıtta da tanınmayan bir rol varsa
+     yeniden giriş isteniyor. */
+  const rol = kisi.rol || o.rol
+  if (!rolleriGetir().some((r) => r.id === rol)) return null
 
-  return o
+  return { ...o, ad: kisi.ad || o.ad, kullanici: kisi.kullanici || o.kullanici, rol }
 }
 
 export function oturumKapat(o) {
   islemYaz({ tur: 'oturum', ozet: 'Backoffice çıkışı', personel: o?.ad, rol: o?.rol })
-  save(ANAHTAR.oturum, null)
+  /* Kalıcı depodaki son giriş yalnız çıkan kişininse siliniyor. Başka
+     sekmede başka bir personel girmişse son giriş onundur; silinseydi o
+     kişinin yeni açacağı sekme giriş ekranına düşerdi (oturumGetir'deki
+     kapatılan personel dalıyla aynı kural). */
+  const kim = o?.personelId || oturumYukle(ANAHTAR.oturum, null)?.personelId
+  oturumSil(ANAHTAR.oturum)
+  if (load(ANAHTAR.oturum, null)?.personelId === kim) remove(ANAHTAR.oturum)
+}
+
+/* Başka sekmede AYNI kişi çıkış yaptı: yalnız bu sekmenin oturumu
+   siliniyor. İşlem kaydı yazılmıyor, çıkışı o sekme zaten yazdı. */
+export function oturumuBuSekmedeBirak() {
+  oturumSil(ANAHTAR.oturum)
 }
 
 /* --------------------------------------------------------- Şifre değiştirme
@@ -596,7 +694,7 @@ export function sifreTalebiOlustur(kullanici) {
     kullanildi: false,
   }
   save(ANAHTAR.sifreTalepleri, [kayit, ...sifreTalepleriGetir()].slice(0, 50))
-  islemYaz({ tur: 'sifre', ozet: 'Şifre değiştirme bağlantısı istendi', personel: kisi.ad })
+  islemYaz({ tur: 'sifre', ozet: 'Şifre değiştirme bağlantısı istendi', personel: kisi.ad, rol: kisi.rol })
 
   return {
     eposta: kisi.eposta,
@@ -732,11 +830,10 @@ export function gorunenDurum(talep) {
 /* Geçmiş satırının adı. Gönderim kaydı geçmişe `parcaBekliyor` diye
    ikinci bir satır yazıyor (servisParcasiGonderildi) ve bu satır ekranda
    ikinci kez aynı ad olarak görünüyordu. Gönderimin anına denk gelen
-   satır "Parça Yolda". */
+   satır "Parça Yolda". Kural Connect'le ortak, arşivdeki ziyaretlerin
+   sevki de sayılıyor (lib/talep.js → sevkSatiriMi; 26 Eylül 2026). */
 export function gecmisDurumu(talep, satir) {
-  if (satir?.durum === 'parcaBekliyor' && talep?.parcaSevk && satir.tarih === talep.parcaSevk.tarih) {
-    return PARCA_YOLDA
-  }
+  if (sevkSatiriMi(talep, satir)) return PARCA_YOLDA
   return durumBilgi(satir?.durum)
 }
 
@@ -823,6 +920,40 @@ export function durumGecisiEngeli(talep, yeniDurum) {
 }
 
 /* ==========================================================================
+   DURUM KİLİDİ VE NEDENİ (25 Eylül 2026, kullanıcı sınaması O8)
+
+   Talebin durum çipleri kimde kilitli ve NEDEN. Kural yalnız ekrandaydı
+   (Talepler.jsx): kilitli çip tıklanınca hiçbir şey olmuyor, altındaki
+   soluk gerekçe de genel kalıyordu ("Bu talep kapandı…"). Yedek parça
+   personeli gönderilmiş servis siparişini iptal etmek istiyor, "yeniden
+   açma" yazısını kendi işiyle eşleştiremiyordu.
+
+   KİLİT KALIYOR. Gönderilmiş siparişin iptali servisin bakiyesine para
+   geri yazıyor (siparisIadesiniYaz); kapanmış işi geri çevirmekle aynı
+   yetkiyi (`talepGeriAc`) istiyor. Varsayılan rollere izin eklenmedi:
+   yeni izin kimseye sessizce dağıtılmaz. Değişen, kilidin ve nedeninin
+   tek yerden gelmesi; ekran nedeni söylüyor.
+
+   Dönen değer nedenin kodu, metni ekranda:
+     'bayide'            bayiye iletilmiş teklif (herkese kilitli,
+                         bkz. durumGecisiEngeli)
+     'siparisGonderildi' gönderilmiş servis siparişi, izin yok
+     'kapandi'           kapanmış talep, izin yok
+     null                kilit yok
+
+   Sunucu talepGeriAc iznini aynı kapıda denetlemeli.
+   ========================================================================== */
+export function durumKilidi(talep, rol) {
+  const s = talep?.status || 'yeni'
+  if (s === 'bayiyeIletildi') return 'bayide'
+  if (!KAPALI_DURUMLAR.includes(s) || izinli(rol, 'talepGeriAc')) return null
+  if (talep.servisSiparisi && s === 'kapandi') return 'siparisGonderildi'
+  /* İptal ayrı neden (26 Eylül 2026, ikinci kullanıcı sınaması): durum
+     rozeti "İptal" derken kilit "Bu talep kapandı" diyordu. */
+  return s === 'iptal' ? 'iptal' : 'kapandi'
+}
+
+/* ==========================================================================
    PERSONELİN ELLE SEÇEBİLECEĞİ DURUMLAR
 
    `talepDurumlari` bir türün BAŞINA GELEBİLECEK durumları veriyor;
@@ -879,8 +1010,12 @@ export const TALEP_ADI = {
    (bkz. src/lib/ihracat.js). Kayıt duruyor, yalnız bu listeye
    girmiyor. */
 export function talepleriGetir() {
+  /* Fiyat teklifinde makine yok (Y1, 25.09.2026): o tarihten önce
+     Connect'in teklif kaydına hatayla yazılmış makine okurken ayıklanıyor
+     (lib/talep.js → makinesizTeklif). Connect listesi aynı işlevden geçiyor. */
   return [...load(ANAHTAR.talepler, []), ...load(ANAHTAR.demoTalepler, [])]
     .filter((t) => !t.ihracat)
+    .map(makinesizTeklif)
     .sort((a, b) => b.createdAt - a.createdAt)
 }
 
@@ -920,6 +1055,37 @@ function talepYaz(id, degisiklik) {
   )
 }
 
+/* EKRANDAKİ KOPYA DEĞİL, DEPODAKİ KAYIT (24 Eylül 2026).
+
+   İşlevler talebi ekranın elindeki nesneden alıyor ve kararı ona göre
+   veriyordu. Ekran açıkken başka bir sekme, başka bir personel ya da
+   Servisim aynı talebe dokunduysa karar ESKİ duruma göre çıkıyordu:
+   aynı hak ediş iki kez onaylanıp servisin cari hesabına iki kez alacak
+   yazılabiliyor, onaylanmış hak ediş sonradan "reddedildi" yapılıp
+   alacak yerinde kalabiliyordu. Parayı ya da durumu değiştiren işlevler
+   kararı artık buradan, depodaki güncel kayıttan veriyor. */
+function guncelTalep(talep) {
+  return (talep?.id && talepleriGetir().find((t) => t.id === talep.id)) || talep
+}
+
+/* SERVİS KAPANMIŞ İŞE YAZAMIYOR (25 Eylül 2026, inceleme).
+
+   Servisim'de detay artık depodan okunuyor (ServisPanel.jsx → acikId)
+   ama açık duran pencere ekranda kalıyordu; veri katmanı da servisin
+   yazımını talebin durumuna bakmadan kabul ediyordu. PAKSAN talebi
+   başka sekmede iptal ettiğinde servis açık Randevu penceresinde
+   Kaydet'e basınca iptal edilmiş talep "planlandı"ya dönüyor, müşteriye
+   randevu bildirimi gidiyordu; açık "Talebi Kapat" onayı iptal edilmiş
+   talebi "kapandı" yapıp müşteriye "tamamlandı" diyordu. Servisin
+   kapanmış işi yeniden açma yetkisi yok; karar depodaki güncel kayıttan.
+   servisKaydiGonder'deki kapının aynısı. Backoffice'in çağrısı
+   (`servisten` yok) bu kapıdan geçmiyor: kapanmış talebi yeniden açmak
+   yetkili personelin işi (bkz. durumKilidi). */
+const SERVIS_KAPALI_IS_HATASI = 'Siz işlem yaparken bu iş kapandı ya da iptal edildi. İşleminiz kaydedilmedi.'
+function servisinKapaliIsEngeli(talep) {
+  return KAPALI_DURUMLAR.includes(talep?.status || 'yeni') ? SERVIS_KAPALI_IS_HATASI : null
+}
+
 /** Durumu değiştirir, geçmişe yazar ve müşteriye bildirim düşürür. */
 /**
  * Durumu değiştirir, geçmişe yazar ve müşteriye bildirim düşürür.
@@ -932,6 +1098,11 @@ function talepYaz(id, degisiklik) {
  *   servise bildirim gitmez.
  */
 export function talepDurumDegistir(talep, yeniDurum, personel, { bildirme, servisten } = {}) {
+  if (servisten) {
+    talep = guncelTalep(talep)
+    const kapali = servisinKapaliIsEngeli(talep)
+    if (kapali) return { hata: kapali }
+  }
   const engel = durumGecisiEngeli(talep, yeniDurum)
   if (engel) return { hata: engel }
 
@@ -1113,21 +1284,38 @@ export function talepNotEkle(
    yazılan cevap yeni hesabın Bildirimler ekranında çıkıyordu.
 
    KİMLİK İKİ YERDEN OKUNUYOR. Kayıtta `musteriId` varsa o geçerli
-   (numara talebi ve servisin elle açtığı kayıt taşıyor). Yoksa
-   telefondan eşleştiriliyor: uygulamadan açılan talep bugün yalnız
-   `telHam` taşıyor (bkz. screens/RequestForm.jsx) ve hesabın `tel`
-   alanı da ham numara.
+   (Connect talebi, numara talebi ve servisin kayıtlı müşteriyle
+   eşleştirip açtığı kayıt taşıyor). Yoksa telefondan eşleştiriliyor:
+   lib/musteriEslesmesi.js → musterininMi, ülke koduyla ve yazılıştan
+   bağımsız (25 Eylül 2026, kullanıcı sınaması Y3). Önce hesabın `tel`
+   alanıyla harfi harfine karşılaştırılıyordu; hesap numarayı boşluklu,
+   servis "0532…" diye yazdığı için aynı kişi bulunamıyordu.
 
-   EŞLEŞME YOKSA null. Yanlış hesaba damga vurmak, bildirimi
-   sahibinden saklamak demek; o yüzden kimlik uydurulmuyor. null
-   dönünce kayıt kimliksiz yazılıyor ve `musteriyeBildir`in vurduğu
-   `kisisel` damgası sayesinde KİMSEYE gösterilmiyor — eskiden bu
-   durumda kayıt herkese açık sayılıyordu. */
+   İKİ BİLİNÇLİ İSTİSNA (25 Eylül 2026, kullanıcı sınaması Y4):
+     - Servis siparişinin müşterisi yok. Siparişi servis kendisi
+       veriyor; talebin ad/tel alanlarında servisin adı ve telefonu
+       duruyor (bkz. servisParcaSiparisi). Telefonla eşleşme ya kimseyi
+       bulmuyordu, ya da servisin sahibi aynı numarayla Connect
+       kullanıyorsa siparişi o kişinin bildirimlerine düşürüyordu.
+       Siparişle ilgili her haber serviseBildir'den gidiyor. Kapı burada
+       olduğu için durum, plan, kapanış, iptal, ödeme ve not yollarının
+       hepsi birden kapanıyor.
+     - Servisin elle açtığı KİMLİKSİZ kayıt telefonla eşleştirilmiyor.
+       Connect bu talebi yalnız hesap kimliğiyle gösteriyor
+       (lib/musterininTalepleri.js → talepHesabinMi; ikisi de
+       lib/musteriEslesmesi.js → hesabaBaglanirMi'ye bakıyor); telefonu
+       servis yazdı. Eşleşseydi müşteri açamadığı bir talebin
+       bildirimini alırdı. Müşteri kartı ve rapor o talebi numarayla
+       müşteriye bağlamaya devam ediyor (gerekçe musteriEslesmesi.js
+       başında).
+
+   EŞLEŞME YOKSA null ve kayıt YAZILMIYOR (bkz. musteriyeBildir).
+   Yanlış hesaba damga vurmak bildirimi sahibinden saklamak demek; o
+   yüzden kimlik uydurulmuyor. */
 function bildirimAlicisi(kayit) {
-  if (kayit?.musteriId) return kayit.musteriId
-  const tel = kayit?.telHam || kayit?.tel
-  if (!tel) return null
-  return musterileriGetir().find((m) => m.tel === tel)?.id || null
+  if (!kayit || kayit.servisSiparisi) return null
+  if (kayit.musteriId) return kayit.musteriId
+  return musterileriGetir().find((m) => hesabaBaglanirMi(kayit, m))?.id || null
 }
 
 /* Müşterinin Bildirimler ekranına düşen kayıt.
@@ -1143,38 +1331,50 @@ function bildirimAlicisi(kayit) {
 
    Dışa açık: servis paneli de aynı kapıdan yazıyor (fiyat teklifi
    gönderildiğinde). İkinci bir bildirim deposu açmak, müşterinin
-   ekranında iki ayrı liste demekti. */
+   ekranında iki ayrı liste demekti.
+
+   Yazıldıysa true döner; alıcı yoksa false. */
 export function musteriyeBildir(bildirim) {
-  /* `kisisel` DAMGASI HER KAYITTA, ALICISI ÇÖZÜLSE DE ÇÖZÜLMESE DE.
+  /* ALICISI ÇÖZÜLMEYEN BİLDİRİM YAZILMIYOR (25 Eylül 2026, kullanıcı
+     sınaması Y4). Önce `musteriId`siz de yazılıyordu, `kisisel`
+     damgasıyla kimseye gösterilmeden: "depoda durması onu sonradan
+     doğru hesaba bağlamanın tek yolu" diye. Bağlayan kod hiç
+     yazılmadı; veritabanı da böyle satırı kabul etmiyor
+     (V0013 → CK_bildirim_Bildirim_Alici: müşteri bildiriminde
+     HesapKimlik zorunlu). Kayıt yalnız ölçümde "sahipsiz" diye
+     görünüyordu. İşlemin izi işlem kaydında ve talebin geçmişinde
+     duruyor; müşteri uygulamaya sonradan gelirse talebin güncel
+     durumunu talebin kendisinde görür. Ekran "bildirim gitti" demeden
+     önce aynı kuralı soruyor (bildirimAlicilari).
 
-     `bildirimAlicisi()` kimseyi bulamadığında kayıt `musteriId`
-     ALANSIZ yazılıyordu ve süzgeç alansız kaydı HERKESE AÇIK duyuru
-     sayıyor (bkz. lib/duyuruHedef.js). Yani kimliği çözülemeyen bir
-     kişisel bildirim —talep numarası, kargo notu, randevu tarihi,
-     atanan bayi adı— her hesabın Bildirimler ekranında çiziliyordu.
-     Tam olarak kapatılmak istenen sızıntının kendisi.
+     Hesapsız müşteri olağan bir hâl (Servisim'in elle kaydı); konsola
+     uyarı yazılmıyor.
 
-     Damga süzgece "bu kayıt bir kişinin" diyor. Kişi bulunamadıysa
-     kayıt KİMSEYE gösterilmiyor: bildirimi sahibinden saklamak,
-     yabancıya göstermekten iyidir. Kayıt yine de yazılıyor, çünkü
-     depoda durması onu sonradan doğru hesaba bağlamanın tek yolu.
-
-     Damga yayılımdan SONRA konuyor: çağıran yanlışlıkla da olsa
-     `kisisel: false` geçirip süzgeci kapatamasın.
-
-     Eski kayıtlarda damga yok; süzgeç onları eskisi gibi geçiriyor.
-     Tek hesaplı cihazda üretildiler, geriye uyum bozulmuyor. */
-  if (!bildirim?.musteriId) {
-    console.warn(
-      'musteriyeBildir: alıcı çözülemedi, bildirim kimseye gösterilmeyecek —',
-      bildirim?.tur || '?',
-      bildirim?.no || '',
-    )
-  }
+     `kisisel` DAMGASI yazılan her kayıtta. Süzgece "bu kayıt bir
+     kişinin" diyor; yayılımdan SONRA konuyor ki çağıran yanlışlıkla da
+     olsa `kisisel: false` geçirip süzgeci kapatamasın. 25 Eylül 2026'dan
+     önce yazılmış alıcısız kayıtları süzgeç kimseye göstermemeye devam
+     ediyor (lib/duyuruHedef.js). Damgasız çok eski kayıtlar tek hesaplı
+     cihazda üretildi; süzgeç onları eskisi gibi geçiriyor. */
+  if (!bildirim?.musteriId) return false
   save(ANAHTAR.duyurular, [
     { id: uid(), tarih: Date.now(), ...bildirim, kisisel: true },
     ...load(ANAHTAR.duyurular, []),
   ])
+  return true
+}
+
+/**
+ * PAKSAN'ın bu talepteki işleminden kim haberdar oluyor (25 Eylül 2026,
+ * kullanıcı sınaması Y4). Backoffice ve Servisim'in onay pencereleri ve
+ * "bildirim gitti" yazıları buradan okuyor; kural yazan işlevlerle aynı
+ * (bildirimAlicisi, serviseBildir). Ekran kendi tahminini yürütünce
+ * servis siparişinde "müşteriye bildirim gitti" diyordu.
+ *
+ * @returns {{ musteri: boolean, servis: boolean }}
+ */
+export function bildirimAlicilari(talep) {
+  return { musteri: Boolean(bildirimAlicisi(talep)), servis: Boolean(talep?.servis?.id) }
 }
 
 /* ==========================================================================
@@ -1207,28 +1407,25 @@ export function musteriyeBildir(bildirim) {
    sözlüğünde. Müşteri bildiriminde anahtar saklanmasıyla aynı gerekçe;
    ayrıca yazı değiştiğinde eski kayıtlar da yeni yazıyla görünür.
 
-   YALNIZ PAKSAN'IN İŞLEMİ. Servisin kendi yaptığı iş kendisine
+   BU KAPI PAKSAN'IN İŞLEMİ İÇİN. Servisin kendi yaptığı iş kendisine
    bildirilmez; paylaşılan işlevler servisten çağrıldığında
    `servisten: true` alıyor ve bu kapı çağrılmıyor.
+
+   MÜŞTERİNİN İŞLEMİ DE SERVİSE GİDİYOR, AYNI KAYITLA (25 Eylül 2026,
+   kullanıcı sınaması O5 ve "Sorun Devam Ediyor"). Müşteri Connect'ten
+   talebe ekleme yaptığında (`musteriEkledi`) ya da kapanmış işte "Sorun
+   Devam Ediyor" dediğinde (`musteriSorunDevam`) işi yürüten servis haber
+   alıyor. Bu iki olay buradan değil lib/talepEkleme.js'ten yazılıyor:
+   Connect bu dosyayı içe aktaramıyor. Olay adı işlemin müşterinin
+   olduğunu söylüyor; Servisim onları "Müşteriden" diye ayırıyor,
+   PAKSAN'ın işlemi gibi görünmüyor.
+
+   KAYDI YAZAN GÖVDE lib/serviseBildirim.js'te (25 Eylül 2026). Aynı
+   kaydın iki kopyası yazılmasın diye gövde oraya taşındı; bu işlevin
+   adı ve imzası değişmedi.
    ========================================================================== */
 export function serviseBildir(talep, olay, degerler = {}) {
-  const servisId = talep?.servis?.id
-  if (!servisId) return
-  save(ANAHTAR.duyurular, [
-    {
-      id: uid(),
-      tarih: Date.now(),
-      tur: 'talep',
-      kisisel: true,
-      alici: 'servis',
-      servisId,
-      talepId: talep.id,
-      talepNo: talep.no,
-      olay,
-      degerler,
-    },
-    ...load(ANAHTAR.duyurular, []),
-  ])
+  serviseBildirimYaz(talep, olay, degerler)
 }
 
 /** Bir servisin talep bildirimleri, yeniden eskiye. */
@@ -1445,7 +1642,7 @@ function siparisIadesiniYaz(talep, personel) {
     servisAd: talep.servis?.ad,
     tur: 'alacak',
     tutar: dusulen,
-    aciklama: `${talep.no} · sipariş iptali, bakiyeye iade`,
+    aciklama: `${talep.no} · sipariş iptali · tutar bakiyeye geri eklendi`,
     talepNo: talep.no,
     talepId: talep.id,
     personel,
@@ -1466,7 +1663,7 @@ export function servisSiparisiniIptalEt(talep, servisAd) {
   if (!guncel?.servisSiparisi) return { hata: 'Sipariş bulunamadı.' }
   if (guncel.status !== 'yeni') {
     return {
-      hata: `${MARKA} siparişi işleme aldığı için artık buradan iptal edilemiyor. İptal için ${markaEk('in')} yedek parça birimine ulaşın.`,
+      hata: `${MARKA} siparişinizi işleme aldığı için artık buradan iptal edemezsiniz. İptal için ${markaEk('in')} yedek parça birimine ulaşın.`,
       durumDegisti: true,
     }
   }
@@ -1503,6 +1700,7 @@ export function bakiyeDurumu(servisId) {
  * @param {number[]} secim  gönderilen satırların sırası (0'dan)
  */
 export function kalanParcalariGonder(talep, secim, personel) {
+  talep = guncelTalep(talep)
   const g = siparisGonderimi(talep)
   if (!g || talep.status !== 'kapandi' || !g.kalan.length) {
     return { hata: 'Gönderilecek kalan parça yok.' }
@@ -1547,6 +1745,7 @@ export function kalanParcalariGonder(talep, secim, personel) {
  * @param {number[]} secim  iptal edilen satırların sırası (0'dan)
  */
 export function kalanParcalariIptalEt(talep, secim, { neden, aciklama } = {}, personel) {
+  talep = guncelTalep(talep)
   const g = siparisGonderimi(talep)
   if (!g || talep.status !== 'kapandi' || !g.kalan.length) {
     return { hata: 'İptal edilecek kalan parça yok.' }
@@ -1555,7 +1754,7 @@ export function kalanParcalariIptalEt(talep, secim, { neden, aciklama } = {}, pe
     .filter((i) => g.kalan.includes(i))
     .sort((a, b) => a - b)
   if (!satirlar.length) return { hata: 'En az bir parçayı işaretleyin.' }
-  if (!neden) return { hata: 'İptal sebebini seçin.' }
+  if (!neden) return { hata: 'İptal nedenini seçin.' }
   const once = Array.isArray(talep.kalemIptalleri) ? talep.kalemIptalleri : []
   const kalemIptalleri = [
     ...once,
@@ -1571,8 +1770,14 @@ export function kalanParcalariIptalEt(talep, secim, { neden, aciklama } = {}, pe
   const tutar = siparisNetTutari(talep) - siparisNetTutari({ ...talep, kalemIptalleri })
   talepYaz(talep.id, { kalemIptalleri })
   const guncel = { ...talep, kalemIptalleri }
+  /* `adet` çıkarılan PARÇA adedi, `kalem` satır sayısı (25 Eylül 2026,
+     kullanıcı sınaması). Önce `adet` alanına satır sayısı yazılıyordu:
+     adedi 2 olan tek satır "1 parça" sayılıyordu. 24 Eylül'de yazılmış
+     eski bildirimlerde `adet` hâlâ kalem sayısı; Servisim'in yazısı bu
+     yüzden sayıyı bildirimden değil talepten okuyor. */
   serviseBildir(guncel, 'kalanIptalEdildi', {
-    adet: satirlar.length,
+    adet: satirlarinAdedi(talep, satirlar),
+    kalem: satirlar.length,
     kalan: siparisGonderimi(guncel).kalan.length,
     neden,
     ...(aciklama ? { aciklama } : {}),
@@ -1595,6 +1800,14 @@ export function kalanParcalariIptalEt(talep, secim, { neden, aciklama } = {}, pe
    bu.                                                                */
 
 export function talepKapat(talep, cozum, personel, { servisten } = {}) {
+  /* Kapanmış talep ikinci kez kapatılmıyor: müşteriye ve servise ikinci
+     "tamamlandı / kargoya verildi" bildirimi giderdi. */
+  talep = guncelTalep(talep)
+  if (servisten) {
+    const kapali = servisinKapaliIsEngeli(talep)
+    if (kapali) return { hata: kapali }
+  }
+  if (talep.status === 'kapandi') return { hata: 'Bu talep zaten kapanmış.' }
   const engel = durumGecisiEngeli(talep, 'kapandi')
   if (engel) return { hata: engel }
 
@@ -1607,7 +1820,29 @@ export function talepKapat(talep, cozum, personel, { servisten } = {}) {
      kapanış nesnesi aynı kalıyor. */
   const gonderim = servisSiparisiGonderimi(talep, cozum?.gonderilen, personel)
   if (gonderim.hata) return { hata: gonderim.hata }
-  const { gonderilen: _secim, ...cozumKaydi } = cozum || {}
+  const { gonderilen: _secim, kargo, ...cozumKaydi } = cozum || {}
+
+  /* KARGO KAPANIŞIN İÇİNDE (25 Eylül 2026, kullanıcı sınaması).
+     Müşterinin parça talebinde kapanış = kargoya verildi. Takip numarası
+     kapanışta sorulmuyordu; personel onu ayrı bir "müşteriye not" ile
+     gönderiyor ve çiftçiye art arda iki benzer bildirim düşüyordu. Değer
+     talebin `parcaSevk` alanına yazılıyor (servis parçasının sevkiyle
+     aynı alan; veritabanında talep.ParcaSevki) ve kapanış bildirimi onu
+     taşıyor. `cozum`a yazılmıyor: üç uygulamanın okuduğu kapanış nesnesi
+     aynı kalıyor. Servis siparişi dışarıda: gönderimi bölünebiliyor
+     (`gonderimler`), kargosu gönderim başına düşünülmeli. */
+  const firma = String(kargo?.firma || '').trim()
+  const takipNo = String(kargo?.takipNo || '').trim()
+  const kargoYazi = [firma, takipNo].filter(Boolean).join(' · ')
+  const parcaSevk =
+    talep.tur === 'parca' && !talep.servisSiparisi && kargoYazi
+      ? {
+          firma,
+          takipNo,
+          tarih: talep.parcaSevk?.tarih || Date.now(),
+          personel: talep.parcaSevk?.personel || personel,
+        }
+      : null
 
   const gecmis = [
     ...(talep.gecmis || []),
@@ -1618,11 +1853,12 @@ export function talepKapat(talep, cozum, personel, { servisten } = {}) {
     gecmis,
     cozum: { ...cozumKaydi, tarih: Date.now(), personel },
     ...(gonderim.gonderimler ? { gonderimler: gonderim.gonderimler } : {}),
+    ...(parcaSevk ? { parcaSevk } : {}),
   })
 
   islemYaz({
     tur: 'durum',
-    ozet: `${talep.no} kapandı · ${cozum.ozet}`,
+    ozet: `${talep.no} kapandı · ${cozum.ozet}${parcaSevk ? ' · ' + kargoYazi : ''}`,
     personel,
   })
 
@@ -1673,10 +1909,15 @@ export function talepKapat(talep, cozum, personel, { servisten } = {}) {
 
   /* YEDEK PARÇADA KAPANIŞ = KARGOYA VERİLDİ.
 
-     Bildirim de ona göre yazılıyor: takip numarası girildiyse
-     müşteri uygulamayı açmadan, bildirimin içinde görüyor. Eskiden
-     bu iş ayrı bir "Gönderildi" durumundan çıkıyordu; o durum
-     kaldırıldı (bkz. DURUMLAR). */
+     Bildirim de ona göre yazılıyor. Kapanışta kargo bilgisi girildiyse
+     (25 Eylül 2026'dan beri, yukarıda) bildirim onu taşıyor: müşteri
+     firma ve takip numarasını uygulamayı açmadan, bildirimin içinde
+     görüyor; tek bildirim gidiyor. Girilmediyse "kargoya verildi"
+     demekle kalıyor. Eskiden bu iş ayrı bir "Gönderildi" durumundan
+     çıkıyordu; o durum kaldırıldı (bkz. DURUMLAR).
+
+     Servis siparişinde müşteri alıcısı yok (bildirimAlicisi); haber
+     yukarıdaki serviseBildir'den gidiyor. */
   const parcaGonderimi = talep.tur === 'parca'
   musteriyeBildir({
     musteriId: bildirimAlicisi(talep),
@@ -1685,9 +1926,16 @@ export function talepKapat(talep, cozum, personel, { servisten } = {}) {
       ? 'bildirimler.gonderildiBaslik'
       : 'bildirimler.durumBaslik',
     metinAnahtar: parcaGonderimi
-      ? 'bildirimler.gonderildiMetin'
+      ? parcaSevk
+        ? 'bildirimler.gonderildiMetinKargo'
+        : 'bildirimler.gonderildiMetin'
       : 'bildirimler.durum_kapandi',
-    degerler: { no: talep.no, durum: 'kapandi', talepTur: talep.tur },
+    degerler: {
+      no: talep.no,
+      durum: 'kapandi',
+      talepTur: talep.tur,
+      ...(parcaSevk ? { kargo: kargoYazi } : {}),
+    },
     talepNo: talep.no,
   })
   return { kismi: Boolean(gonderim.kismi) }
@@ -1704,6 +1952,11 @@ export function talepKapat(talep, cozum, personel, { servisten } = {}) {
    yazıyordu. Bildirime dokunan kişi hiçbir şey öğrenemiyordu.        */
 
 export function talepIptal(talep, iptal, personel, { servisten } = {}) {
+  if (servisten) {
+    talep = guncelTalep(talep)
+    const kapali = servisinKapaliIsEngeli(talep)
+    if (kapali) return { hata: kapali }
+  }
   const engel = durumGecisiEngeli(talep, 'iptal')
   if (engel) return { hata: engel }
 
@@ -1724,6 +1977,8 @@ export function talepIptal(talep, iptal, personel, { servisten } = {}) {
      verilmezse servis o müşteriye gitmeye devam edebilir. */
   if (!servisten) serviseBildir(talep, 'iptal', { neden: iptal.neden, ...(iade ? { iade } : {}) })
 
+  /* Servis siparişinde müşteri alıcısı yok (bildirimAlicisi); haber
+     yukarıdaki serviseBildir'den gidiyor. */
   musteriyeBildir({
     musteriId: bildirimAlicisi(talep),
     tur: 'talep',
@@ -1814,6 +2069,10 @@ export function teklifBeklemeGunu(talep) {
    unutmasın.                                                          */
 
 export function odemeOnayla(talep, personel, not) {
+  /* İkinci onay (eski ekran, iki sekme) hiçbir şey yazmıyor: istenen
+     sonuç zaten var; müşteriye ikinci "ödemeniz alındı" gitmesin. */
+  talep = guncelTalep(talep)
+  if (talep.odemeOnay) return { zatenOnayli: true }
   const simdi = Date.now()
   const degisiklik = { odemeOnay: { tarih: simdi, personel, not: not || '' } }
 
@@ -2011,11 +2270,22 @@ export function duyuruSil(id, personel) {
    taleplerini görüyor; yöneticinin ise müşterinin bekleyen fiyat
    teklifini de görmesi işine yarıyor.
 
+   SAHİP TEK KURALDAN (25 Eylül 2026, kullanıcı sınaması Y3). Önce
+   `telHam` harfi harfine karşılaştırılıyordu: Connect talebi numarayı
+   boşluklu, servisin elle açtığı talep "0532…" diye yazdığı için aynı
+   müşterinin işleri birbirini görmüyordu. Artık lib/musteriEslesmesi.js
+   → talepSahibiBulucu: önce `musteriId`, yoksa ülke kodlu telefon
+   anahtarı. Servis siparişinde "müşteri" servisin kendisi; aynı
+   servisin öteki siparişleri servis kimliğiyle geliyor, müşteri
+   talebi karışmıyor.
+
    @param {boolean} yalnizAcik kapanmışları dışarıda bırak */
 export function musterininDigerTalepleri(talep, hepsi, { yalnizAcik = false } = {}) {
-  if (!talep.telHam) return []
+  const sahibi = talepSahibiBulucu(musterileriGetir())
+  const anahtar = sahibi(talep)?.anahtar
+  if (!anahtar) return []
   return hepsi
-    .filter((t) => t.id !== talep.id && t.telHam === talep.telHam)
+    .filter((t) => t.id !== talep.id && sahibi(t)?.anahtar === anahtar)
     .filter((t) => !yalnizAcik || !KAPALI_DURUMLAR.includes(t.status || 'yeni'))
     .sort((a, b) => b.createdAt - a.createdAt)
 }
@@ -2027,10 +2297,22 @@ export function musterininDigerTalepleri(talep, hepsi, { yalnizAcik = false } = 
    kaydediliyor, bildirimde de ikisi birden gidiyor.                   */
 
 export function talepPlanla(talep, plan, personel, { servisten } = {}) {
+  if (servisten) {
+    talep = guncelTalep(talep)
+    const kapali = servisinKapaliIsEngeli(talep)
+    if (kapali) return { hata: kapali }
+  }
   const gecmis = [
     ...(talep.gecmis || []),
     { durum: 'planlandi', tarih: Date.now(), personel },
   ]
+  /* SAAT GİRİLDİ Mİ (25 Eylül 2026, kullanıcı sınaması). Servisim
+     randevuda yalnız günü soruyor (lib/tarih.js → gunlukRandevu,
+     `saatBelirtildi: false`), backoffice gün ve saati (`true`). Önce bu
+     bilgi yazılmıyordu; saatsiz randevu gece yarısı UTC okunup Servisim'de
+     "03:00" diye görünüyordu. Alan plan nesnesiyle olduğu gibi geçiyor;
+     taşımayan eski kaydı lib/tarih.js → randevuSaatliMi geriye dönük
+     kuralla okuyor. Veritabanında talep.Randevu.SaatBelirtildi. */
   talepYaz(talep.id, {
     status: 'planlandi',
     gecmis,
@@ -2241,12 +2523,15 @@ function hesapBirlesmePlani(talep) {
      değişmiş olabilir; talepteki kopya değil güncel olan yazılıyor. */
   const yeniId = talep.yeniHesap?.musteriId || talep.musteriId
   const yeni = musterileriGetir().find((m) => m.id === yeniId) || null
+  /* Talebe yazılan numara ham (rakam, sıfırsız, ülke kodsuz): hesap
+     numarayı boşluklu saklıyor (Y3, 25.09.2026). */
+  const hedefUlke = yeni?.ulke || talep.yeniUlke || ''
   const hedef = {
     id: yeniId,
     no: yeni?.no || talep.yeniHesap?.musteriNo || null,
     ad: yeni?.ad || talep.ad || '',
-    telHam: yeni?.tel || talep.yeniTelHam || '',
-    ulke: yeni?.ulke || talep.yeniUlke || '',
+    telHam: telHamYap(hedefUlke, yeni?.tel || talep.yeniTelHam || ''),
+    ulke: hedefUlke,
   }
 
   const defter = makineKayitlariGetir().map((k) =>
@@ -2256,9 +2541,17 @@ function hesapBirlesmePlani(talep) {
   )
   const defterSayisi = makineKayitlariGetir().filter((k) => eskiHesabinMi(talep, k)).length
 
+  /* Eski hesabın talebi tek kuraldan (lib/musteriEslesmesi.js →
+     hesabaBaglanirMi, Y3): önce kimlik, yoksa ülke kodlu telefon anahtarı.
+     Önce `telHam` harfi harfine karşılaştırılıyordu; başka hesabın
+     kimliğini taşıyan talep de numarası tuttu diye taşınıyordu.
+
+     Servisin elle açtığı KİMLİKSİZ iş taşınmıyor (25 Eylül 2026,
+     inceleme): numara değişikliğinde bağlanmayan iş birleştirmede de
+     bağlanmasın. Taşınsaydı yeni hesabın Connect listesine girer,
+     bildirimi ona giderdi (gerekçe musteriEslesmesi.js başında). */
   const eskiTel = eski?.tel ? String(eski.tel) : ''
-  const talebinMi = (t) =>
-    (eskiTel && t.telHam === eskiTel) || (eskiId && t.musteriId === eskiId)
+  const talebinMi = (t) => hesabaBaglanirMi(t, eski || { id: eskiId })
   const talepYamasi = (t) => ({
     ...t,
     telHam: hedef.telHam,
@@ -2277,7 +2570,10 @@ function hesapBirlesmePlani(talep) {
         id: uid(),
         productId: k.productId,
         serial: k.seri,
-        year: validateSerial(k.seri).year || null,
+        /* Defterdeki eski satırın yılı eskisi gibi okunuyor: seri
+           doğrulaması sıkılaştı (Y2, 25.09.2026) ve bozuk eski seride
+           validateSerial yıl vermiyor. */
+        year: extractYear(k.seri) || null,
         nickname: '',
         addedAt: k.tarih || Date.now(),
         hours: 0,
@@ -2369,6 +2665,30 @@ function hesaplariBirlestir(talep) {
   }
 }
 
+/* NUMARASI DEĞİŞECEK HESABIN KİMLİKSİZ TALEPLERİ (25 Eylül 2026,
+   kullanıcı sınaması Y3).
+
+   24 Eylül'den önce Connect talebi hesap kimliği taşımıyordu; hesaba
+   yalnız numarasıyla bağlıydı. Numara değişince bu talepler müşteri
+   kartından ve Connect listesinden düşer, eski numarayı alan kişi
+   onları görürdü. Numara değişmeden önce hesabın kimliği yazılıyor.
+
+   Servisin elle açtığı kimliksiz iş BAĞLANMIYOR: Connect onu numarayla
+   da göstermiyor (gerekçe lib/musteriEslesmesi.js başında);
+   görünürlüğü burada değişmesin.
+
+   GÖRÜŞLER DE BAĞLANIYOR (25 Eylül 2026, inceleme). Görüş kaydı da 25
+   Eylül'den önce kimlik taşımıyordu; numara değiştikten sonra eski
+   görüşe yazılan cevap numarayla eşleşip eski numarayı alan kişiye
+   gidiyordu. Aynı gerekçe, aynı kural. */
+function kimliksizTalepleriBagla(hesap) {
+  const baglanir = (t) => !t.musteriId && hesabaBaglanirMi(t, hesap)
+  ;[ANAHTAR.talepler, ANAHTAR.demoTalepler, ANAHTAR.geriBildirim].forEach((k) => {
+    const liste = load(k, [])
+    if (liste.some(baglanir)) save(k, liste.map((t) => (baglanir(t) ? { ...t, musteriId: hesap.id } : t)))
+  })
+}
+
 export function numaraTalebiKarar(talep, onay, personel, not) {
   const liste = numaraTalepleriGetir().map((t) =>
     t.id === talep.id
@@ -2413,6 +2733,12 @@ export function numaraTalebiKarar(talep, onay, personel, not) {
   }
 
   if (onay) {
+    /* Numara değişmeden ÖNCE eski numarayla açılmış kimliksiz talepler
+       hesaba bağlanıyor (Y3, 25.09.2026); yoksa karttan ve Connect
+       listesinden düşerler, eski numarayı alan kişi onları görür. */
+    const hesap = talebinMusterisi(talep)
+    if (hesap) kimliksizTalepleriBagla(hesap)
+
     /* Ekranda görünen biçim değil, ham numara yazılıyor — yoksa giriş
        bir daha çalışmaz. Yalnız talebi açan hesabın numarası değişiyor. */
     ;[ANAHTAR.hesap, ANAHTAR.kullanici].forEach((k) => {
@@ -2478,10 +2804,14 @@ export function geriBildirimNotEkle(gorus, metin, personel) {
   )
   save(ANAHTAR.geriBildirim, liste)
 
-  /* Görüş kaydı `musteriId` taşımıyor, yalnız telefonu var
-     (bkz. lib/geriBildirim.js); kimlik oradan eşleştiriliyor. */
+  /* Görüş kaydı 25 Eylül 2026'dan beri hesabın kimliğini (`musteriId`)
+     taşıyor (screens/Profile.jsx → yorumGonder): cevap numara değişse de
+     o hesaba gidiyor. Eski kayıtta yalnız telefon var; kimlik ondan
+     eşleştiriliyor (bildirimAlicisi). Sınaması AK-32. Alıcı depodaki
+     kayıttan: numara değişikliğinde bağlanan kimlik ekranın elindeki
+     eski kopyada yok (sınaması AK-30). */
   musteriyeBildir({
-    musteriId: bildirimAlicisi(gorus),
+    musteriId: bildirimAlicisi(liste.find((g) => g.id === gorus.id) || gorus),
     tur: 'gorus',
     baslikAnahtar: 'bildirimler.gorusCevapBaslik',
     metin,
@@ -3076,6 +3406,20 @@ export function destekTalepEt(talep, neden, servisAd) {
 
 /** Servis sahadaki işi bitirdi, kaydı gönderiyor. */
 export function servisKaydiGonder(talep, kayit, servisAd) {
+  /* KAPANMIŞ TALEBE KAYIT GÖNDERİLMİYOR (25 Eylül 2026, hak ediş reddi
+     tasarım kararı). İşlev talebin durumuna hiç bakmıyor ve ekranın
+     kopyasıyla çalışıyordu: ret anında Servisim'de açık kalmış bir kayıt
+     ekranı, reddedilmiş (kapanmış) talebe yeni kayıt gönderebiliyordu.
+     Durum "onay bekliyor"a dönüyor, reddedilen kayıt "önceki ziyaret"
+     diye arşive gidiyordu; kesin olması gereken ret istenmeden bir
+     "yeniden gönderme"ye dönüşüyordu (bkz. hakkedisReddet). Karar
+     depodaki güncel kayıttan veriliyor. Müşteri "sorun devam ediyor"
+     derse talep "yeni"ye dönüyor; yeni ziyaretin kaydı bu kapıdan geçer. */
+  talep = guncelTalep(talep)
+  if (KAPALI_DURUMLAR.includes(talep.status || 'yeni')) {
+    return { hata: 'Bu iş kapandığı için kaydınız gönderilmedi. İşin son durumunu görmek için geri dönün.' }
+  }
+
   const hata = kaydiDogrula(kayit)
   if (hata) return { hata }
 
@@ -3088,10 +3432,17 @@ export function servisKaydiGonder(talep, kayit, servisAd) {
      adres kabul edilmiyor. 2. aşamada soru yok: kayıt üstüne
      yazılırken (`devam`) alan olduğu gibi kalıyor; yeni ziyarette
      eski kayıtla birlikte arşive gidiyor. */
+  /* PARÇA İSTEĞİ YAPILAN İŞ, YOL VE İŞÇİLİK TAŞIMIYOR (26 Eylül 2026,
+     ikinci kullanıcı sınaması). 1. aşamada iş bitmedi; bu üçü sorulmuyor
+     (lib/servisKaydi.js → kaydiDogrula). Ekran yine de formun durumundan
+     gönderiyordu: yeniden açılan işte form geçen ziyaretin "Ayar Yapıldı
+     · 20 km · 1 saat"iyle doluydu, parça isteği bu değerlerle yazıldı ve
+     backoffice'e bu ziyaretinmiş gibi göründü. Sorulmayan sorunun cevabı
+     kayda girmiyor; 2. aşama (`devam`) kendi değerleriyle üstüne yazıyor. */
   if (kayit.asama === ASAMA.parca) {
     const teslimat = teslimatTemizle(kayit.teslimat)
     if (!teslimat) return { hata: 'Teslimat adresini seçin.' }
-    kayit = { ...kayit, teslimat }
+    kayit = { ...kayit, teslimat, yapilanIs: '', km: 0, ...iscilikAlanlari(0, kayit.saatUcreti ?? undefined) }
   }
 
   /* ÜCRET KAYDA BURADA YAZILIYOR (23 Eylül 2026).
@@ -3243,6 +3594,10 @@ export function servisKaydiGonder(talep, kayit, servisAd) {
     ...(arsiv.length ? { oncekiKayitlar: arsiv } : {}),
     cozum: { ...cozum, tarih: simdi, personel: servisAd },
     gecmis: [...(talep.gecmis || []), { durum: sonuc.durum, tarih: simdi, personel: servisAd }],
+    /* `atamaDisi` (servisin elle açtığı işte makinenin o anki ataması,
+       lib/elleTalep.js) yamada BİLEREK yok: işin açıldığı anın kaydı.
+       Hak edişi onaylayan personel onu görüyor; kayıt gönderimi ve onay
+       silmemeli (Y5, 25.09.2026). */
   }
 
   /* SERVİSİN DOLDURDUĞU EKSİK, TALEBİN KENDİSİNE DE İŞLENİYOR.
@@ -3255,8 +3610,15 @@ export function servisKaydiGonder(talep, kayit, servisAd) {
      bilgi, servisin sahada duyduğundan önce gelir. */
   if (!talep.ad?.trim() && kayit.musteri?.ad) yama.ad = kayit.musteri.ad
   if (!talep.tel && kayit.musteri?.tel) {
-    yama.tel = kayit.musteri.tel
-    yama.telHam = kayit.musteri.tel.replace(/\D/g, '')
+    /* Telefon tek biçimde (Y3, 25.09.2026): ham numara rakam, sıfırsız
+       ve ülke kodsuz; görünen hâli ülke koduyla. Önce "0532…" diye düz
+       rakam yazılıyor, ülke hiç yazılmıyordu; aynı müşteri ekranlarda
+       üç biçimde görünüyor, müşteri kartında eşleşmiyordu. Servisim
+       yalnız Türkiye'de çalışıyor. */
+    const ham = telHamYap('TR', kayit.musteri.tel)
+    yama.telHam = ham
+    yama.telUlke = 'TR'
+    yama.tel = telGoster('TR', ham)
   }
   if (!talep.adres && kayit.musteri?.adres) yama.adres = kayit.musteri.adres
   if (!talep.makine?.serial && kayit.makine?.serial) {
@@ -3329,6 +3691,10 @@ export function servisKaydiGonder(talep, kayit, servisAd) {
    sessiz değişiklik güveni bitirir; ayrıca servis neyi yanlış
    girdiğini ancak böyle öğreniyor. */
 export function hakkedisDuzelt(talep, yeniKayit, neden, personel) {
+  /* Onaylanmış ya da reddedilmiş hak ediş düzeltilemiyor: tutarı
+     değişir ama cari hareketi değişmezdi. */
+  talep = guncelTalep(talep)
+  if (talep.status !== 'onayBekliyor') return { hata: 'Bu talep onay beklemiyor.' }
   const hata = kaydiDogrula(yeniKayit)
   if (hata) return { hata }
   if (!neden?.trim()) return { hata: 'Düzeltme gerekçesini yazın.' }
@@ -3392,6 +3758,7 @@ export function hakkedisDuzelt(talep, yeniKayit, neden, personel) {
    onaya geliyor (bkz. lib/servisKaydi.js başı). Onay bu yüzden hep
    talebi kapatıyor. */
 export function hakkedisOnayla(talep, personel) {
+  talep = guncelTalep(talep)
   if (talep.status !== 'onayBekliyor') return { hata: 'Bu talep onay beklemiyor.' }
 
   const hakkedis = { ...(talep.hakkedis || {}), durum: 'onaylandi', onay: { personel, tarih: Date.now() } }
@@ -3415,6 +3782,9 @@ export function hakkedisOnayla(talep, personel) {
          açıklama da aynı dili konuşuyor. */
       aciklama: `${talep.no} · servis ödemesi`,
       talepNo: talep.no,
+      /* Talep numarası tekil değil (gün + dört rastgele hane); hareketi
+         talebe kimlik bağlıyor. */
+      talepId: talep.id,
       personel,
     })
   }
@@ -3444,7 +3814,27 @@ export function hakkedisOnayla(talep, personel) {
 }
 
 /** Hak edişi reddeder; gerekçe servise görünüyor. */
+/* RET KESİN (25 Eylül 2026, tasarım kararı; kullanıcı sınamasında
+   personel reddi "düzeltip yeniden gönderin" diye kullanmıştı).
+   "Servise geri gönder" yolu açılmadı:
+     - Düzeltilebilir hatanın aracı zaten var: km, işçilik süresi ve
+       parça hakkedisDuzelt ile PAKSAN tarafından, gerekçesi servise
+       görünerek düzeltiliyor; eksik bilgi için onay beklerken iki yönlü
+       not var.
+     - Ret, PAKSAN'ın "bu işi ödemiyorum" kararı (garanti dışı,
+       yapılmamış ya da mükerrer iş). Cari, garanti raporu ve servisin
+       hesabı bu kararın kesin olmasına dayanıyor; üçüncü bir "geri
+       gönderildi" hâli hepsine yeni bir durum öğretmeyi gerektirirdi.
+     - Kaldıraç hak ediş: kesin ret, servisin kaydı ilk seferde doğru
+       doldurmasını sağlıyor.
+   Kapanmış talebe yeni kayıt gönderilemiyor (servisKaydiGonder başı).
+   Müşteri "sorun devam ediyor" derse talep "yeni"ye dönüyor ve yeni
+   ziyaret yeni kayıt açıyor; bu yol değişmedi. */
 export function hakkedisReddet(talep, neden, personel) {
+  /* Onaylanmış hak ediş sonradan reddedilemiyor: cari alacak yerinde
+     kalır, kayıt "reddedildi" derdi. */
+  talep = guncelTalep(talep)
+  if (talep.status !== 'onayBekliyor') return { hata: 'Bu talep onay beklemiyor.' }
   if (!neden?.trim()) return { hata: 'Red gerekçesini yazın.' }
   talepYaz(talep.id, {
     hakkedis: {
@@ -3461,8 +3851,24 @@ export function hakkedisReddet(talep, neden, personel) {
   return { tamam: true }
 }
 
-/** Yedek parça personeli parçayı kargoya verdi. */
+/**
+ * Yedek parça personeli parçayı kargoya verdi (ya da kargo bilgisini
+ * sonradan girdi / düzeltti).
+ *
+ * @returns {{tamam: true, guncelleme: boolean}|{hata: string}}
+ *   guncelleme: sevk zaten vardı, bu çağrı kargo bilgisini değiştirdi
+ */
 export function servisParcasiGonderildi(talep, kargo, personel) {
+  /* EKRANIN KOPYASI DEĞİL, DEPODAKİ KAYIT; PARÇA BEKLENMİYORSA YAZILMIYOR
+     (25 Eylül 2026, kullanıcı sınaması O2). "Önceki sevk var mı" ekranın
+     elindeki kopyadan okunuyordu: eski ekranla ikinci kayıt ilk sevkin
+     tarihini ve personelini eziyor, servise ikinci bir "parça yolda"
+     bildirimi gidiyordu. Servis parçayı takıp kaydı onaya gönderdikten
+     sonra da sevk yazılabiliyordu. */
+  talep = guncelTalep(talep)
+  if (talep.status !== 'parcaBekliyor') {
+    return { hata: 'Parça artık beklenmiyor; kargo bilgisi kaydedilmedi.' }
+  }
   const simdi = Date.now()
   /* İKİNCİ ÇAĞRI SEVKİ TEKRARLAMIYOR, ÜSTÜNE YAZIYOR.
 
@@ -3481,13 +3887,16 @@ export function servisParcasiGonderildi(talep, kargo, personel) {
      numarası boş bırakıldıysa KALIYOR — numara akşam ya da ertesi
      gün geliyor ve girilmesi gereken yer burası.
 
-     Masa hemen boşalsaydı talep yedek parça personelinin listesinden
-     düşerdi (`rolunTalepleri` masaya bakıyor) ve numarayı girmek
-     isteyen kişi talebi bir daha bulamazdı. Ölçülerek görüldü.
+     Masa, işin hâlâ parça biriminde olduğunu söylüyor (sunucuda
+     MasaKodu). Formun ikinci açılışında her hâlükârda boşalıyor: numara
+     girilmişse iş bitti, girilmemişse personel "böyle gidecek" demiş
+     oluyor.
 
-     Formun ikinci açılışında masa her hâlükârda boşalıyor: numara
-     girilmişse zaten iş bitti, girilmemişse personel "böyle
-     gidecek" demiş oluyor — kendi elindeki işi kendisi kapatıyor. */
+     LİSTELEME ARTIK MASAYA BAĞLI DEĞİL (25 Eylül 2026, O2). Önce masa
+     boşalınca talep yedek parça personelinin listesinden düşüyor ve
+     yanlış yazılmış numarayı düzeltmek isteyen kişi talebi bir daha
+     bulamıyordu. Parça yoldayken işi `rolunTalepleri`'nin üçüncü kapısı
+     gösteriyor. */
   const masaKalsin = !onceki && !kargo?.takipNo
   talepYaz(talep.id, {
     masa: masaKalsin ? 'parca' : null,
@@ -3512,6 +3921,62 @@ export function servisParcasiGonderildi(talep, kargo, personel) {
   serviseBildir(talep, onceki ? 'kargoGuncellendi' : 'parcaYolda', {
     firma: kargo?.firma || '',
     takipNo: kargo?.takipNo || '',
+  })
+  return { tamam: true, guncelleme: Boolean(onceki) }
+}
+
+/**
+ * Müşterinin kapanmış parça talebine kargo bilgisini sonradan yazar.
+ *
+ * @returns {{tamam: true}|{hata: string}}
+ */
+/* KAPANIŞTAN SONRA KARGO BİLGİSİ (26 Eylül 2026, ikinci kullanıcı
+   sınaması O2).
+
+   Müşterinin parça talebinde kargo kapanış formunda soruluyor
+   (talepKapat) ve iki kutu da isteğe bağlı: takip numarası çoğu zaman
+   paket kargoya verildikten sonra geliyor. Talep kapandıktan sonra onu
+   girmenin yolu yoktu; Yedek Parça rolünün yeniden açma izni yok, açılsa
+   da kapanış bildirimi ikinci kez giderdi. Personel numarayı unutunca
+   çiftçi takip numarasını hiç alamadı (YPR2609268517, "Kargo: Aras
+   Kargo"). Servisin garanti parçasında aynı iş servisParcasiGonderildi'nin
+   ikinci çağrısı; bu onun müşteri tarafı.
+
+   Talep KAPALI KALIYOR, yalnız `parcaSevk` değişiyor. İlk gönderimin
+   tarihi ve personeli korunuyor, düzelten ayrıca yazılıyor. Müşteriye
+   kargo bilgisini taşıyan tek bildirim gidiyor. Karar depodaki kayıttan. */
+export function musteriKargosunuGuncelle(talep, kargo, personel) {
+  talep = guncelTalep(talep)
+  if (!talep || talep.tur !== 'parca' || talep.servisSiparisi || talep.status !== 'kapandi') {
+    return { hata: 'Kargo bilgisi yalnızca parçası kargoya verilmiş müşteri taleplerinde değiştirilebilir.' }
+  }
+  const firma = String(kargo?.firma || '').trim()
+  const takipNo = String(kargo?.takipNo || '').trim()
+  if (!firma && !takipNo) return { hata: 'Kargo firmasını ya da takip numarasını yazın.' }
+  const onceki = talep.parcaSevk || null
+  if (onceki && (onceki.firma || '') === firma && (onceki.takipNo || '') === takipNo) {
+    return { hata: 'Kargo bilgisi değişmedi.' }
+  }
+  const simdi = Date.now()
+  talepYaz(talep.id, {
+    parcaSevk: {
+      firma,
+      takipNo,
+      tarih: onceki?.tarih || talep.cozum?.tarih || simdi,
+      personel: onceki?.personel || talep.cozum?.personel || personel,
+      guncelleme: simdi,
+      guncelleyen: personel,
+    },
+  })
+  const kargoYazi = [firma, takipNo].filter(Boolean).join(' · ')
+  islemYaz({ tur: 'sevk', ozet: `${talep.no} · kargo bilgisi güncellendi · ${kargoYazi}`, personel })
+  musteriyeBildir({
+    musteriId: bildirimAlicisi(talep),
+    tur: 'talep',
+    baslikAnahtar: 'bildirimler.kargoGuncellendiBaslik',
+    metinAnahtar: 'bildirimler.kargoGuncellendiMetin',
+    degerler: { no: talep.no, talepTur: talep.tur, kargo: kargoYazi },
+    talepNo: talep.no,
   })
   return { tamam: true }
 }
@@ -3671,10 +4136,13 @@ export function servisParcaSiparisi({
   /* BAKİYE YETMELİ — GÖNDERİLMEYİ BEKLEYEN SİPARİŞLER DÜŞÜLEREK
      (24 Eylül 2026, bkz. bakiyeDurumu). Ekran seçeneği zaten kapatıyor;
      bu kapı ekranı atlayan ya da iki cihazdan aynı anda verilen sipariş
-     için. Önce hiç bakılmıyordu. */
-  if (odeme === 'bakiye' && kdvliToplam > bakiyeDurumu(servisId).kullanilabilir) {
+     için. Önce hiç bakılmıyordu. Kural ekranın "bakiye yetmiyor"
+     cümlesiyle ve "yeter" kararıyla tek işlevden (lib/servisFiyat.js →
+     bakiyeYetmiyor; 25 Eylül 2026, inceleme: burada ayrı bir kopya
+     duruyordu, sınır değişse ikisi ayrışırdı). */
+  if (odeme === 'bakiye' && bakiyeYetmiyor(bakiyeDurumu(servisId).kullanilabilir, kdvliToplam)) {
     return {
-      hata: 'Bakiyeniz bu sipariş için yetmiyor; gönderilmeyi bekleyen siparişlerinizin tutarı bakiyenizden ayrıldı. Faturayla ödemeyi seçin.',
+      hata: 'Kullanılabilir bakiyeniz bu sipariş için yeterli değil. Gönderilmeyi bekleyen siparişlerinizin tutarı bakiyenizden ayrıldı. Faturayla ödemeyi seçin.',
       bakiyeYetmiyor: true,
     }
   }
@@ -3878,7 +4346,20 @@ export function servisOturumuGetir() {
      burada siliniyor (bkz. lib/storage.js → oturumYukle). */
   remove(ANAHTAR.servisOturum)
   const o = oturumYukle(ANAHTAR.servisOturum, null)
-  return o?.servisId ? o : null
+  if (!o?.servisId) return null
+
+  /* PANELİ KAPATILAN YA DA LİSTEDEN SİLİNEN SERVİSİN OTURUMU DÜŞÜYOR
+     (25 Eylül 2026, kullanıcı sınaması O6). Önce yalnız oturumun varlığına
+     bakılıyordu; PAKSAN servisin hesabını kapatsa da açık uygulama
+     çalışmaya devam ediyordu. Girişteki kuralın aynısı (servisGirisi):
+     yalnız açıkça kapatılmış hesap reddediliyor, alanı hiç yazılmamış
+     servis açık sayılıyor. */
+  const kayit = servisleriGetir().find((b) => b.id === o.servisId)
+  if (!kayit || kayit.panelAktif === false) {
+    oturumSil(ANAHTAR.servisOturum)
+    return null
+  }
+  return o
 }
 
 export function servisOturumuKapat(o) {
@@ -3917,8 +4398,12 @@ export async function servisSifresiniDegistir(servisId, yeniSifre, eskiSifre) {
     `${hedef.ad} panel şifresini değiştirdi`,
     'sifre',
   )
+  /* Oturum OTURUM DEPOSUNDA (sessionStorage). Burada kalıcı depoya
+     yazılıyordu; servisOturumuGetir o kopyayı silip oturum deposunu
+     okuduğu için `ilkGiris: true` kalıyor ve sayfa yenilenince şifre
+     ekranı yeniden açılıyordu (24 Eylül 2026). */
   const o = servisOturumuGetir()
-  if (o?.servisId === servisId) save(ANAHTAR.servisOturum, { ...o, ilkGiris: false })
+  if (o?.servisId === servisId) oturumKaydet(ANAHTAR.servisOturum, { ...o, ilkGiris: false })
   return { tamam: true }
 }
 
@@ -4016,11 +4501,24 @@ export function makineKayitlariGetir() {
    sözün tutulduğunu müşteri ancak bildirimle öğreniyor.
 
    NE ZAMAN GİDİYOR: makineye bakan servis — `kaydinServisi`'nin cevabı,
-   müşterinin uygulamasının da okuduğu — gerçekten DEĞİŞTİYSE ve yeni bir
-   servis varsa. Bu yüzden bayi değişikliği de bildirim doğurabiliyor:
-   bayinin servisi makineye geçiyor. Servis aynı kaldıysa (bayinin
-   servisi ile doğrudan atanan aynı servisse) sessiz. Atama kaldırıldıysa
-   bildirim yok; müşteri talep ekranında durumu görüyor.
+   müşterinin uygulamasının da okuduğu — gerçekten DEĞİŞTİYSE. Bu yüzden
+   bayi değişikliği de bildirim doğurabiliyor: bayinin servisi makineye
+   geçiyor. Servis aynı kaldıysa (bayinin servisi ile doğrudan atanan
+   aynı servisse) sessiz.
+
+   BİLDİRİM MAKİNENİN GÜNCEL DURUMUNU SÖYLÜYOR (25 Eylül 2026, kullanıcı
+   sınaması). Personel yanlış servisi seçip düzeltince çiftçinin
+   listesinde "artık A bakacak" ve "artık B bakacak" yan yana kalıyor,
+   hangisinin geçerli olduğunu hiçbir şey söylemiyordu. Atama
+   kaldırılınca hiç bildirim gitmiyordu: listede en son yanlış servis
+   kalıyor, çiftçi onu arıyordu. Şimdi:
+     - ilk atamada "atandı", önce başka servis bakıyorduysa "değişti"
+       (yanlış atamanın düzeltmesi de bayi değişikliği de böyle okunuyor)
+     - makinenin servisi kalmayınca "yeniden belirleniyor": eski
+       bildirimi geçersiz kılabilen tek şey yeni bir bildirim; telefona
+       düşmüş anlık bildirim geri alınamıyor
+     - Connect aynı makinenin yalnız SON atama bildirimini gösteriyor
+       (lib/bildirimler.js); eskisi silinmiyor, listeden düşüyor.
 
    KİME: satırdaki hesaba. Hesapsız satırda (servisin elle açtığı, sahibi
    uygulamayı kullanmayan makine) kimse yok; bildirim yazılmıyor.
@@ -4036,19 +4534,29 @@ export function makineAtamasiniKaydet(kayitId, yama, { ozet, personel } = {}) {
   islemYaz({ tur: 'makine', ozet, personel })
 
   const yeni = kaydinServisi(sonra)?.servis || null
-  if (yeni && yeni.id !== onceki && sonra.musteriId) {
-    musteriyeBildir({
-      musteriId: sonra.musteriId,
-      tur: 'makine',
-      baslikAnahtar: 'bildirimler.servisAtandiBaslik',
-      metinAnahtar: 'bildirimler.servisAtandiMetin',
-      degerler: {
-        makine: getProduct(sonra.productId)?.name || '',
-        seri: formatSerial(sonra.seri),
-        servis: yeni.ad,
-      },
-    })
+  if (!sonra.musteriId || (yeni?.id || null) === onceki) return sonra
+
+  const degerler = {
+    makine: getProduct(sonra.productId)?.name || '',
+    seri: formatSerial(sonra.seri),
   }
+  musteriyeBildir(
+    yeni
+      ? {
+          musteriId: sonra.musteriId,
+          tur: 'makine',
+          baslikAnahtar: onceki ? 'bildirimler.servisDegistiBaslik' : 'bildirimler.servisAtandiBaslik',
+          metinAnahtar: 'bildirimler.servisAtandiMetin',
+          degerler: { ...degerler, servis: yeni.ad },
+        }
+      : {
+          musteriId: sonra.musteriId,
+          tur: 'makine',
+          baslikAnahtar: 'bildirimler.servisKaldirildiBaslik',
+          metinAnahtar: 'bildirimler.servisKaldirildiMetin',
+          degerler,
+        },
+  )
   return sonra
 }
 
@@ -4077,18 +4585,34 @@ export function islemYaz({ tur, ozet, personel, rol }) {
      tarayıcıda personel de backoffice'e girmişse rol daha da yanlış
      oluyordu — servisin işlemi personelin rolüyle yazılıyordu.
 
-     Karar tarayıcıya değil, çalışan derlemeye ait (src/lib/urun.js). */
+     Karar tarayıcıya değil, çalışan derlemeye ait (src/lib/urun.js).
+
+     Backoffice'te önce BU SEKMENİN oturumu (25 Eylül 2026, O6): kalıcı
+     depodaki son giriş başka sekmenin kişisi olabilir. Kalıcı depo
+     yalnız sekmenin oturumu hiç yoksa yedek, o da yalnız işlem aynı
+     kişi adına yazılıyorsa (ya da ad verilmediyse). Giriş ekranındaki
+     "Şifremi unuttum" isteği sekmesi oturumsuz bir personelin işlemi;
+     tarayıcıdaki son giriş başka birininse onun rolü bu kayda yazılmaz.
+
+     ROL VE AD PERSONEL KAYDINDAN (25 Eylül 2026, inceleme). Oturumun
+     taşıdığı rol girişteki kopya; rolü sonradan değişen kişinin ekranı
+     yeni rolle çalışırken (oturumGetir) işlem kaydı eski rolü
+     yazıyordu. Rol, oturumun personel kimliğiyle kayıttan okunuyor. */
   const serviste = urun() === 'servis'
-  const oturum = serviste
-    ? oturumYukle(ANAHTAR.servisOturum, null)
-    : load(ANAHTAR.oturum, null)
+  let oturum = serviste ? oturumYukle(ANAHTAR.servisOturum, null) : oturumYukle(ANAHTAR.oturum, null)
+  const kaydi = (o) => (o?.personelId ? personelGetir().find((p) => p.id === o.personelId) : null)
+  if (!serviste && !oturum) {
+    const son = load(ANAHTAR.oturum, null)
+    if (son && (!personel || personel === (kaydi(son)?.ad || son.ad))) oturum = son
+  }
+  const kisi = serviste ? null : kaydi(oturum)
   const kayit = {
     id: uid(),
     tarih: Date.now(),
     tur,
     ozet,
-    personel: personel || oturum?.ad || '—',
-    rol: rol || (serviste ? 'servis' : oturum?.rol) || null,
+    personel: personel || kisi?.ad || oturum?.ad || '—',
+    rol: rol || (serviste ? 'servis' : kisi?.rol || oturum?.rol) || null,
   }
   save(ANAHTAR.islemKaydi, [kayit, ...islemKaydiGetir()].slice(0, 500))
   return kayit

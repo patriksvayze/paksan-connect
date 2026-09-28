@@ -1,17 +1,22 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useApp } from '../context/AppState'
 import { useDil } from '../i18n'
 import { TopBar, TabBar, Sheet } from '../components/Chrome'
 import { EkAlani } from '../components/EkAlani'
 import { SesKaydi } from '../components/SesKaydi'
-import { eklemeOlustur, eklemeleri, eklemeYapilabilir } from '../lib/talepEkleme'
+import {
+  eklemeOlustur, eklemeleri, eklemeYapilabilir,
+  eklemeyiServiseBildir, sorunDevaminiServiseBildir,
+} from '../lib/talepEkleme'
 import { getProduct, urunDilde } from '../marka'
 import { alanEtiketi } from '../data/talepAlanlari'
 import { formatSerial } from '../lib/serial'
 import { servisleriGetir } from '../marka'
 import { PARA_BIRIMI, paraYaz } from '../marka'
-import { talepTuru } from '../lib/talep'
+import { gecmisSatiriAnahtari, musteriDurumAnahtari, talepTuru } from '../lib/talep'
+import { makineninKendiServisiMi } from '../lib/servisAtama'
+import { sorunDevamEngeli } from '../lib/makineTalepleri'
 import { talebinParcalari } from '../lib/servisKaydi'
 import { ParcaResmi, useParcaKatalogu } from '../components/ParcaResmi'
 import { ekAdresi } from '../lib/ekler'
@@ -57,7 +62,8 @@ function paraliYaz(deger) {
 export default function RequestDetail() {
   const { id } = useParams()
   const nav = useNavigate()
-  const { requests, updateRequest, showToast } = useApp()
+  const konum = useLocation()
+  const { requests, kaldirilanTalepler, talebiGeriAl, updateRequest, showToast } = useApp()
   const { t, dil } = useDil()
 
   /* Sonradan ekleme penceresi ve içindeki alanlar. */
@@ -92,6 +98,38 @@ export default function RequestDetail() {
   ]
   const eklenebilir = eklemeYapilabilir(r)
 
+  /* Talep formundan "Talebime Ekleme Yap" ile gelindiyse ekleme
+     penceresi açık geliyor (kullanıcı sınaması O5: aynı makinede işi
+     süren talep varken ikinci talep açılmıyor, çiftçi buraya
+     yönlendiriliyor). Adres işaretsiz hâliyle yeniden yazılıyor ki
+     geri dönüşte pencere tekrar açılmasın.
+
+     Formdan gelen açıklama notun içinde (25 Eylül 2026, inceleme):
+     Destek ekranından "Servis Talebi" ile gelen çiftçinin arıza özeti
+     formda duruyordu; form gizlenince özet yolda kalıyor, çiftçi
+     Destek'te anlattığını yeniden yazmak zorunda kalıyordu.
+
+     Bağımlılık adres (`konum.key`): bu ekrandan başka bir talebin
+     ekleme penceresine gidilince (aşağıda, kapanmış talepte süren iş)
+     bileşen yeniden kurulmuyor, yalnız adres değişiyor. */
+  useEffect(() => {
+    if (konum.state?.ekleme && eklenebilir) {
+      setEklemeHata('')
+      setYeniNot(konum.state.not || '')
+      setEklemePenceresi(true)
+      nav('/talebim/' + id, { replace: true })
+    }
+  }, [konum.key]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* KAPANMIŞ TALEBİN MAKİNESİNDE BAŞKA İŞ SÜRÜYORSA (25 Eylül 2026,
+     inceleme). "Sorun Devam Ediyor" kapanmış talebi yeniden açıyor;
+     aynı makinede işi süren başka bir servis talebi varken bu, formdaki
+     O5 engelinin atlandığı ikinci yoldu: makinede iki açık talep
+     oluşuyordu. O durumda düğmenin yerinde formdaki kart: süren talebe
+     ekleme yolu (lib/makineTalepleri.js → sorunDevamEngeli). Sınaması
+     AK-32 ve ekran turu C-30. */
+  const surenBaskaIs = sorunDevamEngeli(r, requests)
+
   const tarihYaz = (z, saatli = true) => {
     if (!z) return ''
     const d = new Date(z)
@@ -100,24 +138,52 @@ export default function RequestDetail() {
     return g + ' · ' + d.toLocaleTimeString(yerel, { hour: '2-digit', minute: '2-digit' })
   }
 
-  /* Talep silinmiş olabilir — profil listesinden kaydırıp silmek
-     serbest. O durumda boş ekran değil, ne olduğunu anlatan bir yazı. */
+  /* Talep listede yoksa boş ekran değil, ne olduğunu anlatan bir yazı.
+
+     MÜŞTERİ KENDİSİ KALDIRDIYSA (25 Eylül 2026, kullanıcı sınaması O9)
+     ayrı yazı ve geri alma düğmesi: bildirimden ya da eski bir
+     bağlantıdan gelen kişi "silinmiş" sanmasın. Geri alınınca ekran
+     talebin kendisini gösteriyor. Öteki durumda (başka hesabın talebi,
+     gerçekten yok) talepler ekranına yol. */
   if (!r) {
+    const kaldirilan = kaldirilanTalepler.find((x) => x.id === id)
     return (
       <div className="app">
         <TopBar title={t('talepDetay.baslik')} back="auto" />
         <div className="screen wrap">
           <div className="empty" style={{ paddingTop: 60 }}>
             <IconInfo size={58} />
-            <h2 style={{ fontSize: 19, marginTop: 12 }}>{t('talepDetay.yokBaslik')}</h2>
-            <p style={{ marginTop: 8, lineHeight: 1.6 }}>{t('talepDetay.yokAlt')}</p>
-            <button
-              className="btn btn--primary"
-              style={{ marginTop: 22 }}
-              onClick={() => nav('/profil')}
-            >
-              {t('talep.taleplerimiGor')}
-            </button>
+            {kaldirilan ? (
+              <>
+                <h2 style={{ fontSize: 19, marginTop: 12 }}>{t('talepDetay.kaldirildiBaslik')}</h2>
+                <p style={{ marginTop: 8, lineHeight: 1.6 }}>
+                  {t('talepDetay.kaldirildiAlt', { no: kaldirilan.no })}
+                </p>
+                <button
+                  className="btn btn--primary"
+                  style={{ marginTop: 22 }}
+                  data-eylem="talep-geri-al"
+                  onClick={() => {
+                    talebiGeriAl(kaldirilan.id)
+                    showToast(t('profil.geriAlindi'))
+                  }}
+                >
+                  {t('profil.geriAl')}
+                </button>
+              </>
+            ) : (
+              <>
+                <h2 style={{ fontSize: 19, marginTop: 12 }}>{t('talepDetay.yokBaslik')}</h2>
+                <p style={{ marginTop: 8, lineHeight: 1.6 }}>{t('talepDetay.yokAlt')}</p>
+                <button
+                  className="btn btn--primary"
+                  style={{ marginTop: 22 }}
+                  onClick={() => nav('/taleplerim')}
+                >
+                  {t('talep.taleplerimiGor')}
+                </button>
+              </>
+            )}
           </div>
         </div>
         <TabBar />
@@ -151,7 +217,10 @@ export default function RequestDetail() {
           <div className="row" style={{ gap: 12, alignItems: 'center' }}>
             <DurumIkon durum={durum} />
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 800, fontSize: 17 }}>{t('talepDurum.' + durum)}</div>
+              {/* Durumun müşterinin gördüğü adı türe göre: parçada
+                  `planlandi` gönderim günü (lib/talep.js →
+                  musteriDurumAnahtari). */}
+              <div style={{ fontWeight: 800, fontSize: 17 }}>{t(musteriDurumAnahtari(r, durum))}</div>
               <div className="small muted" style={{ marginTop: 2 }}>
                 {tarihYaz(sonDegisim(r) || r.createdAt)}
               </div>
@@ -210,8 +279,12 @@ export default function RequestDetail() {
           </Kutu>
         )}
 
+        {/* Yedek parçada planlanan şey randevu değil, gönderim günü. */}
         {r.plan && durum === 'planlandi' && (
-          <Kutu ad={t('talepDetay.randevuBaslik')} ton="turuncu">
+          <Kutu
+            ad={r.tur === 'parca' ? t('talepDetay.gonderimBaslik') : t('talepDetay.randevuBaslik')}
+            ton="turuncu"
+          >
             <div style={{ fontWeight: 800, fontSize: 16 }}>{r.plan.tarihYazi}</div>
             <p className="detay-metin">{r.plan.is}</p>
             <Imza personel={r.plan.personel} tarih={tarihYaz(r.plan.kayitTarihi)} />
@@ -236,6 +309,17 @@ export default function RequestDetail() {
                 kataloğundan geliyor (bkz. data/talepAlanlari.js), İngilizce
                 karşılığı yok. Kod iki dilde aynı olduğu için yeterli. */}
             <Satir k={t('talepDetay.degisenParca')} v={kutuCozum.parcalar} />
+            {/* KARGO KAPANIŞIN İÇİNDE (25 Eylül 2026, kullanıcı sınaması).
+                Müşterinin parça talebinde kargo firması ve takip numarası
+                kapanışta yazılıyor ve kapanış bildirimiyle gidiyor
+                (backoffice/veri.js → talepKapat, talebin `parcaSevk`
+                alanı). Burada da duruyor: bildirim kapatılsa da takip
+                numarası talepte kalsın. */}
+            <Satir
+              k={t('talepDetay.kargo')}
+              v={r.tur === 'parca' ? [r.parcaSevk?.firma, r.parcaSevk?.takipNo].filter(Boolean).join(' · ') : ''}
+              mono
+            />
             <Satir k={t('talepDetay.ucret')} v={kayitYazisi(kutuCozum.ucret, t)} vurgu />
             {/* Seçenekler kayda HER ZAMAN Türkçe yazılıyor (bkz.
                 data/talepAlanlari.js); ekranda kullanıcının dilinde
@@ -308,13 +392,44 @@ export default function RequestDetail() {
         </div>
         <div className="card" style={{ padding: 16 }}>
           <Satir k={t('talepDetay.acildi')} v={tarihYaz(r.createdAt)} />
+          {/* SERVİSİN AÇTIĞI İŞ (26 Eylül 2026, ikinci kullanıcı sınaması).
+              Servis dükkâna gelen ya da telefon eden müşteri için talebi
+              Servisim'den açıyor (`elle`); kayıtlı müşteriyse talep
+              hesabına bağlanıyor ve burada "Talebiniz" başlığıyla, servisin
+              ağzından yazılmış açıklamayla görünüyordu. Çiftçi kimin
+              açtığını anlayamadı. */}
+          {r.elle && r.servis?.ad && (
+            <Satir k={t('talepDetay.acan')} v={t('talepDetay.acanServis', { servis: r.servis.ad })} />
+          )}
           {urun && (
             <>
               <Satir k={t('talepDetay.makine')} v={urun.name} />
               <Satir k={t('talepDetay.seriNo')} v={formatSerial(r.makine.serial)} mono />
             </>
           )}
+          {/* Servisin geleceği yer (25 Eylül 2026, kullanıcı sınaması):
+              çiftçi formda yazdığı adresi burada göremiyordu; backoffice
+              ve Servisim gösteriyordu. Parçada teslimat adresi Ödeme
+              kutusunda. */}
+          {r.tur === 'servis' && (
+            <Satir
+              k={t('talep.servisGelecegiAdres')}
+              v={[r.adres, r.ilce ? `${r.ilce} / ${r.il}` : r.il].filter(Boolean).join(' · ')}
+            />
+          )}
           {teklifUrun && <Satir k={t('talepDetay.ilgilenilen')} v={teklifUrun.name} />}
+          {/* TEKLİFİN CEVAPLARI (26 Eylül 2026, ikinci kullanıcı sınaması).
+              Çiftçi formda balyalayacağı ürünü, arazisini ve traktörünü
+              seçiyor; backoffice görüyordu, çiftçi kendi talebinde
+              göremiyor ve yazdıklarının nereye gittiğini soruyordu.
+              Değerler kayıtta Türkçe, virgülle; her biri dile çevriliyor. */}
+          {r.tur === 'satinalma' && (
+            <>
+              <Satir k={t('talepDetay.balyalanacakUrun')} v={cevaplariYaz(r.urunTipi, dil)} />
+              <Satir k={t('talepDetay.arazi')} v={cevaplariYaz(r.arazi, dil)} />
+              <Satir k={t('talepDetay.traktorGucu')} v={alanEtiketi(r.traktor, dil)} />
+            </>
+          )}
           <Satir
             k={t('talepDetay.belirtiler')}
             v={(r.belirtiler || []).map((x) => alanEtiketi(x, dil)).join(' · ')}
@@ -378,15 +493,20 @@ export default function RequestDetail() {
              doğru yol o. İki yazı birbiriyle çelişmemeli.
              Bayiye iletilmiş teklifte de öyle: yukarıda bayinin adı ve
              telefonu duruyor, müşteriyi oraya yönlendiriyoruz. */
-          <p className="small muted" style={{ marginTop: 16, lineHeight: 1.6 }}>
-            {t(
-              r.tur === 'servis' && durum === 'kapandi'
-                ? 'talepDetay.eklemeKapaliServis'
-                : durum === 'bayiyeIletildi'
-                  ? 'talepDetay.eklemeBayide'
-                  : 'talepDetay.eklemeKapali',
-            )}
-          </p>
+          /* Makinede başka iş sürüyorsa ipucu yok: aşağıdaki kart o
+             talebe ekleme yolunu gösteriyor; "düğmeyle yeniden açın" ya
+             da "yeni talep açın" ikisi de yanlış olurdu. */
+          !surenBaskaIs && (
+            <p className="small muted" style={{ marginTop: 16, lineHeight: 1.6 }}>
+              {t(
+                r.tur === 'servis' && durum === 'kapandi'
+                  ? 'talepDetay.eklemeKapaliServis'
+                  : durum === 'bayiyeIletildi'
+                    ? 'talepDetay.eklemeBayide'
+                    : 'talepDetay.eklemeKapali',
+              )}
+            </p>
+          )
         )}
 
         {/* --------------------------------------------------------- Geçmiş */}
@@ -408,7 +528,7 @@ export default function RequestDetail() {
                       'cizelge__a' + (i === r.gecmis.length - 1 ? ' cizelge__a--son' : '')
                     }
                   >
-                    <div className="cizelge__ad">{t('talepDurum.' + g.durum)}</div>
+                    <div className="cizelge__ad">{t(gecmisSatiriAnahtari(r, g))}</div>
                     <div className="small muted">{tarihYaz(g.tarih)}</div>
                   </div>
                 ))}
@@ -444,8 +564,23 @@ export default function RequestDetail() {
             YALNIZ SERVİS TALEBİNDE VE YALNIZ KAPANDIYSA. İptal edilmiş
             talepte yapılmış bir iş yok; parça talebinde de "sorun"
             diye bir şey yok, parça geldi ya da gelmedi. */}
-        {r.tur === 'servis' && durum === 'kapandi' && (
-          <div className="card" style={{ marginTop: 22, padding: 16 }}>
+        {surenBaskaIs && (
+          <div className="uyari-kart" role="status" style={{ marginTop: 22 }} data-eylem="suren-talebe-ekle">
+            <strong style={{ display: 'block' }}>{t('talep.acikTalepBaslik')}</strong>
+            <p style={{ margin: '6px 0 0', lineHeight: 1.55 }}>
+              {t('talep.acikTalepAlt', { no: surenBaskaIs.no })}
+            </p>
+            <button
+              className="btn btn--primary"
+              style={{ marginTop: 12 }}
+              onClick={() => nav('/talebim/' + surenBaskaIs.id, { state: { ekleme: true } })}
+            >
+              <IconPlus size={20} /> {t('talepDetay.eklemeYap')}
+            </button>
+          </div>
+        )}
+        {r.tur === 'servis' && durum === 'kapandi' && !surenBaskaIs && (
+          <div className="card" style={{ marginTop: 22, padding: 16 }} data-eylem="sorun-devam">
             <div className="card__title">{t('talepDetay.devamBaslik')}</div>
             <div className="card__sub" style={{ marginTop: 4, lineHeight: 1.6 }}>
               {t('talepDetay.devamAlt')}
@@ -460,13 +595,19 @@ export default function RequestDetail() {
           </div>
         )}
 
-        {/* Geri açıldıysa en son ne yazıldığı burada duruyor. */}
+        {/* Geri açıldıysa en son ne yazıldığı burada duruyor.
+
+            EN YENİSİ ÜSTTE, TARİH YAZININ ÜSTÜNDE (26 Eylül 2026, ikinci
+            kullanıcı sınaması). Tarih yazının altındaydı ve en eskisi
+            üstteydi: açıklaması boş ilk bildirim yalnız tarihiyle kartın
+            başında duruyordu; çiftçi onu kartın tarihi sandı, az önce
+            yazdığı notun kaydedilip kaydedilmediğinden emin olamadı. */}
         {(r.tekrar || []).length > 0 && durum !== 'kapandi' && (
           <Kutu ad={t('talepDetay.devamBildirildi')} ton="turuncu">
-            {r.tekrar.map((x, i) => (
+            {[...r.tekrar].reverse().map((x, i) => (
               <div key={i} style={{ marginBottom: 8 }}>
-                {x.aciklama && <p className="detay-metin">{x.aciklama}</p>}
                 <div className="small muted">{tarihYaz(x.tarih)}</div>
+                {x.aciklama && <p className="detay-metin">{x.aciklama}</p>}
               </div>
             ))}
           </Kutu>
@@ -478,7 +619,15 @@ export default function RequestDetail() {
               className="btn btn--soft"
               {...araProps(servis.tel, telFirma(servis.tel), showToast)}
             >
-              <IconPhone size={20} /> {t('talepDetay.servisiAra')}
+              {/* İşi yürüten servis makinenin BUGÜNKÜ servisi değilse
+                  (servis işi atama dışında açtı ya da atama sonradan
+                  değişti) ona "Servisiniz" denmiyor: ana ekran makinenin
+                  servisini "Servisim" diye gösteriyor, iki ekran
+                  birbirini tutmuyordu (25 Eylül 2026, kullanıcı sınaması
+                  Y5). İki çağrı da düz yazılı ki `npm run dogrula`
+                  anahtarları görsün. */}
+              <IconPhone size={20} />{' '}
+              {makineninKendiServisiMi(r) ? t('talepDetay.servisiAra') : t('talepDetay.talebinServisiniAra')}
             </a>
           )}
           {servis?.ad && (
@@ -536,6 +685,11 @@ export default function RequestDetail() {
                  içi boş bir satır belirmesin. */
               if (!kayit) return setEklemeHata(t('talepDetay.eklemeBos'))
               updateRequest(r.id, { eklemeler: [...(r.eklemeler || []), kayit] })
+              /* İşi servis yürütüyorsa ekleme ona bildirim olarak gidiyor
+                 (kullanıcı sınaması O5); yoksa yalnız talebin içinde
+                 duruyordu ve servisin haberi olmuyordu. Kural
+                 lib/talepEkleme.js'te. */
+              eklemeyiServiseBildir(r)
               setYeniNot('')
               setYeniSes(null)
               setYeniEkler([])
@@ -583,6 +737,10 @@ export default function RequestDetail() {
                 tekrar: [...(r.tekrar || []), kayit],
                 gecmis: [...(r.gecmis || []), { durum: 'yeni', tarih: kayit.tarih }],
               })
+              /* Servise bildirim (25 Eylül 2026): talep Servisim'de
+                 yeniden "yeni iş" oluyordu ama nedenini söyleyen bir
+                 bildirim yoktu. Açıklama talebin `tekrar` alanında. */
+              sorunDevaminiServiseBildir(r)
               setDevamNot('')
               setDevamPenceresi(false)
               showToast(t('talepDetay.devamAlindi'))
@@ -622,6 +780,17 @@ function Kutu({ ad, ton, children }) {
       {children}
     </div>
   )
+}
+
+/* Formun çoklu seçimi kayıtta virgülle birleşik Türkçe (RequestForm.jsx →
+   urunTipi, arazi); her parça ayrı çevriliyor. */
+function cevaplariYaz(deger, dil) {
+  return String(deger || '')
+    .split(',')
+    .map((x) => x.trim())
+    .filter(Boolean)
+    .map((x) => alanEtiketi(x, dil))
+    .join(', ')
 }
 
 function Satir({ k, v, mono, vurgu }) {

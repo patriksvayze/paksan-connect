@@ -6,6 +6,7 @@ import { uygulamaKaydi } from '../lib/kayit'
 import { sunucuyaGonder } from '../lib/sunucu'
 import { ihracatPostasi } from '../lib/ihracat'
 import { talepKaydiOlustur } from '../lib/talepOlustur'
+import { gorunenTalepler, kaldirilanTalepler } from '../lib/musterininTalepleri'
 import { normalizeSerial } from '../lib/serial'
 import { servisGruplari } from '../lib/servisAtama'
 import { SUNUCU } from '../config'
@@ -26,13 +27,21 @@ export function AppProvider({ children }) {
   const [machines, setMachines] = useState(() => load('machines', []))
   const [requests, setRequests] = useState(() => load('requests', []))
   const requestsRef = useRef(requests)
+  /* DEPODAKİ GÜNCEL LİSTENİN ÜSTÜNE YAZILIYOR (24 Eylül 2026).
+
+     Talepler deposu backoffice ve Servisim ile ortak. Değişiklik önce
+     bellekteki listeye uygulanıp liste depoya BÜTÜNÜYLE yazılıyordu;
+     bellekteki liste yalnız sekme odağa gelince tazeleniyordu. Arada
+     başka uygulama bir talebe dokunduysa (hak edişi onaylandı, parça
+     gönderildi) Connect'in ilk yazımı o değişikliği geri alıyordu —
+     cari hareket ise yerinde kalıyordu. Artık her yazım depodaki
+     listeden başlıyor. Yan etki güncelleyicinin dışında: React
+     güncelleyiciyi iki kez çağırabilir, depoya iki kez yazılmasın. */
   const requestsGuncelle = useCallback((guncelle) => {
-    setRequests((liste) => {
-      const yeni = guncelle(liste)
-      requestsRef.current = yeni
-      save('requests', yeni)
-      return yeni
-    })
+    const yeni = guncelle(load('requests', []))
+    save('requests', yeni)
+    requestsRef.current = yeni
+    setRequests(yeni)
   }, [])
   /* Müşterinin KENDİ LİSTESİNDEN kaldırdığı taleplerin kimlikleri.
 
@@ -108,22 +117,34 @@ export function AppProvider({ children }) {
       return eksik.length ? { ...g, [tur]: [...g[tur], ...eksik] } : g
     })
   }, [])
+  /* Liste burada depoya YAZILMIYOR: yazan tek yer requestsGuncelle. Bu
+     etki eskiden her değişimde bellekteki listeyi depoya geri yazıyordu;
+     başkasının değişikliğini ezen yol buydu. */
   useEffect(() => {
     requestsRef.current = requests
-    save('requests', requests)
   }, [requests])
   useEffect(() => {
     const yenile = () => {
       const disaridaki = load('requests', [])
       if (JSON.stringify(disaridaki) !== JSON.stringify(requestsRef.current)) {
+        requestsRef.current = disaridaki
         setRequests(disaridaki)
       }
+      /* Hesap da dışarıdan değişebiliyor: PAKSAN numara değişikliğini
+         onaylayınca telefon `hesap`ta değişiyor (backoffice/veri.js →
+         numaraTalebiKarar). Açık oturum eski numarayla kalırsa bir
+         sonraki profil düzenlemesi eski numarayı geri yazardı. */
+      const hesap = load('hesap', null)
+      setUser((u) => (u && hesap?.id === u.id && JSON.stringify(hesap) !== JSON.stringify(u) ? hesap : u))
     }
     window.addEventListener('focus', yenile)
     document.addEventListener('visibilitychange', yenile)
+    /* Aynı tarayıcıda başka sekme (backoffice, Servisim) depoya yazınca. */
+    window.addEventListener('storage', yenile)
     return () => {
       window.removeEventListener('focus', yenile)
       document.removeEventListener('visibilitychange', yenile)
+      window.removeEventListener('storage', yenile)
     }
   }, [])
   useEffect(() => save('chats', chats), [chats])
@@ -141,15 +162,26 @@ export function AppProvider({ children }) {
 
      Depoya yazılan liste süzülmüyor: süzülseydi paylaşılan depodaki
      servis kayıtları silinirdi. Müşterinin kendi listesinden
-     kaldırdıkları da aynı süzgeçten geçiyor. */
-  const gorunenTalepler = useMemo(
-    () =>
-      requests.filter(
-        (r) =>
-          !r.servisSiparisi &&
-          (!r.elle || (user && r.musteriId === user.id)) &&
-          !gizlenenTalepler.includes(r.id),
-      ),
+     kaldırdıkları da aynı süzgeçten geçiyor.
+
+     HESABA GÖRE (24 Eylül 2026). Telefonu başkası devraldığında
+     öncekinin talepleri artık depodan silinmiyor (bkz. login); yeni
+     kişi yalnız kendi taleplerini görüyor. Talep 24 Eylül'den beri
+     açanın hesap kimliğini taşıyor (addRequest); daha eskisinde kimlik
+     yok, telefon numarasına bakılıyor.
+
+     KURAL ARTIK lib/musterininTalepleri.js'te (25 Eylül 2026): burada
+     dururken sınanamıyordu. Kimin talebi olduğu da oradan
+     lib/musteriEslesmesi.js'e bağlı; backoffice'in müşteri kartıyla
+     aynı kural, servisin elle açtığı kimliksiz iş istisnasıyla. */
+  const gorunen = useMemo(
+    () => gorunenTalepler(requests, user, gizlenenTalepler),
+    [requests, user, gizlenenTalepler],
+  )
+  /* Müşterinin kendi listesinden kaldırdıkları: Taleplerim ekranında
+     ayrı bölümde, geri alma düğmesiyle (kullanıcı sınaması O9). */
+  const kaldirilan = useMemo(
+    () => kaldirilanTalepler(requests, user, gizlenenTalepler),
     [requests, user, gizlenenTalepler],
   )
   useEffect(() => save('gizlenenTalepler', gizlenenTalepler), [gizlenenTalepler])
@@ -181,24 +213,23 @@ export function AppProvider({ children }) {
        ülkelerde farklı kişidir. */
     const anahtar = (h) => (h ? telAnahtar(h.ulke, h.tel) : '')
     if (onceki && anahtar(onceki) !== anahtar(data)) {
+      /* Yalnız bu telefona ait defterler sıfırlanıyor. */
       setMachines([])
       setGorulenler(null)
-      requestsGuncelle(() => [])
       setChats({})
       setGizlenenTalepler([])
 
-      /* BİLDİRİMLER DE SİLİNİYOR. Duyuru kaydında kimin olduğu
-         yazmıyor: kalsaydı telefonu devralan kişi önceki müşterinin
-         talep numaralarını, personel notlarını ve atanan bayisini
-         okuyordu. Aynı yol yalnız bu kişiye ait öteki defterleri de
-         bırakıyordu — destek yazışması, geri bildirim ve numara
-         değişikliği talebi. Anahtar adları backoffice’teki ANAHTAR
-         listesiyle aynı; uygulama backoffice’in kodunu almıyor. */
-      for (const anahtarAdi of [
-        'duyurular', 'destekLog', 'geribildirim', 'numaraTalepleri',
-      ]) {
-        remove(anahtarAdi)
-      }
+      /* ORTAK DEPOLAR SİLİNMİYOR (24 Eylül 2026). Burada talepler,
+         bildirimler, destek yazışmaları, geri bildirimler ve numara
+         değişikliği talepleri de siliniyordu: telefonu devralan kişi
+         öncekinin kayıtlarını görmesin diye. Ama bu depolar backoffice
+         ve Servisim ile ortak; silmek PAKSAN'ın ve servislerin bütün
+         kayıtlarını (servis siparişleri, elle açılan işler dahil)
+         yok ediyordu. Gizlilik artık okurken sağlanıyor: talep listesi
+         hesaba göre süzülüyor (aşağıda gorunenTalepler), kişisel
+         bildirim ve numara talebi zaten hesap kimliğiyle
+         (lib/duyuruHedef.js, lib/numaraTalebi.js); destek yazışması ve
+         geri bildirim Connect'te hiç okunmuyor. */
     }
 
     /* Müşteri numarası kayıtta veriliyor; telefonda konuşurken kaydı
@@ -207,7 +238,7 @@ export function AppProvider({ children }) {
     setUser(yeni)
     save('hesap', yeni)
     uygulamaKaydi('musteri', `${yeni.no} ${yeni.ad} hesap açtı`)
-  }, [requestsGuncelle])
+  }, [])
 
   /* Var olan hesapla giriş — kayıt kaydını olduğu gibi geri yükler.
      Sunucu geldiğinde makine ve talep listesi de burada set edilecek. */
@@ -219,7 +250,10 @@ export function AppProvider({ children }) {
   const updateUser = useCallback((patch) => {
     setUser((u) => {
       if (!u) return u
-      const yeni = { ...u, ...patch }
+      /* Depodaki hesap aynı kişininse onun üstüne: PAKSAN arada
+         telefonu değiştirmiş olabilir (bkz. yukarıdaki yenile). */
+      const depodaki = load('hesap', null)
+      const yeni = { ...u, ...(depodaki?.id === u.id ? depodaki : {}), ...patch }
       save('hesap', yeni)
       return yeni
     })
@@ -342,6 +376,17 @@ export function AppProvider({ children }) {
     setGizlenenTalepler((liste) => (liste.includes(id) ? liste : [...liste, id]))
   }, [])
 
+  /* Kaldırılan talebi listeye geri alır (25 Eylül 2026, kullanıcı
+     sınaması O9). Kaldırma yalnız bu telefonun gizleme defterine
+     yazıyordu ve defterden çıkaran bir yol yoktu; onay metni ise geri
+     dönüş yolu varmış gibi yazıyordu. Kimlik defterden çıkıyor, talep
+     listeye dönüyor. */
+  const talebiGeriAl = useCallback((id) => {
+    const r = requestsRef.current.find((x) => x.id === id)
+    if (r) uygulamaKaydi('talep', `${r.no} müşteri tarafından kendi listesine geri alındı`)
+    setGizlenenTalepler((liste) => liste.filter((x) => x !== id))
+  }, [])
+
   /* --------------------------------------------------------------- Sohbet */
 
   const getChat = useCallback((key) => chats[key] || [], [chats])
@@ -376,10 +421,12 @@ export function AppProvider({ children }) {
       updateMachine,
       removeMachine,
       hasSerial,
-      requests: gorunenTalepler,
+      requests: gorunen,
+      kaldirilanTalepler: kaldirilan,
       addRequest,
       updateRequest,
       removeRequest,
+      talebiGeriAl,
       getChat,
       pushChat,
       clearChat,
@@ -396,7 +443,7 @@ export function AppProvider({ children }) {
     [
       user, login, girisYap, logout, updateUser,
       machines, addMachine, updateMachine, removeMachine, hasSerial,
-      gorunenTalepler, addRequest, updateRequest, removeRequest,
+      gorunen, kaldirilan, addRequest, updateRequest, removeRequest, talebiGeriAl,
       getChat, pushChat, clearChat,
       okunanBildirimler, bildirimOku, bildirimleriOku,
       gorulenler, gorulduIsaretle,

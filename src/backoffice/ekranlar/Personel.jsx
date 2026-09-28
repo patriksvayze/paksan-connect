@@ -223,7 +223,12 @@ function DemoKutusu({ bildir, tazele, surum }) {
             className="dg"
             disabled={calisiyor || !dolu}
             onClick={() => {
-              if (!confirm('Demo kayıtları silinecek. Gerçek kayıtlara dokunulmaz.')) return
+              /* Demo talebinde yapılmış işlemin hesap hareketi ve
+                 bildirimi de demoyla gidiyor (25 Eylül 2026, kullanıcı
+                 sınaması; bkz. demo.js → demoTemizle). Pencere bunu
+                 önceden söylüyor: kalan cari satırı yoksa personel
+                 bakiyenin neden değiştiğini sormasın. */
+              if (!confirm('Demo kayıtları, bu taleplere ait hesap hareketleri ve bildirimlerle birlikte silinecek. Gerçek kayıtlar silinmez.')) return
               demoTemizle()
               tazele()
               bildir('Demo verisi temizlendi')

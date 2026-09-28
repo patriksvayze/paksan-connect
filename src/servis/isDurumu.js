@@ -1,4 +1,5 @@
-import { gecikmisMi } from '../backoffice/veri'
+import { gecikmisMi, KAPALI_DURUMLAR } from '../backoffice/veri'
+import { buZiyaretinKaydi } from '../lib/servisKaydi'
 
 /* ==========================================================================
    Servisim'de bir işin hangi bölümde durduğu ve gecikip gecikmediği
@@ -9,11 +10,17 @@ import { gecikmisMi } from '../backoffice/veri'
    ========================================================================== */
 
 /* Servisin henüz el sürmediği iş: randevu verilmemiş, kayıt açılmamış,
-   PAKSAN'a devredilmemiş, parça ya da onay beklemiyor. */
+   PAKSAN'a devredilmemiş, parça ya da onay beklemiyor.
+
+   Kayıt BU ZİYARETİN kaydı (26 Eylül 2026, ikinci kullanıcı sınaması):
+   yeniden açılan işte geçen ziyaretin kaydı talepte duruyor; iş o yüzden
+   "Yeni"ye hiç düşmüyor, 48 saat şeridi de çıkmıyordu (bkz.
+   lib/servisKaydi.js → buZiyaretinKaydi). Geçen ziyaretin randevusu
+   (`plan`) ise hâlâ sayılıyor: iş "Devam Eden"de, Randevu düğmesiyle. */
 export function dokunulmamis(t) {
   return (
     !t.plan &&
-    !t.servisKaydi &&
+    !buZiyaretinKaydi(t) &&
     !t.devir &&
     !['parcaBekliyor', 'onayBekliyor'].includes(t.status)
   )
@@ -37,4 +44,28 @@ export function dokunulmamis(t) {
    görünüyor: "Bugün" kutusunda geçmiş tarihli satır olarak. */
 export function servisGecikti(t) {
   return dokunulmamis(t) && gecikmisMi(t)
+}
+
+/* İŞLERİM ROZETİ YENİ İŞİ SAYIYOR (kullanıcı sınaması, 24 Eylül 2026).
+
+   Alt çubuktaki rozet servisin AÇIK İŞLERİNİN TAMAMINI sayıyordu:
+   randevulu, parça bekleyen, onayda olan iş de. Kırmızı dairede "9+"
+   okunmamış bildirim gibi duruyordu ve üst çubuktaki Bildirimler
+   sayısıyla karışıyordu. Rozet artık yalnız servisin henüz el sürmediği
+   açık işi sayıyor: İşlerim'deki "Yeni" sekmesinin sayısıyla aynı.
+   Servisin kendi parça siparişi iş değil. */
+export function yeniIsSayisi(talepler = []) {
+  return talepler.filter(
+    (t) => !t.servisSiparisi && !KAPALI_DURUMLAR.includes(t.status || 'yeni') && dokunulmamis(t),
+  ).length
+}
+
+/* "YENİ" SEKMESİNİN SIRASI (kullanıcı sınaması, 24 Eylül 2026).
+
+   48 saati geçen iş listenin dibinde kalıyordu: sekme işleri yeniden
+   eskiye diziyor, geciken iş de en eskisi. Geciken işler artık başta,
+   en eskisi önce; gerisi geldiği sırada kalıyor. */
+export function yeniIsSirasi(isler = []) {
+  const geciken = isler.filter(servisGecikti).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))
+  return [...geciken, ...isler.filter((t) => !servisGecikti(t))]
 }

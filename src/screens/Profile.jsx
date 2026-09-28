@@ -1,16 +1,10 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppState'
 import { TopBar, TabBar, Sheet } from '../components/Chrome'
-import { getProduct, urunDilde } from '../marka'
-import { alanEtiketi } from '../data/talepAlanlari'
 import { ILLER, ilceleriGetir } from '../data/iller'
 import { AYDINLATMA, TICARI_ILETI, metinDilde, metinListesi } from '../data/kvkk'
 import { Metin, OnayKutusu } from '../components/Metin'
-import { KaydirilirSatir } from '../components/Kaydir'
-import { talepTuru } from '../lib/talep'
-import { KAPALI_DURUMLAR } from '../lib/talepEkleme'
-import { formatSerial } from '../lib/serial'
 import { telKullanici } from '../lib/tel'
 import { adTemizle } from '../lib/ad'
 import { geriBildirimGonder } from '../lib/geriBildirim'
@@ -22,29 +16,29 @@ import { TemaSecici } from '../components/TemaSecici'
 import { useDil } from '../i18n'
 import { SIRKET, SURUM, UYGULAMA } from '../marka'
 import {
-  IconUser, IconBaler, IconMachine, IconWrench, IconRight, IconPin, IconCheckCircle,
-  IconGorunum, IconParca, IconLock, IconPhone, IconMic, IconGlobe, IconMail, IconSend,
+  IconUser, IconBaler, IconMachine, IconWrench, IconRight, IconPin,
+  IconGorunum, IconLock, IconPhone, IconGlobe, IconMail,
 } from '../components/Icons'
+
+/* TALEP LİSTESİ BURADA DEĞİL (25 Eylül 2026, kullanıcı sınaması).
+   Hesap kartının altında duruyordu; ana ekrandaki "Aktif taleplerim"
+   sayacı Profil'e gidip listeye kaydırıyor, başlıkta "Profil" yazıyordu.
+   Liste kendi ekranında: screens/Taleplerim.jsx. Buradaki "Talep"
+   sayacı oraya götürüyor. */
 
 export default function Profile() {
   const nav = useNavigate()
-  const konum = useLocation()
   const { t, dil } = useDil()
-  const {
-    user, machines, requests, updateUser, logout, showToast,
-    removeRequest,
-  } = useApp()
+  const { user, machines, requests, updateUser, logout, showToast } = useApp()
   const [duzenle, setDuzenle] = useState(false)
-  /* 'acik' | 'kapali' — talep listesinin hangi sekmesi açık */
-  const [talepSekme, setTalepSekme] = useState('acik')
-  const [tumTalepler, setTumTalepler] = useState(false)
   const [cikis, setCikis] = useState(false)
   const [kvkk, setKvkk] = useState(null) // okunmak üzere açılan metin
-  const [silinecek, setSilinecek] = useState(null)
   const [geriBildirim, setGeriBildirim] = useState(false)
   const [yorum, setYorum] = useState('')
   const [yorumHata, setYorumHata] = useState('')
   const [yorumGonderiliyor, setYorumGonderiliyor] = useState(false)
+  /* Kısa yazıda uyarı çıkınca imleç kutuya dönüyor (aşağıda yorumGonder). */
+  const yorumKutusu = useRef(null)
   const [ad, setAd] = useState(user?.adi || user?.ad?.split(' ')[0] || '')
   const [soyad, setSoyad] = useState(user?.soyadi || user?.ad?.split(' ').slice(1).join(' ') || '')
   const [il, setIl] = useState(user?.il || '')
@@ -61,74 +55,6 @@ export default function Profile() {
   const [yeniSifre, setYeniSifre] = useState('')
   const [yeniSifre2, setYeniSifre2] = useState('')
   const [sifreHata, setSifreHata] = useState('')
-
-  /* Ana sayfadaki "Aktif taleplerim" karosundan gelindiğinde sayfa
-     tepeden değil, talep listesinden açılıyor — kullanıcı aradığı yeri
-     kendisi aramasın. Uygulamanın geri kalanı her sayfayı tepeden
-     açtığı için (bkz. App.jsx → ScrollTop) kaydırma bir kare sonra,
-     o iş bittikten sonra yapılıyor. */
-  const taleplerRef = useRef(null)
-  /* Açık ve tamamlanmış talepler.
-
-     "Tamamlanmış" = üzerinde iş kalmamış: kapandı, iptal edildi ya da
-     fiyat teklifi bayiye iletildi. Yedek parçada kargoya verilmek ayrı
-     bir durum değil, kapanışın kendisi. Liste lib/talepEkleme.js'te;
-     talebe ekleme kapısı da aynı listeye bakıyor. */
-  const KAPALI = KAPALI_DURUMLAR
-  const acikTalepler = requests.filter((r) => !KAPALI.includes(r.status || 'yeni'))
-  const kapaliTalepler = requests.filter((r) => KAPALI.includes(r.status || 'yeni'))
-  const seciliListe = talepSekme === 'acik' ? acikTalepler : kapaliTalepler
-
-  /* İlk beş satır; gerisi isteyene. Profil sayfasının altında hesap
-     ayarları var, oraya ulaşmak için kırk satır kaydırılmamalı. */
-  const ILK_TALEP = 5
-  const gosterilen = tumTalepler ? seciliListe : seciliListe.slice(0, ILK_TALEP)
-  const kalan = seciliListe.length - gosterilen.length
-
-  const odak = konum.state?.odak
-  const odakTalep = konum.state?.talepId
-
-  useEffect(() => {
-    if (odak !== 'talepler' && odak !== 'talep') return undefined
-
-    let vurgulanan = null
-    let zaman = null
-
-    /* Aranan talep listenin bir parçası; liste bazen bir kare sonra
-       çiziliyor. Bulunamazsa kısa bir süre sonra bir kez daha
-       deneniyor, yoksa hiç kaydırmadan kalıyordu. */
-    function dene(kalanDeneme) {
-      const kart = odakTalep && document.querySelector(`[data-talep="${odakTalep}"]`)
-      if (!kart && odakTalep && kalanDeneme > 0) {
-        zaman = setTimeout(() => dene(kalanDeneme - 1), 120)
-        return
-      }
-
-      const hedef = kart || taleplerRef.current
-      if (!hedef) return
-
-      /* Yapışkan başlığın yüksekliği kadar pay bırakılıyor, yoksa
-         hedef başlığın arkasında kalıyor. */
-      const bar = document.querySelector('.topbar')?.getBoundingClientRect().height || 110
-      const y = hedef.getBoundingClientRect().top + window.scrollY
-      window.scrollTo({ top: Math.max(0, y - bar - 8), behavior: 'auto' })
-
-      /* Kısa bir vurgu: kullanıcı hangi talebe geldiğini görsün */
-      if (kart) {
-        vurgulanan = kart
-        kart.classList.add('talep--vurgu')
-        zaman = setTimeout(() => kart.classList.remove('talep--vurgu'), 2200)
-      }
-    }
-
-    const kare = requestAnimationFrame(() => dene(5))
-
-    return () => {
-      cancelAnimationFrame(kare)
-      if (zaman) clearTimeout(zaman)
-      if (vurgulanan) vurgulanan.classList.remove('talep--vurgu')
-    }
-  }, [odak, odakTalep])
 
   function kaydet() {
     updateUser({
@@ -163,7 +89,14 @@ export default function Profile() {
   }
 
   async function yorumGonder() {
-    if (yorum.trim().length < 5) return setYorumHata(t('profil.geriBildirimKisa'))
+    /* Kısa yazı kaydedilmiyor (veritabanı da 5-1000 karakter istiyor).
+       Uyarı görünür bir kutuda ve imleç kutuya dönüyor (25 Eylül 2026,
+       kullanıcı sınaması): tek satırlık küçük kırmızı yazı gözden
+       kaçıyordu, ikinci basışta ekranda hiçbir şey değişmiyordu. */
+    if (yorum.trim().length < 5) {
+      yorumKutusu.current?.focus()
+      return setYorumHata(t('profil.geriBildirimKisa'))
+    }
     setYorumHata('')
     setYorumGonderiliyor(true)
     try {
@@ -173,6 +106,13 @@ export default function Profile() {
         surum: SURUM,
         tel: user?.tel || '',
         ad: user?.ad || '',
+        /* Hesabın kimliği ve numaranın ülkesi (25 Eylül 2026, kullanıcı
+           sınaması Y3): görüşe verilen cevap numara değişse de doğru
+           hesaba gidiyor (backoffice/veri.js → bildirimAlicisi önce
+           musteriId'ye bakıyor) ve numara doğru ülke koduyla görünüyor
+           (lib/tel.js → kayitTelGoster). */
+        musteriId: user?.id || null,
+        telUlke: user?.ulke || '',
       })
       setYorum('')
       setGeriBildirim(false)
@@ -233,243 +173,23 @@ export default function Profile() {
             <div style={{ fontWeight: 700, fontSize: 24, marginTop: 6 }}>{machines.length}</div>
             <div className="small muted">{t('profil.kayitliMakine')}</div>
           </button>
-          <div className="card center">
+          {/* Komşusu gibi dokunulabilir (25 Eylül 2026, kullanıcı
+              sınaması): düz bir kutuydu, sayı 0 da olsa 5 de olsa
+              dokunmak bir şey yapmıyordu. Talepler kendi ekranında. */}
+          <button className="card card--tap center" onClick={() => nav('/taleplerim')}>
             <div className="ozet__ikon" style={{ color: 'var(--pk-orange-ink)' }}><IconWrench size={26} /></div>
             <div style={{ fontWeight: 700, fontSize: 24, marginTop: 6 }}>{requests.length}</div>
             <div className="small muted">{t('profil.talep')}</div>
-          </div>
+          </button>
         </div>
-
-        {/* Talepler.
-
-            İKİ SEKME. Talepler birikince sayfa metrelerce uzuyordu ve
-            asıl bakılan şey — bekleyen işler — kapanmışların arasında
-            kayboluyordu. Açık talepler önde, tamamlananlar ikinci
-            sekmede.
-
-            Her sekme ilk beş satırı gösteriyor, gerisi "daha fazla"
-            düğmesinin ardında. Profil sayfası yalnızca talep listesi
-            değil; altında hesap ayarları var ve oraya ulaşmak için
-            kırk satır kaydırmak gerekmemeli. */}
-        <div className="sectionhead" ref={taleplerRef}>
-          <h2>{t('profil.taleplerim')}</h2>
-        </div>
-
-        {requests.length > 0 && (
-          <div className="sekmeler">
-            <button
-              className={'sekme' + (talepSekme === 'acik' ? ' sekme--on' : '')}
-              onClick={() => {
-                setTalepSekme('acik')
-                setTumTalepler(false)
-              }}
-            >
-              {t('profil.acikTalepler')}
-              <span className="sekme__sayi">{acikTalepler.length}</span>
-            </button>
-            <button
-              className={'sekme' + (talepSekme === 'kapali' ? ' sekme--on' : '')}
-              onClick={() => {
-                setTalepSekme('kapali')
-                setTumTalepler(false)
-              }}
-            >
-              {t('profil.tamamlananTalepler')}
-              <span className="sekme__sayi">{kapaliTalepler.length}</span>
-            </button>
-          </div>
-        )}
-
-        {requests.length === 0 ? (
-          /* Boş liste. Tek bir "Talep Oluştur" butonu vardı ama hangi
-             talebi açacağı belli olmuyordu; artık iki iş de adıyla
-             yazılı, kullanıcı ne açtığını bilerek dokunuyor. */
-          <div className="card" style={{ padding: 22 }}>
-            <p className="muted small center" style={{ lineHeight: 1.6 }}>
-              {t('profil.talepYok')}
-            </p>
-            <button
-              className="btn btn--brand btn--lg"
-              style={{ marginTop: 18 }}
-              onClick={() => nav('/talep?tur=parca')}
-            >
-              <IconParca size={21} /> {t('anasayfa.yedekParcaTalebi')}
-            </button>
-            <button
-              className="btn btn--brand btn--lg"
-              style={{ marginTop: 10 }}
-              onClick={() => nav('/talep?tur=servis')}
-            >
-              <IconWrench size={21} /> {t('anasayfa.servisTalebi')}
-            </button>
-          </div>
-        ) : gosterilen.length === 0 ? (
-          <div className="card" style={{ padding: 22 }}>
-            <p className="muted small center" style={{ lineHeight: 1.6 }}>
-              {talepSekme === 'acik' ? t('profil.acikTalepYok') : t('profil.kapaliTalepYok')}
-            </p>
-          </div>
-        ) : (
-          <>
-            {/* İpucu yalnız kapalı talepler sekmesinde: açık taleplerde
-                kaydırma yok, olmayan bir hareketi anlatmak yanlış. */}
-            {talepSekme === 'kapali' && (
-              <p className="small muted" style={{ marginBottom: 10 }}>
-                {t('profil.kaydirIpucu')}
-              </p>
-            )}
-            <div className="stack">
-              {gosterilen.map((r) => {
-                const pr = r.makine ? urunDilde(getProduct(r.makine.productId), dil) : null
-                const tur = talepTuru(r.tur)
-                /* ÜZERİNDE İŞ SÜREN TALEP KAYDIRILAMIYOR.
-
-                   Her satır kaydırılabiliyordu ve kaydırma kaydı
-                   listeden kaldırıyordu. Açık bir talep PAKSAN'ın ve
-                   teknisyenin listesinde duran iştir: müşteri onu
-                   kaldırınca ekranında işin izi kalmıyor, oysa iş
-                   sürüyor. Kapanmış ya da iptal edilmiş satır
-                   kaldırılabiliyor; açık satırda kaydırma hiç yok —
-                   çalışmayan bir hareketi ipucuyla tanıtmak kendi
-                   başına hata. */
-                const kaldirilabilir = KAPALI.includes(r.status || 'yeni')
-                const govde = (
-                    <div
-                      className="listitem"
-                      style={{ alignItems: 'flex-start' }}
-                      data-talep={r.id}
-                    >
-                      <div
-                        className="listitem__icon"
-                        style={{ background: 'var(--pk-green-soft)', color: 'var(--pk-green-yazi)' }}
-                      >
-                        <IconCheckCircle size={22} />
-                      </div>
-                      <div className="listitem__body">
-                        <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-                          <span className="listitem__title" style={{ fontSize: 15.5 }}>
-                            {t(`talep.${r.tur}.baslik`)}
-                          </span>
-                          {/* Talep numarası türün rengiyle: servis kırmızı,
-                              yedek parça turuncu, teklif mavi. */}
-                          <span
-                            className={'badge serial-mono badge--' + tur.ton}
-                            style={{ fontSize: 11.5 }}
-                          >
-                            {r.no}
-                          </span>
-                        </div>
-                        {/* Talebin hangi aşamada olduğu.
-
-                            Düz yazıyla yazınca öteki satırların
-                            arasında kayboluyordu; durum listedeki en
-                            önemli bilgi. Renkli hap hâlinde ve durumun
-                            kendi rengiyle. */}
-                        <div style={{ marginTop: 5 }}>
-                          <span className={'durum-hap durum-hap--' + (r.status || 'yeni')}>
-                            {t('talepDurum.' + (r.status || 'yeni'))}
-                          </span>
-                        </div>
-
-                        {/* Randevu verildiyse tarihi ve işi burada */}
-                        {r.plan && r.status === 'planlandi' && (
-                          <div className="randevu-kutu">
-                            <div className="randevu-kutu__tarih">{r.plan.tarihYazi}</div>
-                            <div>{r.plan.is}</div>
-                          </div>
-                        )}
-
-                        {pr && (
-                          <div className="listitem__sub">
-                            {pr.name} ·{' '}
-                            <span className="serial-mono">{formatSerial(r.makine.serial)}</span>
-                          </div>
-                        )}
-                        {/* Formda işaretlenen belirti / parça başlıkları —
-                            açıklamayı okumadan talebin ne olduğu anlaşılsın */}
-                        {(r.belirtiler?.length > 0 ||
-                          r.parcalar?.length > 0 ||
-                          r.parcaFiyat?.satirlar?.length > 0) && (
-                          <div className="listitem__sub" style={{ marginTop: 4 }}>
-                            {/* Belirti kaydı Türkçe; ekranda kullanıcının
-                                dilinde. Parçalar katalogdan geliyor ve
-                                kendi adıyla, kodunun yanında yazıyor. */}
-                            {[
-                              ...(r.belirtiler || []).map((x) => alanEtiketi(x, dil)),
-                              ...parcaOzetleri(r, dil),
-                            ].join(' · ')}
-                          </div>
-                        )}
-                        {r.ses?.veri && (
-                          <div className="row small muted" style={{ gap: 5, marginTop: 5 }}>
-                            <IconMic size={14} /> {t('profil.sesEklendi')}
-                          </div>
-                        )}
-                        {r.aciklama && (
-                          <p className="small muted" style={{ marginTop: 5, lineHeight: 1.5 }}>
-                            {r.aciklama.length > 90 ? r.aciklama.slice(0, 90) + '…' : r.aciklama}
-                          </p>
-                        )}
-                        {/* "AYRINTI İÇİN DOKUNUN" KALDIRILDI (10 Eylül 2026).
-
-                            Yalnız iptal edilmiş, kapanmış ya da teklifi
-                            gelmiş taleplerde çıkıyordu; kartların bir
-                            kısmında olup ötekilerde olmaması tutarsız
-                            görünüyordu. Her kart zaten dokununca açılıyor
-                            ve sağındaki ok bunu gösteriyor. */}
-                        <div className="small muted" style={{ marginTop: 6 }}>
-                          {new Date(r.createdAt).toLocaleDateString(
-                            dil === 'tr' ? 'tr-TR' : 'en-GB',
-                            { day: 'numeric', month: 'long', year: 'numeric' }
-                          )}
-                        </div>
-                      </div>
-                      <span className="listitem__chev"><IconRight size={20} /></span>
-                    </div>
-                )
-                return kaldirilabilir ? (
-                  <KaydirilirSatir
-                    key={r.id}
-                    onSil={() => setSilinecek(r)}
-                    onDokun={() => nav('/talebim/' + r.id)}
-                  >
-                    {govde}
-                  </KaydirilirSatir>
-                ) : (
-                  <div
-                    key={r.id}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => nav('/talebim/' + r.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') nav('/talebim/' + r.id)
-                    }}
-                  >
-                    {govde}
-                  </div>
-                )
-              })}
-            </div>
-
-            {kalan > 0 && (
-              <button
-                className="btn btn--soft"
-                style={{ marginTop: 12 }}
-                onClick={() => setTumTalepler(true)}
-              >
-                {t('profil.dahaFazlaTalep', { n: kalan })}
-              </button>
-            )}
-          </>
-        )}
 
         {/* Menü ikiye ayrıldı.
 
             Beş satır arka arkaya dizilince hangisinin ne olduğu
             karışıyordu: dil ayarıyla bayi telefonu aynı yığında
             duruyordu. Artık iki öbek var — "Hesabım" kendi hesabına
-            dair işler, "Yardım" dışarıya bakanlar. Taleplerden de bir
-            çizgiyle ayrıldı. */}
+            dair işler, "Yardım" dışarıya bakanlar. Özet kutularından
+            bir çizgiyle ayrıldı. */}
         <div className="divider" style={{ marginTop: 26 }} />
 
         <div className="sectionhead">
@@ -540,7 +260,11 @@ export default function Profile() {
               anlatıyor. İkisi de mesajlaşma gibi görünse de farklı
               işler — destek makinesiyle ilgili, geri bildirim
               uygulamayla. Backoffice tarafında da aynı ayrım var. */}
-          <button className="listitem" onClick={() => setGeriBildirim(true)}>
+          <button
+            className="listitem"
+            data-eylem="geri-bildirim"
+            onClick={() => setGeriBildirim(true)}
+          >
             <div className="listitem__icon"><IconMail size={22} /></div>
             <div className="listitem__body">
               <div className="listitem__title">{t('profil.geriBildirim')}</div>
@@ -772,14 +496,20 @@ export default function Profile() {
         <div className="stack" style={{ gap: 14 }}>
           <p className="muted" style={{ lineHeight: 1.6 }}>{t('profil.geriBildirimAlt')}</p>
           <textarea
+            ref={yorumKutusu}
             className="textarea"
             value={yorum}
-            onChange={(e) => setYorum(e.target.value)}
+            onChange={(e) => {
+              setYorum(e.target.value)
+              /* Yazmaya başlayınca uyarı kalkıyor. */
+              if (yorumHata) setYorumHata('')
+            }}
             placeholder={t('profil.geriBildirimOrnek')}
             rows={5}
             maxLength={1000}
           />
-          {yorumHata && <div className="field__error">{yorumHata}</div>}
+          {/* Talep detayındaki ekleme penceresiyle aynı uyarı kartı. */}
+          {yorumHata && <div className="uyari-kart" role="alert">{yorumHata}</div>}
           <GonderButonu
             gonderiliyor={yorumGonderiliyor}
             etiket={t('profil.geriBildirimGonder')}
@@ -793,38 +523,6 @@ export default function Profile() {
             {t('ortak.vazgec')}
           </button>
         </div>
-      </Sheet>
-
-      {/* Talep silme */}
-      <Sheet
-        open={Boolean(silinecek)}
-        onClose={() => setSilinecek(null)}
-        title={t('profil.talepKaldirSor')}
-      >
-        {silinecek && (
-          <div className="stack" style={{ gap: 14 }}>
-            <p style={{ lineHeight: 1.65 }}>
-              {t('profil.talepKaldirAciklama', {
-                no: silinecek.no,
-                tur: t(`talep.${silinecek.tur}.baslik`).toLocaleLowerCase(),
-              })}
-            </p>
-            <button
-              className="btn btn--lg"
-              style={{ background: 'var(--pk-red)', color: '#fff' }}
-              onClick={() => {
-                removeRequest(silinecek.id)
-                setSilinecek(null)
-                showToast(t('profil.talepKaldirildi'))
-              }}
-            >
-              {t('profil.evetKaldir')}
-            </button>
-            <button className="btn btn--soft" onClick={() => setSilinecek(null)}>
-              {t('ortak.vazgec')}
-            </button>
-          </div>
-        )}
       </Sheet>
 
       {/* KVKK metinleri — kayıt sırasında onaylananların aynısı */}
@@ -884,23 +582,4 @@ export default function Profile() {
       <TabBar />
     </div>
   )
-}
-
-/* ------------------------------------------- Listedeki parça özetleri
-
-   Talep kartının alt satırında parçalar tek tek yazıyor. Kayıttaki
-   fiyat görüntüsü (`parcaFiyat.satirlar`) varsa oradan okunuyor ve KOD
-   da yazılıyor: PAKSAN'ın kataloğunda tekrar eden adlar var, adın
-   kendisi artık parçayı belirtmiyor. Liste sıkışık olduğu için satır
-   kısa tutuluyor — ad, parantez içinde kod; adet ve tutar burada yok,
-   ikisi de talep detayında duruyor.
-
-   Görüntüsü olmayan eski kayıtlarda yalnız ad var; kod UYDURULMUYOR,
-   satır eski biçimde yazılıyor. */
-function parcaOzetleri(r, dil) {
-  const satirlar = (r.parcaFiyat?.satirlar || []).filter((s) => s?.ad)
-  if (satirlar.length) {
-    return satirlar.map((s) => (s.kod ? `${s.ad} (${s.kod})` : s.ad))
-  }
-  return (r.parcalar || []).map((x) => alanEtiketi(x, dil))
 }

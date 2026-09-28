@@ -11,6 +11,7 @@ import { getProduct } from '../../marka'
 import { formatSerial, warrantyStatus } from '../../lib/serial'
 import { telFirma, telGoster } from '../../lib/tel'
 import { musterininServisleri } from '../../lib/servisAtama'
+import { talepSahibiBulucu } from '../../lib/musteriEslesmesi'
 
 /* Müşteriler.
 
@@ -38,6 +39,28 @@ export function Musteriler({ personel, rol, bildir, tazele, surum, git }) {
      listeler bütün talepleri gösteriyordu; satır tıklanmasa da içeriği
      okunuyordu. Sayılar da aynı listeden çıkıyor. */
   const { veri: talepler } = useVeri(() => rolunTalepleri(talepleriGetir(), rol), [surum, rol], [])
+
+  /* MÜŞTERİNİN TALEPLERİ TEK EŞLEŞMEDEN (25 Eylül 2026, kullanıcı
+     sınaması Y3). Talep müşteriye telefonun harfi harfine eşitliğiyle
+     bağlanıyordu (`t.telHam === m.tel`): hesap numarası boşluklu
+     saklanıyor, Servisim'in elle açtığı talep rakam ya da sıfırlı yazıyor.
+     Servisin kayıtlı müşteriye açtığı iş karttan, sayıdan ve Excel'den
+     düşüyordu; talepteki `musteriId`ye hiç bakılmıyordu. Kural artık tek
+     yerde (lib/musteriEslesmesi.js): önce hesap kimliği, yoksa ülke kodlu
+     telefon, yazılıştan bağımsız; servis siparişi kimsenin değil. Sayı,
+     sıralama, kart ve Excel aynı haritadan okuyor. */
+  const talepHaritasi = useMemo(() => {
+    const bul = talepSahibiBulucu(musteriler)
+    const harita = new Map()
+    for (const t of talepler) {
+      const id = bul(t)?.kayit?.id
+      if (!id) continue
+      if (!harita.has(id)) harita.set(id, [])
+      harita.get(id).push(t)
+    }
+    return harita
+  }, [musteriler, talepler])
+  const kendiTalepleri = (m) => talepHaritasi.get(m.id) || []
 
   const { siralama, cevir } = useSiralama('createdAt', 'azalan')
 
@@ -75,10 +98,10 @@ export function Musteriler({ personel, rol, bildir, tazele, surum, git }) {
         ad: (m) => m.ad,
         konum: (m) => m.il,
         makine: (m) => (m.makineler || []).length,
-        talep: (m) => talepler.filter((t) => t.telHam === m.tel).length,
+        talep: (m) => (talepHaritasi.get(m.id) || []).length,
         createdAt: (m) => m.createdAt,
       }),
-    [suzulmus, siralama, talepler]
+    [suzulmus, siralama, talepHaritasi]
   )
 
   const iller = [...new Set(musteriler.map((m) => m.il).filter(Boolean))].sort((a, b) =>
@@ -109,7 +132,7 @@ export function Musteriler({ personel, rol, bildir, tazele, surum, git }) {
           <DisaAktar
             ad="Müşteriler"
             basliklar={AKTAR_BASLIK}
-            satirlar={liste.map((m) => aktarSatiri(m, talepler))}
+            satirlar={liste.map((m) => aktarSatiri(m, kendiTalepleri(m)))}
             personel={personel}
           />
         }
@@ -209,7 +232,7 @@ export function Musteriler({ personel, rol, bildir, tazele, surum, git }) {
                       </td>
                       <td className="kucuk">{m.ilce ? `${m.ilce} / ${m.il}` : m.il || '—'}</td>
                       <td className="kucuk">{m.makineler?.length || 0}</td>
-                      <td className="kucuk">{talepler.filter((t) => t.telHam === m.tel).length}</td>
+                      <td className="kucuk">{kendiTalepleri(m).length}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -221,7 +244,7 @@ export function Musteriler({ personel, rol, bildir, tazele, surum, git }) {
             {acik ? (
               <Detay
                 musteri={acik}
-                talepler={talepler}
+                talepler={kendiTalepleri(acik)}
                 duzenleyebilir={izinli(rol, 'musteriDuzenle')}
                 onDuzenle={() => setDuzenlenen({ ...acik })}
                 /* Talebe gidiş yalnız o talebi Talepler ekranında
@@ -259,7 +282,8 @@ export function Musteriler({ personel, rol, bildir, tazele, surum, git }) {
 }
 
 function Detay({ musteri, talepler, duzenleyebilir, onDuzenle, talebeGidebilir, onTalebeGit }) {
-  const kendi = talepler.filter((t) => t.telHam === musteri.tel)
+  /* Liste zaten bu müşterinin talepleri (yukarıdaki talepHaritasi). */
+  const kendi = talepler
   const servisSatirlari = musterininServisleri(musteri.makineler || []).hepsi
 
   return (
@@ -530,7 +554,7 @@ const AKTAR_BASLIK = [
   'Talep sayısı', 'Aydınlatma onayı', 'Açık rıza', 'Kampanya izni',
 ]
 
-function aktarSatiri(m, talepler) {
+function aktarSatiri(m, kendi) {
   const makineler = m.makineler || []
   return [
     m.no || '',
@@ -543,7 +567,7 @@ function aktarSatiri(m, talepler) {
     String(makineler.length),
     makineler.map((x) => getProduct(x.productId)?.name || x.productId).join(' · '),
     makineler.map((x) => formatSerial(x.serial)).join(' · '),
-    String(talepler.filter((t) => t.telHam === m.tel).length),
+    String(kendi.length),
     m.onaylar?.aydinlatma ? 'Onaylı' : 'Yok',
     m.onaylar?.acikRiza ? 'Onaylı' : 'Yok',
     m.onaylar?.kampanya ? 'Var' : 'Yok',

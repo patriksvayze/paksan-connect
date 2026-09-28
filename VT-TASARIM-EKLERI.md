@@ -1,6 +1,6 @@
 # Uygulamadan gelen veritabanı tasarımı ekleri
 
-18 Eylül 2026'da uygulamaya iki yeni akış girdi (21 Eylül'de üçüncüsü, 22 Eylül'de dördüncüsü, 23 Eylül'de beşincisi, altıncısı ve yedincisi, 24 Eylül'de sekizincisi eklendi). Hepsi bugün
+18 Eylül 2026'da uygulamaya iki yeni akış girdi (21 Eylül'de üçüncüsü, 22 Eylül'de dördüncüsü, 23 Eylül'de beşincisi, altıncısı ve yedincisi, 24 Eylül'de sekizincisi, dokuzuncusu ve onuncusu, 25 Eylül'de on birincisi ve on ikincisi eklendi). Hepsi bugün
 tarayıcının hafızasında çalışıyor; sunucuya geçerken veritabanı
 tasarımına (`veritabani/tasarim.md`) aşağıdaki maddeler işlenmeli.
 
@@ -480,3 +480,35 @@ makinenin satırı yok. İki yol:
   satır" kuralını (UX) filtreli indekse çevirmeyi gerektirir; önerilmez.
 
 Eşlemede iki alan `yok` (bkz. `veritabani/uygulama-eslesmesi.mjs`).
+
+## 11. Fiyat teklifinde makine yok (25 Eylül 2026)
+
+Kullanıcı sınaması (Y1): Connect'in teklif formu makine kutusu çizmediği
+hâlde çiftçinin ilk makinesini kayda yazıyordu ("Süper Yunus teklifi ·
+Makine: Orkinos 1270"). Artık yazmıyor (`lib/talepOlustur.js`); 25 Eylül
+öncesi kayıtlar okurken ayıklanıyor, depodaki kayıt yeniden yazılmıyor
+(`lib/talep.js → makinesizTeklif`; backoffice ve Connect aynı işlevden
+geçiyor). Sınaması AK-32.
+
+Veritabanında taşımada fiyat teklifi satırının `talep.Talep.MakineKimlik`
+alanı NULL yazılır (eşlemenin notu). Sunucu aşamasında kuralın kendisi
+tabloya konmalı:
+
+    CONSTRAINT CK_talep_Talep_TeklifMakinesiz
+        CHECK (TurKodu <> N'satinalma' OR MakineKimlik IS NULL)
+
+SQL betiğine bugün eklenmedi: tarayıcıdaki eski kayıtlar taşınmadan önce
+ayıklanmalı, yoksa taşıma bu kısıtta durur.
+
+## 12. Makineye servis atama ayrı yetki: rol geçişi (25 Eylül 2026)
+
+Kullanıcı sınaması (tasarım sorusu, karar): makineye servis atama
+`servisDuzenle`'den ayrılıp `makineAtama` oldu (`src/data/yetkiler.js`).
+Tarayıcıda depodaki eski rol bir kez taşınıyor (`veri.js →
+rolIzinleriniTasi`, `izinSurumu` 3). Veritabanında izin satırları
+`erisim.RolIzin`'de; tohum (T03, B03) yeni izni ve varsayılan rolleri
+zaten yazıyor. Canlıya taşınırken, `servisDuzenle` izni olan her role
+`makineAtama` satırı ekleyen tek seferlik bir geçiş gerekecek; yoksa dün
+atama yapabilen rol yetkisini sessizce kaybeder. Eşlemedeki notu:
+`veritabani/uygulama-eslesmesi.mjs` → `panelIcerik.roller[].izinSurumu`.
+Sınaması AK-08.

@@ -3,7 +3,23 @@
 
    Numara artık iki parçadan oluşuyor:
      ulke → ISO kısaltması ('TR'), ülke listesinden geliyor
-     tel  → BAŞTA SIFIR OLMADAN, sadece rakamlar: 5321234567
+     tel  → BAŞTA SIFIR OLMADAN: 532 123 45 67
+
+   HESAPTAKİ NUMARA BOŞLUKLU (25 Eylül 2026'da düzeltilen yorum). Bu
+   başlık uzun süre "tel → sadece rakamlar" diyordu; doğru değildi.
+   Numara alanı yazarken biçimliyor (components/TelefonAlani.jsx →
+   formatTel) ve hesap.tel ekranda göründüğü gibi, boşluklu saklanıyor.
+   Biçim girişi bozmamak için değiştirilmedi. Onun yerine iki kural:
+
+     Kayda yazılan ham numara (talep, görüş → `telHam`) telHamYap'tan
+     geçer: yalnız rakam, baştaki sıfır ve ülke kodu yok.
+     İki numara karşılaştırılırken telAnahtar kullanılır; yazılış
+     (boşluklu, sıfırlı, "+90 …") sonucu değiştirmez.
+
+   Kullanıcı sınaması Y3 (24 Eylül 2026): servisin elle açtığı talep
+   "0532…" yazıyordu, Connect talebi boşluklu; harfi harfine
+   karşılaştıran ekranlar aynı müşteriyi iki kişi sanıyordu (bkz.
+   lib/musteriEslesmesi.js).
 
    Baştaki sıfır neden yok: uluslararası biçimde sıfır yazılmıyor
    (+90 532 …). Yurtdışındaki müşterilerimiz de aynı ekranı kullanacak,
@@ -22,6 +38,26 @@ export function telRakam(raw) {
 /** Baştaki sıfırları atar: "0532…" ve "00532…" → "532…" */
 export function telSifirsiz(raw) {
   return telRakam(raw).replace(/^0+/, '')
+}
+
+/**
+ * Kayda yazılacak ham numara: yalnız rakam; baştaki sıfır ve ülke kodu yok.
+ *   "532 111 22 33", "0532 111 22 33", "+90 532 111 22 33",
+ *   "0090 532 111 22 33", "90 532 111 22 33"  →  "5321112233"
+ *
+ * Ülke kodu yalnız açıkça yazıldıysa ("+", "00") ya da numara ülkenin
+ * hane sayısından tam ülke kodu kadar uzunsa atılıyor. Kısa ya da
+ * hane sayısı bilinmeyen ülkenin numarasında baştaki "90" bir
+ * rakamdır; tahminle silinmez.
+ */
+export function telHamYap(ulke, raw) {
+  const s = String(raw || '').trim()
+  const u = ulkeGetir(ulke || VARSAYILAN_ULKE)
+  const kod = telRakam(u.kod)
+  let r = telSifirsiz(s)
+  const kodlu = s.startsWith('+') || s.startsWith('00') || (u.hane && r.length === u.hane + kod.length)
+  if (kodlu && kod && r.startsWith(kod)) r = r.slice(kod.length).replace(/^0+/, '')
+  return r
 }
 
 /* Bir numaranın en fazla kaç hane olabileceği.
@@ -58,11 +94,49 @@ export function telGecerliMi(raw, ulke = VARSAYILAN_ULKE) {
   return n >= 6 && n <= 14
 }
 
-/** Ekranda gösterilecek tam hâli: +90 532 123 45 67 */
+/** Ekranda gösterilecek tam hâli: +90 532 123 45 67
+ *
+ *  Numara önce telHamYap'tan geçiyor (25 Eylül 2026): "+90 …" yazılmış
+ *  bir numara eskiden "+90 905 322 …" çıkıyordu, çünkü formatTel ülke
+ *  kodunu atmıyor. Boşluklu ya da düz rakam girişte çıktı aynı. */
 export function telGoster(ulke, tel) {
-  const t = formatTel(tel)
+  const t = formatTel(telHamYap(ulke, tel))
   if (!t) return ''
   return `${ulkeGetir(ulke).kod} ${t}`
+}
+
+/** Kayıttaki (talep, görüş) müşteri numarasının ülkesi ve ham hâli.
+ *  Kayıtta ülke yoksa `ulkeYedek`, o da yoksa Türkiye: Servisim'in elle
+ *  açtığı talepler 25 Eylül 2026'ya kadar ülke yazmıyordu ve Servisim
+ *  yalnız Türkiye'de çalışıyor. */
+export function kayitNumarasi(kayit, ulkeYedek) {
+  const ulke = kayit?.telUlke || ulkeYedek || VARSAYILAN_ULKE
+  return { ulke, ham: telHamYap(ulke, kayit?.telHam || kayit?.tel) }
+}
+
+/** Kayıttaki müşteri numarası ekranda: +90 532 123 45 67.
+ *
+ *  AYNI NUMARA HER EKRANDA AYNI BİÇİMDE (25 Eylül 2026, kullanıcı
+ *  sınaması): ekranlar talebin `tel` yazısını ya olduğu gibi basıyor ya
+ *  da firma biçimleyicisinden geçiriyordu; aynı müşteri "+90 …",
+ *  "532 …" ve "0532 …" diye üç biçimde görünüyordu.
+ *
+ *  Servisin kendi parça siparişinde numara servisin firma numarası;
+ *  firma numarası kendi biçimiyle gösterilir (telFirma, aşağıda). */
+export function kayitTelGoster(kayit) {
+  if (kayit?.servisSiparisi) return telFirma(kayit.tel)
+  const { ulke, ham } = kayitNumarasi(kayit)
+  return ham ? telGoster(ulke, ham) : ''
+}
+
+/** Aynı numaranın arama bağlantısı, ülke koduyla: tel:+905321234567.
+ *  Ülke kodu olmadan ("tel:905…") Türkiye'den aranan numara yanlıştı:
+ *  Servisim'in Ara düğmesi Connect taleplerinde başka numarayı
+ *  çeviriyordu. */
+export function kayitTelHref(kayit) {
+  if (kayit?.servisSiparisi) return kayit?.tel ? telHref(kayit.tel) : ''
+  const { ulke, ham } = kayitNumarasi(kayit)
+  return ham ? telHref(ulkeGetir(ulke).kod + ham) : ''
 }
 
 /** Kullanıcı nesnesinden doğrudan: telKullanici(user) */
@@ -139,10 +213,12 @@ export function telFirmaGecerliMi(ham) {
 
 /**
  * Hesap eşleştirmesi için tek biçim: 905321234567
- * Aynı numara farklı yazılsa da (sıfırlı, boşluklu) aynı anahtarı verir.
+ * Aynı numara farklı yazılsa da (sıfırlı, boşluklu, ülke kodlu) aynı
+ * anahtarı verir. Ülke kodlu yazılış ("+90 532 …") 25 Eylül 2026'ya
+ * kadar ikinci bir "90" ile başka anahtar veriyordu (bkz. telHamYap).
  */
 export function telAnahtar(ulke, tel) {
-  return telRakam(ulkeGetir(ulke).kod) + telSifirsiz(tel)
+  return telRakam(ulkeGetir(ulke).kod) + telHamYap(ulke, tel)
 }
 
 /* ---------------------------------------------------------------- Arama

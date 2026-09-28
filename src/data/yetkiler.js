@@ -34,8 +34,15 @@ export const YETKI_KATALOG = [
     izinler: [
       { id: 'talepler', ad: 'Talepleri görür' },
       /* Kapanmış talebi geri açmak bugün `rol !== 'admin'` diye
-         kontrol ediliyordu; kimlik yerine yetkiye bağlandı. */
-      { id: 'talepGeriAc', ad: 'Kapanmış talebi yeniden açar' },
+         kontrol ediliyordu; kimlik yerine yetkiye bağlandı.
+         Gönderilmiş servis siparişinin iptali de bu izne bağlı (24 Eylül
+         2026): iptal servisin bakiyesine para geri yazıyor, kapanmış işi
+         geri çevirmekle aynı yetkiyi istiyor. Ad bu gücü söylemiyordu;
+         Roller ekranında admin, yedek parça personeline iade yetkisi
+         vermek için hangi kutuyu işaretleyeceğini bilemiyordu (25 Eylül
+         2026, kullanıcı sınaması O8). Kimlik aynı kaldı, yalnız ad
+         değişti: depodaki roller olduğu gibi çalışıyor. */
+      { id: 'talepGeriAc', ad: 'Kapanmış talebi yeniden açar, gönderilmiş servis siparişini iptal eder' },
     ],
   },
   {
@@ -49,6 +56,19 @@ export const YETKI_KATALOG = [
          rollere kendiliğinden eklendi, kimsenin ekranı kaybolmadı
          (bkz. veri.js → rolIzinleriniTasi). */
       { id: 'makineler', ad: 'Kayıtlı makineleri görür' },
+      /* Makineye servis atamak 25 Eylül 2026'ya kadar `servisDuzenle`
+         iznine bağlıydı. O tek izin üç ayrı işi topluyordu: servis kaydı
+         ve bölgesi, servis hesabı ve şifre yardımı, makineye servis ve
+         bayi ataması. Hak edişi onaylayan servis birimi makinenin başka
+         servise atandığını görüp düzeltemiyordu; atamayı açmak için ona
+         servis hesaplarını ve şifreleri de açmak gerekiyordu (kullanıcı
+         sınaması). Servis birimi "PAKSAN kime iş verdiğini bilmek
+         zorunda" ilkesinin sahibi, atamayı o yapar; servis hesabı ise
+         bir güvenlik işlemi, `servisDuzenle`de kaldı. Ayrılırken
+         `servisDuzenle` taşıyan eski rollere kendiliğinden eklendi,
+         kimse atama gücünü kaybetmedi (bkz. veri.js → rolIzinleriniTasi,
+         izinSurumu 3). */
+      { id: 'makineAtama', ad: 'Makineye servis atar ve satan bayiyi girer' },
       { id: 'musteriDuzenle', ad: 'Müşteri bilgisini düzeltir' },
       { id: 'numara', ad: 'Numara değişikliği talebini onaylar' },
       { id: 'kimlikNo', ad: 'Talepteki T.C. kimlik veya vergi numarasının tamamını görür' },
@@ -58,7 +78,9 @@ export const YETKI_KATALOG = [
     grup: 'Servisler',
     izinler: [
       { id: 'servisler', ad: 'Servisleri ve bayileri görür' },
-      { id: 'servisDuzenle', ad: 'Servis kaydını, sorumluluk bölgesini ve makineye servis atamasını değiştirir' },
+      /* Makineye servis ataması 25 Eylül 2026'da bu izinden ayrılıp
+         `makineAtama` oldu (Müşteriler öbeğinde, gerekçesi orada). */
+      { id: 'servisDuzenle', ad: 'Servis kaydını, sorumluluk bölgesini ve servis hesabını değiştirir' },
       /* Servisin eline geçen parayı değiştiriyor (23 Eylül 2026, kullanıcının
          isteği: "ilgili personel tarafından değiştirilebilsin"). Servis
          kaydını düzeltmekten ayrı: bölgeyi düzelten satış personeli
@@ -163,7 +185,7 @@ export const VARSAYILAN_ROLLER = [
     aciklama: 'Tüm talepleri ve raporları görür; personel listesini görür ancak değiştiremez.',
     talepTurleri: null,
     izinler: [
-      'talepler', 'musteriler', 'makineler', 'servisler', 'servisDuzenle', 'personel',
+      'talepler', 'musteriler', 'makineler', 'makineAtama', 'servisler', 'servisDuzenle', 'personel',
       'geribildirim', 'raporlar', 'yonetimOzeti', 'kayit', 'duyurular', 'destek',
       'servisUcreti', 'servisIskontosu',
     ],
@@ -171,9 +193,12 @@ export const VARSAYILAN_ROLLER = [
   {
     id: 'servis',
     ad: 'Servis',
-    aciklama: 'Yalnız servis taleplerini görür.',
+    aciklama: 'Yalnız servis taleplerini görür; makinelere servis atar.',
     talepTurleri: ['servis'],
-    izinler: ['talepler', 'musteriler', 'makineler', 'servisler'],
+    /* Makineye servis atar (25 Eylül 2026): talepleri ve hak edişi bu
+       birim yürütüyor, atama dışı işi gören de o. Servis hesaplarını
+       düzenlemez: `servisDuzenle` bilerek yok. */
+    izinler: ['talepler', 'musteriler', 'makineler', 'makineAtama', 'servisler'],
   },
   {
     id: 'parca',
@@ -188,8 +213,11 @@ export const VARSAYILAN_ROLLER = [
     aciklama: 'Yalnız fiyat teklifi taleplerini görür; servis bölgelerini düzenleyebilir.',
     talepTurleri: ['satinalma'],
     /* Satış personeli servisin sorumluluk bölgesini değiştirebiliyor:
-       servis ağını tanıyan, hangi servisin nereye baktığını bilen o. */
-    izinler: ['talepler', 'musteriler', 'makineler', 'servisler', 'servisDuzenle'],
+       servis ağını tanıyan, hangi servisin nereye baktığını bilen o.
+       `makineAtama` 25 Eylül 2026'da `servisDuzenle`den ayrılırken
+       satışta kaldı: dün makineye servis ve bayi atayabiliyordu, yetki
+       kaybetmesin. */
+    izinler: ['talepler', 'musteriler', 'makineler', 'makineAtama', 'servisler', 'servisDuzenle'],
   },
 ]
 

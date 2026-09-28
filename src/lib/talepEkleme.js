@@ -33,6 +33,7 @@
    ========================================================================== */
 
 import { uid } from './storage'
+import { serviseBildirimYaz } from './serviseBildirim'
 
 /* Kapalı sayılan durumlar. Backoffice'teki KAPALI_DURUMLAR ile aynı
    liste; uygulama backoffice'in kodunu almadığı için burada tekrar
@@ -74,4 +75,51 @@ export function eklemeOlustur({ not = '', ses = null, ekler = [] } = {}) {
 /** Talebin eklemelerini yeniden eskiye sıralı verir. */
 export function eklemeleri(talep) {
   return [...(talep?.eklemeler || [])].sort((a, b) => b.tarih - a.tarih)
+}
+
+/* ==========================================================================
+   MÜŞTERİNİN İŞLEMİ SERVİSE BİLDİRİLİYOR (25 Eylül 2026, kullanıcı
+   sınaması O5 ve orkestratörün 3. kararı)
+
+   Müşteri Connect'ten talebe bir şey eklediğinde ya da kapanmış işte
+   "Sorun Devam Ediyor" dediğinde işi yürüten servisin haberi olmuyordu:
+   ekleme talebin içinde sessizce duruyor, geri açılan talep Servisim'de
+   yeniden "yeni iş" olarak beliriyor ama nedenini söyleyen bir bildirim
+   yoktu. Connect'te aynı makinede ikinci servis talebi açılmıyor, çiftçi
+   ekleme penceresine yönlendiriliyor; ekleme servise ulaşmasaydı bu
+   yönlendirme çiftçiyi sessizliğe götürürdü.
+
+   AYNI KAYIT, AYNI GÖVDE. PAKSAN'ın işlemi gibi `duyurular` deposuna,
+   lib/serviseBildirim.js → serviseBildirimYaz ile yazılıyor; ayrı depo
+   yok. Olay adı müşterinin işlemi olduğunu söylüyor (`musteriEkledi`,
+   `musteriSorunDevam`); Servisim bunları "Müşteriden" diye ayırıyor,
+   PAKSAN'ın işlemiyle karışmıyor. Yeni alan yok: ekleme ve açıklama
+   talebin kendisinde (`eklemeler`, `tekrar`).
+
+   YALNIZ İŞİ SERVİS YÜRÜTÜYORSA: servis talebi, servisi belli ve talep
+   PAKSAN'a devredilmemiş (`sahip: 'servis'`). Parça ve teklif talebini
+   PAKSAN yürütüyor; devredilmiş işte servis artık muhatap değil.
+
+   Döner: bildirim yazıldıysa true. */
+function isiServisYurutuyor(talep) {
+  return talep?.tur === 'servis' && talep.sahip === 'servis' && Boolean(talep.servis?.id)
+}
+
+/** Müşterinin talebe eklemesi servise bildirilir (ekleme kaydedildikten sonra). */
+export function eklemeyiServiseBildir(talep) {
+  if (!eklemeYapilabilir(talep) || !isiServisYurutuyor(talep)) return false
+  serviseBildirimYaz(talep, 'musteriEkledi')
+  return true
+}
+
+/**
+ * Müşteri kapanmış servis işinde "Sorun Devam Ediyor" dedi; talep
+ * yeniden açıldı. Yalnız o düğmeden çağrılır (düğme yalnız kapanmış
+ * servis talebinde var); talebin geri açılmadan önceki kopyası da
+ * sonraki kopyası da verilebilir, durumuna bakılmıyor.
+ */
+export function sorunDevaminiServiseBildir(talep) {
+  if (!isiServisYurutuyor(talep)) return false
+  serviseBildirimYaz(talep, 'musteriSorunDevam')
+  return true
 }

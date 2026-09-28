@@ -273,9 +273,14 @@ export const tr = {
     yeni: 'Talebiniz alındı',
     incelemede: 'Ekibimiz inceliyor',
     planlandi: 'Randevu verildi',
+    /* Yedek parçada `planlandi` gönderim günü demek (lib/talep.js →
+       musteriDurumAnahtari); kayıttaki kod aynı. */
+    planlandiParca: 'Gönderim günü belirlendi',
     teklif: 'Teklifiniz hazırlandı',
     onayBekliyor: 'Servis kaydınız inceleniyor',
     parcaBekliyor: 'Makineniz için parça bekleniyor',
+    /* Geçmişte parçanın gönderildiği satır (lib/talep.js → gecmisSatiriAnahtari). */
+    parcaYolda: 'Parça yola çıktı',
     kapandi: 'Tamamlandı',
     iptal: 'İptal edildi',
     bayiyeIletildi: 'Bayimize iletildi',
@@ -288,6 +293,7 @@ export const tr = {
     durum_planlandi: 'Servisiniz planlandı. Ekibimiz sizi arayacak.',
     durum_planlandiDetay: '{tarih} için planlandı. {is}',
     randevuBaslik: 'Yaklaşan Randevunuz',
+    gonderimBaslik: 'Parçanızın Gönderim Günü Yaklaşıyor',
     randevuMetin: '{tarih} · {is}',
     durum_teklif: 'Teklifiniz hazırlandı. Ayrıntı için talebinize dokunun.',
     durum_gonderildi: 'Parçanız kargoya verildi.',
@@ -303,6 +309,12 @@ export const tr = {
     odemeMetin: 'Dekontunuz kontrol edildi. Parçanız hazırlanıyor.',
     gonderildiBaslik: '{no} · Parçanız Yola Çıktı',
     gonderildiMetin: 'Parçanız kargoya verildi.',
+    /* {kargo}: firma ve takip numarası, çevrilmez. */
+    gonderildiMetinKargo: 'Parçanız kargoya verildi. Kargo bilgisi: {kargo}',
+    /* Kapanmış parça talebinde kargo bilgisi sonradan girilince ya da
+       düzeltilince (veri.js → musteriKargosunuGuncelle). {kargo} çevrilmez. */
+    kargoGuncellendiBaslik: '{no} · Kargo Bilginiz Güncellendi',
+    kargoGuncellendiMetin: 'Parçanızın kargo bilgisi: {kargo}',
     gorusCevapBaslik: 'Görüşünüze Cevap',
     numaraBaslik: 'Telefon Numarası Değişikliği',
     numaraOnay: 'Numaranız güncellendi. Bundan sonra yeni numaranızla giriş yapacaksınız.',
@@ -312,6 +324,11 @@ export const tr = {
     cakismaRet: 'Yazdığınız eski numara, makinenin kayıtlı olduğu telefon numarasıyla aynı değil. Numarayı kontrol edip yeniden gönderebilir ya da {markaYi} arayabilirsiniz.',
     servisAtandiBaslik: 'Makinenize Servis Atandı',
     servisAtandiMetin: '{makine} ({seri}) makinenize artık {servis} bakacak. Servis talebini uygulamadan açabilirsiniz.',
+    /* Atama bildirimi makinenin güncel durumunu söylüyor (backoffice/
+       veri.js → makineAtamasiniKaydet): servis değişti ya da kalmadı. */
+    servisDegistiBaslik: 'Makinenizin Servisi Değişti',
+    servisKaldirildiBaslik: 'Makinenizin Servisi Yeniden Belirleniyor',
+    servisKaldirildiMetin: '{makine} ({seri}) makinenize bakacak servisi {marka} yeniden belirliyor. Yeni servis atanınca size haber vereceğiz.',
     baslik: 'Bildirimler',
     okunmamis: '{n} okunmamış',
     tumunuOku: 'Tümünü okundu olarak işaretle',
@@ -370,9 +387,15 @@ export const tr = {
     hesapSilme: 'Hesabınızın ve kayıtlarınızın tamamen silinmesini istiyorsanız {eposta} adresine yazın; talebiniz {marka} tarafından işleme alınır.',
     kvkkBaglanti: 'KVKK | Açık Rıza Metni | İzinler',
     talepKaldirSor: 'Talep Kaldırılsın mı?',
-    talepKaldirAciklama: '{no} numaralı {tur} listenizden kaldırılacak. Talebiniz {markada} kalır, istediğinizde {markaya} sorabilirsiniz.',
+    talepKaldirAciklama: '{no} numaralı {tur} listenizden kaldırılacak. Talebiniz {markada} kayıtlı kalır. Fikrinizi değiştirirseniz Tamamlananlar sekmesinin altındaki “Listeden Kaldırdıklarım” bölümünden geri alabilirsiniz.',
     evetKaldir: 'Evet, Kaldır',
     talepKaldirildi: 'Talep listeden kaldırıldı',
+    /* Listeden kaldırılan talepler geri alınabiliyor (Taleplerim →
+       Tamamlananlar sekmesinin altı). */
+    kaldirilanlar: 'Listeden Kaldırdıklarım ({n})',
+    kaldirilanlarAlt: 'Bu talepler yalnızca sizin listenizden kaldırıldı. {markada} kayıtlı duruyor.',
+    geriAl: 'Listeme Geri Al',
+    geriAlindi: 'Talep listenize geri alındı',
     kampanyaAcik: 'Kampanya bildirimleri açıldı',
     kampanyaKapali: 'Kampanya bildirimleri kapatıldı',
     onayTarihi: 'Bu metinleri {tarih} tarihinde onayladınız (sürüm {surum}).',
@@ -445,6 +468,18 @@ export const tr = {
       'Servis buraya gelecek. Köy, mevki ve yol tarifi yazın; harita adresi yeterli olmayabilir.',
     servisAdresIpucu: 'Örnek: Çumra, Alibeyhüyüğü köyü, kooperatifin arkası',
     servisAdresEksik: 'Servisin gelebilmesi için adresi biraz daha açık yazın.',
+    /* Servis talebinde il ve ilçe makinenin yeri olarak, adresle aynı
+       blokta soruluyor. */
+    makineninYeri: 'Makineniz nerede?',
+    makineIlSecin: 'Makinenin bulunduğu ili seçin.',
+    makineIlceSecin: 'Makinenin bulunduğu ilçeyi seçin.',
+    servisGelecegiAdres: 'Servisin geleceği adres',
+    adresiDuzelt: 'Adresi düzelt',
+    /* Aynı makinede işi süren servis talebi varken ikinci talep
+       açılmıyor; çiftçi o talebe ekleme yapmaya yönlendiriliyor. */
+    acikTalepBaslik: 'Bu Makine İçin Açık Bir Servis Talebiniz Var',
+    acikTalepAlt: '{no} numaralı talebinizle ilgili işlemler sürüyor. Yeni bilgileri aynı talebe ekleyin; servisiniz hepsini birlikte görür.',
+    acikTalepVar: 'Bu makine için {no} numaralı talebiniz hâlâ açık. Yeni bilgiyi o talebe ekleyin.',
     durumSecin: 'Makinenin şu anki durumunu işaretleyin.',
     belirtiSecin: 'Ne olduğunu işaretleyin. Listede yoksa “Diğer” seçip anlatın.',
     parcaSecin: 'Hangi parçaya ihtiyacınız olduğunu işaretleyin.',
@@ -550,17 +585,28 @@ export const tr = {
     eklemeKapali: 'Bu talep kapandığı için üzerine ekleme yapılamıyor. Yeni bir durum varsa yeni talep açın; kapanmış talebe yazılanı kimse görmez.',
     baslik: 'Talebim',
     yokBaslik: 'Bu Talep Artık Listenizde Değil',
-    yokAlt: 'Talebi silmiş olabilirsiniz. Taleplerinizin tamamını profil sayfanızdan görebilirsiniz.',
+    yokAlt: 'Bu talep, bu hesaba ait talep listesinde yok. Tüm taleplerinizi Taleplerim ekranında görebilirsiniz.',
+    kaldirildiBaslik: 'Bu Talebi Listenizden Kaldırdınız',
+    kaldirildiAlt: '{no} numaralı talebiniz {markada} kayıtlı. Listenize geri alırsanız ayrıntılarını yeniden görebilirsiniz.',
     talebiniz: 'Talebiniz',
     acildi: 'Açıldığı tarih',
     makine: 'Makine',
     seriNo: 'Seri numarası',
     ilgilenilen: 'İlgilendiğiniz ürün',
+    /* Servisin Servisim'den açtığı iş (26 Eylül 2026). */
+    acan: 'Talebi açan',
+    acanServis: '{servis} (sizin adınıza)',
+    /* Fiyat teklifinin cevapları (26 Eylül 2026, ikinci kullanıcı sınaması). */
+    balyalanacakUrun: 'Balyalanacak ürün',
+    arazi: 'Arazi büyüklüğü',
+    traktorGucu: 'Traktör gücü',
     belirtiler: 'Belirtiler',
     parcalar: 'İstenen parçalar',
     gecmis: 'Talebin Geçmişi',
     notlar: '{marka} Bilgilendirmesi',
     servisiAra: 'Servisinizi Ara',
+    /* Talebi yürüten servis makinenin bugünkü servisi değilse. */
+    talebinServisiniAra: 'Talebinizle İlgilenen Servisi Ara',
     markayiAra: '{marka} Ara',
     iptalBaslik: 'İptal Sebebi',
     yanlislikVar: 'Yanlışlık olduğunu düşünüyorum',
@@ -568,11 +614,15 @@ export const tr = {
     teklifTutar: 'Teklif tutarı',
     gecerlilik: 'Geçerlilik',
     randevuBaslik: 'Randevunuz',
+    /* Yedek parçada planlanan şey gönderim günü. */
+    gonderimBaslik: 'Gönderim Günü',
     yapilanIs: 'Yapılan iş',
     sonucBaslik: 'Teklif Sonucu',
     degisenParca: 'Değişen parça',
+    /* Parça talebinin kargo firması ve takip numarası satırı. */
+    kargo: 'Kargo',
     ucret: 'Ücret',
-    ucretGaranti: 'Garanti kapsamında',
+    ucretGaranti: 'Garantiden karşılanıyor',
     ucretMusteriOdedi: 'Müşteri ödedi',
     isKurulum: 'İlk Kurulum ve Çalıştırma',
     isAyar: 'Ayar Yapıldı',
@@ -689,8 +739,12 @@ export const tr = {
     hataBos: 'Lütfen makinenizin seri numarasını yazın.',
     hataKisa: 'Seri numarası eksik görünüyor. Etiketteki numaranın tamamını yazın.',
     hataBulunamadi: 'Bu seri numarasını sistemimizde bulamadık. Numarayı kontrol edin veya bize ulaşın; biz sizin için bakalım.',
+    /* Model kodu tanındı ama arkası biçime uymuyor (lib/serial.js →
+       validateSerial). {model}: makinenin adı, {ornek}: doğru biçimli
+       örnek seri. */
+    hataBicim: 'Bu numara {model} modelinin seri numarasına benziyor ama eksik ya da hatalı. Model kodundan sonra 4 haneli üretim yılı ve 5 haneli sıra numarası gelir. Örnek: {ornek}',
     zatenKayitli: 'Bu makine zaten kayıtlı. Makinelerim sayfasından görebilirsiniz.',
-    garantiTahmin: 'Bu, üretim yılına göre yapılmış bir tahmindir. Garanti kapsamının son kararını {marka} yetkilisi verir.',
+    garantiTahmin: 'Bu, üretim yılına göre yapılan bir tahmindir. Garantinin geçerli olup olmadığına {marka} yetkilisi karar verir.',
     notYardim: 'Aynı modelden birden fazla makineniz varsa ayırt etmenize yarar. Makinenin adı her zaman {ad} olarak görünür.',
     seriNeredeYazar: 'Seri numarası makinenizin üzerindeki metal etikette yazar. Kaydettiğinizde kılavuz, video ve destek hizmetlerimiz açılır.',
     etiketKirli: 'Etiket kirlendiyse ıslak bezle silin. Okunmuyorsa veya etiket düşmüşse bizi arayın, faturanızdan bulalım.',
@@ -704,8 +758,10 @@ export const tr = {
     yerYem: 'Yem karma makinelerinde: kazanın ön sağ köşesinde',
     yerDiger: 'Silaj ve toprak işleme makinelerinde: ana şasi üzerinde',
     ornekler: 'Test için örnek seri numaraları',
+    /* Örnek seri kutusunun rozeti; kutu yalnız demo sürümünde. */
+    denemeRozet: 'DENEME',
     seriNerede: 'Seri Numarası Nerede?',
-    seriAciklama: 'Seri numarası, makinenizin şasisine perçinlenmiş veya yapıştırılmış künye plakasında yazar.',
+    seriAciklama: 'Seri numarası, makinenizin gövdesine sabitlenmiş metal etikette yazar.',
     notOrnek: 'Örnek: Ahırdaki, yeni aldığım',
     bul: 'Makineyi Bul',
     kaydet: 'Bu Makineyi Kaydet',
@@ -796,9 +852,9 @@ export const tr = {
     videoBulamadin: 'Aradığınız videoyu bulamadınız mı? Destek bölümünden sorun, size adım adım anlatalım.',
     videoYakinda: 'Bu video yakında eklenecek',
     bakimNot: 'Yaptığınız bakımı işaretleyin. Bakım kaydı tutmak garanti işlemlerinde işinizi kolaylaştırır.',
-    garantiMetni: '{marka} makineleri teslim tarihinden itibaren {yil} yıl garantilidir. Aşınma parçaları (bıçak, ip, parmak, kayış, emniyet cıvatası) garanti kapsamı dışındadır. Bakımların zamanında yapılması garanti şartıdır.',
+    garantiMetni: '{marka} makineleri teslim tarihinden itibaren {yil} yıl garantilidir. Aşınma parçaları (bıçak, ip, parmak, kayış, emniyet cıvatası) garantiye girmez. Bakımların zamanında yapılması garanti şartıdır.',
     garantiBitis: 'Garanti bitiş yılı: {yil}',
-    garantiNot: 'Buradaki bilgi yol göstericidir. Kapsamın son kararını her zaman {marka} yetkilisi verir.',
+    garantiNot: 'Bu bilgi yol göstericidir. Garantinin geçerli olup olmadığına {marka} yetkilisi karar verir.',
     sorunVar: 'Sorun mu var? Destek alın',
     destekAl: 'Destek alın',
     kilavuz: 'Kılavuz',

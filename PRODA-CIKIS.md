@@ -289,6 +289,14 @@ gözden geçirilmeli.
 Gerçek bayi listesi girildiğinde **bu kart tamamen silinmeli.**
 
 ### C2. Örnek seri numaraları
+> **Güncel (25 Eylül 2026):** kutu artık `index.html` kök etiketindeki
+> `data-demo="acik"` işaretine bağlı (`src/lib/demoSurumu.js`). Yeri
+> yardım penceresi değil, Makine Kaydet ekranının giriş sayfası
+> ("DENEME" rozetli kutu). İşaret silinince kutu kendiliğinden
+> kayboluyor; `npm run dogrula -- --yayin` işaret duruyorsa durduruyor.
+> Aşağıdaki "kaldırılmalı" hâlâ geçerli: `ORNEK_SERILER` dizisi canlı
+> pakette gereksiz.
+
 **Yer:** `src/screens/AddMachine.jsx` → "Seri numarası nerede yazıyor?"
 yardım penceresinde `ORNEK_SERILER` listesi gösteriliyor.
 

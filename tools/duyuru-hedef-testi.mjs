@@ -200,7 +200,11 @@ bak(
        `veri.js → musteriyeBildir` artık her kişisel bildirime
        `kisisel` damgası vuruyor; damga varken kimlik yoksa kayıt
        kimseye gösterilmiyor. Sahibinden saklamak, yabancıya
-       göstermekten iyidir. */
+       göstermekten iyidir.
+
+       25 Eylül 2026'dan beri alıcısı çözülmeyen bildirim hiç
+       yazılmıyor; bu bölüm o tarihten önce yazılmış kimliksiz
+       kayıtların süzgecini sınıyor (depoda onlardan var). */
 const ahmet = { id: 'u-ahmet', il: 'Konya', onaylar: {} }
 const mehmet = { id: 'u-mehmet', il: 'Konya', onaylar: {} }
 const ahmetin = { id: 'b2', tur: 'talep', kisisel: true, musteriId: 'u-ahmet' }

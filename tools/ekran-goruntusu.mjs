@@ -510,20 +510,9 @@ const UYGULAMA = [
   { ad: '26-bayiler', baslik: 'Bayi ve servis ağı', yol: '/bayiler' },
   { ad: '27-bildirimler', baslik: 'Bildirimler', yol: '/bildirimler' },
   { ad: '28-profil', baslik: 'Profil', yol: '/profil' },
-  {
-    ad: '28b-taleplerim', baslik: 'Taleplerim', yol: '/profil',
-    adimlar: [
-      {
-        js: `(() => {
-          const b = [...document.querySelectorAll('h2')].find(e => e.innerText.includes('Taleplerim'));
-          if (!b) return 'YOK';
-          window.scrollTo({ top: b.getBoundingClientRect().top + window.scrollY - 80 });
-          return 'OK';
-        })()`,
-      },
-      { bekle: 500 },
-    ],
-  },
+  /* Talepler 25 Eylül 2026'dan beri kendi ekranında (screens/Taleplerim.jsx);
+     önce Profil'e gidip listeye kaydırılıyordu. */
+  { ad: '28b-taleplerim', baslik: 'Taleplerim', yol: '/taleplerim' },
   { ad: '29-numara-degisikligi', baslik: 'Numara değişikliği', yol: '/numara-degisikligi' },
 ]
 
@@ -1011,7 +1000,10 @@ async function main() {
     process.stdout.write(`  ${sahne.ad}  ${sahne.baslik}\n`)
 
     if (sahne.giris === false) {
-      await s.js("localStorage.removeItem('paksan.panelOturum')")
+      /* Sekmenin kendi oturumu da siliniyor (O6, 25.09.2026): oturum
+         sekmeye ait olunca yalnız kalıcı depoyu silmek giriş ekranını
+         açmazdı. */
+      await s.js("localStorage.removeItem('paksan.panelOturum'); sessionStorage.removeItem('paksan.panelOturum')")
       await s.git(ADRES + '/backoffice.html')
       await bekle(900)
       girildi = false

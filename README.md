@@ -23,7 +23,7 @@ personeli backoffice'ten yürütür.
 |---|---|
 | `src/` | **Bütün uygulama kodu.** Üç uygulama da buradan derleniyor. Alt klasörleri aşağıda. |
 | `veritabani/` | SQL Server veritabanının tasarımı ve kurulum betikleri. Henüz kalıcı olarak kurulmadı; ekosistem tamamlanınca kurulacak. `uygulama-eslesmesi.mjs`: uygulamaların yazdığı her alanın veritabanında nereye düştüğü. |
-| `tools/` | Otomasyon betikleri: doğrulama (`dogrula.mjs`), **ekosistem sınaması** (`ekosistem-sinamasi.mjs` üç uygulamanın paylaştığı veri katmanını 23 akış senaryosuyla, `ekosistem-turu.mjs` gezilebilir 52 ekranın tamamını tarayıcıda koşturur; envanter `ekosistem/ekranlar.mjs`), **eşleme denetimi** (`veritabani-eslesme-denetimi.mjs`: uygulama veritabanında karşılığı olmayan bir alan yazarsa doğrulamayı düşürür), **fiyat listesi sınaması** (`fiyat-listesi-okuma-sinamasi.mjs`: backoffice'e yüklenen PDF'i okuyan kodun doğru okuduğunu ve yayına alma adımını denetler), ekran görüntüsü, ikon üretimi, veritabanı araçları (`vt.mjs`; yedek `vt yedekle`). Uygulamanın içine girmez. |
+| `tools/` | Otomasyon betikleri: doğrulama (`dogrula.mjs`), **ekosistem sınaması** (`ekosistem-sinamasi.mjs` üç uygulamanın paylaştığı veri katmanını 34 akış senaryosuyla, `ekosistem-turu.mjs` gezilebilir ekranların tamamını 80 denetimle tarayıcıda koşturur; envanter `ekosistem/ekranlar.mjs`, formlar `ekosistem/formlar.mjs`), **kullanıcı sınaması** (`kullanici-sinamasi/`: üç uygulamayı gerçek kullanıcılar gibi kullanan dört ajanın tur düzeni, test dünyası kurulumu ve tur arası tutarlılık denetimi; nasıl yürütüldüğü klasörün README'sinde), **eşleme denetimi** (`veritabani-eslesme-denetimi.mjs`: uygulama veritabanında karşılığı olmayan bir alan yazarsa ya da eşlemede bir satır iki kez yazılırsa doğrulamayı düşürür), **fiyat listesi sınaması** (`fiyat-listesi-okuma-sinamasi.mjs`: backoffice'e yüklenen PDF'i okuyan kodun doğru okuduğunu ve yayına alma adımını denetler), ekran görüntüsü, ikon üretimi, veritabanı araçları (`vt.mjs`; yedek `vt yedekle`). Uygulamanın içine girmez. |
 | `sunucu-taklidi/` | Sunucu gelene kadar sunucunun yerini tutan dosyalar — bugün yalnız **yedek parça kataloğu** (538 parça, görselleriyle) ve yeni fiyat listesini yayına alan adım (`fiyat-listesi-yayini.mjs`; backoffice'ten yüklenen liste buraya geliyor, eskisi `parca-katalogu-arsiv/`'e gidiyor). Geliştirme sunucusu bunları ağdan yayınlıyor. Ayrıntı: `sunucu-taklidi/BENIOKU.md`. |
 | `android/` | PAKSAN Connect'in Android projesi. Capacitor üretiyor. |
 | `android-servis/` | PAKSAN Servisim'in Android projesi. |
@@ -46,7 +46,7 @@ Destek asistanının sunucusu bu klasörde **değil**: `D:\PAKSAN\paksan-rag`.
 | `src/components/` | Üç uygulamanın da kullandığı ortak parçalar. |
 | `src/marka/` | **Firmaya ait her şey:** logo, renkler, ürün kataloğu, bayi ve servis listeleri, fiyatlar, kılavuz paketi. Başka bir firmaya kurulum bu klasörün değişmesiyle olur. |
 | `src/data/` | Ülkeye ait içerik: il listesi, KVKK metinleri, talep alanları, belirtiler, yetki kataloğu. |
-| `src/lib/` | Yardımcı modüller: depolama, bildirim, PDF/Excel çıkarma, servis atama. |
+| `src/lib/` | Yardımcı modüller: depolama, bildirim, PDF/Excel çıkarma, servis atama, müşteri eşleşmesi (`musteriEslesmesi.js`), telefon biçimi (`tel.js`), makinenin açık talebi (`makineTalepleri.js`), Servisim'in elle açtığı talep (`elleTalep.js`), demo işareti (`demoSurumu.js`). |
 | `src/i18n/` | Türkçe ve İngilizce sözlükler (yalnız Connect iki dilli). |
 
 ---
@@ -65,7 +65,7 @@ Her belgenin tek bir sorusu var.
 | `GELISTIRICI-BAGIMLILIGI.md` | Canlıya çıkıldığında hangi işler için geliştirici çağırmak gerekecek? Rol rol döküm ve bağımlılığı kaldırma sırası. |
 | `KOD-SISTEMI.md` | Ekosistemdeki numaralar (talep, sipariş, makine, hak ediş) nasıl üretiliyor, hedeflenen düzen ne? |
 | `MARKA-DEVIR.md` | Bu ürün başka bir firmaya nasıl kurulur? |
-| `CODEX-BEKLEYEN.md` | Codex'in sınırı dolduğunda yazılan Türkçe metinler nasıl işaretlenip biriktirilir, sınır yenilenince nasıl topluca verilir? Kuyruk şu an boş. |
+| `CODEX-BEKLEYEN.md` | Codex'in sınırı dolduğunda yazılan Türkçe metinler nasıl işaretlenip biriktirilir, sınır yenilenince nasıl topluca verilir? Kuyrukta bekleyen metin var; sayısı belgenin başında, `npm run dogrula` 12. kontrol listeliyor. |
 | `VT-TASARIM-EKLERI.md` | Uygulamaya sonradan giren akışların veritabanında karşılığı ne olmalı? Tasarıma işlenmeyi bekliyor. |
 | `PLAN-COKLU-MARKA.md` | Globale ve Gallignani markaları eklenirse ne değişir? Marka verileri gelmeden uygulanmayacak. |
 | `DESTEK-EKRANI-PLANI.md` | Connect'in Destek ekranı nasıl yeniden kurulacak? **Askıda** — kılavuz verisi tamamlanmadan uygulanmayacak, gerekçesi belgenin başında. |

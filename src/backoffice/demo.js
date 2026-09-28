@@ -12,6 +12,17 @@
 
    Yayına çıkarken bu dosyanın çağrıldığı düğme kaldırılmalı
    (bkz. PRODA-CIKIS.md).
+
+   DEMO KAYDI GERÇEK AKIŞIN YAZACAĞI KAYDIN AYNISI (25 Eylül 2026,
+   kullanıcı sınaması). Arıza, belirti, parça, not ve garanti makineye
+   bakmadan ayrı ayrı rastgele çekiliyordu: rotovatörde "düğüm atmıyor",
+   garantisi bitmiş makinede garanti kaydı, Süper 8002E'de Yunus parçası.
+   Seçim sırası artık senaryo → senaryonun makineden istediği → makine →
+   makineye uyan arıza vakası → parçalar → notlar (bkz.
+   demoMakineAilesi.js). Makinenin yılı, üretim ve fatura tarihi ile
+   kayıt günü seri numarasından çıkan tek takvimden. Telefon ve müşteri
+   kimliği Connect'in yazdığı biçimde (lib/tel.js), Servisim'in randevusu
+   yalnız gün, elle açılan işte `atamaDisi` (bkz. demoServis.js).
    ========================================================================== */
 
 import { load, save, uid } from '../lib/storage'
@@ -20,8 +31,9 @@ import { sifreHazirla } from '../lib/hesap'
 import { yeniNo } from '../lib/numara'
 import { talepNo } from '../lib/talep'
 import { normalizeSerial } from '../lib/serial'
-import { ANAHTAR, islemYaz, personelGetir, rolleriGetir } from './veri'
-import { MAKINE_DURUMU } from '../data/talepAlanlari'
+import { telAnahtar, telGoster, telHamYap } from '../lib/tel'
+import { LOGO } from '../lib/logo'
+import { ANAHTAR, bakiyeDurumu, islemYaz, personelGetir, rolleriGetir } from './veri'
 import { PRODUCTS, SIRKET } from '../marka'
 import { SERVISLER, BAYILER } from '../marka'
 import { makineninServisi } from '../lib/servisAtama'
@@ -38,6 +50,16 @@ import {
   servisAkisi,
   servisSiparisleriUret,
 } from './demoServis'
+import {
+  destekSorusu,
+  garantideMi,
+  makineninParcaHavuzu,
+  makineUyar,
+  parcaliIsOlur,
+  senaryoIhtiyaci,
+  vakaHavuzu,
+  vakaSec,
+} from './demoMakineAilesi'
 
 /* ------------------------------------------------------------ Malzemeler */
 
@@ -78,11 +100,13 @@ const YERLER = [
   ['Edirne', 'Uzunköprü'], ['Sivas', 'Şarkışla'],
 ]
 
-const SERVIS_BELIRTI = [
-  'İp düğümlemiyor', 'Balya dağılıyor', 'Pikap toplamıyor', 'Ses geliyor',
-  'Zincir atıyor', 'Yağ kaçırıyor', 'Sensör uyarı veriyor', 'Titreşim var',
-]
+/* Servis talebinin belirtileri, açıklaması ve fotoğrafları makinenin
+   ailesinden (bkz. demoMakineAilesi.js → ARIZA_VAKALARI). Belirti eskiden
+   buradaki bir listedendi ve talep formunun değerleri değildi: raporun
+   "En sık belirtiler" grafiği ve Connect'in çevirisi onları tanımıyordu. */
 
+/* Müşterinin parça talebi kapanırken kargo bilgisi (veri.js → talepKapat,
+   25 Eylül 2026'dan beri kapanışın içinde). */
 const KARGO = ['Aras Kargo', 'Yurtiçi Kargo', 'MNG Kargo', 'Sürat Kargo']
 
 /* Yedek parça kapanışındaki isteğe bağlı not — fazladan bir şey
@@ -94,40 +118,58 @@ const PARCA_KAPANIS_NOTU = [
   'Müşteriyle telefonda görüşüldü, adres teyit edildi.',
 ]
 
-const YAPILAN_IS = [
-  'Bağlama grubu ayarlandı, mekik dili pimi değiştirildi.',
-  'Pikap parmakları değiştirildi, zincir gerginliği ayarlandı.',
-  'Kuyruk mili şaftı yenilendi, yağlama yapıldı.',
-  'İp yolları temizlendi, gergi mekanizması ayarlandı.',
-  'Piston segmanları değiştirildi, boşluk ayarı yapıldı.',
+/* NOTLAR TALEBİN TÜRÜNDEN (25 Eylül 2026, kullanıcı sınaması). Her türe
+   aynı listeden not düşüyordu: "Garanti kapsamında, ücret alınmayacak"
+   parça ve teklif talebinde, garantisi bitmiş makinede; "Bölge servisi
+   yönlendirildi" coğrafi atamanın kalıntısıydı (o atama kaldırıldı);
+   "Servis ekibimiz…" ise servis ayrı bir şirket, PAKSAN'ın servis ekibi
+   yok. İç not ekibin kendi arasında, müşteri notu telefona düşüyor. */
+const NOTLAR = {
+  servis: {
+    ic: [
+      'Müşteriye ulaşıldı, bu hafta içinde uygun olacak.',
+      'Müşteri makinenin başında olmayacak, gitmeden önce aranmalı.',
+    ],
+    musteriye: [
+      'Talebiniz alındı, en kısa sürede size dönüş yapacağız.',
+      'Talebiniz servisinize iletildi, servisiniz sizi arayacak.',
+    ],
+  },
+  parca: {
+    ic: ['Parça stokta yok, tedarik ediliyor.', 'Müşteriyle telefonda görüşüldü, adres teyit edildi.'],
+    musteriye: ['Talebiniz alındı, en kısa sürede size dönüş yapacağız.'],
+  },
+  satinalma: {
+    ic: ['Müşteriye ulaşıldı, teklif için bilgi alındı.'],
+    musteriye: ['Talebiniz alındı, en kısa sürede size dönüş yapacağız.'],
+  },
+}
+
+/* Garanti notu yalnız garanti süresindeki makinenin servis talebine ve
+   garanti dışı kapanmamış, reddedilmemiş işe düşüyor (bkz. notUret).
+   "kapsamında" demiyor: servis ekranında o kelime geçmiyor. */
+export const GARANTI_NOTU = 'Makine garanti süresi içinde.'
+
+/* Ödemesi onaylanmış parça talebinde müşteriye giden not. */
+const PARCA_HAZIR_NOTU = 'Parçanız hazırlandı, kargoya verilecek.'
+
+/* Parça talebinin gönderim planındaki "Planlanan iş": servis işi değil,
+   gönderim. Önce servis talebinin iş listesinden çekiliyordu. */
+export const PARCA_PLAN_IS = [
+  'Parçalar hazırlanıp kargoya verilecek.',
+  'Eksik parça tamamlanınca kargoya verilecek.',
 ]
 
-const IC_NOTLAR = [
-  'Müşteriye ulaşıldı, hasat bitince uygun olacak.',
-  'Bölge servisi yönlendirildi.',
-  'Parça stokta yok, tedarik ediliyor.',
-  'Garanti kapsamında, ücret alınmayacak.',
-]
+/* İptal nedeni. "Servise yönlendirildi" çıkarıldı: parça ve teklif
+   talebine de yazılıyordu, oysa yedek parça talebi servise gitmez. */
+const IPTAL_NEDEN = ['Müşteri vazgeçti', 'Ulaşılamadı', 'Yanlış talep']
 
-const MUSTERI_NOTLARI = [
-  'Talebiniz alındı, en kısa sürede size dönüş yapacağız.',
-  'Servis ekibimiz yarın bölgenizde olacak.',
-  'Parçanız hazırlandı, kargoya verilecek.',
-]
+/* Arıza fotoğrafının yanındaki ikinci fotoğraf: her makinede olan şey. */
+const GENEL_FOTO = ['Seri numarası plakası', 'Makinenin genel görünümü']
 
-const IPTAL_NEDEN = [
-  'Müşteri vazgeçti', 'Ulaşılamadı', 'Yanlış talep', 'Servise yönlendirildi',
-]
+const GUN = 86400000
 
 const SATIS_SONUC = ['Satış oldu', 'Müşteri vazgeçti', 'Rakibe gitti', 'Ulaşılamadı']
-
-const SERVIS_ACIKLAMA = [
-  'Sabah çalışırken durdu, tekrar çalıştıramadım.',
-  'Balya yaparken ip sürekli kopuyor, ayar yaptım düzelmedi.',
-  'Sesin nereden geldiğini bulamadım, bakılması gerekiyor.',
-  'Hasat başladı, acele lazım.',
-  'Geçen sene de aynı yerden sorun çıkmıştı.',
-]
 
 const PARCA_ACIKLAMA = [
   'İki takım istiyorum, kargoyla gönderebilir misiniz?',
@@ -166,28 +208,9 @@ function demoRolleri() {
   return (adminsiz.length ? adminsiz : liste).map((r) => r.id)
 }
 
-/* Destek asistanına yazılan sorular. Çiftçi soruyu kendisi yazıyor
-   (bkz. screens/Support.jsx); kılavuzda cevabı olan türden sorular,
-   backoffice'te "en çok sorulan" listesi anlamlı görünsün. */
-const DESTEK_SORU = [
-  'Kaç beygir traktör gerekir?',
-  'Düğüm atıcı ne sıklıkla yağlanmalı?',
-  'Kuyruk mili devri kaç olmalı?',
-  'Balya boyu nasıl ayarlanır?',
-  'İp makaraya nasıl takılır?',
-  'Pikap yüksekliği nasıl ayarlanır?',
-  'Emniyet cıvatası neden kopar?',
-  'Sezon sonunda makineyi nasıl saklamalıyım?',
-]
-
-/* Cevapsız kalan sorular bilgi tabanının eksik listesi; demoda da
-   birkaç tane olsun ki o rapor boş çıkmasın. */
-const DESTEK_CEVAPSIZ = [
-  'Nem ölçer hata veriyor',
-  'PLC ekranı açılmıyor',
-  'Otomatik yağlama çalışmıyor',
-  'Tartı sistemi yanlış tartıyor',
-]
+/* Destek asistanına yazılan sorular makinenin ailesinden (bkz.
+   demoMakineAilesi.js → destekSorusu): hepsi balya makinesi içindi ve
+   herhangi bir makinenin kılavuzuna bağlanıyordu ("Rotovatör kılavuzu"). */
 
 /* Beş alt türün hepsinden en az bir örnek var: ekranlar boş bir
    listeyle değil, gerçek çeşitlilikle deneniyor. Hedefi olanlar
@@ -288,11 +311,38 @@ function telUret() {
    demo verisinde model bulunamıyor, üretim yılı çıkarılamıyor,
    garanti "bilinmiyor" görünüyor ve numara ekranda tiresiz
    yazılıyordu. Gerçek seri numaralarında bunların hiçbiri olmuyor —
-   yani demo, olmayan bir hatayı taklit ediyordu. */
-function seriUret(urun, enEski = 2019) {
-  const yil = tamsayi(enEski, 2025)
+   yani demo, olmayan bir hatayı taklit ediyordu.
+
+   Biçim lib/serial.js'in kuralı (`onekYilSira`): model kodu, 4 haneli
+   üretim yılı, 5 haneli sıra; validateSerial 25 Eylül 2026'dan beri
+   önekten sonrasını da denetliyor. YIL PARAMETRE: makinenin takviminden
+   geliyor (makineTakvimi). Önce seri yılı ile makinenin `year` alanı ayrı
+   ayrı rastgeleydi; Müşteriler ekranı garantiyi `year`'dan, talep
+   detayı ve Servisim seriden okuyordu ve aynı makine iki ekranda iki
+   farklı garanti gösteriyordu. */
+function seriUret(urun, yil) {
   const onek = normalizeSerial(urun.serialPrefix)
   return `${onek}${yil}${String(tamsayi(1, 9999)).padStart(5, '0')}`
+}
+
+/* MAKİNENİN TAKVİMİ: üretim → bayiye fatura → uygulamaya kayıt, tek
+   yıldan. Üretim yılı `enEski` ile bu yıl arasında; üretim en geç 150 gün
+   önce (fatura 15-60 gün sonra, kayıt faturadan sonra). Kayıt en geç 46
+   gün önce: en eski demo işi 44 gün önce açılıyor (demoServis.js →
+   SAHNE_GOREVLERI) ve talep makineden önce açılamaz. Kayıt Makineler
+   ekranındaki üretim ve fatura tarihiyle aynı takvimden (bkz. makine
+   defteri, aşağıda). */
+function makineTakvimi(enEski) {
+  const simdi = Date.now()
+  const sonUretim = simdi - 150 * GUN
+  let yil = tamsayi(enEski, new Date(simdi).getFullYear())
+  if (new Date(yil, 0, 1).getTime() > sonUretim) yil = new Date(sonUretim).getFullYear()
+  const bas = new Date(yil, 0, 1).getTime()
+  const son = Math.min(new Date(yil + 1, 0, 1).getTime() - 1, sonUretim)
+  const uretim = Math.round(bas + Math.random() * (son - bas))
+  const fatura = uretim + GUN * tamsayi(15, 60)
+  const kayit = Math.max(fatura, Math.min(fatura + GUN * tamsayi(0, 400), simdi - 46 * GUN))
+  return { yil, uretim, fatura, kayit }
 }
 
 /* -------------------------------------------------------------- Üretim */
@@ -326,11 +376,8 @@ export async function demoYukle() {
      bellekte saklanmadığı için ikinci deneme gerçekten yeniden
      deniyor (bkz. lib/parcaKatalogu.js). */
   let katalog
-  let parcaHavuzu
   try {
-    const kaynak = await parcaKaynagi()
-    katalog = kaynak.katalog
-    parcaHavuzu = kaynak.havuz
+    katalog = (await parcaKaynagi()).katalog
   } catch (hata) {
     console.error('demo: parça kataloğu alınamadı, demo verisi kurulmadı', hata)
     return {
@@ -338,6 +385,28 @@ export async function demoYukle() {
       gorus: 0, destek: 0, duyuru: 0, hata: 'katalog',
     }
   }
+
+  /* Sahne servisi: servis uygulamasının demo hesabının açıldığı servis
+     (bkz. demoServis.js). */
+  const sahneServisi = SERVISLER.find((x) => x.id === DEMO_SERVIS) || SERVISLER[0]
+  const digerServisler = SERVISLER.filter((x) => x.id !== sahneServisi.id)
+
+  /* TARAYICIDA KALAN GERÇEK HAREKETLER DE SAYILIYOR. Demo sahne
+     servisinin bakiyesini yalnız kendi yazdığı satırlardan hesaplıyordu;
+     demo işaretsiz gerçek sipariş borcu bakiyeyi düşürmüşken demonun
+     bakiyeden ödenen siparişi kullanılabilir bakiyeyi eksiye
+     düşürebiliyordu (kullanıcı sınaması, tutarlilik C4). Demo verisi
+     kurulmadan önceki kullanılabilir bakiye siparişin bütçesine
+     ekleniyor (aşağıda). */
+  const oncekiBakiye = bakiyeDurumu(sahneServisi.id).kullanilabilir
+
+  const YIL = new Date().getFullYear()
+  /* Parçalı iş kurulabilen ürünler: fiyat listesinde makinenin ailesine
+     ve modeline uyan parça olanlar. Sahne müşterisinin ilk makinesi
+     bunlardan; servis uygulamasının parça isteyen işleri ona düşüyor. */
+  const parcaliUrunler = PRODUCTS.filter((u) => parcaliIsOlur(katalog, u.id))
+  const PARCALI_URUNLER = parcaliUrunler.length ? parcaliUrunler : PRODUCTS
+  const takvimler = new Map()
 
   /* ---- Personel: admin dışında rastgele roller */
   const mevcut = personelGetir()
@@ -380,20 +449,36 @@ export async function demoYukle() {
   const musteriler = []
   for (let i = 0; i < 30; i++) {
     /* İlk sekiz müşteri sahne servisinin ilinden (bkz. demoServis.js). */
-    const [il, ilce] = i < SAHNE_MUSTERI ? SAHNE_YERLERI[i] : sec(YERLER)
-    const makineler = secBirkac(PRODUCTS, 1, 2).map((urun) => ({
-      id: uid(),
-      productId: urun.id,
-      /* Sahne müşterilerinin makineleri yeni: servis uygulamasındaki
-         garanti işleri "garanti süresi doldu" yazan makinede
-         görünmesin. */
-      serial: seriUret(urun, i < SAHNE_MUSTERI ? 2025 : 2019),
-      year: tamsayi(i < SAHNE_MUSTERI ? 2025 : 2019, 2025),
-      nickname: '',
-      addedAt: gunOnce(tamsayi(10, 700)),
-      hours: tamsayi(0, 1200),
-      doneMaintenance: [],
-    }))
+    const sahne = i < SAHNE_MUSTERI
+    const [il, ilce] = sahne ? SAHNE_YERLERI[i] : sec(YERLER)
+
+    /* Sahne müşterisinin İLK makinesi garanti süresinde ve fiyat
+       listesinde parçası olan bir model: servis uygulamasının garanti ve
+       parça isteyen işleri ona düşebilsin. İkincisi (varsa) herhangi bir
+       model, herhangi bir yıl. Garantideki iş artık makine SEÇİLİRKEN
+       süzülüyor (demoMakineAilesi.js → makineUyar); önce bütün sahne
+       makineleri yeni yazılıyor, yılı ise seriden ayrı çekiliyordu. */
+    const urunler = sahne
+      ? (() => {
+          const ilk = sec(PARCALI_URUNLER)
+          return [ilk, ...(Math.random() < 0.5 ? [sec(PRODUCTS.filter((u) => u.id !== ilk.id))] : [])]
+        })()
+      : secBirkac(PRODUCTS, 1, 2)
+    const makineler = urunler.map((urun, j) => {
+      const t = makineTakvimi(sahne && j === 0 ? YIL - 1 : 2019)
+      const mk = {
+        id: uid(),
+        productId: urun.id,
+        serial: seriUret(urun, t.yil),
+        year: t.yil,
+        nickname: '',
+        addedAt: t.kayit,
+        hours: tamsayi(0, 1200),
+        doneMaintenance: [],
+      }
+      takvimler.set(mk.id, t)
+      return mk
+    })
 
     /* Bakım işaretleri. Makinelerin bir kısmında bakım yapılmış
        görünsün: "bakımını yapan makineler daha az arızalanıyor mu"
@@ -410,7 +495,8 @@ export async function demoYukle() {
     musteriler.push({
       id: uid(),
       no: yeniNo('musteri'),
-      createdAt: gunOnce(tamsayi(20, 800)),
+      /* Hesap ilk makine kaydından önce açılmış olmalı. */
+      createdAt: Math.min(gunOnce(tamsayi(20, 800)), ...makineler.map((mk) => mk.addedAt)),
       ad: `${sec(ADLAR)} ${sec(SOYADLAR)}`,
       ulke: 'TR',
       tel: telUret(),
@@ -449,9 +535,6 @@ export async function demoYukle() {
      Bir kısmı bilerek boş bırakıldı: Logo her seri numarasını
      bilmiyor ve her makineye servis atanmış değil. Backoffice o
      eksikliği gösterebilmeli, demo da onu göstermeli. */
-  const sahneServisi = SERVISLER.find((x) => x.id === DEMO_SERVIS) || SERVISLER[0]
-  const digerServisler = SERVISLER.filter((x) => x.id !== sahneServisi.id)
-
   const makineKayitlari = []
   for (const m of musteriler) {
     const sahneMusterisi = musteriler.indexOf(m) < SAHNE_MUSTERI
@@ -466,6 +549,10 @@ export async function demoYukle() {
       const servis = sahneMusterisi
         ? sahneServisi
         : Math.random() > 0.45 ? sec(digerServisler) : null
+      /* Üretim ve fatura tarihi seri numarasının yılından, kayıt günü
+         makinenin kendi takviminden (makineTakvimi). Önce üçü ayrı ayrı
+         rastgeleydi: üretim tarihi seriden başka bir yıla düşebiliyordu. */
+      const t = takvimler.get(mk.id)
       makineKayitlari.push({
         id: uid(),
         tarih: mk.addedAt,
@@ -480,11 +567,12 @@ export async function demoYukle() {
         bayiAd: bayi?.ad || '',
         servisId: servis?.id || null,
         servisAd: servis?.ad || '',
-        uretimTarihi: logoBildi ? gunOnce(tamsayi(400, 2000)) : null,
-        faturaTarihi: logoBildi ? gunOnce(tamsayi(10, 800)) : null,
+        uretimTarihi: logoBildi ? t.uretim : null,
+        faturaTarihi: logoBildi ? t.fatura : null,
         logoBildi,
-        /* Kayıt anıyla fatura tarihi yakınsa yeni satış sayılıyor */
-        yeniSatis: logoBildi && Math.random() > 0.7,
+        /* Kayıt anıyla fatura tarihi yakınsa yeni satış sayılıyor —
+           lib/logo.js → yeniSatisMi ile aynı kural ve aynı gün sayısı. */
+        yeniSatis: logoBildi && (t.kayit - t.fatura) / GUN <= LOGO.yeniSatisGun,
         kaynak: 'musteri',
         demo: true,
       })
@@ -508,11 +596,51 @@ export async function demoYukle() {
       .map((mk) => ({ m, mk, servis: makineninServisi(mk)?.servis || null }))
       .filter((x) => x.servis && x.servis.id !== sahneServisi.id),
   )
-  let sahneSira = 0
-  const sahneMakinesi = () => {
-    const m = musteriler[sahneSira++ % SAHNE_MUSTERI]
-    return { m, mk: sec(m.makineler), servis: sahneServisi }
+
+  /* MAKİNE SENARYOYA GÖRE SEÇİLİYOR (25 Eylül 2026, kullanıcı sınaması).
+     Garanti kaydı açılan iş garanti süresindeki makineye, parça isteyen
+     iş fiyat listesinde parçası olan makineye düşüyor; garanti dışı iş
+     için garantisi bitmiş makine tercih ediliyor (demoMakineAilesi.js →
+     makineUyar). Uyan makine yoksa sahne makinelerine dönülüyor.
+
+     BİR MAKİNEDE TEK AÇIK SERVİS TALEBİ. Connect aynı makinede işi süren
+     servis talebi varken ikincisini açtırmıyor (lib/makineTalepleri.js)
+     ve backoffice aynı makinedeki ikinci açık işi işaretliyor. Demo her
+     açık işi ayrı bir makineye koymaya çalışıyor; yer kalmazsa aynı
+     makineye düşebiliyor — o zaman işaret de doğru olarak görünüyor. */
+  const acikMakineler = new Set()
+  const uygunlar = (liste, ihtiyac, acik) => {
+    let u = liste.filter((x) => makineUyar(katalog, x.mk, ihtiyac))
+    if (ihtiyac.garantiDisi) {
+      const bitmis = u.filter((x) => !garantideMi(x.mk.serial))
+      if (bitmis.length) u = bitmis
+    }
+    if (acik) {
+      const bos = u.filter((x) => !acikMakineler.has(x.mk.id))
+      if (bos.length) u = bos
+    }
+    return u
   }
+  let sahneSira = 0
+  const sahneAday = () =>
+    musteriler
+      .slice(0, SAHNE_MUSTERI)
+      .flatMap((m) => m.makineler.map((mk) => ({ m, mk, servis: sahneServisi })))
+  const sahneMakinesi = (ihtiyac, acik) => {
+    const a = uygunlar(sahneAday(), ihtiyac, acik)
+    return a.length ? a[sahneSira++ % a.length] : sahneAday()[0]
+  }
+  const servisMakinesi = (sahne, ihtiyac, acik) => {
+    if (sahne) return sahneMakinesi(ihtiyac, acik)
+    const a = uygunlar(servisliMakineler, ihtiyac, acik)
+    return a.length ? sec(a) : sahneMakinesi(ihtiyac, acik)
+  }
+  /* Müşterinin parça talebi fiyat listesinde parçası olan makineden. */
+  const parcaliMakineler = musteriler.flatMap((m) =>
+    m.makineler
+      .filter((mk) => makineninParcaHavuzu(katalog, mk.productId).length)
+      .map((mk) => ({ m, mk })),
+  )
 
   /* ---- Talepler
 
@@ -520,6 +648,20 @@ export async function demoYukle() {
      kısmı 1-2 gün (sarı), bir kısmı daha eski (kırmızı). Renk kuralı
      böylece backoffice’te görünüyor. */
   const talepler = []
+
+  /* TALEP NUMARASI TEKİL. Numara gün + dört rastgele hane
+     (lib/talep.js → talepNo) ve demo yüzü aşkın talebi aynı gün
+     numaralıyor; iki talep aynı numarayı alabiliyordu (tutarlilik T2).
+     Tarayıcıdaki gerçek talepler de sayılıyor: demo temizlenirken
+     numarayla bağlanan satırlar gerçek talebe karışmasın
+     (bkz. demoTemizle). */
+  const kullanilanNo = new Set(load(ANAHTAR.talepler, []).map((t) => t.no))
+  const tekilNo = (tur) => {
+    let no = talepNo(tur)
+    while (kullanilanNo.has(no)) no = talepNo(tur)
+    kullanilanNo.add(no)
+    return no
+  }
 
   /* Her türün kendi aşamaları var; demo da o aşamaları izliyor ki
      backoffice'teki durum süzgeci ve rapor sütunları boş kalmasın
@@ -613,17 +755,41 @@ export async function demoYukle() {
   /* Fotoğraflı talepler: ilk beş serviste ek olacak */
   let fotoKalan = 5
 
+  /* SERVİS İŞLERİNİN MAKİNESİ ÖNCE SEÇİLİYOR, EN KISITLI İŞTEN BAŞLAYARAK.
+     Garanti ve parça isteyen iş az sayıdaki uygun makineyi bekliyor;
+     sırası sona kalırsa o makineler kısıtsız açık işlerle dolmuş olurdu.
+     Senaryo, ihtiyaç ve makine görevin üstüne yazılıyor; talepler
+     aşağıda görev sırasıyla kuruluyor. */
+  const servisSecimi = new Map()
+  const kisit = (x) => (x.ihtiyac.parcali ? 0 : x.ihtiyac.garanti ? 1 : x.ihtiyac.garantiDisi ? 2 : 3)
+  const servisGorevleri = gorevler
+    .filter((g) => g.tur === 'servis')
+    .map((g) => {
+      const senaryo = g.senaryo || senaryoSec(g.durum)
+      return { g, senaryo, ihtiyac: senaryoIhtiyaci(senaryo) }
+    })
+  for (const x of [...servisGorevleri].sort((a, b) => kisit(a) - kisit(b))) {
+    const acik = !['kapandi', 'iptal'].includes(x.g.durum)
+    x.eslesme = servisMakinesi(x.g.sahne, x.ihtiyac, acik)
+    if (acik) acikMakineler.add(x.eslesme.mk.id)
+    servisSecimi.set(x.g, x)
+  }
+
   for (const gorev of gorevler) {
     {
       const tur = gorev.tur
-      const eslesme =
-        tur === 'servis'
-          ? gorev.sahne || !servisliMakineler.length
-            ? sahneMakinesi()
-            : sec(servisliMakineler)
-          : null
+      const secim = tur === 'servis' ? servisSecimi.get(gorev) : null
+      const senaryo = secim ? secim.senaryo : null
+      const ihtiyac = secim ? secim.ihtiyac : null
+      const eslesme = secim ? secim.eslesme : tur === 'parca' ? sec(parcaliMakineler) : null
       const m = eslesme ? eslesme.m : sec(musteriler)
       const makine = eslesme ? eslesme.mk : sec(m.makineler)
+      /* Arıza vakası makineden: belirti, açıklama ve fotoğraf makinenin
+         ailesinden, parçalı iş vakanın gruplarından. */
+      const vaka = secim ? vakaSec(katalog, makine, senaryo, ihtiyac, { elle: Boolean(gorev.elle) }) : null
+      /* Servisin elle açtığı kayıtta ve kurulum talebinde ses ve fotoğraf
+         yok: elle kayıtta sorulmuyor, kurulumda anlatılacak arıza yok. */
+      const sessiz = Boolean(secim) && (Boolean(gorev.elle) || vaka.durum === 'kurulum')
       const yasGun = gorev.yasGun !== undefined
         ? gorev.yasGun
         : sec([0, 0.5, 1.2, 1.6, 3, 6, 14, 40])
@@ -672,8 +838,10 @@ export async function demoYukle() {
          açılış anındaki fiyat görüntüsünden (`parcaFiyat`) okunuyor:
          liste sonradan değiştiğinde eski talebin rakamı değişmiyor
          (bkz. lib/parcaKatalogu.js → fiyatGoruntusu). */
+      /* Parça bu makinenin: makinenin ailesinin grupları, adında model
+         geçen parça yalnız o modelde (demoMakineAilesi.js). */
       const kalemler = tur === 'parca'
-        ? parcaSecimi(parcaHavuzu, 1, 3).map((p) => ({ ...p, adet: tamsayi(1, 4) }))
+        ? parcaSecimi(makineninParcaHavuzu(katalog, makine.productId), 1, 3).map((p) => ({ ...p, adet: tamsayi(1, 4) }))
         : []
       const parcalar = kalemler.map((k) => k.ad)
       const parcaAdet = Object.fromEntries(kalemler.map((k) => [k.ad, k.adet]))
@@ -690,14 +858,21 @@ export async function demoYukle() {
 
       const talep = {
         id: uid(),
-        no: talepNo(tur),
+        no: tekilNo(tur),
         createdAt: tarih,
         status: durum,
         tur,
         ad: m.ad,
-        tel: '+90 ' + m.tel,
+        /* Numara Connect'in yazdığı biçimde (25 Eylül 2026, kullanıcı
+           sınaması Y3): ekranda "+90 …", ham numara yalnız rakam,
+           talep açanın hesabına kimlikle bağlı. Servisin elle açtığı
+           işte de kimlik yazılıyor: demo müşterisi kayıtlı müşteri,
+           Servisim numarasını tanıyıp talebi hesabına bağlıyor
+           (lib/elleTalep.js). */
+        tel: telGoster('TR', m.tel),
         telUlke: 'TR',
-        telHam: m.tel,
+        telHam: telHamYap('TR', m.tel),
+        musteriId: m.id,
         il: m.il,
         ilce: m.ilce,
         /* SERVİS TALEBİNİN ADRESİ — UYGULAMADAN GELEN TALEPTE VAR.
@@ -706,9 +881,10 @@ export async function demoYukle() {
            bulunduğu adresi yazıyor (bkz. screens/RequestForm.jsx).
            Telefonla gelen taleplerde bu alan boş; sahadaki servis
            kayıt ekranında kendisi dolduruyor. Demoda beşte biri boş
-           bırakılıyor ki iki yol da denenebilsin. */
+           bırakılıyor ki iki yol da denenebilsin. Servisin elle açtığı
+           işte adres HEP var: Kayıt Aç ekranı onu zorunlu tutuyor. */
         adres:
-          tur === 'servis' && Math.random() > 0.2
+          tur === 'servis' && (gorev.elle || Math.random() > 0.2)
             ? `${m.ilce}, ${sec(KOYLER)} köyü, ${sec(TARIFLER)}`
             : '',
         ulke: gorev.ihracat ? 'DE' : 'TR',
@@ -717,8 +893,11 @@ export async function demoYukle() {
           ? null
           : { id: makine.id, serial: makine.serial, productId: makine.productId },
         urunId: tur === 'satinalma' ? sec(PRODUCTS).id : null,
-        durum: tur === 'servis' ? sec(MAKINE_DURUMU).id : null,
-        belirtiler: tur === 'servis' ? secBirkac(SERVIS_BELIRTI, 1, 3) : [],
+        /* Makinenin durumu ve belirtiler talep formunun değerleri; kurulumda
+           belirti yok (RequestForm.jsx kurulumda onları siliyor). Servisin
+           elle açtığı işte ikisi de sorulmuyor (ElleKayit.jsx). */
+        durum: tur === 'servis' && !gorev.elle ? vaka.durum : null,
+        belirtiler: tur === 'servis' && !gorev.elle ? [...vaka.belirtiler] : [],
         parcalar,
         parcaAdet: tur === 'parca' ? parcaAdet : null,
         parcaFiyat: kalemler.length ? fiyatGoruntusu(katalog, kalemler) : null,
@@ -727,16 +906,20 @@ export async function demoYukle() {
         traktor: tur === 'satinalma' ? sec(['50-75 HP', '75-100 HP', '100 HP üzeri']) : '',
         aciklama:
           tur === 'servis'
-            ? sec(SERVIS_ACIKLAMA)
+            ? vaka.aciklama
             : tur === 'parca'
               ? sec(PARCA_ACIKLAMA)
               : sec(SATIS_ACIKLAMA),
 
-        ses: sesliMi ? { veri: null, sure: tamsayi(8, 45) } : null,
+        ses: sesliMi && !sessiz ? { veri: null, sure: tamsayi(8, 45) } : null,
         /* Fotoğraflar aşağıda, talepler kaydedildikten sonra
-           ekleniyor: eklerin yazılması asenkron. */
+           ekleniyor: eklerin yazılması asenkron. Fotoğrafın yazısı
+           arızanın parçası ("Düğüm atıcı"), yanında bazen seri plakası. */
         ekler: [],
-        _fotoIstensin: tur === 'servis' && fotoKalan-- > 0,
+        _fotoYazilari:
+          tur === 'servis' && !sessiz && vaka.foto && fotoKalan > 0
+            ? (fotoKalan--, [vaka.foto, ...secBirkac(GENEL_FOTO.filter((f) => f !== vaka.foto), 0, 1)])
+            : null,
 
         /* -------------------------------------------- Fatura ve ödeme */
         fatura: tur === 'parca' ? faturaUret(m) : null,
@@ -752,9 +935,12 @@ export async function demoYukle() {
            kapanınca plan kayboluyordu. Oysa gerçekte `talepPlanla`
            bir kez yazıyor ve kayıt kalıcı (bkz. veri.js). Kaybolunca
            "verilen tarihte teslim edildi mi" ölçüsü kapanmış
-           taleplerde hesaplanamıyordu. */
-        plan: asamalar.includes('planlandi')
-          ? planUret(sonTarih, personel, tur)
+           taleplerde hesaplanamıyordu.
+
+           Yalnız yedek parçada: servis talebinin planını servis akışı
+           yazıyor (Servisim'in randevusu, bkz. demoServis.js). */
+        plan: tur === 'parca' && asamalar.includes('planlandi')
+          ? planUret(sonTarih, personel)
           : null,
         teklif: (durum === 'teklif' || (durum === 'kapandi' && tur === 'satinalma'))
           ? teklifUret(sonTarih, personel)
@@ -765,12 +951,34 @@ export async function demoYukle() {
         cozum: durum === 'kapandi' && tur !== 'servis'
           ? cozumUret(tur, parcalar, parcaAdet, personel, sonTarih)
           : null,
+        /* KARGO KAPANIŞIN İÇİNDE (25 Eylül 2026): müşterinin parça
+           talebi kapanırken personel kargo firmasını ve takip numarasını
+           yazabiliyor; değer talebin `parcaSevk` alanına gidiyor
+           (veri.js → talepKapat). İsteğe bağlı olduğu için bir kısmında
+           yok. */
+        ...(tur === 'parca' && durum === 'kapandi' && Math.random() < 0.75
+          ? {
+              parcaSevk: {
+                firma: sec(KARGO),
+                takipNo: String(tamsayi(1000000000, 9999999999)),
+                tarih: sonTarih,
+                personel,
+              },
+            }
+          : {}),
 
         /* Servis talebinde ikisini de servis akışı yazıyor. */
         servis: null,
         sahip: 'paksan',
 
-        notlar: notUret(tarih, personel),
+        notlar: notUret({
+          tur,
+          tarih,
+          personel,
+          garanti: tur === 'servis' ? garantideMi(makine.serial) : false,
+          senaryo,
+          odemeVar,
+        }),
         gecmis,
         demo: true,
       }
@@ -778,11 +986,11 @@ export async function demoYukle() {
       /* SERVİS TALEBİ SERVİS AKIŞINDAN GEÇİYOR: randevu, servis kaydı,
          parça gönderimi, onay ve hesap hareketi (bkz. demoServis.js). */
       if (tur === 'servis') {
-        const akis = servisAkisi(talep, gorev.senaryo || senaryoSec(durum), {
+        const akis = servisAkisi(talep, senaryo, {
           servis: eslesme.servis,
-          havuz: parcaHavuzu,
+          havuz: vakaHavuzu(katalog, makine.productId, vaka),
           personel,
-          secenek: gorev,
+          secenek: { ...gorev, vaka, parcali: ihtiyac.parcali },
         })
         Object.assign(talep, akis.yama)
         cariHareketler.push(...akis.cari)
@@ -812,14 +1020,10 @@ export async function demoYukle() {
   /* Fotoğraf ekleri. Tuvale çizilip IndexedDB'ye yazılıyor; işlem
      asenkron olduğu için talepler kurulduktan sonra yapılıyor. */
   for (const t of talepler) {
-    if (!t._fotoIstensin) {
-      delete t._fotoIstensin
-      continue
-    }
-    delete t._fotoIstensin
+    const yazilar = t._fotoYazilari
+    delete t._fotoYazilari
+    if (!yazilar) continue
     try {
-      const kac = tamsayi(1, 3)
-      const yazilar = secBirkac(EK_YAZILARI, kac, kac)
       t.ekler = await Promise.all(yazilar.map((y) => fotoUret(y)))
     } catch {
       /* Tuval ya da IndexedDB kullanılamıyorsa demo yine yüklensin */
@@ -841,7 +1045,10 @@ export async function demoYukle() {
     servis: sahneServisi,
     personel: yeniPersonel.map((p) => p.ad),
     katalog,
-    butce: sahneBakiyesi,
+    /* Demonun kendi bakiyesi ile tarayıcıda zaten duran gerçek
+       hareketlerin kullanılabilir bakiyesi (yukarıda, oncekiBakiye). */
+    butce: sahneBakiyesi + oncekiBakiye,
+    noUret: tekilNo,
   })
   talepler.push(...siparis.talepler)
   cariHareketler.push(...siparis.cari)
@@ -862,18 +1069,26 @@ export async function demoYukle() {
   secBirkac(musteriler, 4, 6).forEach((m) => {
     const dogru = Math.random() > 0.35
     const makine = m.makineler[0]
+    /* Yeni numara TEK kez üretiliyor: ekranda görünen ile onayda hesaba
+       yazılacak ham hâl aynı numara (lib/numaraTalebi.js →
+       numaraTalebiGonder ile aynı alanlar). Önce iki ayrı rastgele
+       numaraydı; backoffice birini gösterip ötekini yazıyordu. */
+    const yeni = telUret()
     numaraTalepleri.push({
+      kaynak: 'numara',
       id: uid(),
       tarih: gunOnce(tamsayi(0, 12)),
       durum: sec(['bekliyor', 'bekliyor', 'bekliyor', 'onaylandi', 'reddedildi']),
       musteriId: m.id,
       ad: m.ad,
-      eskiTel: '+90 ' + m.tel,
+      eskiTel: telGoster('TR', m.tel),
       eskiUlke: 'TR',
-      yeniTel: telUret(),
-      yeniTelHam: telUret(),
+      yeniTel: yeni,
+      yeniTelHam: yeni,
       yeniUlke: 'TR',
-      seri: dogru ? makine.serial : seriUret(sec(PRODUCTS)),
+      yeniAnahtar: telAnahtar('TR', yeni),
+      /* Yanlış seri de kuralına uygun bir seri: başka bir makinenin. */
+      seri: dogru ? makine.serial : seriUret(sec(PRODUCTS), tamsayi(2019, YIL)),
       demo: true,
     })
   })
@@ -913,12 +1128,13 @@ export async function demoYukle() {
       const sonuc = sec(['cozuldu', 'cozuldu', 'talep', 'cevapsiz', 'yarim'])
       const olaylar = []
 
+      /* Soru makinenin ailesinden (demoMakineAilesi.js → destekSorusu). */
       if (sonuc === 'cevapsiz') {
-        const soru = sec(DESTEK_CEVAPSIZ)
+        const soru = destekSorusu(makine.productId, true)
         olaylar.push({ tur: 'serbest', deger: soru, tarih: baslangic + 20000 })
         olaylar.push({ tur: 'cevapsiz', deger: soru, tarih: baslangic + 29000 })
       } else {
-        const soru = sec(DESTEK_SORU)
+        const soru = destekSorusu(makine.productId, false)
         const sayfa = tamsayi(8, 60)
         olaylar.push({ tur: 'serbest', deger: soru, tarih: baslangic + 20000 })
         olaylar.push({
@@ -984,6 +1200,10 @@ export async function demoYukle() {
     metin: sec(GORUSLER),
     ad: m.ad,
     tel: m.tel,
+    /* Connect'in görüşü hesabın kimliğini ve numaranın ülkesini de
+       yazıyor (screens/Profile.jsx, 25 Eylül 2026). */
+    musteriId: m.id,
+    telUlke: 'TR',
     dil: 'tr',
     surum: '0.6.1',
     okundu: Math.random() > 0.6,
@@ -1011,6 +1231,31 @@ export async function demoYukle() {
 
 /** Demo kayıtlarını siler; gerçek kayıtlara dokunmaz. */
 export function demoTemizle() {
+  /* DEMO KAYDINA BAĞLI SATIRLAR DA GİDİYOR (25 Eylül 2026, kullanıcı
+     sınaması). Uygulama demo talebinde iş yaptığında cariye ve
+     bildirimlere DEMO İŞARETSİZ satır yazıyor: hak ediş onayının alacağı,
+     siparişin borcu ve iadesi, servise ve müşteriye giden bildirimler.
+     Talep silinip satır kalınca bakiye silinmiş işin parasını taşıyor,
+     bildirim açılamayan talebe gidiyordu.
+
+     Kümeler depo silinmeden ÖNCE kuruluyor. Talep önce kimlikle aranıyor;
+     numara tekil değil (gün + dört rastgele hane), bu yüzden numara yalnız
+     kimliği olmayan satırda ve yalnız gerçek bir talepte geçmeyen numara
+     için kullanılıyor. Demo müşterisine giden kişisel bildirim müşteri
+     kimliğiyle bulunuyor. Gerçek talebe (`requests`) bağlı satıra
+     dokunulmuyor; İşlem Kaydı olduğu gibi kalıyor. */
+  const demoTalepleri = load(ANAHTAR.demoTalepler, [])
+  const talepKimlikleri = new Set(demoTalepleri.map((t) => t.id))
+  const gercekNumaralar = new Set(load(ANAHTAR.talepler, []).map((t) => t.no))
+  const talepNumaralari = new Set(
+    demoTalepleri.map((t) => t.no).filter((no) => no && !gercekNumaralar.has(no)),
+  )
+  const musteriKimlikleri = new Set(load(ANAHTAR.demoMusteriler, []).map((m) => m.id))
+  const bagli = (x) =>
+    (x.talepId && talepKimlikleri.has(x.talepId)) ||
+    (!x.talepId && x.talepNo && talepNumaralari.has(x.talepNo)) ||
+    (x.musteriId && musteriKimlikleri.has(x.musteriId))
+
   islemYaz({ tur: 'demo', ozet: 'Demo verisi temizlendi' })
   save(ANAHTAR.demoMusteriler, [])
   save(ANAHTAR.demoTalepler, [])
@@ -1018,8 +1263,8 @@ export function demoTemizle() {
   save(ANAHTAR.numaraTalepleri, load(ANAHTAR.numaraTalepleri, []).filter((t) => !t.demo))
   save(ANAHTAR.geriBildirim, load(ANAHTAR.geriBildirim, []).filter((g) => !g.demo))
   save(ANAHTAR.destekLog, load(ANAHTAR.destekLog, []).filter((o) => !o.demo))
-  save(ANAHTAR.duyurular, load(ANAHTAR.duyurular, []).filter((x) => !x.demo))
-  save(ANAHTAR.cari, load(ANAHTAR.cari, []).filter((h) => !h.demo))
+  save(ANAHTAR.duyurular, load(ANAHTAR.duyurular, []).filter((x) => !x.demo && !(x.kisisel && bagli(x))))
+  save(ANAHTAR.cari, load(ANAHTAR.cari, []).filter((h) => !h.demo && !bagli(h)))
   save(
     ANAHTAR.makineKayitlari,
     load(ANAHTAR.makineKayitlari, []).filter((x) => !x.demo)
@@ -1035,12 +1280,12 @@ export function demoTemizle() {
    Gerçek fotoğraf konmuyor — kaynağı yok ve megabaytlarca veri demoyu
    ağırlaştırırdı. Onun yerine üstünde ne olduğu yazan basit bir kare
    çiziliyor. Ekranda fotoğrafın nasıl durduğu, büyütülünce ne olduğu ve
-   yan yana kaç tane sığdığı görünüyor; anlatılmak istenen bu. */
-const EK_YAZILARI = [
-  'Düğüm atıcı', 'Pikap', 'Şanzıman', 'Hidrolik hortum',
-  'Balya odası', 'Zincir', 'Rulman', 'Kayış',
-]
+   yan yana kaç tane sığdığı görünüyor; anlatılmak istenen bu.
 
+   Yazı arızanın parçası: vakanın fotoğrafı (demoMakineAilesi.js) ve
+   bazen seri plakası (GENEL_FOTO). Önce sekiz yazılık tek bir listeden
+   rastgele seçiliyordu; rotovatörün fotoğrafında "Düğüm atıcı"
+   yazabiliyordu. */
 async function fotoUret(yazi) {
   const tuval = document.createElement('canvas')
   tuval.width = 640
@@ -1096,7 +1341,7 @@ function faturaUret(musteri) {
   }
 }
 
-function planUret(sonTarih, personel, tur) {
+function planUret(sonTarih, personel) {
   /* `tarih` ZAMAN DAMGASI da yazılıyor.
 
      Demo yalnızca `tarihYazi` üretiyordu; gerçek planlama ikisini
@@ -1104,14 +1349,19 @@ function planUret(sonTarih, personel, tur) {
      "planlanan gönderim tarihi geçti" uyarısı hiçbir demo kaydında
      çalışmıyordu — ekranda gösterilecek örnek yoktu.
 
-     Yedek parçanın bir kısmı bilerek GEÇMİŞ tarihli: gönderim
-     gecikmesi uyarısının sunumda görünmesi için. */
-  const gecmis = tur === 'parca' && Math.random() < 0.5
+     Yalnız yedek parça talebinin gönderim planı (servis talebinin
+     randevusunu servis akışı yazıyor). Backoffice gün VE saat soruyor:
+     plan `saatBelirtildi: true` (bkz. lib/tarih.js → randevuSaatliMi).
+
+     Bir kısmı bilerek GEÇMİŞ tarihli: gönderim gecikmesi uyarısının
+     sunumda görünmesi için. */
+  const gecmis = Math.random() < 0.5
   const zaman = gecmis
     ? sonTarih - 86400000 * tamsayi(1, 4)
     : sonTarih + 86400000 * tamsayi(1, 5)
   const d = new Date(zaman)
   return {
+    saatBelirtildi: true,
     tarih: zaman,
     tarihYazi: d.toLocaleString('tr-TR', {
       day: '2-digit',
@@ -1120,7 +1370,7 @@ function planUret(sonTarih, personel, tur) {
       hour: '2-digit',
       minute: '2-digit',
     }),
-    is: sec(YAPILAN_IS),
+    is: sec(PARCA_PLAN_IS),
     gorusuldu: true,
     personel,
     kayitTarihi: sonTarih,
@@ -1166,15 +1416,23 @@ function cozumUret(tur, parcalar, parcaAdet, personel, tarih) {
 }
 
 /* İki tür not: iç not ekibin kendi arasında, müşteri notu telefona
-   düşüyor. İkisi de demoda olsun ki ayrım ekranda görünsün. */
-function notUret(tarih, personel) {
+   düşüyor. İkisi de demoda olsun ki ayrım ekranda görünsün.
+
+   Not talebin türünden (NOTLAR). Garanti notu yalnız garanti süresindeki
+   makinenin servis talebinde ve garanti dışı kapanmamış, reddedilmemiş
+   işte; "Parçanız hazırlandı" yalnız ödemesi onaylanmış parça
+   talebinde. */
+function notUret({ tur, tarih, personel, garanti, senaryo, odemeVar }) {
   if (Math.random() < 0.45) return []
+  const ic = [...NOTLAR[tur].ic]
+  if (tur === 'servis' && garanti && !['garantiDisi', 'reddedildi'].includes(senaryo)) ic.push(GARANTI_NOTU)
+  const musteriye = [...NOTLAR[tur].musteriye, ...(tur === 'parca' && odemeVar ? [PARCA_HAZIR_NOTU] : [])]
   const notlar = [
-    { metin: sec(IC_NOTLAR), tarih: tarih + 7200000, personel, musteriye: false },
+    { metin: sec(ic), tarih: tarih + 7200000, personel, musteriye: false },
   ]
   if (Math.random() > 0.5) {
     notlar.push({
-      metin: sec(MUSTERI_NOTLARI),
+      metin: sec(musteriye),
       tarih: tarih + 10800000,
       personel,
       musteriye: true,

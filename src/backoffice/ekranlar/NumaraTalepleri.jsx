@@ -6,6 +6,7 @@ import {
 import { useVeri } from '../kanca'
 import { Baslik, BeklemeKart, Bos, tarihYaz } from './ortak'
 import { formatSerial } from '../../lib/serial'
+import { telGoster } from '../../lib/tel'
 
 /* Numara değişikliği talepleri.
 
@@ -173,18 +174,26 @@ function Kart({ talep, personel, bildir, tazele }) {
           )}
         </div>
 
+        {/* İKİ NUMARA AYNI BİÇİMDE (25 Eylül 2026, kullanıcı sınaması).
+            Eski numara "+90 …", yeni numara "532 …" diye yan yana iki
+            biçimde duruyordu. İkisi de ülke koduyla, lib/tel.js →
+            telGoster; ülkesi yazılmamış eski kayıtta Türkiye. */}
         <div className="esit" style={{ marginTop: 12 }}>
           <div>
             <div className="alan__ad">
               {cakisma ? 'Müşterinin yazdığı eski numara' : 'Eski numara'}
             </div>
-            <div className="mono">{talep.eskiTel || '—'}</div>
+            <div className="mono">
+              {telGoster(talep.eskiUlke, talep.eskiTelHam || talep.eskiTel) || '—'}
+            </div>
           </div>
           <div>
             <div className="alan__ad">
               {cakisma ? 'Talebi açan hesabın yeni numarası' : 'Yeni numara'}
             </div>
-            <div className="mono" style={{ fontWeight: 700 }}>{talep.yeniTel || '—'}</div>
+            <div className="mono" style={{ fontWeight: 700 }}>
+              {telGoster(talep.yeniUlke, talep.yeniTelHam || talep.yeniTel) || '—'}
+            </div>
           </div>
         </div>
 

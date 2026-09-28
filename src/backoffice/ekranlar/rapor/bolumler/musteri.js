@@ -1,4 +1,6 @@
 import { makineninServisi } from '../../../../lib/servisAtama'
+import { talepSahibiBulucu } from '../../../../lib/musteriEslesmesi'
+import { kayitNumarasi, telHamYap } from '../../../../lib/tel'
 import { tarihYaz } from '../../ortak'
 import {
   fark, farkPuan, kovayaDagit, modelAdi, musteriTalebiMi, oran, RENK, topla, yuzde, zamanKovalari,
@@ -8,12 +10,20 @@ import {
    Müşteriler ve Bölgeler — "Müşteri tabanımız nerede ve ne hızla
    büyüyor?"
 
-   MÜŞTERİ KİMLİĞİ TALEPTEN ÇIKARILIYOR. Uygulamadan açılan talepte
-   `musteriId` çoğu zaman yok, telefonla açılanda hiç yok. Talep önce
-   müşteri kaydına bağlanıyor — kimliğiyle, yoksa telefonuyla (Müşteriler
-   ekranının eşleştirmesi); kayıt bulunamazsa telefonla tekilleştiriliyor.
-   Aynı kişinin bir talebi kimlikli, öteki kimliksiz geldiğinde iki
-   müşteri sayılmıyor.
+   MÜŞTERİ KİMLİĞİ TALEPTEN ÇIKARILIYOR. Talep önce müşteri kaydına
+   bağlanıyor — kimliğiyle, yoksa telefonuyla; kayıt bulunamazsa
+   telefonla tekilleştiriliyor. Aynı kişinin bir talebi kimlikli, öteki
+   kimliksiz geldiğinde iki müşteri sayılmıyor.
+
+   EŞLEŞME TEK YERDEN (25 Eylül 2026, kullanıcı sınaması Y3):
+   lib/musteriEslesmesi.js → talepSahibiBulucu, Müşteriler ekranı ve
+   "Aktif diğer talepler" ile aynı işlev. Buradaki kopya telefonu harfi
+   harfine karşılaştırıyordu: hesap numarası boşluklu, Servisim'in elle
+   açtığı talep "0532…" diye düz rakam; aynı müşteri raporda iki kişi
+   sayılıyordu. Servisin elle açtığı KİMLİKSİZ iş burada numarasıyla
+   müşteriye bağlanıyor: PAKSAN o müşteriyle ilgili her işi görmeli.
+   Connect ve bildirim o işi bilerek bağlamıyor (gerekçesi
+   lib/musteriEslesmesi.js başında).
 
    TELEFON EKRANA ÇIKMIYOR. Eşleştirmenin anahtarı, hücrenin değeri
    değil. Tabloda ad, müşteri no ve il var; ayrıntı satıra tıklayınca
@@ -133,27 +143,6 @@ const TURLER = ['servis', 'parca', 'satinalma']
 
 const seriOku = (x) => String(x || '').trim()
 
-/* Talebi müşteriye bağlayan okuyucu. Önce kayıt (kimlik, sonra
-   telefon); kayıt yoksa kimlik ya da telefon anahtar oluyor. İkisi de
-   yoksa talep hiçbir müşteriye yazılamıyor: null. (Başka bölümler de
-   müşteri sayıyorsa hesap.js'e taşınabilir.) */
-function musteriEslestirici(musteriler) {
-  const kimlikle = new Map()
-  const telefonla = new Map()
-  for (const m of musteriler) {
-    if (m.id && !kimlikle.has(m.id)) kimlikle.set(m.id, m)
-    if (m.tel && !telefonla.has(String(m.tel))) telefonla.set(String(m.tel), m)
-  }
-  return (t) => {
-    const kayit =
-      (t.musteriId && kimlikle.get(t.musteriId)) || (t.telHam && telefonla.get(String(t.telHam))) || null
-    if (kayit) return { anahtar: 'kayit:' + (kayit.id || kayit.tel), kayit }
-    if (t.musteriId) return { anahtar: 'kimlik:' + t.musteriId, kayit: null }
-    if (t.telHam) return { anahtar: 'tel:' + t.telHam, kayit: null }
-    return null
-  }
-}
-
 export const musteriBolumu = {
   id: 'musteri',
   ad: M.ad,
@@ -162,7 +151,10 @@ export const musteriBolumu = {
   uret({ veri, aralik, donem, onceki, donemde, oncekide, karsilastir, git }) {
     const f = (a, b) => (karsilastir ? fark(a, b) : null)
     const musteriler = veri.musteriler
-    const eslestir = musteriEslestirici(musteriler)
+    /* Talebi müşteriye bağlayan okuyucu (lib/musteriEslesmesi.js):
+       { anahtar, kayit } ya da bağlanamıyorsa null. Servis siparişi
+       aşağıda musteriTalebiMi ile zaten dışarıda. */
+    const eslestir = talepSahibiBulucu(musteriler)
 
     /* Talepleri müşteriye göre gruplar; servis siparişleri dışarıda. */
     const grupla = (liste) => {
@@ -412,8 +404,18 @@ export const musteriBolumu = {
           /* Talepler ekranının araması talepteki ada, telefona ve talep
              numarasına bakıyor (bkz. Talepler.jsx). Telefon iki
              müşteriyi ayırt eden tek alan; adla aranırsa aynı adı
-             taşıyan başka müşterinin talepleri de geliyor. */
-          const aranan = son.tel || g.kayit?.tel || son.ad || ad || son.no
+             taşıyan başka müşterinin talepleri de geliyor.
+
+             ARANAN ULUSAL ON HANE (25 Eylül 2026, Y3). Talebin yazısı
+             aranıyordu ("+90 532 …"); Talepler'in rakam araması o
+             yazının rakamlarıyla ("90532…") sıfırlı ya da düz rakamla
+             yazılmış talebi bulmuyordu. On hane hepsinin içinde geçiyor. */
+          const aranan =
+            kayitNumarasi(son).ham ||
+            (g.kayit ? telHamYap(g.kayit.ulke, g.kayit.tel) : '') ||
+            son.ad ||
+            ad ||
+            son.no
           return {
             hucreler: [
               g.kayit?.no || '—',

@@ -84,6 +84,37 @@ export const PARCA_GRUBU_AILESI = {
    isteme yolu kapanmıyor. */
 export const PARCASIZ_AILELER = ['rulo', 'silaj', 'toprak', 'genel']
 
+/* PARÇANIN ADINDA MODEL, GRUBUN ADINDA MAKİNE (25 Eylül 2026).
+
+   Katalogda makine alanı yok, ama PAKSAN bazı parçaların ADINA modeli
+   yazmış ("10x50x1035 YUNUS ALT YAN KILAVUZ LAMASI") ve bazı grupları
+   tek makineye ayırmış (HAMMER YEDEK PARÇA, ÇAYIR BİÇME, OT TOPLAMA).
+   Bu, listenin kendi söylediği bir KISIT; yeni uyumluluk çıkarılmıyor.
+   Adında model geçmeyen parça ailenin bütün modellerine açık kalıyor.
+
+   Bugün yalnız demo okuyor (bkz. backoffice/demoMakineAilesi.js):
+   kullanıcı sınamasında (24 Eylül 2026) Süper 8002E'nin demo kaydına
+   Yunus parçası düşmüştü. Connect'in parça ekranına uygulanması ayrı
+   bir ürün kararı; orada bugün ailenin bütün grupları görünüyor.
+
+   Anahtarlar parça adındaki KELİME (büyük harf, Türkçe yazımla);
+   değerler o kelimeyi taşıyan parçanın takılabildiği ürün kimlikleri
+   (`katalog/products.js`). */
+export const PARCA_ADINDAKI_MODEL = {
+  YUNUS: ['super-yunus', 'super-yunus-dual2', 'super-yunus-3yabali'],
+  DUAL: ['super-yunus-dual2', 'super-8002e-dual2'],
+  HAMMER: ['hammer'],
+}
+
+/* Tek makineye ait gruplar: grup → o grubun parçalarını kullanan ürünler.
+   Bu ürünlerin parçası YALNIZ kendi grubundan seçiliyor; ailenin öteki
+   makineleri bu gruba hiç bakmıyor. */
+export const GRUBUN_MODELLERI = {
+  'hammer-yedek-parca': ['hammer'],
+  'cayir-bicme': ['yengec-cayir'],
+  'ot-toplama': ['kirlangic-ot-toplama'],
+}
+
 /**
  * Katalogdaki hangi gruplar bu köprüde eşlenmemiş?
  *

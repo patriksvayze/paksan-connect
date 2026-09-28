@@ -24,6 +24,7 @@ import ProductDetail from './screens/ProductDetail'
 import Manual from './screens/Manual'
 import RequestForm from './screens/RequestForm'
 import RequestDetail from './screens/RequestDetail'
+import Taleplerim from './screens/Taleplerim'
 import Profile from './screens/Profile'
 import Notifications from './screens/Notifications'
 import Bayiler from './screens/Bayiler'
@@ -121,6 +122,9 @@ function Yonlendirme() {
           iptal sebebini, verilen teklifi ve kargo takip numarasını
           burada görüyor (bkz. src/screens/RequestDetail.jsx). */}
       <Route path="/talebim/:id" element={<RequestDetail />} />
+      {/* Talep listesi kendi ekranında (25 Eylül 2026); önce Profil'in
+          içindeydi (bkz. src/screens/Taleplerim.jsx). */}
+      <Route path="/taleplerim" element={<Taleplerim />} />
       <Route path="/profil" element={<Profile />} />
       <Route path="/bildirimler" element={<Notifications />} />
       <Route path="/bayiler" element={<Bayiler />} />

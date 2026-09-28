@@ -21,7 +21,7 @@
    burası, capacitor.config.json ve android/.../values/strings.xml */
 export const UYGULAMA = 'PAKSAN Connect'
 
-export const SURUM = '0.9.18'
+export const SURUM = '0.9.19'
 
 /* Müşteriye gönderilen indirme adresi.
 

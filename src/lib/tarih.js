@@ -63,6 +63,52 @@ export function simdiGirdi(t = Date.now()) {
   return `${bugunGirdi(t)}T${iki(d.getHours())}:${iki(d.getMinutes())}`
 }
 
+/* --------------------------------------------------- Yalnız gün randevusu
+
+   SAAT GİRİLMEYEN RANDEVUYA 03:00 YAZILIYORDU (kullanıcı sınaması,
+   24 Eylül 2026). Servisim randevuda yalnız gün soruyor. `<input
+   type="date">` değeri '2026-09-25' ve `new Date('2026-09-25')` bu yazıyı
+   UTC gece yarısı olarak okuyor; Türkiye'de o an 03:00. Servisim'in iş
+   kartı ve planlayıcısı randevuyu "25.09 · 03:00" diye gösteriyordu.
+
+   Gün artık YEREL gün başı olarak okunuyor ve randevu saatinin girilip
+   girilmediğini kendisi taşıyor (`saatBelirtildi`). Veritabanı bu ayrımı
+   zaten yapıyor: talep.Randevu.SaatBelirtildi, "0: yalnız gün belli".
+   Backoffice gün VE saat soruyor, onun planı `saatBelirtildi: true`. */
+
+const GUN_MS = 86400000
+const GUN_GIRDISI = /^(\d{4})-(\d{2})-(\d{2})$/
+
+/** `<input type="date">` değerini o günün YEREL başlangıcına çevirir.
+ *  Biçim tutmazsa NaN. */
+export function gunGirdisiniOku(deger) {
+  const m = GUN_GIRDISI.exec(String(deger || ''))
+  return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])).getTime() : NaN
+}
+
+/** Yalnız gün sorulan randevunun zaman alanları (Servisim).
+ *  Veritabanında talep.Randevu.SaatBelirtildi = 0. */
+export function gunlukRandevu(deger) {
+  const tarih = gunGirdisiniOku(deger)
+  return { tarih, tarihYazi: new Date(tarih).toLocaleDateString('tr-TR'), saatBelirtildi: false }
+}
+
+/**
+ * Randevunun saati var mı?
+ *
+ * Alan yoksa (25 Eylül 2026 öncesi kayıt) geriye dönük kural: eski
+ * Servisim randevusu tam UTC gece yarısında duruyor ve yazısında saat
+ * yok; bu ikisi birlikteyse saatsiz sayılıyor. Backoffice planı ve eski
+ * demo randevuları saatli yazıldığı için onlar saatli kalıyor. Demo
+ * 5. sürümünden beri Servisim randevusunu gerçekteki gibi yazıyor:
+ * `saatBelirtildi: false` (bkz. backoffice/demoServis.js).
+ */
+export function randevuSaatliMi(plan) {
+  if (!Number.isFinite(plan?.tarih)) return false
+  if (typeof plan.saatBelirtildi === 'boolean') return plan.saatBelirtildi
+  return !(plan.tarih % GUN_MS === 0 && !/\d:\d\d/.test(plan.tarihYazi || ''))
+}
+
 /**
  * Serbest yazıdaki tarih bugünden önce mi? Tarih kutusu olmayan,
  * "30 gün / 30.09.2026" gibi iki biçimi de kabul eden alanlar için
@@ -90,7 +136,11 @@ export function metindeGecmisTarihVar(metin, t = Date.now()) {
  */
 export function ileriTarihMi(deger, { saatli = false } = {}) {
   if (!deger) return false
-  const zaman = new Date(deger).getTime()
+  /* Yalnız gün yazısı yerel gün başı olarak okunuyor (bkz.
+     gunGirdisiniOku); `new Date('2026-09-25')` UTC gece yarısını veriyor.
+     Türkiye'de sonuç aynıydı ama batıdaki bir saat diliminde bugünü
+     dün sayardı. */
+  const zaman = GUN_GIRDISI.test(deger) ? gunGirdisiniOku(deger) : new Date(deger).getTime()
   if (Number.isNaN(zaman)) return false
   return saatli ? zaman >= Date.now() : gunBasi(zaman) >= gunBasi()
 }

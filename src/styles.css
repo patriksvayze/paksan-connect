@@ -1801,19 +1801,6 @@ p {
   line-height: 1.45;
 }
 
-/* Servis talebinde seçilen makinenin servisi yoksa makine kutusunun
-   altındaki not uyarıya dönüyor: talep bu makine için gönderilemiyor
-   (bkz. RequestForm.jsx → seciliServis). Ana ekrandaki "servis
-   atanmadı" kartının renkleri. */
-.talep-servis-yok {
-  margin-top: 10px;
-  padding: 10px 12px;
-  border-radius: var(--r);
-  background: var(--pk-orange-soft);
-  color: var(--pk-orange-ink);
-  font-weight: 500;
-}
-
 /* Servis kartında "Baktığı makineler: …" satırı (bkz.
    components/ServisKarti.jsx). Adres satırından bir nefes aşağıda. */
 .servis-karti__makine {
@@ -4226,21 +4213,6 @@ p {
 .randevu-kutu__tarih {
   font-weight: 800;
   font-size: 15px;
-}
-
-/* Bildirimden gelindiğinde ilgili talep bir an işaretleniyor */
-.talep--vurgu {
-  animation: talep-vurgu 2.2s ease;
-  border-radius: var(--r);
-}
-
-@keyframes talep-vurgu {
-  0%, 70% { box-shadow: 0 0 0 3px var(--pk-blue); }
-  100% { box-shadow: 0 0 0 0 transparent; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .talep--vurgu { animation: none; }
 }
 
 

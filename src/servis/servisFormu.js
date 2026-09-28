@@ -2,7 +2,7 @@ import { AMBLEM_DOSYASI, getProduct, MARKA, PARA_BIRIMI, paraYaz, SIRKET } from 
 import { extractYear, formatSerial, matchProduct } from '../lib/serial'
 import { hakkedisHesapla, kmUcretiOku, saatOku, saatUcretiOku, saatYaz, temizParcalar } from '../lib/servisKaydi'
 import { makineninServisi } from '../lib/servisAtama'
-import { telGoster } from '../lib/tel'
+import { kayitTelGoster } from '../lib/tel'
 import { jpegdenPdf, tuvaldenJpeg } from '../lib/pdf'
 import { dosyaPaylas } from '../lib/dosyaPaylas'
 
@@ -53,7 +53,7 @@ import { dosyaPaylas } from '../lib/dosyaPaylas'
    büyük harfli olanlar basılı formdaki gibi büyük harfli. */
 export const METIN = {
   baslik: 'SERVİS FORMU',
-  garanti: 'GARANTİ KAPSAMINDA',
+  garanti: 'GARANTİYE DÂHİL',
   siraNo: 'SIRA NO',
   tarih: 'TARİH',
   musteriAdi: 'MÜŞTERİ ADI',
@@ -65,8 +65,8 @@ export const METIN = {
   makineKodu: 'MAKİNE KODU',
   makineAdi: 'ADI',
   model: 'MODELİ',
-  imalYili: 'İMAL YILI',
-  saseNo: 'ŞASİ NO',
+  imalYili: 'ÜRETİM YILI',
+  saseNo: 'SERİ NUMARASI',
   arizaTanimi: 'ARIZANIN TANIMI',
   arizaSonucu: 'ARIZANIN SONUCU',
   parcaNo: 'PARÇA NO',
@@ -94,7 +94,7 @@ export const METIN = {
   toplam: 'TOPLAM SERVİS TUTARI',
   kdv: 'KDV %',
   genelToplam: 'GENEL TOPLAM',
-  taahhut: `Bu servis formuyla arızanın giderildiğini ve makinemi çalışır hâlde teslim aldığımı beyan ederim. İş garanti kapsamındadır; bedeli ${MARKA} tarafından karşılanır, benden ücret alınmaz.`,
+  taahhut: `Bu servis formuyla arızanın giderildiğini ve makinemi çalışır hâlde teslim aldığımı beyan ederim. İşlem garantiye dâhildir; bedeli ${MARKA} tarafından karşılanır, benden ücret alınmaz.`,
   musteriImza: 'MÜŞTERİ (VEKİLİ / GÖREVLİSİ)',
   servisImza: 'ONARIMI YAPAN SERVİS',
   adiSoyadi: 'ADI SOYADI',
@@ -133,7 +133,10 @@ export function servisFormuVerisi(talep, servisAd) {
     siraNo: talep.no || '',
     tarih: tarihYaz(k.tarih || talep.cozum?.tarih || Date.now()),
     musteriAdi: talep.ad || '',
-    telefon: talep.telHam ? telGoster(talep.telUlke || 'TR', talep.telHam) : talep.tel || '',
+    /* Numara ekranlardakiyle aynı işlevden (lib/tel.js → kayitTelGoster;
+       25 Eylül 2026, kullanıcı sınaması): ham numarası olmayan eski
+       kayıtta da ülke koduyla, tek biçimde. */
+    telefon: kayitTelGoster(talep),
     musteriAdres,
     bayiAdi: makineninServisi(seri)?.bayi?.ad || '',
     servisAdi: servisAd || talep.servis?.ad || '',

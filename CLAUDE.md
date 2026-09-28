@@ -7,13 +7,13 @@ uygulama içi tüm metin ve yorumlar sade Türkçe.
 
 ## Yapı
 
-- `src/screens/` — müşteri uygulaması ekranları (22 dosya)
-- `src/backoffice/` — personel paneli, `ekranlar/` alt klasöründe ekranlar (16 dosya)
+- `src/screens/` — müşteri uygulaması ekranları (24 dosya)
+- `src/backoffice/` — personel paneli, `ekranlar/` alt klasöründe ekranlar (22 dosya ve `rapor/`)
 - `src/components/` — paylaşılan bileşenler
 - `src/marka/` — firmaya ait her şey: kimlik, logo, renkler, ürün kataloğu, servis listesi, fiyatlar, kılavuz paketi. Motor buraya yalnızca `src/marka/index.js` kapısından bakar (bkz. MARKA-DEVIR.md)
 - `src/data/` — ülkeye ve motora ait statik içerik: il listesi, KVKK metinleri, talep alanları, duyuru türleri, yetki kataloğu
 - `src/lib/` — yardımcı modüller (depolama, bildirim, PDF/Excel dışa aktarım)
-- `src/i18n/` — `tr.js`/`en.js` (663 anahtar, eşit tutuluyor ama build'de zorlanmıyor) + `index.jsx`
+- `src/i18n/` — `tr.js`/`en.js` (783 anahtar, eşit tutuluyor ama build'de zorlanmıyor; `npm run dogrula` 1. ve 2. kontrol) + `index.jsx`
 - `tools/` — otomasyon betikleri (ekran görüntüsü, ikon üretimi, veri doğrulama)
 
 ## Üç ayrı derleme
@@ -63,7 +63,12 @@ yazılmaz: `${MARKA} Servisim`.
   boş ekran açardı.
 - `servis.html` kök etiketinde `data-demo="acik"` var: demo verisi bu
   işaretle kuruluyor. **Canlıya çıkarken o satır silinecek**
-  (bkz. CANLIYA-CIKIS.md).
+  (bkz. CANLIYA-CIKIS.md). 25 Eylül 2026'dan beri Connect'in
+  `index.html`'inde de aynı işaret var: Makine Kaydet'teki "DENEME"
+  (örnek seriler) kutusu yalnız işaretli derlemede çıkıyor. İşareti tek
+  yer okuyor: `src/lib/demoSurumu.js → demoSurumuMu` (Servisim'in
+  `servis/demoKimlik.js`'i de ona bağlı). `npm run dogrula` 11. kontrol
+  iki işareti de listeliyor.
 
 Servis uygulaması kendi CSS kökünü açmaz, `backoffice.css` dosyasını paylaşır. `npm run dogrula` bu kuralı denetler.
 
@@ -89,28 +94,41 @@ otomasyon paketi kurulu değil. Buna karşılık dört şey var:
   çağrılmıyorsa yoktur.*
 - **Ekosistem sınaması** (`tools/ekosistem-sinamasi.mjs`) — üç
   uygulamanın PAYLAŞTIĞI veri katmanını Node içinde gerçekten
-  çalıştırıyor: yirmi yedi akış senaryosu (AK-01…AK-27), talep açılışından
+  çalıştırıyor: otuz altı akış senaryosu (AK-01…AK-36), talep açılışından
   hak edişin cariye yazılmasına kadar. Modüller Vite'ın
   `ssrLoadModule`'üyle yükleniyor, depo taklit ediliyor, saat donmuş,
-  rastgelelik tohumlu. Ayrıntısı betiğin başında.
+  rastgelelik tohumlu, saat dilimi sabit (Europe/Istanbul; 0. adım
+  denetliyor, UTC'de koşan makinede dilime bağlı kusur görünmez olurdu).
+  Ayrıntısı betiğin başında.
 - **Uygulama–veritabanı eşleme denetimi**
   (`tools/veritabani-eslesme-denetimi.mjs`, 21 Eylül 2026) — uygulama
   veritabanına henüz bağlı değil; yeni bir alan, veritabanında
   karşılığı olmasa da hata vermiyordu. Aynı senaryoları koşturup depoya
   düşen HER ALANI `veritabani/uygulama-eslesmesi.mjs` ile karşılaştırıyor.
   Eşlemesiz alan ya da anahtar, SQL betiklerinde olmayan sütun,
-  eşlemesiz `veri.js` işlevi doğrulamayı düşürür. Karşılığı bilerek
+  eşlemesiz `veri.js` işlevi ve eşlemede iki kez yazılmış satır (ÇİFT
+  SATIR, 25 Eylül 2026: nesnede ikinci satır birincinin notunu sessizce
+  ezer) doğrulamayı düşürür. Karşılığı bilerek
   olmayanlar eşlemede `yok(gerekçe)` diye durur ve "bilinen boşluk"
   sayılır — sunucu aşamasının iş listesi. Senaryoların yazmadığı
   anahtarları göremez; onları "sınanmıyor" diye ayrı sayar.
   `--envanter` her alanın karşılığını basar.
 - **Ekosistem ekran turu** (`tools/ekosistem-turu.mjs`) — üç uygulamanın
   **gezilebilir yüzeyinin tamamını** Chrome'da açıyor: envanter
-  `tools/ekosistem/ekranlar.mjs` içinde (Connect 26, backoffice 17,
-  Servisim 10; artı rol bazlı menü, uygulamalar arası ispat, "gezinmek
-  kayıt yazmıyor" denetimi ve **on formun boş gönderimi**
-  (`tools/ekosistem/formlar.mjs`) — toplam 67 denetim). Her ekranda
+  `tools/ekosistem/ekranlar.mjs` içinde (Connect 28, backoffice 17,
+  Servisim 11; artı rol bazlı menü ve yetkisiz rolün Kayıtlı Makineler
+  penceresi, başka sekmenin rol değişikliği, uygulamalar arası ispat,
+  "gezinmek kayıt yazmıyor", Servisim açıkken gelen kayıt ve açık
+  pencere, Servisim'in çift dokunuş kilidi (X-07), yüzen düğmenin
+  dokunma kutusu, Connect'in beş ekran kararı (C-29…C-33: süren işte
+  form yerine kart, "Sorun Devam Ediyor" yerine kart, kaldırılan talebi
+  geri alma, DENEME kutusunun demo işareti, servissiz makinede form
+  yerine kart) ve **on bir formun boş gönderimi**
+  (`tools/ekosistem/formlar.mjs`) — toplam 82 denetim). Her ekranda
   üç soru: boş mu açıldı, hata verdi mi, ekili değer basılı mı.
+  `--yalniz C-27,X-03` yalnız adı verilen denetimleri koşturur (bozma
+  denemesi için; kapsam iddiası tam koşunun); bilinmeyen kod verilirse
+  hiçbir şey koşturmadan 1 ile çıkar.
   Gidilemeyen ekran "ERİŞİLEMEDİ" diye AYRI sayılıyor; sessizce
   atlanmıyor. Yalnız ekilen değerleri arar (talep numarası, seri,
   tutar, ad), ekrandaki kelimelere bakmaz — Codex metinleri
@@ -121,9 +139,13 @@ Geri kalanı elle: `tools/ekran-goruntusu.mjs` ve tarayıcıda ölçülen JS
 var: `npm run vt -- sinama`.
 
 **Her senaryonun taşıdığı, bilerek bozularak gösterildi.** Bozma listesi
-`tools/ekosistem-sinamasi.mjs` başlığında; yeni senaryo yazan aynısını
-yapar. Hiç düştüğü görülmemiş bir sınama, hiçbir şey iddia etmeyen
-sınamadan ayırt edilemez.
+`tools/ekosistem-sinamasi.mjs` başlığında (tur adımlarınınki
+`tools/ekosistem-turu.mjs`, eşleme denetimininki
+`tools/veritabani-eslesme-denetimi.mjs` başlığında); yeni senaryo yazan
+aynısını yapar. Hiç düştüğü görülmemiş bir sınama, hiçbir şey iddia
+etmeyen sınamadan ayırt edilemez. Düşmeyen bozma da yazılır, nedeniyle
+(25 Eylül 2026'da bir tane: iki kat kapının biri tek başına silinince
+öteki tuttu).
 
 ## Ekosistemin Temeli — Dört Taraf, Eşit Değil
 
@@ -301,6 +323,22 @@ yeni tutar altında ayrı; Servisim'in sipariş kartı yeni tutarı
 gösteriyor. Servise bildirim `kalanIptalEdildi`. Sınaması AK-26;
 veritabanı `VT-TASARIM-EKLERI.md` §9.
 
+**ORTAK DEPO VE ESKİ EKRAN** (24 Eylül 2026, kod okunarak bulunan dört
+hata). (1) Connect'te yeni telefonla kayıt, telefonu devralan önceki
+kişinin kayıtlarını görmesin diye ORTAK depoları (talepler, bildirimler,
+destek, geri bildirim, numara talepleri) siliyordu; artık silmiyor,
+talep listesi hesaba göre süzülüyor ve talep açanın kimliğini taşıyor
+(`lib/musterininTalepleri.js → gorunenTalepler`, 25 Eylül 2026'ya kadar
+`context/AppState.jsx`'teydi; `lib/talepOlustur.js`).
+(2) Connect her değişiklikte bellekteki eski talep listesini depoya
+yazıp başka uygulamanın değişikliğini geri alıyordu; artık depodaki
+listenin üstüne yazıyor (`requestsGuncelle`). (3) Backoffice'te para
+ya da durum değiştiren işlevler kararı ekrandaki kopyadan veriyordu
+(aynı hak ediş iki kez onaylanabiliyordu); artık depodaki kayıttan
+(`veri.js → guncelTalep`). (4) Servisim'de şifre değişince oturum
+yanlış depoya yazılıyor, yenilemede şifre ekranı dönüyordu. Sınaması
+AK-28.
+
 **TALEPLER'DE GÖRÜNEN DURUM** (24 Eylül 2026, kullanıcının isteği).
 `parcaBekliyor` ekranda iki ad: "Parça Hazırlanıyor" (gönderim yok) ve
 "Parça Yolda" (gönderim var). Rozet, süzgeç, sıralama, Excel ve geçmiş
@@ -353,6 +391,293 @@ duyuru süzerken bu ikisini çağırmalı. Sınaması AK-09; veritabanı
 karşılığı `VT-TASARIM-EKLERI.md` §7. Bölge, makine ve servis kutuları
 kapalı açılıyor (24 Eylül 2026); başlıkta seçimin özeti yazıyor.
 
+### 25 Eylül 2026 kullanıcı sınamasının düzeltmeleri
+
+Dört kullanıcı ajanının ilk turu (rapor
+`tools/kullanici-sinamasi/raporlar/2026-09-24-ilk-sinama.md`) beş
+yüksek, on orta ve on beş düşük bulgu ile dört tasarım sorusu çıkardı;
+hepsi düzeltildi. Kullanıcının kararı: "Rapordaki tüm bulguları
+ekosistemin akışına ve mantığına uygun olacak şekilde düzelt." Aşağıda
+konu konu; her birinin sınaması yanında, bozularak düştüğü gösterildi
+(`tools/ekosistem-sinamasi.mjs` ve `tools/ekosistem-turu.mjs`
+başlıkları). Yeni ekran metinleri TASLAK, Codex'i bekliyor
+(`CODEX-BEKLEYEN.md`).
+
+**TALEBİN MÜŞTERİSİ TEK YERDEN** (Y3). "Bu kayıt bu müşterinin mi"
+sorusunun tek cevabı `lib/musteriEslesmesi.js` (`musterininMi`,
+`talepSahibiBulucu`): (a) servisin kendi parça siparişi hiçbir müşterinin
+değil, (b) kayıtta `musteriId` varsa yalnız o hesabın, (c) yoksa ülke
+kodlu numarayla, yazılıştan bağımsız ("532…", "0532…", "+90 532…" aynı).
+Backoffice'in müşteri kartı, "Aktif diğer talepler"
+(`veri.js → musterininDigerTalepleri`), bildirim alıcısı, Müşteriler
+raporu ve Connect'in talep listesi (`lib/musterininTalepleri.js →
+talepHesabinMi`) bu kurala bakıyor; önce dört ayrı kopya vardı, dördü de
+talepteki kimliğe bakmıyordu. **BİLİNÇLİ İSTİSNA: servisin elle açtığı
+kimliksiz iş** (`elle: true`, `musteriId` yok). Müşteri kartı ve rapor onu
+numarayla müşteriye bağlıyor — PAKSAN o müşteriyle ilgili her işi
+görmeli. Connect ise bağlamıyor: listede göstermiyor (telefonu bilen
+biri başkası adına açılmış işin ayrıntısını görmesin) ve bildirimini
+yazmıyor (`veri.js → bildirimAlicisi`: müşteri açamayacağı bir talebin
+bildirimini almasın). İstisna da tek yerde: "bu kayıt HESABIN mı"
+sorusu (Connect listesi, bildirim alıcısı, numara değişikliği, hesap
+birleştirme) `musteriEslesmesi.js → hesabaBaglanirMi`'ye bakıyor (25 Eylül
+2026 akşamı; önce her çağıranda ayrı yazılıydı ve hesap birleştirme onu
+unutup elle işi yeni hesaba taşıyordu). Numara değişikliği onaylanınca eski
+numarayla açılmış kimliksiz Connect talepleri ve görüşler hesaba bağlanıyor,
+elle açılanlar bağlanmıyor (`numaraTalebiKarar`); seri çakışmasıyla hesap
+birleşince de elle iş taşınmıyor. Görüş (geri bildirim) hesabın kimliğini
+taşıyor; cevabı numara değişse de o hesaba gidiyor. Sınaması AK-30, AK-07,
+AK-12, AK-32.
+
+**TELEFON TEK BİÇİMDE** (düşük bulgu). Aynı müşteri ekranlarda üç
+biçimde görünüyordu. Kayıtta ham numara sıfırsız, ülke kodsuz rakam
+(`lib/tel.js → telHamYap`), ekranda "+90 532 111 22 33"
+(`telGoster`, `kayitTelGoster`), arama bağlantısı ülke kodlu
+(`kayitTelHref`); servisin siparişindeki numara firma biçiminde
+(`telFirma`). Connect talebi, Servisim'in elle kaydı ve servis
+kaydının tamamladığı numara aynı biçimi yazıyor. Sınaması AK-30.
+
+**SERVİS SİPARİŞİ MÜŞTERİYE BİLDİRİM YAZMAZ** (Y4). Siparişin telefonu
+servisin numarası; o numara bir Connect hesabıyla eşleşince PAKSAN'ın
+siparişteki her işlemi o hesaba "talebiniz…" diye yazılıyor, backoffice
+"müşteriye bildirim gitti" diyordu. Servis siparişinin müşteri alıcısı
+yok (`bildirimAlicisi` ve `musterininMi`: iki kat kapı). Alıcısı
+çözülmeyen bildirim artık HİÇ yazılmıyor (`musteriyeBildir`; önce
+kimliksiz yazılıp kimseye gösterilmiyordu, veritabanı da kabul etmiyor:
+CK_bildirim_Bildirim_Alici). Ekranların "bildirim gitti / gidecek"
+cümlesi yazan kuralla aynı yerden (`veri.js → bildirimAlicilari`).
+Alıcısız cümle backoffice'te ve Servisim'de aynı: "Talep müşterinin
+uygulamadaki hesabına bağlı olmadığı için bildirim gönderilmeyecek"
+(taslak). Sınaması AK-29, AK-07.
+
+**KARGO KAPANIŞIN İÇİNDE** (düşük bulgu). Müşterinin parça talebinde
+takip numarası kapanış formunda soruluyor; personel onu ayrı bir
+"müşteriye not"la göndermiyor, çiftçiye art arda iki bildirim düşmüyor.
+Değer talebin `parcaSevk` alanına yazılıyor (`cozum`'a değil) ve tek
+kapanış bildirimi onu taşıyor (`veri.js → talepKapat`). Servis
+siparişine kargo yazılmıyor: gönderimi bölünebiliyor, kargo gönderim
+başına ayrıca tasarlanacak; Servisim'in "sipariş gönderildi" yazısı bu
+yüzden kargo takibi vaat etmiyor. Sınaması AK-04, AK-29.
+
+**ATAMA BİLDİRİMİ MAKİNENİN GÜNCEL DURUMU** (düşük bulgu). Yanlış atama
+düzeltilince çiftçinin listesinde iki servis adı kalıyordu. İlk atama
+"atandı", değişiklik "değişti", servisi kalmayan makine "yeniden
+belirleniyor" diyor (`veri.js → makineAtamasiniKaydet`); Connect aynı
+makinenin yalnız SON atama bildirimini gösteriyor (`lib/bildirimler.js →
+sonAtamaBildirimleri`). Sınaması AK-18 (7, 8).
+
+**ELLE İŞ ATAMA DIŞIYSA İŞARET, ENGEL DEĞİL** (Y5, kullanıcının kararı:
+uyar, engelleme). Servisim'in "Kayıt Aç" işi hep açan servisin adına
+yazılıyor, makine başka servise atanmışsa kimse bilmiyordu. Kayıt artık
+tek gövdeden (`lib/elleTalep.js → elleTalepKaydiOlustur`; ElleKayit ve
+sınama aynısını çağırıyor): makine başka servisteyse, servissizse ya da
+seri yoksa talebe `atamaDisi` (`durum` baskaServis / atanmamis /
+seriYok, `servisId`, `servisAd`, `kaynak` atama / bayi) yazılıyor
+(`lib/servisAtama.js → elleIsinAtamasi`). Servis uyarıyı görüyor;
+backoffice listede ve ayrıntıda işaretliyor, hak edişi onaylayan
+personel pencerede görüyor; ödeme işi açan servise. Kayıt ve onay
+işareti silmiyor. Connect'in talep ayrıntısı işi yürüten servisi,
+makinenin kendi servisi değilse "Servisiniz" diye göstermiyor
+(`makineninKendiServisiMi`). **DEFTER AYRIMI:** Servisim'in açtığı
+makine satırı makineye servis ATAMIYOR; kaydeden servis
+`kaydedenServisId`'de (`lib/makineKaydi.js → servisMakineKaydi`).
+Makine PAKSAN atayana kadar servissiz sayılıyor; çiftçi o zamana kadar
+Connect'ten servis talebi açamıyor. Sınaması AK-31, AK-16, AK-18.
+
+**AYNI MAKİNEDE İKİNCİ SERVİS TALEBİ** (O5). "Açık" iki anlamda, tek
+dosyada (`lib/makineTalepleri.js`): `acikServisTalebiMi` onay bekleyen işi
+de sayıyor (ödenmedi) — backoffice'in "makinede başka açık iş" işareti;
+`isSurenServisTalebiMi` saymıyor (iş bitti, servis orada devam edemez) —
+Connect'in engeli ve Servisim'in "bu makinede açık işiniz var" kartı.
+Connect aynı makinede işi süren talep varken ikinci talebi açtırmıyor,
+çiftçiyi o talebe ekleme penceresine götürüyor (formdaki açıklama, Destek
+özeti dahil, pencerenin notuna taşınıyor). Kapanmış talebin "Sorun Devam
+Ediyor"u da aynı makinede başka iş sürerken talebi yeniden açmıyor,
+yerinde aynı kart (`sorunDevamEngeli`). Servisim'in kartı servisin
+PAKSAN'a devrettiği işi "açık işiniz" saymıyor, "başka açık talep"
+sayıyor (`servisinMakinedekiIsleri`). Sınaması AK-31, AK-32; ekranda
+C-29, C-30.
+
+**CONNECT FORMLARI VE TALEPLERİM** (Y1, Y2, O4, O9, O10 ve düşükler).
+Fiyat teklifi makine taşımıyor (`lib/talepOlustur.js`; eski kayıt okurken
+ayıklanıyor: `lib/talep.js → makinesizTeklif`). Seri numarası model
+kodu, dört haneli yıl ve beş haneli sıra olarak denetleniyor; yazımdaki
+O ve I rakama çevriliyor, model kodu çevrilmiyor (`lib/serial.js →
+validateSerial`, `seriDuzelt`). Servis talebinin yeri makinenin son
+servis adresinden öneriliyor (`makineninSonServisAdresi`) ve talep
+ayrıntısında görünüyor; onayda hesaba yalnız BOŞ olan yazılıyor, dolu
+hesap yeri makinenin yeriyle değişmiyor (`lib/talepOlustur.js →
+hesabaIslenecekKonum`). Talepler Profil'den kendi ekranına taşındı
+(`/taleplerim`, `screens/Taleplerim.jsx`); listeden kaldırılan talep
+"Listeden Kaldırdıklarım"dan geri alınıyor; gizleme yalnız kapalı talebi
+saklıyor (PAKSAN yeniden açarsa listede). Parçada `planlandi`
+"gönderim günü" diye okunuyor (`lib/talep.js → musteriDurumAnahtari`,
+hatırlatma da). "DENEME" kutusu yalnız demo derlemesinde (yukarıda,
+Servis tarafı). Boş görüşte görünür uyarı; ana ekran sayaçları
+Taleplerim'e götürüyor. Sınaması AK-32; ekranda C-27, C-28, C-31,
+C-32, F-11.
+
+**SERVİSİM EKRANLARI** (O1, O3 ve düşükler). Sipariş başarı ekranı
+listedeki kartın rakamını gösteriyor (`lib/servisKaydi.js →
+siparisOzeti`: kalem, adet, KDV dâhil tutar). "Bakiyemden Düşülsün"
+pasifken nedeni yazıyor; kural reddin kuralı (`lib/servisFiyat.js →
+bakiyeYetmiyor`). Ekranlar açık kaldıkça depodaki değişikliği
+gösteriyor: açık talep kimlikle tutuluyor, depo dinleyicisi tek
+(`ServisPanel.jsx`). Talebin durumu değişince açık pencere (randevu,
+iptal, "Talebi Kapat") kapanıyor; servisin kapanmış ya da iptal edilmiş
+işe yazımını veri katmanı da reddediyor (`veri.js →
+servisinKapaliIsEngeli`: talepPlanla, talepKapat, talepDurumDegistir,
+talepIptal; backoffice'in yetkili çağrısı bu kapıdan geçmiyor). Sınaması
+AK-28; ekranda X-06. İşlerim rozeti yalnız el sürülmemiş işi sayıyor
+(`servis/isDurumu.js → yeniIsSayisi`); 48 saati geçen iş "Yeni"de başta,
+kartında etiketli, şeride dokununca açılıyor (`yeniIsSirasi`). Yüzen
+düğmenin dokunma alanı görünen haptan her yönde geniş
+(`servis.css → .uyg__fab`). Hak Ediş'in ücret özeti makineye göre farklı
+ücreti de söylüyor. Kalem iptali bildirimi parça adedini ve kalem
+sayısını ayrı taşıyor (`satirlarinAdedi`). "Parçayı Taktım"a ayrı teslim
+adımı eklenmedi (karar). Sınaması AK-17, AK-25, AK-26; ekranda S-10,
+X-03, X-04, X-05.
+
+**SAATSİZ RANDEVU** (düşük bulgu: saati girilmeyen randevu 03:00
+görünüyordu). Servisim randevuda yalnız günü soruyor; kayıt o günün
+YEREL başı ve `saatBelirtildi: false` (`lib/tarih.js → gunlukRandevu`),
+backoffice planı `true`. Alanı olmayan eski kayıt geriye dönük kuralla
+okunuyor (`randevuSaatliMi`). Connect'in hatırlatması saatsiz randevuyu
+gün sonuna kadar tutuyor. Veritabanında talep.Randevu.SaatBelirtildi.
+Sınaması AK-15 (sınama Türkiye saatinde koşuyor).
+
+**OTURUM SEKMEYE AİT** (O6). Backoffice oturumu bütün sekmelerde
+ortaktı: yenilenen sekme başka personelin kimliğine geçiyordu. Artık
+sekmenin oturumu oturum deposunda, son giriş kalıcı depoda (yeni sekme
+bir kez devralıyor). Oturum her okumada personel kaydına bağlı: rol ve ad
+kayıttan, kapatılan ya da silinen personelin oturumu düşüyor, başkasının
+son girişine dokunulmuyor; işlem kaydı bu sekmenin kişisinin GÜNCEL rolünü
+taşıyor (`islemYaz` rolü personel kaydından okuyor; oturumsuz sekmede son
+girişin rolü yalnız aynı kişinin işlemine yazılıyor). Aynı sekmede kendi
+hesabını değiştiren personelin oturumu da yeniden okunuyor (`tazele`).
+Çıkış bu sekmenin oturumunu ve son giriş kendisininse onu siliyor, aynı
+kişinin öteki sekmelerini kapatıyor
+(`BroadcastChannel`); paneli kapatılan servisin oturumu da düşüyor
+(`servisOturumuGetir`). Backoffice'e bir kez yeniden giriş gerekebilir.
+Sınaması AK-33.
+
+**BAŞKA SEKMENİN DEĞİŞİKLİĞİ YENİLEMEDEN** (O7). Rol, ücret ve iskonto
+başka sekmede değişince bu sekme eski hâli gösteriyordu. Tek düzenek:
+`lib/storage.js → baskaSekmeDegistirince`; `lib/icerikDeposu.js` belleği
+boşaltıyor, Backoffice.jsx ve ServisPanel.jsx ekranı tazeliyor. Sınaması
+AK-33; ekranda B-SEKME, X-03, X-04.
+
+**DURUM KİLİDİ VE NEDENİ** (O8). Kapanmış talepte ve gönderilmiş servis
+siparişinde durum çipleri `talepGeriAc` iznine bağlı; kilidin nedeni tek
+işlevden (`veri.js → durumKilidi`) ve ekranda yazıyor, çipe basınca
+"hiçbir şey olmuyor" değil. Sınaması AK-08.
+
+**PARÇA YOLDAYKEN İŞ YEDEK PARÇADA** (O2). Takip numarası girilince iş
+yedek parça rolünün listesinden düşüyordu. Parça yolda kaldıkça listede
+(`rolunTalepleri`, üçüncü kapı); yanlış takip numarası sonradan
+düzeltiliyor — karar depodaki kayıttan, ilk gönderimin tarihi ve
+personeli korunuyor, servise "kargo bilgisi değişti" gidiyor
+(`servisParcasiGonderildi`); parça takılınca kargo girişi reddediliyor.
+Sınaması AK-03, AK-08.
+
+**HAK EDİŞ REDDİ KESİN** (tasarım sorusu, karar). Ret talebi kapatıyor;
+ret penceresi bunu söylüyor ve düzeltilebilir sorun için "Düzelt"e
+yönlendiriyor. Servisin açık kalmış eski kayıt ekranı reddedilen işe
+kayıt gönderemiyor (`servisKaydiGonder` kapanmış talebe yazmıyor).
+Sınaması AK-28 (7).
+
+**MAKİNEYE SERVİS ATAMA AYRI YETKİ** (tasarım sorusu, karar):
+`makineAtama`. `servisDuzenle` artık servis kaydı, bölgesi ve hesabı.
+Varsayılan: Yönetici, Satış ve Servis atıyor; Yedek Parça atamıyor
+(Satış'ın `servisDuzenle`'si olduğu gibi kaldı). Depodaki eski rol bir
+kez taşınıyor: `servisDuzenle` taşıyan rol `makineAtama`'yı alıyor
+(`veri.js → rolIzinleriniTasi`, `izinSurumu` 3); personelin sonradan
+kaldırdığı izin geri gelmiyor. Varsayılan liste izni kendisi taşıyor,
+çünkü veritabanı tohumu (B03) listeyi taşımasız okuyor. Kayıtlı
+Makineler yetkisiz rolde atama kartını ve bölümünü göstermiyor, nedenini
+yazıyor. Sunucu aşamasında `servisDuzenle`'si olan rollere `makineAtama`
+yazan bir geçiş satırı gerekecek. Sınaması AK-08; ekranda B-ROL.
+
+**DEMO KAYDI MAKİNEYE UYUYOR** (düşük bulgu: rotovatörde "düğüm
+atmıyor", garantisi bitmiş makinede "garanti kapsamında", Süper 8002E'de
+Yunus parçası). Demo makinenin ailesine, modeline ve garantisine göre
+üretiliyor (`backoffice/demoMakineAilesi.js`; marka sabitleri
+`PARCA_ADINDAKI_MODEL`, `GRUBUN_MODELLERI`, bugün yalnız demo okuyor) ve
+gerçek akışın yazacağı biçimde yazıyor: telefon ve `musteriId`, saatsiz
+Servisim randevusu, elle işte kuralla `atamaDisi`, serinin yılı. Açık
+işi uygun boş makineye koymaya çalışıyor (yer kalmazsa aynı makineye
+düşebilir; kural değil tercih), talep numarası tekil, randevunun işi tek
+yerden (`lib/talep.js → RANDEVU_ISI`). `demoTemizle` demo talebine bağlı
+cari ve bildirim satırlarını da siliyor. `DEMO_SURUMU` 5: tarayıcıdaki
+demo bir kez yeniden kuruluyor. Sınaması AK-34 (demoyu üç tohumla
+gerçekten kuruyor, depoyu BİLEREK boşaltmıyor: eşleme denetimi demonun
+yazdığını görmeli; demo damgası eşlemede `yok`); canlıda
+`tools/kullanici-sinamasi/tutarlilik.js` D1-D3.
+
+### 26 Eylül 2026 ikinci kullanıcı sınamasının düzeltmeleri
+
+Aynı dört ajanla ikinci tur (rapor
+`tools/kullanici-sinamasi/raporlar/2026-09-26-ikinci-sinama.md`): ilk
+turun bulguları düzelmiş görüldü; bir yüksek, dört orta ve on iki düşük
+yeni bulgu çıktı, üçü yanlış alarm (sekmenin sıcak yenilemeden bozulması,
+küçük tarayıcı panelinde koordinat, ölçümün arşivi saymaması). Hepsi
+düzeltildi; iki tasarım sorusu 28 Eylül'de karara bağlandı (aşağıda).
+
+**YENİDEN AÇILAN İŞTE GEÇEN ZİYARETİN KAYDI** (Y1). "Sorun Devam
+Ediyor" talebi açıyor, son servis kaydı yerinde kalıyor; Servisim onu bu
+ziyaretinmiş gibi okuyordu: kayıt formu geçen ziyaretin yapılan işi, km'si
+ve süresiyle doluydu, parça isteği o değerlerle yazıldı, "Parçayı Taktım"
+eski km ve saatle hazır geldi, Randevu düğmesi yoktu, iş "Yeni"ye
+düşmüyordu. Tek kural `lib/servisKaydi.js → buZiyaretinKaydi` (1. aşama
+kaydı hep bu ziyaretin, bitmiş kayıt yalnız talep onu izleyen bir
+durumdaysa); form, Randevu ve "Yeni" sekmesi ona bakıyor. Formun "talep
+nedeni" müşterinin son "Sorun Devam" cümlesi, yoksa açıklama, belirtiler
+ya da makinenin durumu (`talepNedeni`; kurulum talebinde boş gelmiyor).
+Parça isteği sorulmayan yapılan iş, km ve işçiliği yazmıyor (ekran ve
+`veri.js → servisKaydiGonder`, iki kat). Sınaması AK-35.
+
+**SERVİSSİZ MAKİNEDE FORM YERİNE KART** (O1). Connect'te servisi
+atanmamış makine seçilince form açık kalıyor, "Gönder"de geri
+çevriliyordu; artık açık talepteki gibi formun yerinde kart
+(`RequestForm.jsx → servisiYokMakine`). Ekranda C-33.
+
+**KAPANIŞTAN SONRA KARGO BİLGİSİ** (O2). Müşterinin parça talebi
+kapandıktan sonra takip numarası girilemiyordu. Backoffice "Kargo
+Bilgisini Gir/Düzelt" (`veri.js → musteriKargosunuGuncelle`): talep kapalı
+kalıyor, ilk gönderimin tarihi ve personeli korunuyor, müşteriye kargo
+bilgisiyle tek bildirim. Sınaması AK-36.
+
+**AYNI TÜRDEN DÖRT EKRAN DÜZELTMESİ.** Kayıtlı Makineler penceresi
+süzülmemiş listeden okuyor (atanan makine "Servis Atanmamış" süzgecinden
+düşünce pencere eski kalıyordu; O3). Servisim ekran değişince 350 ms
+dokunuş yutuyor: çift dokunuşun ikincisi yeni ekranda başka işi açıyordu
+(`ServisPanel.jsx → GECIS_KILIDI_MS`; O4, ekranda X-07). Backoffice'te
+talep numarasının tamamı aranınca durum süzgeci aşılıyor. Servisler
+ekranı yetkisiz role nedenini yazıyor.
+
+**DÜŞÜKLER.** Connect: teklifin cevapları (ürün, arazi, traktör)
+ayrıntıda; servisin açtığı işte "Talebi açan"; geçmişte ikinci "parça
+bekleniyor" satırı "Parça yola çıktı" (`lib/talep.js → sevkSatiriMi`,
+backoffice'le ortak, arşivdeki sevki de sayıyor; AK-35); "Sorun Devam"
+kartında en yeni üstte, tarih yazının üstünde. Servisim: seri düzeltilince
+uyarı siliniyor; indirim dökümsüz siparişte "(KDV dâhil)". Backoffice:
+iptal edilmiş talebin kilidi "iptal edildi" diyor (`durumKilidi`, AK-08);
+iptal nedeninin kime göründüğü alıcı kuralından; fotoğraf düğmesinin adı.
+
+**İKİ KARAR** (28 Eylül 2026, kullanıcının cevabı: "Uyarsın",
+"Görsünler"). Servisim'in Kayıt Aç ekranı, servisin aynı makinede onay
+bekleyen kendi işi varsa uyarıyor, engellemiyor (`lib/makineTalepleri.js
+→ servisinMakinedekiIsleri().onayda`, AK-31). Servisin bakiyesi Servisler
+listesinde "Bakiye" sütununda, hak ediş bölümünde ve bakiyeden ödenen
+siparişte görünüyor; ayrı izin yok, Servisler'i gören görüyor
+(`veri.js → bakiyeDurumu`).
+
+**EŞLEME.** Önceki ziyaretin alanları (`oncekiKayitlar[]`) son
+ziyaretinkilerden türetiliyor (aynı talebin küçük ZiyaretNo'lu
+talep.ServisZiyareti satırları); "Sorun Devam" kaydı (`tekrar[]`)
+talep.YenidenAcma'ya; `servisKaydi.sonuc` SonucMetni'ne. Üçü de hiçbir
+senaryo yazmadığı için denetimin görmediği yerdi.
+
 **Fiyat teklifi servise değil bayiye gider.** Bayinin paneli yok:
 satış personeli bayiye telefonla haber veriyor, sistemde yalnız hangi
 bayinin yetkilendirildiği yazılıyor (`talebiBayiyeAta`). Talep
@@ -365,7 +690,18 @@ kararı; PAKSAN bayisiz de satabildiği için son üçü duruyor).
 **PAKSAN'ın talepteki işlemi servise bildirilir** (`serviseBildir`,
 aynı `duyurular` deposu, `alici: 'servis'`). Servisin kendi işlemi
 kendisine bildirilmez: paylaşılan işlevler `servisten: true` alıyor.
-Yazısı Servisim'de `src/servis/talepBildirimleri.js`.
+Yazısı Servisim'de `src/servis/talepBildirimleri.js`. Kaydın gövdesi
+tek yerde: `lib/serviseBildirim.js → serviseBildirimYaz` (Connect
+veri.js'i içe aktaramadığı için). **Müşterinin iki işlemi de aynı
+kayıtla gidiyor** (25 Eylül 2026, kullanıcı sınaması): servisin
+yürüttüğü talebe ekleme (`musteriEkledi`) ve kapanmış işte "Sorun Devam
+Ediyor" (`musteriSorunDevam`); ikisini Connect yazıyor
+(`lib/talepEkleme.js → eklemeyiServiseBildir`,
+`sorunDevaminiServiseBildir`; parça ve teklif talebinde, PAKSAN'a
+devredilmiş işte gitmiyor). Servisim bunları "Müşteriden" diye ayırıyor
+(`talepBildirimleri.js → musteridenMi`; İşlerim'de ayrı başlık,
+Bildirimler'de alt satır): müşterinin işi PAKSAN'ınki gibi
+görünmesin. Sınaması AK-15, AK-32.
 
 **Yedek parça talebi servise gitmez.** Müşterinin PAKSAN Connect'ten
 açtığı parça talebi yalnız backoffice'e düşer: tedarikçi PAKSAN, müşteri
@@ -495,7 +831,7 @@ Bir değişikliği "bitti" demeden önce:
 
 ## Subagent'lar
 
-Bu projede dört proje-özel subagent var (`.claude/agents/`):
+Bu projede sekiz proje-özel subagent var (`.claude/agents/`):
 
 - **ekran-dogrulama** — ekran görüntülerini yeniler, kırık CSS seçicileri onarır
 - **ikon-uretici** — Higgsfield PNG'sini vektör ikona çevirir
@@ -504,6 +840,13 @@ Bu projede dört proje-özel subagent var (`.claude/agents/`):
   ekranları uçtan uca koşturur (`tools/ekosistem-sinamasi.mjs` +
   `tools/ekosistem-turu.mjs`), düşen adımı "uygulama bozuldu" /
   "beklenti eskidi" diye ayırır; `src/` altında hiçbir şey değiştirmez
+- **kullanici-ciftci**, **kullanici-servis**, **kullanici-paksan-servis**,
+  **kullanici-paksan-parca** — kullanıcı sınamasının dört kişisi (çiftçi,
+  servis teknisyeni, backoffice servis ve yedek parça personeli). Üç
+  uygulamayı yalnız ekrandan, gerçek kullanıcılar gibi hata yaparak
+  kullanır ve beklenmedik davranışları raporlar; turları orkestratör
+  yürütür (`tools/kullanici-sinamasi/README.md`). Oturumları kullanıcı
+  açar; ajanlar şifre yazmaz
 
 Genel kod tabanı keşfi için ayrıca proje-özel bir agent yazmaya gerek yok —
 global `Explore` agent tipi yeterli, bu dosya ona gereken bağlamı zaten veriyor.
@@ -574,8 +917,11 @@ Genel diff incelemesi için `/code-review` komutu kullanılır.
 
 On üç şeye bakıyor:
 
- 1. `tr.js`/`en.js` anahtar eşitliği
- 2. Kodda kullanılan `t('...')` anahtarlarının sözlükteki karşılıkları
+ 1. `tr.js`/`en.js` anahtar eşitliği ve Connect sözlüğünde terim yasağı
+    (iskonto, kapsam, künye, hak ediş)
+ 2. Kodda kullanılan `t('...')` anahtarlarının ve bildirim kaydına
+    yazılan anahtarların (`baslikAnahtar`, `metinAnahtar`; 25 Eylül 2026)
+    iki sözlükteki karşılıkları
  3. İki CSS dosyasındaki token'ların uyumu
  4. `dist/` içine backoffice kodunun sızıp sızmadığı
  5. Motorun marka klasörüne yalnızca kapıdan bakıp bakmadığı

@@ -1,13 +1,15 @@
 import { useMemo, useState } from 'react'
 import { load, save, uid } from '../../lib/storage'
-import { talepNo } from '../../lib/talep'
-import { INDIRME_ADRESI, uygulamaEk, UYGULAMA, SIRKET } from '../../marka'
+import { INDIRME_ADRESI, MARKA, uygulamaEk, UYGULAMA, SIRKET } from '../../marka'
 import { ILLER, ilceleriGetir } from '../../data/iller'
 import { extractYear, formatSerial, normalizeSerial, validateSerial } from '../../lib/serial'
 import { servisMakineKaydi, seriSatiri } from '../../lib/makineKaydi'
-import { telGoster } from '../../lib/tel'
-import { adBicimle } from '../../lib/adBicimi'
-import { islemYaz, musterileriGetir } from '../../backoffice/veri'
+import { kayitTelGoster, kayitTelHref, telHamYap } from '../../lib/tel'
+import { musterininMi } from '../../lib/musteriEslesmesi'
+import { elleTalepKaydiOlustur } from '../../lib/elleTalep'
+import { elleIsinAtamasi } from '../../lib/servisAtama'
+import { servisinMakinedekiIsleri } from '../../lib/makineTalepleri'
+import { islemYaz, musterileriGetir, talepleriGetir } from '../../backoffice/veri'
 import { CATEGORIES, PRODUCTS, getProduct } from '../../marka'
 import { Bolum } from '../Kabuk'
 import { DikteliKutu } from '../Dikte'
@@ -71,10 +73,38 @@ import { IconAlert, IconCheckCircle, IconSend } from '../../components/Icons'
    açılmıyor. Hesap açmak müşterinin kendi işi, servisin değil.
 
    SERİ NUMARASI GİRİLİRSE makine kayıt defterine de bir satır
-   yazılıyor ve `servisId` DOLU geçiyor. O alan LOGO için tasarlanmıştı
-   ve bugün hep boş; servisin elle açtığı kayıt onu bugünden doldurmaya
-   başlıyor. Kayıtlı müşterinin listeden seçilen makinesi için satır
-   AÇILMIYOR: o makine defterde zaten var.
+   yazılıyor. Satırda KAYDEDEN servis yazıyor (`kaydedenServisId`),
+   makinenin servisi DEĞİL: 25 Eylül 2026'ya kadar `servisId` dolu
+   geçiyordu ve servis sisteme soktuğu makineye kendini atamış
+   oluyordu. Atama PAKSAN'ın işi (Kayıtlı Makineler); Servisim'in açtığı
+   makine PAKSAN atayana kadar "servis atanmamış" sayılıyor (kullanıcı
+   sınaması Y5; bkz. lib/makineKaydi.js → servisMakineKaydi). Kayıtlı
+   müşterinin listeden seçilen makinesi için satır AÇILMIYOR: o makine
+   defterde zaten var.
+
+   MAKİNENİN SERVİSİ BAŞKAYSA (25 Eylül 2026, kullanıcının kararı: uyar,
+   engelleme). Makine başka bir servise atanmışsa ya da hiç servisi
+   yoksa servis bunu yazarken görüyor; talep yine açılıyor, iş açan
+   serviste kalıyor. Talebe açıldığı anın durumu yazılıyor
+   (`atamaDisi`, lib/servisAtama.js → elleIsinAtamasi) ve hak edişi
+   onaylayan personel onu backoffice'te görüyor. Öteki servisin ADI
+   burada gösterilmiyor: atama PAKSAN ile servis arasındaki ticari bir
+   karar. Kart "Anladım" istemiyor; karar uyarı, soru sayısı düşük
+   kalmalı. Seri numarası olmayan makinede kart çıkmıyor (servis "Seri
+   Numarası Yok"u kendisi seçti), işaret yine yazılıyor.
+
+   AYNI MAKİNEDE AÇIK İŞ (25 Eylül 2026, kullanıcı sınaması O5). Aynı
+   makineye aynı anda iki servis talebi açılabiliyordu; ne engel ne
+   uyarı vardı. Servisin kendi işi sürüyorsa (onay bekleyen hariç) kart
+   o işin numarasını söylüyor ve "İşi Aç" ile oraya götürüyor; onay
+   bekleyen işe götürmüyor, çünkü servis orada bir şey yapamaz.
+   Makinede başka bir servisin açık talebi varsa yalnız VAR diyor,
+   numara ve ad yok. Engel yok. Kural lib/makineTalepleri.js'te; üç
+   ürün aynı dosyadan okuyor.
+
+   KAYDIN KENDİSİ lib/elleTalep.js → elleTalepKaydiOlustur'da (25 Eylül
+   2026): sınama da ekran da aynı gövdeyi çağırıyor. Numara orada tek
+   biçime giriyor (ülke kodu, sıfırsız ham numara).
 
    SERİ DEFTERDE ZATEN VARSA SATIR AÇILMIYOR (21 Eylül 2026). Önce
    açılıyordu: bir müşteride kayıtlı makine, talebi açan ikinci kişide
@@ -120,9 +150,16 @@ const YILLAR = (() => {
   return Array.from({ length: bu - 1970 + 1 }, (_, i) => bu - i)
 })()
 
-/* Numaranın yalnız rakamları karşılaştırılıyor: müşteri "0532 111 22 33"
-   yazmış olabilir, servis "532 111 22 33". */
-const rakamlar = (v) => String(v || '').replace(/\D/g, '').slice(-10)
+/* NUMARA YAZILIŞTAN BAĞIMSIZ KARŞILAŞTIRILIYOR (25 Eylül 2026, kullanıcı
+   sınaması Y3). Müşteri "0532 111 22 33" yazmış olabilir, servis
+   "532 111 22 33" ya da "+90 532 …". Önce rakamların son on hanesine
+   bakılıyordu; on bir haneli yanlış yazımda başka müşteriyi
+   bulabiliyordu. Ham numara artık sıfırsız ve ülke kodsuz
+   (lib/tel.js → telHamYap), sahibi tek kuraldan (lib/musteriEslesmesi.js
+   → musterininMi). Servisim yalnız Türkiye'de. */
+const rakamlar = (v) => telHamYap('TR', v)
+const numaraninSahibi = (liste, n) =>
+  liste.find((m) => musterininMi({ telUlke: 'TR', telHam: n }, m)) || null
 
 /* Kayıtlı müşterinin adı ve soyadı. Connect hesabı ikisini ayrı tutuyor
    (`adi`, `soyadi`); ayrı alanı olmayan eski kayıtta tam ad son
@@ -134,7 +171,7 @@ function adiSoyadi(m) {
   return [parca.slice(0, -1).join(' '), parca[parca.length - 1]]
 }
 
-export function ElleKayit({ oturum, onKaydedildi }) {
+export function ElleKayit({ oturum, onKaydedildi, onIsiAc }) {
   const [tel, setTel] = useState('')
   /* AD VE SOYAD AYRI KUTUDA (21 Eylül 2026, kullanıcının isteği): tek
      kutuda "onu rgökay" gibi yanlış yere düşen bir boşluk kayda öyle
@@ -164,8 +201,8 @@ export function ElleKayit({ oturum, onKaydedildi }) {
   const musteriler = useMemo(() => musterileriGetir(), [])
   const eslesen = useMemo(() => {
     const n = rakamlar(tel)
-    if (n.length < 10) return null
-    return musteriler.find((m) => rakamlar(m.tel) === n) || null
+    if (n.length !== 10) return null
+    return numaraninSahibi(musteriler, n)
   }, [tel, musteriler])
 
   /* Numara tamamlandı ama kimse bulunamadı: uyarı ancak bu durumda
@@ -182,12 +219,40 @@ export function ElleKayit({ oturum, onKaydedildi }) {
     makineler.find((m) => m.id === makineId) ||
     (makineler.length === 1 ? makineler[0] : null)
 
-  /* Yazılan seri defterde var mı, varsa kimde. Seri tanınmıyorsa soru
-     sorulmuyor: kaydet zaten hata veriyor. */
-  const kayitliSatir = useMemo(() => {
-    const sonuc = !seriYok && seri.trim() ? validateSerial(normalizeSerial(seri)) : null
-    return sonuc?.ok ? seriSatiri(sonuc.serial) : null
+  /* Yazılan seri geçerliyse kayda gidecek biçimi; değilse null. Seri
+     tanınmıyorsa soru sorulmuyor: kaydet zaten hata veriyor. */
+  const gecerliSeri = useMemo(() => {
+    const s = !seriYok && seri.trim() ? validateSerial(normalizeSerial(seri)) : null
+    return s?.ok ? s.serial : null
   }, [seri, seriYok])
+  /* Yazılan seri defterde var mı, varsa kimde. */
+  const kayitliSatir = useMemo(() => (gecerliSeri ? seriSatiri(gecerliSeri) : null), [gecerliSeri])
+
+  /* Talebin açılacağı makine: listeden seçilen ya da seriyle yazılan.
+     Servisin atama uyarısı ve aynı makinedeki açık iş buna bakıyor. */
+  const adayMakine =
+    secilenMakine || (makineler.length === 0 && gecerliSeri ? { serial: gecerliSeri } : null)
+  const adaySeri = adayMakine?.serial || null
+  /* Makinenin servisi bu servis değilse ne (bkz. dosyanın başı). */
+  const atama = useMemo(
+    () => (adaySeri ? elleIsinAtamasi({ serial: adaySeri }, oturum.servisId) : null),
+    [adaySeri, oturum.servisId],
+  )
+  /* Aynı makinedeki açık işler (bkz. dosyanın başı). Talepler ekran
+     açılınca bir kez okunuyor: servis bu ekranda talep yazmıyor.
+       kendi — servisin ELİNDEKİ işi sürüyor (onay bekleyen ve PAKSAN'a
+               devredilen hariç)
+       baska — makinede başka bir servisin, servissiz ya da servisin
+               PAKSAN'a devrettiği açık talep var mı; onay bekleyen başka
+               iş de sayılıyor, iş henüz ödenmedi
+       onayda — servisin kendi, onay bekleyen işi (28 Eylül 2026,
+               kullanıcının kararı: uyar, engelleme)
+     Kural lib/makineTalepleri.js → servisinMakinedekiIsleri (AK-31). */
+  const tumTalepler = useMemo(() => talepleriGetir(), [])
+  const acikIsler = useMemo(
+    () => (adaySeri ? servisinMakinedekiIsleri(adaySeri, tumTalepler, oturum.servisId) : { kendi: null, baska: false, onayda: null }),
+    [adaySeri, tumTalepler, oturum.servisId],
+  )
   const buMusteride = Boolean(
     kayitliSatir &&
       eslesen &&
@@ -212,7 +277,9 @@ export function ElleKayit({ oturum, onKaydedildi }) {
     /* TELEFON (21 Eylül 2026, kullanıcının isteği). Hesabı olan sahipte
        hesabın numarası. Hesapsız satırda defter numara tutmuyor; numara
        o makineyi deftere yazan elle açılmış talepte duruyor. İkisi de
-       yoksa satır çizilmiyor. */
+       yoksa satır çizilmiyor. Yazı ve arama bağlantısı aynı işlevden,
+       ülke koduyla (25 Eylül 2026, kullanıcı sınaması: bağlantı boşluklu
+       ve ülkesiz numarayı çeviriyordu). */
     const ilkTalep = hesap
       ? null
       : load('requests', []).find(
@@ -221,15 +288,18 @@ export function ElleKayit({ oturum, onKaydedildi }) {
             normalizeSerial(t.makine?.serial) === normalizeSerial(kayitliSatir.seri) &&
             t.telHam
         )
-    const telHam = hesap?.tel || ilkTalep?.telHam || ''
+    const numara = {
+      telUlke: hesap?.ulke || ilkTalep?.telUlke || 'TR',
+      telHam: hesap?.tel || ilkTalep?.telHam || ilkTalep?.tel || '',
+    }
     return {
       id: kayitliSatir.id,
       ad: hesap?.ad || kayitliSatir.musteriAd || '—',
       yer: [hesap?.ilce || kayitliSatir.ilce, hesap?.il || kayitliSatir.il]
         .filter(Boolean)
         .join(' / '),
-      telHam,
-      tel: telHam ? telGoster(hesap?.ulke || 'TR', telHam) : '',
+      tel: kayitTelGoster(numara),
+      href: kayitTelHref(numara),
     }
   }, [kayitliSatir, buMusteride, musteriler])
 
@@ -259,7 +329,7 @@ export function ElleKayit({ oturum, onKaydedildi }) {
     setHata('')
     setMakineId('')
     const n = rakamlar(v)
-    const m = n.length === 10 ? musteriler.find((x) => rakamlar(x.tel) === n) : null
+    const m = n.length === 10 ? numaraninSahibi(musteriler, n) : null
     if (!m) {
       /* Eşleşme kalmadıysa bizim doldurduğumuz ad da kalkıyor. */
       if (!adElle) {
@@ -292,7 +362,7 @@ export function ElleKayit({ oturum, onKaydedildi }) {
   }
 
   function kaydet() {
-    if (tel.replace(/\D/g, '').length < 10) return setHata('Telefon numarasını yazın.')
+    if (rakamlar(tel).length !== 10) return setHata('Telefon numarasını yazın.')
     const harfSayisi = (s) => (s.match(/\p{L}/gu) || []).length
     if (harfSayisi(adi) < 2) return setHata('Müşterinin adını yazın.')
     if (harfSayisi(soyadi) < 2) return setHata('Müşterinin soyadını yazın.')
@@ -316,8 +386,16 @@ export function ElleKayit({ oturum, onKaydedildi }) {
       if (!model) return setHata('Makinenin modelini seçin.')
       if (!tahminiYil) return setHata('Makinenin tahmini üretim yılını seçin.')
       makine = { id: uid(), productId: model, seriYok: true, tahminiYil: Number(tahminiYil) }
-    } else if (seri.trim()) {
-      /* validateSerial başarıda { ok, product, serial, year } döndürüyor,
+    } else if (makineler.length === 0 && seri.trim()) {
+      /* YAZILAN SERİ YALNIZ SERİ KUTUSU GÖRÜNÜRKEN (25 Eylül 2026,
+         inceleme). Kutu yalnız müşterinin kayıtlı makinesi yokken
+         çiziliyor. Servis önce eşleşmeyen bir numara ve seri yazıp sonra
+         numarayı iki makineli müşteriye düzeltince gizlenmiş kutudaki
+         seri kaydediliyordu: talep ekranda görünmeyen makineyle açılıyor,
+         atama ve açık iş uyarıları (adayMakine) başka makineye bakıyordu.
+         Listeden seçim yoksa aşağıda "hangi makine" soruluyor.
+
+         validateSerial başarıda { ok, product, serial, year } döndürüyor,
          hatada { ok: false, hata }. Modeli de o dönüyor, ayrıca
          matchProduct çağırmaya gerek yok. */
       const sonuc = validateSerial(normalizeSerial(seri))
@@ -343,35 +421,14 @@ export function ElleKayit({ oturum, onKaydedildi }) {
       return setHata('Talebi açmadan önce makinenin sahibiyle ilgili uyarıyı okuyup Anladım düğmesine basın.')
     }
 
-    const talep = {
-      id: uid(),
-      no: talepNo('servis'),
-      createdAt: Date.now(),
-      status: 'yeni',
-      tur: 'servis',
-      /* "Onur Gökay" biçiminde (kullanıcının isteği, lib/adBicimi.js).
-         Defter satırı, İşlem Kaydı ve SMS daveti bu alandan okuyor. */
-      ad: adBicimle(`${adi} ${soyadi}`),
-      tel: tel.trim(),
-      telHam: tel.replace(/\D/g, ''),
-      il,
-      ilce,
-      /* ADRES BURADA SORULUYOR (10 Eylül 2026). Servis kaydı ekranı
-         talepte adres varsa onu salt okunur gösteriyor; elle açılan
-         talepte adres yoktu ve kayıt ekranında ayrıca yazdırılıyordu
-         (bkz. lib/servisKaydi.js → eksikAlanlar). */
-      adres: adres.trim(),
-      ulke: 'TR',
-      ihracat: false,
-      aciklama: aciklama.trim(),
-      makine,
-      elle: true,
-      /* Kayıtlı müşteriyse talep onun hesabına bağlanıyor: kendi
-         uygulamasında görüyor, bildirimleri ona düşüyor. */
-      musteriId: eslesen?.id || null,
-      sahip: 'servis',
-      servis: { id: oturum.servisId, ad: oturum.ad, kademe: 'elle', tarih: Date.now() },
-    }
+    /* Kaydın kendisi tek gövdeden (lib/elleTalep.js): ad biçimi,
+       numaranın tek biçimi, hesaba bağlama ve makinenin servisi başkaysa
+       `atamaDisi` işareti orada. Kayıtlı müşteriyse talep onun hesabına
+       bağlanıyor: kendi uygulamasında görüyor, bildirimleri ona düşüyor. */
+    const talep = elleTalepKaydiOlustur(
+      { adi, soyadi, tel, il, ilce, adres, aciklama, makine, musteriId: eslesen?.id || null },
+      oturum,
+    )
 
     save('requests', [talep, ...load('requests', [])])
 
@@ -384,14 +441,15 @@ export function ElleKayit({ oturum, onKaydedildi }) {
         eslesen ? ' · kayıtlı müşteri' : ''
       }${yeniKayit && baskaMusteride ? ' · makine başka müşteride kayıtlı' : ''}${
         makine.seriYok ? ' · seri numarası yok' : ''
-      }`,
+      }${talep.atamaDisi ? ' · atama dışı' : ''}`,
       personel: oturum.ad,
     })
 
     /* Kayıt defterine YALNIZ elle yazılan seri için satır açılıyor.
        Listeden seçilen makine defterde zaten var; ikinci satır aynı
        makineyi iki kez göstermek olurdu. Elle yazılan seri de defterde
-       varsa `servisMakineKaydi` yazmadan dönüyor. */
+       varsa `servisMakineKaydi` yazmadan dönüyor. Satıra KAYDEDEN servis
+       yazılıyor, makinenin servisi değil (bkz. dosyanın başı). */
     if (yeniKayit) {
       servisMakineKaydi({
         seri: makine.serial,
@@ -401,8 +459,8 @@ export function ElleKayit({ oturum, onKaydedildi }) {
         musteriAd: talep.ad,
         il,
         ilce,
-        servisId: oturum.servisId,
-        servisAd: oturum.ad,
+        kaydedenServisId: oturum.servisId,
+        kaydedenServisAd: oturum.ad,
       })
     }
 
@@ -565,20 +623,24 @@ export function ElleKayit({ oturum, onKaydedildi }) {
               <input
                 className="gir mono"
                 value={seri}
-                onChange={(e) => setSeri(e.target.value)}
+                /* Öteki kutular gibi uyarıyı siliyor (26 Eylül 2026, ikinci
+                   kullanıcı sınaması): seri düzeltildikten sonra "Seri
+                   numarası tanınmadı" ekranda kalıyordu. */
+                onChange={(e) => { setSeri(e.target.value); setHata('') }}
                 placeholder="ORK1270-2024-00157"
               />
-              {/* Seri defterdeyse ipucu onu söylüyor: "sizin kaydınıza
-                  bağlanır" o zaman doğru değil (bkz. dosyanın başı).
-                  Başkasının makinesinde ipucunun yerini aşağıdaki uyarı
-                  alıyor. */}
+              {/* Seri defterdeyse ipucu onu söylüyor (bkz. dosyanın
+                  başı). Başkasının makinesinde ipucunun yerini aşağıdaki
+                  uyarı alıyor. "Makine sizin kaydınıza bağlanır" 25 Eylül
+                  2026'da kalktı: servisin açtığı makineye servisi PAKSAN
+                  atıyor, kaydeden servis kendiliğinden bağlanmıyor. */}
               {!baskasininMakinesi && (
                 <span className="kucuk sonuk">
                   {buMusteride
                     ? 'Bu makine bu müşterinin adına zaten kayıtlı.'
                     : eslesen
                       ? 'Bu müşterinin kayıtlı makinesi yok. Makinenin seri numarasını yazın.'
-                      : 'Makine sizin kaydınıza bağlanır. Model seri numarasından bulunuyor.'}
+                      : `Makinenin modeli seri numarasından bulunur. Makinenin servisini ${MARKA} atar.`}
                 </span>
               )}
             </label>
@@ -601,7 +663,7 @@ export function ElleKayit({ oturum, onKaydedildi }) {
               >
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div>Seri Numarası Yok</div>
-                  <div className="kucuk sonuk">Etiket okunmuyor ya da makinede yok</div>
+                  <div className="kucuk sonuk">Makinenin etiketi okunmuyor ya da etiketi yok</div>
                 </div>
                 {seriYok && <IconCheckCircle size={20} />}
               </button>
@@ -634,7 +696,7 @@ export function ElleKayit({ oturum, onKaydedildi }) {
                     ))}
                   </select>
                   <span className="kucuk sonuk">
-                    Müşteriye makinenin kaç yıllık olduğunu sorun. Seri numarası olmadan garanti hesaplanamaz.
+                    Müşteriye makinenin kaç yıllık olduğunu sorun. Seri numarası olmadan garanti süresi hesaplanamaz.
                   </span>
                 </label>
               </>
@@ -657,7 +719,7 @@ export function ElleKayit({ oturum, onKaydedildi }) {
                   {baskasininMakinesi.tel && (
                     <p>
                       Telefon:{' '}
-                      <a className="mono not__tel" href={`tel:${baskasininMakinesi.telHam}`}>
+                      <a className="mono not__tel" href={baskasininMakinesi.href}>
                         {baskasininMakinesi.tel}
                       </a>
                     </p>
@@ -678,6 +740,85 @@ export function ElleKayit({ oturum, onKaydedildi }) {
               </div>
             )}
           </>
+        )}
+
+        {/* MAKİNENİN SERVİSİ BAŞKA YA DA YOK: uyarı, engel değil
+            (bkz. dosyanın başı). Öteki servisin adı yazmıyor. */}
+        {atama && atama.durum !== 'seriYok' && (
+          <div className="not not--turuncu" style={{ marginTop: 0, marginBottom: 14 }}>
+            <IconAlert size={19} />
+            <div>
+              <strong>
+                {atama.durum === 'baskaServis'
+                  ? 'Bu Makineye Başka Bir Servis Bakıyor'
+                  : 'Bu Makineye Henüz Servis Atanmadı'}
+              </strong>
+              <p>
+                {atama.durum === 'baskaServis'
+                  ? `${MARKA} bu makineyi başka bir servise atadı. Talebi yine açabilirsiniz; ödeme onayından önce bu iş ${MARKA} tarafından ayrıca incelenir.`
+                  : `Talebi açabilirsiniz; ödeme onayından önce bu iş ${MARKA} tarafından ayrıca incelenir.`}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* AYNI MAKİNEDE SERVİSİN KENDİ İŞİ SÜRÜYOR: o işe götüren yazılı
+            düğme (bkz. dosyanın başı). */}
+        {acikIsler.kendi && (
+          <div className="not not--turuncu" style={{ marginTop: 0, marginBottom: 14 }}>
+            <IconAlert size={19} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <strong>Bu Makine İçin Açık Bir İşiniz Var</strong>
+              <p>
+                {acikIsler.kendi.no} numaralı iş henüz kapanmadı. Aynı arıza içinse yeni
+                talep açmak yerine o işe devam edin.
+              </p>
+              {onIsiAc && (
+                <button
+                  type="button"
+                  className="dg dg--blok"
+                  style={{ marginTop: 10 }}
+                  onClick={() => onIsiAc(acikIsler.kendi)}
+                >
+                  İşi Aç
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* AYNI MAKİNEDE SERVİSİN ONAY BEKLEYEN İŞİ (28 Eylül 2026,
+            kullanıcının kararı: "Uyarsın"). İkinci kullanıcı sınamasında
+            servis, onaydaki işinin makinesine ikinci iş açtı ve ekran bir
+            şey söylemedi. Uyarı, engel değil: yeni arıza yeni iştir; iki
+            iş ödemeden önce karşılaştırılıyor. */}
+        {acikIsler.onayda && !acikIsler.kendi && (
+          <div className="not not--turuncu" style={{ marginTop: 0, marginBottom: 14 }} data-uyari="onayda-is">
+            <IconAlert size={19} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <strong>Bu Makine İçin Onay Bekleyen Bir İşiniz Var</strong>
+              <p>
+                {acikIsler.onayda.no} numaralı işiniz {MARKA} onayını bekliyor. Aynı arıza için yeni talep
+                açmayın; önce {MARKA} ile görüşün. Yeni bir arızaysa talebi açabilirsiniz; iki iş
+                ödeme onaylanmadan önce karşılaştırılır.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* MAKİNEDE BAŞKA BİR AÇIK TALEP: yalnız var olduğu (numara ve
+            ad yok). */}
+        {acikIsler.baska && (
+          <div className="not not--turuncu" style={{ marginTop: 0, marginBottom: 14 }}>
+            <IconAlert size={19} />
+            <div>
+              <strong>Bu Makine İçin Açık Başka Bir Servis Talebi Var</strong>
+              <p>
+                Talebi yine açabilirsiniz; aynı makinedeki iki iş, ödeme onaylanmadan önce{' '}
+                {MARKA} tarafından karşılaştırılır.
+              </p>
+            </div>
+          </div>
         )}
 
         <DikteliKutu ad="Servis Talebi Nedeni" deger={aciklama} onDegis={setAciklama} satir={3} />

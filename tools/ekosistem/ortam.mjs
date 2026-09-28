@@ -2,8 +2,8 @@
    Ekosistem sınamasının ortamı
 
    Üç uygulamanın paylaştığı veri katmanını Node içinde çalıştırabilmek
-   için gereken her şey burada: depo taklidi, donmuş saat, tohumlu
-   rastgelelik, modül yükleyici ve iddia yardımcıları.
+   için gereken her şey burada: depo taklidi, donmuş saat, sabit saat
+   dilimi, tohumlu rastgelelik, modül yükleyici ve iddia yardımcıları.
 
    NEDEN VITE GEREKİYOR. Modülleri düz `import` ile alamıyoruz:
    src/backoffice/veri.js `'../marka'` diyor, src/marka/index.js de
@@ -90,6 +90,26 @@ function rastgele() {
   return tohumDurumu / 4294967296
 }
 
+/* ---------------------------------------------------------- Saat dilimi */
+
+/* SAAT DİLİMİ SABİT: Türkiye (25 Eylül 2026; kullanıcı sınamasında
+   saati girilmeyen Servisim randevusu 03:00 görünüyordu).
+   Saat dondurulduğu gibi dilim de sabitleniyor. Uygulamanın gün ve
+   saat hesabı yerel saate bakıyor: `<input type="date">` değeri o günün
+   YEREL gece yarısına çevriliyor, randevu yazısı ve "bugün" sınırı
+   yerel güne göre çıkıyor. `new Date('2026-09-25')` ise UTC gece
+   yarısını okuyor ve Türkiye'de o gün 03:00 oluyordu. UTC'de çalışan
+   bir makinede (bulut, CI) bu iki okuma aynı sonucu verir; hatalı kod
+   yeşil geçer ve bozma denemesi görünmez olurdu. Sınama, uygulamanın
+   kullanıldığı dilimde koşuyor.
+
+   Türkiye 2016'dan beri yaz saatine geçmiyor; fark yıl boyu +03:00.
+   Node dilimi çalışırken değiştirmeye izin veriyor (process.env.TZ
+   atanınca önbelleği yeniliyor); 0. adım (nisanTuru) gerçekten
+   tuttuğunu denetliyor. */
+export const SAAT_DILIMI = 'Europe/Istanbul'
+const DILIM_FARKI_DK = -180
+
 /* ---------------------------------------------------------- Depo taklidi */
 
 function depoYap() {
@@ -109,10 +129,13 @@ function depoYap() {
 }
 
 /**
- * Depo, saat ve rastgeleliği globalThis'e kurar.
+ * Saat dilimi, depo, saat ve rastgeleliği kurar.
  * Modül yüklemeden ÖNCE çağrılmak zorunda.
  */
 export function ortamKur() {
+  /* Önce dilim: modül gövdeleri yüklenirken tarih hesaplayabiliyor. */
+  process.env.TZ = SAAT_DILIMI
+
   globalThis.localStorage = depoYap()
   globalThis.sessionStorage = depoYap()
 
@@ -160,7 +183,7 @@ export async function modulleriYukle() {
 
   const al = (yol) => sunucu.ssrLoadModule(yol)
 
-  const [veri, servisKaydi, servisAtama, talepOlustur, duyuruHedef, teslimat, depo, icerik, yetkiler, marka, makineKaydi, talep, serial, numaraTalebi, urun, adresler, rehber, servisTarifesi, servisFiyat] =
+  const [veri, servisKaydi, servisAtama, talepOlustur, duyuruHedef, teslimat, depo, icerik, yetkiler, marka, makineKaydi, talep, serial, numaraTalebi, urun, adresler, rehber, servisTarifesi, servisFiyat, musteriEslesmesi, tel] =
     await Promise.all([
       al('/src/backoffice/veri.js'),
       al('/src/lib/servisKaydi.js'),
@@ -182,9 +205,15 @@ export async function modulleriYukle() {
       /* 23 Eylül 2026: hizmet ücreti ve parça iskontosu (AK-21, AK-22; bakiyeden ödemede ek iskonto AK-23). */
       al('/src/lib/servisTarifesi.js'),
       al('/src/lib/servisFiyat.js'),
+      /* 25 Eylül 2026: "bu kayıt bu müşterinin mi" tek yerden ve
+         telefonun tek biçimi (kullanıcı sınaması Y3; bkz. dosyaların
+         başı). Müşteri kartı, bildirim alıcısı ve Connect aynı kurala
+         bakıyor; senaryolar da o kuralı doğrudan çağırıyor. */
+      al('/src/lib/musteriEslesmesi.js'),
+      al('/src/lib/tel.js'),
     ])
 
-  return { veri, servisKaydi, servisAtama, talepOlustur, duyuruHedef, teslimat, depo, icerik, yetkiler, marka, makineKaydi, talep, serial, numaraTalebi, urun, adresler, rehber, servisTarifesi, servisFiyat }
+  return { veri, servisKaydi, servisAtama, talepOlustur, duyuruHedef, teslimat, depo, icerik, yetkiler, marka, makineKaydi, talep, serial, numaraTalebi, urun, adresler, rehber, servisTarifesi, servisFiyat, musteriEslesmesi, tel }
 }
 
 /**
@@ -209,13 +238,14 @@ export async function kapat() {
 /* ------------------------------------------------------------ 0. adım */
 
 /**
- * Depo taklidi gerçekten çalışıyor mu?
+ * Depo taklidi gerçekten çalışıyor mu? Saat dilimi tuttu mu?
  *
  * BU DOSYANIN EN ÖNEMLİ FONKSİYONU. src/lib/storage.js her hatayı
  * yutup varsayılanı döndürüyor (`try/catch` → `fallback`). Taklit
  * kurulmamışsa ya da bozuksa hiçbir şey patlamaz: bütün senaryolar boş
  * bir depoya bakar ve HEPSİ YEŞİL GEÇER. Sınama ile sessiz bir yalancı
- * arasındaki fark bu turdur.
+ * arasındaki fark bu turdur. Saat dilimi aynı sınıftan: tutmazsa yine
+ * hiçbir şey patlamaz, yalnız dilime bağlı iddialar körleşir.
  */
 export function nisanTuru(depo) {
   /* Önce taklidin VARLIĞI. Yoksa aşağıdaki `depoTemizle()` çirkin bir
@@ -240,6 +270,14 @@ export function nisanTuru(depo) {
   if (!tamam) return 'depo taklidi yazılanı geri vermiyor'
   if (!ham) return 'anahtar "paksan." önekiyle yazılmamış'
   if (depo.load('__nisan', 'silindi') !== 'silindi') return 'remove() çalışmıyor'
+
+  /* Saat dilimi gerçekten Türkiye mi? Kurulmamışsa hiçbir şey patlamaz:
+     makine UTC'deyse gün hesabı iddiaları UTC'ye bakar ve "03:00"
+     hatası gibi dilime bağlı kusurlar görünmeden geçer (bkz. SAAT_DILIMI). */
+  const fark = new Date(2026, 8, 25).getTimezoneOffset()
+  if (fark !== DILIM_FARKI_DK) {
+    return `saat dilimi kurulamadı — ${SAAT_DILIMI} bekleniyordu, 25.09.2026'da UTC farkı ${-fark} dk (beklenen ${-DILIM_FARKI_DK} dk)`
+  }
   return null
 }
 

@@ -35,6 +35,12 @@
   --cizgi-koyu: #cdd5e2;
 
   --kirmizi: #bb3232;
+  /* Beyaz yazılı KIRMIZI ZEMİN (rozet). `--kirmizi` karanlık temada
+     koyu zeminde okunacak açık yazı tonuna dönüyor (#f17975); rozetin
+     zemini olunca beyaz sayı 2,72'ye düşüyordu (kullanıcı sınaması
+     sonrası görsel denetim, 26 Eylül 2026). Bu ton iki temada da aynı:
+     beyazla 5,81. */
+  --kirmizi-dolgu: #bb3232;
   /* Kırmızı rozetin ÜSTÜNDEKİ yazı. Aydınlıkta kırmızı koyu, yazı
      beyaz (5,81); karanlıkta kırmızı açılıyor ve beyaz yazı 2,84'e
      düşüyordu — orada koyu mürekkep gerekiyor (6,38). */
@@ -3550,7 +3556,13 @@ button.deger:hover {
 
    Düğme kapatılmıyor — kapatılsaydı personel neden basamadığını
    anlamazdı. Basılıyor ve karşısına "önce ödemeyi onaylayın" penceresi
-   çıkıyor; oradan tek tıkla ödeme onayına gidiliyor. */
+   çıkıyor; oradan tek tıkla ödeme onayına gidiliyor.
+
+   Kilitli talebin çipleri de aynı görünüşte (25 Eylül 2026, kullanıcı
+   sınaması O8): kapanmış talep ve gönderilmiş servis siparişi, geri
+   açma yetkisi olmayan rolde. Önce `disabled` idi ve basınca hiçbir
+   şey olmuyordu; artık basılınca nedeni kısa bildirimde yazıyor
+   (Talepler.jsx → durumKilidi). */
 .cip--kilitli {
   border-style: dashed;
   color: var(--murekkep-3);

@@ -234,9 +234,27 @@ export function makineKaydiGuncelle(id, yama) {
    öğreniyor ve `bayiId`'yi oradan dolduruyor. Logo kapalı olduğu için
    o alan bugün hep boş kalıyor.
 
-   Servis elle kayıt açtığında servisi zaten BİLİYORUZ — sormaya gerek
-   yok. Bu fonksiyon aynı deftere aynı biçimde yazıyor, farkı servis
-   alanını doğrudan doldurması ve Logo'yu beklememesi.
+   Bu fonksiyon aynı deftere aynı biçimde yazıyor, farkı Logo'yu
+   beklememesi ve makineyi KAYDEDEN servisi yazması.
+
+   KAYDEDEN SERVİS YAZILIYOR, MAKİNENİN SERVİSİ DEĞİL (25 Eylül 2026,
+   kullanıcı sınaması Y5). Önce kaydeden servis `servisId`ye yazılıyordu;
+   o alan "personel bilerek atadı" diye okunuyor (servisAtama.js →
+   kaydinServisi). Servis sisteme soktuğu makineye kendini atamış
+   oluyor, Kayıtlı Makineler sayacı onu saymıyor, Connect de o servisi
+   makinenin servisi gösteriyordu. Veritabanı da buna izin vermiyor:
+   makine.MakineServisAtamasi yalnız personel, entegrasyon ya da sistem
+   ataması kabul ediyor. Atama PAKSAN'ın işi; Servisim'in açtığı satırda
+   `servisId` boş, kaydeden servis `kaydedenServisId` / `kaydedenServisAd`
+   alanında (backoffice Kayıtlı Makineler onu "Kaydeden servis" diye
+   gösteriyor ve atamada öne alıyor). Bu tarihten önce açılmış,
+   `servisId`si dolu `kaynak: 'servis'` satırlara dokunulmuyor: onlar
+   atanmış sayılmaya devam ediyor.
+
+   PARAMETRE ADI DEĞİŞTİ: `servisId`/`servisAd` yerine
+   `kaydedenServisId`/`kaydedenServisAd`. Eski adla çağrı hata vermez,
+   sessizce yok sayılır; çağıranlar (servis/ekranlar/ElleKayit.jsx,
+   tools/ekosistem/senaryolar.mjs → AK-18) aynı gün değişti.
 
    `kaynak` alanı satırın nereden geldiğini söylüyor: 'servis' elle
    açılmış, 'musteri' uygulamadan gelmiş, 'logo' faturadan.
@@ -259,8 +277,8 @@ export function servisMakineKaydi({
   musteriAd = '',
   il = '',
   ilce = '',
-  servisId,
-  servisAd = '',
+  kaydedenServisId = null,
+  kaydedenServisAd = '',
 }) {
   const liste = makineKayitlari()
   const mevcut = seriSatiri(seri, liste)
@@ -278,8 +296,11 @@ export function servisMakineKaydi({
     ilce,
     bayiId: null,
     bayiAd: '',
-    servisId,
-    servisAd,
+    /* Makinenin servisi: PAKSAN atayana kadar boş (yukarıda). */
+    servisId: null,
+    servisAd: '',
+    kaydedenServisId,
+    kaydedenServisAd,
     uretimTarihi: null,
     faturaTarihi: null,
     logoBildi: false,

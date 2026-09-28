@@ -255,6 +255,11 @@ hepsi sunucudan bağımsız. Sunucu firması ararken bunlar bitmeli:
       kullanılıyor (`ORK1270-2024-00157`). PAKSAN'ın gerçek biçimi
       neyse o yazılmalı — yanlışsa hiçbir makine tanınmaz.
       → `src/lib/serial.js`
+      Kural 25 Eylül 2026'dan beri SIKI: model kodu + 4 haneli yıl +
+      5 haneli sıra (`onekYilSira`); eksik ya da fazla haneli numara
+      reddediliyor, önekten sonraki O ve I rakama çevriliyor. Gerçek
+      biçim farklıysa `serial.js`'teki iki sayı (`SERI_YIL_HANE`,
+      `SERI_SIRA_HANE`) ve `seriDuzelt` değişir.
 - [ ] **Gerçek garanti süresi.** Bugün 2 yıl varsayıldı.
       → `src/config.js`
 - [ ] **Parça ve belirti adları.** Talep formundaki "hangi parça lazım"
@@ -289,6 +294,13 @@ herkes hesabı ele geçirir.
 servisi, taleplerini ve stokunu kuruyor ve giriş alanları dolu geliyor
 (bkz. `src/servis/demoKimlik.js`). Silinmezse gerçek servis, uygulamayı
 açtığında uydurma müşteri adları görür.
+
+**Müşteri uygulamasında da tek satır (25 Eylül 2026):** `index.html`
+kök etiketindeki `data-demo="acik"` silinecek. O işaret varken Makine
+Kaydet ekranında "DENEME" kutusu ve örnek seri numaraları görünüyor
+(bkz. `src/lib/demoSurumu.js`). Silinmezse iki gerçek müşteri aynı
+sahte seriyi kaydedebilir. `npm run dogrula -- --yayin` iki işaretten
+biri duruyorsa durduruyor.
 
 **Kod açıklamaları teslimden önce temizlenecek.** Kaynak kodda her
 kararın gerekçesi yazılı: neyin neden denendiği, neyin geri alındığı,

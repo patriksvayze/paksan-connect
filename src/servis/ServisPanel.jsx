@@ -11,7 +11,7 @@ import {
   BACKOFFICE_SIFRE_HANE,
 } from '../backoffice/veri'
 import { TemaSecici } from '../backoffice/Tema'
-import { load, save, remove } from '../lib/storage'
+import { load, save, remove, baskaSekmeDegistirince } from '../lib/storage'
 import { ozetHatasiMi } from '../lib/hesap'
 import { Kabuk, Sayfa, Bolum, Onay } from './Kabuk'
 import { DEMO_HESAP, demoAPKmi } from './demoKimlik'
@@ -20,6 +20,7 @@ import { useServisHaberi } from './haber'
 import { koyuZeminIcinBoya, temayaGoreBoya } from '../lib/sistemCubuklari'
 import { Bildirimler } from './ekranlar/Bildirimler'
 import { okunmamisSayisi } from './talepBildirimleri'
+import { yeniIsSayisi } from './isDurumu'
 import { Logo, Amblem, MARKA, SIRKET } from '../marka'
 /* Giriş ekranının görseli: PAKSAN ORKA 870'İN BAŞINDA SERVİS
    TEKNİSYENİ, ŞAFAKTA TARLADA.
@@ -116,6 +117,9 @@ import { Adreslerim } from './ekranlar/Adreslerim'
 
 export function ServisPanel() {
   const [oturum, setOturum] = useState(() => servisOturumuGetir())
+  /* Tek kimlik: Uygulama'daki denetim etkisi bu işleve bağlı; her
+     çizimde yeni işlev verilseydi etki her çizimde yeniden kurulurdu. */
+  const cikis = useCallback(() => setOturum(null), [])
 
   if (!oturum) return <Giris onGiris={setOturum} />
   if (oturum.ilkGiris) {
@@ -126,7 +130,7 @@ export function ServisPanel() {
       />
     )
   }
-  return <Uygulama oturum={oturum} onCikis={() => setOturum(null)} />
+  return <Uygulama oturum={oturum} onCikis={cikis} />
 }
 
 /* ------------------------------------------------------------------ Giriş */
@@ -474,9 +478,22 @@ function IlkSifre({ oturum, onBitti }) {
 
 const KAPALI = ['kapandi', 'iptal']
 
+/* Ekran değişince dokunuşun yutulduğu süre (bkz. ServisPanel içinde
+   "EKRAN DEĞİŞİNCE ÇİFT DOKUNUŞUN İKİNCİSİ YUTULUYOR"). */
+const GECIS_KILIDI_MS = 350
+
 function Uygulama({ oturum, onCikis }) {
   const [sekme, setSekme] = useState('isler')
-  const [acik, setAcik] = useState(null)
+  /* AÇIK TALEP KİMLİKLE TUTULUYOR, KOPYAYLA DEĞİL (25 Eylül 2026,
+     kullanıcı sınaması O3).
+
+     Açılan talebin o anki kopyası saklanıyordu ve yalnız not yazılınca
+     elle yeniden okunuyordu. Detay açıkken PAKSAN parçayı gönderse
+     "Parçayı Taktım" kapalı kalıyor, talebi iptal etse işlem düğmeleri
+     yerinde duruyordu. Şimdi yalnız kimlik tutuluyor; talep her
+     tazelemede (yeni haber, başka sekmenin yazdığı, işlem sonrası)
+     depodan okunuyor. Talep depodan kalktıysa detay kapanıyor. */
+  const [acikId, setAcikId] = useState(null)
   /* Sekmelerin üstüne tam ekran açılan alt sayfa: 'kayit' | 'hesap'. */
   const [alt, setAlt] = useState(null)
   const [tazele, setTazele] = useState(0)
@@ -490,17 +507,108 @@ function Uygulama({ oturum, onCikis }) {
     setTalepler(servisinTalepleri(talepleriGetir(), oturum.servisId))
   }, [oturum.servisId, tazele])
 
+  const acik = useMemo(
+    () => (acikId ? talepleriGetir().find((t) => t.id === acikId) || null : null),
+    [acikId, tazele],
+  )
+
+  /* EKRAN DEĞİŞİNCE ÇİFT DOKUNUŞUN İKİNCİSİ YUTULUYOR (26 Eylül 2026,
+     ikinci kullanıcı sınaması). "Kaydı Gönder"e iki kez dokunan servis
+     elemanının ikinci dokunuşu, hemen açılan listede o noktaya gelen
+     başka bir müşterinin işini açtı. İş açılınca, listeye dönülünce ya da
+     tam ekran sayfa açılıp kapanınca 350 ms boyunca gelen dokunuş hiçbir
+     düğmeye ulaşmıyor: çift dokunmanın aralığından uzun, bilerek yapılan
+     bir sonraki dokunuştan kısa. Yakalama pencerede ve en önde, React'in
+     dinleyicisinden önce. */
+  useEffect(() => {
+    const bitis = Date.now() + GECIS_KILIDI_MS
+    const yut = (e) => {
+      if (Date.now() < bitis) {
+        e.stopPropagation()
+        e.preventDefault()
+      }
+    }
+    window.addEventListener('click', yut, true)
+    const zaman = setTimeout(() => window.removeEventListener('click', yut, true), GECIS_KILIDI_MS)
+    return () => {
+      clearTimeout(zaman)
+      window.removeEventListener('click', yut, true)
+    }
+  }, [acikId, alt])
+  const ac = useCallback((t) => setAcikId(t?.id ?? null), [])
+
   /* Üst çubuktaki Bildirimler düğmesinin sayısı. Ekran değiştikçe ve
      yeni haber geldikçe (tazele) yeniden sayılıyor. */
   const okunmamis = useMemo(
     () => okunmamisSayisi(oturum),
-    [oturum, tazele, alt, acik],
+    [oturum, tazele, alt, acikId],
   )
 
   /* Yeni iş, yola çıkan parça ve onaylanan hak ediş telefonun
      bildirim perdesine düşüyor (bkz. haber.js). */
   const yenile = useCallback(() => setTazele((x) => x + 1), [])
   useServisHaberi(oturum, yenile)
+
+  /* OTURUM YAŞIYOR MU, BAŞKA SEKME NE YAZDI (25 Eylül 2026, kullanıcı
+     sınaması O6 ve O7).
+
+     Oturum açılışta bir kez okunuyordu: PAKSAN servisin hesabını
+     kapatsa da açık uygulama çalışmaya devam ediyordu. Başka sekmenin
+     yazdığı (PAKSAN'ın ücret ve indirim değişikliği, talepteki işlem,
+     cari hareket) da ekrana ancak yeni bir iş ya da bildirim gelince
+     düşüyordu; Hak Ediş açık kaldıkça eski listeyi gösteriyordu.
+
+     Şimdi iki yerden haber geliyor:
+       - Tarayıcının `storage` olayı (lib/storage.js →
+         baskaSekmeDegistirince): üç uygulama tarayıcıda aynı depoyu
+         paylaşıyor, başka sekmenin yazımı bu olayı doğuruyor. Olay
+         yalnız ÖTEKİ sekmelere gidiyor; art arda gelen yazımlar 150
+         ms'de toplanıyor. Oturum yeniden denetleniyor ve ekran
+         depodan yeniden okunuyor. Servis listesinin bellekteki kopyası
+         aynı olayla boşalıyor (lib/icerikDeposu.js).
+       - Uygulama öne gelince (`visibilitychange`): telefonda başka
+         sekme yok; oturum PAKSAN servisin hesabını kapattıktan sonra
+         uygulama ilk açıldığında düşüyor.
+
+     TEK DİNLEYİCİ. Bu dinleyici backoffice'tekinin (Backoffice.jsx)
+     kardeşi; Servisim'de sekmeler arası ikinci bir dinleyici yok
+     (haber.js'e eklenmesi planlanan kopya bu yüzden yazılmadı).
+     Telefonda (APK) olay gelmiyor, zaten başka yazan da yok; sunucu
+     gelince yerini sunucunun haberi alacak. 15 saniyelik yoklama
+     telefon bildirimi için aynen duruyor (haber.js).
+
+     Denetim yalnız okuyor: okurken depoya zaman damgalı bir şey
+     yazsaydı her sekme ötekini tetikleyip döngü kurardı. */
+  useEffect(() => {
+    const denetle = () => {
+      if (!servisOturumuGetir()) onCikis()
+    }
+    let bekleyen = null
+    const birak = baskaSekmeDegistirince(() => {
+      clearTimeout(bekleyen)
+      bekleyen = setTimeout(() => {
+        denetle()
+        yenile()
+      }, 150)
+    })
+    const gorunur = () => {
+      if (document.visibilityState === 'visible') denetle()
+    }
+    document.addEventListener('visibilitychange', gorunur)
+    return () => {
+      clearTimeout(bekleyen)
+      birak()
+      document.removeEventListener('visibilitychange', gorunur)
+    }
+  }, [onCikis, yenile])
+
+  /* İŞLERİM ROZETİ YENİ İŞİ SAYIYOR (25 Eylül 2026, kullanıcı
+     sınaması). Önce servisin bütün açık işlerini sayıyordu: randevulu,
+     parça bekleyen ve onaydaki iş de kırmızı dairede "9+" diye
+     duruyor, okunmamış bildirim sanılıyordu. Artık yalnız el
+     sürülmemiş iş — İşlerim'deki "Yeni" sekmesinin sayısı
+     (isDurumu.js → yeniIsSayisi). */
+  const yeniIs = useMemo(() => yeniIsSayisi(talepler), [talepler])
 
   /* SERVİSİN KENDİ SİPARİŞİ "İŞ" DEĞİL.
 
@@ -525,14 +633,14 @@ function Uygulama({ oturum, onCikis }) {
         servisAd={oturum.ad}
         /* Not gibi detayı kapatmayan işlemlerden sonra talep depodan
            yeniden okunuyor; ekran yazılanı hemen gösteriyor. */
-        onYenile={() => setAcik(talepleriGetir().find((t) => t.id === acik.id) || null)}
+        onYenile={yenile}
         onKapat={() => {
-          setAcik(null)
+          setAcikId(null)
           setTazele((x) => x + 1)
         }}
         onDestekIste={(neden) => {
           destekTalepEt(acik, neden, oturum.ad)
-          setAcik(null)
+          setAcikId(null)
           setTazele((x) => x + 1)
         }}
       />
@@ -562,13 +670,21 @@ function Uygulama({ oturum, onCikis }) {
             zorundaydı. Oysa kayıt açmanın hemen ardından yapılacak iş
             belli — randevu vermek, not eklemek ya da doğrudan servis
             kaydını doldurmak. */}
+        {/* AYNI MAKİNEDE İŞİ SÜREN KENDİ TALEBİ VARSA (25 Eylül 2026,
+            kullanıcı sınaması O5) Kayıt Aç ekranı o işi gösteriyor ve
+            "İşi Aç" ile doğrudan oraya götürüyor (ekranlar/ElleKayit.jsx). */}
         <ElleKayit
           oturum={oturum}
           onKaydedildi={(talep) => {
             setAlt(null)
             setSekme('isler')
             setTazele((x) => x + 1)
-            if (talep) setAcik(talep)
+            if (talep) setAcikId(talep.id)
+          }}
+          onIsiAc={(t) => {
+            setAlt(null)
+            setSekme('isler')
+            ac(t)
           }}
         />
       </Sayfa>
@@ -589,8 +705,12 @@ function Uygulama({ oturum, onCikis }) {
         alt={`${MARKA} yedek parça birimine`}
         onGeri={() => setAlt(null)}
       >
+        {/* `surum`: başka sekmede PAKSAN indirimi ya da bakiyeyi
+            değiştirince kartlar tazeleniyor; açık onay penceresindeki
+            tutar değişmiyor (SiparisVer.jsx). */}
         <SiparisVer
           oturum={oturum}
+          surum={tazele}
           onKapat={() => setAlt(null)}
           onVerildi={() => {
             setAlt(null)
@@ -613,9 +733,12 @@ function Uygulama({ oturum, onCikis }) {
      başında). Geriye ekranın işe yarayan tek parçası kaldı: sipariş.
 
      Kalan üçü servisin gününü anlatıyor: bekleyen işleri, ısmarladığı
-     parçalar, alacağı para. */
+     parçalar, alacağı para.
+
+     İşlerim'in rozeti yeni iş sayısı (yukarıda `yeniIs`); ekran
+     okuyucu da onu "yeni iş" diye okuyor (Kabuk.jsx → rozetYazi). */
   const sekmeler = [
-    { id: 'isler', ad: 'İşlerim', Icon: IconWrench, rozet: bekleyen.length },
+    { id: 'isler', ad: 'İşlerim', Icon: IconWrench, rozet: yeniIs, rozetYazi: `${yeniIs} yeni iş` },
     { id: 'parca', ad: 'Parça', Icon: IconParca },
     { id: 'hakkedis', ad: 'Hak Ediş', Icon: IconTag },
   ]
@@ -642,10 +765,12 @@ function Uygulama({ oturum, onCikis }) {
      duruyor. Bir bildirime dokununca talep açılıyor; talep kapanınca
      buraya dönülüyor (talep detayı bu kontrolden önce çiziliyor). */
   if (alt === 'bildirimler') {
+    /* Alt başlık yalnız PAKSAN'ı anmıyor (25 Eylül 2026): müşterinin
+       talebe eklemesi ve "Sorun Devam Ediyor" demesi de bu listede. */
     return (
       <Kabuk
         baslik="Bildirimler"
-        alt={`${MARKA} size ne yazdı`}
+        alt={`${MARKA} ve müşterilerinizden gelenler`}
         onGeri={() => setAlt(null)}
         sekmeler={sekmeler}
         sekme={null}
@@ -657,7 +782,7 @@ function Uygulama({ oturum, onCikis }) {
         <Bildirimler
           oturum={oturum}
           talepler={talepler}
-          onAc={setAcik}
+          onAc={ac}
           onUcretler={() => setAlt('ucretler')}
         />
       </Kabuk>
@@ -734,22 +859,23 @@ function Uygulama({ oturum, onCikis }) {
           bekleyen={bekleyen}
           biten={biten}
           tumTalepler={talepler}
-          onAc={setAcik}
+          onAc={ac}
           onUcretler={() => setAlt('ucretler')}
           sekme={isSekme}
           onSekme={setIsSekme}
+          surum={tazele}
         />
       )}
       {sekme === 'parca' && (
         <Parca
           oturum={oturum}
-          onAc={setAcik}
+          onAc={ac}
           onSiparis={() => setAlt('siparis')}
           surum={tazele}
         />
       )}
       {sekme === 'hakkedis' && (
-        <Hakkedis oturum={oturum} onAc={setAcik} surum={tazele} onUcretler={() => setAlt('ucretler')} />
+        <Hakkedis oturum={oturum} onAc={ac} surum={tazele} onUcretler={() => setAlt('ucretler')} />
       )}
     </Kabuk>
   )
@@ -793,7 +919,7 @@ function Hesap({ oturum, onCikis, surum, ucretlereOdak }) {
           alan yaratılmalı"). Ayrıntısı ekranlar/Ucretlerim.jsx başında. */}
       <Ucretlerim oturum={oturum} surum={surum} odak={ucretlereOdak} />
 
-      <Bayilerim oturum={oturum} />
+      <Bayilerim oturum={oturum} surum={surum} />
 
       <Bolum ad="Görünüm">
         <div className="kart" style={{ padding: 14 }}>

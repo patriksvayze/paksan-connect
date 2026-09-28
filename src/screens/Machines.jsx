@@ -82,7 +82,7 @@ export default function Machines() {
       />
 
       <div className="screen wrap fade-in" style={{ paddingTop: 18 }}>
-        {/* Sekmeler Profil'deki talep sekmeleriyle aynı bileşen, adetleriyle.
+        {/* Sekmeler Taleplerim'deki talep sekmeleriyle aynı bileşen, adetleriyle.
             Makine yokken çizilmiyor: servis makineden çıkıyor, makinesiz
             bir servis sekmesi boş bir sayfa olurdu. */}
         {machines.length > 0 && (

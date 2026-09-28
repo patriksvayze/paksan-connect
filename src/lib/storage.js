@@ -34,6 +34,37 @@ export function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 7)
 }
 
+/* BAŞKA SEKMENİN YAZDIĞINI DUYMAK (25 Eylül 2026, kullanıcı sınaması O7).
+
+   Tarayıcıda üç uygulama aynı depoyu paylaşıyor. Bir sekmede rol, ücret
+   ya da iskonto değişince öteki sekmeler sayfa yenilenene kadar eski
+   hâli gösteriyordu: rol listesi bellekte duruyor (lib/icerikDeposu.js),
+   ekranlar da yalnız kendi sayaçları artınca yeniden okuyordu.
+
+   Tarayıcı, bir sekmenin kalıcı depoya yazdığını ÖTEKİ sekmelere
+   `storage` olayıyla haber veriyor; yazan sekmenin kendisine olay
+   gelmiyor, oturum deposunun (sessionStorage) da olayı yok. Aynı değeri
+   yeniden yazmak olay doğurmuyor, yani okumadan tetiklenen bir yazı
+   döngü kurmaz; yine de dinleyici yalnız OKUMA başlatmalı.
+
+   Geri çağrıya önekli değil, uygulamanın kullandığı anahtar veriliyor
+   ('panelIcerik', 'requests'). Depo toptan temizlendiyse `null`.
+
+   Telefonda (APK) başka yazan sekme yok, olay hiç gelmiyor. Sunucu
+   gelince bu işi sunucunun haberi görecek. Node'da (ekosistem
+   sınaması) pencere yok; kayıt atlanıyor.
+
+   Dönen işlev dinlemeyi bırakır. */
+export function baskaSekmeDegistirince(geriCagir) {
+  if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return () => {}
+  const dinle = (e) => {
+    if (e.key === null) return geriCagir(null)
+    if (String(e.key).startsWith(PREFIX)) geriCagir(e.key.slice(PREFIX.length))
+  }
+  window.addEventListener('storage', dinle)
+  return () => window.removeEventListener('storage', dinle)
+}
+
 /* OTURUM YALNIZ UYGULAMA AÇIKKEN YAŞIYOR (10 Eylül 2026).
 
    Açık oturum kalıcı depoda duruyordu: telefonda uygulama kapatılıp

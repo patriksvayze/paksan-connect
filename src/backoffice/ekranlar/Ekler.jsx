@@ -64,7 +64,15 @@ function Foto({ ek, onAc }) {
   if (!adres) return <div className="ekler__bos" />
 
   return (
-    <button className="ekler__foto" onClick={() => onAc(adres)} title={boyutYaz(ek.boyut)}>
+    /* Düğmenin adı (26 Eylül 2026, ikinci kullanıcı sınaması): içinde
+       yalnız resim var; ekran okuyucu ve sınama ajanı düğmeyi "5 KB"
+       diye okuyordu. */
+    <button
+      className="ekler__foto"
+      onClick={() => onAc(adres)}
+      title={boyutYaz(ek.boyut)}
+      aria-label={`Fotoğrafı büyüt · ${boyutYaz(ek.boyut)}`}
+    >
       <img src={adres} alt="" />
     </button>
   )

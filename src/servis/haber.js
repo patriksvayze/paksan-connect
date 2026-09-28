@@ -5,7 +5,7 @@ import { duyuruGecerliMi } from '../lib/duyuruHedef'
 import { servisDuyuruBaglami } from '../lib/servisAtama'
 import { load } from '../lib/storage'
 import { MARKA } from '../marka'
-import { bildirimYazisi, okunmamislar } from './talepBildirimleri'
+import { bildirimYazisi, musteridenMi, okunmamislar } from './talepBildirimleri'
 
 /* ==========================================================================
    Servis uygulamasının bildirimleri
@@ -31,6 +31,13 @@ import { bildirimYazisi, okunmamislar } from './talepBildirimleri'
      ACİL DUYURU    geri çağırma ve uyarı. Bunlar duyuru değil iş
                     emri: "bu makineleri arayıp servise çağırın".
 
+   MÜŞTERİNİN İŞLEMİ de aynı kayıttan geliyor (25 Eylül 2026): müşteri
+   Connect'ten talebe bir şey eklediğinde ya da "Sorun Devam Ediyor"
+   dediğinde (lib/talepEkleme.js). Tek bildirimde başlık olayın kendi
+   yazısı ("Müşteri talebe yeni bilgi ekledi"); birden çok bildirim
+   toplanınca başlık yalnız hepsi PAKSAN'dansa marka adını taşıyor —
+   müşterinin işi PAKSAN'ınki gibi görünmesin.
+
    PARÇA, PARA VE NOT ESKİDEN AYRI AYRI SAYILIYORDU (21 Eylül 2026'ya
    kadar): talebin üstünde `parcaSevk` doğdu mu, hak ediş onaylandı mı,
    servise not düştü mü diye önceki hâlle karşılaştırılıyordu. PAKSAN'ın
@@ -49,6 +56,11 @@ import { bildirimYazisi, okunmamislar } from './talepBildirimleri'
    Firebase gerekiyor (bkz. CANLIYA-CIKIS.md). O geldiğinde bu
    dosyadaki sayaç yerine sunucunun kendi haberi gelecek; gösterme
    tarafı değişmeyecek.
+
+   Bu sayaç yalnız telefonu ÇALDIRAN haberi arıyor; bildirim doğurmayan
+   değişiklikte ekranı tazelemiyor. Tarayıcıda başka sekmenin yazdığı
+   her şey ekrana ServisPanel.jsx'teki depo dinleyicisiyle düşüyor
+   (25 Eylül 2026); burada ikinci bir dinleyici yok.
    ========================================================================== */
 
 /* Sekme açıkken düzenli bakılıyor. Backoffice'teki aralığın aynısı:
@@ -143,8 +155,12 @@ export function useServisHaberi(oturum, tazele) {
           metin: y.metin || 'Ayrıntıları görmek için talebi açın.',
         })
       } else if (gelen.length > 1) {
+        /* Aralarında müşterinin işlemi varsa başlık markayı anmıyor. */
+        const hepsiPaksandan = gelen.every((b) => !musteridenMi(b))
         bildirimGoster({
-          baslik: `${MARKA} · ${gelen.length} yeni bildirim`,
+          baslik: hepsiPaksandan
+            ? `${MARKA} · ${gelen.length} Yeni Bildirim`
+            : `${gelen.length} Yeni Bildirim`,
           metin: 'Bildirimleri İşlerim ekranının üst bölümünde görebilirsiniz.',
         })
       }

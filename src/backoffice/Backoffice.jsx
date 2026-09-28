@@ -11,13 +11,15 @@ import { LOGO_DOSYASI as logo, SIRKET } from '../marka'
    derlendiği için (dist-backoffice/) bu dosya APK'ya girmiyor. */
 import girisGorseli from '../assets/gorseller/backoffice-giris.jpg'
 import {
-  izinli, oturumGetir, oturumKapat, backofficeGiris, personelBaslat, personelGetir,
+  izinli, oturumGetir, oturumKapat, oturumuBuSekmedeBirak, backofficeGiris, personelBaslat,
+  personelGetir,
   rolBilgi, rolunTalepleri, sifreJetonuGecerli, sifreJetonuKullan, sifreTalebiOlustur,
   talepleriGetir, geriBildirimGetir, numaraTalepleriGetir, teklifBekliyorMu,
   makineKayitlariGetir, BACKOFFICE_SIFRE_HANE,
   servisSifreTalepleriGetir,
 } from './veri'
 import { servisiAtanmamisKayitlar } from '../lib/servisAtama'
+import { baskaSekmeDegistirince } from '../lib/storage'
 import { ozetHatasiMi } from '../lib/hesap'
 import { bildirimGonder, izinDurumu, izinIste, sayiliBaslik } from './bildirim'
 import { TemaSecici } from './Tema'
@@ -125,6 +127,11 @@ const MENU = [
 
 const ILK_EKRAN = 'ozet'
 
+/* Aynı tarayıcıdaki backoffice sekmelerinin birbirine "bu kişi çıkış
+   yaptı" dediği kanal (25 Eylül 2026, kullanıcı sınaması O6). Ad
+   markasız: yalnız bu tarayıcının kendi sekmeleri arasında. */
+const OTURUM_KANALI = 'backoffice-oturum'
+
 /* Yeni iş kontrolü. Sunucu geldiğinde bu aralık yerine sunucu haber
    verecek; şimdilik sekme açıkken düzenli bakılıyor. */
 const KONTROL_ARALIK = 15000
@@ -160,8 +167,11 @@ export function Backoffice() {
       gorus: geriBildirimGetir().filter((g) => !g.okundu).length,
       numara: numaraTalepleriGetir().filter((t) => t.durum === 'bekliyor').length,
       /* Yalnız servis atayabilene: atama yapamayan birine sayı göstermek
-         yapamayacağı bir işi hatırlatmak olur. */
-      servissiz: izinli(oturum.rol, 'servisDuzenle')
+         yapamayacağı bir işi hatırlatmak olur. Atama 25 Eylül 2026'dan
+         beri ayrı yetki (`makineAtama`; önce `servisDuzenle` idi, o izin
+         servis hesabını da açıyordu). Kayıtlı Makineler'deki uyarı kartı
+         ve Genel Bakış kutusu aynı kurala bakıyor. */
+      servissiz: izinli(oturum.rol, 'makineAtama')
         ? servisiAtanmamisKayitlar(makineKayitlariGetir()).length
         : 0,
       /* Servisim'den "Şifremi Unuttum" diyen, aranmayı bekleyen servisler
@@ -176,6 +186,85 @@ export function Backoffice() {
   }, [surum, oturum])
 
   useYeniIsHaberi(oturum, tazele)
+
+  /* OTURUM SEKMEYE AİT (25 Eylül 2026, kullanıcı sınaması O6) ve BAŞKA
+     SEKMENİN YAZDIĞI BU SEKMEDE DE GÖRÜNÜR (O7).
+
+     Oturum açılışta bir kez okunuyordu. Kapatılan ya da silinen
+     personelin açık sekmesi çalışmaya devam ediyor, rolü değişen kişi
+     eski rolüyle kalıyordu. Rol, ücret ve iskonto değişikliği de öteki
+     sekmelerde ancak sayfa yenilenince görünüyordu.
+
+     Şimdi üç yerden haber geliyor:
+       - Tarayıcının `storage` olayı: başka sekme depoya bir şey yazdı
+         (rol, personel, talep…). Oturum yeniden denetleniyor ve ekran
+         yeniden okunuyor. Olay yalnız ÖTEKİ sekmelere gidiyor; art arda
+         gelen yazımlar 150 ms'de toplanıyor. Rollerin bellekteki kopyası
+         aynı olayla boşalıyor (lib/icerikDeposu.js).
+       - Sekme öne gelince (`focus`) oturum yeniden denetleniyor.
+       - Sekmeler arası kanal: AYNI kişi başka sekmede çıkış yaptıysa bu
+         sekme de giriş ekranına dönüyor. Başkasının oturumuna
+         dokunulmuyor (veri.js → oturumuBuSekmedeBirak).
+
+     Denetim yalnız okuyor; okurken kalıcı depoya yazmıyor, yoksa her
+     sekme ötekini tetikleyip döngü kurardı (veri.js → oturumGetir'in
+     devralma yazısı oturum deposuna gidiyor, olay üretmiyor). */
+  const kanalRef = useRef(null)
+  const denetle = useCallback(() => {
+    if (!oturum) return
+    const guncel = oturumGetir()
+    if (!guncel) {
+      setEkran(ILK_EKRAN)
+      setOturum(null)
+      return
+    }
+    if (guncel.rol !== oturum.rol || guncel.ad !== oturum.ad) setOturum(guncel)
+  }, [oturum])
+
+  /* AYNI SEKMENİN YAZDIĞI DA DENETLENİYOR (25 Eylül 2026, inceleme).
+     Tarayıcı `storage` olayını yazan sekmeye göndermiyor. Personel bu
+     sekmede Personel ekranından kendi hesabını kapatır, siler ya da rolünü
+     değiştirirse sekme eski kimlikle çalışmaya devam ediyordu; oturum ancak
+     pencere odağı gidip gelince düşüyordu. Ekranlar yazdıktan sonra
+     `tazele` çağırıyor; oturum o sürümle de yeniden okunuyor. */
+  useEffect(() => {
+    denetle()
+  }, [surum]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!oturum) return undefined
+
+    let bekleyen = null
+    const birak = baskaSekmeDegistirince(() => {
+      clearTimeout(bekleyen)
+      bekleyen = setTimeout(() => {
+        denetle()
+        tazele()
+      }, 150)
+    })
+    window.addEventListener('focus', denetle)
+
+    let kanal = null
+    if (typeof BroadcastChannel === 'function') {
+      kanal = new BroadcastChannel(OTURUM_KANALI)
+      kanal.onmessage = (e) => {
+        if (e.data?.cikis && e.data.cikis === oturum.personelId) {
+          oturumuBuSekmedeBirak()
+          setEkran(ILK_EKRAN)
+          setOturum(null)
+        }
+      }
+    }
+    kanalRef.current = kanal
+
+    return () => {
+      clearTimeout(bekleyen)
+      birak()
+      window.removeEventListener('focus', denetle)
+      kanal?.close()
+      if (kanalRef.current === kanal) kanalRef.current = null
+    }
+  }, [oturum, tazele, denetle])
 
   if (jeton) {
     return (
@@ -219,6 +308,9 @@ export function Backoffice() {
     <button
       key={m.id}
       className={'yan__bag' + (acik === m.id ? ' yan__bag--on' : '')}
+      /* Ekran turu menü satırını kodla buluyor (tools/ekosistem-turu.mjs →
+         B-ROL): kısıtlı rolün menüsü kısa, sıra tutmaz; yazı Codex'in. */
+      data-menu={m.id}
       onClick={() => git(m.id)}
     >
       {m.Ikon && (
@@ -279,6 +371,11 @@ export function Backoffice() {
           onVazgec={() => setCikisOnayi(false)}
           onCik={() => {
             oturumKapat(oturum)
+            /* Aynı kişinin bu tarayıcıdaki öteki sekmeleri de kapanıyor
+               (O6). Mesaj bu sekmenin kendi kanalından gidiyor; kanal
+               kendi mesajını almıyor. Kanal yoksa (eski tarayıcı) öteki
+               sekme, sekme öne gelince kendi oturumuyla devam ediyor. */
+            kanalRef.current?.postMessage({ cikis: oturum.personelId })
             setCikisOnayi(false)
             setEkran(ILK_EKRAN)
             setOturum(null)
@@ -305,7 +402,7 @@ function CikisOnayi({ oturum, onVazgec, onCik }) {
         </div>
         <div className="kart__ic">
           <p style={{ margin: '0 0 6px', lineHeight: 1.6 }}>
-            <b>{oturum.ad}</b> oturumu kapatılacak.
+            <b>{oturum.ad}</b> oturumu bu tarayıcıdaki bütün sekmelerde kapatılacak.
           </p>
           <p className="kucuk sonuk" style={{ margin: '0 0 18px', lineHeight: 1.6 }}>
             Kaydedilmemiş bilgiler varsa kaybolur.

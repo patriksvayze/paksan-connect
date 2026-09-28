@@ -814,7 +814,7 @@ Başka her şey normalleştirilir; yabancı anahtar gerektiren liste JSON'da tut
 #### 1.12.1 Bildirim yazma kuralları (şema değişmeden)
 
 - Hesabı dolu her talep eklenirken aynı işlemde bir `bildirim.Bildirim` (`AliciTuruKodu = N'musteri'`, `TurKodu = N'talep'`, `BaslikAnahtari = N'bildirimler.talepAlindi'`, `TalepKimlik`) ve onun `bildirim.Teslimat` satırı yazılır.
-- Randevu planlanınca ya da değiştirilince `TurKodu = N'randevu'` olan `Bildirim` + `Teslimat` yazılır. Görünme aralığı etkin `talep.Randevu` satırından ve `sistem.Ayar` `RandevuHatirlatmaOnceSaati` (24) / `RandevuHatirlatmaSonraSaati` (12) değerlerinden hesaplanır; talep başına yalnız en son randevu bildirimi gösterilir (bildirimler.js:47-97).
+- Randevu planlanınca ya da değiştirilince `TurKodu = N'randevu'` olan `Bildirim` + `Teslimat` yazılır. Görünme aralığı etkin `talep.Randevu` satırından ve `sistem.Ayar` `RandevuHatirlatmaOnceSaati` (24) / `RandevuHatirlatmaSonraSaati` (12) değerlerinden hesaplanır; talep başına yalnız en son randevu bildirimi gösterilir (bildirimler.js:47-97). Saati belirtilmemiş randevu (`talep.Randevu.SaatBelirtildi = 0`) `RandevuHatirlatmaSonraSaati` ile değil, günün sonuna kadar görünür (25.09.2026; bildirimler.js → `GUN_SAAT`). Yedek parça talebinde aynı kayıt gönderim günüdür; başlık anahtarı `bildirimler.gonderimBaslik`.
 - Okundu bilgisi `Teslimat.OkunmaZamani`, pencerede görülme `Teslimat.GorulmeZamani`'dır.
 
 ### 1.13 Silme, arşiv, saklama ve anonimleştirme

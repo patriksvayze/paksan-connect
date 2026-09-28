@@ -122,11 +122,15 @@ export function duyuruGecerliMi(
      üretildikleri için buradan geçmiyor.
 
      `kisisel` DAMGALI AMA KİMLİKSİZ KAYIT KİMSEYE GÖSTERİLMİYOR.
-     Damgayı `veri.js → musteriyeBildir` her kişisel bildirime vuruyor;
-     `musteriId` ise alıcı telefondan eşleşmediğinde boş kalıyor.
+     Damgayı `veri.js → musteriyeBildir` her kişisel bildirime vuruyor.
      Damga varken kimlik yoksa bu bir kişinin bildirimidir ama kimin
      olduğu bilinmiyor: alansız diye HERKESE AÇIK sayılırsa yabancının
-     talep numarası, kargo notu ve randevusu her ekranda çıkar. */
+     talep numarası, kargo notu ve randevusu her ekranda çıkar.
+
+     BUGÜN BÖYLE KAYIT YAZILMIYOR (25 Eylül 2026): alıcısı çözülmeyen
+     bildirim artık hiç yazılmıyor (bkz. musteriyeBildir). Kapı, o
+     tarihten önce yazılmış kimliksiz kayıtlar için duruyor;
+     SİLİNMEMELİ, depoda onlardan var. */
   if (d?.kisisel && !d?.musteriId) return false
   if (d?.musteriId && d.musteriId !== user?.id) return false
 

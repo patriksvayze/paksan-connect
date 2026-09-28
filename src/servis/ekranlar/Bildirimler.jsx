@@ -8,6 +8,7 @@ import {
   bildirimYazisi,
   duyuruGorulduSay,
   gorulenDuyurular,
+  musteridenMi,
   okunduMu,
   okunduSay,
   servisDuyurulari,
@@ -38,6 +39,12 @@ import { servisBildirimleri } from '../../backoffice/veri'
    "Anladım" ile okundu sayılıyor, İşlerim'deki duyurularla aynı kayıt.
 
    Silme yok, Connect'teki gibi: geçmiş geçmiş olarak kalıyor.
+
+   MÜŞTERİDEN GELENLER AYRILIYOR (25 Eylül 2026). Müşterinin Connect'ten
+   talebe eklemesi ve "Sorun Devam Ediyor" demesi de bu listeye düşüyor
+   (aynı kayıt, lib/talepEkleme.js). Satırın alt yazısı "Müşteriden"
+   diye başlıyor: PAKSAN'ın işlemi gibi okunmasın. Ayrım olayın adından
+   (talepBildirimleri.js → musteridenMi); yeni alan yok.
    ========================================================================== */
 
 /* Connect'teki gruplamanın aynısı (lib/bildirimler.js → tarihObegi). */
@@ -74,7 +81,14 @@ export function Bildirimler({ oturum, talepler, onAc, onUcretler }) {
         tarih: b.tarih,
         baslik: y.baslik,
         metin: y.metin,
-        alt: [b.talepNo, t?.servisSiparisi ? null : t?.ad, gecenSure(b.tarih)].filter(Boolean).join(' · '),
+        alt: [
+          musteridenMi(b) ? 'Müşteriden' : null,
+          b.talepNo,
+          t?.servisSiparisi ? null : t?.ad,
+          gecenSure(b.tarih),
+        ]
+          .filter(Boolean)
+          .join(' · '),
         okunmamis: !okunduMu(b.id),
         talep: t,
       }
@@ -113,7 +127,7 @@ export function Bildirimler({ oturum, talepler, onAc, onUcretler }) {
       <Bos
         Icon={IconBell}
         baslik="Henüz bildiriminiz yok"
-        alt={`${MARKA} bir talebinizde işlem yaptığında ya da size bir duyuru gönderdiğinde burada görünür.`}
+        alt={`${MARKA} ya da müşteriniz taleplerinizle ilgili işlem yaptığında bildirimler burada görünür. ${MARKA} duyurularını da burada görebilirsiniz.`}
       />
     )
   }

@@ -21,7 +21,13 @@ import { IconRight } from '../../components/Icons'
      Hesap      bölümün tamamı: yol ve işçilik ücreti, makineye göre
                 farklı olanlar, yedek parça indirimi, son değişiklik.
      Hak Ediş   tek satırlık özet; dokununca Hesap'taki bu bölüm
-                açılıyor. Servis parasına orada bakıyor.
+                açılıyor. Servis parasına orada bakıyor. Makine
+                modeline göre farklı ücret varsa özetin altında bir
+                satır (25 Eylül 2026, kullanıcı sınaması: özet yalnız
+                genel ücreti söylüyordu; Orkinos 1270 işinin hak edişi
+                90 TL/saat'ten gelirken servis 50 TL'den hesaplandığını
+                sanıyordu). Tek modelde modelin adı ve ücreti, birden
+                çokta kaç modelde farklı olduğu; tam liste Hesap'ta.
 
    Değişince servise bildirim de gidiyor (veri.js → servisHesapBildir);
    bildirime dokunmak da bu bölümü açıyor.
@@ -51,6 +57,10 @@ const METIN = {
   dip: 'Hak edişiniz, kaydı gönderdiğiniz gün geçerli olan ücretlerle hesaplanır.',
   guncelleme: (tarih) => `Son değişiklik: ${tarih}`,
   ozet: 'Güncel ücretleriniz',
+  /* Model adına ek gelmiyor ("Orkinos 1270 için"): adın sonuna göre
+     çekim gerekmesin diye cümle eksiz kuruldu. */
+  ozetTekModel: (ad) => `${ad} için ücretler farklı:`,
+  ozetCokModel: (n) => `${n} makine modelinde ücret farklı`,
 }
 
 const tl = (v) => `${paraYaz(v)} ${PARA_BIRIMI}`
@@ -152,6 +162,13 @@ export function UcretOzeti({ oturum, surum, onAc }) {
         <span className="ucret-ozet-satir__deger">
           {METIN.yol} {tl(u.temel.yolKm)}/km · {METIN.iscilik} {tl(u.temel.iscilikSaat)}/saat
         </span>
+        {u.farklar.length > 0 && (
+          <span className="ucret-ozet-satir__not">
+            {u.farklar.length === 1
+              ? `${METIN.ozetTekModel(u.farklar[0].ad)} ${METIN.yol} ${tl(u.farklar[0].yolKm)}/km · ${METIN.iscilik} ${tl(u.farklar[0].iscilikSaat)}/saat`
+              : METIN.ozetCokModel(u.farklar.length)}
+          </span>
+        )}
       </span>
       <IconRight size={18} />
     </button>

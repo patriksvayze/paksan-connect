@@ -7,6 +7,7 @@ import { UrunFoto } from '../components/Gorsel'
 import { urunDilde } from '../marka'
 import { SIRKET } from '../marka'
 import { validateSerial, formatSerial, normalizeSerial, warrantyStatus, ORNEK_SERILER } from '../lib/serial'
+import { demoSurumuMu } from '../lib/demoSurumu'
 import { araProps } from '../lib/tel'
 import { makineKaydet, seriBaskaHesaptaMi } from '../lib/makineKaydi'
 import { SERI_CAKISMASI } from '../lib/numaraTalebi'
@@ -66,7 +67,15 @@ export default function AddMachine() {
   function kontrolEt() {
     const sonuc = validateSerial(serial)
     if (!sonuc.ok) {
-      setHata(t(sonuc.error))
+      /* Model kodu tanındıysa ama arkası eksik ya da hatalıysa metin
+         modelin adını ve doğru biçimli bir örneği söylüyor (25 Eylül
+         2026, kullanıcı sınaması Y2: bir hanesi eksik ya da O/0 karışık
+         numara "makine bulundu" diyordu; bkz. lib/serial.js →
+         validateSerial). */
+      setHata(t(sonuc.error, {
+        model: sonuc.product ? urunDilde(sonuc.product, dil).name : '',
+        ornek: sonuc.ornek || '',
+      }))
       setBulunan(null)
       return
     }
@@ -229,8 +238,11 @@ export default function AddMachine() {
 
             <DataRow k={t('ekle.seriNo')} v={<span className="serial-mono">{formatSerial(bulunan.serial)}</span>} />
             {bulunan.year && <DataRow k={t('ekle.uretimYili')} v={bulunan.year} />}
+            {/* Etiket sözlükten: iki dilli ekranda düz Türkçe "Garanti"
+                yazıyordu (25 Eylül 2026). Makine detayındaki aynı satırın
+                anahtarı. */}
             <DataRow
-              k="Garanti"
+              k={t('detay.garanti')}
               v={<span className={'badge badge--' + (g.tone || 'blue')}>{g.label}</span>}
             />
             <p className="small muted" style={{ marginTop: 10, lineHeight: 1.55 }}>
@@ -313,7 +325,8 @@ export default function AddMachine() {
               <a
                 {...araProps(SIRKET.telefonHam, SIRKET.telefon, showToast)}
                 className="row"
-                style={{ marginTop: 10, fontWeight: 700, fontSize: 14.5 }}
+                /* Bağlantı 22 piksel yüksekliğindeydi; en az 48 (dokunma eşiği). */
+                style={{ marginTop: 4, minHeight: 48, fontWeight: 700, fontSize: 14.5 }}
               >
                 <IconPhone size={18} /> {t('ortak.bizeUlasin', { tel: SIRKET.telefon })}
               </a>
@@ -344,13 +357,22 @@ export default function AddMachine() {
           </button>
         )}
 
-        {/* Deneme kolaylığı — yayına çıkmadan önce kaldırılacak */}
+        {/* Deneme kolaylığı — YALNIZ DEMO SÜRÜMÜNDE (25 Eylül 2026,
+            kullanıcı sınaması O10). Kutu koşulsuz çiziliyordu ve
+            çiftçiye görünüyordu; "yayına çıkmadan önce kaldırılacak"
+            diyen bir yorumdan başka bir şey onu tutmuyordu. Demo
+            derlemesi index.html'in kök etiketindeki data-demo="acik"
+            işaretiyle anlaşılıyor (lib/demoSurumu.js; Servisim'deki
+            işaretin aynısı). Canlıya çıkarken işaret silinince kutu
+            kaybolur; `npm run dogrula -- --yayin` işaret varken durdurur. */}
+        {demoSurumuMu() && (
         <div
+          data-deneme
           className="card card--flat"
           style={{ marginTop: 26, background: 'var(--surface-2)', borderColor: 'transparent' }}
         >
           <div className="row" style={{ marginBottom: 10 }}>
-            <span className="badge badge--orange">DENEME</span>
+            <span className="badge badge--orange">{t('ekle.denemeRozet')}</span>
             <span className="small muted">{t('ekle.ornekler')}</span>
           </div>
           <div className="stack" style={{ gap: 8 }}>
@@ -358,8 +380,9 @@ export default function AddMachine() {
               <button
                 key={o.serial}
                 className="row"
-                /* Satır 20 piksel yüksekliğindeydi; parmakla seçilemiyordu. */
-                style={{ width: '100%', textAlign: 'left', padding: '12px 4px' }}
+                /* Satır 20 piksel yüksekliğindeydi; parmakla seçilemiyordu.
+                   En az 48: Android'in dokunma eşiği (44'te kalıyordu). */
+                style={{ width: '100%', textAlign: 'left', padding: '12px 4px', minHeight: 48 }}
                 onClick={() => { setSerial(o.serial); setHata('') }}
               >
                 <strong className="serial-mono small">{o.serial}</strong>
@@ -368,6 +391,7 @@ export default function AddMachine() {
             ))}
           </div>
         </div>
+        )}
       </div>
 
       <Sheet open={yardim} onClose={() => setYardim(false)} title={t('ekle.seriNerede')}>

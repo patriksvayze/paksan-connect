@@ -73,6 +73,13 @@ export const CONNECT = [
   { kod: 'C-23', ad: 'Bakım Rehberi', yol: '/bakim/{rehberId}' },
   { kod: 'C-24', ad: 'Numara Değişikliği', yol: '/numara-degisikligi' },
   { kod: 'C-25', ad: 'Bulunamayan Adres', yol: '/boyle-bir-ekran-yok' },
+  /* 25 Eylül 2026 (kullanıcı sınaması): talepler Profil'den kendi
+     ekranına taşındı; turun onay bekleyen servis talebi "Açık"
+     sekmesinde. */
+  { kod: 'C-27', ad: 'Taleplerim', yol: '/taleplerim', iz: 'talepNo' },
+  /* Aynı talep detayı, ikinci iz: servisin geleceği adres (çiftçinin
+     formda yazdığı adres görünmüyordu). */
+  { kod: 'C-28', ad: 'Talep Detayı · Servisin geleceği adres', yol: '/talebim/{talepId}', iz: 'servisAdresi' },
 ]
 
 /** Backoffice — giriş ekranı, oturum tohumlanmadan. */
@@ -128,6 +135,9 @@ export const SERVISIM = [
   { kod: 'S-08', ad: 'Hesap · Ücretlendirmeler', sekme: 0, tikla: '.uyg__hesap', iz: 'saatUcreti' },
   /* Bildirim geçmişi (24 Eylül 2026): üst çubuktaki "Bildirimler". */
   { kod: 'S-09', ad: 'Bildirimler', sekme: 0, tikla: '.uyg__bildirim' },
+  /* Hak Ediş'in "güncel ücretleriniz" özetinde makineye göre farklı
+     ücret (25 Eylül 2026, kullanıcı sınaması). */
+  { kod: 'S-10', ad: 'Hak Ediş · Makineye göre ücret', sekme: 2, iz: 'modelUcreti' },
 ]
 
 export const TOPLAM =

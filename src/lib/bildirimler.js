@@ -20,6 +20,7 @@ import { duyuruGecerliMi } from './duyuruHedef.js'
 import { makinelereServisEkle } from './servisAtama.js'
 import { yurtdisiTalepMi } from './ihracat'
 import { normalizeSerial } from './serial'
+import { randevuSaatliMi } from './tarih'
 
 export const BILDIRIM_TURU = {
   TALEP: 'talep',
@@ -27,10 +28,36 @@ export const BILDIRIM_TURU = {
   UYARI: 'uyari',
   RANDEVU: 'randevu',
   /* Müşterinin makinesiyle ilgili kişisel bildirim (21 Eylül 2026):
-     bugün yalnız "makinenize servis atandı" (backoffice/veri.js →
-     makineAtamasiniKaydet). Duyuru türüne düşseydi satırda "Kampanya"
-     etiketi çıkardı; talep türüne düşseydi talep ikonu. */
+     makinenin servisiyle ilgili üç hâli var — servis atandı, servis
+     değişti, servis yeniden belirleniyor (backoffice/veri.js →
+     makineAtamasiniKaydet). Listede her makinenin yalnız son hâli
+     duruyor (aşağıda sonAtamaBildirimleri). Duyuru türüne düşseydi
+     satırda "Kampanya" etiketi çıkardı; talep türüne düşseydi talep
+     ikonu. */
   MAKINE: 'makine',
+}
+
+/* BİR MAKİNE İÇİN YALNIZ SON ATAMA BİLDİRİMİ (25 Eylül 2026, kullanıcı
+   sınaması). "Makinenize servis atandı" bir olay değil, makinenin
+   bugünkü durumu. Personel yanlış servisi seçip düzeltince çiftçinin
+   listesinde iki servis adı yan yana duruyordu ve hangisinin geçerli
+   olduğunu hiçbir şey söylemiyordu. Aynı makinenin (seri numarasıyla)
+   daha eski atama bildirimi listeden düşüyor; yenisi "değişti" ya da
+   "yeniden belirleniyor" diyor (backoffice/veri.js →
+   makineAtamasiniKaydet). Kayıt silinmiyor. Depo yeniden eskiye sıralı
+   (musteriyeBildir başa ekliyor): ilk görülen en yenisi — saati donmuş
+   sınamada da. Depoya SONA ekleyen bir yazma yolu açılırsa bu kural
+   bozulur. Serisiz makinede birleştirme yok. */
+function sonAtamaBildirimleri(liste) {
+  const gorulen = new Set()
+  return liste.filter((d) => {
+    if (d.tur !== 'makine') return true
+    const seri = normalizeSerial(d.degerler?.seri)
+    if (!seri) return true
+    if (gorulen.has(seri)) return false
+    gorulen.add(seri)
+    return true
+  })
 }
 
 /* Randevu hatırlatması kaç saat önce çıksın.
@@ -40,6 +67,16 @@ export const BILDIRIM_TURU = {
    düşürüyor. Hatırlatma saklanmıyor — uygulama her açıldığında
    randevunun tarihine bakılıp üretiliyor. */
 const HATIRLATMA_SAAT = 24
+
+/* Randevu saatinden kaç saat sonra hatırlatma listeden düşsün. Adı
+   olan bir sabit, çünkü veritabanı tohumu değeri buradan okuyor
+   (veritabani/tohum/kaynak/ayarlar.json → RandevuHatirlatmaSonraSaati;
+   önce satır içi "-12 * 3600000" diye yazılıydı).
+
+   Saati belli olmayan (yalnız gün) randevu günün sonuna kadar duruyor:
+   zamanı günün başı, gün GUN_SAAT sonra bitiyor (aşağıda randevular). */
+const HATIRLATMA_SONRA_SAAT = 12
+const GUN_SAAT = 24
 
 /**
  * Uygulamanın bildiklerinden bildirim listesi üretir — en yeni en üstte.
@@ -57,13 +94,24 @@ export function bildirimListesi({ requests = [], user = null, makineler = [] } =
     .filter((r) => r.plan?.tarih && r.status === 'planlandi')
     .filter((r) => {
       const kalan = r.plan.tarih - Date.now()
-      /* Bir gün kala çıkıyor, randevu saatinden 12 saat sonra düşüyor */
-      return kalan <= HATIRLATMA_SAAT * 3600000 && kalan > -12 * 3600000
+      /* Bir gün kala çıkıyor, randevu saatinden 12 saat sonra düşüyor.
+
+         SAATSİZ RANDEVU GÜN BOYU (25 Eylül 2026, kullanıcı sınaması).
+         Servisim randevuda yalnız gün soruyor; o randevunun zamanı
+         günün başı (lib/tarih.js → gunlukRandevu). "12 saat sonra"
+         kuralı onu öğlen düşürüyordu — servis akşamüstü gelecekken.
+         Saati belli olmayan randevu günün sonuna kadar duruyor. */
+      const bitis = (randevuSaatliMi(r.plan) ? HATIRLATMA_SONRA_SAAT : GUN_SAAT) * 3600000
+      return kalan <= HATIRLATMA_SAAT * 3600000 && kalan > -bitis
     })
     .map((r) => ({
       id: 'randevu-' + r.id,
       tur: BILDIRIM_TURU.RANDEVU,
-      baslikAnahtar: 'bildirimler.randevuBaslik',
+      /* Yedek parçada `planlandi` gönderim günü demek, randevu değil
+         (25 Eylül 2026, kullanıcı sınaması: parça talebinde "Yaklaşan
+         Randevunuz" yazıyordu). Metin ("{tarih} · {is}") iki türde de
+         doğru. */
+      baslikAnahtar: r.tur === 'parca' ? 'bildirimler.gonderimBaslik' : 'bildirimler.randevuBaslik',
       metinAnahtar: 'bildirimler.randevuMetin',
       degerler: { no: r.no, tarih: r.plan.tarihYazi, is: r.plan.is },
 
@@ -103,14 +151,16 @@ export function bildirimListesi({ requests = [], user = null, makineler = [] } =
   /* Makineye bakan servis ekleniyor: servis seçilmiş duyuru o servisin
      baktığı makinelerin sahiplerine gidiyor (lib/duyuruHedef.js). */
   const servisli = makinelereServisEkle(makineler)
-  const backofficeden = load('duyurular', [])
-    /* Kime gideceği kararı tek yerde: src/lib/duyuruHedef.js. Kampanya
-       izni, yurtdışı ve hedefleme kuralları orada. Talep ve numara
-       bildirimleri o yardımcıdan hiç süzülmüyor; onlar zaten kişiye
-       özel üretiliyor. */
-    .filter((d) =>
+  /* Kime gideceği kararı tek yerde: src/lib/duyuruHedef.js. Kampanya
+     izni, yurtdışı ve hedefleme kuralları orada. Talep ve numara
+     bildirimleri o yardımcıdan hiç süzülmüyor; onlar zaten kişiye
+     özel üretiliyor. Aynı makinenin eski atama bildirimleri ardından
+     düşüyor (yukarıda sonAtamaBildirimleri). */
+  const backofficeden = sonAtamaBildirimleri(
+    load('duyurular', []).filter((d) =>
       duyuruGecerliMi(d, { user, makineler: servisli, yurtdisi: yurtdisiTalepMi(user) }),
-    )
+    ),
+  )
     .map((d) => ({
       id: 'duyuru-' + d.id,
       tur: d.tur === 'uyari' ? BILDIRIM_TURU.UYARI

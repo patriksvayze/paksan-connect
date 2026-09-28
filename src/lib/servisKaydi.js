@@ -81,7 +81,8 @@
    ========================================================================== */
 
 import { MARKA, markaEk, PARA_BIRIMI, paraYaz } from '../marka'
-import { iptalEdilenSatirlar } from './servisFiyat'
+import { iptalEdilenSatirlar, siparisNetTutari } from './servisFiyat'
+import { makineDurumAdi } from '../data/talepAlanlari'
 
 /* KAYDIN AŞAMASI.
 
@@ -93,6 +94,55 @@ import { iptalEdilenSatirlar } from './servisFiyat'
    Aşama kaydın kendi alanı; ekran hangi aşamada olduğunu buradan
    okuyor ve talebin durumu da buna göre belirleniyor. */
 export const ASAMA = { parca: 'parca', bitti: 'bitti' }
+
+/* BU ZİYARETİN KAYDI (26 Eylül 2026, ikinci kullanıcı sınaması).
+
+   `servisKaydi` talebin EN SON kaydı (backoffice/veri.js →
+   servisKaydiGonder). Müşteri "Sorun Devam Ediyor" deyince ya da PAKSAN
+   kapanmış talebi yeniden açınca talep açık bir duruma dönüyor ama son
+   kayıt yerinde kalıyor: o artık ÖNCEKİ ziyaretin kaydı. Servisim onu bu
+   ziyaretinmiş gibi okuyordu:
+     · kayıt formu geçen ziyaretin yapılan işi, km'si ve süresiyle dolu
+       açılıyordu. Parça isteğinde bu alanlar görünmediği için eski
+       değerler kayda gitti; "Parçayı Taktım" 20 km / 1 saat hazır
+       geldi. Fark edilmezse hak edişe eski rakam yazılır.
+     · "Randevu" düğmesi çıkmıyordu, iş "Yeni" sekmesine düşmüyordu.
+   Kural: 1. aşamadaki kayıt (parça istendi, iş bitmedi) hep bu
+   ziyaretin. Bitmiş kayıt yalnız talep onun doğurduğu ya da izleyen bir
+   durumdaysa bu ziyaretin; talep yeniden açık bir duruma döndüyse önceki
+   ziyaretin ve yeni kayıt gelince veri katmanı onu arşive
+   (`oncekiKayitlar`) taşıyor. Veri katmanının "aynı ziyaretin 2.
+   aşaması" kuralıyla (`devam`) aynı ayrım. `parcaBekliyor` listede,
+   çünkü eski garanti dışı parça isteği (kapı `parcaIste`) bitmiş kayıtla
+   o duruma gidiyor (bkz. kapininSonucu). */
+const KAYDI_IZLEYEN_DURUMLAR = ['parcaBekliyor', 'onayBekliyor', 'kapandi', 'iptal']
+
+/** Talebin bu ziyarete ait servis kaydı; yoksa null. */
+export function buZiyaretinKaydi(talep) {
+  const k = talep?.servisKaydi
+  if (!k) return null
+  if (k.asama === ASAMA.parca) return k
+  return KAYDI_IZLEYEN_DURUMLAR.includes(talep.status || 'yeni') ? k : null
+}
+
+/* "SERVİS TALEBİ NEDENİ"NİN İLK DEĞERİ (26 Eylül 2026, ikinci kullanıcı
+   sınaması). Kayıt formu bu kutuyu müşterinin açıklamasıyla açıyor ve
+   kutu boşken kayıt gitmiyor. İki durumda yanlış ya da boş geliyordu:
+     · Yeniden açılan işte ilk açıklama geliyordu; müşterinin bu ziyareti
+       doğuran cümlesi ("yine aynı yay kırıldı") "Sorun Devam Ediyor"
+       kaydında (`tekrar`). Onun en yenisi önce.
+     · Kurulum talebinde Connect açıklama sormuyor (screens/RequestForm.jsx
+       → arizaVar); kutu boş geliyor, servis bir şey uydurmak zorunda
+       kalıyordu. Makinenin durumu ("İlk kurulum yapılacak") yazılıyor;
+       demo kaydı da aynı sırayı izliyor (backoffice/demoServis.js).
+   Belirti seçilmiş ama açıklama yazılmamışsa belirtiler. */
+export function talepNedeni(talep) {
+  const sonTekrar = [...(talep?.tekrar || [])].reverse().find((x) => x?.aciklama?.trim())
+  if (sonTekrar) return sonTekrar.aciklama.trim()
+  if (talep?.aciklama?.trim()) return talep.aciklama.trim()
+  if (talep?.belirtiler?.length) return talep.belirtiler.join(', ')
+  return makineDurumAdi(talep?.durum)
+}
 
 /** Kaydın kapısı. Yeni kayıt yalnız `garanti`; öteki ikisi eski
     kayıtların etiketi (bkz. dosya başı). */
@@ -476,6 +526,55 @@ export function talebinParcalari(talep) {
       goruntuden: false,
     }
   })
+}
+
+/**
+ * Siparişin verilen satırlarındaki parça ADEDİ — satır (kalem) sayısı
+ * değil. Kalem iptalinde "kaç parça çıkarıldı" sorusunun cevabı.
+ *
+ * Kullanıcı sınaması (24 Eylül 2026): adedi 2 olan tek satırlık zincir
+ * iptal edilince Servisim "1 parçayı siparişten çıkardı" diyordu; metin
+ * satır sayısını okuyordu. Satırlar `talebinParcalari`nın sırasıyla
+ * (0'dan); aynı satır iki kez verilirse bir kez sayılıyor.
+ *
+ * @param {object} talep servis siparişi
+ * @param {number[]} satirlar satır sıraları
+ */
+export function satirlarinAdedi(talep, satirlar = []) {
+  const tum = talebinParcalari(talep)
+  return [...new Set(satirlar || [])].reduce((t, i) => t + (tum[i]?.adet || 0), 0)
+}
+
+/**
+ * Servis siparişinin kısa özeti: kaç kalem, kaç adet, ne kadar
+ * (25 Eylül 2026, kullanıcı sınaması O1).
+ *
+ * Servisim'in sipariş başarı ekranı KDV hariç ara toplamı gösteriyordu;
+ * sipariş listesi, onay penceresi ve Hak Ediş KDV dâhil tutarı. Servis
+ * aynı siparişi iki ekranda iki rakamla görüyordu ("SİPARİŞİN TUTARI
+ * HER EKRANDA KDV DÂHİL"). Adet de başka yerden sayılıyordu: başarı
+ * ekranı `parcaAdet` nesnesinden, liste satırlardan.
+ *
+ * Rakamlar listedeki kartla AYNI kaynaktan: kalem ve adet
+ * `talebinParcalari`'nın satırlarından, tutar servisin ödeyeceği KDV
+ * dâhil rakam (lib/servisFiyat.js → siparisNetTutari; iptal edilen kalem
+ * yoksa siparisToplami ile aynı).
+ *
+ * NEDEN BU DOSYADA: satırları okuyan tek yer burası (yukarıdaki "TEK
+ * OKUYUCU") ve bu dosya servisFiyat.js'i zaten içe aktarıyor. İşlev
+ * servisFiyat.js'e konsaydı ya satır okuyucusu ikinci kez yazılacak ya
+ * da iki dosya birbirini içe aktaracaktı.
+ *
+ * @param {object} siparis servis siparişi (talep kaydı)
+ * @returns {{kalem: number, adet: number, toplam: number}}
+ */
+export function siparisOzeti(siparis) {
+  const parcalar = talebinParcalari(siparis)
+  return {
+    kalem: parcalar.length,
+    adet: parcalar.reduce((t, p) => t + p.adet, 0),
+    toplam: siparisNetTutari(siparis),
+  }
 }
 
 /**

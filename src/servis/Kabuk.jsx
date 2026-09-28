@@ -64,7 +64,8 @@ function Cubuk({ baslik, alt, onGeri, islem }) {
 
 /**
  * Sekmeli ana ekran.
- * @param {{ sekmeler: {id, ad, Icon, rozet?}[], onGeri?: Function }} props
+ * @param {{ sekmeler: {id, ad, Icon, rozet?, rozetYazi?}[], onGeri?: Function }} props
+ *        rozetYazi: rozetin ekran okuyucuya okunan anlamı ("3 yeni iş").
  *        onGeri verilirse sol üstte "Geri" düğmesi çıkıyor ve telefonun
  *        geri tuşu onu çağırıyor — sekmelerin üstüne açılan ama alt menüyü
  *        gizlemeyen ekranlar için (bugün Hesap).
@@ -83,28 +84,43 @@ export function Kabuk({ baslik, alt, islem, fab, sekmeler, sekme, onSekme, onGer
       {/* YÜZEN DÜĞME: sekmenin asıl işlemi (Kayıt Aç, Sipariş Ver).
           Alt menünün hemen üstünde, sağda — başparmağın durduğu yer.
           Yazısıyla birlikte: simge tek başına neyin ekleneceğini
-          söylemiyor. Gerekçesi servis.css → .uyg__fab. */}
+          söylemiyor. Gerekçesi servis.css → .uyg__fab.
+
+          DOKUNMA KUTUSU İLE GÖRÜNEN HAP AYRI (25 Eylül 2026, kullanıcı
+          sınaması). Düğmenin kendisi yuvarlak haptı; hapın uçlarına
+          dokunuş düğmeye değil alttaki karta düşüyor, basılı anda
+          küçülme de kutuyu daraltıyordu. Düğme artık hapın çevresinde
+          saydam bir dikdörtgen; hap onun içinde çiziliyor, basılınca
+          küçülen yalnız hap. Ekran turu `.uyg__fab` seçicisine basıyor;
+          sınıf yerinde. */}
       {fab && (
         <button className="uyg__fab" onClick={fab.onClick}>
-          <IconPlus size={22} />
-          <span>{fab.ad}</span>
+          <span className="uyg__fab-hap">
+            <IconPlus size={22} />
+            <span>{fab.ad}</span>
+          </span>
         </button>
       )}
 
       <nav className="uyg__tabs" aria-label="Bölümler">
-        {sekmeler.map(({ id, ad, Icon, rozet }) => (
+        {sekmeler.map(({ id, ad, Icon, rozet, rozetYazi }) => (
           <button
             key={id}
             className={'uyg__tab' + (sekme === id ? ' uyg__tab--on' : '')}
             onClick={() => onSekme(id)}
             aria-current={sekme === id ? 'page' : undefined}
+            /* Rozetin ne saydığını ekran okuyucu da söylüyor ("İşlerim,
+               3 yeni iş"); rozetin kendisi ona kapalı. */
+            aria-label={rozet > 0 && rozetYazi ? `${ad}, ${rozetYazi}` : undefined}
           >
             <span className="uyg__tab-ikon">
               <Icon size={22} />
-              {/* Sayı 9'u geçince "9+" yazıyor: rozet daireden taşıp
-                  simgeyi örtmesin. */}
+              {/* Yeni iş sayısı; İşlerim'deki "Yeni" sekmesiyle aynı
+                  (isDurumu.js → yeniIsSayisi). Bildirim sayısı değil:
+                  o üst çubuktaki Bildirimler düğmesinde. Sayı 9'u geçince
+                  "9+" yazıyor: rozet daireden taşıp simgeyi örtmesin. */}
               {rozet > 0 && (
-                <span className="uyg__rozet">{rozet > 9 ? '9+' : rozet}</span>
+                <span className="uyg__rozet" aria-hidden="true">{rozet > 9 ? '9+' : rozet}</span>
               )}
             </span>
             <span className="uyg__tab-ad">{ad}</span>

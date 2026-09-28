@@ -28,13 +28,18 @@ import { IconCart, IconPhone } from '../../components/Icons'
    tutuluyor — kural kalkmadı, tek dosya için istisna yazıldı.
    ========================================================================== */
 
-export function Bayilerim({ oturum }) {
+export function Bayilerim({ oturum, surum }) {
+  /* `surum` (25 Eylül 2026, kullanıcı sınaması O3): PAKSAN bağı
+     başka sekmede değiştirince liste Hesap açıkken de tazeleniyor.
+     Servis ve bayi listesinin bellekteki kopyası aynı olayla boşalıyor
+     (lib/icerikDeposu.js). */
   const liste = useMemo(() => {
+    void surum
     const servis = servisleriGetir().find((x) => x.id === oturum.servisId)
     const kimlikler = servis?.bayiler || []
     if (!kimlikler.length) return []
     return bayileriGetir().filter((b) => kimlikler.includes(b.id))
-  }, [oturum.servisId])
+  }, [oturum.servisId, surum])
 
   if (!liste.length) {
     return (

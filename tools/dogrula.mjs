@@ -15,7 +15,9 @@
    NE KONTROL EDİYOR
 
      1. Sözlük eşitliği  — tr.js ve en.js aynı anahtarları içeriyor mu
-     2. Kullanılan anahtar — koddaki t('...') çağrılarının karşılığı var mı
+     2. Kullanılan anahtar — koddaki t('...') çağrılarının ve bildirim
+                           kaydına yazılan anahtarların (baslikAnahtar,
+                           metinAnahtar) karşılığı var mı
      3. CSS token'ları   — styles.css ve backoffice.css aynı değerleri
                            veriyor mu (iki dosya elle senkron tutuluyor)
      4. Derleme ayrımı   — dist/ içine backoffice kodu sızmış mı
@@ -93,6 +95,25 @@ if (!trdeYok.length && !endeYok.length) {
   for (const k of trdeYok) bildir(`tr.js'de yok: ${k}`)
 }
 
+/* TERİM YASAĞI CONNECT SÖZLÜĞÜNDE (25 Eylül 2026, inceleme). CLAUDE.md:
+   "iskonto", "kapsam", "künye" müşteri ve servis ekranlarında, "hak ediş"
+   müşteri ekranlarında geçmez. tr.js yalnız Connect'in (müşteri) metni.
+   Kural yalnız okunarak uygulanıyordu; düzeltme yarım kaldı ve üç anahtar
+   "kapsam" ile yerinde duruyordu. Kelimenin başına bakılıyor; "kapsamlı"
+   başka bir kelime, yasağın konusu değil. */
+function degerler(nesne, onEk = '', kova = []) {
+  for (const [k, v] of Object.entries(nesne)) {
+    const yol = onEk ? onEk + '.' + k : k
+    if (v && typeof v === 'object' && !Array.isArray(v)) degerler(v, yol, kova)
+    else if (typeof v === 'string') kova.push([yol, v])
+  }
+  return kova
+}
+const YASAK_TERIM = /(^|[^\p{L}])(iskonto|kapsam(?!l[ıi])|künye|hak ?ediş)/iu
+const yasakli = degerler(tr).filter(([, v]) => YASAK_TERIM.test(v))
+if (!yasakli.length) tamam('tr.js\'de yasak terim yok (iskonto, kapsam, künye, hak ediş)')
+else for (const [k, v] of yasakli) bildir(`tr.js'de yasak terim: ${k} — "${v.match(YASAK_TERIM)[2]}"`)
+
 /* --------------------------------------- 2. Kodda kullanılan anahtarlar */
 
 /** Bir klasörü tarayıp verilen uzantılı dosyaların yollarını döndürür. */
@@ -129,6 +150,77 @@ if (!karsiligiYok.length) {
   tamam(`${kullanilan.size} anahtarın tamamı sözlükte var`)
 } else {
   for (const [k, d] of karsiligiYok) bildir(`sözlükte yok: ${k}  (${d})`)
+}
+
+/* KAYDA YAZILAN SÖZLÜK ANAHTARLARI — t('...') taramasının görmediği yer
+   (25 Eylül 2026).
+
+   Bildirim kaydı metni değil ANAHTARI saklıyor
+   (`baslikAnahtar: 'bildirimler.gonderildiBaslik'`): backoffice
+   yazıyor, Connect müşterinin dilinde çeviriyor (backoffice/veri.js →
+   musteriyeBildir, lib/bildirimler.js). Anahtar çağrı olarak değil
+   dizgi olarak geçtiği için yukarıdaki tarama onu görmüyordu; sözlüğe
+   eklenmesi unutulan anahtar müşterinin ekranında HAM olarak çıkardı
+   ("bildirimler.servisKaldirildiMetin"). Aynı gün dört yeni anahtar
+   veri.js'e sözlükten önce yazıldı.
+
+   Değer bir üçlü ifade olabiliyor ve satırlara bölünüyor (veri.js →
+   talepKapat: `metinAnahtar: parcaGonderimi ? parcaSevk ? '…' : '…' :
+   '…'`); tek satırlık desen ikinci satırdaki anahtarı kaçırırdı. Bu
+   yüzden özelliğin değeri, virgüle ya da kapanan paranteze kadar
+   (iç içe parantez ve dizgiler atlanarak) okunuyor ve içindeki her
+   `bölüm.anahtar` dizgisi İKİ sözlükte de aranıyor. `+` ile
+   birleştirilen parça (`'bildirimler.durum_' + durum`) çalışırken
+   kuruluyor; aranmıyor.
+
+   Bozularak denendi: veri.js'te tek satırlık bir anahtar ve talepKapat
+   üçlüsünün İKİNCİ satırındaki anahtar yanlış yazılınca ikisi de iki
+   sözlük için ayrı ayrı düştü. */
+function ozellikDegeri(metin, bas) {
+  let i = bas
+  let derinlik = 0
+  let tirnak = null
+  for (; i < metin.length; i++) {
+    const c = metin[i]
+    if (tirnak) {
+      if (c === '\\') i++
+      else if (c === tirnak) tirnak = null
+      continue
+    }
+    if (c === "'" || c === '"' || c === '`') tirnak = c
+    else if ('([{'.includes(c)) derinlik++
+    else if (')]}'.includes(c)) {
+      if (derinlik === 0) break
+      derinlik--
+    } else if (c === ',' && derinlik === 0) break
+  }
+  return metin.slice(bas, i)
+}
+
+const kayittaki = new Map()
+for (const d of kaynaklar) {
+  const metin = readFileSync(d, 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/^\s*\/\/.*$/gm, '')
+  for (const e of metin.matchAll(/\b(?:baslik|metin)Anahtar\s*:/g)) {
+    const deger = ozellikDegeri(metin, e.index + e[0].length)
+    for (const k of deger.matchAll(/'([a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)+)'(\s*\+)?/g)) {
+      if (k[2]) continue
+      if (!kayittaki.has(k[1])) kayittaki.set(k[1], d.replace(KOK + '\\', '').replace(/\\/g, '/'))
+    }
+  }
+}
+const kayittaYok = []
+for (const [k, d] of kayittaki) {
+  if (!aTr.has(k)) kayittaYok.push(`tr.js → ${k}  (${d})`)
+  if (!aEn.has(k)) kayittaYok.push(`en.js → ${k}  (${d})`)
+}
+if (!kayittaki.size) {
+  bildir('kayda yazılan anahtar bulunamadı — desen değişmiş olabilir')
+} else if (kayittaYok.length) {
+  for (const x of kayittaYok) bildir(`kayda yazılan anahtar sözlükte yok: ${x}`)
+} else {
+  tamam(`kayda yazılan ${kayittaki.size} bildirim anahtarının ikisi de sözlükte var`)
 }
 
 /* BİRLEŞTİRİLEN ANAHTARLAR — yukarıdaki tarama bunları GÖREMİYOR.
@@ -783,7 +875,7 @@ if (!servisim) {
 
 /* --------------------------------------------- 11. Yayın anahtarları
 
-   Dört ayar bugün BİLEREK geliştirme değerinde, yayına çıkarken mutlaka
+   Beş ayar bugün BİLEREK geliştirme değerinde, yayına çıkarken mutlaka
    değişecek:
 
      · `AI.kok` ve `PARCA_KATALOG.kok` göreli adres. Telefonda
@@ -794,11 +886,15 @@ if (!servisim) {
        Gerçek sunucu bağlanınca bu gecikme yalan olur.
      · `servis.html` kök etiketindeki `data-demo="acik"`: demo verisi
        kuruluyor — uydurma müşteriler ve çalışan bir demo hesabı dahil.
+     · `index.html` (Connect) kök etiketindeki `data-demo="acik"`: Makine
+       Kaydet ekranında örnek seri numaraları ("DENEME" kutusu) görünüyor
+       (25 Eylül 2026, kullanıcı sınaması O10; bkz. src/lib/demoSurumu.js).
 
    NİYE SORUN SAYMIYOR
 
-   Bu dördü bugün DOĞRU durumda: sunucu yok, demo hesabı olmadan servis
-   uygulamasına girilemiyor. Günlük `npm run dogrula` bunlar yüzünden
+   Bu beşi bugün DOĞRU durumda: sunucu yok, demo hesabı olmadan servis
+   uygulamasına girilemiyor, gerçek plaka olmadan Connect'e makine
+   kaydedilemiyor. Günlük `npm run dogrula` bunlar yüzünden
    kırmızı dönerse kırmızı dönmek normalleşir, asıl sorunlar o gürültünün
    içinde kaybolur ve kontrolün kendisi işe yaramaz hale gelir. Bu yüzden
    burada yalnız RAPOR ediliyor; sayaç artmıyor.
@@ -835,6 +931,13 @@ const SERVIS_HTML = join(KOK, 'servis.html')
 if (existsSync(SERVIS_HTML)) {
   const kok = /<html[^>]*\sdata-demo=["']acik["']/.test(readFileSync(SERVIS_HTML, 'utf8'))
   if (kok) engeller.push('servis.html → kök etikette data-demo="acik" (demo verisi kuruluyor)')
+}
+/* Connect'in işareti aynı biçimde (25 Eylül 2026): Makine Kaydet'teki
+   örnek seri kutusu yalnız bu işaretle çiziliyor. */
+const CONNECT_HTML = join(KOK, 'index.html')
+if (existsSync(CONNECT_HTML)) {
+  const kok = /<html[^>]*\sdata-demo=["']acik["']/.test(readFileSync(CONNECT_HTML, 'utf8'))
+  if (kok) engeller.push('index.html → kök etikette data-demo="acik" (Connect Makine Kaydet ekranında örnek seri numaraları görünüyor)')
 }
 
 if (!engeller.length) {

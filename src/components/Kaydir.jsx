@@ -3,7 +3,8 @@ import { useDil } from '../i18n'
 
 /* Kaydırarak listeden kaldırılan satır.
 
-   TEK KULLANICISI screens/Profile.jsx ve orada yaptığı iş SİLMEK
+   TEK KULLANICISI screens/Taleplerim.jsx (25 Eylül 2026’ya kadar
+   Profile.jsx) ve orada yaptığı iş SİLMEK
    DEĞİL: talep yalnız müşterinin listesinden kalkar, PAKSAN'ın ve
    servisin kaydı yerinde durur (bkz. context/AppState.jsx →
    removeRequest). Düğme bu yüzden `ortak.sil` değil `ortak.kaldir`

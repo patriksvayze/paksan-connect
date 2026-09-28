@@ -41,7 +41,11 @@ import { kaydinServisi, servisiAtanmamisKayitlar } from '../../lib/servisAtama'
    KAYNAK ALANI ÜÇ DEĞER ALIYOR:
 
      musteri  müşteri uygulamadan kaydetti
-     servis   servis uygulamasından elle açıldı — servis alanı DOLU
+     servis   servis uygulamasından elle açıldı — kaydeden servis
+              `kaydedenServisId`de; servis ataması BOŞ, PAKSAN atar
+              (25 Eylül 2026, kullanıcı sınaması Y5: Servisim kaydettiği
+              makineye kendini atamış oluyordu). 25 Eylül'den önceki
+              satırlarda servis alanı dolu; o satırlar atanmış sayılıyor.
      logo     faturadan geldi (LOGO bağlandığında)
 
    MAKİNENİN GEÇMİŞİ
@@ -98,7 +102,13 @@ function atamayiKaydet(kayit, yama, ozet, { personel, tazele, bildir }) {
 const kayitServisi = kaydinServisi
 
 export function Makineler({ personel, rol, bildir, tazele, surum, sorgu }) {
-  const duzenleyebilir = izinli(rol, 'servisDuzenle')
+  /* MAKİNEYE SERVİS ATAMA AYRI YETKİ (25 Eylül 2026, kullanıcı
+     sınaması). Atama `servisDuzenle`e bağlıydı; aynı izin servis
+     kaydını, bölgesini ve servis hesabını da açıyordu. Hak edişi
+     onaylayan Servis birimi atama dışı işi görünce makineyi
+     atayamıyordu. Yan menü sayacı ve Genel Bakış kutusu da aynı izne
+     bakıyor (bkz. data/yetkiler.js → makineAtama). */
+  const duzenleyebilir = izinli(rol, 'makineAtama')
   const [ara, setAra] = useState('')
   const [aralik, setAralik] = useState(BOS_ARALIK)
   const [il, setIl] = useState('hepsi')
@@ -165,8 +175,11 @@ export function Makineler({ personel, rol, bildir, tazele, surum, sorgu }) {
       if (!q) return true
 
       const urun = getProduct(k.productId)?.name
+      /* Kaydeden servis de aranıyor (25 Eylül 2026, Y5): servis ataması
+         boş olsa da "Konya servisinin kaydettiği makineler" bulunabilsin. */
       const alanlar = [
-        k.seri, k._bayiAd, k._servisAd, k.il, k.ilce, k.musteriAd, k.musteriNo, urun,
+        k.seri, k._bayiAd, k._servisAd, k.kaydedenServisAd, k.il, k.ilce, k.musteriAd,
+        k.musteriNo, urun,
       ]
       if (alanlar.filter(Boolean).some((x) => String(x).toLocaleLowerCase('tr-TR').includes(q))) {
         return true
@@ -311,8 +324,15 @@ export function Makineler({ personel, rol, bildir, tazele, surum, sorgu }) {
           kaybolursa kimse fark etmiyor ve verilen söz tutulmuyor.
           Kart sayıyı ve ne yapılacağını söylüyor; listeyi süzmenin tek
           yolu filtrelerdeki kutu. Kutu işaretliyken kart çıkmıyor: liste
-          zaten o makineler. */}
-      {eksik > 0 && !atanmamis && (
+          zaten o makineler.
+
+          ATAMA YETKİSİ OLMAYANA KART ÇIKMIYOR (25 Eylül 2026, kullanıcı
+          sınaması). Kart "pencereden servis atayın" diyordu, oysa
+          pencerede atama bölümü yoktu. Yan menüdeki sayaçla aynı kural
+          (Backoffice.jsx → sayaclar.servissiz): yapamayacağı işi
+          hatırlatmamak. "Servis atanmamış" kutusu herkeste kalıyor;
+          bakmak zararsız. */}
+      {eksik > 0 && !atanmamis && duzenleyebilir && (
         <div
           className="kart kart--dikkat"
           style={{ marginBottom: 14 }}
@@ -334,9 +354,9 @@ export function Makineler({ personel, rol, bildir, tazele, surum, sorgu }) {
           çoğunlukla listede değil o pencerede. */}
       {liste.length > 0 && (
         <p className="kucuk sonuk" style={{ margin: '0 0 12px' }}>
-          Bir satıra tıklayın. Makinenin bayisi, servisi, fatura bilgileri
-          ve servis geçmişi tek pencerede açılır. Servis ataması da buradan
-          yapılır.
+          {duzenleyebilir
+            ? 'Bir satıra tıklayın. Makinenin bayisi, servisi, fatura bilgileri ve servis geçmişi tek pencerede açılır. Servis ataması da buradan yapılır.'
+            : 'Bir satıra tıklayın. Makinenin bayisi, servisi, fatura bilgileri ve servis geçmişi tek pencerede açılır. Servis atama yetkiniz yok; atama gerekiyorsa yöneticinize başvurun.'}
         </p>
       )}
 
@@ -415,9 +435,14 @@ export function Makineler({ personel, rol, bildir, tazele, surum, sorgu }) {
         </div>
       )}
 
+      {/* Pencere kaydı SÜZÜLMEMİŞ listeden okuyor (26 Eylül 2026, ikinci
+          kullanıcı sınaması). "Servis Atanmamış" süzgeci açıkken atanan
+          makine süzülmüş listeden düşüyor, pencere açılış anının kopyasına
+          dönüp "Bakan servis —" gösteriyordu; personel atamanın
+          tutmadığını sanıyordu. */}
       {secili && (
         <MakineGecmisi
-          kayit={liste.find((k) => k.id === secili.id) || secili}
+          kayit={zenginler.find((k) => k.id === secili.id) || secili}
           talepler={talepler}
           duzenleyebilir={duzenleyebilir}
           onAta={ata}
@@ -467,15 +492,25 @@ function Atama({ kayit, onAta }) {
     [],
   )
 
-  /* Önerilen servisler önce, kalanlar alfabetik. */
+  /* Önerilen servisler önce, kalanlar alfabetik.
+
+     MAKİNEYİ KAYDEDEN SERVİS EN ÜSTTE (25 Eylül 2026, Y5). Servisim'den
+     elle kaydedilen makineye servis atanmıyor, atamayı PAKSAN yapıyor;
+     çoğu zaman doğru cevap makineyi getiren servis. Ayrı grupta
+     duruyor ki öneri olduğu, atama olmadığı belli olsun. */
   const servisler = useMemo(() => {
-    const oneri = talebinServisleri(kayit.il, kayit.ilce, 99).servisler
+    const kaydeden = kayit.kaydedenServisId
+      ? servisleriGetir().find((s) => s.id === kayit.kaydedenServisId) || null
+      : null
+    const oneri = talebinServisleri(kayit.il, kayit.ilce, 99).servisler.filter(
+      (s) => s.id !== kaydeden?.id,
+    )
     const onerilenId = new Set(oneri.map((s) => s.id))
     const kalan = servisleriGetir()
-      .filter((s) => !onerilenId.has(s.id))
+      .filter((s) => !onerilenId.has(s.id) && s.id !== kaydeden?.id)
       .sort((a, b) => a.ad.localeCompare(b.ad, 'tr'))
-    return { oneri, kalan }
-  }, [kayit.il, kayit.ilce])
+    return { kaydeden, oneri, kalan }
+  }, [kayit.il, kayit.ilce, kayit.kaydedenServisId])
 
   const bayiServisi = bayininServisleri(kayit.bayiId)[0] || null
 
@@ -531,6 +566,13 @@ function Atama({ kayit, onAta }) {
               <option value="">
                 {bayiServisi ? `Bayinin servisi: ${bayiServisi.ad}` : 'Atanmadı'}
               </option>
+              {servisler.kaydeden && (
+                <optgroup label="Makineyi kaydeden servis">
+                  <option value={servisler.kaydeden.id}>
+                    {servisler.kaydeden.ad} · {servisler.kaydeden.ilce} / {servisler.kaydeden.il}
+                  </option>
+                </optgroup>
+              )}
               {servisler.oneri.length > 0 && (
                 <optgroup label="Bu bölgeye bakanlar">
                   {servisler.oneri.map((s) => (
@@ -614,6 +656,11 @@ function MakineGecmisi({ kayit, talepler, duzenleyebilir, onAta, onKapat }) {
                 deger={kayit._servisAd}
                 alt={kayit._servisKaynak === 'bayi' ? 'Bayisinden geliyor' : ''}
               />
+              {/* Makineyi Servisim'den deftere yazan servis (25 Eylül 2026,
+                  Y5). Atama değil: bakan servis yukarıda, ayrı satırda. */}
+              {kayit.kaydedenServisAd && (
+                <Bilgi ad="Kaydeden servis" deger={kayit.kaydedenServisAd} />
+              )}
               <Bilgi
                 ad="Fatura tarihi"
                 deger={
@@ -636,7 +683,16 @@ function MakineGecmisi({ kayit, talepler, duzenleyebilir, onAta, onKapat }) {
             </div>
           </div>
 
-          {duzenleyebilir && <Atama kayit={kayit} onAta={onAta} />}
+          {/* Yetkisi olmayana boşluk değil neden (25 Eylül 2026, kullanıcı
+              sınaması): atama bölümü hiç çizilmiyordu ve personel neden
+              düğme olmadığını anlamıyordu. */}
+          {duzenleyebilir ? (
+            <Atama kayit={kayit} onAta={onAta} />
+          ) : (
+            <p className="kucuk sonuk" style={{ margin: '14px 0 0' }}>
+              Servis atama yetkiniz yok. Atama gerekiyorsa yöneticinize başvurun.
+            </p>
+          )}
 
           <h3 style={{ margin: '20px 0 8px', fontSize: 14 }}>
             Servis Geçmişi{gecmis.length ? ` · ${gecmis.length} kayıt` : ''}

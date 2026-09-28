@@ -85,7 +85,7 @@ export {
 /* Parça grubu → makine ailesi köprüsü. Gerçek katalogda makine alanı
    yok; eşleme PAKSAN'ın grup adlarından çıkarılıyor. */
 export {
-  PARCA_GRUBU_AILESI, PARCASIZ_AILELER,
+  PARCA_GRUBU_AILESI, PARCASIZ_AILELER, PARCA_ADINDAKI_MODEL, GRUBUN_MODELLERI,
   eslenmemisGruplar, artikOlmayanGruplar,
 } from './katalog/parcaGruplari.js'
 

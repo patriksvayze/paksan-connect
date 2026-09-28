@@ -208,6 +208,33 @@ export function siparisTutari(araToplamIskontolu, { odeme, bakiyeOrani = 0 } = {
 }
 
 /**
+ * "Bakiyemden Düşülsün" bu sipariş için neden kapalı: kullanılabilir
+ * bakiye tutara yetmiyor (25 Eylül 2026, kullanıcı sınaması).
+ *
+ * Seçenek bakiye yetmeyince pasif kalıyor, neden kapalı olduğu hiçbir
+ * yerde yazmıyordu; servis bakiyesini genel toplamla kendisi
+ * karşılaştırmak zorundaydı (ek indirim varsa bakiye ek indirimli
+ * toplamla kıyaslanıyor, ekrandaki genel toplam ise faturalı toplam).
+ * Servisim seçeneğin altında tek cümle yazıyor; cümlenin çıkıp
+ * çıkmayacağı buradan. Tutarı olmayan (fiyatı bulunmayan parçalı)
+ * sepette cümle çıkmıyor: orada kapalılığın nedeni bakiye değil.
+ *
+ * Veri katmanının reddiyle aynı kural (backoffice/veri.js →
+ * servisParcaSiparisi: bakiyeden ödenen siparişin KDV dâhil tutarı
+ * kullanılabilir bakiyeden büyükse sipariş kaydedilmiyor); ekran
+ * seçeneği kapattığı sürece o ret hiç görülmüyor.
+ *
+ * @param {number} kullanilabilir servisin kullanılabilir bakiyesi
+ *        (veri.js → bakiyeDurumu: gönderilmeyi bekleyen siparişler ayrılmış)
+ * @param {number} toplam bakiyeden ödemenin tutarı — ek indirim
+ *        düşülmüş, KDV dâhil (siparisTutari(…, { odeme: 'bakiye' }).toplam)
+ */
+export function bakiyeYetmiyor(kullanilabilir, toplam) {
+  const t = Number(toplam) || 0
+  return t > 0 && (Number(kullanilabilir) || 0) < t
+}
+
+/**
  * Siparişin gönderilen satırlarının KDV dâhil tutarı — kısmi gönderimde
  * bakiyeden düşülecek rakam (24 Eylül 2026, kullanıcının kararı: eksik
  * gönderilen siparişte bakiyeden yalnız gönderilen parçalar düşülür).

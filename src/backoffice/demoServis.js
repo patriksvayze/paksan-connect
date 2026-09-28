@@ -1,6 +1,9 @@
 import { uid } from '../lib/storage'
-import { talepNo } from '../lib/talep'
+import { RANDEVU_ISI, talepNo } from '../lib/talep'
 import { fiyatGoruntusu, katalogGetir } from '../lib/parcaKatalogu'
+import { bugunGirdi, gunlukRandevu } from '../lib/tarih'
+import { elleIsinAtamasi } from '../lib/servisAtama'
+import { makineDurumAdi } from '../data/talepAlanlari'
 import {
   ASAMA,
   GARANTI_DISI_OZET,
@@ -10,6 +13,8 @@ import {
   kapininSonucu,
 } from '../lib/servisKaydi'
 import { kdvTutari } from '../marka'
+import { servisinTarifesi } from './veri'
+import { ARIZA_VAKALARI, parcaliSonucYazisi, tespitYazisi } from './demoMakineAilesi'
 
 /* ==========================================================================
    Demo verisi — servis akışı
@@ -59,6 +64,23 @@ import { kdvTutari } from '../marka'
    aynı talebe bakan personel o günün rakamını görmemeli. Demo da
    aynı biçimi yazıyor, yoksa backoffice ekranları demo kaydıyla
    gerçek kaydı ayrı ayrı okumak zorunda kalırdı.
+
+   MAKİNEYE UYAN KAYIT (25 Eylül 2026, kullanıcı sınaması)
+
+   Arıza, tespit, yapılan iş ve parça makineye bakmadan ayrı ayrı
+   rastgele çekiliyordu: rotovatörde "düğüm atmıyor", Süper 8002E'de
+   Yunus parçası, garantisi bitmiş makinede garanti kaydı. Şimdi talebin
+   arıza vakası ve makinesi demo.js'te birlikte seçiliyor (bkz.
+   demoMakineAilesi.js); servis akışı o vakadan yürüyor. Kaydın nedeni
+   talebin kendi açıklaması (Servisim'in kayıt ekranı da oradan okuyor),
+   parça vakanın gruplarından ve makinenin modeline göre süzülmüş
+   katalogdan, tespit ve sonuç seçilen parçanın adıyla, hizmet ücreti
+   servisin ve modelin o günkü tarifesinden (veri.js → servisKaydiGonder
+   ile aynı). Servisim'in randevusu gerçekteki gibi yalnız gün
+   (`saatBelirtildi: false`); elle açılan işe makinenin servisi başkaysa
+   `atamaDisi` yazılıyor (lib/elleTalep.js ile aynı kural). Hesap
+   hareketleri talep kimliğini taşıyor: demo temizlenirken bağlı satır
+   bulunabilsin (bkz. demo.js → demoTemizle).
    ========================================================================== */
 
 /** Servis uygulamasının demo hesabının açıldığı servis. */
@@ -125,48 +147,19 @@ export const SAHNE_GOREVLERI = [
 
 const KARGO = ['Aras Kargo', 'Yurtiçi Kargo', 'MNG Kargo', 'Sürat Kargo']
 
-/* Randevuda "Ne yapılacak" alanı; müşterinin bildirimine gidiyor. */
-const PLAN_IS = [
-  'Düğüm atıcı kontrolü ve ayarı',
-  'Pikap parmaklarının değişimi',
-  'Sezon öncesi genel bakım',
-  'Şaft ve kuyruk mili kontrolü',
-  'İp yolu ve gergi ayarı',
-]
-
-/* Kayıttaki "Servis Talebi Nedeni". */
-const ARIZA = [
-  'Düğüm atmıyor, ip sürekli kopuyor.',
-  'Pikaptan ses geliyor, ot toplamıyor.',
-  'Balya boyu tutmuyor.',
-  'Kuyruk mili tarafında titreşim var.',
-  'Hidrolik hortumdan yağ kaçırıyor.',
-]
-
-/* Parça istenirken "Tespitiniz". */
-const TESPIT = [
-  'İp bıçağı kolu kırılmış, değişmesi gerekiyor.',
-  'Pikap parmaklarından üçü kırık.',
-  'Rulman dağılmış, mil yatağı sağlam.',
-  'Kayış aşınmış, gergi makarası boşluk yapıyor.',
-]
-
-/* İş bitince "Yapılan İş" ayrıntısı. */
-const IS_AYRINTI = [
-  'Parça takıldı, makine tarlada denendi, düğüm atıyor.',
-  'Pikap parmakları değişti, zincir gerginliği ayarlandı.',
-  'Rulman değişti, yağlama yapıldı, denemede sorun çıkmadı.',
-  'Ayar yapıldı, müşteriye kullanımı anlatıldı.',
-]
+/* Arıza, tespit ve yapılan iş metinleri artık makinenin ailesinden
+   (bkz. demoMakineAilesi.js → ARIZA_VAKALARI). Randevunun "ne
+   yapılacak"ı Servisim'deki gibi türden (lib/talep.js → RANDEVU_ISI). */
 
 const RED_NEDEN = [
   'Arıza kullanım hatasından kaynaklanıyor. Bu nedenle garanti dışı.',
   'Aynı arıza için geçen ay ödeme yapıldı. Kayıt ikinci kez gönderilmiş.',
 ]
 
+/* Makineden bağımsız iki neden: şanzıman ya da sensör her makinede yok. */
 const DEVIR_NEDEN = [
-  'Şanzımanın içini açmak gerekiyor, atölyemizde bu iş için ekipman yok.',
-  'Arıza elektronik görünüyor, sensörü ölçecek cihazımız yok.',
+  'Arızanın kaynağını bulamadık, üreticinin teknik desteği gerekiyor.',
+  'Tamir için atölyemizde gerekli ekipman yok.',
 ]
 
 const IPTAL_NEDEN = ['Müşteri vazgeçti', 'Ulaşılamadı']
@@ -203,25 +196,6 @@ function zamanlar(bas, adet) {
   )
 }
 
-function tarihYazisi(zaman) {
-  return new Date(zaman).toLocaleString('tr-TR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
-
-/* Bugünün iki saat sonrası: "Bugün" bloğu gecikmiş değil, yaklaşan bir
-   randevu göstersin. */
-function bugunSaat() {
-  const d = new Date()
-  d.setMinutes(0, 0, 0)
-  d.setHours(Math.min(d.getHours() + 2, 23))
-  return d.getTime()
-}
-
 /**
  * Demo verisinin parça kaynağı: katalogun kendisi ve ondan türeyen
  * havuz. Katalog da dönüyor, çünkü talebe yazılan fiyat görüntüsü
@@ -235,7 +209,9 @@ function bugunSaat() {
  */
 export async function parcaKaynagi() {
   const katalog = await katalogGetir()
-  const havuz = katalog.parcalar.map((p) => ({ kod: p.kod, ad: p.ad, fiyat: p.fiyat }))
+  /* Görsel de satırda: gerçek parça satırı o günün görselini taşıyor
+     (bkz. CLAUDE.md "Katalog değişince geçmiş işlem değişmez"). */
+  const havuz = katalog.parcalar.map((p) => ({ kod: p.kod, ad: p.ad, fiyat: p.fiyat, gorsel: p.gorsel ?? null }))
   return { katalog, havuz }
 }
 
@@ -291,6 +267,11 @@ export function senaryoSec(durum) {
    açıklama) servis tarafının alanlarını ekliyor. Dönen `yama` talebin
    üstüne yazılıyor; `cari` servisin hesabına düşen satırlar.
 
+   `secenek.vaka` talebin arıza vakası (demoMakineAilesi.js → vakaSec),
+   `secenek.parcali` işin parçalı olup olmadığı (senaryoIhtiyaci): makine
+   o karara göre seçildi, akış aynı kararı okuyor. `havuz` vakanın bu
+   makinedeki parçaları.
+
    Alanların hepsi açıkça yazılıyor, boş olanlar da: gövdede başka bir
    türden kalmış bir alan (plan, çözüm) servis akışına karışmasın.
    ========================================================================== */
@@ -299,14 +280,23 @@ export function servisAkisi(talep, senaryo, { servis, havuz, personel, secenek =
   const servisAd = servis.ad
   const [t1, t2, t3, t4] = zamanlar(bas, 4)
   const cari = []
+  const vaka = secenek.vaka
+  /* Parçasız bitmeyen vaka (kırık bıçak) parçasız akışa hiç gelmiyor
+     (vakaSec); gelirse genel vakanın sonucu yazılıyor. */
+  const parcasiz = vaka?.parcasiz || ARIZA_VAKALARI.genel[0].parcasiz
+  /* Ücret servisin ve makinenin modelinin o günkü tarifesi — gerçek
+     kayıtta servisKaydiGonder'in yazdığı (bkz. veri.js). */
+  const tarife = servisinTarifesi(servis.id, talep.makine?.productId || null)
 
   const yama = {
+    /* Uygulamadan gelen talepte servisin numarası da yazılıyor
+       (lib/talepOlustur.js); Servisim'in elle açtığında yazılmıyor
+       (lib/elleTalep.js). */
     servis: {
       id: servis.id,
       ad: servisAd,
-      tel: servis.tel || '',
+      ...(secenek.elle ? { kademe: 'elle' } : { tel: servis.tel || '' }),
       tarih: bas,
-      ...(secenek.elle ? { kademe: 'elle' } : {}),
     },
     sahip: 'servis',
     status: 'yeni',
@@ -323,13 +313,24 @@ export function servisAkisi(talep, senaryo, { servis, havuz, personel, secenek =
     notlar: [...(talep.notlar || [])],
   }
 
-  /* Dükkâna gelen müşteri için servisin elle açtığı kayıt: sesli not,
-     fotoğraf ve adres yok (bkz. servis/ekranlar/ElleKayit.jsx). */
+  /* Dükkâna gelen müşteri için servisin elle açtığı kayıt: sesli not ve
+     fotoğraf yok (bkz. servis/ekranlar/ElleKayit.jsx). ADRES VAR: Kayıt
+     Aç ekranı onu zorunlu tutuyor; önce burada boşaltılıyordu.
+
+     Makine başka servise atanmışsa ya da servisi yoksa talebe açıldığı
+     anın durumu yazılıyor (`atamaDisi`; kural lib/servisAtama.js →
+     elleIsinAtamasi, gerçek kayıtta lib/elleTalep.js). Sahne
+     müşterilerinin makineleri sahne servisine atandığı için bugün
+     yazılmıyor; alanın olmaması "çelişki yok" demek. */
   if (secenek.elle) {
-    Object.assign(yama, { elle: true, adres: '', ses: null, _fotoIstensin: false })
+    const atamaDisi = elleIsinAtamasi(talep.makine, servis.id)
+    Object.assign(yama, { elle: true, ses: null, _fotoYazilari: null, ...(atamaDisi ? { atamaDisi } : {}) })
   }
 
-  const ariza = sec(ARIZA)
+  /* Kayıttaki "Servis Talebi Nedeni": Servisim'in kayıt ekranı talebin
+     açıklamasını getiriyor (servis/ekranlar/ServisKapanisi.jsx). Kurulum
+     talebinde açıklama yok; servis makinenin durumunu yazıyor. */
+  const ariza = talep.aciklama || makineDurumAdi(talep.durum) || vaka?.aciklama || ''
 
   /* Kaydı servis uygulamasının yazdığı gibi yazar (bkz. veri.js →
      servisKaydiGonder). İkinci aşama birinci aşamanın üstüne. */
@@ -361,43 +362,46 @@ export function servisAkisi(talep, senaryo, { servis, havuz, personel, secenek =
     yama.gecmis.push({ durum: 'parcaBekliyor', tarih, personel })
   }
 
-  const parcaKaydi = () => ({
-    kapi: 'garanti',
-    asama: ASAMA.parca,
-    parcalar: parcaSec(havuz),
-    sonuc: sec(TESPIT),
-    ariza,
-  })
+  /* Tespit seçilen parçanın adıyla: "hasarlı parça" ile istenen parça
+     aynı şeyi söylüyor. */
+  const parcaKaydi = () => {
+    const parcalar = parcaSec(havuz)
+    return { kapi: 'garanti', asama: ASAMA.parca, parcalar, sonuc: tespitYazisi(parcalar), ariza }
+  }
 
+  /* Yapılan iş ile ayrıntısı birlikte: parçalı işte "Parça Değişti" ve
+     değişen parçalar, parçasız işte vakanın kendi sonucu. Önce ayrı ayrı
+     çekiliyordu; "Arıza Bulunamadı" yanında "Parça takıldı…" yazabiliyordu. */
   const bitenKayit = (onceki) => ({
     ...(onceki || { kapi: 'garanti', parcalar: [], ariza }),
     asama: ASAMA.bitti,
-    yapilanIs: onceki ? 'Parça Değişti' : sec(['Ayar Yapıldı', 'Bakım Yapıldı', 'Arıza Bulunamadı']),
+    yapilanIs: onceki ? 'Parça Değişti' : parcasiz.yapilanIs,
     km: tamsayi(12, 140),
+    kmUcreti: tarife.yolKm,
     /* İşçilik süreyle (bkz. lib/servisKaydi.js → TARIFE): yarım saatlik
-       adımlarla 1-8 saat. */
-    ...iscilikAlanlari(tamsayi(2, 16) / 2),
-    sonuc: sec(IS_AYRINTI),
+       adımlarla 1-8 saat, saat ücreti tarifeden. */
+    ...iscilikAlanlari(tamsayi(2, 16) / 2, tarife.iscilikSaat),
+    sonuc: onceki ? parcaliSonucYazisi(onceki.parcalar) : parcasiz.sonuc,
   })
 
   switch (senaryo) {
+    /* SERVİSİM'İN RANDEVUSU YALNIZ GÜN (25 Eylül 2026). Servis
+       randevuda saat girmiyor; kayıt yerel gün başı ve
+       `saatBelirtildi: false` (lib/tarih.js → gunlukRandevu), "ne
+       yapılacak" türden (RANDEVU_ISI). Demo önce 09:00-16:00 arası bir
+       saat ve balya makinesine ait bir iş yazıyordu: gerçekte oluşmayan
+       bir kayıt. */
     case 'planlandi': {
-      let tarih = secenek.bugun ? bugunSaat() : t1 + 86400000 * (secenek.gun || tamsayi(1, 4))
+      let gun = secenek.bugun ? Date.now() : t1 + 86400000 * (secenek.gun || tamsayi(1, 4))
       /* Rastgele eski taleplerde gün geçmişte kalıyor; yarısı ileri
          alınıyor ki her kartta "gecikmiş randevu" görünmesin. */
-      if (!secenek.bugun && tarih < Date.now() && Math.random() < 0.5) {
-        tarih = Date.now() + 86400000 * tamsayi(1, 3)
-      }
-      if (!secenek.bugun) {
-        const d = new Date(tarih)
-        d.setHours(tamsayi(9, 16), 0, 0, 0)
-        tarih = d.getTime()
+      if (!secenek.bugun && gun < Date.now() && Math.random() < 0.5) {
+        gun = Date.now() + 86400000 * tamsayi(1, 3)
       }
       yama.status = 'planlandi'
       yama.plan = {
-        tarih,
-        tarihYazi: tarihYazisi(tarih),
-        is: sec(PLAN_IS),
+        ...gunlukRandevu(bugunGirdi(gun)),
+        is: RANDEVU_ISI.servis,
         gorusuldu: true,
         kayitTarihi: t1,
         personel: servisAd,
@@ -406,11 +410,13 @@ export function servisAkisi(talep, senaryo, { servis, havuz, personel, secenek =
       break
     }
 
+    /* Geçmiş satırı kaynağıyla: destek isteme gerçek bir servis kaydından
+       ayırt ediliyor (bkz. veri.js → destekTalepEt). */
     case 'devir':
       yama.status = 'incelemede'
       yama.sahip = 'paksan'
       yama.devir = { tarih: t1, neden: sec(DEVIR_NEDEN), servisAd }
-      yama.gecmis.push({ durum: 'incelemede', tarih: t1, personel: servisAd })
+      yama.gecmis.push({ durum: 'incelemede', tarih: t1, personel: servisAd, kaynak: 'devir' })
       break
 
     case 'parcaIstendi':
@@ -431,8 +437,11 @@ export function servisAkisi(talep, senaryo, { servis, havuz, personel, secenek =
     case 'onayParcasiz':
     case 'onaylandi':
     case 'reddedildi': {
+      /* Karar makine seçilirken verildi (senaryoIhtiyaci); makine o karara
+         göre seçildiği için burada yeniden çekilmiyor. */
       const parcali =
-        senaryo === 'onayParcali' ? true : senaryo === 'onayParcasiz' ? false : Math.random() < 0.6
+        secenek.parcali ??
+        (senaryo === 'onayParcali' ? true : senaryo === 'onayParcasiz' ? false : Math.random() < 0.6)
       if (parcali) {
         const ilk = parcaKaydi()
         kayitYaz(ilk, t1)
@@ -457,6 +466,9 @@ export function servisAkisi(talep, senaryo, { servis, havuz, personel, secenek =
             tutar: yama.hakkedis.toplam,
             aciklama: `${talep.no} · servis ödemesi`,
             talepNo: talep.no,
+            /* Gerçek hak ediş onayının yazdığı gibi kimlikle
+               (veri.js → hakkedisOnayla): numara tekil değil. */
+            talepId: talep.id,
             personel,
             demo: true,
           })
@@ -530,8 +542,11 @@ export function servisAkisi(talep, senaryo, { servis, havuz, personel, secenek =
    (bkz. veri.js → servisParcaSiparisi). Dört hâl: yeni, hazırlanıyor,
    gönderildi ve bedeli hesaptan düşülen, gönderildi ve faturalı.
    Bakiyeden düşülen kapanmış siparişin borç satırı da burada.
+
+   `noUret` talep numarasını veriyor: demo.js numaraların tekil
+   kalmasını istiyor ve kendi sayacını geçiriyor.
    ========================================================================== */
-export function servisSiparisleriUret({ servis, personel, katalog, butce = 0 }) {
+export function servisSiparisleriUret({ servis, personel, katalog, butce = 0, noUret = talepNo }) {
   const liste = katalog.parcalar
   /* BAKİYEDEN ÖDENEN SİPARİŞ BAKİYEYİ AŞMIYOR. Servis uygulaması
      bakiyenin karşılamadığı siparişte bu seçeneği kapatıyor (bkz.
@@ -587,7 +602,7 @@ export function servisSiparisleriUret({ servis, personel, katalog, butce = 0 }) 
 
     const talep = {
       id: uid(),
-      no: talepNo('parca'),
+      no: noUret('parca'),
       createdAt: bas,
       status: s.durum,
       tur: 'parca',
@@ -648,6 +663,7 @@ export function servisSiparisleriUret({ servis, personel, katalog, butce = 0 }) 
         tutar: tutarKdvli,
         aciklama: `${talep.no} · parça siparişi`,
         talepNo: talep.no,
+        talepId: talep.id,
         personel: kim,
         demo: true,
       })

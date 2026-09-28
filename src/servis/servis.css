@@ -248,7 +248,10 @@
   transform: scale(0.9);
 }
 
-/* Bekleyen iş sayısı. Simgenin sağ üstünde, kendi zemininde. */
+/* Yeni iş sayısı — el sürülmemiş iş, bildirim değil (25 Eylül 2026,
+   kullanıcı sınaması: bütün açık işleri sayan "9+" okunmamış bildirim
+   sanılıyordu; bkz. isDurumu.js → yeniIsSayisi). Simgenin sağ üstünde,
+   kendi zemininde. */
 .uyg__rozet {
   position: absolute;
   top: -3px;
@@ -512,16 +515,46 @@
   color: var(--murekkep-2);
 }
 
-.plan__uyari {
+/* ------------------------------------------------------ Gecikme şeridi
+
+   48 saati geçen iş (25 Eylül 2026, kullanıcı sınaması). Uyarı
+   planlayıcının dibinde düz bir satırdı: hangi iş olduğunu söylemiyor,
+   dokunulamıyor, randevu yoksa hiç çıkmıyordu. Şimdi acil şeridin
+   anatomisinde tam genişlikte bir düğme: solda kırmızı şerit, sağda
+   yazılı "İşi Aç" / "Göster". Kod: ekranlar/Islerim.jsx → GecikmeSeridi. */
+.gecikme-serit {
   display: flex;
   align-items: center;
   gap: var(--bosluk-2);
-  margin-top: var(--bosluk-3);
-  padding-top: var(--bosluk-3);
-  border-top: 1px solid var(--cizgi);
+  width: 100%;
+  min-height: var(--dokunma);
+  margin-bottom: var(--bosluk-3);
+  padding: var(--bosluk-3) var(--bosluk-4);
+  border: 0;
+  border-radius: var(--r-sm);
+  background: var(--yuzey);
+  box-shadow: inset 4px 0 0 var(--kirmizi), var(--sh-1);
+  color: var(--kirmizi);
+  font: inherit;
   font-size: var(--y-alt);
   font-weight: 700;
-  color: var(--kirmizi);
+  text-align: left;
+  cursor: pointer;
+}
+
+.gecikme-serit__govde {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.gecikme-serit__git {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--mavi-rz);
+  white-space: nowrap;
 }
 
 /* ------------------------------------------------------------ Acil şerit */
@@ -864,6 +897,14 @@
 .iskart__etiket--tur {
   background: transparent;
   box-shadow: inset 0 0 0 1px var(--cizgi-koyu);
+}
+
+/* 48 saati geçen iş: gecikme yalnız renkle belli değil, yazıyla da
+   (servis kuralı: renk tek başına anlam taşımaz). */
+.iskart__etiket--gec {
+  background: transparent;
+  color: var(--kirmizi);
+  box-shadow: inset 0 0 0 1px currentColor;
 }
 
 /* "Ara": yazılı düğme, simge tek başına değil (bkz. CLAUDE.md). Sağa
@@ -3724,7 +3765,9 @@
 }
 
 .uyg__rozet {
-  background: var(--kirmizi);
+  /* Zemin `--kirmizi` değil: karanlık temada o açık yazı tonu (bkz.
+     backoffice.css → --kirmizi-dolgu). */
+  background: var(--kirmizi-dolgu);
   color: #fff;
 }
 
@@ -5214,32 +5257,66 @@ button.hareket:active {
 
    Sağ kenarı alt menünün sağ kenarıyla aynı çizgide: menü geniş ekranda
    460 pikselde ortalanıyor, düğme de onunla birlikte içeri geliyor.
+
+   DOKUNMA KUTUSU DİKDÖRTGEN VE HAPTAN BÜYÜK (25 Eylül 2026, kullanıcı
+   sınaması: düğme bazen tepki vermiyor ya da alttaki karta
+   tıklatıyordu). Düğmenin kendisi tam yuvarlak bir haptı; kenar
+   eğrisinin dışı dokunuş almıyor, hapın 28 piksellik uçlarına dokunan
+   başparmak alttaki kartı açıyordu. Basılı anda `scale(0.96)` kutuyu
+   daraltıyor, kenara yakın dokunuş parmak kalkınca düğmenin dışında
+   kalıyordu. Şimdi düğme saydam bir dikdörtgen, her yönde 8 piksel
+   (`--bosluk-2`) büyük; turuncu hap içinde (`.uyg__fab-hap`) ve basılınca
+   küçülen yalnız o. Hap ekranda aynı yerde: 8 piksellik pay sağdan ve
+   alttan düşülüyor.
    ========================================================================== */
 
 .uyg__fab {
   position: fixed;
-  right: max(var(--bosluk-4), calc((100% - 460px) / 2));
-  bottom: calc(var(--nav-h) + var(--nav-gap) + var(--dip) + var(--bosluk-3));
+  right: calc(max(var(--bosluk-4), calc((100% - 460px) / 2)) - var(--bosluk-2));
+  bottom: calc(var(--nav-h) + var(--nav-gap) + var(--dip) + var(--bosluk-3) - var(--bosluk-2));
   z-index: 39;
+  display: block;
+  padding: var(--bosluk-2);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.uyg__fab-hap {
   display: inline-flex;
   align-items: center;
   gap: var(--bosluk-2);
   height: var(--dokunma-genis);
   padding: 0 var(--bosluk-5) 0 var(--bosluk-4);
-  border: 0;
   border-radius: var(--r-tam);
   background: var(--turuncu-dugme);
   color: #fff;
-  font: inherit;
   font-size: var(--y-govde);
   font-weight: 700;
   box-shadow: var(--sh-turuncu);
-  cursor: pointer;
   transition: transform 0.15s ease;
 }
 
-.uyg__fab:active {
+.uyg__fab:active .uyg__fab-hap {
   transform: scale(0.96);
+}
+
+.uyg__fab:focus-visible {
+  outline: none;
+}
+
+.uyg__fab:focus-visible .uyg__fab-hap {
+  outline: 3px solid var(--mavi-rz);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .uyg__fab-hap {
+    transition: none;
+  }
 }
 
 /* Listenin son kartı düğmenin arkasında kalmasın. */
@@ -5602,6 +5679,13 @@ button.hareket:active {
   font-weight: 700;
   color: var(--murekkep);
   font-variant-numeric: tabular-nums;
+}
+
+/* Makine modeline göre farklı ücret (25 Eylül 2026, kullanıcı sınaması):
+   özetin altında tek satır; tam liste Ücretlendirmeler'de. */
+.ucret-ozet-satir__not {
+  font-size: var(--y-alt);
+  color: var(--murekkep-2);
 }
 
 /* Sipariş ekranının başındaki indirim şeridi. */

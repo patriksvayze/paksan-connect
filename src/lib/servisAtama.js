@@ -45,6 +45,7 @@
 
 import { bayininServisleri, servisGetir, bayiGetir } from '../marka'
 import { makineKayitlari, seriSatiri } from './makineKaydi'
+import { normalizeSerial } from './serial'
 
 /* Seri numarasının kayıt defterindeki satırı.
 
@@ -200,4 +201,56 @@ export function servisDuyuruBaglami(oturum) {
     servis: { ...oturum, il: oturum.il || kayit?.il, iller },
     makineler: servisinMakineleri(oturum.servisId),
   }
+}
+
+/* ==========================================================================
+   SERVİSİN ELLE AÇTIĞI İŞ MAKİNENİN SERVİSİNDE DEĞİLSE
+   (25 Eylül 2026, kullanıcı sınaması Y5; kullanıcının kararı: "uyar,
+   engelleme")
+
+   Servisim'in Kayıt Aç ekranı işi her zaman açan servisin adına
+   yazıyor ve makinenin servisine hiç bakmıyordu. Makine başka servise
+   atanmışsa ya da hiç servisi yoksa ne servis uyarılıyor ne de
+   backoffice işaretliyordu; hak edişi onaylayan personel PAKSAN'ın o
+   makineye kimi atadığını göremiyordu.
+
+   İş yine açan serviste kalıyor ve açılabiliyor: servis tarlada,
+   müşterinin yanında; kapıyı kapatmak müşteriyi servissiz bırakır.
+   Talebe açıldığı ANIN durumu yazılıyor (`atamaDisi`, bkz.
+   lib/elleTalep.js) ve hak edişi onaylayan personel onu görüyor.
+   İşaret her okumada bugünkü atamadan hesaplanmıyor: PAKSAN makineyi
+   sonradan atarsa bugünden hesaplanan işaret, işin alındığı andaki
+   durumu, yani kanıtı silerdi. Bugünkü servis ayrıca okunuyor
+   (makineninKendiServisiMi).
+   ========================================================================== */
+
+/**
+ * Servisin elle açtığı işte makinenin ataması.
+ *
+ * @param {{serial?: string}} makine
+ * @param {string} servisId işi açan servis
+ * @returns {null|{durum: 'baskaServis'|'atanmamis'|'seriYok', servisId: string|null,
+ *   servisAd: string, kaynak: 'atama'|'bayi'|null}}
+ *   null: çelişki yok (makineye bu servis bakıyor) ya da makine yok
+ */
+export function elleIsinAtamasi(makine, servisId) {
+  if (!makine) return null
+  /* Serisiz makinenin servisi denetlenemiyor; "atanmamış" demek
+     uydurma olurdu. Durum ayrı adla yazılıyor. */
+  if (!normalizeSerial(makine.serial)) return { durum: 'seriYok', servisId: null, servisAd: '', kaynak: null }
+  const bulunan = makineninServisi(makine)
+  if (!bulunan) return { durum: 'atanmamis', servisId: null, servisAd: '', kaynak: null }
+  if (bulunan.servis.id === servisId) return null
+  return { durum: 'baskaServis', servisId: bulunan.servis.id, servisAd: bulunan.servis.ad, kaynak: bulunan.kaynak }
+}
+
+/**
+ * Talebi yürüten servis makinenin BUGÜNKÜ servisi mi? Connect'in talep
+ * ayrıntısı düğmenin adını buna göre seçiyor: işi yürüten servis
+ * makineye bakan servis değilse ona "Servisiniz" demiyor. Servissiz
+ * talepte true (söylenecek bir çelişki yok).
+ */
+export function makineninKendiServisiMi(talep) {
+  if (!talep?.servis?.id) return true
+  return makineninServisi(talep.makine)?.servis?.id === talep.servis.id
 }

@@ -62,6 +62,9 @@ const NUMARA_KARARI = 'demo/test aşamasında uygulamanın verdiği numara oldu�
 
 const EKLER = 'VT-TASARIM-EKLERI.md'
 
+/* Demo damgası: canlıya çıkmayan kayıt (aşağıda "Demo işareti"). */
+const DEMO_KAYDI = 'demo kaydı; canlıya çıkmaz, data-demo işaretine bağlı'
+
 /* ------------------------------------------------------------------ Anahtarlar
 
    Uygulamaların depoya yazdığı her anahtar. `tur`:
@@ -99,7 +102,7 @@ export const ANAHTARLAR = {
 
   // Oturumlar
   user: { depo: 'oturum', tur: 'oturum', ne: 'Connect oturumu — hesabın kopyası', alanlarAyniDir: 'hesap' },
-  panelOturum: { depo: 'yerel', tur: 'oturum', ne: 'Backoffice oturumu' },
+  panelOturum: { depo: 'oturum', tur: 'oturum', ne: 'Backoffice oturumu — sekmenin oturumu oturum deposunda; son giriş yerel depoda, yeni sekme devralır (25.09.2026)' },
   servisOturum: { depo: 'oturum', tur: 'oturum', ne: 'Servisim oturumu' },
 
   // Sunucuda veritabanının üreteceği şeyler
@@ -168,7 +171,7 @@ export const ALANLAR = {
   'requests[].ekler[]': sutun('talep.TalepEki.DosyaKimlik'),
   'requests[].urunId': sutun('talep.TeklifTalebiAyrinti.IlgiUrunKodu', 'teklifte ilgilenilen ürün; servis talebinde makineden gelir'),
 
-  'requests[].makine.id': sutun('talep.Talep.MakineKimlik'),
+  'requests[].makine.id': sutun('talep.Talep.MakineKimlik', 'fiyat teklifinde yazılmaz; 25.09.2026 öncesi Connect teklif kayıtlarında hatayla ilk makine yazılmış olabilir, uygulama okurken ayıklar (lib/talep.js → makinesizTeklif), taşımada NULL'),
   'requests[].makine.productId': turer('makine.Makine.UrunKodu', 'talep.Talep.MakineKimlik üzerinden'),
   'requests[].makine.serial': turer('makine.Makine.SeriNo', 'talep.Talep.MakineKimlik üzerinden'),
   /* 24.09.2026: Servisim elle kaydında seri numarası yoksa model ve
@@ -184,6 +187,15 @@ export const ALANLAR = {
   'requests[].servis.ad': turer('servis.Servis.Ad', 'talep.Talep.ServisKimlik üzerinden'),
   'requests[].servis.tel': turer('servis.Servis.TelefonE164', 'talep.Talep.ServisKimlik üzerinden'),
   'requests[].servis.no': turer(SERVIS_NO, NUMARA_KARARI),
+  /* 25.09.2026 (Y5): servisin elle açtığı işte makinenin O ANKİ ataması
+     (lib/elleTalep.js yazıyor; yalnız çelişki varken). Saklanmaz,
+     atama geçmişinden türer: talebin açıldığı anın atama satırı ile
+     talebin servisi karşılaştırılır. Kayıt gönderimi ve hak ediş onayı
+     alanı silmez (veri.js → servisKaydiGonder). */
+  'requests[].atamaDisi.durum': turer('makine.MakineServisAtamasi.ServisKimlik', 'talep.Talep.OlusmaZamani anındaki açık atama satırı (yoksa o anki servis.BayiBagi, FOR SYSTEM_TIME AS OF) talep.Talep.ServisKimlik ile karşılaştırılır: farklıysa baskaServis, ikisi de yoksa atanmamis, MakineKimlik boşsa seriYok'),
+  'requests[].atamaDisi.servisId': turer('makine.MakineServisAtamasi.ServisKimlik', 'talebin OlusmaZamani anındaki açık atama satırı; yoksa bayinin o anki servisi (servis.BayiBagi)'),
+  'requests[].atamaDisi.servisAd': turer('servis.Servis.Ad', 'atamaDisi.servisId üzerinden'),
+  'requests[].atamaDisi.kaynak': turer('servis.BayiBagi.ServisKimlik', 'o anda açık atama satırı varsa atama, yoksa bayinin servisi: bayi'),
 
   /* Fiyat teklifinin bayiye iletilmesi (21.09.2026'dan beri "Bayiye
      İletildi" durumu). Geri alınınca uygulamada `bayi` boşalıyor;
@@ -194,8 +206,18 @@ export const ALANLAR = {
   'requests[].bayi.tel': turer('bayi.Bayi.TelefonE164', 'talep.BayiAtamasi.BayiKimlik üzerinden'),
 
   'requests[].gecmis[].durum': sutun('talep.DurumGecmisi.YeniDurumKodu', 'tetikleyici yazar, uygulama yazmaz'),
+  /* Müşterinin "Sorun Devam Ediyor"u (Connect RequestDetail.jsx; AK-35
+     26.09.2026'da ilk kez yazdı). Her biri bir yeniden açma satırı. */
+  'requests[].tekrar[].aciklama': sutun('talep.YenidenAcma.Aciklama'),
+  'requests[].tekrar[].tarih': sutun('talep.YenidenAcma.OlusmaZamani', 'yapan müşteri: YapanTuruKodu musteri, YapanHesapKimlik'),
   'requests[].gecmis[].tarih': sutun('talep.DurumGecmisi.OlusmaZamani'),
   'requests[].gecmis[].personel': sutun('talep.DurumGecmisi.YapanAdi'),
+  /* Servisin "Destek İste"si (veri.js → destekTalepEt). 25.09.2026'da
+     AK-31 ilk kez gerçek talebe yazdı; önce yalnız demo talebindeydi. */
+  'requests[].gecmis[].kaynak': turer('talep.DurumGecmisi.YeniSahipKodu', "'devir': satır servisin destek isteğinden; sahip servisten PAKSAN'a geçer (talep.Devir ile aynı an)"),
+  'requests[].devir.tarih': sutun('talep.Devir.OlusmaZamani'),
+  'requests[].devir.neden': sutun('talep.Devir.Neden'),
+  'requests[].devir.servisAd': sutun('talep.Devir.YapanAdi', 'destek isteyen servis kullanıcısının o anki adı'),
 
   'requests[].cozum.yapilanIs': sutun('talep.Kapanis.YapilanIsMetni'),
   'requests[].cozum.parcalar': sutun('talep.Kapanis.DegisenParcalarMetni'),
@@ -207,6 +229,10 @@ export const ALANLAR = {
   'requests[].cozum.garantiDisi': turer('talep.ServisZiyareti.KapiKodu', 'ziyaretin kapısı "garanti" değilse garanti dışı'),
 
   'requests[].servisKaydi.ariza': sutun('talep.ServisZiyareti.ArizaMetni'),
+  /* Servisin "Tespitiniz" / "Yapılan işin ayrıntısı" yazısı. Servisim hep
+     yazıyordu ama hiçbir senaryo yazmıyordu, eşlemede de yoktu; 26.09.2026'da
+     AK-35 arşive giden ziyarette ilk kez gösterdi. */
+  'requests[].servisKaydi.sonuc': sutun('talep.ServisZiyareti.SonucMetni'),
   /* Servisin kayıtta yazdığı makine (seri talepte yoksa); veri katmanı talebin
      makinesine işliyor (veri.js → servisKaydiGonder, AK-27). */
   'requests[].servisKaydi.makine.serial': turer('makine.Makine.SeriNo', 'talebin makinesine işlenir (talep.Talep.MakineKimlik); ziyaret ayrıca tutmaz'),
@@ -259,6 +285,11 @@ export const ALANLAR = {
   'requests[].hakkedis.olusma': sutun('hakedis.HakEdis.OlusmaZamani'),
   'requests[].hakkedis.onay.tarih': sutun('hakedis.HakEdis.OnayZamani'),
   'requests[].hakkedis.onay.personel': sutun('hakedis.HakEdis.OnaylayanAdi'),
+  /* Hak ediş reddi (hakkedisReddet). Ret KESİN (25.09.2026, tasarım
+     kararı): kapanmış talebe yeni kayıt gönderilemiyor. */
+  'requests[].hakkedis.red.tarih': sutun('hakedis.HakEdis.RedZamani'),
+  'requests[].hakkedis.red.personel': sutun('hakedis.HakEdis.RedEdenAdi'),
+  'requests[].hakkedis.red.neden': sutun('hakedis.HakEdis.RedNedeni'),
   'requests[].hakkedis.yol': turer('hakedis.HakEdisKalemi.Tutar', 'kalem türü yol'),
   'requests[].hakkedis.iscilik': turer('hakedis.HakEdisKalemi.Tutar', 'kalem türü işçilik'),
   'requests[].hakkedis.kalemler[].tutar': sutun('hakedis.HakEdisKalemi.Tutar'),
@@ -335,7 +366,11 @@ export const ALANLAR = {
   'requests[].parcaSevk.firma': sutun('talep.ParcaSevki.KargoFirmasiMetni'),
   'requests[].parcaSevk.takipNo': sutun('talep.ParcaSevki.TakipNo'),
   'requests[].parcaSevk.tarih': sutun('talep.ParcaSevki.SevkZamani'),
-  'requests[].parcaSevk.personel': sutun('talep.ParcaSevki.GuncelleyenAdi'),
+  'requests[].parcaSevk.personel': sutun('talep.ParcaSevki.YapanAdi', 'parçayı gönderen personel'),
+  /* Kargo bilgisi sonradan girilince ya da düzeltilince (25.09.2026, O2):
+     ilk sevkin tarihi ve personeli korunuyor, düzelten ayrı yazılıyor. */
+  'requests[].parcaSevk.guncelleme': sutun('talep.ParcaSevki.SonGuncellemeZamani'),
+  'requests[].parcaSevk.guncelleyen': sutun('talep.ParcaSevki.GuncelleyenAdi', 'kargo bilgisini sonradan giren/düzelten personel'),
 
   'requests[].iptalBilgi.neden': sutun('talep.Iptal.IptalNedeniKodu', 'bugün yazı; veritabanında iptal nedeni kodu, serbest metin talep.Iptal.Aciklama'),
   'requests[].iptalBilgi.tarih': sutun('talep.Iptal.OlusmaZamani'),
@@ -358,6 +393,8 @@ export const ALANLAR = {
   'requests[].plan.gorusuldu': sutun('talep.Randevu.MusteriyleGorusuldu'),
   'requests[].plan.kayitTarihi': sutun('talep.Randevu.OlusmaZamani'),
   'requests[].plan.personel': sutun('talep.Randevu.YapanAdi'),
+  /* 25.09.2026: Servisim randevusu yalnız gün (false), backoffice gün ve saat (true). */
+  'requests[].plan.saatBelirtildi': sutun('talep.Randevu.SaatBelirtildi'),
 
   'requests[].teklif.tutar': sutun('talep.Teklif.Tutar'),
   'requests[].teklif.tarih': sutun('talep.Teklif.OlusmaZamani'),
@@ -378,7 +415,14 @@ export const ALANLAR = {
   'makineKayitlari[].kaynak': sutun('makine.KayitOlayi.KaynakKodu'),
   'makineKayitlari[].musteriId': sutun('makine.KayitOlayi.HesapKimlik'),
   'makineKayitlari[].musteriAd': sutun('makine.KayitOlayi.BeyanAdi'),
-  'makineKayitlari[].servisId': sutun('makine.KayitOlayi.ServisKimlik', 'Servisim elle kaydında kaydeden servis; backoffice ataması (makineAtamasiniKaydet) AYNI alana yazıyor, veritabanında o makine.MakineServisAtamasi — sunucu aşamasında ikiye ayrılmalı'),
+  /* DEFTER AYRIMI (25.09.2026, kullanıcı sınaması Y5): `servisId` artık
+     yalnız backoffice atamasıyla doluyor; Servisim'in elle kaydı
+     kaydeden servisi ayrı alana yazıyor (lib/makineKaydi.js →
+     servisMakineKaydi). Önce ikisi aynı alandaydı ve eşleme "sunucu
+     aşamasında ikiye ayrılmalı" diyordu. Bu tarihten önce açılmış,
+     servisId'si dolu 'servis' kaynaklı satırlar taşınırken atama sayılır. */
+  'makineKayitlari[].servisId': sutun('makine.MakineServisAtamasi.ServisKimlik', "yalnız backoffice ataması (makineAtamasiniKaydet, YapanTuruKodu personel); Servisim 25.09.2026'dan beri yazmıyor, kaydeden servis kaydedenServisId'de"),
+  'makineKayitlari[].kaydedenServisId': sutun('makine.KayitOlayi.ServisKimlik', 'Servisim elle kaydında makineyi deftere yazan servis; atama değil (25.09.2026)'),
   'makineKayitlari[].il': sutun('makine.KayitOlayi.KonumIlKodu', 'bugün ad, veritabanı kod'),
   'makineKayitlari[].ilce': sutun('makine.KayitOlayi.KonumIlceKodu', 'bugün ad, veritabanı kod'),
   'makineKayitlari[].logoBildi': sutun('makine.KayitOlayi.LogoBildi'),
@@ -388,7 +432,8 @@ export const ALANLAR = {
   'makineKayitlari[].uretimTarihi': sutun('makine.Makine.UretimTarihi'),
   'makineKayitlari[].seri': turer('makine.Makine.SeriNo', 'makine.KayitOlayi.MakineKimlik üzerinden'),
   'makineKayitlari[].productId': turer('makine.Makine.UrunKodu', 'makine.KayitOlayi.MakineKimlik üzerinden'),
-  'makineKayitlari[].servisAd': turer('servis.Servis.Ad', 'makine.KayitOlayi.ServisKimlik üzerinden'),
+  'makineKayitlari[].servisAd': turer('servis.Servis.Ad', 'makine.MakineServisAtamasi.ServisKimlik üzerinden'),
+  'makineKayitlari[].kaydedenServisAd': turer('servis.Servis.Ad', 'makine.KayitOlayi.ServisKimlik üzerinden'),
   'makineKayitlari[].bayiAd': turer('bayi.Bayi.Ad', 'makine.MakineSatisi.SaticiBayiKimlik üzerinden'),
   'makineKayitlari[].musteriNo': turer(MUSTERI_NO, NUMARA_KARARI),
 
@@ -434,6 +479,58 @@ export const ALANLAR = {
   'numaraTalepleri[].yeniHesap.musteriNo': turer(MUSTERI_NO, NUMARA_KARARI),
   'numaraTalepleri[].yeniAnahtar': turer('musteri.TelefonDegisikligiTalebi.YeniTelefonE164', 'ülke kodlu rakam; E.164\'ten kurulur'),
 
+  // ------------------------------------------------ Geri bildirim (görüş)
+  /* Connect'in "Görüş ve önerileriniz" kaydı (lib/geriBildirim.js). 25
+     Eylül 2026'dan beri hesabın kimliğini ve numaranın ülkesini de
+     taşıyor (kullanıcı sınaması Y3; screens/Profile.jsx → yorumGonder):
+     görüşe verilen cevap numara değişse de doğru hesaba gidiyor.
+     25.09.2026'dan beri iki senaryo görüş yazıyor (AK-32 görüşün cevabı,
+     AK-34 demo), denetim bütün alanları görüyor. Cevap notu
+     musteri.GeriBildirimNotu'nda. */
+  'geribildirim[].id': sutun('musteri.GeriBildirim.Kimlik', 'bugünkü kısa kimlik taşınırken EskiKayitNo\'ya'),
+  'geribildirim[].no': sutun('musteri.GeriBildirim.Numara', 'bugün cihaz üretiyor; eski numara EskiNumara\'ya'),
+  'geribildirim[].tarih': sutun('musteri.GeriBildirim.IstemciOlusmaZamani', 'telefonda yazıldığı an; sunucuya ulaştığı an OlusmaZamani'),
+  'geribildirim[].gonderildi': turer('musteri.GeriBildirim.Kimlik', 'cihazın gönderim kuyruğu işareti; satır sunucudaysa gönderilmiştir'),
+  'geribildirim[].metin': sutun('musteri.GeriBildirim.Metin'),
+  'geribildirim[].dil': sutun('musteri.GeriBildirim.DilKodu'),
+  'geribildirim[].surum': sutun('musteri.GeriBildirim.UygulamaSurumu'),
+  'geribildirim[].ad': sutun('musteri.GeriBildirim.IletisimAdi'),
+  'geribildirim[].tel': sutun('musteri.GeriBildirim.IletisimTelefonE164', 'bugün yazıldığı gibi; veritabanı E.164'),
+  'geribildirim[].musteriId': sutun('musteri.GeriBildirim.HesapKimlik'),
+  'geribildirim[].telUlke': turer('musteri.GeriBildirim.IletisimTelefonE164', 'ülke kodu E.164\'ün içinde'),
+  'geribildirim[].okundu': turer('musteri.GeriBildirim.OkunmaZamani', 'OkunmaZamani doluysa okunmuş'),
+  'geribildirim[].okuyan': sutun('musteri.GeriBildirim.OkuyanAdi'),
+  'geribildirim[].notlar[].metin': sutun('musteri.GeriBildirimNotu.Metin'),
+  'geribildirim[].notlar[].tarih': sutun('musteri.GeriBildirimNotu.OlusmaZamani'),
+  'geribildirim[].notlar[].personel': sutun('musteri.GeriBildirimNotu.YapanAdi'),
+
+  // --------------------------------------------- Destek asistanı kaydı
+  /* Connect'in destek oturumları (lib/destekLog.js): oturum başına tek
+     satır, müşterinin hareketleri içinde. Uygulamada yalnız demo
+     yazıyordu; 25.09.2026'da AK-34 demoyu gerçekten kurunca denetim
+     alanları görmeye başladı. Oturumdaki kişi ve makine bilgisi o anın
+     kopyası; veritabanında yalnız kimlik tutulur. */
+  'destekLog[].id': sutun('destek.SohbetOturumu.Kimlik'),
+  'destekLog[].anahtar': sutun('destek.SohbetOturumu.SohbetAnahtari'),
+  'destekLog[].baslangic': sutun('destek.SohbetOturumu.BaslangicZamani'),
+  'destekLog[].son': sutun('destek.SohbetOturumu.SonHareketZamani'),
+  'destekLog[].dil': sutun('destek.SohbetOturumu.DilKodu'),
+  'destekLog[].grup': sutun('destek.SohbetOturumu.DestekAilesiKodu'),
+  'destekLog[].kullanici.no': turer(MUSTERI_NO, 'destek.SohbetOturumu.HesapKimlik üzerinden'),
+  'destekLog[].kullanici.ad': turer('musteri.HesapKisisi.Adi', 'destek.SohbetOturumu.HesapKimlik üzerinden'),
+  'destekLog[].kullanici.tel': turer('musteri.Hesap.TelefonE164', 'destek.SohbetOturumu.HesapKimlik üzerinden'),
+  'destekLog[].kullanici.il': turer('musteri.Hesap.IlKodu', 'destek.SohbetOturumu.HesapKimlik üzerinden'),
+  'destekLog[].kullanici.ilce': turer('musteri.Hesap.IlceKodu', 'destek.SohbetOturumu.HesapKimlik üzerinden'),
+  'destekLog[].makine.id': sutun('destek.SohbetOturumu.MakineKimlik'),
+  'destekLog[].makine.serial': turer('makine.Makine.SeriNo', 'destek.SohbetOturumu.MakineKimlik üzerinden'),
+  'destekLog[].makine.productId': turer('makine.Makine.UrunKodu', 'destek.SohbetOturumu.MakineKimlik üzerinden'),
+  'destekLog[].urun.id': sutun('destek.SohbetOturumu.UrunKodu'),
+  'destekLog[].urun.ad': turer('katalog.Urun.Ad', 'destek.SohbetOturumu.UrunKodu üzerinden'),
+  'destekLog[].olaylar[].tur': sutun('destek.SohbetOlayi.TurKodu'),
+  'destekLog[].olaylar[].tarih': sutun('destek.SohbetOlayi.OlayZamani'),
+  'destekLog[].olaylar[].deger': sutun('destek.SohbetOlayi.Deger'),
+  'destekLog[].olaylar[].kayitId': sutun('destek.SohbetOlayi.BilgiKaydiNo'),
+
   // ------------------------------------------------ Duyuru ve bildirim
   'duyurular[].id': sutun('duyuru.Duyuru.Kimlik', 'kişisel bildirimde bildirim.Bildirim.Kimlik'),
   'duyurular[].tur': sutun('duyuru.Duyuru.TurKodu', 'kişisel bildirimde bildirim.Bildirim.TurKodu'),
@@ -442,6 +539,11 @@ export const ALANLAR = {
   'duyurular[].metin': sutun('duyuru.Duyuru.Metin'),
   'duyurular[].pencere': sutun('duyuru.Duyuru.PencereGoster'),
   'duyurular[].gorsel': sutun('duyuru.Duyuru.GorselDosyaKimlik'),
+  /* Alt tür ve süre (veri.js → duyuruYayinla `alt`, `gun`). Senaryolar
+     alt türsüz, süresiz yayınlıyordu; 25.09.2026'da AK-34 demonun
+     duyurularını kurunca denetim ikisini gördü. */
+  'duyurular[].alt': sutun('duyuru.Duyuru.AltTurKodu'),
+  'duyurular[].bitis': sutun('duyuru.Duyuru.BitisZamani'),
   'duyurular[].hedef.kime': sutun('duyuru.Duyuru.HedefKitleKodu'),
   /* Hedefleme (23 Eylül 2026): bölge, makine ve servis iki alıcıya da
      uygulanıyor (lib/duyuruHedef.js). Tablolar V0013'te hazırdı; servis
@@ -458,7 +560,11 @@ export const ALANLAR = {
   'duyurular[].metinAnahtar': sutun('bildirim.Bildirim.MetinAnahtari'),
   'duyurular[].degerler.*': sutun('bildirim.Bildirim.DegerlerJson', 'şablonun değerleri; içeriği şablona göre değişir'),
   'duyurular[].talepNo': turer('talep.Talep.Numara', 'bildirim.Bildirim.TalepKimlik üzerinden'),
-  /* Servise giden talep bildirimi (21.09.2026, veri.js → serviseBildir). */
+  /* Servise giden talep bildirimi (21.09.2026, veri.js → serviseBildir;
+     gövde lib/serviseBildirim.js). 25.09.2026'dan beri Connect'te
+     müşterinin işlemi de aynı kaydı yazıyor (lib/talepEkleme.js →
+     eklemeyiServiseBildir 'musteriEkledi', sorunDevaminiServiseBildir
+     'musteriSorunDevam'); yeni alan yok, yalnız olay kodu. */
   'duyurular[].alici': sutun('bildirim.Bildirim.AliciTuruKodu', 'servis bildiriminde "servis"'),
   'duyurular[].servisId': sutun('bildirim.Bildirim.ServisKimlik'),
   'duyurular[].talepId': sutun('bildirim.Bildirim.TalepKimlik'),
@@ -498,10 +604,35 @@ export const ALANLAR = {
      `makineler` oldu. Tarayıcı deposundaki eski roller okunurken bir kez
      taşınıyor; bu alan taşımanın yapıldığını söylüyor (veri.js →
      rolIzinleriniTasi). Veritabanında RolIzin satırları doğrudan
-     yazılacağı için karşılığı gerekmiyor. */
+     yazılacağı için karşılığı gerekmiyor.
+     25.09.2026: makineye servis atama `servisDuzenle`den ayrılıp
+     `makineAtama` oldu (izinSurumu 3). Sunucu aşamasında servisDuzenle'si
+     olan rollere makineAtama yazan bir geçiş satırı gerekecek. */
   /* Hizmet ücreti (23 Eylül 2026, lib/servisTarifesi.js). Genel satır
      bugünkü tabloya oturuyor; makineye göre ve servise özel satır için
      hakedis.Tarife'de ürün ve servis sütunu yok (VT-TASARIM-EKLERI §5). */
+  /* Servis listesi (backoffice Servisler ekranı ve servisin kendi şifre
+     değişikliği yazıyor; AK-28'den beri bir senaryo yazıyor). Liste bugün
+     kodda (src/marka/katalog/servisler.js), panelIcerik düzeltilmiş
+     hâlini tutuyor. Panel şifresi servisin giriş hesabında
+     (servis.GirisHesabi → erisim.Kullanici). */
+  'panelIcerik.servisler[].id': sutun('servis.Servis.Kimlik', 'bugünkü kısa kimlik taşınırken EskiKayitNo\'ya'),
+  'panelIcerik.servisler[].no': turer(SERVIS_NO, NUMARA_KARARI),
+  'panelIcerik.servisler[].ad': sutun('servis.Servis.Ad'),
+  'panelIcerik.servisler[].tur': sutun('servis.Servis.TurKodu'),
+  'panelIcerik.servisler[].il': sutun('servis.Servis.IlKodu', 'bugün il ADI yazılıyor, veritabanı KOD tutuyor'),
+  'panelIcerik.servisler[].ilce': sutun('servis.Servis.IlceKodu', 'bugün ilçe ADI yazılıyor, veritabanı KOD tutuyor'),
+  'panelIcerik.servisler[].adres': sutun('servis.Servis.Adres'),
+  'panelIcerik.servisler[].tel': sutun('servis.Servis.TelefonE164'),
+  'panelIcerik.servisler[].bayiler[]': sutun('servis.BayiBagi.BayiKimlik'),
+  'panelIcerik.servisler[].ilkGiris': sutun('erisim.Kullanici.SifreBelirlemeGerekli'),
+  'panelIcerik.servisler[].sifre.ozet': sutun('erisim.Kullanici.SifreKaydi', 'özet ve tuz tek kayıtta'),
+  'panelIcerik.servisler[].sifre.tuz': sutun('erisim.Kullanici.SifreKaydi', 'özet ve tuz tek kayıtta'),
+  /* 25.09.2026 (O6): servisin giriş hesabı — servisHesabiYaz ve
+     servisHesabiKapat yazıyor; kapatılınca açık oturum düşüyor
+     (veri.js → servisOturumuGetir). */
+  'panelIcerik.servisler[].kullanici': sutun('erisim.Kullanici.GirisAdi'),
+  'panelIcerik.servisler[].panelAktif': sutun('erisim.Kullanici.Aktif', 'servisin giriş hesabı; kapatılınca açık oturumu düşer'),
   /* 24.09.2026: ücretin kısa geçmişi — onayda görülen oran ya da ücret,
      okunduğu anda gerçekten geçerli miydi (VT-TASARIM-EKLERI §9). */
   'panelIcerik.ucretGecmisi.parcaIskontosu[].deger': yok('sunucuda katalog.Marka ve servis.ParcaIskontosu sistem sürümlü; o anın oranı FOR SYSTEM_TIME AS OF ile okunur, ayrı geçmiş tutulmaz', `${EKLER} §9`),
@@ -533,8 +664,39 @@ export const ALANLAR = {
   'panelIcerik.parcaIskontosu.bakiye': yok('bakiyeden ödemede ek iskonto oranı için yer yok (katalog.Marka.BakiyeIskontoOrani ya da sistem.Ayar satırı gerekiyor)', `${EKLER} §8`),
   'panelIcerik.parcaIskontosu.guncelleme.tarih': turer('denetim.IslemKaydi.IslemZamani', 'iskonto değişikliğinin işlem kaydı'),
   'panelIcerik.parcaIskontosu.guncelleme.personel': turer('denetim.IslemKaydi.YapanAdi', 'iskonto değişikliğinin işlem kaydı'),
-  'panelIcerik.roller[].izinSurumu': yok('yalnız tarayıcı deposundaki eski rol kayıtlarını bir kez taşımak için; veritabanında erisim.RolIzin satırları geçiş betiğiyle yazılır'),
+  'panelIcerik.roller[].izinSurumu': yok('yalnız tarayıcı deposundaki eski rol kayıtlarını bir kez taşımak için (2: makineler, 3: makineAtama); veritabanında erisim.RolIzin satırları geçiş betiğiyle yazılır'),
   'panelIcerik.roller[].talepTurleri[]': yok('erisim.Rol.TalepTuruKodu tek tür tutuyor; birden çok tür için erisim.RolTalepTuru ara tablosu gerekiyor', `${EKLER} §3`),
+
+  // ---------------------------------------------------------- Personel
+  /* Backoffice personeli (veri.js → personelEkle, personelGuncelle,
+     backofficeGiris). 25.09.2026'dan beri sınamanın tohumu da kayıt
+     yazıyor: backoffice oturumu her okumada personel kaydına bağlanacak
+     (kullanıcı sınaması O6). Hesabın giriş tarafı (kullanıcı adı, açık
+     mı, son giriş, şifre) erisim.Kullanici'de, kişi personel.Personel'de
+     (V0005__erisim_personel.sql). */
+  'personel[].id': sutun('personel.Personel.Kimlik', 'bugünkü kısa kimlik taşınırken EskiKayitNo\'ya'),
+  'personel[].no': sutun('personel.Personel.EskiNumara', 'uygulamanın verdiği PRS numarası'),
+  'personel[].ad': sutun('personel.Personel.AdSoyad'),
+  'personel[].kullanici': sutun('erisim.Kullanici.GirisAdi'),
+  'personel[].rol': turer('personel.Personel.RolKimlik', 'rol KODU; sunucu erisim.Rol.Kod üzerinden kimliğe çevirir'),
+  'personel[].eposta': sutun('personel.Personel.Eposta'),
+  'personel[].tel': sutun('personel.Personel.TelefonE164', 'bugün yazıldığı gibi; veritabanı E.164'),
+  'personel[].aktif': sutun('erisim.Kullanici.Aktif', 'kapatılınca açık oturumları da kapanır (erisim.Oturum.KapanmaZamani)'),
+  'personel[].createdAt': sutun('personel.Personel.OlusmaZamani'),
+  'personel[].sonGiris': sutun('erisim.Kullanici.SonGirisZamani'),
+  'personel[].sifre.ozet': sutun('erisim.Kullanici.SifreKaydi', 'özet ve tuz tek kayıtta'),
+  'personel[].sifre.tuz': sutun('erisim.Kullanici.SifreKaydi', 'özet ve tuz tek kayıtta'),
+
+  /* Personelin "Şifremi unuttum" isteği (veri.js → sifreTalebiOlustur).
+     25.09.2026'da AK-33 oturumsuz sekmenin işlem kaydını sınarken ilk kez
+     yazdı; tablo V0005'te zaten vardı. */
+  'sifreTalepleri[].id': sutun('erisim.SifreSifirlamaJetonu.Kimlik'),
+  'sifreTalepleri[].jeton': turer('erisim.SifreSifirlamaJetonu.JetonOzeti', 'jetonun kendisi saklanmaz, özeti saklanır'),
+  'sifreTalepleri[].personelId': turer('erisim.SifreSifirlamaJetonu.KullaniciKimlik', 'personelin giriş hesabı üzerinden'),
+  'sifreTalepleri[].kullanici': turer('erisim.Kullanici.GirisAdi', 'KullaniciKimlik üzerinden'),
+  'sifreTalepleri[].eposta': turer('personel.Personel.Eposta', 'bağlantının gittiği adres; kişinin kaydından'),
+  'sifreTalepleri[].tarih': sutun('erisim.SifreSifirlamaJetonu.OlusmaZamani', 'son geçerlilik = tarih + 24 saat (SonGecerlilikZamani)'),
+  'sifreTalepleri[].kullanildi': turer('erisim.SifreSifirlamaJetonu.KullanilmaZamani', 'boş değilse kullanıldı'),
 
   // --------------------------------------------------------- Oturumlar
   'panelOturum.personelId': sutun('personel.Personel.Kimlik'),
@@ -549,6 +711,54 @@ export const ALANLAR = {
   'servisOturum.ad': turer('servis.Servis.Ad', 'oturumun servisinden'),
   'servisOturum.il': turer('servis.Servis.IlKodu', 'bugün ad, veritabanı kod'),
   'servisOturum.no': turer(SERVIS_NO, NUMARA_KARARI),
+
+  // -------------------------------------------------- Demo işareti
+  /* Demo (backoffice/demo.js, demoServis.js) kayıtlarını PAYLAŞILAN
+     anahtarlara `demo: true` damgasıyla yazıyor; demoTemizle onları bu
+     damgayla siliyor. 25.09.2026'da AK-34 demoyu gerçekten kurup depoyu
+     BİLEREK boşaltmadan bıraktı (denetim senaryonun yazdığı her alanı
+     görmeli; boşaltan senaryo demonun gerçek alanlarını da gizlerdi) ve
+     denetim damgayı gördü.
+     Demo canlıya çıkmıyor: derleme data-demo işaretiyle açıyor
+     (lib/demoSurumu.js, CANLIYA-CIKIS.md). */
+  'cariHareket[].demo': yok(DEMO_KAYDI),
+  'duyurular[].demo': yok(DEMO_KAYDI),
+  'personel[].demo': yok(DEMO_KAYDI),
+  'makineKayitlari[].demo': yok(DEMO_KAYDI),
+  'numaraTalepleri[].demo': yok(DEMO_KAYDI),
+  'geribildirim[].demo': yok(DEMO_KAYDI),
+  'destekLog[].demo': yok(DEMO_KAYDI),
+}
+
+/* ÖNCEKİ ZİYARETLER (`requests[].oncekiKayitlar[]`, 26 Eylül 2026).
+
+   Talep yeniden açılıp servis yeniden gidince önceki kayıt arşive gidiyor
+   (veri.js → servisKaydiGonder): kaydın alanları, o ziyaretin hak edişi ve
+   parça sevki. Veritabanında bunlar aynı talebin ZiyaretNo'su küçük
+   talep.ServisZiyareti satırları ile onlara bağlı hak ediş ve sevk
+   satırları; alanlar son ziyaretinkilerle aynı sütunlara gidiyor. Eşleme
+   ikinci kez elle yazılmıyor, son ziyaretin satırından türetiliyor:
+   kaynağı olmayan bir alan eklenirse dosya yüklenirken hata veriyor.
+   AK-35 ilk kez üç ziyaretli talep yazdı; önce hiçbir senaryo işi yeniden
+   açıp ikinci kayıt göndermiyordu ve arşiv denetimin kör noktasıydı. */
+const ONCEKI_ZIYARET_ALANLARI = [
+  'ariza', 'asama', 'kapi', 'yapilanIs', 'sonuc', 'km', 'kmUcreti', 'iscilik', 'iscilikSaat',
+  'saatUcreti', 'tarih', 'servisAd',
+  'parcalar[].kod', 'parcalar[].ad', 'parcalar[].adet', 'parcalar[].fiyat', 'parcalar[].gorsel',
+  'teslimat.*',
+  'hakkedis.durum', 'hakkedis.yol', 'hakkedis.iscilik', 'hakkedis.toplam', 'hakkedis.olusma',
+  'hakkedis.kalemler[].ad', 'hakkedis.kalemler[].tutar', 'hakkedis.onay.tarih', 'hakkedis.onay.personel',
+  'parcaSevk.firma', 'parcaSevk.takipNo', 'parcaSevk.tarih', 'parcaSevk.personel',
+]
+for (const yol of ONCEKI_ZIYARET_ALANLARI) {
+  const talebinUstunde = /^(hakkedis|parcaSevk)\./.test(yol)
+  const kaynak = (talebinUstunde ? 'requests[].' : 'requests[].servisKaydi.') + yol
+  const e = ALANLAR[kaynak]
+  if (!e) throw new Error(`uygulama-eslesmesi: önceki ziyaretin "${yol}" alanının kaynağı yok (${kaynak})`)
+  ALANLAR['requests[].oncekiKayitlar[].' + yol] = {
+    ...e,
+    not: [e.not, 'önceki ziyaretin satırı (aynı talepte ZiyaretNo küçük)'].filter(Boolean).join(' · '),
+  }
 }
 
 /* -------------------------------------------------------------- İşlevler
@@ -566,25 +776,29 @@ export const ISLEVLER = {
   rolunPersoneli: 'okuma', rolEkle: 'yazma', rolGuncelle: 'yazma', rolSil: 'yazma',
   personelGetir: 'okuma', kullaniciAdiOner: 'hesap', personelBaslat: 'yazma',
   personelEkle: 'yazma', personelGuncelle: 'yazma', personelSil: 'yazma',
-  backofficeGiris: 'oturum', oturumGetir: 'oturum', oturumKapat: 'oturum',
+  backofficeGiris: 'oturum', oturumGetir: 'oturum', oturumKapat: 'oturum', oturumuBuSekmedeBirak: 'oturum',
   sifreTalepleriGetir: 'okuma', sifreTalebiOlustur: 'yazma', sifreJetonuGecerli: 'okuma',
   sifreJetonuKullan: 'yazma',
   durumBilgi: 'hesap', talepDurumlari: 'hesap', elleSecilebilirDurumlar: 'hesap',
   gorunenDurum: 'hesap', gecmisDurumu: 'hesap',
   talepleriGetir: 'okuma', talepDurumDegistir: 'yazma', talebiBayiyeAta: 'yazma',
   durumGecisiEngeli: { tur: 'hesap', not: 'fiyat teklifinin durum kapıları; sunucu aynı kuralı uygulamalı' },
+  durumKilidi: { tur: 'hesap', not: 'kapanmış talebin ve gönderilmiş servis siparişinin durum kilidi; sunucu talepGeriAc iznini aynı kapıda denetlemeli (25.09.2026)' },
   serviseBildir: 'yazma', servisBildirimleri: 'okuma',
-  bayiAtamasiniKaldir: 'yazma', talepNotEkle: 'yazma', musteriyeBildir: 'yazma',
+  bayiAtamasiniKaldir: 'yazma', talepNotEkle: 'yazma',
+  musteriyeBildir: { tur: 'yazma', not: 'alıcısı (HesapKimlik) çözülmeyen bildirim yazılmıyor; CK_bildirim_Bildirim_Alici ile aynı kural (25.09.2026)' },
+  bildirimAlicilari: { tur: 'okuma', not: 'ekranın "bildirim kime gitti" sorusu; servis siparişinde müşteri yok, servisin elle açtığı kimliksiz talep telefonla eşleşmiyor, alıcı çözülmüyorsa yok — sunucuda bildirim.Bildirim yazma kuralıyla aynı' },
   gonderimGecikti: 'hesap', gonderimGecikmeSaati: 'hesap', gecikmisMi: 'hesap',
   talepKapat: 'yazma', talepIptal: 'yazma', talepTeklifVer: 'yazma',
   teklifBekliyorMu: 'hesap', teklifBeklemeGunu: 'hesap', odemeOnayla: 'yazma',
   hakkedisIlerlemeEngeli: 'hesap', parcaIlerlemeEngeli: 'hesap',
   duyurulariGetir: 'okuma', duyuruYayinla: 'yazma', duyuruSil: 'yazma',
-  musterininDigerTalepleri: 'okuma', talepPlanla: 'yazma',
+  musterininDigerTalepleri: { tur: 'okuma', not: 'sahip: musteriId, yoksa E.164 (lib/musteriEslesmesi.js); servis siparişi servis kimliğiyle' },
+  talepPlanla: 'yazma',
   musterileriGetir: 'okuma', musteriGuncelle: 'yazma',
   numaraTalepleriGetir: 'okuma', seriCakismasiMi: 'hesap', eskiHesapBilgisi: 'okuma',
   seriDogruMu: 'hesap', numaraDogruMu: 'hesap', hesapBirlesmeOzeti: 'okuma',
-  numaraTalebiKarar: 'yazma',
+  numaraTalebiKarar: { tur: 'yazma', not: 'onayda eski numarayla açılmış kimliksiz (elle olmayan) talepleri hesaba bağlar → talep.Talep.HesapKimlik (25.09.2026)' },
   geriBildirimGetir: 'okuma', geriBildirimNotEkle: 'yazma', geriBildirimOkundu: 'yazma',
   servisleriGetirBackoffice: 'okuma',
   servisleriYaz: { tur: 'yazma', not: 'bütün listeyi yazıyor; sunucuda satır satır komuta dönmeli' },
@@ -610,6 +824,7 @@ export const ISLEVLER = {
   hakkedisDuzelt: 'yazma', hakkedisOnayla: 'yazma', hakkedisReddet: 'yazma',
   servisParcasiGonderildi: 'yazma', servisParcaSiparisi: 'yazma', servisinSiparisleri: 'okuma',
   kalanParcalariGonder: 'yazma', kalanParcalariIptalEt: 'yazma',
+  musteriKargosunuGuncelle: 'yazma',
   siparisHesabi: 'okuma', bakiyeDurumu: 'okuma', servisSiparisiniIptalEt: 'yazma',
   cariHareketleri: 'okuma',
   cariHareketEkle: { tur: 'yazma', not: 'bugün yalnız alacak (hak ediş) ve borç (parça siparişi) yazıyor; ödeme yazan bir yol yok, veritabanında YonKodu ile hazır' },
@@ -619,6 +834,6 @@ export const ISLEVLER = {
   servisSifresiniDegistir: 'oturum',
   servisSifreTalepleriGetir: 'okuma', servisSifreTalebiAc: 'yazma', servisSifreTalebiKapat: 'yazma',
   makineKayitlariGetir: 'okuma', destekOturumlariGetir: 'okuma',
-  makineAtamasiniKaydet: { tur: 'yazma', not: 'backoffice Kayıtlı Makineler ataması: servis → makine.MakineServisAtamasi (YapanTuruKodu personel), bayi → makine.MakineSatisi.SaticiBayiKimlik; makinenin servisi değişince müşteriye bildirim.Bildirim (TurKodu makine)' },
+  makineAtamasiniKaydet: { tur: 'yazma', not: 'backoffice Kayıtlı Makineler ataması: servis → makine.MakineServisAtamasi (YapanTuruKodu personel), bayi → makine.MakineSatisi.SaticiBayiKimlik; makinenin servisi değişince ya da kalmayınca müşteriye bildirim.Bildirim (TurKodu makine); Connect aynı makinenin yalnız son atama bildirimini gösterir (lib/bildirimler.js), sunucu listesi de aynı kuralı uygulamalı (25.09.2026)' },
   islemKaydiGetir: 'okuma', islemYaz: 'yazma',
 }

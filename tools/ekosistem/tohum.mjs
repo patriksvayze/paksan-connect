@@ -3,8 +3,11 @@
 
    Her senaryo temiz depoyla başlıyor ve gereken parçayı buradan
    tohumluyor. Demo verisi (src/backoffice/demo.js, src/servis/demoKur.js)
-   KULLANILMIYOR: o veri her seferinde rastgele üretiliyor ve bir
-   sınamanın beklentisi rastgele bir sayıya dayanamaz.
+   dünya olarak KULLANILMIYOR: o veri her seferinde rastgele üretiliyor ve
+   bir sınamanın beklentisi rastgele bir sayıya dayanamaz. Demonun
+   kendisini AK-34 sınıyor (25 Eylül 2026): üç tohumla kuruyor ve
+   iddiaları sayıya değil kurala bakıyor (parça makinenin mi, garanti
+   notu garantideki makinede mi).
 
    Kimlikler uydurma değil, kataloğun kendisinden: `konya-servis` ve
    `ankara-servis` src/marka/katalog/servisler.js içinde gerçekten var,
@@ -84,6 +87,16 @@ export const PERSONEL = {
   rol: 'admin',
 }
 
+/* Parça rolündeki ikinci personel: rol bazlı menü (ekran turu B-ROL) ve
+   "oturum sekmeye ait" sınaması için. Kaydı da yazılıyor (bkz.
+   personelKaydiEkle); kaydı olmayan kişinin oturumu kabul edilmeyecek. */
+export const PARCA_PERSONELI = {
+  personelId: 'prs-2',
+  ad: 'Parça Personeli',
+  kullanici: 'parca',
+  rol: 'parca',
+}
+
 /* -------------------------------------------------------------------- */
 
 /** Müşteri hesabı + açık oturum. Connect'in "giriş yapılmış" hâli. */
@@ -93,9 +106,43 @@ export function musteriKur(m, kisi = MUSTERI) {
   return kisi
 }
 
-/** Personel oturumu. `rol` verilmezse tam yetkili admin. */
-export function personelKur(m, rol = 'admin') {
-  const oturum = { ...PERSONEL, rol, giris: Date.now() }
+/**
+ * Personel kaydı (backoffice'in `personel` deposu).
+ *
+ * OTURUM PERSONEL KAYDINA BAĞLI (25 Eylül 2026, kullanıcı sınaması O6).
+ * Backoffice oturumu her okumada personel kaydına bakacak: kaydı
+ * olmayan ya da kapatılmış kişinin oturumu düşecek, rol ve ad kayıttan
+ * gelecek. Fiş bir dönem yalnız oturumu yazıyordu; o denetim gelince
+ * ekran turundaki bütün backoffice ekranları giriş ekranına düşerdi.
+ *
+ * Şifre yazılmıyor: kimse bu kayıtla giriş yapmıyor, oturum doğrudan
+ * tohumlanıyor. Aynı kimlik varsa yerinde değiştirilir; iki kez
+ * çağrılınca ikinci satır açılmaz.
+ */
+export function personelKaydiEkle(m, kisi) {
+  const kayit = {
+    id: kisi.personelId,
+    ad: kisi.ad,
+    kullanici: kisi.kullanici,
+    rol: kisi.rol,
+    aktif: true,
+  }
+  const liste = m.depo.load('personel', [])
+  const yeni = liste.some((p) => p.id === kayit.id)
+    ? liste.map((p) => (p.id === kayit.id ? kayit : p))
+    : [...liste, kayit]
+  m.depo.save('personel', yeni)
+  return kayit
+}
+
+/**
+ * Personel oturumu ve kaydı. `rol` verilmezse tam yetkili admin; kişi
+ * verilmezse PERSONEL. Kayıt oturumla aynı rolü taşır: rol kayıttan
+ * okunacağı için ikisi ayrışırsa oturum sessizce başka rolle açılırdı.
+ */
+export function personelKur(m, rol = 'admin', kisi = PERSONEL) {
+  personelKaydiEkle(m, { ...kisi, rol })
+  const oturum = { ...kisi, rol, giris: Date.now() }
   m.depo.save('panelOturum', oturum)
   return oturum
 }
@@ -181,7 +228,8 @@ export function makineleriKur(m, urunId) {
 }
 
 /**
- * Tam dünya: müşteri, makineler, defter, personel ve servis oturumu.
+ * Tam dünya: müşteri, makineler, defter, personel (kaydı ve oturumu)
+ * ve servis oturumu.
  * Senaryoların çoğu bununla başlıyor.
  */
 export function dunyaKur(m) {

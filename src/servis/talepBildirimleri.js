@@ -9,6 +9,11 @@ import { MARKA, PARA_BIRIMI, paraYaz } from '../marka'
 
    PAKSAN bir talepte servise dokunan bir işlem yaptığında veri
    katmanı bir kayıt yazıyor (bkz. backoffice/veri.js → serviseBildir).
+   25 Eylül 2026'dan beri müşterinin Connect'ten talebe yaptığı iki
+   işlem de aynı kaydı yazıyor: talebe ekleme (`musteriEkledi`) ve
+   kapanmış işte "Sorun Devam Ediyor" (`musteriSorunDevam`; bkz.
+   lib/talepEkleme.js). Servisim bunları "Müşteriden" diye ayırıyor
+   (musteridenMi): PAKSAN'ın işlemi gibi görünmesinler.
    Bu dosya o kaydın Servisim'de NASIL okunduğunu tutuyor:
 
      - yazısı: kayıtta metin yok, olay var; metin burada
@@ -49,15 +54,20 @@ const METIN = {
     baslik: `${MARKA} talebi kapattı`,
     metin: 'Bu iş için yapmanız gereken başka bir işlem yok.',
   }),
+  /* KARGO TAKİBİ VAAT EDİLMİYOR (25 Eylül 2026). Metin "kargo takip
+     bilgilerini talepte görebilirsiniz" diyordu; oysa servis siparişinde
+     kargo bilgisi hiçbir yere yazılmıyor ve Servisim onu göstermiyor.
+     Gönderim başına kargo ayrı bir iş olarak gelene kadar metin yalnız
+     talepte gerçekten görünen şeyi söylüyor. */
   siparisGonderildi: () => ({
     baslik: 'Parça siparişiniz kargoya verildi',
-    metin: 'Kargo takip bilgilerini talepte görebilirsiniz.',
+    metin: 'Gönderilen parçaları talepte görebilirsiniz.',
   }),
   /* Eksik gönderim (24 Eylül 2026): siparişin bir kısmı gitti, kalanı
      talepte bekliyor (backoffice/veri.js → talepKapat). */
   siparisKismenGonderildi: () => ({
     baslik: 'Parça siparişinizin bir kısmı kargoya verildi',
-    metin: 'Gönderilmeyen parçaları talepte görebilirsiniz; hazır olunca ayrıca gönderilecek.',
+    metin: 'Gönderilmeyen parçaları talepte görebilirsiniz. Bu parçalar hazır olunca ayrıca gönderilecek.',
   }),
   /* Bekleyen parçalar sonradan gönderildi (veri.js →
      kalanParcalariGonder); hâlâ bekleyen olabilir. */
@@ -68,7 +78,14 @@ const METIN = {
   /* PAKSAN bekleyen parçaların bir kısmını ya da hepsini siparişten
      çıkardı (veri.js → kalanParcalariIptalEt). Bekleyen parçanın parası
      henüz düşülmediği için bakiyeye bir şey dönmüyor; düşülmeyeceği
-     söyleniyor. */
+     söyleniyor.
+
+     METİNDE SAYI YOK, BİLEREK (25 Eylül 2026). Değerlerde `adet` artık
+     çıkarılan parça ADEDİ, `kalem` satır sayısı. 24 Eylül'de yazılmış
+     bildirimlerde ise `adet` satır sayısını taşıyor; sayı metne girseydi
+     eski kayıt yanlış rakam gösterirdi. Kaç parça çıkarıldığı talebin
+     içinde, satırlardan hesaplanıyor (TalepDetay.jsx →
+     lib/servisKaydi.js → satirlarinAdedi). */
   kalanIptalEdildi: (d) => ({
     baslik: 'Siparişinizdeki bazı parçalar iptal edildi',
     metin: [
@@ -109,9 +126,15 @@ const METIN = {
     baslik: 'Servis kaydınız onaylandı',
     metin: d.tutar ? `${paraYaz(d.tutar)} hak ediş hesabınıza eklendi.` : 'Tutar hak ediş hesabınıza eklendi.',
   }),
+  /* RET KESİN (25 Eylül 2026, tasarım kararı; bkz. veri.js →
+     hakkedisReddet). Metin yalnız nedeni yazıyordu; servis kaydı
+     düzeltip yeniden gönderebileceğini sanıyordu. Artık sonucu da
+     söylüyor: bu iş için ödeme yok. */
   hakedisRed: (d) => ({
     baslik: 'Servis kaydınız reddedildi',
-    metin: d.neden ? `Ret nedeni: ${d.neden}` : '',
+    metin: d.neden
+      ? `Ret nedeni: ${cumleSonu(d.neden)}. Bu iş için ödeme yapılmayacak.`
+      : 'Bu iş için ödeme yapılmayacak.',
   }),
   hakedisDuzelt: (d) => ({
     baslik: `${MARKA} servis kaydınızı düzeltti`,
@@ -120,6 +143,20 @@ const METIN = {
   not: (d) => ({
     baslik: `${MARKA} size not bıraktı`,
     metin: d.metin || '',
+  }),
+
+  /* MÜŞTERİNİN İŞLEMİ (25 Eylül 2026, kullanıcı sınaması O5 ve
+     "Sorun Devam Ediyor"). Kaydı Connect yazıyor (lib/talepEkleme.js →
+     eklemeyiServiseBildir, sorunDevaminiServiseBildir); değer
+     taşımıyor: eklenen not ve müşterinin açıklaması talebin kendisinde.
+     Servisim bu iki olayı "Müşteriden" diye ayırıyor (musteridenMi). */
+  musteriEkledi: () => ({
+    baslik: 'Müşteri Talebe Yeni Bilgi Ekledi',
+    metin: 'Eklenen notu, ses kaydını ya da fotoğrafı talebin içinde bulabilirsiniz.',
+  }),
+  musteriSorunDevam: () => ({
+    baslik: 'Müşteri Sorunun Devam Ettiğini Bildirdi',
+    metin: 'Talep yeniden açıldı. Müşterinin açıklamasını talebin içinde görebilirsiniz.',
   }),
 
   /* TALEBE BAĞLI OLMAYAN BİLDİRİMLER (23 Eylül 2026, `tur: 'hesap'`).
@@ -152,9 +189,23 @@ const METIN = {
 
 const GENEL = () => ({ baslik: `${MARKA} bu taleple ilgili işlem yaptı`, metin: '' })
 
+/* Serbest yazının sonundaki nokta: metin ardına kendi noktasını koyuyor,
+   "Garanti süresi dolmuş.." çıkmasın. */
+function cumleSonu(s) {
+  return String(s).trim().replace(/[.!?…]+$/, '')
+}
+
 /** Bildirimin ekranda görünen başlığı ve açıklaması. */
 export function bildirimYazisi(b) {
   return (METIN[b?.olay] || GENEL)(b?.degerler || {})
+}
+
+/* Müşterinin Connect'ten yaptığı işlemin olayları; geri kalanı PAKSAN'ın. */
+const MUSTERI_OLAYLARI = new Set(['musteriEkledi', 'musteriSorunDevam'])
+
+/** Bildirim müşterinin işleminden mi doğdu (PAKSAN'ınkinden değil)? */
+export function musteridenMi(b) {
+  return MUSTERI_OLAYLARI.has(b?.olay)
 }
 
 function okunanlar() {

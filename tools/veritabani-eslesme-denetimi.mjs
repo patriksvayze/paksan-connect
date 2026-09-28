@@ -13,19 +13,25 @@
    sessizce birikiyor ve sunucu yazılırken hepsi birden ortaya çıkardı.
    Bu denetim kaymayı yazıldığı gün kırmızı yapar.
 
-   NASIL: ekosistem sınamasının 14 senaryosunu (tools/ekosistem/)
+   NASIL: ekosistem sınamasının bütün senaryolarını (tools/ekosistem/)
    uygulamanın GERÇEK koduyla koşturur, her senaryodan sonra depoya düşen
    her alanın yolunu toplar (`requests[].servis.id` gibi) ve
    veritabani/uygulama-eslesmesi.mjs ile karşılaştırır. Sütun adlarını
    veritabani/semalar betiklerinden okur (tools/vt/denetle.mjs →
    tablolarVeSutunlar); SQL Server'a bağlanmaz.
 
-   DÜŞÜREN DÖRT DURUM
+   DÜŞÜREN BEŞ DURUM
      YENİ ANAHTAR       uygulama eşlemede olmayan bir depo anahtarına yazıyor
      YENİ ALAN          uygulama eşlemede olmayan bir alan yazıyor
      VERİTABANINDA YOK  eşlemenin gösterdiği sütun ya da tablo betiklerde yok
      İŞLEV              veri.js'te eşlemede olmayan bir işlev var, ya da
                         eşlemede olup veri.js'te artık olmayan
+     ÇİFT SATIR         eşlemede aynı yol, anahtar ya da işlev iki kez yazılı.
+                        JavaScript nesnesinde ikinci satır birincinin yerine
+                        geçer ve hiçbir şey hata vermez; iki grubun aynı alanı
+                        ayrı ayrı eklediği bir günde (25 Eylül 2026, yedi
+                        düzeltme grubu) önceki satırın notu sessizce
+                        kaybolurdu
 
    DÜŞÜRMEYEN, AMA SAYILAN
      bilinen boşluk     eşlemede "yok" diye gerekçesiyle yazılmış alanlar —
@@ -45,6 +51,8 @@
      veri.js'te talebe deneme alanı eklenirse          YENİ ALAN
      eşlemede bir sütun adı bozulursa                  VERİTABANINDA YOK
      veri.js'e eşlemesiz bir işlev eklenirse           İŞLEV
+     eşlemede bir satır iki kez yazılırsa              ÇİFT SATIR
+     saat dilimi kurulmazsa (TZ=UTC)           0. ADIM DURDURUR
      depo taklidi kaldırılırsa                 0. ADIM DURDURUR
 
    Son satır yine en önemlisi: src/lib/storage.js her hatayı yutuyor;
@@ -91,10 +99,16 @@ const m = await modulleriYukle()
 const nisanHatasi = nisanTuru(m.depo)
 if (nisanHatasi) {
   console.log('')
-  console.log('0. adım — depo taklidi')
+  console.log('0. adım — depo taklidi ve saat dilimi')
   console.log(`  ! ${nisanHatasi}`)
-  console.log('    Taklit çalışmıyorsa depoya hiçbir şey düşmez; toplanacak yol')
-  console.log('    olmaz ve denetim YANLIŞLIKLA "yeni alan yok" derdi.')
+  if (nisanHatasi.startsWith('saat dilimi')) {
+    console.log('    Senaryolar Türkiye saatinde koşmazsa gün hesabına bağlı dallar')
+    console.log('    başka türlü yürür; depoya düşen alanlar uygulamanın gerçekte')
+    console.log('    yazdıklarıyla aynı olmayabilir.')
+  } else {
+    console.log('    Taklit çalışmıyorsa depoya hiçbir şey düşmez; toplanacak yol')
+    console.log('    olmaz ve denetim YANLIŞLIKLA "yeni alan yok" derdi.')
+  }
   console.log('')
   console.log('SONUÇ: denetim yapılamadı.')
   await kapat()
@@ -259,6 +273,38 @@ for (const ad of Object.keys(ISLEVLER).sort()) {
   if (!disaAktarilan.has(ad)) islevSorunu.push(`${ad}: eşlemede var, veri.js'te artık yok`)
 }
 
+// 5. Aynı satır iki kez. Nesne değil METİN okunuyor: yüklenen nesnede
+//    ikinci satır birinciyi çoktan ezmiş, iz kalmamış oluyor.
+const eslemeMetni = readFileSync(join(KOK, 'veritabani', 'uygulama-eslesmesi.mjs'), 'utf8')
+  .replace(/\/\*[\s\S]*?\*\//g, '')
+  .replace(/^\s*\/\/.*$/gm, '')
+function blokMetni(ad) {
+  const bas = `export const ${ad} = {`
+  const i = eslemeMetni.indexOf(bas)
+  if (i < 0) return ''
+  let govde = eslemeMetni.slice(i + bas.length, eslemeMetni.indexOf('\n}\n', i))
+  /* ALANLAR dışında değerler nesne: içleri atılınca geriye yalnız
+     üst düzey adlar kalıyor ({ tur, not } sayılmasın). */
+  if (ad !== 'ALANLAR') {
+    let once
+    do {
+      once = govde
+      govde = govde.replace(/\{[^{}]*\}/g, '')
+    } while (govde !== once)
+  }
+  return govde
+}
+const ciftSatir = []
+for (const [ad, desen] of [
+  ['ALANLAR', /^\s*'([^']+)'\s*:/gm],
+  ['ANAHTARLAR', /([A-Za-z_][A-Za-z0-9_]*)\s*:/g],
+  ['ISLEVLER', /([A-Za-z_][A-Za-z0-9_]*)\s*:/g],
+]) {
+  const say = new Map()
+  for (const e of blokMetni(ad).matchAll(desen)) say.set(e[1], (say.get(e[1]) || 0) + 1)
+  for (const [k, n] of say) if (n > 1) ciftSatir.push(`${ad} → ${k} (${n} kez)`)
+}
+
 // Sayılanlar
 const bosluklar = Object.entries(ALANLAR).filter(([, e]) => e.tur === 'yok')
 /* Ölü alan boşluk değil: yazılıyor ama okunmuyor, veritabanına
@@ -327,6 +373,7 @@ bolum(
 )
 bolum('VERİTABANINDA YOK', vtdeYok, 'Eşleme bu sütunu gösteriyor ama veritabani/semalar betiklerinde yok.')
 bolum('İŞLEV', islevSorunu, 'veritabani/uygulama-eslesmesi.mjs → ISLEVLER ile veri.js aynı olmalı.')
+bolum('ÇİFT SATIR', ciftSatir, 'veritabani/uygulama-eslesmesi.mjs: satırlardan biri kalmalı, notları birleştirilerek.')
 
 if (sinanmayanAnahtar.length) {
   console.log('')
@@ -344,7 +391,7 @@ if (sinanmayanAlan.length) {
    EN SONDA OLMAK ZORUNDA: `npm run dogrula` düşen sınamanın yalnız son
    12 satırını basıyor. */
 
-const dusen = yeniAnahtar.length + yeniAlan.length + vtdeYok.length + islevSorunu.length + patlayan.length
+const dusen = yeniAnahtar.length + yeniAlan.length + vtdeYok.length + islevSorunu.length + ciftSatir.length + patlayan.length
 const ilk = (l) => (l.length ? '   ' + l.slice(0, 2).join(' · ') + (l.length > 2 ? ' …' : '') : '')
 
 console.log('')
@@ -352,6 +399,7 @@ console.log(`  YENİ ANAHTAR       ${String(yeniAnahtar.length).padStart(4)}${il
 console.log(`  YENİ ALAN          ${String(yeniAlan.length).padStart(4)}${ilk(yeniAlan)}`)
 console.log(`  VERİTABANINDA YOK  ${String(vtdeYok.length).padStart(4)}${ilk(vtdeYok)}`)
 console.log(`  İŞLEV              ${String(islevSorunu.length).padStart(4)}${ilk(islevSorunu)}`)
+console.log(`  ÇİFT SATIR         ${String(ciftSatir.length).padStart(4)}${ilk(ciftSatir)}`)
 console.log(
   `  bilinen boşluk     ${String(bosluklar.length + anahtarBosluklari.length).padStart(4)}   ` +
     `sunucu aşamasının iş listesi (eşlemede "yok") · ölü alan ${oluler.length}`,

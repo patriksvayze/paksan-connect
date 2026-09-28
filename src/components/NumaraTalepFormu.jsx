@@ -3,7 +3,7 @@ import { useApp } from '../context/AppState'
 import { useDil } from '../i18n'
 import { TelefonAlani } from './TelefonAlani'
 import { araProps, telAnahtar, telKullanici } from '../lib/tel'
-import { formatSerial, normalizeSerial } from '../lib/serial'
+import { formatSerial, normalizeSerial, seriDuzelt } from '../lib/serial'
 import {
   acikNumaraTalebi, numaraTalebiGonder, seriCakismasiTalebi, SERI_CAKISMASI,
 } from '../lib/numaraTalebi'
@@ -111,7 +111,12 @@ export function NumaraTalepFormu({
       user,
       yeniUlke: ulke,
       yeniTel: tel,
-      seri: normalizeSerial(seri),
+      /* Kanıt seri, etiketi okurken karışan O/0 ve I/1 düzeltilerek
+         yazılıyor (25 Eylül 2026, kullanıcı sınaması Y2; lib/serial.js →
+         seriDuzelt): kayıtlı makineler de o biçimde saklanıyor. Uzunluk
+         kapısı gevşek kalıyor: eski, bozuk seriyle kaydı olan müşteri de
+         kanıt yazabilsin. */
+      seri: seriDuzelt(seri),
     })
     setGonderiliyor(false)
     setSonuc(talep)

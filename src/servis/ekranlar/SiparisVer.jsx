@@ -19,7 +19,8 @@ import {
   parcaAra,
   parcaBul,
 } from '../../lib/parcaKatalogu'
-import { parcaServisFiyati, siparisTutari, yuzdeYap } from '../../lib/servisFiyat'
+import { bakiyeYetmiyor as bakiyeYetmiyorMu, parcaServisFiyati, siparisTutari, yuzdeYap } from '../../lib/servisFiyat'
+import { siparisOzeti } from '../../lib/servisKaydi'
 import { Bolum, Onay } from '../Kabuk'
 import { DikteliKutu } from '../Dikte'
 import { ParcaKarti } from '../ParcaKarti'
@@ -122,7 +123,11 @@ import {
    sadece bakiye gözüksün"). Eksik tutar satırı kaldırıldı; kapalı
    seçeneğin sebebi, hemen üstündeki genel toplamla yan yana okunan
    bakiye. Faturayla seçeneğinin açıklaması da kullanıcının cümlesi:
-   "Ödemeler ay sonu yapılır."
+   "Ödemeler ay sonu yapılır." Kapalı olmasının nedeni 25 Eylül
+   2026'dan beri seçeneklerin ALTINDA tek, rakamsız cümle: açıklamasız
+   kapalı düğme çıkmaz sokaktı ve servis bakiyeyi toplamla kendisi
+   karşılaştırmak zorundaydı (kullanıcı sınaması). Kutunun içi
+   kullanıcının istediği gibi yalnız bakiye.
 
    BAKİYEDEN ÖDEMEDE EK İNDİRİM (24 Eylül 2026). PAKSAN bakiyeden
    ödenen siparişe servisin yedek parça indirimine ek bir indirim
@@ -156,7 +161,7 @@ import {
    fiyattan; kaydın canlı katalogla yeniden hesaplanması gerekmiyor.
    ========================================================================== */
 
-export function SiparisVer({ oturum, onKapat, onVerildi }) {
+export function SiparisVer({ oturum, surum, onKapat, onVerildi }) {
   const [adim, setAdim] = useState('secim')
   /* Seçim kod → adet. Ad anahtar olarak kullanılmıyor: katalogda
      tekrar eden adlar var, ikisi tek satıra düşerdi. */
@@ -182,6 +187,19 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
     void iskontoSurum
     return bakiyeIskontosuGetir()
   }, [iskontoSurum])
+
+  /* BAŞKA SEKMEDE DEĞİŞEN ORAN KARTLARA DÜŞÜYOR (25 Eylül 2026, kullanıcı
+     sınaması O7). `surum` Servisim'in tazeleme sayacı (ServisPanel.jsx):
+     PAKSAN indirimi ya da bakiyeyi değiştirince kartlardaki fiyat ve
+     bakiye yeniden okunuyor. Onay penceresi açıkken DOKUNULMUYOR:
+     pencerede görünen tutar kaydedilecek tutar ("ONAYDA GÖRÜLEN TUTAR
+     BAĞLAYICI"). Pencere kapanınca (Vazgeç) bekleyen değişiklik okunuyor:
+     `onay` da bağımlılıkta; yoksa pencere açıkken gelen değişiklik bir
+     sonraki depo olayına kadar kartlara düşmüyordu (25 Eylül 2026,
+     inceleme). */
+  useEffect(() => {
+    if (!onay) setIskontoSurum((x) => x + 1)
+  }, [surum, onay]) // eslint-disable-line react-hooks/exhaustive-deps
 
   /* Katalog ağdan iniyor; üç hâl de gerçek. Servis kaydındaki parça
      seçimiyle aynı yükleme ve hata yüzeyi kullanılıyor. */
@@ -286,9 +304,15 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
     [sepet, bakiyeOrani],
   )
 
+  /* Seçeneğin altındaki cümle yalnız gerçekten bakiye yetmediğinde:
+     fiyatı olmayan parça yüzünden toplam sıfırsa kapalılığın nedeni
+     bakiye değil (lib/servisFiyat.js → bakiyeYetmiyor). */
+  const bakiyeYetmiyor = bakiyeYetmiyorMu(bakiye, bakiyeHesabi.toplam)
   /* Bakiye siparişin KDV dâhil tutarını — ek indirim düşülmüş hâlini —
-     karşılıyor mu? Karşılamıyorsa seçenek kapalı. */
-  const bakiyeYeter = bakiye >= bakiyeHesabi.toplam && bakiyeHesabi.toplam > 0
+     karşılıyor mu? Karşılamıyorsa seçenek kapalı. Aynı işlevden: veri
+     katmanının reddi de onu çağırıyor (veri.js → servisParcaSiparisi);
+     ekranın "yeter" dediği sipariş reddedilmesin (25 Eylül 2026, inceleme). */
+  const bakiyeYeter = bakiyeHesabi.toplam > 0 && !bakiyeYetmiyor
   const gecerliOdeme = bakiyeYeter ? odeme : 'fatura'
   const hesap = gecerliOdeme === 'bakiye' ? bakiyeHesabi : faturaHesabi
 
@@ -395,7 +419,7 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
   })
 
   if (adim === 'sonuc' && siparis) {
-    return <Sonuc siparis={siparis} hesap={hesap} onBitir={onVerildi} />
+    return <Sonuc siparis={siparis} onBitir={onVerildi} />
   }
 
   if (adim === 'onay') {
@@ -419,6 +443,7 @@ export function SiparisVer({ oturum, onKapat, onVerildi }) {
           bakiye={bakiye}
           ayrilan={bakiyeBilgi.ayrilan}
           bakiyeYeter={bakiyeYeter}
+          bakiyeYetmiyor={bakiyeYetmiyor}
           bakiyeOrani={bakiyeOrani}
           hata={hata}
           onGeri={() => {
@@ -771,6 +796,7 @@ function Ozet({
   bakiye,
   ayrilan = 0,
   bakiyeYeter,
+  bakiyeYetmiyor,
   bakiyeOrani,
   hata,
   onGeri,
@@ -876,8 +902,10 @@ function Ozet({
       {/* ÖDEME BİÇİMİ.
 
           Bakiye yetmiyorsa seçenek kapalı. İçinde yalnız bakiye yazıyor
-          (kullanıcının isteği, 24 Eylül 2026); kapalı olmasının sebebi
-          üstteki genel toplamla bakiyenin yan yana okunması. Ek indirim
+          (kullanıcının isteği, 24 Eylül 2026). Kapalı olmasının nedeni
+          seçeneklerin altında tek cümle, rakamsız (25 Eylül 2026,
+          kullanıcı sınaması): açıklamasız kapalı düğme çıkmaz sokaktı;
+          eksik tutar kullanıcının kararıyla geri gelmiyor. Ek indirim
           varsa rozeti başlığın yanında — kapalıyken de görünüyor. */}
       <Bolum ad="Ödeme">
         <div className="secenek">
@@ -896,6 +924,7 @@ function Ozet({
               (bakiyeYeter ? '' : ' buyuk-sec--kapali')
             }
             disabled={!bakiyeYeter}
+            aria-describedby={bakiyeYetmiyor ? 'bakiye-yetmiyor' : undefined}
             onClick={() => onOdeme('bakiye')}
           >
             <span className="buyuk-sec__ad">
@@ -911,6 +940,11 @@ function Ozet({
             </span>
           </button>
         </div>
+        {bakiyeYetmiyor && (
+          <p id="bakiye-yetmiyor" className="ipucu" style={{ marginTop: 8 }}>
+            Kullanılabilir bakiyeniz yetmediği için bu sipariş faturayla verilecek.
+          </p>
+        )}
       </Bolum>
 
       <Bolum ad="Teslimat adresi">
@@ -951,8 +985,15 @@ function Ozet({
 
 /* -------------------------------------------------------------- 3. Sonuç */
 
-function Sonuc({ siparis, hesap, onBitir }) {
-  const adet = Object.values(siparis.parcaAdet || {}).reduce((t, n) => t + Number(n), 0)
+/* TUTAR TEK YERDEN (25 Eylül 2026, kullanıcı sınaması O1). Başarı
+   ekranı KDV hariç ara toplamı yazıyordu; liste, onay penceresi ve Hak
+   Ediş KDV dâhil tutarı. Servis aynı siparişi iki ekranda iki rakamla
+   görüyordu ("SİPARİŞİN TUTARI HER EKRANDA KDV DÂHİL"). Kalem, adet ve
+   tutar artık Parça listesindeki kartla aynı işlevden
+   (lib/servisKaydi.js → siparisOzeti); adet de satırlardan sayılıyor,
+   `parcaAdet`ten değil. KDV notu her zaman yazıyor: toplam KDV dâhil. */
+function Sonuc({ siparis, onBitir }) {
+  const ozet = siparisOzeti(siparis)
 
   return (
     <div className="siparis-sonuc">
@@ -960,9 +1001,7 @@ function Sonuc({ siparis, hesap, onBitir }) {
       <h2>Siparişiniz {markaEk('a')} İletildi</h2>
       <p className="mono siparis-sonuc__no">{siparis.no}</p>
       <p className="kucuk sonuk">
-        {(siparis.parcalar || []).length} kalem · {adet} adet ·{' '}
-        {paraYaz(hesap.araToplam)} {PARA_BIRIMI}
-        {KDV_HARIC_LISTE ? ' (KDV hariç)' : ''}
+        {ozet.kalem} kalem · {ozet.adet} adet · {paraYaz(ozet.toplam)} {PARA_BIRIMI} (KDV dâhil)
       </p>
       <p className="kucuk sonuk">
         Siparişin durumunu Parça bölümünden takip edebilirsiniz. {MARKA}{' '}

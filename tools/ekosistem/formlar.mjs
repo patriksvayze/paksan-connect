@@ -152,4 +152,19 @@ export const FORMLAR = [
     defter: 'duyurular',
     bicim: 'liste',
   },
+  {
+    /* 25 Eylül 2026 (kullanıcı sınaması): boş görüş kaydedilmiyordu ama
+       ekran bir şey söylemiyordu. Uyarı artık görünür bir kutuda; tur
+       yalnız kayıt yazılmadığını sınıyor (uyarının metni Codex'in).
+       Form Profil'deki bir pencerede: önce onu açan düğme (`tikla`,
+       ekrandaki yazısıyla değil `data-eylem` ile bulunuyor). */
+    kod: 'F-11',
+    ad: 'Geri Bildirim — boş gönderim',
+    uygulama: 'connect',
+    yol: '/profil',
+    tikla: '[data-eylem=geri-bildirim]',
+    dugme: '.sheet .btn--primary',
+    defter: 'geribildirim',
+    bicim: 'liste',
+  },
 ]

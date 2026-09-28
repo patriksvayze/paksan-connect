@@ -5,19 +5,22 @@ import {
   formatSerial,
   matchProduct,
   normalizeSerial,
+  seriDuzelt,
   validateSerial,
   warrantyStatus,
   GARANTI_YIL,
 } from '../../lib/serial'
-import { telGiris } from '../../lib/tel'
+import { kayitTelGoster, telGiris } from '../../lib/tel'
 import {
   ASAMA,
   YAPILAN_IS,
+  buZiyaretinKaydi,
   eksikAlanlar,
   hakkedisHesapla,
   iscilikAlanlari,
   saatGirdisi,
   saatYaz,
+  talepNedeni,
   temizParcalar,
 } from '../../lib/servisKaydi'
 import { ekYaz, fotoKucult } from '../../lib/ekler'
@@ -128,7 +131,12 @@ const GARANTI_METNI = {
 }
 
 export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
-  const onceki = talep.servisKaydi || null
+  /* Form yalnız BU ZİYARETİN kaydından doluyor (26 Eylül 2026, ikinci
+     kullanıcı sınaması). Yeniden açılan işte `servisKaydi` geçen
+     ziyaretin kaydı; form onun yapılan işi, km'si ve süresiyle açılıyor,
+     parça isteği o değerlerle gidiyordu (bkz. lib/servisKaydi.js →
+     buZiyaretinKaydi). */
+  const onceki = buZiyaretinKaydi(talep)
   /* İkinci aşama: 1. aşamada parça istenmiş, parça gelmiş, servis
      takmış. Kalan tek soru işin kendisi ve hak ediş. */
   const ikinci = onceki?.asama === ASAMA.parca
@@ -141,7 +149,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
   const [tel, setTel] = useState(talep.tel || '')
   const [adres, setAdres] = useState(talep.adres || talep.fatura?.adres || '')
   const [seri, setSeri] = useState(talep.makine?.serial || '')
-  const [ariza, setAriza] = useState(onceki?.ariza || talep.aciklama || '')
+  const [ariza, setAriza] = useState(onceki?.ariza || talepNedeni(talep))
   const [yapilanIs, setYapilanIs] = useState(onceki?.yapilanIs || '')
   const [sonuc, setSonuc] = useState(onceki?.sonuc || '')
   const [parcalar, setParcalar] = useState(onceki?.parcalar || [])
@@ -158,7 +166,12 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
      Adres" bölümü). Yalnız parça isteğinde soruluyor. */
   const [teslimat, setTeslimat] = useState(onceki?.teslimat || null)
 
-  const seriDegeri = seri.trim() || talep.makine?.serial || ''
+  /* SERİ, KAYDA GİDECEĞİ BİÇİMİYLE OKUNUYOR (25 Eylül 2026, kullanıcı
+     sınaması Y2). Etiketi okuyan O ile 0'ı, I ile 1'i karıştırıyor;
+     doğrulama bunu düzeltip kabul ediyor (lib/serial.js → seriDuzelt).
+     Ekran ham yazıdan modeli ve yılı çıkarıyordu, kayda da düzeltilmemiş
+     hâl gidiyordu: "SYNS2O24…" yılsız görünüp öyle saklanıyordu. */
+  const seriDegeri = (seri.trim() && seriDuzelt(seri)) || talep.makine?.serial || ''
   /* Talep seri numarası olmadan açıldı (ElleKayit → seriYok): numara
      sorulmuyor, yerinde "Yok" yazıyor; makine talepteki model ve
      tahmini yıldan okunuyor. */
@@ -260,16 +273,21 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
   const [onayUcreti, setOnayUcreti] = useState(null)
   const urunId = urun?.id || talep.makine?.productId || null
   const tarife = (onay && onayUcreti?.tarife) || servisinTarifesi(oturum.servisId, urunId)
+  /* Parça isteğinde yapılan iş, yol ve işçilik SORULMUYOR (yukarıda
+     `paraSorulur`), kayda da gitmiyor. Önce formun durumundan
+     gidiyordu: kutular gizliyken içlerindeki değer (yeniden açılan işte
+     geçen ziyaretinki) parça isteğinin yanında PAKSAN'a ulaşıyordu.
+     Veri katmanı da aynısını yapıyor (veri.js → servisKaydiGonder). */
   const kayit = {
     asama,
     kapi: 'garanti',
-    yapilanIs,
+    yapilanIs: isBitti ? yapilanIs : '',
     sonuc,
     parcalar,
     foto,
-    km: Number(km) || 0,
+    km: isBitti ? Number(km) || 0 : 0,
     kmUcreti: tarife.yolKm,
-    ...iscilikAlanlari(saat, tarife.iscilikSaat),
+    ...iscilikAlanlari(isBitti ? saat : 0, tarife.iscilikSaat),
     ...(onay && onayUcreti ? { ucretZamani: onayUcreti.zaman } : {}),
   }
   const hakkedis = hakkedisHesapla(kayit)
@@ -337,7 +355,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
       ...(parcaIstegi ? { teslimat: teslimatTemizle(teslimat) } : {}),
       musteri: { ad: ad.trim(), tel: telGiris(tel), adres: adres.trim() },
       makine: seri.trim()
-        ? { serial: normalizeSerial(seri), productId: urun?.id || null }
+        ? { serial: seriDuzelt(seri), productId: urun?.id || null }
         : null,
       ariza: ariza.trim(),
     }
@@ -436,7 +454,9 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
                 ipucu="05xx xxx xx xx"
               />
             ) : (
-              <Satir ad="Telefon" deger={tel} />
+              /* Talepteki numara tek biçimde, ülke koduyla (lib/tel.js →
+                 kayitTelGoster; 25 Eylül 2026, kullanıcı sınaması). */
+              <Satir ad="Telefon" deger={kayitTelGoster(talep)} />
             )}
 
             {eksik.includes('adres') ? (
@@ -466,7 +486,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
             {urun && <Satir ad="Makine" deger={urun.name} />}
             {urun?.code && <Satir ad="Kod" deger={urun.code} mono />}
             {extractYear(seriDegeri) && (
-              <Satir ad="İmal Yılı" deger={String(extractYear(seriDegeri))} />
+              <Satir ad="Üretim Yılı" deger={String(extractYear(seriDegeri))} />
             )}
             {/* SERİSİZ AÇILAN TALEP (24 Eylül 2026, bkz. ElleKayit.jsx
                 başı): model ve tahmini yıl talebi açarken yazıldı. Seri
@@ -477,7 +497,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
               <>
                 <Satir ad="Makine" deger={getProduct(talep.makine.productId)?.name} />
                 {talep.makine.tahminiYil && (
-                  <Satir ad="Tahmini İmal Yılı" deger={String(talep.makine.tahminiYil)} />
+                  <Satir ad="Tahmini Üretim Yılı" deger={String(talep.makine.tahminiYil)} />
                 )}
               </>
             )}

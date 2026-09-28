@@ -8,6 +8,7 @@ import {
   kullaniciAdiOner,
   hizmetTarifesiGetir,
   servisTarifesiniKaydet,
+  bakiyeDurumu,
 } from '../veri'
 import {
   HizmetUcretleriKarti,
@@ -19,7 +20,7 @@ import {
 } from './HizmetUcretleri'
 import { sifreHazirla } from '../../lib/hesap'
 import { useVeri } from '../kanca'
-import { SERVISLER, SERVIS_TURU, bayileriGetir } from '../../marka'
+import { SERVISLER, SERVIS_TURU, bayileriGetir, PARA_BIRIMI, paraYaz } from '../../marka'
 import { ILLER, ilceleriGetir } from '../../data/iller'
 import { Baslik, Bekleme, Bos, siraliListe, SiraliBaslik, tarihYaz, useSiralama } from './ortak'
 import { Secim, SuzgecCubugu } from './suzgec'
@@ -133,6 +134,21 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
     return hizmetTarifesiGetir()
   }, [surum])
 
+  /* SERVİSİN BAKİYESİ LİSTEDE (28 Eylül 2026, kullanıcının kararı:
+     Servis ve Yedek Parça personeli "görsünler"). Bakiye yalnız
+     Raporlar'ın servis karnesindeydi ve iki rolün raporlar izni yok: hak
+     edişi onaylayan ve bakiyeden ödenen siparişi gönderen personel
+     servisin bakiyesini hiçbir yerde göremiyordu (ikinci kullanıcı
+     sınaması). Servisler ekranını gören herkes görüyor; ayrı izin yok.
+     Hesap tek yerden: veri.js → bakiyeDurumu (Servisim'in Hak Ediş'i ve
+     sipariş kuralı da onu okuyor). Gönderilmeyi bekleyen bakiye
+     siparişi varsa kullanılabilir kısım altında. */
+  const bakiyeler = useMemo(() => {
+    void surum
+    return Object.fromEntries(tumServisler.map((b) => [b.id, bakiyeDurumu(b.id)]))
+  }, [tumServisler, surum])
+  const para = (n) => `${paraYaz(n)} ${PARA_BIRIMI}`
+
   const iller = [...new Set(tumServisler.map((b) => b.il).filter(Boolean))].sort((a, b) =>
     a.localeCompare(b, 'tr')
   )
@@ -177,6 +193,7 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
     konum: (b) => b.il,
     tel: (b) => b.tel,
     bayi: (b) => (b.bayiler || []).length,
+    bakiye: (b) => bakiyeler[b.id]?.bakiye || 0,
   })
 
   /* Süzgeç açıkken bile kaydetme bütün listeyi yazıyor; ekranda
@@ -286,6 +303,17 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
         <span className="suzgec-cubugu__sayi">{liste.length} servis</span>
       </SuzgecCubugu>
 
+      {/* YETKİSİZ ROL NEDENİNİ OKUYOR (26 Eylül 2026, ikinci kullanıcı
+          sınaması). Servis ve Yedek Parça rolünde satırlarda Düzenle yok;
+          ekran bunu söylemiyordu, personel satıra tıklayıp bir şey
+          olmasını bekledi. Kayıtlı Makineler'in yetki cümlesiyle aynı
+          kalıp. */}
+      {!duzenleyebilir && (
+        <p className="kucuk sonuk" style={{ margin: '0 0 12px' }}>
+          Servis kayıtlarını düzenleme yetkiniz yok. Değişiklik gerekiyorsa yöneticinize başvurun.
+        </p>
+      )}
+
       <div className="kart">
         {yukleniyor ? (
           <Bekleme satir={5} />
@@ -308,6 +336,7 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
                   <SiraliBaslik ad="Telefon" alan="tel" siralama={siralama} onSirala={cevir} />
                   <SiraliBaslik ad="Bayi" alan="bayi" siralama={siralama} onSirala={cevir} />
                   <th>Ücret</th>
+                  <SiraliBaslik ad="Bakiye" alan="bakiye" siralama={siralama} onSirala={cevir} />
                   {duzenleyebilir && <th style={{ width: 1 }}></th>}
                 </tr>
               </thead>
@@ -336,6 +365,12 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
                     </td>
                     <td>
                       <ServisUcretHucresi tarife={tarife} servisId={b.id} />
+                    </td>
+                    <td className="kucuk" style={{ whiteSpace: 'nowrap' }} data-bakiye={b.id}>
+                      <div style={{ fontWeight: 700 }}>{para(bakiyeler[b.id]?.bakiye || 0)}</div>
+                      {bakiyeler[b.id]?.ayrilan > 0 && (
+                        <div className="sonuk">Kullanılabilir: {para(bakiyeler[b.id].kullanilabilir)}</div>
+                      )}
                     </td>
                     {duzenleyebilir && (
                       <td>

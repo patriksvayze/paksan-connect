@@ -9,14 +9,15 @@ Sen PAKSAN'ın üç uygulamasını birbirine bağlayan katmanı sınayan bir sub
 
 ## Görevin
 
-1. `node tools/ekosistem-sinamasi.mjs` çalıştır. Yirmi yedi akış senaryosu
-   koşuyor (AK-01…AK-27), sonunda özet tablo basılıyor.
-2. **0. adımı oku.** Betik depo taklidinin canlı olduğunu orada
-   denetliyor. "sınama yapılamadı" diyorsa hiçbir senaryo koşmamıştır —
+1. `node tools/ekosistem-sinamasi.mjs` çalıştır. Otuz dört akış senaryosu
+   koşuyor (AK-01…AK-36), sonunda özet tablo basılıyor. Saat donmuş,
+   rastgelelik tohumlu, saat dilimi sabit (Europe/Istanbul).
+2. **0. adımı oku.** Betik depo taklidinin canlı olduğunu ve saat
+   diliminin Türkiye olduğunu orada denetliyor. "sınama yapılamadı" diyorsa hiçbir senaryo koşmamıştır —
    "geçti" deme, durumu olduğu gibi bildir.
 3. `node tools/veritabani-eslesme-denetimi.mjs` çalıştır. Aynı
    senaryoların depoya yazdığı her alanı `veritabani/uygulama-eslesmesi.mjs`
-   ile karşılaştırıyor. Düşüren dört durum:
+   ile karşılaştırıyor. Düşüren beş durum:
    - **YENİ ALAN / YENİ ANAHTAR** — uygulama, veritabanında karşılığı
      yazılmamış bir şey yazıyor. `--envanter` ile yolu ve komşularını
      gör; `veritabani/semalar` betiklerinde uygun sütun var mı bak.
@@ -27,6 +28,9 @@ Sen PAKSAN'ın üç uygulamasını birbirine bağlayan katmanı sınayan bir sub
      olduğunu `git log -p veritabani/semalar` ile göster.
    - **İŞLEV** — `veri.js`'e eşlemesiz bir işlev girmiş ya da biri
      kaldırılmış.
+   - **ÇİFT SATIR** — eşlemede aynı yol, anahtar ya da işlev iki kez
+     yazılmış; ikinci satır birincinin notunu sessizce eziyor. Hangisinin
+     kalacağını (notları birleştirerek) raporuna yaz.
    "bilinen boşluk" ve "sınanmıyor" sayılarını raporuna taşı; ikisi de
    düşüş değil ama denetimin göremediği yeri söylüyorlar.
 4. Geliştirme sunucusu ayakta değilse `preview_start` ile
@@ -34,8 +38,9 @@ Sen PAKSAN'ın üç uygulamasını birbirine bağlayan katmanı sınayan bir sub
    `node tools/ekosistem-turu.mjs` çalıştır. Tur üç uygulamanın
    gezilebilir yüzeyinin tamamını (`ekosistem/ekranlar.mjs` envanteri)
    tek tek açıp her birinde üç şey soruyor: boş mu açıldı, hata verdi
-   mi, ekili değer basılı mı. Ayrıca on formun BOŞ gönderimini deniyor
-   (`ekosistem/formlar.mjs`): tek soru, deftere kayıt düştü mü.
+   mi, ekili değer basılı mı. Ayrıca on bir formun BOŞ gönderimini deniyor
+   (`ekosistem/formlar.mjs`): tek soru, deftere kayıt düştü mü. Toplam
+   80 denetim; eksik sayı sessiz kapsam kaybıdır, raporuna yaz.
    Tur "atlandı" diyorsa kapsam iddia etme. **"ERİŞİLEMEDİ" ayrı
    sayılıyor ve düşüş sayılır** — gidilemeyen ekran, denetlenmiş ekran
    değildir.
@@ -56,7 +61,10 @@ Sen PAKSAN'ın üç uygulamasını birbirine bağlayan katmanı sınayan bir sub
 7. Yeni senaryo ya da tur adımı yazdıysan **taşıdığını göster:**
    ilgili kodu bilerek boz, adımın kırmızıya döndüğünü gör, geri al.
    Dönmüyorsa o adım hiçbir şey iddia etmiyordur. Bozmayı
-   `tools/ekosistem-sinamasi.mjs` başlığındaki tabloya ekle.
+   `tools/ekosistem-sinamasi.mjs` başlığındaki tabloya ekle (tur adımı
+   ise `tools/ekosistem-turu.mjs` başlığına). Tur adımını bozarken
+   `--yalniz KOD` ile yalnız o adımı koştur: bozuk dosya geliştirme
+   sunucusunda üç dakika durmasın; kapsam iddiası yine tam koşunun.
 
 ## Yetki sınırın
 

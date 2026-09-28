@@ -45,7 +45,7 @@ export default function Home() {
     .map((p) => urunDilde(p, dil))
   /* "Aktif taleplerim" yalnız açık talepleri sayıyor. Önceden bütün
      talepler sayılıyordu; kapanmış, iptal edilmiş ya da bayiye iletilmiş
-     talep de "aktif" görünüyordu. Liste Profil'deki "Açık" sekmesiyle aynı
+     talep de "aktif" görünüyordu. Liste Taleplerim'deki "Açık" sekmesiyle aynı
      (lib/talepEkleme.js → KAPALI_DURUMLAR). */
   const acikTalep = requests.filter((r) => !KAPALI_DURUMLAR.includes(r.status || 'yeni')).length
 
@@ -95,9 +95,10 @@ export default function Home() {
               <Stat
                 v={acikTalep}
                 k={t('anasayfa.aktifTalep')}
-                /* Profil sayfası talep listesinden açılsın; kullanıcı
-                   aradığı yeri kendisi aramasın. */
-                onClick={() => nav('/profil', { state: { odak: 'talepler' } })}
+                /* Talepler kendi ekranında (25 Eylül 2026, kullanıcı
+                   sınaması). Önce Profil'e gidip listeye kaydırıyordu;
+                   başlıkta "Profil" yazıyor, alt menüde Profil yanıyordu. */
+                onClick={() => nav('/taleplerim')}
               />
               {/* Kaç AYRI servis bakıyor. Dokununca Makinelerim ekranının
                   Servislerim sekmesi açılıyor (22 Eylül 2026'dan beri servis

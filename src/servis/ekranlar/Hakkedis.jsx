@@ -41,15 +41,19 @@ import { UcretOzeti } from './Ucretlerim'
    ========================================================================== */
 
 export function Hakkedis({ oturum, onAc, surum, onUcretler }) {
-  const talepler = useMemo(
-    () => servisinTalepleri(talepleriGetir(), oturum.servisId),
-    [oturum.servisId],
-  )
-  const hareketler = useMemo(
-    () => cariHareketleri(oturum.servisId),
-    [oturum.servisId],
-  )
-  const bakiye = cariBakiye(oturum.servisId)
+  /* LİSTE VE BAKİYE AYNI OKUMADAN (25 Eylül 2026, kullanıcı sınaması O3).
+     Talepler ve hareketler yalnız ekran açılınca okunuyordu, bakiye her
+     çizimde: PAKSAN kaydı onaylayınca bakiye güncelleniyor, "Onay
+     Bekleyen" listesi eski kalıyordu. Üçü artık birlikte ve her
+     tazelemede (`surum`: yeni haber, başka sekmenin yazdığı) okunuyor. */
+  const { talepler, hareketler, bakiye } = useMemo(() => {
+    void surum
+    return {
+      talepler: servisinTalepleri(talepleriGetir(), oturum.servisId),
+      hareketler: cariHareketleri(oturum.servisId),
+      bakiye: cariBakiye(oturum.servisId),
+    }
+  }, [oturum.servisId, surum])
   const [secili, setSecili] = useState(null)
 
   /* Gönderilmiş ama onaylanmamış kayıtlar. Servis "param nerede"
@@ -256,7 +260,7 @@ function HareketAyrinti({ hareket: h, talepler, onKapat, onAc }) {
         baslik="Parça Siparişi"
         kalemler={[
           { ad: 'Sipariş no.', deger: t.no },
-          { ad: 'Siparişin tutarı', deger: `${para(hesap.toplam)} (KDV dâhil)` },
+          { ad: 'Genel toplam', deger: `${para(hesap.toplam)} (KDV dâhil)` },
           /* Kalemi iptal edilmiş siparişte ödenecek tutar iptal edilen
              pay kadar az (veri.js → siparisHesabi → net). */
           ...(hesap.iptalEdilen > 0

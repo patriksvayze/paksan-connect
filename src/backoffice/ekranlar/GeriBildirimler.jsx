@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { geriBildirimGetir, geriBildirimNotEkle, geriBildirimOkundu } from '../veri'
 import { useVeri } from '../kanca'
 import { Baslik, Bekleme, Bos, gecenSure, tarihYaz } from './ortak'
+import { kayitTelGoster } from '../../lib/tel'
 
 /* Geri bildirimler.
 
@@ -68,9 +69,12 @@ function Gorus({ gorus, personel, bildir, tazele }) {
       <div className="kalem__gov">
         <div style={{ whiteSpace: 'pre-wrap' }}>{gorus.metin}</div>
 
+        {/* Numara her ekranda aynı biçimde, ülke koduyla (25 Eylül 2026,
+            lib/tel.js → kayitTelGoster). Görüşte hesabın boşluklu numarası
+            ülkesiz duruyordu. Ülkesi yazılmamış eski görüşte Türkiye. */}
         <div className="kalem__alt">
           <span className="mono">{gorus.no || '—'}</span> · {gorus.ad || 'İsimsiz'} ·{' '}
-          <span className="mono">{gorus.tel || '—'}</span> · {gecenSure(gorus.tarih)}
+          <span className="mono">{kayitTelGoster(gorus) || '—'}</span> · {gecenSure(gorus.tarih)}
         </div>
 
         {gorus.okundu && gorus.okuyan && (
