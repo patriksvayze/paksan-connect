@@ -184,7 +184,8 @@ function sonucu(t) {
   return 'yok'
 }
 
-/* Servisin "PAKSAN'dan destek iste" düğmesine bastığı satır mı?
+/* Servisin "PAKSAN'a Devret" düğmesine bastığı satır mı? (Düğmenin adı
+   30 Eylül 2026'ya kadar "PAKSAN'dan Destek İste" idi.)
 
    `destekTalepEt` geçmişe talebin O ANKİ durumunu ve SERVİSİN ADINI
    yazıyor (bkz. veri.js). Durum 'parcaBekliyor' ya da 'onayBekliyor'

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { MARKA, markaEk, PARA_BIRIMI, paraYaz } from '../../marka'
 import {
   extractYear,
@@ -29,6 +29,7 @@ import { Bolum, Onay, Sayfa } from '../Kabuk'
 import { ParcaTablosu } from '../../components/ParcaTablosu'
 import { ParcaSec } from './ParcaSec'
 import { DikteliKutu } from '../Dikte'
+import { alanaGit } from '../../lib/formOdak'
 import { AdresSecici, teslimatHatasi } from '../AdresSecici'
 import { firmaAdresiOnerisi } from '../adresler'
 import { adresYazisi, teslimatTemizle, teslimatYazisi } from '../../lib/teslimat'
@@ -130,6 +131,14 @@ const GARANTI_METNI = {
   garantiDisiUyari: `Kaydı yine de gönderebilirsiniz. Garanti süresi üretim yılına göre hesaplanır; satış tarihi burada yazılı olmadığı için sonradan satılan makinenin garantisi devam ediyor olabilir. Seri numarasını kontrol edin; hâlâ emin değilseniz göndermeden önce ${MARKA} yetkilisiyle doğrulayın.`,
 }
 
+/* OLAĞAN DIŞI UZUN YOL (29 Eylül 2026, kullanıcının onayı). Gidiş-dönüş
+   bu kadar kilometreyi geçince kutunun altında "doğru mu" diye soruluyor;
+   kayıt engellenmiyor. Bir servisin baktığı bölge genelde bir il: ilin
+   bir ucundan öbürüne gidiş-dönüş bu sınırın altında kalıyor. Aceleyle
+   fazladan yazılan bir sıfır (40 yerine 400) hak edişi on kat büyütür;
+   onay penceresinde tutar yazsa da gözden kaçıyordu. */
+const KM_UYARI_SINIRI = 400
+
 export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
   /* Form yalnız BU ZİYARETİN kaydından doluyor (26 Eylül 2026, ikinci
      kullanıcı sınaması). Yeniden açılan işte `servisKaydi` geçen
@@ -165,6 +174,25 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
   /* Parçanın gönderileceği adres (bkz. aşağıda "Parçanın Gönderileceği
      Adres" bölümü). Yalnız parça isteğinde soruluyor. */
   const [teslimat, setTeslimat] = useState(onceki?.teslimat || null)
+
+  /* YAZILAN KAYIT SORULMADAN SİLİNMİYOR (29 Eylül 2026, görünüm önerisi,
+     kullanıcının onayı). "Geri" ya da telefonun geri hareketi yarım
+     doldurulmuş kaydı hiçbir şey sormadan siliyordu; tarlada yanlışlıkla
+     kenardan kaydırılan parmak yarım saatlik yazıyı götürüyordu. Ekran
+     açıldığındaki hâlden bir şey değiştiyse önce soruluyor.
+
+     Teslimat adresinden yalnız ELLE yazılanı sayılıyor: adres seçici
+     açılınca varsayılan kayıtlı adresi kendisi seçiyor
+     (AdresSecici.jsx); o seçim sayılsaydı hiçbir şey yazmayan servise de
+     "yazdıklarınız silinecek" denirdi. Kayıtlı adres tek dokunuşla
+     yeniden seçiliyor, elle yazılan adres ise emek. */
+  const ilkHal = useRef(null)
+  const elleTeslimat = teslimat?.kaynak === 'elle' ? teslimat : null
+  const simdikiHal = JSON.stringify([ad, tel, adres, seri, ariza, yapilanIs, sonuc, parcalar, Boolean(foto), km, saat, elleTeslimat])
+  if (ilkHal.current === null) ilkHal.current = simdikiHal
+  const degisti = simdikiHal !== ilkHal.current
+  const [cikisSor, setCikisSor] = useState(false)
+  const cik = () => (degisti ? setCikisSor(true) : onKapat())
 
   /* SERİ, KAYDA GİDECEĞİ BİÇİMİYLE OKUNUYOR (25 Eylül 2026, kullanıcı
      sınaması Y2). Etiketi okuyan O ile 0'ı, I ile 1'i karıştırıyor;
@@ -312,30 +340,40 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
      Formun kendi soruları. Model katmanına ancak hepsi doluysa
      gidiliyor; sıra ekrandaki sıranın aynısı, böylece hata mesajı hep
      en yukarıdaki eksiği gösteriyor. */
+  /* Her uyarı ait olduğu alanla birlikte dönüyor: [alan, metin]
+     (29 Eylül 2026, görünüm önerisi S2). Uyarı sayfanın dibinde, düğmenin
+     üstünde çıkıyordu; eksik alan iki ekran yukarıdayken servis düğmeye
+     bastı, yazı çıktı ama neyin eksik olduğunu görmedi. Alan artık ekrana
+     kayıp işaretleniyor, yazı kutusuysa imleç içine geliyor
+     (lib/formOdak.js). */
   function formHatasi() {
     if (!ikinci) {
-      if (eksik.includes('ad') && ad.trim().length < 3) return 'Müşterinin adını ve soyadını yazın.'
+      if (eksik.includes('ad') && ad.trim().length < 3) return ['ad', 'Müşterinin adını ve soyadını yazın.']
       if (eksik.includes('tel') && telGiris(tel).replace(/\D/g, '').length < 10) {
-        return 'Telefon numarasını eksiksiz yazın.'
+        return ['tel', 'Telefon numarasını eksiksiz yazın.']
       }
       if (eksik.includes('seri') && seri.trim() && !validateSerial(normalizeSerial(seri)).ok) {
-        return 'Seri numarasını kontrol edip yeniden yazın.'
+        return ['seri', 'Seri numarasını kontrol edip yeniden yazın.']
       }
-      if (ariza.trim().length < 5) return 'Servis talebinin nedenini yazın.'
+      if (ariza.trim().length < 5) return ['ariza', 'Servis talebinin nedenini yazın.']
     }
     if (parcaIstegi) {
       const teslimHatasi = teslimatHatasi(teslimat)
-      if (teslimHatasi) return teslimHatasi
+      if (teslimHatasi) return ['teslimat', teslimHatasi]
     }
     if (sonuc.trim().length < 5) {
-      return parcaIstegi ? 'Tespitinizi yazın.' : 'Yapılan işin ayrıntısını yazın.'
+      return ['sonuc', parcaIstegi ? 'Tespitinizi yazın.' : 'Yapılan işin ayrıntısını yazın.']
     }
     return null
   }
 
   function onaylat() {
     const h = formHatasi()
-    if (h) return setHata(h)
+    if (h) {
+      setHata(h[1])
+      alanaGit(h[0])
+      return
+    }
     setHata('')
     setOnayUcreti({ tarife: servisinTarifesi(oturum.servisId, urunId), zaman: Date.now() })
     setOnay(true)
@@ -361,7 +399,20 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
     }
     const sonucKayit = servisKaydiGonder(talep, tam, oturum.ad)
     if (sonucKayit.hata) return setHata(sonucKayit.hata)
-    onBitti()
+    /* Ne olduğu listeye dönünce yeşil şeritte yazıyor (29 Eylül 2026,
+       S2): kayıt gönderilince ekran sessizce listeye dönüyordu; parasını
+       bu kayıtla alan servis gittiğinden emin olamıyordu. */
+    onBitti(
+      parcaIstegi
+        ? {
+            baslik: 'Parça isteğiniz gönderildi',
+            alt: 'Parça yola çıkınca size haber verilecek. İş, Devam Eden sekmesinde.',
+          }
+        : {
+            baslik: `Kaydınız ${markaEk('a')} gönderildi`,
+            alt: `Onaylanınca ${paraYaz(hakkedis.toplam)} ${PARA_BIRIMI} hesabınıza eklenecek.`,
+          },
+    )
   }
 
   /* Onay yaprağının içeriği. "Ne olacak" bilgisi eskiden formun
@@ -416,7 +467,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
       <Sayfa
         baslik={ikinci ? 'Parçayı Taktım' : 'Servis Kaydı'}
         alt={[talep.no, ad].filter(Boolean).join(' · ')}
-        onGeri={onKapat}
+        onGeri={cik}
         dip={
           <div className="kayit-dip">
             {paraSorulur && (
@@ -440,7 +491,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
         {!ikinci && (
           <Bolum ad="Müşteri ve Makine">
             {eksik.includes('ad') ? (
-              <Kutu ad="Adı Soyadı" deger={ad} onDegis={setAd} />
+              <Kutu ad="Adı Soyadı" alan="ad" deger={ad} onDegis={setAd} />
             ) : (
               <Satir ad="Adı Soyadı" deger={ad} />
             )}
@@ -448,6 +499,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
             {eksik.includes('tel') ? (
               <Kutu
                 ad="Telefon"
+                alan="tel"
                 deger={tel}
                 onDegis={(v) => setTel(telGiris(v))}
                 tur="tel"
@@ -468,6 +520,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
             {eksik.includes('seri') ? (
               <Kutu
                 ad="Seri Numarası"
+                alan="seri"
                 deger={seri}
                 onDegis={setSeri}
                 ipucu="Makinenin üstündeki etiket"
@@ -519,6 +572,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
             <TalepBelirtileri talep={talep} />
             <Kutu
               etiket="Servis Talebi Nedeni"
+              alan="ariza"
               deger={ariza}
               onDegis={setAriza}
               satir={3}
@@ -544,7 +598,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
             kaydı oldu ve şasesiz her formun başında bu uyarı
             belirecekti; dayanağı olmayan uyarı kör edilir. */}
         {!ikinci && seriDegeri && !garantiVar && (
-          <div className="not not--turuncu">
+          <div className="not not--sari">
             <IconAlert size={19} />
             <div>
               <strong>Bu makinenin garantisi görünmüyor.</strong>
@@ -576,6 +630,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
                 adres tek dokunuş; varsayılan zaten seçili geliyor. */}
             {parcaIstegi && (
               <Bolum ad="Teslimat adresi">
+                <div data-alan="teslimat">
                 <AdresSecici
                   servisId={oturum.servisId}
                   deger={teslimat}
@@ -591,6 +646,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
                       : ''
                   }
                 />
+                </div>
               </Bolum>
             )}
 
@@ -629,6 +685,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
             />
             <Kutu
               ad="Ayrıntı"
+              alan="sonuc"
               deger={sonuc}
               onDegis={setSonuc}
               satir={3}
@@ -642,6 +699,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
           <Bolum ad="Tespitiniz">
             <Kutu
               etiket="Tespitiniz"
+              alan="sonuc"
               deger={sonuc}
               onDegis={setSonuc}
               satir={3}
@@ -660,6 +718,11 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
               tur="sayi"
               ipucu={`Gidiş ve dönüş toplamı · kilometre başına ${paraYaz(tarife.yolKm)} ${PARA_BIRIMI}`}
             />
+            {Number(km) > KM_UYARI_SINIRI && (
+              <p className="kutu-uyari" role="status">
+                {km} km olağandan fazla görünüyor. Gidiş ve dönüş toplamını kontrol edin.
+              </p>
+            )}
             {/* Süre yarım saatle yazılabiliyor: rakam ve tek bir virgül,
                 virgülden sonra tek hane. Nokta yazan da virgüle çevriliyor. */}
             <Kutu
@@ -693,6 +756,19 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
 
         {hata && <div className="uyari">{hata}</div>}
       </Sayfa>
+
+      {cikisSor && (
+        <Onay
+          baslik="Kayıt gönderilmedi"
+          metin="Şimdi çıkarsanız bu ekrana yazdıklarınız silinecek."
+          dugme="Yazdıklarımı Sil ve Çık"
+          onOnayla={() => {
+            setCikisSor(false)
+            onKapat()
+          }}
+          onVazgec={() => setCikisSor(false)}
+        />
+      )}
 
       {onay && (
         <Onay
@@ -767,21 +843,23 @@ function Satir({ ad, deger, mono }) {
 
    Çok satırlı kutunun içinde sesle yazma şeridi var (bkz. Dikte.jsx);
    tek satırlık kutular ad, telefon, şase, km ve tutar — onlarda yok. */
-function Kutu({ ad, etiket, deger, onDegis, satir, ipucu, tur }) {
+function Kutu({ ad, etiket, alan, deger, onDegis, satir, ipucu, tur }) {
   if (satir) {
     return (
-      <DikteliKutu
-        ad={ad}
-        etiket={etiket}
-        deger={deger}
-        onDegis={onDegis}
-        satir={satir}
-        ipucu={ipucu && <span className="alan__ipucu">{ipucu}</span>}
-      />
+      <div data-alan={alan}>
+        <DikteliKutu
+          ad={ad}
+          etiket={etiket}
+          deger={deger}
+          onDegis={onDegis}
+          satir={satir}
+          ipucu={ipucu && <span className="alan__ipucu">{ipucu}</span>}
+        />
+      </div>
     )
   }
   return (
-    <label className="alan">
+    <label className="alan" data-alan={alan}>
       {ad && <span className="alan__ad">{ad}</span>}
       {satir ? (
         <textarea
@@ -853,7 +931,10 @@ function SecilenParcalar({ ad, ipucu, secili, onAdet, onCikar, onKatalog }) {
       {secili.length > 0 && (
         <div className="parca-liste" style={{ marginBottom: 12 }}>
           {secili.map((p) => (
-            <div key={p.kod} className="parca-satir parca-satir--on">
+            /* İki satır (29 Eylül 2026, görünüm önerisi S9): üstte parça,
+               altta adet ve yazılı "Kaldır". Çöp kutusu tek başına bir
+               simgeydi; yanına yazı sığmıyordu. */
+            <div key={p.kod} className="parca-satir parca-satir--on parca-satir--iki">
               <span className="parca-satir__ac" style={{ cursor: 'default' }}>
                 <span className="parca-satir__ad">
                   {p.ad}
@@ -881,11 +962,12 @@ function SecilenParcalar({ ad, ipucu, secili, onAdet, onCikar, onKatalog }) {
                   <IconPlus size={19} />
                 </button>
                 <button
-                  className="stok-dus"
+                  className="parca-satir__kaldir"
                   onClick={() => onCikar(p.kod)}
                   aria-label={p.ad + ' satırını kaldır'}
                 >
-                  <IconTrash size={18} />
+                  <IconTrash size={17} />
+                  Kaldır
                 </button>
               </div>
             </div>

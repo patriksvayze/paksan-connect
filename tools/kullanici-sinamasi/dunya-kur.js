@@ -46,9 +46,9 @@ export default async function dunyaKur() {
     konumUlke: 'TR',
     il: 'Konya',
     ilce: 'Selçuklu',
-    adres: 'Karkın köyü, kooperatifin arkası, Selçuklu / Konya',
+    adres: 'Tatköy Mahallesi, kooperatifin arkası, Selçuklu / Konya',
     satici: 'PAKSAN Konya Ana Bayi',
-    onaylar: { aydinlatma: true, acikRiza: true, kampanya: true, surum: '1.0', tarih: simdi },
+    onaylar: { aydinlatma: true, acikRiza: true, kampanya: true, surum: '1.1', tarih: simdi },
     bildirim: { izin: 'verildi', tarih: simdi },
   }
   const makine = {

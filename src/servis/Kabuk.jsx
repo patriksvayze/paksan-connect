@@ -1,5 +1,6 @@
+import { useRef } from 'react'
 import { Logo } from '../marka'
-import { IconBack, IconPhone, IconPlus } from '../components/Icons'
+import { IconBack, IconCheckCircle, IconPhone, IconPlus } from '../components/Icons'
 import { ParcaTablosu } from '../components/ParcaTablosu'
 import { ParcaResmi, useParcaKatalogu } from '../components/ParcaResmi'
 import { GeriKatmani, useGeri } from './geri'
@@ -156,6 +157,45 @@ export function Sayfa({ baslik, alt, onGeri, islem, dip, children }) {
   )
 }
 
+/* YAPILANIN ÖZETİ (29 Eylül 2026, görünüm önerisi S2). Kayıt, randevu,
+   iptal ya da kapatmadan sonra liste sessizce açılıyordu; en önemli anın
+   (kaydı gönderdim, ne kadar alacağım) bir cevabı yoktu. Şerit listenin
+   ya da iş ayrıntısının başında, alt menünün üstüne binmiyor; ne
+   olduğunu, işin nereye geçtiğini ve para varsa tutarı söylüyor. Ekran
+   okuyucuya da okunuyor (role="status"). Durumu ve süresi
+   ServisPanel.jsx'te (`basari`). */
+export function BasariSeridi({ mesaj }) {
+  return (
+    <div className="basari-serit" role="status">
+      <IconCheckCircle size={24} />
+      <div className="basari-serit__govde">
+        <strong>{mesaj.baslik}</strong>
+        {mesaj.alt && <span>{mesaj.alt}</span>}
+      </div>
+    </div>
+  )
+}
+
+/* AÇILIŞTAN SONRAKİ İLK AN DOKUNUŞ YUTULUYOR (29 Eylül 2026). Pencereyi
+   açan düğmeye iki kez dokunulunca ikinci dokunuş, yeni açılan yaprağın
+   o noktasına düşüyordu: karartılmış zemin (yaprağı kapatır) ya da
+   onay düğmesi (okumadan onaylar). Kapanıştaki kilit
+   (ServisPanel.jsx → GECIS_KILIDI_MS) açılışı kapsamıyordu. Connect'in
+   yaprağındaki kilidin aynısı (components/Chrome.jsx → Sheet); süre
+   Servisim'in öteki kilidiyle aynı. Yaprak açıldığında bağlanıyor, bu
+   yüzden bağlanma anı açılış anı. Perdenin `onClickCapture`'ına verilir. */
+const ACILIS_KILIDI_MS = 350
+
+export function useAcilisKilidi() {
+  const acilis = useRef(Date.now())
+  return (e) => {
+    if (Date.now() - acilis.current < ACILIS_KILIDI_MS) {
+      e.stopPropagation()
+      e.preventDefault()
+    }
+  }
+}
+
 /* ==========================================================================
    Onay yaprağı — geri alınamayan işlemden önce
 
@@ -193,9 +233,11 @@ export function Onay({
 }) {
   /* Geri tuşu "Vazgeç" demek. */
   useGeri(true, () => onVazgec())
+  const kilit = useAcilisKilidi()
   return (
     <div
       className="onay-perde"
+      onClickCapture={kilit}
       onClick={(e) => e.target === e.currentTarget && onVazgec()}
     >
       <div className="onay" role="dialog" aria-label={baslik}>
@@ -247,9 +289,11 @@ export function Yaprak({
   baslik, metin, kalemler = [], parcalar = [], parcaBaslik, dugme, onDugme, onKapat,
 }) {
   useGeri(true, () => onKapat())
+  const kilit = useAcilisKilidi()
   return (
     <div
       className="onay-perde"
+      onClickCapture={kilit}
       onClick={(e) => e.target === e.currentTarget && onKapat()}
     >
       <div className="onay" role="dialog" aria-label={baslik}>
@@ -287,10 +331,13 @@ export function Yaprak({
   )
 }
 
-/** Ekran içi bölüm başlığı. Sayı verilirse adın yanında duruyor. */
-export function Bolum({ ad, sayi, children }) {
+/** Ekran içi bölüm başlığı. Sayı verilirse adın yanında duruyor.
+    Kalan özellikler (`data-bolum` gibi) bölümün kendisine yazılıyor:
+    ekran turu bölümü başlığın kelimesiyle değil bu işaretle buluyor
+    (30 Eylül 2026, Hesap → "Hesabım", tur X-11). */
+export function Bolum({ ad, sayi, children, ...ozellik }) {
   return (
-    <section className="bolum">
+    <section className="bolum" {...ozellik}>
       <h2 className="bolum__ad">
         {ad}
         {sayi > 0 && <span className="bolum__sayi">{sayi}</span>}
@@ -355,10 +402,12 @@ function ParcaSeridi({ parcalar }) {
 }
 
 /**
- * @param {{ad, tur, turAdi, kunye, parcalar, sol, sag, sagGec, gec, onAc, tel, telAd}} p
+ * @param {{ad, tur, turAdi, kunye, parcalar, sol, sag, sagGec, gec, tutar, onAc, tel, telAd}} p
  *        sol/sag: durum satırının iki yakası · sagGec: sağdaki yazı uyarı
  *        rengine geçiyor · gec: kartın sol kenarında kırmızı şerit ·
- *        parcalar: [{kod, gorsel}] verilirse künyenin altında parça görselleri
+ *        parcalar: [{kod, gorsel}] verilirse künyenin altında parça görselleri ·
+ *        tutar: sağdaki yaka para, kartın en büyük yazısı (29 Eylül 2026, S3) ·
+ *        turAdi boşsa tür rozeti çizilmiyor (her kartta aynı rozet gürültü)
  */
 export function ListeKarti({
   ad,
@@ -372,16 +421,17 @@ export function ListeKarti({
   sag,
   sagGec,
   gec,
+  tutar,
   onAc,
   tel,
   telAd,
 }) {
   return (
-    <div className={'is' + (gec ? ' is--gec' : '')}>
+    <div className={'is' + (gec ? ' is--gec' : '') + (tutar ? ' is--tutar' : '')}>
       <button className="is__ac" onClick={onAc}>
         <div className="is__bas">
           <div className="is__ad">{ad}</div>
-          <span className={'tur tur--' + tur}>{turAdi}</span>
+          {turAdi && <span className={'tur tur--' + tur}>{turAdi}</span>}
         </div>
 
         <div className="is__alt">{kunye}</div>

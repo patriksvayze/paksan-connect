@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react'
-import { TopBar } from '../components/Chrome'
+import { Sheet, TopBar } from '../components/Chrome'
 import { ParcaKarti } from '../components/ParcaKarti'
 import {
   destekGrubununGruplari, grubunParcalari, parcaAra,
@@ -110,10 +110,22 @@ export function ParcaSecEkrani({ katalog, grup, secili, onTamam, onVazgec }) {
   /* GERİ KADEME KADEME. Önce arama temizleniyor, sonra açık bölüm
      kapanıyor, en sonda ekran kapanıyor. Telefonda "geri" tek düğme;
      iki kademeyi birden atlarsa seçim kayboldu sanılıyor. Aynı iş
-     hem üst çubuktaki düğmede hem Android'in geri hareketinde. */
+     hem üst çubuktaki düğmede hem Android'in geri hareketinde.
+
+     SEÇİM SORULMADAN ATILMIYOR (29 Eylül 2026, görünüm önerisi;
+     kullanıcının onayı). En üst kademede "Geri" taslağı sessizce atıyordu:
+     parçaları seçip "Tamam" yerine "Geri"ye basan çiftçi, seçtiklerinin
+     forma geçtiğini sanıyordu. Seçim açılıştakinden farklıysa önce
+     soruluyor: parçalar eklensin mi, eklenmeden mi çıkılsın. */
+  const [cikisSorusu, setCikisSorusu] = useState(false)
+  const secimDegisti =
+    taslak.size !== new Map(secili).size ||
+    [...taslak].some(([kod, adet]) => new Map(secili).get(kod) !== adet)
   function geri() {
+    if (cikisSorusu) return setCikisSorusu(false)
     if (arama) return setArama('')
     if (montaj) return setMontaj(null)
+    if (secimDegisti) return setCikisSorusu(true)
     onVazgec()
   }
   useGeriYakala(true, geri)
@@ -254,6 +266,18 @@ export function ParcaSecEkrani({ katalog, grup, secili, onTamam, onVazgec }) {
           <IconCheck size={20} /> {t('parcaSec.tamam')}
         </button>
       </div>
+
+      <Sheet open={cikisSorusu} onClose={() => setCikisSorusu(false)} title={t('parcaSec.cikisBaslik')}>
+        <p className="sheet__metin">{t('parcaSec.cikisAlt')}</p>
+        <div className="stack" style={{ gap: 10, marginTop: 16 }}>
+          <button className="btn btn--primary btn--lg" onClick={() => onTamam(taslak)}>
+            <IconCheck size={20} /> {t('parcaSec.cikisEkle')}
+          </button>
+          <button className="btn btn--soft btn--lg" onClick={onVazgec}>
+            {t('parcaSec.cikisVazgec')}
+          </button>
+        </div>
+      </Sheet>
     </div>
   )
 }

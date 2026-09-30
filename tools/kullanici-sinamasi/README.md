@@ -31,6 +31,12 @@ dosyaları (Excel, servis formu PDF'i) indirebilirler.
    olur. Demo işaretsiz kayıtlar (çiftçinin talepleri, servisin elle
    açtığı işler ve siparişleri, personel, ayarlar) kalır. Ardından
    `tutarlilik.js` ile yeni başlangıç ölçüsü alınır; D1-D3 sıfır olmalı.
+   Demo 7. sürümden beri (29 Eylül 2026) Servisim'in sahnesini sabit
+   kuruyor (`src/backoffice/demoSahne.js`): talep numaraları her kurulumda
+   değişir ama işler, müşteriler ve durumlar aynı. Sahne ücret ve indirim
+   ayarı da yazıyor; demo temizlenince personelin o arada değiştirmediği
+   ayar eski hâline döner. Backoffice'ten "Demo verisini temizle" denirse
+   Servisim bir sonraki açılışta demoyu yeniden kurar.
 3. `dunya-kur.js` ile test dünyasını kur (çiftçi hesabı ve makinesi,
    iki şifresiz personel kaydı). Tarayıcıda:
    `(await import('/tools/kullanici-sinamasi/dunya-kur.js?t=' + Date.now())).default()`
@@ -59,6 +65,23 @@ dosyaları (Excel, servis formu PDF'i) indirebilirler.
    kendiliğinden alır. `servisDuzenle` kutusu Roller ekranından ELLE
    kaldırılır (kod sessizce kaldırmaz); Servis rolünün varsayılanında
    yok.
+
+## Demo sahnesinin kopya kâğıdı (29 Eylül 2026)
+
+Servisim'in demo hesabı (`konya`, Selçuk Tarım Servisi) açıldığında her
+iş bir hâli gösteriyor; talepte `demoSahne` alanı işin kodunu taşıyor
+(D01–D30, N1A; liste `SAHNE_ISLERI`). Kayıt Aç'ı denemek için bilinen
+numaralar (hepsi gerçek olmayacak biçimde, 505 000 00 xx):
+
+| Numara | Kim | Kayıt Aç'ta ne görülür |
+|---|---|---|
+| 505 000 00 01 … 08 | Konya'daki sekiz müşteri (K1–K8) | makineleri bu servisin; açık işi olan makinede "Bu Makine İçin Açık Bir İşiniz Var" |
+| 505 000 00 09 | Polatlı'daki müşteri (N1) | iki makinesi de Polatlı Tarım Servisi'nin: "başka servis" uyarısı; ilkinde o servisin açık işi, ikincisinde bu servisin onay bekleyen işi (D16) |
+| 505 000 00 10 | Kulu'daki müşteri (N2) | makinesinin servisi ve bayisi yok: "servisi atanmamış" |
+| 505 000 00 11 | kayıtlı olmayan kişi | D07'nin sahibi (seri numarası olmayan tesviye küreği) |
+
+Yeni bir numarayla bir K müşterisinin seri numarası yazılırsa Kayıt Aç
+"makine başka birinin adına kayıtlı" uyarısını gösterir.
 
 ## Yeniden sınamanın beklentileri (25 Eylül 2026 düzeltmelerinden sonra)
 

@@ -84,9 +84,9 @@ güvenlik sınırına ancak sunucu geldiğinde dönüşür. Sunucu yazılırken
 yetki denetimi HER istekte sunucuda tekrarlanmalı — istemcinin
 gönderdiği role asla güvenilmemeli.
 
-### 2.1.1 Destek asistanı ve yedek parça kataloğu
+### 2.1.1 Destek asistanı, yedek parça kataloğu ve kullanım kılavuzları
 
-İkisi de bugün uygulamanın İÇİNDE DEĞİL ve canlıda da olmayacak:
+Üçü de bugün uygulamanın İÇİNDE DEĞİL ve canlıda da olmayacak:
 uygulama onları adresten çağırıyor. Geliştirmede bu bilgisayardaki
 sunucular cevap veriyor; canlıda PAKSAN'ın sunucusu verecek.
 
@@ -94,10 +94,11 @@ sunucular cevap veriyor; canlıda PAKSAN'ın sunucusu verecek.
 |---|---|---|---|
 | Destek asistanı | `src/config.js` → `AI.kok` (`/destek-ai`) | `D:\PAKSAN\paksan-rag\sohbet\sunucu.mjs` (127.0.0.1:8770); `npm run dev` açıkken aktarılıyor, kapalıysa kendiliğinden başlatılıyor | `GET <kok>/durum`, `POST <kok>/sohbet` (satır satır JSON akışı), `GET <kok>/kilavuz/<belge>` (PDF) |
 | Yedek parça kataloğu | `src/config.js` → `PARCA_KATALOG.kok` (`/parca-katalogu`) | depodaki `sunucu-taklidi/` klasörü | `<kok>/katalog.json`, `<kok>/gorseller/<kod>.webp` |
+| Kullanım kılavuzları (PDF, 29 Eylül 2026) | `src/config.js` → `KILAVUZ.kok` (`/kilavuzlar`) | depodaki `sunucu-taklidi/kilavuzlar/` klasörü (PDF'ler git'te değil, bkz. `sunucu-taklidi/BENIOKU.md`) | `<kok>/kilavuzlar.json`, `<kok>/<dosya>.pdf`; https ve uygulamaya CORS izni |
 
 Canlıya çıkarken:
 
-1. `AI.kok` ve `PARCA_KATALOG.kok` alanlarına sunucunun MUTLAK adresi
+1. `AI.kok`, `PARCA_KATALOG.kok` ve `KILAVUZ.kok` alanlarına sunucunun MUTLAK adresi
    yazılır. APK'da göreli adres çalışmaz: telefonda uygulamanın kendi
    kökü sunucu değil.
 2. Kılavuzlar, arama indeksi ve dil modeli sunucuda durur. Dil modeli
@@ -266,11 +267,19 @@ hepsi sunucudan bağımsız. Sunucu firması ararken bunlar bitmeli:
       listesi taslak. Servis ve yedek parça ekibinin günlük kullandığı
       adlarla değişmeli. Yanlış ad = yanlış parçanın yola çıkması.
       → `src/data/talepAlanlari.js`
-- [ ] **Banka hesapları (IBAN).** Yedek parça ödemesi için.
-      → `src/config.js` → `BANKA`
+- [ ] **Banka hesapları (IBAN).** Yedek parça ödemesi için. 30 Eylül
+      2026'da kullanıcının paylaştığı afişten girildi (Halkbank 17 Eylül
+      Şubesi, TR56 0001 2001 5660 0010 1000 19, alıcı "PAKSAN MAKİNA").
+      Kalan: PAKSAN muhasebesi IBAN'ı ve müşterinin yazacağı alıcı adını
+      (afişteki kısa ad mı, tam unvan mı) bir kez doğrulasın.
+      → `src/marka/kimlik.js` → `BANKA`
 - [ ] **İhracat ekibi e-posta adresleri.** → `src/config.js` → `IHRACAT`
 - [ ] **KVKK metinleri hukukçuya.** *(Aşağıda ayrı başlık.)*
-- [ ] **Kılavuz PDF'leri, ürün videoları, ürün fotoğrafları.**
+- [ ] **Kılavuz PDF'leri, ürün videoları, ürün fotoğrafları.** Kılavuz
+      PDF'leri sunucudaki kılavuz klasörüne; bugün 20 ürünün 9'unun
+      kılavuzu bağlı. `D:\PAKSAN\kaynaklar\ASD\` altındaki kılavuzların
+      hangi modele ait olduğu PAKSAN'ca doğrulanınca eklenir
+      (`sunucu-taklidi/BENIOKU.md`).
 
 > Bu listeyi bitirmek muhtemelen 3-6 hafta sürer ve tamamı sizde. Sunucu
 > firmasını beklerken yapılacak iş budur.
@@ -436,18 +445,63 @@ iOS sonra** doğru sıra.
 
 ### 6.1 KVKK
 
-Üç metin hazır ama **taslak** (`src/data/kvkk.js`). Hukuk danışmanınız
-onaylamadan canlıya çıkılmamalı.
+Connect'in dört metni (`src/data/kvkk.js`, sürüm 1.1) ve Servisim'in üç
+metni (`src/data/servisGizlilik.js`, sürüm 1.0) hazır ama **taslak**.
+Hukuk danışmanınız onaylamadan canlıya çıkılmamalı. 29 Eylül 2026'da
+gözden geçirildi: yanlış cümleler düzeltildi, eksikler eklendi, Connect'e
+"Gizlilik ve İzinler" sayfası ve onay geçmişi, Servisim'e ilk girişte
+kabul ekranı geldi (CLAUDE.md → "29 Eylül 2026 — KVKK").
 
-Eksik olanlar:
+#### KVKK: hukuk danışmanına sorulacaklar
 
-- VERBİS kaydı (varsa kayıt bilgisi metne girmeli)
-- Veri saklama süreleri (talep kaydı ne kadar tutulacak?)
-- **Bayilerle veri paylaşımı.** Bu metinde açıkça yazmalı: müşterinin
-  adı, telefonu ve makinesi, ona hizmet veren yetkili bayiyle
-  paylaşılıyor. Bayi ayrı bir tüzel kişi — bu bir veri aktarımıdır.
-- Yurtdışı müşterisi varsa: `kvkk.en.js` bir **çeviridir**, GDPR metni
-  değildir. Avrupa'ya satış varsa GDPR'a göre yazılmış ayrı metin gerekir.
+1. **Şirket kimliği.** MERSİS numarası, KEP adresi, KVKK için ayrı bir
+   e-posta ya da kişi, VERBİS kaydı ve uygulamanın akışlarını kapsayıp
+   kapsamadığı (`src/marka/kimlik.js → SIRKET`).
+2. **Connect'te zorunlu açık rıza.** Kayıt, Açık Rıza Metni onaylanmadan
+   tamamlanmıyor (kullanıcının kararı: "şimdilik olduğu gibi kalsın").
+   Kurul'un yaklaşımı: hizmet açık rızaya bağlanamaz; sözleşme, kanuni
+   yükümlülük ya da meşru menfaatle yapılabilen işlem için rıza
+   istenmemeli. Servis ve bayiye aktarım md. 8/2 ile md. 5/2-c'ye
+   dayanabilir. Rıza zorunlu kalmalı mı, yalnız kampanya için mi
+   istenmeli?
+3. **Servisin rolü.** Çiftçi verisi için servis veri işleyen mi, ayrı veri
+   sorumlusu mu, yoksa ikisi birden mi (garanti dışı iş ve dükkâna
+   gelen müşteri servisin kendi işi)? Servis sözleşmesine veri işleme ve
+   gizlilik eki gerekiyor; Servisim'deki kabul ekranı sözleşmenin yerine
+   geçmiyor. Bayinin fiyat teklifi talebindeki rolü de aynı soru.
+4. **Servisim'de telefon ve seriyle müşteri arama.** Kayıt Aç ekranı,
+   başka servise bağlı müşterinin adını, ilini ve telefonunu da
+   gösteriyor (21 Eylül kararı; 29 Eylül'de "şimdilik kalsın, avukata
+   sorulsun"). Ölçülülük (md. 4) açısından uygun mu? Gerekirse: arama
+   kaydı, sınır, telefonun maskelenmesi.
+5. **Saklama süreleri** ve Saklama ve İmha Politikası: dekont, işlem
+   kaydı, rıza olayları, servisin vergi ve IBAN bilgisi
+   (`veritabani/tohum/kaynak/saklama-kurallari.json`, hepsi
+   `HukukOnayli: false`).
+6. **Yurt dışına aktarım.** Bugün yok. Planlananlar: bildirim altyapısı
+   (FCM), hata kaydı (Crashlytics), barındırma yeri; Servisim'in sesle
+   yazması telefonun ses tanıma hizmetine (çoğu zaman Google) gidiyor;
+   Yol Tarifi adresi Google Haritalar'a açıyor. Standart sözleşme ve
+   Kurum'a 5 iş günü içinde bildirim gerekir mi?
+7. **Ticari ileti (6563, İYS).** Uygulama bildirimi İYS kanalı mı; onay ve
+   ret kayıtları ne kadar saklanmalı; bakım hatırlatmaları izin ister
+   mi; servisin SMS daveti ticari ileti mi; şahıs servislerine kampanya.
+8. **Başvuru yolu.** Metin ıslak imza, KEP, güvenli e-imza ve kayıtlı
+   e-posta sayıyor; Connect e-posta toplamıyor. Uygulama içi başvuru
+   formu "yazılım" kanalı sayılır mı (veritabanında `kvkk.BasvuruTalebi`
+   hazır)?
+9. **Hesap silme** ile yasal saklama arasındaki sınır (anonimleştirme).
+10. **İhlal bildirimi.** Kurul'a 72 saat; servisin firmaya bildirim süresi.
+11. **Çocuk ve aile hesabı**, sağlık bilgisi içeren fotoğraf ya da açıklama.
+12. **Yurt dışı müşterisi.** `kvkk.en.js` bir **çeviridir**; Avrupa'ya satış
+    varsa GDPR'a göre ayrı metin gerekir.
+13. **"Okudum ve anladım" kutusu** aydınlatma için kanıt olarak kalmalı mı,
+    yoksa metin gösterilip gösterildiği mi kaydedilmeli?
+
+Yayından önce ayrıca: Google Play'in Veri Güvenliği formu gerçeğe göre
+doldurulmalı (ad, telefon, adres, T.C. kimlik/vergi no, dekont, fotoğraf,
+video, ses, destek kaydı, bildirim kimliği) ve gizlilik metni internette
+bir adreste yayımlanmalı (Play Console istiyor).
 
 ### 6.2 Bayi sözleşmesi
 
@@ -516,7 +570,12 @@ Backoffice boşken `admin` / `123456` hesabı kendiliğinden açılıyor.
 
 Backoffice'teki "Demo verisi" kutusu ve `src/backoffice/demo.js`
 dosyası canlıdan kaldırılmalı. Bir personel yanlışlıkla basarsa gerçek
-listeye 30 sahte müşteri karışır.
+listeye 30 sahte müşteri karışır. Demonun öteki dosyaları da gider:
+`demoServis.js`, `demoSahne.js`, `demoMakineAilesi.js`,
+`src/servis/demoKur.js`. 29 Eylül 2026'dan beri demo, personel yazmamışsa
+üç ayar da yazıyor (demo servisine özel işçilik ücreti ve parça indirimi,
+bakiyeden ödemede ek indirim); canlıya çıkmadan önce demo backoffice'ten
+temizlenirse bu ayarlar eski hâline döner (`demoTemizle`).
 
 ---
 

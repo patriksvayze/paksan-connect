@@ -238,6 +238,7 @@ function tohum() {
     'paksan.requests': TALEPLER,
     'paksan.duyurular': [BILDIRIM_SERVIS_ATANDI],
     'paksan.destekUrun': 'hammer',
+    'paksan.destekMakine': 'mk1',
   }
   return `(() => {
     const d = ${JSON.stringify(d)};
@@ -352,9 +353,11 @@ function destekKaydi() {
    görüntü alınmadan önce yapılacaklar (sekmeye dokun, kutuyu aç…).
    ========================================================================== */
 
-/* Destek sohbeti gerçek sunucu çağrısıyla ilerliyor (bkz. aşağıdaki
-   DESTEK notu); sabit bir bekleme yerine ilgili sınıf DOM'a
-   düşünceye kadar bekleniyor. */
+/* Destek ASİSTANI (src/config.js → DESTEK_KIPI 'asistan') gerçek sunucu
+   çağrısıyla ilerliyor; sabit bir bekleme yerine ilgili sınıf DOM'a
+   düşünceye kadar bekleniyor. Bugün Destek arıza rehberiyle açık;
+   bu iki bekleyici ve DESTEK_ASISTANI_SAHNELERI asistan kipine
+   dönülünce UYGULAMA listesine geri alınıyor. */
 const MAKINE_BEKLE = `(() => new Promise((coz) => {
   const hazir = () => document.querySelector('.dst-makineler');
   if (hazir()) { coz('OK'); return; }
@@ -369,39 +372,8 @@ const CEVAP_BEKLE = `(() => new Promise((coz) => {
   setTimeout(() => { clearInterval(aralik); coz('ZAMAN-ASIMI'); }, 60000);
 }))()`
 
-const UYGULAMA = [
-  {
-    /* Şafak sahnesi 7,2 saniyelik tek seferlik açılış animasyonuyla
-       geliyor (bkz. src/components/Safak.jsx → SAHNE_SURESI). Sabit
-       bir bekleme yerine `.safak--bitti` işareti bekleniyor — hem
-       animasyon erken kesilmiyor hem gereksiz yere uzun sürmüyor. */
-    ad: '01-karsilama', baslik: 'Karşılama', yol: '/hosgeldiniz', cikisYap: true,
-    adimlar: [
-      {
-        js: `(() => new Promise((coz) => {
-          const bitti = () => document.querySelector('.safak--bitti');
-          if (bitti()) { coz('OK'); return; }
-          const aralik = setInterval(() => {
-            if (bitti()) { clearInterval(aralik); coz('OK'); }
-          }, 200);
-          setTimeout(() => { clearInterval(aralik); coz('ZAMAN-ASIMI'); }, 8000);
-        }))()`,
-      },
-    ],
-  },
-  { ad: '02-giris', baslik: 'Giriş', yol: '/giris', cikisYap: true },
-  { ad: '03-kayit', baslik: 'Hesap açma', yol: '/kayit', cikisYap: true },
-  { ad: '04-ana-sayfa', baslik: 'Ana Sayfa', yol: '/' },
-  { ad: '05-makinelerim', baslik: 'Makinelerim', yol: '/makinelerim' },
-  { ad: '05b-servislerim', baslik: 'Makinelerim — Servislerim sekmesi', yol: '/makinelerim?sekme=servisler' },
-  { ad: '06-makine-detay', baslik: 'Makine detayı', yol: '/makine/mk1' },
-  { ad: '07-makine-ekle', baslik: 'Makine ekleme', yol: '/makine-ekle' },
-  { ad: '08-urunler', baslik: 'Ürünler', yol: '/urunler' },
-  { ad: '09-urun-detay', baslik: 'Ürün detayı', yol: '/urun/orkinos-1270' },
-  {
-    ad: '10-destek-makine-secimi', baslik: 'Destek — makine seçimi', yol: '/destek',
-    adimlar: [{ js: "localStorage.removeItem('paksan.destekUrun')" }, { yenile: true }],
-  },
+// eslint-disable-next-line no-unused-vars
+const DESTEK_ASISTANI_SAHNELERI = [
   /* DESTEK — sohbet asistanı (10 Eylül 2026'dan beri).
 
      Üç adımlı sabit yönlendirme (konu grubu → belirti → cevap,
@@ -467,27 +439,154 @@ const UYGULAMA = [
       { bekle: 400 },
     ],
   },
+]
+
+const UYGULAMA = [
+  {
+    /* Şafak sahnesi 7,2 saniyelik tek seferlik açılış animasyonuyla
+       geliyor (bkz. src/components/Safak.jsx → SAHNE_SURESI). Sabit
+       bir bekleme yerine `.safak--bitti` işareti bekleniyor — hem
+       animasyon erken kesilmiyor hem gereksiz yere uzun sürmüyor. */
+    ad: '01-karsilama', baslik: 'Karşılama', yol: '/hosgeldiniz', cikisYap: true,
+    adimlar: [
+      {
+        js: `(() => new Promise((coz) => {
+          const bitti = () => document.querySelector('.safak--bitti');
+          if (bitti()) { coz('OK'); return; }
+          const aralik = setInterval(() => {
+            if (bitti()) { clearInterval(aralik); coz('OK'); }
+          }, 200);
+          setTimeout(() => { clearInterval(aralik); coz('ZAMAN-ASIMI'); }, 8000);
+        }))()`,
+      },
+    ],
+  },
+  { ad: '02-giris', baslik: 'Giriş', yol: '/giris', cikisYap: true },
+  { ad: '03-kayit', baslik: 'Hesap açma', yol: '/kayit', cikisYap: true },
+  { ad: '04-ana-sayfa', baslik: 'Ana Sayfa', yol: '/' },
+  { ad: '05-makinelerim', baslik: 'Makinelerim', yol: '/makinelerim' },
+  { ad: '05b-servislerim', baslik: 'Makinelerim — Servislerim sekmesi', yol: '/makinelerim?sekme=servisler' },
+  { ad: '06-makine-detay', baslik: 'Makine detayı', yol: '/makine/mk1' },
+  {
+    ad: '06b-makine-detay-bakim', baslik: 'Makine detayı — bakım sekmesi', yol: '/makine/mk1',
+    adimlar: [{ tiklaSira: '.makine-saat', sira: 0 }, { kaydirSecici: '.makine-sekmeler', bosluk: 90 }],
+  },
+  {
+    ad: '06c-makine-detay-videolar', baslik: 'Makine detayı — videolar', yol: '/makine/mk1',
+    adimlar: [{ tiklaSira: '.makine-sekmeler .sekme', sira: 2 }, { kaydirSecici: '.makine-sekmeler', bosluk: 90 }],
+  },
+  { ad: '07-makine-ekle', baslik: 'Makine ekleme', yol: '/makine-ekle' },
+  { ad: '08-urunler', baslik: 'Ürünler', yol: '/urunler' },
+  { ad: '09-urun-detay', baslik: 'Ürün detayı', yol: '/urun/orkinos-1270' },
+  /* DESTEK — arıza çözüm rehberi (29 Eylül 2026, screens/ArizaCozumu.jsx).
+     Tohum son seçilen makineyi (mk1, Hammer) hatırlatıyor; 10. sahne
+     seçimi silip makine adımını gösteriyor. Tıklanan yazılar veri
+     dosyasından (marka/icerik/destekVerisi.js → balya), ekran
+     metinlerinden değil: Codex metinleri yenilese de sahne kırılmıyor. */
+  {
+    ad: '10-destek-makine-secimi', baslik: 'Destek — makine seçimi', yol: '/destek',
+    adimlar: [
+      { js: "localStorage.removeItem('paksan.destekUrun'); localStorage.removeItem('paksan.destekMakine')" },
+      { yenile: true },
+    ],
+  },
+  { ad: '11-destek-bolumler', baslik: 'Destek — sorun hangi bölümde', yol: '/destek' },
+  {
+    ad: '11b-destek-arama', baslik: 'Destek — belirti arama', yol: '/destek',
+    adimlar: [
+      {
+        js: `(() => {
+          const g = document.querySelector('.destek-ara input');
+          if (!g) return 'YOK';
+          const p = Object.getOwnPropertyDescriptor(g.constructor.prototype, 'value').set;
+          p.call(g, 'iğne');
+          g.dispatchEvent(new Event('input', { bubbles: true }));
+          return 'OK';
+        })()`,
+      },
+      { bekle: 300 },
+    ],
+  },
+  {
+    ad: '12-destek-belirtiler', baslik: 'Destek — belirti seçimi', yol: '/destek',
+    adimlar: [{ tiklaMetin: 'Bağlama ve düğüm', kapsam: '.destek-secenek' }],
+  },
+  {
+    ad: '13-destek-cozum', baslik: 'Destek — çözüm ve güvenlik', yol: '/destek',
+    adimlar: [
+      { tiklaMetin: 'Bağlama ve düğüm', kapsam: '.destek-secenek' },
+      { tiklaMetin: 'Düğüm hiç atmıyor', kapsam: '.destek-secenek' },
+    ],
+  },
+  {
+    ad: '14-destek-nedenler', baslik: 'Destek — olası nedenler, kontrol edilenler', yol: '/destek',
+    adimlar: [
+      { tiklaMetin: 'Bağlama ve düğüm', kapsam: '.destek-secenek' },
+      { tiklaMetin: 'Düğüm hiç atmıyor', kapsam: '.destek-secenek' },
+      { tiklaSira: '.destek-isaret', sira: 0 },
+      { tiklaSira: '.destek-isaret', sira: 1 },
+      { kaydirSecici: '.destek-nedenler', bosluk: 90 },
+    ],
+  },
+  {
+    ad: '14b-destek-sonraki-adim', baslik: 'Destek — çözülmedi, sıradaki adım', yol: '/destek',
+    adimlar: [
+      { tiklaMetin: 'Bağlama ve düğüm', kapsam: '.destek-secenek' },
+      { tiklaMetin: 'Düğüm hiç atmıyor', kapsam: '.destek-secenek' },
+      { tikla: '.destek-sonuc [data-cevap="hayir"]' },
+      { kaydirSecici: '.destek-sonuc', bosluk: 90 },
+    ],
+  },
   { ad: '18-kilavuzlar', baslik: 'Kılavuzlar', yol: '/kilavuzlar' },
-  { ad: '19-kilavuz', baslik: 'Kılavuz detayı', yol: '/kilavuz/hammer' },
-  { ad: '20-bakim-rehberi', baslik: 'Bakım rehberi', yol: '/bakim' },
+  { ad: '18b-guvenlik-kurallari', baslik: 'Güvenlik kuralları', yol: '/kilavuzlar/guvenlik' },
+  /* Kılavuz 29 Eylül 2026'dan beri basılı kılavuzun PDF'i
+     (screens/KilavuzPdf.jsx); uygulamada kurulan bölümler (kullanım
+     adımları, arıza tablosu) kalktı. İlk sahne indirme kartı, ikincisi
+     indirilip arıza sayfasında açılmış kılavuz. Sahneler sunum
+     güncellenirken denenecek (CLAUDE.md, kontrol listesi 3). */
+  { ad: '19-kilavuz', baslik: 'Kılavuz — indirme', yol: '/kilavuz/hammer' },
+  {
+    ad: '19b-kilavuz-pdf', baslik: 'Kılavuz — PDF, arıza tablosu sayfası', yol: '/kilavuz/hammer?bolum=ariza',
+    adimlar: [{ tikla: '.kilavuz-pdf__kart .btn--primary' }, { bekle: 6000 }],
+  },
+  { ad: '20-bakim-rehberi', baslik: 'Bakım rehberleri', yol: '/bakim' },
+  {
+    ad: '20b-bakim-rehberi-detay', baslik: 'Bakım rehberi — maddeler', yol: '/bakim/gunluk?makine=mk1',
+    adimlar: [
+      { js: "localStorage.removeItem('paksan.rehberIsaret')" },
+      { yenile: true },
+      { tiklaSira: '.bakim-madde', sira: 0 },
+      { tiklaSira: '.bakim-madde', sira: 1 },
+      { tiklaSira: '.bakim-madde', sira: 2 },
+    ],
+  },
+  {
+    ad: '20c-bakim-rehberi-bolumler', baslik: 'Bakım rehberi — bölümler', yol: '/bakim/gunluk?makine=mk1',
+    adimlar: [{ kaydirSecici: '.bakim-kart', bosluk: 90 }],
+  },
   { ad: '21-talep-servis', baslik: 'Servis talebi formu', yol: '/talep?tur=servis' },
   /* PARÇA LİSTESİ FORMDAN ÇIKTI (15 Eylül 2026).
      Seçim artık formun içinde değil, "Parça Seç" düğmesiyle açılan tam
      ekran seçicide yapılıyor (bkz. ParcaSecEkrani.jsx). Katalog ağdan
      geliyor ve gerçekçi gecikmeyle geliyor (PARCA_KATALOG.taklitGecikme,
-     800ms) — düğmeye basmadan önce yüklenmesini bekliyoruz. */
+     800ms) — düğmeye basmadan önce yüklenmesini bekliyoruz.
+
+     29 Eylül 2026: seçicideki bölüm satırı `.listitem` değil Servisim'in
+     `.montaj` satırı, parça da Servisim'in büyük görselli kartı
+     (`.parca-kart__ac`, bkz. components/ParcaKarti.jsx). Kartların
+     resimleri tembel yükleniyor; görüntüden önce inmeleri bekleniyor. */
   {
     ad: '22-talep-parca', baslik: 'Yedek parça talebi formu', yol: '/talep?tur=parca',
     adimlar: [
       { bekle: 700 },
       { tikla: '.parca-alan__ekle' },
       { bekle: 500 },
-      { tiklaSira: '.listitem', sira: 0 },
-      { bekle: 400 },
-      { tiklaSira: '.listitem', sira: 0 },
+      { tiklaSira: '.montaj', sira: 0 },
+      { bekle: 900 },
+      { tiklaSira: '.parca-kart__ac', sira: 0 },
       { bekle: 300 },
       { tikla: '.parca-dip__tamam' },
-      { bekle: 500 },
+      { bekle: 900 },
     ],
   },
   {
@@ -496,10 +595,10 @@ const UYGULAMA = [
       { bekle: 700 },
       { tikla: '.parca-alan__ekle' },
       { bekle: 500 },
-      { tiklaSira: '.listitem', sira: 0 },
-      { bekle: 400 },
-      { tiklaSira: '.listitem', sira: 0 },
-      { bekle: 300 },
+      { tiklaSira: '.montaj', sira: 0 },
+      { bekle: 900 },
+      { tiklaSira: '.parca-kart__ac', sira: 0 },
+      { bekle: 600 },
     ],
   },
   { ad: '23-talep-teklif', baslik: 'Fiyat teklifi talebi formu', yol: '/talep?tur=satinalma' },
@@ -897,7 +996,9 @@ const SERVIS = [
       { bekle: 400 },
       { tiklaMetin: 'Devam' },
       { bekle: 800 },
-      { kaydirSecici: '.fiyat-kart', bosluk: 120 },
+      /* 30 Eylül 2026: özetin tutarları `.fiyat-kart` değil Connect'le
+         ortak `.tutar-kutu` (bkz. components/ParcaOzeti.jsx). */
+      { kaydirSecici: '.tutar-kutu', bosluk: 120 },
       { bekle: 300 },
     ],
   },

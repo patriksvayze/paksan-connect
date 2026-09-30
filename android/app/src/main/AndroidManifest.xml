@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- YEDEKLEME KAPALI (29 Eylül 2026, gizlilik incelemesi). Açıkken
+         uygulamanın verisi (WebView deposu dâhil: talepler, müşteri adı,
+         telefonu, adresi) kullanıcının Google hesabındaki yedeğe
+         gidebiliyordu. Veri sunucuda tutulacak; telefondaki kopyanın
+         buluta çıkması gerekmiyor. -->
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -39,11 +44,9 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <!-- "Bayi ve İletişim" ekranındaki "Konumumu kullan" için.
-         İzin uygulama açılışında değil, kullanıcı o düğmeye bastığında
-         isteniyor. İzin verilmezse bayiler kayıtlı ile göre sıralanıyor. -->
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- KONUM İZNİ YOK (29 Eylül 2026). Konumu kullanan özellik kalmadı;
+         kullanılmayan izin Google Play'in veri beyanıyla çelişiyordu.
+         Yol Tarifi yazılı adresle çalışıyor (lib/yolTarifi.js). -->
 
     <!-- Talep formlarındaki "Ses Kaydı Bırakın" düğmesi için.
          İzin uygulama açılışında değil, kullanıcı o düğmeye bastığında

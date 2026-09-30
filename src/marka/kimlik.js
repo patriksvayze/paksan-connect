@@ -21,7 +21,7 @@
    burası, capacitor.config.json ve android/.../values/strings.xml */
 export const UYGULAMA = 'PAKSAN Connect'
 
-export const SURUM = '0.9.19'
+export const SURUM = '0.9.21'
 
 /* Müşteriye gönderilen indirme adresi.
 
@@ -123,21 +123,48 @@ export const IHRACAT = {
    ödeme ekranı tarlada internetsiz de açılabilmeli, müşteri IBAN'ı
    görüp bankacılık uygulamasına geçebilmeli.
 
-   ⚠ AŞAĞIDAKİ BİLGİLER DOLDURULMADI. Yayına çıkmadan önce PAKSAN
-     muhasebesinden alınan gerçek IBAN'lar buraya yazılmalı. `aktif`
-     false olduğu sürece ödeme ekranı IBAN göstermiyor, "hesap bilgisi
-     için bizi arayın" diyor — yanlış IBAN göstermektense hiç
-     göstermemek doğru.
+   HESAP GİRİLDİ (30 Eylül 2026, kullanıcının isteği: "PAKSAN'ın banka
+   hesap bilgilerini ekran görüntüsü olarak paylaştım. Bu bilgileri
+   Connect'te yedek parça talebi ekranındaki Hesap Bilgileri kısmına …
+   entegre et"). Kaynak PAKSAN'ın kendi afişinin kullanıcının paylaştığı
+   ekran görüntüsü: "ALICI : PAKSAN MAKİNA", "HALK BANK TL – 17 EYLÜL
+   ŞUBESİ" ve IBAN. IBAN'ın denetim hanesi doğrulandı (mod 97 = 1): bir
+   rakam yanlış yazılsaydı tutmazdı. Yine de bu bir ekran görüntüsünden
+   yazıldı; yayına çıkmadan önce PAKSAN muhasebesiyle bir kez teyit
+   edilmesi yerinde olur — yanlış IBAN'a giden paranın geri dönüşü zor.
+
+   `aktif` false yapılırsa ödeme ekranı IBAN göstermiyor, "hesap bilgisi
+   için bizi arayın" diyor; hesap kapanır ya da değişirse ilk yapılacak
+   iş bu.
    ========================================================================== */
 export const BANKA = {
-  aktif: false,
+  aktif: true,
 
-  /* Faturayı kesen tüzel kişi; dekontun açıklamasına da bu yazılıyor */
+  /* Şirketin tam unvanı. Ödeme ekranında "Alıcı" olarak hesabın kendi
+     `alici` adı yazıyor; hesapta o yoksa bu. Veritabanı tohumu da aynı
+     sırayla okuyor (tools/vt/tohum-uret.mjs → HesapUnvani). */
   unvan: 'PAKSAN MAKİNA SANAYİ VE TİCARET A.Ş.',
 
-  /* Her satır: { banka, sube, iban } */
+  /* Her satır bir hesap:
+       banka       ekranda yazan banka adı. Afişte "HALK BANK"; ekranda
+                   çiftçinin bankacılık uygulamasında tanıyacağı ad
+                   "Halkbank" (Codex'in seçimi, 30 Eylül 2026)
+       sube        şubenin yalnız adı; "… Şubesi" eki sözlükte
+                   (parcaOdeme.sube), İngilizcede "… Branch" olsun diye
+       paraBirimi  hesabın para birimi, uygulamanın PARA_BIRIMI
+                   biçiminde ("TL")
+       alici       müşterinin havalede alıcı adı olarak yazacağı ad,
+                   afişte yazdığı gibi
+       iban        afişteki gibi dörderli öbeklerle; kopyalanırken
+                   boşluklar atılıyor */
   hesaplar: [
-    // { banka: '', sube: '', iban: 'TR00 0000 0000 0000 0000 0000 00' },
+    {
+      banka: 'Halkbank',
+      sube: '17 Eylül',
+      paraBirimi: 'TL',
+      alici: 'PAKSAN MAKİNA',
+      iban: 'TR56 0001 2001 5660 0010 1000 19',
+    },
   ],
 
   /* Müşteri havale açıklamasına ne yazsın — talep numarası şart,

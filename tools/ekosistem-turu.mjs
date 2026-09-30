@@ -89,6 +89,58 @@
      C-31  geri alma düğmesi defterden çıkarmazsa               düştü
      C-32  DENEME kutusu demo işaretine bakmazsa                düştü
      C-33  servissiz makinede form yine açılırsa (26.09.2026)   düştü
+     C-33  makine kartlarının radyo rolü kalkarsa (29.09.2026;
+           seçim artık açılır kutudan değil kartlardan)          düştü
+     C-34  rehber kontrol edilen nedeni talebe taşımazsa (29.09.2026) düştü
+     C-35  kılavuz PDF'i telefona kaydedilmezse (29.09.2026)     düştü
+     C-35  ?bolum=ariza arıza sayfasına atlamazsa               düştü
+     C-36  talep formu parça adını koda çevirmezse (29.09.2026)  düştü
+     C-36  parça uymadığı makinede de seçili gelirse             düştü
+     X-08  Yol Tarifi bağlantısı adresi taşımazsa (29.09.2026)   düştü
+     C-37  eski sürümü onaylamış hesaba pencere çıkmazsa (29.09.2026) düştü
+     C-37  kampanya değişikliği olay yazmazsa                    düştü
+     C-37  Gizlilik ve İzinler onay sürümünü göstermezse        düştü
+     C-37  güncelleme penceresi zemine dokununca kapanırsa      düştü
+     C-38  banka hesabı kapatılırsa (BANKA.aktif false; 30.09.2026) düştü
+     C-38  IBAN düğmesi boşluklu IBAN kopyalarsa                 düştü
+     C-38  kartın tutarı ara toplamdan okunursa (özetle tutmaz)  düştü
+           (tutar satırı aynı gün kalktı; bu bozma artık uygulanmıyor)
+     C-38  kartta tutar yeniden gösterilirse (30.09 ikinci tur)  düştü
+     C-38  formun seçili parça satırından resim kalkarsa         düştü
+     C-38  IBAN yazısı küçülmezse (360 pikselde taşar)           düştü
+     C-38  açıklama kalıbından {no} silinirse (inceleme, 30.09)  düştü
+     C-38  Hesaplar'a talep numarası verilmezse                  düştü
+     C-38  IBAN öbekleri arasındaki boşluk kalkarsa              düştü
+     C-38  IBAN yine esnek kutu olursa (seçim alt alta gelir)    düştü
+     C-38  açıklama düğmesi yalnız adı kopyalarsa                düştü
+     X-09  Servisim'in gizlilik kapısı kaldırılırsa (29.09.2026) düştü
+     X-09  kabul depoya yazılmazsa                               düştü
+     X-10  Hesap'taki Gizlilik ve İzinler satırı kalkarsa (30.09.2026) düştü
+     X-10  sayfa kabulün sürümünü göstermezse                   düştü
+     X-11  Gizlilik satırı yine kendi bölümüne sarılırsa (30.09.2026) düştü
+     X-11  Çıkış Yap Hesabım'dan ayrı bir bölüme çıkarsa        düştü
+     X-11  Hesabım'ın altına başka bölüm eklenirse (Çıkış Yap sonda değil) düştü
+     X-11  Çıkış Yap Hesabım'ın içinde kartın üstüne taşınırsa  düştü
+     X-11  Çıkış Yap olağan düğme renginde kalırsa (30.09 ikinci tur) düştü
+     X-11  Şifremi Değiştir satırı formu açmazsa                düştü
+     X-11  şifre satırı Hesabım kartından çıkarsa (eski Güvenlik) düştü
+     X-12  özetteki artı adedi değiştirmezse (30.09.2026)         düştü
+     X-12  Kaldır satırı çıkarmazsa                               düştü
+     X-12  özetten dönünce seçimin adedi 1'e inerse               düştü
+     X-12  son parça kalkınca seçim adımına dönülmezse           düştü
+     X-12  bakiye yetince seçim kendiliğinden Bakiyem'e dönerse (inceleme, 30.09) düştü
+     X-12  adedi 1 olan satırın eksisi kapalı değilse            düştü
+     X-12  eksinin üst işlevdeki 1 sınırı kalkarsa        DÜŞMEDİ
+           (iki kat kapı: eksi kapalı olduğu için basılamıyor)
+     X-12  ikisi birden kalkarsa (eksi satırı siler)             düştü
+     X-12  adım kilidi sıfırlanırsa (ADIM_KILIDI_MS 0; "Devam"ın
+           ikinci dokunuşu özetin Geri'sine düşüp seçime döndürdü) düştü
+     X-12  kilit yalnız özete geçişte çalışırsa (son Kaldır'ın
+           ikinci dokunuşu seçim kartını yeniden seçti)          düştü
+     X-12  ortak eksi-artının artısı adedi değiştirmezse         düştü
+     X-13  devretme düğmesi yine kulaklık simgesiyle çizilirse (30.09.2026) düştü
+     X-13  devretme penceresi kendi işaretini taşımazsa         düştü
+     X-13  devretme düğmesinin yazısı silinirse (yalnız simge)  düştü
      X-06  Servisim açık pencereyi durum değişince kapatmazsa   düştü
      X-07  geçiş kilidi sıfırlanırsa (26.09.2026)               düştü
      --yalniz bilinmeyen kodla verilirse   çıkış 1 ("böyle bir denetim yok")
@@ -111,9 +163,11 @@
    ========================================================================== */
 
 import { chromeAc, Cdp, Sayfa, bekle, PROFIL, CHROME } from './tarayici.mjs'
-import { rmSync } from 'node:fs'
+import { readFileSync, rmSync } from 'node:fs'
+import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { ortamKur, modulleriYukle, modulYukle, depoTemizle, kapat } from './ekosistem/ortam.mjs'
-import { SERVIS, MUSTERI, PARCA_PERSONELI, dunyaKur, personelKaydiEkle, talepVerisi, talebiYaz } from './ekosistem/tohum.mjs'
+import { SERVIS, MUSTERI, PARCA_PERSONELI, KVKK_SURUMU, dunyaKur, personelKaydiEkle, talepVerisi, talebiYaz } from './ekosistem/tohum.mjs'
 import {
   CONNECT,
   CONNECT_OTURUMSUZ,
@@ -125,6 +179,9 @@ import {
 } from './ekosistem/ekranlar.mjs'
 import { FORMLAR } from './ekosistem/formlar.mjs'
 
+/* Deponun kökü: C-35 ve C-36 ekilen değeri sunucu klasöründen okuyor. */
+const KOK = fileURLToPath(new URL('..', import.meta.url))
+
 const arg = process.argv.slice(2)
 const adresArg = arg.indexOf('--adres') >= 0 ? arg[arg.indexOf('--adres') + 1] : null
 const YALNIZ = arg.indexOf('--yalniz') >= 0 ? new Set(String(arg[arg.indexOf('--yalniz') + 1] || '').split(',').filter(Boolean)) : null
@@ -135,8 +192,8 @@ const secili = (kod) => !YALNIZ || YALNIZ.has(kod)
    tek listede; `--yalniz` denetimi de buna bakıyor. */
 const EK_DENETIMLER = [
   'B-MENU', 'B-ROL', 'B-SEKME',
-  'X-01', 'X-02', 'X-03', 'X-04', 'X-05', 'X-06', 'X-07',
-  'C-29', 'C-30', 'C-31', 'C-32', 'C-33',
+  'X-01', 'X-02', 'X-03', 'X-04', 'X-05', 'X-06', 'X-07', 'X-08', 'X-09', 'X-10', 'X-11', 'X-12', 'X-13',
+  'C-29', 'C-30', 'C-31', 'C-32', 'C-33', 'C-34', 'C-35', 'C-36', 'C-37', 'C-38',
 ]
 
 /* BİLİNMEYEN KOD SESSİZCE GEÇMİYOR (25 Eylül 2026, inceleme).
@@ -989,13 +1046,158 @@ try {
     await s.git(ADRES + '/#/talep?tur=servis&makine=' + servissiz.id)
     const kart = await sayiBekle('[data-eylem="servis-atanmamis"]', (v) => v > 0)
     const gonder = await say('.btn--primary.btn--lg')
-    const secim = await say('select.select')
+    /* Makine 29 Eylül 2026'dan beri açılır kutudan değil fotoğraflı
+       kartlardan seçiliyor (RequestForm.jsx → makine-secim, görünüm
+       önerisi C5); kartlar radyo düğmesi rolünde sayılıyor. */
+    const secim = await say('.makine-secim [role="radio"]')
     const hata =
       kart < 1 ? 'servisi olmayan makinede kart çıkmadı (form açık)'
         : gonder > 0 ? 'servisi olmayan makinede formun gönder düğmesi duruyor'
           : secim < 1 ? 'makine seçimi kalktı (ekranın tamamı "servis yok" kartı oldu)'
             : null
     kaydet('C-33', 'Servisi atanmamış makinede talep formu yerine kart', hata, await metin())
+  }
+
+  /* C-34 · Destek'in arıza rehberi uçtan uca (29 Eylül 2026). Destek
+     sunucudaki asistandan hazır arıza-çözüm ağacına döndü
+     (screens/ArizaCozumu.jsx, src/config.js → DESTEK_KIPI). Makine
+     adresten geliyor; bölüm → belirti → çözüm yürünüyor, ilk neden
+     "Kontrol Ettim" ile işaretleniyor, "Hayır, Devam Ediyor" ve servis
+     talebine geçiliyor. Talep formunun açıklaması hem belirtiyi hem
+     işaretlenen nedeni taşımalı: servis aynı kontrolü baştan yapmasın
+     (RequestForm.jsx → destek, denenen). Yazılara bakılmıyor, sınıflara
+     ve ekrandan okunan adlara bakılıyor. */
+  if (secili('C-34')) {
+    await connectKur([])
+    await s.git(ADRES + '/#/destek/' + makineler[1].id)
+    const bolumler = await sayiBekle('.destek-secenek', (v) => v > 0)
+    let hata = bolumler < 1 ? 'Destek bölüm listesi boş — ERİŞİLEMEDİ' : null
+    if (!hata) {
+      await s.js(`document.querySelector('.destek-secenek')?.click(); 1`)
+      await bekle(400)
+      await s.js(`document.querySelector('.destek-secenek')?.click(); 1`)
+      const nedenler = await sayiBekle('.destek-neden', (v) => v > 0)
+      if (nedenler < 1) hata = 'belirti seçilince çözüm açılmadı'
+    }
+    let belirti = ''
+    let neden = ''
+    if (!hata) {
+      belirti = await s.js(`document.querySelector('.destek-cozum__baslik')?.textContent || ''`)
+      neden = await s.js(`document.querySelector('.destek-neden h4')?.textContent || ''`)
+      await s.js(`document.querySelector('.destek-isaret')?.click(); 1`)
+      const isaretli = await sayiBekle('.destek-isaret[aria-pressed="true"]', (v) => v > 0)
+      if (isaretli < 1) hata = '"Kontrol Ettim" işareti tutmadı'
+    }
+    if (!hata) {
+      /* İki cevap artık aynı biçimde (29 Eylül 2026, görünüm önerisi C6);
+         "Hayır" sınıfıyla değil kendi işaretiyle bulunuyor. */
+      await s.js(`document.querySelector('.destek-sonuc [data-cevap="hayir"]')?.click(); 1`)
+      const talepDugmesi = await sayiBekle('.destek-sonuc .btn--primary', (v) => v > 0)
+      if (talepDugmesi < 1) hata = '"Devam Ediyor" deyince servis talebi düğmesi çıkmadı'
+    }
+    if (!hata) {
+      await s.js(`document.querySelector('.destek-sonuc .btn--primary')?.click(); 1`)
+      let aciklama = ''
+      for (let i = 0; i < 12; i++) {
+        await bekle(300)
+        aciklama = await s.js(`[...document.querySelectorAll('textarea')].map((x) => x.value).join('\\n')`)
+        if (aciklama) break
+      }
+      if (!aciklama) hata = 'talep formu açılmadı ya da açıklama boş'
+      else if (!aciklama.includes(belirti)) hata = 'talep açıklaması belirtiyi taşımıyor'
+      else if (!aciklama.includes(neden)) hata = 'kontrol edilen neden talebe yazılmadı'
+    }
+    kaydet('C-34', 'Destek arıza rehberi: kontrol edilen neden servis talebine yazılıyor', hata, await metin())
+  }
+
+  /* C-35 · Kullanım kılavuzu PDF'i (29 Eylül 2026). Kılavuz sunucudaki
+     klasörden bir kez indiriliyor, telefonda saklanıyor ve internetsiz
+     açılıyor (screens/KilavuzPdf.jsx, lib/kilavuzPdf.js). İndirme
+     kartındaki ana düğmeye basılıyor, ilk sayfanın tuvali çizilmeli.
+     Sonra uygulamanın içinde listeye dönülüp bağlantı KESİLİYOR ve
+     kılavuz yeniden açılıyor: telefondan açılmalı. Son olarak Destek'in
+     bağlantısı (?bolum=ariza) arıza tablosunun sayfasına atlamalı;
+     sayfa numarası sunucudaki listeden, yazıya değil rakama bakılıyor.
+     PDF sunucuda yoksa (depoda değil, bkz. sunucu-taklidi/BENIOKU.md)
+     indirme hata verir ve denetim düşer. */
+  if (secili('C-35')) {
+    const cizildi = (no) =>
+      `(() => { const c = document.querySelector('#kilavuz-sayfa-${no} canvas'); return c ? c.width : 0 })()`
+    const bekleCizim = async (no, n = 60) => {
+      for (let i = 0; i < n; i++) {
+        await bekle(500)
+        if ((await s.js(cizildi(no))) > 0) return true
+      }
+      return false
+    }
+    await connectKur([])
+    await s.js(`caches.delete('paksan-kilavuzlar').then(() => 1)`)
+    await s.git(ADRES + '/#/kilavuz/hammer')
+    const kart = await sayiBekle('.kilavuz-pdf__kart .btn--primary', (v) => v > 0)
+    let hata = kart < 1 ? 'kılavuzun indirme kartı çıkmadı — ERİŞİLEMEDİ' : null
+    if (!hata) {
+      await s.js(`document.querySelector('.kilavuz-pdf__kart .btn--primary').click(); 1`)
+      if (!(await bekleCizim(1))) hata = 'kılavuz indirilip açılmadı (ilk sayfa çizilmedi)'
+    }
+    if (!hata) {
+      const kayitli = await s.js(`caches.open('paksan-kilavuzlar').then((c) => c.keys()).then((k) => k.length)`)
+      if (kayitli < 1) hata = 'kılavuz telefona kaydedilmedi'
+    }
+    if (!hata) {
+      await s.js(`location.hash = '#/kilavuzlar'; 1`)
+      await bekle(900)
+      await s.cdp.gonder('Network.enable', {}, s.oturum)
+      await s.cdp.gonder('Network.emulateNetworkConditions', { offline: true, latency: 0, downloadThroughput: -1, uploadThroughput: -1 }, s.oturum)
+      await s.js(`location.hash = '#/kilavuz/hammer'; 1`)
+      const acildi = await bekleCizim(1, 30)
+      await s.cdp.gonder('Network.emulateNetworkConditions', { offline: false, latency: 0, downloadThroughput: -1, uploadThroughput: -1 }, s.oturum)
+      if (!acildi) hata = 'kaydedilen kılavuz internetsiz açılmadı'
+    }
+    if (!hata) {
+      await s.git(ADRES + '/#/kilavuz/hammer?bolum=ariza')
+      const liste = JSON.parse(readFileSync(join(KOK, 'sunucu-taklidi', 'kilavuzlar', 'kilavuzlar.json'), 'utf8'))
+      const sayfa = liste.kilavuzlar.MCH_HAMMER_SERIES.arizaSayfasi
+      await bekleCizim(sayfa, 30)
+      await bekle(800)
+      const gorunen = await s.js(`document.querySelector('.kilavuz-pdf-arac__sayfa')?.textContent || ''`)
+      if (!gorunen.startsWith(sayfa + ' ')) hata = `arıza tablosuna atlamadı (${sayfa}. sayfa beklendi, "${gorunen}")`
+    }
+    kaydet('C-35', 'Kılavuz PDF: indiriliyor, internetsiz açılıyor, arıza sayfasına atlıyor', hata, await metin())
+  }
+
+  /* C-36 · Destek'in parça adı talep formunda katalog koduna çevriliyor
+     (29 Eylül 2026). "Bu Parçaları Talep Et" adları taşıyor; form adı
+     marka tablosuyla koda çeviriyor (marka/icerik/destekVerisi.js →
+     PARCA_KODU), yalnız o parçanın uyduğu makinede. Süper 8002'de
+     "Mekik dili" seçili gelmeli, tabloda olmayan "Yatak" açıklamaya
+     yazılmalı; Hammer'da "Mekik dili" seçili GELMEMELİ (Hammer'ın
+     parçaları kendi grubunda). Ekilen değer katalog kodu ve adı. */
+  if (secili('C-36')) {
+    const katalog = JSON.parse(readFileSync(join(KOK, 'sunucu-taklidi', 'parca-katalogu', 'katalog.json'), 'utf8'))
+    const MEKIK = katalog.parcalar.find((p) => p.kod === '201310101110')?.ad || ''
+    const formuAc = async (model) => {
+      await connectKur([])
+      await s.git(ADRES + '/#/talep?tur=parca&model=' + model + '&parcalar=' + encodeURIComponent('Mekik dili|Yatak'))
+      let aciklama = ''
+      for (let i = 0; i < 20; i++) {
+        await bekle(400)
+        aciklama = await s.js(`[...document.querySelectorAll('textarea')].map((x) => x.value).join('\\n')`)
+        if (aciklama) break
+      }
+      return { aciklama, sayfa: await metin() }
+    }
+    let hata = MEKIK ? null : 'katalogda 201310101110 yok — ERİŞİLEMEDİ'
+    if (!hata) {
+      const kucuk = await formuAc('super-8002')
+      if (!kucuk.sayfa.includes(MEKIK)) hata = `Süper 8002'de "${MEKIK}" seçili gelmedi`
+      else if (!kucuk.aciklama.includes('Yatak')) hata = 'eşleşmeyen parça adı açıklamaya yazılmadı'
+    }
+    if (!hata) {
+      const hammer = await formuAc('hammer')
+      if (hammer.sayfa.includes(MEKIK)) hata = `Hammer'da küçük balyanın "${MEKIK}" parçası seçili geldi`
+      else if (!hammer.aciklama.includes('Mekik dili')) hata = 'Hammer\'da eşleşmeyen "Mekik dili" açıklamaya yazılmadı'
+    }
+    kaydet('C-36', 'Destek parça adı talepte koda çevriliyor, yalnız uyduğu makinede', hata, await metin())
   }
 
   /* X-06 · Servisim'de açık pencere, talep başka sekmede iptal edilince
@@ -1087,6 +1289,650 @@ try {
       }
     }
     kaydet('X-07', 'Servisim: ekran değişince çift dokunuşun ikincisi yutuluyor', hata, await metin())
+  }
+
+  /* X-08 · Servisim'de "Yol Tarifi" (29 Eylül 2026). İş ayrıntısında
+     adresin altındaki bağlantı telefonun harita uygulamasını işin YAZILI
+     adresiyle açıyor (lib/yolTarifi.js). Bağlantının hedefi adresi, ilçeyi
+     ve ili taşımalı; adresi olmayan işte bağlantı çıkmamalı. Bağlantıya
+     basılmıyor, dış siteye gidilmiyor. */
+  if (secili('X-08')) {
+    const CANLI_AD = 'Canlı Yol Tarifi Sınaması'
+    const ADRES_YAZI = 'Tatköy Mahallesi, kooperatifin arkası'
+    const adresli = connectTalebi({ id: 'canli-8', no: 'SRV2609990008', status: 'yeni', ad: CANLI_AD, il: 'Konya', ilce: 'Selçuklu', adres: ADRES_YAZI })
+    await s.git(ADRES + '/servis.html')
+    await depoYaz(YEREL, OTURUM)
+    await s.git(ADRES + '/servis.html')
+    await bekle(1800)
+    await s.js(`(() => { const k = 'paksan.requests'; const l = JSON.parse(localStorage.getItem(k) || '[]'); l.unshift(${JSON.stringify(adresli)}); localStorage.setItem(k, JSON.stringify(l)); return 1 })()`)
+    await s.js(depoOlayi('paksan.requests'))
+    await metinBekle(CANLI_AD)
+    const acti = await s.js(`(() => { const h = [...document.querySelectorAll('button, [role="button"], a')].find((x) => (x.innerText || '').includes(${JSON.stringify(CANLI_AD)})); if (!h) return 0; h.click(); return 1 })()`)
+    let hata = acti ? null : `"${CANLI_AD}" taşıyan kart açılamadı — ERİŞİLEMEDİ`
+    if (!hata) {
+      await bekle(900)
+      const hedef = await s.js(`(() => { const a = document.querySelector('a[href^="https://www.google.com/maps/dir/"]'); return a ? decodeURIComponent(a.href.split('destination=')[1] || '') : '' })()`)
+      if (!hedef) hata = 'adresli işte Yol Tarifi bağlantısı yok'
+      else if (!hedef.includes(ADRES_YAZI) || !hedef.includes('Selçuklu') || !hedef.includes('Konya')) hata = `Yol Tarifi hedefi eksik: "${hedef}"`
+    }
+    kaydet('X-08', 'Servisim: Yol Tarifi işin yazılı adresini haritaya taşıyor', hata, await metin())
+  }
+
+  /* C-37 · KVKK: metin güncellemesinde yeniden onay ve Gizlilik ve
+     İzinler sayfası (29 Eylül 2026). (a) Eski sürümü (1.0) onaylamış
+     hesap Connect'i açınca güncelleme penceresi çıkıyor; iki kutu
+     işaretlenip onaylanınca pencere kalkıyor ve hesaba yeni sürüm ile
+     "connectGuncelleme" kanallı iki olay yazılıyor. (b) Gizlilik ve
+     İzinler sayfası onay tarihini ve sürümünü gösteriyor; kampanya
+     kutusu kapatılınca hesaba "geriCekme" olayı ve son değişiklik tarihi
+     yazılıyor ve sayfada görünüyor. Ekilen değer: onay sürümü ve
+     sabit onay tarihi. */
+  if (secili('C-37')) {
+    const ONAY_ANI = Date.UTC(2026, 7, 14, 9, 0, 0)
+    const hesapla = (surum) => {
+      const y = { ...YEREL }
+      const o = { ...OTURUM }
+      for (const [depo, k] of [[y, 'paksan.hesap'], [o, 'paksan.user']]) {
+        if (!depo[k]) continue
+        const h = JSON.parse(depo[k])
+        h.onaylar = { ...h.onaylar, surum, tarih: ONAY_ANI }
+        depo[k] = JSON.stringify(h)
+      }
+      return { y, o }
+    }
+    const hesapOku = `JSON.parse(localStorage.getItem('paksan.hesap') || 'null')`
+    let hata = null
+
+    // (a) eski sürüm → pencere
+    const eski = hesapla('1.0')
+    await s.git(ADRES + '/')
+    await depoYaz(eski.y, eski.o)
+    await s.git(ADRES + '/')
+    const pencere = await sayiBekle('[data-kvkk-guncelleme]', (v) => v > 0)
+    if (pencere < 1) hata = 'eski sürümü onaylamış hesapta güncelleme penceresi çıkmadı'
+    /* Onay zorunlu (29.09.2026, kullanıcının kararı): pencere zemine
+       dokunarak kapanmıyor, ertele düğmesi yok. */
+    if (!hata) {
+      await bekle(500)
+      await s.js(`(() => { const z = document.querySelector('.sheet-backdrop'); z?.dispatchEvent(new MouseEvent('click', { bubbles: true })); return 1 })()`)
+      await bekle(300)
+      if ((await say('[data-kvkk-guncelleme]')) < 1) hata = 'güncelleme penceresi zemine dokununca kapandı (onay zorunlu olmalı)'
+      else if ((await say('[data-kvkk-guncelleme] .btn--soft')) > 0) hata = 'güncelleme penceresinde erteleme düğmesi var'
+    }
+    if (!hata) {
+      await s.js(`(() => { document.querySelectorAll('[data-kvkk-guncelleme] .onay__giris').forEach((c) => c.click()); return 1 })()`)
+      await bekle(200)
+      await s.js(`document.querySelector('[data-kvkk-guncelleme] .btn--primary')?.click(); 1`)
+      const kalan = await sayiBekle('[data-kvkk-guncelleme]', (v) => v === 0)
+      const h = await s.js(hesapOku)
+      const son = (h?.onaylar?.olaylar || []).slice(-2)
+      if (kalan > 0) hata = 'onaydan sonra güncelleme penceresi kalkmadı'
+      else if (h?.onaylar?.surum !== KVKK_SURUMU) hata = `onaydan sonra hesabın sürümü "${h?.onaylar?.surum}"`
+      else if (son.length < 2 || !son.every((o) => o.kanal === 'connectGuncelleme' && o.secim === 'onay'))
+        hata = 'güncelleme onayı olay olarak yazılmadı'
+    }
+
+    // (b) Gizlilik ve İzinler sayfası
+    if (!hata) {
+      const guncel = hesapla(KVKK_SURUMU)
+      await s.git(ADRES + '/')
+      await depoYaz(guncel.y, guncel.o)
+      await s.git(ADRES + '/#/gizlilik')
+      await sayiBekle('[data-metin="aydinlatma"]', (v) => v > 0)
+      const alt = await s.js(`document.querySelector('[data-metin="aydinlatma"] .listitem__sub')?.innerText || ''`)
+      if (!alt.includes(KVKK_SURUMU)) hata = `Aydınlatma Metni satırı onay sürümünü göstermiyor ("${alt}")`
+    }
+    if (!hata) {
+      await s.js(`document.querySelector('[data-alan="kampanya"] .onay__giris')?.click(); 1`)
+      await sayiBekle('[data-kampanya-tarih]', (v) => v > 0)
+      const h = await s.js(hesapOku)
+      const son = (h?.onaylar?.olaylar || []).slice(-1)[0]
+      if (h?.onaylar?.kampanya !== false) hata = 'kampanya kutusu kapatılınca hesapta izin kapanmadı'
+      else if (son?.metin !== 'ticariIleti' || son?.secim !== 'geriCekme' || son?.kanal !== 'connectProfil')
+        hata = `kampanya kapatma olay olarak yazılmadı (${JSON.stringify(son)})`
+      else if (!h.onaylar.kampanyaTarih) hata = 'kampanya izninin son değişiklik tarihi yazılmadı'
+      else if ((await say('[data-kampanya-tarih]')) < 1) hata = 'sayfada son değişiklik tarihi görünmüyor'
+    }
+    kaydet('C-37', 'KVKK: metin güncellemesinde yeniden onay, Gizlilik ve İzinler sayfası ve kampanya kaydı', hata, await metin())
+  }
+
+  /* C-38 · Yedek parçanın ödeme adımında banka hesabı kartı (30 Eylül
+     2026, kullanıcının isteği: PAKSAN'ın hesap bilgileri "Hesap Bilgileri
+     kısmına güzel ve en iyi şekilde entegre" edilsin; RequestForm.jsx →
+     Hesaplar). Parça talebi C-36'nın yoluyla açılıyor (Destek'in parça
+     adı Süper 8002'de seçili geliyor), form gönderilip ödeme adımına
+     geçiliyor. Kartta: (a) görünen IBAN marka katmanındakiyle aynı —
+     ekilen değer src/marka/kimlik.js'ten okunan IBAN; (b) IBAN düğmesi
+     panoya IBAN'ı BOŞLUKSUZ yazıyor (pano sayfada taklit ediliyor);
+     (c) kartta tutar YOK (30.09.2026, kullanıcının isteği: tutar yalnız
+     sayfanın başındaki özette); (d) havale açıklaması
+     müşterinin (tohumun) adını VE özetteki talep numarasını
+     (data-talep-no) taşıyor, açıklama düğmesi panoya aynısını yazıyor —
+     numara yoksa muhasebe ödemeyi talebe bağlayamıyor (inceleme bulgusu,
+     30.09.2026: önce yalnız ad aranıyordu, kalıptan {no} silinince tur
+     yeşil kalıyordu); (e) IBAN'ın seçimi tek satır, öbekler arasında
+     boşluk — pano kapalıyken elle kopyalamanın yolu; (f) formun seçili
+     parça satırında parçanın resmi var; (g) IBAN tek satırda, taşmadan.
+     Yazılara bakılmıyor. */
+  if (secili('C-38')) {
+    const kimlik = readFileSync(join(KOK, 'src', 'marka', 'kimlik.js'), 'utf8')
+    const IBAN_YAZI = kimlik.match(/iban:\s*'([A-Z]{2}[0-9 ]{10,})'/)?.[1] || ''
+    const IBAN = IBAN_YAZI.replace(/\s/g, '')
+    const katalog = JSON.parse(readFileSync(join(KOK, 'sunucu-taklidi', 'parca-katalogu', 'katalog.json'), 'utf8'))
+    const MEKIK = katalog.parcalar.find((p) => p.kod === '201310101110')?.ad || ''
+    let hata = !IBAN ? "kimlik.js'te IBAN yok — ERİŞİLEMEDİ" : !MEKIK ? 'katalogda 201310101110 yok — ERİŞİLEMEDİ' : null
+    if (!hata) {
+      await connectKur([])
+      await s.git(ADRES + '/#/talep?tur=parca&model=super-8002&parcalar=' + encodeURIComponent('Mekik dili'))
+      let secildi = false
+      for (let i = 0; i < 20 && !secildi; i++) {
+        await bekle(400)
+        secildi = (await metin()).includes(MEKIK)
+      }
+      if (!secildi) hata = `parça seçili gelmedi ("${MEKIK}") — ERİŞİLEMEDİ`
+    }
+    if (!hata) {
+      /* (f) Formun seçili parçalar listesinde satır parçanın resmini
+         taşıyor (30.09.2026, kullanıcının isteği: "Connect formundaki
+         seçili parçalar listesinde de görseller gelsin"). Kodun resmi
+         katalogda var; img aranıyor, "Görsel yok" yazısı değil. */
+      const resim = await sayiBekle('[data-secili-parca="201310101110"] .parca-resmi img', (v) => v > 0)
+      if (resim < 1) hata = 'formun seçili parça satırında parçanın resmi yok'
+    }
+    if (!hata) {
+      await s.js(`document.querySelector('.btn--primary.btn--lg')?.click(); 1`)
+      const kart = await sayiBekle('[data-banka-hesabi]', (v) => v > 0)
+      if (kart < 1) hata = 'ödeme adımında banka hesabı kartı yok'
+    }
+    if (!hata) {
+      const gorunen = await s.js(`(document.querySelector('[data-iban]')?.innerText || '').replace(/\\s/g, '')`)
+      /* Uzun basınca olan seçimin aynısı: IBAN'ın tamamı seçiliyor. */
+      const secim = await s.js(`(() => {
+        const el = document.querySelector('[data-iban]');
+        if (!el) return '';
+        const sec = getSelection();
+        sec.selectAllChildren(el);
+        const yazi = sec.toString();
+        sec.removeAllRanges();
+        return yazi
+      })()`)
+      if (gorunen !== IBAN) hata = `kartta görünen IBAN marka katmanındakiyle aynı değil ("${gorunen}")`
+      else if (secim.trim() !== IBAN_YAZI) hata = `IBAN seçilince öbekler boşlukla tek satır gelmiyor (${JSON.stringify(secim)})`
+      else if ((await say('[data-kopyala="iban"]')) < 1) hata = 'IBAN kopyalama düğmesi yok'
+      else {
+        /* (g) IBAN tek satırda (30.09.2026, kullanıcının isteği): yüksekliği
+           bir satır yüksekliğini aşmıyor ve yazı taşmıyor. Tur 1400
+           piksellik pencerede koşuyor, orada kart zaten geniş; ölçü
+           360 piksellik telefon boyunda alınıyor, sonra pencere geri. */
+        await s.olcu({ width: 360, height: 780, deviceScaleFactor: 1, mobile: true })
+        await bekle(500)
+        const satir = await s.js(`(() => { const e = document.querySelector('[data-iban]');
+          const cs = getComputedStyle(e); return { h: e.getBoundingClientRect().height, lh: parseFloat(cs.lineHeight), sw: e.scrollWidth, cw: e.clientWidth, w: innerWidth } })()`)
+        await s.olcu({ width: 1400, height: 1000, deviceScaleFactor: 1, mobile: false })
+        await bekle(300)
+        if (satir.h > satir.lh * 1.3 || satir.sw > satir.cw)
+          hata = `IBAN tek satırda değil (${satir.w} piksel ekran; yükseklik ${Math.round(satir.h)}, satır ${Math.round(satir.lh)}, taşma ${satir.sw - satir.cw})`
+      }
+    }
+    if (!hata) {
+      await s.js(`(() => {
+        window.__kopya = null;
+        Object.defineProperty(navigator, 'clipboard', {
+          configurable: true,
+          value: { writeText: (x) => { window.__kopya = x; return Promise.resolve() } },
+        });
+        document.querySelector('[data-kopyala="iban"]').click();
+        return 1
+      })()`)
+      await bekle(300)
+      const kopya = await s.js('window.__kopya')
+      if (kopya !== IBAN) hata = `IBAN düğmesi panoya IBAN'ı boşluksuz yazmadı (${JSON.stringify(kopya)})`
+    }
+    if (!hata) {
+      const kartta = await s.js(`document.querySelector('[data-banka-hesabi]')?.innerText || ''`)
+      const ozette = await s.js(`document.querySelector('.tutar-kutu__satir--toplam span:last-child')?.textContent.trim() || ''`)
+      const aciklama = await s.js(`document.querySelector('[data-aciklama]')?.textContent || ''`)
+      const talepNo = await s.js(`document.querySelector('[data-talep-no]')?.textContent.trim() || ''`)
+      if (!ozette) hata = 'özette gönderilecek tutar yok — ERİŞİLEMEDİ'
+      else if (!talepNo) hata = 'ödeme adımının özetinde talep numarası yok (data-talep-no)'
+      else if (kartta.includes(ozette)) hata = `kartta tutar görünüyor ("${ozette}"); tutar yalnız özette olmalı`
+      else if (!aciklama.includes(MUSTERI.ad)) hata = `havale açıklaması müşterinin adını taşımıyor ("${aciklama}")`
+      else if (!aciklama.includes(talepNo)) hata = `havale açıklaması talep numarasını (${talepNo}) taşımıyor ("${aciklama}")`
+      else {
+        await s.js(`window.__kopya = null; document.querySelector('[data-kopyala="aciklama"]')?.click(); 1`)
+        await bekle(300)
+        const kopya = await s.js('window.__kopya')
+        if (kopya !== aciklama) hata = `açıklama düğmesi panoya açıklamayı yazmadı (${JSON.stringify(kopya)})`
+      }
+    }
+    kaydet('C-38', 'Yedek parça ödemesi: banka hesabı kartı IBAN, kopyalama ve havale açıklaması doğru, tutar yalnız özette', hata, await metin())
+  }
+
+  /* X-09 · Servisim'in gizlilik kapısı (29 Eylül 2026, kullanıcının
+     kararı: "İlk girişte onay ekranı"). Kabul kaydı olmayan servis
+     işleri değil kapıyı görüyor; "Okudum, Kabul Ediyorum"dan sonra
+     İşlerim açılıyor ve depoya servisin kimliği ve metin sürümüyle bir
+     kabul satırı yazılıyor. Ekilen değer: servisin kimliği. */
+  if (secili('X-09')) {
+    const y = { ...YEREL }
+    delete y['paksan.servisKabulleri']
+    await s.git(ADRES + '/servis.html')
+    await depoYaz(y, OTURUM)
+    await s.git(ADRES + '/servis.html')
+    const kapi = await sayiBekle('[data-gizlilik-kapisi]', (v) => v > 0)
+    let hata = null
+    if (kapi < 1) hata = 'kabul kaydı olmayan servis kapıyı görmedi'
+    else if ((await say('.is-sekme')) > 0) hata = 'kapı açıkken İşlerim de çizildi'
+    if (!hata) {
+      await s.js(`document.querySelector('[data-eylem="gizlilik-kabul"]')?.click(); 1`)
+      const sekme = await sayiBekle('.is-sekme', (v) => v > 0)
+      const kayit = await s.js(`JSON.parse(localStorage.getItem('paksan.servisKabulleri') || '[]')`)
+      if (sekme < 1) hata = 'kabulden sonra İşlerim açılmadı'
+      else if (!kayit.some((k) => k.servisId === SERVIS.id && k.surum)) hata = 'kabul depoya servisin kimliğiyle yazılmadı'
+    }
+    kaydet('X-09', 'Servisim: gizlilik metinleri kabul edilmeden işler açılmıyor', hata, await metin())
+  }
+
+  /* X-10 · Servisim'in Gizlilik ve İzinler sayfası (30 Eylül 2026,
+     kullanıcının isteği: Connect'teki sayfanın Servisim karşılığı).
+     Hesap → "Gizlilik ve İzinler": kabul edilen iki metin kabulün sürümüyle,
+     bildirim izninin durumu ve izin satırları; metne dokununca metin
+     açılıyor. Ekilen değer: tohumun yazdığı kabulün sürümü. */
+  if (secili('X-10')) {
+    await s.git(ADRES + '/servis.html')
+    await depoYaz(YEREL, OTURUM)
+    await s.git(ADRES + '/servis.html')
+    const kabul = JSON.parse(YEREL['paksan.servisKabulleri'] || '[]').find((k) => k.servisId === SERVIS.id)
+    let hata = kabul ? null : 'tohumda servisin kabulü yok — ERİŞİLEMEDİ'
+    if (!hata) {
+      await sayiBekle('.uyg__hesap', (v) => v > 0)
+      await s.js(`document.querySelector('.uyg__hesap')?.click(); 1`)
+      const satir = await sayiBekle('[data-eylem="gizlilik-izinler"]', (v) => v > 0)
+      if (satir < 1) hata = "Hesap'ta Gizlilik ve İzinler satırı yok"
+    }
+    if (!hata) {
+      /* Ekran değişince 350 ms dokunuş yutuluyor (ServisPanel.jsx →
+         GECIS_KILIDI_MS); X-07 onu sınıyor, burada beklenir. */
+      await bekle(500)
+      await s.js(`document.querySelector('[data-eylem="gizlilik-izinler"]').click(); 1`)
+      const sayfa = await sayiBekle('[data-gizlilik-sayfasi]', (v) => v > 0)
+      const kabulYazisi = await s.js(`[...document.querySelectorAll('[data-kabul-satiri]')].map((x) => x.innerText).join(' | ')`)
+      if (sayfa < 1) hata = 'Gizlilik ve İzinler sayfası açılmadı'
+      else if ((await say('[data-kabul-satiri]')) < 2 || !kabulYazisi.includes(kabul.surum))
+        hata = `iki metnin satırı kabulün sürümünü göstermiyor ("${kabulYazisi}")`
+      else if ((await say('[data-izin="bildirim"]')) < 1) hata = 'bildirim izninin satırı yok'
+    }
+    if (!hata) {
+      await bekle(500)
+      await s.js(`document.querySelector('[data-metin="servisGizlilik"]').click(); 1`)
+      const yasal = await sayiBekle('[data-yasal="servisGizlilik"]', (v) => v > 0)
+      if (yasal < 1) hata = 'metne dokununca Müşteri Bilgilerinin Gizliliği açılmadı'
+    }
+    kaydet('X-10', 'Servisim: Gizlilik ve İzinler sayfası kabulü ve izinleri gösteriyor', hata, await metin())
+  }
+
+  /* X-11 · Servisim Hesap'ı: "Hesabım" (30 Eylül 2026, kullanıcının
+     isteği: "Görünüm, Gizlilik, Oturum başlıklarını sil, bunların
+     altındaki butonları 'Hesabım' başlığı altında topla"). Görünüm
+     seçicisi, Gizlilik ve İzinler satırı ve Çıkış Yap tek bölümde; o
+     bölüm ekranın son bölümü ve içinde başka başlık yok — üçünün de en
+     yakın bölümü Hesabım, kendi bölümleri kalmadı. Çıkış Yap bölümün
+     içinde de en sonda: iki satırın ardında ve son düğme. Bölüm ve satırlar
+     `data-*` işaretleriyle aranıyor, başlığın kelimesiyle değil.
+     Davranış da: bölümdeki seçicide öteki temaya basınca belgenin teması
+     değişiyor; Çıkış Yap önce onay penceresini açıyor, oturumu hemen
+     kapatmıyor. Ekilen değer: tohumun servis oturumu.
+     Aynı gün ikinci istek ("Güvenlik satırını kaldır ve Şifremi Değiştir
+     butonunu da Hesabım satırı altında konumlandır. Çıkış Yap butonu
+     Connect'teki gibi kırmızı olsun"): Şifremi Değiştir de Hesabım'ın
+     içinde ve Çıkış Yap'tan önce; satıra dokununca şifre formu açılıyor,
+     Vazgeç kapatıyor; Çıkış Yap'ın yazı rengi Servisim'in olağan düğme
+     yazısından farklı (hangi kırmızı olduğuna bakılmıyor). */
+  if (secili('X-11')) {
+    await s.git(ADRES + '/servis.html')
+    await depoYaz(YEREL, OTURUM)
+    await s.git(ADRES + '/servis.html')
+    let hata = null
+    await sayiBekle('.uyg__hesap', (v) => v > 0)
+    await s.js(`document.querySelector('.uyg__hesap')?.click(); 1`)
+    const bolum = await sayiBekle('[data-bolum="hesabim"]', (v) => v > 0)
+    if (bolum !== 1) hata = `Hesap'ta tek bir Hesabım bölümü yok (${bolum})`
+    if (!hata) {
+      const d = await s.js(`(() => {
+        const b = document.querySelector('[data-bolum="hesabim"]');
+        const ogeler = {
+          gorunum: '[data-hesabim-satir="gorunum"] .tema-secici',
+          gizlilik: '[data-eylem="gizlilik-izinler"]',
+          sifre: '[data-hesabim-satir="sifre"]',
+          cikis: '[data-eylem="cikis"]',
+        };
+        const yer = {};
+        for (const [ad, sec] of Object.entries(ogeler)) {
+          const l = [...document.querySelectorAll(sec)];
+          yer[ad] = l.length === 1 && l[0].closest('.bolum') === b ? 'icinde' : 'sayi ' + l.length + (l[0] && l[0].closest('.bolum') !== b ? ', kendi bölümünde' : '');
+        }
+        const bolumler = [...document.querySelectorAll('.bolum')];
+        /* Çıkış Yap bölümün içinde de en sonda: iki satırın ardından
+           geliyor ve bölümün son düğmesi (gözden geçirmenin bulgusu:
+           önce yalnız bölümün ekranın sonunda olduğuna bakılıyordu,
+           Çıkış Yap kartın üstüne çıksa adım geçiyordu). */
+        const cikis = b.querySelector('[data-eylem="cikis"]');
+        const sonra = (sec) => {
+          const o = b.querySelector(sec);
+          return !!(o && cikis && (o.compareDocumentPosition(cikis) & Node.DOCUMENT_POSITION_FOLLOWING));
+        };
+        return {
+          yer,
+          secici: document.querySelectorAll('.tema-secici').length,
+          baslik: b.querySelectorAll('.bolum__ad').length,
+          son: bolumler[bolumler.length - 1] === b,
+          cikisSonda: sonra('[data-hesabim-satir="gorunum"]') && sonra('[data-eylem="gizlilik-izinler"]')
+            && sonra('[data-hesabim-satir="sifre"]')
+            && [...b.querySelectorAll('button')].pop() === cikis,
+          cikisRengi: cikis ? getComputedStyle(cikis).color : '',
+          olaganRenk: (() => {
+            const o = document.createElement('button');
+            o.className = 'dg dg--blok';
+            b.appendChild(o);
+            const c = getComputedStyle(o).color;
+            o.remove();
+            return c;
+          })(),
+        };
+      })()`)
+      const disarida = Object.entries(d.yer).filter(([, v]) => v !== 'icinde')
+      if (disarida.length) hata = 'Hesabım bölümünün dışında ya da kendi bölümünde: ' + disarida.map(([k, v]) => `${k} (${v})`).join(', ')
+      else if (d.secici !== 1) hata = `ekranda ${d.secici} görünüm seçicisi var`
+      else if (d.baslik !== 1) hata = `Hesabım bölümünün içinde ${d.baslik - 1} başlık daha var`
+      else if (!d.son) hata = 'Hesabım ekranın son bölümü değil'
+      else if (!d.cikisSonda) hata = "Çıkış Yap Hesabım'ın sonunda değil (satırların önünde ya da ardında başka düğme var)"
+      else if (!d.cikisRengi || d.cikisRengi === d.olaganRenk) hata = `Çıkış Yap olağan düğme renginde (${d.cikisRengi})`
+    }
+    if (!hata) {
+      await bekle(500)
+      await s.js(`document.querySelector('[data-bolum="hesabim"] [data-hesabim-satir="sifre"]').click(); 1`)
+      const alan = await sayiBekle('[data-bolum="hesabim"] input[type="password"]', (v) => v >= 3)
+      if (alan < 3) hata = `Şifremi Değiştir'e dokununca Hesabım'da şifre formu açılmadı (${alan} alan)`
+      else {
+        await s.js(`document.querySelector('[data-bolum="hesabim"] [data-eylem="sifre-vazgec"]')?.click(); 1`)
+        const kalan = await sayiBekle('[data-bolum="hesabim"] input[type="password"]', (v) => v === 0)
+        if (kalan !== 0) hata = 'şifre formu Vazgeç ile kapanmadı'
+      }
+    }
+    if (!hata) {
+      /* Ekran değişince 350 ms dokunuş yutuluyor (GECIS_KILIDI_MS). */
+      await bekle(500)
+      const once = await s.js(`document.documentElement.getAttribute('data-tema')`)
+      await s.js(`document.querySelector('[data-bolum="hesabim"] [data-hesabim-satir="gorunum"] [aria-pressed="false"]')?.click(); 1`)
+      await bekle(300)
+      const sonra = await s.js(`document.documentElement.getAttribute('data-tema')`)
+      if (!once || once === sonra) hata = `Hesabım'daki görünüm seçicisi temayı değiştirmedi (${once} → ${sonra})`
+    }
+    if (!hata) {
+      await s.js(`document.querySelector('[data-bolum="hesabim"] [data-eylem="cikis"]').click(); 1`)
+      const onay = await sayiBekle('.onay', (v) => v > 0)
+      const oturum = await s.js(`sessionStorage.getItem('paksan.servisOturum')`)
+      if (onay < 1) hata = 'Çıkış Yap onay penceresini açmadı'
+      else if (!oturum || (await say('[data-bolum="hesabim"]')) < 1) hata = 'Çıkış Yap onay beklemeden oturumu kapattı'
+    }
+    kaydet('X-11', "Servisim: Hesap'taki Görünüm, Gizlilik ve İzinler, Şifremi Değiştir ve kırmızı Çıkış Yap tek Hesabım bölümünde", hata, await metin())
+  }
+
+  /* X-13 · Servisim'de "PAKSAN'a Devret" (30 Eylül 2026, kullanıcının
+     isteği: "'PAKSAN'dan Destek İste' seçeneği adı 'PAKSAN'a Devret'
+     olmalı. Buna göre de butonun ikonunu düzenle"). Açık işin
+     ayrıntısında devretme düğmesi (`data-eylem="devret"`) iletme okuyla
+     çiziliyor (Icons.jsx → IconDevret, Lucide'ın Forward'ı); basınca KENDİ
+     penceresi (`data-pencere="devret"`) başlığı ve onay düğmesiyle
+     açılıyor. Gönderilmiyor: pencereyi açmak talebe bir şey yazmamalı;
+     devrin kendisi veri katmanında (veri.js → destekTalepEt). Ekilen
+     değer işin müşteri adı; düğme ve başlık yazısı aranmıyor. */
+  if (secili('X-13')) {
+    const CANLI_AD = 'Canlı Devretme Sınaması'
+    const yeni = connectTalebi({ id: 'canli-13', no: 'SRV2609990013', status: 'yeni', ad: CANLI_AD })
+    await s.git(ADRES + '/servis.html')
+    await depoYaz(YEREL, OTURUM)
+    await s.git(ADRES + '/servis.html')
+    await bekle(1800)
+    await s.js(`(() => { const k = 'paksan.requests'; const l = JSON.parse(localStorage.getItem(k) || '[]'); l.unshift(${JSON.stringify(yeni)}); localStorage.setItem(k, JSON.stringify(l)); return 1 })()`)
+    await s.js(depoOlayi('paksan.requests'))
+    await metinBekle(CANLI_AD)
+    const acti = await s.js(`(() => { const h = [...document.querySelectorAll('button, [role="button"], a')].find((x) => (x.innerText || '').includes(${JSON.stringify(CANLI_AD)})); if (!h) return 0; h.click(); return 1 })()`)
+    let hata = acti ? null : `"${CANLI_AD}" taşıyan kart açılamadı — ERİŞİLEMEDİ`
+    if (!hata) {
+      const dugme = await sayiBekle('[data-eylem="devret"]', (v) => v > 0)
+      if (dugme < 1) hata = 'açık işte devretme düğmesi yok'
+      else if ((await say('[data-eylem="devret"] svg.lucide-forward')) < 1)
+        hata = 'devretme düğmesinde iletme oku yok (Icons.jsx → IconDevret)'
+      /* Simge tek başına anlam taşımaz (CLAUDE.md, Servis Panelinin
+         Kullanıcısı): düğmenin yazısı boşsa düşer. Hangi kelime olduğuna
+         bakılmıyor, yalnız yazının varlığına. */
+      else if ((await s.js(`(document.querySelector('[data-eylem="devret"]')?.innerText || '').trim().length`)) < 1)
+        hata = 'devretme düğmesinin yazısı yok (simge tek başına)'
+    }
+    if (!hata) {
+      /* Ekran değişince 350 ms dokunuş yutuluyor (X-07); beklenir. */
+      await bekle(500)
+      await s.js(`document.querySelector('[data-eylem="devret"]').click(); 1`)
+      const pencere = await sayiBekle('[data-pencere="devret"]', (v) => v > 0)
+      const baslik = await s.js(`(document.querySelector('[data-pencere="devret"] [data-pencere-baslik]')?.innerText || '').trim().length`)
+      if (pencere < 1) hata = 'devretme düğmesi kendi penceresini açmadı'
+      else if (baslik < 1) hata = 'devretme penceresinin başlığı yok'
+      else if ((await say('[data-pencere="devret"] [data-eylem="devret-onay"]')) < 1) hata = 'devretme penceresinde onay düğmesi yok'
+    }
+    if (!hata) {
+      const t = await s.js(`JSON.parse(localStorage.getItem('paksan.requests') || '[]').find((x) => x.id === 'canli-13') || null`)
+      if (!t) hata = 'sınama talebi depoda yok'
+      else if (t.devir || t.sahip !== yeni.sahip) hata = 'pencereyi açmak talebi devretti (onaylanmadan yazıldı)'
+    }
+    kaydet('X-13', 'Servisim: işi devretme düğmesi yazılı ve iletme okuyla, kendi penceresini açıyor', hata, await metin())
+  }
+
+  /* X-12 · Servisim sipariş özetinde adet ve Kaldır (30 Eylül 2026,
+     kullanıcının isteği: "checkout ekranında seçilen parçaları sadece
+     kaldırabiliyoruz, adetlerini değiştiremiyoruz. Bunu yapmak için geri
+     gelmek gerekiyor"). Özetin satırı Connect'in "Talebiniz" satırı
+     (components/ParcaOzeti.jsx); her satırda eksi-artı ve Kaldır. Metne
+     bakılmıyor: satır `data-parca-satiri` + `data-adet`, toplam
+     `data-siparis-toplam`, düğmeler `data-eylem`, ödeme seçenekleri
+     `data-odeme` (adı "Bakiyem", `data-odeme-ad`; kullanılabilir bakiye
+     `data-bakiye`), seçili seçenek `.buyuk-sec--on`. Seçim kartında yalnız
+     parçanın kodu ve adet sayısı okunuyor. Sıra: iki parça seç → "Devam"a
+     çift dokunuş (ikincisi yutulmalı) → özet; adedi 1 olan satırın eksisi
+     kapalı → bakiye toplamın 1 TL üstüne kurulur, "Bakiyem" seçilir →
+     birincinin adedini artır (toplam değişmeli, "Bakiyem" kapanmalı) →
+     azalt ("Bakiyem" açılır ama seçim Faturayla'da kalmalı) → yeniden
+     artır → özetten geri (seçim kartında aynı adet) → özet → ikinciyi
+     kaldır (satır gitmeli, toplam inmeli) → sonuncuyu kaldır, ikinci
+     dokunuş seçim kartına (seçim adımına dönülmeli, seçili kart
+     kalmamalı). Adım değişince 350 ms dokunuş yutuluyor
+     (SiparisVer.jsx → ADIM_KILIDI_MS); kilidi sınayan iki dokunuş dışında
+     her geçişten sonra beklenir.
+
+     İnceleme eki (aynı gün): eksinin 1'de durması, adım kilidi ve ödeme
+     seçiminin kendiliğinden "Bakiyem"e dönmemesi önce sınanmıyordu. */
+  if (secili('X-12')) {
+    const satirlar = () => s.js(`JSON.stringify([...document.querySelectorAll('[data-parca-satiri]')].map((x) => [x.dataset.parcaSatiri, x.dataset.adet]))`).then(JSON.parse)
+    const toplam = () => s.js(`Number(document.querySelector('[data-siparis-toplam]')?.dataset.siparisToplam)`)
+    const odemeHali = () => s.js(`JSON.stringify({
+      fatura: !!document.querySelector('[data-odeme="fatura"].buyuk-sec--on'),
+      bakiye: !!document.querySelector('[data-odeme="bakiye"].buyuk-sec--on'),
+      kapali: !!document.querySelector('[data-odeme="bakiye"]')?.disabled,
+    })`).then(JSON.parse)
+    const artir = (kod) => s.js(`document.querySelector('[data-parca-satiri="${kod}"] [data-eylem="adet-artir"]')?.click(); 1`)
+    const azalt = (kod) => s.js(`document.querySelector('[data-parca-satiri="${kod}"] [data-eylem="adet-azalt"]')?.click(); 1`)
+    const sayiDegisti = async (oku, eski, n = 12) => {
+      let v = eski
+      for (let i = 0; i < n && v === eski; i++) {
+        await bekle(250)
+        v = await oku()
+      }
+      return v
+    }
+    const haliBekle = async (kosul, n = 12) => {
+      let h = await odemeHali()
+      for (let i = 0; i < n && !kosul(h); i++) {
+        await bekle(250)
+        h = await odemeHali()
+      }
+      return h
+    }
+    await s.git(ADRES + '/servis.html')
+    await depoYaz(YEREL, OTURUM)
+    await s.git(ADRES + '/servis.html')
+    await sayiBekle('.uyg__tab', (v) => v > 1)
+    await s.js(`document.querySelectorAll('.uyg__tab')[1]?.click(); 1`)
+    await bekle(600)
+    await s.js(`document.querySelector('.uyg__fab')?.click(); 1`)
+    /* Katalog ağdan geliyor (taklit gecikmeli); montaj listesi beklenir. */
+    const montaj = await sayiBekle('.montaj', (v) => v > 0, 30)
+    let hata = montaj < 1 ? 'sipariş ekranında montaj listesi yok — ERİŞİLEMEDİ' : null
+    if (!hata) {
+      await bekle(500)
+      await s.js(`document.querySelector('.montaj').click(); 1`)
+      if ((await sayiBekle('.parca-kart__ac', (v) => v > 1)) < 2) hata = 'montajda iki parça kartı yok — ERİŞİLEMEDİ'
+    }
+    let kodlar = []
+    let t0 = NaN
+    if (!hata) {
+      await s.js(`document.querySelectorAll('.parca-kart__ac')[0].click(); 1`)
+      await bekle(200)
+      await s.js(`document.querySelectorAll('.parca-kart__ac')[1].click(); 1`)
+      await bekle(300)
+      /* "DEVAM"A ÇİFT DOKUNUŞ. İlk dokunuştan 100 ms sonra ikinci dokunuş
+         aynı noktaya, bir de özetin ilk satırının artısına gidiyor; adım
+         kilidi ikisini de yutmalı. Noktanın altında ne olduğuna
+         bakılmıyor, sonucuna bakılıyor: adetler 1 kalmalı, pencere
+         açılmamalı. */
+      await s.js(`(async () => {
+        const d = document.querySelector('.siparis-dip__devam')
+        if (!d) return 0
+        const r = d.getBoundingClientRect()
+        d.click()
+        await new Promise((ok) => setTimeout(ok, 100))
+        document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)?.click()
+        document.querySelector('[data-parca-satiri] [data-eylem="adet-artir"]')?.click()
+        return 1
+      })()`)
+      await sayiBekle('[data-parca-satiri]', (v) => v === 2)
+      await bekle(300)
+      const ilk = await satirlar()
+      kodlar = ilk.map(([k]) => k)
+      t0 = await toplam()
+      /* Kilit yokken ikinci dokunuş özetin altındaki "Geri"ye düşüyordu
+         (bozularak görüldü): özet açılıp hemen seçime dönülüyor. Bu
+         erişilemeyen ekran değil, düşüş. */
+      if (kodlar.length !== 2 && (await say('.parca-kart--on')) === 2)
+        hata = '"Devam"a çift dokunuşun ikincisi işledi: özet açıldı, seçim adımına geri dönüldü'
+      else if (kodlar.length !== 2) hata = `özette iki parça satırı yok (${kodlar.length}) — ERİŞİLEMEDİ`
+      else if (ilk.some(([, a]) => a !== '1') || (await say('.onay')) > 0)
+        hata = `"Devam"a çift dokunuşun ikincisi özette işledi (adetler ${ilk.map(([, a]) => a).join(', ')}, açık pencere ${await say('.onay')})`
+      else if (!(t0 > 0)) hata = 'özetin toplamı data-siparis-toplam ile okunamadı'
+      else if ((await say('[data-odeme="fatura"]')) !== 1 || (await say('[data-odeme="bakiye"] [data-odeme-ad="bakiye"]')) !== 1)
+        hata = 'ödeme seçenekleri (Faturayla, Bakiyem) data-odeme ile bulunamadı'
+      else if ((await say('[data-parca-satiri] [data-eylem="adet-artir"]')) !== 2 || (await say('[data-parca-satiri] [data-eylem="parca-kaldir"]')) !== 2)
+        hata = 'özetin satırlarında adet ya da Kaldır düğmesi yok'
+    }
+    if (!hata) {
+      /* EKSİ 1'DE DURUYOR: çıkarmak "Kaldır"ın işi. Eksi kapalı ve
+         basılınca satır yerinde; iki kat kapı (kapalılık ve üst işlevin
+         sınırı), biri tek başına silinirse öteki tutuyor. */
+      await bekle(500)
+      const kapali = await s.js(`!!document.querySelector('[data-parca-satiri="${kodlar[1]}"] [data-eylem="adet-azalt"]')?.disabled`)
+      await azalt(kodlar[1])
+      await bekle(300)
+      const ikinci = (await satirlar()).find(([k]) => k === kodlar[1])
+      if (!ikinci) hata = "adedi 1 olan satırın eksisi satırı sildi (çıkarmak Kaldır'ın işi)"
+      else if (ikinci[1] !== '1') hata = `adedi 1 olan satırın eksisi adedi değiştirdi (${ikinci[1]})`
+      else if (!kapali) hata = 'adedi 1 olan satırın eksisi kapalı değil'
+    }
+    if (!hata) {
+      /* BAKİYE ÖZETİN TOPLAMININ 1 TL ÜSTÜNE KURULUYOR: başka sekme cari
+         hareket yazmış gibi (depo olayı; Servisim bakiyeyi yeniden
+         okuyor). Artı bakiyeyi aşıyor, eksi yeniden sığdırıyor. Hareket
+         X-02'den sonra ekleniyor; sonraki aşama depoyu yeniden kuruyor. */
+      const b0 = await s.js(`Number(document.querySelector('[data-odeme="bakiye"]')?.dataset.bakiye)`)
+      const servisId = await s.js(`JSON.parse(sessionStorage.getItem('paksan.servisOturum') || '{}').servisId || null`)
+      const fark = Math.round((t0 + 1 - b0) * 100) / 100
+      if (!Number.isFinite(b0) || !servisId) hata = 'kullanılabilir bakiye data-bakiye ile okunamadı — ERİŞİLEMEDİ'
+      else {
+        await s.js(`(() => { const k = 'paksan.cariHareket'; const l = JSON.parse(localStorage.getItem(k) || '[]');
+          l.unshift({ id: 'canli-12', servisId: ${JSON.stringify(servisId)}, tarih: Date.now(), tur: ${JSON.stringify(fark >= 0 ? 'alacak' : 'odeme')}, tutar: ${Math.abs(fark)}, aciklama: 'Tur X-12' });
+          localStorage.setItem(k, JSON.stringify(l)); return 1 })()`)
+        await s.js(depoOlayi('paksan.cariHareket'))
+        const h = await haliBekle((x) => !x.kapali)
+        if (h.kapali) hata = `bakiye toplamın üstüne kurulunca "Bakiyem" açılmadı (toplam ${t0}) — ERİŞİLEMEDİ`
+      }
+      if (!hata) {
+        await s.js(`document.querySelector('[data-odeme="bakiye"]').click(); 1`)
+        const h = await haliBekle((x) => x.bakiye)
+        if (!h.bakiye || h.fatura) hata = '"Bakiyem" seçilemedi'
+      }
+    }
+    let t1 = NaN
+    if (!hata) {
+      await artir(kodlar[0])
+      t1 = await sayiDegisti(toplam, t0)
+      const adet = (await satirlar()).find(([k]) => k === kodlar[0])?.[1]
+      const h = await haliBekle((x) => x.kapali)
+      if (adet !== '2') hata = `artı düğmesi özetteki adedi artırmadı (adet ${adet})`
+      else if (t1 === t0) hata = `adet 2 oldu, toplam değişmedi (${t0})`
+      else if (!h.kapali || !h.fatura || h.bakiye) hata = `adet artınca bakiye yetmedi ama "Bakiyem" kapanıp Faturayla seçilmedi (${JSON.stringify(h)})`
+    }
+    if (!hata) {
+      /* Eksiyle bakiye yeniden yetiyor: seçenek açılıyor, seçim
+         Faturayla'da kalıyor (servis "Bakiyem"i yeniden seçmedi). */
+      await azalt(kodlar[0])
+      const h = await haliBekle((x) => !x.kapali)
+      if (h.kapali) hata = `adet 1'e inince "Bakiyem" yeniden açılmadı (${JSON.stringify(h)})`
+      else if (h.bakiye || !h.fatura) hata = `bakiye yeniden yetince seçim kendiliğinden "Bakiyem"e döndü (${JSON.stringify(h)})`
+      else {
+        await artir(kodlar[0])
+        const adet = await sayiDegisti(async () => (await satirlar()).find(([k]) => k === kodlar[0])?.[1], '1')
+        if (adet !== '2') hata = `ikinci artı adedi 2 yapmadı (${adet})`
+      }
+    }
+    if (!hata) {
+      /* Özetten geri: seçim kartı aynı adedi göstermeli (adet tek yerde). */
+      await s.js(`document.querySelector('[data-eylem="ozet-geri"]').click(); 1`)
+      await sayiBekle('.parca-kart--on', (v) => v === 2)
+      const kartAdedi = await s.js(`(() => {
+        const k = [...document.querySelectorAll('.parca-kart--on')].find((x) => x.querySelector('.parca-kart__kod')?.innerText.trim() === ${JSON.stringify(kodlar[0])})
+        return k ? k.querySelector('.parca-kart__sayi')?.innerText.trim() : null
+      })()`)
+      if (kartAdedi !== '2') hata = `özette artırılan adet seçim kartına geçmedi (kartta ${kartAdedi})`
+    }
+    if (!hata) {
+      await bekle(500)
+      await s.js(`document.querySelector('.siparis-dip__devam')?.click(); 1`)
+      await sayiBekle('[data-parca-satiri]', (v) => v === 2)
+      await bekle(500)
+      await s.js(`document.querySelector('[data-parca-satiri="${kodlar[1]}"] [data-eylem="parca-kaldir"]')?.click(); 1`)
+      await sayiBekle('[data-parca-satiri]', (v) => v === 1)
+      const kalan = (await satirlar()).map(([k]) => k)
+      const t2 = await toplam()
+      if (kalan.length !== 1 || kalan[0] !== kodlar[0]) hata = `Kaldır satırı çıkarmadı (özette ${kalan.join(', ')})`
+      else if (!(t2 < t1)) hata = `parça kaldırıldı, toplam inmedi (${t1} → ${t2})`
+    }
+    if (!hata) {
+      /* Son parçanın Kaldır'ı seçim adımına döndürüyor; 100 ms sonraki
+         ikinci dokunuş seçim ekranında altta kalan parça kartına gidiyor
+         ve kilit onu yutmalı (yoksa kart yeniden seçilirdi). */
+      await bekle(300)
+      await s.js(`(async () => {
+        document.querySelector('[data-parca-satiri="${kodlar[0]}"] [data-eylem="parca-kaldir"]')?.click()
+        await new Promise((ok) => setTimeout(ok, 100))
+        document.querySelector('.parca-kart__ac')?.click()
+        return 1
+      })()`)
+      const kart = await sayiBekle('.parca-kart__ac', (v) => v > 0)
+      await bekle(300)
+      const ozet = await say('[data-parca-satiri]')
+      const secilen = await say('.parca-kart--on')
+      if (ozet > 0 || kart < 1) hata = 'son parça kaldırılınca seçim adımına dönülmedi'
+      else if (secilen > 0) hata = `son parça kaldırıldı, seçim ekranında ${secilen} seçili kart kaldı (ikinci dokunuş yutulmadı)`
+    }
+    kaydet('X-12', 'Servisim: sipariş özetinde adet değişiyor (eksi 1\'de duruyor), Kaldır satırı çıkarıyor, seçimle aynı adet, çift dokunuş yutuluyor, ödeme seçimi kendiliğinden değişmiyor', hata, await metin())
   }
 
   /* ---------------------------------- 9 · Formlar: boş gönderim

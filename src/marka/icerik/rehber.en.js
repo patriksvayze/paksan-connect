@@ -254,7 +254,7 @@ export const REHBER_EN = {
 
   'sezon-sonu': {
     baslik: 'End-of-Season Maintenance',
-    ozet: 'Before putting the machine away, half a day',
+    ozet: 'Before putting the machine away, set aside half a day',
     neZaman: 'When the season ends, before winter storage',
     ortak: [
       {

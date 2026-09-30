@@ -183,7 +183,7 @@ export async function modulleriYukle() {
 
   const al = (yol) => sunucu.ssrLoadModule(yol)
 
-  const [veri, servisKaydi, servisAtama, talepOlustur, duyuruHedef, teslimat, depo, icerik, yetkiler, marka, makineKaydi, talep, serial, numaraTalebi, urun, adresler, rehber, servisTarifesi, servisFiyat, musteriEslesmesi, tel] =
+  const [veri, servisKaydi, servisAtama, talepOlustur, duyuruHedef, teslimat, depo, icerik, yetkiler, marka, makineKaydi, talep, serial, numaraTalebi, urun, adresler, rehber, servisTarifesi, servisFiyat, musteriEslesmesi, tel, rizaKaydi, servisGizlilik] =
     await Promise.all([
       al('/src/backoffice/veri.js'),
       al('/src/lib/servisKaydi.js'),
@@ -211,9 +211,14 @@ export async function modulleriYukle() {
          bakıyor; senaryolar da o kuralı doğrudan çağırıyor. */
       al('/src/lib/musteriEslesmesi.js'),
       al('/src/lib/tel.js'),
+      /* 29 Eylül 2026: KVKK onay kaydı (Connect) ve Servisim'in gizlilik
+         kabulü (AK-37). Tohum servisin kabulünü gerçek işlevle yazıyor;
+         yoksa ekran turundaki her Servisim adımı kabul ekranında kalırdı. */
+      al('/src/lib/rizaKaydi.js'),
+      al('/src/lib/servisGizlilik.js'),
     ])
 
-  return { veri, servisKaydi, servisAtama, talepOlustur, duyuruHedef, teslimat, depo, icerik, yetkiler, marka, makineKaydi, talep, serial, numaraTalebi, urun, adresler, rehber, servisTarifesi, servisFiyat, musteriEslesmesi, tel }
+  return { veri, servisKaydi, servisAtama, talepOlustur, duyuruHedef, teslimat, depo, icerik, yetkiler, marka, makineKaydi, talep, serial, numaraTalebi, urun, adresler, rehber, servisTarifesi, servisFiyat, musteriEslesmesi, tel, rizaKaydi, servisGizlilik }
 }
 
 /**

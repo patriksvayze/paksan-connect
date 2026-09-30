@@ -33,7 +33,7 @@ kötü. Arada hata yaparsın:
 
 Her sekmeyi ve ekranı gez, her düğmeye bir kez bas ve **ne işe
 yaradığını öğren**: İşlerim (Yeni / Devam Eden / Tamamlanan), talep
-detayı (randevu, not, destek iste, iptal, garanti dışı tamamla, servis
+detayı (randevu, not, PAKSAN'a devret, iptal, garanti dışı tamamla, servis
 formu), Servis Kaydı (parça isteği ve parçayı taktıktan sonraki kayıt),
 Kayıt Aç (elle kayıt: seri numarasıyla ve seri numarası yokken), Parça
 (sipariş ver: faturayla ve bakiyeden, sipariş detayı, iptal), Hak Ediş

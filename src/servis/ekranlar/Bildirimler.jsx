@@ -3,6 +3,7 @@ import { gecenSure } from '../../backoffice/ekranlar/ortak'
 import { altBilgi } from '../../data/duyuruTurleri'
 import { MARKA } from '../../marka'
 import { Bolum, Bos, Yaprak } from '../Kabuk'
+import { DUYURU_IKON } from './Islerim'
 import { IconBell } from '../../components/Icons'
 import {
   bildirimYazisi,
@@ -99,7 +100,10 @@ export function Bildirimler({ oturum, talepler, onAc, onUcretler }) {
       tarih: d.tarih,
       baslik: d.baslik,
       metin: d.metin,
-      alt: [altBilgi(d).ad, gecenSure(d.tarih)].filter(Boolean).join(' · '),
+      /* Türün adı artık başlığın üstünde, kendi renginde (S5); alt
+         satırda yalnız zaman. */
+      bilgi: altBilgi(d),
+      alt: gecenSure(d.tarih),
       okunmamis: !gorulen.has(d.id),
       duyuru: d,
     }))
@@ -146,15 +150,29 @@ export function Bildirimler({ oturum, talepler, onAc, onUcretler }) {
         return (
           <Bolum key={o.id} ad={o.ad} sayi={liste.length}>
             <div className="talep-haberi">
-              {liste.map((s) => (
+              {liste.map((s) => {
+                const Ikon = s.bilgi ? DUYURU_IKON[s.bilgi.ikon] || IconBell : null
+                return (
                 <button
                   key={s.id}
-                  className={'talep-haberi__satir' + (s.okunmamis ? '' : ' talep-haberi__satir--okundu')}
+                  className={
+                    'talep-haberi__satir' +
+                    (s.okunmamis ? '' : ' talep-haberi__satir--okundu') +
+                    (s.bilgi ? ' talep-haberi__satir--' + s.bilgi.ton : '')
+                  }
                   onClick={() => ac(s)}
                 >
                   <span className="talep-haberi__nokta" aria-hidden="true" />
                   <span className="talep-haberi__govde">
                     {s.okunmamis && <span className="talep-haberi__yeni">Okunmadı</span>}
+                    {/* DUYURUNUN TÜRÜ BAŞLIĞIN ÜSTÜNDE (29 Eylül 2026, S5):
+                        güvenlik uyarısı fuar davetiyle aynı görünüyordu. */}
+                    {s.bilgi && (
+                      <span className={'talep-haberi__tur talep-haberi__tur--' + s.bilgi.ton}>
+                        <Ikon size={16} />
+                        {s.bilgi.ad}
+                      </span>
+                    )}
                     <span className="talep-haberi__baslik">{s.baslik}</span>
                     {s.metin && (
                       <span
@@ -168,7 +186,8 @@ export function Bildirimler({ oturum, talepler, onAc, onUcretler }) {
                     <span className="talep-haberi__alt">{s.alt}</span>
                   </span>
                 </button>
-              ))}
+                )
+              })}
             </div>
           </Bolum>
         )

@@ -4,9 +4,9 @@
    Boş ekranlar ve karşılama ekranı için hazırlanmış düz vektör
    çizimler.
 
-   Eski Destek ekranının dört güvenlik çizimi de buradaydı; ekranın
-   gömülü rehberiyle birlikte 10 Eylül 2026'da uygulamadan çıkarıldı
-   (arşiv: D:\PAKSAN\paksan-rag\arsiv\eski-destek-ekrani).
+   Destek ekranının dört güvenlik çizimi de burada. Ekranın gömülü
+   rehberiyle birlikte 10 Eylül 2026'da uygulamadan çıkarılmıştı; 29 Eylül
+   2026'da rehberle birlikte geri geldi (bkz. src/config.js → DESTEK_KIPI).
 
    NASIL ÜRETİLDİ
 
@@ -52,6 +52,10 @@ import bosMakine from '../../assets/gorseller/bos-makine.png'
 import bosBildirim from '../../assets/gorseller/bos-bildirim.png'
 import bosArama from '../../assets/gorseller/bos-arama.png'
 import karsilama from '../../assets/gorseller/karsilama.png'
+import guvenlikKuyruk from '../../assets/gorseller/guvenlik-kuyruk.png'
+import guvenlikAnahtar from '../../assets/gorseller/guvenlik-anahtar.png'
+import guvenlikBekle from '../../assets/gorseller/guvenlik-bekle.png'
+import guvenlikDestek from '../../assets/gorseller/guvenlik-destek.png'
 
 export const CIZIM = {
   bosMakine,
@@ -59,4 +63,14 @@ export const CIZIM = {
   bosArama,
   karsilama,
 }
+
+/* Destek çözümündeki dört güvenlik maddesinin sırasıyla karşılığı
+   (bkz. destekVerisi.js → GUVENLIK). Sıra bozulursa çizimler yanlış
+   maddeye düşer. */
+export const GUVENLIK_CIZIMLERI = [
+  guvenlikKuyruk,
+  guvenlikAnahtar,
+  guvenlikBekle,
+  guvenlikDestek,
+]
 

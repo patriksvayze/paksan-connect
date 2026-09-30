@@ -8,7 +8,7 @@ veriler burada. Üçü aynı kaynaktan derleniyor ama ayrı ayrı çalışıyor:
 
 | Uygulama | Kimin | Ne yapar |
 |---|---|---|
-| **PAKSAN Connect** | müşteri | Makinesini kaydeder, servis ve yedek parça ister, kılavuzları okur, destek asistanına sorar. İki dilli (Türkçe + İngilizce). |
+| **PAKSAN Connect** | müşteri | Makinesini kaydeder, servis ve yedek parça ister, makinesinin kullanım kılavuzunu (PDF) indirip okur, arızasını Destek ekranında adım adım bulur (bugün hazır arıza rehberi; sunucudaki asistan kapalı, bkz. `src/config.js → DESTEK_KIPI`). İki dilli (Türkçe + İngilizce). |
 | **Backoffice** | PAKSAN personeli | Talepleri, makineleri, servisleri, bayileri, hak edişleri ve raporları yönetir. Tarayıcıda açılır, tek dilli. |
 | **PAKSAN Servisim** | servis elemanı | Sahada iş alır, servis kaydı açar, parça sipariş eder, hak edişini görür. Tek dilli. |
 
@@ -24,7 +24,7 @@ personeli backoffice'ten yürütür.
 | `src/` | **Bütün uygulama kodu.** Üç uygulama da buradan derleniyor. Alt klasörleri aşağıda. |
 | `veritabani/` | SQL Server veritabanının tasarımı ve kurulum betikleri. Henüz kalıcı olarak kurulmadı; ekosistem tamamlanınca kurulacak. `uygulama-eslesmesi.mjs`: uygulamaların yazdığı her alanın veritabanında nereye düştüğü. |
 | `tools/` | Otomasyon betikleri: doğrulama (`dogrula.mjs`), **ekosistem sınaması** (`ekosistem-sinamasi.mjs` üç uygulamanın paylaştığı veri katmanını 34 akış senaryosuyla, `ekosistem-turu.mjs` gezilebilir ekranların tamamını 80 denetimle tarayıcıda koşturur; envanter `ekosistem/ekranlar.mjs`, formlar `ekosistem/formlar.mjs`), **kullanıcı sınaması** (`kullanici-sinamasi/`: üç uygulamayı gerçek kullanıcılar gibi kullanan dört ajanın tur düzeni, test dünyası kurulumu ve tur arası tutarlılık denetimi; nasıl yürütüldüğü klasörün README'sinde), **eşleme denetimi** (`veritabani-eslesme-denetimi.mjs`: uygulama veritabanında karşılığı olmayan bir alan yazarsa ya da eşlemede bir satır iki kez yazılırsa doğrulamayı düşürür), **fiyat listesi sınaması** (`fiyat-listesi-okuma-sinamasi.mjs`: backoffice'e yüklenen PDF'i okuyan kodun doğru okuduğunu ve yayına alma adımını denetler), ekran görüntüsü, ikon üretimi, veritabanı araçları (`vt.mjs`; yedek `vt yedekle`). Uygulamanın içine girmez. |
-| `sunucu-taklidi/` | Sunucu gelene kadar sunucunun yerini tutan dosyalar — bugün yalnız **yedek parça kataloğu** (538 parça, görselleriyle) ve yeni fiyat listesini yayına alan adım (`fiyat-listesi-yayini.mjs`; backoffice'ten yüklenen liste buraya geliyor, eskisi `parca-katalogu-arsiv/`'e gidiyor). Geliştirme sunucusu bunları ağdan yayınlıyor. Ayrıntı: `sunucu-taklidi/BENIOKU.md`. |
+| `sunucu-taklidi/` | Sunucu gelene kadar sunucunun yerini tutan dosyalar — **yedek parça kataloğu** (538 parça, görselleriyle), yeni fiyat listesini yayına alan adım (`fiyat-listesi-yayini.mjs`; backoffice'ten yüklenen liste buraya geliyor, eskisi `parca-katalogu-arsiv/`'e gidiyor) ve **kullanım kılavuzlarının PDF'leri** (`kilavuzlar/`; PDF'ler git'e girmez, listesi girer). Geliştirme sunucusu bunları ağdan yayınlıyor. Ayrıntı: `sunucu-taklidi/BENIOKU.md`. |
 | `android/` | PAKSAN Connect'in Android projesi. Capacitor üretiyor. |
 | `android-servis/` | PAKSAN Servisim'in Android projesi. |
 | `apk/` · `apk-servis/` | Derlenmiş APK dosyaları. Her sürüm ayrı dosyada durur, üstüne yazılmaz. |
@@ -32,7 +32,7 @@ personeli backoffice'ten yürütür.
 | `yedekler/` | Yeniden tasarlanan ekranların eski hâlleri, geri dönülmek istenirse diye bir süre tutuluyor. Uygulamaya girmez. Bugün: `servisim-islerim-22-eylul-2026/` (Servisim İşlerim ekranı; nasıl geri dönüleceği içindeki `GERI-DONUS.md`'de). |
 | `denetim/` | Yapılmış incelemelerin raporları (güvenlik, canlıya hazırlık). Git'e girmez. |
 | `dist/` · `dist-backoffice/` · `dist-servis/` | Derleme çıktıları. Elle düzenlenmez, her derlemede yeniden yazılır. |
-| `paksan-support-dataset/` | Destek asistanının kılavuz veri seti. Kendi git deposu olan ayrı bir proje. |
+| `paksan-support-dataset/` | Destek asistanının kılavuz veri seti. Kendi git deposu olan ayrı bir proje. Connect'in kılavuz ekranları 29 Eylül 2026'ya kadar bundan kuruluyordu; artık kılavuz PDF'in kendisi (`sunucu-taklidi/kilavuzlar/`). |
 
 Destek asistanının sunucusu bu klasörde **değil**: `D:\PAKSAN\paksan-rag`.
 
@@ -44,7 +44,7 @@ Destek asistanının sunucusu bu klasörde **değil**: `D:\PAKSAN\paksan-rag`.
 | `src/backoffice/` | Personel panelinin tamamı; ekranlar `ekranlar/` altında. |
 | `src/servis/` | PAKSAN Servisim'in tamamı; ekranlar `ekranlar/` altında. |
 | `src/components/` | Üç uygulamanın da kullandığı ortak parçalar. |
-| `src/marka/` | **Firmaya ait her şey:** logo, renkler, ürün kataloğu, bayi ve servis listeleri, fiyatlar, kılavuz paketi. Başka bir firmaya kurulum bu klasörün değişmesiyle olur. |
+| `src/marka/` | **Firmaya ait her şey:** logo, renkler, ürün kataloğu, bayi ve servis listeleri, fiyatlar, hangi ürünün hangi kılavuzu kullandığı, Destek'in arıza rehberi. Başka bir firmaya kurulum bu klasörün değişmesiyle olur. |
 | `src/data/` | Ülkeye ait içerik: il listesi, KVKK metinleri, talep alanları, belirtiler, yetki kataloğu. |
 | `src/lib/` | Yardımcı modüller: depolama, bildirim, PDF/Excel çıkarma, servis atama, müşteri eşleşmesi (`musteriEslesmesi.js`), telefon biçimi (`tel.js`), makinenin açık talebi (`makineTalepleri.js`), Servisim'in elle açtığı talep (`elleTalep.js`), demo işareti (`demoSurumu.js`). |
 | `src/i18n/` | Türkçe ve İngilizce sözlükler (yalnız Connect iki dilli). |

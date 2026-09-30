@@ -67,8 +67,9 @@ export default function Catalog() {
                 onClick={() => setAra('')}
                 aria-label={t('ortak.kapat')}
                 style={{
-                  position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
-                  color: 'var(--ink-3)', width: 30, height: 30, display: 'grid', placeItems: 'center',
+                  /* 44 piksel (29 Eylül 2026, son denetim): 30'du. */
+                  position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)',
+                  color: 'var(--ink-3)', width: 44, height: 44, display: 'grid', placeItems: 'center',
                 }}
               >
                 <IconClose size={19} />
@@ -156,7 +157,7 @@ export default function Catalog() {
               style={{ marginTop: 16 }}
               onClick={() => nav('/talep?tur=satinalma')}
             >
-              <IconCart size={20} /> {t('urun.teklifIsteyin')}
+              <IconCart size={20} /> {t('anasayfa.teklifAl')}
             </button>
           </div>
         </div>

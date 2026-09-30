@@ -4,7 +4,21 @@
 
 ## Platform
 
-web
+android
+
+## Surfaces
+
+Üç ürünün platformu aynı değil (29 Eylül 2026, kullanıcının kararı).
+Yukarıdaki değer iki mobil uygulamanınki; alan tek değer aldığı için
+backoffice burada ayrıca yazılı.
+
+- **PAKSAN Connect** (müşteri uygulaması) — mobil uygulama, şimdilik
+  yalnız Android.
+- **PAKSAN Servisim** (servis uygulaması) — mobil uygulama, şimdilik
+  yalnız Android.
+- **Backoffice** (PAKSAN personel paneli) — web, masaüstü tarayıcı.
+
+Aşağıdaki bölümler Servisim'i anlatıyor.
 
 ## Users
 
@@ -82,8 +96,10 @@ olmayan bir uygulamada aynı kaldıraç yok.
   derlemesi `servis.html` girişinden çıkıyor, APK'da `index.html`
   adını alıyor.
 - **APK yalnız istendiğinde derleniyor**, her sürüm ayrı dosyada.
-- Kapasitör sarmalayıcı var ama tasarım dili web; native bileşen
-  kullanılmıyor.
+- Uygulama Capacitor ile Android'e paketleniyor; ekranlar web
+  teknolojisiyle yazılı, native bileşen kullanılmıyor. Hedef cihaz
+  Android telefon, tasarım kararları ona göre (geri hareketi, sistem
+  çubukları, dokunma hedefi).
 
 ## Brand Commitments
 
@@ -106,6 +122,9 @@ olmayan bir uygulamada aynı kaldıraç yok.
   (`src/marka/katalog/`).
 - **Gerçek kullanım kılavuzları:** 5 PDF, 381 sayfa
   (`paksan-support-dataset/`). 27 üründen yalnız 5'inin kılavuzu var.
+  29 Eylül 2026'dan beri Connect kılavuzu uygulamada yeniden kurmuyor,
+  PDF'in kendisini gösteriyor (sunucudaki klasörden bir kez indiriliyor,
+  internetsiz açılıyor; bugün 4 PDF, 9 ürün).
 - **Üretilmiş çizimler:** `src/assets/gorseller/servis-*.png` —
   boş ekranlarda kullanılıyor.
 - **Gerçek makine fotoğrafları:** ürün kataloğunda mevcut.

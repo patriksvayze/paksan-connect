@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { bayileriGetir, servisleriGetir, MARKA } from '../../marka'
 import { Bolum } from '../Kabuk'
+import { telHref } from '../../lib/tel'
 import { IconCart, IconPhone } from '../../components/Icons'
 
 /* ==========================================================================
@@ -69,13 +70,17 @@ export function Bayilerim({ oturum, surum }) {
               {[b.ilce, b.il].filter(Boolean).join(' / ')}
             </div>
           </div>
+          {/* Yazılı düğme (29 Eylül 2026, görünüm önerisi S9): simge tek
+              başınaydı. Bağlantı numaranın başındaki "+"yı artık atmıyor
+              (lib/tel.js → telHref); yurt dışı numara da aranıyor. */}
           {b.tel && (
             <a
               className="calisilan__ara"
-              href={'tel:' + String(b.tel).replace(/\D/g, '')}
+              href={telHref(b.tel)}
               aria-label={b.ad + ' numarasını ara'}
             >
-              <IconPhone size={19} />
+              <IconPhone size={18} />
+              Ara
             </a>
           )}
         </div>

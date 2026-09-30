@@ -1,8 +1,9 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useApp } from '../context/AppState'
 import { TopBar, TabBar, Sheet } from '../components/Chrome'
 import { getProduct, PRODUCTS, supportGroup, urunDilde } from '../marka'
+import { PARCA_KODU } from '../marka/icerik/destekVerisi'
 import { GonderButonu } from '../components/GonderButonu'
 import { alanaGit } from '../lib/formOdak'
 import {
@@ -21,7 +22,9 @@ import {
   fiyatGoruntusu, katalogGetir, parcaBul, parcaToplami,
 } from '../lib/parcaKatalogu'
 import { ParcaSecEkrani } from './ParcaSecEkrani'
+import { ParcaOzetSatiri, TutarKutusu } from '../components/ParcaOzeti'
 import { ParcaResmi } from '../components/ParcaResmi'
+import { UrunFoto } from '../components/Gorsel'
 import { formatSerial } from '../lib/serial'
 import { telKullanici } from '../lib/tel'
 import { CIZIM } from '../marka/icerik/cizimler'
@@ -42,7 +45,7 @@ import { useDil } from '../i18n'
 import { BANKA, SIRKET } from '../marka'
 import {
   IconCheckCircle, IconPin, IconRight, IconLock, IconCheck, IconAlert,
-  IconPlus, IconMinus, IconCart, IconInfo, IconClose,
+  IconPlus, IconMinus, IconCart, IconInfo, IconClose, IconBanka, IconKopyala,
 } from '../components/Icons'
 
 /* Tür başlıkları sözlükte: talep.servis.baslik gibi. Placeholder
@@ -122,8 +125,22 @@ function TalepFormu() {
      yazılıyor: müşteri aynı şeyi ikinci kez anlatmasın, servis de
      talebin arkasında ne konuşulduğunu görsün (bkz. Support.jsx). */
   const destekArizasi = params.get('destek') || ''
-  const [aciklama, setAciklama] = useState(
-    destekArizasi ? t('talep.destektenGeldi', { ariza: destekArizasi }) : ''
+  /* Destek'in arıza rehberinde "Kontrol Ettim" denen nedenler (29 Eylül
+     2026, bkz. ArizaCozumu.jsx → talepAc). Servis aynı kontrolleri
+     baştan yapmasın diye açıklamanın ikinci satırı. */
+  const destekDenenen = (params.get('denenen') || '')
+    .split('|')
+    .map((x) => x.trim())
+    .filter(Boolean)
+  const [aciklama, setAciklama] = useState(() =>
+    destekArizasi
+      ? [
+          t('talep.destektenGeldi', { ariza: destekArizasi }),
+          destekDenenen.length ? t('talep.destekteDenenen', { liste: destekDenenen.join('; ') }) : null,
+        ]
+          .filter(Boolean)
+          .join('\n')
+      : ''
   )
   /* Yazı kutusunun alternatifi: { veri, sure } ya da null */
   const [ses, setSes] = useState(null)
@@ -315,6 +332,27 @@ function TalepFormu() {
      (açılıştaki kuralın aynısı, yukarıda ilkServisYeri). */
   function makineSec(id) {
     setMakineId(id)
+    /* Destek'ten seçili gelen parça yeni makineye uymuyorsa seçimden
+       çıkıyor, adı açıklamaya yazılıyor (son inceleme): küçük balyanın
+       mekik dili Hammer'a geçilince seçili kalıyordu. */
+    if (tur === 'parca' && destekKodlari.current.size) {
+      const urun = machines.find((m) => m.id === id)?.productId
+      const kalan = new Map(secim)
+      const dusen = []
+      for (const [kod, k] of destekKodlari.current) {
+        if (!kalan.has(kod) || k.urunler.includes(urun)) continue
+        kalan.delete(kod)
+        destekKodlari.current.delete(kod)
+        dusen.push(k.ad)
+      }
+      if (dusen.length) {
+        setSecim(kalan)
+        setAciklama((eski) => {
+          const satir = t('talep.listeDisiParca', { parcalar: dusen.join(', ') })
+          return eski ? `${eski}\n${satir}` : satir
+        })
+      }
+    }
     if (tur !== 'servis' || adresDokunuldu.current) return
     const yer = makineninSonServisAdresi(machines.find((m) => m.id === id), requests) || {
       il: user?.il || '',
@@ -540,28 +578,39 @@ function TalepFormu() {
   /* Destekten gelen parça adları bir KEZ işleniyor; katalog indikten
      sonra çalışıyor. Kullanıcı sonradan kaldırırsa geri gelmiyor.
 
-     EŞLEŞME ZORLANMIYOR. Destek ekranı arıza bilgi tabanından geliyor ve
-     oradaki parça adı PAKSAN kataloğundaki adla birebir tutmak zorunda
-     değil. Yalnız katalogda o adla TEK parça varsa işaretleniyor; iki
-     parça varsa hangisi olduğunu uygulama bilemez, seçimi çiftçi yapar.
+     AD KODA TABLODAN ÇEVRİLİYOR (29 Eylül 2026, kullanıcının isteği).
+     Önce katalogda aynı ADLA tek parça aranıyordu; Destek'in adları
+     çiftçinin diliyle yazıldığı için 29 addan hiçbiri tutmuyordu. Şimdi
+     markanın tablosu (marka/icerik/destekVerisi.js → PARCA_KODU) adı
+     katalog koduna çeviriyor, yalnız o parçanın uyduğu makinede: seçili
+     makine, yoksa Destek'ten gelen model. Personelin gizlediği ya da yeni
+     fiyat listesinde kalkan parça seçili gelmiyor (parcaBul).
      Eşleşmeyen ad sessizce kaybolmuyor, açıklamaya yazılıyor — hem
      müşteri unutmuyor hem PAKSAN ne istendiğini görüyor. */
   const parcaBaslatildi = useRef(false)
+  /* Destek'ten seçili gelen kodlar ve hangi makinelere uydukları: çiftçi
+     formda makineyi değiştirirse uymayan parça seçimden çıkıyor (aşağıda
+     makineSec). */
+  const destekKodlari = useRef(new Map())
   useEffect(() => {
     if (parcaBaslatildi.current) return
     if (tur !== 'parca' || destekParcalari.length === 0) return
-    if (katalogDurum !== 'hazir') return
+    /* Katalog gelmezse adlar yine kaybolmuyor: hepsi açıklamaya
+       (son inceleme; önce katalog hatasında hiçbir yere yazılmıyordu). */
+    if (katalogDurum !== 'hazir' && katalogDurum !== 'hata') return
     parcaBaslatildi.current = true
 
+    const urun = secilen?.productId || params.get('model')
+    const tablo = urun && katalogDurum === 'hazir' ? PARCA_KODU[supportGroup(getProduct(urun))] : null
     const eslesen = new Map()
     const eslesmeyen = []
     for (const ad of destekParcalari) {
-      const aranan = ad.toLocaleLowerCase('tr-TR')
-      const tam = (katalog?.parcalar || []).filter(
-        (p) => p.ad.toLocaleLowerCase('tr-TR') === aranan
-      )
-      if (tam.length === 1) eslesen.set(tam[0].kod, 1)
-      else eslesmeyen.push(ad)
+      const karsilik = tablo?.[ad]
+      const parca = karsilik?.urunler.includes(urun) ? parcaBul(katalog, karsilik.kod) : null
+      if (parca) {
+        eslesen.set(parca.kod, 1)
+        destekKodlari.current.set(parca.kod, { ad, urunler: karsilik.urunler })
+      } else eslesmeyen.push(ad)
     }
 
     if (eslesen.size) setSecim(eslesen)
@@ -1055,24 +1104,18 @@ function TalepFormu() {
               {/* Satırın başında parçanın resmi (22 Eylül 2026): müşteri
                   havale etmeden önce doğru parçayı seçtiğini resimden
                   görüyor (bkz. components/ParcaResmi.jsx). */}
+              {/* Satır ortak bileşende (30 Eylül 2026): Servisim'in sipariş
+                  özeti aynı satırı çiziyor (bkz. components/ParcaOzeti.jsx). */}
               {hesap.satirlar.map((r) => (
-                <div key={r.kod} className="detay-satir detay-satir--gorselli">
-                  <span className="parca-satir">
-                    <ParcaResmi katalog={katalog} kod={r.kod} yok={t('parcaSec.gorselYok')} />
-                    <span>
-                      {r.ad}
-                      <span
-                        className="small muted serial-mono"
-                        style={{ display: 'block', marginTop: 2 }}
-                      >
-                        {r.kod} · {adetYaz(r.adet)}
-                      </span>
-                    </span>
-                  </span>
-                  <span className="detay-satir__vurgu">
-                    {r.tutar === null ? '—' : `${paraYaz(r.tutar)} ${PARA_BIRIMI}`}
-                  </span>
-                </div>
+                <ParcaOzetSatiri
+                  key={r.kod}
+                  katalog={katalog}
+                  kod={r.kod}
+                  ad={r.ad}
+                  alt={<>{r.kod} ·&nbsp;{adetYaz(r.adet)}</>}
+                  tutar={r.tutar === null ? '—' : `${paraYaz(r.tutar)} ${PARA_BIRIMI}`}
+                  gorselYok={t('parcaSec.gorselYok')}
+                />
               ))}
               {diger && (
                 <div className="detay-satir">
@@ -1081,29 +1124,25 @@ function TalepFormu() {
                 </div>
               )}
 
+              {/* KDV SATIRI LİSTENİN KDV'Lİ OLUP OLMAMASINA BAĞLI.
+                  PAKSAN'ın fiyat listesinde KDV bilgisi yazmıyor;
+                  bugün liste KDV hariç sayılıyor (`KDV_HARIC_LISTE`).
+                  Teyit edilip tersi çıkarsa tek bayrak değişiyor ve
+                  satır kendiliğinden kapanıyor — tutar da
+                  `kdvTutari()` sıfır döndüğü için şişmiyor. Kutu ortak
+                  bileşende (30 Eylül 2026, bkz. components/ParcaOzeti.jsx). */}
               {fiyatGosterilir && (
-                <div className="tutar-kutu" style={{ marginTop: 12 }}>
-                  <div className="tutar-kutu__satir">
-                    <span>{t('parcaFiyat.araToplam')}</span>
-                    <span>{paraYaz(hesap.araToplam)} {PARA_BIRIMI}</span>
-                  </div>
-                  {/* KDV SATIRI LİSTENİN KDV'Lİ OLUP OLMAMASINA BAĞLI.
-                      PAKSAN'ın fiyat listesinde KDV bilgisi yazmıyor;
-                      bugün liste KDV hariç sayılıyor (`KDV_HARIC_LISTE`).
-                      Teyit edilip tersi çıkarsa tek bayrak değişiyor ve
-                      satır kendiliğinden kapanıyor — tutar da
-                      `kdvTutari()` sıfır döndüğü için şişmiyor. */}
-                  {KDV_HARIC_LISTE && (
-                    <div className="tutar-kutu__satir">
-                      <span>{t('parcaFiyat.kdv', { oran: KDV_ORANI * 100 })}</span>
-                      <span>{paraYaz(hesap.kdv)} {PARA_BIRIMI}</span>
-                    </div>
-                  )}
-                  <div className="tutar-kutu__satir tutar-kutu__satir--toplam">
-                    <span>{t('parcaFiyat.gonderilecek')}</span>
-                    <span>{paraYaz(hesap.toplam)} {PARA_BIRIMI}</span>
-                  </div>
-                </div>
+                <TutarKutusu
+                  style={{ marginTop: 12 }}
+                  satirlar={[
+                    { ad: t('parcaFiyat.araToplam'), deger: <>{paraYaz(hesap.araToplam)} {PARA_BIRIMI}</> },
+                    KDV_HARIC_LISTE && {
+                      ad: t('parcaFiyat.kdv', { oran: KDV_ORANI * 100 }),
+                      deger: <>{paraYaz(hesap.kdv)} {PARA_BIRIMI}</>,
+                    },
+                  ]}
+                  toplam={{ ad: t('parcaFiyat.gonderilecek'), deger: <>{paraYaz(hesap.toplam)} {PARA_BIRIMI}</> }}
+                />
               )}
 
               {/* Katalog inmediyse ödeme adımında tutar yazmıyor.
@@ -1118,7 +1157,9 @@ function TalepFormu() {
               <div className="divider" />
               <div className="detay-satir">
                 <span className="small muted">{t('talep.talepNo')}</span>
-                <span className="serial-mono">{no}</span>
+                {/* data-talep-no: ekran turu (C-38) havale açıklamasının
+                    bu numarayı taşıdığını buradan denetliyor. */}
+                <span className="serial-mono" data-talep-no>{no}</span>
               </div>
               <p className="small muted" style={{ margin: '10px 0 0', lineHeight: 1.5 }}>
                 {t('parcaFiyat.kargoHaric')}
@@ -1300,7 +1341,14 @@ function TalepFormu() {
             {/* ------------------------------------------------- Ödeme */}
             <div className="field">
               <span className="field__label">{t('parcaOdeme.hesapBaslik')}</span>
-              <Hesaplar no={no} ad={user?.ad} t={t} showToast={showToast} />
+              {/* Tutar kartta yok (30 Eylül 2026, kullanıcının isteği):
+                  sayfanın başındaki özette "Gönderilecek tutar" olarak. */}
+              <Hesaplar
+                no={no}
+                ad={user?.ad}
+                t={t}
+                showToast={showToast}
+              />
             </div>
 
             <DekontAlani dekont={dekont} onDegis={setDekont} />
@@ -1412,37 +1460,49 @@ function TalepFormu() {
           {/* Makine seçimi */}
           {(tur === 'servis' || tur === 'parca') && (
             <>
-            <label className="field" data-alan="makine">
-              <span className="field__label">{t('talep.hangiMakine')}</span>
+            <div className="field" data-alan="makine">
+              <span className="field__label" id="talep-makine-baslik">{t('talep.hangiMakine')}</span>
               {/* Makine yoksa form hiç açılmıyor (bkz. yukarıdaki "makine yok"
-                  ekranı); burada seçim her zaman var. */}
-              <select
-                  className="select"
-                  value={makineId}
-                  onChange={(e) => makineSec(e.target.value)}
-                >
-                  <option value="">{t('talep.makineSec')}</option>
-                  {machines.map((m) => {
-                    const pr = urunDilde(getProduct(m.productId), dil)
-                    return (
-                      <option key={m.id} value={m.id}>
-                        {/* ÜRÜN TANINMAZSA ADI HİÇ YAZILMIYOR.
+                  ekranı); burada seçim her zaman var.
 
-                            Önce `pr?.name + ' · ' + seri` yazılıyordu:
-                            `pr` boş olduğunda satır ekranda
-                            "undefined · SYNS-2023-00891" diye
-                            görünüyordu. Seri numarası tek başına
-                            makineyi zaten ayırt ediyor. */}
-                        {[
-                          pr?.name && pr.name + (m.nickname ? ` (${m.nickname})` : ''),
-                          formatSerial(m.serial),
-                        ]
-                          .filter(Boolean)
-                          .join(' · ')}
-                      </option>
-                    )
-                  })}
-                </select>
+                  MAKİNE FOTOĞRAFIYLA SEÇİLİYOR (29 Eylül 2026, görünüm
+                  önerisi C5). Açılır listede seri numarası kesiliyordu
+                  ("IPAK-2023-004…") ve çiftçi hangi makinenin seçili
+                  olduğunu göremiyordu. Şimdi her makine kendi fotoğrafı,
+                  adı ve seri numarasıyla bir kart; seçili olanın çerçevesi
+                  ve onay işareti var. Seçim aynı: tek makine, aynı değer. */}
+              <div className="makine-secim" role="radiogroup" aria-labelledby="talep-makine-baslik">
+                {machines.map((m) => {
+                  const pr = urunDilde(getProduct(m.productId), dil)
+                  const secili = m.id === makineId
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={secili}
+                      className={'makine-secim__kart' + (secili ? ' makine-secim__kart--on' : '')}
+                      onClick={() => makineSec(m.id)}
+                    >
+                      <UrunFoto urunId={pr?.id} ad={pr?.name || ''} tip="thumb" ikonBoyut={26} />
+                      <span className="makine-secim__govde">
+                        {/* ÜRÜN TANINMAZSA ADI HİÇ YAZILMIYOR: seri
+                            numarası tek başına makineyi zaten ayırt ediyor
+                            ("undefined · SYNS-2023-00891" görünüyordu). */}
+                        {pr?.name && (
+                          <span className="makine-secim__ad">
+                            {pr.name + (m.nickname ? ` (${m.nickname})` : '')}
+                          </span>
+                        )}
+                        <span className="makine-secim__seri serial-mono">{formatSerial(m.serial)}</span>
+                      </span>
+                      <span className="makine-secim__isaret" aria-hidden="true">
+                        {secili && <IconCheck size={18} />}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
               {/* Talebin gideceği servis ya da neden gidemeyeceği. */}
               {/* Makinede süren talep varken yeni talep gitmiyor; aşağıdaki
                   kart o talebe ekleme yolunu gösteriyor. "Talebiniz …
@@ -1452,7 +1512,7 @@ function TalepFormu() {
                   {t('talep.servisineGidecek', { servis: seciliServis.ad })}
                 </span>
               )}
-            </label>
+            </div>
 
             {/* Makinede işi süren servis talebi var: formun yerinde o
                 talebe ekleme yolu (O5, yukarıda acikTalep). Düğme
@@ -1536,7 +1596,7 @@ function TalepFormu() {
                   {(tumBelirti ? belirtiListesi : belirtiListesi.slice(0, ILK)).map((b) => (
                     <button
                       key={b.deger}
-                      className={'secenek' + (belirtiler.includes(b.deger) ? ' secenek--on' : '')}
+                      className={'secenek secenek--coklu' + (belirtiler.includes(b.deger) ? ' secenek--on' : '')}
                       onClick={() => cevir(setBelirtiler, b.deger)}
                     >
                       {b.etiket}
@@ -1636,13 +1696,23 @@ function TalepFormu() {
                     FİYAT NEDEN BURADA: müşteri parça bedelini havaleyle
                     ÖNDEN gönderiyor. Ne kadar göndereceğini seçim
                     yaparken görmezse, ödeme adımında sürprizle
-                    karşılaşıyor ya da telefon açmak zorunda kalıyor. */}
+                    karşılaşıyor ya da telefon açmak zorunda kalıyor.
+
+                    RESİMLİ (30 Eylül 2026, kullanıcının isteği: "Connect
+                    formundaki seçili parçalar listesinde de görseller
+                    gelsin"). Satır iki katlı: üstte resim, ad ve kod,
+                    birim fiyat; altta adet düğmeleri. Tek katta resim
+                    de sığmıyordu: 360 piksel ekranda adet kutusu ve
+                    fiyatın yanında ada 34 piksel kalıyordu (aşağıda).
+                    Resim ödeme adımındaki ve Servisim'deki satırın
+                    resmi (ParcaResmi, aynı boy). */}
                 {secimler.length > 0 && (
                   <>
                     <span className="parca-alan__alt">{t('talep.kacAdet')}</span>
                     <div className="adetler">
                       {hesap.satirlar.map((r) => (
-                        <div key={r.kod} className="adet-satir">
+                        <div key={r.kod} className="adet-satir" data-secili-parca={r.kod}>
+                          <ParcaResmi katalog={katalog} kod={r.kod} yok={t('parcaSec.gorselYok')} />
                           <span className="adet-satir__ad">
                             {r.ad}
                             {/* Kod adın altında: müşteri telefonda ya da
@@ -1798,7 +1868,7 @@ function TalepFormu() {
                   {urunTipiSecenekleri(dil).map((x) => (
                     <button
                       key={x.deger}
-                      className={'secenek' + (urunTipi.includes(x.deger) ? ' secenek--on' : '')}
+                      className={'secenek secenek--coklu' + (urunTipi.includes(x.deger) ? ' secenek--on' : '')}
                       onClick={() => cevir(setUrunTipi, x.deger)}
                     >
                       {x.etiket}
@@ -1816,7 +1886,7 @@ function TalepFormu() {
                   {araziSecenekleri(dil).map((x) => (
                     <button
                       key={x.deger}
-                      className={'secenek' + (arazi.includes(x.deger) ? ' secenek--on' : '')}
+                      className={'secenek secenek--coklu' + (arazi.includes(x.deger) ? ' secenek--on' : '')}
                       onClick={() => cevir(setArazi, x.deger)}
                     >
                       {x.etiket}
@@ -1831,7 +1901,7 @@ function TalepFormu() {
                   {traktorSecenekleri(dil).map((x) => (
                     <button
                       key={x.deger}
-                      className={'secenek' + (traktor === x.deger ? ' secenek--on' : '')}
+                      className={'secenek secenek--tekli' + (traktor === x.deger ? ' secenek--on' : '')}
                       onClick={() => setTraktor(traktor === x.deger ? '' : x.deger)}
                     >
                       {x.etiket}
@@ -2129,7 +2199,9 @@ function rakam(deger, uzunluk) {
 
 /** Adet yazısı: 1 ise gösterilmiyor, kalabalık yapıyor. */
 function adetYaz(n) {
-  return '× ' + (n || 1)
+  /* "×"ten sonra bölünmeyen boşluk; "·"dan sonrakiyle birlikte dar ekranda
+     "· × 2" tek parça kalıyor (30 Eylül 2026; bkz. components/ParcaOzeti.jsx). */
+  return '×\u00a0' + (n || 1)
 }
 
 /* Hesaptan gelen bilgi.
@@ -2155,16 +2227,93 @@ function KayitliBilgi({ ad, tel, etiket }) {
    müşteri telefona yönlendiriliyor.
 
    IBAN kopyalama düğmesi şart: 26 haneli numarayı ekrandan bakarak
-   bankacılık uygulamasına yazmak hata üretiyor. */
+   bankacılık uygulamasına yazmak hata üretiyor.
+
+   TEK KART (30 Eylül 2026, kullanıcının isteği: "PAKSAN'ın banka hesap
+   bilgilerini … Hesap Bilgileri kısmına güzel ve en iyi şekilde entegre
+   et"). Havale yapacak çiftçinin bankacılık uygulamasına taşıyacağı
+   bilgiler tek kartta ve bankacılık uygulamasının sorduğu sırayla:
+   IBAN, alıcı adı, açıklama. Önce iki ayrı kart vardı ve IBAN küçük
+   yazıyordu. Kartta bir süre "Gönderilecek tutar" satırı da vardı;
+   aynı gün kaldırıldı (kullanıcı: "'Gönderilecek Tutar' satırını
+   kaldır"): tutar sayfanın başındaki özette.
+
+     · Kartın başı marka mavisinde: bankanın adı, şubesi ve hesabın para
+       birimi — PAKSAN'ın kendi afişi de mavi. Çiftçi doğru bankaya
+       gönderdiğini ilk satırda görüyor.
+     · IBAN kartın en büyük yazısı, afişteki gibi dörderli öbeklerle;
+       öbek ortadan bölünmüyor, satır öbeğin başında kırılıyor. Rakamlar
+       eşit genişlikte (serial-mono'nun kuralı: uygulamada tek yazı tipi
+       var, ayrı eş aralıklı yazı tipi yüklenmiyor).
+     · Kopyalanan satırın düğmesi iki saniye "Kopyalandı" diyor; ekranın
+       altındaki kısa bildirim de duruyor. Parmağın altındaki düğme
+       değişince çiftçi neyin kopyalandığını yerinde görüyor. */
+/* IBAN TEK SATIRDA (30 Eylül 2026, kullanıcının isteği: "IBAN bilgisi
+   satır atlamamalı, tek satırda göster"). 21 piksellik yazı 360 piksellik
+   telefonda sığmıyor, IBAN iki satıra bölünüyordu; geniş tarayıcı
+   penceresinde tek satırdı. Yazı kartın genişliğine göre küçülüyor:
+   satır taşarsa yazı boyu taşma oranında indiriliyor, kart genişleyince
+   CSS'teki boya dönüyor. Ölçü gerçek çizimden (scrollWidth), sabit bir
+   harf genişliği tahmininden değil: telefonun yazı büyütmesi (Android
+   textZoom) de hesaba giriyor. Alt sınır 12 piksel; ondan da sığmıyorsa
+   (çok büyük yazı ayarı) satır öbek başında kırılıyor — okunmayan
+   küçüklükte tek satır, iki okunur satırdan kötü.
+
+   Boy ve kırılma doğrudan öğeye yazılıyor, React durumuyla değil: her
+   ölçüm önce CSS'in boyuna dönüp yeniden ölçüyor; durumda aynı değer
+   kalınca React öğeye yeniden yazmaz ve yazı büyük kalırdı. */
+const IBAN_EN_KUCUK = 12
+
+function IbanYazisi({ iban, ham }) {
+  const ref = useRef(null)
+
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return undefined
+    function sigdir() {
+      el.style.fontSize = ''
+      el.classList.remove('banka-iban__no--kirik')
+      const oran = el.clientWidth / el.scrollWidth
+      if (!(oran < 1)) return
+      const css = parseFloat(getComputedStyle(el).fontSize)
+      const yeni = Math.floor(css * oran * 2) / 2
+      el.style.fontSize = Math.max(yeni, IBAN_EN_KUCUK) + 'px'
+      if (yeni < IBAN_EN_KUCUK) el.classList.add('banka-iban__no--kirik')
+    }
+    sigdir()
+    const izle = new ResizeObserver(() => sigdir())
+    izle.observe(el.parentElement)
+    return () => izle.disconnect()
+  }, [iban])
+
+  return (
+    <span ref={ref} className="banka-iban__no" data-iban={ham}>
+      {iban.split(/\s+/).map((obek, j) => (
+        <Fragment key={j}>{j > 0 && ' '}<span>{obek}</span></Fragment>
+      ))}
+    </span>
+  )
+}
+
 function Hesaplar({ no, ad, t, showToast }) {
   const aciklama = BANKA.aciklamaKalibi
     .replace('{no}', no || '')
     .replace('{ad}', ad || '')
     .trim()
 
-  async function kopyala(metin, mesaj) {
+  /* Son kopyalanan satırın anahtarı; iki saniye sonra düğme eski
+     yazısına dönüyor. */
+  const [kopyalanan, setKopyalanan] = useState('')
+  useEffect(() => {
+    if (!kopyalanan) return undefined
+    const zaman = setTimeout(() => setKopyalanan(''), 2000)
+    return () => clearTimeout(zaman)
+  }, [kopyalanan])
+
+  async function kopyala(anahtar, metin, mesaj) {
     try {
       await navigator.clipboard.writeText(metin)
+      setKopyalanan(anahtar)
       showToast(mesaj)
     } catch {
       /* Bazı WebView'larda pano kapalı olabiliyor; kullanıcı elle
@@ -2181,42 +2330,101 @@ function Hesaplar({ no, ad, t, showToast }) {
     )
   }
 
+  /* Satırın yanındaki küçük düğme: görünen yazı "Kopyala", ekran
+     okuyucuya neyi kopyaladığı ayrıca söyleniyor. */
+  const kopyaDugmesi = (anahtar, metin, okunanAd, mesaj) => {
+    const tamam = kopyalanan === anahtar
+    return (
+      <button
+        type="button"
+        className={'banka-kopya' + (tamam ? ' banka-kopya--tamam' : '')}
+        data-kopyala={anahtar}
+        aria-label={tamam ? undefined : okunanAd}
+        onClick={() => kopyala(anahtar, metin, mesaj)}
+      >
+        {tamam ? <IconCheck size={17} /> : <IconKopyala size={17} />}
+        {tamam ? t('parcaOdeme.kopyalandi') : t('parcaOdeme.kopyala')}
+      </button>
+    )
+  }
+
   return (
     <div className="stack" style={{ gap: 10 }}>
-      {BANKA.hesaplar.map((h) => (
-        <div key={h.iban} className="card" style={{ padding: 14 }}>
-          <div style={{ fontWeight: 700 }}>{h.banka}</div>
-          {h.sube && <div className="small muted">{h.sube}</div>}
-          <div className="serial-mono" style={{ marginTop: 8, fontSize: 15, lineHeight: 1.5 }}>
-            {h.iban}
+      <div className="banka-kart" data-banka-hesabi>
+        {BANKA.hesaplar.map((h, i) => {
+          const ibanHam = h.iban.replace(/\s/g, '')
+          const alici = h.alici || BANKA.unvan
+          const ibanTamam = kopyalanan === 'iban-' + i
+          const alt = [
+            h.sube && t('parcaOdeme.sube', { sube: h.sube }),
+            h.paraBirimi && t('parcaOdeme.paraHesabi', { para: h.paraBirimi }),
+          ].filter(Boolean).join(' · ')
+          return (
+            <div key={ibanHam} className="banka-kart__hesap">
+              <div className="banka-kart__ust">
+                <span className="banka-kart__simge"><IconBanka size={22} /></span>
+                <span className="banka-kart__kimlik">
+                  <span className="banka-kart__banka">{h.banka}</span>
+                  {alt && <span className="banka-kart__sube">{alt}</span>}
+                </span>
+              </div>
+
+              <div className="banka-kart__govde">
+                <div className="banka-iban">
+                  <span className="banka-satir__etiket">{t('parcaOdeme.iban')}</span>
+                  {/* Öbeklerin arasında GERÇEK boşluk var (30 Eylül 2026):
+                      öbekler yan yana dizilen kutular olunca uzun basıp
+                      seçilen IBAN her öbeği ayrı satırda olacak biçimde
+                      kopyalanıyordu; bankanın tek satırlık IBAN kutusu
+                      onu kesebilir ya da reddedebilir. Pano kapalıyken
+                      elle kopyalamanın tek yolu bu seçim. Boşluk öbeğin
+                      DIŞINDA: satır yalnız orada kırılıyor. */}
+                  <IbanYazisi iban={h.iban} ham={ibanHam} />
+                  <button
+                    type="button"
+                    className={'btn banka-iban__kopya' + (ibanTamam ? ' banka-kopya--tamam' : '')}
+                    data-kopyala="iban"
+                    onClick={() => kopyala('iban-' + i, ibanHam, t('parcaOdeme.ibanKopyalandi'))}
+                  >
+                    {ibanTamam ? <IconCheck size={20} /> : <IconKopyala size={20} />}
+                    {ibanTamam ? t('parcaOdeme.kopyalandi') : t('parcaOdeme.ibanKopyala')}
+                  </button>
+                </div>
+
+                <div className="banka-satir">
+                  <span className="banka-satir__metin">
+                    <span className="banka-satir__etiket">{t('parcaOdeme.alici')}</span>
+                    <span className="banka-satir__deger">{alici}</span>
+                  </span>
+                  {kopyaDugmesi(
+                    'alici-' + i,
+                    alici,
+                    t('parcaOdeme.aliciKopyala'),
+                    t('parcaOdeme.aliciKopyalandi'),
+                  )}
+                </div>
+              </div>
+            </div>
+          )
+        })}
+
+        <div className="banka-kart__govde banka-kart__ortak">
+          {/* Havalenin açıklamasına talep numarası yazılmazsa muhasebe
+              hangi ödemenin hangi talep olduğunu bulamıyor. */}
+          <div className="banka-satir">
+            <span className="banka-satir__metin">
+              <span className="banka-satir__etiket">{t('parcaOdeme.aciklamaAlani')}</span>
+              <span className="banka-satir__deger serial-mono" data-aciklama>{aciklama}</span>
+            </span>
+            {kopyaDugmesi(
+              'aciklama',
+              aciklama,
+              t('parcaOdeme.aciklamaKopyala'),
+              t('parcaOdeme.aciklamaKopyalandi'),
+            )}
           </div>
-          <button
-            className="btn btn--soft btn--sm"
-            style={{ marginTop: 10 }}
-            onClick={() => kopyala(h.iban.replace(/\s/g, ''), t('parcaOdeme.ibanKopyalandi'))}
-          >
-            {t('parcaOdeme.ibanKopyala')}
-          </button>
+          <p className="banka-kart__not">{t('parcaOdeme.aciklamaNeden')}</p>
         </div>
-      ))}
-
-      <div className="card" style={{ padding: 14 }}>
-        <div className="small muted">{t('parcaOdeme.alici')}</div>
-        <div style={{ marginTop: 3 }}>{BANKA.unvan}</div>
-
-        {/* Havalenin açıklamasına talep numarası yazılmazsa muhasebe
-            hangi ödemenin hangi talep olduğunu bulamıyor. */}
-        <div className="small muted" style={{ marginTop: 12 }}>
-          {t('parcaOdeme.aciklamaAlani')}
-        </div>
-        <div className="serial-mono" style={{ marginTop: 3 }}>{aciklama}</div>
-        <button
-          className="btn btn--soft btn--sm"
-          style={{ marginTop: 10 }}
-          onClick={() => kopyala(aciklama, t('parcaOdeme.aciklamaKopyalandi'))}
-        >
-          {t('parcaOdeme.aciklamaKopyala')}
-        </button>
       </div>
 
       <p className="small muted" style={{ lineHeight: 1.6 }}>

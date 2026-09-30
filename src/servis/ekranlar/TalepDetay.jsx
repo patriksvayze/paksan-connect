@@ -26,7 +26,7 @@ import { getProduct, MARKA, markaEk } from '../../marka'
 import { KDV_HARIC_LISTE, KDV_ORANI, PARA_BIRIMI, paraYaz } from '../../marka'
 import { ServisKapanisi, Secenekler } from './ServisKapanisi'
 import { servisFormuPaylas, servisFormuVarMi } from '../servisFormu'
-import { Onay, Sayfa } from '../Kabuk'
+import { BasariSeridi, Onay, Sayfa, useAcilisKilidi } from '../Kabuk'
 import {
   extractYear,
   formatSerial,
@@ -36,15 +36,23 @@ import {
 } from '../../lib/serial'
 import {
   IconAlert,
-  IconBook,
   IconCalendar,
   IconCheckCircle,
+  IconDevret,
+  IconKamyon,
+  IconKulaklik,
+  IconNot,
   IconPhone,
+  IconPin,
   IconRight,
-  IconShield,
+  IconSaat,
   IconClose,
 } from '../../components/Icons'
-import { gecenSure } from '../../backoffice/ekranlar/ortak'
+import { Capacitor } from '@capacitor/core'
+import { yolTarifiAdresi } from '../../lib/yolTarifi'
+import { siparisDurumu } from './Parca'
+import { siparisNetTutari } from '../../lib/servisFiyat'
+import { gecenSure, tarihYaz } from '../../backoffice/ekranlar/ortak'
 import { Ekler } from '../../backoffice/ekranlar/Ekler'
 
 /* ==========================================================================
@@ -58,7 +66,7 @@ import { Ekler } from '../../backoffice/ekranlar/Ekler'
      Randevu ver          → talepPlanla()   → planlandi
      Servis kaydı         → ServisKapanisi  → parça ya da onay bekliyor
      Garanti dışı iş      → talepKapat()    → kapandi (kayıt yok)
-     PAKSAN'dan destek    → destekTalepEt() → sahiplik PAKSAN'a geçer
+     PAKSAN'a devret      → destekTalepEt() → sahiplik PAKSAN'a geçer
 
    Talep PAKSAN'a devredildiyse servis işlem yapmıyor ama takip ediyor:
    müşteri hâlâ onun müşterisi.
@@ -99,15 +107,52 @@ const TUR_ADI = { servis: 'Servis', parca: 'Yedek Parça' }
    (Talepler.jsx). */
 const ALICISIZ = 'Talep müşterinin uygulamadaki hesabına bağlı olmadığı için bildirim gönderilmeyecek.'
 
+/* NE OLDUĞU LİSTEDE YAZIYOR (29 Eylül 2026, görünüm önerisi S2).
+   Randevu, iptal, kapatma ve kayıt ekranı sessizce listeye dönüyordu:
+   randevu verilen iş "Yeni" sekmesinden kayboluyor, servis işi kaybettiğini
+   sanıyordu. Kapanan her işlem `onKapat`a ne olduğunu söyleyen bir mesaj
+   veriyor; liste onu yeşil şeritte gösteriyor (Kabuk.jsx →
+   BasariSeridi). Geri düğmesi mesajsız kapatıyor.
+
+   RANDEVUDAN SONRA AYRINTIDA KALINIYOR (29 Eylül 2026, kullanıcının
+   onayı). Randevu verildikten sonra yapılacak iş çoğu zaman aynı işte:
+   müşteriyi aramak, not düşmek, randevuyu düzeltmek. Listeye dönmek
+   servisin işi yeniden bulup açmasını istiyordu. Şerit artık ayrıntının
+   başında çıkıyor, sayfa başa kayıyor; "Randevu verildi" notu hemen
+   altında. İptal, kapatma ve kayıt işi bitiriyor; onlar listeye dönüyor. */
+const gunYazisi = (g) =>
+  new Date(g + 'T00:00').toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' })
+
 export function TalepDetay({
   talep,
   oturum,
   servisAd,
   onKapat,
-  onDestekIste,
+  onDevret,
   onYenile,
+  basari,
+  onBasari,
+  onPencereKapandi,
 }) {
   const [pencere, setPencere] = useState(null)
+  /* Randevunun yeşil şeridi ayrıntıda KALIYOR (son inceleme). Listedeki
+     şerit 8 saniyede kalkıyor; ayrıntıda kalkınca altındaki her şey 93
+     piksel yukarı sıçrıyor, o sırada dokunan başka düğmeye basıyordu.
+     Şerit sayfanın başında, servis aşağı indikçe zaten görünmüyor;
+     ayrıntıdan çıkınca gidiyor. */
+  const [serit, setSerit] = useState(basari || null)
+  useEffect(() => {
+    if (basari) setSerit(basari)
+  }, [basari])
+  /* Pencere kapanınca kısa bir süre dokunuş yutuluyor: "Kaydet"e ikinci
+     dokunuş altta kalan düğmeye gitmesin (ServisPanel.jsx → "EKRAN
+     DEĞİŞİNCE ÇİFT DOKUNUŞUN İKİNCİSİ YUTULUYOR"). */
+  const oncekiPencere = useRef(pencere)
+  useEffect(() => {
+    const kapandi = Boolean(oncekiPencere.current) && !pencere
+    oncekiPencere.current = pencere
+    if (kapandi) onPencereKapandi?.()
+  }, [pencere, onPencereKapandi])
   /* Veri katmanının reddettiği işlem (aşağıdaki pencere kapısı). */
   const [islemHatasi, setIslemHatasi] = useState('')
 
@@ -162,7 +207,7 @@ export function TalepDetay({
                    gönderildikten sonra kapanıyor: aynı iş için ikinci
                    kayıt açılmaz, sıra karşı tarafta.
 
-     `sesiVar`     not yazma, randevu verme, destek isteme. Talep AÇIK
+     `sesiVar`     not yazma, randevu verme, PAKSAN'a devretme. Talep AÇIK
                    olduğu ve hâlâ servisin üstünde durduğu sürece açık.
 
    İKİSİ BİR SÜRE AYNI BAYRAKTI VE BU BİR HATAYDI. Parça bekleyen
@@ -352,13 +397,18 @@ export function TalepDetay({
 
   return (
     <Sayfa
-      baslik={talep.ad || '—'}
+      /* Servisin kendi siparişinde başlık kendi firmasının adıydı
+         (29 Eylül 2026, S3); sipariş, siparişin adıyla açılıyor. */
+      baslik={talep.servisSiparisi ? 'Sipariş' : talep.ad || '—'}
       alt={talep.no}
       onGeri={onKapat}
       dip={asilIslem}
     >
+      {/* Az önce kaydedilen randevunun şeridi (yukarıda "RANDEVUDAN SONRA
+          AYRINTIDA KALINIYOR"). */}
+      {serit && <BasariSeridi mesaj={serit} />}
       {islemHatasi && (
-        <div className="not not--turuncu">
+        <div className="not not--sari">
           <IconAlert size={19} />
           <div>{islemHatasi}</div>
         </div>
@@ -371,7 +421,7 @@ export function TalepDetay({
           üstünde duruyor, çünkü altındaki her şey ilk ziyaretin
           bilgisi. */}
       {(talep.tekrar || []).length > 0 && (
-        <div className="not not--turuncu">
+        <div className="not not--sari">
           <IconAlert size={19} />
           <div>
             <strong>
@@ -391,41 +441,130 @@ export function TalepDetay({
         </div>
       )}
 
-      <div className="kart" style={{ padding: 16 }}>
-        <div className="is__ust">
-          <span className={'tur tur--' + talep.tur}>
-            {TUR_ADI[talep.tur] || talep.tur}
-          </span>
-        </div>
+      {/* ŞU AN NE OLUYOR, EN ÜSTTE (29 Eylül 2026, görünüm önerisi S7).
+          Randevu, onay, parça ve kapanış notları müşteri bilgisinin ve
+          notların ALTINDAYDI: parça bekleyen işte ilk ekranda durumdan
+          hiçbir şey görünmüyordu. Servis bir işi ya "sırada ne var" ya
+          "arıza ne" diye açıyor; ikisi de artık ilk ekranda. */}
+      {/* RANDEVU ALINMIŞ TALEP AYNI EKRANI GÖSTERMEMELİ.
 
-        {/* Numara dokunulabilir: servis ezberleyip tuşlamıyor. Listedeki
-            arama düğmesinin aynısı, burada satır hâlinde. */}
-        {telYazi && (
-          <div style={{ marginTop: 10 }}>
-            <div className="kucuk sonuk">Telefon</div>
-            <a className="ara-satir" href={kayitTelHref(talep)}>
-              <IconPhone size={19} />
-              <span className="mono">{telYazi}</span>
-            </a>
+          Randevu verildikten sonra talep servis tarafında yine "bekleyen"
+          listesinde duruyor (doğrusu da bu, iş bitmedi) ama detayı yeni
+          gelmiş bir taleple birebir aynı görünüyordu: servis randevu
+          verdiğini unutup ikinci kez veriyordu. */}
+
+      {talep.plan && !kapali && (
+        <div className="not not--mavi">
+          <IconCalendar size={19} />
+          <div>
+            <strong>Randevu verildi · {talep.plan.tarihYazi}</strong>
+            {/* İş adı boşken satır "· müşteriyle görüşüldü" diye
+                başlıyordu; ayraç yalnız iki yanı da doluyken çıkıyor. */}
+            <p>
+              {[talep.plan.is, talep.plan.gorusuldu && 'müşteriyle görüşüldü']
+                .filter(Boolean)
+                .join(' · ')}
+            </p>
           </div>
-        )}
-        <Satir
-          ad="Konum"
-          deger={talep.ilce ? `${talep.ilce} / ${talep.il}` : talep.il}
-        />
-        {/* ADRES SERVİSİN ASIL İHTİYACI.
+        </div>
+      )}
 
-            İl ve ilçe listede sıralama için yeterli, tarlaya gitmek
-            için değil. Müşteri uygulamada makinenin bulunduğu adresi
-            yazıyor (bkz. screens/RequestForm.jsx) ve servis kapıdan
-            çıkmadan önce burada okuyor. Telefonla açılan taleplerde
-            boş; o zaman servis kayıt ekranında kendisi dolduruyor. */}
-        <Satir ad="Adres" deger={talep.adres} />
-        {talep.makine?.serial ? (
-          <Makine makine={talep.makine} />
-        ) : talep.makine?.seriYok ? (
-          <SerisizMakine makine={talep.makine} />
-        ) : null}
+      {paksanda && talep.devir && (
+        <div className="not not--mavi">
+          <IconKulaklik size={19} />
+          <div>
+            <strong>{MARKA} bu talebe destek veriyor.</strong>
+            <p>
+              Müşteri hâlâ sizin müşteriniz. {markaEk('in')} attığı adımları
+              burada görmeye devam edeceksiniz.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Onay bir bekleme: gri, saatli (29 Eylül 2026, S5). */}
+      {onayda && (
+        <div className="not not--gri">
+          <IconSaat size={19} />
+          <div>
+            <strong>Kaydınız {markaEk('da')} onay bekliyor.</strong>
+            <p>
+              Yol, işçilik ve parçalar inceleniyor. Onaylandığında tutar
+              cari hesabınıza alacak yazılacak.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* PARÇANIN NEREDE OLDUĞU TALEBİN ÜSTÜNDE.
+
+          Parça isteği ayrı bir kayda çıkmıyor; aynı talebin içinde
+          yürüyor. Servis tek yere bakıyor: parça hazırlanıyor mu,
+          yola çıktı mı, takip numarası ne. */}
+      {parcada && (
+        <div className={'not ' + (talep.parcaSevk ? 'not--yesil' : 'not--gri')}>
+          {talep.parcaSevk ? <IconKamyon size={19} /> : <IconSaat size={19} />}
+          <div>
+            <strong>
+              {talep.parcaSevk ? 'Parça yola çıktı.' : 'Parça hazırlanıyor.'}
+            </strong>
+            <p>
+              {talep.parcaSevk
+                ? [
+                    talep.parcaSevk.firma,
+                    talep.parcaSevk.takipNo,
+                    gecenSure(talep.parcaSevk.tarih),
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')
+                : `${MARKA} parçayı hazırlıyor. Kargoya verildiğinde takip numarası burada görünecek.`}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* İptal edilen talep "tamamlandı" demiyor; nedeni burada. Gri:
+          yapılacak bir şey yok (29 Eylül 2026, S5). */}
+      {kapali && talep.status === 'iptal' ? (
+        <div className="not not--gri">
+          <IconClose size={19} />
+          <div>
+            <strong>Bu talep iptal edildi.</strong>
+            {talep.iptalBilgi?.neden && <p>{talep.iptalBilgi.neden}</p>}
+            {talep.iptalBilgi?.aciklama && <p>{talep.iptalBilgi.aciklama}</p>}
+          </div>
+        </div>
+      ) : kapali ? (
+        <div className="not not--yesil">
+          <IconCheckCircle size={19} />
+          <div>
+            <strong>Bu talep tamamlandı.</strong>
+            {/* Garanti dışı kapanışta kayıt yok; nasıl kapandığı
+                yalnız bu satırda. */}
+            {talep.cozum?.garantiDisi && <p>{talep.cozum.ozet}</p>}
+          </div>
+        </div>
+      ) : null}
+
+      {/* SİPARİŞİN KENDİSİ BAŞTA (29 Eylül 2026, S3). Servisin kendi
+          siparişinde durum, tarih, ödeme ve listedekiyle aynı KDV dâhil
+          toplam yoktu; parça tablosu KDV hariç satır tutarını gösteriyordu
+          ve servis listede 210, burada 175 TL görüyordu. */}
+      {talep.servisSiparisi && <SiparisOzeti talep={talep} />}
+
+      {/* SIRA: ARIZA, MAKİNE, İLETİŞİM (29 Eylül 2026, S7). Kart telefonla
+          başlıyordu, arıza en altta kalıyordu; servis yola çıkmadan
+          arızayı okumak için kaydırıyordu. Her işte aynı olan "Servis"
+          etiketi kalktı; parça ve teklif talebinde duruyor. */}
+      <div className="kart" style={{ padding: 16 }}>
+        {talep.tur !== 'servis' && (
+          <div className="is__ust">
+            <span className={'tur tur--' + talep.tur}>
+              {TUR_ADI[talep.tur] || talep.tur}
+            </span>
+          </div>
+
+        )}
 
         {/* Kimlik değil okunur karşılık: ekranda "sorunlu" yazıyordu. */}
         {talep.durum && (
@@ -433,30 +572,6 @@ export function TalepDetay({
         )}
         {talep.belirtiler?.length > 0 && (
           <Satir ad="Belirtiler" deger={talep.belirtiler.join(', ')} />
-        )}
-        {/* Koşul iki biçime de bakıyor: yeni kayıtta satırlar fiyat
-            görüntüsünde, eski kayıtta ad listesinde duruyor. */}
-        {(talep.parcalar?.length > 0 ||
-          talep.parcaFiyat?.satirlar?.length > 0) && (
-          <ParcaDurumu talep={talep} />
-        )}
-        {/* TESLİMAT ADRESİ BAYİDE GÖRÜNMÜYORDU.
-
-            Servisten "Parçayı Gönderdim" demesi isteniyor ama parçanın
-            nereye gideceği ekranda yazmıyordu: yalnız il ve ilçe
-            vardı. Müşteri adresi talebin fatura bilgisinde duruyor ve
-            kargo oraya çıkacak. */}
-        {talep.fatura?.adres && (
-          <Satir
-            ad="Teslimat Adresi"
-            deger={
-              talep.fatura.adres +
-              (talep.fatura.ilce ? ` · ${talep.fatura.ilce} / ${talep.fatura.il}` : '')
-            }
-          />
-        )}
-        {talep.fatura?.ad && talep.fatura.ad !== talep.ad && (
-          <Satir ad="Fatura Adı" deger={talep.fatura.ad} />
         )}
         {talep.aciklama && <Satir ad="Müşterinin Anlattığı" deger={talep.aciklama} />}
 
@@ -480,7 +595,87 @@ export function TalepDetay({
           </div>
         )}
 
+        {/* Fotoğraf ve video arızanın yanında. 29 Eylül 2026'daki sıra
+            değişikliğinde (durum → arıza → makine) bu satır düşmüştü;
+            servis çiftçinin fotoğrafını göremez olmuştu (son inceleme). */}
         <Ekler ekler={talep.ekler} />
+
+        {talep.makine?.serial ? (
+          <Makine makine={talep.makine} />
+        ) : talep.makine?.seriYok ? (
+          <SerisizMakine makine={talep.makine} />
+        ) : null}
+
+
+        {/* Koşul iki biçime de bakıyor: yeni kayıtta satırlar fiyat
+            görüntüsünde, eski kayıtta ad listesinde duruyor. */}
+        {(talep.parcalar?.length > 0 ||
+          talep.parcaFiyat?.satirlar?.length > 0) && (
+          <ParcaDurumu talep={talep} />
+        )}
+        {/* Servisin kendi siparişinde telefon ve konum servisin
+            kendisininki: gösterilmiyor. */}
+        {!talep.servisSiparisi && (
+          <>
+            {/* Numara dokunulabilir: servis ezberleyip tuşlamıyor. Listedeki
+                arama düğmesinin aynısı, burada satır hâlinde. */}
+            {telYazi && (
+              <div style={{ marginTop: 10 }}>
+                <div className="kucuk sonuk">Telefon</div>
+                <a className="ara-satir" href={kayitTelHref(talep)}>
+                  <IconPhone size={19} />
+                  <span className="mono">{telYazi}</span>
+                </a>
+              </div>
+            )}
+            <Satir
+              ad="Konum"
+              deger={talep.ilce ? `${talep.ilce} / ${talep.il}` : talep.il}
+            />
+          </>
+        )}
+        {/* ADRES SERVİSİN ASIL İHTİYACI.
+
+            İl ve ilçe listede sıralama için yeterli, tarlaya gitmek
+            için değil. Müşteri uygulamada makinenin bulunduğu adresi
+            yazıyor (bkz. screens/RequestForm.jsx) ve servis kapıdan
+            çıkmadan önce burada okuyor. Telefonla açılan taleplerde
+            boş; o zaman servis kayıt ekranında kendisi dolduruyor. */}
+        <Satir ad="Adres" deger={talep.adres} />
+        {/* YOL TARİFİ (29 Eylül 2026, kullanıcının kararı). Adresi
+            telefonun harita uygulamasında açıyor; yalnız yazılı adresle
+            (bkz. lib/yolTarifi.js). Telefonda bağlantıyı Android açıyor,
+            "Ara" satırındaki gibi; tarayıcıda yeni sekmede, Servisim
+            sekmesi yerinde kalsın. Servisin kendi siparişinde yok: adres
+            servisin kendi adresi. */}
+        {talep.adres && !talep.servisSiparisi && (
+          <a
+            className="ara-satir"
+            href={yolTarifiAdresi(talep)}
+            {...(Capacitor.isNativePlatform() ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
+          >
+            <IconPin size={19} />
+            <span>Yol Tarifi</span>
+          </a>
+        )}
+        {/* TESLİMAT ADRESİ BAYİDE GÖRÜNMÜYORDU.
+
+            Servisten "Parçayı Gönderdim" demesi isteniyor ama parçanın
+            nereye gideceği ekranda yazmıyordu: yalnız il ve ilçe
+            vardı. Müşteri adresi talebin fatura bilgisinde duruyor ve
+            kargo oraya çıkacak. */}
+        {talep.fatura?.adres && (
+          <Satir
+            ad="Teslimat Adresi"
+            deger={
+              talep.fatura.adres +
+              (talep.fatura.ilce ? ` · ${talep.fatura.ilce} / ${talep.fatura.il}` : '')
+            }
+          />
+        )}
+        {talep.fatura?.ad && talep.fatura.ad !== talep.ad && (
+          <Satir ad="Fatura Adı" deger={talep.fatura.ad} />
+        )}
       </div>
 
       {/* ------------------------------- Müşterinin sonradan eklediği not
@@ -588,105 +783,8 @@ export function TalepDetay({
         </div>
       )}
 
-      {/* RANDEVU ALINMIŞ TALEP AYNI EKRANI GÖSTERMEMELİ.
-
-          Randevu verildikten sonra talep servis tarafında yine "bekleyen"
-          listesinde duruyor (doğrusu da bu, iş bitmedi) ama detayı yeni
-          gelmiş bir taleple birebir aynı görünüyordu: servis randevu
-          verdiğini unutup ikinci kez veriyordu. */}
-
-      {talep.plan && !kapali && (
-        <div className="not not--mavi">
-          <IconCalendar size={19} />
-          <div>
-            <strong>Randevu verildi · {talep.plan.tarihYazi}</strong>
-            {/* İş adı boşken satır "· müşteriyle görüşüldü" diye
-                başlıyordu; ayraç yalnız iki yanı da doluyken çıkıyor. */}
-            <p>
-              {[talep.plan.is, talep.plan.gorusuldu && 'müşteriyle görüşüldü']
-                .filter(Boolean)
-                .join(' · ')}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {paksanda && talep.devir && (
-        <div className="not not--mavi">
-          <IconShield size={19} />
-          <div>
-            <strong>{MARKA} bu talebe destek veriyor.</strong>
-            <p>
-              Müşteri hâlâ sizin müşteriniz. {markaEk('in')} attığı adımları
-              burada görmeye devam edeceksiniz.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {onayda && (
-        <div className="not not--mavi">
-          <IconShield size={19} />
-          <div>
-            <strong>Kaydınız {markaEk('da')} onay bekliyor.</strong>
-            <p>
-              Yol, işçilik ve parçalar inceleniyor. Onaylandığında tutar
-              cari hesabınıza alacak yazılacak.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* PARÇANIN NEREDE OLDUĞU TALEBİN ÜSTÜNDE.
-
-          Parça isteği ayrı bir kayda çıkmıyor; aynı talebin içinde
-          yürüyor. Servis tek yere bakıyor: parça hazırlanıyor mu,
-          yola çıktı mı, takip numarası ne. */}
-      {parcada && (
-        <div className={'not ' + (talep.parcaSevk ? 'not--yesil' : 'not--turuncu')}>
-          <IconAlert size={19} />
-          <div>
-            <strong>
-              {talep.parcaSevk ? 'Parça yola çıktı.' : 'Parça hazırlanıyor.'}
-            </strong>
-            <p>
-              {talep.parcaSevk
-                ? [
-                    talep.parcaSevk.firma,
-                    talep.parcaSevk.takipNo,
-                    gecenSure(talep.parcaSevk.tarih),
-                  ]
-                    .filter(Boolean)
-                    .join(' · ')
-                : `${MARKA} parçayı hazırlıyor. Kargoya verildiğinde takip numarası burada görünecek.`}
-            </p>
-          </div>
-        </div>
-      )}
-
       {talep.servisKaydi && <ServisKaydi talep={talep} servisAd={oturum?.ad} />}
 
-      {/* İptal edilen talep "tamamlandı" demiyor; nedeni burada. */}
-      {kapali && talep.status === 'iptal' ? (
-        <div className="not not--turuncu">
-          <IconClose size={19} />
-          <div>
-            <strong>Bu talep iptal edildi.</strong>
-            {talep.iptalBilgi?.neden && <p>{talep.iptalBilgi.neden}</p>}
-            {talep.iptalBilgi?.aciklama && <p>{talep.iptalBilgi.aciklama}</p>}
-          </div>
-        </div>
-      ) : kapali ? (
-        <div className="not not--yesil">
-          <IconCheckCircle size={19} />
-          <div>
-            <strong>Bu talep tamamlandı.</strong>
-            {/* Garanti dışı kapanışta kayıt yok; nasıl kapandığı
-                yalnız bu satırda. */}
-            {talep.cozum?.garantiDisi && <p>{talep.cozum.ozet}</p>}
-          </div>
-        </div>
-      ) : null}
 
       {/* Kapanış kaydı: servis aylar sonra "Burada ne yapmıştık?" diye
           baktığında cevap burada. Alanlar backoffice'in kendi kapanış
@@ -713,13 +811,19 @@ export function TalepDetay({
               öteki seçenekler talebi açık bırakıyor. Dipteki "Servis
               Kaydını Aç" düğmesinin hemen üstünde, yeşil çerçeveyle
               duruyor: iki kapanış yolu yan yana, iptal en sonda. */}
+          {/* Altında ne olacağı yazıyor (29 Eylül 2026, S7): yeşil
+              çerçeve ve onay işareti "iş bitti" gibi okunuyordu; bu düğme
+              işi hak edişsiz kapatıyor. */}
           {garantiDisiVar && (
             <button
               className="secenek__dg secenek__dg--tamamla"
               onClick={() => setPencere('garantiDisi')}
             >
               <IconCheckCircle size={19} />
-              Garanti Dışı İşi Tamamla
+              <span className="secenek__govde">
+                Garanti Dışı İşi Tamamla
+                <span className="secenek__alt">Hak ediş oluşmaz; talep kapanır.</span>
+              </span>
               <IconRight size={17} />
             </button>
           )}
@@ -730,18 +834,28 @@ export function TalepDetay({
               <IconRight size={17} />
             </button>
           )}
+          {/* Not kalem (29 Eylül 2026, S9): kitap simgesiydi. */}
           <button className="secenek__dg" onClick={() => setPencere('not')}>
-            <IconBook size={19} />
+            <IconNot size={19} />
             Not Ekle
             <IconRight size={17} />
           </button>
-          <button className="secenek__dg" onClick={() => setPencere('destek')}>
-            <IconShield size={19} />
-            {markaEk('dan')} Destek İste
+          {/* "PAKSAN'A DEVRET" (30 Eylül 2026, kullanıcının isteği:
+              "'PAKSAN'dan Destek İste' seçeneği adı 'PAKSAN'a Devret'
+              olmalı. Buna göre de butonun ikonunu düzenle"). Eylem hep
+              buydu: işin sahibi PAKSAN oluyor, servis bir daha işlem
+              yapamıyor (veri.js → destekTalepEt, `sahip: 'paksan'`);
+              backoffice de ona "Devredildi" diyor. "Destek İste" servise
+              yardım gelecekmiş gibi okunuyordu. Simge kulaklık değil
+              iletme oku (Icons.jsx → IconDevret). */}
+          <button className="secenek__dg" data-eylem="devret" onClick={() => setPencere('devret')}>
+            <IconDevret size={19} />
+            {markaEk('a')} Devret
             <IconRight size={17} />
           </button>
+          {/* İptal yıkıcı: kırmızı ve en sonda, arada boşluk (S7). */}
           {iptalVar && (
-            <button className="secenek__dg" onClick={() => setPencere('iptal')}>
+            <button className="secenek__dg secenek__dg--iptal" onClick={() => setPencere('iptal')}>
               <IconClose size={19} />
               Talebi İptal Et
               <IconRight size={17} />
@@ -753,14 +867,14 @@ export function TalepDetay({
       {talep.servisSiparisi && !kapali && (
         <>
           {iptalHatasi && (
-            <div className="not not--turuncu">
+            <div className="not not--sari">
               <IconAlert size={19} />
               <div>{iptalHatasi}</div>
             </div>
           )}
           {siparisIptalVar ? (
             <div className="secenek">
-              <button className="secenek__dg" onClick={() => setPencere('siparisIptal')}>
+              <button className="secenek__dg secenek__dg--iptal" onClick={() => setPencere('siparisIptal')}>
                 <IconClose size={19} />
                 Siparişi İptal Et
                 <IconRight size={17} />
@@ -796,7 +910,7 @@ export function TalepDetay({
               onYenile?.()
               return
             }
-            onKapat()
+            onKapat({ baslik: 'Siparişiniz iptal edildi' })
           }}
           onVazgec={() => setPencere(null)}
         />
@@ -808,7 +922,21 @@ export function TalepDetay({
           servisAd={servisAd}
           musteriyeGider={musteriyeGider}
           onKapat={() => setPencere(null)}
-          onBitti={onKapat}
+          onBitti={(tarih) => {
+            setPencere(null)
+            onYenile?.()
+            onBasari?.({
+              baslik: 'Randevu kaydedildi',
+              alt: `${gunYazisi(tarih)}. İş, Devam Eden sekmesinde.`,
+            })
+            /* Şerit sayfanın başında; servis düğmelerin olduğu dipte. Dip
+               çubuklu sayfada gövde kendi içinde kayıyor (Kabuk.jsx →
+               Sayfa), çubuksuzda pencere; ikisi de başa alınıyor. */
+            requestAnimationFrame(() => {
+              document.querySelector('.uyg__ic')?.scrollTo({ top: 0, behavior: 'smooth' })
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+            })
+          }}
           onRed={reddedildi}
         />
       )}
@@ -829,8 +957,8 @@ export function TalepDetay({
           }}
         />
       )}
-      {pencere === 'destek' && (
-        <Destek onKapat={() => setPencere(null)} onGonder={onDestekIste} />
+      {pencere === 'devret' && (
+        <Devret onKapat={() => setPencere(null)} onGonder={onDevret} />
       )}
       {pencere === 'iptal' && (
         <Iptal
@@ -838,7 +966,7 @@ export function TalepDetay({
           servisAd={servisAd}
           musteriyeGider={musteriyeGider}
           onKapat={() => setPencere(null)}
-          onBitti={onKapat}
+          onBitti={() => onKapat({ baslik: 'Talep iptal edildi' })}
           onRed={reddedildi}
         />
       )}
@@ -870,7 +998,10 @@ export function TalepDetay({
               { servisten: true },
             )
             if (reddedildi(sonuc)) return
-            onKapat()
+            onKapat({
+              baslik: 'İş kapatıldı',
+              alt: 'Garanti dışı iş olarak kaydedildi; hak ediş oluşmadı.',
+            })
           }}
           onVazgec={() => setPencere(null)}
         />
@@ -888,12 +1019,37 @@ export function TalepDetay({
           dugme="Parçayı Taktım"
           onOnayla={() => {
             if (reddedildi(talepDurumDegistir(talep, 'kapandi', servisAd, { servisten: true }))) return
-            onKapat()
+            onKapat({ baslik: 'İş kapatıldı', alt: 'Parçanın takıldığı kaydedildi.' })
           }}
           onVazgec={() => setPencere(null)}
         />
       )}
     </Sayfa>
+  )
+}
+
+/* Servisin kendi siparişinin özeti (29 Eylül 2026, görünüm önerisi S3).
+   Durum listedeki kartla aynı işlevden (Parca.jsx → siparisDurumu),
+   tutar da (lib/servisFiyat.js → siparisNetTutari): iki ekran aynı
+   rakamı söylüyor. */
+function SiparisOzeti({ talep }) {
+  const durum = siparisDurumu(talep)
+  return (
+    <div className="kart siparis-ozeti" style={{ padding: 16 }}>
+      <div className={'siparis-ozeti__durum' + (durum.gec ? ' siparis-ozeti__durum--iptal' : '')}>
+        {durum.ad}
+      </div>
+      <Satir ad="Sipariş tarihi" deger={tarihYaz(talep.createdAt)} />
+      {/* Ödeme seçeneğinin adı "Bakiyem" (30 Eylül 2026, kullanıcının
+          isteği); sipariş ekranındaki seçenekle aynı ad. */}
+      <Satir ad="Ödeme" deger={talep.odeme === 'bakiye' ? 'Bakiyem' : 'Faturayla'} />
+      <div className="siparis-ozeti__toplam">
+        <span>Genel toplam (KDV dâhil)</span>
+        <strong>
+          {paraYaz(siparisNetTutari(talep))} {PARA_BIRIMI}
+        </strong>
+      </div>
+    </div>
   )
 }
 
@@ -982,10 +1138,14 @@ function ServisKaydi({ talep, servisAd }) {
   const h = talep.hakkedis
   const duzeltmeler = k.duzeltmeler || []
 
+  /* Notların dört tonu (29 Eylül 2026, görünüm önerisi S5; servis.css →
+     Not): bekleme gri ve saatli, onay yeşil, ret para konusu olduğu için
+     sarı ve üçgenli. Ret "turuncu" diyordu; o sınıf dört tona geçerken
+     kalktı ve not tonsuz kalmıştı (son denetimde bulundu). */
   const DURUM = {
-    bekliyor: { ton: 'mavi', ad: 'Onay bekliyor' },
-    onaylandi: { ton: 'yesil', ad: 'Onaylandı' },
-    reddedildi: { ton: 'turuncu', ad: 'Kabul edilmedi' },
+    bekliyor: { ton: 'gri', ad: 'Onay bekliyor', Ikon: IconSaat },
+    onaylandi: { ton: 'yesil', ad: 'Onaylandı', Ikon: IconCheckCircle },
+    reddedildi: { ton: 'sari', ad: 'Kabul edilmedi', Ikon: IconAlert },
   }
   const durum = h ? DURUM[h.durum] || DURUM.bekliyor : null
 
@@ -1027,7 +1187,7 @@ function ServisKaydi({ talep, servisAd }) {
             deger={paraYaz(h.toplam) + ' ' + PARA_BIRIMI}
           />
           <div className={'not not--' + durum.ton} style={{ marginTop: 12 }}>
-            <IconCheckCircle size={19} />
+            <durum.Ikon size={19} />
             <div>
               <strong>{durum.ad}</strong>
               {h.red?.neden && <p>{h.red.neden}</p>}
@@ -1063,7 +1223,7 @@ function ServisKaydi({ talep, servisAd }) {
       )}
 
       {duzeltmeler.map((d, i) => (
-        <div key={i} className="not not--turuncu" style={{ marginTop: 12 }}>
+        <div key={i} className="not not--sari" style={{ marginTop: 12 }}>
           <IconAlert size={19} />
           <div>
             <strong>{MARKA} kaydı düzeltti</strong>
@@ -1177,6 +1337,13 @@ function ParcaDurumu({ talep }) {
         İstenen Parçalar
       </div>
       <ParcaTablosu parcalar={parcalar} tutarli={Boolean(g)} />
+      {/* Satırlar KDV hariç, sayfanın başındaki toplam KDV dâhil
+          (29 Eylül 2026, S3): "KDV hariç rakam yalnız dökümde, adıyla". */}
+      {g && KDV_HARIC_LISTE && (
+        <p className="kucuk sonuk" style={{ margin: '6px 0 0' }}>
+          Satırlardaki tutarlar KDV hariçtir.
+        </p>
+      )}
       {kalanVar && (
         <p className="kucuk sonuk" style={{ margin: '8px 0 0' }}>
           {talep.odeme === 'bakiye'
@@ -1332,27 +1499,27 @@ function BakiyeDurumu({ talep }) {
   )
 }
 
-/* Pencere kabuğu; backoffice'teki Form kalıbının aynısı. */
-function Pencere({ baslik, children, onKapat }) {
-  /* Geri tuşu "Kapat" düğmesiyle aynı (bkz. servis/geri.jsx). */
+/* Pencere kabuğu — ALTTAN AÇILAN YAPRAK (29 Eylül 2026, görünüm önerisi
+   S4). Backoffice'in Form kalıbıydı: ekranın ortasında küçük bir kart,
+   sağ üstte ikinci bir "Kapat", altta yan yana küçük düğmeler. Tek elle
+   tutulan 6,5 inçlik telefonda başparmak ortaya ve sağ üste yetişmiyordu;
+   para onayları da zaten alttan açılıyordu (Kabuk.jsx → Onay). Şimdi
+   hepsi aynı: alttan açılıyor, düğmeler tam genişlikte ve alt alta.
+   "Kapat" yok: her pencerenin kendi "Vazgeç"i var, telefonun geri
+   hareketi ve karartılmış zemine dokunmak da kapatıyor. */
+/* `ad` pencerenin işini söyleyen işaret (`data-pencere="devret"`): ekran
+   turu pencereyi başlığının kelimesiyle değil bununla buluyor (X-13,
+   30 Eylül 2026). Adı verilmeyen pencere eskisi gibi `data-pencere`
+   taşıyor; X-06 ve X-07 yalnız varlığına bakıyor. */
+function Pencere({ baslik, ad, children, onKapat }) {
+  /* Geri tuşu "Vazgeç" ile aynı (bkz. servis/geri.jsx). */
   useGeri(true, () => onKapat())
+  const kilit = useAcilisKilidi()
   return (
-    <div
-      data-pencere
-      style={{
-        position: 'fixed', inset: 0, background: 'rgba(10,26,51,.45)',
-        display: 'grid', placeItems: 'center', padding: 20, zIndex: 50,
-      }}
-      onClick={(e) => e.target === e.currentTarget && onKapat()}
-    >
-      <div className="kart" style={{ width: '100%', maxWidth: 520, maxHeight: '90vh', overflow: 'auto' }}>
-        <div className="kart__tepe">
-          <h2>{baslik}</h2>
-          <button className="dg" style={{ marginLeft: 'auto' }} onClick={onKapat}>
-            Kapat
-          </button>
-        </div>
-        <div className="kart__ic">{children}</div>
+    <div data-pencere={ad || true} className="yaprak-perde" onClickCapture={kilit} onClick={(e) => e.target === e.currentTarget && onKapat()}>
+      <div className="yaprak-pencere" role="dialog" aria-label={baslik}>
+        <h2 className="yaprak-pencere__baslik" data-pencere-baslik>{baslik}</h2>
+        <div className="yaprak-pencere__ic">{children}</div>
       </div>
     </div>
   )
@@ -1405,13 +1572,45 @@ function Randevu({ talep, servisAd, musteriyeGider, onKapat, onBitti, onRed }) {
       { servisten: true },
     )
     if (onRed?.(sonuc)) return
-    onBitti()
+    onBitti(tarih)
   }
+
+  /* GÜN İKİ DOKUNUŞ (29 Eylül 2026, görünüm önerisi S4). Randevuların
+     çoğu bugün ya da yarın; takvim kutusu küçük ve yağlı parmakla zor
+     açılıyordu. Önümüzdeki yedi gün düğme; başka bir gün için takvim
+     aşağıda duruyor. Kaydedilen değer aynı: gün başı, saatsiz. */
+  /* SEKİZ GÜN, DÖRTLÜ İKİ SIRA (29 Eylül 2026, son denetim). Yedi gün tek
+     sırada 360 piksellik telefonda 39 piksele iniyordu (dokunma alanı
+     en az 44); dört sütunda her düğme 70 pikselin üstünde. Sekizinci
+     gün ızgarayı dolduruyor ve gelecek haftanın aynı gününü veriyor. */
+  const gunler = Array.from({ length: 8 }, (_, i) => bugunGirdi(Date.now() + i * 86400000))
 
   return (
     <Pencere baslik={degisiklik ? 'Randevuyu Değiştir' : 'Randevu'} onKapat={onKapat}>
+      <div className="gun-secici" role="group" aria-label="Gideceğiniz Tarih">
+        {gunler.map((g, i) => {
+          const d = new Date(g + 'T00:00')
+          return (
+            <button
+              key={g}
+              type="button"
+              className={'gun-secici__gun' + (tarih === g ? ' gun-secici__gun--on' : '')}
+              aria-pressed={tarih === g}
+              onClick={() => {
+                setTarih(g)
+                setHata('')
+              }}
+            >
+              <span className="gun-secici__ad">
+                {i === 0 ? 'Bugün' : i === 1 ? 'Yarın' : d.toLocaleDateString('tr-TR', { weekday: 'short' })}
+              </span>
+              <span className="gun-secici__no">{d.getDate()}</span>
+            </button>
+          )
+        })}
+      </div>
       <label className="alan">
-        <span className="alan__ad">Gideceğiniz Tarih</span>
+        <span className="alan__ad">Başka bir gün</span>
         <input
           className="gir"
           type="date"
@@ -1432,7 +1631,9 @@ function Randevu({ talep, servisAd, musteriyeGider, onKapat, onBitti, onRed }) {
         />
       </label>
 
-      <label className="secim">
+      {/* Büyük satır (S4): 16 piksellik kutu yağlı parmakla ıskalanıyordu
+          ve işaretlenmeden kayıt yapılmıyordu. Satırın tamamı dokunulur. */}
+      <label className="secim secim--buyuk">
         <input type="checkbox" checked={onay} onChange={(e) => setOnay(e.target.checked)} />
         <span>Müşteriden randevu onayı alındı</span>
       </label>
@@ -1476,19 +1677,24 @@ function Not({ talep, servisAd, onKapat, onBitti }) {
   )
 }
 
-function Destek({ onKapat, onGonder }) {
+/* İŞİ PAKSAN'A DEVRETME (30 Eylül 2026'ya kadar adı "PAKSAN'dan Destek
+   İste"; bkz. yukarıda düğmenin notu). Pencere ne olacağını söylüyor:
+   işi PAKSAN üstleniyor, neden ona gidiyor, servis bu işte bir daha
+   işlem yapamıyor (`sesiVar`, `islemVar` kapanıyor), müşteriye bildirim
+   gitmiyor (veri.js → destekTalepEt). Geri alma yok; bu yüzden servis
+   ne olacağını basmadan önce okuyor. Başlık ve onay düğmesi aynı ad,
+   İptal penceresindeki gibi. Metinler Codex'ten. */
+function Devret({ onKapat, onGonder }) {
   const [neden, setNeden] = useState('')
   const [hata, setHata] = useState('')
 
   return (
-    <Pencere baslik={`${markaEk('dan')} Destek İste`} onKapat={onKapat}>
+    <Pencere baslik={`${markaEk('a')} Devret`} ad="devret" onKapat={onKapat}>
       <p className="kucuk sonuk" style={{ marginTop: 0 }}>
-        Talep {markaEk('a')} geçecek ama müşteri sizin müşteriniz olmaya devam
-        edecek. {markaEk('in')} attığı adımları burada görmeye devam
-        edeceksiniz.
+        {`İşi ${MARKA} üstlenir ve devir nedeniniz ${markaEk('a')} iletilir. Müşteri sizin müşteriniz olarak kalır ve müşteriye bildirim gitmez. Bu işte artık uygulamadan işlem yapamazsınız; ${markaEk('in')} attığı adımları burada görmeye devam edersiniz.`}
       </p>
       <DikteliKutu
-        ad="Neden Destek İstiyorsunuz?"
+        ad="Devir nedeni"
         deger={neden}
         onDegis={setNeden}
         satir={3}
@@ -1498,12 +1704,13 @@ function Destek({ onKapat, onGonder }) {
       <div className="satir">
         <button
           className="dg dg--ana"
+          data-eylem="devret-onay"
           onClick={() => {
-            if (neden.trim().length < 3) return setHata('Destek isteme nedeninizi yazın.')
+            if (neden.trim().length < 3) return setHata('Devir nedenini yazın.')
             onGonder(neden.trim())
           }}
         >
-          Destek İste
+          {markaEk('a')} Devret
         </button>
         <button className="dg" onClick={onKapat}>Vazgeç</button>
       </div>

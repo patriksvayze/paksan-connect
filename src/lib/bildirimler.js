@@ -19,7 +19,7 @@ import { load } from './storage'
 import { duyuruGecerliMi } from './duyuruHedef.js'
 import { makinelereServisEkle } from './servisAtama.js'
 import { yurtdisiTalepMi } from './ihracat'
-import { normalizeSerial } from './serial'
+import { formatSerial, normalizeSerial } from './serial'
 import { randevuSaatliMi } from './tarih'
 
 export const BILDIRIM_TURU = {
@@ -138,7 +138,13 @@ export function bildirimListesi({ requests = [], user = null, makineler = [] } =
        hangi yazının hangi değerlerle kullanılacağı duruyor. Böylece bu
        dosya dilden bağımsız kalıyor. */
     baslikAnahtar: 'bildirimler.talepAlindi',
-    metinAnahtar: 'bildirimler.talepAlindiAlt',
+    /* ARAMA SÖZÜ YALNIZ FİYAT TEKLİFİNDE (29 Eylül 2026, görünüm önerisi
+       C8). Her türe "En kısa sürede sizi arayacağız" yazıyordu; oysa
+       talebin başarı ekranı servis ve parçada bilerek arama sözü vermiyor
+       (RequestForm.jsx: randevu bildirimle gidiyor, parça kargoya
+       veriliyor). Çiftçi gelmeyecek bir aramayı bekliyordu. Servis ve
+       parçada başarı ekranının cümlesi, teklifte arama sözü. */
+    metinAnahtar: r.tur === 'satinalma' ? 'bildirimler.talepAlindiAlt' : 'talep.uygulamadanBilgi',
     degerler: { tur: r.tur, no: r.no },
     tarih: r.createdAt,
     /* Dokunulunca talebin kendi ekranına gidiliyor */
@@ -272,21 +278,20 @@ export function bildirimYazisi(t, b, dil, hangi) {
   if (!anahtar) return ''
   const d = b.degerler || {}
   const turAnahtar = d.tur || d.talepTur
-  /* `baslik` FORMUN EKRAN BAŞLIĞI, talebin adı değil: fiyat
-     teklifinde "Fiyat Teklifi İste" yazıyor ve cümleye konunca
-     "Fiyat teklifi iste alındı" çıkıyordu. Bildirimde talebin ADI
-     kullanılıyor. */
+  /* BAŞLIKLAR TEK DÜZENDE (29 Eylül 2026, görünüm önerisi C8). Öteki
+     bildirimler "Makinenize Servis Atandı" diye yazılırken talep
+     bildirimi "Servis talebi alındı" diyordu; aynı listede iki düzen
+     vardı. Tür adı artık talebin başlığından ("Servis Talebi"). Önce
+     `adi` kullanılıyordu, çünkü fiyat teklifinin başlığı bir düğme
+     yazısıydı ("Fiyat Teklifi İste" → "Fiyat teklifi iste alındı");
+     o başlık artık bir ad.
+
+     SERİ NUMARASI TİRELİ. Atama bildirimi seriyi defterdeki hâliyle
+     taşıyor ("HMR2024-00123"); ekranın her yerinde "HMR-2024-00123"
+     yazıyor (lib/serial.js → formatSerial). */
   return t(anahtar, {
     ...d,
-    tur: turAnahtar ? cumleBasi(t(`talep.${turAnahtar}.adi`), dil) : '',
+    ...(d.seri ? { seri: formatSerial(d.seri) } : {}),
+    tur: turAnahtar ? t(`talep.${turAnahtar}.baslik`) : '',
   })
-}
-
-/* "Servis Talebi" gibi başlık biçimindeki tür adını cümle içine
-   yerleştirir: "Servis talebi alındı". Türkçede küçültme kuralı
-   farklı olduğu için dil veriliyor (I → ı). */
-function cumleBasi(metin, dil) {
-  const yerel = dil === 'tr' ? 'tr-TR' : 'en-GB'
-  const kucuk = metin.toLocaleLowerCase(yerel)
-  return kucuk.charAt(0).toLocaleUpperCase(yerel) + kucuk.slice(1)
 }

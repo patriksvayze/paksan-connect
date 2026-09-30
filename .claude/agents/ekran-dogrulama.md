@@ -1,6 +1,6 @@
 ---
 name: ekran-dogrulama
-description: Regenerates PAKSAN Connect / backoffice screenshots via tools/ekran-goruntusu.mjs, diagnoses and repairs stale CSS selectors when the UI structure has changed, and reports a terse summary of updated vs broken screens. Use after a visual/structural change to src/screens/ or src/backoffice/ekranlar/, or when asked to refresh screenshots / sunum assets. Do NOT use for logic-only changes with no visual effect, or while a design is still being iterated on (call it once the design has settled).
+description: Regenerates PAKSAN Connect / backoffice screenshots via tools/ekran-goruntusu.mjs, diagnoses and repairs stale CSS selectors when the UI structure has changed, and reports a terse summary of updated vs broken screens. Use ONLY when the presentation (sunum/) is being updated or a new presentation is being prepared, or when the user explicitly asks to refresh screenshots. Do NOT run it after ordinary visual/structural changes (user's rule, 29 Sep 2026: "Sunum klasöründeki görselleri güncelleyip durma"), for logic-only changes, or while a design is still being iterated on.
 tools: Bash, Read, Edit, Grep, Glob, mcp__Claude_Browser__navigate, mcp__Claude_Browser__computer, mcp__Claude_Browser__javascript_tool, mcp__Claude_Browser__read_page, mcp__Claude_Browser__find, mcp__Claude_Browser__get_page_text, mcp__Claude_Browser__preview_start, mcp__Claude_Browser__preview_logs, mcp__Claude_Browser__tabs_context
 model: sonnet
 ---

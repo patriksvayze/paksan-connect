@@ -6,7 +6,7 @@
    düzenlemeyin: kaynak değişince yeniden üretilir ve el değişikliği
    kaybolur. Kaynağı değiştirin, sonra "npm run vt -- tohum" çalıştırın.
 
-   1 şirket (paksan), 0 banka hesabı.
+   1 şirket (paksan), 1 banka hesabı.
 
    Kaynak: src/marka/kimlik.js SIRKET, UYGULAMA, BANKA.hesaplar;
    şirket kodu tohum/kaynak/markalar.json. Tasarım: tasarim.md 5.2 T04.
@@ -55,6 +55,28 @@ WHEN NOT MATCHED BY TARGET THEN
     INSERT (Kod, Ad, KisaAd, Unvan, UygulamaAdi, KurulusYili, VergiNo, VergiDairesi, LogoFirmaNo, TelefonMetni, IkinciTelefonMetni, FaksMetni, Eposta, SiteUrl, SiteMetni, Adres, IkinciAdres, TelefonE164, TelefonUlusal, IkinciTelefonE164, IkinciTelefonUlusal)
     VALUES (k.Kod, k.Ad, k.KisaAd, k.Unvan, k.UygulamaAdi, k.KurulusYili, k.VergiNo, k.VergiDairesi, k.LogoFirmaNo, k.TelefonMetni, k.IkinciTelefonMetni, k.FaksMetni, k.Eposta, k.SiteUrl, k.SiteMetni, k.Adres, k.IkinciAdres, k.TelefonE164, k.TelefonUlusal, k.IkinciTelefonE164, k.IkinciTelefonUlusal);
 
-/* sirket.BankaHesabi — kaynakta hesap yok (kimlik.js BANKA.hesaplar boş) */
-UPDATE sirket.BankaHesabi SET Aktif = 0
-WHERE SirketKodu IN (N'paksan') AND Aktif = 1;
+/* sirket.BankaHesabi — 1 satır */
+
+WITH hedef AS (SELECT * FROM sirket.BankaHesabi WHERE SirketKodu IN (N'paksan'))
+MERGE hedef AS h
+USING (
+    SELECT CONVERT(nvarchar(20), v.SirketKodu) AS SirketKodu,
+           CONVERT(nvarchar(34), v.Iban) AS Iban,
+           CONVERT(nvarchar(100), v.BankaAdi) AS BankaAdi,
+           CONVERT(nvarchar(100), v.SubeAdi) AS SubeAdi,
+           CONVERT(nvarchar(250), v.HesapUnvani) AS HesapUnvani,
+           CONVERT(smallint, v.Sira) AS Sira,
+           CONVERT(nvarchar(3), v.ParaBirimiKodu) AS ParaBirimiKodu,
+           CONVERT(bit, v.Aktif) AS Aktif
+    FROM (VALUES
+        (N'paksan', N'TR560001200156600010100019', N'Halkbank', N'17 Eylül', N'PAKSAN MAKİNA', 1, N'TRY', 1)
+    ) AS v (SirketKodu, Iban, BankaAdi, SubeAdi, HesapUnvani, Sira, ParaBirimiKodu, Aktif)
+) AS k
+    ON h.SirketKodu = k.SirketKodu AND h.Iban = k.Iban
+WHEN MATCHED AND EXISTS (SELECT k.BankaAdi COLLATE Latin1_General_100_BIN2, k.SubeAdi COLLATE Latin1_General_100_BIN2, k.HesapUnvani COLLATE Latin1_General_100_BIN2, k.Sira, k.ParaBirimiKodu COLLATE Latin1_General_100_BIN2, k.Aktif EXCEPT SELECT h.BankaAdi COLLATE Latin1_General_100_BIN2, h.SubeAdi COLLATE Latin1_General_100_BIN2, h.HesapUnvani COLLATE Latin1_General_100_BIN2, h.Sira, h.ParaBirimiKodu COLLATE Latin1_General_100_BIN2, h.Aktif) THEN
+    UPDATE SET BankaAdi = k.BankaAdi, SubeAdi = k.SubeAdi, HesapUnvani = k.HesapUnvani, Sira = k.Sira, ParaBirimiKodu = k.ParaBirimiKodu, Aktif = k.Aktif
+WHEN NOT MATCHED BY TARGET THEN
+    INSERT (SirketKodu, Iban, BankaAdi, SubeAdi, HesapUnvani, Sira, ParaBirimiKodu, Aktif)
+    VALUES (k.SirketKodu, k.Iban, k.BankaAdi, k.SubeAdi, k.HesapUnvani, k.Sira, k.ParaBirimiKodu, k.Aktif)
+WHEN NOT MATCHED BY SOURCE AND h.Aktif = 1 THEN
+    UPDATE SET Aktif = 0;

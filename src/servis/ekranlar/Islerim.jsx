@@ -22,8 +22,8 @@ import { kayitTelHref } from '../../lib/tel'
 import { randevuSaatliMi } from '../../lib/tarih'
 import { useBildirimIzni } from '../haber'
 import { bildirimYazisi, GORULEN_DUYURU, musteridenMi, okunduSay, okunmamislar } from '../talepBildirimleri'
-import { dokunulmamis, servisGecikti, yeniIsSirasi } from '../isDurumu'
-import { MARKA, getProduct, markaEk } from '../../marka'
+import { devamSirasi, dokunulmamis, randevuSirasi, servisGecikti, yeniIsSirasi } from '../isDurumu'
+import { MARKA, getProduct, markaEk, PARA_BIRIMI, paraYaz } from '../../marka'
 /* Boş liste çizimi Higgsfield ile üretildi, uygulamanın kendi görsel
    diline (kalın lacivert kontur, düz dolgu, sınırlı palet) referans
    verilerek. Küçültme ve sıkıştırma: tools/gorsel-hazirla.mjs */
@@ -107,8 +107,10 @@ export function Isler({ oturum, bekleyen, biten, tumTalepler, onAc, onUcretler, 
   /* 48 saati geçen işler "Yeni" sekmesinin başında, en eskisi önce
      (isDurumu.js → yeniIsSirasi); şerit de onları aynı sırayla sayıyor. */
   const geciken = useMemo(() => yeniIsSirasi(bekleyen.filter(servisGecikti)), [bekleyen])
+  /* "Devam Eden"de sırası servise gelen iş üstte (isDurumu.js →
+     devamSirasi, 29 Eylül 2026). */
   const [yeniIsler, devamEden] = useMemo(
-    () => [yeniIsSirasi(bekleyen.filter(dokunulmamis)), bekleyen.filter((t) => !dokunulmamis(t))],
+    () => [yeniIsSirasi(bekleyen.filter(dokunulmamis)), devamSirasi(bekleyen.filter((t) => !dokunulmamis(t)))],
     [bekleyen],
   )
   const listeler = { yeni: yeniIsler, devam: devamEden, biten }
@@ -164,8 +166,15 @@ export function Isler({ oturum, bekleyen, biten, tumTalepler, onAc, onUcretler, 
           uzadıkça alttaki hiç görünmüyordu.
 
           Sıra korunuyor: acil olanlar hâlâ kart hâlinde ve en üstte.
-          Kapalı iki satır bekleyen işleri 96 piksel aşağı itmiyor. */}
-      <ServisDuyurulari oturum={oturum} surum={surum} />
+          Kapalı iki satır bekleyen işleri 96 piksel aşağı itmiyor.
+
+          KAPALI DUYURULAR ARTIK LİSTENİN ALTINDA (29 Eylül 2026, görünüm
+          önerisi S1; kullanıcının onayı). İşlerim açıldığında iş
+          görünmüyordu; kampanya, yeni ürün ve etkinlik satırı işlerin
+          önündeydi. Yukarı taşınma gerekçesi ("liste uzayınca alttaki hiç
+          görünmüyordu") 24 Eylül'den beri geçerli değil: her duyuru üst
+          çubuktaki Bildirimler'de okunmamış sayısıyla duruyor. Acil olanlar
+          (güvenlik uyarısı, geri çağırma) yine en üstte, kart hâlinde. */}
 
       <div className="is-sekmeler" role="tablist" aria-label="İşlerim">
         {SEKMELER.map((x) => (
@@ -203,6 +212,10 @@ export function Isler({ oturum, bekleyen, biten, tumTalepler, onAc, onUcretler, 
         ) : (
           <Bos kucuk Icon={sekme === 'biten' ? IconCheckCircle : IconCalendar} baslik={BOS[sekme].baslik} alt={BOS[sekme].alt} />
         )}
+      </div>
+
+      <div className="islerim-duyurular">
+        <ServisDuyurulari oturum={oturum} surum={surum} />
       </div>
     </>
   )
@@ -315,9 +328,6 @@ function randevuYazi(plan) {
     : gunAyYazi(plan.tarih)
 }
 
-/* Sıralama anı: saatsiz randevu günün sonunda. */
-const randevuSirasi = (p) => (randevuSaatliMi(p) ? p.tarih : gunBasi(p.tarih) + GUN - 1)
-
 function Planlayici({ bekleyen, onAc }) {
   const bugun = gunBasi()
   const gunler = useMemo(() => Array.from({ length: 7 }, (_, i) => bugun + i * GUN), [bugun])
@@ -387,10 +397,15 @@ function Planlayici({ bekleyen, onAc }) {
         })}
       </div>
 
-      <div className="plan__gun-etiket">
-        {etiket ? `${etiket} · ` : ''}
-        {tarihUzun(gun)}
-      </div>
+      {/* Bugün seçiliyken satır yok (29 Eylül 2026, S1): seçili kutu
+          zaten bugün, satır aynı şeyi ikinci kez söylüyor ve listeyi
+          aşağı itiyordu. Başka gün seçilince hangi gün olduğunu yazıyor. */}
+      {gun !== bugun && (
+        <div className="plan__gun-etiket">
+          {etiket ? `${etiket} · ` : ''}
+          {tarihUzun(gun)}
+        </div>
+      )}
 
       {liste.length > 0 ? (
         <div className="plan__liste">
@@ -582,6 +597,23 @@ const TUR_ADI = { servis: 'Servis', parca: 'Yedek Parça' }
    GECİKME RENGİ TEK YERDE: kartın sol kenarındaki kırmızı şerit ve
    zamanın rengi (bkz. isDurumu.js). Sekiz kartlık listede on altı
    renkli işaret olmasın diye durum etiketleri sönük tonlarda. */
+/* TAMAMLANAN İŞ NASIL BİTTİ (29 Eylül 2026, görünüm önerisi S3).
+   Kapanan işte etiket çıkmıyordu: iptal edilen, garanti dışı kapanan ve
+   onaylanıp parası yazılan iş listede birbirinin aynısıydı. "Tamamlanan"
+   servisin yaptığı işin kanıtı; her kart nasıl bittiğini ve para varsa
+   tutarını söylüyor. Veri talebin kendisinden (hakkedis, cozum). */
+const KAPANDI = ['kapandi', 'iptal']
+
+function isinSonucu(t) {
+  if (t.status === 'iptal') return { ton: 'iptal', yazi: 'İptal edildi' }
+  if (t.cozum?.garantiDisi) return { ton: 'bitti', yazi: 'Garanti dışı kapandı' }
+  if (t.hakkedis?.durum === 'onaylandi') {
+    return { ton: 'odeme', yazi: `Onaylandı · ${paraYaz(t.hakkedis.toplam || 0)} ${PARA_BIRIMI}`, Ikon: IconCheckCircle }
+  }
+  if (t.hakkedis?.durum === 'reddedildi') return { ton: 'iptal', yazi: 'Kayıt reddedildi' }
+  return { ton: 'bitti', yazi: 'Tamamlandı' }
+}
+
 function TalepKarti({ talep, onAc }) {
   const paksanda = (talep.sahip || 'paksan') === 'paksan'
   const gecikti = servisGecikti(talep)
@@ -613,8 +645,9 @@ function TalepKarti({ talep, onAc }) {
      sınaması): gecikme yalnız kırmızı şerit ve kırmızı zamanla
      anlaşılıyordu; renk tek başına anlam taşımaz. El sürülmemiş işte
      plan olmadığı için bu dala düşüyor. */
-  const durum =
-    talep.status === 'parcaBekliyor'
+  const durum = KAPANDI.includes(talep.status)
+    ? isinSonucu(talep)
+    : talep.status === 'parcaBekliyor'
       ? { ton: 'parca', yazi: talep.parcaSevk ? 'Parça yolda' : 'Parça hazırlanıyor' }
       : talep.status === 'onayBekliyor'
         ? { ton: 'onay', yazi: `${MARKA} kaydı inceliyor` }
@@ -693,8 +726,9 @@ function TalepKarti({ talep, onAc }) {
    kampanya ile geri çağırma ayırt edilemiyordu.
    ========================================================================== */
 
-/* Tablodaki `ikon` adının servis panelindeki karşılığı. */
-const DUYURU_IKON = {
+/* Tablodaki `ikon` adının servis panelindeki karşılığı. Bildirimler
+   ekranı da okuyor. */
+export const DUYURU_IKON = {
   etiket: IconTag,
   makine: IconMachine,
   takvim: IconCalendar,

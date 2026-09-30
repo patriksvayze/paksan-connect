@@ -705,8 +705,11 @@ UPDATE talep.ParcaTalebiAyrinti
 UPDATE talep.Talep SET DurumKodu = N'odemeBekliyor' WHERE Kimlik = @ParcaTalep;
 COMMIT TRANSACTION;
 
-/* Ödeme hesapları talebin şirketinden okunur. Tohumda banka hesabı yoktur
-   (Bölüm 8'in açık maddesi); sınanan şey yolun kurulu olmasıdır. */
+/* Ödeme hesapları talebin şirketinden okunur. 30 Eylül 2026'dan beri
+   tohumda PAKSAN'ın bir TRY hesabı var (T04; kaynak src/marka/kimlik.js →
+   BANKA, kullanıcının paylaştığı afiş). Sınanan şey: talebin şirketi ve
+   para birimi üzerinden giden yol, şirketin etkin hesaplarının hepsini
+   veriyor. */
 SELECT @Sayi = COUNT(*)
   FROM talep.ParcaTalebiAyrinti AS p
   JOIN sirket.BankaHesabi AS b

@@ -23,9 +23,17 @@
    kayıt günü seri numarasından çıkan tek takvimden. Telefon ve müşteri
    kimliği Connect'in yazdığı biçimde (lib/tel.js), Servisim'in randevusu
    yalnız gün, elle açılan işte `atamaDisi` (bkz. demoServis.js).
+
+   SERVİSİM'İN SAHNESİ AYRI VE SABİT (29 Eylül 2026, kullanıcının
+   isteği: "uygulamada mümkün olduğunca her yere girilsin"). Servisim'in
+   demo hesabının servisi (Selçuk Tarım Servisi) ve müşterileri artık
+   rastgele değil: on sabit müşteri listenin başında, işleri gerçek
+   işlevlerden geçerek geçmiş tarihlerle kuruluyor (bkz. demoSahne.js).
+   Bu dosyanın rastgele üreticisi geri kalan müşterileri ve öteki
+   servislerin işlerini kuruyor; sabit müşterilere dokunmuyor.
    ========================================================================== */
 
-import { load, save, uid } from '../lib/storage'
+import { load, remove, save, uid } from '../lib/storage'
 import { ekYaz } from '../lib/ekler'
 import { sifreHazirla } from '../lib/hesap'
 import { yeniNo } from '../lib/numara'
@@ -33,29 +41,25 @@ import { talepNo } from '../lib/talep'
 import { normalizeSerial } from '../lib/serial'
 import { telAnahtar, telGoster, telHamYap } from '../lib/tel'
 import { LOGO } from '../lib/logo'
-import { ANAHTAR, bakiyeDurumu, islemYaz, personelGetir, rolleriGetir } from './veri'
+import { ANAHTAR, islemYaz, personelGetir, rolleriGetir } from './veri'
 import { PRODUCTS, SIRKET } from '../marka'
 import { SERVISLER, BAYILER } from '../marka'
 import { makineninServisi } from '../lib/servisAtama'
 import { fiyatGoruntusu } from '../lib/parcaKatalogu'
+import { DEMO_SERVIS, parcaKaynagi, parcaSecimi, senaryoSec, servisAkisi } from './demoServis'
 import {
-  DEMO_SERVIS,
-  SAHNE_GOREVLERI,
-  SAHNE_MUSTERI,
-  SAHNE_YERLERI,
-  odemeUret,
-  parcaKaynagi,
-  parcaSecimi,
-  senaryoSec,
-  servisAkisi,
-  servisSiparisleriUret,
-} from './demoServis'
+  AYAR_YEDEGI,
+  SABIT_MUSTERI,
+  sahneIzleriniTemizle,
+  sahneKur,
+  sahneMusterileriKur,
+} from './demoSahne'
+import { duyuruGorulduSay, GORULEN_DUYURU } from '../servis/talepBildirimleri'
 import {
   destekSorusu,
   garantideMi,
   makineninParcaHavuzu,
   makineUyar,
-  parcaliIsOlur,
   senaryoIhtiyaci,
   vakaHavuzu,
   vakaSec,
@@ -76,12 +80,53 @@ const SOYADLAR = [
 ]
 
 /* Servis talebinin adresi bunlardan kuruluyor. Adres tarifi çiftçinin
-   yazacağı gibi: köy adı ve bir işaret noktası — servis navigasyonla
-   değil, sorarak buluyor. */
-const KOYLER = [
-  'Alibeyhüyüğü', 'Karkın', 'Dedemli', 'Gökhüyük', 'Beşkavak', 'Yenidoğan',
-  'Akören', 'Taşpınar', 'Sarıkaya', 'Çayırbaşı', 'Kızılören', 'Üçpınar',
-]
+   yazacağı gibi: köy adı ve bir işaret noktası.
+
+   KÖY GERÇEKTEN O İLÇEDE (29 Eylül 2026). Köy, müşterinin ilçesinden
+   bağımsız 12 Konya köyünden rastgele seçiliyordu ("Bandırma,
+   Alibeyhüyüğü köyü"; Alibeyhüyüğü Çumra'da); aynı müşterinin her
+   talebinde başka köy çıkıyordu. Servisim'deki "Yol Tarifi" adresi
+   haritada açınca demo yanlış yeri gösterirdi. Her ilçenin köyleri
+   gerçek (Vikipedi'deki ilçe sayfalarının kırsal mahalle ve köy
+   listeleri, 29 Eylül 2026). Büyükşehir illerinde köyler 2012'den beri
+   mahalle; Aksaray, Edirne ve Sivas'ta hâlâ köy. Köy müşteri başına
+   bir kez seçiliyor ve müşterinin adresi oluyor; Servisim'in Kayıt Aç
+   ekranı da onu dolduruyor. */
+const KOYLER = {
+  'Konya|Selçuklu': [['Tatköy', 'mahalle'], ['Hocacihan', 'mahalle'], ['Başarakavak', 'mahalle']],
+  'Konya|Çumra': [['Alibeyhüyüğü', 'mahalle'], ['Karkın', 'mahalle'], ['Türkmenkarahüyük', 'mahalle']],
+  'Konya|Karatay': [['İsmil', 'mahalle'], ['Divanlar', 'mahalle'], ['Yarma', 'mahalle']],
+  'Konya|Meram': [['Dedemli', 'mahalle'], ['Hatunsaray', 'mahalle'], ['Karadiğin', 'mahalle']],
+  'Konya|Ereğli': [['Akhüyük', 'mahalle'], ['Alhan', 'mahalle'], ['Kutören', 'mahalle']],
+  'Konya|Cihanbeyli': [['Büyükbeşkavak', 'mahalle'], ['Taşpınar', 'mahalle'], ['Kuşça', 'mahalle']],
+  'Konya|Sarayönü': [['Ladik', 'mahalle'], ['Başhüyük', 'mahalle'], ['Gözlü', 'mahalle']],
+  'Konya|Kulu': [['Kozanlı', 'mahalle'], ['Tavlıören', 'mahalle'], ['Burunağıl', 'mahalle']],
+  'Aksaray|Merkez': [['Doğantarla', 'köy'], ['Darıhüyük', 'köy'], ['Yenipınar', 'köy']],
+  'Ankara|Polatlı': [['Yassıhüyük', 'mahalle'], ['Sabanca', 'mahalle'], ['Beylikköprü', 'mahalle']],
+  'Eskişehir|Alpu': [['Büğdüz', 'mahalle'], ['Gökçekaya', 'mahalle'], ['Sarıkavak', 'mahalle']],
+  'Balıkesir|Bandırma': [['Aksakal', 'mahalle'], ['Ergili', 'mahalle'], ['Doğanpınar', 'mahalle']],
+  'Bursa|Karacabey': [['Uluabat', 'mahalle'], ['Ekinli', 'mahalle'], ['Yenisarıbey', 'mahalle']],
+  'İzmir|Torbalı': [['Karakızlar', 'mahalle'], ['Pamukyazı', 'mahalle'], ['Çapak', 'mahalle']],
+  'Manisa|Salihli': [['Yeşilkavak', 'mahalle'], ['Kemerköy', 'mahalle'], ['Mersinli', 'mahalle']],
+  'Aydın|Söke': [['Sarıkemer', 'mahalle'], ['Tuzburgazı', 'mahalle'], ['Özbaşı', 'mahalle']],
+  'Antalya|Korkuteli': [['Yazır', 'mahalle'], ['Küçükköy', 'mahalle'], ['Kargın', 'mahalle']],
+  'Adana|Ceyhan': [['Tatarlı', 'mahalle'], ['İncetarla', 'mahalle'], ['Dikilitaş', 'mahalle']],
+  'Şanlıurfa|Viranşehir': [['Altınbaşak', 'mahalle'], ['Çiftçiler', 'mahalle'], ['Ekinciler', 'mahalle']],
+  'Diyarbakır|Bismil': [['Çeltikli', 'mahalle'], ['Ağıllı', 'mahalle'], ['Sarıköy', 'mahalle']],
+  'Malatya|Battalgazi': [['Yarımcahan', 'mahalle'], ['Kuluşağı', 'mahalle'], ['Alhanuşağı', 'mahalle']],
+  'Kayseri|Develi': [['Kulpak', 'mahalle'], ['Hüseyinli', 'mahalle'], ['Gömedi', 'mahalle']],
+  'Samsun|Bafra': [['Doğanca', 'mahalle'], ['Karpuzlu', 'mahalle'], ['Sarıköy', 'mahalle']],
+  'Tekirdağ|Malkara': [['Balabancık', 'mahalle'], ['Hasköy', 'mahalle'], ['Karaiğdemir', 'mahalle']],
+  'Edirne|Uzunköprü': [['Kurtbey', 'köy'], ['Hamitli', 'köy'], ['Kırköy', 'köy']],
+  'Sivas|Şarkışla': [['Sivrialan', 'köy'], ['Büyüktopaç', 'köy'], ['Alaman', 'köy']],
+}
+
+function koyAdresi(il, ilce) {
+  const secenek = KOYLER[`${il}|${ilce}`]
+  if (!secenek) return ''
+  const [ad, tur] = sec(secenek)
+  return `${ad} ${tur === 'köy' ? 'köyü' : 'Mahallesi'}, ${sec(TARIFLER)}`
+}
 
 const TARIFLER = [
   'kooperatifin arkası', 'cami karşısı', 'silonun yanı', 'köy girişi ilk sağ',
@@ -215,20 +260,31 @@ function demoRolleri() {
 /* Beş alt türün hepsinden en az bir örnek var: ekranlar boş bir
    listeyle değil, gerçek çeşitlilikle deneniyor. Hedefi olanlar
    `hedef` taşıyor — geri çağırma yalnız servise gidiyor
-   (bkz. src/data/duyuruTurleri.js). */
+   (bkz. src/data/duyuruTurleri.js).
+
+   YAŞ SABİT, HEDEF SERVİSİM'E DE (29 Eylül 2026). `yas` duyurunun kaç
+   gün önce yayınlandığı: Servisim'in Bildirimler ekranında "Bugün",
+   "Dün" ve daha eski günler dolsun. Kampanya iki tarafa gidiyor
+   (servis de görsün); bölge süzgeci iki uyarıda: Konya'ya giden sahne
+   servisinde görünüyor, İzmir'e giden görünmüyor (lib/duyuruHedef.js).
+   `servisteGorulmus` sahne servisinin "Anladım" dediği uyarı:
+   İşlerim'deki "Uyarılar" katında duruyor. Kaydın alanı değil. */
 const DUYURULAR = [
   {
     tur: 'duyuru',
     alt: 'kampanya',
     baslik: 'Sezon öncesi bakım kampanyası',
     gun: 30,
+    yas: 1,
     metin: 'Nisan sonuna kadar yetkili servislerimizde sezon öncesi bakım işçiliğinde %20 indirim uygulanıyor. Randevu için servisinizle görüşebilirsiniz.',
+    hedef: { kime: 'ikisi' },
   },
   {
     tur: 'duyuru',
     alt: 'yeniUrun',
     baslik: 'Orkinos 1290 satışa çıktı',
     gun: 45,
+    yas: 10,
     metin: 'Orkinos serisinin yeni modeli Orkinos 1290 satışa sunuldu. Fiyat ve satın alma için bayinize, teknik bilgi ve servis desteği için yetkili servise başvurabilirsiniz.',
     hedef: { kime: 'ikisi' },
   },
@@ -237,6 +293,7 @@ const DUYURULAR = [
     alt: 'etkinlik',
     baslik: 'Konya Tarım Fuarı’nda sizi bekliyoruz',
     gun: 12,
+    yas: 3,
     metin: 'Konya Tarım Fuarı’nda B salonundaki 214 numaralı standımızdayız. Bütün modellerimizi yerinde görebilir, ekibimizle görüşebilirsiniz.',
     hedef: { kime: 'ikisi' },
   },
@@ -245,6 +302,7 @@ const DUYURULAR = [
     alt: 'kampanya',
     baslik: 'Yeni yedek parça fiyat listesi',
     gun: 60,
+    yas: 30,
     metin: '2026 yedek parça fiyat listesi yürürlüğe girdi. Güncel fiyatları uygulamadaki yedek parça talebi ekranından görebilirsiniz.',
   },
   {
@@ -252,12 +310,17 @@ const DUYURULAR = [
     alt: 'guvenlik',
     baslik: 'Kuyruk mili koruma kapağı kontrolü',
     metin: 'Kuyruk mili koruma kapağı hasarlıysa makineyi çalıştırmayın. Kapağı hasarlı müşterilerimiz, ücretsiz değişim için servislerine başvurabilir.',
+    yas: 3,
+    hedef: { kime: 'ikisi', iller: ['Konya'] },
+    servisteGorulmus: true,
   },
   {
     tur: 'uyari',
     alt: 'guvenlik',
     baslik: 'Sıcak havada balya deposu kontrolü',
     metin: 'Yüksek sıcaklıkta nemli ot balyalandığında depoda yanma riski oluşur. Balya nemini kontrol etmeden depolamayın.',
+    yas: 10,
+    hedef: { kime: 'ikisi', iller: ['İzmir'] },
   },
   {
     tur: 'uyari',
@@ -266,6 +329,7 @@ const DUYURULAR = [
     alt: 'guvenlik',
     baslik: 'ORK1270-2024 serisi düğüm atıcı kontrolü',
     metin: 'ORK1270-2024 seri numaralı makinelerin düğüm atıcı yayında üretim kaynaklı kırılma görüldü. Bu makineleri kullanan müşterilerinizi arayıp servise çağırın. Değişim bedelsizdir; yay stoku servislere gönderildi.',
+    yas: 1 / 24,
     hedef: { kime: 'servis' },
   },
 ]
@@ -328,8 +392,8 @@ function seriUret(urun, yil) {
 /* MAKİNENİN TAKVİMİ: üretim → bayiye fatura → uygulamaya kayıt, tek
    yıldan. Üretim yılı `enEski` ile bu yıl arasında; üretim en geç 150 gün
    önce (fatura 15-60 gün sonra, kayıt faturadan sonra). Kayıt en geç 46
-   gün önce: en eski demo işi 44 gün önce açılıyor (demoServis.js →
-   SAHNE_GOREVLERI) ve talep makineden önce açılamaz. Kayıt Makineler
+   gün önce: en eski demo işi 40 gün önce açılıyor (aşağıda yasGun) ve
+   talep makineden önce açılamaz. Kayıt Makineler
    ekranındaki üretim ve fatura tarihiyle aynı takvimden (bkz. makine
    defteri, aşağıda). */
 function makineTakvimi(enEski) {
@@ -387,25 +451,12 @@ export async function demoYukle() {
   }
 
   /* Sahne servisi: servis uygulamasının demo hesabının açıldığı servis
-     (bkz. demoServis.js). */
+     (bkz. demoServis.js). Rastgele işler ona düşmüyor; onun işleri
+     sabit sahnede (demoSahne.js). */
   const sahneServisi = SERVISLER.find((x) => x.id === DEMO_SERVIS) || SERVISLER[0]
   const digerServisler = SERVISLER.filter((x) => x.id !== sahneServisi.id)
 
-  /* TARAYICIDA KALAN GERÇEK HAREKETLER DE SAYILIYOR. Demo sahne
-     servisinin bakiyesini yalnız kendi yazdığı satırlardan hesaplıyordu;
-     demo işaretsiz gerçek sipariş borcu bakiyeyi düşürmüşken demonun
-     bakiyeden ödenen siparişi kullanılabilir bakiyeyi eksiye
-     düşürebiliyordu (kullanıcı sınaması, tutarlilik C4). Demo verisi
-     kurulmadan önceki kullanılabilir bakiye siparişin bütçesine
-     ekleniyor (aşağıda). */
-  const oncekiBakiye = bakiyeDurumu(sahneServisi.id).kullanilabilir
-
   const YIL = new Date().getFullYear()
-  /* Parçalı iş kurulabilen ürünler: fiyat listesinde makinenin ailesine
-     ve modeline uyan parça olanlar. Sahne müşterisinin ilk makinesi
-     bunlardan; servis uygulamasının parça isteyen işleri ona düşüyor. */
-  const parcaliUrunler = PRODUCTS.filter((u) => parcaliIsOlur(katalog, u.id))
-  const PARCALI_URUNLER = parcaliUrunler.length ? parcaliUrunler : PRODUCTS
   const takvimler = new Map()
 
   /* ---- Personel: admin dışında rastgele roller */
@@ -445,27 +496,21 @@ export async function demoYukle() {
   }
   save(ANAHTAR.personel, [...mevcut, ...yeniPersonel])
 
-  /* ---- Müşteriler */
-  const musteriler = []
-  for (let i = 0; i < 30; i++) {
-    /* İlk sekiz müşteri sahne servisinin ilinden (bkz. demoServis.js). */
-    const sahne = i < SAHNE_MUSTERI
-    const [il, ilce] = sahne ? SAHNE_YERLERI[i] : sec(YERLER)
+  /* ---- Müşteriler
 
-    /* Sahne müşterisinin İLK makinesi garanti süresinde ve fiyat
-       listesinde parçası olan bir model: servis uygulamasının garanti ve
-       parça isteyen işleri ona düşebilsin. İkincisi (varsa) herhangi bir
-       model, herhangi bir yıl. Garantideki iş artık makine SEÇİLİRKEN
-       süzülüyor (demoMakineAilesi.js → makineUyar); önce bütün sahne
-       makineleri yeni yazılıyor, yılı ise seriden ayrı çekiliyordu. */
-    const urunler = sahne
-      ? (() => {
-          const ilk = sec(PARCALI_URUNLER)
-          return [ilk, ...(Math.random() < 0.5 ? [sec(PRODUCTS.filter((u) => u.id !== ilk.id))] : [])]
-        })()
-      : secBirkac(PRODUCTS, 1, 2)
-    const makineler = urunler.map((urun, j) => {
-      const t = makineTakvimi(sahne && j === 0 ? YIL - 1 : 2019)
+     Önce sahnenin on sabit müşterisi (demoSahne.js → SAHNE_MUSTERILERI:
+     sahne servisinin Konya'daki sekiz müşterisi, başka servisin bir
+     müşterisi, servisi olmayan bir makinenin sahibi), sonra rastgele
+     müşteriler. Rastgele iş, talep, görüş ve numara değişikliği
+     yalnız rastgele müşterilere düşüyor: sabit müşterinin geçmişi her
+     kurulumda aynı. */
+  const sabit = sahneMusterileriKur()
+  const musteriler = [...sabit.musteriler]
+  for (let i = 0; i < 30 - SABIT_MUSTERI; i++) {
+    const [il, ilce] = sec(YERLER)
+    const urunler = secBirkac(PRODUCTS, 1, 2)
+    const makineler = urunler.map((urun) => {
+      const t = makineTakvimi(2019)
       const mk = {
         id: uid(),
         productId: urun.id,
@@ -503,6 +548,9 @@ export async function demoYukle() {
       konumUlke: 'TR',
       il,
       ilce,
+      /* Makinenin durduğu köy; bütün servis taleplerinin adresi bu
+         (yukarıda KOYLER). */
+      adres: koyAdresi(il, ilce),
       /* Müşterinin "makineyi kimden aldım" cevabı BAYİ adı; servis
          adı değil. Servis makine satmıyor. */
       satici: sec(BAYILER).ad,
@@ -519,6 +567,7 @@ export async function demoYukle() {
     })
   }
   save(ANAHTAR.demoMusteriler, musteriler)
+  const rastgele = musteriler.slice(SABIT_MUSTERI)
 
   /* ---- Makine kayıt defteri
 
@@ -535,20 +584,16 @@ export async function demoYukle() {
      Bir kısmı bilerek boş bırakıldı: Logo her seri numarasını
      bilmiyor ve her makineye servis atanmış değil. Backoffice o
      eksikliği gösterebilmeli, demo da onu göstermeli. */
-  const makineKayitlari = []
-  for (const m of musteriler) {
-    const sahneMusterisi = musteriler.indexOf(m) < SAHNE_MUSTERI
+  /* Sabit müşterilerin satırları sahneden (atama ve bayi sabit). */
+  const makineKayitlari = [...sabit.defter]
+  for (const m of rastgele) {
     for (const mk of m.makineler) {
       const logoBildi = Math.random() > 0.15
       const bayi = logoBildi ? sec(BAYILER) : null
       /* Makinelerin bir bölümüne servis elle atanmış; kalanların
          servisi bayisinden geliyor ya da hiç yok. */
-      /* Sahne müşterilerinin makinelerine sahne servisi atanmış:
-         servis talepleri makineden o servise düşüyor. Ötekiler
-         sahne servisine atanmıyor ki onun listesi dağılmasın. */
-      const servis = sahneMusterisi
-        ? sahneServisi
-        : Math.random() > 0.45 ? sec(digerServisler) : null
+      /* Sahne servisine atanmıyor ki onun listesi dağılmasın. */
+      const servis = Math.random() > 0.45 ? sec(digerServisler) : null
       /* Üretim ve fatura tarihi seri numarasının yılından, kayıt günü
          makinenin kendi takviminden (makineTakvimi). Önce üçü ayrı ayrı
          rastgeleydi: üretim tarihi seriden başka bir yıla düşebiliyordu. */
@@ -591,7 +636,7 @@ export async function demoYukle() {
      (bkz. lib/servisAtama.js). Demo önceden servis talebini rastgele bir
      müşteriye açıyor, servisi il ve ilçeye bakarak buluyordu — gerçekte
      oluşamayacak bir kayıt. Şimdi aynı zincir soruluyor. */
-  const servisliMakineler = musteriler.slice(SAHNE_MUSTERI).flatMap((m) =>
+  const servisliMakineler = rastgele.flatMap((m) =>
     m.makineler
       .map((mk) => ({ m, mk, servis: makineninServisi(mk)?.servis || null }))
       .filter((x) => x.servis && x.servis.id !== sahneServisi.id),
@@ -601,7 +646,9 @@ export async function demoYukle() {
      Garanti kaydı açılan iş garanti süresindeki makineye, parça isteyen
      iş fiyat listesinde parçası olan makineye düşüyor; garanti dışı iş
      için garantisi bitmiş makine tercih ediliyor (demoMakineAilesi.js →
-     makineUyar). Uyan makine yoksa sahne makinelerine dönülüyor.
+     makineUyar). Uyan makine yoksa iş hiç kurulmuyor: önce sahne
+     servisinin makinelerine dönülüyordu, rastgele iş Servisim'in sabit
+     sahnesine karışırdı (29 Eylül 2026).
 
      BİR MAKİNEDE TEK AÇIK SERVİS TALEBİ. Connect aynı makinede işi süren
      servis talebi varken ikincisini açtırmıyor (lib/makineTalepleri.js)
@@ -621,22 +668,12 @@ export async function demoYukle() {
     }
     return u
   }
-  let sahneSira = 0
-  const sahneAday = () =>
-    musteriler
-      .slice(0, SAHNE_MUSTERI)
-      .flatMap((m) => m.makineler.map((mk) => ({ m, mk, servis: sahneServisi })))
-  const sahneMakinesi = (ihtiyac, acik) => {
-    const a = uygunlar(sahneAday(), ihtiyac, acik)
-    return a.length ? a[sahneSira++ % a.length] : sahneAday()[0]
-  }
-  const servisMakinesi = (sahne, ihtiyac, acik) => {
-    if (sahne) return sahneMakinesi(ihtiyac, acik)
+  const servisMakinesi = (ihtiyac, acik) => {
     const a = uygunlar(servisliMakineler, ihtiyac, acik)
-    return a.length ? sec(a) : sahneMakinesi(ihtiyac, acik)
+    return a.length ? sec(a) : null
   }
   /* Müşterinin parça talebi fiyat listesinde parçası olan makineden. */
-  const parcaliMakineler = musteriler.flatMap((m) =>
+  const parcaliMakineler = rastgele.flatMap((m) =>
     m.makineler
       .filter((mk) => makineninParcaHavuzu(katalog, mk.productId).length)
       .map((mk) => ({ m, mk })),
@@ -742,12 +779,6 @@ export async function demoYukle() {
   /* İHRACAT — yurtdışı talebi ayrı yoldan gidiyor, örneği olsun */
   gorevler.push({ tur: 'satinalma', durum: 'yeni', ihracat: true })
 
-  /* SAHNE SERVİSİNİN İŞLERİ — servis uygulamasının demo hesabında her
-     hâlden bir iş görünsün (bkz. demoServis.js → SAHNE_GOREVLERI). */
-  for (const g of SAHNE_GOREVLERI) {
-    gorevler.push({ tur: 'servis', yasGun: g.yas, sahne: true, ...g })
-  }
-
   /* Hesap hareketleri talepler kurulurken birikiyor. Parça havuzu
      yukarıda, demonun en başında alındı. */
   const cariHareketler = []
@@ -770,8 +801,8 @@ export async function demoYukle() {
     })
   for (const x of [...servisGorevleri].sort((a, b) => kisit(a) - kisit(b))) {
     const acik = !['kapandi', 'iptal'].includes(x.g.durum)
-    x.eslesme = servisMakinesi(x.g.sahne, x.ihtiyac, acik)
-    if (acik) acikMakineler.add(x.eslesme.mk.id)
+    x.eslesme = servisMakinesi(x.ihtiyac, acik)
+    if (acik && x.eslesme) acikMakineler.add(x.eslesme.mk.id)
     servisSecimi.set(x.g, x)
   }
 
@@ -779,10 +810,12 @@ export async function demoYukle() {
     {
       const tur = gorev.tur
       const secim = tur === 'servis' ? servisSecimi.get(gorev) : null
+      /* Uyan makine bulunamayan servis işi kurulmuyor (yukarıda). */
+      if (tur === 'servis' && !secim?.eslesme) continue
       const senaryo = secim ? secim.senaryo : null
       const ihtiyac = secim ? secim.ihtiyac : null
       const eslesme = secim ? secim.eslesme : tur === 'parca' ? sec(parcaliMakineler) : null
-      const m = eslesme ? eslesme.m : sec(musteriler)
+      const m = eslesme ? eslesme.m : sec(rastgele)
       const makine = eslesme ? eslesme.mk : sec(m.makineler)
       /* Arıza vakası makineden: belirti, açıklama ve fotoğraf makinenin
          ailesinden, parçalı iş vakanın gruplarından. */
@@ -883,10 +916,7 @@ export async function demoYukle() {
            kayıt ekranında kendisi dolduruyor. Demoda beşte biri boş
            bırakılıyor ki iki yol da denenebilsin. Servisin elle açtığı
            işte adres HEP var: Kayıt Aç ekranı onu zorunlu tutuyor. */
-        adres:
-          tur === 'servis' && (gorev.elle || Math.random() > 0.2)
-            ? `${m.ilce}, ${sec(KOYLER)} köyü, ${sec(TARIFLER)}`
-            : '',
+        adres: tur === 'servis' && (gorev.elle || Math.random() > 0.2) ? m.adres : '',
         ulke: gorev.ihracat ? 'DE' : 'TR',
         ihracat: Boolean(gorev.ihracat),
         makine: tur === 'satinalma'
@@ -1031,27 +1061,8 @@ export async function demoYukle() {
     }
   }
 
-  /* ---- Servisin parça siparişleri ve hesabı
-
-     Servis uygulamasının Parça ve Hesap ekranları demo verisinde
-     boştu. Sahne servisinin dört siparişi ve servise yapılmış bir
-     ödeme ekleniyor; onaylanan işlerin alacak satırları yukarıda,
-     talepler kurulurken birikti. */
-  cariHareketler.push(...odemeUret(cariHareketler, sahneServisi, sec(yeniPersonel).ad))
-  const sahneBakiyesi = cariHareketler
-    .filter((h) => h.servisId === sahneServisi.id)
-    .reduce((t, h) => t + (h.tur === 'alacak' ? h.tutar : -h.tutar), 0)
-  const siparis = servisSiparisleriUret({
-    servis: sahneServisi,
-    personel: yeniPersonel.map((p) => p.ad),
-    katalog,
-    /* Demonun kendi bakiyesi ile tarayıcıda zaten duran gerçek
-       hareketlerin kullanılabilir bakiyesi (yukarıda, oncekiBakiye). */
-    butce: sahneBakiyesi + oncekiBakiye,
-    noUret: tekilNo,
-  })
-  talepler.push(...siparis.talepler)
-  cariHareketler.push(...siparis.cari)
+  /* Servisin parça siparişleri, ödemesi ve hesabı sahnede
+     (demoSahne.js): siparişler gerçek sipariş gövdesinden geçiyor. */
   talepler.sort((a, b) => b.createdAt - a.createdAt)
 
   save(ANAHTAR.cari, [
@@ -1066,7 +1077,7 @@ export async function demoYukle() {
      Bir kısmında seri no doğru (backoffice ✓ gösterecek), bir kısmında
      yanlış (✕) — kontrolün nasıl çalıştığı görünsün. */
   const numaraTalepleri = []
-  secBirkac(musteriler, 4, 6).forEach((m) => {
+  secBirkac(rastgele, 4, 6).forEach((m) => {
     const dogru = Math.random() > 0.35
     const makine = m.makineler[0]
     /* Yeni numara TEK kez üretiliyor: ekranda görünen ile onayda hesaba
@@ -1115,7 +1126,7 @@ export async function demoYukle() {
      Üçü de raporlarda ayrı ayrı sayılıyor. */
   const destekOturumlari = []
 
-  secBirkac(musteriler, 12, 18).forEach((m) => {
+  secBirkac(rastgele, 12, 18).forEach((m) => {
     const kac = tamsayi(1, 2)
     for (let i = 0; i < kac; i++) {
       const makine = sec(m.makineler)
@@ -1176,7 +1187,7 @@ export async function demoYukle() {
      hizmete ilişkin bildirim izne bağlı değil. */
   const duyurular = DUYURULAR.map((x, i) => ({
     id: uid(),
-    tarih: gunOnce(tamsayi(1, 40) + i),
+    tarih: Date.now() - Math.round(x.yas * GUN),
     tur: x.tur,
     alt: x.alt,
     baslik: x.baslik,
@@ -1191,9 +1202,10 @@ export async function demoYukle() {
     ...(x.hedef ? { hedef: x.hedef } : {}),
   }))
   save(ANAHTAR.duyurular, [...duyurular, ...load(ANAHTAR.duyurular, [])])
+  duyuruGorulduSay(duyurular.filter((d, i) => DUYURULAR[i].servisteGorulmus).map((d) => d.id))
 
   /* ---- Geri bildirimler */
-  const gorusler = secBirkac(musteriler, 5, 8).map((m) => ({
+  const gorusler = secBirkac(rastgele, 5, 8).map((m) => ({
     id: uid(),
     no: yeniNo('geribildirim'),
     tarih: gunOnce(tamsayi(0, 30)),
@@ -1212,10 +1224,22 @@ export async function demoYukle() {
   }))
   save(ANAHTAR.geriBildirim, [...gorusler, ...load(ANAHTAR.geriBildirim, [])])
 
+  /* ---- Servisim'in sahnesi: sabit müşterilerin işleri, servisin
+     siparişleri, ayarlar ve adres defteri (demoSahne.js). Müşteri,
+     makine defteri ve öteki kayıtlar yazıldıktan SONRA: talebin servisi
+     defterden çıkıyor. */
+  const sahne = await sahneKur({
+    katalog,
+    personel: yeniPersonel.map((p) => p.ad),
+    tekilNo,
+    fotoUret,
+    metinler: { musteriyeNot: NOTLAR.servis.musteriye[1], gonderimIsi: PARCA_PLAN_IS[0] },
+  })
+
   const ozet = {
     personel: yeniPersonel.length,
     musteri: musteriler.length,
-    talep: talepler.length,
+    talep: talepler.length + sahne.talep,
     numara: numaraTalepleri.length,
     gorus: gorusler.length,
     destek: destekOturumlari.length,
@@ -1243,7 +1267,20 @@ export function demoTemizle() {
      kimliği olmayan satırda ve yalnız gerçek bir talepte geçmeyen numara
      için kullanılıyor. Demo müşterisine giden kişisel bildirim müşteri
      kimliğiyle bulunuyor. Gerçek talebe (`requests`) bağlı satıra
-     dokunulmuyor; İşlem Kaydı olduğu gibi kalıyor. */
+     dokunulmuyor; İşlem Kaydı olduğu gibi kalıyor.
+
+     SAHNENİN İZLERİ DE GİDİYOR (29 Eylül 2026). Servisim'in sahnesi
+     (demoSahne.js) ücret ve indirim ayarı yazıyor, servise talebe bağlı
+     olmayan hesap bildirimi (`demo` damgalı) düşürüyor, adres defterine
+     adres ekliyor, bildirimleri okunmuş sayıyor. Ayar personel o arada
+     değiştirmediyse eski hâline dönüyor; okunmuş listelerinden silinen
+     bildirimlerin kimlikleri çıkıyor.
+
+     DEMO SÜRÜMÜ DE SİLİNİYOR. Backoffice'ten temizlenen demo, Servisim
+     hesabı ve `demoSurumu` yerinde kaldığı için Servisim'de bir daha
+     kurulmuyordu (servis/demoKur.js hesabı ve sürümü görüp dönüyordu);
+     Servisim boş açılıyordu. Sürüm silinince Servisim bir sonraki
+     açılışta demoyu yeniden kuruyor. */
   const demoTalepleri = load(ANAHTAR.demoTalepler, [])
   const talepKimlikleri = new Set(demoTalepleri.map((t) => t.id))
   const gercekNumaralar = new Set(load(ANAHTAR.talepler, []).map((t) => t.no))
@@ -1269,6 +1306,14 @@ export function demoTemizle() {
     ANAHTAR.makineKayitlari,
     load(ANAHTAR.makineKayitlari, []).filter((x) => !x.demo)
   )
+  sahneIzleriniTemizle()
+  const kalanBildirimler = new Set(load(ANAHTAR.duyurular, []).map((d) => d.id))
+  for (const anahtar of ['okunanBildirimlerServis', GORULEN_DUYURU]) {
+    const liste = load(anahtar, null)
+    if (Array.isArray(liste)) save(anahtar, liste.filter((id) => kalanBildirimler.has(id)))
+  }
+  remove(AYAR_YEDEGI)
+  remove('demoSurumu')
 }
 
 /* -------------------------------------------------------- Fotoğraf eki

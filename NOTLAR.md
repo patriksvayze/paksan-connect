@@ -286,6 +286,10 @@ burada bakılmış ve top müşteridedir. İkisi ayrı işaret, ayrı kutu.
   bağlı; girilirse müşteriye bildirimle birlikte gidiyor. Bu durum talebi
   kapatıyor.
 
+> **GÜNCEL DEĞİL (30 Eylül 2026):** hesap `src/marka/kimlik.js → BANKA`'ya
+> girildi ve `aktif: true` (bkz. CLAUDE.md → "30 Eylül 2026 — … banka
+> hesabı"). Aşağıdaki not o güne kadarki durumu anlatıyor.
+>
 > **⚠ BANKA HESABI TANIMLI DEĞİL.** `src/config.js` → `BANKA` bloğu boş
 > ve `aktif: false`. Bu hâliyle ödeme ekranı IBAN göstermiyor, "hesap
 > bilgileri için bizi arayın" diyor. Yanlış IBAN'a para göndermek geri
@@ -2971,7 +2975,7 @@ Artık sarıyorlar.
 | Servis | Çevrimdışı arıza rehberinin onayı |
 | Bayiler | Gerçek bayi listesi (ad, il/ilçe, adres, telefon, hangi hizmetleri verdiği) |
 | Garanti | Gerçek garanti süresi (şu an 2 yıl varsayıldı) |
-| **Banka** | **Yedek parça ödemesi için gerçek IBAN'lar** — `src/config.js` → `BANKA`. Girilmeden ödeme ekranı hesap bilgisi göstermiyor. |
+| **Banka** | **Yedek parça ödemesi için gerçek IBAN'lar** — 30 Eylül 2026'da girildi (`src/marka/kimlik.js` → `BANKA`); muhasebenin bir kez doğrulaması kaldı. |
 | **Yedek parça fiyatları** | **Gerçek fiyat listesi ve parça kodları** — `src/data/parcaFiyat.js`. Şu anki 30 kayıt demo için uydurulmuştur. |
 | **İhracat** | Yurtdışı taleplerinin gideceği e-posta adresleri — `src/config.js` → `IHRACAT.epostalar` |
 | KVKK | Metinlerin hukukçu onayı + resmî unvan eki (A.Ş./Ltd.) ve VERBİS bilgisi |

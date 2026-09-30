@@ -301,7 +301,10 @@ export default function AddMachine() {
           value={serial}
           onChange={(e) => { setSerial(e.target.value); setHata('') }}
           onKeyDown={(e) => e.key === 'Enter' && kontrolEt()}
-          placeholder="ORK1270-2024-00157"
+          /* "Örnek:" ile başlıyor (29 Eylül 2026, C5): büyük ve kalın
+             yazılan örnek numara, kutuya zaten yazılmış bir seri gibi
+             okunuyordu. */
+          placeholder={t('ekle.seriOrnek')}
           autoCapitalize="characters"
           autoCorrect="off"
           spellCheck={false}
@@ -334,8 +337,13 @@ export default function AddMachine() {
           </div>
         )}
 
+        {/* Numara yazılmadan "Makineyi Bul" çerçeveli ve soluk
+            (29 Eylül 2026, C5): dolu lacivert duruyor, basılınca hiçbir
+            şey olmuyordu. Formun asıl düğmesi olduğu için `btn--primary`
+            sınıfı duruyor (ekosistem turu F-03 onu arıyor); görünümü
+            `btn--hazir-degil` değiştiriyor. */}
         <button
-          className="btn btn--primary btn--lg"
+          className={'btn btn--lg btn--primary' + (serial.trim() ? '' : ' btn--hazir-degil')}
           style={{ marginTop: 16 }}
           onClick={kontrolEt}
           disabled={!serial.trim()}

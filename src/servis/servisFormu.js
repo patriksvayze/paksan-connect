@@ -540,10 +540,22 @@ export async function servisFormuCiz(v) {
   return tuval
 }
 
+/* DOSYA ADINDA ÜRETİLDİĞİ GÜN (28 Eylül 2026, kullanıcının isteği):
+   "servis-formu-SRV2609211588-28-09-2026.pdf". Talep numarası kalıyor:
+   aynı gün iki işin formu alınınca biri ötekinin üstüne yazılmasın.
+   Tarih gün-ay-yıl, tireyle: basılı formdaki sırayla aynı; eğik çizgi
+   ve nokta dosya adında sorun çıkarıyor. Formun İÇİNDEKİ tarih servisin
+   yapıldığı gün, bu ise formun alındığı gün. */
+export function servisFormuDosyaAdi(talep, an = new Date()) {
+  const iki = (n) => String(n).padStart(2, '0')
+  const gun = `${iki(an.getDate())}-${iki(an.getMonth() + 1)}-${an.getFullYear()}`
+  return `servis-formu-${talep.no || 'talep'}-${gun}.pdf`
+}
+
 /** Formu PDF olarak üretir ve paylaşır (telefonda) ya da indirir. */
 export async function servisFormuPaylas(talep, servisAd) {
   const tuval = await servisFormuCiz(servisFormuVerisi(talep, servisAd))
   const jpeg = await tuvaldenJpeg(tuval, 0.9)
   const pdf = jpegdenPdf([{ jpeg, genislik: tuval.width, yukseklik: tuval.height }])
-  await dosyaPaylas(pdf, `servis-formu-${talep.no || 'talep'}.pdf`, METIN.paylasmaBasligi)
+  await dosyaPaylas(pdf, servisFormuDosyaAdi(talep), METIN.paylasmaBasligi)
 }

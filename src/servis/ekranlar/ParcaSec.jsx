@@ -7,7 +7,8 @@ import {
 import { MARKA } from '../../marka'
 import { Sayfa } from '../Kabuk'
 import { ParcaKarti } from '../ParcaKarti'
-import { IconAlert, IconRight, IconSearch } from '../../components/Icons'
+import { MontajListesi } from '../MontajListesi'
+import { IconAlert, IconSearch } from '../../components/Icons'
 
 /* ==========================================================================
    Parça seçimi — PAKSAN'ın kendi kataloğundan
@@ -163,18 +164,9 @@ export function ParcaSec({ secili = [], onBitti, onKapat }) {
               />
             </label>
 
-            {/* Grup listesi: arama boşken ve bir grup seçilmemişken. */}
-            {!grup && !arama.trim() && (
-              <div className="montaj-liste">
-                {(katalog?.gruplar || []).map((g) => (
-                  <button key={g.id} className="montaj" onClick={() => setGrup(g)}>
-                    <span className="montaj__ad">{g.ad}</span>
-                    <span className="montaj__sayi">{g.adet}</span>
-                    <IconRight size={18} />
-                  </button>
-                ))}
-              </div>
-            )}
+            {/* Grup listesi: arama boşken ve bir grup seçilmemişken.
+                Sipariş ekranıyla ortak (servis/MontajListesi.jsx). */}
+            {!grup && !arama.trim() && <MontajListesi katalog={katalog} onSec={setGrup} />}
 
             {(grup || arama.trim().length >= 2) && (
               <>
@@ -241,7 +233,7 @@ function Yukleniyor() {
 
 function Hata({ onTekrar }) {
   return (
-    <div className="not not--turuncu">
+    <div className="not not--sari">
       <IconAlert size={19} />
       <div>
         <strong>Parça listesi yüklenemedi</strong>

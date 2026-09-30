@@ -305,6 +305,7 @@
   "kod.RizaKanali": {
     "connectKayit": { "Ad": "Uygulama kayıt ekranı" },
     "connectProfil": { "Ad": "Uygulama profil ekranı" },
+    "connectGuncelleme": { "Ad": "Uygulamada metin güncellemesi penceresi" },
     "personel": { "Ad": "Personel" },
     "telefon": { "Ad": "Telefon" },
     "yazili": { "Ad": "Yazılı beyan" }

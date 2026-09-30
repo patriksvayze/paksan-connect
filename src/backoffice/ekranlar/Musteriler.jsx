@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { kampanyaSonDegisiklik } from '../../lib/rizaKaydi'
 import { izinli, musteriGuncelle, musterileriGetir, rolunTalepleri, talepleriGetir, TALEP_ADI } from '../veri'
 import { useVeri } from '../kanca'
 import {
@@ -336,8 +337,27 @@ function Detay({ musteri, talepler, duzenleyebilir, onDuzenle, talebeGidebilir, 
           <S k="Makineyi aldığı yer" v={musteri.satici} />
           <S k="Kayıt Tarihi" v={tarihYaz(musteri.createdAt)} />
           <S k="Bildirim İzni" v={IZIN[musteri.bildirim?.izin]} />
-          <S k="Kampanya İzni" v={musteri.onaylar?.kampanya ? 'Var' : 'Yok'} />
+          {/* KVKK onayının sürümü ve tarihi, kampanya izninin son
+              değiştiği gün (29 Eylül 2026, gizlilik incelemesi). Önce
+              yalnız "Var / Yok" yazıyordu; iznin ne zaman verildiği ya
+              da geri alındığı sorulunca cevap yoktu. */}
+          <S k="KVKK onayı" v={kvkkOnayi(musteri.onaylar)} />
+          <S k="Kampanya izni" v={kampanyaIzni(musteri.onaylar)} />
         </Bolum>
+
+        {musteri.onaylar?.olaylar?.length > 0 && (
+          <Bolum ad="Onay geçmişi">
+            <ul className="onay-gecmisi" data-onay-gecmisi>
+              {[...musteri.onaylar.olaylar].reverse().map((o, i) => (
+                <li key={i}>
+                  <span className="sonuk">{tarihYaz(o.tarih)}</span>{' '}
+                  {RIZA_METIN_ADI[o.metin] || o.metin} · {RIZA_ISLEM_ADI[o.secim] || o.secim} ·{' '}
+                  {RIZA_KANAL_ADI[o.kanal] || o.kanal} · sürüm {o.surum}
+                </li>
+              ))}
+            </ul>
+          </Bolum>
+        )}
 
         {/* ============================================ Servisi
 
@@ -536,6 +556,31 @@ function Bolum({ ad, children }) {
   )
 }
 
+/* KVKK onaylarının ekrandaki adları (Codex'ten geçti). Kodlar
+   lib/rizaKaydi.js'teki ve veritabanındaki listelerle aynı. */
+const RIZA_METIN_ADI = {
+  aydinlatma: 'Aydınlatma Metni',
+  acikRiza: 'Açık Rıza Metni',
+  ticariIleti: 'Kampanya bildirimleri',
+}
+const RIZA_ISLEM_ADI = { onay: 'Onayladı', ret: 'Reddetti', geriCekme: 'Geri aldı' }
+const RIZA_KANAL_ADI = {
+  connectKayit: 'Kayıt',
+  connectProfil: 'Profil',
+  connectGuncelleme: 'Metin güncellemesi',
+}
+
+function kvkkOnayi(onaylar) {
+  if (!onaylar?.aydinlatma || !onaylar?.tarih) return 'Yok'
+  return `${tarihYaz(onaylar.tarih)} · sürüm ${onaylar.surum || '—'}`
+}
+
+function kampanyaIzni(onaylar) {
+  const tarih = kampanyaSonDegisiklik(onaylar)
+  const durum = onaylar?.kampanya ? 'Var' : 'Yok'
+  return tarih ? `${durum} · ${tarihYaz(tarih)}` : durum
+}
+
 function S({ k, v, mono }) {
   if (!v) return null
   return (
@@ -552,6 +597,7 @@ const AKTAR_BASLIK = [
     'Müşteri numarası', 'Ad soyad', 'Telefon', 'İl', 'İlçe', 'Makineyi aldığı yer',
   'Kayıt tarihi', 'Kayıt saati', 'Makine sayısı', 'Makineler', 'Seri numaraları',
   'Talep sayısı', 'Aydınlatma onayı', 'Açık rıza', 'Kampanya izni',
+  'Metin sürümü', 'Onay tarihi',
 ]
 
 function aktarSatiri(m, kendi) {
@@ -571,5 +617,7 @@ function aktarSatiri(m, kendi) {
     m.onaylar?.aydinlatma ? 'Onaylı' : 'Yok',
     m.onaylar?.acikRiza ? 'Onaylı' : 'Yok',
     m.onaylar?.kampanya ? 'Var' : 'Yok',
+    m.onaylar?.surum || '',
+    m.onaylar?.tarih ? tarihSaat(m.onaylar.tarih)[0] : '',
   ]
 }

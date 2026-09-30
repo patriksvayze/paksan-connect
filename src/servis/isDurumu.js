@@ -1,12 +1,14 @@
 import { gecikmisMi, KAPALI_DURUMLAR } from '../backoffice/veri'
 import { buZiyaretinKaydi } from '../lib/servisKaydi'
+import { gunBasi, randevuSaatliMi } from '../lib/tarih'
 
 /* ==========================================================================
    Servisim'de bir işin hangi bölümde durduğu ve gecikip gecikmediği
 
    İşlerim iki bölüm: "Yeni" (servisin henüz el sürmediği iş) ve "Devam
-   Eden" (geri kalan açık işler). Kural burada, ekran ServisPanel.jsx'te;
-   ayrı dosyada olmasının sebebi sınanabilmesi (tools/ekosistem → AK-17).
+   Eden" (geri kalan açık işler). Kural ve iki bölümün sırası burada,
+   ekran ekranlar/Islerim.jsx'te; ayrı dosyada olmasının sebebi
+   sınanabilmesi (tools/ekosistem → AK-17).
    ========================================================================== */
 
 /* Servisin henüz el sürmediği iş: randevu verilmemiş, kayıt açılmamış,
@@ -68,4 +70,61 @@ export function yeniIsSayisi(talepler = []) {
 export function yeniIsSirasi(isler = []) {
   const geciken = isler.filter(servisGecikti).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))
   return [...geciken, ...isler.filter((t) => !servisGecikti(t))]
+}
+
+/* Randevunun sıralama anı: saatsiz randevu günün sonunda. İşlerim'in
+   Randevular kutusu ve "Devam Eden" sırası aynı kuralı kullanıyor. */
+export function randevuSirasi(plan) {
+  return randevuSaatliMi(plan) ? plan.tarih : gunBasi(plan.tarih) + 86400000 - 1
+}
+
+/* "DEVAM EDEN" SEKMESİNDE SIRASI SERVİSE GELEN İŞ ÜSTTE (29 Eylül 2026,
+   kullanıcının onayı; görünüm önerisinin karar bekleyen maddesi).
+
+   Sekme işleri geldiği sırada, en yeni önce diziyordu: yarın gidilecek
+   iş, PAKSAN'ın kaydını incelediği işin altında kalabiliyordu. Bu
+   sekmede iki tür iş var ve servis için ikisi aynı şey değil:
+
+     SIRA SERVİSTE       randevu verilmiş iş (gidilecek), parçası yola
+                         çıkmış iş (parça takılacak)
+     SIRA PAKSAN'DA      parça hazırlanıyor, kayıt inceleniyor, PAKSAN
+                         destek veriyor
+
+   Sırası servise gelen işler üstte, servisin gününe göre:
+
+     1. geçmiş günlerin ve bugünün randevuları, saatiyle (saatsiz günün
+        sonunda). Müşterinin "Sorun Devam Ediyor" dediği iş geçen
+        ziyaretin randevusuyla buraya düşüyor ve yeni gün bekliyor.
+     2. parçası yola çıkmış işler, en önce gönderilen önce: parça ne
+        zaman gelirse o gün takılacak, ileri tarihli randevunun önünde.
+     3. ileri tarihli randevular, en yakını önce.
+
+   PAKSAN'ı bekleyen işler altta, geldiği sırada. Kartların durum
+   etiketi zaten hangisi olduğunu söylüyor (Islerim.jsx → TalepKarti);
+   başlık eklenmedi. */
+export function siraServisteMi(t) {
+  if (t.devir && (t.sahip || 'paksan') === 'paksan') return false
+  if (t.status === 'onayBekliyor') return false
+  if (t.status === 'parcaBekliyor') return Boolean(t.parcaSevk)
+  return true
+}
+
+/* [gün, öbek, an]: önce gün, aynı günde randevu parçadan önce. Parça
+   ve randevusuz iş bugüne sayılıyor. */
+function siraAni(t, bugun) {
+  if (t.status === 'parcaBekliyor') return [bugun, 1, t.parcaSevk?.tarih || 0]
+  if (Number.isFinite(t.plan?.tarih)) return [gunBasi(t.plan.tarih), 0, randevuSirasi(t.plan)]
+  return [bugun, 2, t.createdAt || 0]
+}
+
+export function devamSirasi(isler = []) {
+  const bugun = gunBasi()
+  const an = new Map(isler.map((t) => [t, siraAni(t, bugun)]))
+  const once = (a, b) => {
+    const x = an.get(a)
+    const y = an.get(b)
+    return x[0] - y[0] || x[1] - y[1] || x[2] - y[2]
+  }
+  const serviste = isler.filter(siraServisteMi).sort(once)
+  return [...serviste, ...isler.filter((t) => !siraServisteMi(t))]
 }

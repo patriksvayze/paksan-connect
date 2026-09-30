@@ -106,6 +106,58 @@ function katalogSun() {
 }
 
 /* --------------------------------------------------------------------------
+   KULLANIM KILAVUZLARINI GELİŞTİRME SUNUCUSUNDAN YAYINLA (29 Eylül 2026)
+
+   Kılavuz, PAKSAN'ın basılı kılavuzunun PDF'i; uygulamanın içinde değil,
+   sunucudaki bir klasörde (kullanıcının kararı: "sunucuda kılavuzların
+   bulunduğu bir klasör olsun, oradan okunsun"). Klasörde PDF'ler ve
+   hangisinin ne olduğunu söyleyen `kilavuzlar.json` duruyor (sözleşme
+   sunucu-taklidi/BENIOKU.md'de). Katalogdaki gibi yalnız geliştirme
+   sunucusunda çalışıyor, derlemeye hiçbir dosya girmiyor.
+
+   OLMAYAN DOSYAYA 404. Katalogdaki ara katman olmayan dosyada bir
+   sonrakine geçiyor ve Vite o isteğe uygulamanın index.html'ini "200"
+   ile veriyor; kılavuzda bu, PDF yerine bir HTML sayfasının telefona
+   kaydedilmesi demekti.
+   -------------------------------------------------------------------------- */
+
+function kilavuzSun() {
+  const KLASOR = fileURLToPath(new URL('./sunucu-taklidi/kilavuzlar', import.meta.url))
+  const TURLER = {
+    '.json': 'application/json; charset=utf-8',
+    '.pdf': 'application/pdf',
+  }
+
+  return {
+    name: 'paksan-kilavuz-sun',
+    apply: 'serve',
+    configureServer(server) {
+      server.middlewares.use('/kilavuzlar', (istek, cevap) => {
+        const yol = decodeURIComponent((istek.url || '/').split('?')[0])
+        const tam = join(KLASOR, yol)
+        const uzanti = extname(tam).toLowerCase()
+        if (
+          !tam.startsWith(KLASOR) ||
+          !TURLER[uzanti] ||
+          !existsSync(tam) ||
+          statSync(tam).isDirectory()
+        ) {
+          cevap.statusCode = 404
+          cevap.end()
+          return
+        }
+        cevap.setHeader('Content-Type', TURLER[uzanti])
+        cevap.setHeader('Content-Length', statSync(tam).size)
+        /* Liste her açılışta tazeleniyor; PDF'in adı yeni baskıda
+           değişiyor (tarihi adında), aynı adın içeriği değişmiyor. */
+        cevap.setHeader('Cache-Control', uzanti === '.json' ? 'no-cache' : 'max-age=86400')
+        createReadStream(tam).pipe(cevap)
+      })
+    },
+  }
+}
+
+/* --------------------------------------------------------------------------
    DESTEK ASİSTANI — geliştirmede yerel sohbet sunucusuna aktarım
 
    Destek ekranı `/destek-ai/...` adresine soru gönderiyor (bkz.
@@ -215,7 +267,7 @@ function ikiSekmeAc() {
 }
 
 export default defineConfig({
-  plugins: [react(), katalogSun(), destekAsistaniSun(), ikiSekmeAc()],
+  plugins: [react(), katalogSun(), kilavuzSun(), destekAsistaniSun(), ikiSekmeAc()],
   // Göreli yollar: Capacitor/Android WebView'da da aynı şekilde çalışır
   base: './',
   build: {
@@ -234,5 +286,12 @@ export default defineConfig({
        oturum tarafından tutulduğunda takılıp kalmasın diye. */
     port: Number(process.env.PORT) || (process.stdout.isTTY ? 5174 : undefined),
     host: true,
+    /* SUNUCU KLASÖRÜ İZLENMİYOR (29 Eylül 2026). `sunucu-taklidi/`
+       uygulamanın kodu değil, sunucunun verisi; ara katmanlar her istekte
+       diskten okuyor. Vite onu da izliyordu: klasöre 8 MB'lık bir kılavuz
+       PDF'i kopyalanırken Windows dosyayı kilitli tuttu, izleyici EBUSY ile
+       düştü ve geliştirme sunucusu kapandı. Fiyat listesi yayını da aynı
+       klasöre yazıyor. */
+    watch: { ignored: ['**/sunucu-taklidi/**'] },
   },
 })

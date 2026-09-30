@@ -145,18 +145,18 @@ USING (
         (N'balya', 10, N'Günlük gresleme', N'Düğüm atıcı, piston yatakları ve pikap gres noktalarına gres basın.', 1),
         (N'balya', 50, N'Zincir gerginliği ve yağlama', N'Tüm zincirlerin gerginliğini kontrol edin, zincir yağı uygulayın.', 1),
         (N'balya', 100, N'Düğüm atıcı kontrolü', N'Düğüm atıcı bıçağı, ip tutucu ve yay basıncını kontrol edin.', 1),
-        (N'balya', 250, N'Şanzıman yağ değişimi', N'Ana şanzıman yağını boşaltıp yenisiyle doldurun.', 1),
-        (N'balya', 500, N'Genel bakım', N'Piston bıçağı ve karşı bıçak boşluğu, tüm rulmanlar, emniyet cıvataları.', 1),
+        (N'balya', 250, N'Şanzıman yağ değişimi', N'Ana şanzımandaki yağı boşaltıp şanzımanı yeni yağla doldurun.', 1),
+        (N'balya', 500, N'Genel bakım', N'Piston bıçağı ile karşı bıçak arasındaki boşluğu, tüm rulmanları ve emniyet cıvatalarını kontrol edin.', 1),
         (N'silaj', 8, N'Bıçak bileme', N'Her çalışma gününde bıçakları bileyin, karşı bıçak boşluğunu ayarlayın.', 1),
-        (N'silaj', 50, N'Gresleme ve kayış', N'Gres noktaları ve kayış gerginliği kontrolü.', 1),
-        (N'silaj', 250, N'Şanzıman yağı', N'Şanzıman yağ seviyesi ve gerekiyorsa değişimi.', 1),
+        (N'silaj', 50, N'Gresleme ve kayış', N'Gres noktalarını ve kayış gerginliğini kontrol edin.', 1),
+        (N'silaj', 250, N'Şanzıman yağı', N'Şanzıman yağ seviyesini kontrol edin ve gerekiyorsa yağı değiştirin.', 1),
         (N'toprak', 10, N'Bıçak/keski kontrolü', N'Kırık veya aşınmış bıçakları değiştirin, cıvata torklarını kontrol edin.', 1),
-        (N'toprak', 50, N'Gresleme', N'Yan şanzıman ve rulman gres noktaları.', 1),
+        (N'toprak', 50, N'Gresleme', N'Yan şanzıman ve rulman gres noktalarına gres basın.', 1),
         (N'toprak', 250, N'Yağ değişimi', N'Yan şanzıman ve ana şanzıman yağını değiştirin.', 1),
-        (N'yem', 10, N'Günlük kontrol', N'Bıçak aşınması ve hidrolik kaçak kontrolü.', 1),
+        (N'yem', 10, N'Günlük kontrol', N'Bıçakların aşınıp aşınmadığını ve hidrolik kaçak olup olmadığını kontrol edin.', 1),
         (N'yem', 50, N'Gresleme', N'Helezon yatakları ve boşaltma bandı rulmanlarını gresleyin.', 1),
         (N'yem', 250, N'Bıçak değişimi/bileme', N'Kesici bıçakları kontrol edin, körelmişse değiştirin.', 1),
-        (N'yem', 500, N'Şanzıman ve tartı', N'Şanzıman yağı, tartı sistemi kalibrasyonu.', 1)
+        (N'yem', 500, N'Şanzıman ve tartı', N'Şanzıman yağını ve tartı sisteminin kalibrasyonunu kontrol edin.', 1)
     ) AS v (SablonKodu, Saat, Baslik, Detay, Aktif)
 ) AS k
     ON h.SablonKodu = k.SablonKodu AND h.Saat = k.Saat

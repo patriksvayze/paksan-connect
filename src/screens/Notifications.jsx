@@ -13,6 +13,7 @@ import {
   IconMachine, IconTag, IconUndo,
 } from '../components/Icons'
 import { altBilgi } from '../data/duyuruTurleri'
+import { talepSimgesi, talepSimgeAdi } from '../components/TalepSimgesi'
 
 /* Bildirimler.
 
@@ -176,9 +177,16 @@ export default function Notifications() {
                 {obekler[ad].map((b) => {
                   const duyurusu = duyuruSatiri(b)
                   const bilgi = duyurusu ? altBilgi(b) : null
+                  /* Talep bildirimi talebin türüyle çiziliyor (29 Eylül
+                     2026, C3): her "talebiniz alındı" satırında yeşil
+                     onay işareti vardı, iş sürerken "bitti" gibi
+                     görünüyordu. Tür, Taleplerim'deki simgeyle aynı. */
+                  const talepSatiri = !bilgi && b.tur === BILDIRIM_TURU.TALEP
                   const Ikon = bilgi
                     ? ALT_IKONLAR[bilgi.ikon] || IconBell
-                    : IKONLAR[b.tur] || IconBell
+                    : talepSatiri
+                      ? talepSimgesi(b.degerler?.tur)
+                      : IKONLAR[b.tur] || IconBell
                   const renk = RENKLER[b.tur] || RENKLER[BILDIRIM_TURU.DUYURU]
                   const okundu = okunanSet.has(b.id)
                   return (
@@ -193,9 +201,11 @@ export default function Notifications() {
                     >
                       <div
                         className={
-                          'listitem__icon' + (bilgi ? ' duyuru-ikon duyuru-ikon--' + bilgi.ton : '')
+                          'listitem__icon' +
+                          (bilgi ? ' duyuru-ikon duyuru-ikon--' + bilgi.ton : '') +
+                          (talepSatiri ? ' talep-simge talep-simge--' + talepSimgeAdi(b.degerler?.tur) : '')
                         }
-                        style={bilgi ? undefined : { background: renk.zemin, color: renk.renk }}
+                        style={bilgi || talepSatiri ? undefined : { background: renk.zemin, color: renk.renk }}
                       >
                         <Ikon size={22} />
                       </div>

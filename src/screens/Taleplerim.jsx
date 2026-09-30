@@ -9,7 +9,8 @@ import { musteriDurumAnahtari, talepTuru } from '../lib/talep'
 import { KAPALI_DURUMLAR } from '../lib/talepEkleme'
 import { formatSerial } from '../lib/serial'
 import { useDil } from '../i18n'
-import { IconCheckCircle, IconMic, IconParca, IconRight, IconWrench } from '../components/Icons'
+import { IconMic, IconParca, IconRight, IconWrench } from '../components/Icons'
+import { TalepSimgesi } from '../components/TalepSimgesi'
 
 /* ==========================================================================
    Taleplerim
@@ -109,24 +110,27 @@ export default function Taleplerim() {
         {hicYok ? (
           /* Boş liste. Tek bir "Talep Oluştur" butonu vardı ama hangi
              talebi açacağı belli olmuyordu; artık iki iş de adıyla
-             yazılı, kullanıcı ne açtığını bilerek dokunuyor. */
+             yazılı, kullanıcı ne açtığını bilerek dokunuyor.
+             Sıra ana ekranla aynı: önce servis, sonra parça (29 Eylül
+             2026, C4). Servis turuncu, parça çerçeveli: ana ekranda da
+             turuncu servisin. */
           <div className="card" style={{ padding: 22 }}>
             <p className="muted small center" style={{ lineHeight: 1.6 }}>
               {t('profil.talepYok')}
             </p>
             <button
-              className="btn btn--brand btn--lg"
+              className="btn btn--orange btn--lg"
               style={{ marginTop: 18 }}
-              onClick={() => nav('/talep?tur=parca')}
-            >
-              <IconParca size={21} /> {t('anasayfa.yedekParcaTalebi')}
-            </button>
-            <button
-              className="btn btn--brand btn--lg"
-              style={{ marginTop: 10 }}
               onClick={() => nav('/talep?tur=servis')}
             >
               <IconWrench size={21} /> {t('anasayfa.servisTalebi')}
+            </button>
+            <button
+              className="btn btn--cerceve btn--lg"
+              style={{ marginTop: 10 }}
+              onClick={() => nav('/talep?tur=parca')}
+            >
+              <IconParca size={21} /> {t('anasayfa.yedekParcaTalebi')}
             </button>
           </div>
         ) : gosterilen.length === 0 ? (
@@ -165,12 +169,11 @@ export default function Taleplerim() {
                     style={{ alignItems: 'flex-start' }}
                     data-talep={r.id}
                   >
-                    <div
-                      className="listitem__icon"
-                      style={{ background: 'var(--pk-green-soft)', color: 'var(--pk-green-yazi)' }}
-                    >
-                      <IconCheckCircle size={22} />
-                    </div>
+                    {/* Talebin TÜRÜ, durumu değil (29 Eylül 2026,
+                        C3): her satırda yeşil onay işareti vardı ve işi
+                        süren talep de "bitti" gibi görünüyordu. Durum
+                        hemen aşağıdaki renkli etikette. */}
+                    <TalepSimgesi tur={r.tur} />
                     <div className="listitem__body">
                       <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
                         <span className="listitem__title" style={{ fontSize: 15.5 }}>

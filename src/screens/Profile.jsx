@@ -3,8 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppState'
 import { TopBar, TabBar, Sheet } from '../components/Chrome'
 import { ILLER, ilceleriGetir } from '../data/iller'
-import { AYDINLATMA, TICARI_ILETI, metinDilde, metinListesi } from '../data/kvkk'
-import { Metin, OnayKutusu } from '../components/Metin'
 import { telKullanici } from '../lib/tel'
 import { adTemizle } from '../lib/ad'
 import { geriBildirimGonder } from '../lib/geriBildirim'
@@ -17,7 +15,7 @@ import { useDil } from '../i18n'
 import { SIRKET, SURUM, UYGULAMA } from '../marka'
 import {
   IconUser, IconBaler, IconMachine, IconWrench, IconRight, IconPin,
-  IconGorunum, IconLock, IconPhone, IconGlobe, IconMail,
+  IconGorunum, IconLock, IconPhone, IconGlobe, IconMail, IconShield,
 } from '../components/Icons'
 
 /* TALEP LİSTESİ BURADA DEĞİL (25 Eylül 2026, kullanıcı sınaması).
@@ -32,7 +30,6 @@ export default function Profile() {
   const { user, machines, requests, updateUser, logout, showToast } = useApp()
   const [duzenle, setDuzenle] = useState(false)
   const [cikis, setCikis] = useState(false)
-  const [kvkk, setKvkk] = useState(null) // okunmak üzere açılan metin
   const [geriBildirim, setGeriBildirim] = useState(false)
   const [yorum, setYorum] = useState('')
   const [yorumHata, setYorumHata] = useState('')
@@ -206,14 +203,15 @@ export default function Profile() {
             <DilSecici />
           </div>
 
-          {/* Görünüm — açık/koyu. "Otomatik" telefonun kendi ayarını
-              izliyor ve varsayılan o; telefonu gün batımında kendiliğinden
-              koyuya dönen kullanıcı bu davranışı kaybetmesin. */}
+          {/* Görünüm — açık/koyu. Uygulama seçim yapılmamışken açık temada
+              açılıyor; telefonun ayarı izlenmiyor (components/TemaSecici.jsx).
+              Altındaki "Seçmezseniz telefonunuzun ayarı geçerli olur" satırı
+              bu yüzden yanlıştı ve kaldırıldı (29 Eylül 2026, görünüm önerisi
+              C8). */}
           <div className="listitem listitem--sarmal">
             <div className="listitem__icon"><IconGorunum size={22} /></div>
             <div className="listitem__body">
               <div className="listitem__title">{t('tema.baslik')}</div>
-              <div className="listitem__sub">{t('tema.otoAlt')}</div>
             </div>
             <TemaSecici />
           </div>
@@ -236,6 +234,20 @@ export default function Profile() {
             <div className="listitem__icon"><IconPhone size={22} /></div>
             <div className="listitem__body">
               <div className="listitem__title">{t('profil.telefonDegisti')}</div>
+            </div>
+            <IconRight size={20} />
+          </button>
+
+          {/* GİZLİLİK VE İZİNLER GÖRÜNÜR SATIR (29 Eylül 2026, kullanıcının
+              isteği: "KVKK, Açık Rıza Metni ve İzinler kısmı gözden
+              geçirilecek"). Önce yalnız sayfanın dibindeki küçük
+              bağlantıdan açılıyordu; kampanya iznini kapatmak, başvuru
+              ve hesap kapatma yolu aranınca bulunmuyordu. Sayfa
+              screens/Gizlilik.jsx; dipteki bağlantı da oraya gidiyor. */}
+          <button className="listitem" data-eylem="gizlilik" onClick={() => nav('/gizlilik')}>
+            <div className="listitem__icon"><IconShield size={22} /></div>
+            <div className="listitem__body">
+              <div className="listitem__title">{t('profil.gizlilik')}</div>
             </div>
             <IconRight size={20} />
           </button>
@@ -283,24 +295,10 @@ export default function Profile() {
           {t('profil.cikis')}
         </button>
 
-        {/* Sayfanın dibi: yalnızca KVKK bağlantısı ve sürüm.
-            Kurum satırı ve e-posta buradan kaldırıldı — iletişim
-            bilgisinin yeri "Bayi ve iletişim" ekranı, profilin dibinde
-            kimse aramıyor.
-
-            KVKK metinlerine erişim menüden kaldırıldı ama tamamen
-            kapatılmadı — kullanıcının onayladığı metni sonradan
-            okuyabilmesi gerekiyor, o yüzden burada sade bir bağlantı. */}
+        {/* Sayfanın dibi: yalnız uygulama adı ve sürüm. KVKK bağlantısı
+            29 Eylül 2026'da kalktı (kullanıcının isteği): aynı sayfayı
+            yukarıdaki "Gizlilik ve İzinler" satırı açıyor. */}
         <p className="small muted center" style={{ marginTop: 22, lineHeight: 1.7 }}>
-          <button
-            onClick={() => setKvkk(metinDilde(AYDINLATMA, dil))}
-            className="small"
-            /* Dokunma alanı 23 pikseldi; dolgu ile 44'e çıkıyor. */
-            style={{ color: 'var(--ink-3)', textDecoration: 'underline', padding: '11px 8px' }}
-          >
-            {t('profil.kvkkBaglanti')}
-          </button>
-          <br />
           <span style={{ color: 'var(--ink-3)' }}>{UYGULAMA} · {t('ortak.surum', { s: SURUM })}</span>
         </p>
       </div>
@@ -523,60 +521,6 @@ export default function Profile() {
             {t('ortak.vazgec')}
           </button>
         </div>
-      </Sheet>
-
-      {/* KVKK metinleri — kayıt sırasında onaylananların aynısı */}
-      <Sheet open={Boolean(kvkk)} onClose={() => setKvkk(null)} title={kvkk?.baslik}>
-        <div className="pill-list" style={{ padding: '0 0 16px' }}>
-          {metinListesi(dil).map((m) => (
-            <button
-              key={m.id}
-              className={'pill' + (kvkk?.id === m.id ? ' pill--on' : '')}
-              onClick={() => setKvkk(m)}
-            >
-              {m.kisaAd}
-            </button>
-          ))}
-        </div>
-
-        {/* Kampanya izni YALNIZCA kendi sekmesinde.
-
-            Önce üç sekmenin de üstünde duruyordu; Aydınlatma Metni'ni
-            okuyan kullanıcıya kampanya izni sorulmuş gibi görünüyor,
-            hangi metnin neyi onayladığı karışıyordu. İzin, sözü veren
-            metnin yanında duruyor. */}
-        {kvkk?.id === TICARI_ILETI.id && (
-          <div style={{ marginBottom: 20 }}>
-            <OnayKutusu
-              cumle={metinDilde(TICARI_ILETI, dil).onayCumlesi}
-              deger={Boolean(user?.onaylar?.kampanya)}
-              onDegis={(v) => {
-                updateUser({ onaylar: { ...user.onaylar, kampanya: v } })
-                showToast(
-                  v ? t('profil.kampanyaAcik') : t('profil.kampanyaKapali')
-                )
-              }}
-            />
-          </div>
-        )}
-
-        {kvkk && <Metin metin={kvkk} />}
-
-        {user?.onaylar?.tarih && (
-          <p className="small muted" style={{ marginTop: 16, lineHeight: 1.6 }}>
-            {t('profil.onayTarihi', {
-              tarih: new Date(user.onaylar.tarih).toLocaleDateString(
-                dil === 'tr' ? 'tr-TR' : 'en-GB',
-                { day: 'numeric', month: 'long', year: 'numeric' }
-              ),
-              surum: user.onaylar.surum,
-            })}
-          </p>
-        )}
-
-        <button className="btn btn--primary" style={{ marginTop: 18 }} onClick={() => setKvkk(null)}>
-          {t('ortak.kapat')}
-        </button>
       </Sheet>
 
       <TabBar />

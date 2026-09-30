@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppState'
 import { KonumAlani } from '../components/KonumAlani'
 import { useDil } from '../i18n'
-import { AYDINLATMA, ACIK_RIZA, TICARI_ILETI, KVKK_SURUM, metinDilde } from '../data/kvkk'
+import { AYDINLATMA, ACIK_RIZA, TICARI_ILETI, metinDilde } from '../data/kvkk'
+import { kayitOnaylari } from '../lib/rizaKaydi'
 import { telGecerliMi } from '../lib/tel'
 import { adTemizle } from '../lib/ad'
 import { alanaGit } from '../lib/formOdak'
@@ -168,14 +169,11 @@ export default function Register() {
       il,
       ilce,
       satici: satici.trim(),
-      /* Kimin hangi metni ne zaman onayladığı saklanıyor. */
-      onaylar: {
-        aydinlatma: true,
-        acikRiza: true,
-        kampanya: kampanyaOnay,
-        surum: KVKK_SURUM,
-        tarih: Date.now(),
-      },
+      /* Kimin hangi metni ne zaman, hangi sürümüyle ve hangi dilde
+         onayladığı saklanıyor; her karar ayrı satır (lib/rizaKaydi.js,
+         29 Eylül 2026). Kampanya kutusunu işaretlemeyenin kararı da
+         "ret" olarak yazılıyor. */
+      onaylar: kayitOnaylari({ kampanya: kampanyaOnay, dil }),
       bildirim: {
         izin: bildirimDurumu,
         tarih: Date.now(),

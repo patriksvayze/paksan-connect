@@ -56,10 +56,8 @@ export const tr = {
 
   tema: {
     baslik: 'Görünüm',
-    oto: 'Otomatik',
     acik: 'Açık',
     koyu: 'Koyu',
-    otoAlt: 'Seçmezseniz telefonunuzun ayarı geçerli olur',
   },
 
   dil: {
@@ -118,7 +116,7 @@ export const tr = {
     saticiOrnek: 'Bayi adı veya satan kişinin adı',
     saticiIpucu:
       'Bayiden ya da başka bir kişiden aldıysanız yazabilirsiniz. Bilmiyorsanız boş bırakın.',
-    gizlilik: 'Bilgileriniz yalnızca size destek verebilmek için kullanılır.',
+    gizlilik: 'Kişisel verileriniz Aydınlatma Metni’nde açıklanan şekilde işlenir.',
     adGerekli: 'Lütfen adınızı yazın.',
     soyadGerekli: 'Lütfen soyadınızı yazın.',
     sifreHaneHata: 'Şifreniz {n} rakamdan oluşmalı.',
@@ -251,14 +249,12 @@ export const tr = {
     bizeSorun: 'Bize sorun: {tel}',
     hangiMakine: 'Hangi makine size uygun?',
     hangiMakineAlt: 'Arazinizi ve ihtiyacınızı yazın, size en uygun makineyi önerelim ve fiyat teklifi gönderelim.',
-    teklifIsteyin: 'Teklif İsteyin',
     digerModeller: 'Diğer Modeller',
     hepsi: 'Hepsi',
     ara: 'Model veya tip arayın',
     sonucYok: 'Aradığınız modeli bulamadık.',
     teknik: 'Teknik özellikler',
     videolar: 'Videolar',
-    teklifIste: 'Fiyat Teklifi İste',
     kilavuz: 'Kullanım Kılavuzu',
     kilavuzlarBaslik: 'Kullanım Kılavuzları',
     benimMakinelerim: 'Makinelerim',
@@ -319,7 +315,7 @@ export const tr = {
     numaraBaslik: 'Telefon Numarası Değişikliği',
     numaraOnay: 'Numaranız güncellendi. Bundan sonra yeni numaranızla giriş yapacaksınız.',
     numaraRet: 'Numara değişikliği talebiniz onaylanmadı. Bilgileri kontrol edip yeniden gönderebilirsiniz.',
-    cakismaBaslik: 'Eski hesabınız',
+    cakismaBaslik: 'Eski Hesabınız',
     cakismaOnay: 'Eski hesabınız bu hesaba geçirildi. Makineleriniz ve eski talepleriniz artık burada.',
     cakismaRet: 'Yazdığınız eski numara, makinenin kayıtlı olduğu telefon numarasıyla aynı değil. Numarayı kontrol edip yeniden gönderebilir ya da {markaYi} arayabilirsiniz.',
     servisAtandiBaslik: 'Makinenize Servis Atandı',
@@ -336,12 +332,12 @@ export const tr = {
     dun: 'Dün',
     buHafta: 'Bu hafta',
     daha: 'Daha eski',
-    talepAlindi: '{tur} alındı',
+    talepAlindi: '{tur} Alındı',
     talepAlindiAlt: 'Talebiniz ekibimize ulaştı. En kısa sürede sizi arayacağız.',
     bosBaslik: 'Henüz Bildiriminiz Yok',
     bosAlt: 'Talep oluşturduğunuzda ve {marka} bir duyuru yaptığında bildirimleriniz burada görünür.',
     demoNot: 'Talebinizin durumu değiştiğinde ve {marka} duyuru yaptığında bildirimler buraya düşer. Telefona anlık bildirim gönderme henüz kurulmadı; şimdilik uygulamayı açtığınızda görüyorsunuz.',
-    bayiBaslik: '{no} · Talebiniz bayiye iletildi',
+    bayiBaslik: '{no} · Talebiniz Bayiye İletildi',
     bayiMetin: 'Fiyat teklifinizi {bayi} hazırlayacak ve sizi arayacak.',
   },
   profil: {
@@ -385,7 +381,6 @@ export const tr = {
     cikisSor: 'Çıkış Yapılsın mı?',
     cikisAciklama: 'Oturumunuz kapatılacaktır. Makine kayıtlarınız ve talepleriniz silinmeyecektir.',
     hesapSilme: 'Hesabınızın ve kayıtlarınızın tamamen silinmesini istiyorsanız {eposta} adresine yazın; talebiniz {marka} tarafından işleme alınır.',
-    kvkkBaglanti: 'KVKK | Açık Rıza Metni | İzinler',
     talepKaldirSor: 'Talep Kaldırılsın mı?',
     talepKaldirAciklama: '{no} numaralı {tur} listenizden kaldırılacak. Talebiniz {markada} kayıtlı kalır. Fikrinizi değiştirirseniz Tamamlananlar sekmesinin altındaki “Listeden Kaldırdıklarım” bölümünden geri alabilirsiniz.',
     evetKaldir: 'Evet, Kaldır',
@@ -398,8 +393,43 @@ export const tr = {
     geriAlindi: 'Talep listenize geri alındı',
     kampanyaAcik: 'Kampanya bildirimleri açıldı',
     kampanyaKapali: 'Kampanya bildirimleri kapatıldı',
-    onayTarihi: 'Bu metinleri {tarih} tarihinde onayladınız (sürüm {surum}).',
     bayiIletisim: 'Bayi ve iletişim',
+    gizlilik: 'Gizlilik ve İzinler',
+  },
+
+  /* Gizlilik ve İzinler sayfası (screens/Gizlilik.jsx, 29 Eylül 2026) */
+  gizlilik: {
+    baslik: 'Gizlilik ve İzinler',
+    giris: '{markanin} kişisel verilerinizi nasıl işlediğini, verdiğiniz onayları ve uygulamanın istediği telefon izinlerini burada görebilirsiniz.',
+    metinlerBaslik: 'Metinler',
+    onaylandi: 'Onayladınız · {tarih} · sürüm {surum}',
+    onayYok: 'Henüz onaylamadınız',
+    kampanyaBaslik: 'Kampanya bildirimleri',
+    kampanyaAcik: 'Açık',
+    kampanyaKapali: 'Kapalı',
+    sonDegisiklik: 'Son değişiklik: {tarih}',
+    izinlerBaslik: 'Uygulama izinleri',
+    izinBildirim: 'Bildirimler',
+    izinMikrofon: 'Mikrofon',
+    izinMikrofonAlt: 'Yalnızca ses kaydı düğmesine bastığınızda izin istenir',
+    izinKamera: 'Kamera ve dosyalar',
+    izinKameraAlt: 'Yalnızca fotoğraf, video veya dekont eklerken kullanılır',
+    izinKonum: 'Konum',
+    izinKonumAlt: 'Uygulama konumunuzu kullanmaz',
+    durumAcik: 'Açık',
+    durumKapali: 'Kapalı',
+    durumSorulmadi: 'Henüz sorulmadı',
+    durumYok: 'Bu cihazda yok',
+    bildirimKapaliAlt: 'Telefonunuzun ayarlarından açabilirsiniz',
+    izinVer: 'İzin Ver',
+    izinlerAyrinti: 'İzin Açıklamalarını Oku',
+  },
+
+  /* Metin sürümü değişince açılışta çıkan pencere (components/KvkkGuncelleme.jsx) */
+  guncelleme: {
+    baslik: 'Metinlerimizi güncelledik',
+    metin: 'Kişisel verilerinizle ilgili metinlerimizi güncelledik. Devam etmek için güncel metinleri okuyup onaylayın.',
+    onayla: 'Onayla',
   },
 
   ses: {
@@ -408,7 +438,7 @@ export const tr = {
     dinliyoruz: 'Dinliyoruz…',
     bitir: 'Kaydı Bitir',
     birak: 'Ses Kaydı Bırakın',
-    aciklama: 'Yazmak yerine anlatın; kaydınızı ekibimiz dinler.',
+    aciklama: 'Yazmak yerine anlatın. Kaydınızı {marka} ve talebinizle ilgilenen servis dinler.',
     sure: 'Sorunu normal sesinizle anlatın. En fazla {n} saniye.',
     yada: 'ya da',
     desteklenmiyor: 'Bu cihazda ses kaydı desteklenmiyor. Yazarak anlatabilirsiniz.',
@@ -418,12 +448,17 @@ export const tr = {
 
   talep: {
     destektenGeldi: 'Destek ekranında şu arıza üzerinde konuşuldu: {ariza}',
+    destekteDenenen: 'Kontrol edilen nedenler: {liste}',
     listeDisiParca: 'Destek ekranında şu parçalar da belirtildi: {parcalar}',
 
     gonderilemedi: 'Talep gönderilemedi. İnternet bağlantınızı kontrol edip tekrar deneyin — yazdıklarınız duruyor.',
     dahaFazla: '+ {n} seçenek daha',
     servis: {
       baslik: 'Servis Talebi',
+    /* `adi`: talep türünün cümle içindeki adı. Ekranlar `baslik`'ı okuyor
+       (29 Eylül 2026'dan beri bildirim başlığı da); `adi`'yi veritabanı
+       tohumu okuyor (tools/vt/tohum-uret.mjs → kod.TalepTuru çevirisi).
+       Kullanılmıyor diye silinmez. */
     adi: 'Servis talebi',
       buton: 'Servis Talebi Gönder',
       aciklamaLabel: 'Sorunu Anlatın',
@@ -439,7 +474,7 @@ export const tr = {
         'Örnek: 2 adet düğüm atıcı bıçağı ve 1 takım emniyet cıvatası lazım.',
     },
     satinalma: {
-      baslik: 'Fiyat Teklifi İste',
+      baslik: 'Fiyat Teklifi Talebi',
     adi: 'Fiyat teklifi talebi',
       buton: 'Teklif Talebi Gönder',
       aciklamaLabel: 'Eklemek İstediğiniz Bir Şey Var mı?',
@@ -447,7 +482,6 @@ export const tr = {
         'Örnek: Sezon başına yetişmesi gerekiyor. Önce bayide görüp karar vermek isterim.',
     },
     hangiMakine: 'Hangi makineniz için?',
-    makineSec: 'Makine seçin',
     neDurumda: 'Makineniz şu an ne durumda?',
     sorunNedir: 'Sorununuz nedir?',
     birdenFazla: 'birden fazla seçebilirsiniz',
@@ -566,6 +600,12 @@ export const tr = {
     secilenYok: 'Parça seçilmedi',
     secilenBir: '1 parça seçildi',
     secilenSayi: '{n} parça seçildi',
+    /* Seçim değişmişken "Geri"ye basılınca (29 Eylül 2026): seçim
+       sorulmadan atılmıyor. */
+    cikisBaslik: 'Seçtiğiniz parçalar eklensin mi?',
+    cikisAlt: 'Seçtiğiniz parçalar henüz talebinize eklenmedi. Ekleyebilir ya da eklemeden çıkabilirsiniz.',
+    cikisEkle: 'Parçaları Ekle',
+    cikisVazgec: 'Eklemeden Çık',
     tamam: 'Tamam',
   },
 
@@ -616,6 +656,12 @@ export const tr = {
     randevuBaslik: 'Randevunuz',
     /* Yedek parçada planlanan şey gönderim günü. */
     gonderimBaslik: 'Gönderim Günü',
+    /* Durum kartının ikinci satırı (29 Eylül 2026, C3): planlanmış
+       talepte büyük yazılan günün ne olduğu; öteki durumlarda tarih
+       adıyla. */
+    servisGunu: 'Servisin geleceği gün',
+    gonderimGunu: 'Parçanın gönderileceği gün',
+    sonGuncelleme: 'Son güncelleme: {tarih}',
     yapilanIs: 'Yapılan iş',
     sonucBaslik: 'Teklif Sonucu',
     degisenParca: 'Değişen parça',
@@ -694,11 +740,25 @@ export const tr = {
     hesapBaslik: '{marka} Hesap Bilgileri',
     hesapYok: 'Hesap bilgilerimiz için bizi arayın: {tel}',
     hesapNot: 'Ödemeyi yaptıktan sonra dekontunuzu aşağıya yükleyin. Dekont kontrol edildikten sonra parçanız hazırlanır.',
+    /* Banka hesabı kartı (30 Eylül 2026): banka, şube, alıcı, IBAN,
+       gönderilecek tutar ve havale açıklaması tek kartta. Şubenin adı
+       ve para birimi marka katmanından (marka/kimlik.js → BANKA). */
+    sube: '{sube} Şubesi',
+    paraHesabi: '{para} hesabı',
+    iban: 'IBAN',
     alici: 'Alıcı',
     aciklamaAlani: 'Havale açıklamasına yazın',
-    aciklamaKopyala: 'Açıklamayı kopyala',
+    aciklamaNeden: 'Bu açıklama, ödemenizin hangi talebe ait olduğunu gösterir. Yazmazsanız parçanızın hazırlanması gecikebilir.',
+    /* Kopyala düğmeleri: satırdaki küçük düğmenin yazısı "Kopyala",
+       ekran okuyucuya neyi kopyaladığı ayrıca söyleniyor (…Kopyala
+       anahtarları); basınca iki saniye "Kopyalandı". */
+    kopyala: 'Kopyala',
+    kopyalandi: 'Kopyalandı',
+    aliciKopyala: 'Alıcı Adını Kopyala',
+    aliciKopyalandi: 'Alıcı adı kopyalandı',
+    aciklamaKopyala: 'Açıklamayı Kopyala',
     aciklamaKopyalandi: 'Açıklama kopyalandı',
-    ibanKopyala: 'IBAN kopyala',
+    ibanKopyala: 'IBAN’ı Kopyala',
     ibanKopyalandi: 'IBAN kopyalandı',
     kopyalanamadi: 'Kopyalanamadı, ekrandan yazabilirsiniz',
     dekontBaslik: 'Dekont',
@@ -763,6 +823,8 @@ export const tr = {
     seriNerede: 'Seri Numarası Nerede?',
     seriAciklama: 'Seri numarası, makinenizin gövdesine sabitlenmiş metal etikette yazar.',
     notOrnek: 'Örnek: Ahırdaki, yeni aldığım',
+    /* Seri kutusunun yer tutucusu (29 Eylül 2026): "Örnek:" ile. */
+    seriOrnek: 'Örnek: ORK1270-2024-00157',
     bul: 'Makineyi Bul',
     kaydet: 'Bu Makineyi Kaydet',
     benimDegil: 'Bu benim makinem değil',
@@ -806,32 +868,42 @@ export const tr = {
   },
 
   kilavuz: {
-    /* Bölüm başlıkları. İçeriğin tamamı makinenin kendi kullanım
-       kılavuzundan geliyor; uygulama teknik cümle yazmıyor. */
-    b2: 'Kullanım ve Ayar',
-    b4: 'Makine bilgileri ve teknik özellikler',
-    b5: 'Arıza çözümü',
-
-    belgeAlt: '{n} sayfalık kullanım kılavuzundan',
-    varyantSecin: 'Değerler modele göre değişiyor. Kendi modelinizi seçin.',
     kilavuzYok: 'Bu modelin kullanım kılavuzu henüz uygulamaya eklenmedi.',
     makinemYok: 'Makinenizin kılavuzu henüz eklenmedi',
     makinemYokAlt: '{makineler} için kullanım kılavuzu hazırlanıyor. Hazır olduğunda burada görünecek. O zamana kadar arıza çözümü için Destek ekranını kullanabilirsiniz.',
 
-    /* Güvenlik: makine sayfasında yalnız "el sürmeden önce" kuralları
-       duruyor, tamamı ortak Güvenlik Kuralları sayfasında. */
-    onceGuvenlik: 'Önce Güvenlik',
-    onceGuvenlikAlt: 'Makinede ayar, bakım veya onarıma başlamadan önce:',
-    tumKurallar: 'Tüm güvenlik kuralları',
-
-    arizaAciklama: 'Kılavuzun arıza bölümü Destek ekranında. Orada sorununuzu seçin; kılavuzdaki sorular adım adım sorularak nedeni bulunur.',
-    destegeGit: 'Destek ekranını aç',
+    /* Kılavuz, basılı kılavuzun PDF'i (29 Eylül 2026): liste ve kılavuz
+       ekranı (screens/Manuals.jsx, screens/KilavuzPdf.jsx). */
+    listeGiris: '{markanin} basılı kullanım kılavuzlarını bir kez indirip internet olmadan da açabilirsiniz.',
+    icindekiler: 'Kılavuzun bölümleri',
+    ozet: '{sayfa} sayfa · {boyut}',
+    dilIkisi: 'Türkçe ve İngilizce',
+    dilTurkce: 'Türkçe',
+    telefonda: 'Telefonunuzda kayıtlı',
+    indirBaslik: 'Kılavuzu telefonunuza indirin',
+    indirAlt: 'Bir kez indirdikten sonra internet olmadan da açılır. Dosya büyük; mümkünse Wi-Fi’ye bağlıyken indirin.',
+    indirAltGecici: 'Kılavuz bu bağlantıda telefonunuza kaydedilemiyor. Her açılışta yeniden indirilir. Dosya büyük; mümkünse Wi-Fi’ye bağlıyken açın.',
+    indir: 'Kılavuzu İndir ({boyut})',
+    indirBoyutsuz: 'Kılavuzu İndir',
+    indiriliyor: 'İndiriliyor… %{yuzde}',
+    internetYok: 'İnternet bağlantısı yok. Kılavuz henüz telefonunuzda kayıtlı değil. İnternete bağlanınca indirebilirsiniz.',
+    indirilemedi: 'Kılavuz şu an indirilemedi. Biraz sonra tekrar deneyin.',
+    acilamadi: 'Kılavuz açılamadı. Yeniden indirmeyi deneyin.',
+    tekrarDene: 'Tekrar Dene',
+    yeniBaski: 'Kılavuzun yeni baskısı çıktı. Şu an telefonunuzdaki eski baskıyı okuyorsunuz.',
+    yenisiniIndir: 'Yeni Baskıyı İndir ({boyut})',
+    telefondanSil: 'Telefondan Sil',
+    paylas: 'Paylaş',
+    paylasilamadi: 'Kılavuz paylaşılamadı. Tekrar deneyin.',
+    sayfaKonumu: 'Sayfa {n} / {toplam}',
+    kucult: 'Küçült',
+    buyut: 'Büyüt',
   },
 
   guvenlik: {
     baslik: 'Güvenlik Kuralları',
     girisAlt: 'Beş kullanım kılavuzunun güvenlik bölümü',
-    uyariBaslik: 'Bu Kurallar Hayat Kurtarır',
+    uyariBaslik: 'Bu kurallar hayat kurtarır',
     giris: 'Aşağıdaki {n} kural {marka} balya makinelerinin kullanım kılavuzlarındaki güvenlik bölümlerinden derlendi. Kılavuzlarda aynı kural birden çok kez geçtiği için burada bir kez yazıldı; hiçbir kural atlanmadı.',
 
     /* Öbekler işin sırasına göre: hazırlık, bağlama, kuyruk mili,
@@ -855,63 +927,77 @@ export const tr = {
     garantiMetni: '{marka} makineleri teslim tarihinden itibaren {yil} yıl garantilidir. Aşınma parçaları (bıçak, ip, parmak, kayış, emniyet cıvatası) garantiye girmez. Bakımların zamanında yapılması garanti şartıdır.',
     garantiBitis: 'Garanti bitiş yılı: {yil}',
     garantiNot: 'Bu bilgi yol göstericidir. Garantinin geçerli olup olmadığına {marka} yetkilisi karar verir.',
-    sorunVar: 'Sorun mu var? Destek alın',
-    destekAl: 'Destek alın',
+    sorunVar: 'Sorun mu Var? Birlikte Bulalım',
+    destekAl: 'Destek Alın',
     kilavuz: 'Kılavuz',
-    yedekParca: 'Yedek Parça',
-    servisTalebi: 'Servis talebi oluştur',
-    servisAlt: 'Talep formunu doldurun, servis ekibimiz size dönüş yapsın',
     videolar: 'Videolar',
     bakim: 'Bakım',
     bilgiler: 'Bilgiler',
     tanitim: 'Tanıtım',
     kullanim: 'Kullanım',
-    kullanimVideolari: 'Kullanım videoları',
-    bakimTakvimi: 'Bakım takvimi',
+    bakimTakvimi: 'Çalışma saatine göre bakım',
+    /* Makine sayfası (29 Eylül 2026) */
+    kimlik: 'Makine bilgileri',
+    acikTalepler: 'Bu makineye ait açık talepler',
+    saatKisa: 'saat',
+    yapildi: 'Yapıldı',
+    mevsimRehberleri: 'Mevsime göre bakım rehberleri',
+    rehberIlerleme: '{yapilan} / {toplam} adım yapıldı',
+    yakindaVideolar: 'Yakında eklenecek videolar',
     teknik: 'Öne çıkan özellikler',
     teknikTumu: 'Tüm teknik özellikler',
     teknikGenel: 'Genel',
     teknikModel: 'Hangi modelin özelliklerini görmek istiyorsunuz?',
-    teknikKaynak: 'Bilgiler {site} adresindeki ürün sayfalarından alınmıştır.',
+    teknikKaynak: 'Bilgiler {site} adresindeki ürün sayfalarından alındı.',
     garanti: 'Garanti',
     kayitSil: 'Makine Kaydını Sil',
     silinmis: 'Bu makine kaydı silinmiş olabilir.',
     makinelerimeDon: 'Makinelerime Dön',
-    urunSayfasi: 'Ürün sayfasını gör',
+    urunSayfasi: 'Ürün Sayfasını Gör',
     urunYok: 'Bu ürün kaldırılmış olabilir.',
-    ayniKategori: 'Aynı Kategoride',
-    bendeVar: 'Bu makine bende var',
-    bendeVarAlt: 'Seri numarasıyla kaydedin, destek açılsın',
+    ayniKategori: 'Aynı kategoride',
+    bendeVar: 'Bu Makine Bende Var',
+    bendeVarAlt: 'Seri numarasıyla kaydedin, destek alın',
     kilavuzAc: 'Kılavuzu Aç (PDF)',
   },
 
   rehberler: {
     makineKaydet: 'Makinenizi kaydederseniz bu rehbere modelinize özel bakım adımları da eklenir.',
-    giris: 'Makinenizi doğru bakımla kullanmak, hem arıza sayısını hem de yedek parça masrafını düşürür. Rehberler makinenizin türüne göre uyarlanır.',
+    giris: 'Makinenize doğru bakım yapmak hem arızaları hem de yedek parça masrafını azaltır. Rehberler makinenizin türüne göre uyarlanır.',
     baslik: 'Bakım Rehberleri',
     bulunamadi: 'Rehber bulunamadı.',
     onceGuvenlik: 'Önce güvenlik',
     hangiMakine: 'Hangi makine için?',
     herMakine: 'Her makinede geçerli',
     ozelAdimlar: 'Makinenize özel adımlar',
-    takildiginiz: 'Takıldığınız Yer Olursa',
-    destekSorun: 'Destek asistanına sorun',
-    destekSorunAlt: 'Konu, belirti ve cevaptan oluşan adımlarla ilerleyin',
-    servisIsteyin: 'Servis talebinde bulunun',
-    servisIsteyinAlt: 'Makineniz için servis desteği isteyin',
-    parcaIsteyin: 'Yedek parça isteyin',
-    parcaIsteyinAlt: 'Değişmesi gereken bir parça varsa',
-    digerRehberler: 'Diğer Rehberler',
+    takildiginiz: 'Takıldığınız yer olursa',
+    destekSorun: 'Destek Alın',
+    destekSorunAlt: 'Sorunun olduğu bölümü ve belirtiyi seçin, olası nedenleri kontrol edin',
+    servisIsteyin: 'Servis Talebi Oluştur',
+    servisIsteyinAlt: 'Servis gerektiren işleriniz için',
+    parcaIsteyin: 'Yedek Parça Talebi Oluştur',
+    parcaIsteyinAlt: 'Parça talebinde bulunun',
+    digerRehberler: 'Diğer rehberler',
 
     /* ----------------------------------------------- İşaretleme
 
        Çiftçi yaptığı maddeye dokunup işaretliyor; nerede kaldığını
        hatırlamak zorunda kalmıyor (bkz. src/lib/rehberIsaret.js). */
     ilerleme: '{yapilan} / {toplam}',
-    bolumTamam: '{bolum} — {rehber} tamamlandı!',
-    bolumTamamAlt: 'Bu bölümün bütün adımlarını yaptınız.',
-    yenidenBasla: 'Yeniden başlat',
-    maddeYapildi: 'Yapıldı olarak işaretle',
+    yenidenBasla: 'Yeniden Başlat',
+    /* Rehber listesi ve rehber (29 Eylül 2026) */
+    buMevsim: 'Bu mevsim',
+    basla: 'Rehberi Aç',
+    devamEt: 'Devam Et',
+    ilerlemeUzun: '{yapilan} / {toplam} adım yapıldı',
+    /* "Baştan Başla"dan sonra, "Geri Al"ın yanında (29 Eylül 2026). */
+    silindi: 'İşaretler silindi',
+    geriAl: 'Geri Al',
+    bastanBasla: 'Baştan Başla',
+    tamamBaslik: '{rehber} tamamlandı',
+    tamamAlt: 'Bütün adımları yaptınız. Bir sonraki bakımda işaretleri silip baştan başlayabilirsiniz.',
+    makineyeOzel: '{makine} için',
+    bolumTamamKisa: 'Bu bölüm tamamlandı',
   },
 
 
@@ -964,8 +1050,87 @@ export const tr = {
     tesekkur: 'Sevindim. Kolay gelsin.',
     neYapalim: 'Peki, nasıl devam edelim?',
     servisTalebi: 'Servis Talebi Oluştur',
-    parcaTalebi: 'Yedek Parça Talebi',
+    parcaTalebi: 'Yedek Parça Talebi Oluştur',
     bastanBasla: 'Baştan Başla',
+  },
+
+  /* ARIZA ÇÖZÜM REHBERİ (29 Eylül 2026). Destek ekranı bugün bu ağaçla
+     açılıyor (screens/ArizaCozumu.jsx); yukarıdaki `destek` bloğu
+     sunucudaki asistanın (screens/DestekAsistani.jsx), o kapalıyken de
+     yerinde duruyor. Hangisinin açık olduğu: src/config.js → DESTEK_KIPI.
+     `…Tek` anahtarları İngilizcenin tekil hâli için; Türkçede sayıdan
+     sonra ad tekil kaldığı için ikisi aynı. */
+  ariza: {
+    /* ------------------------------------------------ Seçimleriniz */
+    degistir: 'Değiştir',
+    bolum: 'Bölüm',
+    kayitsizModel: 'Kayıtlı olmayan model',
+
+    /* ------------------------------------------------------ Makine */
+    makineSoru: 'Hangi makinenizde sorun var?',
+    makineSoruAlt: 'Makinenizi seçin. Birkaç soruyla olası nedenleri ve çözümlerini birlikte bulalım.',
+    baskaModel: 'Kayıtlı Olmayan Bir Model Seç',
+    modelSec: 'Model Seçin',
+    modelSecAlt: 'Kayıtlı olmayan bir makine için de bakabilirsiniz. Servis talebi oluşturmak için makinenizi kaydetmeniz gerekir.',
+    nasilBaslik: 'Nasıl çalışır?',
+    nasil1: 'Sorunun makinenin hangi bölümünde olduğunu seçin.',
+    nasil2: 'Makinede gördüğünüz belirtiyi seçin.',
+    nasil3: 'Olası nedenleri en kolay kontrol edilenden başlayarak inceleyin.',
+
+    /* ------------------------------------------------------- Bölüm */
+    bolumSoru: 'Sorun makinenin hangi bölümünde?',
+    bolumSoruAlt: 'Emin değilseniz gördüğünüz belirtiyi yazarak arayın.',
+    aramaIpucu: 'Örneğin: düğüm, ip, tıkanma',
+    aramaTemizle: 'Aramayı Temizle',
+    aramaSonuc: '{n} belirti bulundu',
+    aramaSonucTek: '{n} belirti bulundu',
+    aramaYok: 'Bu kelimeyle eşleşen bir belirti yok. Başka bir kelime deneyin ya da aramayı silip bölümlere bakın.',
+    belirtiSayisi: '{n} belirti',
+    belirtiSayisiTek: '{n} belirti',
+
+    /* ----------------------------------------------------- Belirti */
+    belirtiSoru: 'Makinede ne görüyorsunuz?',
+    belirtiSoruAlt: 'Gördüğünüze en yakın olanı seçin.',
+    nedenSayisi: '{n} olası neden',
+    nedenSayisiTek: '{n} olası neden',
+    baskaBolum: 'Başka Bir Bölüme Bak',
+
+    /* ------------------------------------------------------- Çözüm */
+    guvenlikBaslik: 'Makineye dokunmadan önce',
+    nedenlerBaslik: '{n} olası neden',
+    nedenlerBaslikTek: '{n} olası neden',
+    nedenlerAlt: 'En kolay kontrol edilenden başlayıp sırayla ilerleyin. Kontrol ettiğiniz nedeni işaretleyin; servis talebi oluşturursanız bu bilgi talebe eklenir.',
+    ilerleme: '{n} / {toplam} kontrol edildi',
+    kontrol: 'Nasıl anlarsınız',
+    yapilacak: 'Ne yapmalısınız',
+    kontrolEttim: 'Kontrol Ettim',
+    kontrolEdildi: 'Kontrol Edildi',
+    parcalar: 'Gerekebilecek parçalar',
+    parcalarAlt: 'Nedeni bulduysanız ve parça değişmesi gerekiyorsa bu parçalar talep formuna sizin için eklenir.',
+    parcalariIste: 'Bu Parçaları Talep Et',
+    kilavuzTablo: 'Kılavuzdaki arıza tablosu',
+    kilavuzTabloAlt: 'Makinenizin kullanım kılavuzundaki arıza, neden ve çözüm tablosu',
+    kaynakNot: 'Buradaki bilgiler bu tür makinelerin nasıl çalıştığını genel olarak anlatır; makinenizin kullanım kılavuzunun yerine geçmez. Ayar ve ölçü değerleri için kılavuza bakın.',
+
+    /* ------------------------------------------------------- Sonuç */
+    cozulduMu: 'Sorun çözüldü mü?',
+    cozulduMuAlt: 'Nedenleri kontrol ettikten sonra cevaplayın.',
+    hepsiKontrol: 'Bütün nedenleri kontrol ettiniz. Sorun sürüyorsa servis talebi oluşturun.',
+    evetCozuldu: 'Evet, Çözüldü',
+    hayirDevam: 'Hayır, Devam Ediyor',
+    /* "Çözüldü" dendikten sonra cevabı değiştirme düğmesi (29 Eylül 2026). */
+    yineDevam: 'Sorun Devam Ediyor',
+    cozulduBaslik: 'Sevindik, sorun çözüldü',
+    cozulduAlt: 'Sorun yeniden başlarsa buradan yine bakabilirsiniz. İyi çalışmalar.',
+    baskaSorun: 'Başka Bir Soruna Bak',
+    devamBaslik: 'Sıradaki adım',
+    devamAlt: 'Servis talebi oluşturun. Belirti ve kontrol ettiğiniz nedenler talebe yazılır; aynı şeyi yeniden anlatmanız gerekmez.',
+    servisTalebi: 'Servis Talebi Oluştur',
+    servisTalebiAlt: 'Talebiniz makinenize bakan {servis} firmasına iletilir.',
+    servisTalebiAltGenel: 'Talep formunda makinenizi seçin; talebiniz o makineye bakan servise iletilir.',
+    servisiAra: 'Servisi Ara · {numara}',
+    parcaTalebi: 'Yedek Parça Talebi Oluştur',
+    baskaBelirti: 'Başka Bir Belirtiye Bak',
   },
 
   servisim: {

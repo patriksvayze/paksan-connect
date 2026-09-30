@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react'
+import { MARKA } from '../marka'
 import { baslat, izinDurumu, izinIste, kullanilabilir, yaziyaEkle } from './dikteMotoru'
 import { Onay } from './Kabuk'
 import { IconMic, IconStop } from '../components/Icons'
@@ -52,7 +53,11 @@ const METIN = {
   dugmeDinliyor: 'Durdur',
   dinliyor: 'Konuşabilirsiniz, dinleniyor.',
   izinBaslik: 'Mikrofon izni istenecek',
-  izinMetin: 'Söylediklerinizi kutuya yazmak için mikrofon izni gerekiyor. Sesiniz kaydedilip saklanmaz.',
+  /* Ses telefonun ses tanıma hizmetine gidiyor (Android'de çoğu zaman
+     çevrim içi; DiktePlugin.java). "Kaydedilip saklanmaz" yalnız
+     firmanın kendisi için doğruydu; cümle bunu da söylüyor
+     (29 Eylül 2026, gizlilik incelemesi). */
+  izinMetin: `Söylediklerinizi yazıya çevirmek için mikrofon izni gerekiyor. Sesiniz, metne çevrilip kutuya yazılması için telefonunuzun ses tanıma hizmetine gönderilir. ${MARKA} sesinizi kaydetmez.`,
   izinDugme: 'Devam Et',
   izinYok: 'Mikrofon izni verilmedi. Yazarak devam edebilirsiniz.',
   izinEngelli: 'Telefonun Ayarlar bölümünden bu uygulamaya mikrofon izni verin. O zamana kadar yazarak devam edebilirsiniz.',

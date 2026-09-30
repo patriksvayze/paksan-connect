@@ -32,7 +32,7 @@ function base64(baytlar) {
  * Kullanıcı paylaşma ekranını kapatırsa hata sayılmıyor.
  *
  * @param {Uint8Array} baytlar
- * @param {string} dosyaAdi  ör. "servis-formu-SRV2609211588.pdf"
+ * @param {string} dosyaAdi  ör. "servis-formu-SRV2609211588-28-09-2026.pdf"
  * @param {string} baslik    paylaşma ekranının başlığı
  * @param {string} [tur]
  */

@@ -77,6 +77,13 @@
      AK-17  rozet açık işlerin hepsini sayarsa                   düştü
      AK-17  yeni iş sırası gecikeni başa almazsa                 düştü
      AK-17  geciken işler en yeniden başlarsa (ters sıra)        düştü
+     AK-17  Devam Eden sıralanmazsa (29.09.2026)                  düştü
+     AK-17  yolda parça PAKSAN'da sayılırsa                       düştü
+     AK-17  onay bekleyen ya da devredilen serviste sayılırsa     düştü (ikisi ayrı)
+     AK-17  Devam Eden ters sıralanırsa                           düştü
+     AK-17  randevu anı okunmazsa                                 düştü
+     AK-17  yolda parça sevk gününe sayılırsa (bugünün önüne)    düştü
+     AK-17  aynı günde parça randevudan önce gelirse              düştü
      AK-18  makineKaydet var olan satırı aramazsa              düştü
      AK-18  servisMakineKaydi kayıtlı seride de yazarsa        düştü
      AK-18  kayitIsle Servisim kopyasını kabul ederse          düştü
@@ -233,6 +240,8 @@
      AK-34  talep numarası tekil tutulmazsa (bir tohumda)        düştü
      AK-34  Servisim randevusu saatli yazılırsa                  düştü
      AK-34  elle işte atamaDisi kuraldan bağımsız yazılırsa      düştü
+     AK-34  G4b talep adresi müşterinin köyünden saparsa (29.09) düştü
+     AK-34  G4b demo müşterisi adressiz kalırsa                  düştü
      AK-34  demo talebinin ham numarası biçimli yazılırsa        düştü
      İnceleme onarımı (25 Eylül 2026 akşamı; bozmalar deponun
      kopyasında, geliştirme sunucusunun gördüğü dosyalara dokunmadan):
@@ -258,6 +267,11 @@
      AK-36  ilk gönderimin tarihi ezilirse                       düştü
      AK-36  kargo bildiriminde alıcı kuralı atlanırsa            düştü
      AK-36  boş kargo bilgisi kabul edilirse                     düştü
+     AK-37  kayıtta kampanya kararı hep "onay" yazılırsa (29.09.2026) düştü
+     AK-15  PAKSAN devredilmemiş işe randevu verebilirse (29.09.2026) düştü
+     AK-37  eski sürümün servis kabulü yeni sürüme sayılırsa    düştü
+     AK-37  sınama tohumunun hesabı eski metin sürümünde kalırsa düştü
+     AK-37  veritabanında olmayan kanal kodu yazılırsa          düştü
      AK-08  iptal kilidi "kapandı" nedenine dönerse               düştü
      AK-31  onay bekleyen kendi işi uyarıya girmezse (28.09.2026) düştü
      AK-28  kapı backoffice'in çağrısına da uygulanırsa         düştü
@@ -274,6 +288,22 @@
      AK-33  oturumKapat başkasının son girişini de silerse      düştü
      AK-33  sifreTalebiOlustur rolü yazmazsa                    düştü
      AK-33  oturumsuz sekmede son giriş koşulsuz kullanılırsa   düştü
+     Servisim'in demo sahnesi (29 Eylül 2026; bozmalar deponun
+     kopyasında, dosya her seferinde sha256 ile geri kondu):
+     AK-34  B11 G6 parça isteği nedeni açıklamadan alırsa        düştü
+     AK-34  B12 G15 ekleme servise bildirilmezse                 düştü
+     AK-34  B13 G15 "Sorun Devam" servise bildirilmezse          düştü
+     AK-34  B14 G15 kısmi gönderim seçimi yok sayılırsa          düştü
+     AK-34  B15 G11/G15 geçmiş randevu verilmezse                düştü
+     AK-34  B16 G16 hesap bildirimleri demo damgası almazsa      düştü
+     AK-34  B17 G17 eski bildirimler okunmuş sayılmazsa          düştü
+     AK-34  B18 G18 İşlem Kaydı geri alınmazsa                   düştü
+     AK-34  B19 G12 demoTemizle sahnenin izlerini silmezse       düştü
+     AK-34  B20 G12 demoTemizle demo sürümünü silmezse           düştü
+     AK-34  B21 G12 okunmuş listesi temizlenmezse                düştü
+     AK-34  B22 sahne talebi hesap kimliği taşımazsa             düştü
+     AK-34  B23 açık iş boş makineye konmazsa (yeni havuzla)     düştü
+     AK-34  B24 sahne ayar yedeğini yazmazsa (G16, G12)          düştü
      ---    ortam.mjs'te saat dilimi kurulmazsa (TZ=UTC)  0. ADIM DURDURUR
      ---    ortam.mjs'te depo taklidi kaldırılırsa    0. ADIM DURDURUR
 

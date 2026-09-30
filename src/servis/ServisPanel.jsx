@@ -13,15 +13,17 @@ import {
 import { TemaSecici } from '../backoffice/Tema'
 import { load, save, remove, baskaSekmeDegistirince } from '../lib/storage'
 import { ozetHatasiMi } from '../lib/hesap'
-import { Kabuk, Sayfa, Bolum, Onay } from './Kabuk'
+import { BasariSeridi, Kabuk, Sayfa, Bolum, Onay } from './Kabuk'
 import { DEMO_HESAP, demoAPKmi } from './demoKimlik'
-import { IconWrench, IconParca, IconShield, IconTag, IconRight, IconBell } from '../components/Icons'
+import { IconWrench, IconParca, IconShield, IconCuzdan, IconRight, IconBell, IconGorunum, IconLock } from '../components/Icons'
 import { useServisHaberi } from './haber'
 import { koyuZeminIcinBoya, temayaGoreBoya } from '../lib/sistemCubuklari'
 import { Bildirimler } from './ekranlar/Bildirimler'
+import { GizlilikKapisi, GizlilikSatiri, GizlilikSayfasi } from './ekranlar/Gizlilik'
+import { servisKabulEttiMi } from '../lib/servisGizlilik'
 import { okunmamisSayisi } from './talepBildirimleri'
 import { yeniIsSayisi } from './isDurumu'
-import { Logo, Amblem, MARKA, SIRKET } from '../marka'
+import { Logo, Amblem, MARKA, SIRKET, markaEk } from '../marka'
 /* Giriş ekranının görseli: PAKSAN ORKA 870'İN BAŞINDA SERVİS
    TEKNİSYENİ, ŞAFAKTA TARLADA.
 
@@ -120,6 +122,9 @@ export function ServisPanel() {
   /* Tek kimlik: Uygulama'daki denetim etkisi bu işleve bağlı; her
      çizimde yeni işlev verilseydi etki her çizimde yeniden kurulurdu. */
   const cikis = useCallback(() => setOturum(null), [])
+  /* Kabul yazılınca ekran yeniden çizilsin diye (kabulün kendisi
+     depoda: lib/servisGizlilik.js). */
+  const [, setKabulSayaci] = useState(0)
 
   if (!oturum) return <Giris onGiris={setOturum} />
   if (oturum.ilkGiris) {
@@ -127,6 +132,23 @@ export function ServisPanel() {
       <IlkSifre
         oturum={oturum}
         onBitti={() => setOturum({ ...oturum, ilkGiris: false })}
+      />
+    )
+  }
+  /* GİZLİLİK KAPISI (29 Eylül 2026, kullanıcının kararı: "İlk girişte
+     onay ekranı"). Şifreden sonra, işlerden önce: çiftçi verisi ancak
+     gizlilik kurallarını okuyup kabul etmiş servise açılıyor. Metin
+     sürümü değişince yeniden soruluyor. Gerekçesi ekranlar/Gizlilik.jsx
+     başında. */
+  if (!servisKabulEttiMi(oturum.servisId)) {
+    return (
+      <GizlilikKapisi
+        oturum={oturum}
+        onKabul={() => setKabulSayaci((n) => n + 1)}
+        onCikis={() => {
+          servisOturumuKapat(oturum)
+          cikis()
+        }}
       />
     )
   }
@@ -482,6 +504,10 @@ const KAPALI = ['kapandi', 'iptal']
    "EKRAN DEĞİŞİNCE ÇİFT DOKUNUŞUN İKİNCİSİ YUTULUYOR"). */
 const GECIS_KILIDI_MS = 350
 
+/* Yeşil şeridin ekranda kaldığı süre. Okumaya yetecek kadar; iş açılınca
+   zaten kalkıyor. */
+const BASARI_SURESI_MS = 8000
+
 function Uygulama({ oturum, onCikis }) {
   const [sekme, setSekme] = useState('isler')
   /* AÇIK TALEP KİMLİKLE TUTULUYOR, KOPYAYLA DEĞİL (25 Eylül 2026,
@@ -502,6 +528,16 @@ function Uygulama({ oturum, onCikis }) {
      tutuluyor: iş detayı açılınca İşlerim ekrandan kalkıyor, dönünce
      aynı sekme açık gelmeli (bkz. ekranlar/Islerim.jsx). */
   const [isSekme, setIsSekme] = useState(null)
+  /* Az önce yapılanın özeti: yeşil şerit (29 Eylül 2026, görünüm önerisi
+     S2; bkz. BasariSeridi). Bir iş açılınca ya da süresi dolunca kalkıyor. */
+  const [basari, setBasari] = useState(null)
+  /* Sipariş ekranının "bir kademe geri"si (bkz. alt === 'siparis'). */
+  const siparisGeri = useRef(null)
+  useEffect(() => {
+    if (!basari) return undefined
+    const zaman = setTimeout(() => setBasari(null), BASARI_SURESI_MS)
+    return () => clearTimeout(zaman)
+  }, [basari])
 
   useEffect(() => {
     setTalepler(servisinTalepleri(talepleriGetir(), oturum.servisId))
@@ -519,7 +555,13 @@ function Uygulama({ oturum, onCikis }) {
      tam ekran sayfa açılıp kapanınca 350 ms boyunca gelen dokunuş hiçbir
      düğmeye ulaşmıyor: çift dokunmanın aralığından uzun, bilerek yapılan
      bir sonraki dokunuştan kısa. Yakalama pencerede ve en önde, React'in
-     dinleyicisinden önce. */
+     dinleyicisinden önce.
+
+     İş ayrıntısındaki pencere kapanınca da (29 Eylül 2026): randevu
+     kaydedildikten sonra ayrıntı açık kalıyor (kullanıcının onayı);
+     "Kaydet"e ikinci dokunuş, pencere kalkınca altta kalan düğmeye
+     gidiyordu. TalepDetay pencere kapandıkça `pencereKilidi`ni artırıyor. */
+  const [pencereKilidi, setPencereKilidi] = useState(0)
   useEffect(() => {
     const bitis = Date.now() + GECIS_KILIDI_MS
     const yut = (e) => {
@@ -534,8 +576,12 @@ function Uygulama({ oturum, onCikis }) {
       clearTimeout(zaman)
       window.removeEventListener('click', yut, true)
     }
-  }, [acikId, alt])
-  const ac = useCallback((t) => setAcikId(t?.id ?? null), [])
+  }, [acikId, alt, pencereKilidi])
+  const pencereKapandi = useCallback(() => setPencereKilidi((x) => x + 1), [])
+  const ac = useCallback((t) => {
+    setBasari(null)
+    setAcikId(t?.id ?? null)
+  }, [])
 
   /* Üst çubuktaki Bildirimler düğmesinin sayısı. Ekran değiştikçe ve
      yeni haber geldikçe (tazele) yeniden sayılıyor. */
@@ -628,20 +674,35 @@ function Uygulama({ oturum, onCikis }) {
   if (acik) {
     return (
       <TalepDetay
+        /* Başka iş açılınca ayrıntı sıfırdan: açık pencere ve şerit
+           önceki işten kalmasın. */
+        key={acik.id}
         talep={acik}
         oturum={oturum}
         servisAd={oturum.ad}
-        /* Not gibi detayı kapatmayan işlemlerden sonra talep depodan
-           yeniden okunuyor; ekran yazılanı hemen gösteriyor. */
+        /* Not ve randevu gibi detayı kapatmayan işlemlerden sonra talep
+           depodan yeniden okunuyor; ekran yazılanı hemen gösteriyor.
+           Randevunun yeşil şeridi ayrıntının başında (`basari`). */
         onYenile={yenile}
-        onKapat={() => {
+        basari={basari}
+        onBasari={setBasari}
+        onPencereKapandi={pencereKapandi}
+        /* `mesaj` yalnız işlem bitince geliyor; Geri düğmesi tıklama
+           olayını verebiliyor, o yüzden başlığı olan nesne aranıyor. */
+        onKapat={(mesaj) => {
           setAcikId(null)
           setTazele((x) => x + 1)
+          setBasari(mesaj?.baslik ? mesaj : null)
         }}
-        onDestekIste={(neden) => {
+        /* "PAKSAN'a Devret" (30 Eylül 2026; eski adı "PAKSAN'dan Destek
+           İste", bkz. TalepDetay.jsx). Şerit öteki işlemlerinki gibi işin
+           nereye geçtiğini söylüyor: devredilen iş açık kalıyor, "Devam
+           Eden"de (isDurumu.js → dokunulmamis devri saymıyor). */
+        onDevret={(neden) => {
           destekTalepEt(acik, neden, oturum.ad)
           setAcikId(null)
           setTazele((x) => x + 1)
+          setBasari({ baslik: `İş ${markaEk('a')} devredildi`, alt: 'İş, Devam Eden sekmesinde.' })
         }}
       />
     )
@@ -659,8 +720,11 @@ function Uygulama({ oturum, onCikis }) {
   if (alt === 'kayit') {
     return (
       <Sayfa
-        baslik="Yeni Kayıt"
-        alt="Size gelen bir müşteri için talep açın"
+        /* Tek ad (29 Eylül 2026, görünüm önerisi S9): açan düğme "Kayıt
+           Aç", sayfa "Yeni Kayıt", kaydeden düğme "Talebi Aç" diyordu.
+           Sipariş tarafı zaten tek addaydı ("Sipariş Ver" üçünde de). */
+        baslik="Kayıt Aç"
+        alt="Size gelen bir müşteri için kayıt açın"
         onGeri={() => setAlt(null)}
       >
         {/* KAYIT AÇILINCA DOĞRUDAN O TALEBE GİDİLİYOR.
@@ -679,6 +743,8 @@ function Uygulama({ oturum, onCikis }) {
             setAlt(null)
             setSekme('isler')
             setTazele((x) => x + 1)
+            /* Listede kalmış eski şerit yeni kaydın ayrıntısına taşınmasın. */
+            setBasari(null)
             if (talep) setAcikId(talep.id)
           }}
           onIsiAc={(t) => {
@@ -703,7 +769,12 @@ function Uygulama({ oturum, onCikis }) {
       <Sayfa
         baslik="Sipariş Ver"
         alt={`${MARKA} yedek parça birimine`}
-        onGeri={() => setAlt(null)}
+        /* Önce sipariş ekranı karşılıyor: bir kademe geri ya da "sepet
+           silinsin mi" sorusu (SiparisVer.jsx → geriGit). */
+        onGeri={() => {
+          if (siparisGeri.current?.()) return
+          setAlt(null)
+        }}
       >
         {/* `surum`: başka sekmede PAKSAN indirimi ya da bakiyeyi
             değiştirince kartlar tazeleniyor; açık onay penceresindeki
@@ -711,6 +782,7 @@ function Uygulama({ oturum, onCikis }) {
         <SiparisVer
           oturum={oturum}
           surum={tazele}
+          geriRef={siparisGeri}
           onKapat={() => setAlt(null)}
           onVerildi={() => {
             setAlt(null)
@@ -740,14 +812,20 @@ function Uygulama({ oturum, onCikis }) {
   const sekmeler = [
     { id: 'isler', ad: 'İşlerim', Icon: IconWrench, rozet: yeniIs, rozetYazi: `${yeniIs} yeni iş` },
     { id: 'parca', ad: 'Parça', Icon: IconParca },
-    { id: 'hakkedis', ad: 'Hak Ediş', Icon: IconTag },
+    /* Cüzdan (29 Eylül 2026, S9): fiyat etiketiydi; etiket İşlerim'de
+       kampanya duyurusunun simgesi. */
+    { id: 'hakkedis', ad: 'Hak Ediş', Icon: IconCuzdan },
   ]
 
   /* SELAMLAMA (10 Eylül 2026). PAKSAN Connect ana sayfası müşteriyi
      adıyla selamlıyor; servis uygulaması da servisi adıyla selamlıyor.
      Yeri başlığın altındaki satır: ekran düzeni değişmiyor. */
   const BASLIK = {
-    isler: { baslik: 'İşlerim', alt: `Merhaba, ${oturum.ad}` },
+    /* Selam satırı yok (29 Eylül 2026, görünüm önerisi S1): İşlerim
+       açıldığında tek bir iş görünmüyordu; başlığın altındaki her satır
+       listeyi aşağı itiyordu. Firmanın adı Hesap'ta ve sağ üstteki
+       harfte. */
+    isler: { baslik: 'İşlerim' },
     parca: { baslik: 'Parça', alt: `${MARKA} siparişleriniz` },
     hakkedis: { baslik: 'Hak Ediş', alt: `${MARKA} ile hesabınız` },
   }
@@ -779,6 +857,9 @@ function Uygulama({ oturum, onCikis }) {
           setSekme(id)
         }}
       >
+        {/* Bildirimden açılan iş kapanınca buraya dönülüyor; şerit de
+            burada, sonra açılan İşlerim'de değil (son inceleme). */}
+        {basari && <BasariSeridi mesaj={basari} />}
         <Bildirimler
           oturum={oturum}
           talepler={talepler}
@@ -787,6 +868,12 @@ function Uygulama({ oturum, onCikis }) {
         />
       </Kabuk>
     )
+  }
+
+  /* Hesap → Gizlilik ve İzinler (30 Eylül 2026, ekranlar/Gizlilik.jsx);
+     "Geri" Hesap'a dönüyor. */
+  if (alt === 'gizlilik') {
+    return <GizlilikSayfasi oturum={oturum} onGeri={() => setAlt('hesap')} />
   }
 
   /* `ucretler`: Hesap açılıp "Ücretlendirmeler" bölümüne kayılıyor —
@@ -804,7 +891,13 @@ function Uygulama({ oturum, onCikis }) {
           setSekme(id)
         }}
       >
-        <Hesap oturum={oturum} onCikis={onCikis} surum={tazele} ucretlereOdak={alt === 'ucretler'} />
+        <Hesap
+          oturum={oturum}
+          onCikis={onCikis}
+          surum={tazele}
+          ucretlereOdak={alt === 'ucretler'}
+          onGizlilik={() => setAlt('gizlilik')}
+        />
       </Kabuk>
     )
   }
@@ -822,12 +915,20 @@ function Uygulama({ oturum, onCikis }) {
            (bkz. Kabuk.jsx → fab). Hesap ayda bir açılıyor; üstte kalması
            doğru. */
         <div className="uyg__islemler">
-          {/* BİLDİRİMLER (24 Eylül 2026): zil yazısıyla birlikte;
-              okunmamış varsa sayısı. Geçmişin tamamı arkasında. */}
-          <button className="uyg__bildirim" onClick={() => setAlt('bildirimler')}>
+          {/* BİLDİRİMLER (24 Eylül 2026): okunmamış varsa sayısı,
+              geçmişin tamamı arkasında. 28 Eylül 2026'dan beri YALNIZ ZİL
+              (kullanıcının isteği): "İkon tek başına anlam taşımaz"
+              kuralının bilinçli istisnası — zil her telefonda aynı şeyi
+              söylüyor, yazı üst çubukta logonun yerini daraltıyordu. Adı
+              ekran okuyucuya ve basılı tutunca çıkan ipucuna gidiyor. */}
+          <button
+            className="uyg__bildirim"
+            onClick={() => setAlt('bildirimler')}
+            aria-label="Bildirimler"
+            title="Bildirimler"
+          >
             <span className="uyg__bildirim-ic">
-              <IconBell size={18} />
-              Bildirimler
+              <IconBell size={22} />
               {okunmamis > 0 && (
                 <span className="uyg__bildirim-sayi">{okunmamis > 9 ? '9+' : okunmamis}</span>
               )}
@@ -853,6 +954,7 @@ function Uygulama({ oturum, onCikis }) {
       sekme={sekme}
       onSekme={setSekme}
     >
+      {basari && <BasariSeridi mesaj={basari} />}
       {sekme === 'isler' && (
         <Isler
           oturum={oturum}
@@ -889,13 +991,15 @@ function Uygulama({ oturum, onCikis }) {
 
 /* ---------------------------------------------------------------- Hesap */
 
-function Hesap({ oturum, onCikis, surum, ucretlereOdak }) {
+function Hesap({ oturum, onCikis, surum, ucretlereOdak, onGizlilik }) {
   /* ÇIKIŞ ONAYLA YAPILIYOR (14 Eylül 2026, kullanıcının bildirdiği hata).
      Düğmeye basıldığı anda oturum kapanıyordu. Sahada eldivenle, tek
      elle kullanılan ekranda yanlış dokunuş kullanıcıyı giriş ekranına
      atıyor ve şifreyi yeniden yazdırıyordu. Onay yaprağı ne olacağını
      söylüyor, "Emin misiniz?" diye sormuyor (bkz. Kabuk.jsx → Onay). */
   const [cikisOnayi, setCikisOnayi] = useState(false)
+  const [sifreAcik, setSifreAcik] = useState(false)
+  const [sifreOldu, setSifreOldu] = useState(false)
 
   return (
     <>
@@ -921,18 +1025,67 @@ function Hesap({ oturum, onCikis, surum, ucretlereOdak }) {
 
       <Bayilerim oturum={oturum} surum={surum} />
 
-      <Bolum ad="Görünüm">
-        <div className="kart" style={{ padding: 14 }}>
-          <TemaSecici />
+      {/* HESABIM (30 Eylül 2026, kullanıcının isteği: "Servisimde hesap
+          ekranındaki Görünüm, Gizlilik, Oturum başlıklarını sil, bunların
+          altındaki butonları 'Hesabım' başlığı altında topla"). Üç ayrı
+          başlığın her birinin altında tek bir düğme vardı; ekranın dibi
+          dört başlıklı, tek satırlık bölümlere bölünüyordu. Görünüm ve
+          Gizlilik ve İzinler tek kartta iki satır (Connect'in Profil'indeki
+          "Hesabım" gibi); Çıkış Yap ve notu kartın altında, ekranın en
+          sonunda. Satırlar Gizlilik ve İzinler sayfasının satır kalıbını
+          (servis.css → .sgizlilik__satir) kullanıyor: iki satır aynı
+          kalıpta, aynı simge kutusuyla ve aynı en az yükseklikle
+          (--dokunma) dursun; boyları aynı değil, Gizlilik satırının ikinci
+          bir alt satırı var. Aynı gün "Güvenlik" başlığı da kalktı
+          (kullanıcı: "Güvenlik satırını kaldır ve Şifremi Değiştir butonunu
+          da Hesabım satırı altında konumlandır"): Şifremi Değiştir kartın
+          üçüncü satırı, formu kartın altında açılıyor. Çıkış Yap Connect'teki
+          gibi kırmızı yazılı (servis.css → .dg--cikis). Tur X-11 bölümü
+          `data-bolum` ile buluyor. */}
+      <Bolum ad="Hesabım" data-bolum="hesabim">
+        <div className="kart sgizlilik__liste">
+          <div className="sgizlilik__satir hesabim__gorunum" data-hesabim-satir="gorunum">
+            <span className="sgizlilik__ikon"><IconGorunum size={20} /></span>
+            <span className="sgizlilik__govde">
+              <span className="sgizlilik__ad">Görünüm</span>
+            </span>
+            <TemaSecici />
+          </div>
+          <GizlilikSatiri onAc={onGizlilik} />
+          <button
+            className="sgizlilik__satir"
+            data-hesabim-satir="sifre"
+            aria-expanded={sifreAcik}
+            onClick={() => { setSifreAcik(!sifreAcik); setSifreOldu(false) }}
+          >
+            <span className="sgizlilik__ikon"><IconLock size={20} /></span>
+            <span className="sgizlilik__govde">
+              <span className="sgizlilik__ad">Şifremi Değiştir</span>
+            </span>
+            <IconRight size={18} style={sifreAcik ? { transform: 'rotate(90deg)' } : undefined} />
+          </button>
         </div>
-      </Bolum>
 
-      <Bolum ad="Güvenlik">
-        <SifreDegistir oturum={oturum} />
-      </Bolum>
+        {sifreOldu && (
+          <p className="kucuk" style={{ marginTop: 10, color: 'var(--yesil)' }}>
+            Şifreniz değiştirildi.
+          </p>
+        )}
+        {sifreAcik && (
+          <div style={{ marginTop: 12 }}>
+            <SifreDegistir
+              oturum={oturum}
+              onKapat={(degisti) => { setSifreAcik(false); setSifreOldu(!!degisti) }}
+            />
+          </div>
+        )}
 
-      <Bolum ad="Oturum">
-        <button className="dg dg--blok" onClick={() => setCikisOnayi(true)}>
+        <button
+          className="dg dg--blok dg--cikis"
+          style={{ marginTop: 12 }}
+          data-eylem="cikis"
+          onClick={() => setCikisOnayi(true)}
+        >
           Çıkış Yap
         </button>
         <p className="kucuk sonuk" style={{ marginTop: 10 }}>
@@ -962,13 +1115,11 @@ function Hesap({ oturum, onCikis, surum, ucretlereOdak }) {
    Mevcut şifre SORULUYOR. Açık oturumun sahibi olmak yetmiyor: telefon
    birinin elinde kalmış olabilir ve servis paneli müşteri bilgisi
    taşıyor. İlk giriş akışında sorulmuyor, sebebi veri.js'te yazılı. */
-function SifreDegistir({ oturum }) {
-  const [acik, setAcik] = useState(false)
+function SifreDegistir({ oturum, onKapat }) {
   const [eski, setEski] = useState('')
   const [yeni, setYeni] = useState('')
   const [tekrar, setTekrar] = useState('')
   const [hata, setHata] = useState('')
-  const [oldu, setOldu] = useState(false)
 
   const rakam = (v) => v.replace(/\D/g, '')
 
@@ -989,23 +1140,7 @@ function SifreDegistir({ oturum }) {
     setYeni('')
     setTekrar('')
     setHata('')
-    setOldu(true)
-    setAcik(false)
-  }
-
-  if (!acik) {
-    return (
-      <>
-        <button className="dg dg--blok" onClick={() => { setAcik(true); setOldu(false) }}>
-          Şifremi Değiştir
-        </button>
-        {oldu && (
-          <p className="kucuk" style={{ marginTop: 10, color: 'var(--yesil)' }}>
-            Şifreniz değiştirildi.
-          </p>
-        )}
-      </>
-    )
+    onKapat(true)
   }
 
   return (
@@ -1053,7 +1188,8 @@ function SifreDegistir({ oturum }) {
       <button
         className="dg dg--blok"
         style={{ marginTop: 8 }}
-        onClick={() => { setAcik(false); setHata('') }}
+        data-eylem="sifre-vazgec"
+        onClick={() => onKapat(false)}
       >
         Vazgeç
       </button>

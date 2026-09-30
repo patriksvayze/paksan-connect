@@ -18,7 +18,16 @@
    ilçeye bakılarak servislere dağıtılıyordu; gerçek talep ise makineden
    çıkan servise düşüyor (bkz. lib/servisAtama.js). Demo üreticisi aynı
    zinciri kullanıyor ve demo servisinin işlerini kendisi kuruyor
-   (bkz. backoffice/demoServis.js).
+   (bkz. backoffice/demoSahne.js). Sahne Servisim'in cihaza ait
+   izlerini de yazıyor: adres defteri, okunmuş bildirimler, "Anladım"
+   denmiş uyarı.
+
+   BACKOFFICE'TEN TEMİZLENEN DEMO YENİDEN KURULUYOR. demoTemizle
+   `demoSurumu`nu da siliyor (backoffice/demo.js); hesap yerinde olsa da
+   sürüm eşleşmediği için bir sonraki açılışta demo yeniden kuruluyor.
+   Önce hesap ve sürüm kaldığı için burada hemen dönülüyor, Servisim boş
+   açılıyordu. Ekran turu (tools/ekosistem-turu.mjs) demoyu hesap ve
+   sürümü kendisi yazarak kapatıyor; temizlemediği için etkilenmiyor.
 
    DEMO SÜRÜMÜ. Akış değiştiğinde eski demo verisi yeni ekranlarda
    anlamsız görünüyor: onay bekleyen iş yok, parça masası boş. Sürüm
@@ -53,12 +62,22 @@ import { DEMO_HESAP } from './demoKimlik'
    sürümde demo, düzeltmelerin son veri biçimini yazıyor: telefon ve
    müşteri kimliği Connect'in biçiminde, Servisim randevusu yalnız gün
    (`saatBelirtildi: false`), elle açılan işte `atamaDisi` (kullanıcı
-   sınaması 24.09.2026). Sürüm değişince tarayıcıdaki DEMO talepleri
+   sınaması 24.09.2026).
+   6 (29 Eylül 2026): demo adreslerinin köyü müşterinin ilçesinde ve
+   müşteri başına tek; Servisim'in "Yol Tarifi" haritada doğru yeri
+   göstersin (bkz. backoffice/demo.js → KOYLER). Sürüm değişince tarayıcıdaki DEMO talepleri
    üzerinde yapılmış işlemler de silinir; yeniden sınamadan önce
    tarayıcı verisinin yedeği alınır (tools/kullanici-sinamasi/README.md).
+   7 (29 Eylül 2026): Servisim'in sahnesi sabit ve gerçek işlevlerden
+   (backoffice/demoSahne.js): on sabit müşteri, 22 iş ve 8 sipariş her
+   hâlde, servise giden bildirimler, ücret ve indirim ayarları, adres
+   defteri. Kullanıcının isteği: "uygulamada mümkün olduğunca her yere
+   girilsin".
+   8 (29 Eylül 2026): D10'un randevusunu servis veriyor; PAKSAN
+   devredilmemiş işe randevu veremiyor (veri.js → paksanRandevuEngeli).
    Dışa açık: ekran turu demoyu kapatmak için bu sayıyı yazıyor
    (tools/ekosistem-turu.mjs); elle yazsaydı sürüm değişince bozulurdu. */
-export const DEMO_SURUMU = 5
+export const DEMO_SURUMU = 8
 const SURUM_ANAHTARI = 'demoSurumu'
 
 export async function demoKur() {

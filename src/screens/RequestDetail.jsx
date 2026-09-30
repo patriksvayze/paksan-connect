@@ -7,24 +7,25 @@ import { EkAlani } from '../components/EkAlani'
 import { SesKaydi } from '../components/SesKaydi'
 import {
   eklemeOlustur, eklemeleri, eklemeYapilabilir,
-  eklemeyiServiseBildir, sorunDevaminiServiseBildir,
+  eklemeyiServiseBildir, sorunDevaminiServiseBildir, KAPALI_DURUMLAR,
 } from '../lib/talepEkleme'
 import { getProduct, urunDilde } from '../marka'
 import { alanEtiketi } from '../data/talepAlanlari'
 import { formatSerial } from '../lib/serial'
 import { servisleriGetir } from '../marka'
 import { PARA_BIRIMI, paraYaz } from '../marka'
-import { gecmisSatiriAnahtari, musteriDurumAnahtari, talepTuru } from '../lib/talep'
+import { gecmisSatiriAnahtari, musteriDurumAnahtari } from '../lib/talep'
 import { makineninKendiServisiMi } from '../lib/servisAtama'
 import { sorunDevamEngeli } from '../lib/makineTalepleri'
 import { talebinParcalari } from '../lib/servisKaydi'
-import { ParcaResmi, useParcaKatalogu } from '../components/ParcaResmi'
+import { useParcaKatalogu } from '../components/ParcaResmi'
+import { ParcaOzetSatiri, TutarKutusu } from '../components/ParcaOzeti'
 import { ekAdresi } from '../lib/ekler'
 import { SIRKET } from '../marka'
 import { araProps, telFirma } from '../lib/tel'
 import {
   IconCalendar, IconCheckCircle, IconClose, IconCart, IconMic,
-  IconPhone, IconWrench, IconInfo, IconPlus, IconAlert,
+  IconPhone, IconInfo, IconPlus, IconAlert, IconSaat, IconKamyon,
 } from '../components/Icons'
 
 /* ==========================================================================
@@ -191,7 +192,6 @@ export default function RequestDetail() {
     )
   }
 
-  const tur = talepTuru(r.tur)
   const urun = r.makine ? urunDilde(getProduct(r.makine.productId), dil) : null
   const teklifUrun = r.urunId ? urunDilde(getProduct(r.urunId), dil) : null
   const durum = r.status || 'yeni'
@@ -208,11 +208,25 @@ export default function RequestDetail() {
       {/* Başlık SÖZLÜKTEN geliyor. `talepTuru(...).ad` Türkçe sabit;
           İngilizce kullanan müşteri ekranın tepesinde "Servis talebi"
           görüyordu. Renk (`ton`) dilden bağımsız olduğu için o hâlâ
-          oradan alınıyor. */}
-      <TopBar title={t(`talep.${r.tur}.adi`)} sub={r.no} back="auto" />
+          oradan alınıyor.
+
+          Taleplerim'deki kartla aynı ad (29 Eylül 2026, görünüm önerisi
+          C8): kart "Servis Talebi", açılan sayfa "Servis talebi"
+          yazıyordu. Fiyat teklifinin `baslik`ı artık bir ad ("…
+          Talebi"), düğme yazısı değil; bu yüzden ikisi aynı anahtardan. */}
+      <TopBar title={t(`talep.${r.tur}.baslik`)} sub={r.no} back="auto" />
 
       <div className="screen wrap fade-in" style={{ paddingTop: 16 }}>
-        {/* ------------------------------------------------ Şu anki hâli */}
+        {/* ------------------------------------------------ Şu anki hâli
+
+            SERVİSİN GELECEĞİ GÜN BAŞLIKTA (29 Eylül 2026, görünüm önerisi
+            C3). "Randevu verildi"nin altında durumun DEĞİŞTİĞİ an
+            yazıyordu ("20 Ağustos 2026 · 09:22") ve çiftçi onu randevu
+            saati sanıyordu; asıl gün aşağıdaki kutudaydı. Planlanmış
+            talepte artık kartın en büyük yazısı o gün; öteki durumlarda
+            tarih "son güncelleme" diye adıyla yazıyor. Talep numarası
+            kartta ikinci kez yazılmıyor (başlığın altında duruyor): dar
+            ekranda durumun adını tek kelimeye sıkıştırıyordu. */}
         <div className={'card durum-kart durum-kart--' + durum}>
           <div className="row" style={{ gap: 12, alignItems: 'center' }}>
             <DurumIkon durum={durum} />
@@ -220,12 +234,20 @@ export default function RequestDetail() {
               {/* Durumun müşterinin gördüğü adı türe göre: parçada
                   `planlandi` gönderim günü (lib/talep.js →
                   musteriDurumAnahtari). */}
-              <div style={{ fontWeight: 800, fontSize: 17 }}>{t(musteriDurumAnahtari(r, durum))}</div>
-              <div className="small muted" style={{ marginTop: 2 }}>
-                {tarihYaz(sonDegisim(r) || r.createdAt)}
-              </div>
+              <div className="durum-kart__ad">{t(musteriDurumAnahtari(r, durum))}</div>
+              {r.plan && durum === 'planlandi' ? (
+                <>
+                  <div className="durum-kart__gun">{r.plan.tarihYazi}</div>
+                  <div className="durum-kart__not">
+                    {t(r.tur === 'parca' ? 'talepDetay.gonderimGunu' : 'talepDetay.servisGunu')}
+                  </div>
+                </>
+              ) : (
+                <div className="durum-kart__not">
+                  {t('talepDetay.sonGuncelleme', { tarih: tarihYaz(sonDegisim(r) || r.createdAt) })}
+                </div>
+              )}
             </div>
-            <span className={'badge serial-mono badge--' + tur.ton}>{r.no}</span>
           </div>
         </div>
 
@@ -279,14 +301,15 @@ export default function RequestDetail() {
           </Kutu>
         )}
 
-        {/* Yedek parçada planlanan şey randevu değil, gönderim günü. */}
+        {/* Yedek parçada planlanan şey randevu değil, gönderim günü.
+            Günün kendisi 29 Eylül 2026'dan beri yukarıdaki durum
+            kartında, büyük; burada yapılacak iş ve kimin planladığı. */}
         {r.plan && durum === 'planlandi' && (
           <Kutu
             ad={r.tur === 'parca' ? t('talepDetay.gonderimBaslik') : t('talepDetay.randevuBaslik')}
             ton="turuncu"
           >
-            <div style={{ fontWeight: 800, fontSize: 16 }}>{r.plan.tarihYazi}</div>
-            <p className="detay-metin">{r.plan.is}</p>
+            <p className="detay-metin" style={{ marginTop: 0 }}>{r.plan.is}</p>
             <Imza personel={r.plan.personel} tarih={tarihYaz(r.plan.kayitTarihi)} />
           </Kutu>
         )}
@@ -532,6 +555,17 @@ export default function RequestDetail() {
                     <div className="small muted">{tarihYaz(g.tarih)}</div>
                   </div>
                 ))}
+                {/* YOLUN SONU GÖRÜNÜYOR (29 Eylül 2026, C3). İş sürerken
+                    çizelgenin sonunda soluk bir "Tamamlandı" duruyor:
+                    çiftçi işin henüz bitmediğini ve nereye varacağını
+                    görüyor. Ara adımlar tahmin edilmiyor — her talep
+                    aynı yoldan geçmiyor (garanti dışı iş kayıtsız
+                    kapanıyor); yalnız varılacak yer kesin. */}
+                {!KAPALI_DURUMLAR.includes(durum) && (
+                  <div className="cizelge__a cizelge__a--bekliyor">
+                    <div className="cizelge__ad">{t('talepDurum.kapandi')}</div>
+                  </div>
+                )}
               </div>
             </div>
           </>
@@ -758,14 +792,19 @@ export default function RequestDetail() {
 
 /* ------------------------------------------------------------ Parçalar */
 
+/* Durumun simgesi. "İnceleniyor" anahtar simgesiyle çiziliyordu; parça
+   talebinde "servis" gibi okunuyordu (29 Eylül 2026, C3). Bekleyen iş
+   saat, yola çıkmış parça kamyon. Yeşil onay yalnız biten işte. */
 function DurumIkon({ durum }) {
   const Ikon =
     durum === 'iptal' ? IconClose
       : durum === 'planlandi' ? IconCalendar
       : durum === 'teklif' ? IconCart
       : durum === 'bayiyeIletildi' ? IconPhone
-      : durum === 'incelemede' ? IconWrench
-      : IconCheckCircle
+      : durum === 'yeni' || durum === 'incelemede' || durum === 'onayBekliyor' ? IconSaat
+      : durum === 'parcaBekliyor' ? IconKamyon
+      : durum === 'kapandi' ? IconCheckCircle
+      : IconInfo
   return (
     <span className="durum-kart__ikon">
       <Ikon size={24} />
@@ -868,47 +907,35 @@ function Parcalar({ r, dil, t }) {
       <div className="eyebrow" style={{ marginTop: 12, marginBottom: 6 }}>
         {t('talepDetay.parcalar')}
       </div>
+      {/* Satır ve kutu ortak bileşende (30 Eylül 2026): ödeme adımı ve
+          Servisim'in sipariş özeti aynısını çiziyor (bkz.
+          components/ParcaOzeti.jsx). */}
       {satirlar.map((s, i) => (
-        <div className="detay-satir detay-satir--gorselli" key={(s.kod || s.ad) + i}>
-          <span className="parca-satir">
-            <ParcaResmi katalog={katalog} kod={s.kod} gorsel={s.gorsel} yok={t('parcaSec.gorselYok')} />
-            <span>
-              {s.ad}
-              <span
-                className="small muted serial-mono"
-                style={{ display: 'block', marginTop: 2 }}
-              >
-                {[s.kod, Number(s.adet) > 1 ? '× ' + s.adet : null]
-                  .filter(Boolean)
-                  .join(' · ')}
-              </span>
-            </span>
-          </span>
-          <span className="detay-satir__vurgu">
-            {s.tutar === null || s.tutar === undefined
-              ? '—'
-              : `${paraYaz(s.tutar)} ${PARA_BIRIMI}`}
-          </span>
-        </div>
+        <ParcaOzetSatiri
+          key={(s.kod || s.ad) + i}
+          katalog={katalog}
+          kod={s.kod}
+          gorsel={s.gorsel}
+          ad={s.ad}
+          /* "· × 2" bölünmüyor (bkz. components/ParcaOzeti.jsx). */
+          alt={[s.kod, Number(s.adet) > 1 ? '×\u00a0' + s.adet : null].filter(Boolean).join(' ·\u00a0')}
+          tutar={s.tutar === null || s.tutar === undefined ? '—' : `${paraYaz(s.tutar)} ${PARA_BIRIMI}`}
+          gorselYok={t('parcaSec.gorselYok')}
+        />
       ))}
 
       {tutarGosterilir ? (
-        <div className="tutar-kutu" style={{ marginTop: 12 }}>
-          <div className="tutar-kutu__satir">
-            <span>{t('parcaFiyat.araToplam')}</span>
-            <span>{paraYaz(araToplam)} {PARA_BIRIMI}</span>
-          </div>
-          {kdv > 0 && (
-            <div className="tutar-kutu__satir">
-              <span>{t('parcaFiyat.kdv', { oran: kdvOran })}</span>
-              <span>{paraYaz(kdv)} {PARA_BIRIMI}</span>
-            </div>
-          )}
-          <div className="tutar-kutu__satir tutar-kutu__satir--toplam">
-            <span>{t('parcaFiyat.gonderilecek')}</span>
-            <span>{paraYaz(Number(gorunti.toplam) || 0)} {PARA_BIRIMI}</span>
-          </div>
-        </div>
+        <TutarKutusu
+          style={{ marginTop: 12 }}
+          satirlar={[
+            { ad: t('parcaFiyat.araToplam'), deger: <>{paraYaz(araToplam)} {PARA_BIRIMI}</> },
+            kdv > 0 && { ad: t('parcaFiyat.kdv', { oran: kdvOran }), deger: <>{paraYaz(kdv)} {PARA_BIRIMI}</> },
+          ]}
+          toplam={{
+            ad: t('parcaFiyat.gonderilecek'),
+            deger: <>{paraYaz(Number(gorunti.toplam) || 0)} {PARA_BIRIMI}</>,
+          }}
+        />
       ) : (
         <p className="small muted" style={{ margin: '10px 0 0', lineHeight: 1.5 }}>
           {t('parcaSec.tutarYok')}

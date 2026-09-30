@@ -32,6 +32,20 @@ const KURALLAR = [
   { cizim: bakimTemizlik, kelimeler: ['temizle', 'temizlik', 'koruma', 'depola'] },
 ]
 
+/* Rehberin kendi çizimi (29 Eylül 2026, rehber listesi): günlük bakım
+   bakmak, sezon öncesi yağlamak, sezon sonu temizleyip kaldırmak. Aynı
+   dört çizimden seçiliyor; kullanıcı yeni bir çizim öğrenmiyor. */
+const REHBER_CIZIMI = {
+  gunluk: bakimGoz,
+  'sezon-oncesi': bakimGres,
+  'sezon-sonu': bakimTemizlik,
+}
+
+/** Rehberin çizimi; karşılığı yoksa null. */
+export function rehberCizimi(rehberId) {
+  return REHBER_CIZIMI[rehberId] || null
+}
+
 /** Bölüm başlığına karşılık gelen çizim; yoksa null. */
 export function bakimCizimi(baslikTr) {
   if (!baslikTr) return null

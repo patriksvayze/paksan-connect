@@ -29,7 +29,7 @@ FROM (
            CONVERT(nvarchar(400), v.Aciklama) AS Aciklama
     FROM (VALUES
         (N'BankaAciklamaKalibi', N'paksan', NULL, N'metin', N'{no} · {ad}', N'Müşterinin havale açıklamasına yazacağı metnin kalıbı; {no} talep numarası, {ad} müşteri adıyla doldurulur. Eski sabit: kimlik.js BANKA.aciklamaKalibi.'),
-        (N'BankaOdemesiAcik', N'paksan', NULL, N'mantiksal', N'0', N'1: ödeme ekranı şirketin banka hesaplarını gösterir. 0: hesap bilgisi için aranması istenir. Eski sabit: kimlik.js BANKA.aktif.'),
+        (N'BankaOdemesiAcik', N'paksan', NULL, N'mantiksal', N'1', N'1: ödeme ekranı şirketin banka hesaplarını gösterir. 0: hesap bilgisi için aranması istenir. Eski sabit: kimlik.js BANKA.aktif.'),
         (N'DestekOturumuSessizlikDakikasi', NULL, NULL, N'tamsayi', N'30', N'Destek sohbetinde bu kadar dakika hareket olmazsa sonraki hareket yeni oturum sayılır (birim: dakika). Eski sabit: destekLog.js OTURUM_SESSIZLIK.'),
         (N'DogrulamaKoduGecerlilikSaniyesi', NULL, NULL, N'tamsayi', N'120', N'SMS doğrulama kodunun geçerli kaldığı süre (birim: saniye). Eski sabit: hesap.js OTP_SURE.'),
         (N'EkFotografEnFazla', NULL, NULL, N'tamsayi', N'5', N'Bir talebe eklenebilecek en çok fotoğraf sayısı (birim: adet). Eski sabit: ekler.js EK_SINIR.foto.'),

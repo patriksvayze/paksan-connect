@@ -53,7 +53,7 @@ Dikkat edilecek üç alan:
 ### Türkçe ekler kendiliğinden geliyor
 
 Ekranlarda firma adı çekimli geçiyor: "PAKSAN'a Sipariş Ver",
-"PAKSAN'dan Destek İste". Bu ekler **hesaplanıyor**, sabit yazılı
+"PAKSAN'a Devret", "PAKSAN'dan gelen bildirimler". Bu ekler **hesaplanıyor**, sabit yazılı
 değil — Türkçede ek, adın son ünlüsüne ve son harfine göre değişiyor:
 
 ```
@@ -166,7 +166,7 @@ uygulamayı ayağa kaldırmak için beklemeniz gerekmiyor.
 
 | Doldurulmazsa | Ne olur |
 |---|---|
-| `icerik/mobile_support_package.json` + `icerik/kilavuzEslesme.js` | Kılavuzlar ekranı boş |
+| Kılavuz PDF'leri sunucudaki klasörde (`kilavuzlar.json` ile; bkz. `sunucu-taklidi/BENIOKU.md`) + `icerik/kilavuzEslesme.js` | Kılavuzlar ekranı boş, ürün sayfasında kılavuz düğmesi yok |
 | `icerik/teknikOzellikler.js` | Ürün sayfasında teknik değer çıkmıyor |
 | `icerik/rehber.js` / `.en.js` | Bakım rehberi yok |
 | `icerik/guvenlik.js` / `.en.js` | Güvenlik kuralları yok |
@@ -251,8 +251,8 @@ altıncı kontroller, yeni yazılan kodun sınırı delmesini engelliyor:
 - Motor kodunda firma adı düz yazıyla geçemiyor.
 
 **Tek istisna `src/marka/icerik/`.** Arıza bilgi tabanı, teknik
-özellikler ve kılavuz paketi ağır dosyalar — kılavuz paketi tek başına
-1,7 MB. Kapıdan verilselerdi `../marka` yazan her dosya onları da
+özellikler ve güvenlik çizimleri ağır dosyalar (29 Eylül 2026'ya kadar
+1,7 MB'lık kılavuz paketi de buradaydı; kılavuz artık sunucudaki PDF). Kapıdan verilselerdi `../marka` yazan her dosya onları da
 paketine çekerdi; bayi paneli, arıza bilgi tabanını hiç kullanmadığı
 hâlde taşırdı. İçerik bu yüzden yalnızca çizildiği ekrandan doğrudan
 içe aktarılıyor.

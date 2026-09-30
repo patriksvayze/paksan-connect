@@ -4,7 +4,7 @@
    NEDEN GEREKLİ
 
    Ekran metinlerinde firma adı çekimli geçiyor: "PAKSAN'a Sipariş Ver",
-   "PAKSAN'dan Destek İste", "PAKSAN'ın attığı adımlar", "PAKSAN'da".
+   "PAKSAN'a Devret", "PAKSAN'ın attığı adımlar", "PAKSAN'da".
    Adı sabit yazmak yerine değişkene almak yetmiyor — Türkçede ek, adın
    son ünlüsüne ve son harfine göre değişiyor:
 

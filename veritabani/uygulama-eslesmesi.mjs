@@ -99,6 +99,10 @@ export const ANAHTARLAR = {
     depo: 'yerel', tur: 'kayit', ne: 'Servisin teslimat adresi defteri',
     bosluk: yok('servis.TeslimatAdresi tablosu henüz yok', `${EKLER} §2`),
   },
+  servisKabulleri: {
+    depo: 'yerel', tur: 'kayit', ne: 'Servisim ilk girişte gizlilik metinlerinin kabulü (29.09.2026, lib/servisGizlilik.js)',
+    bosluk: yok('kvkk.RizaOlayi yalnız müşteri hesabına bağlı; servis girişi için kolon ve metin kodları yok', `${EKLER} §13`),
+  },
 
   // Oturumlar
   user: { depo: 'oturum', tur: 'oturum', ne: 'Connect oturumu — hesabın kopyası', alanlarAyniDir: 'hesap' },
@@ -118,12 +122,14 @@ export const ANAHTARLAR = {
   servisHatirla: { depo: 'yerel', tur: 'cihaz', ne: 'Servisim "beni hatırla"' },
   chats: { depo: 'yerel', tur: 'cihaz', ne: 'Destek sohbetinin cihazdaki metni (sunucuda yalnız olaylar tutulur)' },
   rehberIsaret: { depo: 'yerel', tur: 'cihaz', ne: 'Kılavuzda nerede kalındığı' },
+  kilavuzListesi: { depo: 'yerel', tur: 'cihaz', ne: 'Sunucudaki kullanım kılavuzu listesinin son kopyası (29.09.2026): internetsiz açılışta kılavuzun adı ve boyutu. PDF\'lerin kendisi tarayıcının önbelleğinde (Cache API), depoda değil' },
   yayinlananBildirimler: { depo: 'yerel', tur: 'cihaz', ne: 'Telefonda yerel bildirim olarak gösterilmiş duyurular' },
 
   // Demo
   demoMusteriler: { depo: 'yerel', tur: 'demo', ne: 'Backoffice demo müşterileri (örnek veri: veritabani/ornek)' },
   demoTalepler: { depo: 'yerel', tur: 'demo', ne: 'Backoffice demo talepleri' },
   demoSurumu: { depo: 'yerel', tur: 'demo', ne: 'Servisim demo kurulumunun sürümü' },
+  demoAyarYedegi: { depo: 'yerel', tur: 'demo', ne: 'Servisim demo sahnesinin değiştirdiği ücret ve indirim ayarlarının önceki hâli (29.09.2026, backoffice/demoSahne.js); demo temizlenince ayar geri konur' },
 }
 
 /* Depo dışında tutulanlar — denetim görmez, kayıt için burada. */
@@ -454,6 +460,15 @@ export const ALANLAR = {
   'hesap.onaylar.kampanya': sutun('kvkk.RizaOlayi.SecimKodu'),
   'hesap.onaylar.surum': sutun('kvkk.RizaOlayi.Surum'),
   'hesap.onaylar.tarih': sutun('kvkk.RizaOlayi.OlusmaZamani'),
+  // Her karar ayrı satır (lib/rizaKaydi.js, 29.09.2026) — kvkk.RizaOlayi'nin kendisi
+  'hesap.onaylar.olaylar[].metin': sutun('kvkk.RizaOlayi.MetinKodu'),
+  'hesap.onaylar.olaylar[].secim': sutun('kvkk.RizaOlayi.SecimKodu', 'onay | ret | geriCekme (kod.RizaSecimi)'),
+  'hesap.onaylar.olaylar[].surum': sutun('kvkk.RizaOlayi.Surum'),
+  'hesap.onaylar.olaylar[].dil': sutun('kvkk.RizaOlayi.DilKodu'),
+  'hesap.onaylar.olaylar[].kanal': sutun('kvkk.RizaOlayi.KanalKodu', 'connectKayit | connectProfil | connectGuncelleme (kod.RizaKanali)'),
+  'hesap.onaylar.olaylar[].tarih': sutun('kvkk.RizaOlayi.IstemciOlusmaZamani', 'sunucu saati OlusmaZamani\'nda'),
+  'hesap.onaylar.olaylar[].uygulamaSurumu': sutun('kvkk.RizaOlayi.UygulamaSurumu'),
+  'hesap.onaylar.kampanyaTarih': turer('kvkk.RizaOlayi.OlusmaZamani', 'kampanya metninin (ticariIleti) son olayının zamanı; kvkk.GuncelRiza'),
   'hesap.no': sutun(MUSTERI_NO, NUMARA_KARARI),
 
   // ------------------------------------------------ Numara değişikliği
@@ -571,6 +586,8 @@ export const ALANLAR = {
   'duyurular[].olay': sutun('bildirim.Bildirim.MetinAnahtari', 'olay kodu; yazısı Servisim\'in sözlüğünde (servis/talepBildirimleri.js)'),
 
   'okunanBildirimlerServis[]': sutun('bildirim.Teslimat.OkunmaZamani', 'okunan bildirimin kimliği; okunma anı sunucuda yazılır'),
+  /* 29.09.2026: AK-34 demonun sahnesini kurunca ilk kez yazıldı (sahne bir uyarıyı "Anladım" denmiş kuruyor). */
+  'gorulenDuyurularServis[]': sutun('bildirim.Teslimat.KabulZamani', 'Servisim\'de "Anladım" denen duyurunun kimliği; an sunucuda yazılır'),
 
   // ------------------------------------------------------- Servis cari
   'cariHareket[].id': sutun('hakedis.ServisHesapHareketi.Kimlik'),
@@ -783,6 +800,7 @@ export const ISLEVLER = {
   gorunenDurum: 'hesap', gecmisDurumu: 'hesap',
   talepleriGetir: 'okuma', talepDurumDegistir: 'yazma', talebiBayiyeAta: 'yazma',
   durumGecisiEngeli: { tur: 'hesap', not: 'fiyat teklifinin durum kapıları; sunucu aynı kuralı uygulamalı' },
+  paksanRandevuEngeli: { tur: 'hesap', not: 'PAKSAN servis talebine yalnız devredilmişse (devir + sahip paksan) randevu verebilir; sunucu talepPlanla içinde aynı kuralı denetlemeli (29.09.2026)' },
   durumKilidi: { tur: 'hesap', not: 'kapanmış talebin ve gönderilmiş servis siparişinin durum kilidi; sunucu talepGeriAc iznini aynı kapıda denetlemeli (25.09.2026)' },
   serviseBildir: 'yazma', servisBildirimleri: 'okuma',
   bayiAtamasiniKaldir: 'yazma', talepNotEkle: 'yazma',
@@ -823,6 +841,8 @@ export const ISLEVLER = {
   servisinTalepleri: 'okuma', destekTalepEt: 'yazma', servisKaydiGonder: 'yazma',
   hakkedisDuzelt: 'yazma', hakkedisOnayla: 'yazma', hakkedisReddet: 'yazma',
   servisParcasiGonderildi: 'yazma', servisParcaSiparisi: 'yazma', servisinSiparisleri: 'okuma',
+  /* 29.09.2026: siparişin kaydını kurup denetleyen gövde; yazmıyor (Servisim demosu da kullanıyor). */
+  servisSiparisKaydi: 'hesap',
   kalanParcalariGonder: 'yazma', kalanParcalariIptalEt: 'yazma',
   musteriKargosunuGuncelle: 'yazma',
   siparisHesabi: 'okuma', bakiyeDurumu: 'okuma', servisSiparisiniIptalEt: 'yazma',

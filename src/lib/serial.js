@@ -161,7 +161,10 @@ export function warrantyStatus(year, t) {
   if (kalan === 0) {
     return { state: 'son', label: yaz('garantiSonYil'), tone: 'orange' }
   }
-  return { state: 'bitti', label: yaz('garantiBitti'), tone: 'orange' }
+  /* Süresi dolmuş garanti nötr (29 Eylül 2026, görünüm önerisi C2):
+     "son yılı" ile aynı turuncudaydı; biri dikkat, öteki yalnız bilgi.
+     Tonu yalnız Connect okuyor (badge--gri, makine-garanti--gri). */
+  return { state: 'bitti', label: yaz('garantiBitti'), tone: 'gri' }
 }
 
 /** Demo/test için örnek seri numaraları */

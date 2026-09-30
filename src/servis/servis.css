@@ -298,9 +298,10 @@
 
 .plan__ust {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--bosluk-3);
+  gap: var(--bosluk-1) var(--bosluk-3);
   margin-bottom: var(--bosluk-3);
 }
 
@@ -319,11 +320,13 @@
   color: var(--mavi-rz);
 }
 
+/* Tek satıra zorlanmıyor (29 Eylül 2026, O1): telefonda yazı iki kat
+   büyütülünce "7 günde 2 randevu" ekranın 122 piksel dışına taşıyordu
+   (ölçüldü). Yer kalmazsa başlığın altına iniyor. */
 .plan__toplam {
   font-size: var(--y-alt);
   font-weight: 600;
   color: var(--murekkep-3);
-  white-space: nowrap;
 }
 
 /* DOKUNMA ALANI SÜTUNUN TAMAMI (QA ölçümü): kutular arasında 6
@@ -337,15 +340,17 @@
   margin: 0 calc(var(--bosluk-2) * -1);
 }
 
+/* 66 → 56 piksel (29 Eylül 2026, S1): iş listesi ilk ekrana sığsın.
+   Dokunma alanı yine 48'in üstünde. */
 .plan__gun {
   position: relative;
   isolation: isolate;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  min-height: 66px;
-  padding: 8px 0 7px;
+  gap: 1px;
+  min-height: 56px;
+  padding: 6px 0 5px;
   border: 0;
   border-radius: var(--r-sm);
   background: transparent;
@@ -370,7 +375,7 @@
 }
 
 .plan__gun-ad {
-  font-size: var(--y-mini);
+  font-size: 13px;
   font-weight: 600;
   color: var(--murekkep-3);
 }
@@ -474,7 +479,7 @@
 
 .plan__gecti {
   margin-top: 2px;
-  font-size: var(--y-mini);
+  font-size: 13px;
   font-weight: 700;
 }
 
@@ -605,7 +610,7 @@
 }
 
 .acil__tur {
-  font-size: var(--y-mini);
+  font-size: 12.5px;
   font-weight: 800;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -618,8 +623,10 @@
   line-height: 1.3;
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+  /* 2 → 3 satır (29 Eylül 2026, O1): güvenlik uyarısının başlığı %130
+     yazıda kesiliyordu ("serisi düğüm..."). */
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
   overflow: hidden;
 }
 
@@ -628,7 +635,7 @@
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  font-size: 13px;
+  font-size: var(--y-alt);
   font-weight: 700;
   color: var(--mavi-rz);
   white-space: nowrap;
@@ -702,10 +709,12 @@
   margin-right: 4px;
 }
 
+/* Kesilmiyor, sarıyor (29 Eylül 2026, O1): büyütülen yazıda
+   "Tamamlanan" üç noktayla kesiliyor ya da taşıyordu. */
 .is-sekme__ad {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-align: center;
 }
 
 .is-sekme__sayi {
@@ -718,7 +727,7 @@
   border-radius: var(--r-tam);
   background: var(--yuzey-2);
   color: var(--murekkep-2);
-  font-size: 11.5px;
+  font-size: 12.5px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
@@ -734,8 +743,11 @@
   box-shadow: var(--sh-mavi);
 }
 
+/* Seçili sekmenin sayısı koyu bir hapta (29 Eylül 2026, son denetim):
+   beyaz hap karanlık temada mavinin üstünde açılıyor ve beyaz rakam
+   4,0'da kalıyordu. Şimdi aydınlıkta 10,5, karanlıkta 7'nin üstünde. */
 .is-sekme--on .is-sekme__sayi {
-  background: rgba(255, 255, 255, 0.24);
+  background: rgba(10, 26, 51, 0.28);
   color: #fff;
 }
 
@@ -743,13 +755,13 @@
    sekmenin adı kesilmeden sığsın (360 ve 320 piksel ölçüldü). */
 @media (max-width: 370px) {
   .is-sekme {
-    font-size: 13.5px;
+    font-size: 14px;
   }
 }
 
 @media (max-width: 340px) {
   .is-sekme {
-    font-size: 12.5px;
+    font-size: 13px;
   }
 }
 
@@ -808,14 +820,16 @@
   font-size: var(--y-kart);
   font-weight: 800;
   letter-spacing: -0.01em;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .iskart__zaman {
   flex: none;
-  font-size: 13px;
+  font-size: var(--y-alt);
   font-weight: 600;
   color: var(--murekkep-3);
 }
@@ -825,12 +839,17 @@
   font-weight: 700;
 }
 
+/* Tek satır yerine en çok iki satır (29 Eylül 2026, O1): makine adı ve
+   köy tek satırda üç noktayla kesiliyordu; büyütülen yazıda satırın
+   yarısı kayboluyordu. */
 .iskart__makine,
 .iskart__ozet {
   font-size: var(--y-alt);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .iskart__makine {
@@ -873,7 +892,7 @@
   border-radius: var(--r-tam);
   background: var(--yuzey-2);
   color: var(--murekkep-2);
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -1076,10 +1095,11 @@
   overflow: hidden;
 }
 
-/* Üst çubuktaki Bildirimler düğmesi: zil ve yazı yan yana (servis
-   ekranında simge tek başına anlam taşımıyor), okunmamış varsa sayısı.
-   Hesap dairesiyle aynı beyaz kart, aynı gölge ve yükseklik; basılabilir
-   alan 48 piksel (dış düğme), görünen hap 44. */
+/* Üst çubuktaki Bildirimler düğmesi: yalnız zil (28 Eylül 2026,
+   kullanıcının isteği; önce zil ve yazı yan yanaydı), okunmamış varsa
+   sayısı dairenin sağ üst köşesinde. Hesap dairesiyle aynı beyaz daire,
+   aynı gölge ve ölçü; basılabilir alan 48 piksel (dış düğme), görünen
+   daire 44. */
 .uyg__bildirim {
   flex: none;
   display: inline-flex;
@@ -1093,11 +1113,12 @@
 }
 
 .uyg__bildirim-ic {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  width: 44px;
   height: 44px;
-  padding: 0 14px;
   border-radius: var(--r-tam);
   background: var(--yuzey);
   box-shadow: var(--sh-1);
@@ -1111,6 +1132,9 @@
 }
 
 .uyg__bildirim-sayi {
+  position: absolute;
+  top: -4px;
+  right: -6px;
   min-width: 20px;
   height: 20px;
   padding: 0 6px;
@@ -1211,9 +1235,11 @@
   font-size: var(--yazi-3);
   font-weight: 800;
   letter-spacing: -0.01em;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .is__bas .tur {
@@ -1430,15 +1456,33 @@
   color: var(--yesil);
 }
 
-/* Turuncu = "dikkat et, ama iş durmuyor". Kayıtlı olmayan müşteri
-   uyarısı bunu kullanıyor: talep yine açılıyor, servisten yalnız bir
-   şey söylemesi isteniyor. */
-.not--turuncu {
-  border-left: 4px solid var(--turuncu);
+/* DÖRT TON, DÖRT ANLAM (29 Eylül 2026, görünüm önerisi S5). Tek bir
+   açık turuncu kutu dört ayrı şey söylüyordu: bilgi, bekleme, para
+   riski ve hata. Servis hangisinin parasını etkilediğini ayırt
+   edemiyordu; turuncu aynı zamanda ana düğmenin rengi.
+
+     mavi  bilgi         (randevu verildi, müşteri uygulamada kayıtlı değil)
+     gri   bekleme       (parça hazırlanıyor, onay bekleniyor, iptal edildi)
+     yeşil tamam         (tamamlandı, parça yola çıktı)
+     sarı  dikkat        YALNIZ para, makinenin sahipliği ya da işlemin
+                         yapılamadığı durum; üçgen simgeli
+
+   Renk tek başına anlam taşımıyor: her notun simgesi ve kalın başlığı
+   var. */
+.not--sari {
+  border-left: 4px solid var(--sari);
 }
 
-.not--turuncu > svg {
-  color: var(--turuncu);
+.not--sari > svg {
+  color: var(--sari-ikon, var(--sari));
+}
+
+.not--gri {
+  border-left: 4px solid var(--murekkep-3);
+}
+
+.not--gri > svg {
+  color: var(--murekkep-2);
 }
 
 /* ---------------------------------------------------- Makine seçimi
@@ -1649,6 +1693,36 @@
 .kimlik__alt {
   font-size: var(--yazi-2);
   color: var(--murekkep-2);
+}
+
+/* Hesabım kartının Görünüm satırı (30 Eylül 2026). Satır Gizlilik ve
+   İzinler satırının kalıbında (.sgizlilik__satir); telefonun yazısı
+   büyütülünce Açık/Koyu düğmeleri adın yanına sığmazsa alt satıra
+   iniyor, sıkışıp taşmıyor. Satırın kendisi dokunulabilir değil;
+   dokunma hedefi düğmelerin kendisi (en az 44 piksel). Ad kutusunun
+   genişliği yazının kendisi (flex-basis auto): kalıptaki `flex: 1`
+   0'dan başlıyor, satır hiç kırılmıyor ve %200 yazıda "Görünüm"
+   kesiliyordu. */
+.hesabim__gorunum {
+  flex-wrap: wrap;
+}
+
+.hesabim__gorunum > .sgizlilik__govde {
+  flex: 1 1 auto;
+}
+
+/* Şifremi Değiştir satırının oku: form açıkken aşağı döner. */
+.uyg [data-hesabim-satir='sifre'] > svg:last-child {
+  transition: transform 0.15s ease;
+}
+
+/* Çıkış Yap, Connect'in Profil'indeki gibi kırmızı yazılı düğme (30 Eylül
+   2026, kullanıcının isteği). Zemin ve kenar düğmenin kendi hâlinde;
+   kırmızı tek başına değil, yazısı "Çıkış Yap" diyor. */
+/* `.uyg .dg:not(.dg--ana)` rengi eziyor; iki sınıf ve sözde sınıfla
+   yazılıyor (bkz. .dg--mavi notu). */
+.uyg .dg.dg--cikis:not(.dg--ana) {
+  color: var(--kirmizi);
 }
 
 /* --------------------------------------------------------------- Stok
@@ -2046,7 +2120,7 @@
 .sgiris__ustsatir {
   display: block;
   margin-bottom: 12px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.22em;
   color: rgba(255, 255, 255, 0.9);
@@ -2271,7 +2345,7 @@
 /* Dipteki silik satır — Connect'teki sürüm satırıyla aynı. */
 .sgiris__dip {
   margin: 16px 0 0;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.5;
   letter-spacing: 0.02em;
   color: rgba(255, 255, 255, 0.66);
@@ -2480,7 +2554,7 @@
 }
 
 .urun__alt {
-  font-size: var(--yazi-1);
+  font-size: 13.5px;
   color: var(--murekkep-2);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2592,7 +2666,7 @@
 .urun-kart__dip {
   padding-top: var(--bosluk-3);
   border-top: 1px solid var(--cizgi);
-  font-size: var(--yazi-1);
+  font-size: 13px;
   color: var(--murekkep-2);
 }
 
@@ -2622,46 +2696,168 @@
   background: var(--yuzey);
 }
 
-.ozet-kalem {
+/* SİPARİŞ ÖZETİNİN PARÇA SATIRLARI VE TUTAR KUTUSU (30 Eylül 2026,
+   kullanıcının isteği: "Servisim checkout ekranında parçaları paylaştığım
+   ekran görüntüsündeki gibi görmek istiyorum"). Ekran görüntüsü
+   Connect'in "Talebiniz" kartıydı; satır ve kutu artık ortak bileşen
+   (components/ParcaOzeti.jsx). Sınıf adları Connect'in styles.css'iyle
+   aynı (`.parca-ozet*`, `.tutar-kutu*`), değerler Servisim'in ölçüleri.
+   Resimsiz eski satırın (`.ozet-kalem`) yerini aldı.
+
+   Satırın altında tam genişlikte işlem sırası: solda eksi-sayı-artı,
+   sağda yazılı "Kaldır". Resmin yanına sığdırılmadı: 360 piksellik
+   ekranda resim, ad, tutar ve üç düğme yan yana ada yer bırakmıyor.
+   Satırlar arasındaki çizgi hangi düğmenin hangi parçaya ait olduğunu
+   ayırıyor; Connect'in salt okunur kartında çizgi yok. */
+.siparis-parcalar {
+  padding: var(--bosluk-1) var(--bosluk-4) var(--bosluk-4);
+}
+
+.parca-ozet {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--bosluk-2) var(--bosluk-3);
+  padding: var(--bosluk-3) 0;
+}
+
+.parca-ozet + .parca-ozet {
+  border-top: 1px solid var(--cizgi);
+}
+
+.parca-ozet__sol {
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: var(--bosluk-3);
-  padding: var(--bosluk-3) 0;
-  border-bottom: 1px solid var(--cizgi);
+  text-align: left;
 }
 
-.ozet-kalem:last-child {
-  border-bottom: 0;
-}
-
-.ozet-kalem__ad {
-  flex: 1;
+.parca-ozet__metin {
   min-width: 0;
-  font-size: var(--yazi-2);
+  font-size: var(--y-govde);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
-.ozet-kalem__tutar {
+/* "kod · × adet": yardımcı satır, 14 pikselin altına inmiyor. */
+.parca-ozet__alt {
+  display: block;
+  margin-top: 3px;
+  font-size: var(--y-alt);
+  color: var(--murekkep-2);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+/* Tutar kırılmıyor; sıkışan taraf parçanın adı. */
+.parca-ozet__tutar {
   flex: none;
+  white-space: nowrap;
+  text-align: right;
+  font-size: var(--y-govde);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--murekkep);
+}
+
+.parca-ozet__islem {
+  flex: 1 1 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--bosluk-2);
+}
+
+/* Seçim kartındaki eksi-artının aynısı (`.stok-dus`, parmak boyu). */
+.parca-ozet__adet {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-1);
+}
+
+.parca-ozet__sayi {
+  min-width: 36px;
+  text-align: center;
+  font-size: var(--yazi-4);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
 
-.ozet-kalem__sil {
+/* Çöp kutusu yazısıyla (29 Eylül 2026, S8): simge tek başına anlam
+   taşımıyor. Sağ kenara yaslı; dokunma alanı yazıdan geniş. */
+.parca-ozet__kaldir {
   flex: none;
-  display: grid;
-  place-items: center;
-  width: var(--dokunma);
-  height: var(--dokunma);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--dokunma);
+  margin-left: auto;
   margin-right: calc(var(--bosluk-3) * -1);
+  padding: 0 var(--bosluk-3);
   border: 0;
   border-radius: var(--r-2);
   background: transparent;
   color: var(--kirmizi);
+  font: inherit;
+  font-size: var(--y-alt);
+  font-weight: 700;
   cursor: pointer;
 }
 
-.ozet-kalem__sil:active {
+.parca-ozet__kaldir:active {
   background: var(--kirmizi-z);
+}
+
+/* Tutar kutusu: Connect'teki gibi soluk satırlar, altta çizgiyle ayrılmış
+   kalın toplam. İndirim satırında düşülen tutar yeşil (bkz.
+   `.urun-kart__satir--indirim`, sipariş ayrıntısı aynı dili konuşuyor). */
+.tutar-kutu {
+  margin-top: var(--bosluk-2);
+  padding: var(--bosluk-3) var(--bosluk-4);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--r-sm);
+  background: var(--yuzey-2);
+}
+
+.tutar-kutu__satir {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--bosluk-3);
+  padding: var(--bosluk-1) 0;
+  font-size: var(--y-alt);
+  color: var(--murekkep-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.tutar-kutu__satir > span:last-child {
+  flex: none;
+  white-space: nowrap;
+}
+
+.tutar-kutu__satir--indirim > span:last-child {
+  color: var(--yesil);
+  font-weight: 700;
+}
+
+.tutar-kutu__satir--toplam {
+  margin-top: var(--bosluk-2);
+  padding-top: 10px;
+  border-top: 1px solid var(--cizgi-koyu);
+  font-size: var(--y-kart);
+  font-weight: 800;
+  color: var(--murekkep);
+}
+
+.siparis-parcalar__not {
+  margin: var(--bosluk-3) 0 0;
+  font-size: var(--y-alt);
+  line-height: 1.5;
+  color: var(--murekkep-2);
 }
 
 /* Seçilen satır listede işaretli kalıyor: yirmi satır arasında hangi
@@ -2919,6 +3115,43 @@
   padding-right: var(--bosluk-2);
 }
 
+/* Servis kaydında seçilen parça iki satır (29 Eylül 2026, S9): üstte
+   parçanın adı ve kodu tam genişlikte, altta adet düğmeleri ve sağda
+   yazılı "Kaldır". Yan yana dört düğme adı 120 piksele eziyordu. */
+.parca-satir--iki {
+  flex-wrap: wrap;
+}
+
+.parca-satir--iki .parca-satir__ac {
+  flex: 1 1 100%;
+}
+
+.parca-satir--iki .parca-satir__adet {
+  flex: 1 1 100%;
+  padding: 0 var(--bosluk-2) var(--bosluk-2);
+}
+
+.parca-satir__kaldir {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--dokunma);
+  margin-left: auto;
+  padding: 0 var(--bosluk-3);
+  border: 0;
+  border-radius: var(--r-2);
+  background: transparent;
+  color: var(--kirmizi);
+  font: inherit;
+  font-size: var(--y-alt);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.parca-satir__kaldir:active {
+  background: var(--kirmizi-z);
+}
+
 .parca-satir__sayi {
   min-width: 32px;
   text-align: center;
@@ -3018,7 +3251,7 @@
   flex: none;
   width: 100%;
   margin-top: -4px;
-  font-size: var(--yazi-1);
+  font-size: 13.5px;
   font-weight: 400;
   color: var(--murekkep-2);
   text-align: right;
@@ -3109,7 +3342,7 @@
   border-radius: var(--r-tam);
   background: var(--yesil-z);
   color: var(--yesil);
-  font-size: var(--yazi-1);
+  font-size: 13px;
   font-weight: 700;
 }
 
@@ -3130,7 +3363,7 @@
 
 .sebep__satir > span {
   display: block;
-  font-size: var(--yazi-1);
+  font-size: 13px;
   font-weight: 700;
   color: var(--murekkep-2);
   text-transform: uppercase;
@@ -3146,7 +3379,7 @@
   border-radius: var(--r-2);
   background: var(--mavi-z);
   color: var(--mavi-rz);
-  font-size: var(--yazi-1);
+  font-size: 13px;
   font-weight: 700;
 }
 
@@ -3191,7 +3424,7 @@
   border-radius: var(--r-tam);
   background: var(--mavi-z);
   color: var(--mavi-rz);
-  font-size: var(--yazi-1);
+  font-size: 13px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   text-align: center;
@@ -3291,8 +3524,11 @@
   padding: 1px 7px;
   border-radius: var(--r-tam);
   background: var(--mavi-z);
-  color: var(--mavi);
-  font-size: var(--yazi-1);
+  /* `--mavi` DEĞİL `--mavi-rz` (29 Eylül 2026): karanlıkta `--mavi`
+     koyu kalıyor ve sayı kendi zemininde 1,80'e düşüyordu (ölçüldü) —
+     "Duyurular 2" okunmuyordu. Yazı hâli iki temada da okunur. */
+  color: var(--mavi-rz);
+  font-size: 13px;
   font-weight: 800;
   text-align: center;
 }
@@ -3416,7 +3652,15 @@
   --yuzey-2: #f5f7fb;
   --cizgi: #e6eaf2;
   --cizgi-koyu: #d6dde9;
-  --murekkep-3: #646f82;
+  /* İKİNCİL VE ÜÇÜNCÜL YAZI 7:1'İN ÜSTÜNDE (29 Eylül 2026, görünüm
+     önerisi O1). Ürün belgesinin hedefi 7:1 (PRODUCT.md); ölçümde
+     yazıların %44'ü altında kalıyordu, en sık görülen #55617a beyaz
+     üstünde 6,22. Değerler Connect'le aynı (styles.css → --ink-2/-3):
+     #414c62 beyaz 8,62 · --zemin 7,82; #465269 beyaz 7,86 · --zemin
+     7,13. Yalnız `.uyg` altında: backoffice'in masa başı paneli kendi
+     değerinde kalıyor. */
+  --murekkep-2: #414c62;
+  --murekkep-3: #465269;
 
   /* KONTROL KENARI — dokunulan şeyin sınırı.
 
@@ -3448,7 +3692,9 @@
      yabancı dururdu. */
   --cizgi-kontrol: #7d8ca8;
 
-  --y-baslik: 30px; /* ekran başlığı — Connect'teki "Merhaba …" */
+  /* 30 → 26 (29 Eylül 2026, görünüm önerisi S1): İşlerim açıldığında
+     tek bir iş görünmüyordu; başlık hâlâ ekranın en büyük yazısı. */
+  --y-baslik: 26px; /* ekran başlığı */
   --y-bolum: 20px;  /* bölüm başlığı */
   --y-kart: 17px;   /* kart başlığı, listedeki müşteri adı */
   --y-govde: 16px;  /* gövde, düğme, giriş kutusu */
@@ -3472,6 +3718,13 @@
   --turuncu-soft: rgba(232, 100, 26, 0.12);
   --mavi-soft: rgba(24, 72, 168, 0.08);
   --mavi-soft-2: rgba(24, 72, 168, 0.14);
+  /* DİKKAT VE BEKLEME NOTLARI (29 Eylül 2026, S5; bkz. "Not"). Ölçüldü,
+     --zemin üstünde: sarı zemin #eee8d1 · simge #7a5a00 5,20 · ikincil
+     yazı 7,02; gri zemin · ikincil yazı 7,0. Sarının simgesi --sari'nin
+     (#c79a08) koyusu: kendisi açık zeminde 3'ün altında kalıyor. */
+  --sari-soft: rgba(224, 168, 0, 0.14);
+  --sari-ikon: #7a5a00;
+  --gri-soft: rgba(65, 76, 98, 0.07);
   --nav-zemin: var(--lacivert);
   --nav-kenar: rgba(255, 255, 255, 0.06);
   --nav-secili: var(--marka-turuncu-dugme);
@@ -3500,10 +3753,18 @@
   /* Karanlık karşılık. Aynı ton ve doygunluk, koyu yüzeyde ölçülmüş:
      --yuzey 3,17 · --yuzey-2 3,16 · --zemin 3,52. */
   --cizgi-kontrol: #5d6e8c;
-  --murekkep-3: #9aa6b8;
+  /* 29 Eylül 2026 (O1): Connect'in karanlık değerleri; kart yüzeyinde
+     8,65 ve 7,67. */
+  --murekkep-2: #b3bdd0;
+  --murekkep-3: #a8b2c6;
   --turuncu-soft: rgba(232, 100, 26, 0.18);
   --mavi-soft: rgba(96, 140, 230, 0.14);
   --mavi-soft-2: rgba(96, 140, 230, 0.22);
+  /* Kart yüzeyinde sarı simge 7,06, ikincil yazı 6,38; zeminde 8,04 ve
+     7,26. Gri notta ikincil yazı 7,08. */
+  --sari-soft: rgba(232, 195, 60, 0.14);
+  --sari-ikon: #e8c33c;
+  --gri-soft: rgba(168, 178, 198, 0.1);
   --sh-1: 0 1px 2px rgba(0, 0, 0, 0.3);
   --sh-2: 0 4px 12px rgba(0, 0, 0, 0.38);
   --sh-3: 0 12px 32px rgba(0, 0, 0, 0.5);
@@ -3962,7 +4223,7 @@
   padding: var(--bosluk-1) var(--bosluk-3);
   border-radius: 999px;
   border: 0;
-  font-size: var(--y-mini);
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0;
   text-transform: none;
@@ -4037,7 +4298,7 @@
    Mavi düğme beyaz çerçeveli düğme olarak çizilirdi. Gerekiyorsa
    `.uyg .dg.dg--mavi` olarak yeniden yazılır. */
 
-/* Detaydaki eylem satırları (Randevu, Not Ekle, Destek İste) —
+/* Detaydaki eylem satırları (Randevu, Not Ekle, PAKSAN'a Devret) —
    Connect'in .tile'ı: beyaz kart, 24px köşe, ok sağda. */
 .uyg .secenek {
   border: 0;
@@ -4402,7 +4663,8 @@
 }
 
 .uyg .not--yesil { background: rgba(26, 131, 72, 0.12); }
-.uyg .not--turuncu { background: var(--turuncu-soft); }
+.uyg .not--sari { background: var(--sari-soft); }
+.uyg .not--gri { background: var(--gri-soft); }
 .uyg .not--mavi { background: var(--mavi-soft); }
 
 /* Notun içindeki zorunlu "Anladım" düğmesi (ElleKayit.jsx → başkasının
@@ -4423,7 +4685,8 @@
 }
 
 /* Nottaki telefon numarası (dokununca aranıyor). Tarayıcının mavisi
-   karanlık temada turuncu notun zemininde okunmuyordu; yazı rengi,
+   karanlık temada dikkat notunun (önce turuncu, şimdi sarı) zemininde
+   okunmuyordu; yazı rengi,
    kalınlık ve alt çizgi bağlantı olduğunu iki temada da söylüyor. */
 .uyg .not__tel {
   color: var(--murekkep);
@@ -4671,7 +4934,7 @@ button.hareket:active {
 }
 
 .uyg .duyuru__tur {
-  font-size: var(--y-mini);
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.02em;
 }
@@ -4760,6 +5023,18 @@ button.hareket:active {
 .uyg .tema-secici__dg {
   min-height: 44px;
   padding: 0 16px;
+}
+
+/* Karanlıkta seçili tema düğmesi (30 Eylül 2026, Hesabım gözden
+   geçirmesi). Seçili düğmenin zemini (--yuzey) ile seçicinin zemini
+   (--yuzey-2) karanlıkta neredeyse aynı renkti (ölçüldü: #161f36 ve
+   #172033); hangi temanın seçili olduğu yalnız yazının kalınlığından
+   okunuyordu. Servisim'in çip dili (.cip--on): dolu zemin, beyaz yazı.
+   Yalnız .uyg altında, backoffice'in seçicisi değişmiyor. Açık temada
+   beyaz düğme gri zeminde zaten seçili okunuyor. */
+[data-tema='koyu'] .uyg .tema-secici__dg--on {
+  background: var(--dolgu);
+  color: #fff;
 }
 
 /* ------------------------------------------ Alt sayfada yapışık düğme
@@ -4959,15 +5234,21 @@ button.hareket:active {
   font-weight: 700;
 }
 
+/* "Ara" yazılı, İşlerim'deki arama düğmesiyle aynı hap (29 Eylül 2026,
+   S9): yalnız telefon simgesi olan yuvarlaktı. */
 .calisilan__ara {
   flex: none;
-  display: grid;
-  place-items: center;
-  width: var(--dokunma);
-  height: var(--dokunma);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--dokunma);
+  padding: 0 16px;
   border-radius: var(--r-tam);
   background: var(--mavi-z);
   color: var(--mavi-rz);
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
 }
 
 /* Kapalı seçenek. Soluk ama okunur: yanındaki açıklama neden kapalı
@@ -5139,9 +5420,40 @@ button.hareket:active {
   object-fit: contain;
 }
 
+/* Kutu her temada beyaz: yazı da her temada koyu (29 Eylül 2026, son
+   denetim — karanlıkta açık gri yazı beyaz kutuda 2,1'di). Connect'teki
+   karşılığıyla aynı değer; beyazda 7,86. */
 .parca-kart__resimsiz {
-  font-size: var(--y-mini);
-  color: var(--murekkep-3);
+  font-size: 13px;
+  color: #465269;
+}
+
+/* Seçilmemiş kartta aynı köşede "Ekle" (29 Eylül 2026, S8; gerekçesi
+   components/ParcaKarti.jsx). Beyaz resmin üstünde çerçeveli hap:
+   seçili kartın dolu mavi işaretinden ayrı duruyor. */
+.parca-kart__ekle {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-height: 26px;
+  padding: 0 9px 0 6px;
+  border-radius: var(--r-tam);
+  background: #fff;
+  box-shadow: inset 0 0 0 1.5px var(--mavi-rz);
+  color: var(--mavi-rz);
+  font-size: var(--y-alt);
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Resmin zemini her temada beyaz; hap da beyaz kaldığı için yazısı
+   aydınlık temanın mavisinde kalmalı (karanlıkta --mavi-rz açılıyor). */
+[data-tema='koyu'] .uyg .parca-kart__ekle {
+  color: #1848a8;
+  box-shadow: inset 0 0 0 1.5px #1848a8;
 }
 
 /* Seçili işareti köşede: renk tek başına anlam taşımıyor. */
@@ -5159,7 +5471,7 @@ button.hareket:active {
 }
 
 .parca-kart__kod {
-  font-size: var(--y-mini);
+  font-size: 13px;
   color: var(--murekkep-3);
 }
 
@@ -5239,7 +5551,7 @@ button.hareket:active {
 .secili-parca__kod {
   display: block;
   margin-top: 2px;
-  font-size: var(--y-mini);
+  font-size: 13px;
   font-weight: 400;
   color: var(--murekkep-3);
 }
@@ -5386,7 +5698,7 @@ button.hareket:active {
   border-radius: var(--r-tam);
   background: var(--mavi-soft-2);
   color: var(--mavi-rz);
-  font-size: var(--y-mini);
+  font-size: 12.5px;
   font-weight: 700;
   letter-spacing: 0;
   white-space: nowrap;
@@ -5734,7 +6046,7 @@ button.hareket:active {
   border-radius: var(--r-tam);
   background: linear-gradient(var(--yesil-z), var(--yesil-z)), var(--yuzey);
   color: var(--yesil);
-  font-size: var(--y-mini);
+  font-size: 12.5px;
   font-weight: 800;
   letter-spacing: 0;
   vertical-align: 2px;
@@ -5748,4 +6060,692 @@ button.hareket:active {
   font-size: var(--y-alt);
   font-weight: 600;
   color: var(--murekkep-3);
+}
+
+/* ==========================================================================
+   Görünüm önerisi (29 Eylül 2026) — geri bildirim, uyarılar
+
+   Kullanıcının onayladığı görünüm önerisinin Servisim parçaları. Her
+   kuralın gerekçesi yanında; bileşenlerin kendi dosyalarında da yazılı.
+   ========================================================================== */
+
+/* Az önce yapılanın özeti (Kabuk.jsx → BasariSeridi, S2). Başlık
+   koyu yazı, alt satır ikincil yazı: yeşil zemin üstünde 14,5 ve 7,4. */
+.basari-serit {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--bosluk-3);
+  padding: var(--bosluk-3) var(--bosluk-4);
+  border-radius: var(--r-3);
+  background: linear-gradient(var(--yesil-z), var(--yesil-z)), var(--yuzey);
+  color: var(--yesil);
+  box-shadow: var(--sh-1);
+  animation: basari-gir 0.25s ease-out;
+}
+
+.basari-serit > svg {
+  flex: none;
+  margin-top: 1px;
+}
+
+.basari-serit__govde {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.basari-serit__govde strong {
+  font-size: var(--y-govde);
+  font-weight: 800;
+  color: var(--murekkep);
+}
+
+.basari-serit__govde span {
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--murekkep-2);
+}
+
+@keyframes basari-gir {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .basari-serit {
+    animation: none;
+  }
+}
+
+/* Eksik alanın işareti (lib/formOdak.js → alanaGit, S2). Connect'teki
+   `.alan-vurgu`nun kardeşi; Servisim o dosyayı yüklemiyor. */
+.uyg .alan-vurgu {
+  border-radius: var(--r-3);
+  animation: servis-alan-vurgu 1.6s ease;
+}
+
+@keyframes servis-alan-vurgu {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+  15%,
+  70% {
+    box-shadow: 0 0 0 4px var(--kirmizi-z);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .uyg .alan-vurgu {
+    animation: none;
+  }
+}
+
+/* Form uyarısı büyük ve okunur (S2). backoffice'in `.uyari`sı masa başı
+   paneli için 13,5 piksel; tarlada, güneşte okunmuyordu. Açık temada
+   #7a3200 turuncu zeminde 7,9 (ölçüldü; #8f3a00 6,5'te kalıyordu). */
+.uyg .uyari {
+  font-size: var(--y-govde);
+  font-weight: 600;
+  line-height: 1.5;
+  color: #7a3200;
+}
+
+[data-tema='koyu'] .uyg .uyari {
+  color: var(--turuncu-d);
+}
+
+/* Kutunun altındaki "doğru mu?" satırı: olağan dışı uzun yol
+   (ServisKapanisi.jsx → KM_UYARI_SINIRI). Engellemiyor, soruyor. */
+.kutu-uyari {
+  margin: calc(var(--bosluk-2) * -1) 0 var(--bosluk-4);
+  padding: var(--bosluk-2) var(--bosluk-3);
+  border-radius: var(--r-2);
+  background: var(--turuncu-z);
+  color: #7a3200;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+[data-tema='koyu'] .kutu-uyari {
+  color: var(--turuncu-d);
+}
+
+/* ==========================================================================
+   Görünüm önerisi (29 Eylül 2026) — önce para, işin sonucu, sipariş
+   ========================================================================== */
+
+/* Para gösteren kartta tutar kartın en büyük yazısı (Kabuk.jsx →
+   ListeKarti `tutar`, S3): Hak Ediş'te onay bekleyen işler, Parça'da
+   siparişler. Tutar ince griydi; servis bu ekranları "ne kadar" diye
+   açıyor. */
+.uyg .is--tutar .is__durum {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--bosluk-3);
+}
+
+.uyg .is--tutar .is__sag {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  color: var(--murekkep);
+  white-space: nowrap;
+}
+
+/* Onay bekleyen işlerde soldaki yaka zaman ("2 gün önce"): mavi ve kalın
+   bağlantı gibi duruyordu, tutarın önüne geçiyordu. Sönük. */
+.bekleyen-toplam ~ .is .is__sol {
+  color: var(--murekkep-2);
+  font-weight: 500;
+}
+
+.bekleyen-toplam strong {
+  font-size: var(--y-govde);
+  font-weight: 800;
+  color: var(--murekkep);
+}
+
+/* Tamamlanan işin sonucu (Islerim.jsx → isinSonucu, S3). Onaylanan iş
+   yeşil ve tutarlı; iptal ve ret nötr, çerçeveli; öteki kapanış sönük. */
+.iskart__etiket--odeme {
+  background: var(--yesil-z);
+  color: var(--yesil);
+}
+
+.iskart__etiket--iptal {
+  background: transparent;
+  color: var(--murekkep-2);
+  box-shadow: inset 0 0 0 1px var(--cizgi-kontrol);
+}
+
+.iskart__etiket--bitti {
+  background: var(--yuzey-2);
+  color: var(--murekkep-2);
+}
+
+/* Seçeneğin altında ne olacağı (TalepDetay.jsx → Garanti Dışı İşi
+   Tamamla, S7). */
+.secenek__govde {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+
+.secenek__alt {
+  font-size: var(--y-alt);
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--murekkep-2);
+}
+
+/* İptal yıkıcı bir iş: kırmızı yazı ve simge, üstünde fazladan boşluk
+   (S7). Kırmızı tek başına değil: yazısı "İptal Et" diyor. */
+.uyg .secenek__dg--iptal {
+  margin-top: var(--bosluk-3);
+  color: var(--kirmizi);
+}
+
+.uyg .secenek__dg--iptal > svg:first-child {
+  color: var(--kirmizi);
+}
+
+/* Servisin kendi siparişinin özeti (TalepDetay.jsx → SiparisOzeti, S3). */
+.siparis-ozeti__durum {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: var(--r-tam);
+  background: var(--mavi-soft);
+  color: var(--mavi-rz);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.siparis-ozeti__durum--iptal {
+  background: transparent;
+  color: var(--murekkep-2);
+  box-shadow: inset 0 0 0 1px var(--cizgi-kontrol);
+}
+
+.siparis-ozeti__toplam {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--bosluk-3);
+  margin-top: var(--bosluk-3);
+  padding-top: var(--bosluk-3);
+  border-top: 1px solid var(--cizgi);
+  font-size: var(--y-govde);
+  font-weight: 700;
+  color: var(--murekkep);
+}
+
+.siparis-ozeti__toplam strong {
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Pencere: alttan açılan yaprak (TalepDetay.jsx → Pencere, S4). Onay
+   yaprağıyla aynı perde ve köşe; içerideki düğmeler tam genişlikte ve
+   alt alta — asıl iş üstte, "Vazgeç" altında. */
+.yaprak-perde {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background: rgba(10, 26, 51, 0.5);
+}
+
+.yaprak-pencere {
+  padding: var(--bosluk-5) var(--bosluk-5)
+    calc(var(--bosluk-5) + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
+  border-radius: var(--r-3) var(--r-3) 0 0;
+  background: var(--yuzey);
+  max-height: 90dvh;
+  overflow: auto;
+}
+
+.yaprak-pencere__baslik {
+  margin: 0 0 var(--bosluk-4);
+  font-size: var(--y-bolum);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--murekkep);
+}
+
+.yaprak-pencere .satir {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--bosluk-2);
+  margin-top: var(--bosluk-4);
+}
+
+.yaprak-pencere .satir .dg {
+  width: 100%;
+  min-height: var(--dokunma-genis);
+  justify-content: center;
+  font-size: var(--y-govde);
+}
+
+.yaprak-pencere .kucuk.sonuk {
+  font-size: 15px;
+  color: var(--murekkep-2);
+}
+
+@media (min-width: 640px) {
+  .yaprak-perde {
+    align-items: center;
+  }
+
+  .yaprak-pencere {
+    width: 100%;
+    max-width: 440px;
+  }
+}
+
+/* Randevunun gün düğmeleri (TalepDetay.jsx → Randevu, S4): İşlerim'deki
+   haftalık şeridin aynı görünüşü. Yedi gün 360 piksellik ekrana sığıyor;
+   her düğme 48 pikselden yüksek. */
+.gun-secici {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: var(--bosluk-4);
+}
+
+.gun-secici__gun {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 60px;
+  padding: 6px 0;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: var(--yuzey-2);
+  color: var(--murekkep);
+  font: inherit;
+  cursor: pointer;
+}
+
+.gun-secici__ad {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--murekkep-2);
+}
+
+.gun-secici__no {
+  font-size: 19px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.gun-secici__gun--on {
+  background: var(--mavi);
+  color: #fff;
+  box-shadow: var(--sh-mavi);
+}
+
+.gun-secici__gun--on .gun-secici__ad {
+  color: #fff;
+}
+
+/* Büyük onay satırı (S4): satırın tamamı dokunulur, kutu 26 piksel. */
+.secim--buyuk {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  min-height: var(--dokunma-genis);
+  margin: var(--bosluk-4) 0 var(--bosluk-2);
+  padding: var(--bosluk-3) var(--bosluk-4);
+  border-radius: var(--r-3);
+  box-shadow: inset 0 0 0 2px var(--cizgi-kontrol);
+  font-size: var(--y-govde);
+  font-weight: 700;
+  color: var(--murekkep);
+  cursor: pointer;
+}
+
+.secim--buyuk input {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  margin: 0;
+  accent-color: var(--mavi);
+}
+
+/* PASİF DÜĞME OKUNUR (29 Eylül 2026, görünüm önerisi S6). "Parçayı
+   Taktım" ve "Devam" basılamazken %45 saydam turuncuydu: beyaz yazı
+   güneşte okunmuyordu ve düğme "bozuk" gibi duruyordu. Şimdi gri, kesik
+   çerçeveli, yazısı okunur: "henüz değil" diyor. Nedeni zaten altında
+   yazılı (.uyg__dip-not). */
+.uyg .dg:disabled {
+  opacity: 1;
+  background: var(--yuzey-2);
+  color: var(--murekkep-2);
+  border: 2px dashed var(--cizgi-kontrol);
+  box-shadow: none;
+}
+
+/* KARANLIKTA BEYAZ LOGO (29 Eylül 2026, S6). Mavi logo lacivert zeminde
+   2,2'de kalıyordu (ölçüldü). logo.jsx'in koyu zemin için önerdiği
+   filtrenin aynısı; logonun kendi satır içi filtresini ezmek için
+   !important. */
+[data-tema='koyu'] .uyg__bar img {
+  filter: brightness(0) invert(1) !important;
+}
+
+/* BİLDİRİMDE DUYURUNUN TÜRÜ (29 Eylül 2026, görünüm önerisi S5).
+   Güvenlik uyarısı, fuar daveti ve yeni ürün haberi Bildirimler
+   listesinde aynı satırdı; tür yalnız soluk alt satırda yazıyordu.
+   Artık başlığın üstünde türün simgesi ve adı, İşlerim'deki duyuru
+   kartlarının renginde. Güvenlik uyarısı ve geri çağırma kırmızı ve
+   kalın: servisten bir şey yapmasını istiyorlar. */
+.talep-haberi__tur {
+  --haber-renk: var(--murekkep-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--y-alt);
+  font-weight: 700;
+  color: var(--haber-renk);
+}
+
+.talep-haberi__tur svg {
+  flex: none;
+}
+
+.talep-haberi__tur--kampanya { --haber-renk: var(--turuncu-d); }
+.talep-haberi__tur--yeniUrun { --haber-renk: var(--mavi-rz); }
+.talep-haberi__tur--etkinlik { --haber-renk: var(--mor); }
+
+.talep-haberi__tur--guvenlik,
+.talep-haberi__tur--geriCagirma {
+  --haber-renk: var(--kirmizi);
+  font-weight: 800;
+}
+
+/* Satırın solunda da türün rengi: okunmuş güvenlik uyarısı da listede
+   ayrı duruyor. */
+.talep-haberi__satir--guvenlik,
+.talep-haberi__satir--geriCagirma {
+  box-shadow: inset 4px 0 0 var(--kirmizi);
+}
+
+/* SİPARİŞİN ALT ÇUBUĞU TEK SATIR (29 Eylül 2026, görünüm önerisi S8;
+   SiparisVer.jsx → Secim). Solda kalem sayısı ve KDV dâhil toplam,
+   sağda "Devam". Büyük yazıda sığmazsa düğme alt satıra iniyor, rakam
+   kesilmiyor. Seçim yokken yalnız düğme var, tam genişlikte. */
+.siparis-dip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--bosluk-2) var(--bosluk-3);
+}
+
+.siparis-dip__hesap {
+  flex: 1 1 150px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.siparis-dip__sayi {
+  font-size: var(--y-alt);
+  font-weight: 600;
+  color: var(--murekkep-2);
+}
+
+.siparis-dip__tutar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 6px;
+}
+
+.siparis-dip__tutar strong {
+  font-size: var(--y-bolum);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--murekkep);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.siparis-dip__tutar small {
+  font-size: var(--y-alt);
+  color: var(--murekkep-2);
+}
+
+.siparis-dip__devam:not(.dg--blok) {
+  flex: 1 0 128px;
+}
+
+/* Kapalı duyurular iş listesinin altında (29 Eylül 2026, görünüm önerisi
+   S1; Islerim.jsx). Son kartla arasında kartlar arası aralık kadar boşluk. */
+.islerim-duyurular {
+  margin-top: var(--bosluk-4);
+}
+
+.islerim-duyurular:empty {
+  display: none;
+}
+
+/* Seçili parçanın onay işareti karanlıkta da koyu mavide (29 Eylül 2026,
+   son denetim): resim kutusu her temada beyaz ve karanlığın açık mavisi
+   üstünde beyaz işaret 2,3'tü. "Ekle" hapıyla aynı mavi. */
+[data-tema='koyu'] .uyg .parca-kart__onay {
+  background: #1848a8;
+}
+
+/* YER TUTUCU KENDİ RENGİNDE (29 Eylül 2026, son denetim). Servisim'in
+   yazı kutuları tarayıcının gri yer tutucusunu kullanıyordu; karanlık
+   temada 3,55'te kalıyordu. Connect'teki kuralla aynı (styles.css →
+   --yer-tutucu): okunur, ama yazılan değerden belirgin açık. Aydınlıkta
+   beyaz kutuda 4,84, karanlıkta 6,21. */
+.uyg .gir::placeholder {
+  color: #687286;
+  opacity: 1;
+}
+
+[data-tema='koyu'] .uyg .gir::placeholder {
+  color: #95a0b4;
+}
+
+/* ------------------------------------------------ Gizlilik (29 Eylül 2026)
+   İlk giriş kapısı ve metin sayfası (ekranlar/Gizlilik.jsx). Yazı boyları Servisim'in alt sınırının
+   (13-14 piksel) üstünde; metin tarlada, ayakta okunuyor. */
+.kapi {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bosluk-3);
+}
+
+.kapi__giris {
+  color: var(--murekkep-2);
+  font-size: var(--y-govde);
+  line-height: 1.55;
+}
+
+.kapi__kart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bosluk-2);
+  padding: var(--bosluk-3);
+}
+
+.kapi__baslik {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-2);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--murekkep);
+}
+
+.kapi__baslik svg {
+  color: var(--mavi-rz);
+  flex: none;
+}
+
+.kapi__ozet {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--murekkep);
+  font-size: var(--y-govde);
+  line-height: 1.5;
+}
+
+.kapi__cikis {
+  margin-top: var(--bosluk-2);
+}
+
+.yasal {
+  color: var(--murekkep);
+  line-height: 1.6;
+}
+
+.yasal__baslik {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: var(--bosluk-3);
+}
+
+.yasal__bolum + .yasal__bolum {
+  margin-top: var(--bosluk-4);
+}
+
+.yasal__alt {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: var(--bosluk-2);
+}
+
+.yasal__p,
+.yasal__liste {
+  font-size: var(--y-govde);
+  color: var(--murekkep-2);
+}
+
+.yasal__p + .yasal__p {
+  margin-top: var(--bosluk-2);
+}
+
+.yasal__liste {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.yasal__surum {
+  margin-top: var(--bosluk-4);
+  padding-top: var(--bosluk-2);
+  border-top: 1px solid var(--cizgi);
+  font-size: 13px;
+  color: var(--murekkep-3);
+}
+
+
+/* --------------------------------- Gizlilik ve İzinler (30 Eylül 2026)
+   Hesap'taki satır ve sayfa (ekranlar/Gizlilik.jsx). Satırın tamamı
+   dokunulabilir, dokunma yüksekliği --dokunma'nın altına inmiyor. */
+.sgizlilik {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bosluk-2);
+}
+
+.sgizlilik__liste {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+
+.sgizlilik__satir {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  width: 100%;
+  min-height: var(--dokunma);
+  padding: var(--bosluk-3);
+  text-align: left;
+  color: var(--murekkep);
+  background: var(--yuzey);
+  border: 0;
+  font: inherit;
+}
+
+button.sgizlilik__satir {
+  cursor: pointer;
+}
+
+.sgizlilik__liste > .sgizlilik__satir + .sgizlilik__satir {
+  border-top: 1px solid var(--cizgi);
+}
+
+.sgizlilik__satir > svg {
+  flex: none;
+  color: var(--murekkep-3);
+}
+
+.sgizlilik__ikon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-2);
+  background: var(--mavi-z);
+  color: var(--mavi-rz);
+}
+
+.sgizlilik__govde {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sgizlilik__ad {
+  font-size: var(--y-govde);
+  font-weight: 700;
+}
+
+.sgizlilik__alt {
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--murekkep-2);
+}
+
+.sgizlilik__izin {
+  flex: none;
+  white-space: nowrap;
 }

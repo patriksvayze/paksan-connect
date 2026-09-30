@@ -2,10 +2,20 @@ import { IKON_YOLLARI } from '../data/ikonYollari'
 /* Adlandırılmış içe aktarma: yalnız kullanılan simgeler derlemeye
    giriyor, kütüphanenin tamamı değil. */
 import {
+  CircleHelp as LucideYardim,
+  Clock as LucideSaat,
+  Forward as LucideDevret,
+  Headset as LucideKulaklik,
+  PenLine as LucideNot,
+  Share2 as LucidePaylas,
   Phone as LucidePhone,
   Tag as LucideTag,
+  Truck as LucideKamyon,
   Undo2 as LucideUndo,
+  Wallet as LucideCuzdan,
 } from 'lucide-react'
+/* Banka hesabı kartının iki simgesi ayrı satırda (aşağıda IconBanka). */
+import { Copy as LucideKopyala, Landmark as LucideBanka } from 'lucide-react'
 
 /* ==========================================================================
    Uygulamanın simgeleri
@@ -214,6 +224,65 @@ export const IconPhone = lucide(LucidePhone, 'telefon')
 export const IconUndo = lucide(LucideUndo, 'geri-al')
 /* Fiyat etiketi — servis fiyat listesi ve kampanya. Sette karşılığı yoktu. */
 export const IconTag = lucide(LucideTag, 'etiket')
+
+/* GÖRÜNÜM ÖNERİSİNİN SİMGELERİ (29 Eylül 2026). Sette karşılıkları
+   yoktu ve bir simge iki işi anlatıyordu; her biri tek bir işe ait:
+
+     IconDestek    Connect'in Destek sekmesi ve "Sorun mu Var?". Sohbet
+                   balonuydu; arıza rehberi bir sohbet değil, "birine
+                   yazmak" gibi okunuyordu. Daire içinde soru işareti
+                   her telefonda "yardım" demek.
+     IconSaat      Beklenen iş: "inceleniyor", "parça hazırlanıyor".
+                   Durumu bekleyen bir işe anahtar simgesi çiziliyordu;
+                   parça talebinde "servis" gibi okunuyordu.
+     IconKamyon    Yola çıkmış parça.
+     IconNot       Servisim'in "Not Ekle"si (kitap simgesiydi).
+     IconKulaklik  Servisim'de devredilmiş işin mavi notu: "PAKSAN bu
+                   talebe destek veriyor". 30 Eylül 2026'ya kadar
+                   "Destek İste" düğmesinindi (ondan önce kalkandı;
+                   kalkan garanti demek).
+     IconCuzdan    Servisim'in "Hak Ediş"i (fiyat etiketiydi; etiket
+                   kampanya demek). */
+export const IconDestek = lucide(LucideYardim, 'yardim')
+export const IconSaat = lucide(LucideSaat, 'bekleme')
+export const IconKamyon = lucide(LucideKamyon, 'yolda')
+export const IconNot = lucide(LucideNot, 'not')
+export const IconKulaklik = lucide(LucideKulaklik, 'destek-veriyor')
+/* SERVİSİM'İN "PAKSAN'A DEVRET"İ (30 Eylül 2026, kullanıcının isteği:
+   "'PAKSAN'dan Destek İste' seçeneği adı 'PAKSAN'a Devret' olmalı.
+   Buna göre de butonun ikonunu düzenle"). Eylem artık yardım istemek
+   değil, işi PAKSAN'a vermek; kulaklık "birini ara, destek al" diyordu.
+   Seçilen Lucide'ın Forward'ı: sağa kıvrılan ok. Servis ustası bu oku
+   her gün WhatsApp'ın "İlet"inden tanıyor: "bunu başkasına geçir".
+   Elenenler: kâğıt uçak Servisim'de zaten "Gönder" (Kayıt Aç'ın
+   düğmesi, IconSend); iki yönlü ok "değiştir" okunuyor; el sıkışma
+   "anlaştık", uzanan el "yardım" demek — eski anlamın kendisi.
+
+   ÇİZİM %15 BÜYÜTÜLDÜ. Ok 24'lük kutunun yalnız 16×11'ini kaplıyor;
+   takvim ve kalem 18×18'ini. Aynı boyda yan yana (Randevu, Not Ekle)
+   bir boy küçük ve soluk duruyordu. Görünüm kutusu 21'e daraltılıp
+   çizimin ortasına alındı; çizgi de aynı oranda inceltildi
+   (1,75 × 21/24 ≈ 1,5), kalınlığı komşularıyla aynı kalsın. */
+export const IconDevret = ({ size = 24, className, style }) => (
+  <LucideDevret
+    size={size}
+    strokeWidth={1.5}
+    viewBox="1.5 2 21 21"
+    className={className}
+    style={style}
+    aria-hidden="true"
+    focusable="false"
+  />
+)
+IconDevret.displayName = 'Lucide(devret)'
+export const IconCuzdan = lucide(LucideCuzdan, 'cuzdan')
+/* Paylaş — kılavuzu uygulamanın dışına gönderir (29 Eylül 2026). */
+export const IconPaylas = lucide(LucidePaylas, 'paylas')
+/* Connect'in banka hesabı kartı (30 Eylül 2026): banka binası kartın
+   başlığında, iki kâğıt IBAN'ı, alıcıyı ve açıklamayı kopyalayan
+   düğmelerde — her zaman yazısıyla birlikte. Sette ikisi de yoktu. */
+export const IconBanka = lucide(LucideBanka, 'banka')
+export const IconKopyala = lucide(LucideKopyala, 'kopyala')
 export const IconMail = simge('zarf')
 export const IconSend = simge('ucak')
 export const IconMic = simge('mikrofon')

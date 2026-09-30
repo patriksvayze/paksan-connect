@@ -35,7 +35,10 @@ export function SifreAlani({
           onChange={(e) => onDegis(e.target.value.replace(/\D/g, '').slice(0, SIFRE_HANE))}
           inputMode="numeric"
           autoComplete={autoComplete}
-          placeholder="••••••"
+          /* Yer tutucu yok (29 Eylül 2026, görünüm önerisi C5): "••••••"
+             kayıtlı bir şifre gibi okunuyordu; çiftçi şifresinin zaten
+             yazılı olduğunu sanıyordu. Kutunun ne olduğunu üstündeki
+             etiket söylüyor. */
           autoFocus={autoFocus}
         />
         <button

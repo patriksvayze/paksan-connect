@@ -97,16 +97,24 @@ export function Hakkedis({ oturum, onAc, surum, onUcretler }) {
 
       {bekleyen.length > 0 && (
         <Bolum ad="Onay Bekleyen" sayi={bekleyen.length}>
-          <p className="ipucu">
-            Toplam {paraYaz(bekleyenToplam)} {PARA_BIRIMI} · {markaEk('in')} servis
-            personeli inceliyor.
+          {/* ÖNCE PARA (29 Eylül 2026, görünüm önerisi S3). Bekleyen
+              toplam gri bir yardım satırıydı; kartlarda en belirgin yazı
+              mavi ve kalın "2 gün önce"ydi, tutar ince griydi. Servis bu
+              ekranı "ne kadar alacağım" diye açıyor: toplam kalın, kartta
+              tutar büyük, zaman küçük. Her kartta aynı olan "Servis"
+              rozeti kalktı. */}
+          <p className="ipucu bekleyen-toplam">
+            <strong>
+              Toplam {paraYaz(bekleyenToplam)} {PARA_BIRIMI}
+            </strong>{' '}
+            · {markaEk('in')} servis personeli inceliyor.
           </p>
           {bekleyen.map((t) => (
             <ListeKarti
               key={t.id}
               ad={t.ad || '—'}
               tur="servis"
-              turAdi="Servis"
+              tutar
               kunye={t.no}
               sol={gecenSure(t.servisKaydi?.tarih || t.createdAt)}
               sag={`${paraYaz(t.hakkedis.toplam)} ${PARA_BIRIMI}`}
@@ -134,9 +142,18 @@ export function Hakkedis({ oturum, onAc, surum, onUcretler }) {
               className="hareket"
               onClick={() => setSecili(h)}
             >
+              {/* Satırın başında müşterinin adı (29 Eylül 2026, S3).
+                  "SRV2609296604 · servis ödemesi" yazıyordu; servis işi
+                  numarasından değil müşterisinden hatırlıyor. Numara ve
+                  hareketin cinsi alt satırda duruyor. Kendi siparişinde
+                  ve ödemede müşteri yok; satır eskisi gibi. */}
               <div className="hareket__sol">
-                <div className="hareket__ad">{hareketAdi(h, talepler)}</div>
-                <div className="hareket__zaman">{gecenSure(h.tarih)}</div>
+                <div className="hareket__ad">{hareketinMusterisi(h, talepler) || hareketAdi(h, talepler)}</div>
+                <div className="hareket__zaman">
+                  {hareketinMusterisi(h, talepler)
+                    ? `${hareketAdi(h, talepler)} · ${gecenSure(h.tarih)}`
+                    : gecenSure(h.tarih)}
+                </div>
               </div>
               {/* Alacak artı, ödeme eksi. İşaret rakamın önünde ve renk
                   tek başına anlam taşımıyor. */}
@@ -204,6 +221,12 @@ export function Hakkedis({ oturum, onAc, surum, onUcretler }) {
 
 /* Hareketin işi: talep kimliğiyle, kimliği olmayan eski harekette
    numarayla (numara tekil değil). */
+/** Hareketin ait olduğu müşteri işinin müşterisi; sipariş ve ödemede yok. */
+function hareketinMusterisi(h, talepler) {
+  const t = hareketinTalebi(h, talepler)
+  return t && !t.servisSiparisi && t.ad ? t.ad : null
+}
+
 function hareketinTalebi(h, talepler) {
   if (h.talepId) {
     const t = talepler.find((x) => x.id === h.talepId)

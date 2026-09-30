@@ -40,6 +40,23 @@
        GET  <kok>/durum            yüklü kılavuzlar, model hazır mı
        GET  <kok>/kilavuz/<belge>  kaynak gösterilen kılavuzun PDF'i
    ========================================================================== */
+/* DESTEK EKRANINDA HANGİSİ AÇILIYOR (29 Eylül 2026, kullanıcının isteği).
+
+     'rehber'  → uygulamanın içindeki hazır arıza-çözüm ağacı
+                 (screens/ArizaCozumu.jsx, içerik
+                 marka/icerik/destekVerisi.js). Sunucu istemiyor,
+                 internetsiz de çalışıyor.
+     'asistan' → yukarıda anlatılan, sunucudaki kılavuz asistanı
+                 (screens/DestekAsistani.jsx).
+
+   Kullanıcı Destek ekranının yönetime yapılacak sunumda "idareten
+   çalışır" görünmesi için GEÇİCİ olarak ağaca dönmesini istedi: asistanın
+   sunucusu ve ekran kartı henüz yok, kılavuzların yarısı eksik (bkz.
+   DESTEK-EKRANI-PLANI.md). Asistan kodu yerinde duruyor; sunucu hazır
+   olunca bu değer 'asistan' yapılıyor. Yukarıdaki "çevrimdışı yedek yok"
+   kuralı asistan içindir: iki kip birbirinin yedeği değil, biri açık. */
+export const DESTEK_KIPI = 'rehber'
+
 export const AI = {
   /* Göreli adres tarayıcıda ve geliştirmede çalışıyor. APK'da mutlak
      adres gerekiyor (bkz. PARCA_KATALOG.kok). */
@@ -127,6 +144,42 @@ export const PARCA_KATALOG = {
   /* Cevap bu süre içinde gelmezse hata gösterilip yeniden denenebiliyor.
      Tarlada şebeke zayıf olabiliyor. */
   zamanAsimi: 20000,
+}
+
+/* ==========================================================================
+   KULLANIM KILAVUZLARI (29 Eylül 2026)
+
+   Kılavuz, PAKSAN'ın basılı kullanım kılavuzunun PDF'i. UYGULAMANIN
+   İÇİNDE DEĞİL: sunucuda kılavuzların durduğu bir klasörden okunuyor
+   (kullanıcının kararı). Dört kılavuz 38 MB; uygulamaya gömülse APK dört
+   katına çıkardı. Yeni baskı çıkınca sunucudaki dosya değişiyor,
+   telefondaki uygulama değil.
+
+   Çiftçi bir kılavuzu bir kez indiriyor; telefonda saklanıyor ve tarlada
+   internetsiz de açılıyor (bkz. src/lib/kilavuzPdf.js). Önceki düzende
+   kılavuzun içeriği uygulamaya gömülü bir veri paketinden ekran ekran
+   kuruluyordu; kaldırıldı (bkz. CLAUDE.md, "kılavuz PDF").
+
+   BUGÜN SUNUCU YOK. Geliştirme sunucusu depodaki
+   `sunucu-taklidi/kilavuzlar/` klasörünü aşağıdaki adresten yayınlıyor
+   (bkz. vite.config.js → kilavuzSun).
+
+   CANLIYA ÇIKARKEN `kok` alanına sunucudaki klasörün adresi yazılacak
+   (https; APK başka adresten dosya okuyacağı için sunucu CORS izni
+   vermeli). Sunucudan beklenen iki yol:
+
+       <kok>/kilavuzlar.json   hangi kılavuz hangi dosya, sayfa, boyut
+       <kok>/<dosya>.pdf       kılavuzun kendisi
+   ========================================================================== */
+export const KILAVUZ = {
+  /* Göreli adres tarayıcıda ve geliştirmede çalışıyor. APK'da mutlak
+     adres gerekiyor (bkz. PARCA_KATALOG.kok). */
+  kok: '/kilavuzlar',
+
+  /* Liste bu süre içinde gelmezse kayıtlı son liste kullanılıyor. PDF
+     indirmesine süre sınırı yok: 14 MB'lık kılavuz köyde dakikalar
+     sürebilir, ekran ilerlemeyi gösteriyor ve vazgeçilebiliyor. */
+  listeZamanAsimi: 15000,
 }
 
 /* ==========================================================================

@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react'
+import { servisinSonKabulu } from '../../lib/servisGizlilik'
+import { SERVIS_METIN_SURUM } from '../../data/servisGizlilik'
 import {
   servisSifreTalebiKapat,
   servisSifreTalepleriGetir,
@@ -67,6 +69,26 @@ const BOS_SERVIS = {
    herkese hesabı açardı. Talep bırakıyor, PAKSAN arıyor, geçici şifre
    veriyor. Servis o şifreyle girince `ilkGiris` akışı kendi şifresini
    belirletiyor. */
+/* SERVİSİN GİZLİLİK KABULÜ (29 Eylül 2026). Servisim ilk girişte iki
+   metni kabul ettiriyor (servis/ekranlar/Gizlilik.jsx); burada son kabulün
+   tarihi ve sürümü, yoksa ne olacağı. Eski sürümü kabul eden servise
+   yeni sürüm bir sonraki girişte soruluyor. */
+function GizlilikKabulu({ servisId }) {
+  const k = servisinSonKabulu(servisId)
+  const tarih = (z) =>
+    new Date(z).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
+  let yazi
+  if (!k) yazi = 'Henüz kabul etmedi; ilk girişte kabul etmesi istenecek'
+  else if (k.surum !== SERVIS_METIN_SURUM)
+    yazi = `Eski sürümü kabul etti (${k.surum}); sonraki girişte yeni sürümü kabul etmesi istenecek`
+  else yazi = `${tarih(k.tarih)} · sürüm ${k.surum}`
+  return (
+    <div className="kucuk sonuk" data-gizlilik-kabulu={servisId}>
+      Gizlilik kabulü: {yazi}
+    </div>
+  )
+}
+
 function SifreYardimi({ personel, tazele, surum }) {
   const liste = useMemo(() => {
     void surum
@@ -350,6 +372,7 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
                         {SERVIS_TURU[b.tur] || SERVIS_TURU.tuzel}
                         {b.adres ? ' · ' + b.adres : ''}
                       </div>
+                      <GizlilikKabulu servisId={b.id} />
                     </td>
                     <td className="kucuk">{b.ilce} / {b.il}</td>
                     <td className="kucuk mono">{telFirma(b.tel)}</td>

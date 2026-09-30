@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppState'
 import { useKaydirildi } from '../lib/kaydirma'
 import { useDil } from '../i18n'
-import { IconHome, IconBaler, IconChat, IconGrid, IconBack, IconUser } from './Icons'
+import { IconHome, IconBaler, IconDestek, IconGrid, IconBack, IconUser } from './Icons'
 
 /* -------------------------------------------------------------- Üst bar
 
@@ -103,18 +103,48 @@ const TABS = [
     Icon: IconGrid,
     altYollar: ['/urun/', '/kilavuz'],
   },
-  { to: '/destek', anahtar: 'menu.destek', Icon: IconChat, altYollar: [] },
+  /* Destek bir sohbet değil, adım adım arıza rehberi: simgesi sohbet
+     balonuydu ve "birine yazmak" gibi okunuyordu. Daire içinde soru
+     işareti her telefonda "yardım" demek (29 Eylül 2026, C1). */
+  { to: '/destek', anahtar: 'menu.destek', Icon: IconDestek, altYollar: [] },
   /* Profil en sağda: hesabına bakmak nadiren yapılan bir iş, en uçta
      durması yanlışlıkla dokunulmasını da azaltıyor. */
   { to: '/profil', anahtar: 'menu.profil', Icon: IconUser, altYollar: ['/numara-degisikligi'] },
 ]
 
+/* Alt payın, güvenli alan dışındaki kısmı: styles.css → .tabbar
+   `padding-bottom: calc(8px + var(--safe-bottom))`. İkisi birlikte
+   değişir. */
+const CUBUK_ALT_PAY = 8
+
 export function TabBar() {
   const { pathname } = useLocation()
   const { t } = useDil()
+  const cubuk = useRef(null)
+
+  /* ÇUBUĞUN GERÇEK YÜKSEKLİĞİ (29 Eylül 2026, görünüm önerisi C1).
+     Çubuk artık yazılı ve yazıyla birlikte uzuyor: Android'in yazı boyu
+     ayarı uygulamanın yazısını da büyütüyor. Ekranın alt boşluğu,
+     yapışık işlem çubuğu ve bildirim balonu `--nav-h`'e bakıyor; sabit
+     bir sayı kalsaydı büyük yazıda içerik çubuğun altında kalırdı.
+     Güvenli alan payı (hareket çubuğu) o formüllerde ayrıca eklendiği
+     için burada düşülüyor. */
+  useLayoutEffect(() => {
+    const el = cubuk.current
+    if (!el || typeof ResizeObserver === 'undefined') return undefined
+    const yaz = () => {
+      const guvenli = Math.max(0, parseFloat(getComputedStyle(el).paddingBottom) - CUBUK_ALT_PAY)
+      const yukseklik = Math.round(el.getBoundingClientRect().height - guvenli)
+      document.documentElement.style.setProperty('--nav-h', yukseklik + 'px')
+    }
+    yaz()
+    const gozcu = new ResizeObserver(yaz)
+    gozcu.observe(el)
+    return () => gozcu.disconnect()
+  }, [])
 
   return (
-    <nav className="tabbar">
+    <nav className="tabbar" ref={cubuk}>
       {TABS.map(({ to, anahtar, Icon, altYollar, sinif, ikonBoyut }) => {
         const kendi = to === '/' ? pathname === '/' : pathname.startsWith(to)
         const aktif = kendi || altYollar.some((y) => pathname.startsWith(y))
@@ -156,10 +186,20 @@ export function TabBar() {
 const KAPANMA_ESIGI = 110 // px
 const HIZ_ESIGI = 0.55 // px/ms
 
+/* AÇILIŞTAN SONRAKİ İLK AN DOKUNUŞ YUTULUYOR (29 Eylül 2026, görünüm
+   önerisi; kullanıcının onayı). "Gönder"e iki kez basan çiftçinin ikinci
+   dokunuşu, açılmakta olan onay sayfasına düşüyordu: parmağının altına ne
+   geldiyse — karartılmış zemin (sayfayı kapatır), "Evet" (okumadan
+   gönderir) ya da "Vazgeç". Servisim'deki kilidin aynısı
+   (servis/ServisPanel.jsx → GECIS_KILIDI_MS): çift dokunmanın aralığından
+   uzun, bilerek yapılan bir sonraki dokunuştan kısa. */
+const ACILIS_KILIDI_MS = 400
+
 export function Sheet({ open, onClose, title, children }) {
   const [y, setY] = useState(0)
   const [surukleniyor, setSurukleniyor] = useState(false)
   const bas = useRef(null)
+  const acilis = useRef(0)
 
   /* Kapandığında bir sonraki açılış sıfırdan başlasın */
   useEffect(() => {
@@ -167,6 +207,8 @@ export function Sheet({ open, onClose, title, children }) {
       setY(0)
       setSurukleniyor(false)
       bas.current = null
+    } else {
+      acilis.current = Date.now()
     }
   }, [open])
 
@@ -192,12 +234,23 @@ export function Sheet({ open, onClose, title, children }) {
     bas.current = null
     setSurukleniyor(false)
 
-    if (mesafe > KAPANMA_ESIGI || hiz > HIZ_ESIGI) onClose?.()
+    /* Kapatılamayan pencere (onClose yok: KVKK güncellemesi) sürüklenince
+       yerine dönüyor. */
+    if (onClose && (mesafe > KAPANMA_ESIGI || hiz > HIZ_ESIGI)) onClose()
     else setY(0)
   }
 
   return (
-    <div className="sheet-backdrop" onClick={onClose}>
+    <div
+      className="sheet-backdrop"
+      onClick={onClose}
+      onClickCapture={(e) => {
+        if (Date.now() - acilis.current < ACILIS_KILIDI_MS) {
+          e.stopPropagation()
+          e.preventDefault()
+        }
+      }}
+    >
       <div
         className="sheet"
         onClick={(e) => e.stopPropagation()}

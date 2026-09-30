@@ -1369,15 +1369,21 @@ function t04Yaz(K, markalar) {
      silmesin). */
   const guncellenen = sirketKolonlari.map((x) => x.ad).filter((a) => !['Kod', 'VergiNo', 'VergiDairesi', 'LogoFirmaNo'].includes(a))
 
-  const paraKodu = paraBirimiKodu(K)
+  /* ALICI ADI VE PARA BİRİMİ HESABIN KENDİSİNDEN (30 Eylül 2026). İlk
+     gerçek hesap girildi (kimlik.js BANKA.hesaplar) ve iki bilgiyi
+     kendisi taşıyor: müşterinin havalede alıcı olarak yazacağı ad
+     (`alici`; PAKSAN'ın afişinde "PAKSAN MAKİNA", şirketin tam unvanı
+     değil) ve hesabın para birimi (`paraBirimi`). HesapUnvani sütunu
+     tam da o alıcı adı (V0004'teki açıklaması); hesapta yoksa şirketin
+     unvanı, para birimi yoksa uygulamanınki. */
   const hesaplar = (BANKA.hesaplar || []).map((h, i) => ({
     SirketKodu: kod,
     Iban: String(h.iban || '').replace(/\s+/g, '').toUpperCase(),
     BankaAdi: h.banka,
     SubeAdi: h.sube || null,
-    HesapUnvani: BANKA.unvan,
+    HesapUnvani: h.alici || BANKA.unvan,
     Sira: i + 1,
-    ParaBirimiKodu: paraKodu,
+    ParaBirimiKodu: paraBirimiKodu(K, h.paraBirimi),
     Aktif: 1,
   }))
   const bolumler = [
@@ -1422,10 +1428,13 @@ function t04Yaz(K, markalar) {
   )
 }
 
-function paraBirimiKodu(K) {
+/* `deger` verilmezse uygulamanın para birimi (PARA_BIRIMI); banka hesabı
+   kendi para birimini verebiliyor (t04Yaz). Eşleme ikisinde de aynı:
+   eski "TL" → "TRY". */
+function paraBirimiKodu(K, deger = K.marka.PARA_BIRIMI) {
   const eslesme = kaynakJson('kod-eslesmeleri.json')
-  const eski = eslesme.eskiDegerler['kod.ParaBirimi']?.[K.marka.PARA_BIRIMI]
-  return eski ? eski.YeniKod : K.marka.PARA_BIRIMI
+  const eski = eslesme.eskiDegerler['kod.ParaBirimi']?.[deger]
+  return eski ? eski.YeniKod : deger
 }
 
 /* ============================================================ T05 */

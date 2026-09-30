@@ -207,8 +207,127 @@ export function siparisTutari(araToplamIskontolu, { odeme, bakiyeOrani = 0 } = {
   return { bakiyeIskontoOrani: oran, bakiyeIskontoTutari, araToplam, kdv, toplam: araToplam + kdv }
 }
 
+/* ==========================================================================
+   SİPARİŞİN SEPETİ VE FİYAT GÖRÜNTÜSÜ — TEK GÖVDE (29 Eylül 2026)
+
+   Servisim'in sipariş ekranı (servis/ekranlar/SiparisVer.jsx) seçilen
+   parçalardan sepeti, sepetten toplamları, onaydan sonra da siparişe
+   yazılacak fiyat görüntüsünü (`parcaFiyat`) kuruyordu; üçü de ekranın
+   içindeydi. Servisim'in demo verisi (backoffice/demoSahne.js) siparişi
+   aynı yoldan vermeli: kendi kopyasını yazsaydı ekranın hiç yazmayacağı
+   bir kayıt üretebilirdi ("indirim" kartı `iskontoOrani` ve
+   `listeToplam` olmadan çizilmiyor). Şimdi ikisi de bu üç işlevi
+   çağırıyor. Depoya bakmıyorlar; oran, katalog ve parçalar çağırandan.
+   ========================================================================== */
+
 /**
- * "Bakiyemden Düşülsün" bu sipariş için neden kapalı: kullanılabilir
+ * Sepetin satırları: servisin ödediği fiyatla. Sıra verilen sıra;
+ * adedi sıfır ya da eksi olan satır atılıyor.
+ *
+ * @param {Array<{kod: string, adet: number, parca: object|null}>} secim
+ *   `parca` katalogdaki parça (lib/parcaKatalogu.js → parcaBul); yoksa null
+ * @param {number} oran servisin geçerli iskonto oranı (kesir)
+ */
+export function sepetSatirlari(secim, oran) {
+  const liste = []
+  for (const { kod, adet: ham, parca } of secim || []) {
+    const adet = Number(ham) || 0
+    if (adet <= 0) continue
+    const f = parcaServisFiyati(parca, oran)
+    liste.push({
+      kod,
+      ad: parca?.ad || kod,
+      grup: parca?.grup || null,
+      gorsel: parca?.gorsel ?? null,
+      adet,
+      listeFiyati: f ? f.fiyat : null,
+      birimFiyat: f ? f.alis : null,
+      satirTutari: f ? f.alis * adet : null,
+    })
+  }
+  return liste
+}
+
+/** Sepetin toplamları: iskontolu ara toplam, liste fiyatıyla toplam, fark
+ *  ve fiyatı bulunamayan satır olup olmadığı. Ek indirim ve KDV burada
+ *  değil: ödeme biçimine göre `siparisTutari`den geliyor. */
+export function sepetToplami(satirlar) {
+  let araToplam = 0
+  let listeToplam = 0
+  let eksik = false
+  for (const k of satirlar || []) {
+    if (k.satirTutari === null) eksik = true
+    else {
+      araToplam += k.satirTutari
+      listeToplam += k.listeFiyati * k.adet
+    }
+  }
+  return { araToplam, listeToplam, iskontoTutari: listeToplam - araToplam, eksik }
+}
+
+/**
+ * Siparişe yazılan fiyat görüntüsü (`parcaFiyat`): sipariş anındaki
+ * satırlar, katalog sürümü ve kaynağı, servisin onayda gördüğü oran ve
+ * okuma anı, toplamlar. Tutarlar servisin ödediği iskontolu fiyattan.
+ *
+ * @param {{katalog: object|null, satirlar: Array, hesap: object,
+ *          iskontoOrani: number, fiyatZamani: number|null}} girdi
+ *   `hesap`: sepetToplami ile siparisTutari'nın birleşimi (seçilen ödeme
+ *   biçimine göre)
+ */
+export function siparisGoruntusu({ katalog, satirlar, hesap, iskontoOrani, fiyatZamani }) {
+  return {
+    surum: katalog?.surum ?? null,
+    kaynak: katalog?.kaynak || null,
+    /* O günkü görselin dosya adı da satırda: katalog değişse de sipariş
+       kendi resmini gösteriyor (bkz. lib/parcaKatalogu.js → fiyatGoruntusu). */
+    satirlar: (satirlar || []).map((k) => ({
+      kod: k.kod,
+      ad: k.ad,
+      gorsel: k.gorsel,
+      adet: k.adet,
+      listeFiyati: k.listeFiyati,
+      birimFiyat: k.birimFiyat,
+      tutar: k.satirTutari,
+    })),
+    /* İndirim, servisin onay penceresinde gördüğü oranla: oran sonra
+       değişse de bu siparişin tutarı değişmiyor. Okunma anı da gidiyor;
+       veri katmanı 30 dakikadan eski tutarı kabul etmiyor (onayTazeMi). */
+    iskontoOrani,
+    fiyatZamani,
+    listeToplam: hesap.listeToplam,
+    iskontoTutari: hesap.iskontoTutari,
+    /* Bakiyeden ödemede ek indirim: yalnız uygulandıysa. Oran tutar
+       sıfıra yuvarlansa da yazılıyor — siparişin hangi oranla verildiği
+       kayıtta kalsın. `araToplam` ve `toplam` ek indirim düşülmüş. */
+    ...(hesap.bakiyeIskontoOrani > 0
+      ? {
+          bakiyeIskontoOrani: hesap.bakiyeIskontoOrani,
+          bakiyeIskontoTutari: hesap.bakiyeIskontoTutari,
+        }
+      : {}),
+    araToplam: hesap.araToplam,
+    kdv: hesap.kdv,
+    toplam: hesap.toplam,
+    eksikFiyat: hesap.eksik,
+  }
+}
+
+/** Sipariş kaydına giden kalem satırları (veri.js → servisParcaSiparisi):
+ *  talebi okuyan taraf parçayı adıyla değil koduyla buluyor. */
+export function siparisKalemleri(satirlar) {
+  return (satirlar || []).map((k) => ({
+    kod: k.kod,
+    ad: k.ad,
+    adet: k.adet,
+    birimFiyat: k.birimFiyat,
+    satirTutari: k.satirTutari,
+  }))
+}
+
+/**
+ * "Bakiyem" (30 Eylül 2026'ya kadar "Bakiyemden Düşülsün") ödeme
+ * seçeneği bu sipariş için neden kapalı: kullanılabilir
  * bakiye tutara yetmiyor (25 Eylül 2026, kullanıcı sınaması).
  *
  * Seçenek bakiye yetmeyince pasif kalıyor, neden kapalı olduğu hiçbir

@@ -2296,12 +2296,30 @@ export function musterininDigerTalepleri(talep, hepsi, { yalnizAcik = false } = 
    zaman yapılacağını bilmek istiyor. Bu yüzden planlanan iş ve tarih
    kaydediliyor, bildirimde de ikisi birden gidiyor.                   */
 
+/* SERVİS İŞİNİN RANDEVUSU SERVİSİN (29 Eylül 2026, kullanıcının kararı:
+   "PAKSAN'a devredilmemiş işin randevusunu PAKSAN belirleyememeli").
+   Randevuyu servis veriyor: müşteriyle o konuşuyor, tarlaya o gidiyor.
+   PAKSAN ancak servisin kendisine devrettiği işte (Servisim → "PAKSAN'a
+   Devret", `sahip: 'paksan'`) gün verebilir. Backoffice'in çip listesi
+   servis talebinde "Planlandı"yı zaten göstermiyordu
+   (elleSecilebilirDurumlar); kural artık veri katmanında da duruyor,
+   demo ve ileride yazılacak bir ekran onu aşamasın. Yedek parça ve
+   servisin parça siparişinde gönderim gününü PAKSAN veriyor; orada
+   engel yok. Sınaması AK-15. */
+export function paksanRandevuEngeli(talep) {
+  if (!talep || talep.tur !== 'servis' || talep.servisSiparisi) return null
+  if (talep.devir && (talep.sahip || 'paksan') === 'paksan') return null
+  return `Bu işin randevusunu servis verir. ${MARKA} yalnızca kendisine devredilen işlere randevu verebilir.`
+}
+
 export function talepPlanla(talep, plan, personel, { servisten } = {}) {
   if (servisten) {
     talep = guncelTalep(talep)
     const kapali = servisinKapaliIsEngeli(talep)
     if (kapali) return { hata: kapali }
   }
+  const engel = !servisten && paksanRandevuEngeli(guncelTalep(talep) || talep)
+  if (engel) return { hata: engel }
   const gecmis = [
     ...(talep.gecmis || []),
     { durum: 'planlandi', tarih: Date.now(), personel },
@@ -4012,8 +4030,32 @@ export function musteriKargosunuGuncelle(talep, kargo, personel) {
    (bkz. ekranlar/Talepler.jsx → parcaKalemleri). Tutarlar servisin
    ödediği iskontolu fiyattan geliyor; kayıt canlı katalogla yeniden
    hesaplanmıyor.
+
+   KAYDI KURMAK AYRI, YAZMAK AYRI (29 Eylül 2026). Denetim ve kaydın
+   kendisi `servisSiparisKaydi`nde; hiçbir şey yazmıyor. Servisim'in
+   demo verisi (backoffice/demoSahne.js) siparişi o gövdeyle kurup demo
+   deposuna yazıyor: demo siparişi gerçek siparişin kapılarından
+   geçiyor (bakiye, oran, teslimat) ama müşterinin ortak listesine
+   (`requests`) düşmüyor. Yazan tek yol aşağıdaki servisParcaSiparisi.
    ========================================================================== */
-export function servisParcaSiparisi({
+export function servisParcaSiparisi(girdi) {
+  const sonuc = servisSiparisKaydi(girdi)
+  if (sonuc.hata) return sonuc
+  const { talep } = sonuc
+  save(ANAHTAR.talepler, [talep, ...load(ANAHTAR.talepler, [])])
+  islemYaz({
+    tur: 'talep',
+    ozet: `${talep.no} · servis parça siparişi · ${talep.servis.ad} · ${talep.parcalar.length} kalem`,
+    personel: talep.servis.ad,
+  })
+  return { talep }
+}
+
+/**
+ * Servis siparişinin kaydını kurar ve denetler; hiçbir yere yazmaz.
+ * @returns {{talep: object}|{hata: string}}
+ */
+export function servisSiparisKaydi({
   servisId,
   servisAd,
   servisNo,
@@ -4208,13 +4250,6 @@ export function servisParcaSiparisi({
     servis: { id: servisId, ad: servisAd, no: servisNo, tarih: simdi },
     gecmis: [{ durum: 'yeni', tarih: simdi, personel: servisAd }],
   }
-
-  save(ANAHTAR.talepler, [talep, ...load(ANAHTAR.talepler, [])])
-  islemYaz({
-    tur: 'talep',
-    ozet: `${talep.no} · servis parça siparişi · ${servisAd} · ${temiz.length} kalem`,
-    personel: servisAd,
-  })
   return { talep }
 }
 

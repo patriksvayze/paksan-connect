@@ -1,6 +1,6 @@
 import { PARA_BIRIMI, paraYaz } from '../marka'
 import { gorselAdresi } from '../lib/parcaKatalogu'
-import { IconCheck } from './Icons'
+import { IconCheck, IconPlus } from './Icons'
 
 /* ==========================================================================
    Parça kartı — katalogdan parça gösterilen her yerin ortak kartı
@@ -46,6 +46,12 @@ import { IconCheck } from './Icons'
    içine gömülmüyor, `gorselYok` olarak veriliyor. Connect sözlükten
    (`parcaSec.gorselYok`), Servisim kendi kabuğundan gönderiyor.
 
+   SEÇİLMEMİŞ KARTTA "EKLE" İŞARETİ (29 Eylül 2026, görünüm önerisi S8).
+   Servisim'de seçilmemiş kart dokunulabilir olduğunu söylemiyordu;
+   seçilince köşede onay işareti çıkıyordu, öncesinde köşe boştu. Şimdi
+   aynı köşede artı ve yazısı duruyor. Yazı çağırandan (`ekle`); vermeyen
+   ekranda (Connect) işaret çıkmıyor.
+
    KART DIŞ KUTU, DOKUNULAN YER İÇTEKİ DÜĞME
 
    Siparişte seçili kartın altına adet düğmeleri geliyor (`children`).
@@ -59,7 +65,7 @@ import { IconCheck } from './Icons'
    iki dosyadaki `.parca-kart` kuralları birlikte güncellenir.
    ========================================================================== */
 
-export function ParcaKarti({ parca, fiyat, listeFiyati, secili, onSec, gorselYok, children }) {
+export function ParcaKarti({ parca, fiyat, listeFiyati, secili, onSec, gorselYok, ekle, children }) {
   const adres = gorselAdresi(parca.gorsel)
   const fiyatVar = typeof fiyat === 'number' && Number.isFinite(fiyat)
 
@@ -77,10 +83,17 @@ export function ParcaKarti({ parca, fiyat, listeFiyati, secili, onSec, gorselYok
           {/* Seçili olan yalnız renkle değil, köşedeki onay işaretiyle
               de ayrılıyor — güneşte ve renk körlüğünde renk tek başına
               yetmiyor. */}
-          {secili && (
+          {secili ? (
             <span className="parca-kart__onay">
               <IconCheck size={15} />
             </span>
+          ) : (
+            ekle && (
+              <span className="parca-kart__ekle" aria-hidden="true">
+                <IconPlus size={14} />
+                {ekle}
+              </span>
+            )
           )}
         </span>
 

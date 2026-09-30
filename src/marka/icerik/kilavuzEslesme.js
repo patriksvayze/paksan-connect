@@ -1,27 +1,33 @@
 /* ==========================================================================
-   Ürün → kılavuz eşleşmesi
+   Ürün → kullanım kılavuzu
 
-   Uygulamadaki ürün kimliğini, kılavuz paketindeki kapsam kaydına
-   bağlar. Kapsam kaydı, bir kılavuzun kapsadığı bütün modelleri toplayan
-   iç kayıttır (bkz. src/lib/destek.js); güvenlik ve prosedür kayıtları o
-   kayda bağlı olduğu için eşleştirme kapsam üzerinden yapılıyor.
+   Uygulamadaki ürün kimliğini, o ürünün kullanım kılavuzunun koduna
+   bağlar. Kılavuzun kendisi (PDF) sunucudaki kılavuz klasöründe;
+   klasörün listesi (`kilavuzlar.json`) her kılavuzu bu kodla tanıyor
+   (bkz. src/lib/kilavuzPdf.js, sunucu-taklidi/BENIOKU.md). Bir kılavuz
+   birden çok modeli kapsıyor: altı Süper modelin kılavuzu aynı.
+
+   Kodlar, önceki düzendeki kılavuz veri paketinin kapsam kodları
+   (29 Eylül 2026'ya kadar kılavuz ekranları o paketten kuruluyordu).
+   Veritabanında da aynı kod duruyor (katalog.Urun.KilavuzKapsamKodu,
+   tohum: tools/vt/tohum-uret.mjs); kod değişirse tohum yeniden üretilir.
 
    NEDEN MARKA KLASÖRÜNDE
 
-   Tablonun iki tarafı da firmaya ait: Soldaki ürün kimlikleri
-   katalogdan, sağdaki kapsam kimlikleri kılavuz paketinden geliyor.
-   Motorda durduğu sürece yeni firma, kendi kılavuzlarını bağlamak için
-   motor dosyasını değiştirmek zorunda kalırdı.
+   Tablonun iki tarafı da firmaya ait: soldaki ürün kimlikleri
+   katalogdan, sağdaki kodlar firmanın kılavuzlarından. Motorda durduğu
+   sürece yeni firma, kendi kılavuzlarını bağlamak için motor dosyasını
+   değiştirmek zorunda kalırdı.
 
-   Bir ürün burada yoksa Kılavuzlar ekranında görünmüyor — kılavuzu
-   olmayan modelin listede boş satır açması istenmiyor.
+   Bir ürün burada yoksa kılavuzu yok sayılıyor: Kılavuzlar listesinde
+   görünmüyor, ürün ve makine sayfalarında kılavuz düğmesi çıkmıyor.
 
    YENİ FİRMA NE YAPACAK
 
-   Kendi kılavuz paketini `mobile_support_package.json` olarak koyup bu
-   tabloyu kendi ürün kimlikleriyle dolduruyor. Tablo boş bırakılırsa
-   uygulama çalışmaya devam ediyor, yalnızca Kılavuzlar ekranı boş
-   görünüyor.
+   Kılavuz PDF'lerini sunucudaki klasöre koyup listesini yazıyor, bu
+   tabloyu kendi ürün kimlikleriyle ve listedeki kodlarla dolduruyor.
+   Tablo boş bırakılırsa uygulama çalışmaya devam ediyor, yalnızca
+   Kılavuzlar ekranı boş görünüyor.
    ========================================================================== */
 
 export const URUN_KILAVUZU = {
@@ -36,33 +42,4 @@ export const URUN_KILAVUZU = {
 
   'orka-870': 'MCH_ORKA_870',
   'ipak-rulo': 'MCH_IPAK_ROUND_BALER',
-}
-
-/* ---------------------------------------------- İngilizce ekrandaki adlar
-
-   Kılavuz paketindeki model ve belge adları tek dilli (Türkçe). Türkçe
-   ekranda paketteki ad olduğu gibi görünüyor; İngilizce ekranda
-   aşağıdaki karşılık. Ürün adındaki "Süper" katalogdaki gibi "Super"
-   yazılıyor (bkz. katalog/products.en.js). Karşılığı yoksa paketteki ad
-   gösteriliyor. */
-export const KILAVUZ_MODEL_AD_EN = {
-  'Hammer 2 İpli Haşpaysız': 'Hammer 2-Twine, without Chopper',
-  'Hammer 3 İpli Haşpaysız': 'Hammer 3-Twine, without Chopper',
-  'Süper S8002 2 İpli Haşpaysız': 'Super S8002 2-Twine, without Chopper',
-  'Süper S8002E 2 İpli Haşpaysız Ekstra': 'Super S8002E 2-Twine, without Chopper, Extra',
-  'Süper S8002E 3 İpli Haşpaysız Ekstra': 'Super S8002E 3-Twine, without Chopper, Extra',
-  'Süper S8002E 3 İpli Haşpaylı Ekstra': 'Super S8002E 3-Twine, with Chopper, Extra',
-  'Süper YUNUS 2 İpli Haşpaysız': 'Super YUNUS 2-Twine, without Chopper',
-  'Süper YUNUS 3 İpli Haşpaysız': 'Super YUNUS 3-Twine, without Chopper',
-  'Süper YUNUS 3 İpli Haşpaylı': 'Super YUNUS 3-Twine, with Chopper',
-  'I-PAK YUVARLAK BALYA MAKİNESİ': 'I-PAK ROUND BALER',
-  'ORKA 870 4 İPLİ BÜYÜK BALYA MAKİNESİ': 'ORKA 870 4-TWINE LARGE SQUARE BALER',
-}
-
-export const KILAVUZ_BELGE_AD_EN = {
-  'HAMMER KULLANIM KILAVUZU': 'HAMMER USER MANUAL',
-  'ORKA KULLANIM KILAVUZU': 'ORKA USER MANUAL',
-  'PAKSAN BALYA KULLANIM KILAVUZU': 'PAKSAN BALER USER MANUAL',
-  'TWIN HAMMER KULLANIM KILAVUZU': 'TWIN HAMMER USER MANUAL',
-  'YUVARLAK BALYA KULLANIM KILAVUZU': 'ROUND BALER USER MANUAL',
 }

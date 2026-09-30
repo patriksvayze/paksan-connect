@@ -13,8 +13,11 @@ import { ParcaKarti as OrtakParcaKarti } from '../components/ParcaKarti'
    değil; Servisim tek dilli, notu burada veriyor. Servisim ekranları
    (ParcaSec.jsx, SiparisVer.jsx) kartı eskisi gibi buradan alıyor,
    hiçbiri değişmedi. Çağıran `gorselYok` verirse onunki geçerli.
+
+   Seçilmemiş kartın köşesindeki "Ekle" yazısı da buradan (29 Eylül
+   2026, görünüm önerisi S8; gerekçesi ortak kartta).
    ========================================================================== */
 
 export function ParcaKarti(props) {
-  return <OrtakParcaKarti gorselYok="Görsel yok" {...props} />
+  return <OrtakParcaKarti gorselYok="Görsel yok" ekle="Ekle" {...props} />
 }

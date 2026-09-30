@@ -76,11 +76,11 @@ export const REHBERLER = [
           'ise bir sonraki çalışmada tıkanmanın ve yangının en sık sebebidir.',
         maddeler: [
           'Her kullanımdan sonra, makineyi kenara çekmeden önce temizleyin. Ertesi güne bırakmayın — kuruyan artığı sökmek çok daha zordur.',
-          'Sap, ot ve toprak birikintisini elden geçirin: pikap, kesme bölgesi, kanallar ve koruyucuların altı.',
+          'Pikap, kesme bölgesi, kanallar ve koruyucuların altındaki sap, ot ve toprak birikintilerini temizleyin.',
           'Sıcak yüzeylerdeki (şanzıman, rulman, egzoz yakını) bitki artıklarını mutlaka alın — yangın burada başlar.',
           'Basınçlı hava varsa tercih edin. Su kullanacaksanız rulman, elektrik bağlantısı ve gres nipellerine doğrudan tutmayın.',
           'Islak temizlik yaptıysanız makineyi kurutun ve gres noktalarına yeniden gres basın; su gresi yerinden atar.',
-          'Ertesi gün için eksilen sarf malzemeyi (ip, ağ, emniyet cıvatası) yerine koyun.',
+          'Ertesi gün için eksilen sarf malzemelerini (ip, ağ, emniyet cıvatası) tamamlayın.',
         ],
       },
     ],
@@ -172,7 +172,7 @@ export const REHBERLER = [
         baslik: 'Depodan çıkarırken',
         maddeler: [
           'Makinenin üzerindeki örtüyü alın, kuş ve kemirgen yuvası olup olmadığına bakın.',
-          'Kabloları ve hortumları kemirgen kesmiş olabilir; baştan sona kontrol edin.',
+          'Kabloları ve hortumları kemirgenler kesmiş olabilir; baştan sona kontrol edin.',
           'Pas önleyici sürdüyseniz çalışma yüzeylerinden temizleyin.',
           'Lastik varsa hava basınçlarını kontrol edin.',
         ],
@@ -180,7 +180,7 @@ export const REHBERLER = [
       {
         baslik: 'Yağ ve gres',
         maddeler: [
-          'Şanzıman yağ seviyesini kontrol edin; kışı bekleyen yağda su toplanmış olabilir.',
+          'Şanzıman yağ seviyesini kontrol edin; kış boyunca bekleyen yağda su toplanmış olabilir.',
           'Kullanım kılavuzundaki değişim aralığı dolduysa yağı değiştirin.',
           'Tüm gres noktalarına bol gres basın; kışın kuruyan yataklar ilk saatlerde zarar görür.',
           'Zincirleri yağlayın ve gerginliklerini ayarlayın.',
@@ -198,10 +198,10 @@ export const REHBERLER = [
       {
         baslik: 'Deneme çalıştırması',
         maddeler: [
-          'Makineyi tarlaya çıkmadan boşta çalıştırın, anormal ses veya titreşim var mı dinleyin.',
+          'Tarlaya çıkmadan önce makineyi boşta çalıştırın; anormal ses veya titreşim olup olmadığını kontrol edin.',
           'Hidrolik hareketlerin tamamını sırayla deneyin.',
           'Aydınlatma ve işaret lambalarını kontrol edin.',
-          'İlk balyayı / ilk sırayı yaptıktan sonra durup sonucu inceleyin, ayar gerekiyorsa şimdi yapın.',
+          'İlk balyayı yaptıktan veya ilk sırayı tamamladıktan sonra durup sonucu inceleyin; ayar gerekiyorsa şimdi yapın.',
         ],
       },
     ],
@@ -212,8 +212,8 @@ export const REHBERLER = [
           maddeler: [
             'Düğüm atıcıları söküp iyice temizleyin; kışın kuruyan gres ve ip tozu düğümü bozar.',
             'İp tutucu yay basınçlarını kontrol edin.',
-            'Piston bıçağı ile karşı bıçak boşluğunu kılavuzdaki değere ayarlayın.',
-            'Sezonluk ip ihtiyacınızı önceden alın; ip kalitesi düğüm başarısını doğrudan etkiler.',
+            'Piston bıçağı ile karşı bıçak arasındaki boşluğu kılavuzdaki değere ayarlayın.',
+            'Sezon boyunca ihtiyacınız olan ipi önceden alın; ip kalitesi düğüm başarısını doğrudan etkiler.',
             'Pikap parmaklarının tamamını gözden geçirin.',
           ],
         },
@@ -278,7 +278,7 @@ export const REHBERLER = [
   {
     id: 'sezon-sonu',
     baslik: 'Sezon Sonu Bakım',
-    ozet: 'Makineyi kaldırmadan önce, yarım gün',
+    ozet: 'Makineyi kenara kaldırmadan önce, yarım gün ayırın',
     neZaman: 'Sezon bitince, kışlığa kaldırmadan önce',
     aylar: [11, 12, 1],
     ortak: [
@@ -287,9 +287,9 @@ export const REHBERLER = [
         vurgu: true,
         giris:
           'Makine kışı nasıl geçirirse bahara öyle çıkar. Üzerinde kalan sap ve ' +
-          'toprak, aylarca nem tutup pasın altını oyar; bahar geldiğinde ' +
+          'toprak, aylarca nem tutarak paslanmaya yol açar; bahar geldiğinde ' +
           'sökülmeyen cıvata, tutukluk yapan zincir ve çürümüş yatak olarak ' +
-          'karşınıza çıkar. Bir günlük temizlik, bir sezonluk arıza demektir.',
+          'karşınıza çıkar. Bir günlük temizliği ihmal etmek, bir sezonluk arıza demektir.',
         maddeler: [
           'Makineyi baştan sona temizleyin: kanallar, koruyucu altları, zincir yatakları ve kesme bölgesi dâhil.',
           'Basınçlı su kullanacaksanız rulman, elektrik bağlantısı ve gres nipellerine doğrudan tutmayın.',
@@ -311,7 +311,7 @@ export const REHBERLER = [
         maddeler: [
           'Sezon boyunca sorun çıkaran noktaları şimdi tespit edin.',
           'Değişmesi gereken parçaların listesini çıkarın ve kış boyunca sipariş edin — sezon başında herkes aynı anda ister.',
-          'Uygulamadaki "Yedek Parça" talebinden listeyi şimdiden iletebilirsiniz.',
+          'Listeyi uygulamadaki "Yedek Parça" talebiyle şimdiden iletin.',
         ],
       },
       {
@@ -338,7 +338,7 @@ export const REHBERLER = [
         {
           baslik: 'Rulo balya makinesinde',
           maddeler: [
-            'Kayışların gerginliğini gevşetin; kış boyu gergin duran kayış şeklini kaybeder.',
+            'Kayışları gevşetin; kış boyu gergin duran kayış şeklini kaybeder.',
             'Ağ rulosunu makineden çıkarıp kuru yerde saklayın.',
           ],
         },
@@ -347,7 +347,7 @@ export const REHBERLER = [
         {
           baslik: 'Yem karma makinesinde',
           maddeler: [
-            'Kazanı iyice temizleyin; yem artığı kışın küflenip aşındırır.',
+            'Kazanı iyice temizleyin; yem artığı kışın küflenip kazanı aşındırır.',
             'Tartı sisteminin yük hücrelerini nemden koruyun.',
           ],
         },

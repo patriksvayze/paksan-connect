@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Ekosistem senaryoları — AK-01 … AK-36
+   Ekosistem senaryoları — AK-01 … AK-37
 
    Her senaryo temiz depoyla başlıyor, kendi dünyasını tohumluyor ve
    gerçek modülleri çağırıyor. Hiçbir iddia ekran metnine, CSS sınıfına
@@ -1046,6 +1046,10 @@ const BEKLENEN_ANAHTARLAR = [
      personelKaydiEkle). Yeni depo değil, backoffice'in kendi deposu. */
   'paksan.personel',
   'paksan.requests',
+  /* 29.09.2026: dunyaKur servisin gizlilik kabulünü de yazıyor
+     (tohum.mjs → servisKur); yoksa Servisim kabul ekranında kalır.
+     Eşlemede kayıtlı (servisKabulleri, bilinen boşluk). */
+  'paksan.servisKabulleri',
 ]
 
 export function AK10(m, ctx) {
@@ -1496,7 +1500,20 @@ export async function AK15(m, ctx) {
   m.veri.talepNotEkle(bul(m, r.id), 'iki koli gitti', 'Sınama Yöneticisi', { servise: true })
   d.esit(sonOlay(), 'not', 'PAKSAN\'ın notu servise bildirildi')
 
-  /* PAKSAN servis talebine gün verdi: servis bunu "siparişinizin
+  /* PAKSAN DEVREDİLMEMİŞ İŞE RANDEVU VEREMİYOR (29 Eylül 2026,
+     kullanıcının kararı; veri.js → paksanRandevuEngeli). Randevu
+     servisin; PAKSAN ancak servisin devrettiği işte gün verebiliyor. */
+  const oncekiPlan = bul(m, r.id)?.plan
+  const red = m.veri.talepPlanla(
+    bul(m, r.id),
+    { tarih: saat.simdi() + 2 * 86400000, tarihYazi: '2 gün sonra', is: 'Ziyaret', gorusuldu: true, saatBelirtildi: true },
+    'Sınama Yöneticisi',
+  )
+  d.dogru(typeof red?.hata === 'string', 'PAKSAN devredilmemiş işe randevu veremedi')
+  d.esit(bul(m, r.id)?.plan?.tarih, oncekiPlan?.tarih, 'servisin randevusu yerinde kaldı')
+  m.veri.destekTalepEt(bul(m, r.id), 'Sınama: destek', SERVIS.ad)
+
+  /* PAKSAN devredilen servis talebine gün verdi: servis bunu "siparişinizin
      gönderim günü" diye okumamalı, ziyaret günü diye okumalı. */
   /* Backoffice'in plan formu gün ve saat soruyor: `saatBelirtildi: true`
      (ekranlar/Talepler.jsx → PlanFormu). */
@@ -1704,6 +1721,30 @@ export async function AK17(m, ctx) {
   const a = talep({ id: 'a', createdAt: saat.simdi() - 72 * 3600000 })
   const b = talep({ id: 'b', createdAt: saat.simdi() - 96 * 3600000 })
   d.esit(is.yeniIsSirasi([c, a, b]).map((t) => t.id).join(), 'b,a,c', 'Yeni sekmesinde 48 saati geçenler başta, en eskisi önce')
+
+  /* "DEVAM EDEN"DE SIRASI SERVİSE GELEN İŞ ÜSTTE (29 Eylül 2026,
+     kullanıcının onayı). Sırası serviste olan iş üstte: geçmiş ve bugünkü
+     randevu, sonra parçası yola çıkmış iş, sonra ileri tarihli randevu;
+     parça hazırlanan, kaydı incelenen ve PAKSAN'a devredilmiş iş altta,
+     geldiği sırada (isDurumu.js → devamSirasi). Liste en yeni önce
+     geliyor. Bugünkü randevu saatsiz: günün sonuna sayılıyor ama yine
+     de parçanın önünde. */
+  const GUN = 86400000
+  const bugunBasi = new Date(saat.simdi()).setHours(0, 0, 0, 0)
+  const devam = [
+    talep({ id: 'onay', status: 'onayBekliyor' }),
+    talep({ id: 'ileri', status: 'planlandi', plan: { tarih: saat.simdi() + 3 * GUN } }),
+    talep({ id: 'hazir', status: 'parcaBekliyor' }),
+    talep({ id: 'yolda', status: 'parcaBekliyor', parcaSevk: { tarih: saat.simdi() - 1 * GUN } }),
+    talep({ id: 'bugun', status: 'planlandi', plan: { tarih: bugunBasi, saatBelirtildi: false } }),
+    talep({ id: 'devir', status: 'incelemede', sahip: 'paksan', devir: { tarih: eski } }),
+    talep({ id: 'gecmis', status: 'planlandi', plan: { tarih: saat.simdi() - 2 * GUN } }),
+  ]
+  d.esit(
+    is.devamSirasi(devam).map((t) => t.id).join(),
+    'gecmis,bugun,yolda,ileri,onay,hazir,devir',
+    'Devam Eden: geçmiş ve bugünkü randevu, yolda parça, ileri randevu; PAKSAN\'ı bekleyen altta, geldiği sırada',
+  )
 
   return d
 }
@@ -4418,7 +4459,9 @@ export async function AK33(m) {
      G4   garanti kaydı yalnız garantideki makinede
      G5   parça makinenin havuzundan; G5b aynı kural yardımcıdan
           bağımsız (grup ailesi, Yunus adı, Hammer grubu)
-     G6   servis kaydının arıza nedeni talebin açıklaması
+     G6   servis kaydının arıza nedeni, kaydın gönderildiği andaki
+          talep nedeni (yeniden açılan işte müşterinin "Sorun Devam"
+          cümlesi; lib/servisKaydi.js → talepNedeni)
      G7   "garanti kapsamında" notu yalnız garantideki servis işinde
      G8   parça planı gönderim işi; teklifte plan yok
      G9   km ve saat ücreti tarifeden
@@ -4428,15 +4471,29 @@ export async function AK33(m) {
           dokunmuyor (yalnız son tohumda: yazdıkları eşleme denetimine
           kalsın)
      G14  marka sabitleri bayat değil
-     ve gerçek biçim: telefon ve hesap kimliği, Servisim randevusu
-     saatsiz, elle işte atamaDisi kuralla, bir makinede tek açık iş,
-     tekil talep numarası */
+     G15  Servisim'in sahnesi (backoffice/demoSahne.js, 29 Eylül 2026):
+          her iş kendi durumunda ve kendi izini taşıyor (ek, "Sorun
+          Devam", düzeltme, kısmi gönderim, iade, atama dışı …)
+     G16  sahnenin ayarları ve hesap bildirimleri: özel ücret, servis
+          indirimi, bakiye ek indirimi; bildirimler demo damgalı
+     G17  Servisim'in cihaz izleri: demo adresleri, iki günden eski
+          bildirimler okunmuş, yeniler okunmamış, bir uyarı görülmüş
+     G18  sahne İşlem Kaydı'na satır bırakmıyor (yalnız "Demo verisi
+          yüklendi")
+     G12 ayrıca (29 Eylül 2026): demoTemizle sahnenin hesap
+          bildirimlerini, adreslerini ve okunmuş kimliklerini siliyor,
+          ayarları eski hâline döndürüyor, demo sürümünü siliyor
+     ve gerçek biçim: telefon ve hesap kimliği (Kayıt Aç'ın kayıtsız
+     kişisi hariç), Servisim randevusu saatsiz, elle işte atamaDisi
+     kuralla, bir makinede tek açık iş, tekil talep numarası */
 export async function AK34(m, ctx) {
   const d = defter('AK-34', 'Demo verisi makineye uyuyor')
   const al = (yol) => ctx.modulYukle(yol)
   const demo = await al('/src/backoffice/demo.js')
   const aile = await al('/src/backoffice/demoMakineAilesi.js')
   const demoServis = await al('/src/backoffice/demoServis.js')
+  const sahneMod = await al('/src/backoffice/demoSahne.js')
+  const sk = await al('/src/lib/servisKaydi.js')
   const { DEMO_SURUMU } = await al('/src/servis/demoKur.js')
   const pk = await al('/src/lib/parcaKatalogu.js')
   const ta = await al('/src/data/talepAlanlari.js')
@@ -4445,7 +4502,11 @@ export async function AK34(m, ctx) {
   const { getProduct, supportGroup, PARCA_GRUBU_AILESI, PARCA_ADINDAKI_MODEL, GRUBUN_MODELLERI } = m.marka
   const ihlalYok = (ihlal, ne) => d.bak(ihlal.length === 0, ne, '[]', ihlal.slice(0, 5))
 
-  d.esit(DEMO_SURUMU, 5, 'demo sürümü 5 (tek artış; tarayıcıdaki demo bir kez yeniden kuruluyor)')
+  /* 6 (29 Eylül 2026): demo adreslerinin köyü müşterinin ilçesinde
+     (backoffice/demo.js → KOYLER); aşağıda G4b.
+     7 (29 Eylül 2026): Servisim'in sahnesi sabit ve gerçek işlevlerden
+     (backoffice/demoSahne.js); aşağıda G15-G18. */
+  d.esit(DEMO_SURUMU, 8, 'demo sürümü 8 (29.09.2026: D10 servisin randevusu; tarayıcıdaki demo bir kez yeniden kuruluyor)')
 
   /* Katalog sunucudan fetch'le geliyor; Node'da taklit ediliyor. */
   const katalogJson = JSON.parse(readFileSync(join(KOK, 'sunucu-taklidi/parca-katalogu/katalog.json'), 'utf8'))
@@ -4477,13 +4538,23 @@ export async function AK34(m, ctx) {
 
     const DURUMLAR = ['yeni', 'incelemede', 'planlandi', 'parcaBekliyor', 'onayBekliyor', 'kapandi', 'iptal']
     const sahneBeklenen = {}
-    for (const g of demoServis.SAHNE_GOREVLERI) sahneBeklenen[g.durum] = (sahneBeklenen[g.durum] || 0) + 1
+    for (const g of sahneMod.SAHNE_ISLERI.filter((x) => x.tur === 'servis' && !x.servis)) {
+      sahneBeklenen[g.durum] = (sahneBeklenen[g.durum] || 0) + 1
+    }
 
     for (const [sira, tohum] of [asilTohum, asilTohum + 1, asilTohum + 2].entries()) {
       depoTemizle()
       tohumla(tohum)
       const dunya = dunyaKur(m)
       m.veri.genelTarifeyiKaydet({ yolKm: 14, iscilikSaat: 60 }, {}, 'Sınama Yöneticisi')
+      /* Demodan önceki ayarlar ve İşlem Kaydı: G12 geri dönüşü, G18
+         sahnenin iz bırakmadığını buna göre ölçüyor. */
+      const ayarOnce = {
+        tarife: m.veri.hizmetTarifesiGetir().servisler[SERVIS.id] ?? null,
+        iskonto: m.veri.parcaIskontosuGetir(),
+      }
+      const islemOnce = m.depo.load('islemKaydi', []).length
+      const demoSaati = saat.simdi()
       const o = await demo.demoYukle()
       const E = `[tohum ${tohum}]`
       d.bak(!o?.hata && o?.talep > 0, `${E} G1 demo kuruldu`, 'talep > 0', o)
@@ -4532,6 +4603,22 @@ export async function AK34(m, ctx) {
         `${E} G4 garanti kaydı yalnız garantideki makinede`,
       )
 
+      /* G4b · Adres müşterinin köyü (29 Eylül 2026). Servisim'in "Yol
+         Tarifi" adresi haritada açıyor; köy müşterinin ilçesinden
+         bağımsız seçilince demo yanlış yeri gösteriyordu, aynı müşterinin
+         her talebinde başka köy çıkıyordu. Her müşterinin bir adresi var;
+         adresli servis talebi o adresi taşıyor; Servisim'in elle açtığı
+         işte adres hep var (Kayıt Aç zorunlu tutuyor). */
+      const musteriBul = new Map(musteriler.map((x) => [x.id, x]))
+      const g4b = []
+      for (const mu of musteriler) if (!mu.adres) g4b.push(`${mu.ad} (${mu.il}/${mu.ilce}) adressiz`)
+      for (const r of servisTalepleri) {
+        const mu = musteriBul.get(r.musteriId)
+        if (r.elle && !r.adres) g4b.push(`${r.no} elle iş adressiz`)
+        if (r.adres && mu && r.adres !== mu.adres) g4b.push(`${r.no} adresi müşterinin köyü değil`)
+      }
+      ihlalYok(g4b, `${E} G4b servis talebinin adresi müşterinin köyü`)
+
       /* G5 · G5b · Parça makinenin. */
       const satirlar = []
       for (const r of servisTalepleri) for (const p of r.servisKaydi?.parcalar || []) satirlar.push([r, p.kod])
@@ -4553,12 +4640,17 @@ export async function AK34(m, ctx) {
       ihlalYok(g5, `${E} G5 parça makinenin havuzunda`)
       ihlalYok(g5b, `${E} G5b parça makinenin ailesinden ve modelinden (yardımcıdan bağımsız)`)
 
-      /* G6 · Arıza nedeni talepten. */
+      /* G6 · Arıza nedeni talepten: kaydın gönderildiği andaki neden.
+         Yeniden açılan işte o an müşterinin son "Sorun Devam" cümlesi
+         (lib/servisKaydi.js → talepNedeni); kayıttan SONRA yazılan
+         cümle o kaydın nedeni olamaz (29 Eylül 2026, sahne D05, D15). */
+      const kayittakiNeden = (r) =>
+        sk.talepNedeni({ ...r, tekrar: (r.tekrar || []).filter((x) => x.tarih < r.servisKaydi.tarih) })
       ihlalYok(
         servisTalepleri
-          .filter((r) => r.servisKaydi && r.servisKaydi.ariza !== (r.aciklama || ta.makineDurumAdi(r.durum)))
+          .filter((r) => r.servisKaydi && r.servisKaydi.ariza !== kayittakiNeden(r))
           .map((r) => r.no),
-        `${E} G6 servis kaydının arıza nedeni talebin açıklaması`,
+        `${E} G6 servis kaydının arıza nedeni talebin o anki nedeni`,
       )
 
       /* G7 · Garanti notu. */
@@ -4614,11 +4706,14 @@ export async function AK34(m, ctx) {
         if (r.telUlke !== 'TR') tel.push(`${r.no} ülke`)
         if (!/^\d{10}$/.test(r.telHam || '') || r.telHam !== m.tel.telHamYap('TR', r.telHam)) tel.push(`${r.no} ham "${r.telHam}"`)
         if (r.tel !== m.tel.telGoster('TR', r.telHam)) tel.push(`${r.no} görünen "${r.tel}"`)
-        if (!musteriIdleri.has(r.musteriId)) tel.push(`${r.no} hesap ${r.musteriId}`)
+        /* Kayıt Aç'ın kayıtsız kişisi (sahne D07) hesapsız: gerçek
+           kayıtta da `musteriId` yok (lib/elleTalep.js). */
+        const hesapsizElle = r.elle && !r.musteriId
+        if (!musteriIdleri.has(r.musteriId) && !hesapsizElle) tel.push(`${r.no} hesap ${r.musteriId}`)
         const mu = musteriler.find((x) => x.id === r.musteriId)
         if (mu && !m.musteriEslesmesi.musterininMi(r, mu)) tel.push(`${r.no} müşterisiyle eşleşmiyor`)
       }
-      ihlalYok(tel, `${E} demo talebi telefonu tek biçimde, hesap kimliğiyle`)
+      ihlalYok(tel, `${E} demo talebi telefonu tek biçimde, hesap kimliğiyle (kayıtsız elle iş hariç)`)
 
       /* Gerçek biçim · Servisim randevusu yalnız gün. */
       const randevular = servisTalepleri.filter((r) => r.plan && r.plan.personel === r.servis?.ad)
@@ -4654,9 +4749,9 @@ export async function AK34(m, ctx) {
       const acikIsler = servisTalepleri.filter(mt.acikServisTalebiMi)
       const dolu = new Map()
       for (const r of acikIsler) dolu.set(r.makine.id, (dolu.get(r.makine.id) || 0) + 1)
-      const sahneMakineleri = musteriler.slice(0, demoServis.SAHNE_MUSTERI).flatMap((mu) => mu.makineler)
+      const sahneMakineleri = musteriler.slice(0, sahneMod.SAHNE_MUSTERI).flatMap((mu) => mu.makineler)
       const servisliMakineler = musteriler
-        .slice(demoServis.SAHNE_MUSTERI)
+        .slice(sahneMod.SABIT_MUSTERI)
         .flatMap((mu) => mu.makineler)
         .filter((mk) => {
           const s = m.servisAtama.makineninServisi(mk)?.servis
@@ -4681,6 +4776,98 @@ export async function AK34(m, ctx) {
       const nolar = demoTalepler.map((r) => r.no)
       ihlalYok(nolar.filter((no, i) => nolar.indexOf(no) !== i), `${E} demo talep numaraları tekil`)
 
+      /* G15 · Servisim'in sahnesi (29 Eylül 2026). Her iş kendi
+         durumunda ve Servisim'in ilgili ekranını dolduran izi taşıyor.
+         İzler uygulamanın kendi işlevlerinin yazdığı alanlar; sahne
+         bir adımı atlarsa ya da elle kayıt kurarsa düşüyor. */
+      const duyurularHam = m.depo.load('duyurular', [])
+      const sahneServisi = sahneMod.SAHNE_ISLERI
+      const sahneTalebi = (kod) => demoTalepler.find((r) => r.demoSahne === kod) || null
+      const olayi = (r, olay) => duyurularHam.some((x) => x.alici === 'servis' && x.talepId === r?.id && x.olay === olay)
+      const hesap = (r) => m.veri.siparisHesabi(r)
+      const gunBasi = tarih.gunBasi(demoSaati)
+      const IZ = {
+        D01: (r) => r.ses?.veri?.startsWith('data:audio/') && r.belirtiler.length > 0 && r.aciklama.includes('\n'),
+        D02: (r) => r.eklemeler?.length === 1 && olayi(r, 'musteriEkledi'),
+        D03: (r) => r.durum === 'kurulum' && !r.belirtiler.length && !r.aciklama,
+        D04: (r) => r.notlar?.some((n) => n.servise) && olayi(r, 'not') && aile.garantideMi(r.makine.serial),
+        D05: (r) => r.tekrar?.length === 1 && r.servisKaydi?.asama === 'bitti' && !sk.buZiyaretinKaydi(r) && olayi(r, 'musteriSorunDevam'),
+        D06: (r) => r.elle && Boolean(r.musteriId) && !r.atamaDisi,
+        D07: (r) => r.elle && !r.musteriId && r.makine?.seriYok && r.atamaDisi?.durum === 'seriYok',
+        D08: (r) => r.plan?.saatBelirtildi === false && r.plan.tarih < gunBasi,
+        D09: (r) => r.plan?.saatBelirtildi === false && r.plan.tarih === gunBasi && r.notlar?.some((n) => n.musteriye),
+        D10: (r) => r.plan?.saatBelirtildi === false && r.plan.tarih > demoSaati,
+        D11: (r) => Boolean(r.devir) && r.sahip === 'paksan',
+        D12: (r) => r.servisKaydi?.asama === 'parca' && !r.parcaSevk && r.masa === 'parca',
+        D13: (r) => Boolean(r.parcaSevk?.takipNo && r.parcaSevk.guncelleme) && r.servisKaydi?.teslimat?.kaynak === 'kayitli' && olayi(r, 'kargoGuncellendi'),
+        D14: (r) => r.hakkedis?.durum === 'bekliyor' && r.servisKaydi?.parcalar?.length > 0,
+        D15: (r) => r.oncekiKayitlar?.length === 1 && r.servisKaydi?.duzeltmeler?.length === 1 && r.tekrar?.length === 1,
+        D16: (r) => r.elle && r.atamaDisi?.durum === 'baskaServis' && r.hakkedis?.durum === 'bekliyor',
+        D17: (r) => r.hakkedis?.durum === 'onaylandi' && r.servisKaydi?.parcalar?.length > 0 && r.notlar?.some((n) => n.servisten),
+        D18: (r) => r.hakkedis?.durum === 'onaylandi' && r.servisKaydi?.duzeltmeler?.length === 1,
+        D19: (r) => r.hakkedis?.durum === 'reddedildi',
+        D20: (r) => r.cozum?.garantiDisi === true && !aile.garantideMi(r.makine.serial),
+        D21: (r) => Boolean(r.devir) && Boolean(r.cozum?.yapilanIs) && olayi(r, 'kapandi'),
+        D22: (r) => Boolean(r.iptalBilgi?.aciklama) && olayi(r, 'iptal'),
+        D23: (r) => r.odeme === 'bakiye' && r.parcaFiyat?.bakiyeIskontoOrani > 0 && hesap(r).bekleyen > 0,
+        D24: (r) => r.plan?.saatBelirtildi === true && olayi(r, 'planlandi'),
+        D25: (r) => r.odeme === 'bakiye' && hesap(r).dusulen === hesap(r).net,
+        D26: (r) => r.gonderimler?.length === 1 && hesap(r).bekleyen > 0 && olayi(r, 'siparisKismenGonderildi'),
+        D27: (r) => r.gonderimler?.length === 2 && r.kalemIptalleri?.length === 1 && hesap(r).iptalEdilen > 0 && hesap(r).dusulen === hesap(r).net,
+        D28: (r) => hesap(r).iade > 0 && hesap(r).dusulen === 0,
+        D29: (r) => r.iptalBilgi?.personel === SERVIS.ad && !olayi(r, 'iptal'),
+        D30: (r) => r.odeme === 'fatura' && r.parcaFiyat?.iskontoOrani !== m.veri.servisinIskontosu(SERVIS.id).oran,
+        N1A: (r) => r.servis?.id !== SERVIS.id && r.status === 'yeni',
+      }
+      ihlalYok(
+        sahneServisi
+          .map((x) => [x, sahneTalebi(x.kod)])
+          .filter(([x, r]) => !r || r.status !== x.durum || !IZ[x.kod]?.(r) || (x.tur === 'siparis') !== Boolean(r.servisSiparisi))
+          .map(([x, r]) => `${x.kod} ${r ? r.status : 'yok'}`),
+        `${E} G15 Servisim sahnesinin her işi kendi durumunda ve izinde`,
+      )
+
+      /* G16 · Sahnenin ayarları ve hesap bildirimleri. Sınama deposu
+         temiz başlıyor: üç ayar da sahnenin yazdığı. */
+      const tarifeSimdi = m.veri.hizmetTarifesiGetir()
+      const iskontoSimdi = m.veri.parcaIskontosuGetir()
+      const hesapBildirimleri = duyurularHam.filter((x) => x.tur === 'hesap' && x.servisId === SERVIS.id && x.demo)
+      const g16 = []
+      if (!m.servisTarifesi.makineFarklari(tarifeSimdi, SERVIS.id).length) g16.push('makineye göre ücret yok')
+      if (!(iskontoSimdi.servisler[SERVIS.id] > 0)) g16.push('servise özel indirim yok')
+      if (!(iskontoSimdi.bakiye > 0)) g16.push('bakiye ek indirimi yok')
+      for (const olay of ['tarife', 'iskonto', 'bakiyeIskonto']) {
+        if (!hesapBildirimleri.some((x) => x.olay === olay)) g16.push(`${olay} bildirimi demo damgalı değil`)
+      }
+      if (!m.depo.load(sahneMod.AYAR_YEDEGI, null)) g16.push('ayar yedeği yok')
+      ihlalYok(g16, `${E} G16 sahnenin ayarları ve hesap bildirimleri`)
+
+      /* G17 · Servisim'in cihaz izleri: adres defteri, okunmuşluk,
+         "Anladım" denmiş uyarı. */
+      const okunan = new Set(m.depo.load('okunanBildirimlerServis', []))
+      const servisBildirim = m.veri.servisBildirimleri(SERVIS.id)
+      const g17 = []
+      const demoAdresleri = (m.depo.load('servisAdresleri', {})[SERVIS.id] || []).filter((a) => a.demo)
+      if (demoAdresleri.length !== 2) g17.push(`demo adresi ${demoAdresleri.length}`)
+      const eski = servisBildirim.filter((b) => demoSaati - b.tarih > 2 * 86400000)
+      const yeni = servisBildirim.filter((b) => demoSaati - b.tarih < 1.5 * 86400000)
+      if (!eski.length || eski.some((b) => !okunan.has(b.id))) g17.push('eski bildirim okunmamış')
+      if (!yeni.length || yeni.some((b) => okunan.has(b.id))) g17.push('yeni bildirim okunmuş')
+      const gorulen = new Set(m.depo.load('gorulenDuyurularServis', []))
+      const uyarilar = duyurularHam.filter((x) => x.demo && x.tur === 'uyari')
+      if (uyarilar.filter((x) => gorulen.has(x.id)).length !== 1) g17.push('görülmüş uyarı tek değil')
+      ihlalYok(g17, `${E} G17 Servisim'in cihaz izleri`)
+
+      /* G18 · Sahne İşlem Kaydı'na satır bırakmıyor: gerçek işlevlerin
+         yazdığı satırlar geri alınıyor, demonun özet satırı kalıyor. */
+      const islemSonra = m.depo.load('islemKaydi', [])
+      d.bak(
+        islemSonra.length === islemOnce + 1 && islemSonra[0]?.tur === 'demo',
+        `${E} G18 sahne İşlem Kaydı'na satır bırakmıyor`,
+        `${islemOnce + 1} satır, ilki demo özeti`,
+        { satir: islemSonra.length, ilk: islemSonra[0]?.ozet },
+      )
+
       /* G12 · demoTemizle — yalnız SON tohum (25 Eylül 2026, inceleme).
          İlk tohumdaydı: sonraki tohumların başındaki depoTemizle() G12'nin
          gerçek (demo olmayan) yazımlarını siliyor, eşleme denetimi yalnız
@@ -4700,6 +4887,8 @@ export async function AK34(m, ctx) {
 
         const idler = new Set(demoTalepler.map((x) => x.id))
         const numaralar = new Set(demoTalepler.map((x) => x.no))
+        /* Servisim demoyu kurmuş gibi: temizlik sürümü de silmeli. */
+        m.depo.save('demoSurumu', DEMO_SURUMU)
         demo.demoTemizle()
         const cari = m.depo.load('cariHareket', [])
         const duyurular = m.depo.load('duyurular', [])
@@ -4712,6 +4901,24 @@ export async function AK34(m, ctx) {
         )
         d.esit(cari.filter((h) => h.talepId === r.id).length, gercekAlacak, 'G12 gerçek işin alacağı duruyor')
         d.esit(duyurular.filter((x) => x.talepId === r.id || x.talepNo === r.no).length, gercekBildirim, 'G12 gerçek işin bildirimleri duruyor')
+
+        /* G12 · sahnenin izleri (29 Eylül 2026): hesap bildirimi, adres,
+           okunmuş kimlikler, ayarlar ve demo sürümü. */
+        const g12 = []
+        if (duyurular.some((x) => x.demo)) g12.push('demo damgalı bildirim kaldı')
+        if (Object.values(m.depo.load('servisAdresleri', {})).flat().some((a) => a.demo)) g12.push('demo adresi kaldı')
+        const kalan = new Set(duyurular.map((x) => x.id))
+        for (const anahtar of ['okunanBildirimlerServis', 'gorulenDuyurularServis']) {
+          if (m.depo.load(anahtar, []).some((id) => !kalan.has(id))) g12.push(`${anahtar} silinen kimliği tutuyor`)
+        }
+        const tarifeSon = m.veri.hizmetTarifesiGetir().servisler[SERVIS.id] ?? null
+        const iskontoSon = m.veri.parcaIskontosuGetir()
+        if (JSON.stringify(tarifeSon) !== JSON.stringify(ayarOnce.tarife)) g12.push('servisin ücreti eski hâline dönmedi')
+        if (iskontoSon.servisler[SERVIS.id] !== ayarOnce.iskonto.servisler[SERVIS.id]) g12.push('servis indirimi eski hâline dönmedi')
+        if (iskontoSon.bakiye !== ayarOnce.iskonto.bakiye) g12.push('bakiye ek indirimi eski hâline dönmedi')
+        if (m.depo.load(sahneMod.AYAR_YEDEGI, null)) g12.push('ayar yedeği kaldı')
+        if (m.depo.load('demoSurumu', null) !== null) g12.push('demo sürümü kaldı (Servisim yeniden kurmaz)')
+        ihlalYok(g12, 'G12 sahnenin izleri gitti, ayarlar eski hâlinde')
 
         /* Demo yeniden kuruluyor: eşleme denetimi hem G12'nin gerçek
            yazımlarını hem demonun paylaşılan anahtarlara yazdığı alanları
@@ -4978,8 +5185,109 @@ export function AK36(m) {
   return d
 }
 
+/* ========================================================== AK-37 */
+
+/* KVKK ONAYLARININ KAYDI VE SERVİSİM'İN GİZLİLİK KABULÜ (29 Eylül 2026,
+   kullanıcının isteği: "KVKK, Açık Rıza Metni ve İzinler kısmı gözden
+   geçirilecek … Servisim için de hukuki açıdan bizi ve kullanıcıyı
+   koruyacak aksiyonların alınması gerekiyor").
+
+   Connect'te hesapta yalnız son durum vardı; kampanya izni Profil'den
+   değişince tarih yazılmıyordu. Artık her karar ayrı satır
+   (lib/rizaKaydi.js) ve kodları veritabanının listeleriyle aynı. Metin
+   sürümü değişince eski sürümü onaylamış hesaba yeniden soruluyor.
+   Servisim ilk girişte iki metni kabul ettiriyor (lib/servisGizlilik.js).
+
+   Taşıdıkları:
+     1     kayıt üç kararı yazıyor: iki onay, kampanya için onay ya da ret;
+           sürüm bugünkü metnin, dil ve kanal doğru
+     2     kampanya açılıp kapanınca olay ekleniyor (onay / geriCekme),
+           son değişikliğin tarihi yazılıyor, eski olaylar yerinde
+     3     eski sürümü onaylamış hesap yeniden onaya düşüyor; onay iki
+           zorunlu metni yeni sürümle yazıyor, kampanya kararı değişmiyor
+     4     sınama tohumunun hesabı bugünkü sürümde (yoksa ekran turundaki
+           her Connect adımı güncelleme penceresinin arkasında kalır)
+     5     yazılan her seçim ve kanal kodu veritabanının kod listesinde var
+     6     Servisim: kabul etmemiş servis kapıda kalıyor, kabul eden
+           geçiyor, başka servisin kabulü sayılmıyor, eski sürümün kabulü
+           yeni sürüme sayılmıyor */
+export async function AK37(m) {
+  const d = defter('AK-37', 'KVKK onay kaydı ve Servisim gizlilik kabulü')
+  depoTemizle()
+  const R = m.rizaKaydi
+  const { KVKK_SURUM } = await modulYukle('/src/data/kvkk.js')
+  const { SERVIS_METIN_SURUM } = await modulYukle('/src/data/servisGizlilik.js')
+
+  // 1 — kayıt
+  const kayit = R.kayitOnaylari({ kampanya: false, dil: 'en' })
+  d.esit(kayit.olaylar.length, 3, 'kayıt üç karar yazdı')
+  d.esit(
+    kayit.olaylar.map((o) => `${o.metin}:${o.secim}`).join(','),
+    'aydinlatma:onay,acikRiza:onay,ticariIleti:ret',
+    'iki zorunlu metin onaylı, işaretlenmeyen kampanya "ret"',
+  )
+  d.dogru(kayit.olaylar.every((o) => o.surum === KVKK_SURUM), 'olaylar bugünkü metin sürümünde')
+  d.dogru(kayit.olaylar.every((o) => o.dil === 'en' && o.kanal === 'connectKayit'), 'dil ve kanal yazıldı')
+  d.esit(kayit.surum, KVKK_SURUM, 'hesabın onay sürümü bugünkü metin')
+  d.esit(kayit.kampanya, false, 'kampanya kapalı başladı')
+
+  // 2 — kampanya aç / kapat
+  const acik = R.kampanyaDegisti(kayit, true, 'tr')
+  d.esit(acik.kampanya, true, 'kampanya açıldı')
+  d.esit(acik.olaylar.length, 4, 'açma ayrı satır')
+  d.esit(acik.olaylar[3].secim, 'onay', 'açma "onay"')
+  d.esit(acik.olaylar[3].kanal, 'connectProfil', 'açma Profil kanalından')
+  d.esit(kayit.olaylar.length, 3, 'önceki hâl değiştirilmedi (olaylar yalnız eklenir)')
+  const kapali = R.kampanyaDegisti(acik, false, 'tr')
+  d.esit(kapali.olaylar[4].secim, 'geriCekme', 'kapatma "geriCekme"')
+  d.dogru(R.kampanyaSonDegisiklik(kapali) >= kayit.tarih, 'son değişikliğin tarihi yazıldı')
+
+  // 3 — metin güncellemesi
+  const eski = { ...kapali, surum: '1.0' }
+  d.esit(R.onayYenilenmeli({ onaylar: eski }), true, 'eski sürümü onaylamış hesap yeniden onaya düştü')
+  d.esit(R.onayYenilenmeli({ onaylar: kapali }), false, 'bugünkü sürümü onaylamış hesap düşmedi')
+  d.esit(R.onayYenilenmeli({}), true, 'onayı hiç olmayan hesap da düştü')
+  const yeni = R.guncellemeOnayi(eski, 'tr')
+  d.esit(R.onayYenilenmeli({ onaylar: yeni }), false, 'güncelleme onayından sonra yeniden sorulmuyor')
+  d.esit(
+    yeni.olaylar.slice(-2).map((o) => `${o.metin}:${o.secim}:${o.kanal}`).join(','),
+    'aydinlatma:onay:connectGuncelleme,acikRiza:onay:connectGuncelleme',
+    'güncelleme iki zorunlu metni yeni sürümle yazdı',
+  )
+  d.esit(yeni.kampanya, false, 'kampanya kararı güncellemede değişmedi')
+  /* Hesap depoya yazılıyor: eşleme denetimi (veritabani-eslesme-denetimi)
+     olay alanlarını ancak depoda görürse denetleyebiliyor. */
+  m.depo.save('hesap', { ...MUSTERI, onaylar: yeni })
+
+  // 4 — tohum güncel
+  d.esit(MUSTERI.onaylar.surum, KVKK_SURUM, 'sınama tohumunun hesabı bugünkü sürümde (tohum.mjs → KVKK_SURUMU)')
+
+  // 5 — kodlar veritabanının listesinde
+  const kodlar = JSON.parse(readFileSync(join(KOK, 'veritabani/tohum/kaynak/kod-adlari.json'), 'utf8'))
+  const yazilan = [...yeni.olaylar, ...kapali.olaylar]
+  const secimYok = yazilan.filter((o) => !kodlar['kod.RizaSecimi'][o.secim]).map((o) => o.secim)
+  const kanalYok = yazilan.filter((o) => !kodlar['kod.RizaKanali'][o.kanal]).map((o) => o.kanal)
+  d.esit(secimYok.join(','), '', 'her seçim kodu kod.RizaSecimi listesinde')
+  d.esit(kanalYok.join(','), '', 'her kanal kodu kod.RizaKanali listesinde')
+
+  // 6 — Servisim kabulü
+  const G = m.servisGizlilik
+  const oturum = { servisId: SERVIS.id, no: SERVIS.no, ad: SERVIS.ad }
+  d.esit(G.servisKabulEttiMi(SERVIS.id), false, 'kabul etmemiş servis kapıda')
+  const k = G.servisKabulunuKaydet(oturum, 'servisimIlkGiris')
+  d.esit(G.servisKabulEttiMi(SERVIS.id), true, 'kabul eden servis geçti')
+  d.esit(k.surum, SERVIS_METIN_SURUM, 'kabul bugünkü metin sürümüyle yazıldı')
+  d.esit(k.metinler.join(','), 'servisAydinlatma,servisGizlilik', 'iki metin birlikte kabul edildi')
+  d.esit(G.servisKabulEttiMi('baska-servis'), false, 'başka servisin kabulü sayılmadı')
+  m.depo.save('servisKabulleri', [{ ...k, surum: '0.9' }])
+  d.esit(G.servisKabulEttiMi(SERVIS.id), false, 'eski sürümün kabulü yeni sürüme sayılmadı')
+  d.esit(G.servisinSonKabulu(SERVIS.id)?.surum, '0.9', 'eski kabul görünüyor (kapı "güncellendi" der)')
+
+  return d
+}
+
 export const SENARYOLAR = [
   AK01, AK02, AK03, AK04, AK05, AK06, AK07, AK08, AK09, AK10, AK11, AK12, AK13, AK14,
   AK15, AK16, AK17, AK18, AK19, AK20, AK21, AK22, AK23, AK24, AK25, AK26, AK27, AK28,
-  AK29, AK30, AK31, AK32, AK33, AK34, AK35, AK36,
+  AK29, AK30, AK31, AK32, AK33, AK34, AK35, AK36, AK37,
 ]

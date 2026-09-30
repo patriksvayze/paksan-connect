@@ -16,6 +16,15 @@
    demektir.
    ========================================================================== */
 
+/* KVKK metinlerinin bugünkü sürümü (src/data/kvkk.js → KVKK_SURUM).
+   Hesap eski sürümü onaylamışsa Connect açılışta yeniden onay penceresi
+   gösteriyor (components/KvkkGuncelleme.jsx); tohumun hesabı güncel
+   olmalı, yoksa ekran turundaki her Connect adımı o pencerenin arkasında
+   kalır. Burada düz yazılı çünkü bu dosya modül yüklenmeden okunuyor;
+   AK-37 ikisinin aynı olduğunu denetliyor — metin sürümü artınca
+   AK-37 düşer, bu satır güncellenir. */
+export const KVKK_SURUMU = '1.1'
+
 /* Seri numaraları defterde GELDİĞİ GİBİ duruyor; okuma normalize
    ediliyor (bkz. lib/servisAtama.js). AK-02 tam bu yüzden aynı seriyi
    üç ayrı yazımla arıyor. */
@@ -55,7 +64,7 @@ export const MUSTERI = {
   il: 'Konya',
   ilce: 'Selçuklu',
   adres: 'Konya ovası, 14. km',
-  onaylar: { aydinlatma: true, acikRiza: true, kampanya: true, surum: '1.0', tarih: 0 },
+  onaylar: { aydinlatma: true, acikRiza: true, kampanya: true, surum: KVKK_SURUMU, tarih: 0 },
 }
 
 /* İkinci müşteri "bildirim yanlış kişiye gitti mi" sorusu için (AK-07).
@@ -77,7 +86,7 @@ export const MUSTERI2 = {
   konumUlke: 'TR',
   il: 'Ankara',
   ilce: 'Polatlı',
-  onaylar: { aydinlatma: true, acikRiza: true, kampanya: true, surum: '1.0', tarih: 0 },
+  onaylar: { aydinlatma: true, acikRiza: true, kampanya: true, surum: KVKK_SURUMU, tarih: 0 },
 }
 
 export const PERSONEL = {
@@ -170,6 +179,11 @@ export function servisKur(m) {
     giris: Date.now(),
   }
   m.depo.oturumKaydet('servisOturum', oturum)
+  /* Gizlilik metinleri kabul edilmiş (29 Eylül 2026). Kabul edilmemiş
+     servis işlerini değil kabul ekranını görüyor (ServisPanel.jsx →
+     GizlilikKapisi); ekran turu kapının kendisini X-09'da ayrıca
+     sınıyor. Gerçek işlevle yazılıyor: sürümü o belirliyor. */
+  m.servisGizlilik.servisKabulunuKaydet(oturum, 'servisimIlkGiris')
   return oturum
 }
 

@@ -10,6 +10,7 @@ import {
   getProduct, getCategory, productsByCategory, urunDilde, kategoriDilde,
 } from '../marka'
 import { araProps } from '../lib/tel'
+import { kilavuzVarMi } from '../lib/kilavuzPdf'
 import { SIRKET } from '../marka'
 import {
   IconMachine, IconPlay, IconCart, IconPhone, IconRight, IconBook, IconPlus,
@@ -126,10 +127,14 @@ export default function ProductDetail() {
             </>
           )}
 
-          {/* Kılavuz */}
-          <button className="btn btn--soft" style={{ marginTop: 18 }} onClick={() => nav(`/kilavuz/${p.id}`)}>
-            <IconBook size={20} /> {t('urun.kilavuz')}
-          </button>
+          {/* Kılavuz — yalnız kılavuzu olan modelde (29 Eylül 2026). Düğme
+              20 modelin hepsinde çıkıyordu; 11'inde "kılavuz yok" diyen boş
+              bir sayfa açılıyordu. */}
+          {kilavuzVarMi(p.id) && (
+            <button className="btn btn--soft" style={{ marginTop: 18 }} onClick={() => nav(`/kilavuz/${p.id}`)}>
+              <IconBook size={20} /> {t('urun.kilavuz')}
+            </button>
+          )}
 
           {/* Bu makine bende var */}
           <button
@@ -176,7 +181,7 @@ export default function ProductDetail() {
             className="btn btn--orange"
             onClick={() => nav(`/talep?tur=satinalma&urun=${p.id}`)}
           >
-            <IconCart size={20} /> {t('urun.teklifIste')}
+            <IconCart size={20} /> {t('anasayfa.teklifAl')}
           </button>
         </div>
       </div>

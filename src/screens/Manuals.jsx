@@ -1,29 +1,73 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useApp } from '../context/AppState'
 import { useDil } from '../i18n'
 import { TopBar, TabBar } from '../components/Chrome'
 import { UrunFoto } from '../components/Gorsel'
-import { getProduct, kilavuzSirasiyla, PRODUCTS, urunDilde } from '../marka'
-import { kilavuzBelgesi, kilavuzVarMi } from '../lib/kilavuzVeri'
-import { IconRight, IconAlert } from '../components/Icons'
+import { getCategory, getProduct, kategoriDilde, kilavuzSirasiyla, PRODUCTS, urunDilde } from '../marka'
+import {
+  boyutYaz,
+  kilavuzAdi,
+  kilavuzDurumu,
+  kilavuzKodu,
+  kilavuzListesiGetir,
+  kilavuzVarMi,
+  sonKilavuzListesi,
+} from '../lib/kilavuzPdf'
+import { IconRight, IconShield, IconInfo } from '../components/Icons'
 
-/* Kullanım kılavuzları listesi.
+/* ==========================================================================
+   Kullanım kılavuzları listesi
 
    Ana sayfadaki "Kılavuzlar" karosu buraya geliyor. Önce kullanıcının
    kendi makineleri (aradığı kılavuz büyük ihtimalle onlardan biri),
-   altında tüm ürünler. Bir modele dokununca o modelin kılavuzu açılıyor.
+   altında öteki modeller makine türüne göre. Bir modele dokununca o
+   modelin kılavuzu açılıyor.
 
-   YALNIZ GERÇEK KILAVUZU OLANLAR
+   YALNIZ GERÇEK KILAVUZU OLANLAR. Listede kılavuzu olan modeller var
+   (bkz. marka/icerik/kilavuzEslesme.js).
+   Kılavuzu olmayan modeller burada görünmüyor — uygulamanın kendi
+   yazdığı genel bir özeti "kılavuz" diye göstermek, müşteriyi kılavuzu
+   varmış gibi bir yere götürüyordu. Kayıtlı makinesinin kılavuzu yoksa
+   bunun nedeni listenin başında yazıyor.
 
-   Listede, PAKSAN'ın kullanım kılavuzu veri sete girmiş modeller var
-   (bkz. src/lib/kilavuzVeri.js). Kılavuzu olmayan modeller burada
-   görünmüyor — uygulamanın kendi yazdığı genel bir özeti "kılavuz" diye
-   göstermek, müşteriyi kılavuzu varmış gibi bir yere götürüyordu.
-   O modeller Ürünler ve Makineler ekranlarında duruyor. */
+   YENİDEN DÜZENLENDİ (29 Eylül 2026, kullanıcının isteği): kılavuzun adı
+   ve sayfa sayısı satırda; öteki modeller türlerine göre başlık başlık;
+   güvenlik kuralları kırmızı bir duvar yerine kendi satırında.
+
+   KILAVUZ ARTIK PDF (aynı gün, kullanıcının kararı; bkz.
+   screens/KilavuzPdf.jsx). Satırda kılavuzun adı, sayfa sayısı ve dosya
+   boyutu; telefona indirilmişse bu yazıyor. Ad ve boyut sunucudaki
+   listeden geliyor; internet yoksa telefondaki son listeden.
+   ========================================================================== */
 
 export default function Manuals() {
   const { t, dil } = useDil()
   const { machines } = useApp()
+
+  const [liste, setListe] = useState(() => sonKilavuzListesi())
+  /* Telefonda duran kılavuzların kodları. */
+  const [kayitli, setKayitli] = useState(() => new Set())
+  useEffect(() => {
+    let iptal = false
+    kilavuzListesiGetir()
+      .then((l) => !iptal && setListe(l))
+      .catch(() => {})
+    return () => {
+      iptal = true
+    }
+  }, [])
+  useEffect(() => {
+    let iptal = false
+    Promise.all(
+      Object.entries(liste).map(async ([kod, bilgi]) => [kod, await kilavuzDurumu(kod, bilgi)]),
+    ).then((durumlar) => {
+      if (!iptal) setKayitli(new Set(durumlar.filter(([, d]) => d !== 'yok').map(([kod]) => kod)))
+    })
+    return () => {
+      iptal = true
+    }
+  }, [liste])
 
   /* Kullanıcının makinelerinin modelleri — aynı modelden iki tane varsa
      kılavuz listesinde bir kez görünsün. */
@@ -38,78 +82,79 @@ export default function Manuals() {
     if (!hedef.some((x) => x.id === p.id)) hedef.push(p)
   }
 
-  /* Sıralama makine tipine göre: küçük balya → büyük balya →
-     rulo balya → diğerleri. Çiftçi kendi tipini aramadan bulsun. */
-  const digerleri = kilavuzSirasiyla(PRODUCTS).filter(
-    (p) => kilavuzVarMi(p.id) && !benimModellerim.some((x) => x.id === p.id)
-  )
+  /* Öteki modeller makine türüne göre öbekleniyor; sıra kılavuz
+     sırası (küçük balya → büyük balya → rulo balya → diğerleri). */
+  const turler = []
+  for (const p of kilavuzSirasiyla(PRODUCTS)) {
+    if (!kilavuzVarMi(p.id) || benimModellerim.some((x) => x.id === p.id)) continue
+    let tur = turler.find((x) => x.id === p.category)
+    if (!tur) {
+      tur = { id: p.category, ad: kategoriDilde(getCategory(p.category), dil)?.name || '', urunler: [] }
+      turler.push(tur)
+    }
+    tur.urunler.push(p)
+  }
 
   return (
     <div className="app">
       <TopBar title={t('urun.kilavuzlarBaslik')} back="auto" />
 
-      <div className="screen wrap fade-in" style={{ paddingTop: 16 }}>
-        {/* Güvenlik kuralları burada, tek yerde.
+      <div className="screen wrap fade-in kilavuzlar">
+        <p className="kilavuzlar-giris">{t('kilavuz.listeGiris')}</p>
 
-            Beş kılavuzun güvenlik bölümleri neredeyse birebir aynı
-            (47 madde ortak). Her modelin sayfasında aynı 51 maddeyi
-            tekrarlamak yerine ortak sayfaya alındı; model sayfalarında
+        {/* Güvenlik kuralları burada, tek yerde. Beş kılavuzun güvenlik
+            bölümleri neredeyse birebir aynı; her modelin sayfasında
             yalnız "makineye el sürmeden önce" kuralları duruyor. */}
-        <Link to="/kilavuzlar/guvenlik" className="listitem listitem--uyari">
-          <div className="listitem__icon listitem__icon--uyari">
-            <IconAlert size={22} />
-          </div>
-          <div className="listitem__body">
-            <div className="listitem__title">{t('guvenlik.baslik')}</div>
-            <div className="listitem__sub">{t('guvenlik.girisAlt')}</div>
-          </div>
-          <span className="listitem__chev">
-            <IconRight size={21} />
+        <Link to="/kilavuzlar/guvenlik" className="kilavuzlar-guvenlik">
+          <span className="kilavuzlar-guvenlik__ikon"><IconShield size={24} /></span>
+          <span className="kilavuzlar-satir__metin">
+            <span className="kilavuzlar-satir__ad">{t('guvenlik.baslik')}</span>
+            <span className="kilavuzlar-satir__alt">{t('guvenlik.girisAlt')}</span>
           </span>
+          <span className="kilavuzlar-satir__ok" aria-hidden="true"><IconRight size={20} /></span>
         </Link>
 
         {/* Kayıtlı makinesinin kılavuzu yoksa kullanıcı listede kendi
             makinesini arayıp bulamıyordu ve neden olmadığı hiçbir yerde
-            yazmıyordu. Ürünler ekranından bakınca açıklama çıkıyor ama
-            buraya gelen kullanıcı boşluğa bakıyordu. */}
+            yazmıyordu. */}
         {kilavuzsuzlarim.length > 0 && (
-          /* Üstteki güvenlik satırıyla arasında ayrı bir kutu olduğu
-             belli olacak kadar boşluk var; bitişik durduğunda ikisi tek
-             bir blok gibi okunuyordu. */
-          <div className="card" style={{ marginTop: 20, marginBottom: 18 }}>
-            <div className="card__title">{t('kilavuz.makinemYok')}</div>
-            <div className="card__sub" style={{ marginTop: 6, lineHeight: 1.6 }}>
-              {t('kilavuz.makinemYokAlt', {
-                makineler: kilavuzsuzlarim
-                  .map((p) => urunDilde(p, dil).name)
-                  .join(', '),
-              })}
+          <div className="kilavuzlar-eksik">
+            <IconInfo size={20} />
+            <div>
+              <strong>{t('kilavuz.makinemYok')}</strong>
+              <p>
+                {t('kilavuz.makinemYokAlt', {
+                  makineler: kilavuzsuzlarim.map((p) => urunDilde(p, dil).name).join(', '),
+                })}
+              </p>
             </div>
           </div>
         )}
 
         {benimModellerim.length > 0 && (
           <>
-            <div className="sectionhead" style={{ marginTop: 0 }}>
-              <h2>{t('urun.benimMakinelerim')}</h2>
-            </div>
-            <div className="stack">
+            <h2 className="kilavuzlar-baslik">{t('urun.benimMakinelerim')}</h2>
+            <div className="stack" style={{ gap: 10 }}>
               {benimModellerim.map((p) => (
-                <KilavuzSatiri key={p.id} urun={urunDilde(p, dil)} dil={dil} />
+                <KilavuzSatiri key={p.id} urun={urunDilde(p, dil)} dil={dil} t={t} liste={liste} kayitli={kayitli} />
               ))}
             </div>
           </>
         )}
 
-        <div className="sectionhead">
-          <h2>{benimModellerim.length > 0 ? t('urun.digerModeller') : t('urun.tumModeller')}</h2>
-          <span className="sectionhead__count">{digerleri.length}</span>
-        </div>
-        <div className="stack">
-          {digerleri.map((p) => (
-            <KilavuzSatiri key={p.id} urun={urunDilde(p, dil)} dil={dil} />
-          ))}
-        </div>
+        {turler.map((tur) => (
+          <section key={tur.id} aria-labelledby={'kilavuz-tur-' + tur.id}>
+            <h2 id={'kilavuz-tur-' + tur.id} className="kilavuzlar-baslik">
+              {tur.ad}
+              <span className="sectionhead__count">{tur.urunler.length}</span>
+            </h2>
+            <div className="stack" style={{ gap: 10 }}>
+              {tur.urunler.map((p) => (
+                <KilavuzSatiri key={p.id} urun={urunDilde(p, dil)} dil={dil} t={t} liste={liste} kayitli={kayitli} />
+              ))}
+            </div>
+          </section>
+        ))}
       </div>
 
       <TabBar />
@@ -117,25 +162,25 @@ export default function Manuals() {
   )
 }
 
-function KilavuzSatiri({ urun, dil }) {
-  const belge = kilavuzBelgesi(urun.id, dil)
+function KilavuzSatiri({ urun, dil, t, liste, kayitli }) {
+  const kod = kilavuzKodu(urun.id)
+  const bilgi = liste[kod]
 
   return (
-    <Link to={`/kilavuz/${urun.id}`} className="listitem">
-      <UrunFoto
-        urunId={urun.id}
-        ad={urun.name}
-        tip="thumb"
-        ikonBoyut={24}
-        style={{ width: 52, height: 44, borderRadius: 12 }}
-      />
-      <div className="listitem__body">
-        <div className="listitem__title">{urun.name}</div>
-        <div className="listitem__sub">{belge ? belge.ad : urun.tagline}</div>
-      </div>
-      <span className="listitem__chev">
-        <IconRight size={21} />
+    <Link to={`/kilavuz/${urun.id}`} className="kilavuzlar-satir">
+      <UrunFoto urunId={urun.id} ad={urun.name} tip="thumb" ikonBoyut={24} />
+      <span className="kilavuzlar-satir__metin">
+        <span className="kilavuzlar-satir__ad">{urun.name}</span>
+        <span className="kilavuzlar-satir__alt">{bilgi ? kilavuzAdi(bilgi, dil) : urun.tagline}</span>
+        {bilgi && (
+          <span className="kilavuzlar-satir__sayfa">
+            {kayitli.has(kod)
+              ? t('kilavuz.telefonda')
+              : t('kilavuz.ozet', { sayfa: bilgi.sayfa, boyut: boyutYaz(bilgi.boyut, dil) })}
+          </span>
+        )}
       </span>
+      <span className="kilavuzlar-satir__ok" aria-hidden="true"><IconRight size={20} /></span>
     </Link>
   )
 }

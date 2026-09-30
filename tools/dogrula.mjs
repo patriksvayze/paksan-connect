@@ -24,7 +24,7 @@
      5. Marka sınırı     — motor marka klasörüne yalnız kapıdan bakıyor mu
      6. Marka adı        — firma adı motor kodunda düz yazıyla geçiyor mu
      7. Bayi kalıntısı   — servis uygulamasında bayi kelimesi kalmış mı
-     8. Sınamalar — tools/ altındaki sekiz sınama betiği
+     8. Sınamalar — tools/ altındaki dokuz sınama betiği
      9. Yedek parça      — katalog tutarlı mı, uydurma fiyat geri geldi mi
     10. Sürüm numarası   — Connect'in üç yeri tutuyor mu, Servisim ayrı mı
     11. Yayın anahtarları — geliştirme ayarı APK'ya gidiyor mu (saymıyor)
@@ -388,8 +388,8 @@ for (const a of AYRIMLAR) {
    serbestçe değiştirilemez hâle gelir.
 
    TEK İSTİSNA `src/marka/icerik/`. Arıza bilgi tabanı, teknik
-   özellikler ve kılavuz paketi ağır dosyalar — kılavuz paketi tek
-   başına 1,7 MB. Kapıdan verilselerdi `../marka` yazan her dosya
+   özellikler ve güvenlik çizimleri ağır dosyalar (29 Eylül 2026'ya
+   kadar 1,7 MB'lık kılavuz paketi de buradaydı). Kapıdan verilselerdi `../marka` yazan her dosya
    onları da paketine çekerdi; servis paneli arıza bilgi tabanını hiç
    kullanmadığı hâlde taşırdı. İçerik bu yüzden doğrudan, yalnız
    çizildiği ekrandan import ediliyor. */
@@ -618,7 +618,10 @@ const SINAMALAR = [
   /* Destek veri paketini denetliyor: dokununca boş açılan arıza,
      güvenlik uyarısı olmayan model, kaynaksız cümle. Listeye 12 Eylül
      2026'da girdi — dosya taşınınca kırılmış, çağıran komut olmadığı
-     için haftalarca kırık kalmıştı. */
+     için haftalarca kırık kalmıştı. 29 Eylül 2026'dan beri hiçbir ekran
+     paketi okumuyor (kılavuz PDF oldu); paket dururken denetleniyor,
+     çünkü veritabanı tohumu (Marka satırı) ve kapalı duran asistanın
+     veri seti onu kullanıyor. */
   ['destek-dogrula.mjs', 'destek veri paketi'],
   /* Ötekilerden farklı: bu metin okumuyor, üç uygulamanın PAYLAŞTIĞI
      veri katmanını gerçekten çalıştırıyor. Talep açılıyor, servise
@@ -640,6 +643,12 @@ const SINAMALAR = [
      eski listeyi arşive taşımalı. PDF bulunamazsa okuma kısmı
      "atlandı" der, yayına alma kısmı yine koşar. */
   ['fiyat-listesi-okuma-sinamasi.mjs', 'fiyat listesi okuma ve yayına alma'],
+  /* Kullanım kılavuzları sunucudaki klasörde PDF (29 Eylül 2026).
+     Kılavuzu olan her ürünün kodu klasörün listesinde, listedeki her
+     dosya gerçekten PDF, boyutu ve sayfa sayısı listedekiyle aynı, arıza
+     tablosunun sayfası kılavuzun içinde. Liste yanlışsa çiftçi yanlış
+     boyutu görür ya da kılavuz hiç açılmaz. */
+  ['kilavuz-dosyalari-denetimi.mjs', 'kullanım kılavuzu dosyaları'],
   /* Ekran tarafı. Geliştirme sunucusu ya da Chrome yoksa kendini
      `atlandı` deyip 0 ile bitiriyor — bu yüzden etiketi "sunucu varsa"
      diyor: burada "ok" görmek her zaman turun koştuğu anlamına gelmez.
@@ -802,6 +811,50 @@ if (!existsSync(KATALOG_YOLU)) {
   } else {
     tamam('her parça grubu bir makine ailesine eşlenmiş')
   }
+
+  /* DESTEK'İN PARÇA ADI → KATALOG KODU (29 Eylül 2026). "Bu Parçaları
+     Talep Et" adları talep formunda bu tabloyla koda çevriliyor
+     (src/marka/icerik/destekVerisi.js → PARCA_KODU). Yeni fiyat listesi
+     bir kodu kaldırırsa ya da parça başka gruba taşınırsa form sessizce
+     seçmez olurdu; yanlış aileye yazılan kod çiftçiye başka makinenin
+     parçasını seçerdi. Ürünün ailesi products.js → supportGroup ile aynı
+     kuralla (kategori → aile) okunuyor; o dosya bir video içe aktardığı
+     için burada doğrudan yüklenemiyor.
+     Bozarak sınandı (29 Eylül 2026): katalogda olmayan kod, başka
+     aileden ürün, Destek'te geçmeyen ad — üçünde de düştü. */
+  const { PARCA_KODU, DESTEK } = await import('../src/marka/icerik/destekVerisi.js')
+  const { PARCA_GRUBU_AILESI } = await import('../src/marka/katalog/parcaGruplari.js')
+  const AILE_KATEGORILERI = {
+    balya: ['kucuk-balya', 'buyuk-balya'],
+    rulo: ['rulo-balya'],
+    yem: ['yem-karma'],
+    silaj: ['silaj'],
+    cayir: ['cayir-ot'],
+    toprak: ['toprak'],
+  }
+  const urunKaynagi = readFileSync(join(KOK, 'src/marka/katalog/products.js'), 'utf8')
+  const urunKategorisi = (id) =>
+    urunKaynagi.match(new RegExp(`id: '${id}',\\s*\\n\\s*name: '[^']*',\\s*\\n\\s*category: '([^']+)'`))?.[1] || null
+  const parcaSorunu = []
+  for (const [aile, tablo] of Object.entries(PARCA_KODU)) {
+    const adlar = new Set(
+      (DESTEK[aile]?.bolumler || []).flatMap((b) => b.belirtiler || []).flatMap((x) => x.parcalar || []),
+    )
+    for (const [ad, { kod, urunler }] of Object.entries(tablo)) {
+      const parca = parcalar.find((p) => p && p.kod === kod)
+      if (!adlar.has(ad)) parcaSorunu.push(`${aile}/${ad}: Destek'te bu ad yok`)
+      if (!parca) parcaSorunu.push(`${aile}/${ad}: ${kod} katalogda yok`)
+      else if (PARCA_GRUBU_AILESI[parca.grup] !== aile) parcaSorunu.push(`${aile}/${ad}: ${kod} başka ailenin parçası (${parca.grup})`)
+      for (const u of urunler || []) {
+        const kategori = urunKategorisi(u)
+        if (!kategori) parcaSorunu.push(`${aile}/${ad}: ${u} diye ürün yok`)
+        else if (!(AILE_KATEGORILERI[aile] || []).includes(kategori)) parcaSorunu.push(`${aile}/${ad}: ${u} bu ailede değil`)
+      }
+    }
+  }
+  const eslesenAd = Object.values(PARCA_KODU).reduce((n, t) => n + Object.keys(t).length, 0)
+  if (parcaSorunu.length) bildir('Destek parça adı → kod tablosu: ' + parcaSorunu.join('; '))
+  else tamam(`Destek'in ${eslesenAd} parça adı katalogdaki koduyla eşli`)
 }
 
 /* ------------------------------------------------- 10. Sürüm numarası
@@ -875,13 +928,14 @@ if (!servisim) {
 
 /* --------------------------------------------- 11. Yayın anahtarları
 
-   Beş ayar bugün BİLEREK geliştirme değerinde, yayına çıkarken mutlaka
+   Altı ayar bugün BİLEREK geliştirme değerinde, yayına çıkarken mutlaka
    değişecek:
 
-     · `AI.kok` ve `PARCA_KATALOG.kok` göreli adres. Telefonda
-       uygulamanın kendi kökü sunucu değil; APK'da göreli adres
-       çözülmüyor, destek ekranı ve parça listesi boş açılıyor. Gerekçe
-       `src/config.js` içindeki kendi yorumlarında yazılı.
+     · `AI.kok`, `PARCA_KATALOG.kok` ve `KILAVUZ.kok` (29 Eylül 2026)
+       göreli adres. Telefonda uygulamanın kendi kökü sunucu değil; APK'da
+       göreli adres çözülmüyor, destek ekranı, parça listesi ve kılavuzlar
+       boş açılıyor. Gerekçe `src/config.js` içindeki kendi yorumlarında
+       yazılı.
      · `PARCA_KATALOG.taklitGecikme`, sunucu hızını taklit eden 800 ms.
        Gerçek sunucu bağlanınca bu gecikme yalan olur.
      · `servis.html` kök etiketindeki `data-demo="acik"`: demo verisi
@@ -892,7 +946,7 @@ if (!servisim) {
 
    NİYE SORUN SAYMIYOR
 
-   Bu beşi bugün DOĞRU durumda: sunucu yok, demo hesabı olmadan servis
+   Bunlar bugün DOĞRU durumda: sunucu yok, demo hesabı olmadan servis
    uygulamasına girilemiyor, gerçek plaka olmadan Connect'e makine
    kaydedilemiyor. Günlük `npm run dogrula` bunlar yüzünden
    kırmızı dönerse kırmızı dönmek normalleşir, asıl sorunlar o gürültünün
@@ -911,7 +965,7 @@ baslik('11. Yayın anahtarları')
 
 const YAYIN_KIPI = process.argv.includes('--yayin') || process.env.PAKSAN_YAYIN === '1'
 
-const { AI, PARCA_KATALOG } = await import('../src/config.js')
+const { AI, PARCA_KATALOG, KILAVUZ } = await import('../src/config.js')
 
 const goreliAdres = (adres) => !/^https?:\/\//i.test(String(adres || ''))
 
@@ -920,6 +974,7 @@ if (goreliAdres(AI.kok)) engeller.push(`src/config.js → AI.kok göreli: '${AI.
 if (goreliAdres(PARCA_KATALOG.kok)) {
   engeller.push(`src/config.js → PARCA_KATALOG.kok göreli: '${PARCA_KATALOG.kok}'`)
 }
+if (goreliAdres(KILAVUZ.kok)) engeller.push(`src/config.js → KILAVUZ.kok göreli: '${KILAVUZ.kok}'`)
 if (PARCA_KATALOG.taklitGecikme !== 0) {
   engeller.push(`src/config.js → taklitGecikme ${PARCA_KATALOG.taklitGecikme} ms (0 olmalı)`)
 }

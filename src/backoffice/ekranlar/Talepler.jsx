@@ -1319,7 +1319,7 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
             {BANKA.aktif === false && (
               <p className="kucuk sonuk" style={{ marginTop: 10 }}>
                 Uygulamada banka hesabı tanımlı değil; müşteri ödeme bilgilerini telefonla
-                almış olabilir (bkz. src/config.js → BANKA).
+                almış olabilir (bkz. src/marka/kimlik.js → BANKA).
               </p>
             )}
           </Bolum>
@@ -2761,8 +2761,9 @@ function BayiAtama({ talep, personel, geriAlabilir, tazele, bildir }) {
   )
 }
 
-/* Servisin "PAKSAN'dan Destek İste" ile yazdığı neden (bkz. veri.js →
-   destekTalepEt). */
+/* Servisin Servisim'deki "PAKSAN'a Devret" ile yazdığı neden (bkz. veri.js →
+   destekTalepEt). Düğmenin adı 30 Eylül 2026'ya kadar "PAKSAN'dan Destek
+   İste" idi; buradaki cümle henüz eski adla, karar bekliyor. */
 function DevirNedeni({ devir, ust = 16 }) {
   return (
     <div className="uyari" style={{ marginTop: ust ? 0 : 12, marginBottom: ust, display: 'block' }}>

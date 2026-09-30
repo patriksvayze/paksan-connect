@@ -8,6 +8,7 @@ import { UrunFoto } from '../components/Gorsel'
 import { MachineCard } from './Machines'
 import { PRODUCTS, VITRIN, urunDilde } from '../marka'
 import { rehberListesi } from '../marka/icerik/rehber'
+import { rehberCizimi } from '../data/bakimCizimleri'
 import { bildirimListesi, okunmamisSayisi } from '../lib/bildirimler'
 import { servisGruplari } from '../lib/servisAtama'
 import { KAPALI_DURUMLAR } from '../lib/talepEkleme'
@@ -121,10 +122,17 @@ export default function Home() {
         {/* Hızlı işlemler — üç ana iş, belirgin karolar.
             Destek zaten alt menüde duruyor; buradaki yer servis talebine
             ayrıldı, başka türlü ulaşılacak tek yer destek sohbetinin
-            sonuydu. */}
+            sonuydu.
+
+            ESKİ DÜZEN, RENKLİ SİMGE (29 Eylül 2026, kullanıcının isteği).
+            Aynı gün üç iş tam genişlikte satırlara çevrilmişti; kullanıcı
+            "eski düzen daha iyiydi" dedi. Karolar yerine döndü, simgeler
+            talep türünün renginde kaldı: servis turuncu, parça mor,
+            kılavuz mavi. */}
         <div className="wrap" style={{ marginTop: 16 }}>
           <div className="hizli">
             <QuickAction
+              tur="servis"
               icon={<IconWrench size={26} />}
               label={t('anasayfa.servisTalebi')}
               onClick={() => nav('/talep?tur=servis')}
@@ -135,6 +143,7 @@ export default function Home() {
               onClick={() => nav('/kilavuzlar')}
             />
             <QuickAction
+              tur="parca"
               icon={<IconParca size={26} />}
               label={t('anasayfa.yedekParcaTalebi')}
               onClick={() => nav('/talep?tur=parca')}
@@ -212,12 +221,21 @@ export default function Home() {
           <div className="stack">
             {rehberListesi(dil).map((r) => (
               <Link key={r.id} to={`/bakim/${r.id}`} className="listitem">
-                <div
-                  className="listitem__icon"
-                  style={{ background: 'var(--pk-green-soft)', color: 'var(--pk-green-yazi)' }}
-                >
-                  <IconCalendar size={22} />
-                </div>
+                {/* Rehberin kendi çizimi (29 Eylül 2026, görünüm önerisi C9):
+                    aynı rehber ana ekranda takvim simgesiyle, rehber
+                    listesinde çizimiyle görünüyordu. Çizimi yoksa takvim. */}
+                {rehberCizimi(r.id) ? (
+                  <span className="bakim-satir__cizim">
+                    <img src={rehberCizimi(r.id)} alt="" />
+                  </span>
+                ) : (
+                  <div
+                    className="listitem__icon"
+                    style={{ background: 'var(--pk-green-soft)', color: 'var(--pk-green-yazi)' }}
+                  >
+                    <IconCalendar size={22} />
+                  </div>
+                )}
                 <div className="listitem__body">
                   <div className="listitem__title">{r.baslik}</div>
                   <div className="listitem__sub">{r.ozet}</div>
@@ -264,10 +282,12 @@ function Stat({ v, k, yeni, onClick }) {
 /* Servis kartları components/ServisKarti.jsx'te: makine detayı da
    aynı kartı kullanıyor. */
 
-function QuickAction({ icon, label, onClick }) {
+/* `tur` simge kutusunun rengini veriyor: servis turuncu, parça mor;
+   verilmezse kılavuz mavisi (bkz. styles.css → .hizli__ikon--*). */
+function QuickAction({ tur, icon, label, onClick }) {
   return (
     <button className="hizli__karo" onClick={onClick}>
-      <span className="hizli__ikon">{icon}</span>
+      <span className={'hizli__ikon' + (tur ? ' hizli__ikon--' + tur : '')}>{icon}</span>
       <span className="hizli__yazi">{label}</span>
     </button>
   )

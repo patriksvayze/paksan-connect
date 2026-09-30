@@ -71,3 +71,9 @@ sunucu-taklidi/parca-katalogu-arsiv/
 sunucu-taklidi/parca-katalogu.yeni/
 sunucu-taklidi/parca-katalogu/kaynak.pdf
 sunucu-taklidi/parca-katalogu/katalog.json.yeni
+
+# Kullanım kılavuzu PDF'leri (sunucu-taklidi/kilavuzlar/): sunucunun
+# verisi, 38 MB, depoya girmez. Hangi dosyanın ne olduğunu söyleyen
+# kilavuzlar.json izleniyor; PDF'lerin kaynağı ve kopyalanışı
+# sunucu-taklidi/BENIOKU.md'de.
+sunucu-taklidi/kilavuzlar/*.pdf

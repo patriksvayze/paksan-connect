@@ -8,6 +8,8 @@ import { useDil } from './i18n'
 import { Toast } from './components/Chrome'
 import { Gecis } from './components/Gecis'
 import { Duyuru } from './components/Duyuru'
+import { KvkkGuncelleme } from './components/KvkkGuncelleme'
+import { onayYenilenmeli } from './lib/rizaKaydi'
 
 import Welcome from './screens/Welcome'
 import Register from './screens/Register'
@@ -21,7 +23,7 @@ import MachineDetail from './screens/MachineDetail'
 import Support from './screens/Support'
 import Catalog from './screens/Catalog'
 import ProductDetail from './screens/ProductDetail'
-import Manual from './screens/Manual'
+import KilavuzPdf from './screens/KilavuzPdf'
 import RequestForm from './screens/RequestForm'
 import RequestDetail from './screens/RequestDetail'
 import Taleplerim from './screens/Taleplerim'
@@ -32,6 +34,7 @@ import Guide from './screens/Guide'
 import Guides from './screens/Guides'
 import Manuals from './screens/Manuals'
 import ManualSafety from './screens/ManualSafety'
+import Gizlilik from './screens/Gizlilik'
 
 /* Sayfa değişince en üste dön */
 function ScrollTop() {
@@ -104,7 +107,14 @@ function Yonlendirme() {
       {/* PAKSAN duyurusu varsa açılışta bir kez pencere olarak çıkıyor;
           sonrasında Bildirimler listesinde kalıyor
           (bkz. src/components/Duyuru.jsx). */}
-      <Duyuru />
+      {/* KVKK metinleri güncellendiyse önce onların onayı soruluyor;
+          duyuru penceresi onunla üst üste binmesin diye o sırada
+          bekliyor (29 Eylül 2026). */}
+      {onayYenilenmeli(user) ? (
+        <KvkkGuncelleme />
+      ) : (
+        <Duyuru />
+      )}
       <Routes>
         <Route path="/" element={<Home />} />
       <Route path="/makinelerim" element={<Machines />} />
@@ -116,7 +126,7 @@ function Yonlendirme() {
       <Route path="/urun/:id" element={<ProductDetail />} />
       <Route path="/kilavuzlar" element={<Manuals />} />
       <Route path="/kilavuzlar/guvenlik" element={<ManualSafety />} />
-      <Route path="/kilavuz/:productId" element={<Manual />} />
+      <Route path="/kilavuz/:productId" element={<KilavuzPdf />} />
       <Route path="/talep" element={<RequestForm />} />
       {/* Talebin kendisi ayrı ekran: bildirime dokunan kişi durumu,
           iptal sebebini, verilen teklifi ve kargo takip numarasını
@@ -126,6 +136,7 @@ function Yonlendirme() {
           içindeydi (bkz. src/screens/Taleplerim.jsx). */}
       <Route path="/taleplerim" element={<Taleplerim />} />
       <Route path="/profil" element={<Profile />} />
+      <Route path="/gizlilik" element={<Gizlilik />} />
       <Route path="/bildirimler" element={<Notifications />} />
       <Route path="/bayiler" element={<Bayiler />} />
       <Route path="/bakim" element={<Guides />} />

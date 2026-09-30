@@ -10,10 +10,11 @@ import { elleTalepKaydiOlustur } from '../../lib/elleTalep'
 import { elleIsinAtamasi } from '../../lib/servisAtama'
 import { servisinMakinedekiIsleri } from '../../lib/makineTalepleri'
 import { islemYaz, musterileriGetir, talepleriGetir } from '../../backoffice/veri'
+import { alanaGit } from '../../lib/formOdak'
 import { CATEGORIES, PRODUCTS, getProduct } from '../../marka'
 import { Bolum } from '../Kabuk'
 import { DikteliKutu } from '../Dikte'
-import { IconAlert, IconCheckCircle, IconSend } from '../../components/Icons'
+import { IconAlert, IconCheckCircle, IconInfo, IconSend } from '../../components/Icons'
 
 /* ==========================================================================
    Servis paneli — elle kayıt
@@ -362,13 +363,22 @@ export function ElleKayit({ oturum, onKaydedildi, onIsiAc }) {
   }
 
   function kaydet() {
-    if (rakamlar(tel).length !== 10) return setHata('Telefon numarasını yazın.')
+    /* EKSİK ALAN EKRANA GELİYOR (29 Eylül 2026, görünüm önerisi S2).
+       Uyarı "Talebi Aç"ın üstünde çıkıyordu; eksik alan iki ekran
+       yukarıdayken servis düğmeye bastı, yazı çıktı ama neyin eksik
+       olduğunu görmedi. Şimdi o alan ekrana kayıp işaretleniyor, yazı
+       kutusuysa imleç içine geliyor (bkz. lib/formOdak.js). */
+    const eksik = (alan, metin) => {
+      setHata(metin)
+      alanaGit(alan)
+    }
+    if (rakamlar(tel).length !== 10) return eksik('tel', 'Telefon numarasını yazın.')
     const harfSayisi = (s) => (s.match(/\p{L}/gu) || []).length
-    if (harfSayisi(adi) < 2) return setHata('Müşterinin adını yazın.')
-    if (harfSayisi(soyadi) < 2) return setHata('Müşterinin soyadını yazın.')
-    if (!il) return setHata('İl seçin.')
-    if (!ilce) return setHata('İlçe seçin.')
-    if (adres.trim().length < 10) return setHata('Adresi en az 10 karakter olacak şekilde yazın.')
+    if (harfSayisi(adi) < 2) return eksik('adi', 'Müşterinin adını yazın.')
+    if (harfSayisi(soyadi) < 2) return eksik('soyadi', 'Müşterinin soyadını yazın.')
+    if (!il) return eksik('il', 'İl seçin.')
+    if (!ilce) return eksik('ilce', 'İlçe seçin.')
+    if (adres.trim().length < 10) return eksik('adres', 'Adresi en az 10 karakter olacak şekilde yazın.')
 
     /* Kayıtlı müşterinin makinesi listeden seçildiyse doğrulanacak bir
        şey yok: o seri numarası zaten sistemde. Talebe uygulamadan gelen
@@ -383,8 +393,8 @@ export function ElleKayit({ oturum, onKaydedildi, onIsiAc }) {
         productId: secilenMakine.productId,
       }
     } else if (makineler.length === 0 && seriYok) {
-      if (!model) return setHata('Makinenin modelini seçin.')
-      if (!tahminiYil) return setHata('Makinenin tahmini üretim yılını seçin.')
+      if (!model) return eksik('model', 'Makinenin modelini seçin.')
+      if (!tahminiYil) return eksik('yil', 'Makinenin tahmini üretim yılını seçin.')
       makine = { id: uid(), productId: model, seriYok: true, tahminiYil: Number(tahminiYil) }
     } else if (makineler.length === 0 && seri.trim()) {
       /* YAZILAN SERİ YALNIZ SERİ KUTUSU GÖRÜNÜRKEN (25 Eylül 2026,
@@ -400,25 +410,25 @@ export function ElleKayit({ oturum, onKaydedildi, onIsiAc }) {
          matchProduct çağırmaya gerek yok. */
       const sonuc = validateSerial(normalizeSerial(seri))
       if (!sonuc.ok) {
-        return setHata('Seri numarası tanınmadı. Makinenin etiketindeki numarayı kontrol edip yeniden yazın.')
+        return eksik('seri', 'Seri numarası tanınmadı. Makinenin etiketindeki numarayı kontrol edip yeniden yazın.')
       }
       makine = { id: uid(), serial: sonuc.serial, productId: sonuc.product?.id || null }
       yeniKayit = true
     } else if (makineler.length > 1) {
-      return setHata('Hangi makine için geldiğini seçin.')
+      return eksik('makine', 'Hangi makine için geldiğini seçin.')
     } else {
       /* MAKİNESİZ TALEP AÇILMIYOR (24 Eylül 2026, kullanıcının isteği).
          Önce seri "varsa" diye isteğe bağlıydı ve makinesiz talep
          açılabiliyordu: iş hiçbir makinenin geçmişine yazılmıyor,
          PAKSAN hangi modelde ne arıza olduğunu göremiyordu. Seri yoksa
          model ve tahmini yıl yeterli (bkz. dosyanın başı). */
-      return setHata('Makinenin seri numarasını yazın ya da Seri Numarası Yok seçeneğini işaretleyip modelini seçin.')
+      return eksik('seri', 'Makinenin seri numarasını yazın ya da Seri Numarası Yok seçeneğini işaretleyip modelini seçin.')
     }
 
     /* Seri başkasının adına kayıtlıysa servis uyarıdaki "Anladım"a
        basmış olmalı. */
     if (yeniKayit && baskasininMakinesi && !anladi) {
-      return setHata('Talebi açmadan önce makinenin sahibiyle ilgili uyarıyı okuyup Anladım düğmesine basın.')
+      return eksik('anladim', 'Talebi açmadan önce makinenin sahibiyle ilgili uyarıyı okuyup Anladım düğmesine basın.')
     }
 
     /* Kaydın kendisi tek gövdeden (lib/elleTalep.js): ad biçimi,
@@ -484,7 +494,7 @@ export function ElleKayit({ oturum, onKaydedildi, onIsiAc }) {
       <div className="kart" style={{ padding: 16 }}>
         {/* TELEFON İLK. Numara kimliğin kendisi; girildiği anda kayıtlı
             müşteri bulunuyorsa alanlar doluyor. */}
-        <label className="alan">
+        <label className="alan" data-alan="tel">
           <span className="alan__ad">Telefon</span>
           <input
             className="gir mono"
@@ -517,9 +527,12 @@ export function ElleKayit({ oturum, onKaydedildi, onIsiAc }) {
             bu müşteri talebinin durumunu göremeyecek, bildirim
             alamayacak ve garantisini takip edemeyecek — bunu ona
             söyleyebilecek tek kişi karşısındaki servis. */}
+        {/* Bilgi, uyarı değil (29 Eylül 2026, S5): talep yine açılıyor
+            ve servisin parasına dokunmuyor. Sarı yalnız para ve sahiplik
+            için. */}
         {yabanci && (
-          <div className="not not--turuncu" style={{ marginTop: 0, marginBottom: 14 }}>
-            <IconAlert size={19} />
+          <div className="not not--mavi" style={{ marginTop: 0, marginBottom: 14 }}>
+            <IconInfo size={19} />
             <div>
               <strong>Bu numara {uygulamaEk('da')} kayıtlı değil.</strong>
               <p>
@@ -538,7 +551,7 @@ export function ElleKayit({ oturum, onKaydedildi, onIsiAc }) {
             Soyadı" etiketiyle yapılmıştı; kullanıcı beğenmedi. Kısa
             etiketler telefonda sarmıyor. */}
         <div className="esit esit--ikili">
-          <label className="alan">
+          <label className="alan" data-alan="adi">
             <span className="alan__ad">Ad</span>
             <input
               className="gir"
@@ -549,7 +562,7 @@ export function ElleKayit({ oturum, onKaydedildi, onIsiAc }) {
               autoCapitalize="words"
             />
           </label>
-          <label className="alan">
+          <label className="alan" data-alan="soyadi">
             <span className="alan__ad">Soyad</span>
             <input
               className="gir"
@@ -563,7 +576,7 @@ export function ElleKayit({ oturum, onKaydedildi, onIsiAc }) {
         </div>
 
         <div className="esit">
-          <label className="alan">
+          <label className="alan" data-alan="il">
             <span className="alan__ad">İl</span>
             <select
               className="gir"
@@ -574,7 +587,7 @@ export function ElleKayit({ oturum, onKaydedildi, onIsiAc }) {
               {ILLER.map((x) => <option key={x} value={x}>{x}</option>)}
             </select>
           </label>
-          <label className="alan">
+          <label className="alan" data-alan="ilce">
             <span className="alan__ad">İlçe</span>
             <select className="gir" value={ilce} onChange={(e) => setIlce(e.target.value)} disabled={!il}>
               <option value="">{il ? 'Seçin' : 'Önce il'}</option>
@@ -584,19 +597,21 @@ export function ElleKayit({ oturum, onKaydedildi, onIsiAc }) {
         </div>
 
         {/* Sesle yazma düğmesi <label>'ın dışında (bkz. Dikte.jsx). */}
-        <DikteliKutu
-          ad="Adres"
-          deger={adres}
-          onDegis={setAdres}
-          satir={2}
-          placeholder="Köy veya mahalle adı, adres tarifi"
-          ipucu={<span className="alan__ipucu">Bu adres servis kaydına otomatik eklenir.</span>}
-        />
+        <div data-alan="adres">
+          <DikteliKutu
+            ad="Adres"
+            deger={adres}
+            onDegis={setAdres}
+            satir={2}
+            placeholder="Köy veya mahalle adı, adres tarifi"
+            ipucu={<span className="alan__ipucu">Bu adres servis kaydına otomatik eklenir.</span>}
+          />
+        </div>
 
         {/* MAKİNE: kayıtlı müşteride SEÇİLİYOR, ötekinde yazılıyor.
             Gerekçesi dosyanın başında. */}
         {makineler.length > 0 ? (
-          <div className="alan">
+          <div className="alan" data-alan="makine">
             <span className="alan__ad">
               {makineler.length === 1 ? 'Müşterinin Makinesi' : 'Hangi Makine'}
             </span>
@@ -618,7 +633,7 @@ export function ElleKayit({ oturum, onKaydedildi, onIsiAc }) {
         ) : (
           <>
             {!seriYok && (
-            <label className="alan">
+            <label className="alan" data-alan="seri">
               <span className="alan__ad">Makine Seri Numarası</span>
               <input
                 className="gir mono"
@@ -671,7 +686,7 @@ export function ElleKayit({ oturum, onKaydedildi, onIsiAc }) {
 
             {seriYok && (
               <>
-                <label className="alan">
+                <label className="alan" data-alan="model">
                   <span className="alan__ad">Makine Modeli</span>
                   <select className="gir" value={model} onChange={(e) => { setModel(e.target.value); setHata('') }}>
                     <option value="">Seçin</option>
@@ -687,7 +702,7 @@ export function ElleKayit({ oturum, onKaydedildi, onIsiAc }) {
                     })}
                   </select>
                 </label>
-                <label className="alan">
+                <label className="alan" data-alan="yil">
                   <span className="alan__ad">Tahmini Üretim Yılı</span>
                   <select className="gir" value={tahminiYil} onChange={(e) => { setTahminiYil(e.target.value); setHata('') }}>
                     <option value="">Seçin</option>
@@ -708,7 +723,7 @@ export function ElleKayit({ oturum, onKaydedildi, onIsiAc }) {
                 servis "makineyi getiren sizin nenizdir" diye sahibine
                 sorabilsin. */}
             {baskasininMakinesi && (
-              <div className="not not--turuncu" style={{ marginTop: 0, marginBottom: 14 }}>
+              <div className="not not--sari" style={{ marginTop: 0, marginBottom: 14 }} data-alan="anladim">
                 <IconAlert size={19} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <strong>Bu makine başka birinin adına kayıtlı</strong>
@@ -745,7 +760,7 @@ export function ElleKayit({ oturum, onKaydedildi, onIsiAc }) {
         {/* MAKİNENİN SERVİSİ BAŞKA YA DA YOK: uyarı, engel değil
             (bkz. dosyanın başı). Öteki servisin adı yazmıyor. */}
         {atama && atama.durum !== 'seriYok' && (
-          <div className="not not--turuncu" style={{ marginTop: 0, marginBottom: 14 }}>
+          <div className="not not--sari" style={{ marginTop: 0, marginBottom: 14 }}>
             <IconAlert size={19} />
             <div>
               <strong>
@@ -765,7 +780,7 @@ export function ElleKayit({ oturum, onKaydedildi, onIsiAc }) {
         {/* AYNI MAKİNEDE SERVİSİN KENDİ İŞİ SÜRÜYOR: o işe götüren yazılı
             düğme (bkz. dosyanın başı). */}
         {acikIsler.kendi && (
-          <div className="not not--turuncu" style={{ marginTop: 0, marginBottom: 14 }}>
+          <div className="not not--sari" style={{ marginTop: 0, marginBottom: 14 }}>
             <IconAlert size={19} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <strong>Bu Makine İçin Açık Bir İşiniz Var</strong>
@@ -793,7 +808,7 @@ export function ElleKayit({ oturum, onKaydedildi, onIsiAc }) {
             şey söylemedi. Uyarı, engel değil: yeni arıza yeni iştir; iki
             iş ödemeden önce karşılaştırılıyor. */}
         {acikIsler.onayda && !acikIsler.kendi && (
-          <div className="not not--turuncu" style={{ marginTop: 0, marginBottom: 14 }} data-uyari="onayda-is">
+          <div className="not not--sari" style={{ marginTop: 0, marginBottom: 14 }} data-uyari="onayda-is">
             <IconAlert size={19} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <strong>Bu Makine İçin Onay Bekleyen Bir İşiniz Var</strong>
@@ -809,7 +824,7 @@ export function ElleKayit({ oturum, onKaydedildi, onIsiAc }) {
         {/* MAKİNEDE BAŞKA BİR AÇIK TALEP: yalnız var olduğu (numara ve
             ad yok). */}
         {acikIsler.baska && (
-          <div className="not not--turuncu" style={{ marginTop: 0, marginBottom: 14 }}>
+          <div className="not not--sari" style={{ marginTop: 0, marginBottom: 14 }}>
             <IconAlert size={19} />
             <div>
               <strong>Bu Makine İçin Açık Başka Bir Servis Talebi Var</strong>
@@ -828,7 +843,7 @@ export function ElleKayit({ oturum, onKaydedildi, onIsiAc }) {
 
       <div className="yapisik">
         <button className="dg dg--ana dg--blok" onClick={kaydet}>
-          Talebi Aç
+          Kayıt Aç
         </button>
       </div>
 

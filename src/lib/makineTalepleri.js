@@ -121,7 +121,8 @@ export function sorunDevamEngeli(talep, talepler = []) {
  *           bir işiniz var" kartı; 28 Eylül 2026)
  *
  * DEVREDİLMİŞ İŞ SERVİSİN ELİNDE DEĞİL (25 Eylül 2026, inceleme). Servis
- * işi "Destek İste" ile PAKSAN'a devrettiyse (`sahip: 'paksan'`) kart
+ * işi "PAKSAN'a Devret" ile devrettiyse (`sahip: 'paksan'`; 30 Eylül
+ * 2026'ya kadar adı "Destek İste") kart
  * servise "o işe devam edin" diyor, "İşi Aç" onu not bile ekleyemediği
  * bir talebe götürüyordu (TalepDetay.jsx → paksanda). Onay bekleyen işin
  * çıkmaz sokağıyla aynı kusur (dosyanın başı). Devredilmiş iş artık

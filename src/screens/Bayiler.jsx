@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { Fragment, useMemo } from 'react'
 import { useApp } from '../context/AppState'
 import { useDil } from '../i18n'
 import { TopBar, TabBar } from '../components/Chrome'
@@ -98,9 +98,18 @@ export default function Bayiler() {
           <span className="sectionhead__count">{digerleri.length}</span>
         </div>
 
+        {/* İLE GÖRE ÖBEKLER (29 Eylül 2026, görünüm önerisi C9). Yirmi bayi
+            tek düz listedeydi, kartlar birbirinden ayırt edilmiyordu. Sıra
+            aynı (çiftçinin ili başta, bkz. marka → bayiIleGore); her ilin
+            adı kendi başlığında. */}
         <div className="stack">
-          {digerleri.map((b) => (
-            <BayiKarti key={b.id} bayi={b} showToast={showToast} />
+          {ileGoreObekle(digerleri).map(([il, liste]) => (
+            <Fragment key={il || '-'}>
+              {il && <div className="bayi-il">{il}</div>}
+              {liste.map((b) => (
+                <BayiKarti key={b.id} bayi={b} showToast={showToast} />
+              ))}
+            </Fragment>
           ))}
         </div>
 
@@ -122,6 +131,17 @@ export default function Bayiler() {
       <TabBar />
     </div>
   )
+}
+
+/** Sırayı bozmadan art arda gelen aynı ildeki bayileri öbekler. */
+function ileGoreObekle(liste) {
+  const obekler = []
+  for (const b of liste) {
+    const son = obekler[obekler.length - 1]
+    if (son && son[0] === b.il) son[1].push(b)
+    else obekler.push([b.il, [b]])
+  }
+  return obekler
 }
 
 function BayiKarti({ bayi, showToast, kendi }) {

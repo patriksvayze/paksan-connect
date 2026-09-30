@@ -10,7 +10,7 @@ import {
   varsayilanYap,
 } from '../adresler'
 import { ADRES_METNI, AdresFormu } from '../AdresSecici'
-import { Bolum, Onay } from '../Kabuk'
+import { Bolum, Onay, useAcilisKilidi } from '../Kabuk'
 import { useGeri } from '../geri'
 import { IconPin, IconPlus, IconRight, IconTrash } from '../../components/Icons'
 
@@ -198,8 +198,9 @@ export function Adreslerim({ oturum }) {
    adreste "Varsayılan Yap" yok, rozet duruyor. */
 function AdresYapragi({ adres: a, onKapat, onVarsayilan, onDuzenle, onSil }) {
   useGeri(true, () => onKapat())
+  const kilit = useAcilisKilidi()
   return (
-    <div className="onay-perde" onClick={(e) => e.target === e.currentTarget && onKapat()}>
+    <div className="onay-perde" onClickCapture={kilit} onClick={(e) => e.target === e.currentTarget && onKapat()}>
       <div className="onay" role="dialog" aria-label={a.baslik}>
         <h2 className="onay__baslik">{a.baslik}</h2>
         <div className="adres-yaprak__rozetler">

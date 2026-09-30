@@ -15,8 +15,9 @@
 
    TEK İSTİSNA: `src/marka/icerik/`
 
-   Arıza bilgi tabanı, teknik özellikler ve kılavuz paketi ağır
-   dosyalar — kılavuz paketi tek başına 1,7 MB. Bu kapıdan verilselerdi
+   Arıza bilgi tabanı, teknik özellikler ve güvenlik çizimleri ağır
+   dosyalar (29 Eylül 2026'ya kadar 1,7 MB'lık kılavuz paketi de
+   buradaydı; kılavuz artık sunucudaki PDF). Bu kapıdan verilselerdi
    `../marka` yazan HER dosya onları da paketine çekerdi; servis paneli
    arıza bilgi tabanını hiç kullanmadığı hâlde taşırdı.
 

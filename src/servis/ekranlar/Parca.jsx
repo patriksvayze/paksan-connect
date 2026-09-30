@@ -59,6 +59,15 @@ const DURUM_YAZI = {
 }
 const KISMEN_GONDERILDI = { ad: 'Kısmen gönderildi', gec: false }
 
+/** Siparişin görünen durumu: listedeki kart ve siparişin ayrıntısı aynı
+    işlevden okuyor (29 Eylül 2026, görünüm önerisi S3). Eksik gönderilen
+    sipariş "Gönderildi" demiyor: parçanın bir kısmı hâlâ PAKSAN'da (bkz.
+    veri.js → kalanParcalariGonder). */
+export function siparisDurumu(s) {
+  const kismi = s.status === 'kapandi' && siparisGonderimi(s)?.kalan.length > 0
+  return kismi ? KISMEN_GONDERILDI : DURUM_YAZI[s.status] || DURUM_YAZI.yeni
+}
+
 export function Parca({ oturum, onAc, onSiparis, surum }) {
   const siparisler = useMemo(
     () => servisinSiparisleri(talepleriGetir(), oturum.servisId),
@@ -84,10 +93,8 @@ export function Parca({ oturum, onAc, onSiparis, surum }) {
 
       <Bolum ad="Siparişlerim" sayi={siparisler.length}>
         {siparisler.map((s) => {
-          /* Eksik gönderilen sipariş "Gönderildi" demiyor: parçanın bir
-             kısmı hâlâ PAKSAN'da (bkz. veri.js → kalanParcalariGonder). */
           const kismi = s.status === 'kapandi' && siparisGonderimi(s)?.kalan.length > 0
-          const durum = kismi ? KISMEN_GONDERILDI : DURUM_YAZI[s.status] || DURUM_YAZI.yeni
+          const durum = siparisDurumu(s)
           /* İptal edilen kalem varsa servisin ödeyeceği yeni tutar
              (lib/servisFiyat.js → siparisNetTutari); yoksa siparişin toplamı. */
           const tutar = siparisNetTutari(s)
@@ -125,6 +132,8 @@ export function Parca({ oturum, onAc, onSiparis, surum }) {
                  (bkz. lib/servisFiyat.js → siparisToplami, siparisNetTutari). */
               sag={tutar ? `${paraYaz(tutar)} ${PARA_BIRIMI}` : gecenSure(s.createdAt)}
               gec={durum.gec}
+              /* Tutar kartın en büyük yazısı (29 Eylül 2026, S3). */
+              tutar={Boolean(tutar)}
               onAc={() => onAc(s)}
             />
           )

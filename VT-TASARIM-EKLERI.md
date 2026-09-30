@@ -512,3 +512,32 @@ zaten yazıyor. Canlıya taşınırken, `servisDuzenle` izni olan her role
 atama yapabilen rol yetkisini sessizce kaybeder. Eşlemedeki notu:
 `veritabani/uygulama-eslesmesi.mjs` → `panelIcerik.roller[].izinSurumu`.
 Sınaması AK-08.
+
+## 13. KVKK onay olayları ve Servisim'in gizlilik kabulü (29 Eylül 2026)
+
+**Connect.** Hesap artık her kararı ayrı satır olarak taşıyor
+(`hesap.onaylar.olaylar[]`: metin, seçim, sürüm, dil, kanal, istemci
+zamanı, uygulama sürümü; `lib/rizaKaydi.js`). Karşılığı zaten var:
+`kvkk.RizaOlayi`. Eşleme satırları `veritabani/uygulama-eslesmesi.mjs →
+hesap.onaylar.olaylar[]`. Yeni kanal kodu `connectGuncelleme` (metin
+sürümü değişince açılışta yeniden onay) `kod.RizaKanali` listesine
+eklendi (`tohum/kaynak/kod-adlari.json`, T01 yeniden üretildi). Metin
+sürümü 1.1 (T07 yeniden üretildi; 1.0 satırları veritabanında kalıyor,
+betik yalnız ekliyor).
+
+**Servisim.** Servis ilk girişte iki metni kabul ediyor
+(`servisKabulleri[]`, `lib/servisGizlilik.js`). Veritabanında yeri
+YOK: `kvkk.RizaOlayi.HesapKimlik` NOT NULL ve yalnız `musteri.Hesap`'a
+bağlı. Sunucu aşamasında iki yoldan biri:
+
+- (a) `HesapKimlik` boş olabilir, yanına `KullaniciKimlik`
+  (`erisim.Kullanici`) eklenir, ikisinden tam biri dolu olmalı (CHECK);
+- (b) ayrı tablo `kvkk.ServisKabulOlayi` (servis, giriş, metin, sürüm,
+  kanal, zaman).
+
+Her iki yolda: `kod.RizaMetni` listesine `servisAydinlatma`,
+`servisGizlilik`; `kod.RizaKanali` listesine `servisimIlkGiris`,
+`servisimGuncelleme`; Servisim metinleri `kvkk.MetinSurumu`'na (T07
+bugün yalnız Connect'in `METINLER` listesini okuyor). `tasarim.md`
+kvkk şemasının kullanıcıları arasına Servisim yazılmalı. Karar
+verilince eşlemedeki `servisKabulleri` boşluğu kapanır.

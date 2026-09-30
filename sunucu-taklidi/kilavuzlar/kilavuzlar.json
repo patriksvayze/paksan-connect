@@ -1,0 +1,41 @@
+{
+  "surum": 1,
+  "kilavuzlar": {
+    "MCH_HAMMER_SERIES": {
+      "dosya": "hammer-kullanim-kilavuzu-20251201.pdf",
+      "ad": { "tr": "HAMMER KULLANIM KILAVUZU", "en": "HAMMER USER MANUAL" },
+      "baski": "2025-12-01",
+      "sayfa": 50,
+      "boyut": 8654185,
+      "diller": ["tr", "en"],
+      "arizaSayfasi": 34
+    },
+    "MCH_PAKSAN_BALYA_SUPER": {
+      "dosya": "kucuk-balya-kullanim-kilavuzu-20251201.pdf",
+      "ad": { "tr": "PAKSAN BALYA KULLANIM KILAVUZU", "en": "PAKSAN BALER USER MANUAL" },
+      "baski": "2025-12-01",
+      "sayfa": 57,
+      "boyut": 6481795,
+      "diller": ["tr", "en"],
+      "arizaSayfasi": 35
+    },
+    "MCH_ORKA_870": {
+      "dosya": "orka-kullanim-kilavuzu-20251205.pdf",
+      "ad": { "tr": "ORKA KULLANIM KILAVUZU", "en": "ORKA USER MANUAL" },
+      "baski": "2025-12-05",
+      "sayfa": 164,
+      "boyut": 14035965,
+      "diller": ["tr", "en"],
+      "arizaSayfasi": 101
+    },
+    "MCH_IPAK_ROUND_BALER": {
+      "dosya": "yuvarlak-balya-kullanim-kilavuzu-20251129.pdf",
+      "ad": { "tr": "YUVARLAK BALYA KULLANIM KILAVUZU", "en": "ROUND BALER USER MANUAL" },
+      "baski": "2025-11-29",
+      "sayfa": 61,
+      "boyut": 8949001,
+      "diller": ["tr", "en"],
+      "arizaSayfasi": 44
+    }
+  }
+}

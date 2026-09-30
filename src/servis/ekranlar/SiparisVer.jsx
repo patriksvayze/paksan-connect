@@ -19,11 +19,22 @@ import {
   parcaAra,
   parcaBul,
 } from '../../lib/parcaKatalogu'
-import { bakiyeYetmiyor as bakiyeYetmiyorMu, parcaServisFiyati, siparisTutari, yuzdeYap } from '../../lib/servisFiyat'
+import {
+  bakiyeYetmiyor as bakiyeYetmiyorMu,
+  parcaServisFiyati,
+  sepetSatirlari,
+  sepetToplami,
+  siparisGoruntusu,
+  siparisKalemleri,
+  siparisTutari,
+  yuzdeYap,
+} from '../../lib/servisFiyat'
 import { siparisOzeti } from '../../lib/servisKaydi'
 import { Bolum, Onay } from '../Kabuk'
 import { DikteliKutu } from '../Dikte'
 import { ParcaKarti } from '../ParcaKarti'
+import { MontajListesi } from '../MontajListesi'
+import { ParcaOzetSatiri, TutarKutusu } from '../../components/ParcaOzeti'
 import { AdresSecici, teslimatHatasi } from '../AdresSecici'
 import { firmaAdresiOnerisi } from '../adresler'
 import { adresYazisi, teslimatTemizle } from '../../lib/teslimat'
@@ -33,7 +44,6 @@ import {
   IconCheckCircle,
   IconMinus,
   IconPlus,
-  IconRight,
   IconSearch,
   IconTrash,
 } from '../../components/Icons'
@@ -49,7 +59,11 @@ import {
 
    Onay adımı ayrı bir ekran, aynı sayfanın altı değil. Servis ne
    gönderdiğini gördükten sonra gönderiyor; gördüğü şey de siparişin
-   kendisi — kalem, adet, birim fiyat, satır tutarı.
+   kendisi — kalem, adet, satır tutarı. Birim fiyat 30 Eylül 2026'dan
+   beri özette yazmıyor, seçim kartlarında duruyor: özetin satırı
+   Connect'in "Talebiniz" satırının biçiminde, "kod · × adet" (kullanıcı:
+   "parçaları paylaştığım ekran görüntüsündeki gibi görmek istiyorum,
+   format anlamında yani"; aşağıda "ÖZETTE DE ADET DEĞİŞİYOR").
 
    TUTAR BAĞLAYICI DEĞİL ve bu ekranda yazıyor. Fiyat listesi
    göstergedir; siparişi PAKSAN onaylıyor, fatura LOGO'dan çıkıyor.
@@ -106,6 +120,22 @@ import {
    (bkz. servis/ParcaKarti.jsx): büyük görsel, kod, ad, fiyat; seçili
    kartın altında eksi-artı.
 
+   ÖZETTE DE ADET DEĞİŞİYOR, SATIR CONNECT'İN SATIRI (30 Eylül 2026,
+   kullanıcının isteği: "checkout ekranında seçilen parçaları sadece
+   kaldırabiliyoruz, adetlerini değiştiremiyoruz. Bunu yapmak için geri
+   gelmek gerekiyor" ve "parçaları paylaştığım ekran görüntüsündeki gibi
+   görmek istiyorum, format anlamında yani, ek olarak buna parça
+   satırlarına trash ikonu gelebilir"). Ekran görüntüsü Connect'in
+   "Talebiniz" kartıydı. Özetin satırı artık onun satırı: solda resim,
+   adın altında "kod · × adet", sağda satır tutarı; altında tutar kutusu
+   (ortak bileşen, bkz. components/ParcaOzeti.jsx). Her satırın altında
+   seçim adımındaki eksi-artı ve yazılı "Kaldır". Adet seçimle aynı
+   durumda (`adetler`): özetten geri dönen servis seçim ekranında aynı
+   adetleri görüyor; tutar, ödeme seçeneği ve bakiyenin yetip yetmediği
+   aynı işlevlerden yeniden hesaplanıyor. Eksi 1'de duruyor; parçayı
+   çıkarmak "Kaldır"ın işi. Son parça kaldırılınca ekran seçim adımına
+   dönüyor: boş bir özetin tek işi zaten parça seçmeye geri göndermek.
+
    İSTENEN TESLİM TARİHİ KALDIRILDI
 
    Soruluyordu ve hiçbir yere bağlanmıyordu — ne sevkiyat planına ne
@@ -116,7 +146,10 @@ import {
 
    Servis cari hesaplı bir iş ortağı: PAKSAN ona hak ediş borçlu.
    Bakiyesi siparişi karşılıyorsa bedelin oradan düşülmesini
-   isteyebiliyor. Yetmiyorsa seçenek kapalı.
+   isteyebiliyor. Yetmiyorsa seçenek kapalı. Seçeneğin adı 30 Eylül
+   2026'dan beri "Bakiyem" (kullanıcının isteği: "'Bakiyemden
+   düşülsün'ün geçtiği yerleri 'Bakiyem' olarak değiştir"); aşağıdaki
+   alıntılar o günden önceki adı taşıyor.
 
    SEÇENEKTE YALNIZ BAKİYE YAZIYOR (24 Eylül 2026, kullanıcının isteği:
    "Bakiyemden Düşülsün kutucuğu içindeki eksik tutar bilgisini kaldır,
@@ -161,7 +194,13 @@ import {
    fiyattan; kaydın canlı katalogla yeniden hesaplanması gerekmiyor.
    ========================================================================== */
 
-export function SiparisVer({ oturum, surum, onKapat, onVerildi }) {
+/* Seçim ile özet arasında geçince dokunuşun yutulduğu süre; Servisim'in
+   ekran geçişindeki kilitle aynı (ServisPanel.jsx → GECIS_KILIDI_MS). */
+const ADIM_KILIDI_MS = 350
+
+/* `geriRef`: sayfanın üstündeki "Geri" düğmesi önce buraya soruyor
+   (ServisPanel.jsx). Dönen `true`, "ben karşıladım" demek. */
+export function SiparisVer({ oturum, surum, onKapat, onVerildi, geriRef }) {
   const [adim, setAdim] = useState('secim')
   /* Seçim kod → adet. Ad anahtar olarak kullanılmıyor: katalogda
      tekrar eden adlar var, ikisi tek satıra düşerdi. */
@@ -255,43 +294,21 @@ export function SiparisVer({ oturum, surum, onKapat, onVerildi }) {
 
   /* Sepet. Sıra, seçim sırası: servis en son dokunduğu parçayı özetin
      sonunda bulur. Fiyat katalogdan değil `parcaServisFiyati`den
-     geliyor — servis iskontolu fiyatı ödüyor. */
-  const secili = useMemo(() => {
-    const liste = []
-    for (const [kod, ham] of Object.entries(adetler)) {
-      const adet = Number(ham) || 0
-      if (adet <= 0) continue
-      const parca = parcaBul(katalog, kod)
-      const f = parcaServisFiyati(parca, iskonto.oran)
-      liste.push({
-        kod,
-        ad: parca?.ad || kod,
-        grup: parca?.grup || null,
-        gorsel: parca?.gorsel ?? null,
-        adet,
-        listeFiyati: f ? f.fiyat : null,
-        birimFiyat: f ? f.alis : null,
-        satirTutari: f ? f.alis * adet : null,
-      })
-    }
-    return liste
-  }, [katalog, adetler, iskonto.oran])
+     geliyor — servis iskontolu fiyatı ödüyor. Satırlar, toplamlar ve
+     siparişe yazılan fiyat görüntüsü lib/servisFiyat.js'te (29 Eylül
+     2026): Servisim'in demo verisi siparişi aynı işlevlerle veriyor. */
+  const secili = useMemo(
+    () =>
+      sepetSatirlari(
+        Object.entries(adetler).map(([kod, adet]) => ({ kod, adet, parca: parcaBul(katalog, kod) })),
+        iskonto.oran,
+      ),
+    [katalog, adetler, iskonto.oran],
+  )
 
   /* Sepetin toplamları. Ek indirim ve KDV burada değil: ikisi ödeme
      biçimine göre `siparisTutari`den geliyor (aşağıda). */
-  const sepet = useMemo(() => {
-    let araToplam = 0
-    let listeToplam = 0
-    let eksik = false
-    for (const k of secili) {
-      if (k.satirTutari === null) eksik = true
-      else {
-        araToplam += k.satirTutari
-        listeToplam += k.listeFiyati * k.adet
-      }
-    }
-    return { araToplam, listeToplam, iskontoTutari: listeToplam - araToplam, eksik }
-  }, [secili])
+  const sepet = useMemo(() => sepetToplami(secili), [secili])
 
   /* İki ödeme biçiminin tutarı. `araToplam`, `kdv`, `toplam` ek indirim
      düşülmüş hâliyle üzerine yazılıyor; faturada ek indirim yok. */
@@ -315,6 +332,21 @@ export function SiparisVer({ oturum, surum, onKapat, onVerildi }) {
   const bakiyeYeter = bakiyeHesabi.toplam > 0 && !bakiyeYetmiyor
   const gecerliOdeme = bakiyeYeter ? odeme : 'fatura'
   const hesap = gecerliOdeme === 'bakiye' ? bakiyeHesabi : faturaHesabi
+
+  /* BAKİYE YETMEYİNCE SEÇİM FATURAYA GEÇİYOR VE ORADA KALIYOR (30 Eylül
+     2026, inceleme). Bakiye yetmeyince ekran "Faturayla"yı seçili
+     gösteriyor ve "bu sipariş faturayla verilecek" diyordu, ama seçim
+     arkada "bakiye" kalıyordu. Özete adet düğmeleri gelince bu tek
+     dokunuşla görünür oldu: artıyla bakiye yetmez oluyor, eksiyle
+     yeniden yetiyor ve servis seçmeden "Bakiyem" yeniden seçili
+     geliyordu. Ödeme biçimi para demek; ekranda görünen seçim servisin
+     seçimi olmalı. Bakiye yeniden yetse de "Bakiyem"i servis kendisi
+     seçiyor. Seçim adımında sepet boşalınca da (toplam sıfır) aynısı
+     oluyor. Aynı kural başka sekmeden gelen bakiye ve oran
+     değişikliğinde de geçerli. */
+  useEffect(() => {
+    if (!bakiyeYeter && odeme === 'bakiye') setOdeme('fatura')
+  }, [bakiyeYeter, odeme])
 
   function adetDegistir(kod, fark) {
     setAdetler((a) => {
@@ -342,54 +374,18 @@ export function SiparisVer({ oturum, surum, onKapat, onVerildi }) {
       ilce: servis?.ilce || '',
       /* Kalem satırında artık kod da var: talebi okuyan taraf parçayı
          adıyla değil koduyla buluyor. */
-      kalemler: secili.map((k) => ({
-        kod: k.kod,
-        ad: k.ad,
-        adet: k.adet,
-        birimFiyat: k.birimFiyat,
-        satirTutari: k.satirTutari,
-      })),
+      kalemler: siparisKalemleri(secili),
       /* Fiyat anlık görüntüsü: sipariş anındaki satırlar, katalog
-         sürümü ve kaynağı. Tutarlar servisin ödediği iskontolu
-         fiyattan — liste fiyatından değil. */
-      parcaFiyat: {
-        surum: katalog?.surum ?? null,
-        kaynak: katalog?.kaynak || null,
-        /* O günkü görselin dosya adı da satırda: katalog değişse de
-           sipariş kendi resmini gösteriyor (bkz. lib/parcaKatalogu.js →
-           fiyatGoruntusu). */
-        satirlar: secili.map((k) => ({
-          kod: k.kod,
-          ad: k.ad,
-          gorsel: k.gorsel,
-          adet: k.adet,
-          listeFiyati: k.listeFiyati,
-          birimFiyat: k.birimFiyat,
-          tutar: k.satirTutari,
-        })),
-        /* İndirim, servisin onay penceresinde gördüğü oranla: oran
-           sonra değişse de bu siparişin tutarı değişmiyor. Okunma anı
-           da gidiyor; veri katmanı 30 dakikadan eski tutarı kabul
-           etmiyor (bkz. lib/servisFiyat.js → onayTazeMi). */
+         sürümü ve kaynağı, onayda görülen oran ve okunma anı. Tutarlar
+         servisin ödediği iskontolu fiyattan — liste fiyatından değil
+         (bkz. lib/servisFiyat.js → siparisGoruntusu). */
+      parcaFiyat: siparisGoruntusu({
+        katalog,
+        satirlar: secili,
+        hesap,
         iskontoOrani: iskonto.oran,
         fiyatZamani,
-        listeToplam: hesap.listeToplam,
-        iskontoTutari: hesap.iskontoTutari,
-        /* Bakiyeden ödemede ek indirim: yalnız uygulandıysa. Oran tutar
-           sıfıra yuvarlansa da yazılıyor — siparişin hangi oranla
-           verildiği kayıtta kalsın. `araToplam` ve `toplam` ek indirim
-           düşülmüş. */
-        ...(hesap.bakiyeIskontoOrani > 0
-          ? {
-              bakiyeIskontoOrani: hesap.bakiyeIskontoOrani,
-              bakiyeIskontoTutari: hesap.bakiyeIskontoTutari,
-            }
-          : {}),
-        araToplam: hesap.araToplam,
-        kdv: hesap.kdv,
-        toplam: hesap.toplam,
-        eksikFiyat: hesap.eksik,
-      },
+      }),
       not,
       teslimat: teslimatTemizle(teslimat),
       odeme: gecerliOdeme,
@@ -409,15 +405,64 @@ export function SiparisVer({ oturum, surum, onKapat, onVerildi }) {
 
   /* Geri tuşu bir kademe geri gider, siparişi kapatmaz (bkz.
      servis/geri.jsx): özetten seçime, aramadan ve parça listesinden
-     montaj listesine — ParcaSec'teki "Geri" ile aynı sıra. */
-  useGeri(adim === 'onay' || (adim === 'secim' && Boolean(arama.trim() || grup)), () => {
+     montaj listesine — ParcaSec'teki "Geri" ile aynı sıra.
+
+     SEPET SORULMADAN BOŞALMIYOR (29 Eylül 2026, görünüm önerisi;
+     kullanıcının onayı). Sayfanın üstündeki "Geri" bu sırayı bilmiyordu:
+     parça listesindeyken ona basan servisin bütün seçimi siliniyordu.
+     Şimdi o düğme de aynı sırayı izliyor (`geriRef`); en üst kademede
+     sepet doluysa, "Vazgeç"te olduğu gibi, önce soruluyor. */
+  const [cikisSor, setCikisSor] = useState(false)
+  const geriGit = () => {
     if (adim === 'onay') {
       setAdim('secim')
       setHata('')
-    } else if (arama.trim()) setArama('')
-    else setGrup(null)
-  })
+      return true
+    }
+    if (adim !== 'secim') return false
+    if (arama.trim()) {
+      setArama('')
+      return true
+    }
+    if (grup) {
+      setGrup(null)
+      return true
+    }
+    if (secili.length) {
+      setCikisSor(true)
+      return true
+    }
+    return false
+  }
+  if (geriRef) geriRef.current = geriGit
 
+  /* ADIM DEĞİŞİNCE ÇİFT DOKUNUŞUN İKİNCİSİ YUTULUYOR (30 Eylül 2026).
+     Servisim ekran değişince 350 ms dokunuş yutuyor (ServisPanel.jsx →
+     GECIS_KILIDI_MS); seçimden özete ve özetten seçime geçiş o kilidin
+     dışındaydı, çünkü sayfa aynı. Özete adet düğmeleri ve "Kaldır"
+     gelince açık kaldı: "Devam"a iki kez dokunan servisin ikinci dokunuşu
+     özette o noktadaki düğmeye, son parçayı kaldırırken ikinci dokunuş
+     seçim ekranında altta kalan parça kartına gidip onu yeniden seçerdi.
+     Aynı süre, aynı yakalama. */
+  useEffect(() => {
+    const bitis = Date.now() + ADIM_KILIDI_MS
+    const yut = (e) => {
+      if (Date.now() < bitis) {
+        e.stopPropagation()
+        e.preventDefault()
+      }
+    }
+    window.addEventListener('click', yut, true)
+    const zaman = setTimeout(() => window.removeEventListener('click', yut, true), ADIM_KILIDI_MS)
+    return () => {
+      clearTimeout(zaman)
+      window.removeEventListener('click', yut, true)
+    }
+  }, [adim])
+
+  useGeri(adim === 'onay' || (adim === 'secim' && Boolean(arama.trim() || grup || secili.length)), () => {
+    geriGit()
+  })
   if (adim === 'sonuc' && siparis) {
     return <Sonuc siparis={siparis} onBitir={onVerildi} />
   }
@@ -460,7 +505,22 @@ export function SiparisVer({ oturum, surum, onKapat, onVerildi }) {
             setFiyatZamani(Date.now())
             setOnay(true)
           }}
-          onSil={(k) => adetDegistir(k.kod, -k.adet)}
+          katalog={katalog}
+          /* Özetteki eksi-artı seçim adımının işleviyle: adet tek yerde
+             (`adetler`), geri dönülünce seçim ekranı aynı sayıyı gösteriyor.
+             Eksi 1'in altına inmiyor; çıkarmak "Kaldır"ın işi. */
+          onAdet={(k, fark) => {
+            if (k.adet + fark >= 1) adetDegistir(k.kod, fark)
+          }}
+          onSil={(k) => {
+            adetDegistir(k.kod, -k.adet)
+            /* Son parça çıkınca seçim adımına (30 Eylül 2026): boş özette
+               verilecek sipariş yok; servisin yapacağı iş parça seçmek. */
+            if (secili.length <= 1) {
+              setAdim('secim')
+              setHata('')
+            }
+          }}
         />
 
         {onay && (
@@ -487,9 +547,12 @@ export function SiparisVer({ oturum, surum, onKapat, onVerildi }) {
                   }]
                 : []),
               { ad: 'Tutar', deger: `${paraYaz(hesap.toplam)} ${PARA_BIRIMI}` },
+              /* Seçeneğin adı "Bakiyem" (30 Eylül 2026, kullanıcının
+                 isteği: "'Bakiyemden düşülsün'ün geçtiği yerleri
+                 'Bakiyem' olarak değiştir"); özetteki seçenekle aynı. */
               {
                 ad: 'Ödeme',
-                deger: gecerliOdeme === 'bakiye' ? 'Bakiyemden düşülsün' : 'Faturayla',
+                deger: gecerliOdeme === 'bakiye' ? 'Bakiyem' : 'Faturayla',
               },
               /* Adres de son özette: yanlış adrese çıkan parçanın geri
                  dönüşü günler sürüyor. */
@@ -505,6 +568,7 @@ export function SiparisVer({ oturum, surum, onKapat, onVerildi }) {
   }
 
   return (
+    <>
     <Secim
       durum={durum}
       katalog={katalog}
@@ -515,17 +579,29 @@ export function SiparisVer({ oturum, surum, onKapat, onVerildi }) {
       onArama={setArama}
       onAdet={adetDegistir}
       secili={secili}
-      /* Seçim adımındaki toplam kartlardaki fiyatların toplamı; ek
-         indirim ödeme biçimi seçilince, özette. */
+      /* Seçim adımındaki toplam kartlardaki fiyatların toplamı, KDV
+         dâhil; ek indirim ödeme biçimi seçilince, özette. */
       hesap={faturaHesabi}
       iskontoOrani={iskonto.oran}
-      onKapat={onKapat}
       onDevam={() => setAdim('onay')}
       onTekrar={() => {
         setDurum('yukleniyor')
         yenidenDene(setDurum, setKatalog)
       }}
     />
+    {cikisSor && (
+      <Onay
+        baslik="Sipariş verilmedi"
+        metin="Şimdi çıkarsanız seçtiğiniz parçalar silinecek."
+        dugme="Seçimi Sil ve Çık"
+        onOnayla={() => {
+          setCikisSor(false)
+          onKapat()
+        }}
+        onVazgec={() => setCikisSor(false)}
+      />
+    )}
+    </>
   )
 }
 
@@ -554,7 +630,6 @@ function Secim({
   secili,
   hesap,
   iskontoOrani,
-  onKapat,
   onDevam,
   onTekrar,
 }) {
@@ -610,17 +685,7 @@ function Secim({
               Sıra katalogdan geliyor, yani basılı fiyat listesinin
               sırası; sağdaki sayı o montajda kaç parça olduğunu
               söylüyor. */}
-          {!grup && !aranan && (
-            <div className="montaj-liste">
-              {(katalog?.gruplar || []).map((g) => (
-                <button key={g.id} className="montaj" onClick={() => onGrup(g)}>
-                  <span className="montaj__ad">{g.ad}</span>
-                  <span className="montaj__sayi">{g.adet}</span>
-                  <IconRight size={18} />
-                </button>
-              ))}
-            </div>
-          )}
+          {!grup && !aranan && <MontajListesi katalog={katalog} onSec={onGrup} />}
 
           {(grup || aramaAcik) && (
             <>
@@ -666,28 +731,40 @@ function Secim({
         </>
       )}
 
+      {/* ALT ÇUBUK TEK SATIR (29 Eylül 2026, görünüm önerisi S8). Toplam
+          kutusu, "Devam" ve "Vazgeç" üst üste ekranın %29'unu kaplıyordu;
+          parça seçilen alan küçülüyordu. Şimdi solda toplam, sağda
+          "Devam". "Vazgeç" kalktı: sayfanın üstündeki "Geri" aynı işi
+          yapıyor ve sepet doluysa, "Vazgeç"in yaptığı gibi, önce soruyor
+          (yukarıda `geriGit`). */}
       <div className="yapisik">
-        {secili.length > 0 && (
-          <div className="siparis-toplam">
-            <span>
-              {secili.length} parça türü · {adetToplam} adet
-            </span>
-            <strong>
-              {paraYaz(hesap.araToplam)} {PARA_BIRIMI}
-            </strong>
-            {KDV_HARIC_LISTE && <small>KDV hariç</small>}
-          </div>
-        )}
-        <button
-          className="dg dg--ana dg--blok"
-          onClick={onDevam}
-          disabled={!secili.length}
-        >
-          Devam
-        </button>
-        <button className="dg dg--blok" style={{ marginTop: 8 }} onClick={onKapat}>
-          Vazgeç
-        </button>
+        <div className="siparis-dip">
+          {secili.length > 0 && (
+            <div className="siparis-dip__hesap">
+              <span className="siparis-dip__sayi">
+                {secili.length} parça türü · {adetToplam} adet
+              </span>
+              {/* KDV DÂHİL (29 Eylül 2026, kullanıcının onayı). Burada KDV
+                  hariç ara toplam yazıyordu; özet, onay penceresi, liste ve
+                  Hak Ediş KDV dâhil tutarı gösteriyor ("SİPARİŞİN TUTARI HER
+                  EKRANDA KDV DÂHİL"). Servis seçerken gördüğü rakamı listede
+                  bulamıyordu. */}
+              <span className="siparis-dip__tutar">
+                <strong>
+                  {paraYaz(hesap.toplam)} {PARA_BIRIMI}
+                </strong>
+                <small>KDV dâhil</small>
+              </span>
+            </div>
+          )}
+          <button
+            className={'dg dg--ana siparis-dip__devam' + (secili.length ? '' : ' dg--blok')}
+            onClick={onDevam}
+            disabled={!secili.length}
+          >
+            Devam
+          </button>
+        </div>
       </div>
     </>
   )
@@ -715,28 +792,45 @@ function SecimKarti({ parca, oran, adet, onAdet }) {
       secili={secili}
       onSec={() => onAdet(secili ? -adet : 1)}
     >
-      {secili && (
-        <div className="parca-kart__adet">
-          <button
-            type="button"
-            className="stok-dus"
-            onClick={() => onAdet(-1)}
-            aria-label={parca.ad + ' adedini azalt'}
-          >
-            <IconMinus size={19} />
-          </button>
-          <span className="parca-kart__sayi">{adet}</span>
-          <button
-            type="button"
-            className="stok-dus"
-            onClick={() => onAdet(1)}
-            aria-label={parca.ad + ' adedini artır'}
-          >
-            <IconPlus size={19} />
-          </button>
-        </div>
-      )}
+      {/* Kartta eksi 1'den 0'a inip parçayı çıkarıyor: alt sınır yok. */}
+      {secili && <AdetDugmeleri sinif="parca-kart" ad={parca.ad} adet={adet} onDegis={onAdet} />}
     </ParcaKarti>
+  )
+}
+
+/* EKSİ-ARTI TEK YERDE (30 Eylül 2026, inceleme). Seçim kartı ve özetin
+   satırı aynı düğmeleri kullanıyor; özete adet gelince aynı işaretleme
+   bu dosyada ikinci kez yazılmıştı ve ikisi ayrı ayrı değişebilirdi.
+   `enAz`: eksinin kapandığı adet (özette 1: parçayı çıkarmak "Kaldır"ın
+   işi); verilmezse eksi hep açık. `sinif`: kutunun ve sayının sınıf öneki
+   (`parca-kart` / `parca-ozet`); iki yerin görünümü servis.css'te ayrı.
+   `data-eylem` turun (X-12) okuduğu işaret; ekrandaki yazıya bakılmıyor. */
+function AdetDugmeleri({ sinif, ad, adet, onDegis, enAz }) {
+  return (
+    <div className={sinif + '__adet'}>
+      <button
+        type="button"
+        className="stok-dus"
+        data-eylem="adet-azalt"
+        onClick={() => onDegis(-1)}
+        disabled={enAz !== undefined && adet <= enAz}
+        aria-label={ad + ' adedini azalt'}
+      >
+        <IconMinus size={19} />
+      </button>
+      <span className={sinif + '__sayi'} aria-live="polite">
+        {adet}
+      </span>
+      <button
+        type="button"
+        className="stok-dus"
+        data-eylem="adet-artir"
+        onClick={() => onDegis(1)}
+        aria-label={ad + ' adedini artır'}
+      >
+        <IconPlus size={19} />
+      </button>
+    </div>
   )
 }
 
@@ -763,7 +857,7 @@ function Yukleniyor() {
 
 function Hata({ onTekrar }) {
   return (
-    <div className="not not--turuncu">
+    <div className="not not--sari">
       <IconAlert size={19} />
       <div>
         <strong>Parça listesi yüklenemedi</strong>
@@ -801,101 +895,107 @@ function Ozet({
   hata,
   onGeri,
   onVer,
+  onAdet,
   onSil,
+  katalog,
 }) {
   return (
     <>
+      {/* Yazı 30 Eylül 2026'da değişti: özette adet de değişiyor. */}
       <p className="ipucu">
-        Siparişinizi vermeden önce kontrol edin. Satırı kaldırmak için
-        çöp kutusuna dokunun.
+        Siparişinizi vermeden önce kontrol edin. Adetleri eksi ve artı düğmeleriyle
+        değiştirin; bir parçayı çıkarmak için Kaldır düğmesine dokunun.
       </p>
 
+      {/* CONNECT'İN "TALEBİNİZ" KARTININ DÜZENİ (30 Eylül 2026, kullanıcının
+          isteği; bkz. dosyanın başı ve components/ParcaOzeti.jsx). Satırda
+          resim, ad, "kod · × adet" ve satır tutarı; altında adet düğmeleri
+          ve yazılı "Kaldır". Satır tutarı servisin ödediği indirimli fiyattan
+          (lib/servisFiyat.js → sepetSatirlari); kutudaki rakamlar ekranın
+          hesabından (`hesap`: sepetToplami + siparisTutari), burada hesap
+          yapılmıyor. Tur (X-12) satırı `data-parca-satiri`, toplamı
+          `data-siparis-toplam` ile okuyor. */}
       <Bolum ad="Sipariş Özeti" sayi={secili.length}>
-        <div className="kart" style={{ padding: '4px 16px' }}>
+        <div className="kart siparis-parcalar">
           {secili.map((k) => (
-            <div key={k.kod} className="ozet-kalem">
-              <div className="ozet-kalem__ad">
-                <div>{k.ad}</div>
-                <div className="kucuk sonuk">
-                  <span className="mono">{k.kod}</span> · {k.adet} ×{' '}
-                  {k.birimFiyat === null
-                    ? 'Fiyat bilgisi yok'
-                    : `${paraYaz(k.birimFiyat)} ${PARA_BIRIMI}`}
-                </div>
-              </div>
-              <div className="ozet-kalem__tutar">
-                {k.satirTutari === null ? '—' : paraYaz(k.satirTutari)}
-              </div>
+            <ParcaOzetSatiri
+              key={k.kod}
+              katalog={katalog}
+              kod={k.kod}
+              gorsel={k.gorsel}
+              ad={k.ad}
+              /* "· × adet" birlikte kalıyor: "·"dan ve "×"ten sonraki
+                 boşluk bölünmeyen boşluk (\u00a0). 320 piksellik telefonda
+                 satır kırılınca nokta satır sonunda asılı kalıyordu
+                 ("2013101010 ·" / "× 4"; 30 Eylül 2026, inceleme); şimdi
+                 kod üstte, "· × 4" altta. Connect'in iki satırı da aynı
+                 (bkz. components/ParcaOzeti.jsx). */
+              alt={`${k.kod} ·\u00a0×\u00a0${k.adet}`}
+              tutar={k.satirTutari === null ? '—' : `${paraYaz(k.satirTutari)} ${PARA_BIRIMI}`}
+              data-parca-satiri={k.kod}
+              data-adet={k.adet}
+            >
+              {/* Seçim kartındaki eksi-artının kendisi; eksi 1'de kapalı. */}
+              <AdetDugmeleri
+                sinif="parca-ozet"
+                ad={k.ad}
+                adet={k.adet}
+                enAz={1}
+                onDegis={(fark) => onAdet(k, fark)}
+              />
+              {/* Çöp kutusunun yanında yazısı (29 Eylül 2026, görünüm
+                  önerisi S8): simge tek başına anlam taşımıyor. */}
               <button
-                className="ozet-kalem__sil"
+                type="button"
+                className="parca-ozet__kaldir"
+                data-eylem="parca-kaldir"
                 onClick={() => onSil(k)}
                 aria-label={k.ad + ' satırını kaldır'}
               >
-                <IconTrash size={18} />
+                <IconTrash size={17} />
+                Kaldır
               </button>
-            </div>
+            </ParcaOzetSatiri>
           ))}
-        </div>
 
-        <div className="fiyat-kart" style={{ marginTop: 12 }}>
           {/* İNDİRİM AYRI SATIR (23 Eylül 2026): liste fiyatıyla toplam,
-              oran ve düşülen tutar. Satır tutarları zaten indirimli. */}
-          {hesap.iskontoTutari > 0 && (
-            <>
-              <div className="urun-kart__satir">
-                <span>Liste fiyatıyla toplam</span>
-                <strong>
-                  {paraYaz(hesap.listeToplam)} {PARA_BIRIMI}
-                </strong>
-              </div>
-              <div className="urun-kart__satir urun-kart__satir--indirim">
-                <span>Yedek parça indiriminiz (%{yuzdeYap(iskontoOrani)})</span>
-                <strong>
-                  −{paraYaz(hesap.iskontoTutari)} {PARA_BIRIMI}
-                </strong>
-              </div>
-            </>
-          )}
-          {/* BAKİYEDEN ÖDEMEDE EK İNDİRİM (24 Eylül 2026): yalnız bakiye
-              seçiliyken. KDV'den önce düşülüyor; ara toplam ve KDV ek
-              indirimli tutardan. */}
-          {hesap.bakiyeIskontoTutari > 0 && (
-            <div className="urun-kart__satir urun-kart__satir--indirim">
-              <span>Bakiyeden ödeme ek indirimi (%{yuzdeYap(hesap.bakiyeIskontoOrani)})</span>
-              <strong>
-                −{paraYaz(hesap.bakiyeIskontoTutari)} {PARA_BIRIMI}
-              </strong>
-            </div>
-          )}
-          <div className="urun-kart__satir">
-            <span>Ara toplam</span>
-            <strong>
-              {paraYaz(hesap.araToplam)} {PARA_BIRIMI}
-            </strong>
-          </div>
-          {/* KDV satırı yalnız liste fiyatı KDV hariçse görünüyor;
-              kararın gerekçesi marka/katalog/para.js içinde. */}
-          {KDV_HARIC_LISTE && (
-            <div className="urun-kart__satir">
-              <span>KDV %{Math.round(KDV_ORANI * 100)}</span>
-              <strong>
-                {paraYaz(hesap.kdv)} {PARA_BIRIMI}
-              </strong>
-            </div>
-          )}
-          <div className="urun-kart__satir urun-kart__satir--vurgu">
-            <span>Genel toplam</span>
-            <strong>
-              {paraYaz(hesap.toplam)} {PARA_BIRIMI}
-            </strong>
-          </div>
-          <div className="urun-kart__dip">
+              oran ve düşülen tutar. Satır tutarları zaten indirimli.
+              BAKİYEDEN ÖDEMEDE EK İNDİRİM (24 Eylül 2026): yalnız bakiye
+              seçiliyken; KDV'den önce düşülüyor, ara toplam ve KDV ek
+              indirimli tutardan. KDV satırı yalnız liste fiyatı KDV
+              hariçse (gerekçesi marka/katalog/para.js içinde). */}
+          <TutarKutusu
+            data-siparis-toplam={hesap.toplam}
+            satirlar={[
+              hesap.iskontoTutari > 0 && {
+                ad: 'Liste fiyatıyla toplam',
+                deger: `${paraYaz(hesap.listeToplam)} ${PARA_BIRIMI}`,
+              },
+              hesap.iskontoTutari > 0 && {
+                ad: `Yedek parça indiriminiz (%${yuzdeYap(iskontoOrani)})`,
+                deger: `−${paraYaz(hesap.iskontoTutari)} ${PARA_BIRIMI}`,
+                indirim: true,
+              },
+              hesap.bakiyeIskontoTutari > 0 && {
+                ad: `Bakiyeden ödeme ek indirimi (%${yuzdeYap(hesap.bakiyeIskontoOrani)})`,
+                deger: `−${paraYaz(hesap.bakiyeIskontoTutari)} ${PARA_BIRIMI}`,
+                indirim: true,
+              },
+              { ad: 'Ara toplam', deger: `${paraYaz(hesap.araToplam)} ${PARA_BIRIMI}` },
+              KDV_HARIC_LISTE && {
+                ad: `KDV %${Math.round(KDV_ORANI * 100)}`,
+                deger: `${paraYaz(hesap.kdv)} ${PARA_BIRIMI}`,
+              },
+            ]}
+            toplam={{ ad: 'Genel toplam', deger: `${paraYaz(hesap.toplam)} ${PARA_BIRIMI}` }}
+          />
+          <p className="siparis-parcalar__not">
             {hesap.eksik
               ? `Fiyatı listede olmayan parça var; gösterilen toplam bu parçayı içermiyor. Bu parçanın tutarını ${MARKA} bildirecek. `
               : ''}
             Tutar, sipariş anındaki fiyat ve indirimle hesaplanır. Sipariş verildikten sonra fiyat ya
             da indirim değişse de tutar değişmez.
-          </div>
+          </p>
         </div>
       </Bolum>
 
@@ -911,6 +1011,7 @@ function Ozet({
         <div className="secenek">
           <button
             className={'buyuk-sec' + (odeme === 'fatura' ? ' buyuk-sec--on' : '')}
+            data-odeme="fatura"
             onClick={() => onOdeme('fatura')}
           >
             <span className="buyuk-sec__ad">Faturayla</span>
@@ -925,10 +1026,18 @@ function Ozet({
             }
             disabled={!bakiyeYeter}
             aria-describedby={bakiyeYetmiyor ? 'bakiye-yetmiyor' : undefined}
+            data-odeme="bakiye"
+            /* Kullanılabilir bakiye: tur (X-12) bakiyeyi siparişin
+               toplamına göre kurup "Bakiyem"in kapanmasını sınıyor. */
+            data-bakiye={bakiye}
             onClick={() => onOdeme('bakiye')}
           >
-            <span className="buyuk-sec__ad">
-              Bakiyemden Düşülsün
+            {/* Seçeneğin adı "Bakiyem" (30 Eylül 2026, kullanıcının isteği:
+                "'Bakiyemden düşülsün'ün geçtiği yerleri 'Bakiyem' olarak
+                değiştir"). Bakiyeden düşüleceğini altındaki bakiye satırı
+                ve özetteki ek indirim satırı söylüyor. */}
+            <span className="buyuk-sec__ad" data-odeme-ad="bakiye">
+              Bakiyem
               {bakiyeOrani > 0 && (
                 <span className="odeme-rozet">%{yuzdeYap(bakiyeOrani)} ek indirim</span>
               )}
@@ -975,7 +1084,7 @@ function Ozet({
         <button className="dg dg--ana dg--blok" onClick={onVer}>
           Sipariş Ver
         </button>
-        <button className="dg dg--blok" style={{ marginTop: 8 }} onClick={onGeri}>
+        <button className="dg dg--blok" style={{ marginTop: 8 }} onClick={onGeri} data-eylem="ozet-geri">
           Geri
         </button>
       </div>

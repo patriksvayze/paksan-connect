@@ -6,7 +6,7 @@
    düzenlemeyin: kaynak değişince yeniden üretilir ve el değişikliği
    kaybolur. Kaynağı değiştirin, sonra "npm run vt -- tohum" çalıştırın.
 
-   60 kod listesi, 407 kod; 87 çeviri; 98 eski değer eşleşmesi.
+   60 kod listesi, 408 kod; 87 çeviri; 98 eski değer eşleşmesi.
 
    Kaynak: src/lib/talep.js, src/backoffice/veri.js, src/data/talepAlanlari.js
    (+ .en.js), src/backoffice/ekranlar/Talepler.jsx, IslemKaydi.jsx,
@@ -1276,7 +1276,7 @@ WHEN NOT MATCHED BY TARGET THEN
     INSERT (Kod, Ad, Sira, Aktif)
     VALUES (k.Kod, k.Ad, k.Sira, 1);
 
-/* kod.RizaKanali — 5 satır */
+/* kod.RizaKanali — 6 satır */
 
 MERGE kod.RizaKanali AS h
 USING (
@@ -1284,11 +1284,12 @@ USING (
            CONVERT(nvarchar(150), v.Ad) AS Ad,
            CONVERT(smallint, v.Sira) AS Sira
     FROM (VALUES
+        (N'connectGuncelleme', N'Uygulamada metin güncellemesi penceresi', 3),
         (N'connectKayit', N'Uygulama kayıt ekranı', 1),
         (N'connectProfil', N'Uygulama profil ekranı', 2),
-        (N'personel', N'Personel', 3),
-        (N'telefon', N'Telefon', 4),
-        (N'yazili', N'Yazılı beyan', 5)
+        (N'personel', N'Personel', 4),
+        (N'telefon', N'Telefon', 5),
+        (N'yazili', N'Yazılı beyan', 6)
     ) AS v (Kod, Ad, Sira)
 ) AS k
     ON h.Kod = k.Kod
@@ -1611,7 +1612,7 @@ USING (
         (N'kod.MakineDurumu', N'kontrol', N'Ad', N'en', N'It runs, but please check it'),
         (N'kod.MakineDurumu', N'kurulum', N'Ad', N'en', N'It needs its first set-up'),
         (N'kod.MakineDurumu', N'sorunlu', N'Ad', N'en', N'It runs but there is a problem'),
-        (N'kod.RizaMetni', N'acikRiza', N'Ad', N'en', N'Consent Statement'),
+        (N'kod.RizaMetni', N'acikRiza', N'Ad', N'en', N'Explicit Consent Text'),
         (N'kod.RizaMetni', N'aydinlatma', N'Ad', N'en', N'Privacy Notice'),
         (N'kod.RizaMetni', N'ticariIleti', N'Ad', N'en', N'Campaign Notifications'),
         (N'kod.TalepDurumu', N'bayiyeIletildi', N'Ad', N'en', N'Passed to our dealer'),

@@ -672,7 +672,7 @@ END
 
 1. Müşteri talebi gönderir; API `YPR` numarasını talep eklenirken, aynı işlemde alır. Cihazda numara üretilmez; ödeme bilgisi ve referans bu adımda gösterilmez (API fazında `RequestForm.jsx` akışı buna göre değişir; ekran metinleri Codex'ten geçer).
 2. PAKSAN stoğu, KDV dahil son tutarı ve kargoyu doğrular: `ParcaTalebiAyrinti.KargoTutari`, `OdenecekTutar`, `SonOdemeTarihi` (= Türkiye bugünü + `OdemeBeklemeGunu`), `TutarDogrulama…` yazılır; durum `odemeBekliyor`.
-3. Müşteriye ödeme bilgisi gösterilir: IBAN'lar `ParcaTalebiAyrinti.SirketKodu → sirket.BankaHesabi (Aktif = 1)`; alıcı unvanı `sirket.Sirket.Unvan`; referans tiresiz `Numara`.
+3. Müşteriye ödeme bilgisi gösterilir: IBAN'lar `ParcaTalebiAyrinti.SirketKodu → sirket.BankaHesabi (Aktif = 1)`; alıcı unvanı hesap başına `sirket.BankaHesabi.HesapUnvani` (tohumu `BANKA.hesaplar[].alici`, yoksa `BANKA.unvan`; 30.09.2026); referans tiresiz `Numara`.
 4. Müşteri dekontu yükler (`talep.Dekont`); muhasebe `OdenecekTutar` ile karşılaştırır; `OdemeOnayi.OnaylananTutar` yazılır; durum `incelemede`.
 5. Sevk (`talep.ParcaSevki`), kapanış (`talep.Kapanis`).
 6. `SonOdemeTarihi` geçmiş `odemeBekliyor` talebi API iptal eder (`talep.Iptal`, `IptalNedeniKodu = N'odemeSuresiDoldu'`); `gorunum.KontrolOdemeSuresiDolanParca` kaçanları listeler.
