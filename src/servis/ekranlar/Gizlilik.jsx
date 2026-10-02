@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Sayfa, Bolum } from '../Kabuk'
 import { markaEk } from '../../marka'
 import {
@@ -9,7 +9,8 @@ import {
 } from '../../data/servisGizlilik'
 import { servisinSonKabulu, servisKabulunuKaydet } from '../../lib/servisGizlilik'
 import { useBildirimIzni } from '../haber'
-import { IconBell, IconBook, IconCamera, IconMic, IconPin, IconRight, IconShield } from '../../components/Icons'
+import { IconBell, IconBook, IconMic, IconRight, IconShield } from '../../components/Icons'
+import { mikrofonIzniDurumu, mikrofonIzniIste } from '../../lib/mikrofonIzni'
 
 /* ==========================================================================
    Servisim — gizlilik: ilk giriş kapısı, metin sayfası, Hesap'taki satır
@@ -33,8 +34,9 @@ import { IconBell, IconBook, IconCamera, IconMic, IconPin, IconRight, IconShield
    "Servisim'de de, Connect'te olduğu gibi, Servisim için uyarlanmış
    Gizlilik ve İzinler kısmı olsun"). Hesap → "Gizlilik ve İzinler":
    kabul edilen iki metin ve kabulün tarihi/sürümü, uygulamanın
-   telefondan istediği izinler (bildirim izninin bugünkü durumu ve "İzin
-   Ver"; mikrofon, kamera, konum) ve izinlerin açıklaması. Connect'in
+   telefondan istediği izinler (bildirim ve mikrofon: bugünkü durumu ve
+   "İzin Ver"; aynı gün kamera ve konum satırları kalktı, uygulama o
+   izinleri istemiyor) ve izinlerin açıklaması. Connect'in
    sayfasının (screens/Gizlilik.jsx) karşılığı; kampanya izni yok,
    servise kampanya bildirimi gitmiyor. Bir gün önce Hesap'ta duran
    "Gizlilik ve kurallar" ile "Telefonunuz kaybolursa" bölümleri
@@ -67,11 +69,7 @@ const METIN = {
   bildirimKapaliAlt: 'Telefonunuzun ayarlarından açabilirsiniz',
   izinVer: 'İzin Ver',
   mikrofon: 'Mikrofon',
-  mikrofonAlt: 'Yalnızca “Konuşarak Yaz” düğmesine bastığınızda izin istenir',
-  kamera: 'Kamera ve fotoğraflar',
-  kameraAlt: 'Yalnızca servis kaydına fotoğraf eklerken kullanılır',
-  konum: 'Konum',
-  konumAlt: 'Uygulama konumunuzu kullanmaz',
+  mikrofonAlt: '“Konuşarak Yaz” ile söylediklerinizi yazıya çevirmek için kullanılır',
   izinlerAyrinti: 'İzin Açıklamalarını Oku',
 }
 
@@ -198,6 +196,18 @@ export function GizlilikSatiri({ onAc }) {
 export function GizlilikSayfasi({ oturum, onGeri }) {
   const [okunan, setOkunan] = useState(null)
   const izin = useBildirimIzni()
+  /* Mikrofon gerçek izin satırı (30 Eylül 2026, kullanıcının itirazı:
+     "listelenen izinler için herhangi bir izin alınmıyor"): bugünkü durum
+     ve "İzin Ver". Kamera ve konum satırları kalktı; uygulama o izinleri
+     istemiyor. Gerekçe lib/mikrofonIzni.js başında. */
+  const [mikrofon, setMikrofon] = useState(null)
+  useEffect(() => {
+    let iptal = false
+    mikrofonIzniDurumu().then((d) => !iptal && setMikrofon(d))
+    return () => {
+      iptal = true
+    }
+  }, [])
   if (okunan) return <MetinSayfasi metin={okunan} onGeri={() => setOkunan(null)} />
 
   const kabul = servisinSonKabulu(oturum.servisId)
@@ -252,9 +262,28 @@ export function GizlilikSayfasi({ oturum, onGeri }) {
                 </button>
               )}
             </div>
-            <IzinSatiri Ikon={IconMic} ad={METIN.mikrofon} alt={METIN.mikrofonAlt} />
-            <IzinSatiri Ikon={IconCamera} ad={METIN.kamera} alt={METIN.kameraAlt} />
-            <IzinSatiri Ikon={IconPin} ad={METIN.konum} alt={METIN.konumAlt} />
+            <div className="sgizlilik__satir sgizlilik__satir--sabit" data-izin="mikrofon" data-durum={mikrofon || ''}>
+              <span className="sgizlilik__ikon"><IconMic size={20} /></span>
+              <span className="sgizlilik__govde">
+                <span className="sgizlilik__ad">{METIN.mikrofon}</span>
+                {mikrofon && (
+                  <span className="sgizlilik__alt">
+                    {{ acik: METIN.durumAcik, kapali: METIN.durumKapali, sorulmadi: METIN.durumSorulmadi, yok: METIN.durumYok }[mikrofon]}
+                  </span>
+                )}
+                {mikrofon === 'kapali' && <span className="sgizlilik__alt">{METIN.bildirimKapaliAlt}</span>}
+                <span className="sgizlilik__alt">{METIN.mikrofonAlt}</span>
+              </span>
+              {mikrofon === 'sorulmadi' && (
+                <button
+                  className="dg sgizlilik__izin"
+                  data-eylem="mikrofon-izni"
+                  onClick={async () => setMikrofon(await mikrofonIzniIste())}
+                >
+                  {METIN.izinVer}
+                </button>
+              )}
+            </div>
           </div>
           <button className="dg dg--blok" style={{ marginTop: 12 }} onClick={() => setOkunan(SERVIS_IZINLER)}>
             {METIN.izinlerAyrinti}
@@ -262,17 +291,5 @@ export function GizlilikSayfasi({ oturum, onGeri }) {
         </Bolum>
       </div>
     </Sayfa>
-  )
-}
-
-function IzinSatiri({ Ikon, ad, alt }) {
-  return (
-    <div className="sgizlilik__satir sgizlilik__satir--sabit">
-      <span className="sgizlilik__ikon"><Ikon size={20} /></span>
-      <span className="sgizlilik__govde">
-        <span className="sgizlilik__ad">{ad}</span>
-        <span className="sgizlilik__alt">{alt}</span>
-      </span>
-    </div>
   )
 }

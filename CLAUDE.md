@@ -13,7 +13,7 @@ uygulama içi tüm metin ve yorumlar sade Türkçe.
 - `src/marka/` — firmaya ait her şey: kimlik, logo, renkler, ürün kataloğu, servis listesi, fiyatlar, hangi ürünün hangi kılavuzu kullandığı, Destek'in arıza rehberi. Motor buraya yalnızca `src/marka/index.js` kapısından bakar (bkz. MARKA-DEVIR.md)
 - `src/data/` — ülkeye ve motora ait statik içerik: il listesi, KVKK metinleri, talep alanları, duyuru türleri, yetki kataloğu
 - `src/lib/` — yardımcı modüller (depolama, bildirim, PDF/Excel dışa aktarım)
-- `src/i18n/` — `tr.js`/`en.js` (912 anahtar, eşit tutuluyor ama build'de zorlanmıyor; `npm run dogrula` 1. ve 2. kontrol) + `index.jsx`
+- `src/i18n/` — `tr.js`/`en.js` (908 anahtar, eşit tutuluyor ama build'de zorlanmıyor; `npm run dogrula` 1. ve 2. kontrol) + `index.jsx`
 - `tools/` — otomasyon betikleri (ekran görüntüsü, ikon üretimi, veri doğrulama)
 
 ## Üç ayrı derleme
@@ -132,9 +132,12 @@ otomasyon paketi kurulu değil. Buna karşılık dört şey var:
   Gizlilik ve İzinler sayfası, X-11 Hesap'ın "Hesabım" bölümü (şifre
   satırı ve kırmızı Çıkış Yap dâhil), X-12
   sipariş özetinde adet ve Kaldır, X-13 "PAKSAN'a Devret" düğmesi, C-38
-  Connect'in banka hesabı kartı ve formun resimli seçili parçaları) ve
+  Connect'in banka hesabı kartı ve formun resimli seçili parçaları; aynı
+  gün C-39 ve X-14 alttan açılan pencere açıkken arkadaki ekranın
+  kaymaması ve esnemenin kapalı olması, X-15 Hak Ediş'in iki sekmesi; 1
+  Ekim'de B-ADRES backoffice ekranının adres çubuğunda olması) ve
   **on bir formun boş gönderimi**
-  (`tools/ekosistem/formlar.mjs`) — toplam 93 denetim). Her ekranda
+  (`tools/ekosistem/formlar.mjs`) — toplam 97 denetim). Her ekranda
   üç soru: boş mu açıldı, hata verdi mi, ekili değer basılı mı.
   `--yalniz C-27,X-03` yalnız adı verilen denetimleri koşturur (bozma
   denemesi için; kapsam iddiası tam koşunun); bilinmeyen kod verilirse
@@ -1079,7 +1082,7 @@ dokunmak ve sürüklemek bir şey yapmıyor. Sınama tohumu bu yüzden bugünkü
 Profil'de görünür satır (önce yalnız dipte küçük bir bağlantı vardı;
 bağlantı da artık buraya gidiyor). Metinler ve onay tarihi/sürümü,
 kampanya izni ve son değişikliği, uygulama izinlerinin bugünkü durumu
-(bildirim canlı, "İzin Ver"). "Haklarınız ve başvuru" ile "Onay
+(bildirim ve mikrofon canlı, "İzin Ver"; 30 Eylül 2026'dan beri, aşağıda). "Haklarınız ve başvuru" ile "Onay
 geçmişi" bölümleri ve Profil'in dibindeki "KVKK | Açık Rıza Metni |
 İzinler" bağlantısı aynı gün kaldırıldı (kullanıcının isteği; aynı
 sayfayı açıyorlardı). Başvuru yolu Aydınlatma Metni'nde, hesap silme
@@ -1101,8 +1104,8 @@ isteğiyle kaldırıldı. **30 Eylül 2026'dan beri Hesap → "Gizlilik ve
 İzinler"** (kullanıcının isteği: "Servisim'de de, Connect'te olduğu gibi,
 Servisim için uyarlanmış Gizlilik ve İzinler kısmı olsun";
 `GizlilikSayfasi`): kabul edilen iki metin ve kabulün tarihi/sürümü,
-bildirim izninin bugünkü durumu ve "İzin Ver", mikrofon, kamera, konum
-satırları, "İzin Açıklamalarını Oku" (Uygulama İzinleri metni geri
+bildirim ve mikrofon izninin bugünkü durumu ve "İzin Ver" (kamera ve
+konum satırları aynı gün kalktı, aşağıda), "İzin Açıklamalarını Oku" (Uygulama İzinleri metni geri
 geldi). Kampanya izni yok: servise kampanya bildirimi gitmiyor. Tur
 X-10.
 Sesle yazmanın izin cümlesi düzeltildi (ses telefonun ses tanıma
@@ -1235,6 +1238,93 @@ satırda parçanın resmi (`ParcaResmi`, özet satırındakiyle aynı boy).
 Satır iki katlı: üstte resim, ad ve kod, birim fiyat; altta adet
 düğmeleri (`styles.css → .adet-satir`, ızgara). Tek katta resim de
 sığmıyordu. Tur C-38 (f).
+
+### 30 Eylül 2026 — izin satırları, pencere kilidi, esneme, Hak Ediş sekmeleri
+
+Kullanıcının altı maddesi. Kararları: esneme için "Esneme tamamen
+kapansın", Hak Ediş için "Sekmeler + Daha Fazla Göster". Tur C-37, X-10,
+X-11 genişledi; C-39, X-14, X-15 yeni; hepsi bozularak düşürüldü (liste
+`tools/ekosistem-turu.mjs` başında).
+
+**GÜNCELLEME PENCERESİNİN BAŞLIĞI** (kullanıcının sözü): "Şartlarımız
+güncellendi!" (`guncelleme.baslik`; İngilizcesi "Our terms have been
+updated!").
+
+**İZİN SATIRLARI GERÇEK İZİN** (kullanıcının itirazı: "listelenen izinler
+için herhangi bir izin alınmıyor kullanıcıdan. Tıklandığında da izin alma
+ekranı gelmiyor. Bu izinler neden gösteriliyor"). Mikrofon, kamera ve
+konum satırları yalnız bilgiydi. İki uygulamanın Gizlilik ve İzinler
+sayfasında artık yalnız telefonun gerçekten sorduğu iki izin var:
+bildirim ve mikrofon; ikisi de bugünkü durumu (Açık / Kapalı / Henüz
+sorulmadı) ve sorulmamışsa "İzin Ver" ile. Kamera ve konum kalktı:
+fotoğraf telefonun kendi kamera ve dosya ekranıyla geliyor, konum hiç
+kullanılmıyor, manifestte ikisi de yok (açıklamaları "İzin Açıklamalarını
+Oku" metninde duruyor). Mikrofon izni tek JS dosyasından
+(`lib/mikrofonIzni.js`); APK'da iki uygulamaya da eklenen küçük eklenti
+(`MikrofonIzniPlugin.java`, Capacitor'ın checkPermissions /
+requestPermissions'ı), tarayıcıda Permissions API ve getUserMedia. Tur
+C-37 ve X-10 (headless Chrome mikrofonu baştan reddettiği için tur izni
+"sorulmadı"ya çekiyor).
+
+**ALTTAN AÇILAN PENCERE AÇIKKEN ARKADAKİ EKRAN KAYMIYOR** (kullanıcının
+bildirdiği: "Bilgilerimi Düzenle'ye tıklandığında alttan gelen ekranda
+kaydırma denendiğinde arkadaki profil sayfası kayıyor"). Pencerenin içi
+kaymıyorsa ya da sonuna gelmişse kaydırma arkadaki sayfaya geçiyordu.
+Pencere açıkken arkadaki kaydırıcı kilitli (CSS `:has`, JS yok): Connect
+`styles.css → html:has(.sheet-backdrop)`, Servisim `servis.css →
+html:has(.onay-perde, .yaprak-perde)` (kök, dip çubuklu sayfanın gövdesi,
+iş kartının katmanı). Kaydırma yeri korunuyor. Pencerenin içi
+`overscroll-behavior: contain`. Tur C-39, X-14: telefon boyunda gerçek
+kaydırma hareketi, her hareketten sonra ölçü (ilk hâli aşağı ve yukarı
+eşit kaydırdığı için bozulmuş kodda da geçiyordu).
+
+**ESNEME KAPALI** (kullanıcı: "sadece kaydırılabilir alanın esnemesi
+gerekirken tüm uygulama ekranı esniyor, örneğin navigasyon barı da
+esniyor"; seçimi "Esneme tamamen kapansın"). Android'in esnemesi
+WebView'un tamamına uygulanıyor; web sayfası "yalnız şu alanı esnet"
+diyemiyor. İki yerde kapalı: CSS kökte `overscroll-behavior: none`
+(Connect'te bu kural `body`deydi ve hiç etki etmiyordu — tarayıcı sayfanın
+kaydırıcısı için kökü okuyor) ve iki `MainActivity.java`da
+`setOverScrollMode(OVER_SCROLL_NEVER)`. `npx cap add android` MainActivity'yi
+şablondan yeniden yazar; o komut çalışırsa satırlar geri konmalı.
+
+**HAK EDİŞ İKİ SEKME, HAREKETLER ONAR ONAR** (kullanıcı: "Onay Bekleyen ve
+Hesap Hareketleri kısımlarını … sekmelere ayırıp göstersek daha iyi olur
+mu … 10 harekette bir sayfa atlayacak şekilde pagination mı getirsek?").
+Bakiye ve ücret özeti üstte; altında İşlerim'in sekme görünüşüyle
+(`.is-sekmeler`, kaydırınca yapışıyor) "Onay Bekleyen" ve "Hesap
+Hareketleri", yanlarında adet. İlk sekme bekleyen iş varsa Onay Bekleyen.
+Hareketler 10'ar; altta "10 Hareket Daha Göster" (Codex'in metni; kalan
+10'dan azsa kalan kadar). Sayfa numarası yerine bu düğme: telefonda
+numaraya basmak zor ve sayfa değişince servis nerede kaldığını kaybediyor.
+Sekme ve açılan sayı ServisPanel'de (`hakGorunum`): iş açılıp dönünce
+yerinde. Tur X-15.
+
+**SERVİSİM ÜST ÇUBUĞUNUN DAİRELERİ 50 PİKSEL** (kullanıcının isteği:
+"Bildirim ve Hesap buton büyüklüklerini biraz daha arttır"): 44'tü; zil
+25, harf 19 piksel (`servis.css → --ust-daire`). Tur X-11.
+
+### 1 Ekim 2026 — backoffice ekranı adres çubuğunda, sekme ikonu
+
+**EKRAN ADRESTE** (kullanıcının bildirdiği: "backoffice web tabanlı
+değilmiş gibi duruyor, sayfa geçişlerinde arama çubuğunda değişiklik
+olmuyor"). Açık ekran yalnız bellekteydi: Geri düğmesi panelden
+çıkıyordu, yenileme hep Genel Bakış'ı açıyordu, ekranın bağlantısı
+yoktu. Artık `backoffice.html#/talepler` (`Backoffice.jsx →
+adrestekiEkran`, `git`): menü geçişi geçmişe satır, Geri/İleri ekranlar
+arasında, yenileme aynı ekran, sekme başlığı ekranın adıyla. `#`, yol
+değil: sunucuda yönlendirme ayarı gerekmiyor. Süzgeç adreste yok;
+yetkisiz ya da bilinmeyen ekran adresi Genel Bakış'a çevriliyor; çıkışta
+adres temizleniyor, bağlantıyla gelen giriş o ekranda açılıyor. Ekranın
+İÇİNDE açılan pencereler (talep ayrıntısı gibi) adreste değil. Tur
+B-ADRES.
+
+**SEKME İKONU** (kullanıcının isteği: "Backoffice tarayıcı sekmesindeki
+ikona paksan logosu gelmeli. Yazı olan logo değil, diğeri"):
+`backoffice.html → <link rel="icon">`, dosya `src/marka/varliklar/
+paksan-sekme-ikonu.png` (amblemden kırpılmış 64 piksellik kare). Vite
+derlemede onu `dist-backoffice/assets`e kopyalıyor; canlıda ayrı dosya
+gerekmiyor.
 
 **Fiyat teklifi servise değil bayiye gider.** Bayinin paneli yok:
 satış personeli bayiye telefonla haber veriyor, sistemde yalnız hangi

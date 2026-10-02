@@ -2,8 +2,8 @@ import { useMemo, useState } from 'react'
 import { cariBakiye, cariHareketleri, servisinTalepleri, siparisHesabi, talepleriGetir } from '../../backoffice/veri'
 import { PARA_BIRIMI, PARA_SIMGESI, paraYaz, MARKA, markaEk, getProduct } from '../../marka'
 import { gecenSure, tarihYaz } from '../../backoffice/ekranlar/ortak'
-import { Bolum, Bos, ListeKarti, Yaprak } from '../Kabuk'
-import { IconAlert, IconRight } from '../../components/Icons'
+import { Bos, ListeKarti, Yaprak } from '../Kabuk'
+import { IconAlert, IconCheckCircle, IconRight } from '../../components/Icons'
 import { formatSerial } from '../../lib/serial'
 import { siparisGonderimi, talebinParcalari, temizParcalar } from '../../lib/servisKaydi'
 import bosIsGorseli from '../../assets/gorseller/servis-bos-is.png'
@@ -32,15 +32,29 @@ import { UcretOzeti } from './Ucretlerim'
    ÜÇ BÖLÜM
 
      BAKİYE     PAKSAN'ın bugünkü borcu, tek rakam
-     BEKLEYEN   gönderildi, onay bekliyor
-     GEÇMİŞ     cari hesap hareketleri, en yeni üstte
+     BEKLEYEN   gönderildi, onay bekliyor          ┐ 30 Eylül 2026'dan
+     GEÇMİŞ     cari hesap hareketleri, en yeni    ┘ beri iki sekme;
+                üstte, onar onar                     hareketler onar onar
 
    BUGÜNKÜ SINIR: veri tarayıcının kendi hafızasında. Servisin
    telefonundaki bakiye PAKSAN'ın ekranına ulaşmıyor. Defterin biçimi
    doğru; sunucu geldiğinde yalnız veri katmanı değişecek.
    ========================================================================== */
 
-export function Hakkedis({ oturum, onAc, surum, onUcretler }) {
+const HAK_SEKMELERI = [
+  { id: 'bekleyen', ad: 'Onay Bekleyen' },
+  { id: 'hareket', ad: 'Hesap Hareketleri' },
+]
+
+/* Hesap Hareketleri'nde bir seferde açılan satır sayısı. */
+export const HAREKET_SAYFASI = 10
+
+/**
+ * @param {{sekme: string|null, adet: number}} gorunum  seçili sekme ve açılan
+ *   hareket sayısı; ServisPanel'de tutuluyor (iş açılıp dönülünce kalsın)
+ * @param {Function} onGorunum
+ */
+export function Hakkedis({ oturum, onAc, surum, onUcretler, gorunum, onGorunum }) {
   /* LİSTE VE BAKİYE AYNI OKUMADAN (25 Eylül 2026, kullanıcı sınaması O3).
      Talepler ve hareketler yalnız ekran açılınca okunuyordu, bakiye her
      çizimde: PAKSAN kaydı onaylayınca bakiye güncelleniyor, "Onay
@@ -60,6 +74,9 @@ export function Hakkedis({ oturum, onAc, surum, onUcretler }) {
      sorusunun cevabını burada buluyor. */
   const bekleyen = talepler.filter((t) => t.hakkedis?.durum === 'bekliyor')
   const bekleyenToplam = bekleyen.reduce((t, x) => t + (x.hakkedis?.toplam || 0), 0)
+  const sekme = gorunum.sekme || (bekleyen.length ? 'bekleyen' : 'hareket')
+  const gorunenAdet = Math.max(HAREKET_SAYFASI, gorunum.adet || 0)
+  const kalan = hareketler.length - gorunenAdet
 
   return (
     <>
@@ -95,84 +112,135 @@ export function Hakkedis({ oturum, onAc, surum, onUcretler }) {
           Hesap'taki "Ücretlendirmeler" bölümü açılıyor (bkz. Ucretlerim.jsx). */}
       <UcretOzeti oturum={oturum} surum={surum} onAc={onUcretler} />
 
-      {bekleyen.length > 0 && (
-        <Bolum ad="Onay Bekleyen" sayi={bekleyen.length}>
-          {/* ÖNCE PARA (29 Eylül 2026, görünüm önerisi S3). Bekleyen
-              toplam gri bir yardım satırıydı; kartlarda en belirgin yazı
-              mavi ve kalın "2 gün önce"ydi, tutar ince griydi. Servis bu
-              ekranı "ne kadar alacağım" diye açıyor: toplam kalın, kartta
-              tutar büyük, zaman küçük. Her kartta aynı olan "Servis"
-              rozeti kalktı. */}
-          <p className="ipucu bekleyen-toplam">
-            <strong>
-              Toplam {paraYaz(bekleyenToplam)} {PARA_BIRIMI}
-            </strong>{' '}
-            · {markaEk('in')} servis personeli inceliyor.
-          </p>
-          {bekleyen.map((t) => (
-            <ListeKarti
-              key={t.id}
-              ad={t.ad || '—'}
-              tur="servis"
-              tutar
-              kunye={t.no}
-              sol={gecenSure(t.servisKaydi?.tarih || t.createdAt)}
-              sag={`${paraYaz(t.hakkedis.toplam)} ${PARA_BIRIMI}`}
-              onAc={() => onAc(t)}
-            />
-          ))}
-        </Bolum>
-      )}
+      {/* İKİ SEKME (30 Eylül 2026, kullanıcının isteği: "Onay Bekleyen ve
+          Hesap Hareketleri kısımlarını, İşlerim ekranındaki … sekmeler gibi
+          sekmelere ayırıp göstersek daha iyi olur mu? Şu anki haliyle çok
+          kaydırmak gerekiyor"; seçeneği "Sekmeler + Daha Fazla Göster").
+          İki liste alt alta duruyordu; hareketlere ulaşmak için bütün
+          bekleyen işlerin üstünden kaydırmak gerekiyordu. Sekmeler
+          İşlerim'inkiyle aynı görünüşte (`.is-sekmeler`, kaydırınca üste
+          yapışıyor), yanlarında adet. İlk sekme bekleyen iş varsa Onay
+          Bekleyen, yoksa Hesap Hareketleri. Seçim ve açılan hareket
+          sayısı ServisPanel'de tutuluyor: iş açılıp geri dönülünce servis
+          aynı sekmeye ve aynı yere dönüyor. */}
+      <div className="is-sekmeler" role="tablist" aria-label="Hak Ediş">
+        {HAK_SEKMELERI.map((x) => (
+          <button
+            key={x.id}
+            type="button"
+            role="tab"
+            aria-selected={sekme === x.id}
+            data-hakedis-sekme={x.id}
+            className={'is-sekme' + (sekme === x.id ? ' is-sekme--on' : '')}
+            onClick={() => onGorunum({ ...gorunum, sekme: x.id })}
+          >
+            <span className="is-sekme__ad">{x.ad}</span>
+            <span className="is-sekme__sayi">{x.id === 'bekleyen' ? bekleyen.length : hareketler.length}</span>
+          </button>
+        ))}
+      </div>
 
-      {hareketler.length === 0 ? (
-        <Bos
-          gorsel={bosIsGorseli}
-          baslik="Henüz ödemeniz yok"
-          /* "kapsam" servis ekranında yasak kelime; metin Codex'ten
-             (15 Eylül 2026). */
-          alt="Garanti için tamamladığınız işler onaylandığında burada görünür."
-          kucuk={bekleyen.length > 0}
-        />
-      ) : (
-        <Bolum ad="Hesap Hareketleri" sayi={hareketler.length}>
-          {hareketler.map((h) => (
-            <button
-              key={h.id}
-              type="button"
-              className="hareket"
-              onClick={() => setSecili(h)}
-            >
-              {/* Satırın başında müşterinin adı (29 Eylül 2026, S3).
-                  "SRV2609296604 · servis ödemesi" yazıyordu; servis işi
-                  numarasından değil müşterisinden hatırlıyor. Numara ve
-                  hareketin cinsi alt satırda duruyor. Kendi siparişinde
-                  ve ödemede müşteri yok; satır eskisi gibi. */}
-              <div className="hareket__sol">
-                <div className="hareket__ad">{hareketinMusterisi(h, talepler) || hareketAdi(h, talepler)}</div>
-                <div className="hareket__zaman">
-                  {hareketinMusterisi(h, talepler)
-                    ? `${hareketAdi(h, talepler)} · ${gecenSure(h.tarih)}`
-                    : gecenSure(h.tarih)}
-                </div>
-              </div>
-              {/* Alacak artı, ödeme eksi. İşaret rakamın önünde ve renk
-                  tek başına anlam taşımıyor. */}
-              <span
-                className={
-                  'hareket__tutar' +
-                  (h.tur === 'alacak' ? ' hareket__tutar--alacak' : '')
-                }
+      <div role="tabpanel" className="is-liste" data-hakedis-liste={sekme}>
+        {sekme === 'bekleyen' ? (
+          bekleyen.length > 0 ? (
+            <>
+              {/* ÖNCE PARA (29 Eylül 2026, görünüm önerisi S3). Bekleyen
+                  toplam gri bir yardım satırıydı; kartlarda en belirgin yazı
+                  mavi ve kalın "2 gün önce"ydi, tutar ince griydi. Servis bu
+                  ekranı "ne kadar alacağım" diye açıyor: toplam kalın, kartta
+                  tutar büyük, zaman küçük. Her kartta aynı olan "Servis"
+                  rozeti kalktı. */}
+              <p className="ipucu bekleyen-toplam">
+                <strong>
+                  Toplam {paraYaz(bekleyenToplam)} {PARA_BIRIMI}
+                </strong>{' '}
+                · {markaEk('in')} servis personeli inceliyor.
+              </p>
+              {bekleyen.map((t) => (
+                <ListeKarti
+                  key={t.id}
+                  ad={t.ad || '—'}
+                  tur="servis"
+                  tutar
+                  kunye={t.no}
+                  sol={gecenSure(t.servisKaydi?.tarih || t.createdAt)}
+                  sag={`${paraYaz(t.hakkedis.toplam)} ${PARA_BIRIMI}`}
+                  onAc={() => onAc(t)}
+                />
+              ))}
+            </>
+          ) : (
+            <Bos
+              kucuk
+              Icon={IconCheckCircle}
+              baslik="Onay bekleyen işiniz yok"
+              alt={`Gönderdiğiniz servis kayıtları, ${MARKA} tarafından onaylanana kadar burada görünür.`}
+            />
+          )
+        ) : hareketler.length === 0 ? (
+          <Bos
+            gorsel={bosIsGorseli}
+            baslik="Henüz ödemeniz yok"
+            /* "kapsam" servis ekranında yasak kelime; metin Codex'ten
+               (15 Eylül 2026). */
+            alt="Garanti için tamamladığınız işler onaylandığında burada görünür."
+          />
+        ) : (
+          <>
+            {hareketler.slice(0, gorunenAdet).map((h) => (
+              <button
+                key={h.id}
+                type="button"
+                className="hareket"
+                data-hareket={h.id}
+                onClick={() => setSecili(h)}
               >
-                {h.tur === 'alacak' ? '+' : '−'}
-                {paraYaz(h.tutar)} {PARA_BIRIMI}
-              </span>
-              <span className="hareket__ok" aria-hidden="true">
-                <IconRight size={18} />
-              </span>
-            </button>
-          ))}
-        </Bolum>
-      )}
+                {/* Satırın başında müşterinin adı (29 Eylül 2026, S3).
+                    "SRV2609296604 · servis ödemesi" yazıyordu; servis işi
+                    numarasından değil müşterisinden hatırlıyor. Numara ve
+                    hareketin cinsi alt satırda duruyor. Kendi siparişinde
+                    ve ödemede müşteri yok; satır eskisi gibi. */}
+                <div className="hareket__sol">
+                  <div className="hareket__ad">{hareketinMusterisi(h, talepler) || hareketAdi(h, talepler)}</div>
+                  <div className="hareket__zaman">
+                    {hareketinMusterisi(h, talepler)
+                      ? `${hareketAdi(h, talepler)} · ${gecenSure(h.tarih)}`
+                      : gecenSure(h.tarih)}
+                  </div>
+                </div>
+                {/* Alacak artı, ödeme eksi. İşaret rakamın önünde ve renk
+                    tek başına anlam taşımıyor. */}
+                <span
+                  className={
+                    'hareket__tutar' +
+                    (h.tur === 'alacak' ? ' hareket__tutar--alacak' : '')
+                  }
+                >
+                  {h.tur === 'alacak' ? '+' : '−'}
+                  {paraYaz(h.tutar)} {PARA_BIRIMI}
+                </span>
+                <span className="hareket__ok" aria-hidden="true">
+                  <IconRight size={18} />
+                </span>
+              </button>
+            ))}
+            {/* ONAR ONAR (aynı gün, kullanıcının seçimi). Sayfa numarası
+                yerine alttan açılan düğme: telefonda numaraya basmak zor ve
+                sayfa değişince servis nerede kaldığını kaybediyor. Düğme
+                kalan hareket onun altındaysa kalan kadarını söylüyor. */}
+            {kalan > 0 && (
+              <button
+                type="button"
+                className="dg dg--blok hareket-daha"
+                data-eylem="daha-fazla"
+                onClick={() => onGorunum({ ...gorunum, adet: gorunenAdet + HAREKET_SAYFASI })}
+              >
+                {Math.min(HAREKET_SAYFASI, kalan)} Hareket Daha Göster
+              </button>
+            )}
+          </>
+        )}
+      </div>
 
       {/* ÖDEMENİN NASIL YAPILDIĞI YAZIYOR.
 

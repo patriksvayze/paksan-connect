@@ -6,7 +6,8 @@ import { useDil } from '../i18n'
 import { AYDINLATMA, ACIK_RIZA, TICARI_ILETI, IZINLER, metinDilde } from '../data/kvkk'
 import { BILDIRIM, izinIste, mevcutIzin } from '../lib/bildirim'
 import { RIZA_METNI, kampanyaDegisti, kampanyaSonDegisiklik } from '../lib/rizaKaydi'
-import { IconBell, IconBook, IconCamera, IconMic, IconPin, IconRight } from '../components/Icons'
+import { IconBell, IconBook, IconMic, IconRight } from '../components/Icons'
+import { mikrofonIzniDurumu, mikrofonIzniIste } from '../lib/mikrofonIzni'
 
 /* ==========================================================================
    Gizlilik ve İzinler — Profil'in içinde
@@ -22,7 +23,9 @@ import { IconBell, IconBook, IconCamera, IconMic, IconPin, IconRight } from '../
      · Kampanya iznini kapatmak üç dokunuş derindeydi; metin "tek
        dokunuşla" diyordu.
      · Uygulamanın telefondan ne istediği (bildirim, mikrofon, kamera)
-       hiçbir yerde toplu yazmıyordu.
+       hiçbir yerde toplu yazmıyordu. (30 Eylül 2026'dan beri bildirim ve
+       mikrofon gerçek izin satırı; kamera ve konum kalktı, bkz.
+       lib/mikrofonIzni.js.)
      · Hangi metni ne zaman onayladığınız yalnız tek satırdı; kampanya
        izninin ne zaman değiştiği hiç görünmüyordu.
      · Başvuru ve hesap kapatma yolu aranınca bulunmuyordu.
@@ -42,6 +45,16 @@ export default function Gizlilik() {
   const { t, dil } = useDil()
   const [acik, setAcik] = useState(null)
   const [bildirimDurum, setBildirimDurum] = useState(null)
+  /* Mikrofon izni gerçek izin satırı (30 Eylül 2026): durum ve "İzin Ver".
+     Gerekçe lib/mikrofonIzni.js başında. */
+  const [mikrofon, setMikrofon] = useState(null)
+  useEffect(() => {
+    let iptal = false
+    mikrofonIzniDurumu().then((d) => !iptal && setMikrofon(d))
+    return () => {
+      iptal = true
+    }
+  }, [])
 
   useEffect(() => {
     let iptal = false
@@ -154,9 +167,28 @@ export default function Gizlilik() {
               </button>
             )}
           </div>
-          <IzinSatiri Ikon={IconMic} ad={t('gizlilik.izinMikrofon')} alt={t('gizlilik.izinMikrofonAlt')} />
-          <IzinSatiri Ikon={IconCamera} ad={t('gizlilik.izinKamera')} alt={t('gizlilik.izinKameraAlt')} />
-          <IzinSatiri Ikon={IconPin} ad={t('gizlilik.izinKonum')} alt={t('gizlilik.izinKonumAlt')} />
+          <div className="listitem listitem--sarmal" data-izin="mikrofon" data-durum={mikrofon || ''}>
+            <div className="listitem__icon"><IconMic size={22} /></div>
+            <div className="listitem__body">
+              <div className="listitem__title">{t('gizlilik.izinMikrofon')}</div>
+              {mikrofon && (
+                <div className="listitem__sub">
+                  {{ acik: t('gizlilik.durumAcik'), kapali: t('gizlilik.durumKapali'), sorulmadi: t('gizlilik.durumSorulmadi'), yok: t('gizlilik.durumYok') }[mikrofon]}
+                </div>
+              )}
+              {mikrofon === 'kapali' && <div className="listitem__sub">{t('gizlilik.bildirimKapaliAlt')}</div>}
+              <div className="listitem__sub">{t('gizlilik.izinMikrofonAlt')}</div>
+            </div>
+            {mikrofon === 'sorulmadi' && (
+              <button
+                className="btn btn--soft listitem__eylem"
+                data-eylem="mikrofon-izni"
+                onClick={async () => setMikrofon(await mikrofonIzniIste())}
+              >
+                {t('gizlilik.izinVer')}
+              </button>
+            )}
+          </div>
         </div>
         <button className="btn btn--soft" style={{ marginTop: 12 }} onClick={() => setAcik(metinDilde(IZINLER, dil))}>
           {t('gizlilik.izinlerAyrinti')}
@@ -171,18 +203,6 @@ export default function Gizlilik() {
       </Sheet>
 
       <TabBar />
-    </div>
-  )
-}
-
-function IzinSatiri({ Ikon, ad, alt }) {
-  return (
-    <div className="listitem">
-      <div className="listitem__icon"><Ikon size={22} /></div>
-      <div className="listitem__body">
-        <div className="listitem__title">{ad}</div>
-        <div className="listitem__sub">{alt}</div>
-      </div>
     </div>
   )
 }

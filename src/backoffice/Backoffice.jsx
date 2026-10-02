@@ -127,6 +127,33 @@ const MENU = [
 
 const ILK_EKRAN = 'ozet'
 
+/* EKRAN ADRES ÇUBUĞUNDA (1 Ekim 2026, kullanıcının bildirdiği: "backoffice
+   web tabanlı değilmiş gibi duruyor, sayfa geçişlerinde arama çubuğunda
+   değişiklik olmuyor"). Açık ekran yalnız bellekteydi: tarayıcının Geri
+   düğmesi panelden çıkıyordu, yenileyince hep Genel Bakış açılıyordu,
+   bir ekranın bağlantısı kaydedilemiyor ve gönderilemiyordu.
+
+   Ekran artık adresin `#/` kısmında: `backoffice.html#/talepler`. Menüden
+   geçiş tarayıcı geçmişine bir satır ekliyor (Geri ve İleri ekranlar
+   arasında gidiyor), yenileme aynı ekranı açıyor. `#` seçildi, yol
+   (`/talepler`) değil: sunucuda her yolu bu sayfaya yönlendiren ayar
+   gerekmiyor, derlenen klasör olduğu gibi yükleniyor. Şifre bağlantısının
+   `?sifre=` kısmı ayrı, dokunulmadı.
+
+   Süzgeç (Genel Bakış'taki kutudan Talepler'e taşınan) adreste yok; Geri
+   ile dönülen ekran süzgeçsiz açılıyor. Yetkisi olmayan ekranın adresi
+   Genel Bakış'a çevriliyor. Çıkışta adres temizleniyor: sonraki kişi
+   öncekinin ekranında açılmıyor; gelen bir bağlantıyla giriş yapan ise o
+   ekranda açılıyor. Sekmenin başlığı ekranın adını taşıyor (geçmiş
+   listesinde ekranlar ayırt edilsin). Tur B-ADRES. */
+const adrestekiEkran = () => {
+  const id = location.hash.replace(/^#\/?/, '').split(/[?/]/)[0]
+  return MENU.some((m) => m.id === id) ? id : ILK_EKRAN
+}
+const ekranAdresi = (id) => location.pathname + location.search + '#/' + id
+/* Sayfanın kendi başlığı (backoffice.html); ekran adı önüne ekleniyor. */
+const SAYFA_BASLIGI = typeof document !== 'undefined' ? document.title : ''
+
 /* Aynı tarayıcıdaki backoffice sekmelerinin birbirine "bu kişi çıkış
    yaptı" dediği kanal (25 Eylül 2026, kullanıcı sınaması O6). Ad
    markasız: yalnız bu tarayıcının kendi sekmeleri arasında. */
@@ -138,7 +165,7 @@ const KONTROL_ARALIK = 15000
 
 export function Backoffice() {
   const [oturum, setOturum] = useState(() => oturumGetir())
-  const [ekran, setEkran] = useState(ILK_EKRAN)
+  const [ekran, setEkran] = useState(adrestekiEkran)
   const [tost, setTost] = useState(null)
   const [surum, setSurum] = useState(0)
   const [profil, setProfil] = useState(false)
@@ -151,6 +178,12 @@ export function Backoffice() {
   const [jeton, setJeton] = useState(() => new URLSearchParams(location.search).get('sifre'))
 
   const tazele = useCallback(() => setSurum((s) => s + 1), [])
+
+  /* Oturum kapanınca: adres temizleniyor, ekran Genel Bakış'a dönüyor. */
+  const ekraniBirak = () => {
+    history.replaceState(null, '', location.pathname + location.search)
+    setEkran(ILK_EKRAN)
+  }
 
   const bildir = useCallback((metin) => {
     setTost(metin)
@@ -214,7 +247,7 @@ export function Backoffice() {
     if (!oturum) return
     const guncel = oturumGetir()
     if (!guncel) {
-      setEkran(ILK_EKRAN)
+      ekraniBirak()
       setOturum(null)
       return
     }
@@ -250,7 +283,7 @@ export function Backoffice() {
       kanal.onmessage = (e) => {
         if (e.data?.cikis && e.data.cikis === oturum.personelId) {
           oturumuBuSekmedeBirak()
-          setEkran(ILK_EKRAN)
+          ekraniBirak()
           setOturum(null)
         }
       }
@@ -265,6 +298,29 @@ export function Backoffice() {
       if (kanalRef.current === kanal) kanalRef.current = null
     }
   }, [oturum, tazele, denetle])
+
+  /* Tarayıcının Geri ve İleri düğmesi: adres değişti, ekran ona uyuyor. */
+  useEffect(() => {
+    const dinle = () => {
+      setSorgu(null)
+      setEkran(adrestekiEkran())
+    }
+    window.addEventListener('popstate', dinle)
+    return () => window.removeEventListener('popstate', dinle)
+  }, [])
+
+  /* Adres ve sekme başlığı açık ekranı söylüyor. Yetkisiz ya da bilinmeyen
+     ekranın adresi Genel Bakış'a çevriliyor (geçmişe satır eklemeden). */
+  useEffect(() => {
+    if (!oturum || jeton) {
+      document.title = SAYFA_BASLIGI
+      return
+    }
+    const m = MENU.find((x) => x.id === ekran && (!x.izin || izinli(oturum.rol, x.izin)))
+      || MENU.find((x) => x.id === ILK_EKRAN)
+    if (location.hash !== '#/' + m.id) history.replaceState(null, '', ekranAdresi(m.id))
+    document.title = `${m.ad} · ${SAYFA_BASLIGI}`
+  }, [oturum, ekran, jeton])
 
   if (jeton) {
     return (
@@ -283,8 +339,9 @@ export function Backoffice() {
       <Giris
         onGiris={(o) => {
           /* Her giriş Dashboard'dan başlıyor — önceki kullanıcının
-             kaldığı ekranda açılmasın. */
-          setEkran(ILK_EKRAN)
+             kaldığı ekranda açılmasın (çıkış adresi temizliyor). Bir
+             ekranın bağlantısıyla gelindiyse o ekran açılıyor. */
+          setEkran(adrestekiEkran())
           setOturum(o)
         }}
       />
@@ -295,6 +352,8 @@ export function Backoffice() {
   const git = (hedef, istek = null) => {
     setSorgu(istek)
     setEkran(hedef)
+    /* Yeni ekran geçmişe bir satır; aynı ekrana yeniden basmak eklemiyor. */
+    if (location.hash !== '#/' + hedef) history.pushState(null, '', ekranAdresi(hedef))
   }
 
   const ortak = { personel: oturum.ad, rol: oturum.rol, bildir, tazele, surum, git, sorgu }
@@ -377,7 +436,7 @@ export function Backoffice() {
                sekme, sekme öne gelince kendi oturumuyla devam ediyor. */
             kanalRef.current?.postMessage({ cikis: oturum.personelId })
             setCikisOnayi(false)
-            setEkran(ILK_EKRAN)
+            ekraniBirak()
             setOturum(null)
           }}
         />

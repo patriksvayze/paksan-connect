@@ -152,7 +152,7 @@ export default function Profile() {
               )}
             </div>
           </div>
-          <button className="btn btn--soft" style={{ marginTop: 14 }} onClick={() => setDuzenle(true)}>
+          <button className="btn btn--soft" style={{ marginTop: 14 }} data-eylem="bilgi-duzenle" onClick={() => setDuzenle(true)}>
             {t('profil.duzenle')}
           </button>
         </div>

@@ -29,6 +29,7 @@ personeli backoffice'ten yürütür.
 | `android-servis/` | PAKSAN Servisim'in Android projesi. |
 | `apk/` · `apk-servis/` | Derlenmiş APK dosyaları. Her sürüm ayrı dosyada durur, üstüne yazılmaz. |
 | `sunum/` | Tanıtım sunumunun kaynağı (görseller, metinler). |
+| `sunum/fikirler/` | Henüz uygulanmamış, yönetime gösterilecek fikirlerin örnek görselleri (kendi README'si). |
 | `yedekler/` | Yeniden tasarlanan ekranların eski hâlleri, geri dönülmek istenirse diye bir süre tutuluyor. Uygulamaya girmez. Bugün: `servisim-islerim-22-eylul-2026/` (Servisim İşlerim ekranı; nasıl geri dönüleceği içindeki `GERI-DONUS.md`'de). |
 | `denetim/` | Yapılmış incelemelerin raporları (güvenlik, canlıya hazırlık). Git'e girmez. |
 | `dist/` · `dist-backoffice/` · `dist-servis/` | Derleme çıktıları. Elle düzenlenmez, her derlemede yeniden yazılır. |

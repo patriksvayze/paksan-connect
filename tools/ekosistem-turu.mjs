@@ -101,6 +101,12 @@
      C-37  kampanya değişikliği olay yazmazsa                    düştü
      C-37  Gizlilik ve İzinler onay sürümünü göstermezse        düştü
      C-37  güncelleme penceresi zemine dokununca kapanırsa      düştü
+     C-37  mikrofonun İzin Ver'i izni istemezse (30.09 üçüncü tur) düştü
+     C-37  kamera satırı geri gelirse                           düştü
+     C-39  pencere açıkken kök kilitlenmezse (30.09.2026)        düştü
+           (ilk hâli düşmedi: aşağı ve yukarı eşit kaydırma toplamda
+           sıfır ediyordu; artık her hareketten sonra ölçülüyor)
+     C-39  kökte esneme açık kalırsa                            düştü
      C-38  banka hesabı kapatılırsa (BANKA.aktif false; 30.09.2026) düştü
      C-38  IBAN düğmesi boşluklu IBAN kopyalarsa                 düştü
      C-38  kartın tutarı ara toplamdan okunursa (özetle tutmaz)  düştü
@@ -117,6 +123,7 @@
      X-09  kabul depoya yazılmazsa                               düştü
      X-10  Hesap'taki Gizlilik ve İzinler satırı kalkarsa (30.09.2026) düştü
      X-10  sayfa kabulün sürümünü göstermezse                   düştü
+     X-10  sorulmamış mikrofon izninde İzin Ver yoksa (30.09)   düştü
      X-11  Gizlilik satırı yine kendi bölümüne sarılırsa (30.09.2026) düştü
      X-11  Çıkış Yap Hesabım'dan ayrı bir bölüme çıkarsa        düştü
      X-11  Hesabım'ın altına başka bölüm eklenirse (Çıkış Yap sonda değil) düştü
@@ -124,6 +131,19 @@
      X-11  Çıkış Yap olağan düğme renginde kalırsa (30.09 ikinci tur) düştü
      X-11  Şifremi Değiştir satırı formu açmazsa                düştü
      X-11  şifre satırı Hesabım kartından çıkarsa (eski Güvenlik) düştü
+     X-11  üst çubuğun daireleri yine 44 piksel olursa (30.09)  düştü
+     X-14  yaprak açıkken kök kilitlenmezse (30.09.2026)         düştü
+     X-14  Servisim kökünde esneme açık kalırsa                 düştü
+     X-15  hareketlerin hepsi birden gösterilirse (30.09.2026)   düştü
+     X-15  düğme 10 yerine 5 açarsa                              düştü
+     X-15  sekme seçimi ServisPanel'de tutulmazsa               düştü
+     B-ADRES menü geçişi geçmişe satır eklemezse (1.10.2026)    düştü
+           (adres yine değişiyordu, düşen Geri: adresi uyduran
+           replaceState pushState'in eksikliğini örtüyor)
+     B-ADRES Geri/İleri dinlenmezse                             düştü
+     B-ADRES açılışta adres okunmazsa (yenileme Genel Bakış)    düştü
+     B-ADRES bilinmeyen ekran adresi düzeltilmezse              düştü
+     B-ADRES sekme başlığı ekranla değişmezse                   düştü
      X-12  özetteki artı adedi değiştirmezse (30.09.2026)         düştü
      X-12  Kaldır satırı çıkarmazsa                               düştü
      X-12  özetten dönünce seçimin adedi 1'e inerse               düştü
@@ -191,9 +211,10 @@ const secili = (kod) => !YALNIZ || YALNIZ.has(kod)
 /* ENVANTER DIŞINDAKİ DENETİMLER: ekran değil, davranış. Kodları burada
    tek listede; `--yalniz` denetimi de buna bakıyor. */
 const EK_DENETIMLER = [
-  'B-MENU', 'B-ROL', 'B-SEKME',
+  'B-MENU', 'B-ROL', 'B-SEKME', 'B-ADRES',
   'X-01', 'X-02', 'X-03', 'X-04', 'X-05', 'X-06', 'X-07', 'X-08', 'X-09', 'X-10', 'X-11', 'X-12', 'X-13',
-  'C-29', 'C-30', 'C-31', 'C-32', 'C-33', 'C-34', 'C-35', 'C-36', 'C-37', 'C-38',
+  'X-14', 'X-15',
+  'C-29', 'C-30', 'C-31', 'C-32', 'C-33', 'C-34', 'C-35', 'C-36', 'C-37', 'C-38', 'C-39',
 ]
 
 /* BİLİNMEYEN KOD SESSİZCE GEÇMİYOR (25 Eylül 2026, inceleme).
@@ -429,6 +450,16 @@ await cdp.gonder('Browser.grantPermissions', {
   permissions: ['notifications'],
 })
 
+/* MİKROFON İZNİ "SORULMADI" (30 Eylül 2026). Headless Chrome mikrofonu
+   baştan "reddedildi" sayıyor; gerçek bir telefonda ve tarayıcıda ilk
+   durum "sorulmadı". C-37 ve X-10 "İzin Ver" düğmesini bu durumda
+   sınıyor (bkz. izinSatirlariniSina). */
+await cdp.gonder('Browser.setPermission', {
+  origin: ADRES,
+  permission: { name: 'microphone' },
+  setting: 'prompt',
+})
+
 /* HATA KANCASI SAYFANIN KENDİ KODUNDAN ÖNCE KURULUYOR.
 
    Gezindikten sonra enjekte edilen bir dinleyici yüklenme sırasındaki
@@ -594,6 +625,63 @@ try {
       }
     }
     await denetle(e)
+  }
+
+  /* B-ADRES · Backoffice'in ekranı adres çubuğunda (1 Ekim 2026,
+     kullanıcının bildirdiği: "sayfa geçişlerinde arama çubuğunda
+     değişiklik olmuyor"). Yönetici oturumuyla: (a) menüden Talepler'e
+     geçince adres `#/talepler` oluyor ve sekmenin başlığı değişiyor;
+     (b) Müşteriler'e geçip tarayıcının Geri'si Talepler'i, İleri'si
+     Müşteriler'i açıyor; (c) adres `#/servisler` ile yenilenince Servisler
+     açık geliyor; (d) bilinmeyen ekran adresi Genel Bakış'a çevriliyor.
+     Açık ekran seçili menü satırından (`.yan__bag--on[data-menu]`)
+     okunuyor; yazılara bakılmıyor. */
+  if (secili('B-ADRES')) {
+    const acikEkran = `document.querySelector('.yan__bag--on')?.dataset.menu || ''`
+    const ekranBekle = async (id) => {
+      let v = ''
+      for (let i = 0; i < 15 && v !== id; i++) {
+        await bekle(200)
+        v = await s.js(acikEkran)
+      }
+      return v
+    }
+    let hata = null
+    await s.git(ADRES + '/backoffice.html')
+    await bekle(800)
+    const ilkBaslik = await s.js('document.title')
+    await s.js(`document.querySelector('.yan__bag[data-menu="talepler"]')?.click(); 1`)
+    await ekranBekle('talepler')
+    const adres1 = await s.js('location.hash')
+    const baslik1 = await s.js('document.title')
+    if (adres1 !== '#/talepler') hata = `Talepler açılınca adres değişmedi ("${adres1}")`
+    else if (baslik1 === ilkBaslik) hata = 'ekran değişince sekmenin başlığı değişmedi'
+    if (!hata) {
+      await s.js(`document.querySelector('.yan__bag[data-menu="musteriler"]')?.click(); 1`)
+      await ekranBekle('musteriler')
+      await s.js('history.back(); 1')
+      const geri = await ekranBekle('talepler')
+      if (geri !== 'talepler') hata = `Geri Talepler'i açmadı ("${geri}")`
+      else {
+        await s.js('history.forward(); 1')
+        const ileri = await ekranBekle('musteriler')
+        if (ileri !== 'musteriler') hata = `İleri Müşteriler'i açmadı ("${ileri}")`
+      }
+    }
+    if (!hata) {
+      await s.git(ADRES + '/backoffice.html#/servisler')
+      await bekle(800)
+      const v = await ekranBekle('servisler')
+      if (v !== 'servisler') hata = `#/servisler adresiyle açılınca Servisler gelmedi ("${v}")`
+    }
+    if (!hata) {
+      await s.git(ADRES + '/backoffice.html#/boyle-bir-ekran-yok')
+      await bekle(800)
+      const v = await ekranBekle('ozet')
+      const a = await s.js('location.hash')
+      if (v !== 'ozet' || a !== '#/ozet') hata = `bilinmeyen ekran adresi Genel Bakış'a çevrilmedi (ekran "${v}", adres "${a}")`
+    }
+    kaydet('B-ADRES', "Backoffice: açık ekran adres çubuğunda, Geri/İleri ve yenileme çalışıyor", hata, await metin())
   }
 
   /* ---------------------------------- 5 · Rol bazlı menü kısalıyor mu
@@ -931,6 +1019,41 @@ try {
       if (hedef(v)) return v
     }
     return v
+  }
+  /* Gizlilik ve İzinler'in izin satırları (30 Eylül 2026, kullanıcının
+     itirazı: "listelenen izinler için herhangi bir izin alınmıyor …
+     tıklandığında da izin alma ekranı gelmiyor"). İki uygulamada aynı
+     sınama: satırlar yalnız gerçek izinler (bildirim, mikrofon; kamera ve
+     konum kalktı); mikrofonun durumu okunmuş; tarayıcıda izin henüz
+     sorulmamış ve "İzin Ver" var; düğmeye basınca mikrofon GERÇEKTEN
+     isteniyor (getUserMedia sayfada taklit: headless Chrome'da mikrofon
+     yok) ve satır "açık"a dönüp düğme kalkıyor. Yazılara bakılmıyor. */
+  async function izinSatirlariniSina() {
+    const izinler = await s.js(`[...document.querySelectorAll('[data-izin]')].map((x) => x.dataset.izin).join(',')`)
+    if (izinler !== 'bildirim,mikrofon') return `izin satırları yalnız bildirim ve mikrofon olmalı ("${izinler}")`
+    let durum = ''
+    for (let i = 0; i < 12 && !durum; i++) {
+      await bekle(250)
+      durum = await s.js(`document.querySelector('[data-izin="mikrofon"]')?.dataset.durum || ''`)
+    }
+    if (!durum) return 'mikrofon satırı izin durumunu okumadı'
+    if (durum !== 'sorulmadi') return `tarayıcıda mikrofon durumu beklenmedik ("${durum}") — ERİŞİLEMEDİ`
+    if ((await say('[data-izin="mikrofon"] [data-eylem="mikrofon-izni"]')) < 1) return 'sorulmamış mikrofon izninde "İzin Ver" yok'
+    await s.js(`(() => {
+      window.__mikrofonIstendi = false;
+      navigator.mediaDevices.getUserMedia = async (k) => { window.__mikrofonIstendi = !!(k && k.audio); return { getTracks: () => [] } };
+      document.querySelector('[data-eylem="mikrofon-izni"]').click();
+      return 1
+    })()`)
+    let sonra = ''
+    for (let i = 0; i < 12 && sonra !== 'acik'; i++) {
+      await bekle(250)
+      sonra = await s.js(`document.querySelector('[data-izin="mikrofon"]')?.dataset.durum || ''`)
+    }
+    if (!(await s.js('window.__mikrofonIstendi'))) return '"İzin Ver" mikrofon iznini istemedi'
+    if (sonra !== 'acik') return `izin verildikten sonra satır "açık" göstermiyor ("${sonra}")`
+    if ((await say('[data-eylem="mikrofon-izni"]')) > 0) return 'izin verildikten sonra "İzin Ver" kalkmadı'
+    return null
   }
   async function connectKur(ekTalepler, gizlenen = []) {
     await s.git(ADRES + '/')
@@ -1382,6 +1505,7 @@ try {
       const alt = await s.js(`document.querySelector('[data-metin="aydinlatma"] .listitem__sub')?.innerText || ''`)
       if (!alt.includes(KVKK_SURUMU)) hata = `Aydınlatma Metni satırı onay sürümünü göstermiyor ("${alt}")`
     }
+    if (!hata) hata = await izinSatirlariniSina()
     if (!hata) {
       await s.js(`document.querySelector('[data-alan="kampanya"] .onay__giris')?.click(); 1`)
       await sayiBekle('[data-kampanya-tarih]', (v) => v > 0)
@@ -1562,6 +1686,7 @@ try {
         hata = `iki metnin satırı kabulün sürümünü göstermiyor ("${kabulYazisi}")`
       else if ((await say('[data-izin="bildirim"]')) < 1) hata = 'bildirim izninin satırı yok'
     }
+    if (!hata) hata = await izinSatirlariniSina()
     if (!hata) {
       await bekle(500)
       await s.js(`document.querySelector('[data-metin="servisGizlilik"]').click(); 1`)
@@ -1594,9 +1719,13 @@ try {
     await s.git(ADRES + '/servis.html')
     let hata = null
     await sayiBekle('.uyg__hesap', (v) => v > 0)
+    /* Üst çubuğun iki dairesi 50 piksel (30 Eylül 2026, kullanıcının
+       isteği: "Bildirim ve Hesap buton büyüklüklerini biraz daha arttır"). */
+    const daire = await s.js(`['.uyg__bildirim-ic', '.uyg__hesap'].map((x) => { const e = document.querySelector(x); return e ? Math.round(e.getBoundingClientRect().width) : 0 })`)
+    if (daire.some((b) => b < 50)) hata = `İşlerim'in üst çubuğundaki daireler küçük (bildirim ${daire[0]}, hesap ${daire[1]} piksel)`
     await s.js(`document.querySelector('.uyg__hesap')?.click(); 1`)
     const bolum = await sayiBekle('[data-bolum="hesabim"]', (v) => v > 0)
-    if (bolum !== 1) hata = `Hesap'ta tek bir Hesabım bölümü yok (${bolum})`
+    if (!hata && bolum !== 1) hata = `Hesap'ta tek bir Hesabım bölümü yok (${bolum})`
     if (!hata) {
       const d = await s.js(`(() => {
         const b = document.querySelector('[data-bolum="hesabim"]');
@@ -1726,6 +1855,180 @@ try {
       else if (t.devir || t.sahip !== yeni.sahip) hata = 'pencereyi açmak talebi devretti (onaylanmadan yazıldı)'
     }
     kaydet('X-13', 'Servisim: işi devretme düğmesi yazılı ve iletme okuyla, kendi penceresini açıyor', hata, await metin())
+  }
+
+  /* C-39 · Connect'te alttan açılan pencere açıkken arkadaki sayfa
+     kaymıyor, sayfa kökünde esneme kapalı (30 Eylül 2026, kullanıcının
+     bildirdiği: "Bilgilerimi Düzenle'ye tıklandığında alttan gelen ekranda
+     kaydırma denendiğinde arkadaki profil sayfası kayıyor"; "Esneme
+     tamamen kapansın"). Telefon boyunda (360x640) Profil biraz aşağı
+     kaydırılıyor, Bilgilerimi Düzenle açılıyor; pencerenin üstünde ve
+     zeminde gerçek kaydırma hareketi (CDP synthesizeScrollGesture) iki
+     yöne yapılıyor: sayfanın kaydırma yeri değişmemeli. Pencere kapanınca
+     sayfa kilitli kalmamalı. Kökün `overscroll-behavior`ı `none`. */
+  if (secili('C-39')) {
+    await connectKur([])
+    await s.olcu({ width: 360, height: 640, deviceScaleFactor: 1, mobile: true })
+    await s.git(ADRES + '/#/profil')
+    let hata = null
+    if ((await sayiBekle('[data-eylem="bilgi-duzenle"]', (v) => v > 0)) < 1) hata = "Profil'de Bilgilerimi Düzenle düğmesi yok — ERİŞİLEMEDİ"
+    if (!hata) {
+      const kok = await s.js(`getComputedStyle(document.documentElement).overscrollBehaviorY`)
+      if (kok !== 'none') hata = `sayfa kökünde esneme kapalı değil (overscroll-behavior "${kok}")`
+    }
+    let once = 0
+    if (!hata) {
+      await s.js(`window.scrollTo(0, 150); 1`)
+      await bekle(300)
+      once = await s.js('Math.round(scrollY)')
+      if (once < 50) hata = `Profil kaymıyor (${once}); kilit sınanamıyor — ERİŞİLEMEDİ`
+    }
+    if (!hata) {
+      await s.js(`document.querySelector('[data-eylem="bilgi-duzenle"]').click(); 1`)
+      if ((await sayiBekle('.sheet', (v) => v > 0)) < 1) hata = 'Bilgilerimi Düzenle penceresi açılmadı'
+    }
+    if (!hata) {
+      await bekle(500)
+      const k = await s.js(`(() => { const r = document.querySelector('.sheet').getBoundingClientRect(); return { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + 24), zy: Math.max(4, Math.round(r.top / 2)) } })()`)
+      /* Her hareketten sonra ölçülüyor: aşağı ve yukarı eşit kaydırma
+         toplamda sıfır ederdi (ilk bozma denemesi bunu gösterdi). */
+      for (const y of [k.y, k.zy]) {
+        for (const yon of [-300, 300]) {
+          if (hata) break
+          await s.cdp.gonder('Input.synthesizeScrollGesture', { x: k.x, y, yDistance: yon, speed: 3000, gestureSourceType: 'mouse' }, s.oturum)
+          await bekle(150)
+          const sonra = await s.js('Math.round(scrollY)')
+          if (sonra !== once) hata = `pencere açıkken arkadaki Profil kaydı (${once} → ${sonra})`
+        }
+      }
+    }
+    if (!hata) {
+      await s.js(`document.querySelector('.sheet-backdrop')?.click(); 1`)
+      await sayiBekle('.sheet', (v) => v === 0)
+      const ov = await s.js(`getComputedStyle(document.documentElement).overflowY`)
+      const yer = await s.js('Math.round(scrollY)')
+      if (ov === 'hidden') hata = 'pencere kapandıktan sonra sayfa kilitli kaldı'
+      else if (yer !== once) hata = `pencere kapanınca sayfa yerinde değil (${once} → ${yer})`
+    }
+    await s.olcu({ width: 1400, height: 1000, deviceScaleFactor: 1, mobile: false })
+    kaydet('C-39', 'Connect: alttan açılan pencere açıkken arkadaki sayfa kaymıyor, kökte esneme kapalı', hata, await metin())
+  }
+
+  /* X-14 · Servisim'de aynısı (30 Eylül 2026). Telefon boyunda Hesap
+     ekranı aşağı kaydırılıyor, Çıkış Yap'ın onay yaprağı açılıyor (onay
+     verilmiyor); yaprağın üstünde ve perdede iki yöne kaydırma: hiçbir
+     kaydırıcının yeri değişmemeli (kök ve `.uyg__ic`). Yaprak Vazgeç ile
+     kapanınca kilit kalkmalı. Kökte esneme kapalı. */
+  if (secili('X-14')) {
+    await s.olcu({ width: 360, height: 640, deviceScaleFactor: 1, mobile: true })
+    await s.git(ADRES + '/servis.html')
+    await depoYaz(YEREL, OTURUM)
+    await s.git(ADRES + '/servis.html')
+    let hata = null
+    if ((await sayiBekle('.uyg__hesap', (v) => v > 0)) < 1) hata = 'Servisim açılmadı — ERİŞİLEMEDİ'
+    if (!hata) {
+      /* Ana sekmeler sayfanın kökünü kaydırıyor; dip çubuklu sayfalar
+         (`.uyg--dipli`) kendi gövdesini — o kural servis.css'te aynı
+         satırda, burada kök ölçülüyor. */
+      const esneme = await s.js(`getComputedStyle(document.documentElement).overscrollBehaviorY`)
+      if (esneme !== 'none') hata = `sayfa kökünde esneme kapalı değil (${esneme})`
+    }
+    const yerler = `[document.scrollingElement, ...document.querySelectorAll('.uyg__ic, .katman')].map((e) => Math.round(e.scrollTop)).join(',')`
+    let once = ''
+    if (!hata) {
+      await s.js(`document.querySelector('.uyg__hesap').click(); 1`)
+      await sayiBekle('[data-eylem="cikis"]', (v) => v > 0)
+      await bekle(500)
+      await s.js(`(() => { window.scrollTo(0, 250); document.querySelectorAll('.uyg__ic, .katman').forEach((e) => { e.scrollTop = 250 }); return 1 })()`)
+      await bekle(300)
+      once = await s.js(yerler)
+      if (!once.split(',').some((v) => Number(v) > 50)) hata = `Hesap ekranı kaymıyor (${once}); kilit sınanamıyor — ERİŞİLEMEDİ`
+    }
+    if (!hata) {
+      await s.js(`document.querySelector('[data-eylem="cikis"]').click(); 1`)
+      if ((await sayiBekle('.onay-perde', (v) => v > 0)) < 1) hata = 'Çıkış Yap onay yaprağı açılmadı'
+    }
+    if (!hata) {
+      await bekle(500)
+      const k = await s.js(`(() => { const r = document.querySelector('.onay').getBoundingClientRect(); return { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + 24), zy: Math.max(4, Math.round(r.top / 2)) } })()`)
+      for (const y of [k.y, k.zy]) {
+        for (const yon of [-300, 300]) {
+          if (hata) break
+          await s.cdp.gonder('Input.synthesizeScrollGesture', { x: k.x, y, yDistance: yon, speed: 3000, gestureSourceType: 'mouse' }, s.oturum)
+          await bekle(150)
+          const sonra = await s.js(yerler)
+          if (sonra !== once) hata = `yaprak açıkken arkadaki ekran kaydı (${once} → ${sonra})`
+        }
+      }
+    }
+    if (!hata) {
+      await s.js(`document.querySelector('.onay__vazgec')?.click(); 1`)
+      await sayiBekle('.onay-perde', (v) => v === 0)
+      const kilitli = await s.js(`[document.documentElement, ...document.querySelectorAll('.uyg--dipli .uyg__ic')].some((e) => getComputedStyle(e).overflowY === 'hidden')`)
+      if (kilitli) hata = 'yaprak kapandıktan sonra ekran kilitli kaldı'
+    }
+    await s.olcu({ width: 1400, height: 1000, deviceScaleFactor: 1, mobile: false })
+    kaydet('X-14', 'Servisim: alttan açılan yaprak açıkken arkadaki ekran kaymıyor, esneme kapalı', hata, await metin())
+  }
+
+  /* X-15 · Servisim Hak Ediş'i iki sekme, hareketler onar onar (30 Eylül
+     2026, kullanıcının seçimi: "Sekmeler + Daha Fazla Göster"). Servise
+     23 hareket daha ekleniyor (depoda, X-12'nin yaptığı gibi). Sekmeler
+     `data-hakedis-sekme`; Onay Bekleyen sekmesinde hareket satırı yok;
+     Hesap Hareketleri'nde ilk 10 satır, düğme (`data-eylem="daha-fazla"`)
+     her basışta 10 daha açıyor, hepsi açılınca kalkıyor. Sekme adedi
+     depodaki hareket sayısı. Bir işe gidip dönünce seçili sekme kalıyor
+     (Onay Bekleyen'deki kart açılıp geri dönülüyor). */
+  if (secili('X-15')) {
+    await s.git(ADRES + '/servis.html')
+    await depoYaz(YEREL, OTURUM)
+    await s.js(`(() => {
+      const k = 'paksan.cariHareket';
+      const l = JSON.parse(localStorage.getItem(k) || '[]');
+      for (let i = 0; i < 23; i++) l.push({ id: 'tur-x15-' + i, servisId: ${JSON.stringify(SERVIS.id)}, tarih: Date.now() - (i + 1) * 86400000 * 40, tur: 'alacak', tutar: 100 + i, aciklama: 'Tur X-15' });
+      localStorage.setItem(k, JSON.stringify(l));
+      return 1
+    })()`)
+    await s.git(ADRES + '/servis.html')
+    let hata = null
+    const toplam = await s.js(`JSON.parse(localStorage.getItem('paksan.cariHareket') || '[]').filter((h) => h.servisId === ${JSON.stringify(SERVIS.id)}).length`)
+    await sayiBekle('.uyg__tab', (v) => v > 2)
+    await s.js(`document.querySelectorAll('.uyg__tab')[2]?.click(); 1`)
+    if ((await sayiBekle('[data-hakedis-sekme]', (v) => v > 0)) !== 2) hata = "Hak Ediş'te iki sekme yok"
+    if (!hata) {
+      await bekle(500)
+      await s.js(`document.querySelector('[data-hakedis-sekme="bekleyen"]').click(); 1`)
+      await sayiBekle('[data-hakedis-liste="bekleyen"]', (v) => v > 0)
+      if ((await say('[data-hareket]')) > 0) hata = 'Onay Bekleyen sekmesinde hesap hareketi görünüyor'
+    }
+    if (!hata) {
+      await s.js(`document.querySelector('[data-hakedis-sekme="hareket"]').click(); 1`)
+      await sayiBekle('[data-hakedis-liste="hareket"]', (v) => v > 0)
+      const sayi = await s.js(`document.querySelector('[data-hakedis-sekme="hareket"] .is-sekme__sayi')?.textContent.trim()`)
+      if (String(toplam) !== sayi) hata = `sekmenin adedi (${sayi}) depodaki hareket sayısı (${toplam}) değil`
+    }
+    let acik = 10
+    while (!hata) {
+      const n = await say('[data-hareket]')
+      const beklenen = Math.min(acik, toplam)
+      if (n !== beklenen) { hata = `${beklenen} hareket görünmeliydi, ${n} görünüyor`; break }
+      const dugme = await say('[data-eylem="daha-fazla"]')
+      if (beklenen >= toplam) { if (dugme > 0) hata = 'bütün hareketler açıkken düğme duruyor'; break }
+      if (dugme < 1) { hata = `${beklenen}/${toplam} hareket açıkken "Daha Göster" düğmesi yok`; break }
+      await s.js(`document.querySelector('[data-eylem="daha-fazla"]').click(); 1`)
+      acik += 10
+      await sayiBekle('[data-hareket]', (v) => v === Math.min(acik, toplam))
+    }
+    if (!hata) {
+      /* Sekme seçimi Hak Ediş ekrandan kalkıp gelince kalıyor. */
+      await s.js(`document.querySelectorAll('.uyg__tab')[0]?.click(); 1`)
+      await bekle(600)
+      await s.js(`document.querySelectorAll('.uyg__tab')[2]?.click(); 1`)
+      await sayiBekle('[data-hakedis-liste]', (v) => v > 0)
+      const secik = await s.js(`document.querySelector('[data-hakedis-liste]')?.dataset.hakedisListe`)
+      if (secik !== 'hareket') hata = `başka sekmeye gidip dönünce Hak Ediş'in seçili sekmesi kayboldu ("${secik}")`
+    }
+    kaydet('X-15', "Servisim: Hak Ediş iki sekmede, hesap hareketleri onar onar açılıyor", hata, await metin())
   }
 
   /* X-12 · Servisim sipariş özetinde adet ve Kaldır (30 Eylül 2026,

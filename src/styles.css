@@ -446,6 +446,29 @@ html {
   scrollbar-gutter: stable;
 }
 
+/* ESNEME KAPALI (30 Eylül 2026, kullanıcının kararı: "Esneme tamamen
+   kapansın"). Android'in kaydırma sınırındaki esnemesi WebView'un
+   tamamına uygulanıyordu: alt menü ve üst çubuk da esniyordu; web
+   sayfası Android'e "yalnız şu alanı esnet" diyemiyor. Kural kökte
+   (html): sayfanın kaydırıcısının davranışını tarayıcı kökten okuyor,
+   `body`deki eski `overscroll-behavior-y` hiç etki etmiyordu. Telefon
+   tarafında aynısı MainActivity.java'da (setOverScrollMode). */
+html {
+  overscroll-behavior: none;
+}
+
+/* ALTTAN AÇILAN PENCERE AÇIKKEN ARKADAKİ SAYFA KAYMIYOR (30 Eylül 2026,
+   kullanıcının bildirdiği: "Bilgilerimi Düzenle'ye tıklandığında alttan
+   gelen ekranda kaydırma denendiğinde arkadaki profil sayfası kayıyor").
+   Pencerenin kendi içeriği kaymıyorsa ya da sonuna gelmişse kaydırma
+   arkadaki sayfaya geçiyordu. Pencere açıkken sayfanın kaydırıcısı
+   kilitli; kaydırma yeri korunuyor, pencere kapanınca sayfa aynı yerde.
+   Pencerenin içi kendi içinde kayıyor, sonuna gelince dışarı taşmıyor
+   (`.sheet → overscroll-behavior`). Tur C-39. */
+html:has(.sheet-backdrop) {
+  overflow: hidden;
+}
+
 @supports not (scrollbar-gutter: stable) {
   html {
     overflow-y: scroll;
@@ -461,7 +484,6 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  overscroll-behavior-y: none;
 }
 
 button,
@@ -3617,6 +3639,7 @@ p {
   padding: 8px 20px calc(24px + var(--safe-bottom));
   max-height: 88vh;
   overflow-y: auto;
+  overscroll-behavior: contain;
   animation: sheet-up 0.26s cubic-bezier(0.2, 0.9, 0.3, 1);
 }
 

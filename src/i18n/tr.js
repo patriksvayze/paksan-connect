@@ -411,11 +411,7 @@ export const tr = {
     izinlerBaslik: 'Uygulama izinleri',
     izinBildirim: 'Bildirimler',
     izinMikrofon: 'Mikrofon',
-    izinMikrofonAlt: 'Yalnızca ses kaydı düğmesine bastığınızda izin istenir',
-    izinKamera: 'Kamera ve dosyalar',
-    izinKameraAlt: 'Yalnızca fotoğraf, video veya dekont eklerken kullanılır',
-    izinKonum: 'Konum',
-    izinKonumAlt: 'Uygulama konumunuzu kullanmaz',
+    izinMikrofonAlt: 'Taleplerinize sesli not eklemek için kullanılır',
     durumAcik: 'Açık',
     durumKapali: 'Kapalı',
     durumSorulmadi: 'Henüz sorulmadı',
@@ -427,7 +423,7 @@ export const tr = {
 
   /* Metin sürümü değişince açılışta çıkan pencere (components/KvkkGuncelleme.jsx) */
   guncelleme: {
-    baslik: 'Metinlerimizi güncelledik',
+    baslik: 'Şartlarımız güncellendi!',
     metin: 'Kişisel verilerinizle ilgili metinlerimizi güncelledik. Devam etmek için güncel metinleri okuyup onaylayın.',
     onayla: 'Onayla',
   },

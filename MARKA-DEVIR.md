@@ -134,7 +134,7 @@ dışında oldukları için tek tek elden geçirilmeleri gerekiyor:
 | `capacitor.config.json` | `appId`, `appName` |
 | `package.json` | `name` |
 | `index.html` | sekme başlığı |
-| `backoffice.html` | sekme başlığı |
+| `backoffice.html` | sekme başlığı ve sekme ikonu (`src/marka/varliklar/paksan-sekme-ikonu.png`, amblemden kırpılmış 64 piksellik kare) |
 | `bayi-panel.html` | sekme başlığı |
 | `bayi-mobil.html` | sekme başlığı |
 | `android/app/src/main/res/values/strings.xml` | uygulama adı, paket adı |

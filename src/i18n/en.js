@@ -612,11 +612,7 @@ export const en = {
     izinlerBaslik: 'App permissions',
     izinBildirim: 'Notifications',
     izinMikrofon: 'Microphone',
-    izinMikrofonAlt: 'Asked only when you press the voice recording button',
-    izinKamera: 'Camera and files',
-    izinKameraAlt: 'Used only when you attach a photo, video or receipt',
-    izinKonum: 'Location',
-    izinKonumAlt: 'The app does not use your location',
+    izinMikrofonAlt: 'Used to add voice notes to your requests',
     durumAcik: 'On',
     durumKapali: 'Off',
     durumSorulmadi: 'Not asked yet',
@@ -628,7 +624,7 @@ export const en = {
 
   /* Metin sürümü değişince açılışta çıkan pencere (components/KvkkGuncelleme.jsx) */
   guncelleme: {
-    baslik: 'We have updated our texts',
+    baslik: 'Our terms have been updated!',
     metin: 'We have updated the texts about your personal data. To continue, please read and approve the current texts.',
     onayla: 'Approve',
   },

@@ -528,6 +528,9 @@ function Uygulama({ oturum, onCikis }) {
      tutuluyor: iş detayı açılınca İşlerim ekrandan kalkıyor, dönünce
      aynı sekme açık gelmeli (bkz. ekranlar/Islerim.jsx). */
   const [isSekme, setIsSekme] = useState(null)
+  /* Hak Ediş'in seçili sekmesi ve açılan hareket sayısı (30 Eylül 2026);
+     aynı gerekçe (bkz. ekranlar/Hakkedis.jsx). */
+  const [hakGorunum, setHakGorunum] = useState({ sekme: null, adet: 0 })
   /* Az önce yapılanın özeti: yeşil şerit (29 Eylül 2026, görünüm önerisi
      S2; bkz. BasariSeridi). Bir iş açılınca ya da süresi dolunca kalkıyor. */
   const [basari, setBasari] = useState(null)
@@ -928,7 +931,7 @@ function Uygulama({ oturum, onCikis }) {
             title="Bildirimler"
           >
             <span className="uyg__bildirim-ic">
-              <IconBell size={22} />
+              <IconBell size={25} />
               {okunmamis > 0 && (
                 <span className="uyg__bildirim-sayi">{okunmamis > 9 ? '9+' : okunmamis}</span>
               )}
@@ -977,7 +980,14 @@ function Uygulama({ oturum, onCikis }) {
         />
       )}
       {sekme === 'hakkedis' && (
-        <Hakkedis oturum={oturum} onAc={ac} surum={tazele} onUcretler={() => setAlt('ucretler')} />
+        <Hakkedis
+          oturum={oturum}
+          onAc={ac}
+          surum={tazele}
+          onUcretler={() => setAlt('ucretler')}
+          gorunum={hakGorunum}
+          onGorunum={setHakGorunum}
+        />
       )}
     </Kabuk>
   )

@@ -34,6 +34,41 @@
 
 /* --------------------------------------------------------------- Kabuk */
 
+/* Hak Ediş'te "10 Hareket Daha Göster" (30 Eylül 2026): listenin altında,
+   son satırdan biraz ayrık. */
+.hareket-daha {
+  margin-top: var(--bosluk-3);
+}
+
+/* ESNEME KAPALI (30 Eylül 2026, kullanıcının kararı: "Esneme tamamen
+   kapansın"). Android'in kaydırma sınırındaki esnemesi WebView'un
+   tamamına uygulanıyordu: alt menü ve üst çubuk da esniyordu. Kök (ana
+   sekmeler onu kaydırıyor), dip çubuklu sayfaların kendi kaydırıcısı
+   (`.uyg--dipli .uyg__ic`) ve iş kartının katmanı. Telefon tarafında
+   aynısı MainActivity.java'da. */
+html,
+.uyg--dipli .uyg__ic,
+.katman {
+  overscroll-behavior: none;
+}
+
+/* ALTTAN AÇILAN PENCERE AÇIKKEN ARKADAKİ EKRAN KAYMIYOR (30 Eylül 2026,
+   kullanıcının bildirdiği: pencerede kaydırma denenince arkadaki ekran
+   kayıyordu). Onay yaprağı, iş ayrıntısının pencereleri ve adres
+   penceresi açıkken arkadaki kaydırıcılar kilitli; kaydırma yeri
+   korunuyor. Pencerenin içi kendi içinde kayıyor, sonuna gelince
+   dışarı taşmıyor. Tur X-14. */
+html:has(.onay-perde, .yaprak-perde),
+html:has(.onay-perde, .yaprak-perde) .uyg--dipli .uyg__ic,
+html:has(.onay-perde, .yaprak-perde) .katman {
+  overflow: hidden;
+}
+
+.onay,
+.yaprak-pencere {
+  overscroll-behavior: contain;
+}
+
 .uyg {
   /* Üst çubuğun yüksekliği. Geniş ekranda sekme çubuğu tam bu kadar
      aşağıdan başlıyor, o yüzden değerin GERÇEK olması gerekiyor:
@@ -1098,8 +1133,8 @@
 /* Üst çubuktaki Bildirimler düğmesi: yalnız zil (28 Eylül 2026,
    kullanıcının isteği; önce zil ve yazı yan yanaydı), okunmamış varsa
    sayısı dairenin sağ üst köşesinde. Hesap dairesiyle aynı beyaz daire,
-   aynı gölge ve ölçü; basılabilir alan 48 piksel (dış düğme), görünen
-   daire 44. */
+   aynı gölge ve ölçü; görünen daire 50 piksel (30 Eylül 2026'ya kadar
+   44; `--ust-daire`). */
 .uyg__bildirim {
   flex: none;
   display: inline-flex;
@@ -1117,8 +1152,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: var(--ust-daire);
+  height: var(--ust-daire);
   border-radius: var(--r-tam);
   background: var(--yuzey);
   box-shadow: var(--sh-1);
@@ -3855,6 +3890,25 @@
   background-clip: border-box;
 }
 
+/* ÜST ÇUBUKTAKİ İKİ DAİRE 50 PİKSEL (30 Eylül 2026, kullanıcının
+   isteği: "İşlerim ekranındaki Bildirim ve Hesap buton büyüklüklerini
+   biraz daha arttır"). Bildirim zili ve hesap harfi 44 pikseldi; zil ve
+   harf de birlikte büyüdü. Daire artık dokunma sınırından (48) büyük:
+   görünmez dokunma katmanı dairenin kendisi (aşağıda `inset: 0`).
+   Çubuğun yüksekliği (68) değişmedi. */
+.uyg {
+  --ust-daire: 50px;
+}
+
+.uyg__hesap {
+  width: var(--ust-daire);
+  height: var(--ust-daire);
+}
+
+.uyg .uyg__hesap::after {
+  inset: 0;
+}
+
 /* DAİRE 44 PİKSEL ÇİZİLİYOR, BASILABİLİR ALAN 48.
 
    Ölçüldü (18 Eylül 2026): düğme 44x44'tü. iOS'un 44 piksellik alt
@@ -3894,7 +3948,7 @@
   background: var(--yuzey);
   box-shadow: var(--sh-1);
   color: var(--mavi-rz);
-  font-size: var(--y-govde);
+  font-size: 19px;
   font-weight: 800;
 }
 
