@@ -6,13 +6,8 @@ import {
   servisinIskontosu,
   servisParcaSiparisi,
 } from '../../backoffice/veri'
-import { servisleriGetir, MARKA, markaEk } from '../../marka'
-import {
-  KDV_HARIC_LISTE,
-  KDV_ORANI,
-  PARA_BIRIMI,
-  paraYaz,
-} from '../../marka'
+import { servisleriGetir } from '../../data/katalog/servisler.js'
+import { KDV_HARIC_LISTE, KDV_ORANI, PARA_BIRIMI, paraYaz } from '../../data/katalog/para.js'
 import {
   grubunParcalari,
   katalogGetir,
@@ -525,8 +520,8 @@ export function SiparisVer({ oturum, surum, onKapat, onVerildi, geriRef }) {
 
         {onay && (
           <Onay
-            baslik={`Sipariş ${markaEk('a')} gidecek`}
-            metin={`${MARKA} yedek parça birimi siparişi görecek ve hazırlayacak. Tutar, sipariş anındaki fiyat ve indirimle hesaplanır; sipariş verildikten sonra değişmez.`}
+            baslik={`Sipariş PAKSAN’a gidecek`}
+            metin={`PAKSAN yedek parça birimi siparişi görecek ve hazırlayacak. Tutar, sipariş anındaki fiyat ve indirimle hesaplanır; sipariş verildikten sonra değişmez.`}
             /* Sipariş onayında listenin kendisi duruyor, sayısı değil.
                "3 tür · 7 adet" satırı neyin sipariş edildiğini
                söylemiyordu; yanlış adet ancak parça geldiğinde fark
@@ -840,7 +835,7 @@ function AdetDugmeleri({ sinif, ad, adet, onDegis, enAz }) {
 function Yukleniyor() {
   return (
     <>
-      <p className="ipucu">Parça listesi {MARKA} sunucusundan yükleniyor…</p>
+      <p className="ipucu">Parça listesi PAKSAN sunucusundan yükleniyor…</p>
       <div className="parca-izgara">
         {Array.from({ length: 6 }, (_, i) => (
           <div key={i} className="parca-kart parca-kart--iskelet">
@@ -862,7 +857,7 @@ function Hata({ onTekrar }) {
       <div>
         <strong>Parça listesi yüklenemedi</strong>
         <p>
-          Liste {MARKA} sunucusundan geliyor. Bağlantınızı kontrol edip
+          Liste PAKSAN sunucusundan geliyor. Bağlantınızı kontrol edip
           yeniden deneyin.
         </p>
         <button className="dg dg--ana dg--blok" style={{ marginTop: 12 }} onClick={onTekrar}>
@@ -963,7 +958,7 @@ function Ozet({
               BAKİYEDEN ÖDEMEDE EK İNDİRİM (24 Eylül 2026): yalnız bakiye
               seçiliyken; KDV'den önce düşülüyor, ara toplam ve KDV ek
               indirimli tutardan. KDV satırı yalnız liste fiyatı KDV
-              hariçse (gerekçesi marka/katalog/para.js içinde). */}
+              hariçse (gerekçesi data/katalog/para.js içinde). */}
           <TutarKutusu
             data-siparis-toplam={hesap.toplam}
             satirlar={[
@@ -991,7 +986,7 @@ function Ozet({
           />
           <p className="siparis-parcalar__not">
             {hesap.eksik
-              ? `Fiyatı listede olmayan parça var; gösterilen toplam bu parçayı içermiyor. Bu parçanın tutarını ${MARKA} bildirecek. `
+              ? `Fiyatı listede olmayan parça var; gösterilen toplam bu parçayı içermiyor. Bu parçanın tutarını PAKSAN bildirecek. `
               : ''}
             Tutar, sipariş anındaki fiyat ve indirimle hesaplanır. Sipariş verildikten sonra fiyat ya
             da indirim değişse de tutar değişmez.
@@ -1074,7 +1069,7 @@ function Ozet({
           deger={not}
           onDegis={onNot}
           satir={3}
-          placeholder={`${markaEk('a')} iletmek istediğiniz bir şey varsa yazın`}
+          placeholder={`PAKSAN’a iletmek istediğiniz bir şey varsa yazın`}
         />
       </Bolum>
 
@@ -1107,13 +1102,13 @@ function Sonuc({ siparis, onBitir }) {
   return (
     <div className="siparis-sonuc">
       <IconCheckCircle size={54} />
-      <h2>Siparişiniz {markaEk('a')} İletildi</h2>
+      <h2>Siparişiniz PAKSAN’a İletildi</h2>
       <p className="mono siparis-sonuc__no">{siparis.no}</p>
       <p className="kucuk sonuk">
         {ozet.kalem} kalem · {ozet.adet} adet · {paraYaz(ozet.toplam)} {PARA_BIRIMI} (KDV dâhil)
       </p>
       <p className="kucuk sonuk">
-        Siparişin durumunu Parça bölümünden takip edebilirsiniz. {MARKA}{' '}
+        Siparişin durumunu Parça bölümünden takip edebilirsiniz. PAKSAN{' '}
         onayladığında haberdar olacaksınız.
       </p>
       <button className="dg dg--ana dg--blok" onClick={onBitir}>

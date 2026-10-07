@@ -5,10 +5,10 @@ import { TopBar, TabBar, Sheet } from '../components/Chrome'
 import { UrunFoto } from '../components/Gorsel'
 import {
   CATEGORIES, getProduct, kategoriDilde, productsByCategory, supportGroup, urunDilde,
-} from '../marka'
-import { DESTEK, GUVENLIK, ZORLUK } from '../marka/icerik/destekVerisi'
-import { GUVENLIK_CIZIMLERI } from '../marka/icerik/cizimler'
-import { URUN_KILAVUZU } from '../marka/icerik/kilavuzEslesme'
+} from '../data/katalog/products.js'
+import { DESTEK, GUVENLIK, ZORLUK } from '../data/icerik/destekVerisi'
+import { GUVENLIK_CIZIMLERI } from '../data/icerik/cizimler'
+import { URUN_KILAVUZU } from '../data/icerik/kilavuzEslesme'
 import { useDil } from '../i18n'
 import { load, save } from '../lib/storage'
 import { norm } from '../lib/arama'
@@ -71,7 +71,7 @@ import {
    başka belirti. Makinenin kılavuzu varsa kılavuzun kendi arıza
    tablosuna da yol var (screens/Manual.jsx).
 
-   İÇERİK makine sınıfının genel bilgisi (marka/icerik/destekVerisi.js),
+   İÇERİK makine sınıfının genel bilgisi (data/icerik/destekVerisi.js),
    kılavuz değil; ekranda da bu yazıyor. Kayıt: her hareket Destek
    Kayıtları'na düşüyor (lib/destekLog.js) — hangi belirti çözülmedi,
    PAKSAN orada görüyor.
@@ -638,7 +638,7 @@ function CozumAdimi({
       {/* ÖNCE GÜVENLİK — cevabın en üstünde, açık. Katlanmış uyarı
           okunmuyor; dört madde kısa. Her maddenin yanında hareketi
           gösteren çizim: okuması zor olan kullanıcı cümleyi çözmeden
-          anlamı görüyor (bkz. marka/icerik/cizimler.js). */}
+          anlamı görüyor (bkz. data/icerik/cizimler.js). */}
       <section className="destek-guvenlik" aria-labelledby="destek-guvenlik-baslik">
         <h3 id="destek-guvenlik-baslik" className="destek-guvenlik__baslik">
           <IconAlert size={20} /> {t('ariza.guvenlikBaslik')}

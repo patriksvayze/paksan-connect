@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import { MARKA, markaEk, PARA_BIRIMI, paraYaz } from '../../marka'
+import { PARA_BIRIMI, paraYaz } from '../../data/katalog/para.js'
 import {
   extractYear,
   formatSerial,
@@ -13,7 +13,11 @@ import {
 import { kayitTelGoster, telGiris } from '../../lib/tel'
 import {
   ASAMA,
+  PARCA_DEGISTI,
+  PARCASIZ_DEGISIM,
   YAPILAN_IS,
+  yapilanIsleri,
+  yapilanIsYazisi,
   buZiyaretinKaydi,
   eksikAlanlar,
   hakkedisHesapla,
@@ -33,7 +37,8 @@ import { alanaGit } from '../../lib/formOdak'
 import { AdresSecici, teslimatHatasi } from '../AdresSecici'
 import { firmaAdresiOnerisi } from '../adresler'
 import { adresYazisi, teslimatTemizle, teslimatYazisi } from '../../lib/teslimat'
-import { getProduct, servisleriGetir } from '../../marka'
+import { getProduct } from '../../data/katalog/products.js'
+import { servisleriGetir } from '../../data/katalog/servisler.js'
 import { makineDurumAdi } from '../../data/talepAlanlari'
 import {
   IconAlert,
@@ -123,12 +128,12 @@ const GARANTI_YAZI = {
      garantiDisiUyari — şase numarası yazılı ama üretim yılına göre
        süre dolmuş (ya da okunamıyor) görünüyorsa çıkıyor. Kaydın yine de
        gönderilebileceğini söylüyor, sonra servisin haklı olabileceğini
-       kabul ediyor ve tahmin etmek yerine {MARKA} ile doğrulamasını
+       kabul ediyor ve tahmin etmek yerine PAKSAN ile doğrulamasını
        istiyor.
    ========================================================================== */
 const GARANTI_METNI = {
   garantiDayanak: 'Garanti süresi satış tarihine değil, seri numarasındaki üretim yılına göre hesaplanır.',
-  garantiDisiUyari: `Kaydı yine de gönderebilirsiniz. Garanti süresi üretim yılına göre hesaplanır; satış tarihi burada yazılı olmadığı için sonradan satılan makinenin garantisi devam ediyor olabilir. Seri numarasını kontrol edin; hâlâ emin değilseniz göndermeden önce ${MARKA} yetkilisiyle doğrulayın.`,
+  garantiDisiUyari: `Kaydı yine de gönderebilirsiniz. Garanti süresi üretim yılına göre hesaplanır; satış tarihi burada yazılı olmadığı için sonradan satılan makinenin garantisi devam ediyor olabilir. Seri numarasını kontrol edin; hâlâ emin değilseniz göndermeden önce PAKSAN yetkilisiyle doğrulayın.`,
 }
 
 /* OLAĞAN DIŞI UZUN YOL (29 Eylül 2026, kullanıcının onayı). Gidiş-dönüş
@@ -159,7 +164,15 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
   const [adres, setAdres] = useState(talep.adres || talep.fatura?.adres || '')
   const [seri, setSeri] = useState(talep.makine?.serial || '')
   const [ariza, setAriza] = useState(onceki?.ariza || talepNedeni(talep))
-  const [yapilanIs, setYapilanIs] = useState(onceki?.yapilanIs || '')
+  /* YAPILAN İŞ ÇOK SEÇİMLİ (6 Ekim 2026, kullanıcının isteği); kayda
+     seçilenler tek yazı olarak gidiyor (lib/servisKaydi.js →
+     yapilanIsYazisi). "Parçayı Taktım"da "Parça Değişti" seçili geliyor
+     ve kaldırılamıyor: 1. aşamada istenen parça takıldı. */
+  const [yapilanIsler, setYapilanIsler] = useState(() => {
+    const liste = yapilanIsleri(onceki?.yapilanIs)
+    return ikinci && !liste.includes(PARCA_DEGISTI) ? [...liste, PARCA_DEGISTI] : liste
+  })
+  const yapilanIs = yapilanIsYazisi(yapilanIsler)
   const [sonuc, setSonuc] = useState(onceki?.sonuc || '')
   const [parcalar, setParcalar] = useState(onceki?.parcalar || [])
   const [foto, setFoto] = useState(onceki?.foto || null)
@@ -257,7 +270,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
      bilgisi yeterli; boş bırakma talimatı gereksiz uzatıyordu. */
   const parcaBaslik = {
     ad: 'Gereken Parça',
-    ipucu: `${MARKA} seçtiğiniz parçaları hazırlayıp size gönderecek.`,
+    ipucu: `PAKSAN seçtiğiniz parçaları hazırlayıp size gönderecek.`,
   }
 
   /* İş bittiğinde sorulanlar: ne yapıldı, yol, işçilik. Parça
@@ -265,6 +278,23 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
      yazılamaz. */
   const isBitti = ikinci || !parcaIstegi
   const paraSorulur = isBitti
+
+  /* "PARÇA DEĞİŞTİ" PARÇASIZ OLMAZ (6 Ekim 2026, kullanıcının bildirdiği:
+     "Parça Değişti seçeneği işaretliyken ama Parça Seç üzerinden parça
+     seçilmemişken de servis kaydı tamamlanabiliyor"). Garanti işinde
+     parçayı her zaman PAKSAN gönderiyor; servisin kendi stoğundan taktığı
+     parça yok. Değişen parça "Parça Seç" ile seçilince kayıt parça
+     isteğine dönüyor ve "Parça Değişti" iş bittiğinde ("Parçayı Taktım")
+     kendiliğinden seçili geliyor. Uyarı seçildiği anda alanın altında,
+     gönderim de engelli; veri katmanı aynısını reddediyor (veri.js →
+     servisKaydiGonder). */
+  const parcasizDegisim = !ikinci && !parcaIstegi && yapilanIsler.includes(PARCA_DEGISTI)
+
+  function yapilanIsSec(is) {
+    if (ikinci && is === PARCA_DEGISTI) return
+    setYapilanIsler((l) => (l.includes(is) ? l.filter((x) => x !== is) : [...l, is]))
+    setHata('')
+  }
 
   /* "Adres Ekle"nin ilk önerisi servisin firma adresi; "Elle Gir"
      müşterinin bilgileriyle açılıyor — parça çoğu zaman ya dükkâna ya
@@ -361,6 +391,8 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
       const teslimHatasi = teslimatHatasi(teslimat)
       if (teslimHatasi) return ['teslimat', teslimHatasi]
     }
+    if (isBitti && !yapilanIsler.length) return ['yapilanIs', 'Yapılan işi seçin.']
+    if (parcasizDegisim) return ['yapilanIs', PARCASIZ_DEGISIM]
     if (sonuc.trim().length < 5) {
       return ['sonuc', parcaIstegi ? 'Tespitinizi yazın.' : 'Yapılan işin ayrıntısını yazın.']
     }
@@ -409,7 +441,7 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
             alt: 'Parça yola çıkınca size haber verilecek. İş, Devam Eden sekmesinde.',
           }
         : {
-            baslik: `Kaydınız ${markaEk('a')} gönderildi`,
+            baslik: `Kaydınız PAKSAN’a gönderildi`,
             alt: `Onaylanınca ${paraYaz(hakkedis.toplam)} ${PARA_BIRIMI} hesabınıza eklenecek.`,
           },
     )
@@ -421,14 +453,16 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
   const onayBilgisi = parcaIstegi
     ? {
         baslik: 'Parça isteğiniz gönderilecek',
-        metin: `${MARKA} yedek parça birimi parçayı hazırlayıp size gönderecek. Parça elinize geçtiğinde bu talebi açıp "Parçayı Taktım" düğmesine dokunacaksınız. Yol ve işçilik bilgileri o zaman sorulacak.`,
+        /* "Yedek parça birimi" kalktı (6 Ekim 2026): garanti parçasını
+           servis birimi gönderiyor. Metin Codex'ten. */
+        metin: `PAKSAN parçayı hazırlayıp size gönderecek. Parça elinize geçtiğinde bu talebi açıp Parçayı Taktım düğmesine dokunacaksınız. Yol ve işçilik bilgileri o zaman sorulacak.`,
         parcalar: secilenler,
         kalemler: [{ ad: 'Teslimat adresi', deger: adresYazisi(teslimat) }],
         dugme: 'Parça Talebini Gönder',
       }
     : {
-        baslik: `Kayıt ${markaEk('a')} onaya gidecek`,
-        metin: `${MARKA} yolu, işçiliği ve parçaları inceleyecek. Onaylandığında tutar hesabınıza eklenecek ve talep kapanacak.`,
+        baslik: `Kayıt PAKSAN’a onaya gidecek`,
+        metin: `PAKSAN yolu, işçiliği ve parçaları inceleyecek. Onaylandığında tutar hesabınıza eklenecek ve talep kapanacak.`,
         parcalar: secilenler,
         kalemler: [
           { ad: 'Yapılan iş', deger: yapilanIs || '—' },
@@ -675,14 +709,28 @@ export function ServisKapanisi({ talep, oturum, onKapat, onBitti }) {
             önce liste, altında ayrıntı. */}
         {isBitti && (
           <Bolum ad="Yapılan İş">
-            <Secenekler
-              secenekler={YAPILAN_IS.map((x) => ({ deger: x, ad: x }))}
-              secili={yapilanIs}
-              onSec={(v) => {
-                setYapilanIs(v)
-                setHata('')
-              }}
-            />
+            <div data-alan="yapilanIs">
+              <Secenekler
+                coklu
+                secenekler={YAPILAN_IS.map((x) => ({
+                  deger: x,
+                  ad: x,
+                  kilitli: ikinci && x === PARCA_DEGISTI,
+                }))}
+                secili={yapilanIsler}
+                onSec={yapilanIsSec}
+              />
+              <p className="alan__ipucu yapilan-is__ipucu">
+                {ikinci
+                  ? 'İstediğiniz parça takıldığı için Parça Değişti otomatik seçilidir ve kaldırılamaz.'
+                  : 'Birden fazla seçenek seçebilirsiniz.'}
+              </p>
+              {parcasizDegisim && (
+                <p className="kutu-uyari yapilan-is__uyari" role="alert">
+                  {PARCASIZ_DEGISIM}
+                </p>
+              )}
+            </div>
             <Kutu
               ad="Ayrıntı"
               alan="sonuc"
@@ -884,14 +932,27 @@ function Kutu({ ad, etiket, alan, deger, onDegis, satir, ipucu, tur }) {
 }
 
 /* Cevap listesi. Tam genişlikte satırlar. Seçili olan kenarındaki
-   şeritle de ayrılıyor, yalnız renkle değil (renk körlüğü). */
-export function Secenekler({ secenekler, secili, onSec }) {
+   şeritle de ayrılıyor, yalnız renkle değil (renk körlüğü).
+
+   `coklu`: birden çok seçilebiliyor; `secili` bir liste, işaret kare
+   ve seçilince içinde onay işareti (Connect formlarındaki ayrımın
+   aynısı: tek seçim yuvarlak, çok seçim kare). Seçeneğin `kilitli`
+   alanı seçimi sabitliyor. */
+export function Secenekler({ secenekler, secili, onSec, coklu = false }) {
+  const seciliMi = (d) => (coklu ? (secili || []).includes(d) : secili === d)
   return (
-    <div className="secenek">
+    <div className="secenek" role={coklu ? 'group' : undefined}>
       {secenekler.map((s) => (
         <button
           key={s.deger}
-          className={'buyuk-sec' + (secili === s.deger ? ' buyuk-sec--on' : '')}
+          className={
+            'buyuk-sec' +
+            (coklu ? ' buyuk-sec--coklu' : '') +
+            (seciliMi(s.deger) ? ' buyuk-sec--on' : '') +
+            (s.kilitli ? ' buyuk-sec--kilitli' : '')
+          }
+          aria-pressed={coklu ? seciliMi(s.deger) : undefined}
+          aria-disabled={s.kilitli || undefined}
           onClick={() => onSec(s.deger)}
         >
           <span className="buyuk-sec__ad">{s.ad}</span>

@@ -9,7 +9,7 @@
    1 marka (paksan), 7 kategori, 4 bakım şablonu, 15 bakım adımı,
    20 ürün, 50 varyant, 86 özellik, 31 video, 83 belirti bağı.
 
-   Kaynak: src/marka (kimlik.js, katalog/products.js + .en.js, katalog/para.js,
+   Kaynak: src/data (kimlik.js, katalog/products.js + .en.js, katalog/para.js,
    katalog/makineFiyat.js, icerik/teknikOzellikler.js, icerik/teknikSozluk.js,
    icerik/kilavuzEslesme.js, icerik/mobile_support_package.json), src/lib/serial.js,
    src/data/talepAlanlari.js; tohum/kaynak/markalar.json. Tasarım: tasarim.md 5.2 T05.
@@ -45,7 +45,7 @@ USING (
            CONVERT(nvarchar(60), v.KilavuzPaketiKodu) AS KilavuzPaketiKodu,
            CONVERT(bit, v.Aktif) AS Aktif
     FROM (VALUES
-        (N'paksan', N'PAKSAN', 2, 0.3, 0.2, N'tr,en', N'src/marka/varliklar/paksan-logo.png', N'https://www.paksanmakina.com.tr', N'paksanmakina.com.tr', N'Garanti yılı: src/marka/kimlik.js SIRKET.garantiYil ve src/lib/serial.js GARANTI_YIL. İskonto: src/marka/katalog/makineFiyat.js PARCA_SERVIS_ISKONTO. KDV ve para birimi: src/marka/katalog/para.js (fiyat listesinin KDV esası doğrulanmadı). Seri kuralı: tohum/kaynak/markalar.json.', N'paksan', NULL, N'onekYilSira', N'TRY', N'PAKSAN_MOBILE_SUPPORT', 1)
+        (N'paksan', N'PAKSAN', 2, 0.3, 0.2, N'tr,en', N'src/assets/logo/paksan-logo.png', N'https://www.paksanmakina.com.tr', N'paksanmakina.com.tr', N'Garanti yılı: src/data/kimlik.js SIRKET.garantiYil ve src/lib/serial.js GARANTI_YIL. İskonto: src/data/katalog/makineFiyat.js PARCA_SERVIS_ISKONTO. KDV ve para birimi: src/data/katalog/para.js (fiyat listesinin KDV esası doğrulanmadı). Seri kuralı: tohum/kaynak/markalar.json.', N'paksan', NULL, N'onekYilSira', N'TRY', N'PAKSAN_MOBILE_SUPPORT', 1)
     ) AS v (Kod, Ad, GarantiYil, ServisIskontoOrani, KdvOrani, KilavuzDilleri, GorselYolu, SiteUrl, SiteMetni, KaynakNotu, SirketKodu, GarantiBaslangicEsasiKodu, SeriKuraliKodu, ParaBirimiKodu, KilavuzPaketiKodu, Aktif)
 ) AS k
     ON h.Kod = k.Kod
@@ -155,8 +155,8 @@ USING (
         (N'toprak', 250, N'Yağ değişimi', N'Yan şanzıman ve ana şanzıman yağını değiştirin.', 1),
         (N'yem', 10, N'Günlük kontrol', N'Bıçakların aşınıp aşınmadığını ve hidrolik kaçak olup olmadığını kontrol edin.', 1),
         (N'yem', 50, N'Gresleme', N'Helezon yatakları ve boşaltma bandı rulmanlarını gresleyin.', 1),
-        (N'yem', 250, N'Bıçak değişimi/bileme', N'Kesici bıçakları kontrol edin, körelmişse değiştirin.', 1),
-        (N'yem', 500, N'Şanzıman ve tartı', N'Şanzıman yağını ve tartı sisteminin kalibrasyonunu kontrol edin.', 1)
+        (N'yem', 250, N'Bıçak kontrolü ve değişimi', N'Kesici bıçakları kontrol edin, körelmişse değiştirin.', 1),
+        (N'yem', 500, N'Şanzıman ve tartı', N'Şanzıman yağını kontrol edin. Makinenizde tartı sistemi varsa doğru tartıp tartmadığını da kontrol edin.', 1)
     ) AS v (SablonKodu, Saat, Baslik, Detay, Aktif)
 ) AS k
     ON h.SablonKodu = k.SablonKodu AND h.Saat = k.Saat
@@ -189,8 +189,8 @@ USING (
         (N'toprak', 250, N'en', N'Oil change', N'Change the oil in the side gearbox and the main gearbox.'),
         (N'yem', 10, N'en', N'Daily check', N'Check the knives for wear and the hydraulics for leaks.'),
         (N'yem', 50, N'en', N'Greasing', N'Grease the auger bearings and the discharge conveyor bearings.'),
-        (N'yem', 250, N'en', N'Knife change / sharpening', N'Check the cutting knives and replace them if they are blunt.'),
-        (N'yem', 500, N'en', N'Gearbox and scale', N'Gearbox oil, calibration of the weighing system.')
+        (N'yem', 250, N'en', N'Knife check and replacement', N'Check the cutting knives and replace them if they are blunt.'),
+        (N'yem', 500, N'en', N'Gearbox and scale', N'Check the gearbox oil. If your machine has a weighing system, also check that it weighs correctly.')
     ) AS v (SablonKodu, Saat, DilKodu, Baslik, Detay)
 ) AS k
     ON h.SablonKodu = k.SablonKodu AND h.Saat = k.Saat AND h.DilKodu = k.DilKodu
@@ -219,24 +219,24 @@ USING (
            CONVERT(nvarchar(100), v.KilavuzKapsamKodu) AS KilavuzKapsamKodu,
            CONVERT(bit, v.Aktif) AS Aktif
     FROM (VALUES
-        (N'paksan', N'albatros-870', N'Albatros 870', N'Prizmatik büyük balya makinesi', N'Albatros 870, yüksek çalışma hızı ve dengeli balya yoğunluğuyla müteahhit ve büyük işletmeler için tasarlanmıştır.', N'ALB870', NULL, NULL, N'https://www.paksanmakina.com.tr/urunler/albatros-870/', N'buyuk-balya', N'balya', NULL, 1),
-        (N'paksan', N'diamond-dikey', N'Diamond Dikey Yem Karma', N'Dikey helezonlu yem karma makinesi', N'Kaba ve kesif yemi homojen karıştıran dikey helezonlu yem karma makinesi. Özel tasarım kesici bıçakları, yükleme kepçesi ve boşaltma bandı ile süt ve besi sığırcılığı işletmeleri için üretildi.', N'DMD', 5, NULL, N'https://www.paksanmakina.com.tr/urunler/diamond-paksan-dikey-yem-karma-makinasi/', N'yem-karma', N'yem', NULL, 1),
-        (N'paksan', N'hammer', N'Hammer', N'Küçük balya makinesi', N'Hammer, yüksek sıkıştırma gücü ve dayanıklı gövdesiyle zorlu şartlarda çalışan işletmeler için üretildi.', N'HMR', NULL, NULL, N'https://www.paksanmakina.com.tr/urunler/hammer-balya-makinasi/', N'kucuk-balya', N'balya', N'MCH_HAMMER_SERIES', 1),
-        (N'paksan', N'ipak-rulo', N'i-Pak Rulo Balya Makinesi', N'Rulo (yuvarlak) balya makinesi', N'Sabit hazneli rulo balya makinesi. Ağ ve ip sarma seçenekleriyle saman, kuru ot ve silaj balyalamaya uygundur.', N'IPAK', 3, NULL, N'https://www.paksanmakina.com.tr/urunler/i-pak-rulo-balya-makinasi/', N'rulo-balya', N'balya', N'MCH_IPAK_ROUND_BALER', 1),
+        (N'paksan', N'albatros-870', N'Albatros 870', N'Prizmatik büyük balya makinesi', N'Albatros 870, balya işi yapan müteahhitler ve çok miktarda balya hazırlayan çiftçiler için prizmatik büyük balya makinesidir.', N'ALB870', NULL, NULL, N'https://www.paksanmakina.com.tr/urunler/albatros-870/', N'buyuk-balya', N'balya', NULL, 1),
+        (N'paksan', N'diamond-dikey', N'Diamond Dikey Yem Karma', N'Dikey helezonlu yem karma makinesi', N'Süt ve besi sığırı yetiştirenler için dikey helezonlu yem karma makinesi. Kaba ve kesif yemi eşit dağılımla karıştırır. Kesici bıçakları ve boşaltma bandı bulunur; yükleme kepçesi isteğe bağlıdır.', N'DMD', 5, NULL, N'https://www.paksanmakina.com.tr/urunler/diamond-paksan-dikey-yem-karma-makinasi/', N'yem-karma', N'yem', NULL, 1),
+        (N'paksan', N'hammer', N'Hammer', N'Küçük balya makinesi', N'Hammer, zorlu tarla koşullarında balya hazırlayan çiftçiler ve müteahhitler için üretilmiş küçük balya makinesidir.', N'HMR', NULL, NULL, N'https://www.paksanmakina.com.tr/urunler/hammer-balya-makinasi/', N'kucuk-balya', N'balya', N'MCH_HAMMER_SERIES', 1),
+        (N'paksan', N'ipak-rulo', N'i-Pak Rulo Balya Makinesi', N'Rulo (yuvarlak) balya makinesi', N'Sabit hazneli rulo balya makinesi. Otomatik file sarma sistemiyle saman, kuru ot ve silaj balyalamaya uygundur.', N'IPAK', 3, NULL, N'https://www.paksanmakina.com.tr/urunler/i-pak-rulo-balya-makinasi/', N'rulo-balya', N'balya', N'MCH_IPAK_ROUND_BALER', 1),
         (N'paksan', N'kirlangic-ot-toplama', N'Kırlangıç Ot Toplama Makinesi', N'Ot toplama / tırmık makinesi', N'Biçilen otu namlu hâline getiren ot toplama makinesi. Balya öncesi düzgün namlu oluşturur.', N'KRLG', NULL, NULL, N'https://www.paksanmakina.com.tr/urunler/kirlangic-ot-toplama-makinasi/', N'cayir-ot', N'toprak', NULL, 1),
-        (N'paksan', N'orka-870', N'Orka 870', N'Prizmatik büyük balya makinesi', N'Orka serisi prizmatik balya makinesi. Sağlam şasi yapısı ve kolay bakım özellikleriyle uzun ömürlü kullanım sunar.', N'ORKA870', 2, NULL, N'https://www.paksanmakina.com.tr/urunler/orka-870/', N'buyuk-balya', N'balya', N'MCH_ORKA_870', 1),
-        (N'paksan', N'orkinos-1270', N'Orkinos 1270', N'Prizmatik büyük balya makinesi', N'Yüksek kapasiteli prizmatik büyük balya makinesi. Geniş pikabı ve güçlü sıkıştırma sistemiyle saman, kuru ot ve sap balyalamada yüksek yoğunluk sağlar.', N'ORK1270', 4, NULL, N'https://www.paksanmakina.com.tr/urunler/balya-makinalari/', N'buyuk-balya', N'balya', NULL, 1),
-        (N'paksan', N'orkinos-870', N'Orkinos 870', N'Prizmatik büyük balya makinesi', N'Orta ve büyük ölçekli işletmeler için prizmatik balya makinesi. Orkinos serisinin dayanıklılığını daha düşük traktör gücüyle sunar.', N'ORK870', NULL, NULL, N'https://www.paksanmakina.com.tr/urunler/paksan-balya-makinalari/', N'buyuk-balya', N'balya', NULL, 1),
-        (N'paksan', N'pelican-yatay', N'Pelican Yatay Yem Karma', N'Yatay helezonlu yem karma makinesi', N'Yatay helezon sistemiyle hızlı ve homojen karışım sağlayan yem karma makinesi. Düşük tavan yüksekliğine sahip ahırlar için uygundur.', N'PLC', NULL, NULL, N'https://www.paksanmakina.com.tr/urunler/pelican-yatay-yem-karma-makinalari/', N'yem-karma', N'yem', NULL, 1),
-        (N'paksan', N'rotovator', N'Rotovatör', N'Toprak frezesi', N'Toprağı parçalayıp ekime hazır hale getiren rotovatör. Değişik çalışma genişliği seçenekleriyle sunulur.', N'RTV', NULL, NULL, N'https://www.paksanmakina.com.tr/urunler/paksan-dikey-rotovator/', N'toprak', N'toprak', NULL, 1),
+        (N'paksan', N'orka-870', N'Orka 870', N'Prizmatik büyük balya makinesi', N'Orka serisi prizmatik balya makinesi.', N'ORKA870', 2, NULL, N'https://www.paksanmakina.com.tr/urunler/orka-870/', N'buyuk-balya', N'balya', N'MCH_ORKA_870', 1),
+        (N'paksan', N'orkinos-1270', N'Orkinos 1270', N'Prizmatik büyük balya makinesi', N'Saman, kuru ot ve sapı sıkıştırarak prizmatik büyük balya yapan makine.', N'ORK1270', 4, NULL, N'https://www.paksanmakina.com.tr/urunler/balya-makinalari/', N'buyuk-balya', N'balya', NULL, 1),
+        (N'paksan', N'orkinos-870', N'Orkinos 870', N'Prizmatik büyük balya makinesi', N'Çiftçiler ve balya işi yapan müteahhitler için prizmatik balya makinesi. Orkinos 1270’e göre daha düşük traktör gücü gerektirir.', N'ORK870', NULL, NULL, N'https://www.paksanmakina.com.tr/urunler/paksan-balya-makinalari/', N'buyuk-balya', N'balya', NULL, 1),
+        (N'paksan', N'pelican-yatay', N'Pelican Yatay Yem Karma', N'Yatay helezonlu yem karma makinesi', N'Yatay helezonuyla yemi eşit dağılımla karıştıran yem karma makinesi. Alçak tavanlı ahırlar için uygundur.', N'PLC', NULL, NULL, N'https://www.paksanmakina.com.tr/urunler/pelican-yatay-yem-karma-makinalari/', N'yem-karma', N'yem', NULL, 1),
+        (N'paksan', N'rotovator', N'Rotovatör', N'Toprak frezesi', N'Toprağı parçalayıp ekime hazır hâle getiren rotovatör. Değişik çalışma genişliği seçenekleriyle sunulur.', N'RTV', NULL, NULL, N'https://www.paksanmakina.com.tr/urunler/paksan-dikey-rotovator/', N'toprak', N'toprak', NULL, 1),
         (N'paksan', N'scorpion-silaj', N'Scorpion Silaj Makinesi', N'Sıra bağımsız silaj makinesi', N'Sıra bağımsız çalışan silaj makinesi. Mısır, sorgum ve benzeri ürünleri sıra gözetmeksizin biçip parçalar.', N'SCRP', NULL, NULL, N'https://www.paksanmakina.com.tr/urunler/silaj-bicer/', N'silaj', N'silaj', NULL, 1),
         (N'paksan', N'silaj-paketleme', N'Ahtapot Silaj Paketleme Makinesi', N'Balya sarma / paketleme makinesi', N'Rulo balyaları streç film ile sararak silaj yapımını sağlayan paketleme makinesi.', N'AHTP', NULL, NULL, N'https://www.paksanmakina.com.tr/urunler/ahtapot-1000-silaj-paketleme-makinasi/', N'silaj', N'silaj', NULL, 1),
-        (N'paksan', N'super-8002', N'Süper 8002', N'Küçük balya makinesi', N'Uzun yıllardır sahada kanıtlanmış klasik PAKSAN küçük balya makinesi.', N'S8002', NULL, NULL, N'https://www.paksanmakina.com.tr/urunler/paksan-balya-makinalari-2/', N'kucuk-balya', N'balya', N'MCH_PAKSAN_BALYA_SUPER', 1),
+        (N'paksan', N'super-8002', N'Süper 8002', N'Küçük balya makinesi', N'PAKSAN’ın küçük balya makinesi.', N'S8002', NULL, NULL, N'https://www.paksanmakina.com.tr/urunler/paksan-balya-makinalari-2/', N'kucuk-balya', N'balya', N'MCH_PAKSAN_BALYA_SUPER', 1),
         (N'paksan', N'super-8002e', N'Süper 8002E', N'Küçük balya makinesi (E serisi)', N'Süper 8002''nin geliştirilmiş E serisi. Güçlendirilmiş şasi ve iyileştirilmiş besleme sistemi.', N'S8002E', NULL, NULL, N'https://www.paksanmakina.com.tr/urunler/paksan-balya-makinalari-4/', N'kucuk-balya', N'balya', N'MCH_PAKSAN_BALYA_SUPER', 1),
-        (N'paksan', N'super-8002e-dual2', N'Süper 8002E Dual 2', N'Çift sistemli küçük balya makinesi', N'E serisinin çift bağlama sistemli en üst modeli.', N'S8002ED2', NULL, NULL, N'https://www.paksanmakina.com.tr/urunler/paksan-balya-makinalari-3/', N'kucuk-balya', N'balya', N'MCH_PAKSAN_BALYA_SUPER', 1),
-        (N'paksan', N'super-yunus', N'Süper Yunus', N'Küçük balya makinesi', N'PAKSAN''ın en çok tercih edilen küçük balya makinesi. Elle taşınabilir balya ölçüsüyle küçük ve orta ölçekli işletmeler için idealdir.', N'SYNS', 1, NULL, N'https://www.paksanmakina.com.tr/urunler/super-yunus-balya-makinasi/', N'kucuk-balya', N'balya', N'MCH_PAKSAN_BALYA_SUPER', 1),
-        (N'paksan', N'super-yunus-3yabali', N'Süper Yunus 3 Yabalı', N'Üç yabalı küçük balya makinesi', N'Üç yaba sistemi ile daha düzenli besleme ve daha yüksek çalışma kapasitesi sunan Süper Yunus modeli.', N'SYNS3Y', NULL, NULL, N'https://www.paksanmakina.com.tr/urunler/paksan-balya-makinalari-5/', N'kucuk-balya', N'balya', N'MCH_PAKSAN_BALYA_SUPER', 1),
-        (N'paksan', N'super-yunus-dual2', N'Süper Yunus Dual 2', N'Çift sistemli küçük balya makinesi', N'Süper Yunus''un çift bağlama sistemli modeli. Daha sıkı balya ve daha az ip kopması sağlar.', N'SYNSD2', NULL, NULL, N'https://www.paksanmakina.com.tr/urunler/paksan-balya-makinalari-6/', N'kucuk-balya', N'balya', N'MCH_PAKSAN_BALYA_SUPER', 1),
+        (N'paksan', N'super-8002e-dual2', N'Süper 8002E Dual 2', N'Çift bağlama sistemli küçük balya makinesi', N'E serisinin çift bağlama sistemli modeli.', N'S8002ED2', NULL, NULL, N'https://www.paksanmakina.com.tr/urunler/paksan-balya-makinalari-3/', N'kucuk-balya', N'balya', N'MCH_PAKSAN_BALYA_SUPER', 1),
+        (N'paksan', N'super-yunus', N'Süper Yunus', N'Küçük balya makinesi', N'PAKSAN’ın küçük balya makinesi. Küçük balya hazırlayan çiftçiler ve balya işi yapan müteahhitler için tasarlanmıştır.', N'SYNS', 1, NULL, N'https://www.paksanmakina.com.tr/urunler/super-yunus-balya-makinasi/', N'kucuk-balya', N'balya', N'MCH_PAKSAN_BALYA_SUPER', 1),
+        (N'paksan', N'super-yunus-3yabali', N'Süper Yunus 3 Yabalı', N'Üç yabalı küçük balya makinesi', N'Üç yabalı besleme sistemine sahip Süper Yunus modeli.', N'SYNS3Y', NULL, NULL, N'https://www.paksanmakina.com.tr/urunler/paksan-balya-makinalari-5/', N'kucuk-balya', N'balya', N'MCH_PAKSAN_BALYA_SUPER', 1),
+        (N'paksan', N'super-yunus-dual2', N'Süper Yunus Dual 2', N'Çift bağlama sistemli küçük balya makinesi', N'Süper Yunus’un çift bağlama sistemli modeli.', N'SYNSD2', NULL, NULL, N'https://www.paksanmakina.com.tr/urunler/paksan-balya-makinalari-6/', N'kucuk-balya', N'balya', N'MCH_PAKSAN_BALYA_SUPER', 1),
         (N'paksan', N'tesviye-kuregi', N'Tesviye Küreği', N'Arazi tesviye küreği', N'Tarla düzeltme ve tesviye işleri için kullanılan kürek. Sağlam çelik gövde.', N'TSVY', NULL, NULL, N'https://www.paksanmakina.com.tr/urunler/paksan-tesviye-kuregi/', N'toprak', N'toprak', NULL, 1),
         (N'paksan', N'yengec-cayir', N'Yengeç Çayır Biçme Makinesi', N'Diskli çayır biçme makinesi', N'Diskli çayır biçme makinesi. Temiz kesim ve yüksek çalışma hızı sağlar.', N'YNGC', NULL, NULL, N'https://www.paksanmakina.com.tr/urunler/yengec-cayir-bicme-makinasi/', N'cayir-ot', N'toprak', NULL, 1)
     ) AS v (MarkaKodu, Kod, Ad, Slogan, Aciklama, SeriOneki, VitrinSirasi, KilavuzUrl, TeknikKaynakUrl, KategoriKodu, BakimSablonuKodu, KilavuzKapsamKodu, Aktif)
@@ -262,24 +262,24 @@ USING (
            CONVERT(nvarchar(200), v.Slogan) AS Slogan,
            CONVERT(nvarchar(max), v.Aciklama) AS Aciklama
     FROM (VALUES
-        (N'paksan', N'albatros-870', N'en', N'Albatros 870', N'Large square baler', N'The Albatros 870 is designed for contractors and large farms, with a high working speed and consistent bale density.'),
-        (N'paksan', N'diamond-dikey', N'en', N'Diamond Vertical Feed Mixer', N'Vertical auger feed mixer', N'A vertical auger feed mixer that blends roughage and concentrate evenly. With its purpose-designed cutting knives, loading bucket and discharge conveyor, it was built for dairy and beef farms.'),
-        (N'paksan', N'hammer', N'en', N'Hammer', N'Small square baler', N'The Hammer was built for farms working in hard conditions, with high compression power and a durable body.'),
-        (N'paksan', N'ipak-rulo', N'en', N'i-Pak Round Baler', N'Round baler', N'A fixed-chamber round baler. With net and twine wrapping options it suits straw, hay and silage baling.'),
+        (N'paksan', N'albatros-870', N'en', N'Albatros 870', N'Large square baler', N'The Albatros 870 is a large square baler for baling contractors and for farmers who make a large number of bales.'),
+        (N'paksan', N'diamond-dikey', N'en', N'Diamond Vertical Feed Mixer', N'Vertical auger feed mixer', N'A vertical auger feed mixer for dairy and beef cattle farmers. It mixes roughage and concentrate evenly. It has cutting knives and a discharge conveyor; the loading bucket is optional.'),
+        (N'paksan', N'hammer', N'en', N'Hammer', N'Small square baler', N'The Hammer is a small square baler built for farmers and contractors baling in tough field conditions.'),
+        (N'paksan', N'ipak-rulo', N'en', N'i-Pak Round Baler', N'Round baler', N'A fixed-chamber round baler. With its automatic net wrapping system it suits straw, hay and silage baling.'),
         (N'paksan', N'kirlangic-ot-toplama', N'en', N'Kirlangic Rake', N'Hay rake', N'A rake that gathers the mown grass into windrows. It forms an even windrow ready for baling.'),
-        (N'paksan', N'orka-870', N'en', N'Orka 870', N'Large square baler', N'A square baler from the Orka series. Its solid chassis and easy maintenance give a long service life.'),
-        (N'paksan', N'orkinos-1270', N'en', N'Orkinos 1270', N'Large square baler', N'A high-capacity large square baler. Its wide pickup and powerful compression system give high density when baling straw, hay and stalks.'),
-        (N'paksan', N'orkinos-870', N'en', N'Orkinos 870', N'Large square baler', N'A square baler for medium-to-large farms. It offers the durability of the Orkinos series with less tractor power.'),
-        (N'paksan', N'pelican-yatay', N'en', N'Pelican Horizontal Feed Mixer', N'Horizontal auger feed mixer', N'A feed mixer that gives a fast, even mix with its horizontal auger system. It suits barns with a low ceiling height.'),
+        (N'paksan', N'orka-870', N'en', N'Orka 870', N'Large square baler', N'A square baler from the Orka series.'),
+        (N'paksan', N'orkinos-1270', N'en', N'Orkinos 1270', N'Large square baler', N'A machine that compresses straw, hay and stalks into large square bales.'),
+        (N'paksan', N'orkinos-870', N'en', N'Orkinos 870', N'Large square baler', N'A square baler for farmers and baling contractors. It needs less tractor power than the Orkinos 1270.'),
+        (N'paksan', N'pelican-yatay', N'en', N'Pelican Horizontal Feed Mixer', N'Horizontal auger feed mixer', N'A feed mixer that mixes feed evenly with its horizontal auger. It suits barns with a low ceiling.'),
         (N'paksan', N'rotovator', N'en', N'Rotary Tiller', N'Rotary tiller', N'A rotary tiller that breaks up the soil and prepares it for sowing. Offered in several working widths.'),
         (N'paksan', N'scorpion-silaj', N'en', N'Scorpion Forage Harvester', N'Row-independent forage harvester', N'A row-independent forage harvester. It cuts and chops maize, sorghum and similar crops without following the rows.'),
         (N'paksan', N'silaj-paketleme', N'en', N'Ahtapot Bale Wrapper', N'Bale wrapping machine', N'A wrapping machine that makes silage by wrapping round bales in stretch film.'),
-        (N'paksan', N'super-8002', N'en', N'Super 8002', N'Small square baler', N'The classic PAKSAN small square baler, proven in the field for many years.'),
+        (N'paksan', N'super-8002', N'en', N'Super 8002', N'Small square baler', N'PAKSAN''s small square baler.'),
         (N'paksan', N'super-8002e', N'en', N'Super 8002E', N'Small square baler (E series)', N'The improved E series of the Super 8002, with a reinforced chassis and an upgraded feeding system.'),
-        (N'paksan', N'super-8002e-dual2', N'en', N'Super 8002E Dual 2', N'Small square baler, twin knotter', N'The top model of the E series, with the twin-knotter system.'),
-        (N'paksan', N'super-yunus', N'en', N'Super Yunus', N'Small square baler', N'PAKSAN''s most popular small square baler. With a bale size that can be carried by hand, it is ideal for small and medium farms.'),
-        (N'paksan', N'super-yunus-3yabali', N'en', N'Super Yunus 3 Yabali', N'Small square baler, three-tine feeder', N'The Super Yunus model with a three-fork system, giving more even feeding and a higher working capacity.'),
-        (N'paksan', N'super-yunus-dual2', N'en', N'Super Yunus Dual 2', N'Small square baler, twin knotter', N'The twin-knotter model of the Super Yunus. It makes tighter bales with fewer twine breaks.'),
+        (N'paksan', N'super-8002e-dual2', N'en', N'Super 8002E Dual 2', N'Small square baler, twin knotter', N'The twin-knotter model of the E series.'),
+        (N'paksan', N'super-yunus', N'en', N'Super Yunus', N'Small square baler', N'PAKSAN''s small square baler. It is designed for farmers who make small bales and for baling contractors.'),
+        (N'paksan', N'super-yunus-3yabali', N'en', N'Super Yunus 3 Yabali', N'Small square baler, three-tine feeder', N'The Super Yunus model with a three-fork feeding system.'),
+        (N'paksan', N'super-yunus-dual2', N'en', N'Super Yunus Dual 2', N'Small square baler, twin knotter', N'The twin-knotter model of the Super Yunus.'),
         (N'paksan', N'tesviye-kuregi', N'en', N'Land Leveller', N'Land levelling blade', N'A blade used for field levelling and grading work. Solid steel body.'),
         (N'paksan', N'yengec-cayir', N'en', N'Yengec Disc Mower', N'Disc mower', N'A disc mower. It gives a clean cut and a high working speed.')
     ) AS v (MarkaKodu, UrunKodu, DilKodu, Ad, Slogan, Aciklama)
@@ -418,10 +418,10 @@ USING (
         (N'paksan', N'albatros-870', 4, N'Gerekli traktör gücü', N'min. 100 HP', 1),
         (N'paksan', N'diamond-dikey', 1, N'Hacim seçenekleri', N'4 m³ / 6 m³ / 8 m³', 1),
         (N'paksan', N'diamond-dikey', 2, N'Helezon', N'Dikey, tek helezon', 1),
-        (N'paksan', N'diamond-dikey', 3, N'Bıçak', N'Özel tasarım kesici bıçak', 1),
+        (N'paksan', N'diamond-dikey', 3, N'Bıçak', N'Kesici bıçak', 1),
         (N'paksan', N'diamond-dikey', 4, N'Boşaltma', N'Bant ile yandan boşaltma', 1),
-        (N'paksan', N'diamond-dikey', 5, N'Tartı sistemi', N'Dijital (opsiyonel)', 1),
-        (N'paksan', N'diamond-dikey', 6, N'Yükleme kepçesi', N'Opsiyonel', 1),
+        (N'paksan', N'diamond-dikey', 5, N'Tartı sistemi', N'Dijital (isteğe bağlı)', 1),
+        (N'paksan', N'diamond-dikey', 6, N'Yükleme kepçesi', N'İsteğe bağlı', 1),
         (N'paksan', N'hammer', 1, N'Balya ölçüsü', N'36 x 46 cm', 1),
         (N'paksan', N'hammer', 2, N'Balya uzunluğu', N'30 – 140 cm', 1),
         (N'paksan', N'hammer', 3, N'Düğüm atıcı', N'2 – 3 adet (modele göre)', 1),
@@ -454,7 +454,7 @@ USING (
         (N'paksan', N'orkinos-870', 6, N'Kuyruk mili devri', N'1000 d/dk', 1),
         (N'paksan', N'pelican-yatay', 1, N'Helezon', N'Yatay', 1),
         (N'paksan', N'pelican-yatay', 2, N'Boşaltma', N'Çift yönlü bant', 1),
-        (N'paksan', N'pelican-yatay', 3, N'Tartı sistemi', N'Dijital (opsiyonel)', 1),
+        (N'paksan', N'pelican-yatay', 3, N'Tartı sistemi', N'Dijital (isteğe bağlı)', 1),
         (N'paksan', N'rotovator', 1, N'Çalışma genişliği', N'1.400 – 2.500 mm', 1),
         (N'paksan', N'rotovator', 2, N'Bıçak tipi', N'C tipi / L tipi', 1),
         (N'paksan', N'rotovator', 3, N'Şanzıman', N'Yan zincir / dişli', 1),
@@ -527,7 +527,7 @@ USING (
         (N'paksan', N'albatros-870', 4, N'en', N'Tractor power required', NULL),
         (N'paksan', N'diamond-dikey', 1, N'en', N'Capacity options', NULL),
         (N'paksan', N'diamond-dikey', 2, N'en', N'Auger', N'Vertical, single auger'),
-        (N'paksan', N'diamond-dikey', 3, N'en', N'Knives', N'Purpose-designed cutting knife'),
+        (N'paksan', N'diamond-dikey', 3, N'en', N'Knives', N'Cutting knife'),
         (N'paksan', N'diamond-dikey', 4, N'en', N'Discharge', N'Side discharge by conveyor'),
         (N'paksan', N'diamond-dikey', 5, N'en', N'Weighing system', N'Digital (optional)'),
         (N'paksan', N'diamond-dikey', 6, N'en', N'Loading bucket', N'Optional'),
@@ -637,10 +637,10 @@ USING (
         (N'paksan', N'diamond-dikey', 3, N'Tartı kalibrasyonu', 245, NULL, NULL, N'kullanim', 1),
         (N'paksan', N'hammer', 1, N'Hammer tanıtım', 164, NULL, NULL, N'tanitim', 1),
         (N'paksan', N'ipak-rulo', 1, N'i-Pak tanıtım', 210, NULL, NULL, N'tanitim', 1),
-        (N'paksan', N'ipak-rulo', 2, N'Ağ takma ve ayarı', 372, NULL, NULL, N'kullanim', 1),
+        (N'paksan', N'ipak-rulo', 2, N'File takma ve ayarlama', 372, NULL, NULL, N'kullanim', 1),
         (N'paksan', N'kirlangic-ot-toplama', 1, N'Kırlangıç tanıtım', 135, NULL, NULL, N'tanitim', 1),
         (N'paksan', N'orka-870', 1, N'Orka 870 tanıtım', 155, NULL, NULL, N'tanitim', 1),
-        (N'paksan', N'orkinos-1270', 1, N'Orkinos 1270 tanıtım', 26, NULL, N'src/marka/varliklar/videolar/orkinos-1270-tanitim.mp4', N'tanitim', 1),
+        (N'paksan', N'orkinos-1270', 1, N'Orkinos 1270 tanıtım', 26, NULL, N'src/assets/videolar/orkinos-1270-tanitim.mp4', N'tanitim', 1),
         (N'paksan', N'orkinos-1270', 2, N'İlk çalıştırma ve traktöre bağlama', 400, NULL, NULL, N'kullanim', 1),
         (N'paksan', N'orkinos-1270', 3, N'Düğüm atıcı ayarı', 485, NULL, NULL, N'kullanim', 1),
         (N'paksan', N'orkinos-1270', 4, N'Balya yoğunluğu ayarı', 262, NULL, NULL, N'kullanim', 1),
@@ -659,7 +659,7 @@ USING (
         (N'paksan', N'super-yunus', 2, N'İp takma ve düğüm ayarı', 435, NULL, NULL, N'kullanim', 1),
         (N'paksan', N'super-yunus', 3, N'Emniyet cıvatası değişimi', 220, NULL, NULL, N'kullanim', 1),
         (N'paksan', N'super-yunus-3yabali', 1, N'3 Yabalı sistem tanıtımı', 175, NULL, NULL, N'tanitim', 1),
-        (N'paksan', N'super-yunus-dual2', 1, N'Dual 2 sistemi nasıl çalışır', 290, NULL, NULL, N'kullanim', 1),
+        (N'paksan', N'super-yunus-dual2', 1, N'Dual 2 sistemi nasıl çalışır?', 290, NULL, NULL, N'kullanim', 1),
         (N'paksan', N'tesviye-kuregi', 1, N'Tesviye küreği tanıtım', 110, NULL, NULL, N'tanitim', 1),
         (N'paksan', N'yengec-cayir', 1, N'Yengeç tanıtım', 160, NULL, NULL, N'tanitim', 1)
     ) AS v (MarkaKodu, UrunKodu, SiraNo, Baslik, SureSaniye, Url, DosyaYolu, TurKodu, Aktif)
@@ -712,7 +712,7 @@ USING (
         (N'paksan', N'super-yunus', 2, N'en', N'Threading the twine and setting the knot'),
         (N'paksan', N'super-yunus', 3, N'en', N'Replacing the shear bolt'),
         (N'paksan', N'super-yunus-3yabali', 1, N'en', N'Three-fork system overview'),
-        (N'paksan', N'super-yunus-dual2', 1, N'en', N'How the Dual 2 system works'),
+        (N'paksan', N'super-yunus-dual2', 1, N'en', N'How does the Dual 2 system work?'),
         (N'paksan', N'tesviye-kuregi', 1, N'en', N'Land leveller overview'),
         (N'paksan', N'yengec-cayir', 1, N'en', N'Yengec overview')
     ) AS v (MarkaKodu, UrunKodu, SiraNo, DilKodu, Baslik)

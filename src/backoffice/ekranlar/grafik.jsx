@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 
 /* ==========================================================================
    Grafikler
@@ -228,6 +228,22 @@ export function YatayBar({ satirlar, renk = 'var(--mavi)' }) {
  */
 export function YiginSutun({ kovalar, seriler, yaz = (x) => String(x), onSec, enYuksek, yukseklik = 180, anahtarGizli = false, toplamAdi = '' }) {
   const [aktif, setAktif] = useState(null)
+  /* HER SÜTUNUN ETİKETİ YAZILIYOR (6 Ekim 2026, kullanıcının onayı:
+     "hiçbir çubuk etiketsiz kalmasın"). Önce N'de bir yazılıyordu; boş
+     kalan sütunun hangi aralık olduğu anlaşılmıyordu. Ekseni ölçüp sütun
+     başına düşen genişliğe göre yazılış seçiliyor: genişse düz (gerekirse
+     iki satır), darsa dik (yan yana duran küçük grafikler). */
+  const eksenRef = useRef(null)
+  const [dik, setDik] = useState(false)
+  useLayoutEffect(() => {
+    const el = eksenRef.current
+    if (!el || !kovalar.length) return undefined
+    const olc = () => setDik(el.clientWidth / kovalar.length < 34)
+    olc()
+    const izle = new ResizeObserver(olc)
+    izle.observe(el)
+    return () => izle.disconnect()
+  }, [kovalar.length])
   const toplamlar = kovalar.map((k) => seriler.reduce((t, s) => t + (k.degerler?.[s.anahtar] || 0), 0))
   const hepsi = toplamlar.reduce((a, b) => a + b, 0)
   if (!kovalar.length || !hepsi) return <BosGrafik />
@@ -240,12 +256,6 @@ export function YiginSutun({ kovalar, seriler, yaz = (x) => String(x), onSec, en
 
   const enYuksekSira = toplamlar.indexOf(Math.max(...toplamlar))
   const sonSira = toplamlar.length - 1
-  const atla = Math.ceil(kovalar.length / 12)
-  /* Son sütunun etiketi her zaman yazılıyor, ama bir önceki yazılı
-     etikete yarım adımdan yakınsa o önceki yazılmıyor (üst üste
-     biniyorlardı: "15.9 17.9"). */
-  const etiketYaz = (i) =>
-    i === sonSira || (i % atla === 0 && sonSira - i >= Math.max(2, Math.ceil(atla / 2)))
 
   return (
     <div className="ysutun" style={{ '--ysutun-h': `${yukseklik}px` }}>
@@ -324,10 +334,15 @@ export function YiginSutun({ kovalar, seriler, yaz = (x) => String(x), onSec, en
         </div>
       </div>
 
-      <div className="ysutun__eksen" style={{ '--sutun-adet': kovalar.length }} aria-hidden="true">
+      <div
+        ref={eksenRef}
+        className={'ysutun__eksen' + (dik ? ' ysutun__eksen--dik' : '')}
+        style={{ '--sutun-adet': kovalar.length }}
+        aria-hidden="true"
+      >
         {kovalar.map((k, i) => (
           <span key={i} className="ysutun__etiket">
-            {etiketYaz(i) ? k.etiket : ''}
+            {k.etiket}
           </span>
         ))}
       </div>

@@ -8,7 +8,7 @@
 
    1 şirket (paksan), 1 banka hesabı.
 
-   Kaynak: src/marka/kimlik.js SIRKET, UYGULAMA, BANKA.hesaplar;
+   Kaynak: src/data/kimlik.js SIRKET, UYGULAMA, BANKA.hesaplar;
    şirket kodu tohum/kaynak/markalar.json. Tasarım: tasarim.md 5.2 T04.
    Hedef kaynaktaki şirket koduyla sınırlıdır. Kaynakta olmayan hesap
    Aktif = 0 olur, silinmez. VergiNo, VergiDairesi ve LogoFirmaNo kaynakta

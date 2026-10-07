@@ -9,7 +9,7 @@
    2 tarife: yol için km başına, işçilik için saat başına; ikisi de bütün markalar için.
 
    Kaynak: src/lib/servisKaydi.js TARIFE.yolKm ve TARIFE.iscilikSaat; para birimi
-   src/marka/katalog/para.js; geçerlilik başlangıcı tasarim.md 5.3 B02. Yalnız
+   src/data/katalog/para.js; geçerlilik başlangıcı tasarim.md 5.3 B02. Yalnız
    yoksa ekler: aynı kalem türünde markasız bir tarife (açık ya da kapanmış)
    varsa o satır yazılmaz; tarifeyi PAKSAN değiştirir.
 

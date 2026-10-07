@@ -12,7 +12,7 @@
    (+ .en.js), src/backoffice/ekranlar/Talepler.jsx, IslemKaydi.jsx,
    Duyurular.jsx, src/servis/ekranlar/TalepDetay.jsx, src/lib/servisKaydi.js,
    src/data/duyuruTurleri.js, src/lib/bildirim.js, src/data/kvkk.js,
-   src/marka (SERVIS_TURU, PARA_BIRIMI), src/i18n; tohum/kaynak/kod-eslesmeleri.json,
+   src/data/katalog (SERVIS_TURU, PARA_BIRIMI), src/i18n; tohum/kaynak/kod-eslesmeleri.json,
    kod-adlari.json. Tasarım: veritabani/tasarim.md 1.15, 5.2.
 
    Kod listelerinde kaynakta olmayan satır pasifleştirilmez ve silinmez;
@@ -251,7 +251,7 @@ USING (
     FROM (VALUES
         (N'bayi', N'Bayi listesi', 24),
         (N'demo', N'Demo verisi', 22),
-        (N'devir', N'Üreticiye devir', 20),
+        (N'devir', N'PAKSAN’a devir', 20),
         (N'durum', N'Talep durumu', 2),
         (N'duyuru', N'Duyuru', 9),
         (N'excel', N'Excel aktarımı', 21),
@@ -1738,7 +1738,7 @@ USING (
         (N'kod.KaynakUygulama', N'servis', N'servisim', NULL),
         (N'kod.Masa', N'parca', N'parcaMasasi', N'src/lib/servisKaydi.js kapininSonucu masa'),
         (N'kod.Masa', N'servis', N'servisMasasi', N'src/lib/servisKaydi.js kapininSonucu masa'),
-        (N'kod.ParaBirimi', N'TL', N'TRY', N'src/marka/katalog/para.js PARA_BIRIMI'),
+        (N'kod.ParaBirimi', N'TL', N'TRY', N'src/data/katalog/para.js PARA_BIRIMI'),
         (N'kod.ServisAtamaKaynagi', N'atama', N'makineAtamasi', N'src/lib/servisAtama.js kaynak'),
         (N'kod.ServisAtamaKaynagi', N'bayi', N'bayiServisi', N'src/lib/servisAtama.js kaynak'),
         (N'kod.TalepDurumu', N'bayide', N'kapandi', N'src/backoffice/veri.js DURUMLAR: Bayide durumu kaldırıldı; sahip bayi'),

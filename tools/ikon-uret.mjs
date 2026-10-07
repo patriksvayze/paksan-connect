@@ -4,7 +4,7 @@
        node tools/ikon-uret.mjs app      PAKSAN Connect   (beyaz zemin)
        node tools/ikon-uret.mjs servis   PAKSAN Servisim  (turuncu zemin)
 
-   Kaynak: src/marka/varliklar/paksan-amblem.png (kalkan amblemi)
+   Kaynak: src/assets/logo/paksan-amblem.png (kalkan amblemi)
 
    İKİ UYGULAMA AYNI AMBLEMİ TAŞIYOR, ZEMİNLE AYRILIYOR
 
@@ -20,7 +20,7 @@
    Lacivert zemin denenmedi ve bilerek: amblemin kendi kalkanı lacivert,
    üstüne konduğunda kalkanın kenarı kayboluyor.
 
-   Turuncu `src/marka/renkler.css` dosyasından okunuyor; marka rengi
+   Turuncu `src/styles/renkler.css` dosyasından okunuyor; marka rengi
    değişirse simge de onunla değişiyor.
 
    ÇIKTI
@@ -46,10 +46,10 @@ import { existsSync, readFileSync } from 'node:fs'
 import { mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
-const KAYNAK = 'src/marka/varliklar/paksan-amblem.png'
+const KAYNAK = 'src/assets/logo/paksan-amblem.png'
 
 function markaRengi(ad) {
-  const css = readFileSync('src/marka/renkler.css', 'utf8')
+  const css = readFileSync('src/styles/renkler.css', 'utf8')
   const eslesme = css.match(new RegExp(`--${ad}:\\s*(#[0-9a-fA-F]{6})`))
   if (!eslesme) throw Error(`renkler.css içinde --${ad} bulunamadı`)
   return eslesme[1]

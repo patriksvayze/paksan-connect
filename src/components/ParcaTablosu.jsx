@@ -55,7 +55,7 @@
    ekranın dökümünde: KDV ve indirimler satıra bölünmüyor.
    ========================================================================== */
 
-import { PARA_BIRIMI, paraYaz } from '../marka'
+import { PARA_BIRIMI, paraYaz } from '../data/katalog/para.js'
 import { ParcaResmi, useParcaKatalogu } from './ParcaResmi'
 
 /**

@@ -44,7 +44,7 @@
 
 import { load, save } from '../lib/storage'
 import { servisHesabiYaz, servisleriYaz } from '../backoffice/veri'
-import { servisleriGetir } from '../marka'
+import { servisleriGetir } from '../data/katalog/servisler.js'
 import { demoTemizle, demoVarMi, demoYukle } from '../backoffice/demo'
 import { DEMO_SERVIS } from '../backoffice/demoServis'
 import { DEMO_HESAP } from './demoKimlik'
@@ -75,9 +75,11 @@ import { DEMO_HESAP } from './demoKimlik'
    girilsin".
    8 (29 Eylül 2026): D10'un randevusunu servis veriyor; PAKSAN
    devredilmemiş işe randevu veremiyor (veri.js → paksanRandevuEngeli).
+   9 (6 Ekim 2026): garanti parçasını servis birimi gönderiyor; demo işler
+   servis masasında, gönderen Servis personeli (veri.js → rolunTalepleri).
    Dışa açık: ekran turu demoyu kapatmak için bu sayıyı yazıyor
    (tools/ekosistem-turu.mjs); elle yazsaydı sürüm değişince bozulurdu. */
-export const DEMO_SURUMU = 8
+export const DEMO_SURUMU = 9
 const SURUM_ANAHTARI = 'demoSurumu'
 
 export async function demoKur() {

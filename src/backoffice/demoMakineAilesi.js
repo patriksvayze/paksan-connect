@@ -34,7 +34,10 @@
    (bkz. servis/demoKur.js başı).
    ========================================================================== */
 
-import { getProduct, supportGroup, PARCA_GRUBU_AILESI, PARCA_ADINDAKI_MODEL, GRUBUN_MODELLERI } from '../marka'
+import { getProduct, supportGroup } from '../data/katalog/products.js'
+import {
+  PARCA_GRUBU_AILESI, PARCA_ADINDAKI_MODEL, GRUBUN_MODELLERI,
+} from '../data/katalog/parcaGruplari.js'
 import { extractYear, warrantyStatus } from '../lib/serial'
 
 const sec = (d) => d[Math.floor(Math.random() * d.length)]
@@ -94,7 +97,7 @@ export function makineninParcaHavuzu(katalog, productId) {
                  YAPILAN_IS değerlerinden biri) ve sonucu
 
    Rulo, silaj ve toprak ailelerinin fiyat listesinde parçası yok
-   (marka/katalog/parcaGruplari.js → PARCASIZ_AILELER); vakaları da
+   (data/katalog/parcaGruplari.js → PARCASIZ_AILELER); vakaları da
    parçasız.
    ========================================================================== */
 

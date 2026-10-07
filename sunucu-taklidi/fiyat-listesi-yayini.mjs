@@ -228,7 +228,7 @@ export function fiyatListesiniYayinla(kok, istek, simdi = new Date()) {
     /* 4. Liste tek hamlede yürürlüğe giriyor. */
     const gecici = join(canli, 'katalog.json.yeni')
     copyFileSync(join(yeni, 'katalog.json'), gecici)
-    renameSync(gecici, join(canli, 'katalog.json'))
+    yerineKoy(gecici, join(canli, 'katalog.json'))
 
     /* 5. adım (eski listeye özgü görselleri silmek) KALDIRILDI:
        geçmiş talepler o dosyalara bakıyor (bkz. başlık). */
@@ -237,6 +237,32 @@ export function fiyatListesiniYayinla(kok, istek, simdi = new Date()) {
   }
 
   return { surum, parca: parcalar.length, yayinTarihi }
+}
+
+/* WINDOWS'TA YENİ YAZILAN DOSYA BİR AN KİLİTLİ (7 Ekim 2026). 6 Ekim'de
+   backoffice'ten üç yayın denemesi bu adımda EPERM ile düştü: görseller,
+   PDF ve arşiv yazılmış, liste yürürlüğe girmemişti; katalog.json.yeni
+   geride kalmıştı. Yeni yazılan dosyayı virüs tarayıcısı ya da dizin
+   hizmeti kısa süre açık tutuyor ve o sırada taşınamıyor. Taşıma birkaç
+   kez, aralıklarla yeniden deneniyor; olmazsa hata yükseliyor ve geçici
+   dosya siliniyor (yarım iz kalmasın). */
+const TASIMA_DENEMESI = 20
+const TASIMA_ARASI_MS = 150
+
+function yerineKoy(gecici, hedef) {
+  for (let i = 1; ; i++) {
+    try {
+      renameSync(gecici, hedef)
+      return
+    } catch (e) {
+      const kilitli = e && (e.code === 'EPERM' || e.code === 'EBUSY' || e.code === 'EACCES')
+      if (!kilitli || i >= TASIMA_DENEMESI) {
+        rmSync(gecici, { force: true })
+        throw e
+      }
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, TASIMA_ARASI_MS)
+    }
+  }
 }
 
 /**

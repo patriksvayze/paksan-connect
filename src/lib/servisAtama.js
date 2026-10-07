@@ -20,7 +20,7 @@
      2. Makineyi satan bayinin çalıştığı servis
         Bayilerin çoğunun kendi servisi yok; anlaştıkları servise
         yönlendiriyorlar. Bağ servis kaydında duruyor
-        (bkz. marka/katalog/servisler.js → bayiler).
+        (bkz. data/katalog/servisler.js → bayiler).
 
    İkisi de boşsa cevap YOK. Uydurulmuş bir servis, servissizlikten
    kötü: müşteri yanlış kapıyı çalar, servis kendisine düşen işi
@@ -43,7 +43,8 @@
    alınmıştı.
    ========================================================================== */
 
-import { bayininServisleri, servisGetir, bayiGetir } from '../marka'
+import { bayininServisleri, servisGetir } from '../data/katalog/servisler.js'
+import { bayiGetir } from '../data/katalog/bayiler.js'
 import { makineKayitlari, seriSatiri } from './makineKaydi'
 import { normalizeSerial } from './serial'
 

@@ -1,11 +1,11 @@
-import { Fragment, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useApp } from '../context/AppState'
 import { useDil } from '../i18n'
 import { TopBar, TabBar } from '../components/Chrome'
-import { bayiIleGore } from '../marka'
+import { bayiIleGore } from '../data/katalog/bayiler.js'
 import { araProps, telFirma } from '../lib/tel'
 import { makineninKaydi } from '../lib/servisAtama'
-import { SIRKET, MARKA } from '../marka'
+import { SIRKET } from '../data/kimlik.js'
 import {
   IconPin, IconPhone, IconRight, IconAlert, IconMail, IconCheckCircle,
 } from '../components/Icons'
@@ -25,8 +25,8 @@ import {
    konum izni ve bir ekran dolusu yer karşılığında hiçbir soruya
    cevap vermiyordu. Konum izni de bu ekranda artık hiç istenmiyor.
 
-   SIRALAMA: müşterinin kayıtlı ili önce geliyor. Bunun için izne
-   gerek yok, il zaten hesabında yazılı.
+   SIRALAMA: makineyi aldığı bayi en üstte, gerisi adına göre alfabetik
+   (7 Ekim 2026'dan beri; önce müşterinin ili önce geliyordu).
 
    SERVİS BURADA DEĞİL. Müşteriye bakan servis ana sayfada, kendi
    kartında duruyor (bkz. screens/Home.jsx → Servisim). Bayi ile
@@ -52,7 +52,13 @@ export default function Bayiler() {
     return bayiler.filter((b) => idler.has(b.id))
   }, [machines, bayiler])
 
-  const digerleri = bayiler.filter((b) => !kendiBayileri.includes(b))
+  /* ALFABETİK, İL ÖBEĞİ YOK (7 Ekim 2026, kullanıcının isteği: "bayileri
+     Balıkesir, Konya diye bölgelere göre listeleme, hepsi alt alta olsun
+     direkt. Alfabetik listele"). Önce çiftçinin ili başta ve her il kendi
+     başlığıyla öbekliydi (29 Eylül 2026, C9). */
+  const digerleri = bayiler
+    .filter((b) => !kendiBayileri.includes(b))
+    .sort((a, b) => a.ad.localeCompare(b.ad, 'tr'))
 
   return (
     <div className="app">
@@ -62,7 +68,7 @@ export default function Bayiler() {
         {/* Merkez — telefon ve e-posta. En üstte: bu ekranın asıl
             sebebi "kimseye ulaşamıyorum" hâli. */}
         <div className="card card--brand">
-          <div className="card__title" style={{ fontSize: 18 }}>{MARKA}</div>
+          <div className="card__title" style={{ fontSize: 18 }}>PAKSAN</div>
           <div className="card__sub">{t('bayi.merkezAlt')}</div>
           <a
             className="btn btn--on-dark"
@@ -98,18 +104,9 @@ export default function Bayiler() {
           <span className="sectionhead__count">{digerleri.length}</span>
         </div>
 
-        {/* İLE GÖRE ÖBEKLER (29 Eylül 2026, görünüm önerisi C9). Yirmi bayi
-            tek düz listedeydi, kartlar birbirinden ayırt edilmiyordu. Sıra
-            aynı (çiftçinin ili başta, bkz. marka → bayiIleGore); her ilin
-            adı kendi başlığında. */}
         <div className="stack">
-          {ileGoreObekle(digerleri).map(([il, liste]) => (
-            <Fragment key={il || '-'}>
-              {il && <div className="bayi-il">{il}</div>}
-              {liste.map((b) => (
-                <BayiKarti key={b.id} bayi={b} showToast={showToast} />
-              ))}
-            </Fragment>
+          {digerleri.map((b) => (
+            <BayiKarti key={b.id} bayi={b} showToast={showToast} />
           ))}
         </div>
 
@@ -131,17 +128,6 @@ export default function Bayiler() {
       <TabBar />
     </div>
   )
-}
-
-/** Sırayı bozmadan art arda gelen aynı ildeki bayileri öbekler. */
-function ileGoreObekle(liste) {
-  const obekler = []
-  for (const b of liste) {
-    const son = obekler[obekler.length - 1]
-    if (son && son[0] === b.il) son[1].push(b)
-    else obekler.push([b.il, [b]])
-  }
-  return obekler
 }
 
 function BayiKarti({ bayi, showToast, kendi }) {

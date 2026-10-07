@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef } from 'react'
 import { hizmetTarifesiGetir, parcaIskontosuGetir } from '../../backoffice/veri'
 import { makineFarklari, tarifeCoz } from '../../lib/servisTarifesi'
 import { bakiyeIskontosu, iskontoCoz, yuzdeYap } from '../../lib/servisFiyat'
-import { markaEk, PARA_BIRIMI, getProduct, paraYaz } from '../../marka'
+import { PARA_BIRIMI, paraYaz } from '../../data/katalog/para.js'
+import { getProduct } from '../../data/katalog/products.js'
 import { tarihYaz } from '../../backoffice/ekranlar/ortak'
 import { Bolum } from '../Kabuk'
 import { IconRight } from '../../components/Icons'
@@ -44,7 +45,7 @@ import { IconRight } from '../../components/Icons'
 
 const METIN = {
   bolum: 'Ücretlendirmeler',
-  aciklama: `Garantili işlerde ${markaEk('in')} size ödediği yol ve işçilik ücretleri ile yedek parça siparişlerinizdeki indiriminiz.`,
+  aciklama: `Garantili işlerde PAKSAN’ın size ödediği yol ve işçilik ücretleri ile yedek parça siparişlerinizdeki indiriminiz.`,
   yol: 'Yol',
   yolBirim: 'kilometre başına',
   iscilik: 'İşçilik',

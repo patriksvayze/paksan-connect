@@ -5,7 +5,7 @@ import {
   Baslik, Bekleme, Bos, siraliListe, SiraliBaslik, tarihYaz, useSiralama,
 } from './ortak'
 import { araliktaMi, BOS_ARALIK, Secim, SuzgecCubugu, TarihAraligi } from './suzgec'
-import { MARKA, markaEk } from '../../marka'
+
 
 /* İşlem kaydı — kim, ne zaman, ne yaptı.
 
@@ -58,7 +58,7 @@ const TURLER = [
   { deger: 'siparis', ad: 'Servis siparişi' },
   { deger: 'stok', ad: 'Servis stoku' },
   { deger: 'teklif', ad: 'Servis fiyat teklifi' },
-  { deger: 'devir', ad: `${markaEk('a')} devir` },
+  { deger: 'devir', ad: `PAKSAN’a devir` },
   { deger: 'excel', ad: 'Excel aktarımı' },
   { deger: 'demo', ad: 'Demo verisi' },
   { deger: 'oturum', ad: 'Giriş / çıkış' },
@@ -80,7 +80,7 @@ const ONEMLI = ['numara', 'musteri', 'personel', 'rol']
    soruyla cevaplanabilsin. */
 const KAYNAKLAR = [
   { deger: 'hepsi', ad: 'Herkes' },
-  { deger: 'paksan', ad: `${MARKA} personeli` },
+  { deger: 'paksan', ad: `PAKSAN personeli` },
   { deger: 'servis', ad: 'Servisler' },
 ]
 

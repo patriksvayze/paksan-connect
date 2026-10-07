@@ -6,7 +6,8 @@ import {
 } from '../../lib/parcaKatalogu'
 import { fiyatListesiniOku } from '../../lib/fiyatListesiOku'
 import { gorseliDosyayaCevir } from '../fiyatListesiGorseli'
-import { MARKA, PARA_BIRIMI, paraYaz } from '../../marka'
+import { PARA_BIRIMI, paraYaz } from '../../data/katalog/para.js'
+
 import { Baslik, Bekleme, Bos, Sayfalama, siraliListe, SiraliBaslik, useSiralama } from './ortak'
 import { Secim, SuzgecCubugu } from './suzgec'
 import { ServisIskontosuKarti } from './ServisIskontosu'
@@ -133,24 +134,22 @@ const METIN = {
      "bize gönderin" diyordu ve "biz" diye bir taraf yoktu. */
   listeBaslik: 'Yeni fiyat listesi yükleyin',
   listeAciklama:
-    `${MARKA} yedek parça fiyat listesini PDF olarak seçin. Parça sayısını ve yürürlükteki listeye göre değişiklikleri kontrol edin. Ardından "Listeyi Yayına Al" düğmesine basın. Onay penceresinde işlemi onaylamadan hiçbir fiyat değişmez.`,
+    `PAKSAN yedek parça fiyat listesini PDF olarak seçin. Parça sayısını ve yürürlükteki listeye göre değişiklikleri kontrol edin. Ardından "Listeyi Yayına Al" düğmesine basın. Onay penceresinde işlemi onaylamadan hiçbir fiyat değişmez.`,
   dosyaSec: "Fiyat Listesi PDF'ini Seç",
   dosyaIpucu:
-    `Parça görsellerini, kodlarını, adlarını ve fiyatlarını içeren ${MARKA} fiyat listesinin PDF dosyasını seçin.`,
+    `Parça görsellerini, kodlarını, adlarını ve fiyatlarını içeren PAKSAN fiyat listesinin PDF dosyasını seçin.`,
   okunuyor: 'Liste okunuyor…',
   okunanSayfa: (sayfa, toplam) => `Okunan sayfa: ${sayfa} / ${toplam}`,
-  pdfDegil: `Seçtiğiniz dosya PDF değil. ${MARKA} yedek parça fiyat listesinin PDF dosyasını seçin.`,
+  pdfDegil: `Seçtiğiniz dosya PDF değil. PAKSAN yedek parça fiyat listesinin PDF dosyasını seçin.`,
   pdfOkunamadi: 'PDF açılamadı. Dosya bozuk ya da şifreli olabilir.',
   parcaBulunamadi:
-    `Bu PDF'te parça bulunamadı. Dosyanın ${MARKA} yedek parça fiyat listesi olduğundan emin olun.`,
+    `Bu PDF'te parça bulunamadı. Dosyanın PAKSAN yedek parça fiyat listesi olduğundan emin olun.`,
 
   onizlemeBaslik: (dosya, sayfa) => `${dosya} okundu · ${sayfa} sayfa`,
   toplamParca: 'Toplam parça',
   yeniParca: 'Yeni eklenen parça',
   dusenParca: 'Listeden çıkan parça',
   fiyatiDegisen: 'Fiyatı değişen parça',
-  ortalamaDegisim: 'Ortalama fiyat değişimi',
-  enBuyukArtis: 'En yüksek fiyat artışı',
   gorselsizParca: 'Görseli bulunamayan parça',
   buyukFark:
     "Okunan liste yürürlükteki listeden çok farklı. PDF dosyasını ve karşılaştırmayı kontrol edin. Sayfa düzeni değiştiyse liste eksik okunmuş olabilir. Doğru okunduğundan emin olmadan listeyi yayına almayın.",
@@ -790,13 +789,8 @@ function ListeOnizleme({ liste, ham, yayinlaniyor, onYayinla, onVazgec }) {
         <div><dt>{METIN.yeniParca}</dt><dd className="mono">{ozet.yeni}</dd></div>
         <div><dt>{METIN.dusenParca}</dt><dd className="mono">{ozet.dusen}</dd></div>
         <div><dt>{METIN.fiyatiDegisen}</dt><dd className="mono">{ozet.fiyatiDegisen}</dd></div>
-        <div><dt>{METIN.ortalamaDegisim}</dt><dd className="mono">{yuzdeYaz(ozet.ortalama)}</dd></div>
-        <div>
-          <dt>{METIN.enBuyukArtis}</dt>
-          <dd className="mono">
-            {ozet.enBuyuk ? `${yuzdeYaz(ozet.enBuyuk.oran)} · ${ozet.enBuyuk.ad}` : '—'}
-          </dd>
-        </div>
+        {/* "Ortalama fiyat değişimi" ve "En yüksek fiyat artışı" satırları
+            7 Ekim 2026'da kalktı (kullanıcının isteği). */}
         <div><dt>{METIN.gorselsizParca}</dt><dd className="mono">{sonuc.eksik.gorsel.length}</dd></div>
       </dl>
 

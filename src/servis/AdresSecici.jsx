@@ -1,5 +1,4 @@
 import { useEffect, useId, useRef, useState } from 'react'
-import { MARKA } from '../marka'
 import { ILLER, ilceleriGetir } from '../data/iller'
 import { adresYazisi, teslimatEksigi, teslimatTelGiris, teslimatTelYaz } from '../lib/teslimat'
 import { adresEkle, adresleriGetir, adresTeslimata } from './adresler'
@@ -91,8 +90,8 @@ export const ADRES_METNI = {
   adresEkle: 'Adres Ekle',
   elleGir: 'Elle Gir',
   varsayilan: 'Varsayılan',
-  firmaRozet: `${MARKA} kaydınız`,
-  hesaptanDegistir: `Firma adresiniz ${MARKA} kaydınızdan gelir ve uygulamadan değiştirilemez. Güncellemek için bizi arayın. Kendi eklediğiniz adresleri Hesap ekranındaki Adreslerim bölümünden düzenleyebilirsiniz.`,
+  firmaRozet: `PAKSAN kaydınız`,
+  hesaptanDegistir: `Firma adresiniz PAKSAN kaydınızdan gelir ve uygulamadan değiştirilemez. Güncellemek için bizi arayın. Kendi eklediğiniz adresleri Hesap ekranındaki Adreslerim bölümünden düzenleyebilirsiniz.`,
   hesaptanDegistirKendi:
     'Kendi eklediğiniz adresleri Hesap ekranındaki Adreslerim bölümünden düzenleyebilirsiniz.',
   elleAciklama: 'Bu adres yalnız bu siparişte kullanılır, adres listenize kaydedilmez.',
@@ -103,7 +102,7 @@ export const ADRES_METNI = {
   formBaslikDuzenle: 'Adresi Düzenle',
   formAlt: 'Parçalarınızın gönderileceği adres',
   firmaOneriBaslik: 'İş Yeri',
-  firmaOneriNotu: `Form, ${MARKA} kaydınızdaki firma adresiyle dolduruldu. Buradaki bilgileri değiştirip yeni bir adres olarak kaydedebilirsiniz. Firma adresiniz değişmez.`,
+  firmaOneriNotu: `Form, PAKSAN kaydınızdaki firma adresiyle dolduruldu. Buradaki bilgileri değiştirip yeni bir adres olarak kaydedebilirsiniz. Firma adresiniz değişmez.`,
   kaydet: 'Adresi Kaydet',
 }
 

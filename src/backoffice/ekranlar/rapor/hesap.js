@@ -12,7 +12,8 @@
    ========================================================================== */
 
 import { araligiCoz } from '../suzgec'
-import { getProduct, paraYaz } from '../../../marka'
+import { getProduct } from '../../../data/katalog/products.js'
+import { paraYaz } from '../../../data/katalog/para.js'
 
 export const SAAT = 3600000
 export const GUN = 86400000
@@ -39,22 +40,6 @@ export function ortalama(dizi) {
   const gecerli = dizi.filter((x) => x !== null && x !== undefined && !Number.isNaN(x))
   if (!gecerli.length) return null
   return gecerli.reduce((a, b) => a + b, 0) / gecerli.length
-}
-
-/* Yüzdelik dilim — ortalamanın sakladığı kuyruğu gösteriyor.
-   "Ortalama 19 saat" iyi görünür ama işlerin onda biri dokuz gün
-   bekliyorsa o dokuz gün müşteri kaybıdır; p90 onu gösteriyor.
-
-   SIRA CEIL İLE SEÇİLİYOR (17 Eylül 2026). İndis `floor(n × oran)`
-   iken, n onun katı olduğu dönemlerde bir sıra fazlaya denk geliyor ve
-   p90 yerine listenin EN BÜYÜK değeri dönüyordu: 1–10 saatte kapanan
-   tam on talepte ekran "en yavaş %10: 10 sa" yazıyordu, doğrusu 9 sa.
-   Yüzdelik dilimin sıra karşılığı ceil(oran × n), indis de bir eksiği. */
-export function dilim(dizi, oran) {
-  const gecerli = dizi.filter((x) => x !== null && x !== undefined && !Number.isNaN(x)).sort((a, b) => a - b)
-  if (!gecerli.length) return null
-  const i = Math.min(gecerli.length - 1, Math.max(0, Math.ceil(gecerli.length * oran) - 1))
-  return gecerli[i]
 }
 
 export function topla(dizi) {
@@ -195,6 +180,11 @@ export function zamanKovalari(aralik, zamanlar = []) {
     bas = new Date(enEski).setHours(0, 0, 0, 0)
   }
   bit = Math.min(bit, new Date(simdi).setHours(23, 59, 59, 999))
+  /* EN FAZLA ON YIL (6 Ekim 2026, ikinci kat; bkz. suzgec.jsx →
+     tamTarih). Saati yanlış kurulmuş bir cihazın yazdığı çok eski bir
+     kayıt "Tüm zamanlar"da binlerce sütun çizdirip sayfayı
+     dondurabilirdi. Daha eski kayıt ilk sütuna düşüyor (kovayaDagit). */
+  bas = Math.max(bas, new Date(bit).setFullYear(new Date(bit).getFullYear() - 10))
   const gunSayisi = Math.max(1, Math.round((bit - bas) / GUN))
 
   const kovalar = []
@@ -219,9 +209,21 @@ export function zamanKovalari(aralik, zamanlar = []) {
       son.setHours(23, 59, 59, 999)
       const s = Math.min(bit, son.getTime())
       const bd = new Date(b)
+      const sd = new Date(s)
+      /* ETİKET HAFTANIN ARALIĞI (6 Ekim 2026, kullanıcının onayı). Önce
+         yalnız başlangıç günü yazıyordu ("31 Ağu"); ilk ve son hafta
+         seçilen dönemle kesildiği için çubuklar dağınık aralıklı
+         görünüyordu. Aynı ayda "7–13 Eyl", ay değişince "31 Ağu – 6 Eyl",
+         tek günlük parça "5 Eki". */
+      const etiket =
+        bd.toDateString() === sd.toDateString()
+          ? `${bd.getDate()} ${AYLAR[bd.getMonth()]}`
+          : bd.getMonth() === sd.getMonth()
+            ? `${bd.getDate()}–${sd.getDate()} ${AYLAR[sd.getMonth()]}`
+            : `${bd.getDate()} ${AYLAR[bd.getMonth()]} – ${sd.getDate()} ${AYLAR[sd.getMonth()]}`
       kovalar.push({
         bas: b, bit: s, boy: 'hafta',
-        etiket: `${bd.getDate()} ${AYLAR[bd.getMonth()]}`,
+        etiket,
         tamEtiket: `${new Date(b).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })} – ${new Date(s).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })}`,
       })
     }

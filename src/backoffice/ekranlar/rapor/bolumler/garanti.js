@@ -1,4 +1,5 @@
 import { tarihYaz } from '../../ortak'
+import { yapilanIsleri } from '../../../../lib/servisKaydi'
 import {
   fark, farkPuan, kovayaDagit, oran, ortalama, paraHucre, paraKutu, RENK, SAAT, servisZiyaretleri, sureYaz,
   talepModeli, topla, yuzde, zamanKovalari,
@@ -78,25 +79,6 @@ const M = {
   grafikIs: 'Garanti işinde yapılan iş',
   grafikIsAlt: 'Bu dönemde biten garanti işleri, servisin seçtiği iş türüne göre.',
   belirtilmemis: 'Belirtilmemiş',
-
-  tabloModel: 'Modellere göre biten işlerin hak edişi',
-  /* PARÇA SÜTUNU DA KABUL EDİLMEYENLERİ DIŞARIDA BIRAKIYOR. Açıklama
-     bunu yalnız iş sayısı ve tutar için söylüyordu; "Garantide değişen
-     parça" kutusu dönemde biten BÜTÜN işlerin parçasını sayarken tablo
-     reddedilenleri saymıyor ve yönetici aynı sekmedeki iki sayı (16 ile
-     13) arasındaki farkı ekranda açıklayacak bir cümle bulamıyordu. */
-  tabloModelAciklama:
-    'İşin bitiş tarihine göre bu dönemdeki onaylanan ve onay bekleyen garanti işleri gösterilir. Kabul edilmeyen işler; iş sayısına, tutara ve parça adedine dahil değildir. Bu nedenle iş sayısı "Garanti işi", parça adedi "Garantide değişen parça" kutusundan farklı olabilir. Tutar da onay tarihini esas alan "Onaylanan hak ediş tutarı" kutusundan farklı olabilir. Bir satıra tıklayınca o modelin servis talepleri açılır.',
-  modelSutun: {
-    model: 'Model',
-    is: 'Garanti işi (kabul edilmeyen hariç)',
-    yol: 'Yol tutarı',
-    iscilik: 'İşçilik tutarı',
-    toplam: 'Hak ediş (onaylı ve bekleyen)',
-    isBasina: 'İş başına hak ediş (onaylı ve bekleyen)',
-    parca: 'Değişen parça (adet, kabul edilmeyen hariç)',
-  },
-  modelYok: 'Model yazılı değil',
 
   tabloHakkedis: 'Hak edişler',
   tabloHakkedisAciklama:
@@ -318,9 +300,12 @@ export const garantiBolumu = {
     ])
 
     const isSayim = new Map()
+    /* Çok seçimli yapılan iş (6 Ekim 2026) her seçimiyle sayılıyor;
+       listede olmayan elle yazı olduğu gibi. */
     for (const z of olusanDonem) {
-      const ad = z.yapilanIs || M.belirtilmemis
-      isSayim.set(ad, (isSayim.get(ad) || 0) + 1)
+      const secimler = yapilanIsleri(z.yapilanIs)
+      const adlar = secimler.length ? secimler : [z.yapilanIs || M.belirtilmemis]
+      for (const ad of adlar) isSayim.set(ad, (isSayim.get(ad) || 0) + 1)
     }
 
     const grafikler = [
@@ -350,25 +335,6 @@ export const garantiBolumu = {
     ]
 
     /* ------------------------------------------------------- Tablolar */
-
-    /* Modeller: gider (onaylanan + bekleyen), iş tarihi dönemde. */
-    const modeller = new Map()
-    for (const z of giderDonem) {
-      const ad = talepModeli(z.talep) || ''
-      if (!modeller.has(ad)) modeller.set(ad, [])
-      modeller.get(ad).push(z)
-    }
-    const modelHucreleri = (liste) => {
-      const toplam = tutar(liste)
-      return [
-        String(liste.length),
-        paraHucre(tutar(liste, 'yol')),
-        paraHucre(tutar(liste, 'iscilik')),
-        paraHucre(toplam),
-        paraHucre(liste.length ? toplam / liste.length : null),
-        String(parcaOzeti(liste).adet),
-      ]
-    }
 
     /* Hak edişler: iş tarihi dönemde, en yenisi üstte. */
     const hakkedisSatirlari = [...olusanDonem]
@@ -414,24 +380,8 @@ export const garantiBolumu = {
     const hepsi = (alan) => tumServisler.flatMap((s) => s[alan])
 
     const tablolar = [
-      {
-        baslik: M.tabloModel,
-        aciklama: M.tabloModelAciklama,
-        basliklar: [
-          M.modelSutun.model, M.modelSutun.is, M.modelSutun.yol, M.modelSutun.iscilik,
-          M.modelSutun.toplam, M.modelSutun.isBasina, M.modelSutun.parca,
-        ],
-        sag: [1, 2, 3, 4, 5, 6],
-        satirlar: [...modeller.entries()]
-          .sort((a, b) => tutar(b[1]) - tutar(a[1]) || b[1].length - a[1].length)
-          .map(([ad, liste]) => ({
-            hucreler: [ad || M.modelYok, ...modelHucreleri(liste)],
-            git: git
-              ? () => git('talepler', { durum: 'hepsi', tur: 'servis', aralik, ...(ad ? { makine: ad } : {}) })
-              : undefined,
-          })),
-        toplamSatiri: [M.toplam, ...modelHucreleri(giderDonem)],
-      },
+      /* "Modellere göre biten işlerin hak edişi" tablosu kaldırıldı (6 Ekim
+         2026, kullanıcının isteği: "gereksiz"). */
       {
         baslik: M.tabloHakkedis,
         aciklama: M.tabloHakkedisAciklama,

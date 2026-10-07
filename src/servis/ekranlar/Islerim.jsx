@@ -23,7 +23,8 @@ import { randevuSaatliMi } from '../../lib/tarih'
 import { useBildirimIzni } from '../haber'
 import { bildirimYazisi, GORULEN_DUYURU, musteridenMi, okunduSay, okunmamislar } from '../talepBildirimleri'
 import { devamSirasi, dokunulmamis, randevuSirasi, servisGecikti, yeniIsSirasi } from '../isDurumu'
-import { MARKA, getProduct, markaEk, PARA_BIRIMI, paraYaz } from '../../marka'
+import { getProduct } from '../../data/katalog/products.js'
+import { PARA_BIRIMI, paraYaz } from '../../data/katalog/para.js'
 /* Boş liste çizimi Higgsfield ile üretildi, uygulamanın kendi görsel
    diline (kalın lacivert kontur, düz dolgu, sınırlı palet) referans
    verilerek. Küçültme ve sıkıştırma: tools/gorsel-hazirla.mjs */
@@ -98,7 +99,7 @@ const BOS = {
   yeni: { baslik: 'Yeni işiniz yok', alt: 'Size yeni bir iş atandığında burada görünür.' },
   devam: {
     baslik: 'Devam eden işiniz yok',
-    alt: `Randevu verdiğiniz, parça beklediğiniz ya da kaydı ${MARKA} tarafından incelenen işler burada görünür.`,
+    alt: `Randevu verdiğiniz, parça beklediğiniz ya da kaydı PAKSAN tarafından incelenen işler burada görünür.`,
   },
   biten: { baslik: 'Tamamlanan işiniz yok', alt: 'Kapanan ve iptal edilen işler burada görünür.' },
 }
@@ -183,6 +184,7 @@ export function Isler({ oturum, bekleyen, biten, tumTalepler, onAc, onUcretler, 
             type="button"
             role="tab"
             aria-selected={sekme === x.id}
+            data-is-sekme={x.id}
             className={
               'is-sekme' +
               (sekme === x.id ? ' is-sekme--on' : '') +
@@ -521,7 +523,7 @@ function PaksanBildirimleri({ oturum, talepler, onAc, onUcretler }) {
   return (
     <>
       <BildirimBolumu
-        ad={`${markaEk('dan')} gelen bildirimler`}
+        ad={`PAKSAN’dan gelen bildirimler`}
         liste={liste.filter((b) => !musteridenMi(b))}
         talepler={talepler}
         onAc={ac}
@@ -650,11 +652,11 @@ function TalepKarti({ talep, onAc }) {
     : talep.status === 'parcaBekliyor'
       ? { ton: 'parca', yazi: talep.parcaSevk ? 'Parça yolda' : 'Parça hazırlanıyor' }
       : talep.status === 'onayBekliyor'
-        ? { ton: 'onay', yazi: `${MARKA} kaydı inceliyor` }
+        ? { ton: 'onay', yazi: `PAKSAN kaydı inceliyor` }
         : talep.plan
           ? { ton: 'randevu', yazi: randevuYazi(talep.plan), Ikon: IconCalendar }
           : paksanda && talep.devir
-            ? { ton: 'onay', yazi: `${MARKA} destek veriyor` }
+            ? { ton: 'onay', yazi: `PAKSAN destek veriyor` }
             : gecikti
               ? { ton: 'gec', yazi: '48 saati geçti', Ikon: IconAlert }
               : null

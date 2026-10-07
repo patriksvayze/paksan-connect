@@ -351,7 +351,8 @@ export function AppProvider({ children }) {
         'talep',
         `${r.no} açıldı · ${r.ad}` +
           (ihracat ? ' · ihracat (' + r.ulke + ')' : '') +
-          (r.servis ? ' · ' + r.servis.ad : '')
+          (r.servis ? ' · ' + r.servis.ad : '') +
+          (r.bolgeDisi ? ' · bölge dışı, PAKSAN’a yönlendirildi' : '')
       )
 
       return r

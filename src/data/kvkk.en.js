@@ -1,4 +1,4 @@
-import { SIRKET, MARKA } from '../marka'
+import { SIRKET } from './kimlik.js'
 
 /* ==========================================================================
    KVKK metinlerinin İngilizcesi
@@ -80,11 +80,11 @@ export const KVKK_EN = {
           'Your data is shared only as far as each purpose requires, with these recipients:',
         ],
         maddeler: [
-          `Authorised service: your name, phone number, the address where the machine is located, machine details, the content and attachments of your request are shared with the ${MARKA} authorised service assigned to your machine or handling your request.`,
+          `Authorised service: your name, phone number, the address where the machine is located, machine details, the content and attachments of your request are shared with the PAKSAN authorised service assigned to your machine or handling your request.`,
           `An authorised service opening a record for you: when an authorised service opens a record for you, it can find your account by your phone number or your machine's serial number. In that case that service can see your name, province and registered machines.`,
           'Authorised dealer: for a quotation request, your name, phone number, province and the content of your request are shared with the authorised dealer that will answer it.',
           `Cargo companies: for spare part shipping, the recipient's name, delivery address and phone number are shared.`,
-          `Service providers: shared with companies that work on behalf of and on the instructions of ${MARKA}, such as the server hosting the app and the notification infrastructure.`,
+          `Service providers: shared with companies that work on behalf of and on the instructions of PAKSAN, such as the server hosting the app and the notification infrastructure.`,
           'Financial advisers, auditors and legal counsel: shared as far as the law requires.',
           'Authorised public institutions: shared where the law requires.',
         ],
@@ -103,7 +103,7 @@ export const KVKK_EN = {
         maddeler: [
           'What you write in the app and the photos, videos, voice recordings and receipts you upload',
           'Records an authorised service opens for you and records of the work it does on your machine',
-          `Information you give ${MARKA} by phone`,
+          `Information you give PAKSAN by phone`,
           `Records the app creates automatically: sign-in times, app version and, if you allow notifications, your device's notification ID`,
           `The app does not use your phone's location; your location is only the province, district and address you write yourself.`,
         ],
@@ -136,7 +136,7 @@ export const KVKK_EN = {
           `You can send your application to our address above with a wet-signed letter. You can also apply by registered electronic mail (KEP), secure electronic signature or mobile signature, or by writing to ${SIRKET.eposta} from an e-mail address you gave us earlier and that is registered in our system.`,
           'Your application must include your first and last name, Turkish ID number (for foreign nationals, nationality and passport number), address for notifications, e-mail address and phone number if any, and the subject of your request.',
           'Your application is concluded free of charge within 30 days at the latest. If you are not satisfied with the answer you can complain to the Personal Data Protection Board.',
-          `You can request the closure of your account and deletion of your data in the same ways. ${MARKA} carries this out. Records subject to a legal retention period (for example invoices) are kept until the end of that period; other records are deleted or anonymised.`,
+          `You can request the closure of your account and deletion of your data in the same ways. PAKSAN carries this out. Records subject to a legal retention period (for example invoices) are kept until the end of that period; other records are deleted or anonymised.`,
           'The app is intended for users over 18.',
         ],
       },
@@ -163,7 +163,7 @@ export const KVKK_EN = {
       {
         baslik: 'Contacting you',
         paragraflar: [
-          `I consent to ${MARKA} or the authorised service handling my request contacting me by phone, SMS and app notification about the requests I create.`,
+          `I consent to PAKSAN or the authorised service handling my request contacting me by phone, SMS and app notification about the requests I create.`,
           'This contact covers only service matters such as confirming that my request was received, service appointments and safety warnings about my machine. Campaign and announcement notifications are not included; they need separate permission.',
         ],
       },
@@ -179,7 +179,7 @@ export const KVKK_EN = {
     baslik: 'Campaign and Announcement Notifications',
     kisaAd: 'Campaign Notifications',
     onayCumlesi:
-      'I would like to receive campaign, announcement and new product notifications through the app. (Optional)',
+      'I would like to receive campaign, announcement and new product notifications through the app.',
     bolumler: [
       {
         baslik: 'What do we send?',
@@ -215,7 +215,7 @@ export const KVKK_EN = {
       {
         baslik: 'Microphone',
         paragraflar: [
-          `Microphone permission is requested only when you press the voice recording button on a request form. The recording is attached to your request; ${MARKA} and the authorised service handling your request listen to it. The app never turns on the microphone unless you press the button.`,
+          `Microphone permission is requested only when you press the voice recording button on a request form. The recording is attached to your request; PAKSAN and the authorised service handling your request listen to it. The app never turns on the microphone unless you press the button.`,
         ],
       },
       {
@@ -233,7 +233,7 @@ export const KVKK_EN = {
       {
         baslik: 'Phone calls',
         paragraflar: [
-          `When you tap a number to call the service, a dealer or ${MARKA}, your phone's call screen opens. You start the call yourself. The app does not access your call history.`,
+          `When you tap a number to call the service, a dealer or PAKSAN, your phone's call screen opens. You start the call yourself. The app does not access your call history.`,
         ],
       },
     ],

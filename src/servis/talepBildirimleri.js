@@ -2,7 +2,7 @@ import { durumBilgi, servisBildirimleri } from '../backoffice/veri'
 import { load, save } from '../lib/storage'
 import { duyuruGecerliMi } from '../lib/duyuruHedef'
 import { servisDuyuruBaglami } from '../lib/servisAtama'
-import { MARKA, PARA_BIRIMI, paraYaz } from '../marka'
+import { PARA_BIRIMI, paraYaz } from '../data/katalog/para.js'
 
 /* ==========================================================================
    PAKSAN'dan servise gelen talep bildirimleri (21 Eylül 2026)
@@ -35,13 +35,13 @@ const OKUNAN = 'okunanBildirimlerServis'
    genel yazıyla görünür, kaybolmaz. */
 const METIN = {
   durum: (d) => ({
-    baslik: `${MARKA} talebin durumunu değiştirdi`,
+    baslik: `PAKSAN talebin durumunu değiştirdi`,
     metin: `Yeni durum: ${durumBilgi(d.durum).ad}`,
   }),
   /* İptal edilen bakiye siparişinde düşülmüş tutar bakiyeye döndüyse
      (24 Eylül 2026, veri.js → siparisIadesiniYaz) rakam metinde. */
   iptal: (d) => ({
-    baslik: `${MARKA} talebi iptal etti`,
+    baslik: `PAKSAN talebi iptal etti`,
     metin:
       [
         d.neden ? `İptal nedeni: ${d.neden}` : !d.iade && 'Bu işe gitmenize gerek kalmadı.',
@@ -51,7 +51,7 @@ const METIN = {
         .join(' · '),
   }),
   kapandi: () => ({
-    baslik: `${MARKA} talebi kapattı`,
+    baslik: `PAKSAN talebi kapattı`,
     metin: 'Bu iş için yapmanız gereken başka bir işlem yok.',
   }),
   /* KARGO TAKİBİ VAAT EDİLMİYOR (25 Eylül 2026). Metin "kargo takip
@@ -105,7 +105,7 @@ const METIN = {
           metin: d.tarih ? `${d.tarih} tarihinde kargoya verilecek.` : '',
         }
       : {
-          baslik: `${MARKA} ziyaret gününü belirledi`,
+          baslik: `PAKSAN ziyaret gününü belirledi`,
           metin: d.tarih ? `Müşteriyle kararlaştırılan ziyaret günü: ${d.tarih}` : '',
         },
   odemeOnay: () => ({
@@ -137,12 +137,20 @@ const METIN = {
       : 'Bu iş için ödeme yapılmayacak.',
   }),
   hakedisDuzelt: (d) => ({
-    baslik: `${MARKA} servis kaydınızı düzeltti`,
+    baslik: `PAKSAN servis kaydınızı düzeltti`,
     metin: d.neden ? `Düzeltme nedeni: ${d.neden}` : '',
   }),
   not: (d) => ({
-    baslik: `${MARKA} size not bıraktı`,
+    baslik: `PAKSAN size not bıraktı`,
     metin: d.metin || '',
+  }),
+  /* BÖLGE DIŞI TALEP (5 Ekim 2026). Makinenin servisi o bölgeye bakmadığı
+     için talep PAKSAN'a düştü, PAKSAN işi bu servise verdi (veri.js →
+     bolgeDisiTalebeServisAta). Makinenin servisinin adı burada YOK:
+     atama PAKSAN ile servisler arasındaki ticari bir karar. */
+  bolgeDisiAtandi: (d) => ({
+    baslik: 'PAKSAN size yeni bir iş verdi',
+    metin: `Makine şu an ${[d.ilce, d.il].filter(Boolean).join(' / ')} bölgesinde. Müşteriyle görüşüp randevu belirleyin.`,
   }),
 
   /* MÜŞTERİNİN İŞLEMİ (25 Eylül 2026, kullanıcı sınaması O5 ve
@@ -187,7 +195,7 @@ const METIN = {
   }),
 }
 
-const GENEL = () => ({ baslik: `${MARKA} bu taleple ilgili işlem yaptı`, metin: '' })
+const GENEL = () => ({ baslik: `PAKSAN bu taleple ilgili işlem yaptı`, metin: '' })
 
 /* Serbest yazının sonundaki nokta: metin ardına kendi noktasını koyuyor,
    "Garanti süresi dolmuş.." çıkmasın. */

@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { Logo } from '../marka'
+import { Logo } from '../components/Logo.jsx'
 import { IconBack, IconCheckCircle, IconPhone, IconPlus } from '../components/Icons'
 import { ParcaTablosu } from '../components/ParcaTablosu'
 import { ParcaResmi, useParcaKatalogu } from '../components/ParcaResmi'

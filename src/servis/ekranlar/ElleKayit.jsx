@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { load, save, uid } from '../../lib/storage'
-import { INDIRME_ADRESI, MARKA, uygulamaEk, UYGULAMA, SIRKET } from '../../marka'
+import { INDIRME_ADRESI, UYGULAMA, SIRKET } from '../../data/kimlik.js'
 import { ILLER, ilceleriGetir } from '../../data/iller'
 import { extractYear, formatSerial, normalizeSerial, validateSerial } from '../../lib/serial'
 import { servisMakineKaydi, seriSatiri } from '../../lib/makineKaydi'
@@ -11,7 +11,7 @@ import { elleIsinAtamasi } from '../../lib/servisAtama'
 import { servisinMakinedekiIsleri } from '../../lib/makineTalepleri'
 import { islemYaz, musterileriGetir, talepleriGetir } from '../../backoffice/veri'
 import { alanaGit } from '../../lib/formOdak'
-import { CATEGORIES, PRODUCTS, getProduct } from '../../marka'
+import { CATEGORIES, PRODUCTS, getProduct } from '../../data/katalog/products.js'
 import { Bolum } from '../Kabuk'
 import { DikteliKutu } from '../Dikte'
 import { IconAlert, IconCheckCircle, IconInfo, IconSend } from '../../components/Icons'
@@ -534,7 +534,7 @@ export function ElleKayit({ oturum, onKaydedildi, onIsiAc }) {
           <div className="not not--mavi" style={{ marginTop: 0, marginBottom: 14 }}>
             <IconInfo size={19} />
             <div>
-              <strong>Bu numara {uygulamaEk('da')} kayıtlı değil.</strong>
+              <strong>Bu numara PAKSAN Connect’te kayıtlı değil.</strong>
               <p>
                 Müşteriye uygulamayı indirmesini söyleyin: talebinin
                 durumunu kendi telefonundan takip eder, makinesini
@@ -655,7 +655,7 @@ export function ElleKayit({ oturum, onKaydedildi, onIsiAc }) {
                     ? 'Bu makine bu müşterinin adına zaten kayıtlı.'
                     : eslesen
                       ? 'Bu müşterinin kayıtlı makinesi yok. Makinenin seri numarasını yazın.'
-                      : `Makinenin modeli seri numarasından bulunur. Makinenin servisini ${MARKA} atar.`}
+                      : `Makinenin modeli seri numarasından bulunur. Makinenin servisini PAKSAN atar.`}
                 </span>
               )}
             </label>
@@ -770,8 +770,8 @@ export function ElleKayit({ oturum, onKaydedildi, onIsiAc }) {
               </strong>
               <p>
                 {atama.durum === 'baskaServis'
-                  ? `${MARKA} bu makineyi başka bir servise atadı. Talebi yine açabilirsiniz; ödeme onayından önce bu iş ${MARKA} tarafından ayrıca incelenir.`
-                  : `Talebi açabilirsiniz; ödeme onayından önce bu iş ${MARKA} tarafından ayrıca incelenir.`}
+                  ? `PAKSAN bu makineyi başka bir servise atadı. Talebi yine açabilirsiniz; ödeme onayından önce bu iş PAKSAN tarafından ayrıca incelenir.`
+                  : `Talebi açabilirsiniz; ödeme onayından önce bu iş PAKSAN tarafından ayrıca incelenir.`}
               </p>
             </div>
           </div>
@@ -813,8 +813,8 @@ export function ElleKayit({ oturum, onKaydedildi, onIsiAc }) {
             <div style={{ flex: 1, minWidth: 0 }}>
               <strong>Bu Makine İçin Onay Bekleyen Bir İşiniz Var</strong>
               <p>
-                {acikIsler.onayda.no} numaralı işiniz {MARKA} onayını bekliyor. Aynı arıza için yeni talep
-                açmayın; önce {MARKA} ile görüşün. Yeni bir arızaysa talebi açabilirsiniz; iki iş
+                {acikIsler.onayda.no} numaralı işiniz PAKSAN onayını bekliyor. Aynı arıza için yeni talep
+                açmayın; önce PAKSAN ile görüşün. Yeni bir arızaysa talebi açabilirsiniz; iki iş
                 ödeme onaylanmadan önce karşılaştırılır.
               </p>
             </div>
@@ -830,7 +830,7 @@ export function ElleKayit({ oturum, onKaydedildi, onIsiAc }) {
               <strong>Bu Makine İçin Açık Başka Bir Servis Talebi Var</strong>
               <p>
                 Talebi yine açabilirsiniz; aynı makinedeki iki iş, ödeme onaylanmadan önce{' '}
-                {MARKA} tarafından karşılaştırılır.
+                PAKSAN tarafından karşılaştırılır.
               </p>
             </div>
           </div>
@@ -896,7 +896,7 @@ function Davet({ talep, onBitti }) {
   const numara = String(talep.tel || '').replace(/[^\d+]/g, '')
   const metin =
     `Merhaba ${talep.ad}, ${SIRKET.ad}. Talebiniz alındı: ${talep.no}. ` +
-    `${uygulamaEk('i')} indirin; talebinizin durumunu takip eder, ` +
+    `PAKSAN Connect’i indirin; talebinizin durumunu takip eder, ` +
     `makinenizi kaydeder ve garantinizi görürsünüz: ${INDIRME_ADRESI}`
 
   return (

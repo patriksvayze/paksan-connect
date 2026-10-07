@@ -35,6 +35,11 @@ export const BILDIRIM_TURU = {
      satırda "Kampanya" etiketi çıkardı; talep türüne düşseydi talep
      ikonu. */
   MAKINE: 'makine',
+  /* Hesabın giriş numarası değişti ya da eski hesabın kayıtları yeni
+     numaraya taşındı (backoffice/veri.js → numaraTalebiKarar). Listede
+     kendi simgesiyle (telefon) çıkıyor; 7 Ekim 2026'ya kadar simge
+     tablosunda yoktu ve duyuru zili görünüyordu (kullanıcının bildirdiği). */
+  NUMARA: 'numara',
 }
 
 /* BİR MAKİNE İÇİN YALNIZ SON ATAMA BİLDİRİMİ (25 Eylül 2026, kullanıcı
@@ -172,6 +177,7 @@ export function bildirimListesi({ requests = [], user = null, makineler = [] } =
       tur: d.tur === 'uyari' ? BILDIRIM_TURU.UYARI
         : d.tur === 'talep' ? BILDIRIM_TURU.TALEP
         : d.tur === 'makine' ? BILDIRIM_TURU.MAKINE
+        : d.tur === 'numara' ? BILDIRIM_TURU.NUMARA
         : BILDIRIM_TURU.DUYURU,
       /* Personelin elle yazdığı duyuru hazır metin; uygulamanın
          ürettiği otomatik bildirim sözlük anahtarı taşıyor ki müşterinin
@@ -191,7 +197,8 @@ export function bildirimListesi({ requests = [], user = null, makineler = [] } =
       /* Nereye gideceği bildirimin ne olduğuna bağlı:
 
            talep durumu  → o talebin kendisi (silinmişse gitmiyor)
-           numara        → profildeki hesap bilgileri
+           numara reddi  → numara değişikliği formu (yeniden gönderme)
+           numara onayı  → gidilecek yer yok, bilgi
            servis ataması→ o makinenin ekranı (silinmişse listesi)
            görüş cevabı  → gidilecek yer yok, okunup geçiliyor
            duyuru        → gidilecek yer yok                        */
@@ -231,7 +238,14 @@ function yonlendir(d, requests, makineler = []) {
     if (!talep) return { yol: null, durum: null }
     return { yol: '/talebim/' + talep.id, durum: null }
   }
-  if (d.tur === 'numara') return { yol: '/profil', durum: { odak: 'hesap' } }
+  /* Numara bildirimi (7 Ekim 2026, kullanıcının isteği: profile gitmesi
+     bir şey anlatmıyordu). Reddedilen talep "yeniden gönderebilirsiniz"
+     diyor: form açılıyor. Onay ve hesap birleştirme yalnız bilgi. */
+  if (d.tur === 'numara') {
+    return d.metinAnahtar === 'bildirimler.numaraRet'
+      ? { yol: '/numara-degisikligi', durum: null }
+      : { yol: null, durum: null }
+  }
   /* Servis ataması: makine seri numarasıyla bulunuyor, çünkü PAKSAN'ın
      defteri telefondaki makinenin kimliğini bilmiyor. Müşteri makineyi
      telefonundan silmişse makine listesi açılıyor. */

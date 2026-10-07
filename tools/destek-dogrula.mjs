@@ -1,7 +1,7 @@
 /* ==========================================================================
    Destek veri paketi denetimi
 
-   Veri seti yenilendiğinde (src/marka/icerik/mobile_support_package.json
+   Veri seti yenilendiğinde (src/data/icerik/mobile_support_package.json
    yeniden kopyalandığında) çalıştırılır. Ekranın açıkta kalacağı durumları
    arar: dokununca boş açılan bir arıza, kaynağı olmayan bir cümle,
    listede görünmemesi gereken bir kapsam kaydı.
@@ -21,7 +21,7 @@ import { fileURLToPath } from 'node:url'
    altına taşındı ve bu betik ENOENT verip durdu. Kimse görmedi, çünkü
    `npm run dogrula` onu çağırmıyordu. Artık çağırıyor (8. kontrol). */
 const PAKET_YOLU = join(
-  dirname(fileURLToPath(import.meta.url)), '..', 'src', 'marka', 'icerik', 'mobile_support_package.json',
+  dirname(fileURLToPath(import.meta.url)), '..', 'src', 'data', 'icerik', 'mobile_support_package.json',
 )
 
 const paket = JSON.parse(readFileSync(PAKET_YOLU, 'utf8'))

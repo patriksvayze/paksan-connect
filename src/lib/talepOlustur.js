@@ -20,6 +20,7 @@ import { uid } from './storage'
 import { talepNo } from './talep'
 import { talepUlkesi, yurtdisiTalepMi } from './ihracat'
 import { makineninServisi } from './servisAtama'
+import { servisBolgesindeMi } from '../data/katalog/servisler.js'
 import { telHamYap } from './tel'
 
 /**
@@ -101,11 +102,43 @@ export function talebinServisi(data, user) {
   return makineninServisi(data.makine)?.servis || null
 }
 
+/**
+ * BÖLGE DIŞI SERVİS TALEBİ (5 Ekim 2026, kullanıcının kararı).
+ *
+ * Çiftçi makinesiyle başka bir il ya da ilçeye işe gitmiş olabilir. Talep
+ * formundaki yer (makinenin şu an bulunduğu il ve ilçe) makinenin
+ * servisinin bölgesinde değilse talep o servise GİTMİYOR: PAKSAN'a
+ * düşüyor, PAKSAN bu iş için bir servis atıyor (backoffice/veri.js →
+ * bolgeDisiTalebeServisAta). Makinenin kalıcı servisi değişmiyor.
+ *
+ * Kural tek yerde (data/katalog/servisler.js → servisBolgesindeMi):
+ * çiftçinin hesap adresine bakılmıyor, bölgesi girilmemiş servisin
+ * bölgesi kendi ili. Formun uyarısı aynı işlevi çağırıyor; ekran ne
+ * gösterirse göstersin kaydın nereye gideceğine burası karar veriyor.
+ *
+ * İşaret talebin AÇILDIĞI ANIN durumunu taşıyor: servisin bölgesi
+ * sonradan değişirse talep geriye dönük değişmiyor.
+ *
+ * @returns {null|{il, ilce, makineServisi: {id, ad}, tarih}}
+ */
+export function bolgeDisiKaydi(data, servis, simdi = Date.now()) {
+  if (data?.tur !== 'servis' || !servis || !data.il) return null
+  if (servisBolgesindeMi(servis, data.il, data.ilce)) return null
+  return {
+    il: data.il,
+    ilce: data.ilce || '',
+    makineServisi: { id: servis.id, ad: servis.ad },
+    tarih: simdi,
+  }
+}
+
 /** Depoya yazılmaya hazır talep kaydı. Hiçbir şey yazmaz, yalnız kurar. */
 export function talepKaydiOlustur(data, user) {
   const ihracat = yurtdisiTalepMi(user)
-  const servis = talebinServisi(data, user)
   const simdi = Date.now()
+  const makineninServisiVar = talebinServisi(data, user)
+  const bolgeDisi = bolgeDisiKaydi(data, makineninServisiVar, simdi)
+  const servis = bolgeDisi ? null : makineninServisiVar
 
   const kayit = {
     id: uid(),
@@ -132,6 +165,7 @@ export function talepKaydiOlustur(data, user) {
        gönderirse göndersin kayıt makinesiz. Eski kayıtlar okunurken
        ayıklanıyor (lib/talep.js → makinesizTeklif). */
     ...(data.tur === 'satinalma' ? { makine: null } : {}),
+    ...(bolgeDisi ? { bolgeDisi } : {}),
   }
 
   /* HAM NUMARA TEK BİÇİMDE (25 Eylül 2026, kullanıcı sınaması Y3).

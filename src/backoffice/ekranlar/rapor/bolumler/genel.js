@@ -5,7 +5,7 @@ import { makineninServisi } from '../../../../lib/servisAtama'
 import { bekledigiYer, odemeOnayiBekliyorMu, parcaHazirliktaMi, yerSuzgeci } from '../../../bekleyenIs'
 import { cevapsizlar } from '../../DestekKayitlari'
 import {
-  dilim, fark, ilkIslemSuresi, iptalZamani, kapanisOlayi, kapanisOlaySuresi, kovayaDagit,
+  fark, ilkIslemSuresi, iptalZamani, kapanisOlayi, kapanisOlaySuresi, kovayaDagit,
   musteriTalebiMi, ortalama, paraKutu, RENK, servisZiyaretleri, sureYaz, talepModeli, topla,
   zamanKovalari,
 } from '../hesap'
@@ -49,7 +49,7 @@ const M = {
   ilkIslem: 'İlk işlem süresi',
   ilkIslemAlt: 'Seçilen dönemde açılan taleplerin ilk işleme kadar geçen ortalama süresi; hiç işlem görmeyenler hariç',
   kapanma: 'Kapanma süresi',
-  kapanmaAlt: (p90) => `Seçilen dönemde kapananların ortalaması · en yavaş %10 için eşik: ${p90}`,
+  kapanmaAlt: 'Seçilen dönemde kapananların ortalaması',
   acik: 'Şu an açık talep',
   /* SAYI SAF YAŞ DEĞİL, İŞ KURALI (bkz. veri.js → gecikmisMi): teklif
      verilip müşterinin yanıtı beklenen talep "bekletiliyor" değil,
@@ -123,7 +123,7 @@ const M = {
   sutun: {
     tur: 'Talep türü', gelen: 'Gelen', kapanan: 'Kapanan', iptal: 'İptal edilen', acik: 'Şu an açık',
     gecikmis: '48 saati geçen (teklif yanıtı bekleyenler hariç)',
-    ilk: 'Ort. ilk işlem süresi', kapanma: 'Ort. kapanma süresi', yavas: 'En yavaş %10 eşiği',
+    ilk: 'Ort. ilk işlem süresi', kapanma: 'Ort. kapanma süresi',
   },
   diger: 'Diğer / türü belirtilmemiş',
   toplam: 'Toplam',
@@ -133,7 +133,7 @@ const M = {
     'Kapanan talep: kapanışı seçilen döneme düşen talepler. Yeniden açılıp tekrar kapanan talepte son kapanış sayılır. Dönem içinde kapanıp sonradan yeniden açılan talep de sayılır: kapanış o dönemde gerçekleşti.',
     'İptal edilen: iptal tarihi seçilen dönemde olan talepler. İptal edilen talep kapanan sayılmaz; "Gelen" ile "Kapanan" ve "Şu an açık" arasındaki farkın bir bölümü buradan gelir.',
     'İlk işlem süresi: seçilen dönemde açılan taleplerin açılışından, geçmişine kaydedilen ilk işleme (durum değişikliği, servis kaydı, planlama) kadar geçen sürenin ortalaması. Hiç işlem görmemiş talep ortalamaya girmez.',
-    'Kapanma süresi: seçilen dönemde kapanan taleplerin açılıştan kapanışa geçen ortalama süresi. En yavaş %10 eşiği, en uzun sürede kapanan %10 için hesaplanan sınır süredir; bu grubun ortalaması değildir.',
+    'Kapanma süresi: seçilen dönemde kapanan taleplerin açılıştan kapanışa geçen ortalama süresi.',
     '48 saati geçen: açılışından bu yana 48 saatten fazla geçmiş açık talepler; tarih süzgecinden bağımsızdır. Teklif verilip müşterinin yanıtı beklenenler sayılmaz. Teklif yanıtı 14 günden uzun süredir bekleniyorsa Dikkat İsteyenler kartında ayrı bir satırda gösterilir.',
     'Garanti gideri: onay tarihi seçilen döneme düşen servis hak edişlerinin toplamı (yol ve işçilik). Parçanın kendisi bu tutara dahil değildir.',
     'Yeni müşteri: kayıt tarihi seçilen döneme düşen müşteri hesapları. Telefonla açılan talepler müşteri hesabı oluşturmadığı için bu sayı "Gelen talep" ile aynı kaynaktan gelmez.',
@@ -233,7 +233,7 @@ export const genelBolumu = {
         deger: sureYaz(kapanmaDonem),
         fark: f(kapanmaDonem, kapanmaOnceki),
         iyi: 'azalis',
-        alt: M.kapanmaAlt(sureYaz(dilim(kapananDonem.map(kapanisOlaySuresi), 0.9))),
+        alt: M.kapanmaAlt,
       },
       {
         ad: M.acik,
@@ -398,7 +398,6 @@ export const genelBolumu = {
       String(acikListe.filter(gecikmisMi).length),
       sureYaz(ortalama(liste.map(ilkIslemSuresi))),
       sureYaz(ortalama(kapanan.map(kapanisOlaySuresi))),
-      sureYaz(dilim(kapanan.map(kapanisOlaySuresi), 0.9)),
     ]
 
     /* TOPLAM SATIRI SÜTUNLARIN TOPLAMI OLMALI. Satırlar yalnız bilinen
@@ -423,9 +422,9 @@ export const genelBolumu = {
         aciklama: M.tabloTurAciklama,
         basliklar: [
           M.sutun.tur, M.sutun.gelen, M.sutun.kapanan, M.sutun.iptal, M.sutun.acik, M.sutun.gecikmis,
-          M.sutun.ilk, M.sutun.kapanma, M.sutun.yavas,
+          M.sutun.ilk, M.sutun.kapanma,
         ],
-        sag: [1, 2, 3, 4, 5, 6, 7, 8],
+        sag: [1, 2, 3, 4, 5, 6, 7],
         satirlar: [
           ...TURLER.map((tur) =>
             tabloSatiri(turAdi(tur), (t) => t.tur === tur, git ? () => git('talepler', { durum: 'hepsi', tur, aralik }) : undefined),

@@ -3,9 +3,9 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { useApp } from '../context/AppState'
 import { TopBar, TabBar } from '../components/Chrome'
 import { araligiBolme, RehberIlerlemesi, RehberMakineSecici } from '../components/Rehber'
-import { rehberListesi, mevsimRehberi } from '../marka/icerik/rehber'
+import { rehberListesi, mevsimRehberi } from '../data/icerik/rehber'
 import { rehberCizimi } from '../data/bakimCizimleri'
-import { getProduct, supportGroup } from '../marka'
+import { getProduct, supportGroup } from '../data/katalog/products.js'
 import { isaretleriGetir, rehberIlerlemesi } from '../lib/rehberIsaret'
 import { useDil } from '../i18n'
 import { IconCalendar, IconRight } from '../components/Icons'
@@ -18,7 +18,7 @@ import { IconCalendar, IconRight } from '../components/Icons'
    kadarının yapıldığı görünmüyordu.
 
      · İçinde bulunulan mevsimin rehberi büyük kartta, başta
-       (marka/icerik/rehber.js → mevsimRehberi). Kartın üstündeki "bu
+       (data/icerik/rehber.js → mevsimRehberi). Kartın üstündeki "bu
        mevsim" rozeti neden başta olduğunu söylüyor.
      · Her rehberde seçili makinedeki ilerleme: kaç adımın yapıldığı
        rehberin içindekiyle aynı sayı (lib/rehberIsaret.js →

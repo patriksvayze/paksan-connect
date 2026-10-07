@@ -1,3 +1,12 @@
+> **GEÇERSİZ (5 Ekim 2026).** Kullanıcının kararı: "başka firmalara
+> uyarlanabilir yapı modeli olmayacak, ürün sadece PAKSAN'ın". Bu belgenin
+> anlattığı `src/marka/` klasörü, `src/marka/index.js` kapısı, hesaplanan
+> marka adı ve ekleri ve `npm run dogrula` 5. ve 6. kontrolleri söküldü;
+> ad koda düz yazılıyor, dosyalar `src/data/`, `src/assets/`,
+> `src/components/Logo.jsx` ve `src/styles/renkler.css` altında. Ayrıntı:
+> CLAUDE.md → "5 Ekim 2026 — ürün yalnız PAKSAN'ın, marka katmanı söküldü".
+> Belge geçmişi anlamak için duruyor; uygulanmaz.
+
 # Marka Devri — Yeni Firmaya Kurulum
 
 Bu paket bir firmaya özel yazılmadı. Seri numaralı makine, garanti,

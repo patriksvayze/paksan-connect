@@ -1,5 +1,5 @@
 import { KILAVUZ } from '../config'
-import { URUN_KILAVUZU } from '../marka/icerik/kilavuzEslesme'
+import { URUN_KILAVUZU } from '../data/icerik/kilavuzEslesme'
 import { load, save } from './storage'
 
 /* ==========================================================================
@@ -19,7 +19,7 @@ import { load, save } from './storage'
      <kok>/<dosya>           kılavuzun PDF'i
 
    Hangi ürünün hangi kılavuzu kullandığı markanın tablosunda
-   (marka/icerik/kilavuzEslesme.js → URUN_KILAVUZU); kod iki tarafta aynı.
+   (data/icerik/kilavuzEslesme.js → URUN_KILAVUZU); kod iki tarafta aynı.
 
    TELEFONDA SAKLAMA. Çiftçi kılavuzu bir kez indiriyor, sonra tarlada
    internetsiz açıyor. Dosya tarayıcının kalıcı önbelleğinde (Cache API)

@@ -79,7 +79,7 @@ const MAKINELER = [
    olmadan servis zinciri boş dönüyordu ve Connect'in ana ekranı
    "Servisiniz henüz atanmadı", servis talebi ekranı da dolu form yerine
    o uyarıyı çiziyordu. Servis kimlikleri marka kataloğundaki gerçek
-   kayıtlar (src/marka/katalog/servisler.js). Tohumlanırken defterdeki
+   kayıtlar (src/data/katalog/servisler.js). Tohumlanırken defterdeki
    öteki satırlara dokunulmuyor: backoffice'in demo satırları duruyor. */
 const DEFTER = [
   {
@@ -194,7 +194,7 @@ const TALEPLER = [
      eklendi (bkz. src/screens/RequestDetail.jsx, styles.css
      .durum-kart--bayiyeIletildi). Önceki dört talepte bu durum yoktu;
      ekranın yeni hâlini göstermek için eklendi. `bayi` alanı
-     src/marka/katalog/bayiler.js'teki gerçek Bandırma bayisi. */
+     src/data/katalog/bayiler.js'teki gerçek Bandırma bayisi. */
   {
     ...ORTAK_TALEP,
     id: 'tlp-teklif-2', no: 'TKF2608219944', createdAt: SIMDI - 1 * GUN, status: 'bayiyeIletildi',
@@ -481,7 +481,7 @@ const UYGULAMA = [
   /* DESTEK — arıza çözüm rehberi (29 Eylül 2026, screens/ArizaCozumu.jsx).
      Tohum son seçilen makineyi (mk1, Hammer) hatırlatıyor; 10. sahne
      seçimi silip makine adımını gösteriyor. Tıklanan yazılar veri
-     dosyasından (marka/icerik/destekVerisi.js → balya), ekran
+     dosyasından (data/icerik/destekVerisi.js → balya), ekran
      metinlerinden değil: Codex metinleri yenilese de sahne kırılmıyor. */
   {
     ad: '10-destek-makine-secimi', baslik: 'Destek — makine seçimi', yol: '/destek',
@@ -614,6 +614,28 @@ const UYGULAMA = [
   { ad: '28b-taleplerim', baslik: 'Taleplerim', yol: '/taleplerim' },
   { ad: '29-numara-degisikligi', baslik: 'Numara değişikliği', yol: '/numara-degisikligi' },
 ]
+
+/* Eski demo hesabı güncel KVKK metnini henüz onaylamadıysa gerçek
+   arayüzden onayla. Tohum her sahnede yeniden yazılıyor; yenileme
+   adımı bulunan sahnelerde de aynı kontrol gerekiyor. */
+const KVKK_ONAY_ADIMI = {
+  js: `(() => new Promise(async (coz) => {
+    const kutu = document.querySelector('[data-kvkk-guncelleme]');
+    if (!kutu) { coz('OK'); return; }
+    for (const g of kutu.querySelectorAll('input[type="checkbox"]')) {
+      if (!g.checked) g.click();
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    kutu.querySelector('button.btn--primary')?.click();
+    await new Promise((r) => setTimeout(r, 300));
+    coz(document.querySelector('[data-kvkk-guncelleme]') ? 'YOK' : 'OK');
+  }))()`,
+}
+for (const sahne of UYGULAMA) {
+  if (sahne.cikisYap) continue
+  sahne.adimlar = [KVKK_ONAY_ADIMI, ...(sahne.adimlar || []).flatMap((adim) =>
+    adim.yenile ? [adim, KVKK_ONAY_ADIMI] : [adim])]
+}
 
 /* HİZMET ÜCRETİ VE SERVİS İSKONTOSU TOHUMU (23 Eylül 2026).
 
@@ -789,6 +811,10 @@ const BACKOFFICE = [
   },
   { ad: '47-geri-bildirimler', baslik: 'Geri Bildirimler', menu: 'Geri Bildirimler' },
   { ad: '48-raporlar', baslik: 'Raporlar', menu: 'Raporlar' },
+  {
+    ad: '48b-urun-kalitesi', baslik: 'Raporlar — Ürün Kalitesi', menu: 'Raporlar',
+    adimlar: [{ tiklaMetin: 'Ürün Kalitesi', kapsam: '.rapor-sekme' }, { bekle: 700 }],
+  },
   { ad: '49-destek-kayitlari', baslik: 'Destek Kayıtları', menu: 'Destek Kayıtları' },
   { ad: '50-duyurular', baslik: 'Duyurular', menu: 'Duyurular' },
   /* Hedefleme (23 Eylül 2026): bölge, makine ve servis formda açık;
@@ -874,6 +900,8 @@ const SERVIS = [
     adimlar: [
       { tiklaMetin: 'Hak Ediş', kapsam: '.uyg__tab' },
       { bekle: 700 },
+      { tiklaMetin: 'Hesap Hareketleri' },
+      { bekle: 400 },
       {
         js: `(() => new Promise(async (coz) => {
           const satirlar = [...document.querySelectorAll('.hareket')];
@@ -1003,6 +1031,20 @@ const SERVIS = [
     ],
   },
 ]
+
+/* Servisim'in ilk giriş gizlilik kapısını yalnız ayrı demo profilinde
+   mevcut kabul düğmesine basarak tamamla; iş ekranları görünür olsun. */
+for (const sahne of SERVIS) {
+  if (sahne.giris === false) continue
+  sahne.adimlar = [{
+    js: `(() => new Promise(async (coz) => {
+      const b = [...document.querySelectorAll('button')]
+        .find((x) => x.innerText.includes('Okudum, Kabul Ediyorum'));
+      if (b) { b.click(); await new Promise((r) => setTimeout(r, 500)); }
+      coz('OK');
+    }))()`,
+  }, ...(sahne.adimlar || [])]
+}
 
 /* ====================================================== Chrome sürücüsü
 

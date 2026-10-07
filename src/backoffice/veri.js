@@ -10,11 +10,16 @@ import { load, save, uid, remove, oturumYukle, oturumKaydet, oturumSil } from '.
 import { sifreHazirla, sifreDogruMu, sifreGecerliMi } from '../lib/hesap'
 import { yeniNo } from '../lib/numara'
 import { talepNo, makinesizTeklif, sevkSatiriMi } from '../lib/talep'
-import { SIRKET, MARKA, markaEk, PARA_BIRIMI, kdvTutari } from '../marka'
+import { SIRKET } from '../data/kimlik.js'
+import { PARA_BIRIMI, kdvTutari } from '../data/katalog/para.js'
 import { urun } from '../lib/urun'
-import { ASAMA, iscilikAlanlari, kaydiDogrula, kaydiCozume, kapininSonucu, satirlarinAdedi, siparisGonderimi } from '../lib/servisKaydi.js'
+import {
+  ASAMA, PARCA_DEGISTI, PARCASIZ_DEGISIM, iscilikAlanlari, kaydiDogrula, kaydiCozume, kapininSonucu,
+  satirlarinAdedi, siparisGonderimi, temizParcalar, yapilanIsleri,
+} from '../lib/servisKaydi.js'
 import { teslimatTemizle } from '../lib/teslimat.js'
-import { servisleriGetir, getProduct } from '../marka'
+import { servisleriGetir } from '../data/katalog/servisler.js'
+import { getProduct } from '../data/katalog/products.js'
 import { icerikListe, icerikTazele } from '../lib/icerikDeposu.js'
 import { altBilgi } from '../data/duyuruTurleri.js'
 import { SERI_CAKISMASI } from '../lib/numaraTalebi.js'
@@ -199,6 +204,11 @@ function temizTurler(liste) {
         Servis parçayı takıp kaydı gönderince durum değişiyor ve iş
         listeden kendiliğinden düşüyor.
 
+   6 EKİM 2026'DAN BERİ İKİNCİ VE ÜÇÜNCÜ KAPI GARANTİ İŞİNDE KAPALI:
+   garanti işi parçasıyla birlikte servis biriminin (aşağıda,
+   garantiIsiMi). Aşağıdaki gerekçeler eski garanti dışı parça isteği
+   için geçerli kalıyor.
+
    İKİNCİ KAPI NEDEN VAR
 
    Servis sahada iş bitirip garanti dışı bir parça istediğinde, o
@@ -218,6 +228,21 @@ function parcasiYoldaMi(t) {
   return t.status === 'parcaBekliyor' && Boolean(t.parcaSevk)
 }
 
+/* GARANTİ İŞİ BAŞKA MASAYA GİTMİYOR (6 Ekim 2026, kullanıcının kararı:
+   "Garanti kapsamındaki işlerden de sadece Servis rolü sorumlu. Garanti
+   kapsamında parça değişimi yapılacak olsa da fark etmez … parça
+   gönderimi içeriyor diye Yedek Parça rolüne (sürecin bir kısmını)
+   atamanın bir anlamı yok"). Garanti parçasının istenmesi, gönderilmesi
+   ve yoldaki takibi servis biriminin işi: ikinci ve üçüncü kapı garanti
+   kaydı taşıyan servis talebini başka masaya göstermiyor. Yeni kayıt
+   zaten servis masasına düşüyor (lib/servisKaydi.js → kapininSonucu);
+   kapı, o günden önce `masa: 'parca'` ile yazılmış kayıtlar için de.
+   İki kapı yalnız eski garanti dışı parça isteğinde (kapı `parcaIste`,
+   artık yazılmıyor) çalışıyor. */
+function garantiIsiMi(t) {
+  return t.tur === 'servis' && t.servisKaydi?.kapi === 'garanti'
+}
+
 /** Rolün göreceği talepler: kendi türleri + masasında bekleyenler + gönderdiği parçası yolda olanlar. */
 export function rolunTalepleri(liste, rol) {
   const turler = rolunTurleri(rol)
@@ -225,8 +250,8 @@ export function rolunTalepleri(liste, rol) {
   return liste.filter(
     (t) =>
       turler.includes(t.tur) ||
-      turler.includes(t.masa) ||
-      (turler.includes('parca') && parcasiYoldaMi(t)),
+      (!garantiIsiMi(t) &&
+        (turler.includes(t.masa) || (turler.includes('parca') && parcasiYoldaMi(t)))),
   )
 }
 
@@ -1191,6 +1216,59 @@ export function talebiBayiyeAta(talep, bayi, personel) {
   return { bayi: kayit }
 }
 
+/* ==========================================================================
+   Bölge dışı talebe servis atama (5 Ekim 2026, kullanıcının kararı)
+
+   Çiftçi makinesiyle başka bir il ya da ilçedeyken talep açınca, yer
+   makinenin servisinin bölgesinde değilse talep servise gitmiyor:
+   PAKSAN'a düşüyor ve `bolgeDisi` işaretini taşıyor (lib/talepOlustur.js
+   → bolgeDisiKaydi). Personel burada o İŞ İÇİN bir servis seçiyor;
+   makinenin kalıcı servisi DEĞİŞMİYOR (makine ataması Kayıtlı
+   Makineler'de, ayrı bir karar). Seçilen servis işi Servisim'de normal
+   bir iş olarak görüyor, randevuyu o veriyor, hak edişi ona yazılıyor.
+
+   Kim atar: makineye servis atama yetkisi olan personel (`makineAtama`;
+   ekran soruyor). Yeni yetki açılmadı: aynı kararın iş başına hâli.
+
+   Karar depodaki kayıttan (guncelTalep): iki personel aynı anda farklı
+   servis seçerse ikincisi "zaten atanmış" diye geri çevriliyor.
+
+   Müşteriye "talebinize servis atandı", servise "size yeni bir iş
+   verildi" bildirimi gidiyor. Atamanın izi `bolgeDisi.atama`'da:
+   kim, ne zaman, hangi servis. */
+export function bolgeDisiTalebeServisAta(talep, servis, personel) {
+  if (!servis?.id) return { hata: 'Servis seçin.' }
+  const guncel = guncelTalep(talep)
+  if (!guncel?.bolgeDisi) return { hata: 'Bu talep bölge dışı değil.' }
+  if (guncel.servis?.id) return { hata: 'Bu talebe zaten servis atanmış.' }
+  if (KAPALI_DURUMLAR.includes(guncel.status || 'yeni')) {
+    return { hata: 'Kapanmış ya da iptal edilmiş talebe servis atanamaz.' }
+  }
+
+  const simdi = Date.now()
+  const kayit = { id: servis.id, ad: servis.ad, tel: servis.tel || '', tarih: simdi }
+  const bolgeDisi = {
+    ...guncel.bolgeDisi,
+    atama: { servisId: servis.id, servisAd: servis.ad, tarih: simdi, personel },
+  }
+  talepYaz(guncel.id, { servis: kayit, sahip: 'servis', bolgeDisi })
+  const yeni = { ...guncel, servis: kayit, sahip: 'servis', bolgeDisi }
+
+  islemYaz({ tur: 'talep', ozet: `${guncel.no} · bölge dışı talebe servis atandı · ${servis.ad}`, personel })
+
+  serviseBildir(yeni, 'bolgeDisiAtandi', { il: bolgeDisi.il, ilce: bolgeDisi.ilce })
+  musteriyeBildir({
+    musteriId: bildirimAlicisi(yeni),
+    tur: 'talep',
+    baslikAnahtar: 'bildirimler.bolgeDisiAtandiBaslik',
+    metinAnahtar: 'bildirimler.bolgeDisiAtandiMetin',
+    degerler: { no: guncel.no, servis: servis.ad },
+    talepNo: guncel.no,
+  })
+
+  return { servis: kayit }
+}
+
 /* Yanlış tıklamanın düzeltilmesi: talep "Yeni"ye döner. İleri bir
    durum değil, geri alma; ekranda talep geri açma yetkisi istiyor.
    Müşteriye iletme sırasında bildirim gitmediği için geri alırken de
@@ -1663,7 +1741,7 @@ export function servisSiparisiniIptalEt(talep, servisAd) {
   if (!guncel?.servisSiparisi) return { hata: 'Sipariş bulunamadı.' }
   if (guncel.status !== 'yeni') {
     return {
-      hata: `${MARKA} siparişinizi işleme aldığı için artık buradan iptal edemezsiniz. İptal için ${markaEk('in')} yedek parça birimine ulaşın.`,
+      hata: `PAKSAN siparişinizi işleme aldığı için artık buradan iptal edemezsiniz. İptal için PAKSAN’ın yedek parça birimine ulaşın.`,
       durumDegisti: true,
     }
   }
@@ -2309,7 +2387,7 @@ export function musterininDigerTalepleri(talep, hepsi, { yalnizAcik = false } = 
 export function paksanRandevuEngeli(talep) {
   if (!talep || talep.tur !== 'servis' || talep.servisSiparisi) return null
   if (talep.devir && (talep.sahip || 'paksan') === 'paksan') return null
-  return `Bu işin randevusunu servis verir. ${MARKA} yalnızca kendisine devredilen işlere randevu verebilir.`
+  return `Bu işin randevusunu servis verir. PAKSAN yalnızca kendisine devredilen işlere randevu verebilir.`
 }
 
 export function talepPlanla(talep, plan, personel, { servisten } = {}) {
@@ -2973,7 +3051,7 @@ export function fiyatListesiYayinlandi({ kaynak, parca, surum }, personel) {
              iskontolar veya değişiklikler bildirim olarak da gitmeli."
 
    İkisi de koddaki bir sabitti (lib/servisKaydi.js → TARIFE,
-   marka/katalog/makineFiyat.js → PARCA_SERVIS_ISKONTO). Sabitler yerinde
+   data/katalog/makineFiyat.js → PARCA_SERVIS_ISKONTO). Sabitler yerinde
    kalıyor: personel hiçbir şey yazmadıysa geçerli olan BAŞLANGIÇ değeri.
    Hesabın kendisi saf modüllerde (lib/servisTarifesi.js,
    lib/servisFiyat.js); burada yalnız depo, işlem kaydı ve bildirim.
@@ -3402,7 +3480,7 @@ export function destekTalepEt(talep, neden, servisAd) {
   })
   islemYaz({
     tur: 'devir',
-    ozet: `${talep.no} · ${servisAd} ${markaEk('dan')} destek istedi`,
+    ozet: `${talep.no} · ${servisAd} PAKSAN’dan destek istedi`,
     personel: servisAd,
     rol: 'servis',
   })
@@ -3440,6 +3518,23 @@ export function servisKaydiGonder(talep, kayit, servisAd) {
 
   const hata = kaydiDogrula(kayit)
   if (hata) return { hata }
+
+  /* "PARÇA DEĞİŞTİ" PARÇASIZ GİTMİYOR (6 Ekim 2026, kullanıcının
+     bildirdiği: işaretli ama parça seçilmemişken kayıt tamamlanıyordu).
+     Garanti işinde parçayı her zaman PAKSAN gönderiyor; servisin kendi
+     stoğundan taktığı parça yok. Parça değiştiyse parça ya bu kayıtta
+     seçili ya da 1. aşamada istenmiş olmalı. Ekran aynı kuralı alanın
+     altında söylüyor (servis/ekranlar/ServisKapanisi.jsx); bu ikinci kat.
+     Yalnız yeni gönderimde: backoffice'in eski kayıt düzeltmesi
+     (hakkedisDuzelt) bu kapıdan geçmiyor. */
+  if (
+    kayit.kapi === 'garanti' &&
+    kayit.asama !== ASAMA.parca &&
+    yapilanIsleri(kayit.yapilanIs).includes(PARCA_DEGISTI) &&
+    !temizParcalar(kayit.parcalar).length
+  ) {
+    return { hata: PARCASIZ_DEGISIM }
+  }
 
   /* PARÇANIN GÖNDERİLECEĞİ ADRES PARÇA İSTEĞİYLE BİRLİKTE (17 Eylül 2026).
 
@@ -3917,7 +4012,9 @@ export function servisParcasiGonderildi(talep, kargo, personel) {
      gösteriyor. */
   const masaKalsin = !onceki && !kargo?.takipNo
   talepYaz(talep.id, {
-    masa: masaKalsin ? 'parca' : null,
+    /* Masa talebin kendi masası: garanti işinde servis (6 Ekim 2026),
+       eski garanti dışı parça isteğinde yedek parça. */
+    masa: masaKalsin ? talep.masa || 'parca' : null,
     parcaSevk: {
       ...kargo,
       tarih: onceki?.tarih || simdi,
@@ -4170,7 +4267,7 @@ export function servisSiparisKaydi({
   /* TUTAR TEK YERDEN: kaydedilen görüntüden. Ayrıca gelen `tutar` ve
      `tutarKdvli` yalnız görüntüsü olmayan çağrılar için duruyor.
      KDV elle çarpılmıyor — oranı ve "liste KDV hariç mi" kararını
-     `kdvTutari` biliyor (bkz. marka/katalog/para.js). */
+     `kdvTutari` biliyor (bkz. data/katalog/para.js). */
   const araToplam = Number(goruntu ? goruntu.araToplam : tutar) || 0
   const kdvliToplam =
     Number(goruntu ? goruntu.toplam : tutarKdvli) || araToplam + kdvTutari(araToplam)
@@ -4356,7 +4453,7 @@ export async function servisGirisi(kullanici, sifre) {
 
   if (!kayit) return { hata: 'Kullanıcı adı veya şifre yanlış.' }
   if (kayit.panelAktif === false) {
-    return { hata: `Bu hesap kapalı. ${MARKA} yetkilinize başvurun.` }
+    return { hata: `Bu hesap kapalı. PAKSAN yetkilinize başvurun.` }
   }
   if (!(await sifreDogruMu(sifre, kayit.sifre))) {
     return { hata: 'Kullanıcı adı veya şifre yanlış.' }

@@ -45,8 +45,9 @@ Destek asistanının sunucusu bu klasörde **değil**: `D:\PAKSAN\paksan-rag`.
 | `src/backoffice/` | Personel panelinin tamamı; ekranlar `ekranlar/` altında. |
 | `src/servis/` | PAKSAN Servisim'in tamamı; ekranlar `ekranlar/` altında. |
 | `src/components/` | Üç uygulamanın da kullandığı ortak parçalar. |
-| `src/marka/` | **Firmaya ait her şey:** logo, renkler, ürün kataloğu, bayi ve servis listeleri, fiyatlar, hangi ürünün hangi kılavuzu kullandığı, Destek'in arıza rehberi. Başka bir firmaya kurulum bu klasörün değişmesiyle olur. |
-| `src/data/` | Ülkeye ait içerik: il listesi, KVKK metinleri, talep alanları, belirtiler, yetki kataloğu. |
+| `src/data/` | Sabit içerik: il listesi, KVKK metinleri, talep alanları, belirtiler, yetki kataloğu. `kimlik.js` PAKSAN'ın unvanı, iletişim ve banka bilgisi ve Connect'in sürümü; `katalog/` ürünler, fiyatlar, parça grupları, bayi ve servis listeleri; `icerik/` Destek'in arıza rehberi, bakım rehberi, güvenlik, teknik özellikler, hangi ürünün hangi kılavuzu kullandığı. |
+| `src/assets/` | Görseller: `logo/` (logo, amblem, tarayıcı sekmesi ikonu), `urunler/` (ürün fotoğrafları), `videolar/`, `gorseller/` (boş ekran ve güvenlik çizimleri). |
+| `src/styles/` | Ortak ölçüler (`olcu.css`) ve renkler (`renkler.css`). |
 | `src/lib/` | Yardımcı modüller: depolama, bildirim, PDF/Excel çıkarma, servis atama, müşteri eşleşmesi (`musteriEslesmesi.js`), telefon biçimi (`tel.js`), makinenin açık talebi (`makineTalepleri.js`), Servisim'in elle açtığı talep (`elleTalep.js`), demo işareti (`demoSurumu.js`). |
 | `src/i18n/` | Türkçe ve İngilizce sözlükler (yalnız Connect iki dilli). |
 
@@ -65,10 +66,9 @@ Her belgenin tek bir sorusu var.
 | `PRODA-CIKIS.md` | Müşteriye açılmadan önce neler eksik? Maddelenmiş yapılacaklar listesi. (`CANLIYA-CIKIS.md` "nasıl", bu belge "neler eksik" diyor.) |
 | `GELISTIRICI-BAGIMLILIGI.md` | Canlıya çıkıldığında hangi işler için geliştirici çağırmak gerekecek? Rol rol döküm ve bağımlılığı kaldırma sırası. |
 | `KOD-SISTEMI.md` | Ekosistemdeki numaralar (talep, sipariş, makine, hak ediş) nasıl üretiliyor, hedeflenen düzen ne? |
-| `MARKA-DEVIR.md` | Bu ürün başka bir firmaya nasıl kurulur? |
 | `CODEX-BEKLEYEN.md` | Codex'in sınırı dolduğunda yazılan Türkçe metinler nasıl işaretlenip biriktirilir, sınır yenilenince nasıl topluca verilir? Kuyrukta bekleyen metin var; sayısı belgenin başında, `npm run dogrula` 12. kontrol listeliyor. |
 | `VT-TASARIM-EKLERI.md` | Uygulamaya sonradan giren akışların veritabanında karşılığı ne olmalı? Tasarıma işlenmeyi bekliyor. |
-| `PLAN-COKLU-MARKA.md` | Globale ve Gallignani markaları eklenirse ne değişir? Marka verileri gelmeden uygulanmayacak. |
+| `PLAN-COKLU-MARKA.md` | PAKSAN'ın alt markaları Globale ve Gallignani eklenirse ne değişir? Marka verileri gelmeden uygulanmayacak; dosya yolları 5 Ekim 2026'dan önceki düzene göre. |
 | `DESTEK-EKRANI-PLANI.md` | Connect'in Destek ekranı nasıl yeniden kurulacak? **Askıda** — kılavuz verisi tamamlanmadan uygulanmayacak, gerekçesi belgenin başında. |
 | `veritabani/tasarim.md` | Veritabanının tamamı: tablolar, kurallar, gerekçeler. Veritabanı konusunda **asıl kaynak budur.** |
 
@@ -77,6 +77,7 @@ Her belgenin tek bir sorusu var.
 | Belge | Neden duruyor |
 |---|---|
 | `BAYI-YOL-HARITASI.md` | Bayi ile servisi aynı taraf sayıyordu; 9 Eylül 2026'da geçersiz ilan edildi. Belgenin başında gerekçesi yazılı. |
+| `MARKA-DEVIR.md` | Ürünün başka bir firmaya nasıl kurulacağını anlatıyordu; 5 Ekim 2026'da geçersiz: ürün yalnız PAKSAN'ın, marka katmanı söküldü. |
 | `NOTLAR.md` | Projenin ilk aşamasının çalışma notları (Ağustos 2026). Tarihsel kayıt. |
 | `SUNUCU-VE-VERITABANI.md` | Sunucu konusunu ilk anlatan belge (4 Eylül). Yerini `CANLIYA-CIKIS.md` ve `veritabani/tasarim.md` aldı. |
 

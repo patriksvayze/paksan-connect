@@ -4,9 +4,9 @@ import { useApp } from '../context/AppState'
 import { TopBar, TabBar } from '../components/Chrome'
 import { araligiBolme, RehberIlerlemesi, RehberMakineSecici } from '../components/Rehber'
 import { useDil } from '../i18n'
-import { getRehber, guvenlikMetni, rehberListesi } from '../marka/icerik/rehber'
+import { getRehber, guvenlikMetni, rehberListesi } from '../data/icerik/rehber'
 import { bakimCizimi, rehberCizimi } from '../data/bakimCizimleri'
-import { getProduct, supportGroup, urunDilde } from '../marka'
+import { getProduct, supportGroup, urunDilde } from '../data/katalog/products.js'
 import {
   bolumuSifirla, isaretiCevir, isaretleriGetir, isaretleriGeriYukle, maddeAnahtari,
   rehberBolumleri, rehberIlerlemesi, rehberiSifirla,
@@ -18,7 +18,7 @@ import {
 /* ==========================================================================
    Bakım rehberi
 
-   Rehber metni iki katmanlı (bkz. marka/icerik/rehber.js):
+   Rehber metni iki katmanlı (bkz. data/icerik/rehber.js):
      · gruplar → makinenin türüne göre değişen adımlar
      · ortak   → her makinede geçerli adımlar
    Makineye özel bölümler önce: çiftçi kendi makinesi için ne yapacağını

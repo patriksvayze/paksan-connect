@@ -1,10 +1,10 @@
 import { gonderimGecikti, KAPALI_DURUMLAR } from '../../../veri'
 import { talebinParcalari } from '../../../../lib/servisKaydi'
-import { markaEk } from '../../../../marka'
+
 import { tarihYaz } from '../../ortak'
 import {
-  dilim, fark, farkPuan, kapanisZamani, kovayaDagit, musteriTalebiMi, oran, ortalama, paraHucre,
-  paraKutu, parcaGoruntusu, RENK, SAAT, servisZiyaretleri, sureYaz, talepModeli, topla, yuzde,
+  fark, kovayaDagit, musteriTalebiMi, ortalama, paraHucre,
+  paraKutu, parcaGoruntusu, RENK, SAAT, servisZiyaretleri, sureYaz, topla,
   zamanKovalari,
 } from '../hesap'
 
@@ -67,15 +67,8 @@ const M = {
     bilinmeyen
       ? `İptal edilmeyen ${n} sipariş · ${bilinmeyen} siparişin tutarı kayıtlı değil, toplama girmedi`
       : `İptal edilmeyen ${n} sipariş · KDV dâhil`,
-  odemeBekleyen: 'Ödeme onayı bekleyen',
-  odemeBekleyenAlt: 'Şu an · dekont geldi, ödeme henüz onaylanmadı',
-  odemedenGonderim: 'Ödemeden gönderime',
-  odemedenGonderimAlt: (n, p90) => `${n} talep ortalaması · en yavaş %10: ${p90}`,
   garantiSevk: 'Garanti parçasının gönderilme süresi',
-  garantiSevkAlt: (n, p90) => `Servis istedikten sonra · ${n} gönderim · en yavaş %10: ${p90}`,
-  soz: 'Söz verilen zamana kadar gönderim',
-  sozAlt: (tutulan, n) =>
-    n ? `Bu dönemde gönderilen, tarih ve saat sözü verilmiş ${n} talebin ${tutulan} tanesi` : 'Bu dönemde gönderilen, tarih ve saat sözü verilmiş talep yok',
+  garantiSevkAlt: (n) => `Servis istedikten sonra · ${n} gönderim`,
 
   grafik: 'Yedek parça talepleri',
   /* Kova boyu döneme göre gün, hafta ya da ay olabiliyor
@@ -86,7 +79,7 @@ const M = {
   seriSiparis: 'Servis siparişi',
 
   tabloParca: 'En çok istenen parçalar',
-  tabloParcaAciklama: `Seçilen dönemde istenen parçalar, adet olarak. Garanti işinde, servisin istediği ve ${markaEk('in')} bedelsiz gönderdiği parçalar.`,
+  tabloParcaAciklama: `Seçilen dönemde istenen parçalar, adet olarak. Garanti işinde, servisin istediği ve PAKSAN’ın bedelsiz gönderdiği parçalar.`,
   tabloServis: 'Servislere göre parça siparişi',
   tabloServisAciklama: 'Sipariş sayısı ve tutarlar, seçilen dönemde verilen ve iptal edilmemiş siparişleri gösterir. Açık sipariş sayısı tarih süzgecinden bağımsız olarak şu anki durumu gösterir. "Bakiyeden ödenen" servisin hak edişinden düşülmesini seçtiği siparişlerin tutarı; kapanmış siparişlerde tutar hak edişten düşülmüştür, açık siparişlerde sipariş kapanınca düşülecektir. Tutarlar KDV dâhil.',
   tabloGecikme: 'Gönderimi geciken parça talepleri',
@@ -97,7 +90,7 @@ const M = {
      ile 7 adet yan yana aynı adla okunuyordu. */
   sutun: {
     parca: 'Parça', kod: 'Kod', musteri: 'Müşteri talebinde (adet)', siparis: 'Servis siparişinde (adet)',
-    garanti: 'Garanti işinde (adet)', toplamAdet: 'Toplam adet', talep: 'Kaç talepte', model: 'Hangi modellerde',
+    garanti: 'Garanti işinde (adet)', toplamAdet: 'Toplam adet', 
     servis: 'Servis', siparisSayisi: 'Sipariş', tutar: 'Tutar (KDV dâhil)',
     bakiye: 'Bakiyeden ödenen', acik: 'Şu an açık sipariş',
     /* Sütun birimsiz: gecikme bir günden kısaysa saat ya da dakika
@@ -115,7 +108,7 @@ const M = {
     'Servis siparişi tutarı: seçilen dönemde açılan servis siparişlerinin sipariş anındaki tutarı (KDV dâhil). İptal edilen sipariş toplama girmez.',
     'Ödeme onayı bekleyen: şu an açık, dekontu gelmiş ama ödemesi onaylanmamış müşteri parça talepleri. Tarih süzgecinden bağımsızdır.',
     'Ödemeden gönderime: seçilen dönemde gönderilen (kapanan) müşteri parça taleplerinde ödeme onayından kapanışa geçen süre. Ödemesi onaylanmadan gönderilen talep ortalamaya girmez.',
-    `Garanti parçasının gönderilme süresi: servisin garanti işinde parçayı istediği andan ${markaEk('in')} parçayı gönderdiği ana kadar geçen süre. Gönderim tarihi seçilen döneme düşen parçalar sayılır.`,
+    `Garanti parçasının gönderilme süresi: servisin garanti işinde parçayı istediği andan PAKSAN’ın parçayı gönderdiği ana kadar geçen süre. Gönderim tarihi seçilen döneme düşen parçalar sayılır.`,
     'Söz verilen zamana kadar gönderim: müşteriye gönderim tarihi verilmiş ve seçilen dönemde gönderilmiş taleplerden, verilen tarih ve saate kadar gönderilenlerin payı. Gönderimin zamanında yapılıp yapılmadığı belirlenirken hem tarih hem saat dikkate alınır; "Gönderimi geciken parça talepleri" tablosu da aynı ölçüte bakar. Tarih verilmemiş talep hesaba girmez.',
     'En çok istenen parçalar: müşteri talebi ve servis siparişi seçilen dönemde açılana göre, garanti parçası servisin parçayı istediği güne göre sayılır. Parçalar koduna göre ayrılır; kodu olmayan eski kayıt adıyla sayılır. İptal edilen talebin parçası da istenmiş sayılır.',
     'Yüzde farklar bir önceki eşit uzunluktaki dönemle karşılaştırılır. "Tüm zamanlar" seçiliyse karşılaştırma yapılmaz.',
@@ -213,20 +206,9 @@ export const parcaBolumu = {
     const siparisDonem = siparisOzeti(donemSiparisleri)
     const siparisOnceki = siparisOzeti(onceki.filter(servisSiparisi))
 
-    const odemeBekleyen = musteriParcalari.filter((t) => acikMi(t) && t.dekont && !t.odemeOnay).length
-
-    /* Kapanış = parça gönderildi. Ödeme onayından önce gönderilen
-       talepte süre eksi çıkıyor; ortalamaya girmiyor. */
-    const gonderilen = (icinde) => musteriParcalari.filter((t) => icinde(kapanisZamani(t)))
-    const odemedenSure = (t) => {
-      const o = t.odemeOnay?.tarih
-      const k = kapanisZamani(t)
-      if (!Number.isFinite(o) || !k || k < o) return null
-      return (k - o) / SAAT
-    }
-    const odemedenDonem = gonderilen(donemde).map(odemedenSure).filter((x) => x !== null)
-    const odemedenOnceki = gonderilen(oncekide).map(odemedenSure).filter((x) => x !== null)
-
+    /* "Ödeme onayı bekleyen", "Ödemeden gönderime" ve "Söz verilen
+       zamana kadar gönderim" kutuları kaldırıldı (6 Ekim 2026, kullanıcının
+       isteği). */
     const sevkSuresi = (z) => {
       const s = z.parcaSevk?.tarih
       if (!Number.isFinite(s) || !Number.isFinite(z.istek)) return null
@@ -234,21 +216,6 @@ export const parcaBolumu = {
     }
     const sevkDonem = garanti.filter((z) => donemde(z.parcaSevk?.tarih)).map(sevkSuresi).filter((x) => x !== null)
     const sevkOnceki = garanti.filter((z) => oncekide(z.parcaSevk?.tarih)).map(sevkSuresi).filter((x) => x !== null)
-
-    /* SÖZ TEK ÖLÇÜTLE YARGILANIYOR. Bu ölçü sözün verildiği GÜNÜN
-       SONUNA kadar gönderileni tutulmuş sayıyordu, "Gönderimi geciken"
-       tablosu ise sözün verildiği DAKİKA geçer geçmez talebi kırmızı
-       listeliyordu: sabah kırmızı görünen bir talep, akşam gönderilince
-       "sözünde durduk" ölçüsünü yükseltiyordu. Müşteriye bildirilen söz
-       saat içerdiği için (bkz. Talepler.jsx → PlanFormu, veri.js →
-       talepPlanla) sıkı ölçüt geçerli: verilen tarih ve saat. */
-    const soz = (icinde) => {
-      const sozlu = gonderilen(icinde).filter((t) => Number.isFinite(t.plan?.tarih))
-      const tutulan = sozlu.filter((t) => kapanisZamani(t) <= t.plan.tarih)
-      return { n: sozlu.length, tutulan: tutulan.length, oran: oran(tutulan.length, sozlu.length) }
-    }
-    const sozDonem = soz(donemde)
-    const sozOnceki = soz(oncekide)
 
     const olculer = [
       {
@@ -282,34 +249,17 @@ export const parcaBolumu = {
         alt: M.siparisTutariAlt(siparisDonem.n, siparisDonem.bilinmeyen),
       },
       {
-        ad: M.odemeBekleyen,
-        deger: odemeBekleyen,
-        iyi: null,
-        alt: M.odemeBekleyenAlt,
-      },
-      {
-        ad: M.odemedenGonderim,
-        deger: sureYaz(ortalama(odemedenDonem)),
-        fark: f(ortalama(odemedenDonem), ortalama(odemedenOnceki)),
-        iyi: 'azalis',
-        alt: M.odemedenGonderimAlt(odemedenDonem.length, sureYaz(dilim(odemedenDonem, 0.9))),
-      },
-      {
         /* Dashboard'un yönetim özeti bu ölçüyü kimliğiyle buluyor (bkz. Ozet.jsx). */
         id: 'garantiSevk',
+        /* RAPORDA GÖRÜNMÜYOR (6 Ekim 2026, kullanıcının isteği), yalnız
+           Dashboard'un yönetim özetinde. Kaldırılsaydı oradan da sessizce
+           düşerdi (bkz. Gorunum.jsx → OlcuSeridi, `raporda`). */
+        raporda: false,
         ad: M.garantiSevk,
         deger: sureYaz(ortalama(sevkDonem)),
         fark: f(ortalama(sevkDonem), ortalama(sevkOnceki)),
         iyi: 'azalis',
-        alt: M.garantiSevkAlt(sevkDonem.length, sureYaz(dilim(sevkDonem, 0.9))),
-      },
-      {
-        ad: M.soz,
-        deger: yuzde(sozDonem.tutulan, sozDonem.n),
-        fark: karsilastir ? farkPuan(sozDonem.oran, sozOnceki.oran) : null,
-        farkBirim: 'puan',
-        iyi: 'artis',
-        alt: M.sozAlt(sozDonem.tutulan, sozDonem.n),
+        alt: M.garantiSevkAlt(sevkDonem.length),
       },
     ]
 
@@ -339,36 +289,34 @@ export const parcaBolumu = {
     /* ------------------------------------------ En çok istenen parçalar */
 
     const parcalar = new Map()
-    const ekle = (p, alan, talepKimligi, model) => {
+    const ekle = (p, alan, talepKimligi) => {
       const adet = Number(p?.adet) || 0
       if (adet <= 0 || !(p?.kod || p?.ad)) return
       const anahtar = p.kod || 'ad:' + p.ad
       if (!parcalar.has(anahtar)) {
         parcalar.set(anahtar, {
           ad: p.ad || p.kod, kod: p.kod || '', musteri: 0, siparis: 0, garanti: 0,
-          talepler: new Set(), modeller: new Set(),
+          talepler: new Set(),
         })
       }
       const k = parcalar.get(anahtar)
       k[alan] += adet
       k.talepler.add(talepKimligi)
-      if (model) k.modeller.add(model)
     }
 
     for (const t of donem) {
       if (t.tur !== 'parca') continue
       const alan = musteriTalebiMi(t) ? 'musteri' : 'siparis'
-      for (const p of talebinParcalari(t)) ekle(p, alan, t.id || t.no, talepModeli(t))
+      for (const p of talebinParcalari(t)) ekle(p, alan, t.id || t.no)
     }
     for (const z of garanti) {
       if (!donemde(z.istek ?? z.tarih)) continue
-      for (const p of z.parcalar) ekle(p, 'garanti', z.talep.id || z.talep.no, talepModeli(z.talep))
+      for (const p of z.parcalar) ekle(p, 'garanti', z.talep.id || z.talep.no)
     }
 
     const parcaListesi = [...parcalar.values()]
       .map((k) => ({ ...k, toplam: k.musteri + k.siparis + k.garanti }))
       .sort((a, b) => b.toplam - a.toplam || b.talepler.size - a.talepler.size)
-    const tumTalepler = new Set(parcaListesi.flatMap((k) => [...k.talepler]))
     const adetTopla = (alan) => String(parcaListesi.reduce((a, k) => a + k[alan], 0))
 
     /* ------------------------------------ Servislere göre parça siparişi */
@@ -419,9 +367,9 @@ export const parcaBolumu = {
         aciklama: M.tabloParcaAciklama,
         basliklar: [
           M.sutun.parca, M.sutun.kod, M.sutun.musteri, M.sutun.siparis, M.sutun.garanti,
-          M.sutun.toplamAdet, M.sutun.talep, M.sutun.model,
+          M.sutun.toplamAdet,
         ],
-        sag: [2, 3, 4, 5, 6],
+        sag: [2, 3, 4, 5],
         satirlar: parcaListesi.map((k) => ({
           hucreler: [
             k.ad,
@@ -430,13 +378,11 @@ export const parcaBolumu = {
             String(k.siparis),
             String(k.garanti),
             String(k.toplam),
-            String(k.talepler.size),
-            [...k.modeller].sort((a, b) => a.localeCompare(b, 'tr')).join(' · ') || '—',
           ],
         })),
         toplamSatiri: [
           M.toplam, '', adetTopla('musteri'), adetTopla('siparis'), adetTopla('garanti'),
-          adetTopla('toplam'), String(tumTalepler.size), '',
+          adetTopla('toplam'),
         ],
       },
       {

@@ -1,8 +1,9 @@
 import { KAPALI_DURUMLAR } from '../../../veri'
 import { makineninServisi } from '../../../../lib/servisAtama'
-import { markaEk, servisleriGetir } from '../../../../marka'
+import { servisleriGetir } from '../../../../data/katalog/servisler.js'
+
 import {
-  dilim, fark, farkPuan, kapanisOlayi, musteriTalebiMi, oran, ortalama, paraHucre, RENK, SAAT,
+  fark, farkPuan, kapanisOlayi, musteriTalebiMi, oran, ortalama, paraHucre, RENK, SAAT,
   servisSinifi, servisZiyaretleri, sureYaz, topla, yenidenAcilmaSayisi, yuzde,
 } from '../hesap'
 
@@ -50,15 +51,13 @@ const M = {
   tamamlanan: 'Tamamlanan iş',
   tamamlananAlt: 'Açılış tarihinden bağımsız, bu dönemde kapanan işler; sonradan yeniden açılanlar dahil',
   ilkKayit: 'İlk servis kaydına kadar',
-  ilkKayitAlt: (p90) => `Ortalama · en yavaş %10: ${p90}`,
+  ilkKayitAlt: 'Ortalama',
   yenidenAcilma: 'Yeniden açılma oranı',
   yenidenAcilmaAlt: (n, m) => `Kapanan ${m} işin ${n} tanesinde müşteri "sorun devam ediyor" dedi`,
   destek: 'Destek istenen iş',
-  destekAlt: `Servisin ${markaEk('dan')} destek istediği talepler`,
+  destekAlt: `Servisin PAKSAN’dan destek istediği talepler`,
   garantiDisi: 'Garanti dışı tamamlanan',
   garantiDisiAlt: 'Bu dönemde kapanan, parasını müşterinin ödediği işler',
-  isYapan: 'İş yapan servis',
-  isYapanAlt: (n) => `Kayıtlı ${n} servisten bu dönemde en az bir servis kaydı olanlar`,
 
   grafikServis: 'Servislere göre işler',
   grafikServisAlt:
@@ -76,7 +75,7 @@ const M = {
 
   tabloKarne: 'Servis karnesi',
   tabloKarneAciklama:
-    'Bütün kayıtlı servisler; iş almayanlar en sonda. Gelen iş seçilen dönemde açılan; tamamlanan, garanti dışı tamamlanan ve yeniden açılan (kapanan işte) seçilen dönemde kapanan; garanti işi seçilen dönemde biten garanti işi; onaylanan hak ediş tutarı onay tarihine göre. Şu an açık ve bakiye tarihten bağımsız. Bir satıra tıklayınca servisin talepleri açılır.',
+    'Bütün kayıtlı servisler; iş almayanlar en sonda. Gelen iş seçilen dönemde açılan; tamamlanan, garanti dışı tamamlanan ve yeniden açılan (kapanan işte) seçilen dönemde kapanan; garanti işi seçilen dönemde biten garanti işi; onaylanan hak ediş tutarı onay tarihine göre. Şu an açık tarihten bağımsız. Bir satıra tıklayınca servisin talepleri açılır.',
   /* Sütun adları sekmelerin kutularıyla aynı tanımda aynı ad:
      "Garanti işi" Garanti ve Hak Ediş sekmesindeki kutuyla, "Onaylanan
      hak ediş tutarı" oradaki tutarla aynı sayı. "Yeniden açılan" Genel
@@ -90,11 +89,9 @@ const M = {
     acik: 'Şu an açık',
     garanti: 'Garanti işi',
     garantiDisi: 'Garanti dışı tamamlanan',
-    ilkKayit: 'Ortalama ilk kayıt süresi',
     yenidenAcilan: 'Kapanan işlerden yeniden açılan',
     destek: 'Destek istenen',
     hakkedis: 'Onaylanan hak ediş tutarı',
-    bakiye: 'Bakiye',
   },
 
   tabloKapsama: 'Bölgelere göre servis kapsaması',
@@ -115,13 +112,11 @@ const M = {
     'Tamamlanan iş: servise atanmış taleplerden kapanışı seçilen döneme düşenler. Yeniden açılıp tekrar kapanan talepte son kapanış tarihi esas alınır. Kapanıp sonradan yeniden açılan ve hâlâ açık olan iş de sayılır: kapanış o dönemde gerçekleşti.',
     'İlk servis kaydına kadar: talebin açılışından servisin ilk kaydına (parça isteği, onaya giden kayıt ya da garanti dışı kapanış) geçen süre. İlk kaydı seçilen döneme düşen talepler sayılır. Randevu vermek ve destek istemek kayıt sayılmaz.',
     'Yeniden açılma oranı: kapanışı seçilen döneme düşen servis işlerinden müşterinin en az bir kez "sorun devam ediyor" dediklerinin oranı. Kapandıktan sonra yeniden açılmış ve hâlâ açık olan iş de hem paya hem paydaya girer.',
-    `Destek istenen iş: servisin ${markaEk('dan')} destek istediği tarih seçilen döneme düşen talepler.`,
+    `Destek istenen iş: servisin PAKSAN’dan destek istediği tarih seçilen döneme düşen talepler.`,
     'Garanti dışı tamamlanan: seçilen dönemde kapanan ve parasını müşterinin ödediği işler. Servisin garanti dışı kapattığı işler ile servis kaydı olmadan kapanış formuna ücret yazılarak kapatılan işler birlikte sayılır.',
-    'İş yapan servis: seçilen dönemde en az bir servis kaydı olan farklı servis sayısı.',
     'Garanti işi (karne): servisin seçilen dönemde bitirip onaya gönderdiği garanti işleri; kabul edilmeyenler de dahil. Aynı talebe ikinci kez gidildiyse iki iş sayılır. Garanti ve Hak Ediş sekmesindeki "Garanti işi" ile aynı sayıdır.',
     'Yeniden açılan (kapanan işte, karne): seçilen dönemde kapanan işlerden müşterinin en az bir kez "sorun devam ediyor" dediği işler. Genel Bakış sekmesindeki "Yeniden açılan" ise "sorun devam ediyor" denen günü seçilen döneme düşen talepleri sayar.',
     'Onaylanan hak ediş tutarı (karne): onay tarihi seçilen döneme düşen hak edişlerin toplamı.',
-    'Bakiye: servisin cari hesabındaki bütün hareketlerin toplamı (onaylanan hak edişler eksi hak edişten düşülen parça siparişleri ve ödemeler). Artı değer servise olan borcumuzdur.',
     'Grafikteki sonuç, seçilen dönemde açılan talebin bugünkü durumudur: garanti işine dönmüş, garanti dışı kapanmış, iptal edilmiş ya da henüz sonuçlanmamış. Karnedeki garanti işi ve garanti dışı tamamlanan sayıları dönemde biten işlere baktığı için grafikle aynı olmak zorunda değildir.',
     'Servis kapsaması: aynı seri numarası defterde birden çok satırda olsa da makine bir kez sayılır. Servis, makineye atanmış servisten, yoksa makineyi satan bayinin servisinden bulunur. Bölgesinde tanımlı servis, sorumluluk bölgesinde o il yazılı olan servis sayısıdır; hiçbir serviste bölge tanımlı değilse "—" yazar. Toplam satırında bu sütun için sayı gösterilmez; aynı servis birden çok ilde sayılabildiği için il bazındaki sayıları toplamak servis sayısını vermez.',
     'Servis karnesinde aynı servis kimliğine ait kayıtlar tek satırda birleştirilir. Servis kimliği bulunmayan eski bir kayıtta servis adı kayıtlı servis listesiyle eşleşiyorsa kayıt o servisin satırına eklenir.',
@@ -250,8 +245,6 @@ export const servisBolumu = {
     const destek = (icinde) => kayitlar.filter((k) => icinde(k.t.devir?.tarih))
     const yenidenAcilan = (liste) => liste.filter((k) => yenidenAcilmaSayisi(k.t) > 0)
     const garantiDisi = (liste) => liste.filter((k) => garantiDisiMi(k.t))
-    const isYapan = (icinde) =>
-      new Set(kayitlar.filter((k) => k.zamanlar.some(icinde)).map((k) => k.anahtar)).size
 
     const gelenDonem = gelen(donemde)
     const gelenOnceki = gelen(oncekide)
@@ -288,7 +281,7 @@ export const servisBolumu = {
         deger: sureYaz(ortalama(ilkDonem)),
         fark: f(ortalama(ilkDonem), ortalama(ilkOnceki)),
         iyi: 'azalis',
-        alt: M.ilkKayitAlt(sureYaz(dilim(ilkDonem, 0.9))),
+        alt: M.ilkKayitAlt,
       },
       {
         /* Dashboard'un yönetim özeti bu ölçüyü kimliğiyle buluyor (bkz. Ozet.jsx). */
@@ -314,13 +307,7 @@ export const servisBolumu = {
         iyi: null,
         alt: M.garantiDisiAlt,
       },
-      {
-        ad: M.isYapan,
-        deger: isYapan(donemde),
-        fark: f(isYapan(donemde), isYapan(oncekide)),
-        iyi: null,
-        alt: M.isYapanAlt(servisListe.length),
-      },
+      /* "İş yapan servis" kutusu kaldırıldı (6 Ekim 2026, kullanıcının isteği). */
     ]
 
     /* -------------------------------------------------- Servis karnesi */
@@ -344,15 +331,9 @@ export const servisBolumu = {
         .map((z) => ({ anahtar: k.anahtar, hakkedis: z.hakkedis })),
     )
 
-    /* Bakiye tarihten bağımsız: servisin bugün alacağı. Kimliği olmayan
-       hareket adıyla eşleşiyor. */
-    const bakiyeAl = (satir) =>
-      topla(
-        (veri.cari || [])
-          .filter((h) => (satir.id ? h.servisId === satir.id : !h.servisId && h.servisAd === satir.ad))
-          .map((h) => (h.tur === 'alacak' ? Number(h.tutar) : -Number(h.tutar))),
-      )
-
+    /* KARNEDE ORTALAMA İLK KAYIT SÜRESİ VE BAKİYE YOK (6 Ekim 2026,
+       kullanıcının isteği). İlk kayıt süresi sekmenin üstündeki kutuda
+       duruyor; servisin bakiyesi Servisler ekranında. */
     const karne = [...satirlar.entries()].map(([anahtar, satir]) => {
       const bunun = (liste) => liste.filter((k) => k.anahtar === anahtar)
       const gelenler = bunun(gelenDonem)
@@ -365,7 +346,6 @@ export const servisBolumu = {
         acik: bunun(kayitlar).filter((k) => !KAPALI_DURUMLAR.includes(k.t.status || 'yeni')).length,
         garanti: hakkedisler.filter((g) => donemde(g.hakkedis.olusma)).length,
         garantiDisi: garantiDisi(tamamlar).length,
-        ilk: bunun(ilkKayit(donemde)).map((k) => k.sure),
         yenidenAcilan: yenidenAcilan(tamamlar).length,
         destek: bunun(destek(donemde)).length,
         hakkedis: topla(
@@ -373,7 +353,6 @@ export const servisBolumu = {
             .filter((g) => g.hakkedis.durum === 'onaylandi' && donemde(g.hakkedis.onay?.tarih))
             .map((g) => Number(g.hakkedis.toplam)),
         ),
-        bakiye: bakiyeAl(satir),
       }
     })
 
@@ -391,11 +370,9 @@ export const servisBolumu = {
       String(r.acik),
       String(r.garanti),
       String(r.garantiDisi),
-      sureYaz(ortalama(r.ilk)),
       String(r.yenidenAcilan),
       String(r.destek),
       paraHucre(r.hakkedis),
-      paraHucre(r.bakiye),
     ]
 
     const karneToplam = (alan) => karne.reduce((t, r) => t + r[alan], 0)
@@ -467,10 +444,9 @@ export const servisBolumu = {
         aciklama: M.tabloKarneAciklama,
         basliklar: [
           M.sutun.servis, M.sutun.il, M.sutun.gelen, M.sutun.tamamlanan, M.sutun.acik, M.sutun.garanti,
-          M.sutun.garantiDisi, M.sutun.ilkKayit, M.sutun.yenidenAcilan, M.sutun.destek, M.sutun.hakkedis,
-          M.sutun.bakiye,
+          M.sutun.garantiDisi, M.sutun.yenidenAcilan, M.sutun.destek, M.sutun.hakkedis,
         ],
-        sag: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+        sag: [2, 3, 4, 5, 6, 7, 8, 9],
         satirlar: karne.map((r) => ({
           hucreler: [r.satir.ad, r.satir.il || '—', ...karneHucreleri(r)],
           git: git ? () => git('talepler', { durum: 'hepsi', tur: 'servis', ara: r.satir.ad, aralik }) : undefined,
@@ -483,11 +459,9 @@ export const servisBolumu = {
           String(karneToplam('acik')),
           String(karneToplam('garanti')),
           String(karneToplam('garantiDisi')),
-          sureYaz(ortalama(ilkDonem)),
           String(karneToplam('yenidenAcilan')),
           String(karneToplam('destek')),
           paraHucre(karneToplam('hakkedis')),
-          paraHucre(karneToplam('bakiye')),
         ],
       },
       {

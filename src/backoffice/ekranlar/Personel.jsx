@@ -5,11 +5,11 @@ import {
 } from '../veri'
 import { useVeri } from '../kanca'
 import {
-  Baslik, BeklemeKart, Bos, siraliListe, SiraliBaslik, tarihYaz, useSiralama,
+  Baslik, BeklemeKart, Bos, siraliListe, SiraliBaslik, tarihYaz, useOnay, useSiralama,
 } from './ortak'
 import { DisaAktar, IceAktar } from './aktar'
 import { demoTemizle, demoVarMi, demoYukle } from '../demo'
-import { SIRKET } from '../../marka'
+import { SIRKET } from '../../data/kimlik.js'
 
 /* Personel.
 
@@ -25,6 +25,7 @@ const BOS_KAYIT = { ad: '', kullanici: '', rol: 'servis', eposta: '', tel: '', s
 export function Personel({ personel, rol, bildir, tazele, surum }) {
   const duzenleyebilir = izinli(rol, 'personelDuzenle')
   const [form, setForm] = useState(null)
+  const [sor, onayPenceresi] = useOnay()
 
   const { veri: kayitlar, yukleniyor } = useVeri(() => personelGetir(), [surum], [])
 
@@ -40,6 +41,7 @@ export function Personel({ personel, rol, bildir, tazele, surum }) {
 
   return (
     <>
+      {onayPenceresi}
       <Baslik
         ad="Personel"
         sag={
@@ -139,8 +141,14 @@ export function Personel({ personel, rol, bildir, tazele, surum }) {
                             </button>
                             <button
                               className="dg"
-                              onClick={() => {
-                                if (!confirm(`"${p.ad}" hesabı silinecek.`)) return
+                              onClick={async () => {
+                                const evet = await sor({
+                                  baslik: 'Personel hesabı silinsin mi?',
+                                  metin: `"${p.ad}" hesabı silinecek.`,
+                                  dugme: 'Hesabı Sil',
+                                  sil: true,
+                                })
+                                if (!evet) return
                                 const c = personelSil(p.id, personel)
                                 tazele()
                                 bildir(c.hata || 'Hesap silindi')
@@ -189,10 +197,12 @@ export function Personel({ personel, rol, bildir, tazele, surum }) {
    Yayına çıkmadan bu kutu kaldırılmalı. */
 function DemoKutusu({ bildir, tazele, surum }) {
   const [calisiyor, setCalisiyor] = useState(false)
+  const [sor, onayPenceresi] = useOnay()
   const { veri: dolu } = useVeri(() => demoVarMi(), [surum], false)
 
   return (
     <div className="kart" style={{ marginTop: 18 }}>
+      {onayPenceresi}
       <div className="kart__tepe">
         <h2>Demo Verisi</h2>
       </div>
@@ -222,13 +232,19 @@ function DemoKutusu({ bildir, tazele, surum }) {
           <button
             className="dg"
             disabled={calisiyor || !dolu}
-            onClick={() => {
+            onClick={async () => {
               /* Demo talebinde yapılmış işlemin hesap hareketi ve
                  bildirimi de demoyla gidiyor (25 Eylül 2026, kullanıcı
                  sınaması; bkz. demo.js → demoTemizle). Pencere bunu
                  önceden söylüyor: kalan cari satırı yoksa personel
                  bakiyenin neden değiştiğini sormasın. */
-              if (!confirm('Demo kayıtları, bu taleplere ait hesap hareketleri ve bildirimlerle birlikte silinecek. Gerçek kayıtlar silinmez.')) return
+              const evet = await sor({
+                baslik: 'Demo verisi temizlensin mi?',
+                metin: 'Demo kayıtları, bu taleplere ait hesap hareketleri ve bildirimlerle birlikte silinecek. Gerçek kayıtlar silinmez.',
+                dugme: 'Demo Verisini Temizle',
+                sil: true,
+              })
+              if (!evet) return
               demoTemizle()
               tazele()
               bildir('Demo verisi temizlendi')

@@ -93,13 +93,13 @@ export const BACKOFFICE_OTURUMSUZ = [{ kod: 'B-00', ad: 'Personel Girişi', menu
 export const BACKOFFICE = [
   { kod: 'B-01', ad: 'Dashboard', menu: 0 },
   { kod: 'B-02', ad: 'Talepler', menu: 1, iz: 'talepNo' },
-  { kod: 'B-03', ad: 'Müşteriler', menu: 2, iz: 'musteriAdi' },
-  { kod: 'B-04', ad: 'Kayıtlı Makineler', menu: 3, iz: 'seri' },
-  { kod: 'B-05', ad: 'Servisler', menu: 4, iz: 'servisAdi' },
-  { kod: 'B-06', ad: 'Bayiler', menu: 5 },
+  { kod: 'B-03', ad: 'Müşteriler', menu: 6, iz: 'musteriAdi' },
+  { kod: 'B-04', ad: 'Kayıtlı Makineler', menu: 2, iz: 'seri' },
+  { kod: 'B-05', ad: 'Servisler', menu: 3, iz: 'servisAdi' },
+  { kod: 'B-06', ad: 'Bayiler', menu: 4 },
   /* 23 Eylül 2026: servise özel iskonto kartı bu ekranda. Kart kapalı
      açılıyor; tur önce başlığına basıyor (`tikla`). */
-  { kod: 'B-07', ad: 'Yedek Parça Kataloğu', menu: 6, iz: 'iskontoOrani', tikla: '.acilir-tepe__dugme' },
+  { kod: 'B-07', ad: 'Yedek Parça Kataloğu', menu: 5, iz: 'iskontoOrani', tikla: '.acilir-tepe__dugme' },
   { kod: 'B-08', ad: 'Geri Bildirimler', menu: 7 },
   { kod: 'B-09', ad: 'Raporlar', menu: 8 },
   { kod: 'B-10', ad: 'Destek Kayıtları', menu: 9 },
@@ -110,7 +110,7 @@ export const BACKOFFICE = [
   { kod: 'B-15', ad: 'İşlem Kaydı', menu: 14 },
   /* Aynı Servisler ekranı, ikinci iz: servisin özel saat ücreti listenin
      "Ücret" sütununda (23 Eylül 2026). Menü sırası değişmedi. */
-  { kod: 'B-16', ad: 'Servisler · Hizmet Ücreti', menu: 4, iz: 'saatUcreti' },
+  { kod: 'B-16', ad: 'Servisler · Hizmet Ücreti', menu: 3, iz: 'saatUcreti' },
 ]
 
 /** Servisim — giriş ekranı, oturum tohumlanmadan. */

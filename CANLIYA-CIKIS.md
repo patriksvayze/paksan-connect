@@ -272,7 +272,7 @@ hepsi sunucudan bağımsız. Sunucu firması ararken bunlar bitmeli:
       Şubesi, TR56 0001 2001 5660 0010 1000 19, alıcı "PAKSAN MAKİNA").
       Kalan: PAKSAN muhasebesi IBAN'ı ve müşterinin yazacağı alıcı adını
       (afişteki kısa ad mı, tam unvan mı) bir kez doğrulasın.
-      → `src/marka/kimlik.js` → `BANKA`
+      → `src/data/kimlik.js` → `BANKA`
 - [ ] **İhracat ekibi e-posta adresleri.** → `src/config.js` → `IHRACAT`
 - [ ] **KVKK metinleri hukukçuya.** *(Aşağıda ayrı başlık.)*
 - [ ] **Kılavuz PDF'leri, ürün videoları, ürün fotoğrafları.** Kılavuz
@@ -324,6 +324,16 @@ kod tabanı geri alınamaz ve depodaki gerekçeler de kaybolur.
 
 > Bu bir teslim adımı, geliştirme kuralı değil. Yeni yazılan kodda
 > gerekçe yazılmaya devam ediyor.
+
+**Her servisin hizmet bölgesi girilecek (5 Ekim 2026).** Servis talebi,
+makinenin bulunduğu il ve ilçe servisin bölgesinde değilse servise
+gitmiyor, PAKSAN'a düşüyor (bkz. CLAUDE.md → "5 Ekim 2026 — bölge dışı
+servis talebi"). Bölge backoffice → Servisler → servisin Düzenle
+penceresinde. Girilmezse servisin bölgesi yalnız kendi ili sayılıyor: başka
+ildeki bir bayiyle çalışan servisin (örnek listede 14 servisin 7'si) o
+bayiden makine almış müşterilerinin her talebi PAKSAN'a düşer. Demo listede
+bölgeler girili (kendi ili ve bayilerinin illeri); gerçek liste girilirken
+aynısı yapılmalı.
 
 ### Aşama 3 — İç test (PAKSAN personeli)
 
@@ -456,7 +466,7 @@ kabul ekranı geldi (CLAUDE.md → "29 Eylül 2026 — KVKK").
 
 1. **Şirket kimliği.** MERSİS numarası, KEP adresi, KVKK için ayrı bir
    e-posta ya da kişi, VERBİS kaydı ve uygulamanın akışlarını kapsayıp
-   kapsamadığı (`src/marka/kimlik.js → SIRKET`).
+   kapsamadığı (`src/data/kimlik.js → SIRKET`).
 2. **Connect'te zorunlu açık rıza.** Kayıt, Açık Rıza Metni onaylanmadan
    tamamlanmıyor (kullanıcının kararı: "şimdilik olduğu gibi kalsın").
    Kurul'un yaklaşımı: hizmet açık rızaya bağlanamaz; sözleşme, kanuni

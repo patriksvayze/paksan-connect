@@ -9,11 +9,11 @@ import {
   eklemeOlustur, eklemeleri, eklemeYapilabilir,
   eklemeyiServiseBildir, sorunDevaminiServiseBildir, KAPALI_DURUMLAR,
 } from '../lib/talepEkleme'
-import { getProduct, urunDilde } from '../marka'
+import { getProduct, urunDilde } from '../data/katalog/products.js'
 import { alanEtiketi } from '../data/talepAlanlari'
 import { formatSerial } from '../lib/serial'
-import { servisleriGetir } from '../marka'
-import { PARA_BIRIMI, paraYaz } from '../marka'
+import { servisleriGetir } from '../data/katalog/servisler.js'
+import { PARA_BIRIMI, paraYaz } from '../data/katalog/para.js'
 import { gecmisSatiriAnahtari, musteriDurumAnahtari } from '../lib/talep'
 import { makineninKendiServisiMi } from '../lib/servisAtama'
 import { sorunDevamEngeli } from '../lib/makineTalepleri'
@@ -21,7 +21,7 @@ import { talebinParcalari } from '../lib/servisKaydi'
 import { useParcaKatalogu } from '../components/ParcaResmi'
 import { ParcaOzetSatiri, TutarKutusu } from '../components/ParcaOzeti'
 import { ekAdresi } from '../lib/ekler'
-import { SIRKET } from '../marka'
+import { SIRKET } from '../data/kimlik.js'
 import { araProps, telFirma } from '../lib/tel'
 import {
   IconCalendar, IconCheckCircle, IconClose, IconCart, IconMic,
@@ -598,6 +598,15 @@ export default function RequestDetail() {
             YALNIZ SERVİS TALEBİNDE VE YALNIZ KAPANDIYSA. İptal edilmiş
             talepte yapılmış bir iş yok; parça talebinde de "sorun"
             diye bir şey yok, parça geldi ya da gelmedi. */}
+        {/* BÖLGE DIŞI TALEP (5 Ekim 2026): makine servisinin bölgesi
+            dışındaydı, talep PAKSAN'a gitti. Servis atanana kadar çiftçi
+            neyi beklediğini görüyor; atanınca aşağıdaki "Talebin
+            Servisini Ara" düğmesi o servisle çıkıyor. */}
+        {r.tur === 'servis' && r.bolgeDisi && !r.servis?.id && !['kapandi', 'iptal'].includes(r.status) && (
+          <div className="uyari-kart" role="status" style={{ marginTop: 22 }} data-uyari="bolge-disi-bekliyor">
+            {t('talep.bolgeDisiSonraki')}
+          </div>
+        )}
         {surenBaskaIs && (
           <div className="uyari-kart" role="status" style={{ marginTop: 22 }} data-eylem="suren-talebe-ekle">
             <strong style={{ display: 'block' }}>{t('talep.acikTalepBaslik')}</strong>
@@ -972,8 +981,16 @@ const KAYIT_ANAHTARI = {
   'Arıza Bulunamadı': 'talepDetay.isArizaYok',
 }
 
+/* Servis yapılan işi 6 Ekim 2026'dan beri birden çok seçebiliyor; kayıtta
+   seçilenler virgülle tek yazı (lib/servisKaydi.js → yapilanIsYazisi).
+   Her parça tanınıyorsa tek tek çevriliyor; tanınmayan yazı olduğu gibi. */
 function kayitYazisi(deger, t) {
-  return KAYIT_ANAHTARI[deger] ? t(KAYIT_ANAHTARI[deger]) : deger
+  if (KAYIT_ANAHTARI[deger]) return t(KAYIT_ANAHTARI[deger])
+  const parcalar = String(deger || '').split(', ')
+  if (parcalar.length > 1 && parcalar.every((p) => KAYIT_ANAHTARI[p])) {
+    return parcalar.map((p) => t(KAYIT_ANAHTARI[p])).join(', ')
+  }
+  return deger
 }
 
 function parcaYazisi(r, dil) {

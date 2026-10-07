@@ -42,8 +42,10 @@ import { normalizeSerial } from '../lib/serial'
 import { telAnahtar, telGoster, telHamYap } from '../lib/tel'
 import { LOGO } from '../lib/logo'
 import { ANAHTAR, islemYaz, personelGetir, rolleriGetir } from './veri'
-import { PRODUCTS, SIRKET } from '../marka'
-import { SERVISLER, BAYILER } from '../marka'
+import { PRODUCTS } from '../data/katalog/products.js'
+import { SIRKET } from '../data/kimlik.js'
+import { SERVISLER } from '../data/katalog/servisler.js'
+import { BAYILER } from '../data/katalog/bayiler.js'
 import { makineninServisi } from '../lib/servisAtama'
 import { fiyatGoruntusu } from '../lib/parcaKatalogu'
 import { DEMO_SERVIS, parcaKaynagi, parcaSecimi, senaryoSec, servisAkisi } from './demoServis'
@@ -1343,7 +1345,7 @@ async function fotoUret(yazi) {
   for (let i = 0; i < 640; i += 40) c.fillRect(i, 0, 1, 480)
   for (let i = 0; i < 480; i += 40) c.fillRect(0, i, 640, 1)
 
-  c.fillStyle = '#e8641a'
+  c.fillStyle = '#f26a1b'
   c.fillRect(60, 300, 520, 120)
   c.fillStyle = '#dce3ef'
   c.fillRect(90, 180, 460, 130)

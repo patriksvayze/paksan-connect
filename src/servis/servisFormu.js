@@ -1,6 +1,9 @@
-import { AMBLEM_DOSYASI, getProduct, MARKA, PARA_BIRIMI, paraYaz, SIRKET } from '../marka'
+import { getProduct } from '../data/katalog/products.js'
+import { PARA_BIRIMI, paraYaz } from '../data/katalog/para.js'
+import { SIRKET } from '../data/kimlik.js'
+import AMBLEM_DOSYASI from '../assets/logo/paksan-amblem.png'
 import { extractYear, formatSerial, matchProduct } from '../lib/serial'
-import { hakkedisHesapla, kmUcretiOku, saatOku, saatUcretiOku, saatYaz, temizParcalar } from '../lib/servisKaydi'
+import { buZiyaretinKaydi, hakkedisHesapla, kmUcretiOku, saatOku, saatUcretiOku, saatYaz, temizParcalar } from '../lib/servisKaydi'
 import { makineninServisi } from '../lib/servisAtama'
 import { kayitTelGoster } from '../lib/tel'
 import { jpegdenPdf, tuvaldenJpeg } from '../lib/pdf'
@@ -94,7 +97,7 @@ export const METIN = {
   toplam: 'TOPLAM SERVİS TUTARI',
   kdv: 'KDV %',
   genelToplam: 'GENEL TOPLAM',
-  taahhut: `Bu servis formuyla arızanın giderildiğini ve makinemi çalışır hâlde teslim aldığımı beyan ederim. İşlem garantiye dâhildir; bedeli ${MARKA} tarafından karşılanır, benden ücret alınmaz.`,
+  taahhut: `Bu servis formuyla arızanın giderildiğini ve makinemi çalışır hâlde teslim aldığımı beyan ederim. İşlem garantiye dâhildir; bedeli PAKSAN tarafından karşılanır, benden ücret alınmaz.`,
   musteriImza: 'MÜŞTERİ (VEKİLİ / GÖREVLİSİ)',
   servisImza: 'ONARIMI YAPAN SERVİS',
   adiSoyadi: 'ADI SOYADI',
@@ -102,11 +105,26 @@ export const METIN = {
   paylasmaBasligi: 'Servis Formu',
 }
 
+/* FORM YALNIZ BU ZİYARETİN KAYDI TAMAMLANINCA (7 Ekim 2026, kullanıcının
+   bildirdiği: "servis kaydı tamamlanmadan servis formu çıktısı
+   alınamamalı. Şu an alınabiliyor"). Kural yalnız son kayda bakıyordu:
+   müşteri "Sorun Devam Ediyor" deyince talep yeniden açılıyor, geçen
+   ziyaretin bitmiş kaydı yerinde kalıyor ve düğme yeni ziyaret daha
+   yapılmadan o kayıtla çıkıyordu. Artık kayıt bu ziyaretin olmalı
+   (lib/servisKaydi.js → buZiyaretinKaydi) ve talep kaydın gönderildiği
+   duruma geçmiş olmalı: onay bekliyor ya da kapandı. */
+const FORMLU_DURUMLAR = ['onayBekliyor', 'kapandi']
+
 /** Bu işin servis formu alınabilir mi? */
 export function servisFormuVarMi(talep) {
   const k = talep?.servisKaydi
   return Boolean(
-    k && k.kapi === 'garanti' && k.asama === 'bitti' && talep.hakkedis?.durum !== 'reddedildi',
+    k &&
+      buZiyaretinKaydi(talep) === k &&
+      FORMLU_DURUMLAR.includes(talep.status) &&
+      k.kapi === 'garanti' &&
+      k.asama === 'bitti' &&
+      talep.hakkedis?.durum !== 'reddedildi',
   )
 }
 

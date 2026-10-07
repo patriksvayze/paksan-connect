@@ -6,7 +6,7 @@
    BENIOKU.md). Geliştirmede klasör sunucu-taklidi/kilavuzlar/. Burada
    bakılanlar:
 
-     1. Kılavuzu olan her ürünün kodu (marka/icerik/kilavuzEslesme.js →
+     1. Kılavuzu olan her ürünün kodu (data/icerik/kilavuzEslesme.js →
         URUN_KILAVUZU) klasörün listesinde (kilavuzlar.json) var mı.
         Yoksa ürün sayfası "Kullanım Kılavuzu" gösterir, dokununca
         kılavuz indirilemez.
@@ -43,7 +43,7 @@ const sorunlar = []
 const sorun = (m) => sorunlar.push(m)
 
 const { URUN_KILAVUZU } = await import(
-  pathToFileURL(join(KOK, 'src/marka/icerik/kilavuzEslesme.js')).href
+  pathToFileURL(join(KOK, 'src/data/icerik/kilavuzEslesme.js')).href
 )
 
 const listeYolu = join(KLASOR, 'kilavuzlar.json')

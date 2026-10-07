@@ -8,9 +8,11 @@ import {
 } from './ortak'
 import { DisaAktar } from './aktar'
 import { araliktaMi, BOS_ARALIK, Secim, SuzgecCubugu, TarihAraligi } from './suzgec'
+import { getProduct } from '../../data/katalog/products.js'
+import { bayileriGetir } from '../../data/katalog/bayiler.js'
 import {
-  getProduct, MARKA, bayileriGetir, servisleriGetir, talebinServisleri, bayininServisleri,
-} from '../../marka'
+  servisleriGetir, talebinServisleri, bayininServisleri,
+} from '../../data/katalog/servisler.js'
 import { extractYear, formatSerial, warrantyStatus, GARANTI_YIL } from '../../lib/serial'
 import { kaydinServisi, servisiAtanmamisKayitlar } from '../../lib/servisAtama'
 
@@ -483,7 +485,7 @@ export function Makineler({ personel, rol, bildir, tazele, surum, sorgu }) {
    ise sabit kalıyor — ekranda hangisinin geçerli olduğu yazıyor.
 
    SIRALAMA ÖNERİYE GÖRE: makinenin bulunduğu il/ilçeye bakan servisler
-   listenin başında (bkz. marka/katalog/servisler.js → talebinServisleri).
+   listenin başında (bkz. data/katalog/servisler.js → talebinServisleri).
    Öneri bir kısıt değil; personel listeden istediğini seçiyor.
    ========================================================================== */
 function Atama({ kayit, onAta }) {
@@ -727,7 +729,7 @@ function MakineGecmisi({ kayit, talepler, duzenleyebilir, onAta, onKapat }) {
                         </span>
                       </td>
                       <td className="kucuk">
-                        {t.servis?.ad || MARKA}
+                        {t.servis?.ad || 'PAKSAN'}
                         {t.cozum?.ozet && (
                           <div className="kucuk sonuk">{t.cozum.ozet}</div>
                         )}

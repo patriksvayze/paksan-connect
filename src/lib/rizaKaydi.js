@@ -1,5 +1,5 @@
 import { KVKK_SURUM } from '../data/kvkk'
-import { SURUM } from '../marka'
+import { SURUM } from '../data/kimlik.js'
 
 /* ==========================================================================
    KVKK onaylarının kaydı — Connect

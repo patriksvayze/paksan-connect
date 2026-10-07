@@ -2,18 +2,15 @@ import { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useApp } from '../context/AppState'
 import { TopBar, TabBar, Sheet } from '../components/Chrome'
-import { getProduct, PRODUCTS, supportGroup, urunDilde } from '../marka'
-import { PARCA_KODU } from '../marka/icerik/destekVerisi'
+import { getProduct, PRODUCTS, supportGroup, urunDilde } from '../data/katalog/products.js'
+import { PARCA_KODU } from '../data/icerik/destekVerisi'
 import { GonderButonu } from '../components/GonderButonu'
 import { alanaGit } from '../lib/formOdak'
 import {
-  PARCA_DIGER, alanEtiketi,
   makineDurumu, urunTipiSecenekleri, ARIZA_DURUMLARI,
   araziSecenekleri, traktorSecenekleri, belirtiSecenekleri,
 } from '../data/talepAlanlari'
-import {
-  KDV_HARIC_LISTE, KDV_ORANI, PARA_BIRIMI, paraYaz,
-} from '../marka'
+import { KDV_HARIC_LISTE, KDV_ORANI, PARA_BIRIMI, paraYaz } from '../data/katalog/para.js'
 /* Parça PAKSAN'ın kendi kataloğundan seçiliyor; bu dosya tek kapı
    (bkz. lib/parcaKatalogu.js). KDV hesabı da oradan geçiyor: tutarları
    `parcaToplami` hesaplıyor ve KDV'yi `kdvTutari()` ile ekliyor, ekran
@@ -27,10 +24,12 @@ import { ParcaResmi } from '../components/ParcaResmi'
 import { UrunFoto } from '../components/Gorsel'
 import { formatSerial } from '../lib/serial'
 import { telKullanici } from '../lib/tel'
-import { CIZIM } from '../marka/icerik/cizimler'
+import { CIZIM } from '../data/icerik/cizimler'
 import { makineninServisi, musterininServisleri } from '../lib/servisAtama'
 import { makineninIsSurenServisTalebi, makineninSonServisAdresi } from '../lib/makineTalepleri'
 import { hesabaIslenecekKonum } from '../lib/talepOlustur'
+import { servisBolgesindeMi } from '../data/katalog/servisler.js'
+import { yurtdisiTalepMi } from '../lib/ihracat'
 import { SesKaydi } from '../components/SesKaydi'
 import { EkAlani } from '../components/EkAlani'
 import { KonumAlani } from '../components/KonumAlani'
@@ -42,7 +41,7 @@ import { useGeriYakala } from '../lib/geriYakala'
 import { numaraMetni } from '../data/numaraDegisikligi'
 import { NumaraTalepFormu } from '../components/NumaraTalepFormu'
 import { useDil } from '../i18n'
-import { BANKA, SIRKET } from '../marka'
+import { BANKA, SIRKET } from '../data/kimlik.js'
 import {
   IconCheckCircle, IconPin, IconRight, IconLock, IconCheck, IconAlert,
   IconPlus, IconMinus, IconCart, IconInfo, IconClose, IconBanka, IconKopyala,
@@ -170,9 +169,10 @@ function TalepFormu() {
      Seçim `Map` olarak tutuluyor: kod → adet. Sıra korunuyor, yani
      çiftçi ne sırayla seçtiyse ekranda ve kayıtta o sırayla görünüyor. */
   const [secim, setSecim] = useState(() => new Map())
-  /* "Diğer" ayrı bir bayrak. Katalogdan seçilen parçalarla aynı kapta
-     durmuyor: katalog inmese bile bu yol açık kalmalı. */
-  const [diger, setDiger] = useState(false)
+  /* "DİĞER" SEÇENEĞİ KALKTI (7 Ekim 2026, kullanıcının isteği: "Diğer
+     seçilip devam edilirse hala ödeme yapılması bekleniyor çünkü").
+     Listede olmayan parça yazıyla anlatılıyor, talep tutarsız ödeme
+     adımına geçiyordu. Parça talebi artık yalnız katalogdan. */
   /* İkisi de ÇOKTAN SEÇMELİ: çiftçi hem yonca hem saman balyalayabilir,
      arazisi de tek parça olmak zorunda değil. Tek seçimken satış
      ekibine eksik bilgi gidiyordu. */
@@ -192,10 +192,9 @@ function TalepFormu() {
      şekilde çalışıyor (bkz. src/servis/ekranlar/ParcaSec.jsx) — iki ürün
      aynı işi iki farklı biçimde yapmasın.
 
-     HATA TALEBİ KAPATMIYOR. Liste inmezse ekran "parça talebi
-     açılamıyor" demiyor: "Diğer" yolu açık kalıyor, çiftçi istediği
-     parçayı yazıyla anlatıp talebi gönderiyor, fiyat gösterilmiyor.
-     Uygulama sunucu olmadan da çalışacağına göre bu akış da çalışmalı. */
+     Liste inmezse hata kutusu ve "Yeniden Dene" çıkıyor. 7 Ekim 2026'ya
+     kadar "Diğer" yolu açık kalıyordu (yazıyla anlatılan parça); seçenek
+     kalktı, parça talebi listeden yapılıyor. */
   const [katalogDurum, setKatalogDurum] = useState('yukleniyor')
   const [katalog, setKatalog] = useState(null)
   /* Parça seçme ekranı açık mı (bkz. ParcaSecEkrani.jsx). Ayrı bir
@@ -247,6 +246,18 @@ function TalepFormu() {
      geçiyor; dokunduysa yazdığı kalıyor. */
   const [servisAdres, setServisAdres] = useState(ilkServisYeri?.adres || user?.adres || '')
   const adresDokunuldu = useRef(false)
+  /* YER DEĞİŞİNCE ÖNERİLEN ADRES BOŞALIYOR (5 Ekim 2026, kullanıcının onayı).
+     Adres kutusu makinenin son servis adresiyle ya da hesabın adresiyle
+     dolu geliyor. Çiftçi makinesiyle başka bir yerdeyken il ve ilçeyi
+     değiştirip kutuya dokunmazsa talep "Alpu / Eskişehir" ile "Konya ovası,
+     14. km" adresini birlikte taşıyordu; servis nereye gideceğini bilemezdi.
+     İl, ilçe ya da ülke değişince kutu boşalıyor; boş kutuyla talep zaten
+     gönderilmiyor (servisAdresEksik). Çiftçinin KENDİ yazdığı adres
+     silinmiyor: yalnız önerilen adres. */
+  const adresYazildi = useRef(false)
+  function yerDegisti(eski, yeni) {
+    if (eski !== yeni && !adresYazildi.current) setServisAdres('')
+  }
 
   /* ---------------------------------------------- Yedek parça: 2. adım
 
@@ -404,9 +415,7 @@ function TalepFormu() {
   const arizaVar = !durum || ARIZA_DURUMLARI.includes(durum)
 
   const aciklamaZorunlu =
-    !ses &&
-    ((tur === 'parca' && diger) ||
-      (tur === 'servis' && arizaVar && belirtiler.includes('Diğer')))
+    !ses && tur === 'servis' && arizaVar && belirtiler.includes('Diğer')
   /* Talebe hangi bayinin bakacağını ilçe belirliyor; onay penceresinde
      boş geçilemiyor.
 
@@ -416,6 +425,24 @@ function TalepFormu() {
      eşleşemiyordu. Servis için zaten gerekli bilgi — teknisyenin nereye
      gideceği belli olmalı. */
   const ilceZorunlu = true
+
+  /* BÖLGE DIŞI (5 Ekim 2026, kullanıcının kararı). Makine, servisinin
+     bölgesi dışında bir yerdeyse talep servise değil PAKSAN'a gidiyor;
+     PAKSAN o iş için bölgedeki bir servisi atıyor. Kural tek yerde
+     (data/katalog/servisler.js → servisBolgesindeMi); kaydın nereye
+     gideceğine lib/talepOlustur.js → bolgeDisiKaydi karar veriyor, bu
+     satır yalnız çiftçiye ÖNCEDEN söylüyor: il ve ilçe seçildiği anda
+     uyarı, düğmenin adı ve onay penceresi değişiyor. Talep engellenmiyor;
+     çiftçi formu baştan yazmıyor, PAKSAN'ı da aramıyor (21 Eylül 2026
+     kararı: müşteriden arama istenmiyor). Hesap adresine bakılmıyor. */
+  const bolgeDisi =
+    tur === 'servis' &&
+    Boolean(seciliServis) &&
+    !acikTalep &&
+    !yurtdisiTalepMi(user) &&
+    Boolean(il) &&
+    (!ilceZorunlu || Boolean(ilce)) &&
+    !servisBolgesindeMi(seciliServis, il, ilce)
 
   /* Art arda hızlı dokunuşta seçim kaybolmasın diye listenin son hâli
      üzerinden çalışıyor. */
@@ -429,28 +456,13 @@ function TalepFormu() {
 
      Bir dokunuş parçayı 1 adetle ekliyor, ikinci dokunuş çıkarıyor.
      Seçim kalkınca adedi de gidiyor; Map'ten silindiği için geride
-     kalmıyor.
-
-     Katalogdan parça seçilirse "Diğer" kendiliğinden kalkıyor: karışık
-     bir talep hem fiyatlanamıyor hem depoda toplanamıyor. */
+     kalmıyor. */
   function parcaCevir(kod) {
     setSecim((eski) => {
       const yeni = new Map(eski)
       if (yeni.has(kod)) yeni.delete(kod)
       else yeni.set(kod, 1)
       return yeni
-    })
-    setDiger(false)
-  }
-
-  /* "Diğer" ÖZEL BİR SEÇENEK: listede olmayan bir parça isteniyor
-     demek. Adet sorulmuyor (neyin adedi belli değil), fiyat
-     gösterilmiyor ve yanına katalogdan parça seçilemiyor. */
-  function digerCevir() {
-    setDiger((a) => {
-      const yeniDurum = !a
-      if (yeniDurum) setSecim(new Map())
-      return yeniDurum
     })
   }
 
@@ -545,15 +557,11 @@ function TalepFormu() {
   }
 
   /* `taslak` verilirse "Tamam" basıldı: seçim forma yazılıyor. Verilmezse
-     geri ile çıkıldı: taslak atılıyor, form eski hâlinde kalıyor.
-
-     Katalogdan parça seçildiyse "Diğer" kalkıyor — karışık bir talep hem
-     fiyatlanamıyor hem depoda toplanamıyor (bkz. `parcaCevir`). */
+     geri ile çıkıldı: taslak atılıyor, form eski hâlinde kalıyor. */
   const parcaDonusu = useRef(false)
   function parcaEkranindanDon(taslak) {
     if (taslak && katalogDurum === 'hazir') {
       setSecim(taslak)
-      if (taslak.size) setDiger(false)
       setHata('')
     }
     parcaDonusu.current = true
@@ -581,7 +589,7 @@ function TalepFormu() {
      AD KODA TABLODAN ÇEVRİLİYOR (29 Eylül 2026, kullanıcının isteği).
      Önce katalogda aynı ADLA tek parça aranıyordu; Destek'in adları
      çiftçinin diliyle yazıldığı için 29 addan hiçbiri tutmuyordu. Şimdi
-     markanın tablosu (marka/icerik/destekVerisi.js → PARCA_KODU) adı
+     markanın tablosu (data/icerik/destekVerisi.js → PARCA_KODU) adı
      katalog koduna çeviriyor, yalnız o parçanın uyduğu makinede: seçili
      makine, yoksa Destek'ten gelen model. Personelin gizlediği ya da yeni
      fiyat listesinde kalkan parça seçili gelmiyor (parcaBul).
@@ -643,7 +651,7 @@ function TalepFormu() {
       return sorunlu('durum', t('talep.durumSecin'))
     if (tur === 'servis' && arizaVar && belirtiler.length === 0)
       return sorunlu('belirti', t('talep.belirtiSecin'))
-    if (tur === 'parca' && secim.size === 0 && !diger)
+    if (tur === 'parca' && secim.size === 0)
       return sorunlu('parca', t('talep.parcaSecin'))
     if (aciklamaZorunlu && aciklama.trim().length < 10)
       return sorunlu('aciklama', t('talep.aciklamaKisa'))
@@ -838,17 +846,12 @@ function TalepFormu() {
            yazılıyor, yani en iyi çabayla: katalogda altı tekrar eden ad
            var, aynı ad iki kez seçilirse `parcaAdet` birini siliyor.
            Doğrusu `parcaFiyat.satirlar`; çakışma orada olmuyor. */
-        parcalar: tur !== 'parca'
-          ? []
-          : diger
-            ? [PARCA_DIGER]
-            : secimler.map((s) => parcaAdi(s.kod)),
+        parcalar: tur !== 'parca' ? [] : secimler.map((s) => parcaAdi(s.kod)),
         parcaAdet: tur === 'parca'
           ? Object.fromEntries(secimler.map((s) => [parcaAdi(s.kod), s.adet]))
           : null,
         /* Fiyat görüntüsü yalnız katalogdan seçim yapıldıysa ve katalog
-           indiyse var. "Diğer" yolunda tutar yok: ne istendiği yazıyla
-           anlatılıyor, fiyatı PAKSAN müşteriyle konuşuyor. */
+           indiyse var. */
         parcaFiyat:
           tur === 'parca' && katalogDurum === 'hazir' && secimler.length
             ? fiyatGoruntusu(katalog, secimler)
@@ -1021,6 +1024,13 @@ function TalepFormu() {
             </button>
           )}
 
+          {/* Bölge dışı talep PAKSAN'a gitti: sıradaki adım servis ataması. */}
+          {sonuc.tur === 'servis' && sonuc.bolgeDisi && (
+            <div className="uyari-kart" style={{ marginTop: 16 }} data-uyari="bolge-disi-sonuc">
+              {t('talep.bolgeDisiSonraki')}
+            </div>
+          )}
+
           {/* Yedek parçada ödeme kontrolü var; müşteri sıradaki adımı
               bilsin ki "para gitti, ses yok" hissi oluşmasın. */}
           {sonuc.tur === 'parca' && (
@@ -1117,12 +1127,6 @@ function TalepFormu() {
                   gorselYok={t('parcaSec.gorselYok')}
                 />
               ))}
-              {diger && (
-                <div className="detay-satir">
-                  <span>{alanEtiketi(PARCA_DIGER, dil)}</span>
-                  <span className="small muted">{t('parcaFiyat.sonraBelirlenecek')}</span>
-                </div>
-              )}
 
               {/* KDV SATIRI LİSTENİN KDV'Lİ OLUP OLMAMASINA BAĞLI.
                   PAKSAN'ın fiyat listesinde KDV bilgisi yazmıyor;
@@ -1507,7 +1511,7 @@ function TalepFormu() {
               {/* Makinede süren talep varken yeni talep gitmiyor; aşağıdaki
                   kart o talebe ekleme yolunu gösteriyor. "Talebiniz …
                   servisine gidecek" o durumda yanlış olurdu. */}
-              {tur === 'servis' && secilen && !acikTalep && seciliServis && (
+              {tur === 'servis' && secilen && !acikTalep && seciliServis && !bolgeDisi && (
                 <span className="field__hint">
                   {t('talep.servisineGidecek', { servis: seciliServis.ad })}
                 </span>
@@ -1657,13 +1661,8 @@ function TalepFormu() {
                   </span>
                 )}
 
-                {/* LİSTE İNMEZSE TALEP KAPANMIYOR.
-
-                    Uygulama sunucu olmadan da çalışıyor; parça talebi de
-                    çalışmalı. Hata kutusu bunu söylüyor ve altındaki
-                    "Diğer" yolu yerinde duruyor: çiftçi istediği parçayı
-                    yazıyla anlatıp talebi gönderiyor, tutarı PAKSAN
-                    belirleyip kendisiyle konuşuyor.
+                {/* LİSTE İNMEZSE hata kutusu ve "Yeniden Dene". 7 Ekim
+                    2026'ya kadar altında "Diğer" yolu vardı; kalktı.
 
                     Yeniden deneme gerçekten yeniden deniyor: kapı
                     başarısız isteği bellekte tutmuyor
@@ -1799,11 +1798,9 @@ function TalepFormu() {
                     nereden seçeceğini bilmezdi. Boşken "Parça Seç",
                     doluyken "Parça Ekle" yazıyor — Servisim'deki gibi.
 
-                    "Diğer" seçiliyken görünmüyor: ikisi birbirini
-                    dışlıyor. Liste inerken sönük duruyor ve basılmıyor;
-                    liste inmediyse hiç görünmüyor, yerinde hata kutusu
-                    ve "Diğer" yolu var. */}
-                {!diger && katalogDurum !== 'hata' && (
+                    Liste inerken sönük duruyor ve basılmıyor; liste
+                    inmediyse hiç görünmüyor, yerinde hata kutusu var. */}
+                {katalogDurum !== 'hata' && (
                   <button
                     className="btn btn--soft parca-alan__ekle"
                     onClick={parcaEkraniniAc}
@@ -1813,30 +1810,7 @@ function TalepFormu() {
                     {secimler.length > 0 ? t('parcaSec.parcaEkle') : t('parcaSec.parcaSecDugme')}
                   </button>
                 )}
-
-                {/* "Diğer" HER DURUMDA burada: liste inmese de, makinenin
-                    kendi listesi olmasa da çiftçinin parça isteyebileceği
-                    yol bu. Seçme ekranında yok; orada bulamayan çiftçiye
-                    buraya dönmesi söyleniyor. */}
-                <div className="secenekler" style={{ marginTop: 12 }}>
-                  <button
-                    className={'secenek' + (diger ? ' secenek--on' : '')}
-                    onClick={digerCevir}
-                    aria-pressed={diger}
-                  >
-                    {alanEtiketi(PARCA_DIGER, dil)}
-                  </button>
-                </div>
-                <span className="field__hint">{t('parcaSec.digerIpucu')}</span>
               </div>
-
-              {/* "Diğer" seçildiğinde adet sorulmuyor: neyin adedi
-                  olduğu belli değil. Ne istendiği açıklama kutusuna
-                  yazılıyor, tutarı PAKSAN belirleyip müşteriyle
-                  konuşuyor. */}
-              {diger && (
-                <div className="uyari-kart">{t('talep.digerAciklama')}</div>
-              )}
             </>
           )}
 
@@ -1967,19 +1941,33 @@ function TalepFormu() {
                 il={il}
                 onIl={(v) => {
                   adresDokunuldu.current = true
+                  yerDegisti(il, v)
                   setIl(v)
                 }}
                 ilce={ilce}
                 onIlce={(v) => {
                   adresDokunuldu.current = true
+                  yerDegisti(ilce, v)
                   setIlce(v)
                 }}
                 ilceZorunlu={ilceZorunlu}
                 onUlke={(v) => {
                   adresDokunuldu.current = true
+                  yerDegisti(konumUlke, v)
                   setKonumUlke(v)
                 }}
               />
+              {bolgeDisi && (
+                <div className="uyari-kart" role="status" style={{ marginTop: 12 }} data-uyari="bolge-disi">
+                  <strong style={{ display: 'block' }}>{t('talep.bolgeDisiBaslik')}</strong>
+                  <p style={{ margin: '6px 0 0', lineHeight: 1.55 }}>
+                    {t('talep.bolgeDisiAlt', {
+                      servis: seciliServis.ad,
+                      bolge: ilce ? `${ilce} / ${il}` : il,
+                    })}
+                  </p>
+                </div>
+              )}
               <label style={{ display: 'block', marginTop: 16 }}>
                 <span className="field__label">{t('talep.servisAdres')}</span>
                 <span className="field__aciklama">{t('talep.servisAdresAciklama')}</span>
@@ -1987,8 +1975,10 @@ function TalepFormu() {
                   className="textarea"
                   style={{ minHeight: 84 }}
                   value={servisAdres}
+                  data-alan-kutu="servisAdres"
                   onChange={(e) => {
                     adresDokunuldu.current = true
+                    adresYazildi.current = true
                     setServisAdres(e.target.value)
                   }}
                   placeholder={t('talep.servisAdresIpucu')}
@@ -2010,8 +2000,10 @@ function TalepFormu() {
           {/* Buraya kasıtlı olarak "bizi arayın" seçeneği konmuyor:
               talebin yazılı gelmesi hem operasyon yükünü azaltıyor hem de
               kaydı takip edilebilir kılıyor. */}
-          <button className="btn btn--primary btn--lg" onClick={gonder}>
-            {cfg('buton')}
+          <button className="btn btn--primary btn--lg" onClick={gonder} data-eylem="talep-gonder">
+            {/* Yedek parçada bu düğme talebi göndermiyor, ödeme adımına
+                geçiyor: adı "Devam Et" (7 Ekim 2026, kullanıcının isteği). */}
+            {bolgeDisi ? t('talep.bolgeDisiButon') : tur === 'parca' ? t('ortak.devam') : cfg('buton')}
           </button>
           </>
           )}
@@ -2076,6 +2068,11 @@ function TalepFormu() {
                   düzeltme kipi aynen duruyor. */}
               {tur === 'servis' ? (
                 <>
+                  {bolgeDisi && (
+                    <div className="uyari-kart" data-uyari="bolge-disi-onay">
+                      {t('talep.bolgeDisiOnay')}
+                    </div>
+                  )}
                   <div className="onay-kutu">
                     <span className="onay-kutu__ikon"><IconPin size={20} /></span>
                     <span className="onay-kutu__body">

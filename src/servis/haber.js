@@ -4,7 +4,6 @@ import { servisinTalepleri, talepleriGetir } from '../backoffice/veri'
 import { duyuruGecerliMi } from '../lib/duyuruHedef'
 import { servisDuyuruBaglami } from '../lib/servisAtama'
 import { load } from '../lib/storage'
-import { MARKA } from '../marka'
 import { bildirimYazisi, musteridenMi, okunmamislar } from './talepBildirimleri'
 
 /* ==========================================================================
@@ -136,7 +135,7 @@ export function useServisHaberi(oturum, tazele) {
       const yeniIs = artan(yeni.isler, eski.isler)
       if (yeniIs) {
         bildirimGoster({
-          baslik: `${sayili(yeniIs, 'yeni iş', 'Yeni iş')} · ${MARKA}`,
+          baslik: `${sayili(yeniIs, 'yeni iş', 'Yeni iş')} · PAKSAN`,
           metin: 'İşlerim listenize düştü.',
         })
       }
@@ -159,7 +158,7 @@ export function useServisHaberi(oturum, tazele) {
         const hepsiPaksandan = gelen.every((b) => !musteridenMi(b))
         bildirimGoster({
           baslik: hepsiPaksandan
-            ? `${MARKA} · ${gelen.length} Yeni Bildirim`
+            ? `PAKSAN · ${gelen.length} Yeni Bildirim`
             : `${gelen.length} Yeni Bildirim`,
           metin: 'Bildirimleri İşlerim ekranının üst bölümünde görebilirsiniz.',
         })
@@ -168,7 +167,7 @@ export function useServisHaberi(oturum, tazele) {
       const yeniDuyuru = artan(yeni.duyuru, eski.duyuru)
       if (yeniDuyuru) {
         bildirimGoster({
-          baslik: `${MARKA} uyarısı`,
+          baslik: `PAKSAN uyarısı`,
           metin: 'İşlerim ekranının üst bölümünde okuyabilirsiniz.',
         })
       }

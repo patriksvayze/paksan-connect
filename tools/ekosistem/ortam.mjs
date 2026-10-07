@@ -6,7 +6,7 @@
    dilimi, tohumlu rastgelelik, modül yükleyici ve iddia yardımcıları.
 
    NEDEN VITE GEREKİYOR. Modülleri düz `import` ile alamıyoruz:
-   src/backoffice/veri.js `'../marka'` diyor, src/marka/index.js de
+   src/backoffice/veri.js `'../data/katalog/...'` diyor, o dosyalar da
    `'./logo.jsx'`ten yeniden dışa aktarım yapıyor. Node ne uzantısız
    yolu çözer ne de JSX'i okur. Vite'ın `ssrLoadModule`'ü ikisini de
    yapıyor. Aynı yöntem projede zaten çalışıyor: tools/vt/tohum-uret.mjs
@@ -194,14 +194,14 @@ export async function modulleriYukle() {
       al('/src/lib/storage.js'),
       al('/src/lib/icerikDeposu.js'),
       al('/src/data/yetkiler.js'),
-      al('/src/marka/index.js'),
+      Promise.all(['/src/data/kimlik.js', '/src/data/katalog/products.js', '/src/data/katalog/gorseller.js', '/src/data/katalog/para.js', '/src/data/katalog/parcaGruplari.js', '/src/data/katalog/makineFiyat.js', '/src/data/katalog/servisler.js', '/src/data/katalog/bayiler.js'].map(al)).then((m) => Object.assign({}, ...m)),
       al('/src/lib/makineKaydi.js'),
       al('/src/lib/talep.js'),
       al('/src/lib/serial.js'),
       al('/src/lib/numaraTalebi.js'),
       al('/src/lib/urun.js'),
       al('/src/servis/adresler.js'),
-      al('/src/marka/icerik/rehber.js'),
+      al('/src/data/icerik/rehber.js'),
       /* 23 Eylül 2026: hizmet ücreti ve parça iskontosu (AK-21, AK-22; bakiyeden ödemede ek iskonto AK-23). */
       al('/src/lib/servisTarifesi.js'),
       al('/src/lib/servisFiyat.js'),

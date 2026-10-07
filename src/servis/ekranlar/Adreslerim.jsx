@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { MARKA, servisleriGetir } from '../../marka'
+import { servisleriGetir } from '../../data/katalog/servisler.js'
+
 import { adresYazisi, teslimatTelYaz } from '../../lib/teslimat'
 import {
   adresEkle,
@@ -56,7 +57,7 @@ const METIN = {
   bosAciklama:
     'Sipariş ettiğiniz veya garanti işleri için istediğiniz parçaların gönderileceği adresleri ekleyin. Sonraki siparişlerde bu adreslerden birini seçebilirsiniz.',
   ipucu: 'Sipariş verirken varsayılan adresiniz seçili gelir.',
-  firmaNotu: `Firma adresiniz ${MARKA} kaydınızdan gelir ve uygulamadan değiştirilemez. Taşındıysanız bizi arayın. Adresiniz güncellenene kadar yeni adresinizi ekleyip varsayılan yapabilirsiniz.`,
+  firmaNotu: `Firma adresiniz PAKSAN kaydınızdan gelir ve uygulamadan değiştirilemez. Taşındıysanız bizi arayın. Adresiniz güncellenene kadar yeni adresinizi ekleyip varsayılan yapabilirsiniz.`,
   duzenle: 'Düzenle',
   sil: 'Sil',
   varsayilanYap: 'Varsayılan Yap',

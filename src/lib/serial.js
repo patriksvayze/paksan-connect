@@ -25,7 +25,7 @@
    (SERI_YIL_HANE, SERI_SIRA_HANE) ve seriDuzelt.
    ========================================================================== */
 
-import { PRODUCTS } from '../marka'
+import { PRODUCTS } from '../data/katalog/products.js'
 
 /** Girilen seri numarasını sadeleştirir: büyük harf, sadece harf+rakam */
 export function normalizeSerial(raw) {

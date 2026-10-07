@@ -90,7 +90,7 @@ Klasörde iki tür dosya var:
 | `kilavuzlar/*.pdf` | Kılavuzların kendisi, 38 MB (git'e girmez) |
 
 `kilavuzlar.json` her kılavuzu bir KODLA tanıyor; hangi ürünün hangi kodu
-kullandığı markanın tablosunda (`src/marka/icerik/kilavuzEslesme.js`). Bir
+kullandığı markanın tablosunda (`src/data/icerik/kilavuzEslesme.js`). Bir
 kaydın alanları:
 
     dosya         PDF'in adı; adında baskı tarihi var

@@ -1,15 +1,14 @@
 import { useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppState'
-import { CIZIM } from '../marka/icerik/cizimler'
+import { CIZIM } from '../data/icerik/cizimler'
 import { useDil } from '../i18n'
 import { TopBar, TabBar } from '../components/Chrome'
 import { UrunFoto } from '../components/Gorsel'
 import {
-  CATEGORIES, PRODUCTS, productsByCategory, siralanmisUrunler,
-  urunDilde, kategoriDilde,
-} from '../marka'
-import { SIRKET } from '../marka'
+  CATEGORIES, PRODUCTS, productsByCategory, siralanmisUrunler, urunDilde, kategoriDilde,
+} from '../data/katalog/products.js'
+import { SIRKET } from '../data/kimlik.js'
 import { araProps } from '../lib/tel'
 import { norm } from '../lib/arama'
 import { IconSearch, IconCart, IconPhone, IconClose } from '../components/Icons'

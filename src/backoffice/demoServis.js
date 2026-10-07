@@ -274,13 +274,14 @@ export function servisAkisi(talep, senaryo, { servis, havuz, personel, secenek =
     }
   }
 
-  /* Yedek parça personeli parçayı gönderdi. Takip numarası yoksa talep
-     parça masasında kalıyor (bkz. veri.js → servisParcasiGonderildi). */
+  /* Servis birimi garanti parçasını gönderdi (6 Ekim 2026'ya kadar yedek
+     parça personeli). Takip numarası yoksa talep servis masasında kalıyor
+     (bkz. veri.js → servisParcasiGonderildi). */
   function sevk(tarih, takipli) {
     yama.parcaSevk = takipli
       ? { firma: sec(KARGO), takipNo: String(tamsayi(1000000000, 9999999999)), tarih, personel }
       : { firma: '', takipNo: '', tarih, personel }
-    yama.masa = takipli ? null : 'parca'
+    yama.masa = takipli ? null : 'servis'
     yama.gecmis.push({ durum: 'parcaBekliyor', tarih, personel })
   }
 

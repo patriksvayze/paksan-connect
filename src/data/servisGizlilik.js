@@ -29,7 +29,7 @@
    METİNLER CODEX'TEN GEÇTİ (proje kuralı).
    ========================================================================== */
 
-import { SIRKET, MARKA, markaEk } from '../marka'
+import { SIRKET } from './kimlik.js'
 
 export const SERVIS_METIN_SURUM = '1.0'
 export const SERVIS_METIN_TARIH = '29 Eylül 2026'
@@ -39,7 +39,7 @@ export const SERVIS_AYDINLATMA = {
   baslik: 'Servis Kullanıcıları İçin Aydınlatma Metni',
   kisaAd: 'Aydınlatma Metni',
   ozet: [
-    `Hesap, iş ve ödeme bilgilerinizi ${MARKA} işler.`,
+    `Hesap, iş ve ödeme bilgilerinizi PAKSAN işler.`,
     'Bilgileriniz yalnızca servis işlerini ve ödemeleri yürütmek için kullanılır.',
     'Haklarınız ve başvuru yolları bu metinde açıklanır.',
   ],
@@ -77,22 +77,22 @@ export const SERVIS_AYDINLATMA = {
     {
       baslik: 'Kimlere aktarılıyor?',
       maddeler: [
-        `Müşteriler: işi size verilen çiftçi, ${MARKA} Connect uygulamasında servisinizin adını ve telefon numarasını görür.`,
+        `Müşteriler: işi size verilen çiftçi, PAKSAN Connect uygulamasında servisinizin adını ve telefon numarasını görür.`,
         'Bankalar ve muhasebe birimleri: ödemelerin yapılması ve kayıtların tutulması için gereken ölçüde bilgi aktarılır.',
-        `Hizmet sağlayıcılar: uygulamayı barındıran sunucu ve bildirim altyapısı gibi hizmetleri ${markaEk('in')} adına sunan firmalara bilgi aktarılır.`,
+        `Hizmet sağlayıcılar: uygulamayı barındıran sunucu ve bildirim altyapısı gibi hizmetleri PAKSAN’ın adına sunan firmalara bilgi aktarılır.`,
         'Mali müşavirler, denetçiler, hukuk danışmanları ve yetkili kamu kurumları: mevzuatın gerektirdiği hâllerde bilgi aktarılır.',
       ],
     },
     {
       baslik: 'Sesle yazma',
       paragraflar: [
-        `Bir alana konuşarak yazdığınızda sesiniz, metne çevrilmek için telefonunuzun ses tanıma hizmetine gönderilir. Bu hizmet, telefonunuzun üreticisine veya Google’a ait olabilir. ${MARKA} sesinizi kaydetmez ve saklamaz. Yalnızca alana yazılan metin kaydedilir.`,
+        `Bir alana konuşarak yazdığınızda sesiniz, metne çevrilmek için telefonunuzun ses tanıma hizmetine gönderilir. Bu hizmet, telefonunuzun üreticisine veya Google’a ait olabilir. PAKSAN sesinizi kaydetmez ve saklamaz. Yalnızca alana yazılan metin kaydedilir.`,
       ],
     },
     {
       baslik: 'Nasıl toplanıyor ve ne kadar saklanıyor?',
       paragraflar: [
-        `Verileriniz, servis sözleşmesi sırasında ${markaEk('a')} verdiğiniz bilgilerden ve uygulamada yaptığınız işlemlerden elektronik ortamda toplanır. Uygulama telefonunuzun konumunu kullanmaz.`,
+        `Verileriniz, servis sözleşmesi sırasında PAKSAN’a verdiğiniz bilgilerden ve uygulamada yaptığınız işlemlerden elektronik ortamda toplanır. Uygulama telefonunuzun konumunu kullanmaz.`,
         'Verileriniz, servis ilişkisi boyunca saklanır. Bu ilişki sona erdikten sonra da vergi ve ticaret mevzuatında öngörülen süreler ile zamanaşımı süreleri boyunca saklanır. Bu süreler dolunca silinir, yok edilir veya anonim hâle getirilir.',
       ],
     },
@@ -112,13 +112,13 @@ export const SERVIS_GIZLILIK = {
   ozet: [
     'Müşteri bilgilerini yalnızca size verilen iş için kullanın.',
     'Bilgileri kopyalamayın, başkalarıyla paylaşmayın.',
-    `Telefonunuz kaybolursa hemen ${markaEk('a')} haber verin.`,
+    `Telefonunuz kaybolursa hemen PAKSAN’a haber verin.`,
   ],
   bolumler: [
     {
       baslik: 'Neden önemli?',
       paragraflar: [
-        `Uygulamada gördüğünüz çiftçi bilgileri, ${markaEk('in')} sorumluluğundaki kişisel verilerdir. Bunlar ad, telefon, adres, makine bilgileri ile fotoğraf, video ve ses kayıtlarıdır. Bu bilgiler size yalnızca işi yapabilmeniz için gösterilir. Bu bilgileri korumak hem çiftçinin hem sizin hem de ${markaEk('in')} yasal yükümlülüğüdür.`,
+        `Uygulamada gördüğünüz çiftçi bilgileri, PAKSAN’ın sorumluluğundaki kişisel verilerdir. Bunlar ad, telefon, adres, makine bilgileri ile fotoğraf, video ve ses kayıtlarıdır. Bu bilgiler size yalnızca işi yapabilmeniz için gösterilir. Bu bilgileri korumak hem çiftçinin hem sizin hem de PAKSAN’ın yasal yükümlülüğüdür.`,
       ],
     },
     {
@@ -129,14 +129,14 @@ export const SERVIS_GIZLILIK = {
         '“Kayıt Aç” ekranında telefon veya seri numarasıyla yalnızca gerçekten yapacağınız bir iş için arama yapın.',
         'Giriş bilgilerinizi kimseyle paylaşmayın. Telefonunuzu kilitli tutun. Başkasının telefonunda işiniz bitince oturumu kapatın.',
         'İş için telefonunuza kaydettiğiniz fotoğrafları iş bitince silin.',
-        `Telefonunuz kaybolursa, çalınırsa veya bilgilerin başkasının eline geçtiğini düşünürseniz hemen ${markaEk('i')} arayın. Hesabınız geçici olarak kapatılır.`,
-        `Bu yükümlülükler, ${MARKA} ile çalışmanız sona erdikten sonra da devam eder.`,
+        `Telefonunuz kaybolursa, çalınırsa veya bilgilerin başkasının eline geçtiğini düşünürseniz hemen PAKSAN’ı arayın. Hesabınız geçici olarak kapatılır.`,
+        `Bu yükümlülükler, PAKSAN ile çalışmanız sona erdikten sonra da devam eder.`,
       ],
     },
     {
       baslik: 'Kurallara uyulmazsa',
       paragraflar: [
-        `${MARKA}, bu kurallara uyulup uyulmadığını denetleyebilir. Kurallara uymazsanız hesabınız kapatılabilir. Servis sözleşmesinde ve kanunda öngörülen sonuçlar da doğar. Bu metin, ${MARKA} ile servisiniz arasındaki sözleşmenin gizlilik hükümlerini hatırlatır. Bu hükümlerin yerine geçmez.`,
+        `PAKSAN, bu kurallara uyulup uyulmadığını denetleyebilir. Kurallara uymazsanız hesabınız kapatılabilir. Servis sözleşmesinde ve kanunda öngörülen sonuçlar da doğar. Bu metin, PAKSAN ile servisiniz arasındaki sözleşmenin gizlilik hükümlerini hatırlatır. Bu hükümlerin yerine geçmez.`,
       ],
     },
   ],
@@ -160,7 +160,7 @@ export const SERVIS_IZINLER = {
     {
       baslik: 'Mikrofon',
       paragraflar: [
-        `Mikrofon izni yalnızca “Konuşarak Yaz” düğmesine bastığınızda istenir. Sesiniz, metne çevrilmek için telefonunuzun ses tanıma hizmetine gönderilir. ${MARKA} sesinizi kaydetmez ve saklamaz.`,
+        `Mikrofon izni yalnızca “Konuşarak Yaz” düğmesine bastığınızda istenir. Sesiniz, metne çevrilmek için telefonunuzun ses tanıma hizmetine gönderilir. PAKSAN sesinizi kaydetmez ve saklamaz.`,
       ],
     },
     {

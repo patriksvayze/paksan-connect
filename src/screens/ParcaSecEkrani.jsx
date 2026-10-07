@@ -67,7 +67,7 @@ export function ParcaSecEkrani({ katalog, grup, secili, onTamam, onVazgec }) {
   const listeKonumu = useRef(0)
 
   /* Makinenin kendi alt montajları. PAKSAN'ın fiyat listesinde makine
-     alanı yok; köprü grup adlarından kuruluyor (bkz. marka/katalog/
+     alanı yok; köprü grup adlarından kuruluyor (bkz. data/katalog/
      parcaGruplari.js). `ayriListeVar` false dönen makinelerde listede o
      makineye ait hiç parça yok — kataloğun tamamı gösteriliyor ve bu
      ekranda yazıyla söyleniyor. */

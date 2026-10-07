@@ -78,6 +78,20 @@ function gunSonu(t) {
   return d.getTime()
 }
 
+/* YARIM YAZILMIŞ TARİH YOK SAYILIYOR (6 Ekim 2026, kullanıcının
+   bildirdiği: "başlangıç tarihini gün-ay-yıl sırasıyla girmek
+   istediğimde sistem çöküyor"). Tarih kutusu yıl yazılırken her tuşta
+   ara bir değer veriyor: "2" yazılınca 0002-01-01. Raporlar bu tarihten
+   bugüne her ay için bir grafik sütunu çiziyordu (24.000'i aşkın) ve
+   sayfa donuyordu. 2000–2100 dışındaki yıl yazılmakta olan bir tarih
+   sayılıyor: başlangıç (ya da bitiş) yokmuş gibi. Tur B-TARIH. */
+function tamTarih(deger) {
+  const m = /^(\d{4})-\d{2}-\d{2}$/.exec(deger || '')
+  if (!m) return null
+  const yil = Number(m[1])
+  return yil >= 2000 && yil <= 2100 ? new Date(deger) : null
+}
+
 /** Seçilen aralığı {bas, bit} zaman damgasına çevirir. */
 export function araligiCoz({ tur, bas, bit }) {
   const simdi = new Date()
@@ -100,11 +114,14 @@ export function araligiCoz({ tur, bas, bit }) {
       d.setDate(d.getDate() - 29)
       return { bas: gunBasi(d), bit: gunSonu(simdi) }
     }
-    case 'ozel':
+    case 'ozel': {
+      const b = tamTarih(bas)
+      const s = tamTarih(bit)
       return {
-        bas: bas ? gunBasi(new Date(bas)) : 0,
-        bit: bit ? gunSonu(new Date(bit)) : Infinity,
+        bas: b ? gunBasi(b) : 0,
+        bit: s ? gunSonu(s) : Infinity,
       }
+    }
     default:
       return { bas: 0, bit: Infinity }
   }

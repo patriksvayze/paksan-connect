@@ -7,9 +7,9 @@ IF NOT EXISTS (SELECT 1 FROM sistem.Ortam WHERE OrnekVeriIzinli = 1) THROW 50001
    düzenlemeyin: kaynak değişince yeniden üretilir ve el değişikliği
    kaybolur. Kaynağı değiştirin, sonra "npm run vt -- tohum" çalıştırın.
 
-   14 servis, 20 bayi, 20 bayi bağı, 0 bölge; hepsine paksan yetkisi.
+   14 servis, 20 bayi, 20 bayi bağı, 20 bölge; hepsine paksan yetkisi.
 
-   Kaynak: src/marka/katalog/servisler.js ve bayiler.js (temsilî liste). id →
+   Kaynak: src/data/katalog/servisler.js ve bayiler.js (temsilî liste). id →
    EskiKayitNo, no → EskiNumara. Adların başına "Örnek" eklenir; kaynaktaki
    adres ve telefonlar yazılmaz (uydurma değerler gerçek bir kişiye ait olabilir).
    Kimlikler UUIDv5 (<sema>.<Tablo>:<id>): her kurulumda aynıdır.
@@ -121,8 +121,39 @@ FROM (
 ) AS k
 WHERE NOT EXISTS (SELECT 1 FROM servis.BayiBagi AS h WHERE h.ServisKimlik = k.ServisKimlik AND h.BayiKimlik = k.BayiKimlik);
 
-/* servis.Bolge — 0 satır, yalnız eksikler eklenir */
--- Kaynakta satır yok.
+/* servis.Bolge — 20 satır, yalnız eksikler eklenir */
+
+INSERT INTO servis.Bolge (Kimlik, ServisKimlik, IlKodu, IlceKodu)
+SELECT k.Kimlik, k.ServisKimlik, k.IlKodu, k.IlceKodu
+FROM (
+    SELECT CONVERT(uniqueidentifier, v.Kimlik) AS Kimlik,
+           CONVERT(uniqueidentifier, v.ServisKimlik) AS ServisKimlik,
+           CONVERT(tinyint, v.IlKodu) AS IlKodu,
+           CONVERT(int, v.IlceKodu) AS IlceKodu
+    FROM (VALUES
+        (N'1209501b-cd85-5cee-ad4c-7e9e2e50614e', N'2a87e56b-c980-56d5-a7ab-9458df403eb3', 19, NULL),
+        (N'18311cf9-43f1-5103-9346-47503f597cdd', N'62716bb9-9efd-55fc-a361-e7aed1c811e7', 1, NULL),
+        (N'33063b00-eabd-59cd-a87d-a0cc38d65aa6', N'e050df00-715e-5a59-b791-c428c8a96f6b', 63, NULL),
+        (N'386cca50-80ac-5e0b-bbff-89fcc0b4ca2f', N'7fac6e68-c4b1-587e-9c18-8a6211fe53e7', 35, NULL),
+        (N'41a1d75f-3577-5eaf-9739-acbfe1cd096b', N'17315569-ead0-5587-b6fe-f78939702859', 25, NULL),
+        (N'48c808e4-3179-5f91-8d13-87612c83ecb2', N'7fac6e68-c4b1-587e-9c18-8a6211fe53e7', 9, NULL),
+        (N'581e1c3f-44f1-5547-a78d-78aeaca4b43c', N'4d938c72-2e21-505f-82f1-183c74563f46', 45, NULL),
+        (N'58474f5c-bc82-520c-899c-bd64fab959bf', N'b3188834-8067-5d5d-8ba7-8554b3f6b347', 10, NULL),
+        (N'6a4ad07a-550f-5a6f-b7a3-2677992de2d3', N'8143c2f1-7dba-51f7-8abe-3128aeea5475', 68, NULL),
+        (N'6dd8e383-09a1-53ee-8132-17bb0becb6e5', N'8143c2f1-7dba-51f7-8abe-3128aeea5475', 42, NULL),
+        (N'78d169c6-b6cc-5fc4-8dd8-2692cab4074a', N'4df80ac4-9534-58d0-b804-57b0f1881344', 26, NULL),
+        (N'7ca51057-d88f-57ba-b276-56718186f3bc', N'e050df00-715e-5a59-b791-c428c8a96f6b', 21, NULL),
+        (N'8786a8ba-7bf6-592b-93e9-b2fb788c7ba2', N'b98e0dbf-bd52-535f-bee8-d2ce3b002cb6', 6, NULL),
+        (N'97b58829-f91f-526f-bdb4-8c7b4fa9a6af', N'42d86ede-dddd-5068-9ae6-28e526cc714a', 44, NULL),
+        (N'aa3c652e-0b40-55d2-ac54-00854d5e5381', N'2a87e56b-c980-56d5-a7ab-9458df403eb3', 55, NULL),
+        (N'bbf05d17-a65e-5961-883a-e78666821438', N'd9924434-dd1c-5b1b-91b7-3ad5f2f26eac', 58, NULL),
+        (N'c01a42b7-e7dd-51a4-a4e2-d9a3194c755b', N'b3188834-8067-5d5d-8ba7-8554b3f6b347', 16, NULL),
+        (N'ce879a94-e526-5aa7-af23-7bdb9a56a3dc', N'd9924434-dd1c-5b1b-91b7-3ad5f2f26eac', 38, NULL),
+        (N'e663e468-043f-5452-b81c-3738d8a3d980', N'843afa44-e311-5861-9f6c-a623178b8d37', 59, NULL),
+        (N'f346fee9-e0a8-57f1-8d4b-4beaee84e961', N'5be53b46-81a4-568c-9b3c-0e45dd00636f', 7, NULL)
+    ) AS v (Kimlik, ServisKimlik, IlKodu, IlceKodu)
+) AS k
+WHERE NOT EXISTS (SELECT 1 FROM servis.Bolge AS h WHERE h.Kimlik = k.Kimlik);
 
 /* servis.MarkaYetkisi — 14 satır, yalnız eksikler eklenir */
 

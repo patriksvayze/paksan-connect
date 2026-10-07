@@ -235,14 +235,11 @@ export function belirtiSecenekleri(grup, dil = 'tr') {
    talebidir. İkincisi ekran: seçilince adet kutusuna da düşüyordu —
    "bilmiyorum"dan 3 adet istenemez.
 
-   "Diğer" listede olmayan bir parçayı anlatmak için. Seçildiğinde
-   adet sorulmuyor ve başka parça seçilemiyor (bkz. RequestForm →
-   digerCevir); ne istendiği açıklama kutusuna yazılıyor.
-
-   KATALOG İNMEZSE KALAN TEK YOL BU. Parça listesi PAKSAN'ın
-   sunucusundan geliyor; tarlada şebeke yoksa inmiyor. O durumda ekran
-   "talep açılamaz" demiyor, bu seçeneği açık bırakıyor: çiftçi istediği
-   parçayı yazıyla anlatıyor, fiyatı PAKSAN'la konuşuluyor. */
+   "Diğer" listede olmayan bir parçayı yazıyla anlatmak içindi.
+   7 EKİM 2026'DA FORMDAN KALKTI (kullanıcının isteği): seçilip devam
+   edilince talep tutarsız ödeme adımına geçiyordu. Sabit, o güne kadar
+   açılmış talepler bu adı taşıdığı için okuma tarafında (alanEtiketi)
+   duruyor; yeni talep yazmıyor. */
 export const PARCA_DIGER = 'Diğer'
 
 /* ==========================================================================

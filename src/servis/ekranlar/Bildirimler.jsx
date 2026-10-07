@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import { gecenSure } from '../../backoffice/ekranlar/ortak'
 import { altBilgi } from '../../data/duyuruTurleri'
-import { MARKA } from '../../marka'
 import { Bolum, Bos, Yaprak } from '../Kabuk'
 import { DUYURU_IKON } from './Islerim'
 import { IconBell } from '../../components/Icons'
@@ -131,7 +130,7 @@ export function Bildirimler({ oturum, talepler, onAc, onUcretler }) {
       <Bos
         Icon={IconBell}
         baslik="Henüz bildiriminiz yok"
-        alt={`${MARKA} ya da müşteriniz taleplerinizle ilgili işlem yaptığında bildirimler burada görünür. ${MARKA} duyurularını da burada görebilirsiniz.`}
+        alt={`PAKSAN ya da müşteriniz taleplerinizle ilgili işlem yaptığında bildirimler burada görünür. PAKSAN duyurularını da burada görebilirsiniz.`}
       />
     )
   }

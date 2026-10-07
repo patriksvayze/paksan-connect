@@ -1,6 +1,6 @@
 import { Fragment } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getProduct, urunDilde } from '../marka'
+import { getProduct, urunDilde } from '../data/katalog/products.js'
 import { formatSerial } from '../lib/serial'
 import { araProps, telFirma } from '../lib/tel'
 import { IconPhone, IconShield, IconWrench } from './Icons'

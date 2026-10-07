@@ -9,8 +9,8 @@
    1 fiyat listesi, 35 parça grubu, 538 parça, 538 fiyat satırı.
 
    Kaynak: tohum/kaynak/fiyat-listeleri.json ve fiyat-listeleri/<MarkaKodu>/<Kod>.json
-   (arşiv; her liste bir kez yazılır), src/marka/katalog/parcaGruplari.js
-   PARCA_GRUBU_AILESI, src/marka/katalog/para.js. Tasarım: tasarim.md 5.5 fiyat listesi kuralı.
+   (arşiv; her liste bir kez yazılır), src/data/katalog/parcaGruplari.js
+   PARCA_GRUBU_AILESI, src/data/katalog/para.js. Tasarım: tasarim.md 5.5 fiyat listesi kuralı.
 
    Fiyat listesi SSMS'ten ya da içe aktarımla yüklenmez; yeni liste arşive yeni
    kodla eklenir, önceki yürürlükteki liste arşive geçer.

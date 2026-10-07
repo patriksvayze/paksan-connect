@@ -442,3 +442,77 @@ export function AcilirTepe({ baslik, ozet, acik, onDegis, govdeId }) {
     </div>
   )
 }
+
+/* ==========================================================================
+   Onay penceresi — tarayıcının uyarı kutusu yerine (7 Ekim 2026)
+
+   Kullanıcının bildirdiği: "Servis ekranında bir servis silmek istendiğinde
+   veya Numara değişikliği talepleri ekranında bir talebi onaylamak
+   istediğimde tarayıcı uyarı ekranı geliyor, backoffice'ten değil."
+   Tarayıcının `confirm()` kutusu panelin görünüşünde değildi, başlığında
+   sayfanın adresi yazıyordu ve düğmeleri "Tamam / İptal"di: ne olacağını
+   söylemiyordu. Backoffice'teki bütün onaylar artık bu pencereden.
+
+   Kullanım: `const [sor, onayPenceresi] = useOnay()`; ekranın içinde
+   `{onayPenceresi}` çizilir, işlemde `if (!(await sor({...}))) return`.
+   `sil: true` onay düğmesini kırmızı yapar (geri alınmayan silme).
+   Esc ve zemine tıklamak "Vazgeç" sayılır. Metinler çağıranda (Codex'ten).
+   ========================================================================== */
+export const VAZGEC = 'Vazgeç'
+
+export function useOnay() {
+  const [soru, setSoru] = useState(null)
+  const sor = useCallback(
+    (ayar) => new Promise((coz) => setSoru({ ...ayar, coz })),
+    [],
+  )
+  const bitir = (sonuc) => {
+    soru?.coz(sonuc)
+    setSoru(null)
+  }
+  const pencere = soru ? (
+    <OnayPenceresi
+      baslik={soru.baslik}
+      metin={soru.metin}
+      dugme={soru.dugme}
+      sil={soru.sil}
+      onOnayla={() => bitir(true)}
+      onVazgec={() => bitir(false)}
+    />
+  ) : null
+  return [sor, pencere]
+}
+
+export function OnayPenceresi({ baslik, metin, dugme, sil = false, onOnayla, onVazgec }) {
+  return (
+    <div
+      className="pencere"
+      data-pencere="onay"
+      onClick={(e) => e.target === e.currentTarget && onVazgec()}
+      onKeyDown={(e) => e.key === 'Escape' && onVazgec()}
+    >
+      <div className="kart pencere__kart" role="alertdialog" aria-modal="true" aria-label={baslik} style={{ maxWidth: 480 }}>
+        <div className="kart__tepe">
+          <h2>{baslik}</h2>
+        </div>
+        <div className="kart__ic">
+          {metin && <p style={{ margin: '0 0 18px', lineHeight: 1.6 }}>{metin}</p>}
+          <div className="satir">
+            <button
+              className={'dg ' + (sil ? 'dg--sil' : 'dg--ana')}
+              data-eylem="onay-evet"
+              onClick={onOnayla}
+            >
+              {dugme}
+            </button>
+            {/* Odak "Vazgeç"te açılıyor: yanlışlıkla Enter'a basan bir
+                kaydı silmesin. */}
+            <button className="dg" data-eylem="onay-vazgec" onClick={onVazgec} autoFocus>
+              {VAZGEC}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

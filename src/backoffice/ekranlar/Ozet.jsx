@@ -7,14 +7,13 @@ import { useVeri } from '../kanca'
 import { Baslik, Bekleme } from './ortak'
 import { SutunGrafik } from './grafik'
 import { BOS_ARALIK, Secim } from './suzgec'
-import { markaEk } from '../../marka'
 import { servisiAtanmamisKayitlar } from '../../lib/servisAtama'
 import {
   bekledigiYer, bizdeGecikmisMi, bizdeMi, odemeOnayiBekliyorMu, parcaHazirliktaMi,
   servisteGecikmisMi,
 } from '../bekleyenIs'
 import { kapanisOlayi, paraKutu } from './rapor/hesap'
-import { BOLUMLER } from './rapor/bolumler'
+import { BOLUMLER, HESAP_BOLUMLERI } from './rapor/bolumler'
 import { bolumuHesapla, raporVerisiOku } from './Raporlar'
 
 /* ==========================================================================
@@ -137,7 +136,9 @@ export function Ozet({ rol, git, surum }) {
       goster: gorur('servis'),
       ac: talepler('onayBekliyor'),
     },
-    { ad: 'Parça hazırlığı bekleyen talep', sayi: v.parcaHazirlik, goster: gorur('parca'), ac: talepler('parcaHazirlik') },
+    /* Garanti parçasını 6 Ekim 2026'dan beri servis birimi gönderiyor
+       (veri.js → rolunTalepleri); kutu o masada. */
+    { ad: 'Parça hazırlığı bekleyen talep', sayi: v.parcaHazirlik, goster: gorur('servis'), ac: talepler('parcaHazirlik') },
     { ad: 'Ödeme onayı bekleyen talep', sayi: v.odemeBekleyen, goster: gorur('parca'), ac: talepler('odemeBekleyen') },
     { ad: 'Numara değişikliği talebi', sayi: v.numara, goster: izinli(rol, 'numara'), ac: () => git('numara') },
     { ad: 'Okunmamış geri bildirim', sayi: v.gorus, goster: izinli(rol, 'geribildirim'), ac: () => git('geribildirim') },
@@ -282,7 +283,7 @@ function Kimde({ v, git, raporVar }) {
   const satirlar = [
     {
       id: 'bizde',
-      ad: markaEk('da'),
+      ad: 'PAKSAN’da',
       deger: v.bizde,
       alt: v.bizdeGeciken ? `${v.bizdeGeciken} tanesi 48 saati geçti` : '',
       dikkat: true,
@@ -568,12 +569,15 @@ function yonetimOzetiHesapla(git) {
   const bloklar = []
 
   for (const { bolum, olculer } of OZET) {
-    const b = BOLUMLER.find((x) => x.id === bolum)
+    const b = HESAP_BOLUMLERI.find((x) => x.id === bolum)
     if (!b) continue
     const sonuc = bolumuHesapla(b, veri, aralik, { git })
     bloklar.push({
       id: b.id,
       ad: b.ad,
+      /* Sekmesi kaldırılmış bölümün (Satış ve Bayiler, 6 Ekim 2026)
+         başlığı Raporlar'a götürmüyor: orada açılacak sekme yok. */
+      sekmeVar: BOLUMLER.some((x) => x.id === b.id),
       olculer: olculer.map((id) => sonuc.olculer.find((o) => o.id === id)).filter(Boolean),
     })
   }
@@ -594,13 +598,17 @@ function YonetimOzeti({ ozet }) {
         <div className="yonetim-ozet">
           {ozet.bloklar.map((b) => (
             <div className="yonetim-ozet__blok" key={b.id}>
-              <button
-                type="button"
-                className="yonetim-ozet__baslik"
-                onClick={() => ozet.git('raporlar', { bolum: b.id })}
-              >
-                {b.ad}
-              </button>
+              {b.sekmeVar ? (
+                <button
+                  type="button"
+                  className="yonetim-ozet__baslik"
+                  onClick={() => ozet.git('raporlar', { bolum: b.id })}
+                >
+                  {b.ad}
+                </button>
+              ) : (
+                <div className="yonetim-ozet__baslik yonetim-ozet__baslik--duz">{b.ad}</div>
+              )}
               {b.olculer.map((o) => (
                 <div className="yonetim-ozet__olcu" key={o.id}>
                   <div className="yonetim-ozet__ad">{o.ad}</div>

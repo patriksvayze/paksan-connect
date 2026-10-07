@@ -18,7 +18,7 @@
 export default async function tutarlilik() {
   const veri = await import('/src/backoffice/veri.js')
   const sk = await import('/src/lib/servisKaydi.js')
-  const marka = await import('/src/marka/index.js')
+  const marka = await import('/src/data/katalog/servisler.js')
   const P = 'paksan.'
   const oku = (k, d) => {
     try {

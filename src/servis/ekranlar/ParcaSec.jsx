@@ -4,7 +4,6 @@ import {
   katalogGetir,
   parcaAra,
 } from '../../lib/parcaKatalogu'
-import { MARKA } from '../../marka'
 import { Sayfa } from '../Kabuk'
 import { ParcaKarti } from '../ParcaKarti'
 import { MontajListesi } from '../MontajListesi'
@@ -125,7 +124,7 @@ export function ParcaSec({ secili = [], onBitti, onKapat }) {
         baslik={grup && !arama.trim() ? grup.ad : 'Parça Seç'}
         alt={
           grup && !arama.trim()
-            ? `${MARKA} yedek parça listesi`
+            ? `PAKSAN yedek parça listesi`
             : 'Önce parçanın bağlı olduğu alt montajı seçin'
         }
         onGeri={geri}
@@ -216,7 +215,7 @@ function yenidenDene(setDurum, setKatalog) {
 function Yukleniyor() {
   return (
     <>
-      <p className="ipucu">Parça listesi {MARKA} sunucusundan yükleniyor…</p>
+      <p className="ipucu">Parça listesi PAKSAN sunucusundan yükleniyor…</p>
       <div className="parca-izgara">
         {Array.from({ length: 6 }, (_, i) => (
           <div key={i} className="parca-kart parca-kart--iskelet">
@@ -238,7 +237,7 @@ function Hata({ onTekrar }) {
       <div>
         <strong>Parça listesi yüklenemedi</strong>
         <p>
-          Liste {MARKA} sunucusundan geliyor. Bağlantınızı kontrol edip
+          Liste PAKSAN sunucusundan geliyor. Bağlantınızı kontrol edip
           yeniden deneyin.
         </p>
         <button className="dg dg--ana dg--blok" style={{ marginTop: 12 }} onClick={onTekrar}>

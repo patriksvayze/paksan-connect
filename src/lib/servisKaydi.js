@@ -32,8 +32,9 @@
    ŞİMDİKİ SIRA
 
      1. AŞAMA · PARÇA   Servis sahada arızayı buluyor ve gereken
-        parçayı istiyor. Para sorulmuyor. Talep yedek parça masasına
-        düşüyor, parça hazırlanıp servise gönderiliyor.
+        parçayı istiyor. Para sorulmuyor. Parça hazırlanıp servise
+        gönderiliyor; işi baştan sona PAKSAN'ın servis birimi yürütüyor
+        (6 Ekim 2026'ya kadar parça yedek parça masasına düşüyordu).
 
      2. AŞAMA · İŞ BİTTİ   Parça eline geçen servis takıyor ve
         uygulamada "Parçayı Taktım" diyor. Yapılan iş, yol ve işçilik
@@ -80,7 +81,7 @@
    soruluyor (bkz. `eksikAlanlar`).
    ========================================================================== */
 
-import { MARKA, markaEk, PARA_BIRIMI, paraYaz } from '../marka'
+import { PARA_BIRIMI, paraYaz } from '../data/katalog/para.js'
 import { iptalEdilenSatirlar, siparisNetTutari } from './servisFiyat'
 import { makineDurumAdi } from '../data/talepAlanlari'
 
@@ -149,7 +150,7 @@ export function talepNedeni(talep) {
 export const KAPI = {
   garanti: 'Garanti Kapsamında',
   eldeParca: 'Garanti Dışı · Parçayı Ben Taktım',
-  parcaIste: `Garanti Dışı · Parçayı ${MARKA} Göndersin`,
+  parcaIste: `Garanti Dışı · Parçayı PAKSAN Göndersin`,
 }
 
 /* Garanti dışı yapılıp kayıtsız kapanan talebin kapanış özeti
@@ -173,7 +174,7 @@ export const GARANTI_DISI_OZET = 'Garanti dışında tamamlandı'
 
    Fotoğraf duruyor: garanti tartışmasında bakılacak tek şey o. */
 
-/** Sahada yapılan iş — tek dokunuş. */
+/** Sahada yapılan iş. */
 export const YAPILAN_IS = [
   'İlk Kurulum ve Çalıştırma',
   'Ayar Yapıldı',
@@ -181,6 +182,35 @@ export const YAPILAN_IS = [
   'Parça Değişti',
   'Arıza Bulunamadı',
 ]
+
+export const PARCA_DEGISTI = 'Parça Değişti'
+
+/* YAPILAN İŞ ÇOK SEÇİMLİ (6 Ekim 2026, kullanıcının isteği: "Yapılan İş
+   kısmındaki seçenekler çoktan seçmeli olmalı"). Bir ziyarette hem ayar
+   hem bakım yapılabiliyor. Kayıtta alan yine tek yazı (`yapilanIs`):
+   seçilenler listedeki sırayla, virgülle. Onu okuyan her ekran (talep
+   ayrıntısı, PDF, Excel, Connect) olduğu gibi çalışıyor; seçimleri ayrı
+   ayrı sayan yerler (raporlar, Connect'in çevirisi) bu işlevle bölüyor.
+   Seçeneklerin hiçbirinde virgül yok. Veritabanında ziyaret başına tek
+   kod vardı (VT-TASARIM-EKLERI.md §15). */
+const YAPILAN_IS_AYRACI = ', '
+
+/** Kayıttaki yapılan iş yazısı → seçenek listesi. Listede olmayan bir
+    parça varsa (backoffice'in elle yazdığı kapanış) boş liste. */
+export function yapilanIsleri(deger) {
+  const liste = String(deger || '').split(YAPILAN_IS_AYRACI).map((s) => s.trim()).filter(Boolean)
+  return liste.length && liste.every((x) => YAPILAN_IS.includes(x)) ? liste : []
+}
+
+/* "Parça Değişti" seçili, parça seçilmemiş (6 Ekim 2026). Servisim'de
+   alanın altındaki uyarı ve veri katmanının reddi aynı cümle (bkz.
+   backoffice/veri.js → servisKaydiGonder). Metin Codex'ten. */
+export const PARCASIZ_DEGISIM = 'Değişen parçayı yukarıdaki Parça Seç düğmesiyle seçin. Garanti işinde parçayı PAKSAN gönderir.'
+
+/** Seçilenler → kayda yazılacak yazı (listedeki sırayla). */
+export function yapilanIsYazisi(secilenler) {
+  return YAPILAN_IS.filter((x) => secilenler.includes(x)).join(YAPILAN_IS_AYRACI)
+}
 
 /* ==========================================================================
    Hak ediş kalemleri
@@ -661,13 +691,20 @@ export function kaydiCozume(kayit) {
 export function kapininSonucu(kayit) {
   const parcaVar = temizParcalar(kayit.parcalar).length > 0
 
-  /* 1. AŞAMA — hangi kapı olursa olsun sıra yedek parçada.
+  /* 1. AŞAMA — parça hazırlanıyor.
 
      Garanti kaydı ONAYA GİTMİYOR artık. Onay, işin bitmesini
      bekliyor: para ancak parça takıldıktan sonra doğuyor. Önce
-     onaya gidiyordu ve servis işini bitirmeden parasını alıyordu. */
+     onaya gidiyordu ve servis işini bitirmeden parasını alıyordu.
+
+     SIRA SERVİS BİRİMİNDE (6 Ekim 2026, kullanıcının kararı: "Garanti
+     kapsamındaki işlerden de sadece Servis rolü sorumlu … parça gönderimi
+     içeriyor diye Yedek Parça rolüne atamanın bir anlamı yok"). Önce
+     garanti parçası yedek parça masasına düşüyordu; aynı iş iki birim
+     arasında el değiştiriyordu. Garanti parçasını da servis birimi
+     gönderiyor (bkz. backoffice/veri.js → rolunTalepleri). */
   if (kayit.asama === ASAMA.parca) {
-    return { durum: 'parcaBekliyor', masa: 'parca' }
+    return { durum: 'parcaBekliyor', masa: 'servis' }
   }
 
   if (kayit.kapi === 'garanti') {

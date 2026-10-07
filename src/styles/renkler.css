@@ -1,0 +1,48 @@
+/* ==========================================================================
+   MARKA RENKLERİ — tek kaynak
+
+   Üç üründe de kullanılan firmanın ham renkleri, kendi anlamsal
+   token'larına dönüştürülüyor; ham değer başka hiçbir yerde yazılı değil.
+
+   NEDEN AYRI DOSYA
+
+   Aynı lacivert ve turuncu, iki ayrı CSS kökünde (`src/styles.css` ve
+   `src/backoffice/backoffice.css`) elle senkronize tutuluyordu. Marka
+   rengini değiştirmek, iki dosyada arama yapmak demekti; biri unutulursa
+   iki ürün farklı renklerde açılıyordu.
+
+   Artık ham renk burada, anlamsal token'lar yerinde. Bu ayrım
+   kasıtlı: `--pk-blue-soft` ya da `--mavi-z` gibi türev tonlar, her
+   ürünün kendi zemin ve tema kararına bağlı; marka kararı değil.
+
+   ÖLÇÜM
+
+   Turuncu 5 Ekim 2026'dan beri PAKSAN Satış ve Planlama uygulamasının
+   turuncusu (#F26A1B; kullanıcının isteği: "ürünlerde soluk bir turuncu
+   renk kullanılıyor, ekran görüntüsündeki tonu kullanalım tüm ürünlerde").
+   Önce makine gövde renginden ölçülmüştü (bkz. tools/marka-rengi.mjs).
+   Mavi logo dosyasından; lacivert arayüz zemininden.
+
+   KARANLIK TEMA BURADA YOK. Karanlık temada marka rengi değişmiyor;
+   değişen, o rengin üstüne binen yazı ve zemin tonları. Onlar her
+   ürünün kendi kökünde, ölçüm gerekçeleriyle birlikte duruyor.
+   ========================================================================== */
+
+:root {
+  /* Kurumsal mavi — logodan */
+  --marka-mavi: #1848a8;
+
+  /* Koyu lacivert — üst çubuk, alt menü, koyu zeminler */
+  --marka-lacivert: #0a1a33;
+
+  /* Makine gövde turuncusu ve yakın tonları */
+  --marka-turuncu: #f26a1b;
+  --marka-turuncu-acik: #ff8a3d;
+  --marka-turuncu-koyu: #b8480a;
+
+  /* Düğme dolgusu. 5 Ekim 2026'ya kadar #c7490a idi: beyaz yazı
+     #F26A1B üstünde okunabilirlik eşiğinin altında kalıyor (yaklaşık
+     2,9:1, eşik 4,5:1). Kullanıcı bunu bilerek düz turuncuyu seçti
+     ("1. seçenek": her yerde parlak ton, beyaz yazıyla). */
+  --marka-turuncu-dugme: #f26a1b;
+}

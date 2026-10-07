@@ -135,7 +135,7 @@ export const ANAHTARLAR = {
 /* Depo dışında tutulanlar — denetim görmez, kayıt için burada. */
 export const DEPO_DISI = {
   ekler: { nerede: 'IndexedDB (src/lib/ekler.js)', tablo: 'dosya.Dosya', ne: 'Talep ekleri: fotoğraf, video, ses' },
-  servisVeBayiListesi: { nerede: 'src/marka (kaynak kod)', tablo: 'servis.Servis, bayi.Bayi', ne: 'Servis ve bayi listesi bugün kodda; panelIcerik yalnız düzeltmeleri tutuyor' },
+  servisVeBayiListesi: { nerede: 'src/data/katalog (kaynak kod)', tablo: 'servis.Servis, bayi.Bayi', ne: 'Servis ve bayi listesi bugün kodda; panelIcerik yalnız düzeltmeleri tutuyor' },
 }
 
 /* Anahtarı veri olan nesneler: parça koduna göre adet gibi. Denetim bu
@@ -202,6 +202,18 @@ export const ALANLAR = {
   'requests[].atamaDisi.servisId': turer('makine.MakineServisAtamasi.ServisKimlik', 'talebin OlusmaZamani anındaki açık atama satırı; yoksa bayinin o anki servisi (servis.BayiBagi)'),
   'requests[].atamaDisi.servisAd': turer('servis.Servis.Ad', 'atamaDisi.servisId üzerinden'),
   'requests[].atamaDisi.kaynak': turer('servis.BayiBagi.ServisKimlik', 'o anda açık atama satırı varsa atama, yoksa bayinin servisi: bayi'),
+  /* Bölge dışı servis talebi (5 Ekim 2026): makine servisinin bölgesi dışındayken
+     açılan talep servise değil PAKSAN'a düşüyor; PAKSAN iş için servis atıyor.
+     Talebin açıldığı anın yeri ve makinenin o anki servisi, sonra atama izi. */
+  'requests[].bolgeDisi.il': yok('bölge dışı servis talebi: talep.BolgeDisi tablosu henüz yok', `${EKLER} §14`),
+  'requests[].bolgeDisi.ilce': yok('bölge dışı servis talebi: talep.BolgeDisi tablosu henüz yok', `${EKLER} §14`),
+  'requests[].bolgeDisi.makineServisi.id': yok('bölge dışı servis talebi: talep.BolgeDisi tablosu henüz yok', `${EKLER} §14`),
+  'requests[].bolgeDisi.makineServisi.ad': yok('bölge dışı servis talebi: talep.BolgeDisi tablosu henüz yok', `${EKLER} §14`),
+  'requests[].bolgeDisi.tarih': yok('bölge dışı servis talebi: talep.BolgeDisi tablosu henüz yok', `${EKLER} §14`),
+  'requests[].bolgeDisi.atama.servisId': yok('bölge dışı servis talebi: talep.BolgeDisi tablosu henüz yok', `${EKLER} §14`),
+  'requests[].bolgeDisi.atama.servisAd': yok('bölge dışı servis talebi: talep.BolgeDisi tablosu henüz yok', `${EKLER} §14`),
+  'requests[].bolgeDisi.atama.tarih': yok('bölge dışı servis talebi: talep.BolgeDisi tablosu henüz yok', `${EKLER} §14`),
+  'requests[].bolgeDisi.atama.personel': yok('bölge dışı servis talebi: talep.BolgeDisi tablosu henüz yok', `${EKLER} §14`),
 
   /* Fiyat teklifinin bayiye iletilmesi (21.09.2026'dan beri "Bayiye
      İletildi" durumu). Geri alınınca uygulamada `bayi` boşalıyor;
@@ -243,7 +255,7 @@ export const ALANLAR = {
      makinesine işliyor (veri.js → servisKaydiGonder, AK-27). */
   'requests[].servisKaydi.makine.serial': turer('makine.Makine.SeriNo', 'talebin makinesine işlenir (talep.Talep.MakineKimlik); ziyaret ayrıca tutmaz'),
   'requests[].servisKaydi.makine.productId': turer('makine.Makine.UrunKodu', 'talep.Talep.MakineKimlik üzerinden'),
-  'requests[].servisKaydi.yapilanIs': sutun('talep.ServisZiyareti.YapilanIsKodu'),
+  'requests[].servisKaydi.yapilanIs': yok('6 Ekim 2026’dan beri çok seçimli (seçilenler virgülle tek yazı); talep.ServisZiyareti.YapilanIsKodu tek kod tutuyor, ziyaret başına çok satırlı tablo gerekiyor (VT-TASARIM-EKLERI.md §15)'),
   'requests[].servisKaydi.asama': sutun('talep.ServisZiyareti.AsamaKodu'),
   'requests[].servisKaydi.kapi': sutun('talep.ServisZiyareti.KapiKodu'),
   'requests[].servisKaydi.km': sutun('talep.ServisZiyareti.Km'),
@@ -630,7 +642,7 @@ export const ALANLAR = {
      hakedis.Tarife'de ürün ve servis sütunu yok (VT-TASARIM-EKLERI §5). */
   /* Servis listesi (backoffice Servisler ekranı ve servisin kendi şifre
      değişikliği yazıyor; AK-28'den beri bir senaryo yazıyor). Liste bugün
-     kodda (src/marka/katalog/servisler.js), panelIcerik düzeltilmiş
+     kodda (src/data/katalog/servisler.js), panelIcerik düzeltilmiş
      hâlini tutuyor. Panel şifresi servisin giriş hesabında
      (servis.GirisHesabi → erisim.Kullanici). */
   'panelIcerik.servisler[].id': sutun('servis.Servis.Kimlik', 'bugünkü kısa kimlik taşınırken EskiKayitNo\'ya'),
@@ -642,6 +654,8 @@ export const ALANLAR = {
   'panelIcerik.servisler[].adres': sutun('servis.Servis.Adres'),
   'panelIcerik.servisler[].tel': sutun('servis.Servis.TelefonE164'),
   'panelIcerik.servisler[].bayiler[]': sutun('servis.BayiBagi.BayiKimlik'),
+  'panelIcerik.servisler[].bolge[].il': sutun('servis.Bolge.IlKodu', 'bugün il ADI yazılıyor, veritabanı KOD tutuyor; 5 Ekim 2026’dan beri talebin servise mi PAKSAN’a mı gideceğini de belirliyor'),
+  'panelIcerik.servisler[].bolge[].ilceler[]': sutun('servis.Bolge.IlceKodu', 'ilçe başına bir satır; liste boşsa tek satır, IlceKodu NULL = bütün il'),
   'panelIcerik.servisler[].ilkGiris': sutun('erisim.Kullanici.SifreBelirlemeGerekli'),
   'panelIcerik.servisler[].sifre.ozet': sutun('erisim.Kullanici.SifreKaydi', 'özet ve tuz tek kayıtta'),
   'panelIcerik.servisler[].sifre.tuz': sutun('erisim.Kullanici.SifreKaydi', 'özet ve tuz tek kayıtta'),
@@ -803,7 +817,7 @@ export const ISLEVLER = {
   paksanRandevuEngeli: { tur: 'hesap', not: 'PAKSAN servis talebine yalnız devredilmişse (devir + sahip paksan) randevu verebilir; sunucu talepPlanla içinde aynı kuralı denetlemeli (29.09.2026)' },
   durumKilidi: { tur: 'hesap', not: 'kapanmış talebin ve gönderilmiş servis siparişinin durum kilidi; sunucu talepGeriAc iznini aynı kapıda denetlemeli (25.09.2026)' },
   serviseBildir: 'yazma', servisBildirimleri: 'okuma',
-  bayiAtamasiniKaldir: 'yazma', talepNotEkle: 'yazma',
+  bayiAtamasiniKaldir: 'yazma', bolgeDisiTalebeServisAta: 'yazma', talepNotEkle: 'yazma',
   musteriyeBildir: { tur: 'yazma', not: 'alıcısı (HesapKimlik) çözülmeyen bildirim yazılmıyor; CK_bildirim_Bildirim_Alici ile aynı kural (25.09.2026)' },
   bildirimAlicilari: { tur: 'okuma', not: 'ekranın "bildirim kime gitti" sorusu; servis siparişinde müşteri yok, servisin elle açtığı kimliksiz talep telefonla eşleşmiyor, alıcı çözülmüyorsa yok — sunucuda bildirim.Bildirim yazma kuralıyla aynı' },
   gonderimGecikti: 'hesap', gonderimGecikmeSaati: 'hesap', gecikmisMi: 'hesap',

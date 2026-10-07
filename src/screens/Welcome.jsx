@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { Safak, SafakLogo } from '../components/Safak'
 import { IconRight } from '../components/Icons'
-import { SIRKET, SURUM } from '../marka'
+import { SIRKET, SURUM } from '../data/kimlik.js'
 import { DilSecici } from '../components/DilSecici'
 import { useDil } from '../i18n'
 

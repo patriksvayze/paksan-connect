@@ -311,7 +311,7 @@
     "kod.ParaBirimi": {
       "TL": {
         "YeniKod": "TRY",
-        "Not": "src/marka/katalog/para.js PARA_BIRIMI"
+        "Not": "src/data/katalog/para.js PARA_BIRIMI"
       }
     },
     "kod.KayitKaynagi": {

@@ -8,7 +8,7 @@
    turuncu. Üretilen çizimlerde makineler lacivert boyanmıştı — PAKSAN
    makinesi öyle görünmüyor.
 
-   Renk tahmin edilmedi, ölçüldü: `src/marka/varliklar/urunler/`
+   Renk tahmin edilmedi, ölçüldü: `src/assets/urunler/`
    altındaki 15 ürün fotoğrafı taranıp doygun pikseller ton kovalarına
    toplandı.
 
@@ -23,13 +23,13 @@
 
    Buradaki **#E16025** fotoğraftan ÖLÇÜLEN makine gövde rengidir;
    bir veri noktasıdır, ekranda hiçbir yerde kullanılmıyor. Arayüzün
-   turuncusu ise `src/marka/renkler.css` içindeki
+   turuncusu ise `src/styles/renkler.css` içindeki
    `--marka-turuncu: #e8641a` — o bir TASARIM kararı, beyaz yazıyla
    kontrast ölçülerek seçildi. İkisi yakın tonlar olduğu için birini
    öteki sanıp eşitlemek kolay; eşitlenirse ya çizimlerin rengi
    ölçümden kopar ya da düğme kontrastı bozulur. Ölçüm değişirse
    güncellenecek yer bu dosyanın yorumu ve çizim notudur
-   (`src/marka/icerik/cizimler.js`), renk token'ı değil.
+   (`src/data/icerik/cizimler.js`), renk token'ı değil.
 
    BU SAYI SABİT DEĞİL. Bugünkü fotoğraflar şirketin sitesinden alındı
    ve sıkıştırılmış JPEG; gerçek stüdyo çekimleri geldiğinde
@@ -50,7 +50,7 @@ import { fileURLToPath } from 'node:url'
 
 // Proje klasörü sabit yazılmıyor: depo nereye taşınırsa taşınsın çalışsın.
 const KLASOR = join(
-  dirname(fileURLToPath(import.meta.url)), '..', 'src', 'marka', 'varliklar', 'urunler',
+  dirname(fileURLToPath(import.meta.url)), '..', 'src', 'assets', 'urunler',
 )
 
 function hsv(r, g, b) {

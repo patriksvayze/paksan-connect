@@ -71,7 +71,6 @@
     "webPush": { "Ad": "Tarayıcı bildirimi" }
   },
   "kod.IslemKategorisi": {
-    "devir": { "Ad": "Üreticiye devir", "_not": "Kaynakta etiket sabit değil (IslemKaydi.jsx TURLER: markaEk('a') + ' devir'); marka adı kod listesine düz yazılmaz." },
     "bayi": { "Ad": "Bayi listesi" },
     "servisKaydi": { "Ad": "Servis kaydı" },
     "hakEdis": { "Ad": "Hak ediş" },

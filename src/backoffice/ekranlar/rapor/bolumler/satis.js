@@ -1,5 +1,7 @@
 import { TEKLIF_BEKLEME_GUN, teklifBekliyorMu } from '../../../veri'
-import { bayileriGetir, bayininServisleri, MARKA } from '../../../../marka'
+import { bayileriGetir } from '../../../../data/katalog/bayiler.js'
+import { bayininServisleri } from '../../../../data/katalog/servisler.js'
+
 import { tarihYaz } from '../../ortak'
 import {
   fark, farkPuan, GUN, iptalZamani, kapanisSuresi, kapanisZamani, kovayaDagit, oran, paraHucre,
@@ -48,9 +50,9 @@ const M = {
   gelen: 'Fiyat teklifi talebi',
   gelenAlt: 'Bu dönemde açılan talepler',
   bayiye: 'Bayiye iletilen',
-  bayiyeAlt: `Fiyatı bayi veriyor; tutar ${MARKA} kayıtlarında yok`,
+  bayiyeAlt: `Fiyatı bayi veriyor; tutar PAKSAN kayıtlarında yok`,
   fiyatVerilen: 'Fiyat verilen',
-  fiyatVerilenAlt: `${MARKA} personelinin fiyat verdiği teklifler`,
+  fiyatVerilenAlt: `PAKSAN personelinin fiyat verdiği teklifler`,
   bekleyen: 'Müşterinin yanıtı beklenen',
   bekleyenAlt: (n) =>
     n ? `${n} tanesi ${TEKLIF_BEKLEME_GUN} günü geçti` : `Hiçbiri ${TEKLIF_BEKLEME_GUN} günü geçmedi`,
@@ -113,13 +115,13 @@ const M = {
     satisFiyati: 'Satış fiyatı',
     sure: 'Süre',
   },
-  kimdeMarka: MARKA,
+  kimdeMarka: 'PAKSAN',
   gundur: (n) => `${n} gündür`,
   toplam: 'Toplam',
 
   notlar: [
     'Fiyat teklifi talebi: seçilen dönemde açılan fiyat teklifi talepleri.',
-    `Bayiye iletilen: seçilen dönemde bayiye iletilen talepler. Bu taleplerde fiyatı bayi veriyor; tutar ve sonuç ${MARKA} kayıtlarında yok, bu yüzden dönüşüm oranına girmiyor.`,
+    `Bayiye iletilen: seçilen dönemde bayiye iletilen talepler. Bu taleplerde fiyatı bayi veriyor; tutar ve sonuç PAKSAN kayıtlarında yok, bu yüzden dönüşüm oranına girmiyor.`,
     'Fiyat verilen: teklif tarihi seçilen döneme düşen talepler.',
     `Müşterinin yanıtı beklenen: şu an "Teklif Verildi" durumundaki talepler; tarih süzgecinden bağımsız. ${TEKLIF_BEKLEME_GUN} günü geçen, fiyat verildiği günden sayılır.`,
     'Satışa dönen: sonucu "Satış oldu" yazılıp seçilen dönemde kapanan teklifler. Tutar, kapanışta yazılan satış fiyatlarının toplamıdır.',

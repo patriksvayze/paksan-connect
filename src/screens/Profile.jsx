@@ -12,9 +12,9 @@ import { SifreAlani } from '../components/SifreAlani'
 import { DilSecici } from '../components/DilSecici'
 import { TemaSecici } from '../components/TemaSecici'
 import { useDil } from '../i18n'
-import { SIRKET, SURUM, UYGULAMA } from '../marka'
+import { SIRKET, SURUM, UYGULAMA } from '../data/kimlik.js'
 import {
-  IconUser, IconBaler, IconMachine, IconWrench, IconRight, IconPin,
+  IconUser, IconMachine, IconWrench, IconRight, IconPin,
   IconGorunum, IconLock, IconPhone, IconGlobe, IconMail, IconShield,
 } from '../components/Icons'
 
@@ -27,7 +27,7 @@ import {
 export default function Profile() {
   const nav = useNavigate()
   const { t, dil } = useDil()
-  const { user, machines, requests, updateUser, logout, showToast } = useApp()
+  const { user, requests, updateUser, logout, showToast } = useApp()
   const [duzenle, setDuzenle] = useState(false)
   const [cikis, setCikis] = useState(false)
   const [geriBildirim, setGeriBildirim] = useState(false)
@@ -157,28 +157,25 @@ export default function Profile() {
           </button>
         </div>
 
-        {/* Özet */}
-        {/* İki kutunun simgeleri farklı yükseklikte çiziliyor (balya
-            makinesi geniş ve basık, anahtar kare). Serbest bıraktığımızda
-            altlarındaki sayı ve yazı da farklı hizada başlıyordu; simgeye
-            sabit yükseklik verilip ortalanıyor. */}
-        <div className="ozet" style={{ marginTop: 14 }}>
-          <button className="card card--tap center" onClick={() => nav('/makinelerim')}>
-            {/* Balya makinesi yatay bir çizim; komşu kutudaki anahtarla aynı
-                ağırlıkta görünsün diye biraz büyük (bkz. Icons.jsx → IconBaler). */}
-            <div className="ozet__ikon" style={{ color: 'var(--pk-blue-yazi)' }}><IconBaler size={30} /></div>
-            <div style={{ fontWeight: 700, fontSize: 24, marginTop: 6 }}>{machines.length}</div>
-            <div className="small muted">{t('profil.kayitliMakine')}</div>
-          </button>
-          {/* Komşusu gibi dokunulabilir (25 Eylül 2026, kullanıcı
-              sınaması): düz bir kutuydu, sayı 0 da olsa 5 de olsa
-              dokunmak bir şey yapmıyordu. Talepler kendi ekranında. */}
-          <button className="card card--tap center" onClick={() => nav('/taleplerim')}>
-            <div className="ozet__ikon" style={{ color: 'var(--pk-orange-ink)' }}><IconWrench size={26} /></div>
-            <div style={{ fontWeight: 700, fontSize: 24, marginTop: 6 }}>{requests.length}</div>
-            <div className="small muted">{t('profil.talep')}</div>
-          </button>
-        </div>
+        {/* TALEPLERİM TEK VE GÖRÜNÜR SATIR (7 Ekim 2026, kullanıcının
+            isteği: "Kayıtlı Makine kısmını kaldır … Talep yerine
+            'Taleplerim' yazsın ve daha görünür olsun. Yeni bir kullanıcı
+            taleplerini aramak istese zor bulur"). Önce yan yana iki küçük
+            kutu vardı (kayıtlı makine sayısı ve "Talep"); makineler zaten
+            alt menüde. Şimdi tam genişlikte, adıyla ve talep sayısıyla. */}
+        <button
+          className="listitem taleplerim-kart"
+          style={{ marginTop: 14 }}
+          data-eylem="taleplerim"
+          onClick={() => nav('/taleplerim')}
+        >
+          <div className="listitem__icon taleplerim-kart__ikon"><IconWrench size={24} /></div>
+          <div className="listitem__body">
+            <div className="taleplerim-kart__baslik">{t('profil.taleplerim')}</div>
+          </div>
+          <span className="taleplerim-kart__sayi">{requests.length}</span>
+          <IconRight size={21} />
+        </button>
 
         {/* Menü ikiye ayrıldı.
 

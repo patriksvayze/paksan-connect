@@ -541,3 +541,63 @@ Her iki yolda: `kod.RizaMetni` listesine `servisAydinlatma`,
 bugün yalnız Connect'in `METINLER` listesini okuyor). `tasarim.md`
 kvkk şemasının kullanıcıları arasına Servisim yazılmalı. Karar
 verilince eşlemedeki `servisKabulleri` boşluğu kapanır.
+
+## 14. Bölge dışı servis talebi (5 Ekim 2026)
+
+Kullanıcının kararı: çiftçi makinesiyle başka bir il ya da ilçedeyken servis
+talebi açar ve yer, makinenin servisinin bölgesinde değilse talep o servise
+gitmez, PAKSAN'a düşer; PAKSAN o iş için bir servis atar. Makinenin kalıcı
+servisi (makine.MakineServisAtamasi) değişmez. Kural: çiftçinin hesap
+adresine bakılmaz; bölgesi girilmemiş servisin bölgesi kendi ili
+(servis.Bolge satırı yoksa servis.Servis.Il).
+
+Uygulamada talep kaydı `bolgeDisi` nesnesini taşıyor:
+
+| Alan | Anlamı |
+|---|---|
+| `il`, `ilce` | talebin açıldığı anda makinenin bulunduğu yer (formdaki) |
+| `makineServisi.id`, `.ad` | o anda makineye bakan servis (bölgesi dışında kalan) |
+| `tarih` | talebin açıldığı an |
+| `atama.servisId`, `.servisAd`, `.tarih`, `.personel` | PAKSAN'ın bu iş için atadığı servis, ne zaman, kim |
+
+Önerilen karşılık: `talep.BolgeDisi` (TalepKimlik PK/FK, Il, Ilce,
+MakineServisKimlik, OlusmaZamani; atama için AtananServisKimlik,
+AtamaZamani, AtayanPersonelKimlik). Talebin kendi `ServisKimlik` sütunu
+atamayla dolar (bugünkü akışla aynı); bölge dışı talepte atama olana kadar
+boştur ve `Sahip` 'paksan'dır. Sunucu kuralı aynı yerden okumalı: talep
+yazılırken servis.Bolge (yoksa servisin ili) ile formdaki il/ilçe
+karşılaştırılır.
+
+**Servisin sorumluluk bölgesi veritabanında var:** `servis.Bolge` (V0008;
+ServisKimlik, IlKodu, IlceKodu NULL = bütün il; sistem sürümlü, talebin açıldığı
+anki bölge sonradan okunabilir). Önceden yalnız atama önerisini sıralıyordu;
+artık talebin nereye gideceğini belirliyor. Sunucu, talep yazılırken bu
+tabloyu (satırı yoksa servisin ilini) formdaki il ve ilçeyle karşılaştırmalı.
+
+## 15. Servis kaydında yapılan iş çok seçimli; garanti parçası servis masasında (6 Ekim 2026)
+
+**Yapılan iş.** Kullanıcının isteği: "Yapılan İş kısmındaki seçenekler
+çoktan seçmeli olmalı". Servisim'de servis bir ziyarette birden çok iş
+seçebiliyor (örn. ayar ve bakım). Uygulamada `servisKaydi.yapilanIs` yine
+tek yazı: seçilenler listedeki sırayla, virgülle ("Ayar Yapıldı, Bakım
+Yapıldı"; bölen `lib/servisKaydi.js → yapilanIsleri`). Kapanıştaki
+`cozum.yapilanIs` metin olarak kalıyor (talep.Kapanis.YapilanIsMetni).
+
+Bugünkü `talep.ServisZiyareti.YapilanIsKodu` tek kod tutuyor. Önerilen
+karşılık: `talep.ServisZiyaretiYapilanIs` (ServisZiyaretiKimlik FK,
+YapilanIsKodu FK → kod.YapilanIs; PK ikisi birlikte). Tek sütun ya
+kaldırılır ya da geçiş süresince ilk seçimi taşır. Eşlemede alan bu yüzden
+`yok` (bilinen boşluk).
+
+Aynı gün: garanti işinde "Parça Değişti" seçiliyken kayıt parçasız
+gönderilemiyor (garanti parçasını her zaman PAKSAN gönderiyor). Sunucu
+aynı kuralı ziyaret yazılırken uygulamalı: YapilanIs'te `PARCA` kodu
+varsa ziyaretin ya da aynı talebin 1. aşamasının parça satırı olmalı.
+
+**Garanti parçasının masası.** Kullanıcının kararı: garanti işinden
+yalnız servis birimi sorumlu, parça gönderimi dâhil. 1. aşama kaydı
+(parça isteği) artık `MasaKodu = 'servis'` yazıyor; önce `'parca'` idi.
+Yeni kod gerekmiyor. Sunucuda rolün talep listesi aynı kuralı
+uygulamalı: garanti kaydı taşıyan servis talebi, `MasaKodu` eski
+kayıtta `'parca'` olsa da, yedek parça rolüne listelenmez
+(`backoffice/veri.js → rolunTalepleri`, `garantiIsiMi`).

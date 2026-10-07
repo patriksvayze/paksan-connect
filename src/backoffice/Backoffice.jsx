@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { LOGO_DOSYASI as logo, SIRKET } from '../marka'
+import { SIRKET } from '../data/kimlik.js'
+import logo from '../assets/logo/paksan-logo.png'
 /* Giriş ekranının fotoğrafı: PAKSAN'ın kendi tarla çekimi (SÜPER
    S8002 E). Önce Higgsfield ile üretilmiş bir çizim vardı — makineyi
    temsil ediyordu ama firmanın makinesi değildi. Personelin her sabah
@@ -80,7 +81,6 @@ import { IslemKaydi } from './ekranlar/IslemKaydi'
 const MENU = [
   { id: 'ozet', ad: 'Dashboard', Ikon: IconPano },
   { id: 'talepler', ad: 'Talepler', izin: 'talepler', sayac: 'talep', Ikon: IconTalep },
-  { id: 'musteriler', ad: 'Müşteriler', izin: 'musteriler', Ikon: IconUser },
   /* Sayaç: servisi atanmamış MAKİNE (21 Eylül 2026, kullanıcının
      kararı). Atama makine başına: aynı müşterinin yem karmasına bir
      servis, balya makinesine başka bir servis bakabilir — her servis
@@ -96,6 +96,8 @@ const MENU = [
      grubunu ve fiyat listesini yöneten ekran. Katalog uygulamanın içinde
      değil, sunucudan iniyor (bkz. lib/parcaKatalogu.js). */
   { id: 'parcaKatalogu', ad: 'Yedek Parça Kataloğu', izin: 'parcaKatalogu', Ikon: IconParca },
+  /* Müşteriler katalogdan sonra (6 Ekim 2026, kullanıcının isteği). */
+  { id: 'musteriler', ad: 'Müşteriler', izin: 'musteriler', Ikon: IconUser },
   /* "SERVİS SİPARİŞLERİ" EKRANI KALDIRILDI.
 
      Servisin PAKSAN'dan istediği parça kendi deposunda ve kendi

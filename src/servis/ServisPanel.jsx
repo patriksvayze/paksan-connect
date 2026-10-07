@@ -23,7 +23,8 @@ import { GizlilikKapisi, GizlilikSatiri, GizlilikSayfasi } from './ekranlar/Gizl
 import { servisKabulEttiMi } from '../lib/servisGizlilik'
 import { okunmamisSayisi } from './talepBildirimleri'
 import { yeniIsSayisi } from './isDurumu'
-import { Logo, Amblem, MARKA, SIRKET, markaEk } from '../marka'
+import { Logo, Amblem } from '../components/Logo.jsx'
+import { SIRKET } from '../data/kimlik.js'
 /* Giriş ekranının görseli: PAKSAN ORKA 870'İN BAŞINDA SERVİS
    TEKNİSYENİ, ŞAFAKTA TARLADA.
 
@@ -32,7 +33,7 @@ import { Logo, Amblem, MARKA, SIRKET, markaEk } from '../marka'
    değiştirilecek. Her şey aynı, sadece makine değişecek").
    İlk deneme makineyi yapay zekâya yeniden çizdirdi; kullanıcı
    "gerçeğine hiç benzemiyor" dedi. Bu yüzden makine çizdirilmedi:
-   katalogdaki Orka 870 fotoğrafından (marka/varliklar/urunler/
+   katalogdaki Orka 870 fotoğrafından (assets/urunler/
    orka-870.jpg) arka planı ayrılıp sahneye yerleştirildi, ışığı
    şafağa göre elle ısıtıldı. Aynı sahnenin makinesiz, teknisyensiz
    hâli Higgsfield'a (GPT Image 2.5) boşaltıldı; teknisyen ve takım
@@ -281,7 +282,7 @@ function GirisEkrani({ ustSatir, baslik, aciklama, children }) {
    Metin servis sesiyle yazıldı: tek cümle, terim yok. Teknisyen
    ekranı tarlada ayakta okuyor; ona "güvenli köken" demek bir şey
    anlatmaz, yapacağı şeyi söylemek anlatır. */
-const OZET_HATASI_METNI = `Şifre kontrol edilemiyor; uygulamayı yeniden açın, sorun sürerse ${MARKA} yetkilisini arayın.`
+const OZET_HATASI_METNI = `Şifre kontrol edilemiyor; uygulamayı yeniden açın, sorun sürerse PAKSAN yetkilisini arayın.`
 
 function Giris({ onGiris }) {
   /* Demo APK'sında alanlar dolu geliyor: hesabı uygulamanın kendisi
@@ -341,7 +342,7 @@ function Giris({ onGiris }) {
        Başlık Connect'teki "1970'TEN BERİ / Yanınızdayız" gibi iki
        katlı: üstte küçük aralıklı marka adı, altında iri "Servisim".
        Ekran okuyucu ikisini tek başlık olarak okuyor. */
-    <GirisEkrani ustSatir={MARKA} baslik="Servisim">
+    <GirisEkrani ustSatir="PAKSAN" baslik="Servisim">
       <form onSubmit={gir}>
         <label className="alan">
           <span className="alan__ad">Kullanıcı Adı</span>
@@ -404,9 +405,9 @@ function Giris({ onGiris }) {
           <div className="not not--mavi" style={{ marginTop: 0 }}>
             <IconShield size={19} />
             <div>
-              <strong>{MARKA} sizi arayacak</strong>
+              <strong>PAKSAN sizi arayacak</strong>
               <p>
-                Talebiniz iletildi. {MARKA} yetkilisi size geçici bir şifre
+                Talebiniz iletildi. PAKSAN yetkilisi size geçici bir şifre
                 verecek; o şifreyle girdiğinizde kendi şifrenizi
                 belirleyeceksiniz.
               </p>
@@ -423,7 +424,7 @@ function Giris({ onGiris }) {
       <p className="sgiris__dip">
         {demo
           ? `Demo sürümü · Kullanıcı adı ${DEMO_HESAP.kullanici} · Şifre ${DEMO_HESAP.sifre}`
-          : `${SIRKET.ad} · Hesabınız yoksa ${MARKA} yetkilinize başvurun.`}
+          : `${SIRKET.ad} · Hesabınız yoksa PAKSAN yetkilinize başvurun.`}
       </p>
     </GirisEkrani>
   )
@@ -457,7 +458,7 @@ function IlkSifre({ oturum, onBitti }) {
   return (
     <GirisEkrani
       baslik="Şifrenizi Belirleyin"
-      aciklama={`Hesabınız ${MARKA} tarafından açıldı. Kendi şifrenizi belirleyin; bundan sonra bu şifreyle gireceksiniz.`}
+      aciklama={`Hesabınız PAKSAN tarafından açıldı. Kendi şifrenizi belirleyin; bundan sonra bu şifreyle gireceksiniz.`}
     >
       <form onSubmit={kaydet}>
         <label className="alan">
@@ -705,7 +706,7 @@ function Uygulama({ oturum, onCikis }) {
           destekTalepEt(acik, neden, oturum.ad)
           setAcikId(null)
           setTazele((x) => x + 1)
-          setBasari({ baslik: `İş ${markaEk('a')} devredildi`, alt: 'İş, Devam Eden sekmesinde.' })
+          setBasari({ baslik: `İş PAKSAN’a devredildi`, alt: 'İş, Devam Eden sekmesinde.' })
         }}
       />
     )
@@ -771,7 +772,7 @@ function Uygulama({ oturum, onCikis }) {
     return (
       <Sayfa
         baslik="Sipariş Ver"
-        alt={`${MARKA} yedek parça birimine`}
+        alt={`PAKSAN yedek parça birimine`}
         /* Önce sipariş ekranı karşılıyor: bir kademe geri ya da "sepet
            silinsin mi" sorusu (SiparisVer.jsx → geriGit). */
         onGeri={() => {
@@ -829,8 +830,8 @@ function Uygulama({ oturum, onCikis }) {
        listeyi aşağı itiyordu. Firmanın adı Hesap'ta ve sağ üstteki
        harfte. */
     isler: { baslik: 'İşlerim' },
-    parca: { baslik: 'Parça', alt: `${MARKA} siparişleriniz` },
-    hakkedis: { baslik: 'Hak Ediş', alt: `${MARKA} ile hesabınız` },
+    parca: { baslik: 'Parça', alt: `PAKSAN siparişleriniz` },
+    hakkedis: { baslik: 'Hak Ediş', alt: `PAKSAN ile hesabınız` },
   }
 
   /* HESAP ALT MENÜYÜ GİZLEMİYOR (22 Eylül 2026, kullanıcının sorusu:
@@ -851,7 +852,7 @@ function Uygulama({ oturum, onCikis }) {
     return (
       <Kabuk
         baslik="Bildirimler"
-        alt={`${MARKA} ve müşterilerinizden gelenler`}
+        alt={`PAKSAN ve müşterilerinizden gelenler`}
         onGeri={() => setAlt(null)}
         sekmeler={sekmeler}
         sekme={null}
@@ -1099,7 +1100,7 @@ function Hesap({ oturum, onCikis, surum, ucretlereOdak, onGizlilik }) {
           Çıkış Yap
         </button>
         <p className="kucuk sonuk" style={{ marginTop: 10 }}>
-          Şifrenizi unutursanız {MARKA} yetkilinize başvurun.
+          Şifrenizi unutursanız PAKSAN yetkilinize başvurun.
         </p>
       </Bolum>
 

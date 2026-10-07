@@ -33,8 +33,8 @@ from PIL import Image
 sys.stdout.reconfigure(encoding='utf-8')
 
 KOK = Path(__file__).resolve().parent.parent
-KAYNAK = KOK / 'src' / 'assets' / 'marka' / 'paksan-logo.png'
-CIKTI = KOK / 'src' / 'data' / 'markaYollari.js'
+KAYNAK = KOK / 'src' / 'assets' / 'logo' / 'paksan-logo.png'
+CIKTI = KOK / 'src' / 'components' / 'logoYollari.js'
 
 # Logonun yazı bölümü; kalkan amblemi 0-48 arasında, ona dokunulmuyor.
 YAZI_X = 54

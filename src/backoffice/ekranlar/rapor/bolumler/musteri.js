@@ -3,7 +3,7 @@ import { talepSahibiBulucu } from '../../../../lib/musteriEslesmesi'
 import { kayitNumarasi, telHamYap } from '../../../../lib/tel'
 import { tarihYaz } from '../../ortak'
 import {
-  fark, farkPuan, kovayaDagit, modelAdi, musteriTalebiMi, oran, RENK, topla, yuzde, zamanKovalari,
+  fark, kovayaDagit, modelAdi, musteriTalebiMi, RENK, topla, zamanKovalari,
 } from '../hesap'
 
 /* ==========================================================================
@@ -58,11 +58,6 @@ const M = {
   yeniMakineAlt: 'Bu dönemde kayıt defterine düşen makineler',
   talepAcan: 'Talep açan müşteri',
   talepAcanAlt: (n) => `Bu dönemde toplam ${n} talep açtılar`,
-  tekrar: 'Tekrar gelen müşteri',
-  tekrarAlt: (n) => (n ? `${n} müşteri birden çok talep açtı` : 'Birden çok talep açan müşteri yok'),
-  kampanya: 'Kampanya izni veren',
-  bildirim: 'Bildirim izni açık',
-  izinAlt: (n, toplam) => `${toplam} müşteriden ${n} tanesi`,
 
   grafikKayit: 'Yeni müşteri ve makine kaydı',
   grafikKayitAlt: 'Seçilen dönemdeki yeni müşteri ve makine kayıtlarının zaman içindeki dağılımı. İki grafik aynı ölçeği kullanır.',
@@ -125,19 +120,12 @@ const M = {
     'Toplam müşteri: uygulamaya kayıtlı bütün müşteriler; tarih süzgecinden bağımsız.',
     'Yeni makine kaydı: kayıt defterine seçilen dönemde düşen makineler. Aynı seri numarası birden çok kez kaydedildiyse bir kez sayılır.',
     'Talep açan müşteri: seçilen dönemde en az bir talep açan müşteriler. Talep müşteri kaydına kimliğiyle ya da telefonuyla bağlanır; kaydı bulunamayan müşteri telefonuna göre bir kez sayılır. Kimliği ve telefonu olmayan talep sayılmaz. Servislerin kendi parça siparişleri dahil değil.',
-    'Tekrar gelen müşteri: seçilen dönemde talep açan müşterilerden birden çok talep açanların payı.',
     'En çok talep açan müşteriler: talepler önce müşteri kaydına kimlik veya telefon numarasıyla bağlanır. Kayıt bulunamazsa kimlik, o da yoksa telefon numarası kullanılır. İkisi de yoksa talep sayılmaz. Servislerin kendi parça siparişleri dâhil değildir. Aynı adı taşıyan farklı müşteriler ayrı satırlarda gösterilir; müşteri numarası kayıtlıysa bu sütundan ayırt edilebilir.',
-    'Kampanya izni veren ve bildirim izni açık: bugün kayıtlı müşterilerin payı; tarih süzgecinden bağımsız.',
     'İl karnesi: müşteri, kaydındaki ile göre; kayıtlı makine, kayıt defterindeki ile göre sayılır. İli yazılı olmayan kayıt tabloda yok.',
     'Servisi olmayan makine: ildeki kayıtlı makinelerden, ne kendisine ne de satan bayiye servis atanmış olanlar. Servis Ağı sekmesindeki kapsama tablosuyla aynı kuralla sayılır.',
     'Yüzde farklar bir önceki eşit uzunluktaki dönemle karşılaştırılır. "Tüm zamanlar" seçiliyse karşılaştırma yapılmaz.',
   ],
 }
-
-/* Bildirim izninin kayıttaki değeri (bkz. lib/bildirim.js →
-   BILDIRIM.VERILDI). O dosya Capacitor eklentilerini içe aldığı için
-   backoffice'e çekilmiyor; değer burada tekrar yazılı. */
-const IZIN_VERILDI = 'verildi'
 
 const TURLER = ['servis', 'parca', 'satinalma']
 
@@ -189,12 +177,6 @@ export const musteriBolumu = {
 
     const gruplarDonem = grupla(donem)
     const gruplarOnceki = grupla(onceki)
-    const tekrarDonem = gruplarDonem.filter((g) => g.talepler.length > 1).length
-    const tekrarOnceki = gruplarOnceki.filter((g) => g.talepler.length > 1).length
-
-    const kampanyaIzni = musteriler.filter((m) => m.onaylar?.kampanya === true).length
-    const bildirimIzni = musteriler.filter((m) => m.bildirim?.izin === IZIN_VERILDI).length
-
     const olculer = [
       {
         ad: M.yeniMusteri,
@@ -223,26 +205,8 @@ export const musteriBolumu = {
         iyi: null,
         alt: gruplarDonem.length ? M.talepAcanAlt(topla(gruplarDonem.map((g) => g.talepler.length))) : undefined,
       },
-      {
-        ad: M.tekrar,
-        deger: yuzde(tekrarDonem, gruplarDonem.length),
-        fark: karsilastir ? farkPuan(oran(tekrarDonem, gruplarDonem.length), oran(tekrarOnceki, gruplarOnceki.length)) : null,
-        farkBirim: 'puan',
-        iyi: null,
-        alt: M.tekrarAlt(tekrarDonem),
-      },
-      {
-        ad: M.kampanya,
-        deger: yuzde(kampanyaIzni, musteriler.length),
-        iyi: null,
-        alt: M.izinAlt(kampanyaIzni, musteriler.length),
-      },
-      {
-        ad: M.bildirim,
-        deger: yuzde(bildirimIzni, musteriler.length),
-        iyi: null,
-        alt: M.izinAlt(bildirimIzni, musteriler.length),
-      },
+      /* "Tekrar gelen müşteri", "Kampanya izni veren" ve "Bildirim izni
+         açık" kutuları kaldırıldı (6 Ekim 2026, kullanıcının isteği). */
     ]
 
     /* ------------------------------------------------------ Grafikler */

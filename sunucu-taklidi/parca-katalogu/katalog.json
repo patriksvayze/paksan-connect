@@ -1,6 +1,8 @@
 {
- "surum": 1,
- "kaynak": "PAKSAN TEMMUZ 2026 FİYAT LİSTESİ.pdf",
+ "surum": 2,
+ "kaynak": "PAKSAN TEMMUZ 2026 FİYAT LİSTESİ-1.pdf",
+ "yayinTarihi": "2026-10-07T12:46:29.577Z",
+ "yayinlayan": "Sistem Yöneticisi",
  "gruplar": [
   {
    "id": "baglama-grubu",
@@ -184,3766 +186,3766 @@
    "ad": "İPLİ BIÇAK KOLU KOMPLE",
    "fiyat": 2800,
    "grup": "baglama-grubu",
-   "gorsel": "2013101010.webp"
+   "gorsel": "2013101010.4c5c6fc5.webp"
   },
   {
    "kod": "20131010102.01",
    "ad": "İPLİ BIÇAK KOLU MİLİ",
    "fiyat": 250,
    "grup": "baglama-grubu",
-   "gorsel": "20131010102.01.webp"
+   "gorsel": "20131010102.01.80646cef.webp"
   },
   {
    "kod": "20131010103.01",
    "ad": "İPLİ BIÇAK KOLU MAKARASI",
    "fiyat": 140,
    "grup": "baglama-grubu",
-   "gorsel": "20131010103.01.webp"
+   "gorsel": "20131010103.01.36567ccb.webp"
   },
   {
    "kod": "20131010104.01",
    "ad": "İPLİ BIÇAK",
    "fiyat": 285,
    "grup": "baglama-grubu",
-   "gorsel": "20131010104.01.webp"
+   "gorsel": "20131010104.01.fb109176.webp"
   },
   {
    "kod": "20131010105.02",
    "ad": "İPLİ ANA KUMANDA DİŞLİSİ (ÇANAK)",
    "fiyat": 4200,
    "grup": "baglama-grubu",
-   "gorsel": "20131010105.02.webp"
+   "gorsel": "20131010105.02.98b2cbf3.webp"
   },
   {
    "kod": "20131010106",
    "ad": "İPLİ BAĞLAMA KÜTÜĞÜ",
    "fiyat": 9000,
    "grup": "baglama-grubu",
-   "gorsel": "20131010106.webp"
+   "gorsel": "20131010106.22199f7d.webp"
   },
   {
    "kod": "201310101",
    "ad": "İPLİ BAĞLAMA KÜTÜĞÜ KOMPLE",
    "fiyat": 26500,
    "grup": "baglama-grubu",
-   "gorsel": "201310101.webp"
+   "gorsel": "201310101.852a5564.webp"
   },
   {
    "kod": "20131010107.01",
    "ad": "MEKİK KAŞIĞI",
    "fiyat": 420,
    "grup": "baglama-grubu",
-   "gorsel": "20131010107.01.webp"
+   "gorsel": "20131010107.01.8a2e20b6.webp"
   },
   {
    "kod": "20131010108.01",
    "ad": "KAŞIK YAY",
    "fiyat": 100,
    "grup": "baglama-grubu",
-   "gorsel": "20131010108.01.webp"
+   "gorsel": "20131010108.01.e3ba6e30.webp"
   },
   {
    "kod": "20131010109.01",
    "ad": "YAPRAK YAY",
    "fiyat": 100,
    "grup": "baglama-grubu",
-   "gorsel": "20131010109.01.webp"
+   "gorsel": "20131010109.01.65b70aa4.webp"
   },
   {
    "kod": "2013101011",
    "ad": "MEKİK KOMPLE",
    "fiyat": 1900,
    "grup": "baglama-grubu",
-   "gorsel": "2013101011.webp"
+   "gorsel": "2013101011.755c886a.webp"
   },
   {
    "kod": "201310101110",
    "ad": "MEKİK DİLİ KOMPLE",
    "fiyat": 530,
    "grup": "baglama-grubu",
-   "gorsel": "201310101110.webp"
+   "gorsel": "201310101110.0bfe3c34.webp"
   },
   {
    "kod": "20131010112.01",
    "ad": "MEKİK KONİK DİŞLİSİ",
    "fiyat": 800,
    "grup": "baglama-grubu",
-   "gorsel": "20131010112.01.webp"
+   "gorsel": "20131010112.01.760caed7.webp"
   },
   {
    "kod": "20131010113.01",
    "ad": "İPLİ SONSUZ VİDA MİLİ (Somunsuz)",
    "fiyat": 370,
    "grup": "baglama-grubu",
-   "gorsel": "20131010113.01.webp"
+   "gorsel": "20131010113.01.1691c54a.webp"
   },
   {
    "kod": "20131010114.01",
    "ad": "İPLİ SONSUZ VİDA",
    "fiyat": 640,
    "grup": "baglama-grubu",
-   "gorsel": "20131010114.01.webp"
+   "gorsel": "20131010114.01.c46e5eff.webp"
   },
   {
    "kod": "20131010115.01",
    "ad": "İPLİ SONSUZ VİDA MİLİ KONİK DİŞLİSİ",
    "fiyat": 800,
    "grup": "baglama-grubu",
-   "gorsel": "20131010115.01.webp"
+   "gorsel": "20131010115.01.573141ad.webp"
   },
   {
    "kod": "20131010116.01",
    "ad": "İPLİ YILDIZ TARAĞI",
    "fiyat": 640,
    "grup": "baglama-grubu",
-   "gorsel": "20131010116.01.webp"
+   "gorsel": "20131010116.01.c205a3bb.webp"
   },
   {
    "kod": "20131010118.01",
    "ad": "İPLİ YILDIZ",
    "fiyat": 1800,
    "grup": "baglama-grubu",
-   "gorsel": "20131010118.01.webp"
+   "gorsel": "20131010118.01.99f12ae6.webp"
   },
   {
    "kod": "20131010119.01",
    "ad": "YILDIZ İP SIYIRICI SAC",
    "fiyat": 100,
    "grup": "baglama-grubu",
-   "gorsel": "20131010119.01.webp"
+   "gorsel": "20131010119.01.f43ea340.webp"
   },
   {
    "kod": "20131010120.01",
    "ad": "İPLİ YILDIZ HELİSEL DİŞLİSİ",
    "fiyat": 580,
    "grup": "baglama-grubu",
-   "gorsel": "20131010120.01.webp"
+   "gorsel": "20131010120.01.0718e167.webp"
   },
   {
    "kod": "201310102",
    "ad": "ÜÇ İPLİ BAĞLAMA GRUBU ANA MİLİ",
    "fiyat": 2650,
    "grup": "baglama-grubu",
-   "gorsel": "201310102.webp"
+   "gorsel": "201310102.91c1a803.webp"
   },
   {
    "kod": "201200102",
    "ad": "İKİ İPLİ BAĞLAMA GRUBU ANA MİLİ",
    "fiyat": 2650,
    "grup": "baglama-grubu",
-   "gorsel": "201200102.webp"
+   "gorsel": "201200102.8d4583fc.webp"
   },
   {
    "kod": "201310105.01",
    "ad": "25X10X15,5 YÜZÜK",
    "fiyat": 180,
    "grup": "baglama-grubu",
-   "gorsel": "201310105.01.webp"
+   "gorsel": "201310105.01.39d19e51.webp"
   },
   {
    "kod": "201310109.01",
    "ad": "GRUP YÜKSEKLİK AYAR PARÇASI",
    "fiyat": 120,
    "grup": "baglama-grubu",
-   "gorsel": "201310109.01.webp"
+   "gorsel": "201310109.01.1d789cfa.webp"
   },
   {
    "kod": "201310106.01",
    "ad": "İPLİ KARGA BURNU",
    "fiyat": 1000,
    "grup": "baglama-grubu",
-   "gorsel": "201310106.01.webp"
+   "gorsel": "201310106.01.a8dac991.webp"
   },
   {
    "kod": "201310107.01",
    "ad": "25X10X25,5 YÜZÜK",
    "fiyat": 180,
    "grup": "baglama-grubu",
-   "gorsel": "201310107.01.webp"
+   "gorsel": "201310107.01.614ec0c7.webp"
   },
   {
    "kod": "201310108",
    "ad": "İPLİ BAĞLAMA GRUBU SABİTLEME KÖŞEBENTİ",
    "fiyat": 700,
    "grup": "baglama-grubu",
-   "gorsel": "201310108.webp"
+   "gorsel": "201310108.a8bb00ad.webp"
   },
   {
    "kod": "12070050",
    "ad": "İP KILAVUZ GERGİ YAYI KANCASI",
    "fiyat": 85,
    "grup": "ip-gerdirme-sistemi",
-   "gorsel": "12070050.webp"
+   "gorsel": "12070050.aedf094f.webp"
   },
   {
    "kod": "201310203",
    "ad": "İP GERDİRME ANA MİLİ",
    "fiyat": 1800,
    "grup": "ip-gerdirme-sistemi",
-   "gorsel": "201310203.webp"
+   "gorsel": "201310203.63b3b1f1.webp"
   },
   {
    "kod": "20131021",
    "ad": "ÜÇLÜ İP GERDİRME TAKIMI",
    "fiyat": 4000,
    "grup": "ip-gerdirme-sistemi",
-   "gorsel": "20131021.webp"
+   "gorsel": "20131021.3e53688a.webp"
   },
   {
    "kod": "201200203",
    "ad": "İKİLİ İP GERDİRME ANA MİLİ",
    "fiyat": 1900,
    "grup": "ip-gerdirme-sistemi",
-   "gorsel": "201200203.webp"
+   "gorsel": "201200203.89bbefd7.webp"
   },
   {
    "kod": "201310204.01",
    "ad": "15X10X21 YÜZÜK",
    "fiyat": 65,
    "grup": "ip-gerdirme-sistemi",
-   "gorsel": "201310204.01.webp"
+   "gorsel": "201310204.01.4a298b83.webp"
   },
   {
    "kod": "20131021201.01",
    "ad": "İP GERDİRME KOLU KAŞIĞI İKİLİ",
    "fiyat": 370,
    "grup": "ip-gerdirme-sistemi",
-   "gorsel": "20131021201.01.webp"
+   "gorsel": "20131021201.01.c880a37c.webp"
   },
   {
    "kod": "201310205.01",
    "ad": "İP GERDİRME MAKARASI",
    "fiyat": 140,
    "grup": "ip-gerdirme-sistemi",
-   "gorsel": "201310205.01.webp"
+   "gorsel": "201310205.01.8e5902c2.webp"
   },
   {
    "kod": "201310207.01",
    "ad": "İP GERGİ KIVRIK SAPLAMASI (M10)",
    "fiyat": 200,
    "grup": "ip-gerdirme-sistemi",
-   "gorsel": "201310207.01.webp"
+   "gorsel": "201310207.01.8873b1af.webp"
   },
   {
    "kod": "201310215",
    "ad": "İP GERDİRME RUTİL KOMPLE",
    "fiyat": 320,
    "grup": "ip-gerdirme-sistemi",
-   "gorsel": "201310215.webp"
+   "gorsel": "201310215.b7020b8a.webp"
   },
   {
    "kod": "1290010601",
    "ad": "İP GERGİ CİVATASI",
    "fiyat": 110,
    "grup": "ip-gerdirme-sistemi",
-   "gorsel": "1290010601.webp"
+   "gorsel": "1290010601.7b40fc7c.webp"
   },
   {
    "kod": "201310208.01",
    "ad": "İP GERDİRME SAPLAMASI (M10)",
    "fiyat": 140,
    "grup": "ip-gerdirme-sistemi",
-   "gorsel": "201310208.01.webp"
+   "gorsel": "201310208.01.08000ad9.webp"
   },
   {
    "kod": "201310209.01",
    "ad": "İP GERDİRME ALTIKÖŞE PİMİ",
    "fiyat": 110,
    "grup": "ip-gerdirme-sistemi",
-   "gorsel": "201310209.01.webp"
+   "gorsel": "201310209.01.b71bdcaf.webp"
   },
   {
    "kod": "201310211.01",
    "ad": "İP GERDİRME KOLU (KÜÇÜK)",
    "fiyat": 360,
    "grup": "ip-gerdirme-sistemi",
-   "gorsel": "201310211.01.webp"
+   "gorsel": "201310211.01.c2909241.webp"
   },
   {
    "kod": "201310212.01",
    "ad": "İP GERDİRME KOLU (BÜYÜK)",
    "fiyat": 440,
    "grup": "ip-gerdirme-sistemi",
-   "gorsel": "201310212.01.webp"
+   "gorsel": "201310212.01.e6f4361d.webp"
   },
   {
    "kod": "201310213",
    "ad": "BAĞLAMA GRUBU ALT TABLASI",
    "fiyat": 3600,
    "grup": "ip-gerdirme-sistemi",
-   "gorsel": "201310213.webp"
+   "gorsel": "201310213.aaf4a968.webp"
   },
   {
    "kod": "151061807Z2",
    "ad": "RULMAN 61807 Z2 SENTE DİŞLİSİ",
    "fiyat": 1000,
    "grup": "sente-ve-otomatik-sistem",
-   "gorsel": "151061807Z2.webp"
+   "gorsel": "151061807Z2.88dfe28f.webp"
   },
   {
    "kod": "20131030",
    "ad": "BAĞLAMA KAMI KOMPLE ÇAP:35",
    "fiyat": 4000,
    "grup": "sente-ve-otomatik-sistem",
-   "gorsel": "20131030.webp"
+   "gorsel": "20131030.245199cc.webp"
   },
   {
    "kod": "201310302",
    "ad": "BAĞLAMA GRUBU SPORTU",
    "fiyat": 2800,
    "grup": "sente-ve-otomatik-sistem",
-   "gorsel": "201310302.webp"
+   "gorsel": "201310302.fd2b0a37.webp"
   },
   {
    "kod": "151016007",
    "ad": "RULMAN 16007 SENTE DİŞLİSİ",
    "fiyat": 350,
    "grup": "sente-ve-otomatik-sistem",
-   "gorsel": "151016007.webp"
+   "gorsel": "151016007.fc92e618.webp"
   },
   {
    "kod": "151060072RS",
    "ad": "RULMAN 6007 2RS SENTE DİŞLİSİ",
    "fiyat": 400,
    "grup": "sente-ve-otomatik-sistem",
-   "gorsel": "151060072RS.webp"
+   "gorsel": "151060072RS.c51e8a9f.webp"
   },
   {
    "kod": "201310322",
    "ad": "PİSTON AKTARMA ZİNCİR DİŞLİ MİLİ",
    "fiyat": 850,
    "grup": "sente-ve-otomatik-sistem",
-   "gorsel": "201310322.webp"
+   "gorsel": "201310322.cd139de8.webp"
   },
   {
    "kod": "20131031",
    "ad": "BAĞLAMA MANDALI KOMPLE (MAKARA DAHİL)",
    "fiyat": 750,
    "grup": "sente-ve-otomatik-sistem",
-   "gorsel": "20131031.webp"
+   "gorsel": "20131031.196d3cf5.webp"
   },
   {
    "kod": "201310319.01",
    "ad": "BAĞ.GR.KIVRIK TAMPONLU DİŞLİ Z:34",
    "fiyat": 4000,
    "grup": "sente-ve-otomatik-sistem",
-   "gorsel": "201310319.01.webp"
+   "gorsel": "201310319.01.4d05cd57.webp"
   },
   {
    "kod": "2013103190",
    "ad": "BAĞ.GR.KIVRIK TAMPONLU DİŞLİ KOMPLE Z:34",
    "fiyat": 6500,
    "grup": "sente-ve-otomatik-sistem",
-   "gorsel": "2013103190.webp"
+   "gorsel": "2013103190.8e582fbc.webp"
   },
   {
    "kod": "201310311.01",
    "ad": "KIVRIK TAMPON",
    "fiyat": 430,
    "grup": "sente-ve-otomatik-sistem",
-   "gorsel": "201310311.01.webp"
+   "gorsel": "201310311.01.6bbe171d.webp"
   },
   {
    "kod": "201310320.01",
    "ad": "BAĞ.GR.FLANŞLI ZİNCİR DİŞLİSİ Z:17",
    "fiyat": 2400,
    "grup": "sente-ve-otomatik-sistem",
-   "gorsel": "201310320.01.webp"
+   "gorsel": "201310320.01.54033a43.webp"
   },
   {
    "kod": "201310321.01",
    "ad": "PİSTON AKTARMA ZİNCİR DİŞLİSİ Z:16",
    "fiyat": 1500,
    "grup": "sente-ve-otomatik-sistem",
-   "gorsel": "201310321.01.webp"
+   "gorsel": "201310321.01.8a5d258d.webp"
   },
   {
    "kod": "12070102",
    "ad": "KAM MANDAL YAYI",
    "fiyat": 30,
    "grup": "sente-ve-otomatik-sistem",
-   "gorsel": "12070102.webp"
+   "gorsel": "12070102.f4f06610.webp"
   },
   {
    "kod": "201310312",
    "ad": "12X50 PİM",
    "fiyat": 80,
    "grup": "sente-ve-otomatik-sistem",
-   "gorsel": "201310312.webp"
+   "gorsel": "201310312.0bb7d4bb.webp"
   },
   {
    "kod": "201310313",
    "ad": "12X35 PİM",
    "fiyat": 80,
    "grup": "sente-ve-otomatik-sistem",
-   "gorsel": "201310313.webp"
+   "gorsel": "201310313.46fd0725.webp"
   },
   {
    "kod": "12070103",
    "ad": "ÜST BALATA BASKI YAYI",
    "fiyat": 50,
    "grup": "baglama-grubu-balata-sistemi",
-   "gorsel": "12070103.webp"
+   "gorsel": "12070103.55f2227b.webp"
   },
   {
    "kod": "20131040",
    "ad": "ÜST BALATA SAÇLARI (Balataları çakılmış)",
    "fiyat": 750,
    "grup": "baglama-grubu-balata-sistemi",
-   "gorsel": "20131040.webp"
+   "gorsel": "20131040.77c1ea97.webp"
   },
   {
    "kod": "201310405.01",
    "ad": "ÜST BALATA DİSKİ",
    "fiyat": 930,
    "grup": "baglama-grubu-balata-sistemi",
-   "gorsel": "201310405.01.webp"
+   "gorsel": "201310405.01.8ce2d0ab.webp"
   },
   {
    "kod": "2013104",
    "ad": "BAĞLAMA GRUBU BALATA SİSTEMİ",
    "fiyat": 2300,
    "grup": "baglama-grubu-balata-sistemi",
-   "gorsel": "2013104.webp"
+   "gorsel": "2013104.70e6dda3.webp"
   },
   {
    "kod": "201310409.01",
    "ad": "ÜST BALATA DİSK KOLU",
    "fiyat": 210,
    "grup": "baglama-grubu-balata-sistemi",
-   "gorsel": "201310409.01.webp"
+   "gorsel": "201310409.01.eae19988.webp"
   },
   {
    "kod": "201310414.01",
    "ad": "DİSK KOLU MAKARASI",
    "fiyat": 75,
    "grup": "baglama-grubu-balata-sistemi",
-   "gorsel": "201310414.01.webp"
+   "gorsel": "201310414.01.5b67df20.webp"
   },
   {
    "kod": "12070104",
    "ad": "ÜST BALATA DİSK KOLU GERGİ YAYI",
    "fiyat": 60,
    "grup": "baglama-grubu-balata-sistemi",
-   "gorsel": "12070104.webp"
+   "gorsel": "12070104.949bb5a8.webp"
   },
   {
    "kod": "201310410",
    "ad": "BAĞ.GR.SPORTU SACI KOMPLESİ",
    "fiyat": 1900,
    "grup": "baglama-grubu-balata-sistemi",
-   "gorsel": "201310410.webp"
+   "gorsel": "201310410.ad2529fb.webp"
   },
   {
    "kod": "201310412.01",
    "ad": "İP KILAVUZ GERGİ YAYI KANCASI TUTUCUSU",
    "fiyat": 220,
    "grup": "baglama-grubu-balata-sistemi",
-   "gorsel": "201310412.01.webp"
+   "gorsel": "201310412.01.519cddad.webp"
   },
   {
    "kod": "101310501",
    "ad": "ÇARK MİLİ",
    "fiyat": 360,
    "grup": "balya-boy-ayar-cark-sistemi",
-   "gorsel": "101310501.webp"
+   "gorsel": "101310501.aa6e3880.webp"
   },
   {
    "kod": "201310502.01",
    "ad": "BALYA BOY AYAR ÇARKI",
    "fiyat": 600,
    "grup": "balya-boy-ayar-cark-sistemi",
-   "gorsel": "201310502.01.webp"
+   "gorsel": "201310502.01.22555f00.webp"
   },
   {
    "kod": "201310504.01",
    "ad": "ÇARK MİLİ SEHPASI",
    "fiyat": 220,
    "grup": "balya-boy-ayar-cark-sistemi",
-   "gorsel": "201310504.01.webp"
+   "gorsel": "201310504.01.8872e868.webp"
   },
   {
    "kod": "201310505.01",
    "ad": "BALYA BOY AYAR PİNYON DİŞLİ KAPAĞI",
    "fiyat": 90,
    "grup": "balya-boy-ayar-cark-sistemi",
-   "gorsel": "201310505.01.webp"
+   "gorsel": "201310505.01.a1f38e86.webp"
   },
   {
    "kod": "201310506.01",
    "ad": "PİNYON DİŞLİSİ",
    "fiyat": 300,
    "grup": "balya-boy-ayar-cark-sistemi",
-   "gorsel": "201310506.01.webp"
+   "gorsel": "201310506.01.65366aa7.webp"
   },
   {
    "kod": "201310507.01",
    "ad": "BALYA BOY AYAR TAMPON SEHPASI",
    "fiyat": 400,
    "grup": "balya-boy-ayar-cark-sistemi",
-   "gorsel": "201310507.01.webp"
+   "gorsel": "201310507.01.28edbb8d.webp"
   },
   {
    "kod": "12070105",
    "ad": "BOY AYAR ANA KOL GERGİ YAYI",
    "fiyat": 50,
    "grup": "balya-boy-ayar-sistemi",
-   "gorsel": "12070105.webp"
+   "gorsel": "12070105.feadd1e2.webp"
   },
   {
    "kod": "201310601.01",
    "ad": "BALYA BOY AYAR MEKANİZMASI ANA KOLU",
    "fiyat": 350,
    "grup": "balya-boy-ayar-sistemi",
-   "gorsel": "201310601.01.webp"
+   "gorsel": "201310601.01.48e0a27b.webp"
   },
   {
    "kod": "201310603.01",
    "ad": "BALYA BOY AYAR DİŞLİ KOL",
    "fiyat": 420,
    "grup": "balya-boy-ayar-sistemi",
-   "gorsel": "201310603.01.webp"
+   "gorsel": "201310603.01.da8560ac.webp"
   },
   {
    "kod": "1290010602",
    "ad": "SAYICI SAAT ELEKTRONİK",
    "fiyat": 4000,
    "grup": "balya-boy-ayar-sistemi",
-   "gorsel": "1290010602.webp"
+   "gorsel": "1290010602.abfbb259.webp"
   },
   {
    "kod": "201310604.01",
    "ad": "BALYA BOY AYAR MEK. TAKVİYE LAMASI",
    "fiyat": 120,
    "grup": "balya-boy-ayar-sistemi",
-   "gorsel": "201310604.01.webp"
+   "gorsel": "201310604.01.7510d3db.webp"
   },
   {
    "kod": "201310605.01",
    "ad": "SAYICI SAAT YAY KOLU",
    "fiyat": 110,
    "grup": "balya-boy-ayar-sistemi",
-   "gorsel": "201310605.01.webp"
+   "gorsel": "201310605.01.5df0f31b.webp"
   },
   {
    "kod": "12070106",
    "ad": "KONİK GERGİ YAYI",
    "fiyat": 80,
    "grup": "balya-boy-ayar-sistemi",
-   "gorsel": "12070106.webp"
+   "gorsel": "12070106.5c097b5d.webp"
   },
   {
    "kod": "201310606.01",
    "ad": "AYARLI KIVRIK TAMPON",
    "fiyat": 700,
    "grup": "balya-boy-ayar-sistemi",
-   "gorsel": "201310606.01.webp"
+   "gorsel": "201310606.01.fcd57d82.webp"
   },
   {
    "kod": "201310608.01",
    "ad": "15X10X9,5 YÜZÜK",
    "fiyat": 80,
    "grup": "balya-boy-ayar-sistemi",
-   "gorsel": "201310608.01.webp"
+   "gorsel": "201310608.01.e2644169.webp"
   },
   {
    "kod": "1290010603",
    "ad": "BOY AYAR KARE CİVATA M14",
    "fiyat": 140,
    "grup": "balya-boy-ayar-sistemi",
-   "gorsel": "1290010603.webp"
+   "gorsel": "1290010603.3728ba0c.webp"
   },
   {
    "kod": "201310609.01",
    "ad": "BOY AYAR MAKARASI",
    "fiyat": 180,
    "grup": "balya-boy-ayar-sistemi",
-   "gorsel": "201310609.01.webp"
+   "gorsel": "201310609.01.c66b8075.webp"
   },
   {
    "kod": "201310610.01",
    "ad": "15X10X7 YÜZÜK",
    "fiyat": 65,
    "grup": "balya-boy-ayar-sistemi",
-   "gorsel": "201310610.01.webp"
+   "gorsel": "201310610.01.af496805.webp"
   },
   {
    "kod": "12070107",
    "ad": "SAYICI SAAT YAYI",
    "fiyat": 50,
    "grup": "balya-boy-ayar-sistemi",
-   "gorsel": "12070107.webp"
+   "gorsel": "12070107.0a428d60.webp"
   },
   {
    "kod": "201310616.01",
    "ad": "SAYICI SAAT SEHPASI",
    "fiyat": 140,
    "grup": "balya-boy-ayar-sistemi",
-   "gorsel": "201310616.01.webp"
+   "gorsel": "201310616.01.a24f7edf.webp"
   },
   {
    "kod": "201310617.01",
    "ad": "BALYA BOY AYAR SAPLAMASI",
    "fiyat": 165,
    "grup": "balya-boy-ayar-sistemi",
-   "gorsel": "201310617.01.webp"
+   "gorsel": "201310617.01.8eccf49c.webp"
   },
   {
    "kod": "201310702",
    "ad": "ARKA PROFİL",
    "fiyat": 2000,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "201310702.webp"
+   "gorsel": "201310702.825344a3.webp"
   },
   {
    "kod": "20131070701",
    "ad": "SAP YÖNLENDİRİCİ PARÇA (Gövdeye sıkılan)",
    "fiyat": 530,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "20131070701.webp"
+   "gorsel": "20131070701.3076ae6d.webp"
   },
   {
    "kod": "202310702",
    "ad": "YUNUS ARKA PROFİL",
    "fiyat": 2000,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "202310702.webp"
+   "gorsel": "202310702.825344a3.webp"
   },
   {
    "kod": "20131080",
    "ad": "BALYA ÇIKIŞ HAZNESİ YAN SACI (SOL)",
    "fiyat": 4400,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "20131080.webp"
+   "gorsel": "20131080.6c5f36f7.webp"
   },
   {
    "kod": "201310801",
    "ad": "BALYA ÇIKIŞ HAZNESİ YAN SACI (SAĞ)",
    "fiyat": 4400,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "201310801.webp"
+   "gorsel": "201310801.e2254cc3.webp"
   },
   {
    "kod": "201310802",
    "ad": "BALYA BASKI U'LARI (ÜST)",
    "fiyat": 3600,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "201310802.webp"
+   "gorsel": "201310802.208048a2.webp"
   },
   {
    "kod": "151051105",
    "ad": "RULMAN 51105",
    "fiyat": 120,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "151051105.webp"
+   "gorsel": "151051105.338a47ed.webp"
   },
   {
    "kod": "201310803",
    "ad": "BALYA BASKI U'LARI (ALT)",
    "fiyat": 3600,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "201310803.webp"
+   "gorsel": "201310803.9015b57e.webp"
   },
   {
    "kod": "201310804",
    "ad": "KUYRUK SEMERİ",
    "fiyat": 650,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "201310804.webp"
+   "gorsel": "201310804.b5826f79.webp"
   },
   {
    "kod": "12070108",
    "ad": "BALYA SIKIŞTIRMA YAYI",
    "fiyat": 330,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "12070108.webp"
+   "gorsel": "12070108.b60c48e3.webp"
   },
   {
    "kod": "201310805.01",
    "ad": "BALYA SIKIŞTIRMA SAPLAMASI",
    "fiyat": 600,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "201310805.01.webp"
+   "gorsel": "201310805.01.6f85055c.webp"
   },
   {
    "kod": "201310807.01",
    "ad": "BALYA SIKIŞTIRMA YAY PULU",
    "fiyat": 60,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "201310807.01.webp"
+   "gorsel": "201310807.01.692ce9ab.webp"
   },
   {
    "kod": "1590000810",
    "ad": "BALYA DÜŞÜRME SACI ZİNCİRİ (19 BAKLA)",
    "fiyat": 200,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "1590000810.webp"
+   "gorsel": "1590000810.b96e1dfd.webp"
   },
   {
    "kod": "201310811",
    "ad": "BALYA DÜŞÜRME SACI",
    "fiyat": 2000,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "201310811.webp"
+   "gorsel": "201310811.d0cfb851.webp"
   },
   {
    "kod": "201310815",
    "ad": "PLASTİK SU TANKI SEHPASI",
    "fiyat": 1200,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "201310815.webp"
+   "gorsel": "201310815.9efdaf87.webp"
   },
   {
    "kod": "201310813",
    "ad": "KUYRUK SEMERİ ZİNCİRLİ",
    "fiyat": 720,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "201310813.webp"
+   "gorsel": "201310813.4f28b098.webp"
   },
   {
    "kod": "202310802",
    "ad": "YUNUS ÜÇLÜ BALYA BASKI U'LARI (ÜST)",
    "fiyat": 3800,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "202310802.webp"
+   "gorsel": "202310802.2ad712ed.webp"
   },
   {
    "kod": "202310803",
    "ad": "YUNUS ÜÇLÜ BALYA BASKI U'LARI (ALT)",
    "fiyat": 3800,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "202310803.webp"
+   "gorsel": "202310803.29e551ec.webp"
   },
   {
    "kod": "202310805.01",
    "ad": "YUNUS BALYA SIKIŞTIRMA KIVRIK SAPLAMASI",
    "fiyat": 750,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "202310805.01.webp"
+   "gorsel": "202310805.01.2faa1884.webp"
   },
   {
    "kod": "20231080602",
    "ad": "YUNUS BALYA SIKIŞTIRMA YAYI (H) (SOMUNLU)",
    "fiyat": 2000,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "20231080602.webp"
+   "gorsel": "20231080602.46108d95.webp"
   },
   {
    "kod": "20231080603",
    "ad": "YUNUS BALYA SIKIŞTIRMA YAY SOMUNU TRAPEZ",
    "fiyat": 300,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "20231080603.webp"
+   "gorsel": "20231080603.3f540807.webp"
   },
   {
    "kod": "201310901.01",
    "ad": "ALT ÜST BALYA TUTUCU",
    "fiyat": 400,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "201310901.01.webp"
+   "gorsel": "201310901.01.36bdc90d.webp"
   },
   {
    "kod": "201310902",
    "ad": "ALT ÜST BALYA TUTMA MANDALI",
    "fiyat": 260,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "201310902.webp"
+   "gorsel": "201310902.94c0889e.webp"
   },
   {
    "kod": "20231080601",
    "ad": "YUNUS BALYA SIKIŞTIRMA YAY SOMUNU",
    "fiyat": 300,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "20231080601.webp"
+   "gorsel": "20231080601.3f540807.webp"
   },
   {
    "kod": "201310904.01",
    "ad": "BALYA TUTMA MANDALI PİMİ",
    "fiyat": 80,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "201310904.01.webp"
+   "gorsel": "201310904.01.d423a561.webp"
   },
   {
    "kod": "201310905.01",
    "ad": "YAN BALYA TUTUCU (OVAL DİŞLİ)",
    "fiyat": 290,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "201310905.01.webp"
+   "gorsel": "201310905.01.3c936a9f.webp"
   },
   {
    "kod": "12070109",
    "ad": "BALYA TUTMA MANDAL BASKI YAYI",
    "fiyat": 75,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "12070109.webp"
+   "gorsel": "12070109.37f4fcbe.webp"
   },
   {
    "kod": "12070114",
    "ad": "YAY İP KILAVUZU",
    "fiyat": 75,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "12070114.webp"
+   "gorsel": "12070114.ae789ec0.webp"
   },
   {
    "kod": "201310906.01",
    "ad": "SON BOLYA TUTUCU (KIVRIK)",
    "fiyat": 300,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "201310906.01.webp"
+   "gorsel": "201310906.01.9e454dc3.webp"
   },
   {
    "kod": "201310907.01",
    "ad": "ALT İP KILAVUZU",
    "fiyat": 140,
    "grup": "balya-cikis-sistemi",
-   "gorsel": "201310907.01.webp"
+   "gorsel": "201310907.01.847a72ec.webp"
   },
   {
    "kod": "101311001",
    "ad": "AYNA MAHRUTİ GÖVDESİ",
    "fiyat": 20000,
    "grup": "ayna-mahruti-sistemi",
-   "gorsel": "101311001.webp"
+   "gorsel": "101311001.04aca1e2.webp"
   },
   {
    "kod": "1290011002",
    "ad": "HAVALANDIRMA TAPASI",
    "fiyat": 140,
    "grup": "ayna-mahruti-sistemi",
-   "gorsel": "1290011002.webp"
+   "gorsel": "1290011002.91d6c028.webp"
   },
   {
    "kod": "201311003.01",
    "ad": "BOŞALTMA TAPASI",
    "fiyat": 165,
    "grup": "ayna-mahruti-sistemi",
-   "gorsel": "201311003.01.webp"
+   "gorsel": "201311003.01.04f506a5.webp"
   },
   {
    "kod": "15103309",
    "ad": "RULMAN 3309 AYNA MAHRUTİ",
    "fiyat": 3750,
    "grup": "ayna-mahruti-sistemi",
-   "gorsel": "15103309.webp"
+   "gorsel": "15103309.c0a54ce4.webp"
   },
   {
    "kod": "201311005",
    "ad": "AYNA MAHRUTİ GÖBEĞİ",
    "fiyat": 17000,
    "grup": "ayna-mahruti-sistemi",
-   "gorsel": "201311005.webp"
+   "gorsel": "201311005.b155cb59.webp"
   },
   {
    "kod": "12061004",
    "ad": "AYNA DİŞLİ-MAHRUTİ 8 DİŞ",
    "fiyat": 23000,
    "grup": "ayna-mahruti-sistemi",
-   "gorsel": "12061004.webp"
+   "gorsel": "12061004.e4a81cf2.webp"
   },
   {
    "kod": "201311008",
    "ad": "AYNA MAHRUTİ BİLYA KAPAĞI (BÜYÜK)",
    "fiyat": 1200,
    "grup": "ayna-mahruti-sistemi",
-   "gorsel": "201311008.webp"
+   "gorsel": "201311008.c4968bc4.webp"
   },
   {
    "kod": "201311011",
    "ad": "AYNA MAHRUTİ BİLYA KAPAĞI (KÜÇÜK)",
    "fiyat": 1100,
    "grup": "ayna-mahruti-sistemi",
-   "gorsel": "201311011.webp"
+   "gorsel": "201311011.878b9c77.webp"
   },
   {
    "kod": "12200104",
    "ad": "BURÇ 60X70X35 (VOLAN)",
    "fiyat": 750,
    "grup": "volan",
-   "gorsel": "12200104.webp"
+   "gorsel": "12200104.e8d17081.webp"
   },
   {
    "kod": "201311103",
    "ad": "KOLLU VOLAN KAPLİNİ",
    "fiyat": 2850,
    "grup": "volan",
-   "gorsel": "201311103.webp"
+   "gorsel": "201311103.dc76fbf7.webp"
   },
   {
    "kod": "202311101",
    "ad": "YUNUS VOLAN",
    "fiyat": 21000,
    "grup": "volan",
-   "gorsel": "202311101.webp"
+   "gorsel": "202311101.1982ac25.webp"
   },
   {
    "kod": "201311105",
    "ad": "VOLAN EMNİYET YÜZÜĞÜ",
    "fiyat": 210,
    "grup": "volan",
-   "gorsel": "201311105.webp"
+   "gorsel": "201311105.277565d7.webp"
   },
   {
    "kod": "201311106.01",
    "ad": "VOLAN KAPAĞI (Pulu)",
    "fiyat": 250,
    "grup": "volan",
-   "gorsel": "201311106.01.webp"
+   "gorsel": "201311106.01.05590db7.webp"
   },
   {
    "kod": "201311107",
    "ad": "KOLLU VOLAN KAPLİNİ EMNİYET YÜZÜĞÜ",
    "fiyat": 200,
    "grup": "volan",
-   "gorsel": "201311107.webp"
+   "gorsel": "201311107.8266a817.webp"
   },
   {
    "kod": "15210120",
    "ad": "SİGORTA KOMPLESİ HAZIR 3 Kamalı",
    "fiyat": 9000,
    "grup": "sigorta",
-   "gorsel": "15210120.webp"
+   "gorsel": "15210120.2b27e087.webp"
   },
   {
    "kod": "2013112",
    "ad": "SİGORTA (Komple) (ESKİ)",
    "fiyat": 9000,
    "grup": "sigorta",
-   "gorsel": "2013112.webp"
+   "gorsel": "2013112.2b27e087.webp"
   },
   {
    "kod": "201311201",
    "ad": "SİGORTA GÖVDESİ AYAĞI",
    "fiyat": 1900,
    "grup": "sigorta",
-   "gorsel": "201311201.webp"
+   "gorsel": "201311201.c6c48b72.webp"
   },
   {
    "kod": "101311204",
    "ad": "SİGORTA KOVANI 3 Kamalı",
    "fiyat": 3000,
    "grup": "sigorta",
-   "gorsel": "101311204.webp"
+   "gorsel": "101311204.ed71d39d.webp"
   },
   {
    "kod": "101311211",
    "ad": "SİGORTA KOVANI KOMPLE 3 kamalı",
    "fiyat": 6000,
    "grup": "sigorta",
-   "gorsel": "101311211.webp"
+   "gorsel": "101311211.6778bbc3.webp"
   },
   {
    "kod": "12200105",
    "ad": "BURÇ 22X32X22 (Sigorta)",
    "fiyat": 165,
    "grup": "sigorta",
-   "gorsel": "12200105.webp"
+   "gorsel": "12200105.22d91540.webp"
   },
   {
    "kod": "201311203.03",
    "ad": "SİGORTA KOVANI (ESKİ)",
    "fiyat": 2750,
    "grup": "sigorta",
-   "gorsel": "201311203.03.webp"
+   "gorsel": "201311203.03.d8e4d1e6.webp"
   },
   {
    "kod": "201311204.03",
    "ad": "SİGORTA FREZELİ MİLİ",
    "fiyat": 2750,
    "grup": "sigorta",
-   "gorsel": "201311204.03.webp"
+   "gorsel": "201311204.03.eaf8c777.webp"
   },
   {
    "kod": "201311211",
    "ad": "SİGORTA KOVANI (ESKİ) KOMPLE",
    "fiyat": 6000,
    "grup": "sigorta",
-   "gorsel": "201311211.webp"
+   "gorsel": "201311211.6778bbc3.webp"
   },
   {
    "kod": "101311203",
    "ad": "SİGORTA FREZELİ MİLİ 3 kamalı",
    "fiyat": 3000,
    "grup": "sigorta",
-   "gorsel": "101311203.webp"
+   "gorsel": "101311203.5bbc69ef.webp"
   },
   {
    "kod": "12070110",
    "ad": "SİGORTA KAMA YAYLARI",
    "fiyat": 30,
    "grup": "sigorta",
-   "gorsel": "12070110.webp"
+   "gorsel": "12070110.15fac380.webp"
   },
   {
    "kod": "201311205.02",
    "ad": "SİGORTA KAMALARI",
    "fiyat": 150,
    "grup": "sigorta",
-   "gorsel": "201311205.02.webp"
+   "gorsel": "201311205.02.830e3830.webp"
   },
   {
    "kod": "101311209",
    "ad": "SİGORTA BALATA ÜST FLANŞI",
    "fiyat": 550,
    "grup": "sigorta",
-   "gorsel": "101311209.webp"
+   "gorsel": "101311209.2b225b89.webp"
   },
   {
    "kod": "1013112120",
    "ad": "SİGORTA TAMİR TAKIMI 3 kamalı",
    "fiyat": 600,
    "grup": "sigorta",
-   "gorsel": "1013112120.webp"
+   "gorsel": "1013112120.e1d85fc9.webp"
   },
   {
    "kod": "201311212",
    "ad": "SİGORTA TAMİR TAKIMI",
    "fiyat": 600,
    "grup": "sigorta",
-   "gorsel": "201311212.webp"
+   "gorsel": "201311212.e1d85fc9.webp"
   },
   {
    "kod": "101311301",
    "ad": "FREZELİ UZUN ŞAFT (27.622.006.10)",
    "fiyat": 8500,
    "grup": "saftlar",
-   "gorsel": "101311301.webp"
+   "gorsel": "101311301.e30a83d4.webp"
   },
   {
    "kod": "1013113011",
    "ad": "ŞAFT UCU",
    "fiyat": 2600,
    "grup": "saftlar",
-   "gorsel": "1013113011.webp"
+   "gorsel": "1013113011.2fcbb00c.webp"
   },
   {
    "kod": "15210101",
    "ad": "KISA SABİT ŞAFT (27.622.017.10)",
    "fiyat": 8200,
    "grup": "saftlar",
-   "gorsel": "15210101.webp"
+   "gorsel": "15210101.5bb087f8.webp"
   },
   {
    "kod": "1013144",
    "ad": "HAŞPAY DİK ŞAFTI KOMPLE",
    "fiyat": 5000,
    "grup": "saftlar",
-   "gorsel": "1013144.webp"
+   "gorsel": "1013144.f839cee5.webp"
   },
   {
    "kod": "1023143",
    "ad": "HAŞPAY ÜST ŞAFTI (YUNUS)",
    "fiyat": 7000,
    "grup": "saftlar",
-   "gorsel": "1023143.webp"
+   "gorsel": "1023143.3e03e6ef.webp"
   },
   {
    "kod": "1023144",
    "ad": "HAŞPAY DİK ŞAFTI (YUNUS)",
    "fiyat": 7000,
    "grup": "saftlar",
-   "gorsel": "1023144.webp"
+   "gorsel": "1023144.be85bf9f.webp"
   },
   {
    "kod": "1290011502",
    "ad": "ÇEKİ DEMİRİ KOMPLE",
    "fiyat": 4000,
    "grup": "ok-sistemi",
-   "gorsel": "1290011502.webp"
+   "gorsel": "1290011502.8802ed30.webp"
   },
   {
    "kod": "147006",
    "ad": "OK KRİKOSU",
    "fiyat": 6000,
    "grup": "ok-sistemi",
-   "gorsel": "147006.webp"
+   "gorsel": "147006.00358df8.webp"
   },
   {
    "kod": "202311501",
    "ad": "YUNUS OK",
    "fiyat": 10500,
    "grup": "ok-sistemi",
-   "gorsel": "202311501.webp"
+   "gorsel": "202311501.86de757e.webp"
   },
   {
    "kod": "155030607036410",
    "ad": "OK KİLİTLEME PİSTONU",
    "fiyat": 7500,
    "grup": "ok-sistemi",
-   "gorsel": "155030607036410.webp"
+   "gorsel": "155030607036410.f988b49b.webp"
   },
   {
    "kod": "2013115010",
    "ad": "OK KİLİTLEME PİSTONU KOMPLE",
    "fiyat": 13000,
    "grup": "ok-sistemi",
-   "gorsel": "2013115010.webp"
+   "gorsel": "2013115010.aedc4f9f.webp"
   },
   {
    "kod": "620406",
    "ad": "HİDROLİK HORTUM 2830 MM 1\\2 JAKLI",
    "fiyat": 1250,
    "grup": "ok-sistemi",
-   "gorsel": "620406.webp"
+   "gorsel": "620406.e860a254.webp"
   },
   {
    "kod": "201311600",
    "ad": "ŞAFT ASKI ÇATALI KOMPLESİ",
    "fiyat": 6000,
    "grup": "saft-aski-sistemi",
-   "gorsel": "201311600.webp"
+   "gorsel": "201311600.ec835772.webp"
   },
   {
    "kod": "201311601",
    "ad": "ŞAFT ASKI ÇATALI (ÜST)",
    "fiyat": 1200,
    "grup": "saft-aski-sistemi",
-   "gorsel": "201311601.webp"
+   "gorsel": "201311601.36cc731d.webp"
   },
   {
    "kod": "201311602.01",
    "ad": "ŞAFT ASKI YÜZÜĞÜ",
    "fiyat": 120,
    "grup": "saft-aski-sistemi",
-   "gorsel": "201311602.01.webp"
+   "gorsel": "201311602.01.ee40122f.webp"
   },
   {
    "kod": "201311603",
    "ad": "ŞAFT ASKI ÇATALI (ALT)",
    "fiyat": 1500,
    "grup": "saft-aski-sistemi",
-   "gorsel": "201311603.webp"
+   "gorsel": "201311603.802c878f.webp"
   },
   {
    "kod": "201311604.01",
    "ad": "ŞAFT ASKI ÇATAL BAĞLANTI SAPLAMASI",
    "fiyat": 120,
    "grup": "saft-aski-sistemi",
-   "gorsel": "201311604.01.webp"
+   "gorsel": "201311604.01.e3cea7a8.webp"
   },
   {
    "kod": "201311605",
    "ad": "ŞAFT ASKI BİLYA YATAĞI",
    "fiyat": 900,
    "grup": "saft-aski-sistemi",
-   "gorsel": "201311605.webp"
+   "gorsel": "201311605.438f3581.webp"
   },
   {
    "kod": "201311701",
    "ad": "DİNGİL",
    "fiyat": 10000,
    "grup": "teker-sistemi",
-   "gorsel": "201311701.webp"
+   "gorsel": "201311701.d2362ca6.webp"
   },
   {
    "kod": "201311704",
    "ad": "AKS (EKSEN KAÇIK, KÜÇÜK LASTİK)",
    "fiyat": 2100,
    "grup": "teker-sistemi",
-   "gorsel": "201311704.webp"
+   "gorsel": "201311704.65836e6b.webp"
   },
   {
    "kod": "201311715",
    "ad": "AKS (AYNI EKSEN, BÜYÜK LASTİK)",
    "fiyat": 2100,
    "grup": "teker-sistemi",
-   "gorsel": "201311715.webp"
+   "gorsel": "201311715.6d791d2e.webp"
   },
   {
    "kod": "201311705",
    "ad": "POYRA GÖVDE",
    "fiyat": 2500,
    "grup": "teker-sistemi",
-   "gorsel": "201311705.webp"
+   "gorsel": "201311705.fd9d8f25.webp"
   },
   {
    "kod": "2013117050",
    "ad": "POYRA GÖVDE BİJONLU",
    "fiyat": 3500,
    "grup": "teker-sistemi",
-   "gorsel": "2013117050.webp"
+   "gorsel": "2013117050.d43450e5.webp"
   },
   {
    "kod": "20131170501",
    "ad": "POYRA KOMPLESİ MERKEZ",
    "fiyat": 8000,
    "grup": "teker-sistemi",
-   "gorsel": "20131170501.webp"
+   "gorsel": "20131170501.b9da5e22.webp"
   },
   {
    "kod": "1290011706",
    "ad": "BİJON (M20X1,5X70) (H)",
    "fiyat": 100,
    "grup": "teker-sistemi",
-   "gorsel": "1290011706.webp"
+   "gorsel": "1290011706.56cf2238.webp"
   },
   {
    "kod": "1290011707",
    "ad": "BİJON SOMUNU M20X1,5",
    "fiyat": 100,
    "grup": "teker-sistemi",
-   "gorsel": "1290011707.webp"
+   "gorsel": "1290011707.a3bfc648.webp"
   },
   {
    "kod": "20131170502",
    "ad": "POYRA KOMPLESİ KAÇIK",
    "fiyat": 8000,
    "grup": "teker-sistemi",
-   "gorsel": "20131170502.webp"
+   "gorsel": "20131170502.84122b5b.webp"
   },
   {
    "kod": "15031311710",
    "ad": "AKS SOMUNU 1'' X 14 DİŞ",
    "fiyat": 120,
    "grup": "teker-sistemi",
-   "gorsel": "15031311710.webp"
+   "gorsel": "15031311710.6e0696db.webp"
   },
   {
    "kod": "201311711.01",
    "ad": "POYRA KAPAĞI",
    "fiyat": 250,
    "grup": "teker-sistemi",
-   "gorsel": "201311711.01.webp"
+   "gorsel": "201311711.01.9fafa50b.webp"
   },
   {
    "kod": "202311701",
    "ad": "YUNUS DİNGİL",
    "fiyat": 11000,
    "grup": "teker-sistemi",
-   "gorsel": "202311701.webp"
+   "gorsel": "202311701.f445168e.webp"
   },
   {
    "kod": "201311901",
    "ad": "ÜÇLÜ PİSTON",
    "fiyat": 12500,
    "grup": "piston-cikis-sistemi",
-   "gorsel": "201311901.webp"
+   "gorsel": "201311901.af2f5853.webp"
   },
   {
    "kod": "201311903.02",
    "ad": "PİSTON BIÇAĞI",
    "fiyat": 1750,
    "grup": "piston-cikis-sistemi",
-   "gorsel": "201311903.02.webp"
+   "gorsel": "201311903.02.bc0a698f.webp"
   },
   {
    "kod": "202311901",
    "ad": "ÜÇLÜ PİSTON BİLYALI",
    "fiyat": 12700,
    "grup": "piston-cikis-sistemi",
-   "gorsel": "202311901.webp"
+   "gorsel": "202311901.02fe9f6e.webp"
   },
   {
    "kod": "101311905",
    "ad": "KIZAK AYAR CİVATASI",
    "fiyat": 170,
    "grup": "piston-cikis-sistemi",
-   "gorsel": "101311905.webp"
+   "gorsel": "101311905.2a90f64c.webp"
   },
   {
    "kod": "1211011904",
    "ad": "FİBER KIZAKLAR",
    "fiyat": 700,
    "grup": "piston-cikis-sistemi",
-   "gorsel": "1211011904.webp"
+   "gorsel": "1211011904.65cd461c.webp"
   },
   {
    "kod": "201311908",
    "ad": "PİSTON MİLİ BAĞLANTI KÜTÜĞÜ (KEBİ)",
    "fiyat": 550,
    "grup": "piston-cikis-sistemi",
-   "gorsel": "201311908.webp"
+   "gorsel": "201311908.221a9e97.webp"
   },
   {
    "kod": "201201901",
    "ad": "İKİLİ PİSTON",
    "fiyat": 12500,
    "grup": "piston-cikis-sistemi",
-   "gorsel": "201201901.webp"
+   "gorsel": "201201901.c91b4a50.webp"
   },
   {
    "kod": "201311907",
    "ad": "PİSTON MİLİ",
    "fiyat": 800,
    "grup": "piston-cikis-sistemi",
-   "gorsel": "201311907.webp"
+   "gorsel": "201311907.3356ccd0.webp"
   },
   {
    "kod": "202201901",
    "ad": "İKİLİ PİSTON RULMANLI",
    "fiyat": 12700,
    "grup": "piston-cikis-sistemi",
-   "gorsel": "202201901.webp"
+   "gorsel": "202201901.c91b4a50.webp"
   },
   {
    "kod": "202201902",
    "ad": "BİLYALI PİSTON PİMİ",
    "fiyat": 150,
    "grup": "piston-cikis-sistemi",
-   "gorsel": "202201902.webp"
+   "gorsel": "202201902.4fb7a313.webp"
   },
   {
    "kod": "202201903.01",
    "ad": "PİSTON EKSANTRİK CİVATASI",
    "fiyat": 300,
    "grup": "piston-cikis-sistemi",
-   "gorsel": "202201903.01.webp"
+   "gorsel": "202201903.01.ad549017.webp"
   },
   {
    "kod": "202201908",
    "ad": "RULMAN KAPAK",
    "fiyat": 50,
    "grup": "piston-cikis-sistemi",
-   "gorsel": "202201908.webp"
+   "gorsel": "202201908.d1c9f3ef.webp"
   },
   {
    "kod": "201312001",
    "ad": "KÖŞEBENT RAY",
    "fiyat": 1100,
    "grup": "piston-ray-sistemi",
-   "gorsel": "201312001.webp"
+   "gorsel": "201312001.bd080a7a.webp"
   },
   {
    "kod": "201312002",
    "ad": "8x50x1200 ALT KILAVUZ LAMASI",
    "fiyat": 750,
    "grup": "piston-ray-sistemi",
-   "gorsel": "201312002.webp"
+   "gorsel": "201312002.b8fa10c2.webp"
   },
   {
    "kod": "201312003",
    "ad": "10x50x1035 ALT YAN KILAVUZ LAMASI",
    "fiyat": 750,
    "grup": "piston-ray-sistemi",
-   "gorsel": "201312003.webp"
+   "gorsel": "201312003.19b6c52a.webp"
   },
   {
    "kod": "201312004",
    "ad": "10x50x620 ÜST YAN KILAVUZ LAMASI",
    "fiyat": 450,
    "grup": "piston-ray-sistemi",
-   "gorsel": "201312004.webp"
+   "gorsel": "201312004.9ad3d34d.webp"
   },
   {
    "kod": "201312005",
    "ad": "8x50x820 ÜST İLK KILAVUZ LAMASI",
    "fiyat": 550,
    "grup": "piston-ray-sistemi",
-   "gorsel": "201312005.webp"
+   "gorsel": "201312005.82baab7b.webp"
   },
   {
    "kod": "201312006",
    "ad": "8x50x132 ÜST ORTA KILAVUZ LAMASI",
    "fiyat": 280,
    "grup": "piston-ray-sistemi",
-   "gorsel": "201312006.webp"
+   "gorsel": "201312006.7684db39.webp"
   },
   {
    "kod": "201312008.02",
    "ad": "GÖVDE BIÇAĞI",
    "fiyat": 1750,
    "grup": "piston-ray-sistemi",
-   "gorsel": "201312008.02.webp"
+   "gorsel": "201312008.02.7036d17d.webp"
   },
   {
    "kod": "2013212007",
    "ad": "8x50x225 ÜST SON KILAVUZ LAMASI",
    "fiyat": 430,
    "grup": "piston-ray-sistemi",
-   "gorsel": "2013212007.webp"
+   "gorsel": "2013212007.c80b40fa.webp"
   },
   {
    "kod": "202312003",
    "ad": "10x50x1035 YUNUS ALT YAN KILAVUZ LAMASI",
    "fiyat": 720,
    "grup": "piston-ray-sistemi",
-   "gorsel": "202312003.webp"
+   "gorsel": "202312003.6ae515f9.webp"
   },
   {
    "kod": "202312004",
    "ad": "10x50x620 YUNUS ÜST YAN KILAVUZ LAMASI",
    "fiyat": 500,
    "grup": "piston-ray-sistemi",
-   "gorsel": "202312004.webp"
+   "gorsel": "202312004.1eaa5206.webp"
   },
   {
    "kod": "202312005",
    "ad": "8x50x765 YUNUS ÜST KILAVUZ LAMASI",
    "fiyat": 520,
    "grup": "piston-ray-sistemi",
-   "gorsel": "202312005.webp"
+   "gorsel": "202312005.9ee66d74.webp"
   },
   {
    "kod": "202312006",
    "ad": "8x50x80 YUNUS ÜST ORTA KILAVUZ LAMASI",
    "fiyat": 420,
    "grup": "piston-ray-sistemi",
-   "gorsel": "202312006.webp"
+   "gorsel": "202312006.1b0a121b.webp"
   },
   {
    "kod": "202312009",
    "ad": "SOL ALT RULMANLI PİSTON RAYI",
    "fiyat": 1200,
    "grup": "piston-ray-sistemi",
-   "gorsel": "202312009.webp"
+   "gorsel": "202312009.9ee66d74.webp"
   },
   {
    "kod": "202312010",
    "ad": "SOL ALT YAN RULMANLI PİSTON RAYI",
    "fiyat": 1200,
    "grup": "piston-ray-sistemi",
-   "gorsel": "202312010.webp"
+   "gorsel": "202312010.9ee66d74.webp"
   },
   {
    "kod": "202312011",
    "ad": "SAĞ ALT RULMANLI PİSTON RAYI",
    "fiyat": 1300,
    "grup": "piston-ray-sistemi",
-   "gorsel": "202312011.webp"
+   "gorsel": "202312011.9ee66d74.webp"
   },
   {
    "kod": "12200106",
    "ad": "BURÇ 35x43x70 (Piston Kolu)",
    "fiyat": 650,
    "grup": "piston-sistemi",
-   "gorsel": "12200106.webp"
+   "gorsel": "12200106.0a317dcd.webp"
   },
   {
    "kod": "20131210100",
    "ad": "PİSTON KOLU",
    "fiyat": 4500,
    "grup": "piston-sistemi",
-   "gorsel": "20131210100.webp"
+   "gorsel": "20131210100.b2db707c.webp"
   },
   {
    "kod": "201312103",
    "ad": "PİSTON ANA HAREKET KOL AĞIRLIĞI",
    "fiyat": 9000,
    "grup": "piston-sistemi",
-   "gorsel": "201312103.webp"
+   "gorsel": "201312103.ea02e52f.webp"
   },
   {
    "kod": "151021307",
    "ad": "RULMAN 21307",
    "fiyat": 2500,
    "grup": "piston-sistemi",
-   "gorsel": "151021307.webp"
+   "gorsel": "151021307.e24125b0.webp"
   },
   {
    "kod": "201312104",
    "ad": "PİSTON ANA HAREKET KOLU",
    "fiyat": 8000,
    "grup": "piston-sistemi",
-   "gorsel": "201312104.webp"
+   "gorsel": "201312104.ef87e6fc.webp"
   },
   {
    "kod": "201312109.01",
    "ad": "BAĞ.G.HAR.Z.DİŞLİSİ Z:32",
    "fiyat": 1450,
    "grup": "piston-sistemi",
-   "gorsel": "201312109.01.webp"
+   "gorsel": "201312109.01.edadd2ee.webp"
   },
   {
    "kod": "20131210402",
    "ad": "PİSTON ANA HAREKET KOL MİLİ",
    "fiyat": 600,
    "grup": "piston-sistemi",
-   "gorsel": "20131210402.webp"
+   "gorsel": "20131210402.8da02146.webp"
   },
   {
    "kod": "201312105",
    "ad": "PİSTON KOLU YATAĞI KAPAĞI (BÜYÜK)",
    "fiyat": 750,
    "grup": "piston-sistemi",
-   "gorsel": "201312105.webp"
+   "gorsel": "201312105.3e72e630.webp"
   },
   {
    "kod": "201312106",
    "ad": "PİSTON KOLU YATAĞI",
    "fiyat": 1200,
    "grup": "piston-sistemi",
-   "gorsel": "201312106.webp"
+   "gorsel": "201312106.57940f15.webp"
   },
   {
    "kod": "201312107",
    "ad": "PİSTON KOLU YATAĞI KAPAĞI (KÜÇÜK)",
    "fiyat": 850,
    "grup": "piston-sistemi",
-   "gorsel": "201312107.webp"
+   "gorsel": "201312107.7df3e5e8.webp"
   },
   {
    "kod": "20231210100",
    "ad": "YUNUS PİSTON KOLU",
    "fiyat": 4850,
    "grup": "piston-sistemi",
-   "gorsel": "20231210100.webp"
+   "gorsel": "20231210100.b990d410.webp"
   },
   {
    "kod": "202312104",
    "ad": "YUNUS PİSTON ANA HAREKET KOLU",
    "fiyat": 8500,
    "grup": "piston-sistemi",
-   "gorsel": "202312104.webp"
+   "gorsel": "202312104.5fade405.webp"
   },
   {
    "kod": "12070112",
    "ad": "PİSTON EMNİYET MANDAL ÇEKME YAYI",
    "fiyat": 55,
    "grup": "piston-emniyet-sistemi",
-   "gorsel": "12070112.webp"
+   "gorsel": "12070112.d879d3d9.webp"
   },
   {
    "kod": "201312201",
    "ad": "PİSTON EMNİYET MANDALI ANA LAMASI",
    "fiyat": 600,
    "grup": "piston-emniyet-sistemi",
-   "gorsel": "201312201.webp"
+   "gorsel": "201312201.7e970f26.webp"
   },
   {
    "kod": "201312203.01",
    "ad": "PİSTON EMNİYET MANDAL PİMİ",
    "fiyat": 140,
    "grup": "piston-emniyet-sistemi",
-   "gorsel": "201312203.01.webp"
+   "gorsel": "201312203.01.9ae324c1.webp"
   },
   {
    "kod": "201312205",
    "ad": "PİSTON EMNİYET MANDALI",
    "fiyat": 1400,
    "grup": "piston-emniyet-sistemi",
-   "gorsel": "201312205.webp"
+   "gorsel": "201312205.0cc48736.webp"
   },
   {
    "kod": "201312207.01",
    "ad": "PİSTON EMNİYET MEK. DAYAMA SACI",
    "fiyat": 120,
    "grup": "piston-emniyet-sistemi",
-   "gorsel": "201312207.01.webp"
+   "gorsel": "201312207.01.0cc63aad.webp"
   },
   {
    "kod": "201312208.01",
    "ad": "PİSTON EMN.MEK. POLYAMİD TUTUCUSU",
    "fiyat": 180,
    "grup": "piston-emniyet-sistemi",
-   "gorsel": "201312208.01.webp"
+   "gorsel": "201312208.01.2a6438ad.webp"
   },
   {
    "kod": "201312301",
    "ad": "ÜÇLÜ BEŞİK",
    "fiyat": 8500,
    "grup": "besik-sistemi",
-   "gorsel": "201312301.webp"
+   "gorsel": "201312301.d5dca603.webp"
   },
   {
    "kod": "201312302.01",
    "ad": "BEŞİK BİLYA ARA BAGASI",
    "fiyat": 180,
    "grup": "besik-sistemi",
-   "gorsel": "201312302.01.webp"
+   "gorsel": "201312302.01.fe0d36d4.webp"
   },
   {
    "kod": "201312303",
    "ad": "BEŞİK FLANŞI",
    "fiyat": 600,
    "grup": "besik-sistemi",
-   "gorsel": "201312303.webp"
+   "gorsel": "201312303.ff91dc7e.webp"
   },
   {
    "kod": "201312304.01",
    "ad": "BEŞİK BİLYA KAPAĞI",
    "fiyat": 100,
    "grup": "besik-sistemi",
-   "gorsel": "201312304.01.webp"
+   "gorsel": "201312304.01.1060e8dc.webp"
   },
   {
    "kod": "2013123050",
    "ad": "BEŞİK HAREKET KOLU KOMPLESİ",
    "fiyat": 2000,
    "grup": "besik-sistemi",
-   "gorsel": "2013123050.webp"
+   "gorsel": "2013123050.dc1fcb28.webp"
   },
   {
    "kod": "201312310.01",
    "ad": "BEŞİK MAKARASI",
    "fiyat": 130,
    "grup": "besik-sistemi",
-   "gorsel": "201312310.01.webp"
+   "gorsel": "201312310.01.3e70ac81.webp"
   },
   {
    "kod": "101312309",
    "ad": "MANDA GÖZÜ CİVATASI",
    "fiyat": 300,
    "grup": "besik-sistemi",
-   "gorsel": "101312309.webp"
+   "gorsel": "101312309.28af9b88.webp"
   },
   {
    "kod": "201312305.01",
    "ad": "BEŞİK HAREKET KOLU",
    "fiyat": 900,
    "grup": "besik-sistemi",
-   "gorsel": "201312305.01.webp"
+   "gorsel": "201312305.01.53f301ce.webp"
   },
   {
    "kod": "201312306.01",
    "ad": "BEŞİK HAREKET KOLU PİMİ",
    "fiyat": 300,
    "grup": "besik-sistemi",
-   "gorsel": "201312306.01.webp"
+   "gorsel": "201312306.01.7d91830d.webp"
   },
   {
    "kod": "12200108",
    "ad": "BURÇ 22x30x19,5 (Manda Gözü)",
    "fiyat": 175,
    "grup": "besik-sistemi",
-   "gorsel": "12200108.webp"
+   "gorsel": "12200108.bbc1fda9.webp"
   },
   {
    "kod": "201312307.01",
    "ad": "MANDA GÖZÜ",
    "fiyat": 550,
    "grup": "besik-sistemi",
-   "gorsel": "201312307.01.webp"
+   "gorsel": "201312307.01.66610aa5.webp"
   },
   {
    "kod": "202202301",
    "ad": "İKİLİ BEŞİK",
    "fiyat": 8500,
    "grup": "besik-sistemi",
-   "gorsel": "202202301.webp"
+   "gorsel": "202202301.8a5708bc.webp"
   },
   {
    "kod": "20131240",
    "ad": "BEŞİK BALATA SACLARI (balataları çakılmış)",
    "fiyat": 1100,
    "grup": "besik-balata-sistemi",
-   "gorsel": "20131240.webp"
+   "gorsel": "20131240.a140d812.webp"
   },
   {
    "kod": "201312404.01",
    "ad": "DİSK",
    "fiyat": 530,
    "grup": "besik-balata-sistemi",
-   "gorsel": "201312404.01.webp"
+   "gorsel": "201312404.01.db4bdb15.webp"
   },
   {
    "kod": "201312405.01",
    "ad": "BEŞİK BALATA SACI TUTUCUSU",
    "fiyat": 360,
    "grup": "besik-balata-sistemi",
-   "gorsel": "201312405.01.webp"
+   "gorsel": "201312405.01.5672c54b.webp"
   },
   {
    "kod": "201312504.01",
    "ad": "ÜST İP KILAVUZ GERGİ SACI",
    "fiyat": 120,
    "grup": "ip-yolu-sistemi",
-   "gorsel": "201312504.01.webp"
+   "gorsel": "201312504.01.8905e888.webp"
   },
   {
    "kod": "201312505.01",
    "ad": "ÜST İP KILAVUZ SEHPASI",
    "fiyat": 180,
    "grup": "ip-yolu-sistemi",
-   "gorsel": "201312505.01.webp"
+   "gorsel": "201312505.01.f219d8eb.webp"
   },
   {
    "kod": "12112507",
    "ad": "SAPLAMALI İP KILAVUZU (FİNCAN)",
    "fiyat": 140,
    "grup": "ip-yolu-sistemi",
-   "gorsel": "12112507.webp"
+   "gorsel": "12112507.45580911.webp"
   },
   {
    "kod": "15022508",
    "ad": "SAPLAMA (U) (M5) (somunsuz)",
    "fiyat": 50,
    "grup": "ip-yolu-sistemi",
-   "gorsel": "15022508.webp"
+   "gorsel": "15022508.c23004ac.webp"
   },
   {
    "kod": "201312512.01",
    "ad": "ALT İP KILAVUZ KIVRIK LAMA TUTUCUSU",
    "fiyat": 180,
    "grup": "ip-yolu-sistemi",
-   "gorsel": "201312512.01.webp"
+   "gorsel": "201312512.01.b2f66032.webp"
   },
   {
    "kod": "101312513",
    "ad": "İPLİ İĞNE",
    "fiyat": 1500,
    "grup": "ip-yolu-sistemi",
-   "gorsel": "101312513.webp"
+   "gorsel": "101312513.2baaa8b7.webp"
   },
   {
    "kod": "12070116",
    "ad": "İPLİ FİNCAN YAYI (UZUN)",
    "fiyat": 175,
    "grup": "ip-yolu-sistemi",
-   "gorsel": "12070116.webp"
+   "gorsel": "12070116.4031902f.webp"
   },
   {
    "kod": "201312511",
    "ad": "ALT İP KILAVUZ KIVRIK LAMASI",
    "fiyat": 400,
    "grup": "ip-yolu-sistemi",
-   "gorsel": "201312511.webp"
+   "gorsel": "201312511.3462e43a.webp"
   },
   {
    "kod": "10131260121",
    "ad": "ZİNCİR GERGİ DİŞLİ MİLİ (lamalaya takılan)",
    "fiyat": 250,
    "grup": "yaba-sasesi",
-   "gorsel": "10131260121.webp"
+   "gorsel": "10131260121.ef6e848d.webp"
   },
   {
    "kod": "201312601",
    "ad": "YABA ŞASE",
    "fiyat": 11500,
    "grup": "yaba-sasesi",
-   "gorsel": "201312601.webp"
+   "gorsel": "201312601.1da80cd8.webp"
   },
   {
    "kod": "202312601",
    "ad": "YABA ARA ŞASE YUNUS",
    "fiyat": 12500,
    "grup": "yaba-sasesi",
-   "gorsel": "202312601.webp"
+   "gorsel": "202312601.61c058b4.webp"
   },
   {
    "kod": "201312604",
    "ad": "ARA PROFİL",
    "fiyat": 3300,
    "grup": "yaba-sasesi",
-   "gorsel": "201312604.webp"
+   "gorsel": "201312604.9f6ddacf.webp"
   },
   {
    "kod": "201312608.01",
    "ad": "ARKA YABA ZİNCİR GERGİ KARESİ",
    "fiyat": 420,
    "grup": "yaba-sasesi",
-   "gorsel": "201312608.01.webp"
+   "gorsel": "201312608.01.673015e2.webp"
   },
   {
    "kod": "202312604",
    "ad": "YUNUS ARA PROFİL",
    "fiyat": 3700,
    "grup": "yaba-sasesi",
-   "gorsel": "202312604.webp"
+   "gorsel": "202312604.9f6ddacf.webp"
   },
   {
    "kod": "12200109",
    "ad": "BURÇ YARIKLI (Ön Yaba)",
    "fiyat": 700,
    "grup": "yaba-sistemi",
-   "gorsel": "12200109.webp"
+   "gorsel": "12200109.c96adcc6.webp"
   },
   {
    "kod": "201312701",
    "ad": "ÖN YABA",
    "fiyat": 5300,
    "grup": "yaba-sistemi",
-   "gorsel": "201312701.webp"
+   "gorsel": "201312701.11cfa888.webp"
   },
   {
    "kod": "201312704",
    "ad": "YABA AYAR KOLU (DÖKÜM)",
    "fiyat": 1800,
    "grup": "yaba-sistemi",
-   "gorsel": "201312704.webp"
+   "gorsel": "201312704.eeef7825.webp"
   },
   {
    "kod": "12070006",
    "ad": "AYAR KOLU YAYI",
    "fiyat": 75,
    "grup": "yaba-sistemi",
-   "gorsel": "12070006.webp"
+   "gorsel": "12070006.79604943.webp"
   },
   {
    "kod": "201312705",
    "ad": "EMNİYET YÜZÜĞÜ 6 MM",
    "fiyat": 165,
    "grup": "yaba-sistemi",
-   "gorsel": "201312705.webp"
+   "gorsel": "201312705.77ee3fb9.webp"
   },
   {
    "kod": "201312707.01",
    "ad": "ÖN YABA AYAR KOLU CIVATASI",
    "fiyat": 240,
    "grup": "yaba-sistemi",
-   "gorsel": "201312707.01.webp"
+   "gorsel": "201312707.01.15a9c4a2.webp"
   },
   {
    "kod": "201312708.01",
    "ad": "YABA YAY ÇATALI",
    "fiyat": 600,
    "grup": "yaba-sistemi",
-   "gorsel": "201312708.01.webp"
+   "gorsel": "201312708.01.84e6cbe2.webp"
   },
   {
    "kod": "201312709.01",
    "ad": "ŞAPKALI PİM",
    "fiyat": 140,
    "grup": "yaba-sistemi",
-   "gorsel": "201312709.01.webp"
+   "gorsel": "201312709.01.209ee449.webp"
   },
   {
    "kod": "201312710.01",
    "ad": "YABA YAYI SAPLAMASI (H)",
    "fiyat": 450,
    "grup": "yaba-sistemi",
-   "gorsel": "201312710.01.webp"
+   "gorsel": "201312710.01.b5598e77.webp"
   },
   {
    "kod": "12070117",
    "ad": "YABA YAYI",
    "fiyat": 350,
    "grup": "yaba-sistemi",
-   "gorsel": "12070117.webp"
+   "gorsel": "12070117.6d0c9dc0.webp"
   },
   {
    "kod": "201312712.01",
    "ad": "ÖN YABA YAYI KOL PİMİ",
    "fiyat": 750,
    "grup": "yaba-sistemi",
-   "gorsel": "201312712.01.webp"
+   "gorsel": "201312712.01.3081b13c.webp"
   },
   {
    "kod": "201312713.01",
    "ad": "YABA YAYI LASTİK PULU",
    "fiyat": 80,
    "grup": "yaba-sistemi",
-   "gorsel": "201312713.01.webp"
+   "gorsel": "201312713.01.e2347e91.webp"
   },
   {
    "kod": "12112714",
    "ad": "AMORTİSÖR LASTİĞİ",
    "fiyat": 85,
    "grup": "yaba-sistemi",
-   "gorsel": "12112714.webp"
+   "gorsel": "12112714.2a9efeff.webp"
   },
   {
    "kod": "12200110",
    "ad": "BURÇ 25x30x35 (Yaylı Kol)",
    "fiyat": 200,
    "grup": "yaba-sistemi",
-   "gorsel": "12200110.webp"
+   "gorsel": "12200110.317760ca.webp"
   },
   {
    "kod": "201312717.01",
    "ad": "ÖN YABA YAYI PİMİ PULU",
    "fiyat": 80,
    "grup": "yaba-sistemi",
-   "gorsel": "201312717.01.webp"
+   "gorsel": "201312717.01.2343ce23.webp"
   },
   {
    "kod": "202202701",
    "ad": "YUNUS YAYLI ÖN YABA",
    "fiyat": 6300,
    "grup": "yaba-sistemi",
-   "gorsel": "202202701.webp"
+   "gorsel": "202202701.1a1d170b.webp"
   },
   {
    "kod": "202202717",
    "ad": "YUNUS YAYLI KOL ÇATALI",
    "fiyat": 2000,
    "grup": "yaba-sistemi",
-   "gorsel": "202202717.webp"
+   "gorsel": "202202717.2c4b785a.webp"
   },
   {
    "kod": "202312701",
    "ad": "YUNUS ÖN YABA",
    "fiyat": 6300,
    "grup": "yaba-sistemi",
-   "gorsel": "202312701.webp"
+   "gorsel": "202312701.6107fe78.webp"
   },
   {
    "kod": "12200120",
    "ad": "16.4x20x29 (Yunus yaylı yaba)",
    "fiyat": 150,
    "grup": "yaba-sistemi",
-   "gorsel": "12200120.webp"
+   "gorsel": "12200120.0be73b01.webp"
   },
   {
    "kod": "2022027180",
    "ad": "YUNUS ÖN YABA KURMA KOLU (burçlu)",
    "fiyat": 900,
    "grup": "yaba-sistemi",
-   "gorsel": "2022027180.webp"
+   "gorsel": "2022027180.12fa86da.webp"
   },
   {
    "kod": "202202722",
    "ad": "ÖN YABA KURMA KOLU PİMİ",
    "fiyat": 250,
    "grup": "yaba-sistemi",
-   "gorsel": "202202722.webp"
+   "gorsel": "202202722.187222d9.webp"
   },
   {
    "kod": "12070201",
    "ad": "YAY YUNUS ÖN YABA BASKI 325 mm",
    "fiyat": 300,
    "grup": "yaba-sistemi",
-   "gorsel": "12070201.webp"
+   "gorsel": "12070201.6d0c9dc0.webp"
   },
   {
    "kod": "202202723.01",
    "ad": "ÖN YABA MİLİ SABİTLEME BURCU",
    "fiyat": 150,
    "grup": "yaba-sistemi",
-   "gorsel": "202202723.01.webp"
+   "gorsel": "202202723.01.28cdfe7d.webp"
   },
   {
    "kod": "202202725.01",
    "ad": "YUNUS YAYLI KOL ANA MİLİ PİMİ",
    "fiyat": 130,
    "grup": "yaba-sistemi",
-   "gorsel": "202202725.01.webp"
+   "gorsel": "202202725.01.6d31fc59.webp"
   },
   {
    "kod": "202202726.01",
    "ad": "YUNUS YAYLI KOL ANA MİLİ",
    "fiyat": 500,
    "grup": "yaba-sistemi",
-   "gorsel": "202202726.01.webp"
+   "gorsel": "202202726.01.89990324.webp"
   },
   {
    "kod": "202202727.01",
    "ad": "ÖN YABA AYAR SAPLAMA KARESİ",
    "fiyat": 550,
    "grup": "yaba-sistemi",
-   "gorsel": "202202727.01.webp"
+   "gorsel": "202202727.01.1b253a34.webp"
   },
   {
    "kod": "202312728.01",
    "ad": "YUNUS YAYLI YABA SAPLAMASI",
    "fiyat": 550,
    "grup": "yaba-sistemi",
-   "gorsel": "202312728.01.webp"
+   "gorsel": "202312728.01.c811a874.webp"
   },
   {
    "kod": "201312801",
    "ad": "U KRANK",
    "fiyat": 3400,
    "grup": "yaba-sistemi",
-   "gorsel": "201312801.webp"
+   "gorsel": "201312801.a0797cc0.webp"
   },
   {
    "kod": "201312803",
    "ad": "ÇATALLI DİŞLİ ARA BAGASI",
    "fiyat": 150,
    "grup": "yaba-sistemi",
-   "gorsel": "201312803.webp"
+   "gorsel": "201312803.6abc3e34.webp"
   },
   {
    "kod": "201312805.01",
    "ad": "KAPLİN",
    "fiyat": 1000,
    "grup": "yaba-sistemi",
-   "gorsel": "201312805.01.webp"
+   "gorsel": "201312805.01.afe309d6.webp"
   },
   {
    "kod": "201312806",
    "ad": "EMNİYET YÜZÜĞÜ (ÇAP:8mm)",
    "fiyat": 180,
    "grup": "yaba-sistemi",
-   "gorsel": "201312806.webp"
+   "gorsel": "201312806.045eab1d.webp"
   },
   {
    "kod": "202312801",
    "ad": "YUNUS U KRANK",
    "fiyat": 3800,
    "grup": "yaba-sistemi",
-   "gorsel": "202312801.webp"
+   "gorsel": "202312801.ca42d11b.webp"
   },
   {
    "kod": "12200111",
    "ad": "BURÇ 15x20x24 (Şapkalı Pim)",
    "fiyat": 120,
    "grup": "yaba-sistemi",
-   "gorsel": "12200111.webp"
+   "gorsel": "12200111.ff3d972e.webp"
   },
   {
    "kod": "201312901",
    "ad": "YABA TEK KOL",
    "fiyat": 780,
    "grup": "yaba-sistemi",
-   "gorsel": "201312901.webp"
+   "gorsel": "201312901.fd27ac37.webp"
   },
   {
    "kod": "2013129040",
    "ad": "ARKA YABA (BURÇLU)",
    "fiyat": 3100,
    "grup": "yaba-sistemi",
-   "gorsel": "2013129040.webp"
+   "gorsel": "2013129040.dd74557e.webp"
   },
   {
    "kod": "12200112",
    "ad": "BURÇ 30x35x35 (Arka Yaba)",
    "fiyat": 200,
    "grup": "yaba-sistemi",
-   "gorsel": "12200112.webp"
+   "gorsel": "12200112.ca31023a.webp"
   },
   {
    "kod": "12200116",
    "ad": "BURÇ 20x25x20 (Arka Yaba Ayar Saplaması)",
    "fiyat": 110,
    "grup": "yaba-sistemi",
-   "gorsel": "12200116.webp"
+   "gorsel": "12200116.0f6d7836.webp"
   },
   {
    "kod": "202312901.01",
    "ad": "YUNUS ARKA YABA AYAR SAPLAMASI",
    "fiyat": 450,
    "grup": "yaba-sistemi",
-   "gorsel": "202312901.01.webp"
+   "gorsel": "202312901.01.29069773.webp"
   },
   {
    "kod": "201313001",
    "ad": "Z KRANK",
    "fiyat": 3500,
    "grup": "yaba-sistemi",
-   "gorsel": "201313001.webp"
+   "gorsel": "201313001.06dd416c.webp"
   },
   {
    "kod": "2023129040",
    "ad": "YUNUS ARKA YABA (BURÇLU)",
    "fiyat": 3800,
    "grup": "yaba-sistemi",
-   "gorsel": "2023129040.webp"
+   "gorsel": "2023129040.d63c083e.webp"
   },
   {
    "kod": "202312907.01",
    "ad": "YUNUS ARKA YABA AYAR SAPLAMASI ÇATALI",
    "fiyat": 600,
    "grup": "yaba-sistemi",
-   "gorsel": "202312907.01.webp"
+   "gorsel": "202312907.01.a7c56180.webp"
   },
   {
    "kod": "12200113",
    "ad": "BURÇ 40x50x24,5 (Arka Yaba Zincir Dişli)",
    "fiyat": 330,
    "grup": "yaba-sistemi",
-   "gorsel": "12200113.webp"
+   "gorsel": "12200113.c169315d.webp"
   },
   {
    "kod": "201313002",
    "ad": "Z KRANK DİŞLİSİ",
    "fiyat": 1600,
    "grup": "yaba-sistemi",
-   "gorsel": "201313002.webp"
+   "gorsel": "201313002.67328877.webp"
   },
   {
    "kod": "202313001",
    "ad": "YUNUS Z KRANK",
    "fiyat": 3700,
    "grup": "yaba-sistemi",
-   "gorsel": "202313001.webp"
+   "gorsel": "202313001.0cdf189c.webp"
   },
   {
    "kod": "201313004",
    "ad": "Z KRANK BİLYA YATAĞI",
    "fiyat": 1800,
    "grup": "yaba-sistemi",
-   "gorsel": "201313004.webp"
+   "gorsel": "201313004.8343786b.webp"
   },
   {
    "kod": "201313005",
    "ad": "Z KRANK BİLYA KAPAĞI",
    "fiyat": 120,
    "grup": "yaba-sistemi",
-   "gorsel": "201313005.webp"
+   "gorsel": "201313005.f2015142.webp"
   },
   {
    "kod": "202313005",
    "ad": "YUNUS ARKA YABA U KRANK",
    "fiyat": 4800,
    "grup": "yaba-sistemi",
-   "gorsel": "202313005.webp"
+   "gorsel": "202313005.f5c55e68.webp"
   },
   {
    "kod": "101313007",
    "ad": "ZİNCİR GERGİ DİŞLİ MİLİ (kanallı)",
    "fiyat": 250,
    "grup": "yaba-sistemi",
-   "gorsel": "101313007.webp"
+   "gorsel": "101313007.83ca7735.webp"
   },
   {
    "kod": "201313006.01",
    "ad": "ZİNCİR GERGİ DİŞLİSİ Z:13",
    "fiyat": 650,
    "grup": "yaba-sistemi",
-   "gorsel": "201313006.01.webp"
+   "gorsel": "201313006.01.0a29052d.webp"
   },
   {
    "kod": "2013130060",
    "ad": "ZİNCİR GERGİ DİŞLİSİ Z:13 KOMPLE",
    "fiyat": 1500,
    "grup": "yaba-sistemi",
-   "gorsel": "2013130060.webp"
+   "gorsel": "2013130060.dc87c281.webp"
   },
   {
    "kod": "10131310102",
    "ad": "ÇATALLI DİŞLİ",
    "fiyat": 2750,
    "grup": "on-yaba-hareket-sistemi",
-   "gorsel": "10131310102.webp"
+   "gorsel": "10131310102.19d80aa8.webp"
   },
   {
    "kod": "101313104",
    "ad": "FREZELİ MİL",
    "fiyat": 2000,
    "grup": "on-yaba-hareket-sistemi",
-   "gorsel": "101313104.webp"
+   "gorsel": "101313104.94056c48.webp"
   },
   {
    "kod": "15210104",
    "ad": "PİMSİZ FREZELİ KAYICI ÇATAL (6) 14 DİŞ",
    "fiyat": 1300,
    "grup": "on-yaba-hareket-sistemi",
-   "gorsel": "15210104.webp"
+   "gorsel": "15210104.55de56dd.webp"
   },
   {
    "kod": "1013131",
    "ad": "YABA HAREKET SİSTEMİ",
    "fiyat": 9500,
    "grup": "on-yaba-hareket-sistemi",
-   "gorsel": "1013131.webp"
+   "gorsel": "1013131.a5de6a86.webp"
   },
   {
    "kod": "15210006",
    "ad": "ISTAVROZ (6) BÜYÜK",
    "fiyat": 1300,
    "grup": "on-yaba-hareket-sistemi",
-   "gorsel": "15210006.webp"
+   "gorsel": "15210006.cecae6e9.webp"
   },
   {
    "kod": "15210103",
    "ad": "21 DİŞ ÇATAL + CİVATALI FREZELİ ÇATAL (6) 14 DİŞ",
    "fiyat": 3700,
    "grup": "on-yaba-hareket-sistemi",
-   "gorsel": "15210103.webp"
+   "gorsel": "15210103.0a24e908.webp"
   },
   {
    "kod": "201313201",
    "ad": "YABA REDÜKTÖR GÖVDESİ",
    "fiyat": 6500,
    "grup": "yaba-sanzumani",
-   "gorsel": "201313201.webp"
+   "gorsel": "201313201.a3463c84.webp"
   },
   {
    "kod": "2013132020",
    "ad": "YABA REDÜKTÖR MİLİ",
    "fiyat": 3250,
    "grup": "yaba-sanzumani",
-   "gorsel": "2013132020.webp"
+   "gorsel": "2013132020.2f368fdf.webp"
   },
   {
    "kod": "201313204",
    "ad": "YABA REDÜKTÖR BİLYA KAPAĞI (KÜÇÜK)",
    "fiyat": 500,
    "grup": "yaba-sanzumani",
-   "gorsel": "201313204.webp"
+   "gorsel": "201313204.b56a47aa.webp"
   },
   {
    "kod": "201313206",
    "ad": "YABA REDÜKTÖR DİŞLİSİ (KÜÇÜK)",
    "fiyat": 3250,
    "grup": "yaba-sanzumani",
-   "gorsel": "201313206.webp"
+   "gorsel": "201313206.a77d000b.webp"
   },
   {
    "kod": "201313207",
    "ad": "YABA REDÜKTÖR BİLYA KAPAĞI (BÜYÜK)",
    "fiyat": 600,
    "grup": "yaba-sanzumani",
-   "gorsel": "201313207.webp"
+   "gorsel": "201313207.6900f12f.webp"
   },
   {
    "kod": "201313212.01",
    "ad": "ZİNCİR DİŞLİSİ MUHAFAZA SACI",
    "fiyat": 250,
    "grup": "yaba-sanzumani",
-   "gorsel": "201313212.01.webp"
+   "gorsel": "201313212.01.a219fda3.webp"
   },
   {
    "kod": "151060052RS",
    "ad": "RULMAN 6005 2RS",
    "fiyat": 220,
    "grup": "yaba-sanzumani",
-   "gorsel": "151060052RS.webp"
+   "gorsel": "151060052RS.681db504.webp"
   },
   {
    "kod": "201313208",
    "ad": "YABA REDÜKTÖR SAPLI DİŞLİSİ",
    "fiyat": 5250,
    "grup": "yaba-sanzumani",
-   "gorsel": "201313208.webp"
+   "gorsel": "201313208.3fbaf0ea.webp"
   },
   {
    "kod": "201313211.01",
    "ad": "ZİNCİR DİŞLİSİ (Z:41)",
    "fiyat": 2400,
    "grup": "yaba-sanzumani",
-   "gorsel": "201313211.01.webp"
+   "gorsel": "201313211.01.92af0cb4.webp"
   },
   {
    "kod": "201313210",
    "ad": "YABA REDÜKTÖR BİLYA YATAĞI",
    "fiyat": 2200,
    "grup": "yaba-sanzumani",
-   "gorsel": "201313210.webp"
+   "gorsel": "201313210.9d5210cc.webp"
   },
   {
    "kod": "201313213",
    "ad": "YABA TAHRİK KOLU",
    "fiyat": 2500,
    "grup": "yaba-sanzumani",
-   "gorsel": "201313213.webp"
+   "gorsel": "201313213.fdeaea5f.webp"
   },
   {
    "kod": "202313213",
    "ad": "YUNUS YABA TAHRİK KOLU",
    "fiyat": 2750,
    "grup": "yaba-sanzumani",
-   "gorsel": "202313213.webp"
+   "gorsel": "202313213.fdeaea5f.webp"
   },
   {
    "kod": "201313302",
    "ad": "TIRMIK İÇ YAN SACI (BÜYÜK)",
    "fiyat": 1300,
    "grup": "tirmik-sistemi",
-   "gorsel": "201313302.webp"
+   "gorsel": "201313302.ee10d96b.webp"
   },
   {
    "kod": "201313303",
    "ad": "TIRMIK İÇ YAN SACI (KÜÇÜK)",
    "fiyat": 650,
    "grup": "tirmik-sistemi",
-   "gorsel": "201313303.webp"
+   "gorsel": "201313303.a825f75c.webp"
   },
   {
    "kod": "20131335010",
    "ad": "TIRMIK SAÇLARI BAĞ.GÖVDESİ EKSTRA (KABURGA)",
    "fiyat": 12500,
    "grup": "tirmik-sistemi",
-   "gorsel": "20131335010.webp"
+   "gorsel": "20131335010.ac9e6171.webp"
   },
   {
    "kod": "20131330401",
    "ad": "TIRMIK SAP YÖNLENDİRİCİ SACI",
    "fiyat": 520,
    "grup": "tirmik-sistemi",
-   "gorsel": "20131330401.webp"
+   "gorsel": "20131330401.b717817e.webp"
   },
   {
    "kod": "201313308",
    "ad": "TIRMIK DIŞ YAN SACI",
    "fiyat": 1800,
    "grup": "tirmik-sistemi",
-   "gorsel": "201313308.webp"
+   "gorsel": "201313308.17345210.webp"
   },
   {
    "kod": "201313310",
    "ad": "TIRMIK GÖVDE PARÇASI",
    "fiyat": 1200,
    "grup": "tirmik-sistemi",
-   "gorsel": "201313310.webp"
+   "gorsel": "201313310.db7bb9e4.webp"
   },
   {
    "kod": "201313311",
    "ad": "TIRMIK ALT KORUYUCU SACI",
    "fiyat": 450,
    "grup": "tirmik-sistemi",
-   "gorsel": "201313311.webp"
+   "gorsel": "201313311.c477ae0c.webp"
   },
   {
    "kod": "201313312",
    "ad": "TIRMIK YÜREĞİ DÖKÜM (Burçlu)",
    "fiyat": 2800,
    "grup": "tirmik-sistemi",
-   "gorsel": "201313312.webp"
+   "gorsel": "201313312.71d32a30.webp"
   },
   {
    "kod": "201313313",
    "ad": "TIRMIK YÜREĞİ SAÇ (Bilyalı)",
    "fiyat": 2500,
    "grup": "tirmik-sistemi",
-   "gorsel": "201313313.webp"
+   "gorsel": "201313313.8172bfca.webp"
   },
   {
    "kod": "201313315",
    "ad": "8 CM TIRMIK SACI",
    "fiyat": 370,
    "grup": "tirmik-sistemi",
-   "gorsel": "201313315.webp"
+   "gorsel": "201313315.7c89ab74.webp"
   },
   {
    "kod": "201313316",
    "ad": "5 CM TIRMIK SACI",
    "fiyat": 250,
    "grup": "tirmik-sistemi",
-   "gorsel": "201313316.webp"
+   "gorsel": "201313316.2be8fdf6.webp"
   },
   {
    "kod": "202313411",
    "ad": "YUNUS TIRMIK ROTOR BORUSU",
    "fiyat": 600,
    "grup": "tirmik-sistemi",
-   "gorsel": "202313411.webp"
+   "gorsel": "202313411.40885bad.webp"
   },
   {
    "kod": "201313317",
    "ad": "13 CM TIRMIK SACI",
    "fiyat": 500,
    "grup": "tirmik-sistemi",
-   "gorsel": "201313317.webp"
+   "gorsel": "201313317.ba634c1f.webp"
   },
   {
    "kod": "12070118",
    "ad": "TIRMIK TARAK YAYI",
    "fiyat": 110,
    "grup": "tirmik-sistemi",
-   "gorsel": "12070118.webp"
+   "gorsel": "12070118.e647d3b4.webp"
   },
   {
    "kod": "20131331801",
    "ad": "TIRMIK TARAĞI BORUSU",
    "fiyat": 1100,
    "grup": "tirmik-sistemi",
-   "gorsel": "20131331801.webp"
+   "gorsel": "20131331801.17010013.webp"
   },
   {
    "kod": "201313320",
    "ad": "TIRMIK BAĞLANTI PİMLİ KOL (DÜZ)",
    "fiyat": 1000,
    "grup": "tirmik-sistemi",
-   "gorsel": "201313320.webp"
+   "gorsel": "201313320.9f08e58c.webp"
   },
   {
    "kod": "201313321",
    "ad": "TIRMIK BAĞLANTI PİMLİ KOL (FEDERLİ,KIVRIK)",
    "fiyat": 1100,
    "grup": "tirmik-sistemi",
-   "gorsel": "201313321.webp"
+   "gorsel": "201313321.c69cd534.webp"
   },
   {
    "kod": "201313350401",
    "ad": "TIRMIK SAP YÖNLENDİRİCİ SACI EKSTRA",
    "fiyat": 530,
    "grup": "tirmik-sistemi",
-   "gorsel": "201313350401.webp"
+   "gorsel": "201313350401.dfcda742.webp"
   },
   {
    "kod": "202313318060",
    "ad": "YUNUS TIRMIK TARAĞI MUHAFAZA SACI",
    "fiyat": 1100,
    "grup": "tirmik-sistemi",
-   "gorsel": "202313318060.webp"
+   "gorsel": "202313318060.5836a659.webp"
   },
   {
    "kod": "12070122",
    "ad": "TIRMIK TARAK ÇUBUĞU YAYI YENİ",
    "fiyat": 175,
    "grup": "tirmik-sistemi",
-   "gorsel": "12070122.webp"
+   "gorsel": "12070122.f5f43e70.webp"
   },
   {
    "kod": "2023133010",
    "ad": "YUNUS TIRMIK SACLARI BAĞLANTI GÖVDESİ (KABURGA)",
    "fiyat": 13500,
    "grup": "tirmik-sistemi",
-   "gorsel": "2023133010.webp"
+   "gorsel": "2023133010.f5e4f753.webp"
   },
   {
    "kod": "2023133180",
    "ad": "YUNUS TIRMIK TARAĞI",
    "fiyat": 1300,
    "grup": "tirmik-sistemi",
-   "gorsel": "2023133180.webp"
+   "gorsel": "2023133180.17010013.webp"
   },
   {
    "kod": "2013133520",
    "ad": "TIRMIK BAĞLANTI PİMLİ KOL (EKSTRA)",
    "fiyat": 1200,
    "grup": "tirmik-sistemi",
-   "gorsel": "2013133520.webp"
+   "gorsel": "2013133520.9f08e58c.webp"
   },
   {
    "kod": "201313401",
    "ad": "TIRMIK ROTOR MİLİ",
    "fiyat": 3000,
    "grup": "tirmik-sistemi",
-   "gorsel": "201313401.webp"
+   "gorsel": "201313401.1a34efb3.webp"
   },
   {
    "kod": "202313320",
    "ad": "YUNUS TIRMIK BAĞLANTI PİMLİ KOL (DÜZ)",
    "fiyat": 1300,
    "grup": "tirmik-sistemi",
-   "gorsel": "202313320.webp"
+   "gorsel": "202313320.9f08e58c.webp"
   },
   {
    "kod": "2013134041",
    "ad": "TIRMIK ROTOR ROZETİ",
    "fiyat": 1300,
    "grup": "tirmik-sistemi",
-   "gorsel": "2013134041.webp"
+   "gorsel": "2013134041.4715b915.webp"
   },
   {
    "kod": "2013134501",
    "ad": "TIRMIK ROTOR MİLİ EKSTRA",
    "fiyat": 3250,
    "grup": "tirmik-sistemi",
-   "gorsel": "2013134501.webp"
+   "gorsel": "2013134501.1a34efb3.webp"
   },
   {
    "kod": "2013134511",
    "ad": "TIRMIK ROTOR BORUSU EKSTRA",
    "fiyat": 700,
    "grup": "tirmik-sistemi",
-   "gorsel": "2013134511.webp"
+   "gorsel": "2013134511.40885bad.webp"
   },
   {
    "kod": "101313410",
    "ad": "M12x1,5 SOL DİŞ EKSANTRİK LAMA BİLYA SOMUNU",
    "fiyat": 75,
    "grup": "tirmik-sistemi",
-   "gorsel": "101313410.webp"
+   "gorsel": "101313410.4b62443d.webp"
   },
   {
    "kod": "201313408",
    "ad": "TIRMIK BORU EKSANTRİK LAMASI",
    "fiyat": 520,
    "grup": "tirmik-sistemi",
-   "gorsel": "201313408.webp"
+   "gorsel": "201313408.600906dc.webp"
   },
   {
    "kod": "2013134523",
    "ad": "TIRMIK ROTOR BORUSU EKSTRA LAMALI",
    "fiyat": 1100,
    "grup": "tirmik-sistemi",
-   "gorsel": "2013134523.webp"
+   "gorsel": "2013134523.d2c9d307.webp"
   },
   {
    "kod": "1510623022RS",
    "ad": "RULMAN 62302 2RS",
    "fiyat": 390,
    "grup": "tirmik-sistemi",
-   "gorsel": "1510623022RS.webp"
+   "gorsel": "1510623022RS.e301e90d.webp"
   },
   {
    "kod": "201313423",
    "ad": "TIRMIK ROTOR BORUSU LAMALI",
    "fiyat": 1000,
    "grup": "tirmik-sistemi",
-   "gorsel": "201313423.webp"
+   "gorsel": "201313423.d2c9d307.webp"
   },
   {
    "kod": "12070119",
    "ad": "TIRMIK YAYI",
    "fiyat": 85,
    "grup": "tirmik-sistemi",
-   "gorsel": "12070119.webp"
+   "gorsel": "12070119.e3fc5a5a.webp"
   },
   {
    "kod": "12113414",
    "ad": "BADEMCİK",
    "fiyat": 30,
    "grup": "tirmik-sistemi",
-   "gorsel": "12113414.webp"
+   "gorsel": "12113414.91b365f4.webp"
   },
   {
    "kod": "201313416.01",
    "ad": "YAY BASKI U SACI",
    "fiyat": 60,
    "grup": "tirmik-sistemi",
-   "gorsel": "201313416.01.webp"
+   "gorsel": "201313416.01.a087682e.webp"
   },
   {
    "kod": "101313419",
    "ad": "EKSANTRİK LAMA BİLYA CİVATASI",
    "fiyat": 100,
    "grup": "tirmik-sistemi",
-   "gorsel": "101313419.webp"
+   "gorsel": "101313419.1b39afbd.webp"
   },
   {
    "kod": "202313401",
    "ad": "YUNUS TIRMIK ROTOR MİLİ",
    "fiyat": 3500,
    "grup": "tirmik-sistemi",
-   "gorsel": "202313401.webp"
+   "gorsel": "202313401.1a34efb3.webp"
   },
   {
    "kod": "202313423",
    "ad": "YUNUS TIRMIK ROTOR BORUSU LAMALI",
    "fiyat": 1200,
    "grup": "tirmik-sistemi",
-   "gorsel": "202313423.webp"
+   "gorsel": "202313423.d2c9d307.webp"
   },
   {
    "kod": "201313501.01",
    "ad": "TIRMIK CIRCIR DİŞLİSİ (Z:34)",
    "fiyat": 1800,
    "grup": "tirmik-hareket-sistemi",
-   "gorsel": "201313501.01.webp"
+   "gorsel": "201313501.01.4d133711.webp"
   },
   {
    "kod": "201313502",
    "ad": "TIRMIK CIRCIR AYNASI",
    "fiyat": 1000,
    "grup": "tirmik-hareket-sistemi",
-   "gorsel": "201313502.webp"
+   "gorsel": "201313502.112be0b1.webp"
   },
   {
    "kod": "201313503.01",
    "ad": "BALATA BASKI SACI",
    "fiyat": 350,
    "grup": "tirmik-hareket-sistemi",
-   "gorsel": "201313503.01.webp"
+   "gorsel": "201313503.01.0b406821.webp"
   },
   {
    "kod": "12200114",
    "ad": "BURÇ 30x35x20 (Tırmık Cırcırı)",
    "fiyat": 175,
    "grup": "tirmik-hareket-sistemi",
-   "gorsel": "12200114.webp"
+   "gorsel": "12200114.20d747c3.webp"
   },
   {
    "kod": "201313506",
    "ad": "TIRMIK CIRCIR FİŞEĞİ",
    "fiyat": 70,
    "grup": "tirmik-hareket-sistemi",
-   "gorsel": "201313506.webp"
+   "gorsel": "201313506.faead3d8.webp"
   },
   {
    "kod": "201313507",
    "ad": "TIRMIK CIRCIR KÜTÜĞÜ",
    "fiyat": 540,
    "grup": "tirmik-hareket-sistemi",
-   "gorsel": "201313507.webp"
+   "gorsel": "201313507.502771cf.webp"
   },
   {
    "kod": "12070120",
    "ad": "TIRMIK CIRCIR BASKI YAYI",
    "fiyat": 55,
    "grup": "tirmik-hareket-sistemi",
-   "gorsel": "12070120.webp"
+   "gorsel": "12070120.e3724c4c.webp"
   },
   {
    "kod": "201313510.01",
    "ad": "TIRMIK CIRCIR GERDİRME YAYI TUTUCUSU",
    "fiyat": 60,
    "grup": "tirmik-hareket-sistemi",
-   "gorsel": "201313510.01.webp"
+   "gorsel": "201313510.01.32035339.webp"
   },
   {
    "kod": "201313512.01",
    "ad": "YAY TUTUCUSU",
    "fiyat": 35,
    "grup": "tirmik-hareket-sistemi",
-   "gorsel": "201313512.01.webp"
+   "gorsel": "201313512.01.61d35e30.webp"
   },
   {
    "kod": "201313513",
    "ad": "GERDİRME MANDALI",
    "fiyat": 600,
    "grup": "tirmik-hareket-sistemi",
-   "gorsel": "201313513.webp"
+   "gorsel": "201313513.346659cb.webp"
   },
   {
    "kod": "201313519",
    "ad": "TIRMIK ZİNCİR GERDİRME MAKARASI (BİLYALI)",
    "fiyat": 650,
    "grup": "tirmik-hareket-sistemi",
-   "gorsel": "201313519.webp"
+   "gorsel": "201313519.6cdc7873.webp"
   },
   {
    "kod": "201313525.01",
    "ad": "TIRMIK CIRCIR DİŞLİ MUHAFAZA SACI",
    "fiyat": 310,
    "grup": "tirmik-hareket-sistemi",
-   "gorsel": "201313525.01.webp"
+   "gorsel": "201313525.01.9654706e.webp"
   },
   {
    "kod": "15241130803",
    "ad": "BALATA 80x113x3",
    "fiyat": 250,
    "grup": "tirmik-hareket-sistemi",
-   "gorsel": "15241130803.webp"
+   "gorsel": "15241130803.c012c435.webp"
   },
   {
    "kod": "201313515",
    "ad": "MAKARA PİMİ",
    "fiyat": 360,
    "grup": "tirmik-hareket-sistemi",
-   "gorsel": "201313515.webp"
+   "gorsel": "201313515.970fa5f0.webp"
   },
   {
    "kod": "201313517",
    "ad": "TIRMIK ZİNCİR GERDİRME DİŞLİSİ PİMİ",
    "fiyat": 360,
    "grup": "tirmik-hareket-sistemi",
-   "gorsel": "201313517.webp"
+   "gorsel": "201313517.c57eb628.webp"
   },
   {
    "kod": "12110008",
    "ad": "TIRMIK ZİNCİR PLASTİK MAKARASI",
    "fiyat": 200,
    "grup": "tirmik-hareket-sistemi",
-   "gorsel": "12110008.webp"
+   "gorsel": "12110008.96252de9.webp"
   },
   {
    "kod": "151063042RS",
    "ad": "RULMAN 6304 2RS TIRMIK MAKARASI",
    "fiyat": 250,
    "grup": "tirmik-hareket-sistemi",
-   "gorsel": "151063042RS.webp"
+   "gorsel": "151063042RS.2d11dd00.webp"
   },
   {
    "kod": "201313521",
    "ad": "TIRMIK ZİNCİR GERDİRME YATAĞI",
    "fiyat": 1200,
    "grup": "tirmik-hareket-sistemi",
-   "gorsel": "201313521.webp"
+   "gorsel": "201313521.2911c643.webp"
   },
   {
    "kod": "2013136",
    "ad": "TIRMIK KALDIRMA PİSTONU KOMPLE",
    "fiyat": 8250,
    "grup": "tirmik-kaldirma-sistemi",
-   "gorsel": "2013136.webp"
+   "gorsel": "2013136.5b6b9fdb.webp"
   },
   {
    "kod": "620404",
    "ad": "HİDROLİK HORTUM 4300 MM JAKLI",
    "fiyat": 1400,
    "grup": "tirmik-kaldirma-sistemi",
-   "gorsel": "620404.webp"
+   "gorsel": "620404.aa10186a.webp"
   },
   {
    "kod": "620405",
    "ad": "HİDROLİK HORTUM 4450 MM JAKLI",
    "fiyat": 1500,
    "grup": "tirmik-kaldirma-sistemi",
-   "gorsel": "620405.webp"
+   "gorsel": "620405.aa10186a.webp"
   },
   {
    "kod": "201313603.01",
    "ad": "15x10x17 YÜZÜK (Tırmık Piston Ayar Laması)",
    "fiyat": 80,
    "grup": "tirmik-kaldirma-sistemi",
-   "gorsel": "201313603.01.webp"
+   "gorsel": "201313603.01.278af99f.webp"
   },
   {
    "kod": "620402",
    "ad": "HİDROLİK HORTUM 3400 MM JAKLI",
    "fiyat": 1300,
    "grup": "tirmik-kaldirma-sistemi",
-   "gorsel": "620402.webp"
+   "gorsel": "620402.aa10186a.webp"
   },
   {
    "kod": "620403",
    "ad": "HİDROLİK HORTUM 3800 MM JAKLI",
    "fiyat": 1300,
    "grup": "tirmik-kaldirma-sistemi",
-   "gorsel": "620403.webp"
+   "gorsel": "620403.aa10186a.webp"
   },
   {
    "kod": "201303603",
    "ad": "TIRMIK UZATMA KOLU",
    "fiyat": 425,
    "grup": "tirmik-kaldirma-sistemi",
-   "gorsel": "201303603.webp"
+   "gorsel": "201303603.12beebd4.webp"
   },
   {
    "kod": "201313602.01",
    "ad": "PİSTON AYAR LAMASI",
    "fiyat": 120,
    "grup": "tirmik-kaldirma-sistemi",
-   "gorsel": "201313602.01.webp"
+   "gorsel": "201313602.01.09984d02.webp"
   },
   {
    "kod": "620410",
    "ad": "TIRMIK HİDROLİK PİSTONU",
    "fiyat": 2900,
    "grup": "tirmik-kaldirma-sistemi",
-   "gorsel": "620410.webp"
+   "gorsel": "620410.af92bb02.webp"
   },
   {
    "kod": "201313701",
    "ad": "ÖN MUHAFAZA SACI",
    "fiyat": 6600,
    "grup": "kaporta-sistemi",
-   "gorsel": "201313701.webp"
+   "gorsel": "201313701.ede626d6.webp"
   },
   {
    "kod": "201313703",
    "ad": "ARKA KAPORTA SACI",
    "fiyat": 750,
    "grup": "kaporta-sistemi",
-   "gorsel": "201313703.webp"
+   "gorsel": "201313703.99ec2d30.webp"
   },
   {
    "kod": "201313704",
    "ad": "SAĞ KAPORTA SACI",
    "fiyat": 1300,
    "grup": "kaporta-sistemi",
-   "gorsel": "201313704.webp"
+   "gorsel": "201313704.1b748244.webp"
   },
   {
    "kod": "2013137060",
    "ad": "YAN MAVİ SAC (SOL)",
    "fiyat": 2600,
    "grup": "kaporta-sistemi",
-   "gorsel": "2013137060.webp"
+   "gorsel": "2013137060.0433f183.webp"
   },
   {
    "kod": "201313709",
    "ad": "SOL KAPORTA SACI",
    "fiyat": 1300,
    "grup": "kaporta-sistemi",
-   "gorsel": "201313709.webp"
+   "gorsel": "201313709.2ef36a4c.webp"
   },
   {
    "kod": "2013137395",
    "ad": "SAĞ YAN BAĞLANTI SACI EKSTRA",
    "fiyat": 850,
    "grup": "kaporta-sistemi",
-   "gorsel": "2013137395.webp"
+   "gorsel": "2013137395.0acbb460.webp"
   },
   {
    "kod": "201313713",
    "ad": "VOLAN KAPAĞI",
    "fiyat": 5000,
    "grup": "kaporta-sistemi",
-   "gorsel": "201313713.webp"
+   "gorsel": "201313713.7db72e4c.webp"
   },
   {
    "kod": "2013137260",
    "ad": "VOLAN ÖN KAPORTA",
    "fiyat": 1600,
    "grup": "kaporta-sistemi",
-   "gorsel": "2013137260.webp"
+   "gorsel": "2013137260.9dcf9578.webp"
   },
   {
    "kod": "201313728",
    "ad": "HAŞPAY İLK ŞAFT MUHAFAZASI",
    "fiyat": 1100,
    "grup": "kaporta-sistemi",
-   "gorsel": "201313728.webp"
+   "gorsel": "201313728.e2d741f5.webp"
   },
   {
    "kod": "201313731",
    "ad": "VOLAN KASNAK MUHAFAZASI KOMPLE",
    "fiyat": 2000,
    "grup": "kaporta-sistemi",
-   "gorsel": "201313731.webp"
+   "gorsel": "201313731.e83ec189.webp"
   },
   {
    "kod": "2013137340",
    "ad": "BESLEME HAZNESİ",
    "fiyat": 7500,
    "grup": "kaporta-sistemi",
-   "gorsel": "2013137340.webp"
+   "gorsel": "2013137340.eee88f1b.webp"
   },
   {
    "kod": "201313736",
    "ad": "BESLEME HAZNESİ DELİKLİ KAPAĞI",
    "fiyat": 550,
    "grup": "kaporta-sistemi",
-   "gorsel": "201313736.webp"
+   "gorsel": "201313736.59c99807.webp"
   },
   {
    "kod": "201313737.01",
    "ad": "BESLEME HAZNESİ DELİKLİ KAPAĞI PİMİ",
    "fiyat": 260,
    "grup": "kaporta-sistemi",
-   "gorsel": "201313737.01.webp"
+   "gorsel": "201313737.01.3322acc1.webp"
   },
   {
    "kod": "2013137380",
    "ad": "YAN MAVİ SAC (SAĞ)",
    "fiyat": 2600,
    "grup": "kaporta-sistemi",
-   "gorsel": "2013137380.webp"
+   "gorsel": "2013137380.553cb0e6.webp"
   },
   {
    "kod": "201313739",
    "ad": "SAĞ YAN BAĞLANTI SACI",
    "fiyat": 900,
    "grup": "kaporta-sistemi",
-   "gorsel": "201313739.webp"
+   "gorsel": "201313739.0acbb460.webp"
   },
   {
    "kod": "202313701",
    "ad": "YUNUS ÖN MUHAFAZA SACI",
    "fiyat": 8250,
    "grup": "kaporta-sistemi",
-   "gorsel": "202313701.webp"
+   "gorsel": "202313701.04fded0a.webp"
   },
   {
    "kod": "202313709",
    "ad": "YUNUS SOL KAPORTA SACI",
    "fiyat": 2000,
    "grup": "kaporta-sistemi",
-   "gorsel": "202313709.webp"
+   "gorsel": "202313709.6ecd6b25.webp"
   },
   {
    "kod": "202313713",
    "ad": "YUNUS VOLAN KAPAĞI",
    "fiyat": 6300,
    "grup": "kaporta-sistemi",
-   "gorsel": "202313713.webp"
+   "gorsel": "202313713.495d74c2.webp"
   },
   {
    "kod": "153021365400",
    "ad": "AMORTİSÖR 400 NW",
    "fiyat": 275,
    "grup": "kaporta-sistemi",
-   "gorsel": "153021365400.webp"
+   "gorsel": "153021365400.53ec25a1.webp"
   },
   {
    "kod": "201313801",
    "ad": "BAĞLAMA GRUBU KAPAĞI",
    "fiyat": 4800,
    "grup": "kaporta-sistemi",
-   "gorsel": "201313801.webp"
+   "gorsel": "201313801.b4a257ed.webp"
   },
   {
    "kod": "202313734",
    "ad": "YUNUS BESLEME HAZNESİ",
    "fiyat": 9300,
    "grup": "kaporta-sistemi",
-   "gorsel": "202313734.webp"
+   "gorsel": "202313734.eee88f1b.webp"
   },
   {
    "kod": "153021365700",
    "ad": "AMORTİSÖR 700 NW",
    "fiyat": 275,
    "grup": "kaporta-sistemi",
-   "gorsel": "153021365700.webp"
+   "gorsel": "153021365700.53ec25a1.webp"
   },
   {
    "kod": "2013138100",
    "ad": "İP KUTUSU KAPAĞI",
    "fiyat": 2800,
    "grup": "kaporta-sistemi",
-   "gorsel": "2013138100.webp"
+   "gorsel": "2013138100.18e8b3d8.webp"
   },
   {
    "kod": "201313832",
    "ad": "BAĞLAMA GRUBU ARKA TOZ SACI",
    "fiyat": 400,
    "grup": "kaporta-sistemi",
-   "gorsel": "201313832.webp"
+   "gorsel": "201313832.411962e9.webp"
   },
   {
    "kod": "1540000601",
    "ad": "FAN MOTORU 12 V 11 AXİAL",
    "fiyat": 4500,
    "grup": "kaporta-sistemi",
-   "gorsel": "1540000601.webp"
+   "gorsel": "1540000601.82e8aac0.webp"
   },
   {
    "kod": "201313901",
    "ad": "ÜST MUHAFAZA",
    "fiyat": 7000,
    "grup": "kaporta-sistemi",
-   "gorsel": "201313901.webp"
+   "gorsel": "201313901.a3a93f51.webp"
   },
   {
    "kod": "202313901",
    "ad": "ÜST MUHAFAZA YUNUS",
    "fiyat": 7100,
    "grup": "kaporta-sistemi",
-   "gorsel": "202313901.webp"
+   "gorsel": "202313901.a3a93f51.webp"
   },
   {
    "kod": "20131410101",
    "ad": "ROTOR MİLİ",
    "fiyat": 6250,
    "grup": "haspay-sistemi",
-   "gorsel": "20131410101.webp"
+   "gorsel": "20131410101.f67eb8e3.webp"
   },
   {
    "kod": "20131410102",
    "ad": "HAŞPAY DIŞ ROZETİ",
    "fiyat": 4000,
    "grup": "haspay-sistemi",
-   "gorsel": "20131410102.webp"
+   "gorsel": "20131410102.87c45b7d.webp"
   },
   {
    "kod": "20131410103",
    "ad": "HAŞPAY İÇ ROZET",
    "fiyat": 4000,
    "grup": "haspay-sistemi",
-   "gorsel": "20131410103.webp"
+   "gorsel": "20131410103.b317235c.webp"
   },
   {
    "kod": "1205014101",
    "ad": "EZİCİ UZUN DİŞ",
    "fiyat": 60,
    "grup": "haspay-sistemi",
-   "gorsel": "1205014101.webp"
+   "gorsel": "1205014101.eace056a.webp"
   },
   {
    "kod": "2013141010401",
    "ad": "HAŞPAY ŞINASI LAMASI (20 DELİK)",
    "fiyat": 2500,
    "grup": "haspay-sistemi",
-   "gorsel": "2013141010401.webp"
+   "gorsel": "2013141010401.f542e8b0.webp"
   },
   {
    "kod": "2013141010501",
    "ad": "HAŞPAY ŞINASI LAMASI (19 DELİK)",
    "fiyat": 2500,
    "grup": "haspay-sistemi",
-   "gorsel": "2013141010501.webp"
+   "gorsel": "2013141010501.f5540119.webp"
   },
   {
    "kod": "1205014102",
    "ad": "KESİCİ UZUN DİŞ",
    "fiyat": 60,
    "grup": "haspay-sistemi",
-   "gorsel": "1205014102.webp"
+   "gorsel": "1205014102.d7e11761.webp"
   },
   {
    "kod": "1205014103",
    "ad": "EZİCİ KISA DİŞ",
    "fiyat": 60,
    "grup": "haspay-sistemi",
-   "gorsel": "1205014103.webp"
+   "gorsel": "1205014103.cd91a531.webp"
   },
   {
    "kod": "1205014104",
    "ad": "KESİCİ KISA DİŞ",
    "fiyat": 60,
    "grup": "haspay-sistemi",
-   "gorsel": "1205014104.webp"
+   "gorsel": "1205014104.15c760e9.webp"
   },
   {
    "kod": "201314102",
    "ad": "KONTRA GÖVDE",
    "fiyat": 12000,
    "grup": "haspay-sistemi",
-   "gorsel": "201314102.webp"
+   "gorsel": "201314102.5de697ca.webp"
   },
   {
    "kod": "20131410303",
    "ad": "HAŞPAY TARAĞI",
    "fiyat": 2800,
    "grup": "haspay-sistemi",
-   "gorsel": "20131410303.webp"
+   "gorsel": "20131410303.58620405.webp"
   },
   {
    "kod": "202314502",
    "ad": "YUNUS HAŞPAY BAĞLANTI KOVANI BÜYÜK",
    "fiyat": 2400,
    "grup": "haspay-sistemi",
-   "gorsel": "202314502.webp"
+   "gorsel": "202314502.e0216aaa.webp"
   },
   {
    "kod": "20131410305",
    "ad": "HAŞPAY SAP YÖNLENDİRİCİ KÖŞEBENTİ",
    "fiyat": 350,
    "grup": "haspay-sistemi",
-   "gorsel": "20131410305.webp"
+   "gorsel": "20131410305.4377b998.webp"
   },
   {
    "kod": "201314104",
    "ad": "KONTRA AYAR MİLİ",
    "fiyat": 2100,
    "grup": "haspay-sistemi",
-   "gorsel": "201314104.webp"
+   "gorsel": "201314104.ef72743a.webp"
   },
   {
    "kod": "201314106",
    "ad": "KONTRA AYAR KOLU",
    "fiyat": 750,
    "grup": "haspay-sistemi",
-   "gorsel": "201314106.webp"
+   "gorsel": "201314106.b64faf8f.webp"
   },
   {
    "kod": "15171221275",
    "ad": "KAYIŞ 22X1275 V",
    "fiyat": 550,
    "grup": "haspay-sistemi",
-   "gorsel": "15171221275.webp"
+   "gorsel": "15171221275.24aa9181.webp"
   },
   {
    "kod": "201314109",
    "ad": "KONTRA AYAR KOLU PİMİ",
    "fiyat": 280,
    "grup": "haspay-sistemi",
-   "gorsel": "201314109.webp"
+   "gorsel": "201314109.772c4a91.webp"
   },
   {
    "kod": "202314503",
    "ad": "YUNUS HAŞPAY BAĞLANTI PİMLİ KOL (KIVRIK)",
    "fiyat": 1100,
    "grup": "haspay-sistemi",
-   "gorsel": "202314503.webp"
+   "gorsel": "202314503.ec723708.webp"
   },
   {
    "kod": "101314113",
    "ad": "HAŞPAY ALT KASNAĞI (175)",
    "fiyat": 3000,
    "grup": "haspay-sistemi",
-   "gorsel": "101314113.webp"
+   "gorsel": "101314113.66930cff.webp"
   },
   {
    "kod": "201314111.01",
    "ad": "KONTRA SABİTLEME PİMİ",
    "fiyat": 200,
    "grup": "haspay-sistemi",
-   "gorsel": "201314111.01.webp"
+   "gorsel": "201314111.01.bde0b16b.webp"
   },
   {
    "kod": "201314112.01",
    "ad": "KONTRA AYAR PERNOSU",
    "fiyat": 225,
    "grup": "haspay-sistemi",
-   "gorsel": "201314112.01.webp"
+   "gorsel": "201314112.01.df447841.webp"
   },
   {
    "kod": "201314114",
    "ad": "SAP YÖNLENDİRİCİ GETİ",
    "fiyat": 480,
    "grup": "haspay-sistemi",
-   "gorsel": "201314114.webp"
+   "gorsel": "201314114.ef98662d.webp"
   },
   {
    "kod": "201314115",
    "ad": "SAP YÖNLENDİRİCİ LAMASI",
    "fiyat": 250,
    "grup": "haspay-sistemi",
-   "gorsel": "201314115.webp"
+   "gorsel": "201314115.307112ca.webp"
   },
   {
    "kod": "201314116.01",
    "ad": "KAYIŞ GERDİRME KIVRIK CİVATASI (H)",
    "fiyat": 220,
    "grup": "haspay-sistemi",
-   "gorsel": "201314116.01.webp"
+   "gorsel": "201314116.01.3121ca97.webp"
   },
   {
    "kod": "101314117",
    "ad": "HAŞPAY ÜST KASNAĞI (270)",
    "fiyat": 4400,
    "grup": "haspay-sistemi",
-   "gorsel": "101314117.webp"
+   "gorsel": "101314117.9ba3f90b.webp"
   },
   {
    "kod": "201314118",
    "ad": "HAŞPAY ÜST KASNAK MİLİ",
    "fiyat": 2500,
    "grup": "haspay-sistemi",
-   "gorsel": "201314118.webp"
+   "gorsel": "201314118.61cbae48.webp"
   },
   {
    "kod": "201314119",
    "ad": "HAŞPAY ÜST KASNAK BAGASI",
    "fiyat": 260,
    "grup": "haspay-sistemi",
-   "gorsel": "201314119.webp"
+   "gorsel": "201314119.a5092862.webp"
   },
   {
    "kod": "201314121.01",
    "ad": "KONTRA AYAR SAPLAMASI",
    "fiyat": 330,
    "grup": "haspay-sistemi",
-   "gorsel": "201314121.01.webp"
+   "gorsel": "201314121.01.e5439872.webp"
   },
   {
    "kod": "201314122.01",
    "ad": "KONTRA AYAR PİMİ",
    "fiyat": 180,
    "grup": "haspay-sistemi",
-   "gorsel": "201314122.01.webp"
+   "gorsel": "201314122.01.5d089c97.webp"
   },
   {
    "kod": "20231410101",
    "ad": "YUNUS ROTOR MİLİ",
    "fiyat": 7250,
    "grup": "haspay-sistemi",
-   "gorsel": "20231410101.webp"
+   "gorsel": "20231410101.906a0911.webp"
   },
   {
    "kod": "2023141010401",
    "ad": "HAŞPAY ŞINASI LAMASI (23 DELİK)",
    "fiyat": 2500,
    "grup": "haspay-sistemi",
-   "gorsel": "2023141010401.webp"
+   "gorsel": "2023141010401.9d55d42c.webp"
   },
   {
    "kod": "2023141010501",
    "ad": "HAŞPAY ŞINASI LAMASI (22 DELİK)",
    "fiyat": 2500,
    "grup": "haspay-sistemi",
-   "gorsel": "2023141010501.webp"
+   "gorsel": "2023141010501.87f1e704.webp"
   },
   {
    "kod": "20231410201",
    "ad": "YUNUS KONTRA ANA SACI",
    "fiyat": 13000,
    "grup": "haspay-sistemi",
-   "gorsel": "20231410201.webp"
+   "gorsel": "20231410201.8ea1ffe3.webp"
   },
   {
    "kod": "20231410302",
    "ad": "YUNUS HAŞPAY ÖN KAPAĞI",
    "fiyat": 2200,
    "grup": "haspay-sistemi",
-   "gorsel": "20231410302.webp"
+   "gorsel": "20231410302.3433d1d7.webp"
   },
   {
    "kod": "202315050.01",
    "ad": "DUAL HAŞPAY BIÇAĞI",
    "fiyat": 750,
    "grup": "haspay-sistemi",
-   "gorsel": "202315050.01.webp"
+   "gorsel": "202315050.01.d2082630.webp"
   },
   {
    "kod": "20231410303",
    "ad": "YUNUS HAŞPAY TARAĞI",
    "fiyat": 3300,
    "grup": "haspay-sistemi",
-   "gorsel": "20231410303.webp"
+   "gorsel": "20231410303.f708fc0c.webp"
   },
   {
    "kod": "202314104",
    "ad": "YUNUS KONTRA AYAR MİLİ",
    "fiyat": 2400,
    "grup": "haspay-sistemi",
-   "gorsel": "202314104.webp"
+   "gorsel": "202314104.2e9573b4.webp"
   },
   {
    "kod": "202314114",
    "ad": "YUNUS SAP YÖNLENDİRİCİ GETİ",
    "fiyat": 600,
    "grup": "haspay-sistemi",
-   "gorsel": "202314114.webp"
+   "gorsel": "202314114.d6de62ed.webp"
   },
   {
    "kod": "20131420101",
    "ad": "HAŞPAY REDÜKTÖR O-RİNG BAGASI",
    "fiyat": 180,
    "grup": "haspay-sistemi",
-   "gorsel": "20131420101.webp"
+   "gorsel": "20131420101.be6a8693.webp"
   },
   {
    "kod": "20131420102",
    "ad": "HAŞPAY ŞANZUMAN BİLYA YATAĞI",
    "fiyat": 1900,
    "grup": "haspay-sistemi",
-   "gorsel": "20131420102.webp"
+   "gorsel": "20131420102.f10a92eb.webp"
   },
   {
    "kod": "20131420103",
    "ad": "HAŞPAY ŞANZUMAN ARA BAGASI",
    "fiyat": 180,
    "grup": "haspay-sistemi",
-   "gorsel": "20131420103.webp"
+   "gorsel": "20131420103.8d15f67f.webp"
   },
   {
    "kod": "1206420104",
    "ad": "HAŞPAY ŞANZUMAN DİŞLİSİ",
    "fiyat": 8250,
    "grup": "haspay-sistemi",
-   "gorsel": "1206420104.webp"
+   "gorsel": "1206420104.d389665d.webp"
   },
   {
    "kod": "20131420105",
    "ad": "HAŞPAY REDÜKTÖR GÖVDESİ",
    "fiyat": 6000,
    "grup": "haspay-sistemi",
-   "gorsel": "20131420105.webp"
+   "gorsel": "20131420105.d9f2cdf8.webp"
   },
   {
    "kod": "201314501",
    "ad": "HAŞPAY BAĞLANTI KOVANI (KÜÇÜK)",
    "fiyat": 1300,
    "grup": "haspay-sistemi",
-   "gorsel": "201314501.webp"
+   "gorsel": "201314501.934bbd42.webp"
   },
   {
    "kod": "201314502",
    "ad": "HAŞPAY BAĞLANTI KOVANI (BÜYÜK)",
    "fiyat": 1500,
    "grup": "haspay-sistemi",
-   "gorsel": "201314502.webp"
+   "gorsel": "201314502.eb0dadee.webp"
   },
   {
    "kod": "201314503",
    "ad": "HAŞPAY BAĞLANTI PİMLİ KOL (KIVRIK)",
    "fiyat": 1000,
    "grup": "haspay-sistemi",
-   "gorsel": "201314503.webp"
+   "gorsel": "201314503.802b50a6.webp"
   },
   {
    "kod": "201314504",
    "ad": "ÜST LASTİK TAKOZ BAĞLANTI PARÇASI (ÜST)",
    "fiyat": 1300,
    "grup": "haspay-sistemi",
-   "gorsel": "201314504.webp"
+   "gorsel": "201314504.6363e1fd.webp"
   },
   {
    "kod": "201314505",
    "ad": "ALT LASTİK TAKOZ BAĞLANTI PARÇASI",
    "fiyat": 1200,
    "grup": "haspay-sistemi",
-   "gorsel": "201314505.webp"
+   "gorsel": "201314505.e2e5c60f.webp"
   },
   {
    "kod": "201314507",
    "ad": "ÜST LASTİK TAKOZ BAĞLANTI PARÇASI (ALT)",
    "fiyat": 1400,
    "grup": "haspay-sistemi",
-   "gorsel": "201314507.webp"
+   "gorsel": "201314507.03a73b05.webp"
   },
   {
    "kod": "202314501",
    "ad": "YUNUS HAŞPAY BAĞLANTI KOVANI (SAĞ)",
    "fiyat": 1500,
    "grup": "haspay-sistemi",
-   "gorsel": "202314501.webp"
+   "gorsel": "202314501.21353f0b.webp"
   },
   {
    "kod": "15171223050",
    "ad": "KAYIŞ 22X3050 V",
    "fiyat": 850,
    "grup": "kayis-gerdirme-sistemi",
-   "gorsel": "15171223050.webp"
+   "gorsel": "15171223050.24aa9181.webp"
   },
   {
    "kod": "201314604",
    "ad": "KASNAK BAĞLANTI ELEMANI",
    "fiyat": 2400,
    "grup": "kayis-gerdirme-sistemi",
-   "gorsel": "201314604.webp"
+   "gorsel": "201314604.d67d12ef.webp"
   },
   {
    "kod": "201314606",
    "ad": "VOLAN KASNAĞI MİLİ",
    "fiyat": 2100,
    "grup": "kayis-gerdirme-sistemi",
-   "gorsel": "201314606.webp"
+   "gorsel": "201314606.00a6834e.webp"
   },
   {
    "kod": "101314609",
    "ad": "VOLAN KASNAĞI",
    "fiyat": 4500,
    "grup": "kayis-gerdirme-sistemi",
-   "gorsel": "101314609.webp"
+   "gorsel": "101314609.fd3b8ef5.webp"
   },
   {
    "kod": "202314605",
    "ad": "YUNUS ÖN KAPORTA SAPLAMASI",
    "fiyat": 270,
    "grup": "kayis-gerdirme-sistemi",
-   "gorsel": "202314605.webp"
+   "gorsel": "202314605.51995b44.webp"
   },
   {
    "kod": "202314614",
    "ad": "YUNUS HAŞPAY ŞAFT MUHAFAZA SACI",
    "fiyat": 850,
    "grup": "kayis-gerdirme-sistemi",
-   "gorsel": "202314614.webp"
+   "gorsel": "202314614.d76993c3.webp"
   },
   {
    "kod": "204200303.01",
    "ad": "GRUP AKTARMA MİLİ Ø40 FREZELİ",
    "fiyat": 3000,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204200303.01.webp"
+   "gorsel": "204200303.01.64fa9bd8.webp"
   },
   {
    "kod": "204200306.01",
    "ad": "GRUP AKTARMA DÜZ DİŞLİSİ BÜYÜK",
    "fiyat": 8400,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204200306.01.webp"
+   "gorsel": "204200306.01.a49a3ba1.webp"
   },
   {
    "kod": "204200307.01",
    "ad": "GRUP AKTARMA DÜZ DİŞLİSİ KÜÇÜK",
    "fiyat": 6000,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204200307.01.webp"
+   "gorsel": "204200307.01.4a40ae89.webp"
   },
   {
    "kod": "204200304.01",
    "ad": "GRUP AKTARMA ZİNCİR DİŞLİSİ KÜÇÜK",
    "fiyat": 1800,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204200304.01.webp"
+   "gorsel": "204200304.01.52640599.webp"
   },
   {
    "kod": "204200305.01",
    "ad": "GRUP AKTARMA ZİNCİR DİŞLİSİ BÜYÜK",
    "fiyat": 2600,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204200305.01.webp"
+   "gorsel": "204200305.01.104398ad.webp"
   },
   {
    "kod": "204200308.01",
    "ad": "GRUP AKTARMA SİGORTA DİŞLİSİ",
    "fiyat": 3400,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204200308.01.webp"
+   "gorsel": "204200308.01.e6a9e08e.webp"
   },
   {
    "kod": "204200302.01",
    "ad": "GRUP AKTARMA MİLİ Ø45 FREZELİ",
    "fiyat": 2400,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204200302.01.webp"
+   "gorsel": "204200302.01.edaeafeb.webp"
   },
   {
    "kod": "20420440401",
    "ad": "TIRMIK ROTOR BORUSU KAYNAKLI",
    "fiyat": 1400,
    "grup": "hammer-yedek-parca",
-   "gorsel": "20420440401.webp"
+   "gorsel": "20420440401.d2c9d307.webp"
   },
   {
    "kod": "204200901.01",
    "ad": "ALT ÜST SAP TUTUCU KAYNAKLI",
    "fiyat": 650,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204200901.01.webp"
+   "gorsel": "204200901.01.ff83c90b.webp"
   },
   {
    "kod": "204201005.03",
    "ad": "AYNA MAHRUTİ GÖBEĞİ",
    "fiyat": 13200,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204201005.03.webp"
+   "gorsel": "204201005.03.f2a88ffa.webp"
   },
   {
    "kod": "2043007040",
    "ad": "ÜÇ İPLİ BIÇAK TAKIMI (HAMMER)",
    "fiyat": 3700,
    "grup": "hammer-yedek-parca",
-   "gorsel": "2043007040.webp"
+   "gorsel": "2043007040.27b9b549.webp"
   },
   {
    "kod": "204201011",
    "ad": "AYNA MAHRUTİ BİLYA KAPAĞI (KÜÇÜK)",
    "fiyat": 850,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204201011.webp"
+   "gorsel": "204201011.b0bf2247.webp"
   },
   {
    "kod": "204201012.03",
    "ad": "AYNA MAHRUTİ ROTOR AKTARMA DİŞLİSİ (BÜYÜK)",
    "fiyat": 5300,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204201012.03.webp"
+   "gorsel": "204201012.03.0c9d6e86.webp"
   },
   {
    "kod": "204201014.01",
    "ad": "AYNA MAHRUTİ ROTOR AKTARMA ZİNCİR DİŞLİSİ",
    "fiyat": 5200,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204201014.01.webp"
+   "gorsel": "204201014.01.d885e8a8.webp"
   },
   {
    "kod": "204201018",
    "ad": "MAHRUTİ SOMUNU (HAMMER)",
    "fiyat": 1000,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204201018.webp"
+   "gorsel": "204201018.1285ffbc.webp"
   },
   {
    "kod": "204204419.01",
    "ad": "EKSANTRİK LAMA BİLYA CİVATASI",
    "fiyat": 100,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204204419.01.webp"
+   "gorsel": "204204419.01.1b39afbd.webp"
   },
   {
    "kod": "204301902.01",
    "ad": "ÜÇLÜ PİSTON RULMAN MİLİ UZUN",
    "fiyat": 750,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204301902.01.webp"
+   "gorsel": "204301902.01.0e68b8c8.webp"
   },
   {
    "kod": "204201904.01",
    "ad": "PİSTON EKSANTRİK RULMAN MİLİ",
    "fiyat": 600,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204201904.01.webp"
+   "gorsel": "204201904.01.1fde92a9.webp"
   },
   {
    "kod": "204201909",
    "ad": "PİSTON KOLU BAĞLANTI MİLİ",
    "fiyat": 820,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204201909.webp"
+   "gorsel": "204201909.6402a3d3.webp"
   },
   {
    "kod": "204301903.01",
    "ad": "ÜÇLÜ PİSTON RULMAN MİLİ KISA",
    "fiyat": 650,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204301903.01.webp"
+   "gorsel": "204301903.01.77291cb2.webp"
   },
   {
    "kod": "204202104",
    "ad": "PİSTON ANA HAREKET KOLU KAYNAKLI",
    "fiyat": 7400,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204202104.webp"
+   "gorsel": "204202104.b70093a3.webp"
   },
   {
    "kod": "204202106",
    "ad": "PİSTON KOLU YATAĞI",
    "fiyat": 3000,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204202106.webp"
+   "gorsel": "204202106.7722d348.webp"
   },
   {
    "kod": "20430210100",
    "ad": "PİSTON KOLU KAYNAKLI ÜÇLÜ BURÇLU",
    "fiyat": 6500,
    "grup": "hammer-yedek-parca",
-   "gorsel": "20430210100.webp"
+   "gorsel": "20430210100.cc217da7.webp"
   },
   {
    "kod": "204202107.01",
    "ad": "YABA TAHRİK KOLU",
    "fiyat": 3800,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204202107.01.webp"
+   "gorsel": "204202107.01.b319f822.webp"
   },
   {
    "kod": "204202202.01",
    "ad": "PİSTON EMNİYET SİSTEMİ KOL KAYNAKLI",
    "fiyat": 4800,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204202202.01.webp"
+   "gorsel": "204202202.01.f1bdc692.webp"
   },
   {
    "kod": "211100523.02",
    "ad": "TIRMIK YÜREĞİ (HAMMER)",
    "fiyat": 2500,
    "grup": "hammer-yedek-parca",
-   "gorsel": "211100523.02.webp"
+   "gorsel": "211100523.02.8172bfca.webp"
   },
   {
    "kod": "204202203.01",
    "ad": "PİSTON EMNİYET SİSTEMİ YATAK",
    "fiyat": 2100,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204202203.01.webp"
+   "gorsel": "204202203.01.aad24439.webp"
   },
   {
    "kod": "204202702",
    "ad": "YABA KOLU KAYNAKLI",
    "fiyat": 6000,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204202702.webp"
+   "gorsel": "204202702.cbd8cf0d.webp"
   },
   {
    "kod": "204202707.01",
    "ad": "YABA FREZELİ MİLİ",
    "fiyat": 2800,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204202707.01.webp"
+   "gorsel": "204202707.01.5beee51c.webp"
   },
   {
    "kod": "204202708.01",
    "ad": "YABA FREZELİ KOLU SAĞ KAYNAKLI",
    "fiyat": 5300,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204202708.01.webp"
+   "gorsel": "204202708.01.06c016c7.webp"
   },
   {
    "kod": "204202709.01",
    "ad": "YABA FREZELİ KOLU SOL KAYNAKLI",
    "fiyat": 5300,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204202709.01.webp"
+   "gorsel": "204202709.01.4df6ee42.webp"
   },
   {
    "kod": "204203206.03",
    "ad": "YABA ŞANZUMAN TAHRİK MİLİ",
    "fiyat": 5900,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204203206.03.webp"
+   "gorsel": "204203206.03.8e1a6dad.webp"
   },
   {
    "kod": "204201015.01",
    "ad": "AYNA MAH.ROTOR AKT.ZİNCİR DİŞLİ SİGORTA FLANŞI",
    "fiyat": 6000,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204201015.01.webp"
+   "gorsel": "204201015.01.7b5920e2.webp"
   },
   {
    "kod": "204203207.01",
    "ad": "YABA ŞANZUMAN SİGORTA FLANŞI",
    "fiyat": 10400,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204203207.01.webp"
+   "gorsel": "204203207.01.8be2c561.webp"
   },
   {
    "kod": "204204104.01",
    "ad": "ROTOR FREZELİ MİL",
    "fiyat": 3000,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204204104.01.webp"
+   "gorsel": "204204104.01.6aba19f2.webp"
   },
   {
    "kod": "204204107.01",
    "ad": "ROTOR TAHRİK ZİNCİR DİŞLİSİ",
    "fiyat": 5800,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204204107.01.webp"
+   "gorsel": "204204107.01.22acb898.webp"
   },
   {
    "kod": "204204108.01",
    "ad": "ROTOR GERGİ ZİNCİR DİŞLİSİ",
    "fiyat": 2800,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204204108.01.webp"
+   "gorsel": "204204108.01.06bb3472.webp"
   },
   {
    "kod": "204204306",
    "ad": "TIRMIK SACI HAMMER (GÜVEÇLİ)",
    "fiyat": 270,
    "grup": "hammer-yedek-parca",
-   "gorsel": "204204306.webp"
+   "gorsel": "204204306.23cd31fc.webp"
   },
   {
    "kod": "120135001",
    "ad": "DÖKÜM YAY SIKMA",
    "fiyat": 140,
    "grup": "ot-toplama",
-   "gorsel": "120135001.webp"
+   "gorsel": "120135001.c32e4edb.webp"
   },
   {
    "kod": "12073502",
    "ad": "YAY OT TOPLAMA",
    "fiyat": 300,
    "grup": "ot-toplama",
-   "gorsel": "12073502.webp"
+   "gorsel": "12073502.19bbed24.webp"
   },
   {
    "kod": "23510954",
    "ad": "KOL BORUSU TERTİBATI",
    "fiyat": 2400,
    "grup": "ot-toplama",
-   "gorsel": "23510954.webp"
+   "gorsel": "23510954.e7a55177.webp"
   },
   {
    "kod": "15213503",
    "ad": "FREZELİ BURÇLU MİL",
    "fiyat": 4200,
    "grup": "ot-toplama",
-   "gorsel": "15213503.webp"
+   "gorsel": "15213503.33d2379e.webp"
   },
   {
    "kod": "23510928",
    "ad": "BRANDA TERTİBATI",
    "fiyat": 4300,
    "grup": "ot-toplama",
-   "gorsel": "23510928.webp"
+   "gorsel": "23510928.5c1fabbd.webp"
   },
   {
    "kod": "23510940",
    "ad": "ARA KOL YENİ",
    "fiyat": 2200,
    "grup": "ot-toplama",
-   "gorsel": "23510940.webp"
+   "gorsel": "23510940.51c645f2.webp"
   },
   {
    "kod": "15213502",
    "ad": "ADAPTÖR FREZELİ",
    "fiyat": 750,
    "grup": "ot-toplama",
-   "gorsel": "15213502.webp"
+   "gorsel": "15213502.36e1e491.webp"
   },
   {
    "kod": "1580350901",
    "ad": "OT TOPLAMA AYNA",
    "fiyat": 7000,
    "grup": "ot-toplama",
-   "gorsel": "1580350901.webp"
+   "gorsel": "1580350901.ca5a9884.webp"
   },
   {
    "kod": "1580350902",
    "ad": "OT TOPLAMA MAHRUTİ",
    "fiyat": 4100,
    "grup": "ot-toplama",
-   "gorsel": "1580350902.webp"
+   "gorsel": "1580350902.c1445665.webp"
   },
   {
    "kod": "151051109",
    "ad": "RULMAN 51109",
    "fiyat": 170,
    "grup": "cayir-bicme",
-   "gorsel": "151051109.webp"
+   "gorsel": "151051109.2621c88d.webp"
   },
   {
    "kod": "151062072RS",
    "ad": "RULMAN 6207-2RS",
    "fiyat": 670,
    "grup": "cayir-bicme",
-   "gorsel": "151062072RS.webp"
+   "gorsel": "151062072RS.56dd0beb.webp"
   },
   {
    "kod": "151062102RS",
    "ad": "RULMAN 6210-2RS",
    "fiyat": 1200,
    "grup": "cayir-bicme",
-   "gorsel": "151062102RS.webp"
+   "gorsel": "151062102RS.2fb30c21.webp"
   },
   {
    "kod": "15103206",
    "ad": "RULMAN 3206",
    "fiyat": 420,
    "grup": "cayir-bicme",
-   "gorsel": "15103206.webp"
+   "gorsel": "15103206.56dd0beb.webp"
   },
   {
    "kod": "15106007",
    "ad": "RULMAN 6007",
    "fiyat": 180,
    "grup": "cayir-bicme",
-   "gorsel": "15106007.webp"
+   "gorsel": "15106007.56dd0beb.webp"
   },
   {
    "kod": "15106206",
    "ad": "RULMAN 6206",
    "fiyat": 420,
    "grup": "cayir-bicme",
-   "gorsel": "15106206.webp"
+   "gorsel": "15106206.56dd0beb.webp"
   },
   {
    "kod": "14323001",
    "ad": "BIÇAK",
    "fiyat": 75,
    "grup": "cayir-bicme",
-   "gorsel": "14323001.webp"
+   "gorsel": "14323001.15f2ff81.webp"
   },
   {
    "kod": "143230165",
    "ad": "BIÇAK TUTUCU LAMASI",
    "fiyat": 330,
    "grup": "cayir-bicme",
-   "gorsel": "143230165.webp"
+   "gorsel": "143230165.5ff885cc.webp"
   },
   {
    "kod": "15500104006210",
    "ad": "KEÇE YAĞ 40X62X10",
    "fiyat": 90,
    "grup": "cayir-bicme",
-   "gorsel": "15500104006210.webp"
+   "gorsel": "15500104006210.5eb21d8a.webp"
   },
   {
    "kod": "15171172850",
    "ad": "KAYIŞ 17X2850",
    "fiyat": 440,
    "grup": "cayir-bicme",
-   "gorsel": "15171172850.webp"
+   "gorsel": "15171172850.24aa9181.webp"
   },
   {
    "kod": "2301140",
    "ad": "DİŞLİ Z:15",
    "fiyat": 1600,
    "grup": "cayir-bicme",
-   "gorsel": "2301140.webp"
+   "gorsel": "2301140.123d4a36.webp"
   },
   {
    "kod": "2301141",
    "ad": "DİŞLİ Z:23",
    "fiyat": 2400,
    "grup": "cayir-bicme",
-   "gorsel": "2301141.webp"
+   "gorsel": "2301141.b45a2a1f.webp"
   },
   {
    "kod": "2301142",
    "ad": "DİŞLİ Z:15",
    "fiyat": 2100,
    "grup": "cayir-bicme",
-   "gorsel": "2301142.webp"
+   "gorsel": "2301142.6cd9d1bd.webp"
   },
   {
    "kod": "2302013",
    "ad": "DİŞLİ KUTUSU ANA MİLİ 165",
    "fiyat": 3000,
    "grup": "cayir-bicme",
-   "gorsel": "2302013.webp"
+   "gorsel": "2302013.8633b640.webp"
   },
   {
    "kod": "230203001",
    "ad": "POYRA",
    "fiyat": 1800,
    "grup": "cayir-bicme",
-   "gorsel": "230203001.webp"
+   "gorsel": "230203001.c2ca11c5.webp"
   },
   {
    "kod": "121130001",
    "ad": "TRAKTÖR BAĞ.SEMER PLASTİK BURÇ",
    "fiyat": 110,
    "grup": "cayir-bicme",
-   "gorsel": "121130001.webp"
+   "gorsel": "121130001.01aa59dc.webp"
   },
   {
    "kod": "2302117",
    "ad": "ÜST TAMBUR 165'LİK",
    "fiyat": 4400,
    "grup": "cayir-bicme",
-   "gorsel": "2302117.webp"
+   "gorsel": "2302117.6b29e88a.webp"
   },
   {
    "kod": "230227",
    "ad": "ALT TAMBUR 165'LİK",
    "fiyat": 4200,
    "grup": "cayir-bicme",
-   "gorsel": "230227.webp"
+   "gorsel": "230227.4d3cbe56.webp"
   },
   {
    "kod": "2410432172",
    "ad": "DİŞLİ KUTUSU AKSI 4-6 M3",
    "fiyat": 7700,
    "grup": "yem-karma",
-   "gorsel": "2410432172.webp"
+   "gorsel": "2410432172.b344b9b5.webp"
   },
   {
    "kod": "241083217320",
    "ad": "DİŞLİ KUTUSU AKS 8-10 M3",
    "fiyat": 8200,
    "grup": "yem-karma",
-   "gorsel": "241083217320.webp"
+   "gorsel": "241083217320.b344b9b5.webp"
   },
   {
    "kod": "24114324103.01",
    "ad": "YEM KARMA BIÇAĞI ÇAP 97 M10 8 KANAT",
    "fiyat": 130,
    "grup": "yem-karma",
-   "gorsel": "24114324103.01.webp"
+   "gorsel": "24114324103.01.76456465.webp"
   },
   {
    "kod": "12114101",
    "ad": "KONVEYÖR BANDI 2G27 570X1700 (M2)",
    "fiyat": 3500,
    "grup": "yem-karma",
-   "gorsel": "12114101.webp"
+   "gorsel": "12114101.b6dc4247.webp"
   },
   {
    "kod": "155030405028414634",
    "ad": "KAPAK PİSTONU",
    "fiyat": 3300,
    "grup": "yem-karma",
-   "gorsel": "155030405028414634.webp"
+   "gorsel": "155030405028414634.a9983d88.webp"
   },
   {
    "kod": "24114324102.01",
    "ad": "YEM KARMA BALTA BIÇAĞI 72X170X5MM",
    "fiyat": 150,
    "grup": "yem-karma",
-   "gorsel": "24114324102.01.webp"
+   "gorsel": "24114324102.01.e70a5ba0.webp"
   }
  ]
 }

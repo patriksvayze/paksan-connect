@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
-import { bayileriGetir, servisleriGetir, MARKA } from '../../marka'
+import { bayileriGetir } from '../../data/katalog/bayiler.js'
+import { servisleriGetir } from '../../data/katalog/servisler.js'
 import { Bolum } from '../Kabuk'
 import { telHref } from '../../lib/tel'
 import { IconCart, IconPhone } from '../../components/Icons'
@@ -46,7 +47,7 @@ export function Bayilerim({ oturum, surum }) {
     return (
       <Bolum ad="Çalıştığınız Bayiler">
         <p className="kucuk sonuk" style={{ margin: 0 }}>
-          {MARKA} size henüz bayi bağlamadı. Bağlandığında burada
+          PAKSAN size henüz bayi bağlamadı. Bağlandığında burada
           görünecek.
         </p>
       </Bolum>

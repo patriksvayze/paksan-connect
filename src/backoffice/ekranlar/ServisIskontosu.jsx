@@ -7,7 +7,7 @@ import {
   servisIskontosunuKaydet,
 } from '../veri'
 import { oranOku, yuzdeYap } from '../../lib/servisFiyat'
-import { servisleriGetir } from '../../marka'
+import { servisleriGetir } from '../../data/katalog/servisler.js'
 import { AcilirTepe, tarihYaz } from './ortak'
 
 /* ==========================================================================

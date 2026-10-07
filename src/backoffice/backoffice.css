@@ -1,4 +1,4 @@
-@import '../marka/renkler.css';
+@import '../styles/renkler.css';
 
 /* ==========================================================================
    PAKSAN Backoffice
@@ -92,7 +92,7 @@
   --grafik-notr: var(--gri);
 
   --kirmizi-z: rgba(201, 54, 54, 0.1);
-  --turuncu-z: rgba(184, 98, 10, 0.12);
+  --turuncu-z: rgba(242, 106, 27, 0.12);
   --mavi-z: rgba(24, 72, 168, 0.1);
   --yesil-z: rgba(26, 131, 72, 0.12);
   --gri-z: rgba(115, 125, 143, 0.12);
@@ -1019,6 +1019,20 @@ a {
   text-decoration: underline;
 }
 
+/* Sekmesi Raporlar'dan kaldırılmış bölümün başlığı (Satış ve Bayiler,
+   6 Ekim 2026): bağlantı değil, ok yok. */
+.yonetim-ozet__baslik--duz {
+  cursor: default;
+}
+
+.yonetim-ozet__baslik--duz::after {
+  content: none;
+}
+
+.yonetim-ozet__baslik--duz:hover {
+  text-decoration: none;
+}
+
 .yonetim-ozet__olcu + .yonetim-ozet__olcu {
   margin-top: 10px;
 }
@@ -1367,6 +1381,21 @@ tbody tr.secili .rz,
 
 .dg--ana:hover {
   background: var(--mavi-acik);
+}
+
+/* Geri alınmayan silmenin onay düğmesi (ekranlar/ortak.jsx →
+   OnayPenceresi, 7 Ekim 2026). Renk iki temada da sabit: karanlık temanın
+   `--kirmizi`si açık bir ton ve beyaz yazı onun üstünde okunmuyor.
+   #b42d2d üstünde beyaz 6,3:1. */
+.dg--sil {
+  background: #b42d2d;
+  border-color: transparent;
+  color: #fff;
+}
+
+.dg--sil:hover {
+  background: #962424;
+  border-color: transparent;
 }
 
 .dg--kucuk {
@@ -2796,10 +2825,22 @@ button.deger:hover {
 
 .ysutun__etiket {
   font-size: 10.5px;
+  line-height: 1.25;
   color: var(--murekkep-3);
-  white-space: nowrap;
   text-align: center;
-  overflow: visible;
+  overflow-wrap: normal;
+  padding: 0 1px;
+}
+
+/* Dar grafikte (sütun başına 34 pikselden az) etiket dik: yan yana
+   sığmayan aralık yazısı yine okunuyor (bkz. grafik.jsx → YiginSutun). */
+.ysutun__eksen--dik .ysutun__etiket {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: nowrap;
+  justify-self: center;
+  font-size: 10px;
+  padding: 0;
 }
 
 /* ==========================================================================
@@ -2811,16 +2852,21 @@ button.deger:hover {
   display: flex;
   gap: 4px;
   margin: 0 0 14px;
-  padding-bottom: 2px;
+  /* Seçili sekmenin çizgisi kutunun İÇİNDE (bottom: 0), alt çizgi
+     gölgeyle: çizgi kutunun altına taşıyordu ve yatay kaydırma için açık
+     olan taşma dikeyde de kaydırma çubuğu çıkarıyordu (6 Ekim 2026,
+     kullanıcının bildirdiği). Dar ekranda yatay kaydırma duruyor. */
   overflow-x: auto;
-  border-bottom: 1px solid var(--cizgi);
+  overflow-y: hidden;
+  box-shadow: inset 0 -1px 0 var(--cizgi);
   scrollbar-width: thin;
 }
 
 .rapor-sekme {
   position: relative;
   flex: none;
-  padding: 10px 14px 12px;
+  /* 14'tü: dokuz sekme 1400 pikselde 8 piksel sığmıyordu (6 Ekim 2026). */
+  padding: 10px 12px 12px;
   border: 0;
   background: none;
   color: var(--murekkep-2);
@@ -2844,7 +2890,7 @@ button.deger:hover {
   position: absolute;
   left: 10px;
   right: 10px;
-  bottom: -3px;
+  bottom: 0;
   height: 3px;
   border-radius: 3px 3px 0 0;
   background: var(--mavi);
@@ -2941,10 +2987,25 @@ button.deger:hover {
   }
 }
 
-/* Rapor ölçüleri dörderli: sekiz kutu 7 + 1 diye bölünüp sonuncusu
-   tek başına alt satırda kalıyordu. */
+/* RAPOR KUTULARI İÇERİK KADAR (6 Ekim 2026, kullanıcının bildirdiği:
+   "alt açıklamalar gidince kutu boyutları çok büyük kaldı … içleri çok
+   boş kaldı"). Önce dörderli ızgaraydı (en az 290 piksel): altındaki
+   açıklama satırı genişliği dolduruyordu. Açıklama kalkınca (Gorunum.jsx
+   → OlcuSeridi) kutu yalnız başlık ve rakam taşıyor. Izgara daha dar
+   (geniş ekranda satırda beş kutu), kutular eşit genişlikte ve aynı
+   satırda aynı boyda; içerik kadar genişleyen kutular denendi, sağ
+   kenarları dağınık duruyordu. */
 .olculer--rapor {
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+}
+
+.olculer--rapor .deger {
+  padding: 12px 16px 13px;
+}
+
+.olculer--rapor .deger__v {
+  font-size: 25px;
+  margin-top: 4px;
 }
 
 /* Geniş kartta yatay barın adları daha uzun: "Müşterinin teklif

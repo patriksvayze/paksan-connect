@@ -272,11 +272,36 @@
      AK-37  eski sürümün servis kabulü yeni sürüme sayılırsa    düştü
      AK-37  sınama tohumunun hesabı eski metin sürümünde kalırsa düştü
      AK-37  veritabanında olmayan kanal kodu yazılırsa          düştü
+     Bölge dışı servis talebi (5 Ekim 2026):
+     AK-38  bölge kuralı hiç uygulanmazsa                      düştü
+     AK-38  kural hesap adresine bakarsa                       düştü
+     AK-38  atama ekrandaki kopyadan karar verirse             düştü
+     AK-38  servis bildirimi makinenin servisine giderse       düştü
+     AK-38  kapanmış talebe atama kapısı kalkarsa              düştü
+     AK-38  atama makinenin kalıcı servisini de değiştirirse   düştü
+     Garanti işi servis biriminde, yapılan iş çok seçimli (6 Ekim 2026):
+     AK-03  parça isteği yedek parça masasına düşerse           düştü (AK-34 de)
+     AK-03  rolunTalepleri garanti kapısı kalkarsa              düştü (AK-08 de)
+     AK-03  parçasız "Parça Değişti" kapısı kalkarsa            düştü
+     AK-03  yapılan iş yazısı seçimlere bölünmezse              düştü
+     AK-03, AK-08, AK-34  garanti parçası yedek parça masasındaydı,
+            beklentiler eskidi (kullanıcının kararıyla kural değişti).
+     Servis formu yalnız bu ziyaretin kaydı tamamlanınca (7 Ekim 2026):
+     AK-35  iki kapı birden kalkarsa (eski kural)               düştü
+     AK-35  kapılardan biri tek başına kalkarsa: DÜŞMEDİ — iki kat
+            kapı; yeniden açılan işte durum "yeni", parça beklerken
+            kayıt bu ziyaretin ama durum "parcaBekliyor", öteki tutuyor.
+     AK-02  ikinci makinenin talebi Konya'dan açılınca bölge dışı
+            oldu: beklenti eskidi, talep makinenin yerinden (Ankara)
+            açılıyor (uygulama bozulmadı, kural değişti).
      AK-08  iptal kilidi "kapandı" nedenine dönerse               düştü
      AK-31  onay bekleyen kendi işi uyarıya girmezse (28.09.2026) düştü
      AK-28  kapı backoffice'in çağrısına da uygulanırsa         düştü
      AK-30  numara değişikliği kimliksiz görüşü bağlamazsa      düştü
      AK-30  telHamYap "0090"/"90" yazılışında kodu atmazsa      düştü
+     AK-30  bildirim listesi "numara"yı duyuruya çevirirse      düştü (7 Ekim 2026)
+     AK-30  numara reddi formu değil profili açarsa              düştü (7 Ekim 2026)
+     AK-30  numara onayı profile götürürse                       düştü (7 Ekim 2026)
      AK-31  Servisim kartı devredilmiş işi "işiniz" sayarsa     düştü
      AK-32  gizleme açık (yeniden açılmış) talebi de saklarsa   düştü
      AK-32  sorunDevamEngeli süren işi görmezse                 düştü

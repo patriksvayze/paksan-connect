@@ -171,7 +171,7 @@ alıyor.
   çağrılmıyor. Ölçüldü: `GET /api/durum` bugün `kilavuzluUrunler` alanını
   zaten döndürüyor — tam olarak 9 ürün kimliği. Ekran bunu okur.
 - Böylece "hangi modelin kılavuzu var" sorusunun tek kaynağı sunucu olur;
-  uygulamadaki gömülü tablo (`src/marka/icerik/kilavuzEslesme.js`) ile
+  uygulamadaki gömülü tablo (`src/data/icerik/kilavuzEslesme.js`) ile
   sunucunun ayrışması biter. Bugün ikisi aynı 9 ürünü söylüyor, yani
   davranış değişmiyor, yalnız kayma riski kapanıyor.
 - Sunucuya ulaşılamazsa gömülü tabloya düşülür (`kilavuzVarMi`,

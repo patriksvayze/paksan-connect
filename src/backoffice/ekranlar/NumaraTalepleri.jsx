@@ -4,7 +4,7 @@ import {
   numaraTalepleriGetir, seriCakismasiMi, seriDogruMu,
 } from '../veri'
 import { useVeri } from '../kanca'
-import { Baslik, BeklemeKart, Bos, tarihYaz } from './ortak'
+import { Baslik, BeklemeKart, Bos, tarihYaz, useOnay } from './ortak'
 import { formatSerial } from '../../lib/serial'
 import { telGoster } from '../../lib/tel'
 
@@ -86,6 +86,7 @@ export function NumaraTalepleri({ personel, bildir, tazele, surum }) {
 
 function Kart({ talep, personel, bildir, tazele }) {
   const [not, setNot] = useState('')
+  const [sor, onayPenceresi] = useOnay()
   const bekliyor = talep.durum === 'bekliyor'
   const onaylandi = talep.durum === 'onaylandi'
 
@@ -99,11 +100,21 @@ function Kart({ talep, personel, bildir, tazele }) {
   const numaraTamam = numaraDogruMu(talep)
   const guvenli = seriTamam && numaraTamam
 
-  function karar(onay) {
+  /* Kontroller doğrulanamadıysa onay backoffice'in penceresinden (7 Ekim
+     2026; önce tarayıcının uyarı kutusuydu, bkz. ortak.jsx → useOnay). */
+  async function karar(onay) {
     const soru = cakisma
-      ? 'Eski numara ve seri numarası kontrollerinden en az biri doğrulanamadı. Onay verirseniz eski hesabın makineleri, makine kayıtları ve talepleri yeni hesaba taşınacak. Yanlış onay, başka birinin hesabının devralınmasına yol açabilir. Müşteriyi arayıp iki hesabın da kendisine ait olduğunu doğrulamadan onay vermeyin. Kayıtlar yeni hesaba taşınsın mı?'
-      : 'Eski numara ve seri numarası kontrollerinden en az biri doğrulanamadı. Onay verirseniz hesabın giriş numarası değişecek. Yanlış onay, başka birinin hesaba erişmesine yol açabilir. Müşteriyi arayıp bilgilerini doğrulamadan onay vermeyin. Hesabın numarası değiştirilsin mi?'
-    if (onay && !guvenli && !confirm(soru)) {
+      ? {
+          baslik: 'Kayıtlar yeni hesaba taşınsın mı?',
+          metin: 'Eski numara ve seri numarası kontrollerinden en az biri doğrulanamadı. Onay verirseniz eski hesabın makineleri, makine kayıtları ve talepleri yeni hesaba taşınacak. Yanlış onay, başka birinin hesabının devralınmasına yol açabilir. Müşteriyi arayıp iki hesabın da kendisine ait olduğunu doğrulamadan onay vermeyin.',
+          dugme: 'Kayıtları Taşı',
+        }
+      : {
+          baslik: 'Hesabın giriş numarası değiştirilsin mi?',
+          metin: 'Eski numara ve seri numarası kontrollerinden en az biri doğrulanamadı. Onay verirseniz hesabın giriş numarası değişecek. Yanlış onay, başka birinin hesaba erişmesine yol açabilir. Müşteriyi arayıp bilgilerini doğrulamadan onay vermeyin.',
+          dugme: 'Numarayı Değiştir',
+        }
+    if (onay && !guvenli && !(await sor(soru))) {
       return
     }
     numaraTalebiKarar(talep, onay, personel, not.trim())
@@ -126,6 +137,7 @@ function Kart({ talep, personel, bildir, tazele }) {
 
   return (
     <div className="kart" style={{ marginBottom: 14 }}>
+      {onayPenceresi}
       <div className="kart__tepe">
         <div>
           <div style={{ fontWeight: 700 }}>{talep.ad || '—'}</div>

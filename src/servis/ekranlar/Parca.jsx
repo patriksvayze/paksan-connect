@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { servisinSiparisleri, talepleriGetir } from '../../backoffice/veri'
 import { parcaYazisiKodlu, siparisGonderimi, talebinParcalari } from '../../lib/servisKaydi'
 import { siparisNetTutari } from '../../lib/servisFiyat'
-import { PARA_BIRIMI, paraYaz, MARKA, markaEk } from '../../marka'
+import { PARA_BIRIMI, paraYaz } from '../../data/katalog/para.js'
 import { gecenSure } from '../../backoffice/ekranlar/ortak'
 import { Bolum, Bos, ListeKarti } from '../Kabuk'
 import bosStokGorseli from '../../assets/gorseller/servis-bos-stok.png'
@@ -79,7 +79,7 @@ export function Parca({ oturum, onAc, onSiparis, surum }) {
       <Bos
         gorsel={bosStokGorseli}
         baslik="Henüz siparişiniz yok"
-        alt={`İhtiyacınız olan parçaları ${markaEk('dan')} aşağıdaki Sipariş Ver düğmesiyle isteyebilirsiniz.`}
+        alt={`İhtiyacınız olan parçaları PAKSAN’dan aşağıdaki Sipariş Ver düğmesiyle isteyebilirsiniz.`}
       />
     )
   }
@@ -122,7 +122,7 @@ export function Parca({ oturum, onAc, onSiparis, surum }) {
                     ? s.status === 'kapandi' && !kismi
                       ? 'Bakiyenizden düşüldü'
                       : 'Bakiyenizden düşülecek'
-                    : `${MARKA} faturalandıracak`
+                    : `PAKSAN faturalandıracak`
               }
               sol={durum.ad}
               /* KDV DÂHİL TUTAR (24 Eylül 2026). Kart kaydın `tutar`
@@ -141,7 +141,7 @@ export function Parca({ oturum, onAc, onSiparis, surum }) {
       </Bolum>
 
       <p className="ipucu">
-        Siparişiniz {MARKA} yedek parça birimine düşer. Kargoya verildiğinde
+        Siparişiniz PAKSAN yedek parça birimine düşer. Kargoya verildiğinde
         buradaki durumu değişir.
       </p>
     </>

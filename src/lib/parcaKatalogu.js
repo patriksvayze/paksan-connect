@@ -1,5 +1,6 @@
 import { PARCA_KATALOG } from '../config'
-import { kdvTutari, PARCA_GRUBU_AILESI, PARCASIZ_AILELER } from '../marka'
+import { kdvTutari } from '../data/katalog/para.js'
+import { PARCA_GRUBU_AILESI, PARCASIZ_AILELER } from '../data/katalog/parcaGruplari.js'
 import { load } from './storage'
 
 /* ==========================================================================
@@ -274,7 +275,7 @@ export function gruplarListesi(katalog) {
  * Bir makine ailesinin parça grupları.
  *
  * Makine ailesi `supportGroup()` çıktısıdır (balya · rulo · yem ·
- * silaj · cayir · toprak · genel). Eşleme `src/marka/katalog/
+ * silaj · cayir · toprak · genel). Eşleme `src/data/katalog/
  * parcaGruplari.js` içinde; katalogda makine alanı olmadığı için
  * köprü oradan geliyor.
  *

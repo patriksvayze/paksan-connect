@@ -8,7 +8,7 @@ import {
   acikNumaraTalebi, numaraTalebiGonder, seriCakismasiTalebi, SERI_CAKISMASI,
 } from '../lib/numaraTalebi'
 import { numaraMetni } from '../data/numaraDegisikligi'
-import { SIRKET } from '../marka'
+import { SIRKET } from '../data/kimlik.js'
 import { IconShield, IconCheck, IconCheckCircle, IconAlert, IconPhone } from './Icons'
 
 /* ==========================================================================

@@ -5,7 +5,8 @@ import {
   talepleriGetir,
 } from '../veri'
 import { useVeri } from '../kanca'
-import { bayileriGetir, servisleriGetir } from '../../marka'
+import { bayileriGetir } from '../../data/katalog/bayiler.js'
+import { servisleriGetir } from '../../data/katalog/servisler.js'
 import { Baslik, Bekleme } from './ortak'
 import { araliktaMi, BOS_ARALIK, SuzgecCubugu, TarihAraligi } from './suzgec'
 import { BOLUMLER } from './rapor/bolumler'
@@ -173,7 +174,8 @@ export function Raporlar({ rol, personel, surum, git, sorgu }) {
 
       <div className="rapor-bolum-bas">
         <h2>{bolum.ad}</h2>
-        <p>{bolum.soru}</p>
+        {/* Alt açıklaması olmayan bölüm (Ürün Kalitesi, 6 Ekim 2026) boş satır çizmiyor. */}
+        {bolum.soru && <p>{bolum.soru}</p>}
       </div>
 
       {hesap?.hata ? (

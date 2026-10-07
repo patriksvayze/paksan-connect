@@ -21,10 +21,12 @@
      3. CSS token'ları   — styles.css ve backoffice.css aynı değerleri
                            veriyor mu (iki dosya elle senkron tutuluyor)
      4. Derleme ayrımı   — dist/ içine backoffice kodu sızmış mı
-     5. Marka sınırı     — motor marka klasörüne yalnız kapıdan bakıyor mu
-     6. Marka adı        — firma adı motor kodunda düz yazıyla geçiyor mu
+     5. ve 6.            — kaldırıldı (5 Ekim 2026): marka sınırı ve marka
+                           adı. Ürün yalnız PAKSAN'ın; firmaya ait her şeyi
+                           tek klasörde tutan katman söküldü, ad koda düz
+                           yazılıyor. Numaralar başvurular kaymasın diye boş.
      7. Bayi kalıntısı   — servis uygulamasında bayi kelimesi kalmış mı
-     8. Sınamalar — tools/ altındaki dokuz sınama betiği
+     8. Sınamalar — tools/ altındaki sekiz sınama betiği
      9. Yedek parça      — katalog tutarlı mı, uydurma fiyat geri geldi mi
     10. Sürüm numarası   — Connect'in üç yeri tutuyor mu, Servisim ayrı mı
     11. Yayın anahtarları — geliştirme ayarı APK'ya gidiyor mu (saymıyor)
@@ -379,99 +381,6 @@ for (const a of AYRIMLAR) {
   else for (const b of bulunan) bildir(b)
 }
 
-/* ------------------------------------------------ 5. Marka sınırı
-
-   Firmaya ait olan her şey `src/marka/` içinde; motor oraya TEK
-   KAPIDAN bakıyor (`src/marka/index.js`). Bu ayrım belgeyle
-   korunmuyor, burada korunuyor: derinden import eden bir dosya
-   eklenirse kontrol düşüyor ve marka klasörünün iç düzeni bir daha
-   serbestçe değiştirilemez hâle gelir.
-
-   TEK İSTİSNA `src/marka/icerik/`. Arıza bilgi tabanı, teknik
-   özellikler ve güvenlik çizimleri ağır dosyalar (29 Eylül 2026'ya
-   kadar 1,7 MB'lık kılavuz paketi de buradaydı). Kapıdan verilselerdi `../marka` yazan her dosya
-   onları da paketine çekerdi; servis paneli arıza bilgi tabanını hiç
-   kullanmadığı hâlde taşırdı. İçerik bu yüzden doğrudan, yalnız
-   çizildiği ekrandan import ediliyor. */
-
-baslik('5. Marka sınırı')
-
-const DERIN = /from\s+'[^']*\/marka\/(?!icerik\/)[^']*'/
-const derinler = []
-for (const d of dosyalar(join(KOK, 'src'), ['.js', '.jsx'])) {
-  if (d.includes(`${SEP}marka${SEP}`)) continue /* kendi içi serbest */
-  for (const [i, satir] of readFileSync(d, 'utf8').split('\n').entries()) {
-    if (DERIN.test(satir)) {
-      derinler.push(`${d.split(/[\\/]/).pop()}:${i + 1} ${satir.trim()}`)
-    }
-  }
-}
-
-if (!derinler.length) {
-  tamam('motor marka klasörüne yalnız kapıdan bakıyor')
-} else {
-  for (const x of derinler) bildir(`marka klasörüne derin import: ${x}`)
-}
-
-/* ------------------------------------------------ 6. Marka adı sızıntısı
-
-   Sınırı çizmek yetmiyor: Firma adı kodun içine düz yazıyla
-   serpilmişse yeni firma onu tek tek aramak zorunda kalır ve biri
-   mutlaka gözden kaçar.
-
-   BÜYÜK HARF İLE KÜÇÜK HARF AYRI ŞEYLER
-
-   Bu kontrol yalnızca GÖRÜNEN yazıyı arıyor: `PAKSAN`. Küçük harfli
-   `paksan` bir iç anahtar — talebin kimde olduğunu tutan `sahip`
-   alanının değeri, `paksan.` depolama öneki, `paksan-ekler` veri
-   tabanı adı. Bunlar kullanıcıya hiç görünmüyor ve değiştirilirse
-   kurulu cihazlardaki kayıtlar okunamaz hâle gelir. O yüzden
-   dokunulmuyorlar; yeni firmada da anlamsız değil, "üretici tarafı"
-   demek.
-
-   YORUMLAR MUAF
-
-   Yorumlarda firmanın iş kuralını anlatan gerekçeler var ("bayi
-   PAKSAN'dan satın aldığı kadar stok tutar"). Onları silmek bilgi
-   kaybı olur; yeni firma okuyup kendi karşılığını görebilir.
-
-   Adın kendisi kimlik dosyasından okunuyor — kontrol, firmaya değil,
-   kuralın kendisine bağlı. */
-
-baslik('6. Marka adı sızıntısı')
-
-const { SIRKET: SRK } = await import('../src/marka/kimlik.js')
-const AD = SRK.kisaAd
-
-const sizintilar = []
-for (const d of dosyalar(join(KOK, 'src'), ['.js', '.jsx'])) {
-  if (d.includes(`${SEP}marka${SEP}`)) continue /* markanın kendi klasörü */
-  const satirlar = readFileSync(d, 'utf8').split(/\r?\n/)
-  let blokta = false
-  satirlar.forEach((s, i) => {
-    const ac = s.indexOf('/*')
-    const kap = s.indexOf('*/')
-    const oncekiBlokta = blokta
-    if (!blokta && ac >= 0 && kap < ac) blokta = true
-    else if (blokta && kap >= 0) blokta = false
-    if (oncekiBlokta) return
-    const kod = s
-      .replace(/\/\*[\s\S]*?\*\//g, '')
-      .replace(/\/\*.*$/, '')
-      .replace(/^\s*\*.*$/, '')
-      .replace(/\/\/.*$/, '')
-    if (kod.includes(AD)) {
-      sizintilar.push(`${d.split(/[\\/]/).pop()}:${i + 1} ${kod.trim()}`)
-    }
-  })
-}
-
-if (!sizintilar.length) {
-  tamam(`"${AD}" motor kodunda geçmiyor (yorumlar hariç)`)
-} else {
-  for (const x of sizintilar) bildir(`marka adı kodda: ${x}`)
-}
-
 /* -------------------------------------------------- 7. Bayi kalıntısı
 
    BAYİ VE SERVİS AYRI TARAFLAR.
@@ -513,7 +422,7 @@ if (!sizintilar.length) {
    yönetiyor. `bayileriGetir`, `bayiDuzenle` gibi adlar da kural dışı
    değil — onlar gerçekten bayi varlığını yönetiyor.
 
-   `src/marka/katalog/servisler.js` de dışarıda: servis kaydının
+   `src/data/katalog/servisler.js` de dışarıda: servis kaydının
    `bayiler` alanı zincirin orta halkası.
 
    Müşteri uygulamasının geri kalanı da dışarıda: `Register.jsx`
@@ -612,7 +521,6 @@ baslik('8. Sınamalar')
 const { spawnSync } = await import('node:child_process')
 
 const SINAMALAR = [
-  ['marka-ek-testi.mjs', 'marka adının Türkçe ekleri'],
   ['bolge-testi.mjs', 'servis bölge eşleştirmesi'],
   ['duyuru-hedef-testi.mjs', 'duyuru hedeflemesi'],
   /* Destek veri paketini denetliyor: dokununca boş açılan arıza,
@@ -678,7 +586,7 @@ for (const [dosya, ad] of SINAMALAR) {
 /* ------------------------------------------------ 9. Yedek parça verisi
 
    Uygulamada bir dönem UYDURMA bir yedek parça fiyat listesi vardı
-   (`src/marka/katalog/parcaFiyat.js`, 30 kayıt, `PKS-` ile başlayan
+   (`src/data/katalog/parcaFiyat.js`, 30 kayıt, `PKS-` ile başlayan
    kodlar) ve müşteriye o uydurma tutar havale ettirilmek üzereydi.
    12 Eylül 2026'da tamamen kaldırıldı; fiyatın tek kaynağı artık
    PAKSAN'ın kendi yedek parça kataloğu.
@@ -744,6 +652,27 @@ if (izinsizKapi.length) {
 
 const KATALOG_YOLU = join(KOK, 'sunucu-taklidi', 'parca-katalogu', 'katalog.json')
 const GORSEL_KLASORU = join(KOK, 'sunucu-taklidi', 'parca-katalogu', 'gorseller')
+/* Arşivdeki eski listelerin gösterdiği görseller de sahipli: sunucu görsel
+   silmiyor, geçmiş talepler o adları taşıyor (sunucu-taklidi/
+   fiyat-listesi-yayini.mjs başı). 7 Ekim 2026'ya kadar bu kontrol yalnız
+   yürürlükteki listeye bakıyordu; başarılı her yayından sonra eski
+   listenin görsellerini "parçası olmayan" sayıp düşüyordu. Bozma: hiçbir
+   listenin göstermediği bir .webp klasöre konunca kontrol yine düştü. */
+const ARSIV_KLASORU = join(KOK, 'sunucu-taklidi', 'parca-katalogu-arsiv')
+function arsivdekiGorseller() {
+  const adlar = new Set()
+  if (!existsSync(ARSIV_KLASORU)) return adlar
+  for (const d of readdirSync(ARSIV_KLASORU)) {
+    const dosya = join(ARSIV_KLASORU, d, 'katalog.json')
+    if (!existsSync(dosya)) continue
+    try {
+      for (const p of JSON.parse(readFileSync(dosya, 'utf8')).parcalar || []) if (p && p.gorsel) adlar.add(p.gorsel)
+    } catch {
+      /* Okunamayan arşiv listesi sahiplik vermiyor. */
+    }
+  }
+  return adlar
+}
 
 if (!existsSync(KATALOG_YOLU)) {
   bildir('katalog dosyası bulunamadı: sunucu-taklidi/parca-katalogu/katalog.json')
@@ -787,20 +716,25 @@ if (!existsSync(KATALOG_YOLU)) {
   } else {
     const diskte = new Set(readdirSync(GORSEL_KLASORU))
     const gorselsiz = parcalar.filter((p) => p && p.gorsel && !diskte.has(p.gorsel))
+    const arsivde = arsivdekiGorseller()
     const yetimGorsel = [...diskte].filter(
-      (d) => d.endsWith('.webp') && !parcalar.some((p) => p && p.gorsel === d),
+      (d) => d.endsWith('.webp') && !parcalar.some((p) => p && p.gorsel === d) && !arsivde.has(d),
     )
     if (gorselsiz.length) {
       bildir(`görseli eksik ${gorselsiz.length} parça`)
     } else if (yetimGorsel.length) {
       bildir(`parçası olmayan ${yetimGorsel.length} görsel`)
     } else {
-      tamam(`görseller birebir — ${parcalar.length} parça, ${parcalar.length} görsel`)
+      const eski = [...diskte].filter((d) => d.endsWith('.webp')).length - parcalar.filter((p) => p && p.gorsel).length
+      tamam(
+        `görseller birebir — ${parcalar.length} parça` +
+          (eski > 0 ? `, ayrıca eski listelerin ${eski} görseli (geçmiş talepler için duruyor)` : ''),
+      )
     }
   }
 
   const { eslenmemisGruplar, artikOlmayanGruplar } = await import(
-    '../src/marka/katalog/parcaGruplari.js'
+    '../src/data/katalog/parcaGruplari.js'
   )
   const eslenmemis = eslenmemisGruplar(gruplar)
   const olmayan = artikOlmayanGruplar(gruplar)
@@ -814,7 +748,7 @@ if (!existsSync(KATALOG_YOLU)) {
 
   /* DESTEK'İN PARÇA ADI → KATALOG KODU (29 Eylül 2026). "Bu Parçaları
      Talep Et" adları talep formunda bu tabloyla koda çevriliyor
-     (src/marka/icerik/destekVerisi.js → PARCA_KODU). Yeni fiyat listesi
+     (src/data/icerik/destekVerisi.js → PARCA_KODU). Yeni fiyat listesi
      bir kodu kaldırırsa ya da parça başka gruba taşınırsa form sessizce
      seçmez olurdu; yanlış aileye yazılan kod çiftçiye başka makinenin
      parçasını seçerdi. Ürünün ailesi products.js → supportGroup ile aynı
@@ -822,8 +756,8 @@ if (!existsSync(KATALOG_YOLU)) {
      için burada doğrudan yüklenemiyor.
      Bozarak sınandı (29 Eylül 2026): katalogda olmayan kod, başka
      aileden ürün, Destek'te geçmeyen ad — üçünde de düştü. */
-  const { PARCA_KODU, DESTEK } = await import('../src/marka/icerik/destekVerisi.js')
-  const { PARCA_GRUBU_AILESI } = await import('../src/marka/katalog/parcaGruplari.js')
+  const { PARCA_KODU, DESTEK } = await import('../src/data/icerik/destekVerisi.js')
+  const { PARCA_GRUBU_AILESI } = await import('../src/data/katalog/parcaGruplari.js')
   const AILE_KATEGORILERI = {
     balya: ['kucuk-balya', 'buyuk-balya'],
     rulo: ['rulo-balya'],
@@ -832,7 +766,7 @@ if (!existsSync(KATALOG_YOLU)) {
     cayir: ['cayir-ot'],
     toprak: ['toprak'],
   }
-  const urunKaynagi = readFileSync(join(KOK, 'src/marka/katalog/products.js'), 'utf8')
+  const urunKaynagi = readFileSync(join(KOK, 'src/data/katalog/products.js'), 'utf8')
   const urunKategorisi = (id) =>
     urunKaynagi.match(new RegExp(`id: '${id}',\\s*\\n\\s*name: '[^']*',\\s*\\n\\s*category: '([^']+)'`))?.[1] || null
   const parcaSorunu = []
@@ -859,7 +793,7 @@ if (!existsSync(KATALOG_YOLU)) {
 
 /* ------------------------------------------------- 10. Sürüm numarası
 
-   PAKSAN Connect'in sürümü ÜÇ YERDE birden yazılı: `src/marka/kimlik.js`
+   PAKSAN Connect'in sürümü ÜÇ YERDE birden yazılı: `src/data/kimlik.js`
    içindeki `SURUM` (uygulamanın ekranında görünen), `package.json`
    içindeki `version` ve `android/app/build.gradle` içindeki
    `versionName`. Üçü elle artırılıyor; bugüne kadar tutmalarını sağlayan
@@ -880,7 +814,7 @@ if (!existsSync(KATALOG_YOLU)) {
 
 baslik('10. Sürüm numarası')
 
-const { SURUM } = await import('../src/marka/kimlik.js')
+const { SURUM } = await import('../src/data/kimlik.js')
 const paketJson = JSON.parse(readFileSync(join(KOK, 'package.json'), 'utf8'))
 
 /** build.gradle'daki sürüm alanlarını okur. */
@@ -900,7 +834,7 @@ if (!connect) {
   tamam(`Connect sürümü üç yerde de ${SURUM} (versionCode ${connect.kod})`)
 } else {
   bildir('Connect sürümü üç yerde aynı değil:')
-  console.log(`      src/marka/kimlik.js SURUM   ${SURUM}`)
+  console.log(`      src/data/kimlik.js SURUM   ${SURUM}`)
   console.log(`      package.json version        ${paketJson.version}`)
   console.log(`      android versionName         ${connect && connect.ad}`)
 }
@@ -1178,5 +1112,5 @@ if (sorun) {
   process.exit(1)
 }
 console.log(
-  YAYIN_KIPI ? 'SONUÇ: on üç kontrol de temiz, yayına hazır.' : 'SONUÇ: on üç kontrol de temiz.',
+  YAYIN_KIPI ? 'SONUÇ: on bir kontrol de temiz, yayına hazır.' : 'SONUÇ: on bir kontrol de temiz.',
 )

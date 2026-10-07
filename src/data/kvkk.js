@@ -9,7 +9,7 @@
    (sorulacaklar CANLIYA-CIKIS.md → "KVKK: hukuk danışmanına
    sorulacaklar").
 
-   Unvan ve adresler marka katmanından (src/marka/kimlik.js → SIRKET).
+   Unvan ve adresler src/data/kimlik.js → SIRKET'ten.
    MERSİS numarası, KEP adresi ve VERBİS kaydı oraya eklenmeli.
 
    SÜRÜM 1.1 (29 Eylül 2026). 1.0'daki yanlışlar düzeltildi: "size en
@@ -32,7 +32,7 @@
    METİNLER CODEX'TEN GEÇTİ (proje kuralı); İngilizcesi kvkk.en.js.
    ========================================================================== */
 
-import { SIRKET, MARKA, markaEk } from '../marka'
+import { SIRKET } from './kimlik.js'
 import { KVKK_EN, ASIL_METIN_NOTU } from './kvkk.en'
 
 export const KVKK_SURUM = '1.1'
@@ -96,11 +96,11 @@ export const AYDINLATMA = {
         'Verileriniz, yalnızca ilgili amacın gerektirdiği ölçüde şu alıcılara aktarılır:',
       ],
       maddeler: [
-        `Yetkili servis: adınız, telefon numaranız, makinenin bulunduğu adres, makine bilgileri, talebinizin içeriği ve ekleri, makinenize atanmış ya da talebinizi yürüten ${MARKA} yetkili servisine aktarılır.`,
+        `Yetkili servis: adınız, telefon numaranız, makinenin bulunduğu adres, makine bilgileri, talebinizin içeriği ve ekleri, makinenize atanmış ya da talebinizi yürüten PAKSAN yetkili servisine aktarılır.`,
         'Yetkili servisin sizin için kayıt açması: yetkili bir servis, sizin için kayıt açarken telefon numaranız ya da makinenizin seri numarasıyla hesabınızı bulabilir. Bu durumda adınız, iliniz ve kayıtlı makineleriniz o servis tarafından görülebilir.',
         'Yetkili bayi: fiyat teklifi talebiniz olduğunda adınız, telefon numaranız, iliniz ve talebinizin içeriği, talebi karşılayacak yetkili bayiye aktarılır.',
         'Kargo şirketleri: yedek parça gönderimi için alıcının adı, teslimat adresi ve telefon numarası aktarılır.',
-        `Hizmet sağlayıcılar: uygulamanın barındırıldığı sunucu ve bildirim altyapısı gibi hizmetleri sunan, ${markaEk('in')} adına ve talimatıyla çalışan firmalara aktarılır.`,
+        `Hizmet sağlayıcılar: uygulamanın barındırıldığı sunucu ve bildirim altyapısı gibi hizmetleri sunan, PAKSAN’ın adına ve talimatıyla çalışan firmalara aktarılır.`,
         'Mali müşavir, denetçi ve hukuk danışmanları: mevzuatın gerektirdiği ölçüde aktarılır.',
         'Yetkili kamu kurum ve kuruluşları: mevzuatın gerektirdiği hâllerde aktarılır.',
       ],
@@ -119,7 +119,7 @@ export const AYDINLATMA = {
       maddeler: [
         'Uygulamaya yazdığınız bilgiler ve yüklediğiniz fotoğraf, video, ses kaydı ve dekontlar',
         'Yetkili servisin sizin için açtığı kayıtlar ve makinenizde yaptığı işlemlere ilişkin kayıtlar',
-        `Telefonla ${markaEk('a')} ilettiğiniz bilgiler`,
+        `Telefonla PAKSAN’a ilettiğiniz bilgiler`,
         'Uygulamanın otomatik olarak oluşturduğu kayıtlar: giriş zamanları, uygulama sürümü ve bildirim izni verdiyseniz cihazınızın bildirim kimliği',
         'Uygulama telefonunuzun konumunu kullanmaz; konum bilginiz yalnızca sizin yazdığınız il, ilçe ve adresten oluşur.',
       ],
@@ -152,7 +152,7 @@ export const AYDINLATMA = {
         `Başvurunuzu yukarıdaki adresimize ıslak imzalı dilekçeyle iletebilirsiniz. Ayrıca kayıtlı elektronik posta (KEP), güvenli elektronik imza veya mobil imza kullanarak ya da daha önce bize bildirdiğiniz ve sistemimizde kayıtlı olan e-posta adresinizden ${SIRKET.eposta} adresine yazarak başvurabilirsiniz.`,
         'Başvurunuzda adınız ve soyadınız, T.C. kimlik numaranız (yabancıysanız uyruğunuz ve pasaport numaranız), tebligat adresiniz, varsa e-posta adresiniz ve telefon numaranız ile talebinizin konusu yer almalıdır.',
         'Başvurunuz en geç 30 gün içinde ücretsiz olarak sonuçlandırılır. Yanıtı yeterli bulmazsanız Kişisel Verileri Koruma Kurulu’na şikâyette bulunabilirsiniz.',
-        `Hesabınızın kapatılmasını ve verilerinizin silinmesini de aynı yollarla isteyebilirsiniz. Bu işlemleri ${MARKA} yapar. Yasal saklama süresine tabi kayıtlar (örneğin faturalar) bu sürenin sonuna kadar saklanır; diğer kayıtlar silinir ya da anonim hâle getirilir.`,
+        `Hesabınızın kapatılmasını ve verilerinizin silinmesini de aynı yollarla isteyebilirsiniz. Bu işlemleri PAKSAN yapar. Yasal saklama süresine tabi kayıtlar (örneğin faturalar) bu sürenin sonuna kadar saklanır; diğer kayıtlar silinir ya da anonim hâle getirilir.`,
         'Uygulama, 18 yaşından büyük kullanıcılar içindir.',
       ],
     },
@@ -181,7 +181,7 @@ export const ACIK_RIZA = {
     {
       baslik: 'Sizinle iletişim',
       paragraflar: [
-        `Oluşturduğum taleplerle ilgili olarak ${markaEk('in')} ya da talebimi yürüten yetkili servisin telefon, SMS ve uygulama bildirimi yoluyla benimle iletişime geçmesine rıza veriyorum.`,
+        `Oluşturduğum taleplerle ilgili olarak PAKSAN’ın ya da talebimi yürüten yetkili servisin telefon, SMS ve uygulama bildirimi yoluyla benimle iletişime geçmesine rıza veriyorum.`,
         'Bu iletişim yalnızca talebimin alındığının bildirilmesi, servis randevusu ve makinemle ilgili güvenlik uyarıları gibi hizmete ilişkin konuları kapsar. Kampanya ve duyuru bildirimleri bu kapsama girmez; bunlar için ayrıca izin verilmesi gerekir.',
       ],
     },
@@ -205,7 +205,9 @@ export const TICARI_ILETI = {
   baslik: 'Kampanya ve Duyuru Bildirimleri',
   kisaAd: 'Kampanya Bildirimleri Metni',
   onayCumlesi:
-    'Kampanya, duyuru ve yeni ürün bildirimlerinin uygulama üzerinden bana gönderilmesini istiyorum. (İsteğe bağlı)',
+    /* "(İsteğe bağlı)" yazısı 7 Ekim 2026'da kalktı (kullanıcının
+       isteği); kutu yine zorunlu değil. */
+    'Kampanya, duyuru ve yeni ürün bildirimlerinin uygulama üzerinden bana gönderilmesini istiyorum.',
   bolumler: [
     {
       baslik: 'Ne gönderiyoruz?',
@@ -248,7 +250,7 @@ export const IZINLER = {
     {
       baslik: 'Mikrofon',
       paragraflar: [
-        `Mikrofon izni yalnızca talep formunda ses kaydı düğmesine bastığınızda istenir. Ses kaydı talebinize eklenir; kaydı ${MARKA} ve talebinizi yürüten yetkili servis dinler. Uygulama, siz düğmeye basmadan mikrofonu açmaz.`,
+        `Mikrofon izni yalnızca talep formunda ses kaydı düğmesine bastığınızda istenir. Ses kaydı talebinize eklenir; kaydı PAKSAN ve talebinizi yürüten yetkili servis dinler. Uygulama, siz düğmeye basmadan mikrofonu açmaz.`,
       ],
     },
     {
@@ -266,7 +268,7 @@ export const IZINLER = {
     {
       baslik: 'Telefon araması',
       paragraflar: [
-        `Servisi, bayiyi ya da ${markaEk('i')} aramak için bir numaraya dokunduğunuzda telefonunuzun arama ekranı açılır. Aramayı siz başlatırsınız. Uygulama arama kayıtlarınıza erişmez.`,
+        `Servisi, bayiyi ya da PAKSAN’ı aramak için bir numaraya dokunduğunuzda telefonunuzun arama ekranı açılır. Aramayı siz başlatırsınız. Uygulama arama kayıtlarınıza erişmez.`,
       ],
     },
   ],

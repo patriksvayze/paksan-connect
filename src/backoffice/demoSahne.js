@@ -113,7 +113,9 @@ import { parcaBul } from '../lib/parcaKatalogu'
 import { icerikTazele } from '../lib/icerikDeposu'
 import { adresEkle, adresTeslimata, firmaAdresi } from '../servis/adresler'
 import { okunduSay } from '../servis/talepBildirimleri'
-import { BAYILER, SERVISLER, getProduct } from '../marka'
+import { BAYILER } from '../data/katalog/bayiler.js'
+import { SERVISLER } from '../data/katalog/servisler.js'
+import { getProduct } from '../data/katalog/products.js'
 import {
   ANAHTAR,
   bakiyeIskontosuGetir,
@@ -323,7 +325,7 @@ export const SAHNE_ISLERI = [
 
 /* Connect'in talep formu Destek'ten gelen talepte açıklamayı iki satırla
    açıyor: tr.js → talep.destektenGeldi ve talep.destekteDenenen. Belirti
-   ve nedenler Destek'in arıza rehberinden (marka/icerik/destekVerisi.js,
+   ve nedenler Destek'in arıza rehberinden (data/icerik/destekVerisi.js,
    balya → ip-kopuyor). */
 const DESTEKTEN_ACIKLAMA =
   'Destek ekranında şu arıza üzerinde konuşuldu: İp sürekli kopuyor\n' +
@@ -949,7 +951,7 @@ export async function sahneKur({ katalog, personel, tekilNo, fotoUret, metinler 
   adim(6, 'D15 sorun devam', () => sorunDevam('D15', METIN.sorunDevamIp))
   adim(5, 'D15 parça isteği', () => parcaIste('D15', dugum, [2], firmaTeslimat()))
   adim(4, 'D15 parça gönderildi', () =>
-    servisParcasiGonderildi(bul('D15'), { firma: KARGO.aras, takipNo: '4817305926' }, pParca))
+    servisParcasiGonderildi(bul('D15'), { firma: KARGO.aras, takipNo: '4817305926' }, pServis))
   adim(2, 'D15 parça takıldı', () => isBitti('D15', { km: 70, saat: 3 }))
   adim(1, 'D15 düzeltme', () => duzelt('D15', { saat: 2 }, METIN.sureDuzeltme))
 
@@ -997,7 +999,7 @@ export async function sahneKur({ katalog, personel, tekilNo, fotoUret, metinler 
   adim(13.6, 'D17 randevu', () => randevu('D17', simdi - 13 * GUN))
   adim(13, 'D17 parça isteği', () => parcaIste('D17', pikap, [2], firmaTeslimat()))
   adim(12, 'D17 parça gönderildi', () =>
-    servisParcasiGonderildi(bul('D17'), { firma: KARGO.yurtici, takipNo: '7304158862' }, pParca))
+    servisParcasiGonderildi(bul('D17'), { firma: KARGO.yurtici, takipNo: '7304158862' }, pServis))
   adim(10, 'D17 parça takıldı', () => isBitti('D17', { km: 86, saat: 3.5 }))
   adim(9, 'D17 servisin notu', () => talepNotEkle(bul('D17'), METIN.servistenNot, servis.ad, { servisten: true }))
   adim(7, 'D17 onay', () => hakkedisOnayla(bul('D17'), pServis))
@@ -1044,7 +1046,7 @@ export async function sahneKur({ katalog, personel, tekilNo, fotoUret, metinler 
   adim(8, 'D14 talep', () => connectTalebi('D14', 'K7', 0, gevsek))
   adim(7, 'D14 parça isteği', () => parcaIste('D14', gevsek, [1, 1], firmaTeslimat()))
   adim(6, 'D14 parça gönderildi', () =>
-    servisParcasiGonderildi(bul('D14'), { firma: KARGO.mng, takipNo: '5520187341' }, pParca))
+    servisParcasiGonderildi(bul('D14'), { firma: KARGO.mng, takipNo: '5520187341' }, pServis))
   adim(3, 'D14 parça takıldı', () => isBitti('D14', { km: 45, saat: 2.5 }))
 
   /* D29 · servis kendi siparişini iptal etti */
@@ -1067,10 +1069,10 @@ export async function sahneKur({ katalog, personel, tekilNo, fotoUret, metinler 
   adim(5, 'D13 talep', () => connectTalebi('D13', 'K6', 0, saft))
   adim(4, 'D13 parça isteği', () =>
     parcaIste('D13', saft, [1], depoAdresi ? adresTeslimata(depoAdresi) : firmaTeslimat()))
-  adim(2, 'D13 parça gönderildi', () => servisParcasiGonderildi(bul('D13'), { firma: KARGO.aras, takipNo: '' }, pParca))
-  adim(1.9, 'D13 not', () => talepNotEkle(bul('D13'), METIN.kargoNotu, pParca, { servise: true }))
+  adim(2, 'D13 parça gönderildi', () => servisParcasiGonderildi(bul('D13'), { firma: KARGO.aras, takipNo: '' }, pServis))
+  adim(1.9, 'D13 not', () => talepNotEkle(bul('D13'), METIN.kargoNotu, pServis, { servise: true }))
   adim(1, 'D13 takip numarası', () =>
-    servisParcasiGonderildi(bul('D13'), { firma: KARGO.aras, takipNo: '4817399214' }, pParca))
+    servisParcasiGonderildi(bul('D13'), { firma: KARGO.aras, takipNo: '4817399214' }, pServis))
 
   /* D26 · bir kısmı gönderildi, kalanı bekliyor (ek indirimli) */
   adim(4, 'D26 sipariş', () => siparisVer('D26', [[4, 1], [5, 2]], 'bakiye'))

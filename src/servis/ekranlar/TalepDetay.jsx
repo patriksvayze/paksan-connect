@@ -22,8 +22,8 @@ import { bugunGirdi, gunlukRandevu, ileriTarihMi } from '../../lib/tarih'
 import { RANDEVU_ISI } from '../../lib/talep'
 import { kayitTelGoster, kayitTelHref } from '../../lib/tel'
 import { makineDurumAdi } from '../../data/talepAlanlari'
-import { getProduct, MARKA, markaEk } from '../../marka'
-import { KDV_HARIC_LISTE, KDV_ORANI, PARA_BIRIMI, paraYaz } from '../../marka'
+import { getProduct } from '../../data/katalog/products.js'
+import { KDV_HARIC_LISTE, KDV_ORANI, PARA_BIRIMI, paraYaz } from '../../data/katalog/para.js'
 import { ServisKapanisi, Secenekler } from './ServisKapanisi'
 import { servisFormuPaylas, servisFormuVarMi } from '../servisFormu'
 import { BasariSeridi, Onay, Sayfa, useAcilisKilidi } from '../Kabuk'
@@ -370,6 +370,7 @@ export function TalepDetay({
     <>
       <button
         className="dg dg--ana dg--blok"
+        data-eylem="parcayi-taktim"
         disabled={!parcaYolda}
         onClick={() => (ikinciAsama ? setPencere('kapanis') : setPencere('parcaKapat'))}
       >
@@ -388,6 +389,7 @@ export function TalepDetay({
     islemVar && (
       <button
         className="dg dg--ana dg--blok"
+        data-eylem="servis-kaydi-ac"
         onClick={() => setPencere('kapanis')}
       >
         Servis Kaydını Aç
@@ -453,6 +455,24 @@ export function TalepDetay({
           gelmiş bir taleple birebir aynı görünüyordu: servis randevu
           verdiğini unutup ikinci kez veriyordu. */}
 
+      {/* BÖLGE DIŞI TALEP (5 Ekim 2026). Makinenin kendi servisi bu
+          bölgeye bakmadığı için PAKSAN işi bu servise verdi (veri.js →
+          bolgeDisiTalebeServisAta). Servis müşteriyi tanımıyor olabilir;
+          ilk ekranda neden kendisinde olduğunu görüyor. Öteki servisin
+          adı yazılmıyor (atama PAKSAN ile servisler arasında). */}
+      {talep.bolgeDisi?.atama && !kapali && (
+        <div className="not not--mavi" data-not="bolge-disi">
+          <IconPin size={19} />
+          <div>
+            <strong>PAKSAN sizi bu iş için görevlendirdi</strong>
+            <p>
+              Makine şu an {[talep.bolgeDisi.ilce, talep.bolgeDisi.il].filter(Boolean).join(' / ')}{' '}
+              bölgesinde. Makinenin kendi servisi burada hizmet vermiyor. Müşteriyle görüşüp randevu belirleyin.
+            </p>
+          </div>
+        </div>
+      )}
+
       {talep.plan && !kapali && (
         <div className="not not--mavi">
           <IconCalendar size={19} />
@@ -473,9 +493,9 @@ export function TalepDetay({
         <div className="not not--mavi">
           <IconKulaklik size={19} />
           <div>
-            <strong>{MARKA} bu talebe destek veriyor.</strong>
+            <strong>PAKSAN bu talebe destek veriyor.</strong>
             <p>
-              Müşteri hâlâ sizin müşteriniz. {markaEk('in')} attığı adımları
+              Müşteri hâlâ sizin müşteriniz. PAKSAN’ın attığı adımları
               burada görmeye devam edeceksiniz.
             </p>
           </div>
@@ -487,7 +507,7 @@ export function TalepDetay({
         <div className="not not--gri">
           <IconSaat size={19} />
           <div>
-            <strong>Kaydınız {markaEk('da')} onay bekliyor.</strong>
+            <strong>Kaydınız PAKSAN’da onay bekliyor.</strong>
             <p>
               Yol, işçilik ve parçalar inceleniyor. Onaylandığında tutar
               cari hesabınıza alacak yazılacak.
@@ -517,7 +537,7 @@ export function TalepDetay({
                   ]
                     .filter(Boolean)
                     .join(' · ')
-                : `${MARKA} parçayı hazırlıyor. Kargoya verildiğinde takip numarası burada görünecek.`}
+                : `PAKSAN parçayı hazırlıyor. Kargoya verildiğinde takip numarası burada görünecek.`}
             </p>
           </div>
         </div>
@@ -588,7 +608,15 @@ export function TalepDetay({
               Sesli not{talep.ses.sure ? ' · ' + talep.ses.sure + ' sn' : ''}
             </div>
             {talep.ses.veri ? (
-              <audio controls src={talep.ses.veri} style={{ width: '100%', marginTop: 6 }} />
+              /* Müşterinin sesi serviste yalnız dinleniyor: indirme ve
+                 hız menüsü kapalı (7 Ekim 2026). */
+              <audio
+                controls
+                controlsList="nodownload noplaybackrate"
+                onContextMenu={(e) => e.preventDefault()}
+                src={talep.ses.veri}
+                style={{ width: '100%', marginTop: 6 }}
+              />
             ) : (
               <div className="kucuk sonuk">Ses kaydı saklanmıyor.</div>
             )}
@@ -699,7 +727,13 @@ export function TalepDetay({
                   <p style={{ whiteSpace: 'pre-wrap', margin: '4px 0 0' }}>{e.not}</p>
                 )}
                 {e.ses?.veri && (
-                  <audio controls src={e.ses.veri} style={{ width: '100%', marginTop: 8 }} />
+                  <audio
+                    controls
+                    controlsList="nodownload noplaybackrate"
+                    onContextMenu={(o) => o.preventDefault()}
+                    src={e.ses.veri}
+                    style={{ width: '100%', marginTop: 8 }}
+                  />
                 )}
                 {e.ekler?.length > 0 && <Ekler ekler={e.ekler} />}
               </div>
@@ -716,7 +750,7 @@ export function TalepDetay({
       {musteriNotlari.length > 0 && (
         <div className="kart" style={{ padding: 16 }}>
           <div className="kucuk sonuk" style={{ marginBottom: 10 }}>
-            {MARKA} müşteriye şunları yazdı
+            PAKSAN müşteriye şunları yazdı
           </div>
           {musteriNotlari.map((n, i) => (
             <div key={i} style={{ marginBottom: 12 }}>
@@ -732,7 +766,7 @@ export function TalepDetay({
       {paksanIslemleri.length > 0 && (
         <div className="kart" style={{ padding: 16 }}>
           <div className="kucuk sonuk" style={{ marginBottom: 10 }}>
-            {MARKA} tarafından yapılan işlemler
+            PAKSAN tarafından yapılan işlemler
           </div>
           {paksanIslemleri.map((b) => {
             const y = bildirimYazisi(b)
@@ -754,7 +788,7 @@ export function TalepDetay({
       {bizeNotlar.length > 0 && (
         <div className="kart" style={{ padding: 16 }}>
           <div className="kucuk sonuk" style={{ marginBottom: 10 }}>
-            {MARKA} size şunları yazdı
+            PAKSAN size şunları yazdı
           </div>
           {bizeNotlar.map((n, i) => (
             <div key={i} style={{ marginBottom: 12 }}>
@@ -850,7 +884,7 @@ export function TalepDetay({
               iletme oku (Icons.jsx → IconDevret). */}
           <button className="secenek__dg" data-eylem="devret" onClick={() => setPencere('devret')}>
             <IconDevret size={19} />
-            {markaEk('a')} Devret
+            PAKSAN’a Devret
             <IconRight size={17} />
           </button>
           {/* İptal yıkıcı: kırmızı ve en sonda, arada boşluk (S7). */}
@@ -882,7 +916,7 @@ export function TalepDetay({
             </div>
           ) : (
             <p className="ipucu">
-              {MARKA} siparişinizi işleme aldı. Siparişi iptal etmek isterseniz {markaEk('in')} yedek
+              PAKSAN siparişinizi işleme aldı. Siparişi iptal etmek isterseniz PAKSAN’ın yedek
               parça birimine ulaşın.
             </p>
           )}
@@ -894,8 +928,8 @@ export function TalepDetay({
           baslik="Sipariş iptal edilecek"
           metin={
             talep.odeme === 'bakiye'
-              ? `${MARKA} bu siparişi hazırlamayacak. Parçalar gönderilmediği için bakiyenizden tutar düşülmedi. Bakiyeniz değişmez.`
-              : `${MARKA} bu siparişi hazırlamayacak ve fatura kesilmeyecek.`
+              ? `PAKSAN bu siparişi hazırlamayacak. Parçalar gönderilmediği için bakiyenizden tutar düşülmedi. Bakiyeniz değişmez.`
+              : `PAKSAN bu siparişi hazırlamayacak ve fatura kesilmeyecek.`
           }
           kalemler={[
             { ad: 'Sipariş', deger: talep.no },
@@ -1197,7 +1231,7 @@ function ServisKaydi({ talep, servisAd }) {
                   düzeltip yeniden gönderebileceğini sanıyordu. Sonucu
                   ve itirazın yolunu söylüyor. */}
               {h.durum === 'reddedildi' && (
-                <p>Bu iş için ödeme yapılmayacak. İtirazınız varsa {MARKA} ile görüşün.</p>
+                <p>Bu iş için ödeme yapılmayacak. İtirazınız varsa PAKSAN ile görüşün.</p>
               )}
             </div>
           </div>
@@ -1226,7 +1260,7 @@ function ServisKaydi({ talep, servisAd }) {
         <div key={i} className="not not--sari" style={{ marginTop: 12 }}>
           <IconAlert size={19} />
           <div>
-            <strong>{MARKA} kaydı düzeltti</strong>
+            <strong>PAKSAN kaydı düzeltti</strong>
             <p>{d.neden}</p>
             <p className="kucuk sonuk">{duzeltmeYazisi(d)}</p>
           </div>
@@ -1357,7 +1391,7 @@ function ParcaDurumu({ talep }) {
           satirlarinAdedi). */}
       {iptaller.map((k) => (
         <p key={k.no} className="kucuk sonuk" style={{ margin: '8px 0 0' }}>
-          {`${MARKA} siparişten ${satirlarinAdedi(talep, k.satirlar)} adet parça çıkardı. İptal nedeni: ${k.neden}.`}
+          {`PAKSAN siparişten ${satirlarinAdedi(talep, k.satirlar)} adet parça çıkardı. İptal nedeni: ${k.neden}.`}
           {k.aciklama ? ` ${k.aciklama}` : ''}{' '}
           {talep.odeme === 'bakiye'
             ? 'Bu parçaların tutarı bakiyenizden düşülmeyecek.'
@@ -1665,7 +1699,7 @@ function Not({ talep, servisAd, onKapat, onBitti }) {
   return (
     <Pencere baslik="Not Ekle" onKapat={onKapat}>
       <p className="kucuk sonuk" style={{ marginTop: 0 }}>
-        Notunuzu {MARKA} görür, müşteriye gönderilmez. Talebin içindeki Notlarınız bölümünde görünür.
+        Notunuzu PAKSAN görür, müşteriye gönderilmez. Talebin içindeki Notlarınız bölümünde görünür.
       </p>
       <DikteliKutu ad="Not" deger={metin} onDegis={setMetin} satir={3} />
       {hata && <div className="uyari">{hata}</div>}
@@ -1689,9 +1723,9 @@ function Devret({ onKapat, onGonder }) {
   const [hata, setHata] = useState('')
 
   return (
-    <Pencere baslik={`${markaEk('a')} Devret`} ad="devret" onKapat={onKapat}>
+    <Pencere baslik={`PAKSAN’a Devret`} ad="devret" onKapat={onKapat}>
       <p className="kucuk sonuk" style={{ marginTop: 0 }}>
-        {`İşi ${MARKA} üstlenir ve devir nedeniniz ${markaEk('a')} iletilir. Müşteri sizin müşteriniz olarak kalır ve müşteriye bildirim gitmez. Bu işte artık uygulamadan işlem yapamazsınız; ${markaEk('in')} attığı adımları burada görmeye devam edersiniz.`}
+        {`İşi PAKSAN üstlenir ve devir nedeniniz PAKSAN’a iletilir. Müşteri sizin müşteriniz olarak kalır ve müşteriye bildirim gitmez. Bu işte artık uygulamadan işlem yapamazsınız; PAKSAN’ın attığı adımları burada görmeye devam edersiniz.`}
       </p>
       <DikteliKutu
         ad="Devir nedeni"
@@ -1710,7 +1744,7 @@ function Devret({ onKapat, onGonder }) {
             onGonder(neden.trim())
           }}
         >
-          {markaEk('a')} Devret
+          PAKSAN’a Devret
         </button>
         <button className="dg" onClick={onKapat}>Vazgeç</button>
       </div>
@@ -1765,8 +1799,8 @@ function Iptal({ talep, servisAd, musteriyeGider, onKapat, onBitti, onRed }) {
     <Pencere baslik="Talebi İptal Et" onKapat={onKapat}>
       <p className="kucuk sonuk" style={{ marginTop: 0 }}>
         {musteriyeGider
-          ? `Talep iptal edilir ve İşlerim listesinden çıkar. İptal nedeni müşteriye bildirilir. ${MARKA} yetkilileri de iptal nedenini görür.`
-          : `Talep iptal edilir ve İşlerim listesinden çıkar. ${MARKA} yetkilileri iptal nedenini görür. Talep müşterinin uygulamadaki hesabına bağlı olmadığı için bildirim gönderilmez.`}
+          ? `Talep iptal edilir ve İşlerim listesinden çıkar. İptal nedeni müşteriye bildirilir. PAKSAN yetkilileri de iptal nedenini görür.`
+          : `Talep iptal edilir ve İşlerim listesinden çıkar. PAKSAN yetkilileri iptal nedenini görür. Talep müşterinin uygulamadaki hesabına bağlı olmadığı için bildirim gönderilmez.`}
       </p>
       <Secenekler
         secenekler={IPTAL_NEDENLERI}

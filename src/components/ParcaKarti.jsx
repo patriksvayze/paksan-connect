@@ -1,4 +1,4 @@
-import { PARA_BIRIMI, paraYaz } from '../marka'
+import { PARA_BIRIMI, paraYaz } from '../data/katalog/para.js'
 import { gorselAdresi } from '../lib/parcaKatalogu'
 import { IconCheck, IconPlus } from './Icons'
 

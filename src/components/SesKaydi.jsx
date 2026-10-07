@@ -119,7 +119,17 @@ export function SesKaydi({ ses, onDegis }) {
           <span className="ses__nokta ses__nokta--bitti" />
           {t('ses.hazir')}
         </div>
-        <audio className="ses__oynatici" src={ses.veri} controls preload="metadata" />
+        {/* İndirme ve çalma hızı menüsü kapalı (7 Ekim 2026, kullanıcının
+            isteği): oynatıcı yalnız dinletiyor. Uzun basınca açılan
+            "Sesi kaydet" menüsü de kapalı. */}
+        <audio
+          className="ses__oynatici"
+          src={ses.veri}
+          controls
+          controlsList="nodownload noplaybackrate"
+          onContextMenu={(e) => e.preventDefault()}
+          preload="metadata"
+        />
         <button className="btn btn--soft btn--sm" onClick={() => onDegis(null)}>
           <IconTrash size={18} /> {t('ses.sil')}
         </button>

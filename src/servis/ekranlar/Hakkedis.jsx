@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { cariBakiye, cariHareketleri, servisinTalepleri, siparisHesabi, talepleriGetir } from '../../backoffice/veri'
-import { PARA_BIRIMI, PARA_SIMGESI, paraYaz, MARKA, markaEk, getProduct } from '../../marka'
+import { PARA_BIRIMI, PARA_SIMGESI, paraYaz } from '../../data/katalog/para.js'
+import { getProduct } from '../../data/katalog/products.js'
 import { gecenSure, tarihYaz } from '../../backoffice/ekranlar/ortak'
 import { Bos, ListeKarti, Yaprak } from '../Kabuk'
 import { IconAlert, IconCheckCircle, IconRight } from '../../components/Icons'
@@ -154,7 +155,7 @@ export function Hakkedis({ oturum, onAc, surum, onUcretler, gorunum, onGorunum }
                 <strong>
                   Toplam {paraYaz(bekleyenToplam)} {PARA_BIRIMI}
                 </strong>{' '}
-                · {markaEk('in')} servis personeli inceliyor.
+                · PAKSAN inceliyor.
               </p>
               {bekleyen.map((t) => (
                 <ListeKarti
@@ -174,7 +175,7 @@ export function Hakkedis({ oturum, onAc, surum, onUcretler, gorunum, onGorunum }
               kucuk
               Icon={IconCheckCircle}
               baslik="Onay bekleyen işiniz yok"
-              alt={`Gönderdiğiniz servis kayıtları, ${MARKA} tarafından onaylanana kadar burada görünür.`}
+              alt={`Gönderdiğiniz servis kayıtları, PAKSAN tarafından onaylanana kadar burada görünür.`}
             />
           )
         ) : hareketler.length === 0 ? (
@@ -260,7 +261,7 @@ export function Hakkedis({ oturum, onAc, surum, onUcretler, gorunum, onGorunum }
       )}
 
       <p className="ipucu">
-        Ödemeler {MARKA} muhasebesi tarafından hesabınıza yapılır.
+        Ödemeler PAKSAN muhasebesi tarafından hesabınıza yapılır.
         Hesabınızla ilgili bir sorunuz varsa servis personeline yazın.
       </p>
     </>
@@ -364,7 +365,7 @@ function HareketAyrinti({ hareket: h, talepler, onKapat, onAc }) {
             ad: 'Ödeme',
             deger:
               t.odeme !== 'bakiye'
-                ? `${MARKA} tarafından faturalandırıldı`
+                ? `PAKSAN tarafından faturalandırıldı`
                 : h.tur === 'alacak'
                   ? 'Bakiyenizden ödenmişti'
                   : 'Bakiyenizden düşüldü',

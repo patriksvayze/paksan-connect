@@ -1,4 +1,4 @@
-import { servisleriGetir } from '../marka'
+import { servisleriGetir } from '../data/katalog/servisler.js'
 import { load, save, uid } from '../lib/storage'
 import { teslimatEksigi, teslimatTelGiris, teslimatTemizle } from '../lib/teslimat'
 
@@ -31,7 +31,7 @@ import { teslimatEksigi, teslimatTelGiris, teslimatTemizle } from '../lib/teslim
    girilmek istendiğinde kullanılır."
 
    Yani defterin ilk satırı servisin kendi yazdığı bir kayıt değil:
-   PAKSAN'ın servis kaydındaki firma adresi (`marka/katalog/servisler.js`
+   PAKSAN'ın servis kaydındaki firma adresi (`data/katalog/servisler.js`
    → ad, il, ilce, adres, tel). Servis hiçbir şey yapmadan siparişe
    girdiğinde adresi seçili geliyor. "Adres Ekle" ve "Elle Gir" bundan
    sonra EKSTRA adres için.
@@ -121,8 +121,7 @@ function alanlar(veri) {
   }
 }
 
-/* Servisin PAKSAN'daki kaydı. Motor marka klasörüne yalnız kapıdan
-   bakıyor (bkz. CLAUDE.md → `npm run dogrula` 5. kontrol). */
+/* Servisin PAKSAN'daki kaydı (src/data/katalog/servisler.js). */
 function servisKaydi(servisId) {
   return servisleriGetir().find((s) => s.id === servisId) || null
 }

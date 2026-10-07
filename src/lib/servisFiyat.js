@@ -28,7 +28,7 @@
    İSKONTO ARTIK BACKOFFICE'TEN (23 Eylül 2026, kullanıcının isteği:
    "Servislerimize genel veya servise özel iskonto uygulayabileceğimiz
    bir alan oluşturulmalı"). Oran kodda sabitti (%30,
-   marka/katalog/makineFiyat.js → PARCA_SERVIS_ISKONTO). O sabit artık
+   data/katalog/makineFiyat.js → PARCA_SERVIS_ISKONTO). O sabit artık
    yalnız BAŞLANGIÇ oranı: personel hiçbir oran yazmadıysa geçerli olan.
    Güncel oran Yedek Parça Kataloğu ekranından yazılıyor — bütün
    servislere tek oran, istenen servise ayrı oran (bkz. `iskontoCoz`).
@@ -64,7 +64,8 @@
    değiştirilmez.
    ========================================================================== */
 
-import { PARCA_SERVIS_ISKONTO, kdvTutari } from '../marka'
+import { PARCA_SERVIS_ISKONTO } from '../data/katalog/makineFiyat.js'
+import { kdvTutari } from '../data/katalog/para.js'
 
 /* Bakiyeden ödemede ek iskontonun başlangıç oranı: kapalı. */
 export const BAKIYE_EK_ISKONTO = 0

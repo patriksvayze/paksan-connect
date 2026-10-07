@@ -12,13 +12,13 @@
    birinde değişip ötekinde eski kalmasın.
    ========================================================================== */
 
-import { MARKA } from '../marka'
+
 
 const TR = {
   neden:
     'Giriş numarası hesabınızın kimliğidir. Uygulamadan değiştirilebilseydi, ' +
     'telefonunuz bir başkasının eline geçtiğinde hesabınız da onun olurdu. ' +
-    `Bu yüzden numara değişikliğini yalnızca ${MARKA} yetkilisi, sizinle ` +
+    `Bu yüzden numara değişikliğini yalnızca PAKSAN yetkilisi, sizinle ` +
     'görüşerek yapıyor.',
   hazirlanacaklar: [
     'Ad ve soyadınız',
@@ -41,7 +41,7 @@ const EN = {
   neden:
     'Your sign-in number is the identity of your account. If it could be ' +
     'changed from the app, whoever got hold of your phone would also get ' +
-    `your account. That is why only a ${MARKA} representative changes it, ` +
+    `your account. That is why only a PAKSAN representative changes it, ` +
     'after speaking with you.',
   hazirlanacaklar: [
     'Your first and last name',

@@ -3,7 +3,7 @@ import { useParams, useSearchParams } from 'react-router-dom'
 import { TopBar, TabBar } from '../components/Chrome'
 import { UrunFoto } from '../components/Gorsel'
 import { useDil } from '../i18n'
-import { getProduct, urunDilde } from '../marka'
+import { getProduct, urunDilde } from '../data/katalog/products.js'
 import { IconAlert, IconBook, IconMinus, IconPaylas, IconPlus, IconTrash } from '../components/Icons'
 import { dosyaPaylas } from '../lib/dosyaPaylas'
 import {

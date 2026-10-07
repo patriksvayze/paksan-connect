@@ -12,7 +12,7 @@ import { SERVIS_METIN_SURUM } from '../data/servisGizlilik'
    Gizliliği". Kabul edilmeden uygulama açılmıyor (ServisPanel.jsx →
    GizlilikKapisi).
 
-   Kabul, {MARKA} ile servis arasındaki sözleşmenin gizlilik hükümlerinin
+   Kabul, PAKSAN ile servis arasındaki sözleşmenin gizlilik hükümlerinin
    YERİNE GEÇMİYOR; onları hatırlatıyor ve kimin ne zaman okuduğunu
    kaydediyor. Sözleşme ayrıca imzalanacak (CANLIYA-CIKIS.md).
 

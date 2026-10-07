@@ -1,6 +1,7 @@
-import { IHRACAT, UYGULAMA, PARA_BIRIMI, paraYaz } from '../marka'
+import { IHRACAT, UYGULAMA } from '../data/kimlik.js'
+import { PARA_BIRIMI, paraYaz } from '../data/katalog/para.js'
 import { ulkeAdi } from '../data/ulkeler'
-import { getProduct } from '../marka'
+import { getProduct } from '../data/katalog/products.js'
 import { TALEP_TURLERI } from './talep'
 import { talebinParcalari } from './servisKaydi'
 

@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppState'
-import { CIZIM } from '../marka/icerik/cizimler'
+import { CIZIM } from '../data/icerik/cizimler'
 import { useDil } from '../i18n'
 import { TopBar, TabBar } from '../components/Chrome'
 import { talepTuru } from '../lib/talep'
@@ -10,7 +10,7 @@ import {
 } from '../lib/bildirimler'
 import {
   IconBell, IconCheckCircle, IconAlert, IconRight, IconCalendar,
-  IconMachine, IconTag, IconUndo,
+  IconMachine, IconTag, IconUndo, IconPhone,
 } from '../components/Icons'
 import { altBilgi } from '../data/duyuruTurleri'
 import { talepSimgesi, talepSimgeAdi } from '../components/TalepSimgesi'
@@ -35,6 +35,7 @@ const IKONLAR = {
   [BILDIRIM_TURU.DUYURU]: IconBell,
   [BILDIRIM_TURU.UYARI]: IconAlert,
   [BILDIRIM_TURU.MAKINE]: IconMachine,
+  [BILDIRIM_TURU.NUMARA]: IconPhone,
 }
 
 /* Duyuru alt türlerinin ikonları — tablodaki `ikon` adı burada
@@ -56,6 +57,7 @@ const RENKLER = {
   [BILDIRIM_TURU.DUYURU]: { zemin: 'var(--pk-blue-soft)', renk: 'var(--pk-blue-yazi)' },
   [BILDIRIM_TURU.UYARI]: { zemin: 'var(--pk-orange-soft)', renk: 'var(--pk-orange-ink)' },
   [BILDIRIM_TURU.MAKINE]: { zemin: 'var(--pk-blue-soft)', renk: 'var(--pk-blue-yazi)' },
+  [BILDIRIM_TURU.NUMARA]: { zemin: 'var(--pk-green-soft)', renk: 'var(--pk-green-yazi)' },
 }
 
 /* PAKSAN duyurusu mu, uygulamanın kendi bildirimi mi?

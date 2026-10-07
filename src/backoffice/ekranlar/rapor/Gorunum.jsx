@@ -102,7 +102,7 @@ export function bolumuExceleAktar(bolumAd, sonuc, personel) {
       ad: bolumAd,
       satirlar: [
         [M.excelOlcu, M.excelDeger, M.oncekiDonem, M.excelAciklama],
-        ...sonuc.olculer.map((o) => [
+        ...sonuc.olculer.filter((o) => o.raporda !== false).map((o) => [
           o.ad,
           String(o.deger ?? '—'),
           o.fark === null || o.fark === undefined
@@ -173,8 +173,12 @@ function Uyarilar({ uyarilar }) {
               <div key={u.ad} className={'uyari-satir uyari-satir--' + u.ton}>
                 <span className="uyari-satir__nokta" />
                 <div style={{ flex: 1 }}>
+                  {/* ALT AÇIKLAMA EKRANDA YOK (6 Ekim 2026, kullanıcının
+                      isteği: "alt açıklamaları hepsinden kaldır, sonradan
+                      gelebilecek olanlarda da olmasın"). Uyarının `alt`
+                      alanı yalnız Excel çıktısında; satır yalnız başlıkla
+                      çiziliyor, yeni eklenen uyarıda da açıklama çıkmaz. */}
                   <div className="uyari-satir__ad">{u.ad}</div>
-                  {u.alt && <div className="kucuk sonuk">{u.alt}</div>}
                 </div>
                 {u.goster && (
                   <button className="dg dg--kucuk" onClick={u.goster}>
@@ -199,7 +203,7 @@ function Uyarilar({ uyarilar }) {
 function OlcuSeridi({ olculer }) {
   return (
     <div className="olculer olculer--rapor">
-      {olculer.map((o) => {
+      {olculer.filter((o) => o.raporda !== false).map((o) => {
         const farkVar = o.fark !== null && o.fark !== undefined
         let ton = 'notr'
         if (farkVar && o.fark !== 0 && o.iyi) {
@@ -219,7 +223,9 @@ function OlcuSeridi({ olculer }) {
                 <span className="sonuk">{M.oncekiDonem}</span>
               </div>
             )}
-            {o.alt && <div className="deger__aciklama">{o.alt}</div>}
+            {/* KUTUNUN ALT AÇIKLAMASI EKRANDA YOK (6 Ekim 2026, kullanıcının
+                isteği: bütün sekmelerdeki bilgi kutularında). Ölçünün `alt`
+                alanı yalnız Excel'de; yeni eklenen kutuda da çıkmaz. */}
           </div>
         )
       })}

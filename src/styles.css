@@ -1,4 +1,4 @@
-@import './marka/renkler.css';
+@import './styles/renkler.css';
 
 /* ==========================================================================
    PAKSAN — Tasarım sistemi v3
@@ -47,7 +47,7 @@
   --pk-orange-light: var(--marka-turuncu-acik);
   --pk-orange-deep: var(--marka-turuncu-koyu);
   --pk-orange-btn: var(--marka-turuncu-dugme);
-  --pk-orange-soft: rgba(232, 100, 26, 0.12);
+  --pk-orange-soft: rgba(242, 106, 27, 0.12);
   --pk-orange-ink: #8f3a00;
 
   --pk-green: #1a8348;
@@ -157,7 +157,7 @@
   --sh-2: 0 4px 10px rgba(10, 26, 51, 0.05), 0 12px 28px rgba(10, 26, 51, 0.07);
   --sh-3: 0 12px 30px rgba(10, 26, 51, 0.13), 0 30px 60px rgba(10, 26, 51, 0.16);
   --sh-blue: 0 6px 18px rgba(24, 72, 168, 0.3);
-  --sh-orange: 0 6px 18px rgba(199, 73, 10, 0.28);
+  --sh-orange: 0 6px 18px rgba(242, 106, 27, 0.28);
 
   /* ÇENTİK VE SİSTEM ÇUBUKLARI (24 Eylül 2026, Capacitor 8). Android 15
      ve sonrasında uygulama ekranın tamamına çiziliyor (edge-to-edge,
@@ -1591,10 +1591,10 @@ p {
 
 @keyframes dikkat {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(232, 100, 26, 0);
+    box-shadow: 0 0 0 0 rgba(242, 106, 27, 0);
   }
   35% {
-    box-shadow: 0 0 0 6px rgba(232, 100, 26, 0.22);
+    box-shadow: 0 0 0 6px rgba(242, 106, 27, 0.22);
   }
 }
 
@@ -3204,25 +3204,28 @@ p {
    butonun içeriğini dikeyde ortalıyor, div'inkini yukarıdan diziyor —
    bu yüzden iki kutudaki sayı ve yazı 5 piksel kaymış duruyordu. İkisi
    de aynı şekilde diziliyor. */
-.ozet {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+/* Profil'in "Taleplerim" satırı (7 Ekim 2026): tam genişlik, iri ad,
+   sağda talep sayısı. Talep türünün rengi turuncu (servis). */
+.taleplerim-kart {
+  padding: 16px 16px 16px 15px;
 }
 
-.ozet > * {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
+.taleplerim-kart__ikon {
+  width: 50px;
+  height: 50px;
+  background: var(--pk-orange-soft);
+  color: var(--pk-orange-ink);
 }
 
-/* Simgeye sabit yükseklik: farklı oranlardaki simgeler (balya makinesi
-   basık, anahtar kare) altlarındaki sayıyı kaydırmasın. */
-.ozet__ikon {
-  height: 28px;
-  display: grid;
-  place-items: center;
+.taleplerim-kart__baslik {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.taleplerim-kart__sayi {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
 }
 
 .prodcard {
@@ -5496,7 +5499,7 @@ p {
 }
 
 .randevu-kart:active {
-  background: rgba(232, 100, 26, 0.18);
+  background: rgba(242, 106, 27, 0.18);
 }
 
 .randevu-kart__ikon {
@@ -6481,7 +6484,7 @@ p {
   padding: 16px;
   border-radius: 20px;
   background: var(--pk-orange-soft);
-  border: 1px solid rgba(232, 100, 26, 0.28);
+  border: 1px solid rgba(242, 106, 27, 0.28);
 }
 
 .destek-guvenlik__baslik {
@@ -7751,7 +7754,7 @@ p {
   padding: 16px;
   border-radius: 20px;
   background: var(--pk-orange-soft);
-  border: 1px solid rgba(232, 100, 26, 0.28);
+  border: 1px solid rgba(242, 106, 27, 0.28);
 }
 
 .bakim-guvenlik__baslik {
@@ -8364,7 +8367,7 @@ p {
   padding: 16px;
   border-radius: 20px;
   background: var(--pk-orange-soft);
-  border: 1px solid rgba(232, 100, 26, 0.28);
+  border: 1px solid rgba(242, 106, 27, 0.28);
 }
 
 .guvenlik-kapak__baslik {
@@ -8583,19 +8586,6 @@ p {
   :root:not([data-tema='acik']) .prodcard img {
     filter: brightness(0.88);
   }
-}
-
-/* Bayi listesinde ilin başlığı (Bayiler.jsx → ileGoreObekle, C9). */
-.bayi-il {
-  margin: 10px 2px 0;
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  color: var(--ink-2);
-}
-
-.stack > .bayi-il:first-child {
-  margin-top: 0;
 }
 
 /* Ek silme düğmesinin dokunma payı: görünen 32 piksel, dokunulan 44. */

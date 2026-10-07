@@ -474,11 +474,12 @@ async function kaynaklariOku() {
   }
   try {
     const K = {}
-    K.marka = await y('/src/marka/index.js')
-    K.urunEn = await y('/src/marka/katalog/products.en.js')
-    K.teknik = await y('/src/marka/icerik/teknikOzellikler.js')
-    K.teknikSozluk = await y('/src/marka/icerik/teknikSozluk.js')
-    K.kilavuz = await y('/src/marka/icerik/kilavuzEslesme.js')
+    K.marka = Object.assign({}, ...(await Promise.all(['/src/data/kimlik.js', '/src/data/katalog/products.js', '/src/data/katalog/gorseller.js', '/src/data/katalog/para.js', '/src/data/katalog/parcaGruplari.js', '/src/data/katalog/makineFiyat.js', '/src/data/katalog/servisler.js', '/src/data/katalog/bayiler.js'].map(y))))
+    K.logoDosyasi = (await y('/src/assets/logo/paksan-logo.png')).default
+    K.urunEn = await y('/src/data/katalog/products.en.js')
+    K.teknik = await y('/src/data/icerik/teknikOzellikler.js')
+    K.teknikSozluk = await y('/src/data/icerik/teknikSozluk.js')
+    K.kilavuz = await y('/src/data/icerik/kilavuzEslesme.js')
     K.talep = await y('/src/lib/talep.js')
     K.veri = await y('/src/backoffice/veri.js')
     K.talepAlanlari = await y('/src/data/talepAlanlari.js')
@@ -503,7 +504,7 @@ async function kaynaklariOku() {
       const m = a.kaynak.modul
       if (m && !K.ayarModulleri[m]) K.ayarModulleri[m] = await y(m)
     }
-    K.paket = JSON.parse(readFileSync(join(KOK, 'src/marka/icerik/mobile_support_package.json'), 'utf8'))
+    K.paket = JSON.parse(readFileSync(join(KOK, 'src/data/icerik/mobile_support_package.json'), 'utf8'))
     return K
   } finally {
     await sunucu.close()
@@ -1124,7 +1125,7 @@ function t01Yaz(v) {
       '(+ .en.js), src/backoffice/ekranlar/Talepler.jsx, IslemKaydi.jsx,',
       'Duyurular.jsx, src/servis/ekranlar/TalepDetay.jsx, src/lib/servisKaydi.js,',
       'src/data/duyuruTurleri.js, src/lib/bildirim.js, src/data/kvkk.js,',
-      'src/marka (SERVIS_TURU, PARA_BIRIMI), src/i18n; tohum/kaynak/kod-eslesmeleri.json,',
+      'src/data/katalog (SERVIS_TURU, PARA_BIRIMI), src/i18n; tohum/kaynak/kod-eslesmeleri.json,',
       'kod-adlari.json. Tasarım: veritabani/tasarim.md 1.15, 5.2.',
       '',
       'Kod listelerinde kaynakta olmayan satır pasifleştirilmez ve silinmez;',
@@ -1329,7 +1330,7 @@ function t04Yaz(K, markalar) {
   const { SIRKET, UYGULAMA, BANKA } = K.marka
   const ulkeler = K.ulkeler.ULKELER
   const sirketKodlari = [...new Set(markalar.map((m) => m.SirketKodu))]
-  if (sirketKodlari.length !== 1) dur('markalar.json: bugün tek src/marka klasörü ve tek şirket okunabiliyor')
+  if (sirketKodlari.length !== 1) dur('markalar.json: bugün tek şirket okunabiliyor')
   const kod = sirketKodlari[0]
   if (!/^[a-z]{2,20}$/.test(kod)) dur(`markalar.json: şirket kodu biçime uymuyor "${kod}"`)
   const tel1 = telefonBicimleri(SIRKET.telefonHam, ulkeler, 'kimlik.js SIRKET.telefonHam')
@@ -1417,7 +1418,7 @@ function t04Yaz(K, markalar) {
     betikBasligi('T04 — şirket ve banka hesapları', [
       `1 şirket (${kod}), ${hesaplar.length} banka hesabı.`,
       '',
-      'Kaynak: src/marka/kimlik.js SIRKET, UYGULAMA, BANKA.hesaplar;',
+      'Kaynak: src/data/kimlik.js SIRKET, UYGULAMA, BANKA.hesaplar;',
       'şirket kodu tohum/kaynak/markalar.json. Tasarım: tasarim.md 5.2 T04.',
       'Hedef kaynaktaki şirket koduyla sınırlıdır. Kaynakta olmayan hesap',
       'Aktif = 0 olur, silinmez. VergiNo, VergiDairesi ve LogoFirmaNo kaynakta',
@@ -1454,9 +1455,9 @@ function dosyaYolu(yol) {
 
 async function t05Yaz(K, markalar, v01) {
   const m = K.marka
-  if (markalar.length !== 1) dur('markalar.json: bugün tek marka kaynağı (src/marka) okunabiliyor')
+  if (markalar.length !== 1) dur('markalar.json: bugün tek marka kaynağı (src/data) okunabiliyor')
   const mk = markalar[0]
-  if (mk.KaynakKlasoru !== 'src/marka') dur('markalar.json: KaynakKlasoru yalnız src/marka olabilir')
+  if (mk.KaynakKlasoru !== 'src/data') dur('markalar.json: KaynakKlasoru yalnız src/data olabilir')
   const markaKodu = mk.MarkaKodu
   if (!/^[a-z]{2,20}$/.test(markaKodu)) dur(`markalar.json: marka kodu biçime uymuyor "${markaKodu}"`)
   const suzgec = `MarkaKodu IN (${metinSql(markaKodu)})`
@@ -1465,16 +1466,16 @@ async function t05Yaz(K, markalar, v01) {
   const paket = K.paket
   const marka = {
     Kod: markaKodu,
-    Ad: m.MARKA,
+    Ad: m.SIRKET.kisaAd,
     GarantiYil: K.serial.GARANTI_YIL,
     ServisIskontoOrani: m.PARCA_SERVIS_ISKONTO,
     KdvOrani: m.KDV_ORANI,
     KilavuzDilleri: Array.isArray(paket.supported_locales) ? paket.supported_locales.join(',') : null,
-    GorselYolu: dosyaYolu(m.LOGO_DOSYASI),
+    GorselYolu: dosyaYolu(K.logoDosyasi),
     SiteUrl: m.SIRKET.site ?? null,
     SiteMetni: m.SIRKET.siteKisa ?? null,
     KaynakNotu:
-      'Garanti yılı: src/marka/kimlik.js SIRKET.garantiYil ve src/lib/serial.js GARANTI_YIL. İskonto: src/marka/katalog/makineFiyat.js PARCA_SERVIS_ISKONTO. KDV ve para birimi: src/marka/katalog/para.js (fiyat listesinin KDV esası doğrulanmadı). Seri kuralı: tohum/kaynak/markalar.json.',
+      'Garanti yılı: src/data/kimlik.js SIRKET.garantiYil ve src/lib/serial.js GARANTI_YIL. İskonto: src/data/katalog/makineFiyat.js PARCA_SERVIS_ISKONTO. KDV ve para birimi: src/data/katalog/para.js (fiyat listesinin KDV esası doğrulanmadı). Seri kuralı: tohum/kaynak/markalar.json.',
     SirketKodu: mk.SirketKodu,
     GarantiBaslangicEsasiKodu: mk.GarantiBaslangicEsasiKodu ?? null,
     SeriKuraliKodu: mk.SeriKuraliKodu,
@@ -1501,7 +1502,7 @@ async function t05Yaz(K, markalar, v01) {
   }
 
   /* Bakım şablonları — products.js BAKIM (yerel) */
-  const urunDosyasi = 'src/marka/katalog/products.js'
+  const urunDosyasi = 'src/data/katalog/products.js'
   const bakim = saglam(await yerelSabit(urunDosyasi, 'BAKIM'), urunDosyasi)
   const sablonMetni = new Map(Object.entries(bakim).map(([kod, adimlar]) => [JSON.stringify(adimlar), kod]))
   if (sablonMetni.size !== Object.keys(bakim).length) dur(`${urunDosyasi}: iki bakım şablonu birebir aynı; ürünün şablonu ayırt edilemez`)
@@ -1743,7 +1744,7 @@ async function t05Yaz(K, markalar, v01) {
       `1 marka (${markaKodu}), ${kategori.length} kategori, ${sablon.length} bakım şablonu, ${adim.length} bakım adımı,`,
       `${urun.length} ürün, ${varyant.length} varyant, ${ozellik.length} özellik, ${video.length} video, ${kapsam.length} belirti bağı.`,
       '',
-      'Kaynak: src/marka (kimlik.js, katalog/products.js + .en.js, katalog/para.js,',
+      'Kaynak: src/data (kimlik.js, katalog/products.js + .en.js, katalog/para.js,',
       'katalog/makineFiyat.js, icerik/teknikOzellikler.js, icerik/teknikSozluk.js,',
       'icerik/kilavuzEslesme.js, icerik/mobile_support_package.json), src/lib/serial.js,',
       'src/data/talepAlanlari.js; tohum/kaynak/markalar.json. Tasarım: tasarim.md 5.2 T05.',
@@ -1915,8 +1916,8 @@ function t06Yaz(K, markalar) {
       `${listeSatirlari.length} fiyat listesi, ${grup.size} parça grubu, ${parca.size} parça, ${fiyat.length} fiyat satırı.`,
       '',
       'Kaynak: tohum/kaynak/fiyat-listeleri.json ve fiyat-listeleri/<MarkaKodu>/<Kod>.json',
-      '(arşiv; her liste bir kez yazılır), src/marka/katalog/parcaGruplari.js',
-      'PARCA_GRUBU_AILESI, src/marka/katalog/para.js. Tasarım: tasarim.md 5.5 fiyat listesi kuralı.',
+      '(arşiv; her liste bir kez yazılır), src/data/katalog/parcaGruplari.js',
+      'PARCA_GRUBU_AILESI, src/data/katalog/para.js. Tasarım: tasarim.md 5.5 fiyat listesi kuralı.',
       '',
       'Fiyat listesi SSMS\'ten ya da içe aktarımla yüklenmez; yeni liste arşive yeni',
       'kodla eklenir, önceki yürürlükteki liste arşive geçer.',
@@ -2134,7 +2135,7 @@ function b02Yaz(K) {
       '2 tarife: yol için km başına, işçilik için saat başına; ikisi de bütün markalar için.',
       '',
       'Kaynak: src/lib/servisKaydi.js TARIFE.yolKm ve TARIFE.iscilikSaat; para birimi',
-      'src/marka/katalog/para.js; geçerlilik başlangıcı tasarim.md 5.3 B02. Yalnız',
+      'src/data/katalog/para.js; geçerlilik başlangıcı tasarim.md 5.3 B02. Yalnız',
       'yoksa ekler: aynı kalem türünde markasız bir tarife (açık ya da kapanmış)',
       'varsa o satır yazılmaz; tarifeyi PAKSAN değiştirir.',
     ]) +
@@ -2334,7 +2335,7 @@ function o01Yaz(o) {
     ornekBasligi('O01 — örnek servisler ve bayiler (yalnız yerel ve sınama)', [
       `${o.servisler.length} servis, ${o.bayiler.length} bayi, ${o.bayiBagi.length} bayi bağı, ${o.bolge.length} bölge; hepsine ${o.markaKodu} yetkisi.`,
       '',
-      'Kaynak: src/marka/katalog/servisler.js ve bayiler.js (temsilî liste). id →',
+      'Kaynak: src/data/katalog/servisler.js ve bayiler.js (temsilî liste). id →',
       'EskiKayitNo, no → EskiNumara. Adların başına "Örnek" eklenir; kaynaktaki',
       'adres ve telefonlar yazılmaz (uydurma değerler gerçek bir kişiye ait olabilir).',
       'Kimlikler UUIDv5 (<sema>.<Tablo>:<id>): her kurulumda aynıdır.',
@@ -2360,7 +2361,7 @@ function o02Yaz(o) {
       `${o.personelKullanici.length} personel girişi (her varsayılan role bir), ${o.servisKullanici.length} servis girişi (her O01 servisine bir).`,
       '',
       'Kaynak: src/data/yetkiler.js VARSAYILAN_ROLLER (rol başına bir personel),',
-      'src/marka/katalog/servisler.js (servis başına bir giriş). Giriş adı:',
+      'src/data/katalog/servisler.js (servis başına bir giriş). Giriş adı:',
       'personelde ornek.<rol kodu>, serviste servis kimliği (konya-servis → konya.servis).',
       'Şifre yazılmaz (SifreKaydi boş, SifreBelirlemeGerekli = 1): girişi açmak için',
       'tek kullanımlık kod gerekir (yonetim.GirisSifresiniSifirla).',

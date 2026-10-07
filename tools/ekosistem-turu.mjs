@@ -137,6 +137,11 @@
      X-15  hareketlerin hepsi birden gösterilirse (30.09.2026)   düştü
      X-15  düğme 10 yerine 5 açarsa                              düştü
      X-15  sekme seçimi ServisPanel'de tutulmazsa               düştü
+     X-16  yapılan iş yine tek seçimli olursa (6.10.2026)          düştü
+     X-16  parçasız "Parça Değişti" uyarısı hesaplanmazsa        düştü
+     X-16  uyarı yerinde, gönderim kuralı atlanırsa             düştü
+     X-16  Parçayı Taktım'da kilit kalkarsa                     düştü
+     X-16  Parçayı Taktım'da ön seçim kalkarsa                  düştü
      B-ADRES menü geçişi geçmişe satır eklemezse (1.10.2026)    düştü
            (adres yine değişiyordu, düşen Geri: adresi uyduran
            replaceState pushState'in eksikliğini örtüyor)
@@ -144,6 +149,23 @@
      B-ADRES açılışta adres okunmazsa (yenileme Genel Bakış)    düştü
      B-ADRES bilinmeyen ekran adresi düzeltilmezse              düştü
      B-ADRES sekme başlığı ekranla değişmezse                   düştü
+     C-40  formda bölge dışı hiç hesaplanmazsa (5.10.2026)      düştü
+     C-40  düğmenin yazısı değişmezse                           düştü
+     C-40  il değişince önerilen adres boşalmazsa               düştü
+     C-40  çiftçinin yazdığı adres de silinirse                 düştü
+     B-BOLGE atama bölümü hiç çizilmezse (5.10.2026)            düştü
+     B-BOLGE bölgeye bakan servisler önerilmezse                düştü
+     B-BOLGE atamanın izi gösterilmezse                         düştü
+     B-BOLGE onay yine tarayıcının uyarı kutusuyla sorulursa (7.10.2026) düştü
+     B-RAPOR seçili sekmenin çizgisi kutunun altına taşarsa (6.10.2026) düştü
+     B-RAPOR Dikkat İsteyenler satırı açıklamayı yeniden çizerse  düştü
+     B-RAPOR zaman grafiği etiketleri yine N'de bir yazılırsa   düştü
+     B-RAPOR haftalık etiket yine yalnız başlangıç günü olursa  düştü
+     B-RAPOR bilgi kutusu alt açıklamayı yeniden çizerse         düştü
+     B-TARIH yarım yazılan yıl (0002) tarih sayılırsa (6.10.2026)  düştü
+     B-TARIH on yıl sınırı tek başına kalkarsa: DÜŞMEDİ — ilk kat tutuyor;
+             ikinci kat bozuk tarihli eski kayıt için (sınama verisinde yok)
+     B-TARIH iki kat birlikte kalkarsa (24.298 sütun)               düştü
      X-12  özetteki artı adedi değiştirmezse (30.09.2026)         düştü
      X-12  Kaldır satırı çıkarmazsa                               düştü
      X-12  özetten dönünce seçimin adedi 1'e inerse               düştü
@@ -213,8 +235,9 @@ const secili = (kod) => !YALNIZ || YALNIZ.has(kod)
 const EK_DENETIMLER = [
   'B-MENU', 'B-ROL', 'B-SEKME', 'B-ADRES',
   'X-01', 'X-02', 'X-03', 'X-04', 'X-05', 'X-06', 'X-07', 'X-08', 'X-09', 'X-10', 'X-11', 'X-12', 'X-13',
-  'X-14', 'X-15',
-  'C-29', 'C-30', 'C-31', 'C-32', 'C-33', 'C-34', 'C-35', 'C-36', 'C-37', 'C-38', 'C-39',
+  'X-14', 'X-15', 'X-16',
+  'C-29', 'C-30', 'C-31', 'C-32', 'C-33', 'C-34', 'C-35', 'C-36', 'C-37', 'C-38', 'C-39', 'C-40',
+  'B-BOLGE', 'B-RAPOR', 'B-TARIH',
 ]
 
 /* BİLİNMEYEN KOD SESSİZCE GEÇMİYOR (25 Eylül 2026, inceleme).
@@ -1290,7 +1313,7 @@ try {
 
   /* C-36 · Destek'in parça adı talep formunda katalog koduna çevriliyor
      (29 Eylül 2026). "Bu Parçaları Talep Et" adları taşıyor; form adı
-     marka tablosuyla koda çeviriyor (marka/icerik/destekVerisi.js →
+     marka tablosuyla koda çeviriyor (data/icerik/destekVerisi.js →
      PARCA_KODU), yalnız o parçanın uyduğu makinede. Süper 8002'de
      "Mekik dili" seçili gelmeli, tabloda olmayan "Yatak" açıklamaya
      yazılmalı; Hammer'da "Mekik dili" seçili GELMEMELİ (Hammer'ın
@@ -1525,8 +1548,8 @@ try {
      kısmına güzel ve en iyi şekilde entegre" edilsin; RequestForm.jsx →
      Hesaplar). Parça talebi C-36'nın yoluyla açılıyor (Destek'in parça
      adı Süper 8002'de seçili geliyor), form gönderilip ödeme adımına
-     geçiliyor. Kartta: (a) görünen IBAN marka katmanındakiyle aynı —
-     ekilen değer src/marka/kimlik.js'ten okunan IBAN; (b) IBAN düğmesi
+     geçiliyor. Kartta: (a) görünen IBAN data/kimlik.js'tekiyle aynı —
+     ekilen değer src/data/kimlik.js'ten okunan IBAN; (b) IBAN düğmesi
      panoya IBAN'ı BOŞLUKSUZ yazıyor (pano sayfada taklit ediliyor);
      (c) kartta tutar YOK (30.09.2026, kullanıcının isteği: tutar yalnız
      sayfanın başındaki özette); (d) havale açıklaması
@@ -1539,7 +1562,7 @@ try {
      parça satırında parçanın resmi var; (g) IBAN tek satırda, taşmadan.
      Yazılara bakılmıyor. */
   if (secili('C-38')) {
-    const kimlik = readFileSync(join(KOK, 'src', 'marka', 'kimlik.js'), 'utf8')
+    const kimlik = readFileSync(join(KOK, 'src', 'data', 'kimlik.js'), 'utf8')
     const IBAN_YAZI = kimlik.match(/iban:\s*'([A-Z]{2}[0-9 ]{10,})'/)?.[1] || ''
     const IBAN = IBAN_YAZI.replace(/\s/g, '')
     const katalog = JSON.parse(readFileSync(join(KOK, 'sunucu-taklidi', 'parca-katalogu', 'katalog.json'), 'utf8'))
@@ -1580,7 +1603,7 @@ try {
         sec.removeAllRanges();
         return yazi
       })()`)
-      if (gorunen !== IBAN) hata = `kartta görünen IBAN marka katmanındakiyle aynı değil ("${gorunen}")`
+      if (gorunen !== IBAN) hata = `kartta görünen IBAN data/kimlik.js'tekiyle aynı değil ("${gorunen}")`
       else if (secim.trim() !== IBAN_YAZI) hata = `IBAN seçilince öbekler boşlukla tek satır gelmiyor (${JSON.stringify(secim)})`
       else if ((await say('[data-kopyala="iban"]')) < 1) hata = 'IBAN kopyalama düğmesi yok'
       else {
@@ -1914,6 +1937,295 @@ try {
     kaydet('C-39', 'Connect: alttan açılan pencere açıkken arkadaki sayfa kaymıyor, kökte esneme kapalı', hata, await metin())
   }
 
+  /* C-40 · Bölge dışı servis talebi (5 Ekim 2026, kullanıcının kararı).
+     Servisi atanmış makinenin formunda yer önce hesabın yeri (Konya,
+     servisin bölgesi): uyarı yok. Makinenin yeri Eskişehir / Alpu
+     seçilince formun içinde uyarı çıkıyor (`data-uyari="bolge-disi"`,
+     makinenin servisinin adı içinde: ekili değer) ve gönder düğmesinin
+     yazısı değişiyor. Bölgedeki başka bir ilçeye (Konya / Çumra) dönünce
+     uyarı kalkıyor, düğme ilk yazısına dönüyor. Gönderilmiyor; kayıt
+     tarafı AK-38'de. Kelimelere bakılmıyor, yazının değişip değişmediğine
+     bakılıyor.
+
+     ADRES KUTUSU (aynı gün, kullanıcının onayı): kutu hesabın adresiyle
+     dolu geliyor (ekili değer); il değişince önerilen adres boşalıyor,
+     çiftçinin kendi yazdığı adres sonraki il/ilçe değişikliğinde
+     silinmiyor. */
+  /* İSTEĞE BAĞLI EKRAN GÖRÜNTÜSÜ (5 Ekim 2026). PAKSAN_TUR_CEKIM bir
+     klasör adıysa C-40 ve B-BOLGE uyarı ve atama anlarını oraya PNG olarak
+     yazıyor (Connect telefon boyunda). Kullanıcıya göstermek için;
+     değişken yoksa hiçbir şey değişmiyor. */
+  const CEKIM = process.env.PAKSAN_TUR_CEKIM || ''
+  const cek = async (ad, secici) => {
+    if (!CEKIM) return
+    if (secici) await s.kaydirSecici(secici)
+    await bekle(400)
+    await s.cek(join(CEKIM, ad + '.png'))
+  }
+  if (secili('C-40')) {
+    const sec = (secici, deger) => s.js(`(() => {
+      const el = document.querySelector(${JSON.stringify(secici)})
+      if (!el) return 0
+      Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value').set.call(el, ${JSON.stringify(deger)})
+      el.dispatchEvent(new Event('change', { bubbles: true }))
+      return 1
+    })()`)
+    const IL = '[data-alan="servisAdres"] [data-alan="il"] select'
+    const ILCE = '[data-alan="servisAdres"] [data-alan="ilce"] select'
+    const dugme = () => s.js(`document.querySelector('[data-eylem="talep-gonder"]')?.textContent.trim() || ''`)
+    const ADRES_KUTU = '[data-alan-kutu="servisAdres"]'
+    const adres = () => s.js(`document.querySelector(${JSON.stringify(ADRES_KUTU)})?.value ?? null`)
+    const ELLE_ADRES = 'Tur adresi, köy yolu 2. km'
+    await connectKur([])
+    if (CEKIM) await s.olcu({ width: 390, height: 844, deviceScaleFactor: 2, mobile: true })
+    await s.git(ADRES + '/#/talep?tur=servis&makine=' + makineler[0].id)
+    let hata = null
+    if ((await sayiBekle(IL, (v) => v > 0)) < 1) hata = 'servis formunda makinenin yeri alanı yok — ERİŞİLEMEDİ'
+    let ilk = ''
+    if (!hata) {
+      /* Form hesabın yeriyle açılıyor (Konya / Selçuklu); burada seçim
+         yaptırılmıyor: aynı ili yeniden seçmek gerçek telefonda olay
+         doğurmaz, burada ilçeyi sıfırlayıp önerilen adresi boşaltırdı. */
+      await bekle(400)
+      const yer = await s.js(`[document.querySelector(${JSON.stringify(IL)})?.value, document.querySelector(${JSON.stringify(ILCE)})?.value].join('/')`)
+      if (yer !== `${MUSTERI.il}/${MUSTERI.ilce}`) hata = `form hesabın yeriyle açılmadı (${yer}) — ERİŞİLEMEDİ`
+      ilk = await dugme()
+      if (hata) { /* yukarıda */ } else if (!ilk) hata = 'gönder düğmesi yok — ERİŞİLEMEDİ'
+      else if ((await say('[data-uyari="bolge-disi"]')) > 0) hata = 'servisin bölgesindeki yerde bölge dışı uyarısı çıktı'
+      else if ((await adres()) !== MUSTERI.adres) hata = `adres kutusu hesabın adresiyle dolu gelmedi ("${await adres()}") — ERİŞİLEMEDİ`
+    }
+    if (!hata) {
+      await sec(IL, 'Eskişehir')
+      await bekle(300)
+      await sec(ILCE, 'Alpu')
+      if ((await sayiBekle('[data-uyari="bolge-disi"]', (v) => v > 0)) < 1) hata = 'servisin bölgesi dışındaki yerde uyarı çıkmadı'
+      else if (!(await s.js(`document.querySelector('[data-uyari="bolge-disi"]').textContent.includes(${JSON.stringify(SERVIS.ad)})`)))
+        hata = 'uyarı makinenin servisinin adını taşımıyor'
+      else if ((await dugme()) === ilk) hata = 'bölge dışında gönder düğmesinin yazısı değişmedi'
+      else if ((await adres()) !== '') hata = `il değişince önerilen adres boşalmadı ("${await adres()}")`
+      await cek('c40-uyari', '[data-alan="servisAdres"]')
+      await cek('c40-dugme', '[data-eylem="talep-gonder"]')
+    }
+    if (!hata) {
+      /* Çiftçi adresi kendisi yazıyor; sonraki yer değişikliği onu silmemeli. */
+      await s.js(`(() => {
+        const el = document.querySelector(${JSON.stringify(ADRES_KUTU)})
+        Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(el, ${JSON.stringify(ELLE_ADRES)})
+        el.dispatchEvent(new Event('input', { bubbles: true }))
+        return 1
+      })()`)
+      await bekle(200)
+      await sec(IL, 'Konya')
+      await bekle(300)
+      await sec(ILCE, 'Çumra')
+      await sayiBekle('[data-uyari="bolge-disi"]', (v) => v === 0)
+      if ((await say('[data-uyari="bolge-disi"]')) > 0) hata = 'bölgedeki başka ilçeye dönünce uyarı kalkmadı'
+      else if ((await dugme()) !== ilk) hata = 'bölgeye dönünce düğme ilk yazısına dönmedi'
+      else if ((await adres()) !== ELLE_ADRES) hata = `çiftçinin yazdığı adres il değişince silindi ("${await adres()}")`
+    }
+    if (CEKIM) await s.olcu({ width: 1400, height: 1000, deviceScaleFactor: 1, mobile: false })
+    kaydet('C-40', 'Connect: makine servisinin bölgesi dışındaysa formda uyarı ve PAKSAN düğmesi', hata, await metin())
+  }
+
+  /* B-BOLGE · Backoffice'te bölge dışı talebe bu iş için servis atama
+     (5 Ekim 2026). Depoya PAKSAN'da bekleyen bir bölge dışı talep
+     ekleniyor (servisi yok, `bolgeDisi` Eskişehir / Alpu, makinenin
+     servisi Selçuk). Ayrıntıda atama bölümü (`data-bolum="bolge-disi"`)
+     ve servis seçimi var; Eskişehir servisi ilk öbekte (o bölgeye bakan)
+     öneriliyor. Seçilip "Bu İşe Ata" basılınca (onay penceresi kabul)
+     depodaki talep o servise geçiyor, atamanın izi yazılıyor, bölüm
+     kalkıyor ve Servis bölümünde iz satırı (`data-iz="bolge-disi"`)
+     görünüyor; makinenin kayıt defterindeki servisi değişmiyor. */
+  if (secili('B-BOLGE')) {
+    const BD = connectTalebi({
+      id: 'canli-bd',
+      no: 'SRV2609990021',
+      status: 'yeni',
+      servis: null,
+      sahip: 'paksan',
+      masa: null,
+      makine: makineOf(makineler[0]),
+      il: 'Eskişehir',
+      ilce: 'Alpu',
+      bolgeDisi: { il: 'Eskişehir', ilce: 'Alpu', makineServisi: { id: SERVIS.id, ad: SERVIS.ad }, tarih: Date.now() },
+    })
+    await s.git(ADRES + '/backoffice.html')
+    await depoYaz({ ...YEREL, 'paksan.requests': JSON.stringify([BD, ...JSON.parse(YEREL['paksan.requests'] || '[]')]) }, OTURUM)
+    await s.git(ADRES + '/backoffice.html')
+    let hata = null
+    await bekle(1200)
+    await s.js(`document.querySelector('.yan__bag[data-menu="talepler"]')?.click(); 1`)
+    await sayiBekle('tr.tiklanir', (v) => v > 0)
+    /* Varsayılan süzgeç "Açık olanlar"; talep yeni olduğu için listede. */
+    const acildi = await s.js(`(() => { const tr = [...document.querySelectorAll('tr.tiklanir')].find((x) => x.textContent.includes(${JSON.stringify(BD.no)})); if (!tr) return 0; tr.click(); return 1 })()`)
+    if (!acildi) hata = 'bölge dışı talep listede yok — ERİŞİLEMEDİ'
+    if (!hata && (await sayiBekle('[data-bolum="bolge-disi"]', (v) => v > 0)) < 1) hata = 'bölge dışı talepte atama bölümü yok'
+    if (!hata) {
+      const ilkObek = await s.js(`JSON.stringify([...(document.querySelector('[data-alan="bolge-disi-servis"] optgroup')?.querySelectorAll('option') || [])].map((o) => o.value))`)
+      if (!JSON.parse(ilkObek).includes('eskisehir-servis')) hata = `o bölgeye bakan servis ilk öbekte önerilmiyor (${ilkObek})`
+      await cek('bbolge-once', '[data-bolum="bolge-disi"]')
+    }
+    if (!hata) {
+      /* ONAY BACKOFFICE'İN PENCERESİNDEN (7 Ekim 2026, kullanıcının
+         bildirdiği: tarayıcının uyarı kutusu geliyordu). Tarayıcı kutusu
+         açılırsa işaret düşüyor ve adım kırmızı; pencere çıkmalı ve
+         onun düğmesiyle atanmalı (ekranlar/ortak.jsx → useOnay). */
+      await s.js(`(() => {
+        window.__tarayiciUyarisi = 0
+        window.confirm = () => { window.__tarayiciUyarisi = 1; return true }
+        const el = document.querySelector('[data-alan="bolge-disi-servis"]')
+        Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value').set.call(el, 'eskisehir-servis')
+        el.dispatchEvent(new Event('change', { bubbles: true }))
+        return 1
+      })()`)
+      await bekle(300)
+      await s.js(`document.querySelector('[data-eylem="bolge-disi-ata"]')?.click(); 1`)
+      const pencere = await sayiBekle('[data-pencere="onay"] [data-eylem="onay-evet"]', (v) => v > 0, 8)
+      if (await s.js('window.__tarayiciUyarisi')) hata = 'atama onayı tarayıcının uyarı kutusuyla soruldu'
+      else if (pencere < 1) hata = 'atama onayı için backoffice penceresi açılmadı'
+      else {
+        await cek('bbolge-onay', '[data-pencere="onay"] .pencere__kart')
+        await s.js(`document.querySelector('[data-pencere="onay"] [data-eylem="onay-evet"]').click(); 1`)
+        await sayiBekle('[data-bolum="bolge-disi"]', (v) => v === 0)
+      }
+    }
+    if (!hata) {
+      const kayit = await s.js(`JSON.stringify((JSON.parse(localStorage.getItem('paksan.requests') || '[]').find((x) => x.id === 'canli-bd')) || null)`).then(JSON.parse)
+      const defter = await s.js(`JSON.stringify((JSON.parse(localStorage.getItem('paksan.makineKayitlari') || '[]').find((k) => k.seri && k.seri.replace(/-/g, '') === ${JSON.stringify(String(makineler[0].serial).replace(/-/g, ''))})) || null)`).then(JSON.parse)
+      if (kayit?.servis?.id !== 'eskisehir-servis') hata = `talep seçilen servise geçmedi (${kayit?.servis?.id || 'servis yok'})`
+      else if (kayit?.bolgeDisi?.atama?.servisId !== 'eskisehir-servis') hata = 'atamanın izi talebe yazılmadı'
+      else if ((await say('[data-bolum="bolge-disi"]')) > 0) hata = 'atamadan sonra atama bölümü duruyor'
+      else if ((await sayiBekle('[data-iz="bolge-disi"]', (v) => v > 0)) < 1) hata = 'Servis bölümünde bölge dışı atamanın izi yok'
+      else if (defter && defter.servisId !== SERVIS.id) hata = `atama makinenin kalıcı servisini değiştirdi (${defter.servisId})`
+      await cek('bbolge-sonra', '[data-iz="bolge-disi"]')
+    }
+    kaydet('B-BOLGE', 'Backoffice: bölge dışı talebe bu iş için servis atama', hata, await metin())
+  }
+
+  /* B-RAPOR · Raporlar'ın sekme satırında kaydırma çubuğu yok (6 Ekim
+     2026, kullanıcının bildirdiği: "sekme satırında sağda kaydırma çubuğu
+     çıkıyor. Burada kaydırılacak bir şey yok"). Seçili sekmenin çizgisi
+     kutunun altına taşıyor, yatay kaydırma için açık taşma dikeyde de
+     çubuk açıyordu. Masaüstü genişliğinde (1400) satır ne dikeyde ne
+     yatayda taşmamalı; seçili sekmenin çizgisi kutunun içinde görünmeli.
+     Aynı gün: Genel Bakış'ın "Dikkat İsteyenler" satırlarında başlığın
+     altında açıklama yok (kullanıcının isteği); satır yalnız başlık,
+     nokta ve Göster düğmesi.
+     Aynı gün: zaman grafiklerinde HER SÜTUNUN etiketi var ve etiketler
+     birbirine binmiyor (kullanıcının onayı). "Tüm zamanlar" seçiliyor
+     (sınama verisi 31 günden uzun: haftalık sütunlar, etiket aralık);
+     her eksende boş etiket sayılıyor, komşu etiketlerin kutuları
+     ölçülüyor. */
+  if (secili('B-RAPOR')) {
+    await s.git(ADRES + '/backoffice.html')
+    await depoYaz(YEREL, OTURUM)
+    await s.git(ADRES + '/backoffice.html#/raporlar')
+    let hata = null
+    if ((await sayiBekle('.rapor-sekmeler', (v) => v > 0, 20)) < 1) hata = 'Raporlar ekranında sekme satırı yok — ERİŞİLEMEDİ'
+    if (!hata) {
+      await bekle(600)
+      const o = await s.js(`(() => {
+        const n = document.querySelector('.rapor-sekmeler')
+        const on = n.querySelector('.rapor-sekme--on')
+        const c = on && getComputedStyle(on, '::after')
+        const kutu = n.getBoundingClientRect(), sek = on && on.getBoundingClientRect()
+        return JSON.stringify({ dikey: n.scrollHeight - n.clientHeight, yatay: n.scrollWidth - n.clientWidth,
+          cizgiAlti: sek ? Math.round(sek.bottom - kutu.bottom) - parseFloat(c.bottom || '0') : null })
+      })()`).then(JSON.parse)
+      if (o.dikey > 0) hata = `sekme satırı dikeyde ${o.dikey} piksel taşıyor (kaydırma çubuğu çıkar)`
+      else if (o.yatay > 0) hata = `sekme satırı 1400 piksel genişlikte yatayda ${o.yatay} piksel taşıyor`
+      const satir = await sayiBekle('.uyari-satir', (v) => v > 0)
+      const aciklamali = await s.js(`[...document.querySelectorAll('.uyari-satir')].filter((x) => x.querySelector('.uyari-satir__ad')?.parentElement.children.length > 1).length`)
+      if (!hata && satir < 1) hata = 'Dikkat İsteyenler satırı yok — ERİŞİLEMEDİ'
+      else if (!hata && aciklamali > 0) hata = `${aciklamali} Dikkat İsteyenler satırında başlığın altında açıklama var`
+      await cek('brapor', '.rapor-sekmeler')
+    }
+    if (!hata) {
+      await s.js(`(() => {
+        const el = [...document.querySelectorAll('select')].find((x) => [...x.options].some((o) => o.value === 'gun30'))
+        Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value').set.call(el, 'hepsi')
+        el.dispatchEvent(new Event('change', { bubbles: true }))
+        return 1
+      })()`)
+      await bekle(900)
+      const e = await s.js(`JSON.stringify([...document.querySelectorAll('.ysutun__eksen')].map((ek) => {
+        const et = [...ek.querySelectorAll('.ysutun__etiket')]
+        const kutu = et.map((x) => { const r = x.getBoundingClientRect(); return [r.left, r.right] })
+        let binen = 0
+        for (let i = 1; i < kutu.length; i++) if (kutu[i][0] < kutu[i - 1][1] - 1) binen++
+        return { n: et.length, bos: et.filter((x) => !x.textContent.trim()).length, binen, ilk: et[0]?.textContent || '' }
+      }))`).then(JSON.parse)
+      if (!e.length) hata = 'Genel Bakış\'ta zaman grafiği yok — ERİŞİLEMEDİ'
+      else if (e.some((x) => x.bos > 0)) hata = `etiketsiz sütun var (${e.map((x) => x.bos + '/' + x.n).join(', ')})`
+      else if (e.some((x) => x.binen > 0)) hata = `etiketler birbirine biniyor (${e.map((x) => x.binen).join(', ')})`
+      else if (!e.some((x) => /–/.test(x.ilk))) hata = `haftalık sütunun etiketi aralık değil ("${e[0].ilk}")`
+      await cek('brapor-eksen', '.ysutun')
+    }
+    /* Her sekme açılıyor ve hesaplanabiliyor (6 Ekim 2026: sekmeler ve
+       ölçüler kaldırılırken bir bölümün hesabı kırılırsa ekranda
+       "bölüm hesaplanamadı" kutusu çıkar). */
+    if (!hata) {
+      const sekmeSayisi = await say('.rapor-sekme')
+      for (let i = 0; i < sekmeSayisi && !hata; i++) {
+        await s.js(`document.querySelectorAll('.rapor-sekme')[${i}].click(); 1`)
+        await bekle(700)
+        const ad = await s.js(`document.querySelectorAll('.rapor-sekme')[${i}].textContent.trim()`)
+        if ((await say('.rapor-bolum-bas ~ .hata, .hata')) > 0) hata = `"${ad}" sekmesi hesaplanamadı`
+        /* Bilgi kutularında alt açıklama yok (6 Ekim 2026, kullanıcının isteği). */
+        else if ((await say('.olculer--rapor .deger__aciklama')) > 0) hata = `"${ad}" sekmesinin bilgi kutularında alt açıklama var`
+        await cek('brapor-sekme-' + i, '.rapor-bolum-bas')
+      }
+    }
+    kaydet('B-RAPOR', 'Backoffice: Raporlar sekme satırında kaydırma çubuğu yok', hata, await metin())
+  }
+
+  /* B-TARIH · Raporlar'da tarihi elle yazarken ekran donmuyor (6 Ekim
+     2026, kullanıcının bildirdiği: "başlangıç tarihini gün-ay-yıl
+     sırasıyla girmek istediğimde sistem çöküyor"). Tarih kutusu yıl
+     yazılırken her tuşta ara bir tarih veriyor (0002, 0020, 0202, 2026).
+     "Tarih seç" açılıp Başlangıç'a bu dört değer sırayla veriliyor;
+     hiçbirinde grafik 400'den çok sütun çizmemeli. */
+  if (secili('B-TARIH')) {
+    await s.git(ADRES + '/backoffice.html')
+    await depoYaz(YEREL, OTURUM)
+    await s.git(ADRES + '/backoffice.html#/raporlar')
+    let hata = null
+    if ((await sayiBekle('.rapor-sekmeler', (v) => v > 0, 20)) < 1) hata = 'Raporlar açılmadı — ERİŞİLEMEDİ'
+    const sec = (secici, deger, olay) => s.js(`(() => {
+      const el = ${secici}
+      if (!el) return 0
+      const P = el.tagName === 'SELECT' ? HTMLSelectElement.prototype : HTMLInputElement.prototype
+      Object.getOwnPropertyDescriptor(P, 'value').set.call(el, ${JSON.stringify(deger)})
+      el.dispatchEvent(new Event(${JSON.stringify(olay)}, { bubbles: true }))
+      return 1
+    })()`)
+    if (!hata) {
+      await sec(`[...document.querySelectorAll('select')].find((x) => [...x.options].some((o) => o.value === 'ozel'))`, 'ozel', 'change')
+      if ((await sayiBekle('input[type="date"]', (v) => v > 0)) < 1) hata = '"Tarih seç" başlangıç kutusunu açmadı'
+    }
+    /* Süre değil SÜTUN SAYISI ölçülüyor: tarayıcıda süre ölçümü
+       çizimden önce dönüyordu (ilk denemede 1 ms ölçüldü, sayfada 24.298
+       sütun vardı). Grafik sütunları 400'ü geçmemeli (10 yıl, aylık 120). */
+    /* Yarım yıl başlangıç yokmuş gibi okunmalı: grafik, başlangıç boşken
+       çizilenle AYNI sayıda sütun çizmeli (ikinci kat — on yıl sınırı —
+       tek başına 120 aylık sütuna indirirdi; bu ölçü ilk katı ayrıca
+       yakalıyor). Tam yıl (2026) için yalnız 400 sınırı. */
+    const sutunSay = () => s.js(`Math.max(0, ...[...document.querySelectorAll('.ysutun__eksen')].map((e) => e.children.length))`)
+    await bekle(600)
+    const bos = await sutunSay()
+    const sayimlar = [`boş: ${bos} sütun`]
+    for (const deger of ['0002-01-01', '0020-01-01', '0202-01-01', '2026-01-01']) {
+      if (hata) break
+      await sec(`document.querySelector('input[type="date"]')`, deger, 'input')
+      await bekle(600)
+      const sutun = await sutunSay()
+      sayimlar.push(`${deger.slice(0, 4)}: ${sutun} sütun`)
+      if (sutun > 400) hata = `başlangıç yılı ${deger.slice(0, 4)} yazılırken grafik ${sutun} sütun çizdi (sayfa donar)`
+      else if (deger < '2000' && sutun !== bos) hata = `yarım yazılan yıl ${deger.slice(0, 4)} tarih sayıldı (${sutun} sütun, boşken ${bos})`
+    }
+    kaydet('B-TARIH', 'Backoffice: Raporlar tarihi elle yazılırken donmuyor', hata, sayimlar.join(' · '))
+  }
+
   /* X-14 · Servisim'de aynısı (30 Eylül 2026). Telefon boyunda Hesap
      ekranı aşağı kaydırılıyor, Çıkış Yap'ın onay yaprağı açılıyor (onay
      verilmiyor); yaprağın üstünde ve perdede iki yöne kaydırma: hiçbir
@@ -2029,6 +2341,125 @@ try {
       if (secik !== 'hareket') hata = `başka sekmeye gidip dönünce Hak Ediş'in seçili sekmesi kayboldu ("${secik}")`
     }
     kaydet('X-15', "Servisim: Hak Ediş iki sekmede, hesap hareketleri onar onar açılıyor", hata, await metin())
+  }
+
+  /* X-16 · Servis kaydında yapılan iş çok seçimli, parçasız "Parça
+     Değişti" gitmiyor, "Parçayı Taktım"da seçili ve kilitli (6 Ekim 2026,
+     kullanıcının bildirdiği ve istediği). İki iş depoya ekleniyor: yeni
+     bir iş (servis kaydı) ve parçası yola çıkmış 1. aşama işi. Seçenekler
+     sırayla sayılıyor (lib/servisKaydi.js → YAPILAN_IS; 3 = Parça
+     Değişti), yazılara bakılmıyor. Gönderim engelinin nedeni, formun hata
+     satırının alanın altındaki uyarıyla aynı metin olmasından okunuyor:
+     başka bir eksik yüzünden gitmemesi sayılmıyor. */
+  if (secili('X-16')) {
+    const AD_YENI = 'Canlı Kayıt Sınaması'
+    const AD_TAKTIM = 'Canlı Taktım Sınaması'
+    const simdi = Date.now()
+    const yeni = connectTalebi({ id: 'canli-16', no: 'SRV2609990016', status: 'yeni', ad: AD_YENI })
+    const taktim = connectTalebi({
+      id: 'canli-16b',
+      no: 'SRV2609990017',
+      status: 'parcaBekliyor',
+      masa: 'servis',
+      ad: AD_TAKTIM,
+      parcaSevk: { firma: 'Aras', takipNo: 'TUR16', tarih: simdi - 3600000, personel: 'Tur' },
+      servisKaydi: {
+        asama: 'parca',
+        kapi: 'garanti',
+        parcalar: [{ ad: 'Tur Parçası', kod: 'TUR-16', adet: 1, fiyat: 100 }],
+        teslimat: { alici: 'Tur', tel: '5051112233', il: 'Konya', ilce: 'Selçuklu', acikAdres: 'Tur adresi' },
+        ariza: 'Tur arızası',
+        sonuc: 'Tur tespiti',
+        tarih: simdi - 7200000,
+        servisAd: SERVIS.ad,
+      },
+    })
+    await s.git(ADRES + '/servis.html')
+    await depoYaz(YEREL, OTURUM)
+    if (CEKIM) await s.olcu({ width: 390, height: 844, deviceScaleFactor: 2, mobile: true })
+    await s.git(ADRES + '/servis.html')
+    await bekle(1800)
+    await s.js(`(() => { const k = 'paksan.requests'; const l = JSON.parse(localStorage.getItem(k) || '[]'); l.unshift(${JSON.stringify(yeni)}, ${JSON.stringify(taktim)}); localStorage.setItem(k, JSON.stringify(l)); return 1 })()`)
+    await s.js(depoOlayi('paksan.requests'))
+    const kartiAc = async (ad) => {
+      await metinBekle(ad)
+      return s.js(`(() => { const h = [...document.querySelectorAll('button, [role="button"], a')].find((x) => (x.innerText || '').includes(${JSON.stringify(ad)})); if (!h) return 0; h.click(); return 1 })()`)
+    }
+    const SEC = '[data-alan="yapilanIs"] .buyuk-sec'
+    /* Servisim'in kaydırıcısı sayfanın içinde; görüntüden önce bölüm ortaya. */
+    const ortala = () => s.js(`document.querySelector('[data-alan="yapilanIs"]')?.scrollIntoView({ block: 'center' }); 1`)
+    const secim = (i) => s.js(`document.querySelectorAll(${JSON.stringify(SEC)})[${i}]?.click(); 1`)
+    const basili = () => s.js(`[...document.querySelectorAll(${JSON.stringify(SEC)})].map((b) => (b.getAttribute('aria-pressed') === 'true' ? 1 : 0)).join('')`)
+    let hata = (await kartiAc(AD_YENI)) ? null : `"${AD_YENI}" taşıyan kart açılamadı — ERİŞİLEMEDİ`
+    if (!hata) {
+      if ((await sayiBekle('[data-eylem="servis-kaydi-ac"]', (v) => v > 0)) < 1) hata = 'yeni işte Servis Kaydını Aç düğmesi yok — ERİŞİLEMEDİ'
+      else {
+        await bekle(500)
+        await s.js(`document.querySelector('[data-eylem="servis-kaydi-ac"]').click(); 1`)
+        if ((await sayiBekle(SEC, (v) => v === 5)) !== 5) hata = 'servis kaydında beş yapılan iş seçeneği yok'
+      }
+    }
+    if (!hata) {
+      await bekle(400)
+      await secim(1)
+      await secim(2)
+      await bekle(250)
+      const b = await basili()
+      if (b !== '01100') hata = `iki seçenek birlikte işaretlenemiyor (çok seçimli değil): ${b}`
+    }
+    if (!hata) {
+      await secim(3)
+      await bekle(250)
+      if ((await say('.yapilan-is__uyari')) < 1) hata = 'parça seçilmeden "Parça Değişti" işaretlenince uyarı çıkmadı'
+    }
+    if (!hata) {
+      await ortala()
+      await cek('x16-parcasiz-uyari')
+      await s.js(`document.querySelector('.kayit-dip .dg--ana')?.click(); 1`)
+      await bekle(500)
+      const pencere = await say('.onay-perde')
+      const ayni = await s.js(`(() => { const u = document.querySelector('.yapilan-is__uyari')?.textContent.trim(); const h = document.querySelector('.uyari')?.textContent.trim(); return Boolean(u) && u === h })()`)
+      if (pencere > 0) hata = 'parçasız "Parça Değişti" ile kayıt onay penceresine geçti'
+      else if (!ayni) hata = 'gönderim bu kural yüzünden durmadı (hata satırı uyarının metni değil)'
+    }
+    if (!hata) {
+      await secim(3)
+      await bekle(250)
+      if ((await say('.yapilan-is__uyari')) > 0) hata = '"Parça Değişti" kaldırılınca uyarı gitmedi'
+    }
+    if (!hata) {
+      await s.git(ADRES + '/servis.html')
+      await bekle(1500)
+      /* Parçası yoldaki iş "Devam Eden" sekmesinde (Islerim.jsx → SEKMELER). */
+      await sayiBekle('[data-is-sekme="devam"]', (v) => v > 0)
+      await s.js(`document.querySelector('[data-is-sekme="devam"]')?.click(); 1`)
+      await bekle(500)
+      if (!(await kartiAc(AD_TAKTIM))) hata = `"${AD_TAKTIM}" taşıyan kart açılamadı — ERİŞİLEMEDİ`
+      else if ((await sayiBekle('[data-eylem="parcayi-taktim"]:not([disabled])', (v) => v > 0)) < 1) {
+        hata = 'parçası yoldaki işte Parçayı Taktım düğmesi açık değil — ERİŞİLEMEDİ'
+      } else {
+        await bekle(500)
+        await s.js(`document.querySelector('[data-eylem="parcayi-taktim"]').click(); 1`)
+        if ((await sayiBekle(SEC, (v) => v === 5)) !== 5) hata = 'Parçayı Taktım ekranında beş yapılan iş seçeneği yok'
+      }
+    }
+    if (!hata) {
+      await bekle(400)
+      const ilk = await basili()
+      const kilitli = await s.js(`document.querySelectorAll(${JSON.stringify(SEC)})[3]?.getAttribute('aria-disabled')`)
+      await secim(3)
+      await bekle(250)
+      const sonra = await basili()
+      if (ilk !== '00010') hata = `Parçayı Taktım'da "Parça Değişti" kendiliğinden seçili gelmedi: ${ilk}`
+      else if (kilitli !== 'true') hata = '"Parça Değişti" kilitli işaretlenmemiş'
+      else if (sonra !== '00010') hata = `kilitli "Parça Değişti" dokununca kalktı: ${sonra}`
+      else {
+        await ortala()
+        await cek('x16-parcayi-taktim')
+      }
+    }
+    if (CEKIM) await s.olcu({ width: 1400, height: 1000, deviceScaleFactor: 1, mobile: false })
+    kaydet('X-16', 'Servisim: servis kaydında yapılan iş çok seçimli; parçasız "Parça Değişti" uyarıyor ve gitmiyor; Parçayı Taktım\'da seçili ve kilitli', hata, await metin())
   }
 
   /* X-12 · Servisim sipariş özetinde adet ve Kaldır (30 Eylül 2026,

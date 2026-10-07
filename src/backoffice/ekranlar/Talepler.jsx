@@ -7,7 +7,7 @@ import {
   talepDurumDegistir,
   elleSecilebilirDurumlar, talepDurumlari, talepIptal, talepKapat, talepleriGetir,
   talepNotEkle, talepPlanla, talepTeklifVer, teklifBeklemeGunu, teklifBekliyorMu,
-  TEKLIF_BEKLEME_GUN, talebiBayiyeAta, bayiAtamasiniKaldir,
+  TEKLIF_BEKLEME_GUN, talebiBayiyeAta, bayiAtamasiniKaldir, bolgeDisiTalebeServisAta,
   hakkedisOnayla, hakkedisDuzelt, hakkedisReddet, servisParcasiGonderildi, musteriKargosunuGuncelle,
   hakkedisIlerlemeEngeli,
   islemYaz,
@@ -19,7 +19,7 @@ import {
   acikServisTalebiMi, makineAnahtari, makineninAcikServisTalepleri,
 } from '../../lib/makineTalepleri'
 import { gonderilenTutar, siparisNetTutari } from '../../lib/servisFiyat'
-import { KDV_HARIC_LISTE, KDV_ORANI } from '../../marka'
+import { KDV_HARIC_LISTE, KDV_ORANI } from '../../data/katalog/para.js'
 /* Kodlu biçim: yedek parça personeli 538 parçalık katalogta hangi
    kaydı hazırlayacağını addan çıkaramıyor. */
 import {
@@ -44,20 +44,21 @@ import {
 import { useVeri } from '../kanca'
 import {
   Baslik, Bekleme, Bos, DurumRozet, saatYaz, Sayfalama, siraliListe, SiraliBaslik,
-  tarihSaat, tarihYaz, useSiralama,
+  tarihSaat, tarihYaz, useOnay, useSiralama,
   durumYazisi,
 } from './ortak'
 import { DisaAktar } from './aktar'
 import { boyutYaz, ekAdresi, ekYaz } from '../../lib/ekler'
 import { araliktaMi, BOS_ARALIK, Secim, SuzgecCubugu, TarihAraligi } from './suzgec'
 import { Dekont, Ekler } from './Ekler'
-import { getProduct, markaEk } from '../../marka'
+import { getProduct } from '../../data/katalog/products.js'
 import { formatSerial, warrantyStatus } from '../../lib/serial'
 import { ileriTarihMi, metindeGecmisTarihVar, simdiGirdi } from '../../lib/tarih'
 import { makineDurumAdi } from '../../data/talepAlanlari'
-import { BANKA } from '../../marka'
-import { servisleriGetir, bayileriGetir, MARKA } from '../../marka'
-import { PARA_BIRIMI, paraYaz } from '../../marka'
+import { BANKA } from '../../data/kimlik.js'
+import { servisleriGetir, talebinServisleri } from '../../data/katalog/servisler.js'
+import { bayileriGetir } from '../../data/katalog/bayiler.js'
+import { PARA_BIRIMI, paraYaz } from '../../data/katalog/para.js'
 import { kayitTelGoster, telFirma } from '../../lib/tel'
 import { teslimatTelYaz } from '../../lib/teslimat'
 
@@ -184,13 +185,13 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
 
      KARŞILIĞI OLMAYAN SEÇENEK ÇIKMIYOR. Onay ve parça durumları yalnız
      servis talebinde oluşuyor: admin türü "Yedek parça" seçince listede
-     kalıyorlardı ve seçilince liste boş geliyordu. Yedek parça masasının
-     rolü (tek tür: parça) bu durumları görüyor, çünkü servis talebinin
-     parçası onun masasına düşüyor (bkz. veri.js → rolunTalepleri).
+     kalıyorlardı ve seçilince liste boş geliyordu. Yedek parça rolü (tek
+     tür: parça) de 6 Ekim 2026'dan beri görmüyor: garanti parçası servis
+     biriminin işi, onun masasına düşmüyor (bkz. veri.js → rolunTalepleri).
      "Ödeme onayı bekleyenler" müşterinin parça talebine ait; servis
      talebinde yok. */
   const teklifVar = !suzgecTuru || suzgecTuru === 'hepsi' || suzgecTuru === 'satinalma'
-  const servisDurumlariVar = suzgecTuru !== 'satinalma' && !(tur === 'parca' && !tekTur)
+  const servisDurumlariVar = suzgecTuru !== 'satinalma' && suzgecTuru !== 'parca'
   const odemeVar = !suzgecTuru || suzgecTuru === 'hepsi' || suzgecTuru === 'parca'
   const SERVIS_DURUMLARI = ['onayBekliyor', 'parcaHazirlik', 'parcaYolda']
   const durumSecenekleri = GORUNEN_DURUMLAR.filter((d) => {
@@ -218,7 +219,7 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
     if (odemeVar) gecerli.push('odemeBekleyen')
     if (teklifVar) gecerli.push('teklifBekleyen')
     /* Atama dışı ve aynı makinedeki işler yalnız servis talebinde. */
-    if (servisDurumlariVar) gecerli.push('atamaDisi', 'ayniMakine')
+    if (servisDurumlariVar) gecerli.push('atamaDisi', 'ayniMakine', 'bolgeDisi')
     for (const d of durumSecenekleri) gecerli.push(d.id)
     if (!gecerli.includes(durum)) setDurum('acik')
   }, [durum, durumSecenekleri, teklifVar, odemeVar, servisDurumlariVar])
@@ -280,9 +281,12 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
          dikkat istemiyor; işaret satırda yine görünüyor. */
       if (durum === 'atamaDisi' && !(t.atamaDisi && !KAPALI_DURUMLAR.includes(d))) return false
       if (durum === 'ayniMakine' && !ayniMakinede(t)) return false
+      /* BÖLGE DIŞI TALEP (5 Ekim 2026): servis bekleyen, yani PAKSAN'ın
+         bu iş için servis seçmesi gereken talepler. */
+      if (durum === 'bolgeDisi' && !servisBekleyenBolgeDisi(t)) return false
       if (
         !['acik', 'gecikmis', 'bizdeGeciken', 'servisteGeciken', 'parcaHazirlik', 'parcaYolda',
-          'odemeBekleyen', 'teklifBekleyen', 'atamaDisi', 'ayniMakine', 'hepsi'].includes(durum) &&
+          'odemeBekleyen', 'teklifBekleyen', 'atamaDisi', 'ayniMakine', 'bolgeDisi', 'hepsi'].includes(durum) &&
         d !== durum
       ) {
         return false
@@ -413,6 +417,7 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
                   ? [
                       { deger: 'atamaDisi', ad: 'Atama dışı işler' },
                       { deger: 'ayniMakine', ad: 'Aynı makinede açık işler' },
+                      { deger: 'bolgeDisi', ad: 'Servis ataması bekleyen bölge dışı talepler' },
                     ]
                   : []),
               ],
@@ -488,7 +493,7 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
             { deger: 'hepsi', ad: 'Hepsi' },
             { deger: 'servis', ad: 'Serviste' },
             { deger: 'bayi', ad: 'Bayide' },
-            { deger: 'paksan', ad: markaEk('da') },
+            { deger: 'paksan', ad: 'PAKSAN’da' },
             { deger: 'devredilen', ad: 'Devredilenler' },
           ]}
           genislik={150}
@@ -561,7 +566,7 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
                             {gonderimGecikti(t) && <GonderimGecikti talep={t} />}
                           </div>
                           <SahiplikEtiketi talep={t} />
-                          <IsIsaretleri atamaDisi={Boolean(t.atamaDisi)} ayniMakine={ayniMakinede(t)} />
+                          <IsIsaretleri atamaDisi={Boolean(t.atamaDisi)} ayniMakine={ayniMakinede(t)} bolgeDisi={Boolean(t.bolgeDisi)} />
                         </td>
                         <td>
                           <div>{t.ad || '—'}</div>
@@ -960,6 +965,16 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
 
         <ServisDurumu talep={talep} devirGoster={!devirUstte} />
 
+        {servisBekleyenBolgeDisi(talep) && (
+          <BolgeDisiAtama
+            talep={talep}
+            personel={personel}
+            yetkili={izinli(rol, 'makineAtama')}
+            tazele={tazele}
+            bildir={bildir}
+          />
+        )}
+
         {talep.tur === 'satinalma' && (
           <BayiAtama
             talep={talep}
@@ -1056,7 +1071,7 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
                 {ayniMakinedekiler.map((t) => (
                   <button key={t.id} className="bag-satir" onClick={() => onTalepSec(t.id)}>
                     <span className="mono">{t.no}</span>
-                    <span className="kucuk sonuk">{t.servis?.ad || MARKA}</span>
+                    <span className="kucuk sonuk">{t.servis?.ad || 'PAKSAN'}</span>
                     <span className="kucuk sonuk">{durumYazisi(t)}</span>
                   </button>
                 ))}
@@ -1319,7 +1334,7 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
             {BANKA.aktif === false && (
               <p className="kucuk sonuk" style={{ marginTop: 10 }}>
                 Uygulamada banka hesabı tanımlı değil; müşteri ödeme bilgilerini telefonla
-                almış olabilir (bkz. src/marka/kimlik.js → BANKA).
+                almış olabilir (bkz. src/data/kimlik.js → BANKA).
               </p>
             )}
           </Bolum>
@@ -2217,11 +2232,21 @@ const AKTAR_SUTUNLARI = [
   /* Servisin elle açtığı ve makinenin servisinde olmayan iş (25 Eylül
      2026, Y5): talep açıldığı andaki durum. */
   { ad: 'Atama dışı', deger: (t) => ATAMA_DISI_ADI[t.atamaDisi?.durum] || '', turler: ['servis'] },
+  /* Bölge dışı talep (5 Ekim 2026): makinenin bulunduğu yer ve PAKSAN'ın
+     atadığı servis. */
+  {
+    ad: 'Bölge dışı',
+    deger: (t) =>
+      t.bolgeDisi
+        ? [[t.bolgeDisi.ilce, t.bolgeDisi.il].filter(Boolean).join(' / '), t.bolgeDisi.atama ? `Atanan servis: ${t.bolgeDisi.atama.servisAd}` : 'Servis ataması bekliyor'].join(' · ')
+        : '',
+    turler: ['servis'],
+  },
   {
     ad: 'Talep kimde',
     deger: (t) => {
       if (t.bayi) return 'Bayide'
-      return t.servis && (t.sahip || 'paksan') === 'servis' ? 'Serviste' : markaEk('da')
+      return t.servis && (t.sahip || 'paksan') === 'servis' ? 'Serviste' : 'PAKSAN’da'
     },
   },
   { ad: 'Bayi', deger: (t) => t.bayi?.ad || '' },
@@ -2585,8 +2610,12 @@ function atamaDisiOzeti(talep) {
 
 /* Liste satırındaki işaretler: numaranın altında, tür etiketinin
    ardından, "Devredildi" satırıyla aynı yazı. */
-function IsIsaretleri({ atamaDisi, ayniMakine }) {
-  const p = [atamaDisi && 'Atama dışı', ayniMakine && 'Makinede başka açık iş'].filter(Boolean)
+function IsIsaretleri({ atamaDisi, ayniMakine, bolgeDisi }) {
+  const p = [
+    atamaDisi && 'Atama dışı',
+    bolgeDisi && 'Bölge dışı',
+    ayniMakine && 'Makinede başka açık iş',
+  ].filter(Boolean)
   return p.length ? (
     <div className="kucuk talep-devir" style={{ marginTop: 2 }}>
       {p.join(' · ')}
@@ -2683,6 +2712,7 @@ function AtamaDisiUyarisi({ talep }) {
    ========================================================================== */
 function BayiAtama({ talep, personel, geriAlabilir, tazele, bildir }) {
   const [secim, setSecim] = useState('')
+  const [sor, onayPenceresi] = useOnay()
 
   /* Müşterinin ilçesi, sonra ili, sonra kalanlar. */
   const bayiler = useMemo(() => {
@@ -2696,20 +2726,26 @@ function BayiAtama({ talep, personel, geriAlabilir, tazele, bildir }) {
   if (durum === 'bayiyeIletildi') {
     return (
       <Bolum ad="Yetkili bayi">
+        {onayPenceresi}
         <div className="satir" style={{ gap: 10, alignItems: 'center', marginBottom: 8 }}>
           <b>{talep.bayi?.ad || '—'}</b>
         </div>
         <S k="Telefon" v={telFirma(talep.bayi?.tel)} mono />
         <S k="İletilme tarihi" v={talep.bayi?.tarih ? tarihYaz(talep.bayi.tarih) : ''} />
         <p className="kucuk sonuk" style={{ margin: '8px 0 0' }}>
-          {`Müşteriyle bu bayi ilgilenecek. ${MARKA} bu taleple ilgili başka işlem yapmayacak. Müşteriye bildirim gönderilmedi.`}
+          {`Müşteriyle bu bayi ilgilenecek. PAKSAN bu taleple ilgili başka işlem yapmayacak. Müşteriye bildirim gönderilmedi.`}
         </p>
         {geriAlabilir && (
           <button
             className="dg"
             style={{ marginTop: 10 }}
-            onClick={() => {
-              if (!confirm('Talep "Yeni" durumuna dönecek ve talepteki bayi bilgisi silinecek. Müşteriye bildirim gönderilmeyecek.')) return
+            onClick={async () => {
+              const evet = await sor({
+                baslik: 'Talebin bayiye iletilmesi geri alınsın mı?',
+                metin: 'Talep "Yeni" durumuna dönecek ve talepteki bayi bilgisi silinecek. Müşteriye bildirim gönderilmeyecek.',
+                dugme: 'Geri Al',
+              })
+              if (!evet) return
               const sonuc = bayiAtamasiniKaldir(talep, personel)
               if (sonuc?.hata) return bildir(sonuc.hata)
               tazele()
@@ -2728,7 +2764,7 @@ function BayiAtama({ talep, personel, geriAlabilir, tazele, bildir }) {
   return (
     <Bolum ad="Bayiye ilet">
       <p className="kucuk sonuk" style={{ margin: '0 0 10px' }}>
-        {`Teklifi bayi verecekse önce bayiye haber verin, ardından yetkilendirdiğiniz bayiyi buradan seçip kaydedin. Talep "Bayiye İletildi" durumuna geçer ve müşteriye bildirim gönderilmez. ${MARKA} kendisi teklif verecekse bu bölümü kullanmayın.`}
+        {`Teklifi bayi verecekse önce bayiye haber verin, ardından yetkilendirdiğiniz bayiyi buradan seçip kaydedin. Talep "Bayiye İletildi" durumuna geçer ve müşteriye bildirim gönderilmez. PAKSAN kendisi teklif verecekse bu bölümü kullanmayın.`}
       </p>
 
       <div className="satir" style={{ gap: 8, alignItems: 'flex-end' }}>
@@ -2767,7 +2803,7 @@ function BayiAtama({ talep, personel, geriAlabilir, tazele, bildir }) {
 function DevirNedeni({ devir, ust = 16 }) {
   return (
     <div className="uyari" style={{ marginTop: ust ? 0 : 12, marginBottom: ust, display: 'block' }}>
-      <b>Servis bu talep için {markaEk('dan')} destek istedi.</b>
+      <b>Servis bu talep için PAKSAN’dan destek istedi.</b>
       {devir.neden && (
         <p style={{ whiteSpace: 'pre-wrap', margin: '8px 0 0' }}>{devir.neden}</p>
       )}
@@ -2796,7 +2832,7 @@ function ServisDurumu({ talep, devirGoster = true }) {
           className={'rz rz--' + (paksanda ? 'turuncu' : 'mavi')}
           style={{ marginLeft: 'auto' }}
         >
-          {paksanda ? markaEk('da') : 'Serviste'}
+          {paksanda ? 'PAKSAN’da' : 'Serviste'}
         </span>
       </div>
 
@@ -2805,9 +2841,134 @@ function ServisDurumu({ talep, devirGoster = true }) {
       <S k="Servise düştü" v={talep.servis.tarih ? tarihYaz(talep.servis.tarih) : ''} />
 
       <AtamaDisiUyarisi talep={talep} />
+      <BolgeDisiIzi talep={talep} />
 
       {devirGoster && talep.devir && <DevirNedeni devir={talep.devir} ust={0} />}
     </Bolum>
+  )
+}
+
+/* ==========================================================================
+   Bölge dışı talep (5 Ekim 2026, kullanıcının kararı)
+
+   Çiftçi makinesiyle başka bir il ya da ilçedeyken servis talebi açtı ve
+   yer, makinenin servisinin bölgesinde değil (data/katalog/servisler.js →
+   servisBolgesindeMi; bölgesi girilmemiş servisin bölgesi kendi ili).
+   Talep servise gitmedi, PAKSAN'da bekliyor. Personel bu İŞ İÇİN bir
+   servis seçiyor; makinenin kalıcı servisi değişmiyor (o karar Kayıtlı
+   Makineler'de). Yetki makineye servis atamayla aynı: `makineAtama`.
+
+   SERVİSLER ÜÇ ÖBEKTE: önce o il ve ilçe için önerilenler (Kayıtlı
+   Makineler'in önerisiyle aynı işlev: bölge, ilçe, il), sonra makinenin
+   kendi servisi (yola çıkmayı kabul ettiyse), sonra kalanlar. Sıra bir
+   kolaylık, kısıt değil.
+   ========================================================================== */
+function servisBekleyenBolgeDisi(talep) {
+  return Boolean(
+    talep?.tur === 'servis' &&
+      talep.bolgeDisi &&
+      !talep.servis?.id &&
+      !KAPALI_DURUMLAR.includes(talep.status || 'yeni'),
+  )
+}
+
+function bolgeYazisi(b) {
+  return [b?.ilce, b?.il].filter(Boolean).join(' / ')
+}
+
+function BolgeDisiAtama({ talep, personel, yetkili, tazele, bildir }) {
+  const [secim, setSecim] = useState('')
+  const [sor, onayPenceresi] = useOnay()
+  const b = talep.bolgeDisi
+  const makineninServisiId = b.makineServisi?.id || null
+
+  const obekler = useMemo(() => {
+    const hepsi = servisleriGetir()
+    const onerilen = talebinServisleri(b.il, b.ilce, 99).servisler.filter((s) => s.id !== makineninServisiId)
+    const onerilenId = new Set(onerilen.map((s) => s.id))
+    const kendi = hepsi.filter((s) => s.id === makineninServisiId)
+    const kalan = hepsi
+      .filter((s) => !onerilenId.has(s.id) && s.id !== makineninServisiId)
+      .sort((x, y) => x.ad.localeCompare(y.ad, 'tr'))
+    return [
+      { ad: 'Bu bölgede hizmet veren servisler', servisler: onerilen },
+      { ad: 'Makinenin kendi servisi', servisler: kendi },
+      { ad: 'Diğer servisler', servisler: kalan },
+    ].filter((o) => o.servisler.length)
+  }, [b.il, b.ilce, makineninServisiId])
+
+  return (
+    <Bolum ad="Bölge dışı talep">
+      {onayPenceresi}
+      <div className="uyari" style={{ display: 'block', marginBottom: 10 }} data-bolum="bolge-disi">
+        <b>{`Makine şu an ${bolgeYazisi(b)} bölgesinde`}</b>
+        <p style={{ margin: '6px 0 0' }}>
+          {`Makinenin kendi servisi olan ${b.makineServisi?.ad || '—'} bu bölgede hizmet vermiyor. Bu nedenle talep PAKSAN’a yönlendirildi ve servis ataması bekliyor. Bu iş için bir servis seçin. Makinenin kalıcı servisi değişmeyecek.`}
+        </p>
+      </div>
+
+      {!yetkili ? (
+        <p className="kucuk sonuk" style={{ margin: 0 }}>
+          {'Servis atama yetkiniz yok. Bu işlemi makineye servis atama yetkisi olan personel yapabilir.'}
+        </p>
+      ) : (
+        <div className="satir" style={{ gap: 8, alignItems: 'flex-end' }}>
+          <label className="alan" style={{ flex: 1, marginBottom: 0 }}>
+            <span className="alan__ad">Servis</span>
+            <select
+              className="gir"
+              value={secim}
+              onChange={(e) => setSecim(e.target.value)}
+              data-alan="bolge-disi-servis"
+            >
+              <option value="">{'Servis seçin'}</option>
+              {obekler.map((o) => (
+                <optgroup key={o.ad} label={o.ad}>
+                  {o.servisler.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.ad} · {[s.ilce, s.il].filter(Boolean).join(' / ')}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </label>
+          <button
+            className="dg dg--ana"
+            disabled={!secim}
+            data-eylem="bolge-disi-ata"
+            onClick={async () => {
+              const s = servisleriGetir().find((x) => x.id === secim)
+              if (!s) return
+              const evet = await sor({
+                baslik: 'Bu işe servis atansın mı?',
+                metin: `${s.ad}, bu iş için atanacak. Müşteriye ve servise bildirim gönderilecek. Bu işin ücretini atanan servis alacak. Makinenin kalıcı servisi değişmeyecek.`,
+                dugme: 'Bu İşe Ata',
+              })
+              if (!evet) return
+              const sonuc = bolgeDisiTalebeServisAta(talep, s, personel)
+              if (sonuc.hata) return bildir(sonuc.hata)
+              tazele()
+              bildir(`Bu iş için servis atandı · ${s.ad}`)
+            }}
+          >
+            {'Bu İşe Ata'}
+          </button>
+        </div>
+      )}
+    </Bolum>
+  )
+}
+
+/* Servis bölümünde: bu iş PAKSAN'ın bölge dışı ataması mı, kim ne zaman
+   verdi, makinenin kendi servisi kim. */
+function BolgeDisiIzi({ talep }) {
+  const a = talep.bolgeDisi?.atama
+  if (!a) return null
+  return (
+    <p className="kucuk sonuk" style={{ margin: '8px 0 0' }} data-iz="bolge-disi">
+      {`Bölge dışı iş (${bolgeYazisi(talep.bolgeDisi)}) · Atayan personel: ${a.personel || '—'} · Atama tarihi: ${tarihYaz(a.tarih)}. Makinenin kendi servisi: ${talep.bolgeDisi.makineServisi?.ad || '—'}.`}
+    </p>
   )
 }
 

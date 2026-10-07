@@ -13,7 +13,8 @@
        "2 Yeni Geri Bildirim — PAKSAN"
    ========================================================================== */
 
-import { MARKA, LOGO_DOSYASI } from '../marka'
+import LOGO_DOSYASI from '../assets/logo/paksan-logo.png'
+
 
 export function bildirimDestekliMi() {
   return typeof window !== 'undefined' && 'Notification' in window
@@ -42,7 +43,7 @@ export async function izinIste() {
 export function bildirimGonder(baslik, etiket) {
   if (izinDurumu() !== 'granted') return false
   try {
-    new Notification(`${baslik} — ${MARKA}`, {
+    new Notification(`${baslik} — PAKSAN`, {
       tag: etiket || baslik,
       renotify: true,
       /* Logo, derlemeye dâhil edilen dosyadan alınıyor. Önceden kök

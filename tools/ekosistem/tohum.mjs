@@ -10,7 +10,7 @@
    notu garantideki makinede mi).
 
    Kimlikler uydurma değil, kataloğun kendisinden: `konya-servis` ve
-   `ankara-servis` src/marka/katalog/servisler.js içinde gerçekten var,
+   `ankara-servis` src/data/katalog/servisler.js içinde gerçekten var,
    `konya-merkez` ve `ankara` da bayiler.js içinde. Katalog değişirse
    sınama düşer — ve düşmesi doğrudur, çünkü o zaman zincir de değişmiş
    demektir.

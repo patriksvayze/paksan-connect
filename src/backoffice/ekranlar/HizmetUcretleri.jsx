@@ -4,7 +4,9 @@ import {
   KALEMLER, makineFarklari, ozelUcretliServisler, tarifeCoz, tarifeleriDuzenle, ucretOku,
 } from '../../lib/servisTarifesi'
 import { iskontoCoz, yuzdeYap } from '../../lib/servisFiyat'
-import { PARA_BIRIMI, PRODUCTS, paraYaz, servisleriGetir } from '../../marka'
+import { PARA_BIRIMI, paraYaz } from '../../data/katalog/para.js'
+import { PRODUCTS } from '../../data/katalog/products.js'
+import { servisleriGetir } from '../../data/katalog/servisler.js'
 import { AcilirTepe, tarihYaz } from './ortak'
 
 /* ==========================================================================

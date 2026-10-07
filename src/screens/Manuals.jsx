@@ -4,7 +4,9 @@ import { useApp } from '../context/AppState'
 import { useDil } from '../i18n'
 import { TopBar, TabBar } from '../components/Chrome'
 import { UrunFoto } from '../components/Gorsel'
-import { getCategory, getProduct, kategoriDilde, kilavuzSirasiyla, PRODUCTS, urunDilde } from '../marka'
+import {
+  getCategory, getProduct, kategoriDilde, kilavuzSirasiyla, PRODUCTS, urunDilde,
+} from '../data/katalog/products.js'
 import {
   boyutYaz,
   kilavuzAdi,
@@ -25,7 +27,7 @@ import { IconRight, IconShield, IconInfo } from '../components/Icons'
    modelin kılavuzu açılıyor.
 
    YALNIZ GERÇEK KILAVUZU OLANLAR. Listede kılavuzu olan modeller var
-   (bkz. marka/icerik/kilavuzEslesme.js).
+   (bkz. data/icerik/kilavuzEslesme.js).
    Kılavuzu olmayan modeller burada görünmüyor — uygulamanın kendi
    yazdığı genel bir özeti "kılavuz" diye göstermek, müşteriyi kılavuzu
    varmış gibi bir yere götürüyordu. Kayıtlı makinesinin kılavuzu yoksa

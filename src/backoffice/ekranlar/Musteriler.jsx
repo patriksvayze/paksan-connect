@@ -8,7 +8,7 @@ import {
 } from './ortak'
 import { DisaAktar } from './aktar'
 import { araliktaMi, BOS_ARALIK, Secim, SuzgecCubugu, TarihAraligi } from './suzgec'
-import { getProduct } from '../../marka'
+import { getProduct } from '../../data/katalog/products.js'
 import { formatSerial, warrantyStatus } from '../../lib/serial'
 import { telFirma, telGoster } from '../../lib/tel'
 import { musterininServisleri } from '../../lib/servisAtama'

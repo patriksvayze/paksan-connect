@@ -119,7 +119,7 @@ olmayan bir uygulamada aynı kaldıraç yok.
 ## Evidence on Hand
 
 - **Gerçek ürün kataloğu:** 27 makine, kod ve teknik değerleriyle
-  (`src/marka/katalog/`).
+  (`src/data/katalog/`).
 - **Gerçek kullanım kılavuzları:** 5 PDF, 381 sayfa
   (`paksan-support-dataset/`). 27 üründen yalnız 5'inin kılavuzu var.
   29 Eylül 2026'dan beri Connect kılavuzu uygulamada yeniden kurmuyor,

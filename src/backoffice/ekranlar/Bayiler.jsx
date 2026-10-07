@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
 import { bayileriGetirBackoffice, bayileriSifirla, bayileriYaz, izinli } from '../veri'
 import { useVeri } from '../kanca'
-import { BAYILER, servisleriGetir } from '../../marka'
+import { BAYILER } from '../../data/katalog/bayiler.js'
+import { servisleriGetir } from '../../data/katalog/servisler.js'
 import { ILLER, ilceleriGetir } from '../../data/iller'
-import { Baslik, Bekleme, Bos, siraliListe, SiraliBaslik, useSiralama } from './ortak'
+import { Baslik, Bekleme, Bos, siraliListe, SiraliBaslik, useOnay, useSiralama } from './ortak'
 import { Secim, SuzgecCubugu } from './suzgec'
 import { DisaAktar, IceAktar } from './aktar'
 import { uid } from '../../lib/storage'
@@ -48,6 +49,7 @@ export function Bayiler({ personel, rol, bildir, tazele, surum }) {
   const duzenleyebilir = izinli(rol, 'servisDuzenle')
   const yonetici = izinli(rol, 'personelDuzenle')
   const [duzenlenen, setDuzenlenen] = useState(null)
+  const [sor, onayPenceresi] = useOnay()
   const [yerel, setYerel] = useState(null)
   const [il, setIl] = useState('hepsi')
   const [ara, setAra] = useState('')
@@ -105,6 +107,7 @@ export function Bayiler({ personel, rol, bildir, tazele, surum }) {
 
   return (
     <>
+      {onayPenceresi}
       <Baslik
         ad="Bayiler"
         sag={
@@ -130,8 +133,14 @@ export function Bayiler({ personel, rol, bildir, tazele, surum }) {
               {ozel && (
                 <button
                   className="dg"
-                  onClick={() => {
-                    if (!confirm('Koddaki temsilî listeye geri dönülecek. Emin misiniz?')) return
+                  onClick={async () => {
+                    const evet = await sor({
+                      baslik: 'Bayi listesi sıfırlansın mı?',
+                      metin: 'Bayi listesinde yaptığınız değişiklikler silinecek ve temsilî listeye geri dönülecek.',
+                      dugme: 'Listeyi Sıfırla',
+                      sil: true,
+                    })
+                    if (!evet) return
                     bayileriSifirla(personel)
                     setYerel(null)
                     tazele()
@@ -235,13 +244,19 @@ export function Bayiler({ personel, rol, bildir, tazele, surum }) {
                             </button>
                             <button
                               className="dg"
-                              onClick={() => {
+                              onClick={async () => {
                                 if (servisler.length) {
                                   return bildir(
                                     `"${b.ad}" bir servise bağlı. Önce Servisler ekranından bağı kaldırın.`,
                                   )
                                 }
-                                if (!confirm(`"${b.ad}" listeden çıkarılacak.`)) return
+                                const evet = await sor({
+                                  baslik: 'Bayi silinsin mi?',
+                                  metin: `"${b.ad}" listeden çıkarılacak.`,
+                                  dugme: 'Bayiyi Sil',
+                                  sil: true,
+                                })
+                                if (!evet) return
                                 kaydet(liste.filter((x) => x.id !== b.id))
                                 bildir('Bayi çıkarıldı')
                               }}

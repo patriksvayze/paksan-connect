@@ -22,9 +22,11 @@ import {
 } from './HizmetUcretleri'
 import { sifreHazirla } from '../../lib/hesap'
 import { useVeri } from '../kanca'
-import { SERVISLER, SERVIS_TURU, bayileriGetir, PARA_BIRIMI, paraYaz } from '../../marka'
+import { SERVISLER, SERVIS_TURU } from '../../data/katalog/servisler.js'
+import { bayileriGetir } from '../../data/katalog/bayiler.js'
+import { PARA_BIRIMI, paraYaz } from '../../data/katalog/para.js'
 import { ILLER, ilceleriGetir } from '../../data/iller'
-import { Baslik, Bekleme, Bos, siraliListe, SiraliBaslik, tarihYaz, useSiralama } from './ortak'
+import { Baslik, Bekleme, Bos, siraliListe, SiraliBaslik, tarihYaz, useOnay, useSiralama } from './ortak'
 import { Secim, SuzgecCubugu } from './suzgec'
 import { DisaAktar, IceAktar } from './aktar'
 import { uid } from '../../lib/storage'
@@ -136,6 +138,7 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
   /* Toplu yükleme yalnız adminde: bir dosya bütün listeyi değiştirebiliyor. */
   const yonetici = izinli(rol, 'personelDuzenle')
   const [duzenlenen, setDuzenlenen] = useState(null)
+  const [sor, onayPenceresi] = useOnay()
   const [yerel, setYerel] = useState(null)
   const [il, setIl] = useState('hepsi')
   const [ilce, setIlce] = useState('hepsi')
@@ -228,6 +231,7 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
 
   return (
     <>
+      {onayPenceresi}
       {/* Şifre yardımı isteyen servisler en üstte: servis giremiyor demek,
           bekleyen bir talebi de olabilir. Servis kendi sıfırlayamıyor —
           gerekçesi veri.js'te yazılı. */}
@@ -401,8 +405,14 @@ export function Servisler({ personel, rol, bildir, tazele, surum }) {
                           <button className="dg" onClick={() => setDuzenlenen({ ...b })}>Düzenle</button>
                           <button
                             className="dg"
-                            onClick={() => {
-                              if (!confirm(`"${b.ad}" listeden çıkarılacak.`)) return
+                            onClick={async () => {
+                              const evet = await sor({
+                                baslik: 'Servis silinsin mi?',
+                                metin: `"${b.ad}" listeden çıkarılacak.`,
+                                dugme: 'Servisi Sil',
+                                sil: true,
+                              })
+                              if (!evet) return
                               kaydet(liste.filter((x) => x.id !== b.id))
                               bildir('Servis çıkarıldı')
                             }}

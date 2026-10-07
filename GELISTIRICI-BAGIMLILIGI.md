@@ -39,12 +39,12 @@ tasarım değiştirmek, bir kerelik kurulum işleri.
 
 **Yapamadıkları:**
 
-- Yeni makine modelini sisteme eklemek — ürün listesi kaynak kodda (src/marka/katalog/products.js:472) ve seri doğrulaması bilinmeyen öneki reddediyor (src/lib/serial.js:79). Kataloğa girmemiş makine müşteri tarafından hiç eklenemiyor.
+- Yeni makine modelini sisteme eklemek — ürün listesi kaynak kodda (src/data/katalog/products.js:472) ve seri doğrulaması bilinmeyen öneki reddediyor (src/lib/serial.js:79). Kataloğa girmemiş makine müşteri tarafından hiç eklenemiyor.
 - Ürün fotoğrafı, teknik özellik, bakım adımı, vitrin sırası, garanti süresi değiştirmek — hepsi kodda (gorseller.js:23, teknikOzellikler.js:5, products.js:27, products.js:509, serial.js:90).
 - ~~Yeni yedek parça fiyat listesini yürürlüğe sokmak~~ — **YAPILDI (21 Eylül 2026):** personel Yedek Parça Kataloğu ekranından PDF'i yüklüyor, değişiklikleri görüp onaylıyor (bkz. 8 numaralı iş). Canlıda sunucunun yayın uç noktası gerekiyor (CANLIYA-CIKIS.md 2.1.1 madde 6).
-- Yeni parça grubunu makine ailesine bağlamak — eşleme kodda elle tutuluyor (src/marka/katalog/parcaGruplari.js:37); yazılmayan grubun parçaları müşteri ekranında hiç görünmüyor.
-- Banka hesabı / IBAN girmek — liste kodda ve bugün BOŞ (src/marka/kimlik.js:132-146, `aktif: false`). Bu yüzden ödeme ekranı IBAN yerine 'bizi arayın' diyor (src/screens/RequestForm.jsx:1925-1932).
-- Şirket telefon/e-posta/adres bilgisini değiştirmek — src/marka/kimlik.js:41-58.
+- Yeni parça grubunu makine ailesine bağlamak — eşleme kodda elle tutuluyor (src/data/katalog/parcaGruplari.js:37); yazılmayan grubun parçaları müşteri ekranında hiç görünmüyor.
+- Banka hesabı / IBAN girmek — liste kodda ve bugün BOŞ (src/data/kimlik.js:132-146, `aktif: false`). Bu yüzden ödeme ekranı IBAN yerine 'bizi arayın' diyor (src/screens/RequestForm.jsx:1925-1932).
+- Şirket telefon/e-posta/adres bilgisini değiştirmek — src/data/kimlik.js:41-58.
 - Servise ödenen hak edişi deftere işlemek — `cariHareketEkle` (src/backoffice/veri.js:2545) hiçbir ekrandan çağrılmıyor; bakiye yalnız büyüyor.
 - Makinenin sahibini değiştirmek (ikinci el devir) — Makineler ekranı kayda yalnız bayiId ve servisId yazıyor, musteriId'ye dokunamıyor (Makineler.jsx:407-470).
 - Müşterinin giriş telefonunu değiştirmek — Müşteriler ekranında telefon alanı yok; oturumsuz numara değişikliği talebi ise boş kimlikle kaydedildiği için onaylansa bile numarayı değiştirmiyor (src/lib/numaraTalebi.js:83-89, src/backoffice/veri.js:1600, 1817).
@@ -74,7 +74,7 @@ tasarım değiştirmek, bir kerelik kurulum işleri.
 **Yapamadıkları:**
 
 - Aldığı ödemenin bakiyesinden düştüğünü görmek — ekran 'Ödeme yapıldıkça buradan düşer' diyor (src/servis/ekranlar/Hakkedis.jsx:77) ama ödeme satırı yazan hiçbir yer yok; bakiye sürekli büyüyor.
-- Kendisine özel pazarlıkla belirlenmiş parça iskontosuyla sipariş vermek — oran tek ve sabit: %30 (src/marka/katalog/makineFiyat.js:24). Servis kaydındaki `iskonto` alanı kodda anılıyor ama hiçbir yerde okunmuyor ve girilmiyor.
+- Kendisine özel pazarlıkla belirlenmiş parça iskontosuyla sipariş vermek — oran tek ve sabit: %30 (src/data/katalog/makineFiyat.js:24). Servis kaydındaki `iskonto` alanı kodda anılıyor ama hiçbir yerde okunmuyor ve girilmiyor.
 - Yol tarifesinin akaryakıt zammına göre güncellenmesini beklemek — km başına tutar kodda sabit (src/lib/servisKaydi.js:155, `yolKm: 12`); dosyanın kendi yorumu 'YOL TARİFESİ BUGÜN KODDA' diyor.
 - Ekipteki ikinci tekniker için ayrı hesapla girmek — firma başına tek hesap var, ekip aynı hesabı paylaşıyor, kaydı kimin girdiği ayırt edilemiyor.
 

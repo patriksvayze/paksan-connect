@@ -1,5 +1,12 @@
 <!-- 14.09.2026 plan modunda hazırlandı; 16.09.2026 plan dosyasından buraya taşındı. Bekliyor: marka verileri gelmeden uygulanmaz. Veritabanı tarafı VERITABANI.md tasarımında zaten karşılanıyor (marka veri olarak). -->
 
+> **5 Ekim 2026 notu.** Ürün yalnız PAKSAN'ın; başka firmaya kurulum için
+> yapılan marka katmanı (`src/marka/`, kapı, hesaplanan ad) söküldü. Bu plan
+> PAKSAN'ın kendi alt markaları için olduğundan beklemede kalıyor (kullanıcı:
+> "Beklemede kalsın"), ama içindeki dosya yolları ve "bir derleme = bir
+> firma" varsayımı eskidi. Uygulanacağı gün yeni düzene göre yeniden
+> doğrulanmalı (CLAUDE.md → 5 Ekim 2026 bölümü).
+
 # Çok markalı ekosistem — PAKSAN + Globale + Gallignani
 
 ## Önce (bu plandan bağımsız, plan modundan çıkınca ilk iş)

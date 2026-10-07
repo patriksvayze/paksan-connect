@@ -1,13 +1,11 @@
 /* ==========================================================================
    KURULUM AYARLARI
 
-   Sunucu adresleri ve açma/kapama anahtarları. Bunlar da yeni firmada
-   doldurulacak ama MARKA DEĞİL, kurulum ayarı: Aynı firma için test ve
-   canlı ortamlarda farklı olabiliyorlar.
+   Sunucu adresleri ve açma/kapama anahtarları. Test ve canlı
+   ortamlarda farklı olabiliyorlar.
 
-   Firmanın kimliği — adı, unvanı, iletişim bilgileri, logosu, renkleri,
-   banka hesapları — burada değil, `src/marka/` içinde
-   (bkz. MARKA-DEVIR.md).
+   Şirketin kimliği — unvanı, iletişim bilgileri, banka hesapları —
+   burada değil, `src/data/kimlik.js` içinde.
    ========================================================================== */
 
 /* ==========================================================================
@@ -44,7 +42,7 @@
 
      'rehber'  → uygulamanın içindeki hazır arıza-çözüm ağacı
                  (screens/ArizaCozumu.jsx, içerik
-                 marka/icerik/destekVerisi.js). Sunucu istemiyor,
+                 data/icerik/destekVerisi.js). Sunucu istemiyor,
                  internetsiz de çalışıyor.
      'asistan' → yukarıda anlatılan, sunucudaki kılavuz asistanı
                  (screens/DestekAsistani.jsx).

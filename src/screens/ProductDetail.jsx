@@ -8,10 +8,10 @@ import { TeknikOzellikler } from '../components/TeknikOzellikler'
 import { VideoOynatici, videoTuru, VideoSure } from '../components/Video'
 import {
   getProduct, getCategory, productsByCategory, urunDilde, kategoriDilde,
-} from '../marka'
+} from '../data/katalog/products.js'
 import { araProps } from '../lib/tel'
 import { kilavuzVarMi } from '../lib/kilavuzPdf'
-import { SIRKET } from '../marka'
+import { SIRKET } from '../data/kimlik.js'
 import {
   IconMachine, IconPlay, IconCart, IconPhone, IconRight, IconBook, IconPlus,
 } from '../components/Icons'

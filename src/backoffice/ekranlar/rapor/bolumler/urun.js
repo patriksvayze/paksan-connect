@@ -1,8 +1,8 @@
 import { extractYear, GARANTI_YIL, normalizeSerial } from '../../../../lib/serial'
-import { YAPILAN_IS } from '../../../../lib/servisKaydi'
+import { yapilanIsleri } from '../../../../lib/servisKaydi'
 import { araligiCoz } from '../../suzgec'
 import {
-  fark, farkPuan, modelAdi, musteriTalebiMi, ondalik, oran, RENK, servisZiyaretleri, talepModeli, yuzde,
+  fark, farkPuan, modelAdi, musteriTalebiMi, oran, RENK, servisZiyaretleri, talepModeli, yuzde,
 } from '../hesap'
 
 /* ==========================================================================
@@ -10,6 +10,13 @@ import {
 
    İmalatçının asıl sorusu. Cevabı ürün geliştirmeye ve üretimin
    denetimine doğrudan giriyor.
+
+   6 EKİM 2026 SADELEŞTİ (kullanıcının isteği): "100 makineye düşen
+   talep" ölçüsü her yerden kalktı (kutu, "Modellere göre" grafiği, iki
+   tablonun sütunu), "Arıza bulunamadı" oranı kutusu ve bölümün alt
+   açıklaması da. Aşağıdaki "HAM SAYI DEĞİL, ORAN" ve "EŞİK 5" bölümleri
+   o ölçünün gerekçesiydi; geçmiş için duruyor. Model karnesi artık talep
+   sayısına göre sıralanıyor.
 
    HAM SAYI DEĞİL, ORAN. 200 makinesi satılmış modelde 10 arıza, 20
    makinesi satılmış modelde 6 arızadan iyidir; ham sayı çok satan modeli
@@ -45,51 +52,33 @@ import {
 
 const M = {
   ad: 'Ürün Kalitesi',
-  soru: 'Hangi makine ne sıklıkla arızalanıyor?',
 
   talep: 'Servis talebi (iptal hariç)',
   talepAlt: (iptal) => (iptal ? `Seçilen dönemde açılan · iptal edilen ${iptal} talep sayılmadı` : 'Seçilen dönemde açılan'),
   makine: 'Arıza bildirilen makine',
   makineAlt: 'Seri numarasına göre farklı makine sayısı; seri numarası olmayan talepler hariç',
-  oran: 'Bütün makinelerde 100 makineye düşen talep',
-  oranAlt: (taban) => `Dönem sonunda kayıtlı ${taban} makinenin hepsine göre · modellere göre dağılımı grafikte`,
   tekrar: 'Tekrar arızalanan makine',
   tekrarAlt: 'Seçilen dönemde en az iki talebi olan ya da bu dönemdeki talebinde sorunun sürdüğü bildirilen',
-  arizaYok: '"Arıza bulunamadı" oranı',
-  arizaYokAlt: (n) => `İşi kaydedilen ${n} ziyaret içinde; ilk kurulumlar hariç`,
   garanti: 'Garanti süresindeki arıza',
   garantiAlt: (bilinmeyen) =>
     bilinmeyen
       ? `Arıza bildirilen makinelerden · üretim yılı okunamayan ${bilinmeyen} makine hesap dışında`
       : 'Arıza bildirilen makinelerden talebin açıldığı yıl garantisi sürenlerin oranı',
 
-  grafikOran: 'Modellere göre 100 makineye düşen talep',
-  grafikOranAlt: (esik, gizli, ortalamaVar) =>
-    (ortalamaVar
-      ? `"Bütün makineler" satırı, grafikte gösterilmeyen modeller dahil bütün makineler için hesaplanan orandır. Üstündeki modellerde 100 makineye düşen talep bu orandan yüksek, altındakilerde düşüktür. `
-      : '') +
-    (gizli
-      ? `Kayıtlı makinesi ${esik} makineden az olan ${gizli} model gösterilmiyor: birkaç makinelik modelde tek talep oranı çok oynatır, bu nedenle az sayıda makineyle yapılan kalite karşılaştırması yanıltıcı olabilir. Bu modellerin talep sayısı model karnesinde. `
-      : '') +
-    'Bir satıra tıklayınca o modelin talepleri açılır.',
-  grafikModel: 'Model',
-  grafikHepsi: 'Bütün makineler',
   grafikBelirti: 'En sık bildirilen belirtiler',
   grafikBelirtiAlt: 'Seçilen dönemde açılan servis taleplerinde müşterinin seçtiği belirtiler',
 
   tabloModel: 'Model karnesi',
-  tabloModelAciklama: (esik) =>
-    `Talepler seçilen dönemde açılan, iş ve parça seçilen dönemde yapılan servis ziyaretlerinden. Oran yalnız kayıtlı makinesi en az ${esik} olan modelde gösteriliyor. Toplam satırı yukarıdaki "Bütün makinelerde" kutusuyla aynı sayıdır.`,
+  tabloModelAciklama:
+    'Talepler seçilen dönemde açılan, iş ve parça seçilen dönemde yapılan servis ziyaretlerinden.',
   tabloYil: 'Üretim yılına göre',
   /* Eşikten söz etmiyordu: kayıtlı makinesi beşten az olan yıl sessizce
      "—" gösteriyor, yönetici aynı biçimdeki iki satırdan birinin neden
      sayı, öbürünün neden boş olduğunu ekrandan öğrenemiyordu. Notlar da
      eşiği yalnız model başına orana bağlıyordu. */
-  tabloYilAciklama: (esik) =>
-    `Üretim yılı seri numarasından okunur. Her yıl için 100 kayıtlı makineye düşen servis talebi gösterilir. Oran yalnız kayıtlı makinesi en az ${esik} olan üretim yılında gösterilir; az sayıda makinede tek talep oranı büyük ölçüde değiştirebildiği için karşılaştırma yanıltıcı olabilir. Toplam satırındaki oran, yukarıdaki "Bütün makinelerde" kutusuyla aynıdır.`,
+  tabloYilAciklama: 'Üretim yılı seri numarasından okunur.',
   sutun: {
     model: 'Model', kayitli: 'Kayıtlı makine (dönem sonu)', talep: 'Servis talebi (iptal hariç)',
-    oran: '100 makineye düşen talep',
     makine: 'Arıza bildirilen makine', tekrar: 'Tekrar arızalanan', belirti: 'En sık belirti',
     is: 'En sık yapılan iş', parca: 'En çok değişen parça',
     yil: 'Üretim yılı',
@@ -98,13 +87,11 @@ const M = {
   yilYok: 'Okunamadı',
   toplam: 'Toplam',
 
-  notlar: (esik) => [
+  notlar: [
     'Servis talebi (iptal hariç): seçilen dönemde açılan servis talepleri. İptal edilen talep sayılmaz; yanlış açılmış ya da müşterinin vazgeçtiği bir talep, tek başına arıza olduğunu göstermez. Bu yüzden öteki sekmelerdeki "servis talebi" sayısından (iptal dahil) küçük olabilir.',
     'Arıza bildirilen makine: bu taleplerin geldiği farklı makine sayısı (seri numarasına göre). Seri numarası yazılmamış talep makine sayısına girmez.',
     'Kayıtlı makine (dönem sonu): müşterilerin uygulamaya kaydettiği makineler, seçilen dönemin sonundaki hâliyle. Aynı seri numarası bir kez sayılır.',
-    `100 makineye düşen talep: servis talebi (iptal hariç) ÷ kayıtlı makine × 100. "Bütün makinelerde" kutusu bütün makineleri birlikte sayar; grafik ve model karnesi aynı hesabı her model için ayrı yapar. Kutudaki sayı, grafikteki "Bütün makineler" satırı ve iki tablonun toplam satırı birebir aynıdır. Model ve üretim yılı başına oran yalnız kayıtlı makinesi en az ${esik} olan satırda gösterilir: dört makinelik bir modelde tek talep oranı 25 puan oynatır, bu nedenle az sayıda makineyle yapılan kalite karşılaştırması yanıltıcı olabilir. "Bütün makinelerde" kutusu bu eşikten geçmez, çünkü orada bütün defter paydadır.`,
     'Tekrar arızalanan makine: seçilen dönemde iki ya da daha çok servis talebi gelen, ya da talebinde müşterinin "sorun devam ediyor" dediği makineler.',
-    '"Arıza bulunamadı" oranı: tarihi seçilen döneme düşen servis ziyaretlerinden, yapılan iş "Arıza Bulunamadı" yazılanların payı. İlk kurulum ziyaretleri ve işi henüz yazılmamış ziyaretler hesaba girmez.',
     'İptal edilen taleplerin servis ziyaretleri de iş, parça ve ziyaret sayımlarına dahil edilmez. Talep sayan ölçülerdeki iptal istisnası bu hesaplarda da geçerlidir.',
     `Garanti süresindeki arıza: arıza bildirilen makinelerden, talebin açıldığı yıl garantisi süren makinelerin payı. Garanti, seri numarasındaki üretim yılından ${GARANTI_YIL} yıl sonrasının sonuna kadar sayılır. Üretim yılı okunamayan makine paydaya girmez.`,
     'En sık yapılan iş: seçilen dönemdeki servis ziyaretlerinde kaydedilen işler arasında en sık yapılan iş. Yapılan işi henüz kaydedilmeyen ziyaretler sayılmaz.',
@@ -112,12 +99,6 @@ const M = {
     'Yüzde farklar bir önceki eşit uzunluktaki dönemle karşılaştırılır. "Tüm zamanlar" seçiliyse karşılaştırma yapılmaz.',
   ],
 }
-
-/* Oranın gösterildiği en küçük kayıtlı makine sayısı (gerekçesi dosya başında). */
-const ESIK = 5
-
-const ARIZA_YOK = 'Arıza Bulunamadı'
-const KURULUM = YAPILAN_IS[0]
 
 function seriAl(t) {
   return normalizeSerial(t?.makine?.serial) || null
@@ -146,23 +127,6 @@ function kayitDefteri(makineler) {
 
 function tabanda(kayit, sinir) {
   return kayit.tarih === null || kayit.tarih <= sinir
-}
-
-/** 100 makinede talep; kırılımlarda taban eşiğin altındaysa null.
- *
- * EŞİK YALNIZ KIRILIMLARDA (17 Eylül 2026). Eşik, birkaç makinelik bir
- * MODELDE tek talebin oranı otuz puan oynatmasına karşı konmuştu; ama
- * "Bütün makinelerde" kutusu da aynı kapıdan geçiyordu. Dönem sonunda
- * defterde beşten az makine varsa kutu, grafikteki "Bütün makineler"
- * satırı ve iki tablonun toplam satırı birden "—" oluyor, üstelik
- * kutunun alt yazısı paydayı ("kayıtlı 4 makinenin hepsine göre")
- * yazdığı hâlde sonuç boş kalıyordu. Notlar eşiği model başına orana
- * bağlıyor; kutu artık eşiksiz hesaplanıyor.
- */
-function yuzMakinede(talep, taban, esikUygula = true) {
-  if (!taban) return null
-  if (esikUygula && taban < ESIK) return null
-  return (talep / taban) * 100
 }
 
 /* "Zincir atıyor (5)". Parça KODA göre sayılıyor (katalogda aynı adı
@@ -202,9 +166,8 @@ function garantideMi(t) {
 export const urunBolumu = {
   id: 'urun',
   ad: M.ad,
-  soru: M.soru,
 
-  uret({ veri, aralik, donem, onceki, donemde, oncekide, karsilastir, git }) {
+  uret({ veri, aralik, donem, onceki, donemde, karsilastir, git }) {
     const f = (a, b) => (karsilastir ? fark(a, b) : null)
 
     const servisMi = (t) => t.tur === 'servis' && musteriTalebiMi(t)
@@ -214,11 +177,10 @@ export const urunBolumu = {
     const iptalSayisi = donem.filter((t) => servisMi(t) && t.status === 'iptal').length
 
     /* Taban: dönemin sonunda (ve önceki dönemin sonunda) defterdeki makineler. */
-    const { bas, bit } = araligiCoz(aralik)
+    const { bit } = araligiCoz(aralik)
     const donemSonu = Math.min(bit, Date.now())
     const defter = kayitDefteri(veri.makineler)
     const taban = defter.filter((k) => tabanda(k, donemSonu))
-    const oncekiTaban = karsilastir ? defter.filter((k) => tabanda(k, bas - 1)).length : 0
 
     /* SERVİS ZİYARETLERİ İKİ LİSTE; DÖNEM İKİSİNDE DE ZİYARETİN KENDİ
        TARİHİ.
@@ -241,23 +203,14 @@ export const urunBolumu = {
        değildi. */
     const tumZiyaretler = veri.talepler.filter(sayilir).flatMap(servisZiyaretleri)
     const parcaZiyaretleri = tumZiyaretler.filter((z) => donemde(z.tarih))
-    const yazilmisZiyaretler = tumZiyaretler.filter((z) => YAPILAN_IS.includes(z.yapilanIs))
-    const ziyaretler = yazilmisZiyaretler.filter((z) => donemde(z.tarih))
+    /* Yapılan iş 6 Ekim 2026'dan beri çok seçimli: her seçim ayrı
+       sayılıyor (lib/servisKaydi.js → yapilanIsleri). */
+    const ziyaretler = tumZiyaretler.filter((z) => yapilanIsleri(z.yapilanIs).length && donemde(z.tarih))
 
     /* ------------------------------------------------------- Ölçüler */
 
     const ozet = makineOzeti(talepler)
     const oncekiOzet = makineOzeti(oncekiTalepler)
-
-    const oranDonem = yuzMakinede(talepler.length, taban.length, false)
-    const oranOnceki = yuzMakinede(oncekiTalepler.length, oncekiTaban, false)
-
-    const arizaYokOrani = (liste) => {
-      const olcu = liste.filter((z) => z.yapilanIs !== KURULUM)
-      return { n: olcu.length, bulunamadi: olcu.filter((z) => z.yapilanIs === ARIZA_YOK).length }
-    }
-    const ay = arizaYokOrani(ziyaretler)
-    const ayOnceki = arizaYokOrani(yazilmisZiyaretler.filter((z) => oncekide(z.tarih)))
 
     /* Garanti: makine başına; dönemdeki taleplerinden biri garanti
        süresindeyse o makine garantide arızalanmış sayılıyor. */
@@ -300,26 +253,11 @@ export const urunBolumu = {
         alt: M.makineAlt,
       },
       {
-        ad: M.oran,
-        deger: ondalik(oranDonem),
-        fark: f(oranDonem, oranOnceki),
-        iyi: 'azalis',
-        alt: M.oranAlt(taban.length),
-      },
-      {
         ad: M.tekrar,
         deger: ozet.tekrar,
         fark: f(ozet.tekrar, oncekiOzet.tekrar),
         iyi: 'azalis',
         alt: M.tekrarAlt,
-      },
-      {
-        ad: M.arizaYok,
-        deger: yuzde(ay.bulunamadi, ay.n),
-        fark: karsilastir ? farkPuan(oran(ay.bulunamadi, ay.n), oran(ayOnceki.bulunamadi, ayOnceki.n)) : null,
-        farkBirim: 'puan',
-        iyi: 'azalis',
-        alt: M.arizaYokAlt(ay.n),
       },
       {
         ad: M.garanti,
@@ -348,7 +286,10 @@ export const urunBolumu = {
       m.talepler.push(t)
       for (const b of t.belirtiler || []) if (b) say(m.belirti, b)
     }
-    for (const z of ziyaretler) say(model(talepModeli(z.talep) || M.modelYok).is, z.yapilanIs)
+    for (const z of ziyaretler) {
+      const m = model(talepModeli(z.talep) || M.modelYok)
+      for (const is of yapilanIsleri(z.yapilanIs)) say(m.is, is)
+    }
     for (const z of parcaZiyaretleri) {
       const m = model(talepModeli(z.talep) || M.modelYok)
       for (const p of z.parcalar) {
@@ -363,11 +304,9 @@ export const urunBolumu = {
     const karne = (m) => {
       const mo = makineOzeti(m.talepler)
       return {
-        oran: yuzMakinede(m.talepler.length, m.kayitli),
         hucreler: [
           String(m.kayitli),
           String(m.talepler.length),
-          ondalik(yuzMakinede(m.talepler.length, m.kayitli)),
           String(mo.makine),
           String(mo.tekrar),
           enSik(m.belirti),
@@ -379,12 +318,7 @@ export const urunBolumu = {
 
     const sirali = [...modeller.values()]
       .map((m) => ({ m, k: karne(m) }))
-      .sort((a, b) => {
-        if (a.k.oran === null && b.k.oran !== null) return 1
-        if (b.k.oran === null && a.k.oran !== null) return -1
-        if (a.k.oran !== b.k.oran) return (b.k.oran || 0) - (a.k.oran || 0)
-        return b.m.talepler.length - a.m.talepler.length
-      })
+      .sort((a, b) => b.m.talepler.length - a.m.talepler.length || b.m.kayitli - a.m.kayitli)
 
     const modelGit = (ad) =>
       git && ad !== M.modelYok
@@ -406,53 +340,8 @@ export const urunBolumu = {
 
     /* ------------------------------------------------------ Grafikler */
 
-    /* AYNI ADLA İKİ SAYI YOKTU AMA ÖYLE GÖRÜNÜYORDU (17 Eylül 2026,
-       kullanıcının şikâyeti). Ölçü kutusu ile grafik ikisi de "100
-       makinede servis talebi" adını taşıyordu: kutu bütün makineleri
-       birlikte (41 ÷ 44 → 93,2), grafik her modeli ayrı sayıyordu
-       (Scorpion 9 ÷ 6 → 150,0; Kırlangıç 3 ÷ 6 → 50,0) ve eşiğin
-       altındaki on üç model grafikte yoktu. Hesapların ikisi de
-       doğruydu (ham veriden elle sayıldı); yanlış olan, iki ayrı
-       sorunun aynı adla sorulmasıydı. Şimdi kutu "Bütün makinelerde",
-       grafik "Modellere göre" diyor; grafikte bütün makinelerin
-       ortalaması nötr renkli ayrı bir satır olarak da duruyor ve
-       modeller onunla aynı sırada dizildiği için hangi modelin
-       ortalamanın üstünde kaldığı okunuyor. Kutu, bu satır ve iki
-       tablonun toplam satırı AYNI değişkenden (oranDonem) yazılıyor. */
-    const modelSatirlari = sirali
-      .filter(({ k }) => k.oran !== null)
-      .map(({ m, k }) => ({
-        ad: m.ad,
-        deger: k.oran,
-        degerYazi: ondalik(k.oran),
-        onSec: modelGit(m.ad),
-      }))
-    const gizliModel = sirali.filter(({ k }) => k.oran === null).length
-    const oranSatirlari = [...modelSatirlari]
-    if (oranDonem !== null && modelSatirlari.length) {
-      const yer = modelSatirlari.findIndex((s) => s.deger < oranDonem)
-      oranSatirlari.splice(yer === -1 ? modelSatirlari.length : yer, 0, {
-        ad: M.grafikHepsi,
-        deger: oranDonem,
-        degerYazi: ondalik(oranDonem),
-        renk: RENK.notr,
-        onSec: git ? () => git('talepler', { durum: 'hepsi', tur: 'servis', aralik }) : undefined,
-      })
-    }
-
-    const ortalamaVar = oranSatirlari.length > modelSatirlari.length
     const belirtiSayim = hepsi.belirti
     const grafikler = [
-      {
-        tur: 'yatay',
-        baslik: M.grafikOran,
-        alt: M.grafikOranAlt(ESIK, gizliModel, ortalamaVar),
-        renk: RENK.bir,
-        anahtar: ortalamaVar
-          ? [{ ad: M.grafikModel, renk: RENK.bir }, { ad: M.grafikHepsi, renk: RENK.notr }]
-          : undefined,
-        satirlar: oranSatirlari,
-      },
       {
         tur: 'yatay',
         baslik: M.grafikBelirti,
@@ -480,21 +369,19 @@ export const urunBolumu = {
     const yilSatiri = (y) => [
       String(y.kayitli),
       String(y.talep),
-      ondalik(yuzMakinede(y.talep, y.kayitli)),
     ]
     /* Toplam satırları kutuyla aynı değişkenlerden (bkz. Grafikler). */
     const karneToplami = karne(hepsi).hucreler
-    karneToplami[2] = ondalik(oranDonem)
 
     const tablolar = [
       {
         baslik: M.tabloModel,
-        aciklama: M.tabloModelAciklama(ESIK),
+        aciklama: M.tabloModelAciklama,
         basliklar: [
-          M.sutun.model, M.sutun.kayitli, M.sutun.talep, M.sutun.oran, M.sutun.makine,
+          M.sutun.model, M.sutun.kayitli, M.sutun.talep, M.sutun.makine,
           M.sutun.tekrar, M.sutun.belirti, M.sutun.is, M.sutun.parca,
         ],
-        sag: [1, 2, 3, 4, 5],
+        sag: [1, 2, 3, 4],
         satirlar: sirali.map(({ m, k }) => ({
           hucreler: [m.ad, ...k.hucreler],
           git: modelGit(m.ad),
@@ -503,16 +390,16 @@ export const urunBolumu = {
       },
       {
         baslik: M.tabloYil,
-        aciklama: M.tabloYilAciklama(ESIK),
-        basliklar: [M.sutun.yil, M.sutun.kayitli, M.sutun.talep, M.sutun.oran],
-        sag: [1, 2, 3],
+        aciklama: M.tabloYilAciklama,
+        basliklar: [M.sutun.yil, M.sutun.kayitli, M.sutun.talep],
+        sag: [1, 2],
         satirlar: [...yillar.entries()]
           .sort((a, b) => (a[0] === 0 ? 1 : b[0] === 0 ? -1 : b[0] - a[0]))
           .map(([y, d]) => ({ hucreler: [y ? String(y) : M.yilYok, ...yilSatiri(d)] })),
-        toplamSatiri: [M.toplam, String(taban.length), String(talepler.length), ondalik(oranDonem)],
+        toplamSatiri: [M.toplam, String(taban.length), String(talepler.length)],
       },
     ]
 
-    return { olculer, grafikler, tablolar, notlar: M.notlar(ESIK) }
+    return { olculer, grafikler, tablolar, notlar: M.notlar }
   },
 }

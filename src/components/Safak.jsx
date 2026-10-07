@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { Logo, Amblem } from '../marka'
+import { Logo, Amblem } from './Logo.jsx'
 import sahne from '../assets/gorseller/karsilama-sahne.jpg'
 import { koyuZeminIcinBoya, temayaGoreBoya } from '../lib/sistemCubuklari'
 
@@ -238,7 +238,7 @@ export function Safak({ children }) {
  *
  * AMBLEM BEYAZ DAİRE İÇİNDE. Kalkan amblemi çok renkli; koyu gökyüzünde
  * beyaza çevrilirse ayrıntıları kaybolup düz bir leke oluyor
- * (bkz. src/marka/logo.jsx). Beyaz daire hem amblemi kendi
+ * (bkz. src/components/Logo.jsx). Beyaz daire hem amblemi kendi
  * renkleriyle bırakıyor hem doğan güneşin tam önünde duran bir madalyon
  * gibi duruyor.
  */

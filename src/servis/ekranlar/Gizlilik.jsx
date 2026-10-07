@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { Sayfa, Bolum } from '../Kabuk'
-import { markaEk } from '../../marka'
 import {
   SERVIS_KABUL_METINLERI,
   SERVIS_IZINLER,
@@ -57,7 +56,7 @@ const METIN = {
   satir: 'Gizlilik ve İzinler',
   satirAlt: 'Kabul ettiğiniz metinler ve uygulama izinleri',
   baslik: 'Gizlilik ve İzinler',
-  giris: `Burada ${markaEk('in')} bilgilerinizi nasıl işlediğini, kabul ettiğiniz metinleri ve uygulamanın istediği telefon izinlerini görebilirsiniz.`,
+  giris: `Burada PAKSAN’ın bilgilerinizi nasıl işlediğini, kabul ettiğiniz metinleri ve uygulamanın istediği telefon izinlerini görebilirsiniz.`,
   metinlerBaslik: 'Kabul ettiğiniz metinler',
   kabulEdildi: (tarih, surum) => `Kabul ettiniz · ${tarih} · sürüm ${surum}`,
   izinlerBaslik: 'Uygulama izinleri',

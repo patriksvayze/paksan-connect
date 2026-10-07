@@ -1,4 +1,4 @@
-import { getProduct, urunDilde } from '../marka'
+import { getProduct, urunDilde } from '../data/katalog/products.js'
 
 /* ==========================================================================
    Bakım rehberi ekranlarının ortak iki parçası (29 Eylül 2026)

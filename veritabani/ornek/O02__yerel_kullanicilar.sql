@@ -10,7 +10,7 @@ IF NOT EXISTS (SELECT 1 FROM sistem.Ortam WHERE OrnekVeriIzinli = 1) THROW 50001
    5 personel girişi (her varsayılan role bir), 14 servis girişi (her O01 servisine bir).
 
    Kaynak: src/data/yetkiler.js VARSAYILAN_ROLLER (rol başına bir personel),
-   src/marka/katalog/servisler.js (servis başına bir giriş). Giriş adı:
+   src/data/katalog/servisler.js (servis başına bir giriş). Giriş adı:
    personelde ornek.<rol kodu>, serviste servis kimliği (konya-servis → konya.servis).
    Şifre yazılmaz (SifreKaydi boş, SifreBelirlemeGerekli = 1): girişi açmak için
    tek kullanımlık kod gerekir (yonetim.GirisSifresiniSifirla).

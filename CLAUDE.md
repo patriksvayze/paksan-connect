@@ -10,8 +10,8 @@ uygulama içi tüm metin ve yorumlar sade Türkçe.
 - `src/screens/` — müşteri uygulaması ekranları (24 dosya)
 - `src/backoffice/` — personel paneli, `ekranlar/` alt klasöründe ekranlar (22 dosya ve `rapor/`)
 - `src/components/` — paylaşılan bileşenler
-- `src/marka/` — firmaya ait her şey: kimlik, logo, renkler, ürün kataloğu, servis listesi, fiyatlar, hangi ürünün hangi kılavuzu kullandığı, Destek'in arıza rehberi. Motor buraya yalnızca `src/marka/index.js` kapısından bakar (bkz. MARKA-DEVIR.md)
-- `src/data/` — ülkeye ve motora ait statik içerik: il listesi, KVKK metinleri, talep alanları, duyuru türleri, yetki kataloğu
+- `src/data/` — statik içerik: il listesi, KVKK metinleri, talep alanları, duyuru türleri, yetki kataloğu; `kimlik.js` (PAKSAN'ın unvanı, iletişim, banka hesabı, Connect sürümü), `katalog/` (ürünler, fiyat ve para, parça grupları, servis ve bayi listesi), `icerik/` (Destek'in arıza rehberi, bakım rehberi, güvenlik, teknik özellikler, hangi ürünün hangi kılavuzu kullandığı)
+- `src/assets/` — görseller: `logo/` (logo, amblem, sekme ikonu), `urunler/`, `videolar/`, `gorseller/`
 - `src/lib/` — yardımcı modüller (depolama, bildirim, PDF/Excel dışa aktarım)
 - `src/i18n/` — `tr.js`/`en.js` (908 anahtar, eşit tutuluyor ama build'de zorlanmıyor; `npm run dogrula` 1. ve 2. kontrol) + `index.jsx`
 - `tools/` — otomasyon betikleri (ekran görüntüsü, ikon üretimi, veri doğrulama)
@@ -25,8 +25,7 @@ uygulama içi tüm metin ve yorumlar sade Türkçe.
 Backoffice ve servis kodu müşteri APK'sının içine GİRMEMELİ.
 
 **Servis uygulamasının adı PAKSAN Servisim** (10 Eylül 2026'dan beri).
-Android'de görünen ad `tools/cap-hedef.mjs` içinde. Kodda marka adı düz
-yazılmaz: `${MARKA} Servisim`.
+Android'de görünen ad `tools/cap-hedef.mjs` içinde.
 
 - `npm run build` → müşteri uygulaması
 - `npm run build:backoffice` → backoffice
@@ -39,7 +38,7 @@ yazılmaz: `${MARKA} Servisim`.
 
 ### Sürüm numaraları — iki uygulamanın AYRI hattı var
 
-- **PAKSAN Connect:** `src/marka/kimlik.js` → `SURUM` (uygulamanın içinde
+- **PAKSAN Connect:** `src/data/kimlik.js` → `SURUM` (uygulamanın içinde
   görünen), `package.json` → `version`, `android/app/build.gradle` →
   `versionName` + `versionCode`. Üçü birlikte artırılır.
 - **PAKSAN Servisim:** yalnız `android-servis/app/build.gradle` →
@@ -89,12 +88,13 @@ Karanlık/aydınlık tema `data-tema='koyu'/'acik'` attribute'u ile uygulanıyor
 Çerçeve (vitest/jest/playwright) **yok** ve eklenmeyecek; hiçbir
 otomasyon paketi kurulu değil. Buna karşılık dört şey var:
 
-- **`npm run dogrula`** — 13 kontrol. 8. kontrol dokuz sınama betiğini
+- **`npm run dogrula`** — 11 kontrol (5. ve 6. numara 5 Ekim 2026'da
+  kalktı). 8. kontrol sekiz sınama betiğini
   ayrı süreçlerde koşturuyor (`tools/` altında). Kural: *bir sınama
   çağrılmıyorsa yoktur.*
 - **Ekosistem sınaması** (`tools/ekosistem-sinamasi.mjs`) — üç
   uygulamanın PAYLAŞTIĞI veri katmanını Node içinde gerçekten
-  çalıştırıyor: otuz yedi akış senaryosu (AK-01…AK-37), talep açılışından
+  çalıştırıyor: otuz sekiz akış senaryosu (AK-01…AK-38), talep açılışından
   hak edişin cariye yazılmasına kadar. Modüller Vite'ın
   `ssrLoadModule`'üyle yükleniyor, depo taklit ediliyor, saat donmuş,
   rastgelelik tohumlu, saat dilimi sabit (Europe/Istanbul; 0. adım
@@ -135,9 +135,11 @@ otomasyon paketi kurulu değil. Buna karşılık dört şey var:
   Connect'in banka hesabı kartı ve formun resimli seçili parçaları; aynı
   gün C-39 ve X-14 alttan açılan pencere açıkken arkadaki ekranın
   kaymaması ve esnemenin kapalı olması, X-15 Hak Ediş'in iki sekmesi; 1
-  Ekim'de B-ADRES backoffice ekranının adres çubuğunda olması) ve
-  **on bir formun boş gönderimi**
-  (`tools/ekosistem/formlar.mjs`) — toplam 97 denetim). Her ekranda
+  Ekim'de B-ADRES backoffice ekranının adres çubuğunda olması; 5 Ekim'de
+  C-40 bölge dışı talebin formdaki uyarısı ve B-BOLGE backoffice'te o işe
+  servis atama; 6 Ekim'de B-RAPOR, B-TARIH ve X-16 servis kaydının çok
+  seçimli yapılan işi) ve **on bir formun boş gönderimi**
+  (`tools/ekosistem/formlar.mjs`) — toplam 102 denetim). Her ekranda
   üç soru: boş mu açıldı, hata verdi mi, ekili değer basılı mı.
   `--yalniz C-27,X-03` yalnız adı verilen denetimleri koşturur (bozma
   denemesi için; kapsam iddiası tam koşunun); bilinmeyen kod verilirse
@@ -705,8 +707,8 @@ sunumda idareten çalışır gözükmesi için eski haline dönmesini
 istiyorum." Asistan kodu yerinde; kip `src/config.js → DESTEK_KIPI`
 ('rehber' | 'asistan'), kapısı `screens/Support.jsx`. Ağaç
 `screens/ArizaCozumu.jsx`, içerik 10 Eylül'de çıkarılan
-`marka/icerik/destekVerisi.js` (birebir geri kondu, sonra Codex dilini
-düzeltti), güvenlik çizimleri `marka/icerik/cizimler.js →
+`data/icerik/destekVerisi.js` (birebir geri kondu, sonra Codex dilini
+düzeltti), güvenlik çizimleri `data/icerik/cizimler.js →
 GUVENLIK_CIZIMLERI`. Akış sohbet değil adım adım: makine → bölüm →
 belirti → çözüm; seçilenler üstteki "Seçimleriniz" kartında, geri
 düğmesi ve Android geri hareketi bir önceki ADIMA. Bölümü bilmeyen için
@@ -915,7 +917,7 @@ sözleşme `sunucu-taklidi/BENIOKU.md`; PDF'ler git'te değil, listesi git'te).
   11 üründe boş sayfa açıyordu). Güvenlik Kuralları sayfası ve Bakım
   Rehberi yerinde.
 - Hangi ürünün hangi kılavuzu kullandığı marka tablosunda
-  (`marka/icerik/kilavuzEslesme.js`, kod listeyle aynı; veritabanında
+  (`data/icerik/kilavuzEslesme.js`, kod listeyle aynı; veritabanında
   `KilavuzKapsamKodu`). Gömülü paket dosyası diskte duruyor: veritabanı
   tohumu (Marka satırı) ve kapalı asistanın veri seti onu okuyor,
   `destek-dogrula` denetlemeye devam ediyor.
@@ -939,7 +941,7 @@ tek ve müşterinin adresi; Kayıt Aç da onu dolduruyor
 
 **DESTEK PARÇA ADI → KATALOG KODU.** Destek'in "Bu Parçaları Talep Et"
 adları talep formunda katalog koduna çevriliyor
-(`marka/icerik/destekVerisi.js → PARCA_KODU`, `RequestForm.jsx`). Önce
+(`data/icerik/destekVerisi.js → PARCA_KODU`, `RequestForm.jsx`). Önce
 katalogda ADLA aranıyordu; Destek'in adları çiftçinin diliyle yazıldığı
 için 29 addan hiçbiri tutmuyor, hiçbir parça seçili gelmiyordu. Tabloda
 yalnız aynı fiziksel parça olduğu görülen 7 ad var ve yalnız uyduğu
@@ -1193,7 +1195,7 @@ anlatan cümleler ("Bakiyenizden düşüldü") değişmedi.
 
 **PAKSAN'A DEVRET** ("'PAKSAN'dan Destek İste' seçeneği adı 'PAKSAN'a
 Devret' olmalı. Buna göre de butonun ikonunu düzenle"). İş ayrıntısındaki
-düğme, pencerenin başlığı ve onay düğmesi `${markaEk('a')} Devret`
+düğme, pencerenin başlığı ve onay düğmesi "PAKSAN'a Devret"
 (`TalepDetay.jsx → Devret`, `data-eylem="devret"`); pencere ne olacağını
 anlatıyor (işi firma üstlenir, neden iletilir, müşteriye bildirim
 gitmez, servis bu işte artık işlem yapamaz), alan "Devir nedeni", şerit
@@ -1202,11 +1204,11 @@ IconDevret`; WhatsApp'ın "İlet" oku); kulaklık yalnız "PAKSAN destek
 veriyor" notunda kaldı. Veri işlevi aynı: `veri.js → destekTalepEt`.
 Devirden sonraki durum yazıları ("PAKSAN destek veriyor") ve backoffice
 ile raporların "destek istedi" dili değişmedi (kullanıcıya soruldu;
-Servisim için Codex taslağı hazır: "Bu işi artık {MARKA} yürütüyor").
+Servisim için Codex taslağı hazır: "Bu işi artık PAKSAN yürütüyor").
 Tur X-13 (düğme yazılı ve iletme okuyla, pencere açılıyor, gönderilmiyor).
 
 **BANKA HESABI GİRİLDİ** (kullanıcının paylaştığı PAKSAN afişinin ekran
-görüntüsünden). `src/marka/kimlik.js → BANKA` `aktif: true`, bir hesap:
+görüntüsünden). `src/data/kimlik.js → BANKA` `aktif: true`, bir hesap:
 Halkbank (afişte "HALK BANK"; yazılışı Codex'in seçimi), 17 Eylül
 Şubesi, TL, alıcı "PAKSAN MAKİNA", IBAN TR56 0001 2001 5660 0010 1000 19
 (sağlama hanesi geçerli; IBAN'ın banka kodu 00012 Türkiye Halk
@@ -1321,10 +1323,227 @@ B-ADRES.
 
 **SEKME İKONU** (kullanıcının isteği: "Backoffice tarayıcı sekmesindeki
 ikona paksan logosu gelmeli. Yazı olan logo değil, diğeri"):
-`backoffice.html → <link rel="icon">`, dosya `src/marka/varliklar/
+`backoffice.html → <link rel="icon">`, dosya `src/assets/
 paksan-sekme-ikonu.png` (amblemden kırpılmış 64 piksellik kare). Vite
 derlemede onu `dist-backoffice/assets`e kopyalıyor; canlıda ayrı dosya
 gerekmiyor.
+
+### 5 Ekim 2026 — ürün yalnız PAKSAN'ın, marka katmanı söküldü
+
+Kullanıcının kararı: "başka firmalara uyarlanabilir yapı modeli
+olmayacak, ürün sadece PAKSAN'ın"; seçimi "Yapıyı tamamen sök". 8 Eylül
+2026'da kurulan katman (firmaya ait her şey `src/marka/` klasöründe,
+motor oraya yalnız `src/marka/index.js` kapısından bakıyordu, ad ve
+Türkçe ekleri hesaplanıyordu) kalktı. Ekranda hiçbir şey değişmedi.
+
+- Ad koda ve sözlüğe düz yazılı: "PAKSAN", "PAKSAN’a", "PAKSAN’ın",
+  "PAKSAN Connect’te". `MARKA`, `markaEk()`, `uygulamaEk()`, sözlükteki
+  `{marka}`, `{markaYi}`… `{uygulama}`, `{site}` yer tutucuları ve
+  `src/marka/ad.js`, `tools/marka-ek-testi.mjs` yok.
+- Klasör dağıldı: `kimlik.js` → `src/data/kimlik.js`; `katalog/` ve
+  `icerik/` → `src/data/katalog/`, `src/data/icerik/`; logo bileşeni →
+  `src/components/Logo.jsx` (yazı yolu `logoYollari.js`); renkler →
+  `src/styles/renkler.css`; görseller → `src/assets/logo/`,
+  `src/assets/urunler/`, `src/assets/videolar/`. Her dosya ihtiyacını
+  doğrudan kendi dosyasından alıyor.
+- `npm run dogrula` 5. (marka sınırı) ve 6. (marka adı) kontrolleri
+  kalktı; numaralar boş.
+- Sınama ve tohum araçları firma verisini bu dosyaları birleştirerek
+  okuyor (`tools/ekosistem/ortam.mjs`, `tools/vt/tohum-uret.mjs`).
+  Veritabanı tohumunda yalnız yollar ve işlem kaydının "devir" etiketi
+  değişti ("Üreticiye devir" → "PAKSAN’a devir").
+- `MARKA-DEVIR.md` GEÇERSİZ. PAKSAN'ın kendi alt markaları (Globale,
+  Gallignani) için plan (`PLAN-COKLU-MARKA.md`) beklemede kalıyor;
+  dosya yolları eskidi.
+
+**AYNI GÜN: TURUNCU #F26A1B** (kullanıcı: "ürünlerde soluk bir turuncu renk
+kullanılıyor, ekran görüntüsündeki tonu kullanalım tüm ürünlerde"; ton PAKSAN
+Satış ve Planlama'nın turuncusu). `src/styles/renkler.css` → `--marka-turuncu` ve
+`--marka-turuncu-dugme` ikisi de #f26a1b; açık turuncu zemin ve gölge tonları da
+ona bağlı. Düğmelerde beyaz yazı kalıyor: bu tonda okunabilirlik eşiğinin altında
+(yaklaşık 2,9:1, eşik 4,5:1), kullanıcıya üç seçenekle soruldu ve bilerek bunu
+seçti ("1. seçenek"). Karanlık temanın açık turuncusu (#ff8a3d) değişmedi.
+Android ikonu ve açılış ekranı turuncuyu aynı dosyadan okuyor; bir sonraki APK'da
+yeniden üretilince yeni tona geçer.
+
+### 5 Ekim 2026 — bölge dışı servis talebi
+
+Kullanıcının isteği: "Çiftçi normal konumu dışında makinesi ile başka bir
+il veya ilçeye iş yapmaya gitmiş olabilir … il ve ilçe bilgisi, atanan
+servisin konum bilgisi ile eşleşmiyorsa … servis talebi oluşturulamamalı.
+PAKSAN'dan destek istenebilir." Öneri üzerine verdiği üç cevap: çiftçinin
+hesap adresine BAKILMIYOR ("1 hayır"; adres çoğu zaman ev, tarla başka
+ilçede), bölge dışında talep PAKSAN'a gidiyor ve PAKSAN o iş için servis
+atıyor ("2a"), bölgesi girilmemiş servisin bölgesi KENDİ İLİ ("3a").
+
+- **Kural tek yerde:** `data/katalog/servisler.js → servisBolgesindeMi`
+  (bölge varsa `bolgeKapsiyorMu`, yoksa servisin ili). Servisin `bolge`
+  alanı önceden yalnız atama önerisini sıralıyordu; artık talebin nereye
+  gideceğini belirliyor.
+- **Kayıt:** `lib/talepOlustur.js → bolgeDisiKaydi`. Formdaki yer
+  (makinenin şu an bulunduğu il ve ilçe) makinenin servisinin bölgesinde
+  değilse talep `servis: null`, `sahip: 'paksan'` ve `bolgeDisi` (yer,
+  makinenin o anki servisi, tarih) taşıyor. Yurt dışı talep etkilenmiyor.
+- **Connect:** il ve ilçe seçildiği anda formun içinde uyarı, gönder
+  düğmesi "Talebi PAKSAN'a Gönder", onay penceresinde not, gönderim sonrası
+  ve talep ayrıntısında "servis belirlendiğinde bildirim gelecek". Talep
+  ENGELLENMİYOR: çiftçi formu baştan yazmıyor, PAKSAN'ı da aramıyor (21
+  Eylül kararı). Servis atanınca bildirim; ayrıntıda "Talebin Servisini Ara"
+  o servisle.
+- **Adres kutusu yer değişince boşalıyor** (aynı gün, kullanıcının onayı).
+  Kutu makinenin son servis adresiyle ya da hesabın adresiyle dolu geliyor;
+  çiftçi il ve ilçeyi değiştirip kutuya dokunmazsa talep yeni il ile eski
+  adresi birlikte taşıyordu. İl, ilçe ya da ülke değişince önerilen adres
+  siliniyor (boş kutuyla talep gönderilmiyor); çiftçinin kendi yazdığı
+  adres silinmiyor (`RequestForm.jsx → yerDegisti`). Tur C-40.
+- **Backoffice:** listede "Bölge dışı" işareti, "Dikkat isteyenler"de
+  servis ataması bekleyenler süzgeci, Excel sütunu. Ayrıntıda "Bölge dışı
+  talep" bölümü: servisler üç öbekte (o il ve ilçede hizmet verenler,
+  makinenin kendi servisi, diğerleri), "Bu İşe Ata"
+  (`veri.js → bolgeDisiTalebeServisAta`, karar depodaki kayıttan, yetki
+  `makineAtama`). Makinenin KALICI servisi değişmiyor. Atamanın izi
+  `bolgeDisi.atama`; Servis bölümünde satırı.
+- **Servisim:** atanan servise "PAKSAN size yeni bir iş verdi" bildirimi,
+  iş ayrıntısının başında mavi not. Öteki servisin adı gösterilmiyor. Hak
+  edişi atanan servis alıyor.
+- **Demo servislere bölge girildi** (kendi ili ve çalıştığı bayilerin
+  illeri): 14 servisin 7'si başka ildeki bayiyle çalışıyor; bölgesiz
+  kalsalardı o bayilerin müşterilerinin talepleri PAKSAN'a düşerdi.
+  Canlıdan önce gerçek listede de girilmeli (CANLIYA-CIKIS.md, Aşama 2).
+- **Yapılmadı:** PAKSAN'ın bölge dışı işi kendisi yürütmesi (randevu
+  kuralı: PAKSAN yalnız devredilen işe gün veriyor; bölge dışı iş bir
+  servise atanıyor). "Sorun Devam Ediyor" yer sormuyor, aynı servise
+  dönüyor.
+- **Veritabanı:** `bolgeDisi` ve servisin bölgesi eşlemede bilinen boşluk
+  (`VT-TASARIM-EKLERI.md` §14). İşlem kaydının "devir" etiketiyle aynı
+  gün başlayan tohum değişikliği ayrı (yukarıda).
+- **Sınama:** AK-38 (31 iddia, altı bozma), AK-02'nin beklentisi kurala
+  göre düzeltildi, `bolge-testi` yeni kuralın dokuz durumu; tur C-40 ve
+  B-BOLGE (beş bozma). Tur `PAKSAN_TUR_CEKIM=<klasör>` ile bu iki adımın
+  ekran görüntüsünü alıyor.
+
+### 6 Ekim 2026 — Raporlar sadeleşti
+
+Kullanıcının istekleri, hepsi backoffice Raporlar ekranında:
+- Sekme satırındaki gereksiz kaydırma çubuğu kalktı (seçili sekmenin
+  çizgisi kutunun altına taşıyordu; `backoffice.css → .rapor-sekmeler`).
+- "Dikkat İsteyenler" satırlarında alt açıklama yok; yeni uyarıda da
+  çıkmaz (`rapor/Gorunum.jsx → Uyarilar`; açıklama yalnız Excel'de).
+- "En yavaş %10" ölçüsü her yerden kalktı (talep türü tablosu, kapanma
+  süresi, ilk kayıt ve parça gönderim kutuları; `hesap.js → dilim` silindi).
+- Destek Asistanı ve Ekip sekmeleri kaldırıldı ("gerekirse daha sonra
+  ekleriz"); dosyaları `rapor/bolumler/` içinde duruyor.
+- Servis karnesinde "Ortalama ilk kayıt süresi" ve "Bakiye" sütunları yok.
+- Ürün Kalitesi'nde "100 makineye düşen talep" hiçbir yerde yok (kutu,
+  "Modellere göre" grafiği, model karnesi ve üretim yılı sütunu);
+  "Arıza bulunamadı" oranı kutusu ve bölümün alt açıklaması da kalktı.
+  Model karnesi talep sayısına göre sıralı. Tur B-RAPOR her sekmenin
+  hesaplandığını da denetliyor.
+- Bilgi kutularının alt açıklaması hiçbir sekmede yok; yeni kutuda da çıkmaz
+  (`Gorunum.jsx → OlcuSeridi`; `alt` yalnız Excel'de). Kullanıcı: "saçma
+  sapan açıklamalar yazıyorsun sürekli şuralara".
+- Yedek Parça'da "Söz verilen zamana kadar gönderim", "Ödeme onayı
+  bekleyen", "Ödemeden gönderime" kutuları yok. "Garanti parçasının
+  gönderilme süresi" raporda gizli (`raporda: false`) ama Dashboard'un
+  yönetim özeti onu kimliğiyle okuduğu için hesaplanmaya devam ediyor.
+  "En çok istenen parçalar"da "Kaç talepte" ve "Hangi modellerde" yok.
+- Satış ve Bayiler sekmesi kaldırıldı; Raporlar'da altı sekme var. Bölümün
+  hesabı Dashboard'un yönetim özeti için duruyor (`rapor/bolumler/index.js →
+  HESAP_BOLUMLERI`); özetteki "Satış" bloğunun başlığı artık Raporlar'a
+  götürmüyor (düz başlık).
+- Müşteriler'de "Tekrar gelen müşteri", "Kampanya izni veren" ve "Bildirim
+  izni açık" kutuları yok.
+- Garanti ve Hak Ediş'te "Modellere göre biten işlerin hak edişi" tablosu yok
+  ("gereksiz"). Duyuru penceresinin davranışı olduğu gibi kaldı (kullanıcı:
+  "kalsın bu şekilde"; demo duyurusu yeniden kurulumda tekrar çıkabilir).
+- Zaman grafiklerinde (31 günden uzun dönemde haftalık sütunlar) etiket
+  haftanın ARALIĞI ("7–13 Eyl", "31 Ağu – 6 Eyl"; `hesap.js →
+  zamanKovalari`) ve HER sütunun etiketi var (önce N'de bir yazılıyordu);
+  yer varsa düz ya da birkaç satır, sütun başına 34 pikselden az yer
+  kalırsa dik (`grafik.jsx → YiginSutun`). Boş hafta sütunu yerinde
+  kalıyor (zaman ekseni kesintisiz; kullanıcıya anlatıldı).
+- **Tarihi elle yazarken donma düzeldi** (kullanıcının bildirdiği: gün-ay-yıl
+  sırasıyla yazınca "sistem çöküyor"). Tarih kutusu yıl yazılırken "2"
+  ile 0002-01-01 veriyordu; grafik 2. yıldan bugüne 24.298 aylık sütun
+  çiziyordu. 2000–2100 dışı yıl yarım tarih sayılıyor (`suzgec.jsx →
+  tamTarih`), ayrıca grafik en fazla 10 yıl çiziyor (`hesap.js →
+  zamanKovalari`). Tur B-TARIH.
+- Tur B-RAPOR (sekme satırı taşmıyor, uyarı satırı açıklamasız, her
+  sütun etiketli ve etiketler binmiyor; dört bozma).
+
+### 6 Ekim 2026 — garanti işi baştan sona servis biriminde, yapılan iş çok seçimli
+
+Kullanıcının kararı: "Garanti kapsamındaki işlerden de sadece Servis rolü
+sorumlu. Garanti kapsamında parça değişimi yapılacak olsa da fark etmez …
+parça gönderimi içeriyor diye Yedek Parça rolüne (sürecin bir kısmını)
+atamanın bir anlamı yok."
+
+- **Garanti parçası servis masasında.** Servisin 1. aşama parça isteği artık
+  `masa: 'servis'` (`lib/servisKaydi.js → kapininSonucu`); parçayı servis
+  birimi gönderiyor ("Parçayı Gönderdim"in rol kısıtı zaten yoktu). Yedek
+  parça rolü garanti kaydı taşıyan servis talebini ne masada beklerken ne
+  parça yoldayken görüyor; o günden önce `masa: 'parca'` yazılmış kayıt da
+  (`backoffice/veri.js → rolunTalepleri`, `garantiIsiMi`). Yedek parça
+  rolünde kalanlar: müşterinin parça talebi ve servisin kendi parça
+  siparişi. Dashboard'un "Parça hazırlığı bekleyen talep" kutusu servis
+  rolünde; Talepler süzgecinde parça rolüne onay ve parça durumları
+  çıkmıyor. Servisim'in onay penceresi "yedek parça birimi" demiyor.
+  Demo: gönderen Servis personeli, `DEMO_SURUMU` 9.
+- **"Parça Değişti" parçasız gitmiyor** (kullanıcının bildirdiği: işaretli
+  ama parça seçilmemişken kayıt tamamlanıyordu). Garanti işinde parçayı her
+  zaman PAKSAN gönderiyor. Tek ziyaretlik kayıtta seçilince alanın altında
+  uyarı ve gönderim engelli; veri katmanı da reddediyor
+  (`veri.js → servisKaydiGonder`, `PARCASIZ_DEGISIM`). Parça "Parça Seç"
+  ile seçilince kayıt parça isteğine dönüyor; "Parçayı Taktım"da "Parça
+  Değişti" kendiliğinden seçili ve kaldırılamıyor.
+- **Yapılan iş çok seçimli** (kullanıcının isteği). İşaret kare, içinde
+  onay işareti (`Secenekler coklu`). Kayıtta yine tek yazı, seçilenler
+  virgülle (`yapilanIsYazisi`, bölen `yapilanIsleri`); Connect her parçayı
+  çeviriyor, raporlar her seçimi ayrı sayıyor. Veritabanında ziyaret başına
+  tek kod vardı: eşlemede bilinen boşluk (`VT-TASARIM-EKLERI.md` §15).
+- Sınama AK-03, AK-08, AK-34 (dört bozma); tur X-16 (beş bozma).
+
+### 7 Ekim 2026 — on bir küçük istek
+
+- **Backoffice onayları kendi penceresinde.** Tarayıcının uyarı kutusu
+  (`confirm()`) hiçbir ekranda yok; ortak pencere `ekranlar/ortak.jsx →
+  useOnay` (başlık, açıklama, düğme; silmede kırmızı `dg--sil`, odak
+  "Vazgeç"te). Servisler, Bayiler, Personel, Numara Değişikliği
+  Talepleri, Talepler (bayiye iletmeyi geri alma, bölge dışı atama).
+  Metinler Codex'ten. Tur B-BOLGE pencereyi bekliyor, tarayıcı kutusu
+  açılırsa düşüyor.
+- **Ürün sayfalarının metni Codex'ten geçti** (kullanıcı: makineyi
+  kullananlar "işletme" değil). `data/katalog/products.js`: "işletmeler"
+  yerine çiftçiler ve müteahhitler; dayanağı olmayan övgüler ("en çok
+  tercih edilen", "daha az ip kopması", "uzun yıllardır kanıtlanmış")
+  çıktı; teknik tabloyla çelişen açıklamalar düzeldi (i-Pak yalnız
+  otomatik file, Diamond'da kepçe isteğe bağlı); "opsiyonel" →
+  "isteğe bağlı". İngilizcesi (`products.en.js`) aynı anlamda; çeviri
+  tabloları Türkçe yazıyı anahtar kullandığı için anahtarlar da değişti.
+  Veritabanı tohumu yeniden üretildi.
+- **Connect:** kampanya izni cümlesinde "(İsteğe bağlı)" yok (kutu yine
+  zorunlu değil); ses kaydında indirme ve hız menüsü kapalı
+  (`controlsList`, Servisim'de de); numara değişikliği bildirimi kendi
+  türünde, telefon simgesiyle (`BILDIRIM_TURU.NUMARA`; önce duyuru zili;
+  liste türü tanımayıp duyuruya çeviriyordu, AK-30), reddi numara
+  değişikliği formunu açıyor, onayı bir yere götürmüyor (önce Profil);
+  yedek parça formunun ilk düğmesi "Devam Et"; parça talebinde "Diğer"
+  seçeneği ve ona bağlı yollar kalktı (eski kayıtlar için `PARCA_DIGER`
+  okuma tarafında); Profil'de kayıtlı makine kutusu yok, tam genişlikte
+  "Taleplerim" satırı; Bayi ve İletişim'de il öbeği yok, bayiler adına
+  göre alfabetik (makineyi aldığı bayi yine en üstte).
+- **Servisim:** servis formu yalnız bu ziyaretin kaydı gönderilince
+  (`servisFormu.js → servisFormuVarMi`; önce "Sorun Devam Ediyor"la
+  yeniden açılan işte geçen ziyaretin kaydıyla çıkıyordu). AK-35.
+- **Backoffice Yedek Parça Kataloğu:** yeni listenin karşılaştırmasında
+  "Ortalama fiyat değişimi" ve "En yüksek fiyat artışı" satırları yok.
+- **Yarım kalan fiyat listesi yayını** (6 Ekim, üç deneme): Windows'ta yeni
+  yazılan `katalog.json.yeni` bir an kilitli kalıyor, son taşıma EPERM ile
+  düşüyordu; görseller ve PDF yazılmış, liste yürürlüğe girmemişti. Taşıma
+  artık kısa aralıklarla yeniden deneniyor
+  (`sunucu-taklidi/fiyat-listesi-yayini.mjs → yerineKoy`). Yeni liste
+  yürürlüktekiyle aynıydı (aynı Temmuz listesi); geride kalan 538
+  kullanılmayan görsel geri dönüşüm kutusuna gönderildi.
 
 **Fiyat teklifi servise değil bayiye gider.** Bayinin paneli yok:
 satış personeli bayiye telefonla haber veriyor, sistemde yalnız hangi
@@ -1464,9 +1683,8 @@ Bir değişikliği "bitti" demeden önce:
 2. **Müşteri uygulamasında** metin ekledi/değiştirdiysen → `tr.js` VE
    `en.js` ikisi de güncellendi mi (anahtar sayıları eşit mi).
    Backoffice ve servis uygulaması tek dilli, orada bu adım yok.
-   Marka adı sözlüğe SABİT YAZILMAZ; yer tutucu kullanılır:
-   `{marka}`, ve çekimli hâller için `{markaYi}`, `{markaya}`,
-   `{markadan}`, `{markada}`, `{markanin}` (bkz. `src/i18n/index.jsx`).
+   Marka adı her yerde düz yazılır: "PAKSAN", "PAKSAN’a" (5 Ekim
+   2026'dan beri; yer tutucu ve ek hesaplayıcı yok).
 3. Görsel bir değişiklikse → `ui-dogrulama` subagent'ı ile son QA turu
    yap. **Sunum görsellerini (`sunum/gorseller/`) her değişiklikte
    tazeleme** (29 Eylül 2026, kullanıcının isteği: "Sunum klasöründeki
@@ -1562,8 +1780,8 @@ Genel diff incelemesi için `/code-review` komutu kullanılır.
   düzenini bilmiyor; söylenmezse kendi tercihine göre değiştiriyor:
   - Düğme yazıları **Başlık Düzeninde**: "Devam Et", "Talebimi Gör",
     "Sorun Devam Ediyor". Etiket ve açıklama cümleleri normal.
-  - Marka adı yer tutucuyla geçer (`{marka}`, `{markaYi}`, …);
-    Codex'ten bunları değiştirmemesi istenir.
+  - Marka adı düz "PAKSAN" yazılır; ekli hâli kesme işaretiyle
+    ("PAKSAN’a", "PAKSAN’ın").
   - Terim yasağı (iskonto, kapsam, künye) müşteri ve servis ekranları
     için geçerli, backoffice'te değil. "hak ediş" YALNIZ müşteri
     ekranlarında yasak; serviste serbest (gerekçesi "Servis Panelinin
@@ -1578,7 +1796,8 @@ Genel diff incelemesi için `/code-review` komutu kullanılır.
 
     npm run dogrula
 
-On üç şeye bakıyor:
+On bir şeye bakıyor (5. ve 6. numara 5 Ekim 2026'da kalktı; numaralar
+başvurular kaymasın diye boş bırakıldı):
 
  1. `tr.js`/`en.js` anahtar eşitliği ve Connect sözlüğünde terim yasağı
     (iskonto, kapsam, künye, hak ediş)
@@ -1587,8 +1806,6 @@ On üç şeye bakıyor:
     iki sözlükteki karşılıkları
  3. İki CSS dosyasındaki token'ların uyumu
  4. `dist/` içine backoffice kodunun sızıp sızmadığı
- 5. Motorun marka klasörüne yalnızca kapıdan bakıp bakmadığı
- 6. Motor kodunda marka adının düz yazıyla geçip geçmediği
  7. Servis uygulamasında bayi kalıntısı kalıp kalmadığı
  8. `tools/` altındaki sekiz sınama betiğinin geçip geçmediği
  9. Yedek parça kataloğunun tutarlılığı ve uydurma fiyat izi
@@ -1599,12 +1816,11 @@ On üç şeye bakıyor:
     tohum betiklerinin `tohum/kaynak/*.json` ile aynı olması ve ortam
     dosyasının git'e girmemiş olması (veritabanı klasörü yoksa atlanır)
 
-5. ve 6. kontroller marka sınırını koruyor: ürünün başka bir firmaya
-kurulabilmesi buna bağlı. 7. kontrol bayi–servis ayrımını koruyor:
+7. kontrol bayi–servis ayrımını koruyor:
 panel bayiden servise devredildi; yarım kalan bir devir, altı ay sonra
-hangi adın ne anlama geldiğini belirsizleştirir. 8. kontrol dokuz
-sınama betiğini çağırıyor: `marka-ek-testi`, `bolge-testi`,
-`duyuru-hedef-testi`, `destek-dogrula` (dördü metin okuyor, ayrı
+hangi adın ne anlama geldiğini belirsizleştirir. 8. kontrol sekiz
+sınama betiğini çağırıyor: `bolge-testi`,
+`duyuru-hedef-testi`, `destek-dogrula` (üçü metin okuyor, ayrı
 dururken unutuluyorlardı ve biri haftalarca kırık kaldı), artı
 `ekosistem-sinamasi`, `veritabani-eslesme-denetimi` ve
 `ekosistem-turu` (üçü metin okumuyor, üç uygulamanın paylaştığı
@@ -1634,8 +1850,7 @@ değildir: KR-04 betiği veritabanıyla karşılaştırır, bu kontrol betiği
 kaynak JSON'la — kaynağı düzeltip betiği yeniden üretmeyi unutmak
 KR-04'ten sessizce geçiyordu.
 
-Yorumlar altıncı ve on ikinci kontrolün dışında; oralarda firmanın iş
-kuralını anlatan gerekçeler var. Sorun bulursa çıkış kodu 1.
+Yorumlar on ikinci kontrolün dışında. Sorun bulursa çıkış kodu 1.
 
 **bayi ≠ servis.** Bayi makineyi satan firma: kaydı var, paneli yok.
 Servis işi yapan taraf: hesabı ve mobil uygulaması var. `src/servis/`

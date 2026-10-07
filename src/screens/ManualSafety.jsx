@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { TopBar, TabBar } from '../components/Chrome'
 import { useDil } from '../i18n'
-import { guvenlikObekleri, guvenlikMaddeSayisi } from '../marka/icerik/guvenlik'
+import { guvenlikObekleri, guvenlikMaddeSayisi } from '../data/icerik/guvenlik'
 import { IconAlert } from '../components/Icons'
 
 /* ==========================================================================
@@ -12,7 +12,7 @@ import { IconAlert } from '../components/Icons'
    yalnız "makineye el sürmeden önce" kuralları duruyor, tamamı burada.
 
    Liste ham kılavuz verisinden değil, derlenmiş hâlinden geliyor (bkz.
-   marka/icerik/guvenlik.js): tekrarlar birleştirildi, dil düzeltildi,
+   data/icerik/guvenlik.js): tekrarlar birleştirildi, dil düzeltildi,
    öbekler işin sırasına göre dizildi.
 
    YENİDEN DÜZENLENDİ (29 Eylül 2026, kullanıcının isteği). Kırk madde tek
