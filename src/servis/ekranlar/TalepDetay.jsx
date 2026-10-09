@@ -543,6 +543,21 @@ export function TalepDetay({
         </div>
       )}
 
+      {/* MÜŞTERİ İPTAL İSTEDİ (8 Ekim 2026). İşleme alınmış talepte müşteri
+          Connect'ten istek gönderdi; kararı PAKSAN veriyor, iş o zamana
+          kadar sürüyor (lib/musteriIptal.js). Sarı: işin geleceği belirsiz.
+          Karar verilince not kalkıyor; iptal ya da "kabul edilmedi"
+          bildirimi gidiyor. */}
+      {!kapali && talep.iptalIstegi?.durum === 'bekliyor' && (
+        <div className="not not--sari" data-not="iptal-istegi">
+          <IconAlert size={19} />
+          <div>
+            <strong>Müşteri bu talebin iptalini istedi. PAKSAN karar verene kadar iş devam ediyor.</strong>
+            {talep.iptalIstegi.neden && <p>{talep.iptalIstegi.neden}</p>}
+          </div>
+        </div>
+      )}
+
       {/* İptal edilen talep "tamamlandı" demiyor; nedeni burada. Gri:
           yapılacak bir şey yok (29 Eylül 2026, S5). */}
       {kapali && talep.status === 'iptal' ? (
@@ -1262,7 +1277,8 @@ function ServisKaydi({ talep, servisAd }) {
           <div>
             <strong>PAKSAN kaydı düzeltti</strong>
             <p>{d.neden}</p>
-            <p className="kucuk sonuk">{duzeltmeYazisi(d)}</p>
+            {/* Yalnız değişen kalem; hiçbiri değişmediyse satır yok. */}
+            {duzeltmeYazisi(d) && <p className="kucuk sonuk">{duzeltmeYazisi(d)}</p>}
           </div>
         </div>
       ))}

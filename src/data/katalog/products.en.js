@@ -155,40 +155,41 @@ export const VIDEO_EN = {
 
 export const DESC_EN = {
   'orkinos-1270':
-    'A machine that compresses straw, hay and stalks into large square bales.',
+    "Developed by Turkish engineers, it is Turkey's first and only domestically made large square baler. Its robust build is designed for large fields.",
   'orkinos-870':
-    'A square baler for farmers and baling contractors. It needs less tractor power than the Orkinos 1270.',
+    'Developed by Turkish engineers, the Orkinos 870 is designed for large fields with its robust build.',
   'orka-870':
-    'A square baler from the Orka series.',
+    'The Orka 870 turns hay and straw into large square bales.',
   'albatros-870':
-    'The Albatros 870 is a large square baler for baling contractors and for farmers who make a large number of bales.',
+    'The Albatros 870 makes solid, secure bales with its robust tying system. Its powerful performance speeds up baling and saves time.',
   'super-yunus':
-    "PAKSAN's small square baler. It is designed for farmers who make small bales and for baling contractors.",
+    'Among the most preferred balers in Turkey, the Super Yunus suits long and demanding work thanks to its robust build.',
   'super-yunus-dual2':
     'The twin-knotter model of the Super Yunus.',
   'super-yunus-3yabali':
-    'The Super Yunus model with a three-fork feeding system.',
-  'super-8002': "PAKSAN's small square baler.",
+    'With its three-tine feeding system, the Super Yunus 3 Yabali is designed to do more work in less time.',
+  'super-8002':
+    'One of the most preferred balers in Turkey. With its reinforced build it bales hay, alfalfa and stalks with small tractors.',
   'super-8002e':
-    'The improved E series of the Super 8002, with a reinforced chassis and an upgraded feeding system.',
+    'The E series has the same features as the Super 8002, with a wider pick-up that covers more ground. It suits farmers who bale their own crop as well as those who bale for others.',
   'super-8002e-dual2': 'The twin-knotter model of the E series.',
   hammer:
-    'The Hammer is a small square baler built for farmers and contractors baling in tough field conditions.',
+    'With its wide pick-up, the Hammer is a small square baler built for farmers and contractors baling in tough field conditions.',
   'ipak-rulo':
-    'A fixed-chamber round baler. With its automatic net wrapping system it suits straw, hay and silage baling.',
+    'The i-Pak makes round bales and wraps them automatically with net. Its automatic system makes it easy to use and reduces the need for labour. Its robust build is designed for long service.',
   'diamond-dikey':
-    'A vertical auger feed mixer for dairy and beef cattle farmers. It mixes roughage and concentrate evenly. It has cutting knives and a discharge conveyor; the loading bucket is optional.',
+    'Its vertical auger and knives mix feed to the desired fineness and evenly. The optional digital weighing system lets you prepare the ration in the right amounts.',
   'pelican-yatay':
-    'A feed mixer that mixes feed evenly with its horizontal auger. It suits barns with a low ceiling.',
+    'For dairy and beef cattle farmers, it mixes feed quickly, to the desired fineness and evenly. A digital weighing system is optional.',
   'scorpion-silaj':
-    'A row-independent forage harvester. It cuts and chops maize, sorghum and similar crops without following the rows.',
+    'It harvests silage maize and tall forage crops regardless of rows.',
   'silaj-paketleme':
     'A wrapping machine that makes silage by wrapping round bales in stretch film.',
-  'yengec-cayir': 'A disc mower. It gives a clean cut and a high working speed.',
+  'yengec-cayir': 'With its discs, the Yengec cuts forage crops, meadows and weeds.',
   'kirlangic-ot-toplama':
-    'A rake that gathers the mown grass into windrows. It forms an even windrow ready for baling.',
+    'It gathers mown hay and straw in the field into windrows.',
   rotovator:
-    'A rotary tiller that breaks up the soil and prepares it for sowing. Offered in several working widths.',
+    'The rotary tiller is used for seedbed preparation, breaking up stubble and weed control.',
   'tesviye-kuregi':
     'A blade used for field levelling and grading work. Solid steel body.',
 }

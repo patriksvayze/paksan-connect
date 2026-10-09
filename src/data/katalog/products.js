@@ -63,7 +63,7 @@ const HAM_URUNLER = [
     category: 'buyuk-balya',
     tagline: 'Prizmatik büyük balya makinesi',
     serialPrefix: 'ORK1270',
-    desc: 'Saman, kuru ot ve sapı sıkıştırarak prizmatik büyük balya yapan makine.',
+    desc: 'Türk mühendislerin geliştirdiği Türkiye’nin ilk ve tek yerli prizmatik büyük balya makinesidir. Sağlam yapısıyla geniş araziler için tasarlanmıştır.',
     specs: [
       ['Balya ölçüsü', '120 x 70 cm'],
       ['Balya uzunluğu', 'Ayarlanabilir, 40 – 250 cm'],
@@ -93,7 +93,7 @@ const HAM_URUNLER = [
     category: 'buyuk-balya',
     tagline: 'Prizmatik büyük balya makinesi',
     serialPrefix: 'ORK870',
-    desc: 'Çiftçiler ve balya işi yapan müteahhitler için prizmatik balya makinesi. Orkinos 1270’e göre daha düşük traktör gücü gerektirir.',
+    desc: 'Türk mühendislerin geliştirdiği Orkinos 870, sağlam yapısıyla geniş araziler için tasarlanmıştır.',
     specs: [
       ['Balya ölçüsü', '80 x 70 cm'],
       ['Balya uzunluğu', 'Ayarlanabilir, 40 – 250 cm'],
@@ -115,7 +115,7 @@ const HAM_URUNLER = [
     category: 'buyuk-balya',
     tagline: 'Prizmatik büyük balya makinesi',
     serialPrefix: 'ORKA870',
-    desc: 'Orka serisi prizmatik balya makinesi.',
+    desc: 'Orka 870, ot ve samanı prizmatik büyük balya hâline getirir.',
     specs: [
       ['Balya ölçüsü', '80 x 70 cm'],
       ['Düğüm atıcı', '4 adet'],
@@ -132,7 +132,7 @@ const HAM_URUNLER = [
     category: 'buyuk-balya',
     tagline: 'Prizmatik büyük balya makinesi',
     serialPrefix: 'ALB870',
-    desc: 'Albatros 870, balya işi yapan müteahhitler ve çok miktarda balya hazırlayan çiftçiler için prizmatik büyük balya makinesidir.',
+    desc: 'Albatros 870, sağlam bağlama sistemiyle güvenli balyalar üretir. Güçlü performansıyla balyalama işini hızlandırır ve zamandan tasarruf sağlar.',
     specs: [
       ['Balya ölçüsü', '80 x 70 cm'],
       ['Düğüm atıcı', '4 adet'],
@@ -151,7 +151,7 @@ const HAM_URUNLER = [
     category: 'kucuk-balya',
     tagline: 'Küçük balya makinesi',
     serialPrefix: 'SYNS',
-    desc: 'PAKSAN’ın küçük balya makinesi. Küçük balya hazırlayan çiftçiler ve balya işi yapan müteahhitler için tasarlanmıştır.',
+    desc: 'Türkiye’de en çok tercih edilen balya makineleri arasında yer alan Süper Yunus, güçlü yapısıyla uzun ve yoğun çalışmalara uygundur.',
     specs: [
       ['Balya ölçüsü', '36 x 46 cm'],
       ['Balya uzunluğu', '30 – 140 cm'],
@@ -190,7 +190,7 @@ const HAM_URUNLER = [
     category: 'kucuk-balya',
     tagline: 'Üç yabalı küçük balya makinesi',
     serialPrefix: 'SYNS3Y',
-    desc: 'Üç yabalı besleme sistemine sahip Süper Yunus modeli.',
+    desc: 'Süper Yunus 3 Yabalı, üç yabalı besleme sistemiyle kısa sürede daha fazla iş yapmak için tasarlanmıştır.',
     specs: [
       ['Balya ölçüsü', '36 x 46 cm'],
       ['Yaba sayısı', '3'],
@@ -207,7 +207,7 @@ const HAM_URUNLER = [
     category: 'kucuk-balya',
     tagline: 'Küçük balya makinesi',
     serialPrefix: 'S8002',
-    desc: 'PAKSAN’ın küçük balya makinesi.',
+    desc: 'Türkiye’de en çok tercih edilen balya makinelerinden biridir. Güçlendirilmiş yapısıyla küçük traktörlerle ot, yonca ve sap balyalar.',
     specs: [
       ['Balya ölçüsü', '36 x 46 cm'],
       ['Balya uzunluğu', '30 – 140 cm'],
@@ -225,7 +225,7 @@ const HAM_URUNLER = [
     category: 'kucuk-balya',
     tagline: 'Küçük balya makinesi (E serisi)',
     serialPrefix: 'S8002E',
-    desc: 'Süper 8002\'nin geliştirilmiş E serisi. Güçlendirilmiş şasi ve iyileştirilmiş besleme sistemi.',
+    desc: 'Süper 8002 ile aynı özellikleri taşıyan E serisi, daha geniş tırmığıyla toplama alanını artırır. Hem kendi balyasını hazırlayan çiftçilere hem de başkaları için balya işi yapanlara uygundur.',
     specs: [
       ['Balya ölçüsü', '36 x 46 cm'],
       ['Balya uzunluğu', '30 – 140 cm'],
@@ -260,7 +260,7 @@ const HAM_URUNLER = [
     category: 'kucuk-balya',
     tagline: 'Küçük balya makinesi',
     serialPrefix: 'HMR',
-    desc: 'Hammer, zorlu tarla koşullarında balya hazırlayan çiftçiler ve müteahhitler için üretilmiş küçük balya makinesidir.',
+    desc: 'Hammer, geniş tırmığıyla zorlu tarla koşullarında balya hazırlayan çiftçiler ve müteahhitler için üretilmiş küçük balya makinesidir.',
     /* Değerler HAMMER kullanım kılavuzunun teknik tablosundan.
        Kılavuz iki modeli kapsıyor: 420 (2 bağlayıcı), 430 (3 bağlayıcı).
        Model bazında tam liste Kılavuzlar ekranında. */
@@ -283,7 +283,7 @@ const HAM_URUNLER = [
     category: 'rulo-balya',
     tagline: 'Rulo (yuvarlak) balya makinesi',
     serialPrefix: 'IPAK',
-    desc: 'Sabit hazneli rulo balya makinesi. Otomatik file sarma sistemiyle saman, kuru ot ve silaj balyalamaya uygundur.',
+    desc: 'i-Pak, rulo balya hazırlar ve balyaları otomatik olarak fileyle sarar. Otomatik sistemi kullanımı kolaylaştırır, iş gücü ihtiyacını azaltır. Sağlam yapısıyla uzun süreli kullanım için tasarlanmıştır.',
     /* Değerler YUVARLAK BALYA kullanım kılavuzunun teknik tablosundan */
     specs: [
       ['Balya çapı', '120 cm'],
@@ -309,7 +309,7 @@ const HAM_URUNLER = [
     tagline: 'Dikey helezonlu yem karma makinesi',
     serialPrefix: 'DMD',
     variants: ['4 m³', '6 m³', '8 m³'],
-    desc: 'Süt ve besi sığırı yetiştirenler için dikey helezonlu yem karma makinesi. Kaba ve kesif yemi eşit dağılımla karıştırır. Kesici bıçakları ve boşaltma bandı bulunur; yükleme kepçesi isteğe bağlıdır.',
+    desc: 'Dikey helezonu ve bıçakları, yemi istenen incelikte ve eşit dağılımla karıştırır. İsteğe bağlı dijital tartı sistemi, yem karışımını doğru miktarlarda hazırlamanızı sağlar.',
     specs: [
       ['Hacim seçenekleri', '4 m³ / 6 m³ / 8 m³'],
       ['Helezon', 'Dikey, tek helezon'],
@@ -332,7 +332,7 @@ const HAM_URUNLER = [
     category: 'yem-karma',
     tagline: 'Yatay helezonlu yem karma makinesi',
     serialPrefix: 'PLC',
-    desc: 'Yatay helezonuyla yemi eşit dağılımla karıştıran yem karma makinesi. Alçak tavanlı ahırlar için uygundur.',
+    desc: 'Süt ve besi sığırı yetiştiricileri için yemi kısa sürede, istenen incelikte ve eşit dağılımla karıştırır. İsteğe bağlı dijital tartı sistemi sunar.',
     specs: [
       ['Helezon', 'Yatay'],
       ['Boşaltma', 'Çift yönlü bant'],
@@ -350,7 +350,7 @@ const HAM_URUNLER = [
     category: 'silaj',
     tagline: 'Sıra bağımsız silaj makinesi',
     serialPrefix: 'SCRP',
-    desc: 'Sıra bağımsız çalışan silaj makinesi. Mısır, sorgum ve benzeri ürünleri sıra gözetmeksizin biçip parçalar.',
+    desc: 'Silajlık mısır ve uzun boylu yem bitkilerini sıra gözetmeden hasat eder.',
     specs: [
       ['Çalışma tipi', 'Sıra bağımsız'],
       ['Kesme boyu', 'Ayarlanabilir'],
@@ -390,7 +390,7 @@ const HAM_URUNLER = [
     category: 'cayir-ot',
     tagline: 'Diskli çayır biçme makinesi',
     serialPrefix: 'YNGC',
-    desc: 'Diskli çayır biçme makinesi. Temiz kesim ve yüksek çalışma hızı sağlar.',
+    desc: 'Yengeç, diskleriyle yem bitkilerini, çayırları ve yabani otları biçer.',
     specs: [
       ['Disk sayısı', '4 – 8 (modele göre)'],
       ['Çalışma genişliği', '1.650 – 2.800 mm'],
@@ -406,7 +406,7 @@ const HAM_URUNLER = [
     category: 'cayir-ot',
     tagline: 'Ot toplama / tırmık makinesi',
     serialPrefix: 'KRLG',
-    desc: 'Biçilen otu namlu hâline getiren ot toplama makinesi. Balya öncesi düzgün namlu oluşturur.',
+    desc: 'Tarlada biçilmiş ot ve samanı toplayarak namlu hâline getirir.',
     specs: [
       ['Parmak kolu sayısı', '10 – 12'],
       ['Çalışma genişliği', '3.200 – 3.800 mm'],
@@ -424,7 +424,7 @@ const HAM_URUNLER = [
     category: 'toprak',
     tagline: 'Toprak frezesi',
     serialPrefix: 'RTV',
-    desc: 'Toprağı parçalayıp ekime hazır hâle getiren rotovatör. Değişik çalışma genişliği seçenekleriyle sunulur.',
+    desc: 'Rotovatör, tohum yatağı hazırlama, anız parçalama ve yabancı ot mücadelesinde kullanılır.',
     specs: [
       ['Çalışma genişliği', '1.400 – 2.500 mm'],
       ['Bıçak tipi', 'C tipi / L tipi'],

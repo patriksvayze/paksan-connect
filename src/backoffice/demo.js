@@ -41,7 +41,9 @@ import { talepNo } from '../lib/talep'
 import { normalizeSerial } from '../lib/serial'
 import { telAnahtar, telGoster, telHamYap } from '../lib/tel'
 import { LOGO } from '../lib/logo'
-import { ANAHTAR, islemYaz, personelGetir, rolleriGetir } from './veri'
+import {
+  ANAHTAR, islemYaz, KAPALI_DURUMLAR, makineSahibiniDegistir, personelGetir, rolleriGetir,
+} from './veri'
 import { PRODUCTS } from '../data/katalog/products.js'
 import { SIRKET } from '../data/kimlik.js'
 import { SERVISLER } from '../data/katalog/servisler.js'
@@ -50,6 +52,7 @@ import { makineninServisi } from '../lib/servisAtama'
 import { fiyatGoruntusu } from '../lib/parcaKatalogu'
 import { DEMO_SERVIS, parcaKaynagi, parcaSecimi, senaryoSec, servisAkisi } from './demoServis'
 import {
+  anda,
   AYAR_YEDEGI,
   SABIT_MUSTERI,
   sahneIzleriniTemizle,
@@ -1238,6 +1241,10 @@ export async function demoYukle() {
     metinler: { musteriyeNot: NOTLAR.servis.musteriye[1], gonderimIsi: PARCA_PLAN_IS[0] },
   })
 
+  /* ---- İkinci el makine: en sonda, talepler yazıldıktan sonra (aşağıda
+     ikinciElKur). */
+  ikinciElKur(rastgele, yeniPersonel)
+
   const ozet = {
     personel: yeniPersonel.length,
     musteri: musteriler.length,
@@ -1253,6 +1260,61 @@ export async function demoYukle() {
       `${ozet.talep} talep, ${ozet.destek} destek oturumu, ${ozet.duyuru} duyuru`,
   })
   return ozet
+}
+
+/* İKİNCİ EL MAKİNE (9 Ekim 2026). Kayıtlı Makineler'de sahiplik geçmişi
+   ve "bu sahibe geçiş" demoda da görünsün diye bir makine el
+   değiştiriyor. Gerçek işlevle (veri.js → makineSahibiniDegistir): defter,
+   iki müşterinin makine listesi ve bildirimler onun yazdığı biçimde.
+
+   Makine rastgele müşterilerden, talebi süren makine seçilmiyor: devirden
+   sonra eski sahibin açık işi kalırdı; kapanmış talebi olan makine
+   tercih ediliyor (yoksa talepsiz makine). Devir günü makinenin son
+   talebinin açılışından 2-20 gün sonra, en geç dün (anda): eski sahibin
+   talebi devirden sonra açılmış görünmesin. Alıcı başka bir rastgele
+   müşteri.
+
+   İşlevin İşlem Kaydı satırı geri alınıyor: demo kurulumu personelin
+   işlemi değil (demoSahne'deki gerekçe). Bildirimler demo müşterilerinin;
+   demoTemizle onları müşteri kimliğiyle siliyor, defter satırı `demo`
+   damgasını taşımaya devam ediyor. Uygun makine yoksa devir yapılmıyor. */
+function ikinciElKur(rastgele, personel) {
+  const talepler = load(ANAHTAR.demoTalepler, [])
+  const defter = load(ANAHTAR.makineKayitlari, [])
+  const musteriler = load(ANAHTAR.demoMusteriler, [])
+  const acik = (m) => musteriler.some((x) => x.id === m.id && !x.birlesti)
+  const adaylar = []
+  for (const m of rastgele.filter(acik)) {
+    for (const mk of m.makineler) {
+      const seri = normalizeSerial(mk.serial)
+      const isler = talepler.filter((t) => normalizeSerial(t.makine?.serial) === seri)
+      if (isler.some((t) => !KAPALI_DURUMLAR.includes(t.status || 'yeni'))) continue
+      const satir = defter.find((k) => k.demo && normalizeSerial(k.seri) === seri)
+      if (!satir) continue
+      /* Talebin AÇILIŞ günü: kapanan demo işlerin bir kısmının son
+         hareketi kurulum anına yazılıyor (gerçek işlevler o anda
+         çağrılıyor), ona bakılsaydı devir geleceğe düşerdi. */
+      const son = Math.max(satir.tarih, ...isler.map((t) => t.createdAt || 0))
+      /* Talepsiz makine ilk kayıttan birkaç gün sonra el değiştirmiş
+         görünmesin: en az iki ay. */
+      const an = Math.min(son + GUN * (isler.length ? tamsayi(2, 20) : tamsayi(60, 400)), Date.now() - GUN)
+      if (an > son) adaylar.push({ m, satir, an, isli: isler.length > 0 })
+    }
+  }
+  if (!adaylar.length) return
+  /* Kapanmış talebi olan makine önce: pencerede servis geçmişi de dolu
+     görünsün, eski sahibin işinin devirden önce bittiği okunsun. */
+  const isliler = adaylar.filter((a) => a.isli)
+  const aday = sec(isliler.length ? isliler : adaylar)
+  /* Alıcının hesabı devirden önce açılmış olmalı (AK-34 G2: hesap
+     makineden önce). */
+  const alicilar = rastgele.filter((x) => x.id !== aday.m.id && acik(x) && x.createdAt <= aday.an)
+  if (!alicilar.length) return
+  const alici = sec(alicilar)
+  const yapan = personel.find((p) => p.rol === 'admin')?.ad || personelGetir().find((p) => p.rol === 'admin')?.ad || 'Admin'
+  const islemler = load(ANAHTAR.islemKaydi, [])
+  anda(aday.an, () => makineSahibiniDegistir(aday.satir.id, alici.id, { personel: yapan }))
+  save(ANAHTAR.islemKaydi, islemler)
 }
 
 /** Demo kayıtlarını siler; gerçek kayıtlara dokunmaz. */

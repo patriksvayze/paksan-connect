@@ -24,8 +24,10 @@
       yazar — sessizce "geçti" demez.
 
    2. YAYINA ALMA (sunucu-taklidi/fiyat-listesi-yayini.mjs). Geçici bir
-      klasörde: yeni liste sürümü bir artırıyor mu, eski liste arşive
-      gidiyor mu, görseller ve PDF yazılıyor mu; ve kurala uymayan liste
+      klasörde: yeni liste sürümü bir artırıyor mu, görseller ve PDF
+      yazılıyor mu, eski liste kalkıyor mu (arşiv yok, eski görsel ve PDF
+      siliniyor) ama geçmiş kayıtların gösterdiği görsel kalıyor mu; ve
+      kurala uymayan liste
       (fiyatı okunmamış, aynı kod iki kez, başka klasöre yazmaya çalışan
       görsel adı ya da ek dosya, PDF olmayan dosya) reddediliyor mu. Reddedilen listede
       yürürlükteki liste hiç değişmiyor mu.
@@ -37,11 +39,20 @@
      fiyatListesiOku.js kırpma payı /40 → /20               düştü
      fiyat-listesi-yayini.mjs fiyat denetimi kaldırılırsa   düştü
      fiyat-listesi-yayini.mjs görsel adı kalıbı gevşerse    düştü
-     fiyat-listesi-yayini.mjs arşive kopyalama kaldırılırsa düştü
-     (22 Eylül 2026, görseller ezilmiyor ve silinmiyor:)
+     (22 Eylül 2026, görseller ezilmiyor:)
      fiyat-listesi-yayini.mjs yeni resmi eski adın üstüne yazarsa düştü
-     fiyat-listesi-yayini.mjs çıkan parçanın görselini silerse    düştü
      fiyat-listesi-yayini.mjs aynı resme her yayında yeni ad verirse düştü
+     (8 Ekim 2026, eski liste kalkıyor, kayıtların görseli kalıyor:)
+     fiyat-listesi-yayini.mjs arşive kopyalama geri konursa         düştü
+     fiyat-listesi-yayini.mjs eski görselleri silmezse (4. adım)    düştü
+     fiyat-listesi-yayini.mjs korunan listeyi yok sayarsa           düştü
+     fiyat-listesi-yayini.mjs PDF'siz yayında eski PDF'i bırakırsa  düştü
+     fiyat-listesi-yayini.mjs korunanların dosyasını yazmazsa       düştü
+   21 ve 22 Eylül'ün iki bozması 8 Ekim'de ters döndü: "arşive kopyalama
+   kaldırılırsa" ve "çıkan parçanın görselini silerse" artık istenen
+   davranış (kullanıcının kararı: yayında eski liste sistemden çıkıyor).
+   Görsel yalnız bir kayıt gösteriyorsa kalıyor; onu "korunan listeyi yok
+   sayarsa" bozması tutuyor.
 
    DÜŞMEYENLER DE YAZILI, çünkü neyi iddia etmediğimiz de bilgi:
    okuyucudaki yazı yükseltisi düzeltmesi ve resimlerin satır bütününde
@@ -153,24 +164,32 @@ async function okumaSinamasi() {
 /* --------------------------------------------------- 2. Yayına alma */
 
 async function yayinSinamasi() {
-  const { fiyatListesiniYayinla } = await ice('sunucu-taklidi/fiyat-listesi-yayini.mjs')
+  const { fiyatListesiniYayinla, KORUNAN_DOSYASI } = await ice('sunucu-taklidi/fiyat-listesi-yayini.mjs')
   const kok = mkdtempSync(join(tmpdir(), 'paksan-fiyat-listesi-'))
   const b64 = (s) => Buffer.from(s).toString('base64')
 
   try {
-    /* Yürürlükteki liste: sürüm 1, tek parça. */
+    /* Yürürlükteki liste: sürüm 1. 100'ün resmi yeni listede değişiyor,
+       999 listeden çıkıyor ve hiçbir kayıt onu göstermiyor, 555 listeden
+       çıkıyor ama geçmiş bir talep onun resmini gösteriyor. */
     const canli = join(kok, 'parca-katalogu')
-    mkdirSync(join(canli, 'gorseller'), { recursive: true })
+    const klasor = join(canli, 'gorseller')
+    mkdirSync(klasor, { recursive: true })
     writeFileSync(join(canli, 'katalog.json'), JSON.stringify({
       surum: 1, kaynak: 'eski.pdf',
-      gruplar: [{ id: 'g1', ad: 'G1', adet: 1 }],
+      gruplar: [{ id: 'g1', ad: 'G1', adet: 3 }],
       parcalar: [
         { kod: '100', ad: 'ESKİ', fiyat: 10, grup: 'g1', gorsel: '100.webp' },
         { kod: '999', ad: 'LİSTEDEN ÇIKAN', fiyat: 7, grup: 'g1', gorsel: '999.webp' },
+        { kod: '555', ad: 'KAYITTA DURAN', fiyat: 3, grup: 'g1', gorsel: '555.webp' },
       ],
     }))
-    writeFileSync(join(canli, 'gorseller', '100.webp'), 'eski-gorsel')
-    writeFileSync(join(canli, 'gorseller', '999.webp'), 'cikan-gorsel')
+    writeFileSync(join(klasor, '100.webp'), 'eski-gorsel')
+    writeFileSync(join(klasor, '999.webp'), 'cikan-gorsel')
+    writeFileSync(join(klasor, '555.webp'), 'kayitli-gorsel')
+    /* Kalıba uymayan, klasöre elle konmuş dosya: silinmemeli. */
+    writeFileSync(join(klasor, 'not.txt'), 'elle')
+    writeFileSync(join(canli, 'kaynak.pdf'), '%PDF-1.7 eski')
 
     const gecerli = () => ({
       katalog: {
@@ -183,6 +202,9 @@ async function yayinSinamasi() {
       },
       gorseller: { '100.webp': b64('yeni-gorsel') },
       kaynakPdf: b64('%PDF-1.7 deneme'),
+      /* Geçmiş kayıtların gösterdikleri; kalıba uymayan ve klasörde
+         olmayan ad yok sayılmalı. */
+      korunanGorseller: ['100.webp', '555.webp', '../kotu.webp', 'olmayan.webp'],
       personel: 'Sınama',
     })
 
@@ -218,6 +240,8 @@ async function yayinSinamasi() {
     const hala = JSON.parse(readFileSync(join(canli, 'katalog.json'), 'utf8'))
     iddia(hala.surum === 1 && hala.parcalar[0].ad === 'ESKİ', 'reddedilen listeler yürürlüktekini değiştirmedi')
     iddia(!existsSync(join(kok, 'parca-katalogu.yeni')), 'reddedilen listeden yarım klasör kalmadı')
+    iddia(existsSync(join(klasor, '999.webp')) && readFileSync(join(canli, 'kaynak.pdf'), 'latin1').endsWith('eski'),
+      'reddedilen liste eski listenin hiçbir dosyasını silmedi')
 
     /* Geçerli liste. */
     const simdi = new Date('2026-09-21T10:00:00Z')
@@ -226,38 +250,42 @@ async function yayinSinamasi() {
 
     const yeni = JSON.parse(readFileSync(join(canli, 'katalog.json'), 'utf8'))
     iddia(yeni.surum === 2 && yeni.kaynak === 'yeni.pdf' && yeni.yayinlayan === 'Sınama', 'yeni katalogda sürüm, kaynak ve yayınlayan yazılı')
-    iddia(yeni.parcalar[0].ad === 'YENİ AD' && yeni.parcalar[1].gorsel === null, 'yeni katalogdaki parçalar gelen liste')
+    iddia(yeni.parcalar.length === 2 && yeni.parcalar[0].ad === 'YENİ AD' && yeni.parcalar[1].gorsel === null, 'yeni katalog yalnız gelen liste')
     iddia(yeni.gruplar[0].adet === 2, 'grup sayısı sunucuda yeniden sayıldı')
     /* GÖRSEL EZİLMİYOR (22 Eylül 2026): resmi değişen parçanın yeni
        resmi yeni adla geliyor, eski ad eski resmi göstermeye devam
-       ediyor — geçmiş talepler o adı taşıyor. */
+       ediyor — geçmiş talep o adı taşıyor. */
     const yeniAd = yeni.parcalar[0].gorsel
     iddia(/^100\.[0-9a-f]{8}\.webp$/.test(yeniAd || ''), 'resmi değişen parça yeni bir görsel adı aldı', yeniAd)
-    iddia(yeniAd && readFileSync(join(canli, 'gorseller', yeniAd), 'utf8') === 'yeni-gorsel', 'yeni görsel yeni adla yazıldı')
-    const eski100 = join(canli, 'gorseller', '100.webp')
-    iddia(existsSync(eski100) && readFileSync(eski100, 'utf8') === 'eski-gorsel', 'eski görselin üstüne yazılmadı ve silinmedi (geçmiş talep eski resmi görüyor)')
-    iddia(readFileSync(join(canli, 'kaynak.pdf'), 'latin1').startsWith('%PDF'), 'kaynak PDF listeyle birlikte saklandı')
+    iddia(yeniAd && readFileSync(join(klasor, yeniAd), 'utf8') === 'yeni-gorsel', 'yeni görsel yeni adla yazıldı')
+    iddia(readFileSync(join(canli, 'kaynak.pdf'), 'latin1').endsWith('deneme'), 'kaynak PDF yeni listeninki')
 
-    const arsivler = existsSync(join(kok, 'parca-katalogu-arsiv')) ? readdirSync(join(kok, 'parca-katalogu-arsiv')) : []
-    iddia(arsivler.length === 1 && arsivler[0].startsWith('1-'), 'eski liste sürüm numarasıyla arşive gitti', arsivler.join(', '))
-    if (arsivler[0]) {
-      const eski = JSON.parse(readFileSync(join(kok, 'parca-katalogu-arsiv', arsivler[0], 'katalog.json'), 'utf8'))
-      iddia(eski.parcalar[0].ad === 'ESKİ', 'arşivdeki liste eskisinin aynısı')
-      iddia(existsSync(join(kok, 'parca-katalogu-arsiv', arsivler[0], 'gorseller', '999.webp')), 'listeden çıkan parçanın görseli arşivde duruyor')
-    }
-    iddia(existsSync(join(canli, 'gorseller', '999.webp')), 'listeden çıkan parçanın görseli silinmedi (geçmiş talep hâlâ gösteriyor)')
+    /* ESKİ LİSTE KALKTI (8 Ekim 2026). */
+    iddia(!existsSync(join(kok, 'parca-katalogu-arsiv')), 'eski liste arşive kopyalanmadı')
+    iddia(!existsSync(join(klasor, '999.webp')), 'hiçbir kaydın göstermediği eski görsel silindi')
+    const eski100 = join(klasor, '100.webp')
+    iddia(existsSync(eski100) && readFileSync(eski100, 'utf8') === 'eski-gorsel', 'kaydın gösterdiği eski görselin üstüne yazılmadı ve silinmedi')
+    iddia(existsSync(join(klasor, '555.webp')), 'listeden çıkan ama kaydın gösterdiği görsel kaldı')
+    iddia(existsSync(join(klasor, 'not.txt')), 'kalıba uymayan dosyaya dokunulmadı')
+    const korunan = () => JSON.parse(readFileSync(join(canli, KORUNAN_DOSYASI), 'utf8')).gorseller
+    iddia(JSON.stringify(existsSync(join(canli, KORUNAN_DOSYASI)) && korunan()) === JSON.stringify(['100.webp', '555.webp']),
+      'kalan eski görseller korunanların dosyasında, yalnız klasörde olanlar', existsSync(join(canli, KORUNAN_DOSYASI)) ? korunan().join(', ') : 'dosya yok')
     iddia(!existsSync(join(kok, 'parca-katalogu.yeni')) && !existsSync(join(canli, 'katalog.json.yeni')), 'yayından sonra yan klasör ve geçici dosya kalmadı')
 
-    /* Aynı resim yeniden gelirse yeni dosya açılmıyor, ad değişmiyor:
-       her yayında bütün görseller yeniden gönderiliyor; her seferinde
-       yeni ad verilseydi dosyalar boşuna birikir, ekranlar aynı resmi
-       yeniden indirirdi. */
-    const dosyaSayisi = readdirSync(join(canli, 'gorseller')).length
-    fiyatListesiniYayinla(kok, gecerli(), new Date('2026-09-22T10:00:00Z'))
+    /* Aynı resim yeniden geliyor; o arada kayıtlar silinmiş (korunan
+       liste boş) ve bu sefer PDF gelmiyor. Ad değişmemeli, yeni dosya
+       açılmamalı; korunması kalkan eski görseller ve eski PDF gitmeli. */
+    const ucuncuGovde = { ...gecerli(), korunanGorseller: [] }
+    delete ucuncuGovde.kaynakPdf
+    fiyatListesiniYayinla(kok, ucuncuGovde, new Date('2026-09-22T10:00:00Z'))
     const ucuncu = JSON.parse(readFileSync(join(canli, 'katalog.json'), 'utf8'))
     iddia(ucuncu.surum === 3 && ucuncu.parcalar[0].gorsel === yeniAd, 'aynı resim yeniden gelince görsel adı değişmedi', ucuncu.parcalar[0].gorsel)
-    iddia(readdirSync(join(canli, 'gorseller')).length === dosyaSayisi, 'aynı resim yeniden gelince yeni dosya açılmadı')
-    console.log('  yayına alma: 8 bozuk liste reddedildi, geçerli liste arşivle birlikte yayına girdi, görseller ezilmedi ve silinmedi')
+    const kalan = readdirSync(klasor).sort()
+    iddia(JSON.stringify(kalan) === JSON.stringify([yeniAd, 'not.txt'].sort()),
+      'klasörde yalnız yeni listenin görseli kaldı (yeni dosya açılmadı, korunması kalkanlar silindi)', kalan.join(', '))
+    iddia(!existsSync(join(canli, 'kaynak.pdf')), 'PDF\'siz yayında eski listenin PDF\'i kalmadı')
+    iddia(existsSync(join(canli, KORUNAN_DOSYASI)) && korunan().length === 0, 'korunanların dosyası boşaldı')
+    console.log('  yayına alma: 8 bozuk liste reddedildi, geçerli liste eskisinin yerini aldı, eski görseller silindi, kayıtların görseli kaldı')
   } finally {
     rmSync(kok, { recursive: true, force: true })
   }

@@ -762,27 +762,15 @@ a {
 
    Ekran baştan kuruldu (bkz. Ozet.jsx başı). Üstteki on sayı kutusunun
    satırı (.sayilar / .sayi) kaldırıldı; yerine "Bekleyen İşler" listesi
-   ve "Açık talepler kimde?" kartı geldi. Ölçü kartları aşağıdaki
-   .olculer / .deger bloğunda. */
-
-/* Liste ile "kimde" kartı yan yana: liste geniş, kart dar. Dar ekranda
-   alt alta. */
+   geldi. Ölçü kartları aşağıdaki .olculer / .deger bloğunda. Yanındaki
+   "Açık talepler kimde?" kartı 8 Ekim 2026'da kalktı (kullanıcının
+   isteği); liste artık tek başına. */
 .ozet-izgara {
-  display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(300px, 2fr);
-  gap: 14px;
   margin-bottom: 18px;
-  align-items: start;
 }
 
 .ozet-izgara > .kart {
   margin-bottom: 0;
-}
-
-@media (max-width: 1100px) {
-  .ozet-izgara {
-    grid-template-columns: 1fr;
-  }
 }
 
 /* Bekleyen işler: sayı + ad + ok. Satırın tamamı düğme; kenarlık yok,
@@ -879,100 +867,6 @@ a {
 .is-liste__bos span {
   font-size: 13px;
   color: var(--murekkep-2);
-}
-
-/* Açık talepler kimde: tek çubuk, altında üç satır. */
-/* İki bağlantının tıklama alanı 44 piksel yüksek: yazı boyunda
-   kaldığında 19 pikseldi (QA ölçümü). Dolgu görünmüyor, alan büyüyor. */
-.kimde__toplam {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0 0 0 8px;
-  background: none;
-  border: 0;
-  font-size: 12.5px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  /* --mavi değil --mavi-rz: karanlık temada yazı olarak okunur kalan ton
-     (bkz. .yonetim-ozet__baslik). */
-  color: var(--mavi-rz);
-  cursor: pointer;
-}
-
-.kimde__toplam:hover {
-  text-decoration: underline;
-}
-
-.kimde__cubuk {
-  margin-bottom: 8px;
-}
-
-.kimde__satir {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--cizgi);
-}
-
-.kimde__nokta {
-  flex: none;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
-
-.kimde__ad {
-  flex: 1;
-  min-width: 0;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.kimde__alt {
-  display: block;
-  margin-top: 2px;
-  font-size: 12.5px;
-  font-weight: 500;
-  color: var(--murekkep-2);
-}
-
-.kimde__alt--dikkat {
-  color: var(--kirmizi);
-  font-weight: 700;
-}
-
-.kimde__v {
-  font-size: 18px;
-  font-weight: 900;
-  font-variant-numeric: tabular-nums;
-}
-
-.kimde__bag {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 44px;
-  margin-top: 2px;
-  padding: 0 8px 0 0;
-  background: none;
-  border: 0;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--mavi-rz);
-  cursor: pointer;
-}
-
-.kimde__bag::after {
-  content: '›';
-  font-size: 16px;
-  line-height: 1;
-}
-
-.kimde__bag:hover {
-  text-decoration: underline;
 }
 
 /* ----------------------------------------------- Dashboard yönetim özeti
@@ -3121,6 +3015,15 @@ button.deger:hover {
 .cevap__a {
   font-size: 14px;
   line-height: 1.55;
+}
+
+/* İç not (8 Ekim 2026): müşteriye gitmedi. Cevaplardan ayrılsın diye
+   soluk zeminli ve italik değil, yalnız zemin ve etiket farklı. */
+.cevap__a--ic {
+  background: var(--yuzey-2);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-left: -6px;
 }
 
 /* ------------------------------------------------------- Sütun grafiği

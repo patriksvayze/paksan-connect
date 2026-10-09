@@ -15,6 +15,8 @@
                     parcalar: [{kod, ad, fiyat, grup, gorsel}] },
        gorseller: { "<parça kodu>.webp": "<base64>", ... },
        kaynakPdf: "<base64>",        // okunan PDF'in kendisi
+       korunanGorseller: ["<dosya adı>", ...],
+                                     // geçmiş işlemlerin gösterdiği görseller
        personel:  "<ad soyad>"
      }
 
@@ -28,37 +30,48 @@
    var, aynı kod iki kez yok, görseli yazılı her parçanın dosyası
    gelmiş.
 
-   ESKİ LİSTE SİLİNMİYOR, ARŞİVE GİDİYOR. Fiyat tek tek değişmiyor,
-   liste bütün olarak yürürlüğe giriyor; eski liste hangi siparişin
-   hangi fiyattan verildiğinin kanıtı. Yürürlükteki klasör olduğu gibi
-   `parca-katalogu-arsiv/<sürüm>-<zaman>/` altına taşınıyor, yeni liste
-   yerine geçiyor. Kaynak PDF de listeyle birlikte saklanıyor.
+   YENİ LİSTE ESKİSİNİN YERİNİ ALIYOR, ESKİSİ KALKIYOR (8 Ekim 2026,
+   kullanıcının kararı: "her liste yüklemesinde o liste artık fiyat
+   listesinin kendisi olmalı, önceki fiyat listesi çıkartılmalı … çünkü
+   yeni liste zaten güncel tüm yedek parça listesi"). Yayından sonra
+   klasörde yalnız yeni liste var: katalog.json, görselleri ve PDF'i.
+   Önceden (21 Eylül – 8 Ekim) eski liste olduğu gibi
+   `parca-katalogu-arsiv/` altına kopyalanıyordu, "hangi sipariş hangi
+   fiyattan verildi" kanıtı diye. O kanıt zaten işlemin kendi içinde:
+   talep ve sipariş o günkü kodu, adı, fiyatı ve görselin dosya adını
+   taşıyor (src/lib/parcaKatalogu.js → fiyatGoruntusu). Arşive hiçbir
+   uygulama bakmıyordu; her yayın 538 görseli bir kez daha kopyalıyordu.
+
+   GEÇMİŞ İŞLEMİN GÖRSELİ KALIYOR (22 Eylül 2026, kullanıcının kararı:
+   "katalog değişirse geçmiş işlemlerdeki yedek parça kodları, isimleri
+   ve görselleri değişmemeli"). Eski listenin görsellerinden, kayıtlı
+   bir talebin, servis kaydının ya da siparişin gösterdikleri silinmiyor
+   (`korunanGorseller`); geri kalanı siliniyor. Hangileri kalıyor,
+   `korunan-gorseller.json` dosyasında yazılı (`npm run dogrula` 9.
+   kontrolü sahipsiz görseli oradan ayırıyor). Liste bugün tarayıcıdan
+   geliyor, çünkü kayıtlar personelin tarayıcısının deposunda. SUNUCU
+   YAZILDIĞINDA bu listeyi tarayıcıdan almaz, veritabanındaki parça
+   satırlarından kendisi çıkarır: eksik bir liste geçmiş talebin
+   resmini sildirebilir.
+
+   GÖRSEL DOSYASI EZİLMİYOR. Gelen resim yürürlükteki dosyayla birebir
+   aynıysa o ad kullanılıyor; farklıysa ve ad doluysa resim içeriğinden
+   türeyen yeni bir adla (`<kod>.<8 hane>.webp`) yazılıyor ve katalog o
+   adı gösteriyor. Altı ay önceki talep, o adı taşıdığı için yeni resmi
+   göstermiyor.
 
    YÜRÜRLÜĞE GİRİŞ TEK HAMLEDE. Sıra şu:
      1. yeni liste yan klasöre (parca-katalogu.yeni) bütünüyle yazılır
-     2. yürürlükteki liste arşive KOPYALANIR
-     3. yeni görseller ve PDF yerine konur
-     4. katalog.json geçici dosyadan tek bir yeniden adlandırmayla değişir
+     2. yeni görseller ve PDF yerine konur
+     3. katalog.json geçici dosyadan tek bir yeniden adlandırmayla değişir
+     4. eski listenin kalanı silinir: yeni listenin ve hiçbir kaydın
+        göstermediği görseller; yeni listeyle PDF gelmediyse eski PDF
    Uygulamalar listeyi katalog.json'dan okuyor; o dosya değişmeden yeni
    liste yürürlüğe girmiş sayılmaz. 1. ya da 2. adımda bir şey ters
-   giderse yürürlükteki listeye hiç dokunulmamış olur.
-
-   GÖRSEL DOSYASI EZİLMİYOR VE SİLİNMİYOR (22 Eylül 2026, kullanıcının
-   kararı: "katalog değişirse geçmiş işlemlerdeki yedek parça kodları,
-   isimleri ve görselleri değişmemeli"). Talep ve servis kaydı, parçanın
-   o günkü görselinin DOSYA ADINI kendi içinde taşıyor (bkz.
-   src/lib/parcaKatalogu.js → fiyatGoruntusu). Önceden:
-     - resmi değişen parçanın yeni resmi aynı adın (`<kod>.webp`)
-       üstüne yazılıyordu: altı ay önceki talep yeni resmi gösterirdi;
-     - yeni listede olmayan parçanın görseli siliniyordu (5. adım):
-       eski talep "Görsel yok" derdi. Arşivdeki kopyaya uygulamalardan
-       ulaşılamıyor.
-   Artık gelen resim yürürlükteki dosyayla birebir aynıysa o ad
-   kullanılıyor; farklıysa ve ad doluysa resim içeriğinden türeyen yeni
-   bir adla (`<kod>.<8 hane>.webp`) yazılıyor ve katalog o adı gösteriyor.
-   Hiçbir görsel silinmiyor. Bedeli disk: bugünkü listenin bütün
-   görselleri 2 MB; her yeni listede yalnız resmi değişen parçalar
-   birikiyor.
+   giderse yürürlükteki listeye hiç dokunulmamış olur. Silme yeni liste
+   yürürlüğe GİRDİKTEN SONRA: silinemeyen dosya (Windows'ta kilitli
+   kalan) yayını düşürmüyor, bir sonraki yayında yine sahipsiz olduğu
+   için siliniyor.
 
    NEDEN KLASÖR TAŞINMIYOR. İlk sürüm yürürlükteki klasörü arşive
    taşıyordu. Windows'ta geliştirme sunucusu proje klasörlerini izlediği
@@ -66,14 +79,14 @@
    dosya kopyalamak ve tek dosyayı yeniden adlandırmak her iki
    işletim sisteminde de çalışıyor.
 
-   VERİTABANINDA KARŞILIĞI: katalog.FiyatListesi (taslak → yürürlükte →
-   arşiv) ve katalog.FiyatListesiSatiri (yalnız eklenir). Sunucu
-   yazıldığında bu iş o tablolara da yazacak (bkz. veritabani/tasarim.md,
-   işletim tablosu 16. satır).
+   VERİTABANINDA KARŞILIĞI: katalog.FiyatListesi ve
+   katalog.FiyatListesiSatiri. Sunucu yazıldığında bu iş o tablolara da
+   yazacak (bkz. veritabani/tasarim.md, işletim tablosu 16. satır;
+   eski listenin kalkması VT-TASARIM-EKLERI.md §17).
    ========================================================================== */
 
 import {
-  copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync,
+  copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync,
 } from 'node:fs'
 import { join } from 'node:path'
 import { createHash } from 'node:crypto'
@@ -81,6 +94,9 @@ import { createHash } from 'node:crypto'
 const KOD = /^[0-9A-Za-z][0-9A-Za-z.]*$/
 const GRUP = /^[a-z0-9][a-z0-9-]*$/
 const GORSEL = /^([0-9A-Za-z][0-9A-Za-z.]*)\.(webp|png)$/
+
+/** Eski listeden kalan görsellerin neden durduğunu yazan dosya. */
+export const KORUNAN_DOSYASI = 'korunan-gorseller.json'
 
 /* Sınır: bugünkü liste 7,8 MB PDF ve 2 MB görsel. */
 export const EN_BUYUK_ISTEK = 80 * 1024 * 1024
@@ -145,6 +161,23 @@ function gorselAdiSec(klasor, gelenAd, veri, oncekiAd) {
   return `${kod}.${iz}.${uzanti}`
 }
 
+/* Korunacak adlar. Liste yalnız silmeyi engelliyor, hiçbir yere
+   yazdırmıyor; bu yüzden kalıba uymayan ad reddedilmiyor, sayılmıyor. */
+function korunanlar(liste) {
+  return new Set((Array.isArray(liste) ? liste : []).filter((ad) => typeof ad === 'string' && GORSEL.test(ad)))
+}
+
+/* Silinemeyen dosya yayını düşürmüyor (bkz. başlık, 4. adım). */
+function sessizSil(yol) {
+  try {
+    rmSync(yol, { force: true })
+    return true
+  } catch (e) {
+    console.warn('[fiyat listesi] eski dosya silinemedi, sonraki yayında yeniden denenecek:', yol, e?.code)
+    return false
+  }
+}
+
 /**
  * Listeyi yayına alır.
  *
@@ -158,7 +191,6 @@ export function fiyatListesiniYayinla(kok, istek, simdi = new Date()) {
 
   const canli = join(kok, 'parca-katalogu')
   const yeni = join(kok, 'parca-katalogu.yeni')
-  const arsiv = join(kok, 'parca-katalogu-arsiv')
 
   let eskiSurum = 0
   let eskiGorsel = new Map()
@@ -202,18 +234,7 @@ export function fiyatListesiniYayinla(kok, istek, simdi = new Date()) {
     }
     writeFileSync(join(yeni, 'katalog.json'), JSON.stringify(katalog, null, 1) + '\n', 'utf8')
 
-    /* 2. Yürürlükteki liste arşive kopyalanıyor. */
-    if (existsSync(join(canli, 'katalog.json'))) {
-      const hedef = join(arsiv, `${eskiSurum}-${yayinTarihi.replace(/[:.]/g, '-')}`)
-      try {
-        cpSync(canli, hedef, { recursive: true })
-      } catch (e) {
-        rmSync(hedef, { recursive: true, force: true })
-        throw e
-      }
-    }
-
-    /* 3. Görseller ve PDF yerine. Aynı adla var olan dosya zaten aynı
+    /* 2. Görseller ve PDF yerine. Aynı adla var olan dosya zaten aynı
        içerik (gorselAdiSec); yeniden kopyalanmıyor. */
     mkdirSync(join(canli, 'gorseller'), { recursive: true })
     for (const ad of readdirSync(join(yeni, 'gorseller'))) {
@@ -225,13 +246,31 @@ export function fiyatListesiniYayinla(kok, istek, simdi = new Date()) {
       copyFileSync(join(yeni, 'kaynak.pdf'), join(canli, 'kaynak.pdf'))
     }
 
-    /* 4. Liste tek hamlede yürürlüğe giriyor. */
+    /* 3. Liste tek hamlede yürürlüğe giriyor. */
     const gecici = join(canli, 'katalog.json.yeni')
     copyFileSync(join(yeni, 'katalog.json'), gecici)
     yerineKoy(gecici, join(canli, 'katalog.json'))
 
-    /* 5. adım (eski listeye özgü görselleri silmek) KALDIRILDI:
-       geçmiş talepler o dosyalara bakıyor (bkz. başlık). */
+    /* 4. Eski listenin kalanı kalkıyor. Kalıba uymayan dosyaya
+       (klasöre elle konmuş bir şey) dokunulmuyor. */
+    const yeniListede = new Set(katalog.parcalar.map((p) => p.gorsel).filter(Boolean))
+    const korunan = korunanlar(istek.korunanGorseller)
+    const kalanlar = []
+    for (const ad of readdirSync(join(canli, 'gorseller'))) {
+      if (!GORSEL.test(ad) || yeniListede.has(ad)) continue
+      if (korunan.has(ad)) kalanlar.push(ad)
+      else sessizSil(join(canli, 'gorseller', ad))
+    }
+    if (!istek.kaynakPdf) sessizSil(join(canli, 'kaynak.pdf'))
+    try {
+      writeFileSync(
+        join(canli, KORUNAN_DOSYASI),
+        JSON.stringify({ guncelleme: yayinTarihi, gorseller: kalanlar.sort() }, null, 1) + '\n',
+        'utf8',
+      )
+    } catch (e) {
+      console.warn('[fiyat listesi] korunan görsellerin listesi yazılamadı:', e?.code)
+    }
   } finally {
     rmSync(yeni, { recursive: true, force: true })
   }

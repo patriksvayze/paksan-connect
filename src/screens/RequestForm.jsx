@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useApp } from '../context/AppState'
 import { TopBar, TabBar, Sheet } from '../components/Chrome'
 import { getProduct, PRODUCTS, supportGroup, urunDilde } from '../data/katalog/products.js'
-import { PARCA_KODU } from '../data/icerik/destekVerisi'
+import { destekParcasi } from '../lib/destekParcasi'
 import { GonderButonu } from '../components/GonderButonu'
 import { alanaGit } from '../lib/formOdak'
 import {
@@ -608,16 +608,16 @@ function TalepFormu() {
     if (katalogDurum !== 'hazir' && katalogDurum !== 'hata') return
     parcaBaslatildi.current = true
 
+    /* Çeviri Destek ekranıyla ortak (lib/destekParcasi.js, 8 Ekim 2026):
+       Destek'te görseliyle görünen parça burada seçili geliyor. */
     const urun = secilen?.productId || params.get('model')
-    const tablo = urun && katalogDurum === 'hazir' ? PARCA_KODU[supportGroup(getProduct(urun))] : null
     const eslesen = new Map()
     const eslesmeyen = []
     for (const ad of destekParcalari) {
-      const karsilik = tablo?.[ad]
-      const parca = karsilik?.urunler.includes(urun) ? parcaBul(katalog, karsilik.kod) : null
-      if (parca) {
-        eslesen.set(parca.kod, 1)
-        destekKodlari.current.set(parca.kod, { ad, urunler: karsilik.urunler })
+      const bulunan = katalogDurum === 'hazir' ? destekParcasi(ad, urun, katalog) : null
+      if (bulunan) {
+        eslesen.set(bulunan.parca.kod, 1)
+        destekKodlari.current.set(bulunan.parca.kod, { ad, urunler: bulunan.urunler })
       } else eslesmeyen.push(ad)
     }
 

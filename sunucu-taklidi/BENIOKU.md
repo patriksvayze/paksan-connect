@@ -58,14 +58,21 @@ personel "Yayına Al" deyince liste buraya gönderiliyor:
 neler reddedilir) dosyanın başında. Sunucu yazıldığında aynı sözleşmeyi
 uygulayacak.
 
+**Yeni liste eskisinin yerini alıyor, eskisi kalkıyor** (8 Ekim 2026,
+kullanıcının kararı): yeni liste her zaman bütün parçaların güncel
+listesi. Eski liste arşivlenmiyor; görselleri ve PDF'i siliniyor. Yalnız
+kayıtlı bir talebin, servis kaydının ya da siparişin gösterdiği eski
+görseller kalıyor (geçmiş işlemin resmi değişmesin diye) ve hangileri
+olduğu `korunan-gorseller.json`'da yazıyor.
+
 Yayından sonra bu klasörde:
 
 | Yer | Ne |
 |---|---|
 | `parca-katalogu/katalog.json` | Yürürlükteki liste; `surum` her yeni listede bir artıyor, `yayinTarihi` ve `yayinlayan` yazılı |
-| `parca-katalogu/gorseller/` | Yürürlükteki listenin görselleri |
+| `parca-katalogu/gorseller/` | Yürürlükteki listenin görselleri, bir de geçmiş kayıtların gösterdiği eski görseller |
+| `parca-katalogu/korunan-gorseller.json` | Eski listeden hangi görsellerin neden kaldığı (kayıtlar gösteriyor) |
 | `parca-katalogu/kaynak.pdf` | Listenin okunduğu PDF (git'e girmez) |
-| `parca-katalogu-arsiv/<sürüm>-<zaman>/` | Önceki listeler, olduğu gibi (git'e girmez). Hangi siparişin hangi fiyattan verildiğinin kanıtı |
 
 Liste elle düzenlenmiyor: 538 satırlık bir liste elle yazılırsa ilk
 güncellemede eskir. Önceden PDF komut satırından bir Python betiğiyle

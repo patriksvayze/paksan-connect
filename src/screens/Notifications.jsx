@@ -10,7 +10,7 @@ import {
 } from '../lib/bildirimler'
 import {
   IconBell, IconCheckCircle, IconAlert, IconRight, IconCalendar,
-  IconMachine, IconTag, IconUndo, IconPhone,
+  IconMachine, IconTag, IconUndo, IconPhone, IconMail,
 } from '../components/Icons'
 import { altBilgi } from '../data/duyuruTurleri'
 import { talepSimgesi, talepSimgeAdi } from '../components/TalepSimgesi'
@@ -36,6 +36,7 @@ const IKONLAR = {
   [BILDIRIM_TURU.UYARI]: IconAlert,
   [BILDIRIM_TURU.MAKINE]: IconMachine,
   [BILDIRIM_TURU.NUMARA]: IconPhone,
+  [BILDIRIM_TURU.GORUS]: IconMail,
 }
 
 /* Duyuru alt türlerinin ikonları — tablodaki `ikon` adı burada
@@ -58,6 +59,7 @@ const RENKLER = {
   [BILDIRIM_TURU.UYARI]: { zemin: 'var(--pk-orange-soft)', renk: 'var(--pk-orange-ink)' },
   [BILDIRIM_TURU.MAKINE]: { zemin: 'var(--pk-blue-soft)', renk: 'var(--pk-blue-yazi)' },
   [BILDIRIM_TURU.NUMARA]: { zemin: 'var(--pk-green-soft)', renk: 'var(--pk-green-yazi)' },
+  [BILDIRIM_TURU.GORUS]: { zemin: 'var(--pk-blue-soft)', renk: 'var(--pk-blue-yazi)' },
 }
 
 /* PAKSAN duyurusu mu, uygulamanın kendi bildirimi mi?

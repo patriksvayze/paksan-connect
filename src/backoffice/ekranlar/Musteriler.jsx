@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { kampanyaSonDegisiklik } from '../../lib/rizaKaydi'
 import { izinli, musteriGuncelle, musterileriGetir, rolunTalepleri, talepleriGetir, TALEP_ADI } from '../veri'
 import { useVeri } from '../kanca'
@@ -24,7 +24,7 @@ import { talepSahibiBulucu } from '../../lib/musteriEslesmesi'
    değişikliği müşterinin kendi talebi üzerinden, seri numarasıyla
    doğrulanarak yapılıyor (Numara Talepleri ekranı). */
 
-export function Musteriler({ personel, rol, bildir, tazele, surum, git }) {
+export function Musteriler({ personel, rol, bildir, tazele, surum, git, sorgu }) {
   const [ara, setAra] = useState('')
   const [aralik, setAralik] = useState(BOS_ARALIK)
   const [makineli, setMakineli] = useState('hepsi')
@@ -32,6 +32,12 @@ export function Musteriler({ personel, rol, bildir, tazele, surum, git }) {
   const [ilce, setIlce] = useState('hepsi')
   const [secili, setSecili] = useState(null)
   const [duzenlenen, setDuzenlenen] = useState(null)
+
+  /* Başka ekrandan belirli bir müşterinin kartı açılabiliyor (8 Ekim 2026:
+     Geri Bildirimler → Müşteri Kartını Aç). */
+  useEffect(() => {
+    if (sorgu?.musteriId) setSecili(sorgu.musteriId)
+  }, [sorgu])
 
   const { veri: musteriler, yukleniyor } = useVeri(() => musterileriGetir(), [surum], [])
   /* Rolün görmediği talep türü burada da görünmüyor (22 Eylül 2026,

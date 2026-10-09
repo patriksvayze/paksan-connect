@@ -547,8 +547,9 @@ const SINAMALAR = [
   ['veritabani-eslesme-denetimi.mjs', 'uygulama–veritabanı eşlemesi'],
   /* Yeni fiyat listesi backoffice'ten PDF olarak yükleniyor (21 Eylül
      2026). Okuyucu aynı PDF'ten bugünkü katalogla birebir aynı sonucu
-     vermeli; sunucunun yayına alma adımı bozuk listeyi reddetmeli ve
-     eski listeyi arşive taşımalı. PDF bulunamazsa okuma kısmı
+     vermeli; sunucunun yayına alma adımı bozuk listeyi reddetmeli,
+     eski listeyi kaldırmalı ve geçmiş kayıtların görsellerini
+     korumalı. PDF bulunamazsa okuma kısmı
      "atlandı" der, yayına alma kısmı yine koşar. */
   ['fiyat-listesi-okuma-sinamasi.mjs', 'fiyat listesi okuma ve yayına alma'],
   /* Kullanım kılavuzları sunucudaki klasörde PDF (29 Eylül 2026).
@@ -652,26 +653,22 @@ if (izinsizKapi.length) {
 
 const KATALOG_YOLU = join(KOK, 'sunucu-taklidi', 'parca-katalogu', 'katalog.json')
 const GORSEL_KLASORU = join(KOK, 'sunucu-taklidi', 'parca-katalogu', 'gorseller')
-/* Arşivdeki eski listelerin gösterdiği görseller de sahipli: sunucu görsel
-   silmiyor, geçmiş talepler o adları taşıyor (sunucu-taklidi/
-   fiyat-listesi-yayini.mjs başı). 7 Ekim 2026'ya kadar bu kontrol yalnız
-   yürürlükteki listeye bakıyordu; başarılı her yayından sonra eski
-   listenin görsellerini "parçası olmayan" sayıp düşüyordu. Bozma: hiçbir
-   listenin göstermediği bir .webp klasöre konunca kontrol yine düştü. */
-const ARSIV_KLASORU = join(KOK, 'sunucu-taklidi', 'parca-katalogu-arsiv')
-function arsivdekiGorseller() {
-  const adlar = new Set()
-  if (!existsSync(ARSIV_KLASORU)) return adlar
-  for (const d of readdirSync(ARSIV_KLASORU)) {
-    const dosya = join(ARSIV_KLASORU, d, 'katalog.json')
-    if (!existsSync(dosya)) continue
-    try {
-      for (const p of JSON.parse(readFileSync(dosya, 'utf8')).parcalar || []) if (p && p.gorsel) adlar.add(p.gorsel)
-    } catch {
-      /* Okunamayan arşiv listesi sahiplik vermiyor. */
-    }
+/* Eski listeden kalan görsellerin sahibi geçmiş kayıtlar. Yeni liste
+   yayına girince sunucu eski listenin görsellerini siliyor, yalnız kayıtlı
+   bir talebin, servis kaydının ya da siparişin gösterdiklerini tutuyor ve
+   onları korunan-gorseller.json'a yazıyor (sunucu-taklidi/
+   fiyat-listesi-yayini.mjs başı, 8 Ekim 2026). 7-8 Ekim arasında sahipliği
+   arşivdeki eski listeler veriyordu; arşiv kalktı. Bozma: ne listenin ne
+   korunan dosyanın gösterdiği bir .webp klasöre konunca kontrol düştü. */
+const KORUNAN_YOLU = join(KOK, 'sunucu-taklidi', 'parca-katalogu', 'korunan-gorseller.json')
+function korunanGorseller() {
+  if (!existsSync(KORUNAN_YOLU)) return new Set()
+  try {
+    return new Set(JSON.parse(readFileSync(KORUNAN_YOLU, 'utf8')).gorseller || [])
+  } catch {
+    /* Okunamayan liste sahiplik vermiyor. */
+    return new Set()
   }
-  return adlar
 }
 
 if (!existsSync(KATALOG_YOLU)) {
@@ -716,9 +713,9 @@ if (!existsSync(KATALOG_YOLU)) {
   } else {
     const diskte = new Set(readdirSync(GORSEL_KLASORU))
     const gorselsiz = parcalar.filter((p) => p && p.gorsel && !diskte.has(p.gorsel))
-    const arsivde = arsivdekiGorseller()
+    const korunan = korunanGorseller()
     const yetimGorsel = [...diskte].filter(
-      (d) => d.endsWith('.webp') && !parcalar.some((p) => p && p.gorsel === d) && !arsivde.has(d),
+      (d) => d.endsWith('.webp') && !parcalar.some((p) => p && p.gorsel === d) && !korunan.has(d),
     )
     if (gorselsiz.length) {
       bildir(`görseli eksik ${gorselsiz.length} parça`)
@@ -728,7 +725,7 @@ if (!existsSync(KATALOG_YOLU)) {
       const eski = [...diskte].filter((d) => d.endsWith('.webp')).length - parcalar.filter((p) => p && p.gorsel).length
       tamam(
         `görseller birebir — ${parcalar.length} parça` +
-          (eski > 0 ? `, ayrıca eski listelerin ${eski} görseli (geçmiş talepler için duruyor)` : ''),
+          (eski > 0 ? `, ayrıca geçmiş kayıtların gösterdiği ${eski} eski görsel` : ''),
       )
     }
   }

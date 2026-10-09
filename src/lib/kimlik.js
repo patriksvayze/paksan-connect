@@ -22,6 +22,14 @@
  *   · 10. hane: (tek sıradakilerin toplamı × 7 − çift sıradakilerin
  *     toplamı) mod 10
  *   · 11. hane: ilk 10 hanenin toplamı mod 10
+ *
+ * EKSİ KALAN (8 Ekim 2026, kullanıcının bildirdiği: "kendi TC bilgim
+ * dışında bir şeyi kabul etmiyor"). Tek sıradakilerin yedi katı çift
+ * sıradakilerin toplamından küçükse fark eksi çıkıyor; JavaScript'in `%`
+ * işleci eksi sayıda eksi kalan veriyor (−4 % 10 = −4) ve 10. hane hiç
+ * tutmuyordu: 16053909092 gibi gerçek numaralar reddediliyordu (rastgele
+ * geçerli numaraların on binde biri). Kalan artık 0-9 arasına çekiliyor.
+ * Sınaması AK-32 (13).
  */
 export function tcGecerliMi(deger) {
   const s = String(deger || '').replace(/\D/g, '')
@@ -32,7 +40,7 @@ export function tcGecerliMi(deger) {
   const tek = d[0] + d[2] + d[4] + d[6] + d[8]
   const cift = d[1] + d[3] + d[5] + d[7]
 
-  if ((tek * 7 - cift) % 10 !== d[9]) return false
+  if ((((tek * 7 - cift) % 10) + 10) % 10 !== d[9]) return false
 
   const ilkOn = d.slice(0, 10).reduce((a, b) => a + b, 0)
   return ilkOn % 10 === d[10]

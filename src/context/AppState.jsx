@@ -6,6 +6,7 @@ import { uygulamaKaydi } from '../lib/kayit'
 import { sunucuyaGonder } from '../lib/sunucu'
 import { ihracatPostasi } from '../lib/ihracat'
 import { talepKaydiOlustur } from '../lib/talepOlustur'
+import { musteriIptaliniKaydet } from '../lib/musteriIptal'
 import { gorunenTalepler, kaldirilanTalepler } from '../lib/musterininTalepleri'
 import { normalizeSerial } from '../lib/serial'
 import { servisGruplari } from '../lib/servisAtama'
@@ -136,6 +137,13 @@ export function AppProvider({ children }) {
          sonraki profil düzenlemesi eski numarayı geri yazardı. */
       const hesap = load('hesap', null)
       setUser((u) => (u && hesap?.id === u.id && JSON.stringify(hesap) !== JSON.stringify(u) ? hesap : u))
+      /* Makine listesi de: PAKSAN makineyi yeni sahibine geçirince ya da
+         iki hesabı birleştirince liste depoda değişiyor (backoffice/veri.js
+         → makineSahibiniDegistir, hesaplariBirlestir). Bellekteki eski
+         liste kalsaydı bir sonraki makine değişikliği onu depoya geri
+         yazar, devredilen makine eski sahibin listesine dönerdi. */
+      const makineler = load('machines', [])
+      setMachines((m) => (JSON.stringify(makineler) !== JSON.stringify(m) ? makineler : m))
     }
     window.addEventListener('focus', yenile)
     document.addEventListener('visibilitychange', yenile)
@@ -364,6 +372,19 @@ export function AppProvider({ children }) {
     requestsGuncelle((list) => list.map((r) => (r.id === id ? { ...r, ...patch } : r)))
   }, [requestsGuncelle])
 
+  /* Müşterinin talebini iptal etmesi ya da iptal istemesi (8 Ekim 2026).
+     Kural ve yazım lib/musteriIptal.js'te; karar depodaki kayıttan. Döner:
+     { talep } ya da { hata }. */
+  const talebiIptalEt = useCallback((id, yol, secim) => {
+    const sonuc = musteriIptaliniKaydet(id, yol, secim)
+    if (!sonuc.hata) {
+      const yeni = load('requests', [])
+      requestsRef.current = yeni
+      setRequests(yeni)
+    }
+    return sonuc
+  }, [])
+
   /* Talebi müşterinin listesinden kaldırır.
 
      PAYLAŞILAN KAYIT SİLİNMİYOR. Eskiden satır 'requests' deposundan
@@ -426,6 +447,7 @@ export function AppProvider({ children }) {
       kaldirilanTalepler: kaldirilan,
       addRequest,
       updateRequest,
+      talebiIptalEt,
       removeRequest,
       talebiGeriAl,
       getChat,

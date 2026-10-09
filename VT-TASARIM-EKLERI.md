@@ -164,9 +164,10 @@ ve ekranlar resmi bugünkü katalogtan değil oradan okuyor
 (`src/components/ParcaResmi.jsx`). Sınaması AK-19.
 
 - **Görsel dosyası değişmez olmalı.** Sunucu görseli hiçbir zaman
-  ezmiyor ve silmiyor: resmi değişen parçanın yeni resmi yeni adla
+  ezmiyor: resmi değişen parçanın yeni resmi yeni adla
   (`<kod>.<içerikten 8 hane>.webp`) yazılıyor, eski ad eski resmi
-  göstermeye devam ediyor (`sunucu-taklidi/fiyat-listesi-yayini.mjs`,
+  göstermeye devam ediyor (8 Ekim 2026'dan beri eski listenin
+  görselleri siliniyor, kayıtların gösterdikleri kalıyor: §17) (`sunucu-taklidi/fiyat-listesi-yayini.mjs`,
   sınaması `tools/fiyat-listesi-okuma-sinamasi.mjs`). Gerçek sunucu da
   bu kuralı uygulamalı; dosyalar nesne deposuna taşınırsa anahtarlar
   yine değişmez olmalı.
@@ -601,3 +602,101 @@ Yeni kod gerekmiyor. Sunucuda rolün talep listesi aynı kuralı
 uygulamalı: garanti kaydı taşıyan servis talebi, `MasaKodu` eski
 kayıtta `'parca'` olsa da, yedek parça rolüne listelenmez
 (`backoffice/veri.js → rolunTalepleri`, `garantiIsiMi`).
+
+## 16. Müşterinin iptal isteği, talepte iş izinleri, görüşün konusu ve durumu (8 Ekim 2026)
+
+**Müşterinin kendi iptali.** Kullanıcının isteği: işleme alınmamış talep
+Connect'ten hemen iptal edilsin, işleme alınmışta neden belirtilerek iptal
+istensin; kararı PAKSAN veriyor. Hemen iptal mevcut `talep.Iptal` satırına
+yazılabiliyor: `YapanTuruKodu = 'musteri'`, `YapanHesapKimlik` talebin
+hesabı, `KaynakUygulamaKodu = 'connect'` (CK_talep_Iptal_Yapan buna izin
+veriyor); durum geçmişi satırı da müşterinin (`talep.DurumGecmisi.YapanTuruKodu
+= 'musteri'`). Neden kodları: `vazgectim → musteriVazgecti`, `yanlis →
+yanlisAcilmis`, `baska → baskaNeden` (AciklamaZorunlu); **`gerekKalmadi`
+("Artık ihtiyacım kalmadı") için kod.IptalNedeni'ne yeni satır gerekiyor**
+(öneri `musteriIhtiyaciKalmadi`).
+
+**İptal isteği** veritabanında yok. Önerilen tablo `talep.IptalIstegi`:
+TalepKimlik FK, IptalNedeniKodu FK, Aciklama, OlusmaZamani, YapanHesapKimlik,
+DurumKodu (`bekliyor` / `onaylandi` / `reddedildi`), KararVerenKullaniciKimlik,
+KararZamani, RetGerekcesi (ret için zorunlu, CHECK). Bir talepte aynı anda
+tek bekleyen istek (filtreli tekil dizin: `DurumKodu = 'bekliyor'`).
+Onaylanınca talep.Iptal satırı personelin adıyla yazılır, istek kapanır.
+Eşlemede `iptalIstegi.*` ve `iptalBilgi.musteriIstegi` bu yüzden `yok`.
+
+**Talepte iş izinleri.** `talepler` izni artık yalnız görmek; talepteki her
+iş ayrı izin: `talepDurum`, `talepIptal`, `talepNot`, `talepTeklif`,
+`hakedisOnay`, `parcaGonderim`, `odemeOnay` (src/data/yetkiler.js →
+TALEP_EYLEM_IZINLERI). T03 ve B03 yeniden üretildi; varsayılan Yönetici
+rolünde bu izinler yok (kullanıcının kararı). **Sunucu aşamasında geçiş:**
+`talepler` izni olan her role (Yönetici hariç) yedi iznin yazılması
+(tarayıcıdaki karşılığı `veri.js → rolIzinleriniTasi`, izinSurumu 4).
+Uygulamanın yazan işlevleri rol almıyor; kapı bugün yalnız ekranda, sunucu
+her yazımda aynı izni denetlemeli (eşlemede `talepteYapabilir` notu).
+
+**Görüş.** `notlar[].musteriye` hazır sütuna gidiyor
+(`musteri.GeriBildirimNotu.MusteriyeGonderildi`), `okumaTarih` OkunmaZamani'na.
+Eksik iki sütun: `musteri.GeriBildirim.KonuKodu` (kod listesi: `oneri`,
+`sorun`, `tesekkur`, `diger`; eski kayıtta NULL) ve kapanış
+(`KapatmaZamani`, `KapatanKullaniciKimlik`; durum kayıttan türüyor:
+kapanış varsa kapandı, müşteriye giden not varsa cevaplandı, yoksa yeni).
+
+## 17. Yeni fiyat listesi eskisini kaldırıyor (8 Ekim 2026)
+
+Kullanıcının kararı: "listeyi yayına al dendiğinde eski liste çıkartılmalı
+sistemden. Çünkü yeni liste zaten güncel tüm yedek parça listesi."
+Taklit sunucu eski listeyi artık arşive kopyalamıyor; eski görseller ve
+PDF siliniyor, yalnız kayıtlı işlemlerin gösterdiği görseller kalıyor
+(`sunucu-taklidi/fiyat-listesi-yayini.mjs`, kalanların listesi
+`parca-katalogu/korunan-gorseller.json`; sınaması
+`tools/fiyat-listesi-okuma-sinamasi.mjs` ve AK-19).
+
+`veritabani/tasarim.md` 5.5 ve K28 bunun tersini kuruyor: her liste kendi
+arşiv dosyasında, satırlar yalnız eklenir, eski liste `arsiv` durumunda
+kalır. Sunucu aşamasında karar verilecekler:
+
+- **Eski listenin satırları ve PDF'i.** `katalog.FiyatListesiSatiri`
+  satırları ve kaynak PDF silinebilir: talep ve servis kaydının parça
+  satırı kendi kodunu, adını, fiyatını ve görsel adını taşıyor (§4).
+- **Eski listenin başlık satırı.** `talep.ParcaTalebiAyrinti.FiyatListesiKodu`
+  ve `katalog.Parca.IlkFiyatListesiKodu` / `SonFiyatListesiKodu` ona
+  yabancı anahtarla bağlı. Başlık, ona bağlı satır kaldıkça durmalı (talep
+  hangi listeden fiyat aldığını onunla söylüyor) ya da bağ kaldırılıp
+  listenin adı talebe yazılmalı.
+- **Hangi görsel kalacak.** Silinecek görseli sunucu kendisi seçmeli:
+  `talep.ParcaSatiri.GorselDosyasi` ve `talep.ZiyaretParcaSatiri.GorselDosyasi`
+  sütunlarında geçen adlar kalır, gerisi gider. Bugünkü taklit bu listeyi
+  tarayıcıdan alıyor (`backoffice/veri.js → kayitlardakiParcaGorselleri`);
+  gerçek sunucu almamalı, eksik bir liste geçmiş talebin resmini sildirir.
+- **Tohum.** `tohum/kaynak/fiyat-listeleri/` arşiv dosyaları ve
+  `npm run vt -- fiyat-listesi` komutunun "öncekini `arsiv` yaz" adımı
+  bu karara göre yeniden düşünülmeli.
+
+## 18. Makinenin sahibi değişiyor — ikinci el devir (9 Ekim 2026)
+
+Kullanıcının onayı: "Evet, Sahibini Değiştir'i ekle." Backoffice'te
+Kayıtlı Makineler penceresinden personel makineyi yeni sahibin hesabına
+geçiriyor (`backoffice/veri.js → makineSahibiniDegistir`, sınaması AK-41,
+tur B-SAHIP). Veritabanında karşılığı var, yeni tablo gerekmiyor:
+
+- **Sahiplik satırları.** Devirde `makine.MakineSahipligi`'nin açık satırı
+  kapanıyor (`BitisZamani`, `BitisNedeniKodu` = `devir`) ve yeni hesaba
+  açık satır açılıyor (`KaynakKodu` personel, `YapanTuruKodu` personel,
+  `YapanKullaniciKimlik` / `YapanAdi` devri yapan). İkisi tek işlemde:
+  `UX_makine_MakineSahipligi_AcikSahiplik` aynı anda iki açık satıra
+  izin vermiyor. `makine.KayitOlayi` değişmiyor (ilk kayıt). Uygulamanın
+  alanları eşlemede (`sahiplikTarihi`, `sahiplikGecmisi[]`).
+- **Yetki.** `makineDevir` (`erisim` izin listesinde, T03 yeniden
+  üretildi); sunucu devri bu izinle kabul etmeli. Varsayılan rollerde
+  yalnız Admin'de; depodaki rollere taşıma yazılmadı.
+- **Hesabı numarayla bulmak.** Sunucuda arama `musteri.Hesap`
+  (`TelefonUlkeKodu` + `TelefonUlusal`) üzerinden; bugün tarayıcının
+  gördüğü hesaplarla sınırlı (`devirIcinMusteriBul`). Arama sonucu
+  personele yalnız ad, müşteri numarası, il/ilçe ve makine sayısı
+  göstermeli.
+- **Telefondaki liste.** Bugün eski sahibin `machines` listesinden makine
+  siliniyor, yenisininkine ekleniyor. Sunucuda liste açık sahiplikten
+  okunacağı için ayrı yazım gerekmez; cihazın önbelleği bildirimle
+  tazelenmeli. Takma ad (`TakmaAd`) eski sahiplik satırında kalır.
+- **Bildirim.** İki hesaba `bildirim.Bildirim` (`TurKodu` makine); eski
+  sahibin bildiriminde yeni sahibin bilgisi yok.

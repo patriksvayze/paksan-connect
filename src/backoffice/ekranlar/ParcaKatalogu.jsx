@@ -1,5 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
-import { fiyatListesiYayinlandi, izinli, parcaDuzeltmeleriGetir, parcaDuzeltmesiYaz } from '../veri'
+import {
+  fiyatListesiYayinlandi, izinli, kayitlardakiParcaGorselleri, parcaDuzeltmeleriGetir, parcaDuzeltmesiYaz,
+} from '../veri'
 import { useVeri } from '../kanca'
 import {
   katalogHamGetir, duzeltmeleriUygula, fiyatListesiYayinla, gorselAdresi,
@@ -61,8 +63,11 @@ import { ServisIskontosuKarti } from './ServisIskontosu'
 
    YENİ FİYAT LİSTESİ BURADAN YÜKLENİYOR (21 Eylül 2026). Personel PDF'i
    seçiyor, liste tarayıcıda okunuyor, önizlemede neyin değiştiği
-   görünüyor, "Yayına Al" deyince sunucu eskisini arşive alıp yenisini
-   yürürlüğe sokuyor. Bugün o sunucunun yerini geliştirme sunucusu
+   görünüyor, "Yayına Al" deyince sunucu yenisini yürürlüğe sokup
+   eskisini kaldırıyor (8 Ekim 2026'dan beri; önce arşive alıyordu).
+   Yeni liste her zaman bütün parçaların güncel listesi. Geçmiş
+   kayıtların gösterdiği görseller kalıyor (veri.js →
+   kayitlardakiParcaGorselleri). Bugün o sunucunun yerini geliştirme sunucusu
    tutuyor (sunucu-taklidi/fiyat-listesi-yayini.mjs); derlenmiş
    backoffice'te sunucu olmadan "sunucuya ulaşılamadı" der.
 
@@ -124,8 +129,8 @@ const METIN = {
 
      Personel PAKSAN'ın PDF fiyat listesini seçiyor; liste tarayıcıda
      okunuyor (lib/fiyatListesiOku.js), neyin değiştiği gösteriliyor,
-     personel onaylayınca sunucu eskisini arşive alıp yenisini yürürlüğe
-     sokuyor. Onay adımı asıl değer: yanlış okunmuş bir liste yayına
+     personel onaylayınca sunucu yenisini yürürlüğe sokup eskisini
+     kaldırıyor. Onay adımı asıl değer: yanlış okunmuş bir liste yayına
      girmeden yakalanıyor.
 
      Önceki hâli bir YÜKLEME değil KONTROL yeriydi: PDF'i bir geliştirici
@@ -167,7 +172,7 @@ const METIN = {
 
   onayBaslik: 'Yeni fiyat listesini yayına al',
   onayMetin: (n) =>
-    `Onayladığınızda ${n} parçalık yeni liste yürürlüğe girecek. Müşteriler ve servisler yeni fiyatları görecek. Daha önce verilmiş siparişlerin fiyatları değişmeyecek. Yürürlükteki liste arşivde saklanacak.`,
+    `Onayladığınızda ${n} parçalık yeni liste yürürlüğe girecek. Müşteriler ve servisler yeni fiyatları görecek. Daha önce verilmiş siparişlerin fiyatları değişmeyecek. Yürürlükteki liste sistemden kaldırılacak ve yerini bütün yedek parçaların güncel fiyatlarını içeren yeni liste alacak.`,
   onayDugme: 'Listeyi Yayına Al',
   yayinlaniyor: 'Liste yayına alınıyor…',
   yayinlandi: (n) => `Yeni fiyat listesi yayında · ${n} parça`,
@@ -447,6 +452,9 @@ export function ParcaKatalogu({ personel, rol, bildir, tazele, surum }) {
         },
         gorseller,
         kaynakPdf: await base64Yap(new Blob([liste.pdf])),
+        /* Eski listenin görsellerinden geçmiş kayıtların gösterdikleri
+           silinmesin (sunucu-taklidi/fiyat-listesi-yayini.mjs başı). */
+        korunanGorseller: kayitlardakiParcaGorselleri(),
         personel,
       })
 

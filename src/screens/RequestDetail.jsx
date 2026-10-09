@@ -23,6 +23,7 @@ import { ParcaOzetSatiri, TutarKutusu } from '../components/ParcaOzeti'
 import { ekAdresi } from '../lib/ekler'
 import { SIRKET } from '../data/kimlik.js'
 import { araProps, telFirma } from '../lib/tel'
+import { MUSTERI_IPTAL_NEDENLERI, iptalSecimiEksigi, musteriIptalYolu } from '../lib/musteriIptal'
 import {
   IconCalendar, IconCheckCircle, IconClose, IconCart, IconMic,
   IconPhone, IconInfo, IconPlus, IconAlert, IconSaat, IconKamyon,
@@ -54,6 +55,16 @@ import {
    çıkıyordu: "Satış fiyatı 2.600.000". Sayı tek başına para tutarını
    belirtmiyor. Yalnız sayıdan oluşan değerlere birim ekleniyor;
    "Garanti kapsamında" gibi yazılara dokunulmuyor. */
+/* Müşterinin iptal nedeninin kendi dilindeki adı (8 Ekim 2026,
+   lib/musteriIptal.js). Anahtarlar düz yazılı ki `npm run dogrula`
+   onları görsün. */
+const IPTAL_NEDENI_ANAHTARI = {
+  vazgectim: 'talepDetay.iptalNedenVazgectim',
+  gerekKalmadi: 'talepDetay.iptalNedenGerekKalmadi',
+  yanlis: 'talepDetay.iptalNedenYanlis',
+  baska: 'talepDetay.iptalNedenBaska',
+}
+
 function paraliYaz(deger) {
   const s = String(deger ?? '').trim()
   if (!s) return ''
@@ -64,7 +75,7 @@ export default function RequestDetail() {
   const { id } = useParams()
   const nav = useNavigate()
   const konum = useLocation()
-  const { requests, kaldirilanTalepler, talebiGeriAl, updateRequest, showToast } = useApp()
+  const { requests, kaldirilanTalepler, talebiGeriAl, updateRequest, talebiIptalEt, showToast } = useApp()
   const { t, dil } = useDil()
 
   /* Sonradan ekleme penceresi ve içindeki alanlar. */
@@ -76,9 +87,16 @@ export default function RequestDetail() {
   /* "Sorun devam ediyor" penceresi ve içindeki açıklama. */
   const [devamPenceresi, setDevamPenceresi] = useState(false)
   const [devamNot, setDevamNot] = useState('')
+  /* İptal penceresi (8 Ekim 2026): neden, açıklama ve uyarı. */
+  const [iptalPenceresi, setIptalPenceresi] = useState(false)
+  const [iptalKod, setIptalKod] = useState('')
+  const [iptalAciklama, setIptalAciklama] = useState('')
+  const [iptalHata, setIptalHata] = useState('')
 
   const r = requests.find((x) => x.id === id)
   const yerel = dil === 'tr' ? 'tr-TR' : 'en-GB'
+  /* 'dogrudan' | 'istek' | null — talebi iptal etmenin yolu. */
+  const iptalYolu = musteriIptalYolu(r)
 
   /* Talebi yürüten servis. Talepte yalnız kimliği ve adı yazıyor;
      telefonu servis listesinden okunuyor — o liste zaten uygulamanın
@@ -258,9 +276,18 @@ export default function RequestDetail() {
 
         {r.iptalBilgi && (
           <Kutu ad={t('talepDetay.iptalBaslik')} ton="kirmizi">
-            <p className="detay-metin">{r.iptalBilgi.neden}</p>
+            {/* Çiftçi kendisi iptal ettiyse neden onun dilinde ve imza
+                "Siz iptal ettiniz" (lib/musteriIptal.js); personel adı yok. */}
+            <p className="detay-metin">
+              {r.iptalBilgi.musteri && IPTAL_NEDENI_ANAHTARI[r.iptalBilgi.kod]
+                ? t(IPTAL_NEDENI_ANAHTARI[r.iptalBilgi.kod])
+                : r.iptalBilgi.neden}
+            </p>
             {r.iptalBilgi.aciklama && <p className="detay-metin">{r.iptalBilgi.aciklama}</p>}
-            <Imza personel={r.iptalBilgi.personel} tarih={tarihYaz(r.iptalBilgi.tarih)} />
+            <Imza
+              personel={r.iptalBilgi.musteri ? t('talepDetay.iptalSizden') : r.iptalBilgi.personel}
+              tarih={tarihYaz(r.iptalBilgi.tarih)}
+            />
             <a
               className="btn btn--soft btn--sm"
               style={{ marginTop: 14 }}
@@ -268,6 +295,29 @@ export default function RequestDetail() {
             >
               <IconPhone size={18} /> {t('talepDetay.yanlislikVar')}
             </a>
+          </Kutu>
+        )}
+
+        {/* MÜŞTERİNİN İPTAL İSTEĞİ (8 Ekim 2026). İşleme alınmış talepte
+            çiftçi istek gönderdi; PAKSAN karar verene kadar kutu "iletildi"
+            diyor, reddedilirse gerekçeyle "kabul edilmedi". Onaylanırsa
+            talep iptal ediliyor ve yukarıdaki iptal kutusu çıkıyor. */}
+        {r.iptalIstegi && !r.iptalBilgi && r.iptalIstegi.durum !== 'onaylandi' && (
+          <Kutu
+            ad={t(r.iptalIstegi.durum === 'reddedildi' ? 'talepDetay.iptalRetBaslik' : 'talepDetay.iptalIstegiBaslik')}
+            ton={r.iptalIstegi.durum === 'reddedildi' ? 'turuncu' : 'mavi'}
+          >
+            <p className="detay-metin" data-iptal-istegi={r.iptalIstegi.durum}>
+              {r.iptalIstegi.durum === 'reddedildi'
+                ? r.iptalIstegi.karar?.gerekce
+                : t('talepDetay.iptalIstegiAlt')}
+            </p>
+            <div className="small muted" style={{ marginTop: 10 }}>
+              {t('talepDetay.iptalNedeniniz')}:{' '}
+              {IPTAL_NEDENI_ANAHTARI[r.iptalIstegi.kod] ? t(IPTAL_NEDENI_ANAHTARI[r.iptalIstegi.kod]) : r.iptalIstegi.neden}
+              {r.iptalIstegi.aciklama ? ` · ${r.iptalIstegi.aciklama}` : ''}
+            </div>
+            <Imza tarih={tarihYaz(r.iptalIstegi.karar?.tarih || r.iptalIstegi.tarih)} />
           </Kutu>
         )}
 
@@ -682,6 +732,27 @@ export default function RequestDetail() {
             <IconPhone size={20} /> {t('talepDetay.markayiAra')}
           </a>
         </div>
+
+        {/* TALEBİ İPTAL ETME (8 Ekim 2026, kullanıcının isteği). Yol tek
+            kuraldan (lib/musteriIptal.js → musteriIptalYolu): dokunulmamış
+            talep hemen iptal, işleme alınmışta PAKSAN'a istek. Düğme en
+            sonda ve kırmızı yazılı: geri dönüşü olmayan iş. */}
+        {iptalYolu && (
+          <button
+            className="btn btn--soft"
+            style={{ marginTop: 22, color: 'var(--pk-red-yazi)' }}
+            data-eylem="talep-iptal"
+            data-iptal-yolu={iptalYolu}
+            onClick={() => {
+              setIptalKod('')
+              setIptalAciklama('')
+              setIptalHata('')
+              setIptalPenceresi(true)
+            }}
+          >
+            <IconClose size={20} /> {iptalYolu === 'dogrudan' ? t('talepDetay.iptalDugme') : t('talepDetay.iptalIsteDugme')}
+          </button>
+        )}
       </div>
 
       {/* --------------------------------------------- Ekleme penceresi
@@ -790,6 +861,80 @@ export default function RequestDetail() {
             }}
           >
             {t('talepDetay.devamGonder')}
+          </button>
+        </div>
+      </Sheet>
+
+      {/* ------------------------------------------------- İptal penceresi */}
+      <Sheet
+        open={iptalPenceresi}
+        onClose={() => setIptalPenceresi(false)}
+        title={iptalYolu === 'istek' ? t('talepDetay.iptalIsteBaslik') : t('talepDetay.iptalDugme')}
+      >
+        <div className="stack" style={{ gap: 16 }} data-pencere="talep-iptal">
+          <p className="small muted" style={{ margin: 0, lineHeight: 1.6 }}>
+            {iptalYolu === 'istek' ? t('talepDetay.iptalIsteAlt') : t('talepDetay.iptalDogrudanAlt')}
+          </p>
+
+          <div className="field">
+            <span className="field__label">{t('talepDetay.iptalNedenSoru')}</span>
+            <div className="secenekler" role="radiogroup">
+              {MUSTERI_IPTAL_NEDENLERI.map((n) => (
+                <button
+                  key={n.kod}
+                  type="button"
+                  role="radio"
+                  aria-checked={iptalKod === n.kod}
+                  data-iptal-neden={n.kod}
+                  className={'secenek secenek--tekli' + (iptalKod === n.kod ? ' secenek--on' : '')}
+                  onClick={() => {
+                    setIptalKod(n.kod)
+                    setIptalHata('')
+                  }}
+                >
+                  {t(IPTAL_NEDENI_ANAHTARI[n.kod])}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <label className="field">
+            <span className="field__label">{t('talepDetay.iptalAciklama')}</span>
+            <textarea
+              className="textarea"
+              value={iptalAciklama}
+              maxLength={500}
+              onChange={(e) => {
+                setIptalAciklama(e.target.value)
+                if (iptalHata) setIptalHata('')
+              }}
+              placeholder={t('talepDetay.iptalAciklamaIpucu')}
+            />
+          </label>
+
+          {iptalHata && <div className="uyari-kart" role="alert">{iptalHata}</div>}
+
+          <button
+            className="btn btn--sil"
+            data-eylem="talep-iptal-gonder"
+            onClick={() => {
+              const secim = { kod: iptalKod, aciklama: iptalAciklama }
+              const eksik = iptalSecimiEksigi(secim)
+              if (eksik) {
+                return setIptalHata(t(eksik === 'neden' ? 'talepDetay.iptalNedenSecin' : 'talepDetay.iptalAciklamaYazin'))
+              }
+              const sonuc = talebiIptalEt(r.id, iptalYolu, secim)
+              /* Pencere açıkken PAKSAN talebe dokunduysa kayıt yazılmadı;
+                 düğme artık istek yolunu gösteriyor. */
+              if (sonuc.hata) return setIptalHata(t('talepDetay.iptalDurumDegisti'))
+              setIptalPenceresi(false)
+              showToast(iptalYolu === 'dogrudan' ? t('talepDetay.iptalEdildi') : t('talepDetay.iptalIstendi'))
+            }}
+          >
+            {iptalYolu === 'istek' ? t('talepDetay.iptalIsteGonder') : t('talepDetay.iptalDugme')}
+          </button>
+          <button className="btn btn--soft" onClick={() => setIptalPenceresi(false)}>
+            {t('ortak.vazgec')}
           </button>
         </div>
       </Sheet>

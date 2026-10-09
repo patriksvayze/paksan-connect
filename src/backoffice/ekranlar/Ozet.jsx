@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import {
-  geriBildirimGetir, izinli, KAPALI_DURUMLAR, islemKaydiGetir, makineKayitlariGetir,
+  geriBildirimGetir, iptalIstegiBekliyorMu, izinli, KAPALI_DURUMLAR, makineKayitlariGetir,
   numaraTalepleriGetir, rolBilgi, rolunTalepleri, rolunTurleri, talepleriGetir, teklifBekliyorMu,
 } from '../veri'
 import { useVeri } from '../kanca'
@@ -9,7 +9,7 @@ import { SutunGrafik } from './grafik'
 import { BOS_ARALIK, Secim } from './suzgec'
 import { servisiAtanmamisKayitlar } from '../../lib/servisAtama'
 import {
-  bekledigiYer, bizdeGecikmisMi, bizdeMi, odemeOnayiBekliyorMu, parcaHazirliktaMi,
+  bizdeGecikmisMi, odemeOnayiBekliyorMu, parcaHazirliktaMi,
   servisteGecikmisMi,
 } from '../bekleyenIs'
 import { kapanisOlayi, paraKutu } from './rapor/hesap'
@@ -35,15 +35,19 @@ import { bolumuHesapla, raporVerisiOku } from './Raporlar'
    ŞİMDİ EKRAN ÜÇ SORUYU CEVAPLIYOR, YUKARIDAN AŞAĞIYA:
 
      1  NE KADAR İŞ GELİYOR, NE KADARI BİTİYOR?  dört ölçü: bugün gelen,
-        bu hafta gelen, bu hafta kapanan (ikisi geçen haftayla), aynı
-        gün açılan talep oranı.
+        bu hafta gelen, bu hafta kapanan (ikisi geçen haftayla) ve
+        rolün açık talepleri.
      2  BENİ NE BEKLİYOR?  "Bekleyen İşler" listesi. Yalnız sıfırdan
         büyük satırlar çıkıyor, en acili üstte; her satır kendi listesini
         açıyor. İki grup: topun PAKSAN'da olduğu işler ve başkasında
         bekleyip takip edilecekler. Hiç iş yoksa liste bunu söylüyor.
-     3  AÇIK İŞLER KİMDE?  tek çubuk: PAKSAN'da, serviste, müşteride.
-        Eski "Bizde bekleme süresi" kartının yaş dağılımı, PAKSAN'da
-        satırının altındaki "48 saati geçti" sayısına indi.
+
+   8 EKİM 2026'DA İKİ ŞEY KALKTI (kullanıcının isteği). "Açık talepler
+   kimde?" kartı (PAKSAN'da / serviste / müşteride): rol bazlı ekranda
+   anlamı yoktu, yedek parça rolünde "Serviste" satırı hep 0 yazıyordu;
+   aynı dağılım Raporlar → Genel Bakış'ta duruyor. "Aynı gün açılan
+   talep oranı" yerine rolü ilgilendiren AÇIK TALEPLERİN sayısı geldi;
+   kutuya dokununca Talepler o listeyle açılıyor.
 
    Altta dönem seçilebilen gelen talep grafiği ve yalnız yöneticide son
    30 günün özeti. Servis karnesi tablosu kaldırıldı: tamamı Raporlar →
@@ -73,14 +77,6 @@ const PENCERELER = [
   { deger: '30', ad: 'Son 30 gün' },
   { deger: '90', ad: 'Son 90 gün' },
 ]
-
-/* "Kimde" çubuğunun renkleri. PAKSAN marka mavisi; öteki ikisi ondan ve
-   birbirinden ayrışan, iki temada da token'ı olan tonlar. */
-const YER_RENK = {
-  bizde: 'var(--mavi)',
-  serviste: 'var(--turkuaz)',
-  musteride: 'var(--mor)',
-}
 
 export function Ozet({ rol, git, surum }) {
   const [pencere, setPencere] = useState('14')
@@ -129,6 +125,9 @@ export function Ozet({ rol, git, surum }) {
       ac: () => git('makineler', { atanmamis: true }),
     },
     { ad: 'Açılmamış talep', sayi: v.yeni, ac: talepler('yeni') },
+    /* Müşteri işleme alınmış talebi için iptal istedi (8 Ekim 2026);
+       kararı rolün masası veriyor. Rolün gördüğü taleplerden sayılıyor. */
+    { ad: 'İptal isteği bekleyen talep', sayi: v.iptalIstegi, ac: talepler('iptalIstegi') },
     {
       ad: 'Onay bekleyen hak ediş',
       sayi: v.onayda,
@@ -168,11 +167,12 @@ export function Ozet({ rol, git, surum }) {
         {/* Gelenin karşısında biten: ikisi yan yana durunca iş birikiyor
             mu, eriyor mu tek bakışta görünüyor. */}
         <Olcu ad="Bu Hafta Kapanan" deger={v.buHaftaKapanan} alt={`Geçen hafta ${v.gecenHaftaKapanan}`} />
-        {/* Gelen talebe AYNI GÜN dokunuluyor mu? (bkz. ayniGunOrani) */}
+        {/* Rolün gördüğü açık talepler (8 Ekim 2026; önce "Aynı gün açılan
+            talep oranı" vardı). Sayı Talepler'in "Açık" süzgeciyle aynı. */}
         <Olcu
-          ad="Aynı gün açılan talep oranı"
-          deger={v.ayniGun === null ? '—' : `%${v.ayniGun}`}
-          alt={v.ayniGunGun ? `${v.ayniGunGun} çalışılan gün ortalaması` : 'Henüz yeterli veri yok'}
+          ad="Açık Talepler"
+          deger={v.acik}
+          onClick={() => git('talepler', { durum: 'acik' })}
         />
       </div>
 
@@ -190,8 +190,6 @@ export function Ozet({ rol, git, surum }) {
           </div>
         </div>
 
-        {/* --------------------------------------------- Açık talepler kimde */}
-        <Kimde v={v} git={git} raporVar={izinli(rol, 'raporlar')} />
       </div>
 
       {/* --------------------------------------------------- Gelen talep */}
@@ -273,79 +271,6 @@ function BekleyenIsler({ gruplar }) {
   )
 }
 
-/* Açık talepler kimde bekliyor: PAKSAN'da, serviste, müşteride.
-   Raporlar → Genel Bakış'taki "Açık talepler nerede bekliyor?" kartının
-   üç grupluk özeti; kural aynı (bkz. bekleyenIs.js → bekledigiYer).
-   Satırlar liste açmıyor: Talepler'in süzgeçleri bu gruplamayı
-   bilmiyor ve yakın bir süzgeç farklı kayıt sayısı gösterirdi. Ayrıntı
-   raporda. */
-function Kimde({ v, git, raporVar }) {
-  const satirlar = [
-    {
-      id: 'bizde',
-      ad: 'PAKSAN’da',
-      deger: v.bizde,
-      alt: v.bizdeGeciken ? `${v.bizdeGeciken} tanesi 48 saati geçti` : '',
-      dikkat: true,
-    },
-    {
-      id: 'serviste',
-      ad: 'Serviste',
-      deger: v.serviste,
-      alt: v.servisteGeciken ? `${v.servisteGeciken} tanesi gecikiyor` : '',
-    },
-    { id: 'musteride', ad: 'Müşteri yanıtı bekleyen', deger: v.musteride },
-  ]
-  const toplam = v.bizde + v.serviste + v.musteride
-
-  return (
-    <div className="kart kimde">
-      <div className="kart__tepe">
-        <h2>Açık talepler kimde?</h2>
-        <button
-          type="button"
-          className="kimde__toplam"
-          onClick={() => git('talepler', { durum: 'acik' })}
-        >
-          {`${v.acik} açık talep`}
-        </button>
-      </div>
-      <div className="kart__ic">
-        {toplam > 0 && (
-          <div className="yigin kimde__cubuk" aria-hidden="true">
-            {satirlar
-              .filter((s) => s.deger > 0)
-              .map((s) => (
-                <span
-                  key={s.id}
-                  className="yigin__parca"
-                  style={{ width: `${(s.deger / toplam) * 100}%`, background: YER_RENK[s.id] }}
-                />
-              ))}
-          </div>
-        )}
-        {satirlar.map((s) => (
-          <div className="kimde__satir" key={s.id}>
-            <span className="kimde__nokta" style={{ background: YER_RENK[s.id] }} />
-            <span className="kimde__ad">
-              {s.ad}
-              {s.alt && (
-                <span className={'kimde__alt' + (s.dikkat ? ' kimde__alt--dikkat' : '')}>{s.alt}</span>
-              )}
-            </span>
-            <span className="kimde__v">{s.deger}</span>
-          </div>
-        ))}
-        {raporVar && (
-          <button type="button" className="kimde__bag" onClick={() => git('raporlar', { bolum: 'genel' })}>
-            Raporlarda Ayrıntıları Gör
-          </button>
-        )}
-      </div>
-    </div>
-  )
-}
-
 /* ------------------------------------------------------------ Hesaplama */
 
 function hesapla(rol, gunSayisi) {
@@ -374,13 +299,7 @@ function hesapla(rol, gunSayisi) {
   const gecenHaftada = (z) => z >= simdi - 14 * GUN && z < simdi - 7 * GUN
   const kapanislar = talepler.map(kapanisOlayi).filter(Boolean)
 
-  /* Kimde. Üç grup bütün açık talepleri kapsıyor (bkz. bekleyenIs.js). */
-  const yer = acikOlanlar.map(bekledigiYer)
   const onayda = acikOlanlar.filter((t) => t.status === 'onayBekliyor')
-
-  /* Aynı gün oranı yalnız İLK ADIMI PAKSAN'IN attığı taleplerde: servise
-     düşen servis talebine ilk dokunan servis, PAKSAN personeli değil. */
-  const ayniGun = ayniGunOrani(talepler.filter(ilkAdimPaksanda), calisilanGunler())
 
   return {
     bugun: talepler.filter((t) => t.createdAt >= bugunBasi).length,
@@ -388,11 +307,10 @@ function hesapla(rol, gunSayisi) {
     gecenHafta: talepler.filter((t) => gecenHaftada(t.createdAt)).length,
     buHaftaKapanan: kapanislar.filter(buHaftada).length,
     gecenHaftaKapanan: kapanislar.filter(gecenHaftada).length,
-    ayniGun: ayniGun.oran,
-    ayniGunGun: ayniGun.gun,
 
     /* Bekleyen işler — Talepler'in süzgeçleriyle aynı kural. */
     yeni: talepler.filter((t) => (t.status || 'yeni') === 'yeni').length,
+    iptalIstegi: talepler.filter(iptalIstegiBekliyorMu).length,
     bizdeGeciken: talepler.filter(bizdeGecikmisMi).length,
     servisteGeciken: talepler.filter(servisteGecikmisMi).length,
     onayda: onayda.length,
@@ -407,136 +325,10 @@ function hesapla(rol, gunSayisi) {
     numara: numaraTalepleriGetir().filter((t) => t.durum === 'bekliyor').length,
 
     acik: acikOlanlar.length,
-    bizde: acikOlanlar.filter(bizdeMi).length,
-    serviste: yer.filter((y) => y === 'servis' || y === 'yolda').length,
-    musteride: yer.filter((y) => y === 'teklif').length,
 
     gunluk,
     enYogun,
   }
-}
-
-/* ==========================================================================
-   Aynı gün açılan talep oranı
-
-   SORU: personel gelen talebe aynı gün dokunuyor mu?
-
-   Eski "tamamlanma oranı" bunu ölçmüyordu. Bugün gelen talep henüz
-   kapanmadığı için oran her zaman düşük görünüyor, üstelik kapanma
-   süresi işin büyüklüğüne bağlı — üç günlük bir tamirat "kötü
-   performans" değil. Oysa gelen talebe dokunmamak her zaman kötü.
-
-   HESAP
-
-   Her İŞ GÜNÜ için ayrı oran çıkarılıyor: o gün gelen taleplerin kaçı
-   aynı gün içinde "Yeni" durumundan çıkmış. Sonra bu günlük oranların
-   ortalaması alınıyor.
-
-   Neden günlük oranların ortalaması, toplam üzerinden tek bir oran
-   değil? Çünkü tek oran, çok talep gelen günleri ağırlıklandırır:
-   yoğun bir günde herkes koşturur ve oran yükselir, sakin günlerdeki
-   ihmal görünmez olur. Personelin günlük alışkanlığını ölçmek
-   istiyoruz, o yüzden her gün eşit ağırlıkta.
-
-   DIŞARIDA KALANLAR
-
-     · Hiç talep gelmeyen günler — sıfır bölme, üstelik o gün
-       ölçülecek bir şey yok.
-     · Personelin backoffice’e hiç girmediği günler — resmî tatil, izin,
-       hafta sonu. Hangi günün çalışıldığı takvimden değil işlem
-       kaydındaki giriş satırlarından okunuyor (bkz. calisilanGunler).
-     · BUGÜN — gün daha bitmedi. Sabah gelen talebe öğleden sonra
-       dokunulacak olabilir; yarım günü tam gün gibi saymak her sabah
-       oranı düşük gösterirdi.
-   ========================================================================== */
-
-function gunBasi(zaman) {
-  return new Date(zaman).setHours(0, 0, 0, 0)
-}
-
-/** Talep, geldiği gün içinde "Yeni" durumundan çıkmış mı? */
-function ayniGunAcildiMi(talep) {
-  const ilkDokunus = (talep.gecmis || [])[0]
-  if (!ilkDokunus) return false
-  return gunBasi(ilkDokunus.tarih) === gunBasi(talep.createdAt)
-}
-
-/* Personelin backoffice’e girdiği günler.
-
-   İŞ GÜNÜ TAKVİMDEN DEĞİL, İŞLEM KAYDINDAN OKUNUYOR.
-
-   Önceki hâli hafta içi olan her günü iş günü sayıyordu. Bu iki yönden
-   yanlıştı: resmî tatilde ve izinli günlerde kimse backoffice’e bakmıyor ama
-   o günler ortalamaya sıfır olarak giriyor, oranı haksız yere
-   düşürüyordu. Öte yandan hafta sonu vardiya yapıldığında o günün
-   emeği hiç sayılmıyordu.
-
-   İşlem kaydındaki giriş satırları gerçekte çalışılan günleri söylüyor.
-   Bayram da, cumartesi vardiyası da doğru yerine oturuyor.
-
-   `oturum` türü hem girişi hem çıkışı kapsıyor; ayıran şey özet
-   metni. Metin aranırken yalnız "giriş" kelimesine bakılıyor —
-   adlandırma "panel"den "backoffice"e geçtiği için eski kayıtlarda
-   "Panele giriş", yenilerde "Backoffice girişi" yazıyor.
-
-   İşlem kaydı son 500 satırla sınırlı; çok eski günler listede
-   olmayabilir. Sorun değil — bu ölçü zaten yakın dönemin
-   alışkanlığını gösteriyor. */
-function calisilanGunler() {
-  const gunler = new Set()
-  islemKaydiGetir().forEach((k) => {
-    if (k.tur !== 'oturum') return
-    if (!String(k.ozet || '').includes('giriş')) return
-    gunler.add(gunBasi(k.tarih))
-  })
-  return gunler
-}
-
-/**
- * @param {Array} talepler
- * @param {Set<number>} calisilan backoffice’e girilen günlerin başlangıçları
- */
-function ayniGunOrani(talepler, calisilan) {
-  const bugun = gunBasi(Date.now())
-  const gunler = {}
-  /* BUGÜNÜN GİRİŞİ SAYILMIYOR. Yalnız bugün giriş kaydı olan yeni bir
-     kurulumda (demo, canlıya ilk gün) takvime düşülmüyordu: çalışılan
-     gün listesi "bugün"den ibaretti, bugün de hesaba girmediği için
-     kutu hep "—" gösteriyordu. Geçmiş günlerden giriş kaydı yoksa
-     hafta içi günleri sayılıyor. */
-  const gecmisGunler = new Set([...(calisilan || [])].filter((g) => g < bugun))
-
-  talepler.forEach((t) => {
-    if (!t.createdAt) return
-    const gun = gunBasi(t.createdAt)
-    if (gun >= bugun) return /* bugün daha bitmedi */
-
-    /* Personelin backoffice’e girdiği günler sayılıyor. Kayıt hiç yoksa
-       (yeni kurulum, demo) takvime düşülüyor: hafta içi sayılıyor,
-       hafta sonu sayılmıyor. */
-    if (gecmisGunler.size) {
-      if (!gecmisGunler.has(gun)) return
-    } else {
-      const haftaninGunu = new Date(gun).getDay()
-      if (haftaninGunu === 0 || haftaninGunu === 6) return
-    }
-
-    if (!gunler[gun]) gunler[gun] = { toplam: 0, acilan: 0 }
-    gunler[gun].toplam++
-    if (ayniGunAcildiMi(t)) gunler[gun].acilan++
-  })
-
-  const oranlar = Object.values(gunler).map((g) => g.acilan / g.toplam)
-  if (!oranlar.length) return { oran: null, gun: 0 }
-
-  const ortalama = oranlar.reduce((a, b) => a + b, 0) / oranlar.length
-  return { oran: Math.round(ortalama * 100), gun: oranlar.length }
-}
-
-/* İlk adımı PAKSAN mı atıyor? Servisi olan servis talebi önce servise
-   düşüyor (bkz. lib/talepOlustur.js → sahip). */
-function ilkAdimPaksanda(t) {
-  return !(t.tur === 'servis' && t.servis)
 }
 
 /* ==========================================================================

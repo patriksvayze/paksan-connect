@@ -160,7 +160,8 @@ export function useServisHaberi(oturum, tazele) {
           baslik: hepsiPaksandan
             ? `PAKSAN · ${gelen.length} Yeni Bildirim`
             : `${gelen.length} Yeni Bildirim`,
-          metin: 'Bildirimleri İşlerim ekranının üst bölümünde görebilirsiniz.',
+          /* 8 Ekim 2026'dan beri liste İşlerim'de değil, Bildirimler'de. */
+          metin: 'Yeni bildirimlerinizi Bildirimler ekranında görebilirsiniz.',
         })
       }
 

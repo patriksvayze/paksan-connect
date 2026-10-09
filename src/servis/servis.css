@@ -301,6 +301,8 @@ html:has(.onay-perde, .yaprak-perde) .katman {
   font-weight: 800;
   line-height: 18px;
   text-align: center;
+  /* Sayı sınırsız (8 Ekim 2026): "123" alt satıra kırılmasın. */
+  white-space: nowrap;
 }
 
 /* ==========================================================================
@@ -953,6 +955,13 @@ html:has(.onay-perde, .yaprak-perde) .katman {
   box-shadow: inset 0 0 0 1px var(--cizgi-koyu);
 }
 
+/* Bu işle ilgili okunmamış bildirim (8 Ekim 2026). Mavi: bildirimlerin
+   noktasıyla aynı renk; yazıyla da söylüyor. */
+.iskart__etiket--yeni {
+  background: var(--mavi);
+  color: #fff;
+}
+
 /* 48 saati geçen iş: gecikme yalnız renkle belli değil, yazıyla da
    (servis kuralı: renk tek başına anlam taşımaz). */
 .iskart__etiket--gec {
@@ -1025,71 +1034,63 @@ html:has(.onay-perde, .yaprak-perde) .katman {
    görsel dil değil, aynı listenin parçası. Satırın tamamı dokunma
    hedefi; soldaki mavi nokta "okunmadı" diyor ve yanında yazı var —
    nokta tek başına anlam taşımıyor. */
-.talep-haberi {
+/* İşlerim'in üstündeki tek satır: kaç yeni bildirim var ve Bildirimler'e
+   giden düğme (8 Ekim 2026; önce her bildirim ayrı satırdı). Satırın
+   tamamı kart; düğme yazılı ve tam dokunma yüksekliğinde. */
+.yeni-bildirim {
+  display: flex;
+  align-items: center;
+  gap: var(--bosluk-3);
+  min-height: var(--dokunma);
+  margin-bottom: var(--bosluk-4);
+  padding: var(--bosluk-2) var(--bosluk-2) var(--bosluk-2) var(--bosluk-4);
   border: 1px solid var(--cizgi);
   border-radius: var(--r-3);
   background: var(--yuzey);
   box-shadow: var(--golge);
-  overflow: hidden;
 }
 
-.talep-haberi__satir {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--bosluk-3);
-  width: 100%;
-  min-height: var(--dokunma);
-  padding: var(--bosluk-3) var(--bosluk-4);
-  border-top: 1px solid var(--cizgi);
-  background: none;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.talep-haberi__satir:first-child {
-  border-top: 0;
-}
-
-.talep-haberi__satir:hover {
-  background: var(--yuzey-2);
-}
-
-.talep-haberi__nokta {
+.yeni-bildirim__nokta {
   flex: none;
   width: 10px;
   height: 10px;
-  margin-top: 6px;
   border-radius: var(--r-tam);
   background: var(--mavi);
 }
 
-.talep-haberi__govde {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.yeni-bildirim__sayi {
+  flex: 1;
   min-width: 0;
+  font-weight: 700;
+  font-size: 16px;
 }
 
-.talep-haberi__baslik {
-  font-size: var(--yazi-3);
-  font-weight: 800;
+.yeni-bildirim__ac {
+  flex: none;
+  min-height: var(--dokunma);
+  padding: 0 var(--bosluk-4);
+  border: 0;
+  border-radius: var(--r-2);
+  background: var(--mavi-soft);
+  color: var(--mavi-rz);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
 }
 
-.talep-haberi__metin {
-  font-size: var(--yazi-2);
-  line-height: 1.5;
-  color: var(--murekkep);
-  overflow-wrap: anywhere;
-}
+/* BİLDİRİMLER — KART, CONNECT'TEKİ GİBİ (8 Ekim 2026, kullanıcının isteği;
+   ekranlar/Bildirimler.jsx). Connect'in bildirim satırı (styles.css →
+   .listitem, .bildirim) Servisim'in ölçüleriyle: her bildirim ayrı kart,
+   solda türün simge kutusu, okunmamışta kalın başlık ve nokta, altta türün
+   adı, talep numarası ve saat, sağda ok. Önce tek kutuda alt alta
+   satırlardı ve birbirinden ayrılmıyordu.
 
-.talep-haberi__alt {
-  font-size: var(--yazi-2);
-  color: var(--murekkep-2);
-}
-
-.talep-haberi__hepsi {
+   OKUNMUŞ KART SOLUKLAŞTIRILMIYOR (Connect'in 29 Eylül kararı: %62
+   saydamlık alt yazıyı okunmaz yapıyordu); fark başlığın kalınlığında ve
+   noktada. Renkler türün rengi: servis işi turuncu, parça siparişi mor
+   (Connect'in talep türü renkleri), müşteriden yeşil, ücret mavi, duyuru
+   kendi türünün renginde (İşlerim'deki duyuru kartlarıyla aynı aile). */
+.bildirim-hepsi {
   display: block;
   min-height: var(--dokunma);
   margin: var(--bosluk-2) 0 0 auto;
@@ -1099,35 +1100,210 @@ html:has(.onay-perde, .yaprak-perde) .katman {
      zeminde 2,69'da okunmuyordu (21.09.2026 ölçümü). Yazı tonu ayrı. */
   color: var(--mavi-rz);
   font: inherit;
-  font-size: var(--yazi-2);
+  font-size: var(--y-alt);
   font-weight: 700;
   cursor: pointer;
 }
 
-/* BİLDİRİM GEÇMİŞİ (24 Eylül 2026, ekranlar/Bildirimler.jsx). Aynı satır;
-   okunmuş olanda nokta yok ve başlık normal ağırlıkta. Okunmamışın
-   noktası tek başına kalmıyor: başlığın üstünde "Okunmadı" yazıyor. */
-.talep-haberi__satir--okundu .talep-haberi__nokta {
-  visibility: hidden;
-}
-
-.talep-haberi__satir--okundu .talep-haberi__baslik {
-  font-weight: 600;
-}
-
-.talep-haberi__yeni {
-  font-size: var(--yazi-1);
+/* Öbek başlığı küçük ve büyük harfli (Connect → .eyebrow): kartlar öne
+   çıksın, gün başlığı onları bölmesin. */
+.bildirim-obek__ad {
+  margin: var(--bosluk-4) 0 var(--bosluk-3);
+  font-size: var(--y-mini);
   font-weight: 800;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--murekkep-2);
+}
+
+.bildirim-obek + .bildirim-obek .bildirim-obek__ad {
+  margin-top: var(--bosluk-5);
+}
+
+.bildirim-liste {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bosluk-3);
+}
+
+.bildirim-kart {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--bosluk-3);
+  width: 100%;
+  min-height: var(--dokunma);
+  padding: var(--bosluk-3) var(--bosluk-3) var(--bosluk-3) var(--bosluk-4);
+  border: 0;
+  border-radius: var(--r-kart);
+  background: var(--yuzey);
+  box-shadow: var(--sh-1);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.13s ease;
+}
+
+.bildirim-kart:active {
+  transform: scale(0.99);
+}
+
+.bildirim-kart:focus-visible {
+  outline: 2px solid var(--mavi-rz);
+  outline-offset: 2px;
+}
+
+.bildirim-kart__simge {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--dokunma);
+  height: var(--dokunma);
+  border-radius: var(--r-sm);
+  background: var(--mavi-soft);
   color: var(--mavi-rz);
 }
 
+.bildirim-kart__simge--servis,
+.bildirim-kart__simge--kampanya {
+  background: var(--turuncu-soft);
+  color: var(--turuncu-d);
+}
+
+.bildirim-kart__simge--siparis,
+.bildirim-kart__simge--etkinlik {
+  background: var(--mor-z);
+  color: var(--mor);
+}
+
+.bildirim-kart__simge--musteri {
+  background: var(--yesil-z);
+  color: var(--yesil);
+}
+
+.bildirim-kart__simge--guvenlik,
+.bildirim-kart__simge--geriCagirma {
+  background: var(--kirmizi-z);
+  color: var(--kirmizi);
+}
+
+.bildirim-kart__govde {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bosluk-1);
+}
+
+.bildirim-kart__ust {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--bosluk-2);
+}
+
+.bildirim-kart__baslik {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--y-govde);
+  font-weight: 800;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.bildirim-kart--okundu .bildirim-kart__baslik {
+  font-weight: 600;
+}
+
+.bildirim-kart__nokta {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  margin-top: 6px;
+  border-radius: var(--r-tam);
+  background: var(--mavi-rz);
+}
+
+.bildirim-kart__metin {
+  font-size: var(--y-alt);
+  line-height: 1.45;
+  color: var(--murekkep-2);
+  overflow-wrap: anywhere;
+}
+
 /* Uzun duyuru listede üç satır; tamamı dokununca yaprakta. */
-.talep-haberi__metin--kisa {
+.bildirim-kart__metin--kisa {
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.bildirim-kart__alt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--bosluk-1) var(--bosluk-2);
+  margin-top: var(--bosluk-1);
+}
+
+/* Türün adı ve talep numarası aynı hap ölçüsünde: yan yana durduklarında
+   satır dalgalanmasın (Connect → .duyuru-etiket, .badge). */
+.bildirim-kart__etiket,
+.bildirim-kart__no {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--bosluk-2);
+  border-radius: var(--r-tam);
+  font-size: var(--y-mini);
+  font-weight: 800;
+  white-space: nowrap;
+  background: var(--mavi-soft);
+  color: var(--mavi-rz);
+}
+
+.bildirim-kart__no {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.bildirim-kart__no--servis,
+.bildirim-kart__etiket--kampanya {
+  background: var(--turuncu-soft);
+  color: var(--turuncu-d);
+}
+
+.bildirim-kart__no--siparis,
+.bildirim-kart__etiket--etkinlik {
+  background: var(--mor-z);
+  color: var(--mor);
+}
+
+.bildirim-kart__etiket--musteri {
+  background: var(--yesil-z);
+  color: var(--yesil);
+}
+
+.bildirim-kart__etiket--guvenlik,
+.bildirim-kart__etiket--geriCagirma {
+  background: var(--kirmizi-z);
+  color: var(--kirmizi);
+}
+
+/* Geri çağırma güvenlik uyarısından da ağır: çerçeveli. */
+.bildirim-kart__etiket--geriCagirma {
+  box-shadow: inset 0 0 0 1.5px currentColor;
+}
+
+.bildirim-kart__zaman {
+  font-size: var(--y-alt);
+  color: var(--murekkep-3);
+}
+
+.bildirim-kart__ok {
+  flex: none;
+  align-self: center;
+  display: grid;
+  color: var(--murekkep-3);
 }
 
 /* Üst çubuktaki Bildirimler düğmesi: yalnız zil (28 Eylül 2026,
@@ -1473,6 +1649,27 @@ html:has(.onay-perde, .yaprak-perde) .katman {
   font-size: var(--yazi-2);
   line-height: 1.55;
   color: var(--murekkep-2);
+}
+
+/* YAZI SÜTUNU KARTIN SONUNA KADAR (8 Ekim 2026). Sütun içeriği kadar
+   genişliyordu. */
+.not > div {
+  flex: 1;
+  min-width: 0;
+}
+
+/* DÜĞMELİ NOT: DÜĞME KARTIN TAM GENİŞLİĞİNDE (8 Ekim 2026, kullanıcının
+   bildirdiği: "Yeniden Dene butonu ortalanmış mı?"). Düğme yazı
+   sütununun içindeyken solda simge kadar fazla boşluk kalıyor, kartta
+   ortalı durmuyordu. Düğme simge ve yazının altında ayrı satırda, kartın
+   iki iç kenarına eşit uzaklıkta. */
+.not--dugmeli {
+  flex-wrap: wrap;
+}
+
+.not__dugme {
+  flex: 1 1 100%;
+  margin-top: var(--bosluk-1);
 }
 
 .not--mavi {
@@ -4561,9 +4758,17 @@ html:has(.onay-perde, .yaprak-perde) .katman {
    DikteliKutu). Çerçeve, köşe ve odak halkası dıştaki kutuda; içteki
    yazı alanı çerçevesiz. Düğme yazının altındaki şeritte, ince bir
    çizgiyle ayrılmış. Parmak boyu 48 piksel; eldivenle de basılıyor.
-   Dinlerken bütün çerçeve maviye dönüyor ve düğmenin yanında atan bir
+   Dinlerken bütün çerçeve maviye dönüyor ve düğmenin üstünde atan bir
    nokta ile "dinleniyor" yazısı duruyor — yalnız renk değil, yazı da
-   söylüyor. */
+   söylüyor.
+
+   DÜĞME ŞERİDİ DOLDURUYOR (8 Ekim 2026, kullanıcının seçimi). Düğme
+   sola yaslıydı, şeridin geri kalanı boş kalıyordu; kullanıcı: "gözümü
+   rahatsız ediyor, tasarım olarak bir sıkıntı varmış gibi". Üç düzen
+   gösterildi (şeridi dolduran, kutunun sağ alt köşesi, sağa yaslı);
+   seçim şeridi dolduran: Servisim'in "tam genişlikte düğme" kuralı ve
+   eldivenle en büyük hedef. "Dinleniyor" satırı düğmenin üstüne çıkıyor
+   (`order`), düğme yine tam genişlikte "Durdur" oluyor. */
 .uyg .dikteli {
   overflow: hidden;
   /* Yazı alanını ve "Konuşarak Yaz" şeridini saran tek çerçeve; iç
@@ -4607,7 +4812,9 @@ html:has(.onay-perde, .yaprak-perde) .katman {
 
 .uyg .dikteli .dikteli__dg {
   display: inline-flex;
+  flex: 1 1 100%;
   align-items: center;
+  justify-content: center;
   gap: var(--bosluk-2);
   padding: 0 var(--bosluk-4);
   border: 0;
@@ -4623,8 +4830,12 @@ html:has(.onay-perde, .yaprak-perde) .katman {
 
 .uyg .dikteli__durum {
   display: inline-flex;
+  order: -1;
+  flex: 1 1 100%;
   align-items: center;
+  justify-content: center;
   gap: var(--bosluk-2);
+  padding-top: var(--bosluk-1);
   font-size: var(--y-alt);
   font-weight: 600;
   color: var(--murekkep-2);
@@ -6541,43 +6752,6 @@ button.hareket:active {
    !important. */
 [data-tema='koyu'] .uyg__bar img {
   filter: brightness(0) invert(1) !important;
-}
-
-/* BİLDİRİMDE DUYURUNUN TÜRÜ (29 Eylül 2026, görünüm önerisi S5).
-   Güvenlik uyarısı, fuar daveti ve yeni ürün haberi Bildirimler
-   listesinde aynı satırdı; tür yalnız soluk alt satırda yazıyordu.
-   Artık başlığın üstünde türün simgesi ve adı, İşlerim'deki duyuru
-   kartlarının renginde. Güvenlik uyarısı ve geri çağırma kırmızı ve
-   kalın: servisten bir şey yapmasını istiyorlar. */
-.talep-haberi__tur {
-  --haber-renk: var(--murekkep-2);
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--y-alt);
-  font-weight: 700;
-  color: var(--haber-renk);
-}
-
-.talep-haberi__tur svg {
-  flex: none;
-}
-
-.talep-haberi__tur--kampanya { --haber-renk: var(--turuncu-d); }
-.talep-haberi__tur--yeniUrun { --haber-renk: var(--mavi-rz); }
-.talep-haberi__tur--etkinlik { --haber-renk: var(--mor); }
-
-.talep-haberi__tur--guvenlik,
-.talep-haberi__tur--geriCagirma {
-  --haber-renk: var(--kirmizi);
-  font-weight: 800;
-}
-
-/* Satırın solunda da türün rengi: okunmuş güvenlik uyarısı da listede
-   ayrı duruyor. */
-.talep-haberi__satir--guvenlik,
-.talep-haberi__satir--geriCagirma {
-  box-shadow: inset 4px 0 0 var(--kirmizi);
 }
 
 /* SİPARİŞİN ALT ÇUBUĞU TEK SATIR (29 Eylül 2026, görünüm önerisi S8;

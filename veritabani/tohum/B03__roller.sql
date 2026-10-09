@@ -6,7 +6,7 @@
    düzenlemeyin: kaynak değişince yeniden üretilir ve el değişikliği
    kaybolur. Kaynağı değiştirin, sonra "npm run vt -- tohum" çalıştırın.
 
-   5 rol, 30 rol izni.
+   5 rol, 51 rol izni.
 
    Kaynak: src/data/yetkiler.js VARSAYILAN_ROLLER; rol kodları
    tohum/kaynak/kod-eslesmeleri.json. Kimlik UUIDv5 (ad alanı tasarim.md 1.6,
@@ -40,7 +40,7 @@ FROM (
         (N'22d564ce-16cb-5318-b7a4-501ce952d952', N'admin', N'Admin', N'Her şeyi görür ve yapar; rolleri ve personel hesaplarını yönetir.', 1, 1, NULL, N'admin'),
         (N'7defff91-b3ae-5910-82ac-fe7159047ecc', N'yedek-parca', N'Yedek Parça', N'Yalnız yedek parça taleplerini görür.', 0, 0, N'parca', N'parca'),
         (N'8345a847-3bd9-5f34-9f8c-aa4dcb97c351', N'servis-masasi', N'Servis', N'Yalnız servis taleplerini görür; makinelere servis atar.', 0, 0, N'servis', N'servis'),
-        (N'9f30df05-459c-5571-a344-bf55e833e378', N'yonetici', N'Yönetici', N'Tüm talepleri ve raporları görür; personel listesini görür ancak değiştiremez.', 0, 0, NULL, N'yonetici'),
+        (N'9f30df05-459c-5571-a344-bf55e833e378', N'yonetici', N'Yönetici', N'Tüm talepleri, raporları ve personel listesini görür ancak taleplerde ve personel listesinde değişiklik yapamaz.', 0, 0, NULL, N'yonetici'),
         (N'eeeafab2-0df0-57cf-8c30-69d0ae856d04', N'satis', N'Satış', N'Yalnız fiyat teklifi taleplerini görür; servis bölgelerini düzenleyebilir.', 0, 0, N'satinalma', N'satis')
     ) AS v (Kimlik, Kod, Ad, Aciklama, TumIzinler, Sistem, TalepTuruKodu, EskiKayitNo)
 ) AS k
@@ -53,14 +53,28 @@ FROM (
     SELECT CONVERT(uniqueidentifier, v.RolKimlik) AS RolKimlik,
            CONVERT(nvarchar(40), v.IzinKodu) AS IzinKodu
     FROM (VALUES
+        (N'7defff91-b3ae-5910-82ac-fe7159047ecc', N'hakedisOnay'),
         (N'7defff91-b3ae-5910-82ac-fe7159047ecc', N'makineler'),
         (N'7defff91-b3ae-5910-82ac-fe7159047ecc', N'musteriler'),
+        (N'7defff91-b3ae-5910-82ac-fe7159047ecc', N'odemeOnay'),
+        (N'7defff91-b3ae-5910-82ac-fe7159047ecc', N'parcaGonderim'),
         (N'7defff91-b3ae-5910-82ac-fe7159047ecc', N'servisler'),
+        (N'7defff91-b3ae-5910-82ac-fe7159047ecc', N'talepDurum'),
+        (N'7defff91-b3ae-5910-82ac-fe7159047ecc', N'talepIptal'),
+        (N'7defff91-b3ae-5910-82ac-fe7159047ecc', N'talepNot'),
+        (N'7defff91-b3ae-5910-82ac-fe7159047ecc', N'talepTeklif'),
         (N'7defff91-b3ae-5910-82ac-fe7159047ecc', N'talepler'),
+        (N'8345a847-3bd9-5f34-9f8c-aa4dcb97c351', N'hakedisOnay'),
         (N'8345a847-3bd9-5f34-9f8c-aa4dcb97c351', N'makineAtama'),
         (N'8345a847-3bd9-5f34-9f8c-aa4dcb97c351', N'makineler'),
         (N'8345a847-3bd9-5f34-9f8c-aa4dcb97c351', N'musteriler'),
+        (N'8345a847-3bd9-5f34-9f8c-aa4dcb97c351', N'odemeOnay'),
+        (N'8345a847-3bd9-5f34-9f8c-aa4dcb97c351', N'parcaGonderim'),
         (N'8345a847-3bd9-5f34-9f8c-aa4dcb97c351', N'servisler'),
+        (N'8345a847-3bd9-5f34-9f8c-aa4dcb97c351', N'talepDurum'),
+        (N'8345a847-3bd9-5f34-9f8c-aa4dcb97c351', N'talepIptal'),
+        (N'8345a847-3bd9-5f34-9f8c-aa4dcb97c351', N'talepNot'),
+        (N'8345a847-3bd9-5f34-9f8c-aa4dcb97c351', N'talepTeklif'),
         (N'8345a847-3bd9-5f34-9f8c-aa4dcb97c351', N'talepler'),
         (N'9f30df05-459c-5571-a344-bf55e833e378', N'destek'),
         (N'9f30df05-459c-5571-a344-bf55e833e378', N'duyurular'),
@@ -77,11 +91,18 @@ FROM (
         (N'9f30df05-459c-5571-a344-bf55e833e378', N'servisler'),
         (N'9f30df05-459c-5571-a344-bf55e833e378', N'talepler'),
         (N'9f30df05-459c-5571-a344-bf55e833e378', N'yonetimOzeti'),
+        (N'eeeafab2-0df0-57cf-8c30-69d0ae856d04', N'hakedisOnay'),
         (N'eeeafab2-0df0-57cf-8c30-69d0ae856d04', N'makineAtama'),
         (N'eeeafab2-0df0-57cf-8c30-69d0ae856d04', N'makineler'),
         (N'eeeafab2-0df0-57cf-8c30-69d0ae856d04', N'musteriler'),
+        (N'eeeafab2-0df0-57cf-8c30-69d0ae856d04', N'odemeOnay'),
+        (N'eeeafab2-0df0-57cf-8c30-69d0ae856d04', N'parcaGonderim'),
         (N'eeeafab2-0df0-57cf-8c30-69d0ae856d04', N'servisDuzenle'),
         (N'eeeafab2-0df0-57cf-8c30-69d0ae856d04', N'servisler'),
+        (N'eeeafab2-0df0-57cf-8c30-69d0ae856d04', N'talepDurum'),
+        (N'eeeafab2-0df0-57cf-8c30-69d0ae856d04', N'talepIptal'),
+        (N'eeeafab2-0df0-57cf-8c30-69d0ae856d04', N'talepNot'),
+        (N'eeeafab2-0df0-57cf-8c30-69d0ae856d04', N'talepTeklif'),
         (N'eeeafab2-0df0-57cf-8c30-69d0ae856d04', N'talepler')
     ) AS v (RolKimlik, IzinKodu)
 ) AS k

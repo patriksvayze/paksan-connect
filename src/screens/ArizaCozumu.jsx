@@ -17,6 +17,8 @@ import { makineninServisi } from '../lib/servisAtama'
 import { araProps, telFirma } from '../lib/tel'
 import { useGeriYakala } from '../lib/geriYakala'
 import { destekOlay, destekOturumu } from '../lib/destekLog'
+import { destekParcasi } from '../lib/destekParcasi'
+import { ParcaResmi, useParcaKatalogu } from '../components/ParcaResmi'
 import {
   IconAlert, IconBook, IconCheck, IconCheckCircle, IconClose, IconMachine, IconParca,
   IconPhone, IconRight, IconSearch, IconWrench,
@@ -630,6 +632,8 @@ function CozumAdimi({
   const yapilan = nedenler.filter((s) => kontrol.has(yaz(s.ad, 'tr'))).length
   const parcalar = belirti.parcalar || []
   const kilavuzVar = Boolean(URUN_KILAVUZU[urunId])
+  /* Katalog yalnız bu belirtide parça varsa iniyor. */
+  const katalog = useParcaKatalogu(parcalar.length > 0)
 
   return (
     <>
@@ -718,10 +722,39 @@ function CozumAdimi({
         <section className="destek-parcalar" aria-labelledby="destek-parcalar-baslik">
           <h3 id="destek-parcalar-baslik">{t('ariza.parcalar')}</h3>
           <p className="destek-parcalar__alt">{t('ariza.parcalarAlt')}</p>
+          {/* PARÇA GÖRSELİYLE (8 Ekim 2026, kullanıcının isteği: "gerekebilecek
+              parçanın anlaşılır seviyede görülecek şekilde görseli olsun").
+              Katalogda karşılığı olan parça fiyat listesindeki resmiyle,
+              katalogdaki adı ve koduyla; o parça talep formunda seçili
+              geliyor (aynı işlev: lib/destekParcasi.js). Karşılığı olmayanın
+              resmi yok, uydurulmuyor: yalnız adı, talepte açıklamaya
+              yazılıyor. Yanlış parçanın resmini göstermek, hiç
+              göstermemekten kötü. */}
           <ul className="destek-parcalar__liste">
-            {parcalar.map((p) => (
-              <li key={p}><IconParca size={16} /> {p}</li>
-            ))}
+            {parcalar.map((p) => {
+              const bulunan = destekParcasi(p, urunId, katalog)
+              return (
+                <li
+                  key={p}
+                  className={'destek-parca' + (bulunan ? ' destek-parca--katalogda' : '')}
+                  data-destek-parca={bulunan ? bulunan.parca.kod : ''}
+                >
+                  {bulunan ? (
+                    <ParcaResmi katalog={katalog} kod={bulunan.parca.kod} boyut={84} yok={t('parcaSec.gorselYok')} />
+                  ) : (
+                    <span className="destek-parca__simge" aria-hidden="true"><IconParca size={20} /></span>
+                  )}
+                  <span className="destek-parca__metin">
+                    <span className="destek-parca__ad">{p}</span>
+                    {bulunan && (
+                      <span className="destek-parca__kod">
+                        {bulunan.parca.ad} · {bulunan.parca.kod}
+                      </span>
+                    )}
+                  </span>
+                </li>
+              )
+            })}
           </ul>
           <button type="button" className="btn btn--soft" onClick={() => onTalep('parca', parcalar)}>
             <IconParca size={20} /> {t('ariza.parcalariIste')}

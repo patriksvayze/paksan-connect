@@ -43,6 +43,25 @@ export const YETKI_KATALOG = [
          2026, kullanıcı sınaması O8). Kimlik aynı kaldı, yalnız ad
          değişti: depodaki roller olduğu gibi çalışıyor. */
       { id: 'talepGeriAc', ad: 'Kapanmış talebi yeniden açar, gönderilmiş servis siparişini iptal eder' },
+      /* TALEPTE YAPILAN İŞLER AYRI YETKİ (8 Ekim 2026, kullanıcının
+         isteği: "Talepler ekranında nelerin düzenlenebileceği hakkında
+         bir yetki sınırlaması getirelim. Yönetim rolünün Talepler
+         ekranında düzenleme yapmasını istemiyorum mesela. Ama sonraki
+         roller için de daha detaylı sınırlamalar çekebilmek için
+         detaylandırabiliriz"). Önce `talepler` izni hem listeyi açıyor
+         hem talepteki BÜTÜN işlemlere izin veriyordu: talebi gören,
+         durumunu değiştirip iptal edebiliyor, hak edişi onaylayabiliyordu.
+         Artık `talepler` yalnız görmek; her iş kendi izninde. Hangi
+         düğmenin hangi izne bağlı olduğu tek yerde: veri.js →
+         TALEP_EYLEMLERI. Depodaki eski roller bir kez taşındı
+         (veri.js → rolIzinleriniTasi, izinSurumu 4). */
+      { id: 'talepDurum', ad: 'Talebin durumunu değiştirir, talebi kapatır ve gönderim gününü belirler' },
+      { id: 'talepIptal', ad: 'Talebi iptal eder ve müşterinin iptal isteğini karara bağlar' },
+      { id: 'talepNot', ad: 'Talebe not yazar ve notu müşteriye ve servise gönderir' },
+      { id: 'talepTeklif', ad: 'Fiyat teklifi verir ve talebi bayiye iletir' },
+      { id: 'hakedisOnay', ad: 'Servisin hak edişini onaylar, düzeltir veya reddeder' },
+      { id: 'parcaGonderim', ad: 'Parça gönderimini ve kargo bilgisini girer, kalan parçaları gönderir veya iptal eder' },
+      { id: 'odemeOnay', ad: 'Müşterinin ödemesini onaylar' },
     ],
   },
   {
@@ -69,6 +88,13 @@ export const YETKI_KATALOG = [
          kimse atama gücünü kaybetmedi (bkz. veri.js → rolIzinleriniTasi,
          izinSurumu 3). */
       { id: 'makineAtama', ad: 'Makineye servis atar ve satan bayiyi girer' },
+      /* İkinci el devir (9 Ekim 2026, kullanıcının onayı): makineyi bir
+         hesaptan alıp başkasının hesabına geçiriyor. Servis atamasından
+         ayrı: yanlış devirde makine, servis talebi açma hakkıyla birlikte
+         yabancının hesabına geçer. Numara değişikliği gibi varsayılan
+         rollerde yalnız Admin'de (TUM_IZINLER); depodaki rollere
+         taşınmıyor, admin Roller ekranından veriyor. */
+      { id: 'makineDevir', ad: 'Makinenin sahibini değiştirir' },
       { id: 'musteriDuzenle', ad: 'Müşteri bilgisini düzeltir' },
       { id: 'numara', ad: 'Numara değişikliği talebini onaylar' },
       { id: 'kimlikNo', ad: 'Talepteki T.C. kimlik veya vergi numarasının tamamını görür' },
@@ -121,6 +147,14 @@ export const YETKI_KATALOG = [
       { id: 'rolYonetimi', ad: 'Rolleri ve yetkilerini düzenler' },
     ],
   },
+]
+
+/* Talepte iş yapma izinleri (yukarıda, Talepler öbeği). Talebi gören
+   varsayılan rollere ve taşınan eski rollere birlikte veriliyor: her rol
+   zaten yalnız kendi türündeki talepleri görüyor, fiyat teklifi izni
+   servis biriminde bir şey açmıyor. Yönetici bilerek dışarıda. */
+export const TALEP_EYLEM_IZINLERI = [
+  'talepDurum', 'talepIptal', 'talepNot', 'talepTeklif', 'hakedisOnay', 'parcaGonderim', 'odemeOnay',
 ]
 
 /** Katalogdaki bütün izin kimlikleri — admin rolü bunu taşıyor. */
@@ -182,8 +216,12 @@ export const VARSAYILAN_ROLLER = [
   {
     id: 'yonetici',
     ad: 'Yönetici',
-    aciklama: 'Tüm talepleri ve raporları görür; personel listesini görür ancak değiştiremez.',
+    aciklama: 'Tüm talepleri, raporları ve personel listesini görür ancak taleplerde ve personel listesinde değişiklik yapamaz.',
     talepTurleri: null,
+    /* TALEPTE İŞLEM İZNİ YOK (8 Ekim 2026, kullanıcının kararı: "Yönetim
+       rolünün Talepler ekranında düzenleme yapmasını istemiyorum"):
+       talepleri görüyor, durum, not, iptal, hak ediş düğmeleri ona
+       çıkmıyor. */
     izinler: [
       'talepler', 'musteriler', 'makineler', 'makineAtama', 'servisler', 'servisDuzenle', 'personel',
       'geribildirim', 'raporlar', 'yonetimOzeti', 'kayit', 'duyurular', 'destek',
@@ -198,14 +236,14 @@ export const VARSAYILAN_ROLLER = [
     /* Makineye servis atar (25 Eylül 2026): talepleri ve hak edişi bu
        birim yürütüyor, atama dışı işi gören de o. Servis hesaplarını
        düzenlemez: `servisDuzenle` bilerek yok. */
-    izinler: ['talepler', 'musteriler', 'makineler', 'makineAtama', 'servisler'],
+    izinler: ['talepler', ...TALEP_EYLEM_IZINLERI, 'musteriler', 'makineler', 'makineAtama', 'servisler'],
   },
   {
     id: 'parca',
     ad: 'Yedek Parça',
     aciklama: 'Yalnız yedek parça taleplerini görür.',
     talepTurleri: ['parca'],
-    izinler: ['talepler', 'musteriler', 'makineler', 'servisler'],
+    izinler: ['talepler', ...TALEP_EYLEM_IZINLERI, 'musteriler', 'makineler', 'servisler'],
   },
   {
     id: 'satis',
@@ -217,7 +255,7 @@ export const VARSAYILAN_ROLLER = [
        `makineAtama` 25 Eylül 2026'da `servisDuzenle`den ayrılırken
        satışta kaldı: dün makineye servis ve bayi atayabiliyordu, yetki
        kaybetmesin. */
-    izinler: ['talepler', 'musteriler', 'makineler', 'makineAtama', 'servisler', 'servisDuzenle'],
+    izinler: ['talepler', ...TALEP_EYLEM_IZINLERI, 'musteriler', 'makineler', 'makineAtama', 'servisler', 'servisDuzenle'],
   },
 ]
 

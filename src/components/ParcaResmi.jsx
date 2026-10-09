@@ -18,8 +18,9 @@ import { gorselAdresi, katalogGetir, parcaBul } from '../lib/parcaKatalogu'
    kullanıcının kararı: "katalog değişirse geçmiş işlemlerdeki kodlar,
    adlar ve görseller değişmemeli"). Parça satırı, kaydedildiği günkü
    görselin dosya adını taşıyor (`gorsel`, bkz. lib/parcaKatalogu.js →
-   fiyatGoruntusu). Dosya sunucuda hiç ezilmiyor ve silinmiyor; yeni
-   listede resmi değişen parça yeni adla geliyor (bkz.
+   fiyatGoruntusu). Dosya sunucuda hiç ezilmiyor; yeni listede resmi
+   değişen parça yeni adla geliyor ve yeni liste eskisini kaldırırken
+   kayıtların gösterdiği görselleri tutuyor (bkz.
    sunucu-taklidi/fiyat-listesi-yayini.mjs). Böylece altı ay önceki
    talep, o gün müşterinin seçtiği resmi gösteriyor.
 

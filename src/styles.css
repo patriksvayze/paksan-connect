@@ -1583,6 +1583,13 @@ p {
    Kullanıcının nereye gitmesi gerektiğini yazıyla anlatmak yerine hedefi
    işaretliyoruz: buton üç kez nabız gibi atıp sabit vurgulu hâlde kalıyor.
    Hareketi kapalı olan cihazlarda yalnızca vurgulu çerçeve görünür. */
+/* Geri dönüşü olmayan işin onay düğmesi (8 Ekim 2026: talebi iptal
+   etme penceresi). Beyaz yazı kırmızı zeminde 4,5:1'in üstünde. */
+.btn--sil {
+  background: var(--pk-red);
+  color: #fff;
+}
+
 .btn--dikkat {
   border-color: var(--pk-orange);
   color: var(--pk-orange-ink);
@@ -3198,34 +3205,54 @@ p {
 
 /* ------------------------------------------------------------ Ürün kartı */
 
-/* Profil özet kutuları.
-
-   Soldaki kutu <button> (makinelere gider), sağdaki düz <div>. Tarayıcı
-   butonun içeriğini dikeyde ortalıyor, div'inkini yukarıdan diziyor —
-   bu yüzden iki kutudaki sayı ve yazı 5 piksel kaymış duruyordu. İkisi
-   de aynı şekilde diziliyor. */
-/* Profil'in "Taleplerim" satırı (7 Ekim 2026): tam genişlik, iri ad,
-   sağda talep sayısı. Talep türünün rengi turuncu (servis). */
-.taleplerim-kart {
-  padding: 16px 16px 16px 15px;
+/* Görüş penceresinde mesaj kutusunun altındaki karakter sayacı (8 Ekim
+   2026): sağa yaslı, rakamlar eşit genişlikte (yazdıkça kıpırdamasın). */
+.gorus-sayac {
+  display: block;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
-.taleplerim-kart__ikon {
-  width: 50px;
-  height: 50px;
-  background: var(--pk-orange-soft);
-  color: var(--pk-orange-ink);
-}
-
-.taleplerim-kart__baslik {
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.taleplerim-kart__sayi {
-  font-size: 22px;
-  font-weight: 700;
+/* Profil'in "Taleplerim" satırı (8 Ekim 2026): hesap kartının içinde,
+   "Bilgilerimi Düzenle"nin altında, üstünde ince çizgi. Mavi sayı açık
+   talep sayısı. */
+.taleplerim-satir {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-top: 14px;
+  padding: 14px 0 0;
+  border-top: 1px solid var(--line);
+  text-align: left;
   color: var(--ink);
+}
+
+.taleplerim-satir__ikon {
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+}
+
+.taleplerim-satir__ad {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.taleplerim-satir__sayi {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: var(--pk-blue);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
 }
 
 .prodcard {
@@ -4395,6 +4422,8 @@ p {
 .detay-kutu--turuncu > .eyebrow { color: var(--pk-orange-ink); }
 .detay-kutu--yesil > .eyebrow { color: var(--pk-green-yazi); }
 .detay-kutu--mor > .eyebrow { color: var(--tur-parca-yazi); }
+/* Müşterinin bekleyen iptal isteği (8 Ekim 2026): bilgi, uyarı değil. */
+.detay-kutu--mavi > .eyebrow { color: var(--pk-blue-yazi); }
 
 .detay-satir {
   display: flex;
@@ -6767,28 +6796,64 @@ p {
   list-style: none;
   margin: 12px 0 14px;
   padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
 }
 
 /* Liste, düğme değil (29 Eylül 2026, C6): hap biçimindeki parçalar
-   dokunulabilir gibi duruyordu; dokunulunca hiçbir şey olmuyordu. */
-.destek-parcalar__liste li {
-  display: inline-flex;
+   dokunulabilir gibi duruyordu; dokunulunca hiçbir şey olmuyordu.
+
+   SATIR, GÖRSELİYLE (8 Ekim 2026, kullanıcının isteği: parçanın
+   "anlaşılır seviyede görülecek şekilde görseli olsun"). Katalogda
+   karşılığı olan parça 84 piksellik resmiyle (beyaz zemin, her temada:
+   components/ParcaResmi.jsx), altında katalogdaki adı ve kodu. Karşılığı
+   olmayan parçanın yerinde aynı genişlikte sade simge kutusu: adlar aynı
+   hizada başlıyor. Satırlar ince çizgiyle ayrılıyor, düğme gibi değil. */
+.destek-parca {
+  display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 12px 4px 0;
-  border-radius: 0;
-  background: transparent;
-  border: 0;
-  font-size: 14.5px;
+  gap: 14px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+
+.destek-parca:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.destek-parca .parca-resmi {
+  flex: none;
+  border-radius: 14px;
+}
+
+.destek-parca__simge {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 56px;
+  border-radius: 14px;
+  background: var(--surface-3);
+  color: var(--ink-3);
+}
+
+.destek-parca__metin {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.destek-parca__ad {
+  font-size: 15.5px;
   font-weight: 700;
   color: var(--ink);
 }
 
-.destek-parcalar__liste svg {
-  color: var(--ink-3);
+.destek-parca__kod {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
 }
 
 /* -------------------------------------------------- Kılavuza bağlantı */

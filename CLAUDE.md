@@ -94,7 +94,7 @@ otomasyon paketi kurulu değil. Buna karşılık dört şey var:
   çağrılmıyorsa yoktur.*
 - **Ekosistem sınaması** (`tools/ekosistem-sinamasi.mjs`) — üç
   uygulamanın PAYLAŞTIĞI veri katmanını Node içinde gerçekten
-  çalıştırıyor: otuz sekiz akış senaryosu (AK-01…AK-38), talep açılışından
+  çalıştırıyor: kırk bir akış senaryosu (AK-01…AK-41), talep açılışından
   hak edişin cariye yazılmasına kadar. Modüller Vite'ın
   `ssrLoadModule`'üyle yükleniyor, depo taklit ediliyor, saat donmuş,
   rastgelelik tohumlu, saat dilimi sabit (Europe/Istanbul; 0. adım
@@ -138,8 +138,12 @@ otomasyon paketi kurulu değil. Buna karşılık dört şey var:
   Ekim'de B-ADRES backoffice ekranının adres çubuğunda olması; 5 Ekim'de
   C-40 bölge dışı talebin formdaki uyarısı ve B-BOLGE backoffice'te o işe
   servis atama; 6 Ekim'de B-RAPOR, B-TARIH ve X-16 servis kaydının çok
-  seçimli yapılan işi) ve **on bir formun boş gönderimi**
-  (`tools/ekosistem/formlar.mjs`) — toplam 102 denetim). Her ekranda
+  seçimli yapılan işi; 8 Ekim'de C-41 müşterinin talebi iptal etmesi,
+  B-IPTAL iptal isteğinin kararı ve iş izni olmayan rol, B-GORUS geri
+  bildirimin iç notu ve durum süzgeci, X-17 İşlerim'in tek bildirim
+  satırı; 9 Ekim'de B-SAHIP makinenin sahibini değiştirmek) ve **on bir
+  formun boş gönderimi** (`tools/ekosistem/formlar.mjs`) — toplam 107
+  denetim). Her ekranda
   üç soru: boş mu açıldı, hata verdi mi, ekili değer basılı mı.
   `--yalniz C-27,X-03` yalnız adı verilen denetimleri koşturur (bozma
   denemesi için; kapsam iddiası tam koşunun); bilinmeyen kod verilirse
@@ -209,10 +213,12 @@ açılıyor (`lib/makineKaydi.js` başı, sınaması AK-18).
 kararı). Talebin ve servis kaydının parça satırı kodu, adı, tutarı VE o
 günkü görselin dosya adını (`gorsel`) kendi içinde taşır; ekranlar
 bunları bugünkü katalogtan okumaz (`components/ParcaResmi.jsx`). Sunucu
-görsel dosyasını hiç ezmez ve silmez; resmi değişen parça yeni adla
-gelir (`sunucu-taklidi/fiyat-listesi-yayini.mjs`). Parça satırı yazan
-yeni bir yol açan, bu alanı da yazar. Sınaması AK-19; veritabanı
-karşılığı `VT-TASARIM-EKLERI.md` §4.
+görsel dosyasını hiç ezmez; resmi değişen parça yeni adla gelir
+(`sunucu-taklidi/fiyat-listesi-yayini.mjs`). 8 Ekim 2026'dan beri yeni
+liste eskisini KALDIRIYOR (aşağıda, "8 Ekim 2026 — on istek"); eski
+listenin görsellerinden yalnız kayıtların gösterdikleri kalıyor. Parça
+satırı yazan yeni bir yol açan, bu alanı da yazar. Sınaması AK-19;
+veritabanı karşılığı `VT-TASARIM-EKLERI.md` §4, §17.
 
 **İŞÇİLİK SÜREYLE YAZILIR** (22 Eylül 2026, kullanıcının kararı). Servis
 garanti kaydında işçilik TUTARI değil, işe harcadığı SÜREYİ yazar
@@ -366,7 +372,8 @@ göre"); seçili türde oluşmayan durum listede çıkmıyor. Kod değişmedi.
 üst çubukta "Bildirimler" (okunmamış sayısıyla), ekranı
 `servis/ekranlar/Bildirimler.jsx` — talep ve hesap bildirimleri ile
 duyurular tek listede, Connect'teki gibi günlere göre. İşlerim'deki
-okunmamış bölümü duruyor.
+okunmamış bölümü 8 Ekim 2026'dan beri tek satır; liste aynı gün
+Connect'teki gibi karta döndü (aşağıda, "8 Ekim 2026 — on istek").
 
 **ELLE KAYITTA SERİ YOKSA MODEL VE TAHMİNİ YIL** (24 Eylül 2026,
 kullanıcının kararı): seri ya yazılıyor ya da "Seri Numarası Yok"
@@ -1544,6 +1551,176 @@ atamanın bir anlamı yok."
   (`sunucu-taklidi/fiyat-listesi-yayini.mjs → yerineKoy`). Yeni liste
   yürürlüktekiyle aynıydı (aynı Temmuz listesi); geride kalan 538
   kullanılmayan görsel geri dönüşüm kutusuna gönderildi.
+
+### 8 Ekim 2026 — on istek
+
+- **Talepte iş izinleri** (kullanıcının isteği: "Yönetim rolünün Talepler
+  ekranında düzenleme yapmasını istemiyorum … sonraki roller için de daha
+  detaylı sınırlamalar"). `talepler` artık yalnız görmek; talepteki her iş
+  kendi izninde: `talepDurum`, `talepIptal`, `talepNot`, `talepTeklif`,
+  `hakedisOnay`, `parcaGonderim`, `odemeOnay` (`data/yetkiler.js →
+  TALEP_EYLEM_IZINLERI`; hangi düğme hangi izin: `veri.js →
+  TALEP_EYLEMLERI`, `talepteYapabilir`, `durumDugmesiKilidi`). Varsayılan
+  Yönetici yalnız görüyor; hiçbir iş izni olmayan rolde ayrıntıda düğme
+  yok, nedeni yazıyor. Depodaki eski roller bir kez taşındı (izinSurumu 4;
+  Yönetici bilerek dışarıda). Kapı ekranda; sunucu aynı izni yazımda
+  denetlemeli. AK-08, tur B-IPTAL; veritabanı `VT-TASARIM-EKLERI.md` §16.
+- **Müşterinin talebi iptal etmesi** (kullanıcının isteği; kararı PAKSAN
+  veriyor). Kural tek yerde: `lib/musteriIptal.js → musteriIptalYolu`.
+  Dokunulmamış talep (Yeni, randevu ve servis kaydı yok, devredilmemiş,
+  yeniden açılmamış, dekontu yüklenmemiş) Connect'ten hemen iptal oluyor
+  (`iptalBilgi.musteri`); işleme alınmışta çiftçi neden seçip istek
+  gönderiyor (`iptalIstegi`), iş sürüyor. İş bitmiş, onay bekleyen talepte
+  iptal yok. Backoffice talebin en üstünde kutu, "Talebi İptal Et" /
+  "İsteği Reddet" (gerekçe zorunlu, müşteriye bildirim); listede rozet,
+  süzgeç ve Dashboard satırı (`veri.js → iptalIsteginiKarara`, karar
+  depodaki kayıttan). Servisim her iki işlemi "Müşteriden" görüyor, istek
+  bekliyorsa iş ayrıntısında sarı not; ret de servise bildiriliyor. AK-39,
+  tur C-41, B-IPTAL.
+- **Dashboard:** "Açık talepler kimde?" kartı kalktı (rol bazlı ekranda
+  anlamsızdı, aynı dağılım Raporlar'da); "Aynı gün açılan talep oranı"
+  yerine rolün açık talep sayısı, dokununca Talepler o listeyle açılıyor.
+- **Geri bildirim** (kullanıcının seçimi: konu, durum ve süzgeç, iç not,
+  Connect penceresi "çok abartmadan"). Connect'te konu seçimi (Öneri,
+  Sorun, Teşekkür, Diğer; örnek yazı konuya göre), etiketli mesaj kutusu ve
+  karakter sayacı. Backoffice'te durum (Yeni / Cevaplandı / Kapatıldı,
+  kayıttan türüyor: `veri.js → gorusDurumu`), konu süzgeci, arama, Excel,
+  "İç Not Ekle" (müşteriye gitmiyor, `notlar[].musteriye: false`),
+  "Görüşü Kapat", müşteri kartına bağlantı; hesaba bağlı olmayan görüşte
+  cevap düğmesi yok, nedeni yazıyor. Cevap bildirimi Connect'te kendi
+  türünde (`BILDIRIM_TURU.GORUS`; önce numara bildirimi gibi "Kampanya"
+  etiketiyle çıkıyordu). Yetkisiz role yeni görüş için tarayıcı bildirimi
+  gitmiyor. AK-40, tur B-GORUS.
+- **Servisim İşlerim:** okunmamış bildirimler artık tek satır ("N yeni
+  bildirim", "Bildirimleri Gör"); bildirimi olan işin kartında "Yeni
+  bildirim" etiketi (`Islerim.jsx → YeniBildirimSatiri`). Liste
+  Bildirimler ekranında. Acil uyarılar yine en üstte kart. Tur X-17.
+- **Servisim Bildirimler Connect'teki gibi** (aynı gün, kullanıcının
+  isteği: "bildirimleri birbirinden ayırmak zor ve scannability de").
+  Tek kutudaki satırlar yerine her bildirim ayrı kart
+  (`servis/ekranlar/Bildirimler.jsx`, `servis.css → .bildirim-kart`):
+  solda türün simgesi kendi renginde (servis işi turuncu anahtar, parça
+  siparişi mor somun, müşteriden yeşil kişi, ücret mavi cüzdan, duyuru
+  kendi türünde), okunmamışta kalın başlık ve nokta (her satırdaki
+  "Okunmadı" yazısı kalktı), altta "Müşteriden" ya da duyurunun türü,
+  talep numarası işin renginde, müşterinin adı ve saat (bugün ve dün
+  saat, öncesi tarih); dokununca bir yere gidiyorsa ok. Öbek başlıkları
+  Connect'teki gibi küçük ve büyük harfli. Yeni ekran metni yok, var
+  olanlar kullanıldı. Etiket renkleri iki temada 4,6–7,3. Tur X-17
+  genişledi (üç bozma).
+- **Connect Profil:** Taleplerim hesap kartının içinde, "Bilgilerimi
+  Düzenle"nin altında; yanında açık talep sayısı (üç düzen gösterildi,
+  kullanıcının seçimi "B, Bilgilerimi Düzenle ile yer değiştirsin").
+- **Ürün sayfaları** web sitesindeki açıklamalardan (www.paksanmakina.com.tr),
+  Codex kısalttı; rakam yok (rakamlar teknik tabloda). **SİTENİN TEKNİK
+  BİLGİSİ KULLANILMAZ** (aynı gün, kullanıcının kararı: "Ürün teknik
+  bilgilerini web sayfasından alma, orası yanlış"). Teknik tablolar
+  uygulamadaki gibi kaldı; açıklamada teknik özellik yalnız o ürünün
+  tablosunda varsa geçiyor. Siteye göre değiştirilen dört tanıtım satırı
+  (Dual "otomatik haşbaylı", Yengeç "tamburlu", Ahtapot "balyalama ve
+  paketleme", tesviye "GPS'li") ve o dört ürünün açıklaması eski hâline
+  döndü; öteki açıklamalardan tabloda olmayan teknik cümleler çıktı
+  (i-Pak yalnız otomatik file).
+- **Servis formu:** başlığın altındaki "GARANTİYE DÂHİL" damgası kalktı
+  (form zaten yalnız garanti işinde).
+- **Yeni fiyat listesi eskisini kaldırıyor** (aynı gün, kullanıcının
+  kararı: "listeyi yayına al dendiğinde eski liste çıkartılmalı sistemden.
+  Çünkü yeni liste zaten güncel tüm yedek parça listesi"; karşılaştırma
+  ekranı olduğu gibi kaldı). Sunucu eski listeyi artık arşive kopyalamıyor;
+  eski görseller ve PDF siliniyor. Yalnız kayıtlı bir talebin, servis
+  kaydının ya da siparişin gösterdiği görseller kalıyor (22 Eylül kararı):
+  backoffice onları yayın isteğine koyuyor (`veri.js →
+  kayitlardakiParcaGorselleri`), sunucu kalanları
+  `parca-katalogu/korunan-gorseller.json`'a yazıyor, `npm run dogrula` 9.
+  kontrolü sahipsiz görseli oradan ayırıyor. Sunucu yazıldığında listeyi
+  tarayıcıdan almayacak, veritabanından okuyacak (`VT-TASARIM-EKLERI.md`
+  §17). Görsel adları eskisi gibi dosya içeriğine göre (kullanıcı:
+  "dosya adlarına göre karşılaştırmaya devam et"; resimleri görüntü
+  olarak karşılaştırma önerisi yapılmadı). Eski arşiv klasörü geri
+  dönüşüm kutusuna gitti; 7 Ekim yayınından önceki 538 görsel, tarayıcıdaki
+  eski kayıtlar gösterebildiği için korunanlar listesinde, ilk yayında
+  sunucu ayıklayacak. Sınaması `tools/fiyat-listesi-okuma-sinamasi.mjs`
+  (beş bozma), AK-19 (iki bozma).
+
+### 8-9 Ekim 2026 — küçük düzeltmeler
+
+- **Servisim İşlerim sayacı sınırsız** ("9+" yok; rozet hap, hane arttıkça
+  genişliyor; `servis/Kabuk.jsx`). Üst çubuktaki zil hâlâ "9+".
+- **Dikte düğmesi şeridi dolduruyor** (üç düzen gösterildi, kullanıcının
+  seçimi; `servis.css → .dikteli__dg`); dinlerken "dinleniyor" satırı
+  düğmenin üstünde.
+- **Not kutusunda düğme ortalı**: "Parça listesi yüklenemedi" kutusunun
+  "Yeniden Dene"si yazı sütununun dışında, kartın tam genişliğinde
+  (`.not--dugmeli`, `.not__dugme`; Sipariş Ver ve Parça Seç).
+- **TC sağlaması eksi kalanda geçerli numarayı reddediyordu** (16053909092
+  gibi; on binde bir). `lib/kimlik.js → tcGecerliMi`, AK-32 (13).
+- **Backoffice servis kaydında yol ve işçilik tutarı ücretiyle** ("130 km ·
+  1.560 TL", altında "Kilometre başına 12 TL"; işçilik aynı). Tutarlar Ödeme
+  Tutarı'nın işlevinden (`hakkedisHesapla`), ücret kaydın kendi ücreti.
+  Kullanıcının sorduğu "8 saat · 1.200 TL" kayda yazılmış 150 TL'lik saat
+  ücretinden; hesapta hata bulunmadı.
+- **Düzeltme satırı yalnız değişeni yazıyor** ("Yol 200 km → 200 km"
+  yazmıyor; parça adedi "ad × 2 → × 1"; hiçbir şey değişmediyse satır yok;
+  `lib/servisKaydi.js → duzeltmeYazisi`, Servisim ve backoffice). AK-20.
+- **"Müşteri sorunun devam ettiğini bildirdi" yalnız iş sürerken üstte**:
+  talep yeniden kapandıysa sade bölüm olarak Geçmiş'in üstünde
+  (`Talepler.jsx → SorunDevamSatirlari`). Bildirim, yeniden açılan talebin
+  KENDİSİNDE (`tekrar[]`); aynı makinenin önceki ayrı talebiyle bağı yok.
+  Demo sahnesinde işler kurulum anından tam gün geriye açıldığı için
+  saatleri aynı çıkıyor (`demoSahne.js → adim`); gerçek talepte açıldığı an.
+- **Destek'in "Gerekebilecek parçalar"ı görseliyle** (kullanıcının isteği).
+  Katalogda karşılığı olan parça 84 piksellik resmi, katalog adı ve koduyla;
+  o parça "Bu Parçaları Talep Et" ile formda seçili geliyor. Çeviri iki
+  ekranda tek işlevden: `lib/destekParcasi.js` (Destek ve RequestForm).
+  Karşılığı olmayanın resmi uydurulmuyor, adı açıklamaya yazılıyor; alt
+  cümle bunu söylüyor (Codex). Bugün 33 parça adının 7'si bağlı (küçük
+  balya, Yengeç, Kırlangıç); rulo, silaj, toprak işleme ve büyük balyanın
+  parçası fiyat listesinde yok. Tur C-36 genişledi (iki bozma).
+
+### 9 Ekim 2026 — makinenin sahibi değişiyor, demo baştan
+
+**İKİNCİ EL DEVİR BACKOFFICE'TEN** (kullanıcının sorusu: makinesini
+satan çiftçinin makinesini alan kişi kendi hesabına eklerse kayıt tarihi
+değişecek mi; öneri üzerine cevabı "Evet, Sahibini Değiştir'i ekle").
+Yeni sahip makineyi Connect'te ekleyemiyordu (seri başka hesapta,
+"Makineyi Başkasından Aldım" PAKSAN'ı aratıyor) ve backoffice'te devri
+yapan bir yol yoktu.
+- Kayıtlı Makineler penceresinde **Sahiplik** kutusu: yeni sahibin hesabı
+  telefon numarasıyla bulunuyor (`veri.js → devirIcinMusteriBul`, ülke
+  kodlu anahtarla; birleşip kapanmış hesap aranmıyor), "Makineyi Bu
+  Hesaba Geçir" backoffice'in onay penceresiyle. Süren talep varsa
+  söyleniyor, engellenmiyor: talep eski sahibin hesabında kalıyor.
+- Yazan iş `veri.js → makineSahibiniDegistir`: defter satırı yeni sahipte
+  (il ve ilçe onun adresi), ilk kayıt (`tarih`), bayi ve servis ataması
+  yerinde; `sahiplikTarihi` o an, kapanan sahiplik `sahiplikGecmisi[]`'nin
+  başında (hesap, başlangıç, bitiş, neden 'devir', değiştiren personel);
+  makine eski sahibin Connect listesinden çıkıp yenisininkine giriyor;
+  ikisine de bildirim (eski sahibe yeni sahibin adı söylenmiyor); İşlem
+  Kaydı. Veritabanında makine.MakineSahipligi (eşlemede).
+- **İki tarih:** tablonun "Kayıt" sütunu bugünkü sahibin makineyi aldığı
+  gün (`lib/makineKaydi.js → sahiplikTarihi`), el değiştirmiş makinede
+  altında "İlk kayıt"; pencerede "Bu sahibe geçiş" ve "İlk kayıt",
+  el değiştirmiş makinede **Sahiplik Geçmişi** tablosu; Excel'de ayrı
+  sütun. Aynı hesabın silip yeniden eklemesi sahipliği yeniden
+  BAŞLATMIYOR (önerilen ve kabul edilen kural); servisin kaydettiği
+  hesapsız satıra müşterinin eklemesi başlatıyor.
+- **Ayrı yetki `makineDevir`**, varsayılan rollerde yalnız Admin'de
+  (numara değişikliği gibi); Roller ekranından verilir. Yetkisiz role
+  nedeni yazıyor.
+- Connect'in açık sekmesi makine listesini depodan tazeliyor
+  (`AppState.jsx`): eski liste devredilen makineyi geri yazmasın.
+- Yeni sahip Connect'te yalnız kendi taleplerini görüyor; PAKSAN makinenin
+  bütün geçmişini seriden görüyor. Garanti seriden, makineyle geçiyor.
+- Sınama AK-41 (dokuz bozma), tur B-SAHIP (altı bozma, biri düşmedi,
+  gerekçesi başlıkta). Metinler Codex'ten, İngilizcesi Claude'da.
+
+**DEMO BAŞTAN** (kullanıcının isteği: "tüm demo verilerini sıfırlayıp
+günceller misin"). `DEMO_SURUMU` 10: tarayıcıdaki demo Servisim bir kez
+açılınca silinip yeniden kuruluyor (backoffice'te Personel → demo
+düğmeleri de aynı işi yapıyor). Demoda bir makine ikinci el sahibine
+geçmiş geliyor (`demo.js → ikinciElKur`, gerçek işlevle, son talebin
+açılışından sonra, talebi süren makine seçilmiyor). Sınama AK-34 G19
+(dört bozma).
 
 **Fiyat teklifi servise değil bayiye gider.** Bayinin paneli yok:
 satış personeli bayiye telefonla haber veriyor, sistemde yalnız hangi

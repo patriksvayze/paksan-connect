@@ -127,9 +127,9 @@ Canlıya çıkarken:
 6. **YENİ FİYAT LİSTESİ BACKOFFICE'TEN YÜKLENİYOR** (18 Eylül 2026
    kararı, 21 Eylül 2026'da yapıldı). Personel **Yedek Parça Kataloğu**
    ekranından PDF'i seçer → liste okunur → ekran neyin değiştiğini
-   gösterir (kaç parça geldi/düştü, kaçının fiyatı değişti, ortalama ve
-   en büyük artış, yeni parça grubu var mı, fiyatı okunamayan parça var
-   mı) → personel onaylar → liste yayına girer, eskisi arşive gider.
+   gösterir (kaç parça geldi/düştü, kaçının fiyatı değişti, yeni parça
+   grubu var mı, fiyatı okunamayan parça var mı) → personel onaylar → liste yayına girer, eskisi kalkar (8 Ekim 2026,
+   kullanıcının kararı; kayıtların gösterdiği eski görseller kalır).
    Geliştirici devreye girmez.
 
    18 Eylül'de dönüştürmenin SUNUCUDA yapılması planlanmıştı; okuma
@@ -139,9 +139,12 @@ Canlıya çıkarken:
 
    **Sunucuda yapılacak:** `POST <kok>/yayinla` uç noktası
    (sözleşme: `sunucu-taklidi/fiyat-listesi-yayini.mjs`) — gelen listeyi
-   denetler, `katalog.FiyatListesi` (taslak → yürürlükte → arşiv) ve
-   `katalog.FiyatListesiSatiri` tablolarına yazar, görselleri ve kaynak
-   PDF'i saklar. Uygulama rolünün `katalog.*` yazma izni yok (V0015);
+   denetler, `katalog.FiyatListesi` ve `katalog.FiyatListesiSatiri`
+   tablolarına yazar, görselleri ve kaynak PDF'i saklar; eski listeyi
+   kaldırır. Eski görsellerden hangilerinin kalacağını (kayıtların
+   gösterdikleri) veritabanındaki parça satırlarından kendisi bulur,
+   bugünkü taklit gibi tarayıcının gönderdiği listeye güvenmez
+   (`VT-TASARIM-EKLERI.md` §17). Uygulama rolünün `katalog.*` yazma izni yok (V0015);
    bu uç nokta için izin kararı verilecek. Yetki denetimi sunucuda da
    yapılmalı (`parcaKatalogDuzenle`).
 

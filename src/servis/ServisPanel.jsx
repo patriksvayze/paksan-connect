@@ -966,7 +966,7 @@ function Uygulama({ oturum, onCikis }) {
           biten={biten}
           tumTalepler={talepler}
           onAc={ac}
-          onUcretler={() => setAlt('ucretler')}
+          onBildirimler={() => setAlt('bildirimler')}
           sekme={isSekme}
           onSekme={setIsSekme}
           surum={tazele}

@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  gorunenDurum, makineKayitlariGetir, talepleriGetir, izinli, makineAtamasiniKaydet, rolunTalepleri,
+  devirIcinMusteriBul, gorunenDurum, izinli, KAPALI_DURUMLAR, makineAtamasiniKaydet,
+  makineKayitlariGetir, makineSahibiniDegistir, rolunTalepleri, talepleriGetir,
 } from '../veri'
 import { useVeri } from '../kanca'
 import {
-  Baslik, BeklemeKart, Bos, siraliListe, SiraliBaslik, tarihSaat, tarihYaz, useSiralama,
+  Baslik, BeklemeKart, Bos, siraliListe, SiraliBaslik, tarihSaat, tarihYaz, useOnay, useSiralama,
 } from './ortak'
 import { DisaAktar } from './aktar'
 import { araliktaMi, BOS_ARALIK, Secim, SuzgecCubugu, TarihAraligi } from './suzgec'
@@ -15,6 +16,7 @@ import {
 } from '../../data/katalog/servisler.js'
 import { extractYear, formatSerial, warrantyStatus, GARANTI_YIL } from '../../lib/serial'
 import { kaydinServisi, servisiAtanmamisKayitlar } from '../../lib/servisAtama'
+import { sahiplikTarihi } from '../../lib/makineKaydi'
 
 /* ==========================================================================
    Kayıtlı Makineler
@@ -55,6 +57,12 @@ import { kaydinServisi, servisiAtanmamisKayitlar } from '../../lib/servisAtama'
    Liste bir satırın kim olduğunu söylüyor, pencere başına ne geldiğini:
    makine hangi bayiden çıktı, kime gitti, kaç kez servise girdi, ne
    yapıldı, garantisi sürüyor mu.
+
+   SAHİBİ DE BURADAN DEĞİŞİYOR (9 Ekim 2026, kullanıcının onayı). İkinci
+   el alınan makineyi yeni sahip Connect'te ekleyemiyor, PAKSAN'ı arıyor;
+   personel pencereden makineyi onun hesabına geçiriyor (aşağıda
+   Sahiplik). Tablonun "Kayıt" sütunu bugünkü sahibin makineyi aldığı
+   günü gösteriyor; el değiştirmiş makinede altında ilk kayıt günü.
 
    Seri numaraları karşılaştırılırken tire ve boşluk atılıyor: aynı
    makine kayıtta `ORK1270-2024-00157`, talepte `ORK1270202400157`
@@ -111,6 +119,8 @@ export function Makineler({ personel, rol, bildir, tazele, surum, sorgu }) {
      atayamıyordu. Yan menü sayacı ve Genel Bakış kutusu da aynı izne
      bakıyor (bkz. data/yetkiler.js → makineAtama). */
   const duzenleyebilir = izinli(rol, 'makineAtama')
+  /* Sahibini değiştirmek ayrı yetki (aşağıda Sahiplik). */
+  const devredebilir = izinli(rol, 'makineDevir')
   const [ara, setAra] = useState('')
   const [aralik, setAralik] = useState(BOS_ARALIK)
   const [il, setIl] = useState('hepsi')
@@ -169,7 +179,8 @@ export function Makineler({ personel, rol, bildir, tazele, surum, sorgu }) {
     const qRakam = q.replace(/\D/g, '')
 
     return zenginler.filter((k) => {
-      if (!araliktaMi(k.tarih, aralik)) return false
+      /* Süzgeç tablodaki tarihe bakıyor: bugünkü sahibin makineyi aldığı gün. */
+      if (!araliktaMi(sahiplikTarihi(k), aralik)) return false
       if (il !== 'hepsi' && k.il !== il) return false
       if (ilce !== 'hepsi' && k.ilce !== ilce) return false
       if (atanmamis && k._servisAd) return false
@@ -205,7 +216,7 @@ export function Makineler({ personel, rol, bildir, tazele, surum, sorgu }) {
         servis: (k) => k._servisAd,
         konum: (k) => k.il || '',
         musteri: (k) => k.musteriAd || '',
-        tarih: (k) => k.tarih,
+        tarih: (k) => sahiplikTarihi(k),
       }),
     [suzulmus, siralama]
   )
@@ -356,9 +367,12 @@ export function Makineler({ personel, rol, bildir, tazele, surum, sorgu }) {
           çoğunlukla listede değil o pencerede. */}
       {liste.length > 0 && (
         <p className="kucuk sonuk" style={{ margin: '0 0 12px' }}>
-          {duzenleyebilir
-            ? 'Bir satıra tıklayın. Makinenin bayisi, servisi, fatura bilgileri ve servis geçmişi tek pencerede açılır. Servis ataması da buradan yapılır.'
-            : 'Bir satıra tıklayın. Makinenin bayisi, servisi, fatura bilgileri ve servis geçmişi tek pencerede açılır. Servis atama yetkiniz yok; atama gerekiyorsa yöneticinize başvurun.'}
+          {'Bir satıra tıklayın. Makinenin bayisi, servisi, fatura bilgileri, servis ve sahiplik geçmişi tek pencerede açılır. '}
+          {duzenleyebilir && devredebilir
+            ? 'Buradan servis atayabilir ve makinenin sahibini değiştirebilirsiniz.'
+            : duzenleyebilir
+              ? 'Servis ataması da buradan yapılır.'
+              : 'Servis atama yetkiniz yok; atama gerekiyorsa yöneticinize başvurun.'}
         </p>
       )}
 
@@ -427,7 +441,16 @@ export function Makineler({ personel, rol, bildir, tazele, surum, sorgu }) {
                         {k.musteriAd || '—'}
                         {k.musteriNo && <div className="kucuk sonuk mono">{k.musteriNo}</div>}
                       </td>
-                      <td className="kucuk sonuk">{tarihSaat(k.tarih)[0]}</td>
+                      {/* Bugünkü sahibin makineyi aldığı gün; el değiştirmiş
+                          makinede altında ilk kayıt (9 Ekim 2026). */}
+                      <td className="kucuk sonuk">
+                        {tarihSaat(sahiplikTarihi(k))[0]}
+                        {sahiplikTarihi(k) !== k.tarih && (
+                          <div className="kucuk sonuk" style={{ whiteSpace: 'nowrap' }} data-ilk-kayit>
+                            İlk kayıt: {tarihSaat(k.tarih)[0]}
+                          </div>
+                        )}
+                      </td>
                     </tr>
                   )
                 })}
@@ -447,7 +470,11 @@ export function Makineler({ personel, rol, bildir, tazele, surum, sorgu }) {
           kayit={zenginler.find((k) => k.id === secili.id) || secili}
           talepler={talepler}
           duzenleyebilir={duzenleyebilir}
+          devredebilir={devredebilir}
           onAta={ata}
+          personel={personel}
+          bildir={bildir}
+          tazele={tazele}
           onKapat={() => setSecili(null)}
         />
       )}
@@ -603,7 +630,227 @@ function Atama({ kayit, onAta }) {
   )
 }
 
-function MakineGecmisi({ kayit, talepler, duzenleyebilir, onAta, onKapat }) {
+/* ==========================================================================
+   Sahiplik — ikinci el devir (9 Ekim 2026, kullanıcının onayı: "Evet,
+   Sahibini Değiştir'i ekle")
+
+   Yeni sahip makineyi Connect'te ekleyemiyor (seri başka hesapta) ve
+   PAKSAN'ı arıyor; personel onun hesabını telefon numarasıyla bulup
+   makineyi geçiriyor. Yazan iş veri katmanında (veri.js →
+   makineSahibiniDegistir): defter, iki telefonun listesi, bildirimler ve
+   İşlem Kaydı oradan; ekranda kalsaydı ekosistem sınaması onu
+   çalıştıramazdı.
+
+   AYRI YETKİ (`makineDevir`). Makineyi bir hesaptan alıp başkasına
+   vermek numara değişikliği kadar ağır bir iş: yanlış devirde makine,
+   servis talebi açma hakkıyla birlikte yabancının hesabına geçer.
+   Varsayılan rollerde yalnız Admin'de (numara değişikliği gibi); Roller
+   ekranından başka role verilebilir.
+
+   Onaydan önce süren talep varsa söyleniyor, engellenmiyor: talep eski
+   sahibin hesabında kalıyor (veri.js'teki gerekçe).
+   ========================================================================== */
+function Sahiplik({ kayit, personel, bildir, tazele, sor }) {
+  const [acik, setAcik] = useState(false)
+  const [tel, setTel] = useState('')
+  const [sonuc, setSonuc] = useState(null)
+
+  const bulunan = sonuc?.durum === 'bulundu' ? sonuc.musteri : null
+  const ayniHesap = Boolean(bulunan && kayit.musteriId && bulunan.id === kayit.musteriId)
+  const surenler = useMemo(
+    () =>
+      talepleriGetir().filter(
+        (t) =>
+          temiz(t.makine?.serial) === temiz(kayit.seri) &&
+          !t.servisSiparisi &&
+          !KAPALI_DURUMLAR.includes(t.status || 'yeni'),
+      ),
+    [kayit.seri, kayit.musteriId],
+  )
+
+  const kapat = () => {
+    setAcik(false)
+    setTel('')
+    setSonuc(null)
+  }
+
+  async function gecir() {
+    const urun = getProduct(kayit.productId)?.name || ''
+    const hesapAdi = (ad, no) => (no ? `${ad || ''} (${no})`.trim() : ad || '')
+    const yeni = hesapAdi(bulunan.ad, bulunan.no)
+    const seri = formatSerial(kayit.seri)
+    const metin = kayit.musteriId || kayit.musteriNo
+      ? `${seri} seri numaralı ${urun}, ${hesapAdi(kayit.musteriAd, kayit.musteriNo)} hesabından ${yeni} hesabına geçecek. Makine eski sahibin PAKSAN Connect listesinden çıkacak, yeni sahibin listesine eklenecek. İkisine de bildirim gidecek. Garanti makineyle birlikte geçecek. Servis ataması değişmeyecek; gerekirse bu pencereden değiştirebilirsiniz.`
+      : `${seri} seri numaralı ${urun}, ${yeni} hesabına eklenecek. Yeni sahibe bildirim gidecek. Servis ataması değişmeyecek; gerekirse bu pencereden değiştirebilirsiniz.`
+    const evet = await sor({ baslik: 'Makine yeni sahibine geçecek', metin, dugme: 'Sahibini Değiştir' })
+    if (!evet) return
+    const r = makineSahibiniDegistir(kayit.id, bulunan.id, { personel })
+    tazele()
+    if (r.hata) {
+      /* Pencere açılalı başka sekmede değişmiş olabilir: kural depodaki
+         kayıttan veriliyor, ekran o cevabı gösteriyor. */
+      setSonuc({ durum: r.hata === 'ayniHesap' ? 'bulundu' : 'yok', musteri: bulunan })
+      return
+    }
+    bildir(`${seri} artık ${yeni} hesabında.`)
+    kapat()
+  }
+
+  return (
+    <div className="kart" style={{ marginTop: 18, background: 'var(--yuzey-2)' }} data-bolum="sahiplik">
+      <div className="kart__ic">
+        <h3 style={{ margin: '0 0 4px', fontSize: 14 }}>Sahiplik</h3>
+        <p className="kucuk sonuk" style={{ margin: '0 0 12px' }}>
+          Makine ikinci el satıldıysa veya devredildiyse buradan yeni sahibinin hesabına geçirin.
+        </p>
+
+        {!acik ? (
+          <button className="dg" data-eylem="sahip-degistir" onClick={() => setAcik(true)}>
+            Sahibini Değiştir
+          </button>
+        ) : (
+          <>
+            <form
+              className="satir"
+              style={{ gap: 10, alignItems: 'flex-end', flexWrap: 'wrap' }}
+              onSubmit={(e) => {
+                e.preventDefault()
+                setSonuc(devirIcinMusteriBul(tel))
+              }}
+            >
+              <label className="alan" style={{ margin: 0, flex: '1 1 220px' }}>
+                <span className="alan__ad">Yeni sahibin telefon numarası</span>
+                <input
+                  className="gir"
+                  inputMode="tel"
+                  value={tel}
+                  data-alan="devir-tel"
+                  onChange={(e) => {
+                    setTel(e.target.value)
+                    setSonuc(null)
+                  }}
+                  placeholder="0532 111 22 33"
+                  autoFocus
+                />
+              </label>
+              <button type="submit" className="dg dg--ana" data-eylem="hesap-bul">
+                Hesabı Bul
+              </button>
+              <button type="button" className="dg" onClick={kapat}>
+                Vazgeç
+              </button>
+            </form>
+
+            {sonuc?.durum === 'eksik' && (
+              <p className="kucuk" style={{ margin: '10px 0 0', color: 'var(--kirmizi)' }}>
+                Telefon numarasını eksiksiz yazın.
+              </p>
+            )}
+            {sonuc?.durum === 'yok' && (
+              <p className="kucuk" style={{ margin: '10px 0 0' }} data-devir-sonuc="yok">
+                Bu numarayla kayıtlı bir PAKSAN Connect hesabı bulunamadı. Yeni sahip önce
+                uygulamaya üye olmalı. Ardından makineyi buradan hesabına geçirebilirsiniz.
+              </p>
+            )}
+            {bulunan && (
+              <div className="kart" style={{ marginTop: 12 }} data-devir-sonuc="bulundu">
+                <div className="kart__ic">
+                  <strong>{bulunan.ad}</strong>
+                  <div className="kucuk sonuk">
+                    {[
+                      bulunan.no,
+                      bulunan.ilce ? `${bulunan.ilce} / ${bulunan.il}` : bulunan.il,
+                      `${(bulunan.makineler || []).length} kayıtlı makine`,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </div>
+                  {ayniHesap ? (
+                    <p className="kucuk" style={{ margin: '10px 0 0' }}>
+                      Makine zaten bu hesapta kayıtlı.
+                    </p>
+                  ) : (
+                    <>
+                      {surenler.map((t) => (
+                        <p key={t.id} className="kucuk" style={{ margin: '10px 0 0' }} data-devir-uyari>
+                          Bu makine için devam eden bir talep var ({t.no}). Talep eski sahibin
+                          hesabında kalacak.
+                        </p>
+                      ))}
+                      <button
+                        className="dg dg--ana"
+                        style={{ marginTop: 12 }}
+                        data-eylem="devret"
+                        onClick={gecir}
+                      >
+                        Makineyi Bu Hesaba Geçir
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/* Makinenin sahipleri, bugünkü başta. Yalnız el değiştirmiş makinede
+   çiziliyor: tek sahipli makinede tablo yukarıdaki "Sahibi" satırını
+   tekrarlardı. */
+function SahiplikGecmisi({ kayit }) {
+  const gecmis = kayit.sahiplikGecmisi || []
+  if (!gecmis.length) return null
+  const satirlar = [
+    {
+      musteriAd: kayit.musteriAd,
+      musteriNo: kayit.musteriNo,
+      baslangic: sahiplikTarihi(kayit),
+      bitis: null,
+      yapan: '',
+    },
+    ...gecmis,
+  ]
+  return (
+    <>
+      <h3 style={{ margin: '20px 0 8px', fontSize: 14 }}>Sahiplik Geçmişi</h3>
+      <div className="tablo-sar">
+        <table data-tablo="sahiplik">
+          <thead>
+            <tr>
+              <th>Sahip</th>
+              <th style={{ width: 120 }}>Başlangıç</th>
+              <th style={{ width: 130 }}>Bitiş</th>
+              <th>Değiştiren</th>
+            </tr>
+          </thead>
+          <tbody>
+            {satirlar.map((s, i) => (
+              <tr key={i}>
+                <td className="kucuk">
+                  {s.musteriAd || '—'}
+                  {s.musteriNo && <div className="kucuk sonuk mono">{s.musteriNo}</div>}
+                </td>
+                <td className="kucuk sonuk">{s.baslangic ? tarihSaat(s.baslangic)[0] : '—'}</td>
+                <td className="kucuk sonuk">
+                  {s.bitis ? tarihSaat(s.bitis)[0] : <span className="rz rz--yesil">Mevcut sahip</span>}
+                </td>
+                <td className="kucuk">{s.yapan || <span className="sonuk">—</span>}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  )
+}
+
+function MakineGecmisi({
+  kayit, talepler, duzenleyebilir, devredebilir, onAta, personel, bildir, tazele, onKapat,
+}) {
+  const [sor, onayPenceresi] = useOnay()
   const anahtar = temiz(kayit.seri)
   const urun = getProduct(kayit.productId)
   /* Yıl SERİ NUMARASINDAN çıkıyor, LOGO'nun üretim tarihinden değil.
@@ -637,12 +884,18 @@ function MakineGecmisi({ kayit, talepler, duzenleyebilir, onAta, onKapat }) {
           <div className="ikili">
             <div>
               <Bilgi ad="Sahibi" deger={kayit.musteriAd} alt={kayit.musteriNo} />
+              {/* İki tarih (9 Ekim 2026): makinenin deftere ilk girdiği gün
+                  ve bugünkü sahibe geçtiği gün. Tek sahipli makinede
+                  ikincisi birincinin aynısı; yazılmıyor. */}
+              {sahiplikTarihi(kayit) !== kayit.tarih && (
+                <Bilgi ad="Bu sahibe geçiş" deger={tarihSaat(sahiplikTarihi(kayit))[0]} />
+              )}
               <Bilgi
                 ad="Konum"
                 deger={kayit.ilce ? `${kayit.ilce} / ${kayit.il}` : kayit.il}
               />
               <Bilgi
-                ad="Kayıt"
+                ad="İlk kayıt"
                 deger={tarihSaat(kayit.tarih)[0]}
                 alt={KAYNAK_ADI[kayit.kaynak || 'musteri'] + ' kaydetti'}
               />
@@ -696,6 +949,23 @@ function MakineGecmisi({ kayit, talepler, duzenleyebilir, onAta, onKapat }) {
             </p>
           )}
 
+          {devredebilir ? (
+            <Sahiplik
+              key={kayit.id + ':' + (kayit.musteriId || '')}
+              kayit={kayit}
+              personel={personel}
+              bildir={bildir}
+              tazele={tazele}
+              sor={sor}
+            />
+          ) : (
+            <p className="kucuk sonuk" style={{ margin: '14px 0 0' }} data-uyari="devir-yetkisiz">
+              Makinenin sahibini değiştirme yetkiniz yok. Gerekiyorsa yöneticinize başvurun.
+            </p>
+          )}
+
+          <SahiplikGecmisi kayit={kayit} />
+
           <h3 style={{ margin: '20px 0 8px', fontSize: 14 }}>
             Servis Geçmişi{gecmis.length ? ` · ${gecmis.length} kayıt` : ''}
           </h3>
@@ -742,6 +1012,10 @@ function MakineGecmisi({ kayit, talepler, duzenleyebilir, onAta, onKapat }) {
           )}
         </div>
       </div>
+      {/* Onay penceresi makine penceresinin üstünde. Onun zeminine
+          tıklamak makine penceresini kapatmıyor: tıklamanın hedefi bu
+          pencerenin zemini değil. */}
+      {onayPenceresi}
     </div>
   )
 }
@@ -758,8 +1032,8 @@ function Bilgi({ ad, deger, alt }) {
 
 const AKTAR_BASLIK = [
   'Seri numarası', 'Model', 'Satan bayi', 'Bakan servis', 'Kaynak', 'İl', 'İlçe',
-  'Müşteri', 'Müşteri numarası', 'Kayıt tarihi', 'Kayıt saati',
-  'Fatura tarihi', 'Logo bildi mi',
+  'Müşteri', 'Müşteri numarası', 'İlk kayıt tarihi', 'İlk kayıt saati',
+  'Sahiplik başlangıç tarihi', 'Fatura tarihi', 'Logo bildi mi',
 ]
 
 function aktarSatiri(k) {
@@ -774,6 +1048,7 @@ function aktarSatiri(k) {
     k.musteriAd || '',
     k.musteriNo || '',
     ...tarihSaat(k.tarih),
+    tarihSaat(sahiplikTarihi(k))[0],
     k.faturaTarihi ? new Date(k.faturaTarihi).toLocaleDateString('tr-TR') : '',
     k.logoBildi ? 'Evet' : 'Hayır',
   ]

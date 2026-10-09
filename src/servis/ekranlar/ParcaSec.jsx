@@ -232,7 +232,7 @@ function Yukleniyor() {
 
 function Hata({ onTekrar }) {
   return (
-    <div className="not not--sari">
+    <div className="not not--sari not--dugmeli">
       <IconAlert size={19} />
       <div>
         <strong>Parça listesi yüklenemedi</strong>
@@ -240,10 +240,12 @@ function Hata({ onTekrar }) {
           Liste PAKSAN sunucusundan geliyor. Bağlantınızı kontrol edip
           yeniden deneyin.
         </p>
-        <button className="dg dg--ana dg--blok" style={{ marginTop: 12 }} onClick={onTekrar}>
-          Yeniden Dene
-        </button>
       </div>
+      {/* Düğme yazı sütununun dışında, kartın tam genişliğinde: iki yanda
+          eşit boşluk (servis.css → .not--dugmeli). */}
+      <button className="dg dg--ana dg--blok not__dugme" onClick={onTekrar}>
+        Yeniden Dene
+      </button>
     </div>
   )
 }

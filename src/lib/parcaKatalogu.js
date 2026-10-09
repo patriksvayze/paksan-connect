@@ -202,8 +202,8 @@ export function gorselAdresi(gorsel) {
 }
 
 /**
- * Onaylanan fiyat listesini sunucuya gönderir; sunucu eskisini arşive
- * alıp yenisini yürürlüğe sokar (sözleşme:
+ * Onaylanan fiyat listesini sunucuya gönderir; sunucu yenisini yürürlüğe
+ * sokup eskisini kaldırır (sözleşme:
  * sunucu-taklidi/fiyat-listesi-yayini.mjs). Başarılı olursa bellekteki
  * katalog bırakılıyor ki ekranlar yeni listeyi okusun.
  *
@@ -346,8 +346,9 @@ export function parcaToplami(katalog, secimler = []) {
  * değişmemeli"). Kod ve ad zaten o günün hâliyle yazılıyordu; görsel
  * ise ekranlarda bugünkü katalogtan bulunuyordu. Satıra o günkü görsel
  * dosyasının adı yazılıyor, ekranlar onu okuyor
- * (bkz. components/ParcaResmi.jsx). Dosya sunucuda ezilmiyor ve
- * silinmiyor (bkz. sunucu-taklidi/fiyat-listesi-yayini.mjs). Görseli
+ * (bkz. components/ParcaResmi.jsx). Dosya sunucuda ezilmiyor; yeni liste
+ * eskisini kaldırırken kayıtların gösterdiği görselleri tutuyor (bkz.
+ * sunucu-taklidi/fiyat-listesi-yayini.mjs). Görseli
  * olmayan parçada `null`: "o gün görseli yoktu" da bir bilgi.
  */
 export function fiyatGoruntusu(katalog, secimler = []) {

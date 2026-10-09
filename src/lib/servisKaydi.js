@@ -304,13 +304,45 @@ export function iscilikYazisi(kayit) {
 }
 
 /* PAKSAN'ın düzeltmesinin tek satırlık özeti (Servisim ve backoffice).
-   Düzeltme süreyle yapıldıysa süreler, eski kayıtta tutarlar. */
+   Düzeltme süreyle yapıldıysa süreler, eski kayıtta tutarlar.
+
+   YALNIZ DEĞİŞEN YAZIYOR (8 Ekim 2026, kullanıcının bildirdiği: "yol ve
+   işçilik düzenlenmemişse de düzenlenmiş gibi aynı bilgileri gösteriyor").
+   Satır her düzeltmede "Yol 200 km → 200 km · İşçilik 8 saat → 8 saat"
+   diyordu; yalnız parçanın adedi değişse de yol ve işçilik değişmiş gibi
+   okunuyordu. Artık değişmeyen kalem yazılmıyor; parça adedi değiştiyse
+   o parça "ad × 2 → × 1" diye yazıyor (kayıttan çıkan parça "× 0").
+   Hiçbiri değişmediyse boş: ekranlar satırı çizmiyor. Sınaması AK-20. */
 export function duzeltmeYazisi(d) {
-  const yol = `Yol ${d.onceki?.km || 0} km → ${d.yeni?.km || 0} km`
-  if (d.onceki?.iscilikSaat != null || d.yeni?.iscilikSaat != null) {
-    return `${yol} · İşçilik ${saatYaz(d.onceki?.iscilikSaat || 0)} saat → ${saatYaz(d.yeni?.iscilikSaat || 0)} saat`
+  const o = d?.onceki || {}
+  const y = d?.yeni || {}
+  const parcalar = []
+  const km = (n) => Number(n) || 0
+  if (km(o.km) !== km(y.km)) parcalar.push(`Yol ${km(o.km)} km → ${km(y.km)} km`)
+  if (o.iscilikSaat != null || y.iscilikSaat != null) {
+    if (saatOku(o.iscilikSaat) !== saatOku(y.iscilikSaat)) {
+      parcalar.push(`İşçilik ${saatYaz(o.iscilikSaat || 0)} saat → ${saatYaz(y.iscilikSaat || 0)} saat`)
+    }
+  } else if ((Number(o.iscilik) || 0) !== (Number(y.iscilik) || 0)) {
+    parcalar.push(`İşçilik ${paraYaz(o.iscilik || 0)} → ${paraYaz(y.iscilik || 0)} ${PARA_BIRIMI}`)
   }
-  return `${yol} · İşçilik ${paraYaz(d.onceki?.iscilik || 0)} → ${paraYaz(d.yeni?.iscilik || 0)} ${PARA_BIRIMI}`
+  /* Parça: kod (yoksa ad) ile eşleştirilip adet karşılaştırılıyor. */
+  const anahtar = (p) => p?.kod || p?.ad
+  const adetler = (liste) => {
+    const m = new Map()
+    for (const p of temizParcalar(liste || [])) m.set(anahtar(p), { ad: p.ad, adet: (m.get(anahtar(p))?.adet || 0) + (Number(p.adet) || 0) })
+    return m
+  }
+  if (o.parcalar !== undefined || y.parcalar !== undefined) {
+    const a = adetler(o.parcalar)
+    const b = adetler(y.parcalar)
+    for (const k of new Set([...a.keys(), ...b.keys()])) {
+      const once = a.get(k)?.adet || 0
+      const sonra = b.get(k)?.adet || 0
+      if (once !== sonra) parcalar.push(`${(a.get(k) || b.get(k)).ad} × ${once} → × ${sonra}`)
+    }
+  }
+  return parcalar.join(' · ')
 }
 
 /* Kaydın km ücreti: kaydın kendi ücreti, yoksa başlangıç tarifesi

@@ -13,6 +13,7 @@ import {
   islemYaz,
   kalanParcalariGonder, kalanParcalariIptalEt, siparisHesabi,
   bildirimAlicilari, durumKilidi, bakiyeDurumu,
+  durumDugmesiKilidi, talepteYapabilir, talepteIsYapabilir, iptalIsteginiKarara, iptalIstegiBekliyorMu,
 } from '../veri'
 import { makineninServisi } from '../../lib/servisAtama'
 import {
@@ -24,11 +25,13 @@ import { KDV_HARIC_LISTE, KDV_ORANI } from '../../data/katalog/para.js'
    kaydı hazırlayacağını addan çıkaramıyor. */
 import {
   duzeltmeYazisi,
+  hakkedisHesapla,
   iscilikAlanlari,
   iscilikYazisi,
   KAPI,
   parcaYazisiKodlu as kayitParcaYazisi,
   saatGirdisi,
+  saatOku,
   saatYaz as sureYaz,
   talebinParcalari,
   kmUcretiOku,
@@ -284,9 +287,11 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
       /* BÖLGE DIŞI TALEP (5 Ekim 2026): servis bekleyen, yani PAKSAN'ın
          bu iş için servis seçmesi gereken talepler. */
       if (durum === 'bolgeDisi' && !servisBekleyenBolgeDisi(t)) return false
+      /* MÜŞTERİNİN İPTAL İSTEĞİ (8 Ekim 2026): karar bekleyenler. */
+      if (durum === 'iptalIstegi' && !iptalIstegiBekliyorMu(t)) return false
       if (
         !['acik', 'gecikmis', 'bizdeGeciken', 'servisteGeciken', 'parcaHazirlik', 'parcaYolda',
-          'odemeBekleyen', 'teklifBekleyen', 'atamaDisi', 'ayniMakine', 'bolgeDisi', 'hepsi'].includes(durum) &&
+          'odemeBekleyen', 'teklifBekleyen', 'atamaDisi', 'ayniMakine', 'bolgeDisi', 'iptalIstegi', 'hepsi'].includes(durum) &&
         d !== durum
       ) {
         return false
@@ -408,6 +413,7 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
             {
               grup: 'Dikkat isteyenler',
               secenekler: [
+                { deger: 'iptalIstegi', ad: 'İptal isteği bekleyenler' },
                 { deger: 'gecikmis', ad: 'Gecikmiş talepler' },
                 { deger: 'bizdeGeciken', ad: 'Bizde 48 saati geçenler' },
                 { deger: 'servisteGeciken', ad: 'Serviste gecikenler' },
@@ -566,7 +572,7 @@ export function Talepler({ personel, rol, bildir, tazele, surum, sorgu }) {
                             {gonderimGecikti(t) && <GonderimGecikti talep={t} />}
                           </div>
                           <SahiplikEtiketi talep={t} />
-                          <IsIsaretleri atamaDisi={Boolean(t.atamaDisi)} ayniMakine={ayniMakinede(t)} bolgeDisi={Boolean(t.bolgeDisi)} />
+                          <IsIsaretleri atamaDisi={Boolean(t.atamaDisi)} ayniMakine={ayniMakinede(t)} bolgeDisi={Boolean(t.bolgeDisi)} iptalIstegi={iptalIstegiBekliyorMu(t)} />
                         </td>
                         <td>
                           <div>{t.ad || '—'}</div>
@@ -673,6 +679,10 @@ const KILIT_METNI = {
     'Bu sipariş gönderildi ve kapandı. Gönderilmiş siparişi iptal etme yetkiniz yok. İade gerekiyorsa yöneticinize başvurun.',
   kapandi: 'Bu talep kapandı. Yeniden açılması gerekiyorsa yöneticinize başvurun.',
   iptal: 'Bu talep iptal edildi. Yeniden açılması gerekiyorsa yöneticinize başvurun.',
+  /* Rolün izni (8 Ekim 2026, veri.js → durumDugmesiKilidi). */
+  yetkiDurum: 'Rolünüz talebin durumunu değiştirmeye yetkili değil.',
+  yetkiIptal: 'Rolünüz talebi iptal etmeye yetkili değil.',
+  yetkiTeklif: 'Rolünüz teklif vermeye yetkili değil.',
 }
 
 function kilitMetni(talep, kilit) {
@@ -763,6 +773,11 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
   const bayide = kilit === 'bayide'
   const kilitli = Boolean(kilit)
   const kilitYazisi = kilit ? kilitMetni(talep, kilit) : ''
+  /* TALEPTE İŞ YAPMA İZNİ (8 Ekim 2026, kullanıcının isteği). Talebi
+     gören her rol önce her şeyi yapabiliyordu; her düğme artık kendi
+     iznine bağlı (veri.js → TALEP_EYLEMLERI). Hiçbir izni olmayan rol
+     (varsayılan: Yönetici) talebi okuyor, düğme görmüyor; neden yazıyor. */
+  const isYetkisi = talepteIsYapabilir(rol)
 
   /* Müşteriye bildirim gitmeyecek iki hâl:
 
@@ -794,7 +809,8 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
      diye haber gidiyor, sebebi hiçbir yerde yazmıyordu. Bildirime
      dokunan kişi hiçbir şey öğrenemiyordu. */
   function durumaGec(yeni) {
-    if (kilitli) return bildir(kilitYazisi)
+    const dugmeKilidi = durumDugmesiKilidi(talep, rol, yeni)
+    if (dugmeKilidi) return bildir(kilitMetni(talep, dugmeKilidi))
 
     /* Yedek parçada ödeme onaylanmadan ilerlenemiyor: parası gelmemiş
        siparişi hazırlamaya başlamak, sonradan geri alınması zor bir
@@ -888,10 +904,18 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
         {/* Bayiye iletilmiş talepte çip sırası çizilmiyor: şu anki durum
             çiplerde yok (bayi seçilmeden girilmiyor), hiçbiri seçili
             görünmez ve hepsi kapalıdır. Durum sağ üstteki rozette. */}
-        {!bayide && (
-          <div className="suzgec" style={{ marginBottom: kilitli ? 8 : 20 }}>
+        {!isYetkisi && (
+          <p className="kucuk sonuk" style={{ margin: '0 0 16px' }} data-uyari="talep-yetkisiz">
+            Rolünüz bu talepte değişiklik yapmaya yetkili değil.
+          </p>
+        )}
+
+        {!bayide && isYetkisi && (
+          <div className="suzgec" data-durum-dugmeleri style={{ marginBottom: kilitli ? 8 : 20 }}>
             {elleSecilebilirDurumlar(talep.tur).map((d) => {
               const engel = parcaIlerlemeEngeli(talep, d.id)
+              /* Talebin kilidi ya da rolün bu durum için izni. */
+              const cipKilidi = durumDugmesiKilidi(talep, rol, d.id)
               /* Kilitli çip KAPATILMIYOR, basılınca nedeni söylüyor
                  (O8; ödeme kilidiyle aynı düzen, bkz. backoffice.css →
                  .cip--kilitli). `aria-disabled` ekran okuyucuya
@@ -902,14 +926,14 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
                   className={
                     'cip' +
                     (suanki === d.id ? ' cip--on' : '') +
-                    (engel || kilitli ? ' cip--kilitli' : '')
+                    (engel || cipKilidi ? ' cip--kilitli' : '')
                   }
                   onClick={() => durumaGec(d.id)}
                   disabled={suanki === d.id}
-                  aria-disabled={kilitli || undefined}
-                  title={engel ? 'Önce ödemeyi onaylayın' : kilitli ? kilitYazisi : undefined}
+                  aria-disabled={Boolean(cipKilidi) || undefined}
+                  title={engel ? 'Önce ödemeyi onaylayın' : cipKilidi ? kilitMetni(talep, cipKilidi) : undefined}
                 >
-                  {(engel || kilitli) && <span aria-hidden="true">🔒 </span>}
+                  {(engel || cipKilidi) && <span aria-hidden="true">🔒 </span>}
                   {d.ad}
                 </button>
               )
@@ -917,11 +941,21 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
           </div>
         )}
 
-        {kilitli && (
+        {kilitli && isYetkisi && (
           <div className="uyari" style={{ marginBottom: 20 }}>
             {kilitYazisi}
           </div>
         )}
+
+        {/* MÜŞTERİNİN İPTAL İSTEĞİ EN ÜSTTE (8 Ekim 2026): yapılacak iş bu
+            karar. Reddedilmiş istek geçmiş bilgi olarak kalıyor. */}
+        <IptalIstegiKutusu
+          talep={talep}
+          personel={personel}
+          yetkili={talepteYapabilir(rol, 'iptal')}
+          tazele={tazele}
+          bildir={bildir}
+        />
 
         {/* MÜŞTERİ "SORUN DEVAM EDİYOR" DEDİ.
 
@@ -929,22 +963,17 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
             yeniden açabiliyor (bkz. screens/RequestDetail.jsx). Aynı
             arızaya ikinci kez gidiliyor demek; PAKSAN'ın da servisin
             de bunu görmesi gerekiyor, yoksa iş yeni bir talep gibi
-            okunuyor ve ilk ziyarette ne yapıldığı kaybolıyor. */}
-        {(talep.tekrar || []).length > 0 && (
+            okunuyor ve ilk ziyarette ne yapıldığı kaybolıyor.
+
+            YALNIZ İŞ SÜRERKEN ÜSTTE (8 Ekim 2026, kullanıcının bildirdiği:
+            talep yeniden açılıp ikinci ziyaretle kapandığı hâlde uyarı
+            talebin en üstünde duruyordu, "doğru değil"). "Sorun Devam
+            Ediyor" talebi "Yeni"ye çeviriyor; talep yeniden kapandıysa o
+            bildirim artık yapılacak iş değil, geçmiş bilgi. Kapalı talepte
+            aynı satırlar sade bir bölüm olarak Geçmiş'in hemen üstünde. */}
+        {(talep.tekrar || []).length > 0 && !KAPALI_DURUMLAR.includes(talep.status || 'yeni') && (
           <div className="uyari" style={{ marginBottom: 16, display: 'block' }}>
-            <b>
-              Müşteri sorunun devam ettiğini bildirdi
-              {talep.tekrar.length > 1 ? ` · ${talep.tekrar.length} kez` : ''}
-            </b>
-            {talep.tekrar
-              .slice()
-              .reverse()
-              .map((x, i) => (
-                <p key={i} style={{ whiteSpace: 'pre-wrap', margin: '8px 0 0' }}>
-                  {x.aciklama || 'Açıklama yazılmadı.'}
-                  <span className="kucuk"> · {tarihYaz(x.tarih)}</span>
-                </p>
-              ))}
+            <SorunDevamSatirlari tekrar={talep.tekrar} baslik />
           </div>
         )}
 
@@ -980,6 +1009,7 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
             talep={talep}
             personel={personel}
             geriAlabilir={izinli(rol, 'talepGeriAc')}
+            yetkili={talepteYapabilir(rol, 'teklif')}
             tazele={tazele}
             bildir={bildir}
           />
@@ -1120,7 +1150,7 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
               {/* KALAN PARÇALARIN İPTALİ (24 Eylül 2026): stoktan kalkmış
                   bekleyen parça siparişin tamamı iptal edilmeden
                   kapatılıyor (bkz. veri.js → kalanParcalariIptalEt). */}
-              {suanki === 'kapandi' && siparisGonderimi(talep)?.kalan.length > 0 && (
+              {suanki === 'kapandi' && siparisGonderimi(talep)?.kalan.length > 0 && talepteYapabilir(rol, 'parca') && (
                 <div className="satir" style={{ gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
                   <button className="dg" onClick={() => setForm('kalan')}>
                     Kalan Parçaları Gönder
@@ -1316,14 +1346,16 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
                   Dekontu ve hesaba geçen tutarı kontrol edin. Onayladığınızda müşteriye
                   bildirim gider ve parça hazırlama aşamasına geçilir.
                 </p>
-                <button
-                  className="dg dg--ana"
-                  disabled={!talep.dekont}
-                  onClick={() => setOdemeOnay(true)}
-                  title={talep.dekont ? undefined : 'Dekont yüklenmemiş'}
-                >
-                  Ödemeyi onayla
-                </button>
+                {talepteYapabilir(rol, 'odeme') && (
+                  <button
+                    className="dg dg--ana"
+                    disabled={!talep.dekont}
+                    onClick={() => setOdemeOnay(true)}
+                    title={talep.dekont ? undefined : 'Dekont yüklenmemiş'}
+                  >
+                    Ödemeyi onayla
+                  </button>
+                )}
               </>
             )}
 
@@ -1383,7 +1415,8 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
               </p>
             )}
             <div className="kucuk sonuk" style={{ marginTop: 6 }}>
-              {talep.iptalBilgi.personel} · {tarihYaz(talep.iptalBilgi.tarih)}
+              {/* Müşteri uygulamadan iptal ettiyse personel adı yok (8 Ekim 2026). */}
+              {talep.iptalBilgi.musteri ? 'Müşteri talebi uygulamadan iptal etti' : talep.iptalBilgi.personel} · {tarihYaz(talep.iptalBilgi.tarih)}
             </div>
             {/* Yazıyı kimin gördüğü alıcı kuralından (26 Eylül 2026, ikinci
                 kullanıcı sınaması). Her talepte "müşterinin uygulamasında"
@@ -1479,7 +1512,7 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
                 kargo bilgisiyle bildirim gidiyor (veri.js →
                 musteriKargosunuGuncelle). Düğme yazıları servis parçasının
                 "Kargo Bilgisini Gir / Düzelt"iyle aynı. */}
-            {talep.tur === 'parca' && !talep.servisSiparisi && talep.status === 'kapandi' && (
+            {talep.tur === 'parca' && !talep.servisSiparisi && talep.status === 'kapandi' && talepteYapabilir(rol, 'parca') && (
               <button
                 className="dg"
                 style={{ marginTop: 8 }}
@@ -1545,6 +1578,7 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
             uygulamadaki hesabına bağlı değilse not ona ulaşmıyor
             (Connect, servisin elle açtığı hesapsız talebi göstermiyor);
             düğme yerine ne yapılacağı yazıyor. */}
+        {(talep.notlar?.length > 0 || talepteYapabilir(rol, 'not')) && (
         <Bolum ad="Notlar">
           {talep.notlar?.length > 0 && (
             <div className="zaman" style={{ marginBottom: 12 }}>
@@ -1573,12 +1607,14 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
               ))}
             </div>
           )}
+          {talepteYapabilir(rol, 'not') && (<>
           <textarea
             className="metin"
             style={{ minHeight: 68 }}
             value={not}
             onChange={(e) => setNot(e.target.value)}
             placeholder="İç not…"
+            data-alan="talep-not"
           />
           <div className="satir" style={{ marginTop: 8, gap: 8 }}>
             <button className="dg" onClick={() => notKaydet('ic')}>
@@ -1617,7 +1653,9 @@ function Detay({ talep, hepsi, personel, rol, tazele, bildir, onTalepSec }) {
                     : '')
                 : '"Müşteriye Gönder" düğmesine dokunduğunuzda yazdığınız cümle olduğu gibi müşterinin uygulamasında görünür ve müşteriye bildirim gönderilir. "Servise Gönder" düğmesine dokunduğunuzda aynı cümle servisin uygulamasında bu talebin içinde görünür; müşteriye gönderilmez.'}
           </p>
+          </>)}
         </Bolum>
+        )}
 
         {onay && (
           <Onay
@@ -1921,6 +1959,12 @@ Durum "${durumBilgi(hakkedisKapisi).ad}" yapılırsa kayıt ` +
           />
         )}
 
+        {(talep.tekrar || []).length > 0 && KAPALI_DURUMLAR.includes(talep.status || 'yeni') && (
+          <Bolum ad={`Müşteri sorunun devam ettiğini bildirdi${talep.tekrar.length > 1 ? ` · ${talep.tekrar.length} kez` : ''}`}>
+            <SorunDevamSatirlari tekrar={talep.tekrar} />
+          </Bolum>
+        )}
+
         {talep.gecmis?.length > 0 && (
           <Bolum ad="Geçmiş">
             <div className="zaman">
@@ -1937,6 +1981,30 @@ Durum "${durumBilgi(hakkedisKapisi).ad}" yapılırsa kayıt ` +
           </Bolum>
         )}
       </div>
+    </>
+  )
+}
+
+/* "Sorun Devam Ediyor" bildirimlerinin satırları, en yeni üstte. `baslik`
+   verilirse uyarı kutusunun kalın başlığı da çiziliyor (iş sürerken). */
+function SorunDevamSatirlari({ tekrar, baslik = false }) {
+  return (
+    <>
+      {baslik && (
+        <b>
+          Müşteri sorunun devam ettiğini bildirdi
+          {tekrar.length > 1 ? ` · ${tekrar.length} kez` : ''}
+        </b>
+      )}
+      {tekrar
+        .slice()
+        .reverse()
+        .map((x, i) => (
+          <p key={i} style={{ whiteSpace: 'pre-wrap', margin: baslik || i ? '8px 0 0' : 0 }}>
+            {x.aciklama || 'Açıklama yazılmadı.'}
+            <span className="kucuk sonuk"> · {tarihYaz(x.tarih)}</span>
+          </p>
+        ))}
     </>
   )
 }
@@ -2610,8 +2678,9 @@ function atamaDisiOzeti(talep) {
 
 /* Liste satırındaki işaretler: numaranın altında, tür etiketinin
    ardından, "Devredildi" satırıyla aynı yazı. */
-function IsIsaretleri({ atamaDisi, ayniMakine, bolgeDisi }) {
+function IsIsaretleri({ atamaDisi, ayniMakine, bolgeDisi, iptalIstegi }) {
   const p = [
+    iptalIstegi && 'İptal isteği',
     atamaDisi && 'Atama dışı',
     bolgeDisi && 'Bölge dışı',
     ayniMakine && 'Makinede başka açık iş',
@@ -2710,7 +2779,7 @@ function AtamaDisiUyarisi({ talep }) {
    akışta kalıyor: teklif veriliyor, kapanıyor. Bu yüzden bölüm bir
    zorunluluk gibi değil, bir seçenek gibi duruyor.
    ========================================================================== */
-function BayiAtama({ talep, personel, geriAlabilir, tazele, bildir }) {
+function BayiAtama({ talep, personel, geriAlabilir, yetkili = true, tazele, bildir }) {
   const [secim, setSecim] = useState('')
   const [sor, onayPenceresi] = useOnay()
 
@@ -2759,7 +2828,7 @@ function BayiAtama({ talep, personel, geriAlabilir, tazele, bildir }) {
     )
   }
 
-  if (durum !== 'yeni' || talep.teklif) return null
+  if (durum !== 'yeni' || talep.teklif || !yetkili) return null
 
   return (
     <Bolum ad="Bayiye ilet">
@@ -2794,6 +2863,128 @@ function BayiAtama({ talep, personel, geriAlabilir, tazele, bildir }) {
         </button>
       </div>
     </Bolum>
+  )
+}
+
+/* ==========================================================================
+   MÜŞTERİNİN İPTAL İSTEĞİ (8 Ekim 2026, kullanıcının isteği; kararı PAKSAN
+   veriyor). Çiftçi işleme alınmış talebi Connect'ten iptal edemiyor, neden
+   seçip istek gönderiyor (lib/musteriIptal.js). Kutu talebin en üstünde:
+
+     bekliyor    neden, açıklama, tarih; yetkili personele "Talebi İptal
+                 Et" (onay penceresiyle) ve "İsteği Reddet" (gerekçe
+                 zorunlu, müşteriye bildirimle gidiyor)
+     reddedildi  geçmiş bilgi: kim, ne zaman, hangi gerekçeyle
+     onaylandı   kutu yok; talep iptal edildi, "İptal Nedeni" bölümü var
+
+   Karar veri.js → iptalIsteginiKarara'da, depodaki kayıttan.
+   ========================================================================== */
+function IptalIstegiKutusu({ talep, personel, yetkili, tazele, bildir }) {
+  const [redYaziyor, setRedYaziyor] = useState(false)
+  const [gerekce, setGerekce] = useState('')
+  const [hata, setHata] = useState('')
+  const [sor, onayPenceresi] = useOnay()
+  const ist = talep.iptalIstegi
+  if (!ist) return null
+  const bekliyor = iptalIstegiBekliyorMu(talep)
+  if (!bekliyor && ist.durum !== 'reddedildi') return null
+
+  const nedenSatiri = (
+    <>
+      <p style={{ margin: '8px 0 0' }}>
+        <span className="kucuk">İptal nedeni:</span> {ist.neden}
+      </p>
+      {ist.aciklama && (
+        <p style={{ whiteSpace: 'pre-wrap', margin: '6px 0 0' }}>
+          <span className="kucuk">Müşterinin açıklaması:</span> {ist.aciklama}
+        </p>
+      )}
+    </>
+  )
+
+  if (!bekliyor) {
+    return (
+      <div
+        style={{ marginBottom: 16, padding: '10px 12px', border: '1px solid var(--cizgi)', borderRadius: 10 }}
+        data-iptal-istegi="reddedildi"
+      >
+        <b>İptal isteği reddedildi</b>
+        {nedenSatiri}
+        <p style={{ whiteSpace: 'pre-wrap', margin: '6px 0 0' }}>
+          <span className="kucuk">Ret gerekçesi:</span> {ist.karar?.gerekce}
+        </p>
+        <div className="kucuk sonuk" style={{ marginTop: 6 }}>
+          {ist.karar?.personel} · {tarihYaz(ist.karar?.tarih)}
+        </div>
+      </div>
+    )
+  }
+
+  async function onayla() {
+    const evet = await sor({ baslik: 'Talep müşterinin isteğiyle iptal edilecek', metin: 'Talep iptal edilir. Müşteriye ve işi yürüten servise bildirim gönderilir.', dugme: 'Talebi İptal Et', sil: true })
+    if (!evet) return
+    const sonuc = iptalIsteginiKarara(talep, true, personel)
+    if (sonuc?.hata) return bildir(sonuc.hata)
+    tazele()
+    bildir(`${talep.no} müşterinin isteğiyle iptal edildi.`)
+  }
+
+  function reddet() {
+    if (!gerekce.trim()) return setHata('Ret gerekçesini yazın.')
+    const sonuc = iptalIsteginiKarara(talep, false, personel, gerekce.trim())
+    if (sonuc?.hata) return setHata(sonuc.hata)
+    setRedYaziyor(false)
+    setGerekce('')
+    tazele()
+    bildir(`${talep.no} için iptal isteği reddedildi. Müşteriye bildirim gönderildi.`)
+  }
+
+  return (
+    <div className="uyari" style={{ marginBottom: 16, display: 'block' }} data-iptal-istegi="bekliyor">
+      {onayPenceresi}
+      <b>Müşteri bu talebin iptalini istiyor</b>
+      {nedenSatiri}
+      <div className="kucuk" style={{ marginTop: 6 }}>{tarihYaz(ist.tarih)}</div>
+      {yetkili && !redYaziyor && (
+        <div className="satir" style={{ gap: 8, marginTop: 12 }}>
+          <button className="dg dg--sil" data-eylem="iptal-istegi-onayla" onClick={onayla}>
+            Talebi İptal Et
+          </button>
+          <button className="dg" data-eylem="iptal-istegi-reddet" onClick={() => setRedYaziyor(true)}>
+            İsteği Reddet
+          </button>
+        </div>
+      )}
+      {yetkili && redYaziyor && (
+        <div style={{ marginTop: 12 }}>
+          <label className="alan" style={{ marginBottom: 6 }}>
+            <span className="alan__ad">Ret gerekçesi</span>
+            <textarea
+              className="metin"
+              style={{ minHeight: 66 }}
+              value={gerekce}
+              maxLength={500}
+              onChange={(e) => {
+                setGerekce(e.target.value)
+                if (hata) setHata('')
+              }}
+              placeholder="Örnek: Servis yola çıktı, randevu gününde gelecek."
+              autoFocus
+            />
+          </label>
+          <div className="kucuk sonuk">Müşteriye bildirimle gönderilir.</div>
+          {hata && <div className="kucuk" style={{ color: 'var(--kirmizi)', marginTop: 6 }}>{hata}</div>}
+          <div className="satir" style={{ gap: 8, marginTop: 10 }}>
+            <button className="dg dg--ana" data-eylem="iptal-istegi-reddet-gonder" onClick={reddet}>
+              İsteği Reddet
+            </button>
+            <button className="dg" onClick={() => { setRedYaziyor(false); setGerekce(''); setHata('') }}>
+              Vazgeç
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -3007,7 +3198,10 @@ function ServisKaydiBolumu({
 }) {
   const k = talep.servisKaydi
   const h = talep.hakkedis
-  const yetkili = izinli(rol, 'talepler')
+  /* Hak edişin kararı ve garanti parçasının gönderimi ayrı izinler (8
+     Ekim 2026); önce talebi gören her rol ikisini de yapabiliyordu. */
+  const yetkili = talepteYapabilir(rol, 'hakedis')
+  const parcaYetkisi = talepteYapabilir(rol, 'parca')
   const onayda = talep.status === 'onayBekliyor'
   const parcada = talep.status === 'parcaBekliyor'
 
@@ -3042,8 +3236,58 @@ function ServisKaydiBolumu({
       {k.sonuc && (
         <p style={{ whiteSpace: 'pre-wrap', margin: '0 0 8px' }}>{k.sonuc}</p>
       )}
-      <S k="Gidilen Yol" v={k.km ? k.km + ' km' : ''} />
-      <S k="İşçilik" v={iscilikYazisi(k)} />
+      {/* YOL VE İŞÇİLİK TUTARIYLA, ÜCRETİYLE (8 Ekim 2026, kullanıcının
+          isteği: "İşçilik saati yanında işçilik tutarı yazsın, hatta gidilen
+          yolun yol ücreti de onun yanında yazsın"). Gidilen yolun tutarı
+          ekranda hiç yoktu; yalnız aşağıdaki "Ödeme Tutarı" toplamı vardı ve
+          işçilik tutarının nereden geldiği okunmuyordu. Tutarlar Ödeme
+          Tutarı'nın hesaplandığı işlevden (lib/servisKaydi.js →
+          hakkedisHesapla): kaydın kendi ücreti, yani servis kaydı
+          gönderildiği gün o servisin o makinedeki ücreti. Ücret alt satırda
+          yazıyor; tarife sonradan değiştiyse personel farkı buradan görüyor.
+          Garanti dışı eski kayıtta hak ediş yok: yalnız km ve servisin
+          yazdığı tutar. */}
+      {(() => {
+        const hesap = hakkedisHesapla(k)
+        const garanti = k.kapi === 'garanti'
+        const tl = (n) => `${paraYaz(n)} ${PARA_BIRIMI}`
+        const ucret = (yazi) => <span className="kucuk sonuk" style={{ display: 'block' }}>{yazi}</span>
+        const sureli = saatOku(k.iscilikSaat) > 0
+        return (
+          <>
+            <S
+              k="Gidilen Yol"
+              v={
+                k.km ? (
+                  garanti ? (
+                    <>
+                      {k.km} km · {tl(hesap.yol)}
+                      {ucret(`Kilometre başına ${tl(kmUcretiOku(k))}`)}
+                    </>
+                  ) : (
+                    k.km + ' km'
+                  )
+                ) : (
+                  ''
+                )
+              }
+            />
+            <S
+              k="İşçilik"
+              v={
+                garanti && sureli ? (
+                  <>
+                    {sureYaz(k.iscilikSaat)} saat · {tl(hesap.iscilik)}
+                    {ucret(`Saat başına ${tl(saatUcretiOku(k))}`)}
+                  </>
+                ) : (
+                  iscilikYazisi(k)
+                )
+              }
+            />
+          </>
+        )
+      })()}
 
       {/* PARÇA LİSTESİ VİRGÜLLE DEĞİL TABLOYLA.
 
@@ -3090,7 +3334,8 @@ function ServisKaydiBolumu({
         <div key={i} className="uyari" style={{ marginTop: 10 }}>
           <strong>Düzeltildi · {d.personel}</strong>
           <p style={{ margin: '4px 0 0' }}>{d.neden}</p>
-          <p className="kucuk" style={{ margin: '4px 0 0' }}>{duzeltmeYazisi(d)}</p>
+          {/* Yalnız değişen kalem; hiçbiri değişmediyse satır yok. */}
+          {duzeltmeYazisi(d) && <p className="kucuk" style={{ margin: '4px 0 0' }}>{duzeltmeYazisi(d)}</p>}
         </div>
       ))}
 
@@ -3209,7 +3454,7 @@ function ServisKaydiBolumu({
           yok, bölüm çıkmıyor. */}
       {parcada && k.teslimat && <TeslimatAdresi teslimat={k.teslimat} />}
 
-      {yetkili && parcada && (
+      {parcaYetkisi && parcada && (
         <div className="satir" style={{ marginTop: 12 }}>
           <button
             className={'dg' + (talep.parcaSevk ? '' : ' dg--ana')}

@@ -20,8 +20,9 @@ import { PARA_BIRIMI, paraYaz } from '../data/katalog/para.js'
      - okunmuşluğu: bu cihazda hangisinin açıldığı
      - süzgeçleri: okunmamışlar, bir talebin bütün bildirimleri
 
-   Üç yerde kullanılıyor: İşlerim'in üstünde okunmamışlar
-   (ServisPanel.jsx → PaksanBildirimleri), talebin içinde o talebin
+   Üç yerde kullanılıyor: İşlerim'in üstündeki özet satırı ve iş kartının
+   etiketi (ekranlar/Islerim.jsx → YeniBildirimSatiri; 8 Ekim 2026'dan önce
+   her bildirim ayrı satırdı), talebin içinde o talebin
    geçmişi (ekranlar/TalepDetay.jsx) ve telefon bildirimi (haber.js).
 
    OKUNMUŞLUK CİHAZDA. Müşteri uygulamasındaki okunan bildirimlerin
@@ -166,6 +167,24 @@ const METIN = {
     baslik: 'Müşteri Sorunun Devam Ettiğini Bildirdi',
     metin: 'Talep yeniden açıldı. Müşterinin açıklamasını talebin içinde görebilirsiniz.',
   }),
+  /* MÜŞTERİNİN İPTALİ (8 Ekim 2026). Kaydı Connect yazıyor
+     (lib/musteriIptal.js): dokunulmamış talepte hemen iptal
+     (`musteriIptal`), işleme alınmışta istek (`musteriIptalIstedi`;
+     kararı PAKSAN veriyor, iş o zamana kadar sürüyor). */
+  musteriIptal: (d) => ({
+    baslik: 'Müşteri talebi iptal etti',
+    metin: `İptal nedeni: ${cumleSonu(d.neden || '')}. Bu işe gitmenize gerek kalmadı.`,
+  }),
+  musteriIptalIstedi: (d) => ({
+    baslik: 'Müşteri talebin iptalini istedi',
+    metin: `PAKSAN karar verene kadar iş devam ediyor. İptal nedeni: ${d.neden || ''}`,
+  }),
+  /* PAKSAN müşterinin iptal isteğini reddetti (veri.js →
+     iptalIsteginiKarara); onayda "iptal" olayı gidiyor. */
+  iptalIstegiReddedildi: (d) => ({
+    baslik: 'PAKSAN iptal isteğini kabul etmedi',
+    metin: `İş devam ediyor. Gerekçe: ${d.gerekce || ''}`,
+  }),
 
   /* TALEBE BAĞLI OLMAYAN BİLDİRİMLER (23 Eylül 2026, `tur: 'hesap'`).
      Değerleri veri.js yazıyor: ücrette kalem kalem eski ve yeni tutar
@@ -209,7 +228,7 @@ export function bildirimYazisi(b) {
 }
 
 /* Müşterinin Connect'ten yaptığı işlemin olayları; geri kalanı PAKSAN'ın. */
-const MUSTERI_OLAYLARI = new Set(['musteriEkledi', 'musteriSorunDevam'])
+const MUSTERI_OLAYLARI = new Set(['musteriEkledi', 'musteriSorunDevam', 'musteriIptal', 'musteriIptalIstedi'])
 
 /** Bildirim müşterinin işleminden mi doğdu (PAKSAN'ınkinden değil)? */
 export function musteridenMi(b) {

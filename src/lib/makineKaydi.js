@@ -114,6 +114,12 @@ const dolu = (x) => x !== null && x !== undefined && x !== ''
    Logo alanları yalnız gelen kayıtta doluysa değişiyor — yeniden
    eklemenin boş servis alanı PAKSAN'ın yaptığı atamayı silmiyor.
 
+   SAHİPLİK TARİHİ (9 Ekim 2026, bkz. sahiplikTarihi aşağıda). Aynı
+   hesabın yeniden eklemesi sahipliği yeniden BAŞLATMIYOR: sahip aynı,
+   değişen yalnız telefondaki liste (kullanıcıya önerilen ve kabul edilen
+   kural). Hesapsız satıra müşteri kendi makinesini eklerse sahiplik o
+   gün başlıyor; ilk kayıt (`tarih`) servisin kaydettiği gün kalıyor.
+
    @returns {{satir: object, kabul: boolean}} */
 function kayitIsle(mevcut, gelen) {
   if (gelen.kaynak === 'servis') return { satir: mevcut, kabul: false }
@@ -122,6 +128,7 @@ function kayitIsle(mevcut, gelen) {
   }
 
   const satir = { ...mevcut }
+  if (hesabiVar(gelen) && !hesabiVar(mevcut)) satir.sahiplikTarihi = gelen.tarih || Date.now()
   if (hesabiVar(gelen)) {
     satir.musteriId = gelen.musteriId || null
     satir.musteriNo = gelen.musteriNo || null
@@ -218,6 +225,19 @@ export function seriBaskaHesaptaMi(seri, user) {
   const satir = seriSatiri(aranan)
   if (!satir || !hesabiVar(satir) || bizim(satir)) return null
   return { musteriId: satir.musteriId || null, musteriNo: satir.musteriNo || null }
+}
+
+/* BUGÜNKÜ SAHİPLİĞİN BAŞLADIĞI AN (9 Ekim 2026, kullanıcının sorusu:
+   "makinemi başkasına sattım, adam aynı makineyi kendi kayıt ettiğinde
+   kayıt tarihi değişmeyecek mi?"). Satırda iki tarih var: `tarih`
+   makinenin deftere İLK girdiği an, hiç değişmiyor; `sahiplikTarihi`
+   bugünkü sahibin makineyi aldığı an — PAKSAN makineyi yeni sahibine
+   geçirince (backoffice/veri.js → makineSahibiniDegistir) ya da hesapsız
+   satıra müşteri kendi makinesini ekleyince (kayitIsle) yazılıyor. Alan
+   yoksa sahiplik ilk kayıtla başlamıştır. Okuyan her yer buradan okusun:
+   tablo, pencere ve Excel aynı tarihi göstersin. */
+export function sahiplikTarihi(kayit) {
+  return kayit?.sahiplikTarihi || kayit?.tarih || null
 }
 
 /** Kayıt defterindeki bir satırı günceller (backoffice'ten atama). */

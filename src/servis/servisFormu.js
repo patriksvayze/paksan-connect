@@ -56,7 +56,6 @@ import { dosyaPaylas } from '../lib/dosyaPaylas'
    büyük harfli olanlar basılı formdaki gibi büyük harfli. */
 export const METIN = {
   baslik: 'SERVİS FORMU',
-  garanti: 'GARANTİYE DÂHİL',
   siraNo: 'SIRA NO',
   tarih: 'TARİH',
   musteriAdi: 'MÜŞTERİ ADI',
@@ -374,14 +373,10 @@ export async function servisFormuCiz(v) {
   d.yaz(kelimeler.slice(0, yari).join(' '), x, 118, { boy: 30, renk: RENK.deger })
   d.yaz(kelimeler.slice(yari).join(' '), x, 156, { boy: 30, renk: RENK.deger })
 
-  d.yaz(METIN.baslik, G / 2 + 110, 140, { boy: 58, renk: RENK.deger, hiza: 'center' })
-  /* Garanti damgası: formun hangi iş için olduğu ilk bakışta görünsün. */
-  c.font = '700 22px Roboto, Arial, sans-serif'
-  const damgaEn = c.measureText(METIN.garanti).width + 36
-  c.strokeStyle = RENK.garanti
-  c.lineWidth = 3
-  c.strokeRect(G / 2 + 110 - damgaEn / 2, 162, damgaEn, 40)
-  d.yaz(METIN.garanti, G / 2 + 110, 190, { boy: 22, renk: RENK.garanti, hiza: 'center' })
+  /* Başlığın altındaki "GARANTİYE DÂHİL" damgası 8 Ekim 2026'da kalktı
+     (kullanıcının isteği): servis formu zaten yalnız garanti işinde
+     çıkıyor. Başlık boşalan yerde, başlık alanının ortasında. */
+  d.yaz(METIN.baslik, G / 2 + 110, 150, { boy: 58, renk: RENK.deger, hiza: 'center' })
 
   /* Sıra no etiketi numaranın ÜSTÜNDE: basılı formda yan yanaydı ama
      orada numara dört hane; talep numarası on üç hane ve etiketin

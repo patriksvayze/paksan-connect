@@ -302,6 +302,53 @@
      AK-30  bildirim listesi "numara"yı duyuruya çevirirse      düştü (7 Ekim 2026)
      AK-30  numara reddi formu değil profili açarsa              düştü (7 Ekim 2026)
      AK-30  numara onayı profile götürürse                       düştü (7 Ekim 2026)
+     8 Ekim 2026 (talepte iş izinleri, müşterinin iptali, görüşün durumu):
+     AK-08  taşıma Yönetici rolünü de kapsarsa                  düştü
+     AK-08  durum düğmesinin kilidi rolün iznine bakmazsa       düştü
+     AK-08  varsayılan Servis rolü iş izinlerini listede taşımazsa düştü
+            (ilk denemede DÜŞMEDİ: taşıma eksik listeyi tarayıcıda
+            örtüyordu; tohum listeyi taşımasız okuduğu için listenin
+            kendisine bakan iddia eklendi, sonra düştü)
+     AK-39  yol kuralı randevuya bakmazsa                       düştü
+     AK-39  yazım depodaki kayıtla yeniden sormazsa             düştü
+     AK-39  karar ekrandaki kopyadan verilirse                  düştü
+     AK-39  Servisim müşterinin iptalini PAKSAN'ınki sayarsa    düştü
+     AK-39  ret servise bildirilmezse                           düştü
+     AK-40  alanı olmayan eski not iç not sayılırsa             düştü
+     AK-40  iç not da müşteriye bildirim yazarsa                düştü
+     AK-40  görüş cevabı Connect'te duyuruya düşerse            düştü
+     AK-40  durum kapanışa bakmazsa                             düştü
+     AK-20  düzeltme satırı değişmeyen yolu da yazarsa          düştü
+            (8.10.2026, kullanıcının bildirdiği)
+     AK-20  düzeltme satırı parça değişikliğini yazmazsa        düştü
+     AK-32  TC sağlamasında eksi kalan düzeltmesi geri alınırsa düştü
+            (8.10.2026, kullanıcının bildirdiği)
+     9 Ekim 2026 (makinenin sahibi değişiyor, ikinci el devir):
+     AK-41  makine eski sahibin listesinden çıkmazsa            düştü
+     AK-41  kapanan sahiplik geçmişe yazılmazsa                 düştü
+     AK-41  devir ilk kayıt tarihini ezerse                     düştü
+     AK-41  aynı hesaba devir kabul edilirse                    düştü
+     AK-41  birleşip kapanmış hesaba devir kabul edilirse       düştü
+     AK-41  yeni sahibi arama son dört haneye bakarsa           düştü
+     AK-41  eski sahibe bildirim gitmezse                       düştü
+     AK-41  aynı hesabın yeniden eklemesi sahipliği başlatırsa  düştü
+     AK-41  hesapsız satıra ekleme sahipliği başlatmazsa        düştü
+            (sınanmayan: Connect'in açık sekmesinin makine listesini
+            depodan tazelemesi — AppState.jsx, tarayıcıda; tur B-SAHIP
+            backoffice penceresini sınıyor)
+     AK-34  demo ikinci el makineyi kurmazsa (G19)              düştü
+     AK-34  devrin İşlem Kaydı satırı geri alınmazsa (G18)      düştü
+     AK-34  demo devri son talebin açılışından önceye koyarsa   düştü
+            (yalnız gün hesabını bozmak düşmedi: aynı yerdeki "devir
+            son talepten sonra mı" kapısı o makineleri ayıklıyor; bozma
+            ikisini birlikte kaldırınca düştü)
+     AK-34  demo talebi süren makineyi devrederse               düştü
+     8 Ekim 2026 (yeni fiyat listesi eskisini kaldırıyor):
+     AK-19  kayitlardakiParcaGorselleri talep deposunu taramazsa düştü
+     AK-19  aynı işlev iç içe satırlara inmezse                 düştü
+            (sınanmayan: backoffice ekranının listeyi yayın isteğine
+            koyması — tur PDF yüklemiyor; sunucunun silme kuralı
+            tools/fiyat-listesi-okuma-sinamasi.mjs'te)
      AK-31  Servisim kartı devredilmiş işi "işiniz" sayarsa     düştü
      AK-32  gizleme açık (yeniden açılmış) talebi de saklarsa   düştü
      AK-32  sorunDevamEngeli süren işi görmezse                 düştü

@@ -96,6 +96,8 @@
      C-35  ?bolum=ariza arıza sayfasına atlamazsa               düştü
      C-36  talep formu parça adını koda çevirmezse (29.09.2026)  düştü
      C-36  parça uymadığı makinede de seçili gelirse             düştü
+     C-36  Destek ekranı parçanın görselini çizmezse (8.10.2026) düştü
+     C-36  Destek ekranı uymayan makinede de görsel gösterirse   düştü
      X-08  Yol Tarifi bağlantısı adresi taşımazsa (29.09.2026)   düştü
      C-37  eski sürümü onaylamış hesaba pencere çıkmazsa (29.09.2026) düştü
      C-37  kampanya değişikliği olay yazmazsa                    düştü
@@ -142,6 +144,29 @@
      X-16  uyarı yerinde, gönderim kuralı atlanırsa             düştü
      X-16  Parçayı Taktım'da kilit kalkarsa                     düştü
      X-16  Parçayı Taktım'da ön seçim kalkarsa                  düştü
+     X-17  İşlerim'in bildirim satırı çizilmezse (8.10.2026)     düştü
+     X-17  bildirimi olan işin kartında etiket çıkmazsa         düştü
+     C-41  Connect'in durum katmanı iptal işlevini içe aktarmazsa düştü
+           (8.10.2026; gerçekte olan buydu: derleme geçiyor, düğme
+           çalışma anında hata verip hiçbir şey yapmıyordu, ilk tur
+           koşusu yakaladı)
+     C-41  dokunulmamış talep de istek yoluna düşerse           düştü
+     B-IPTAL iptal isteği kutusu çizilmezse (8.10.2026)         düştü
+     B-IPTAL iş izni olmayan role düğmeler çıkarsa              düştü
+     B-GORUS hesapsız görüşte cevap düğmesi çıkarsa (8.10.2026) düştü
+     B-GORUS iç not müşteriye giderse                           düştü
+     B-SAHIP Sahiplik kutusu çizilmezse (9.10.2026)             düştü
+     B-SAHIP Sahiplik Geçmişi çizilmezse                        düştü
+     B-SAHIP listede ilk kayıt günü yazılmazsa                  düştü
+     B-SAHIP devir yetkisi denetlenmezse                        düştü
+     B-SAHIP onay tarayıcının uyarı kutusuyla sorulursa         düştü
+     B-SAHIP devirden sonra form kapatılmazsa                   DÜŞMEDİ
+             (iki kat: kutunun anahtarı sahibin kimliğini taşıyor,
+             devirde kutu baştan kuruluyor ve form zaten kapanıyor)
+     X-17  Bildirimler'de müşteriden gelen PAKSAN'ınki gibi çizilirse düştü
+           (8.10.2026, kart Connect'teki gibi)
+     X-17  okunmamış kartta nokta çizilmezse                    düştü
+     X-17  işi açan kartta ok çizilmezse                        düştü
      B-ADRES menü geçişi geçmişe satır eklemezse (1.10.2026)    düştü
            (adres yine değişiyordu, düşen Geri: adresi uyduran
            replaceState pushState'in eksikliğini örtüyor)
@@ -209,7 +234,7 @@ import { readFileSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { ortamKur, modulleriYukle, modulYukle, depoTemizle, kapat } from './ekosistem/ortam.mjs'
-import { SERVIS, MUSTERI, PARCA_PERSONELI, KVKK_SURUMU, dunyaKur, personelKaydiEkle, talepVerisi, talebiYaz } from './ekosistem/tohum.mjs'
+import { SERVIS, MUSTERI, PERSONEL, PARCA_PERSONELI, KVKK_SURUMU, dunyaKur, personelKaydiEkle, talepVerisi, talebiYaz } from './ekosistem/tohum.mjs'
 import {
   CONNECT,
   CONNECT_OTURUMSUZ,
@@ -236,8 +261,8 @@ const EK_DENETIMLER = [
   'B-MENU', 'B-ROL', 'B-SEKME', 'B-ADRES',
   'X-01', 'X-02', 'X-03', 'X-04', 'X-05', 'X-06', 'X-07', 'X-08', 'X-09', 'X-10', 'X-11', 'X-12', 'X-13',
   'X-14', 'X-15', 'X-16',
-  'C-29', 'C-30', 'C-31', 'C-32', 'C-33', 'C-34', 'C-35', 'C-36', 'C-37', 'C-38', 'C-39', 'C-40',
-  'B-BOLGE', 'B-RAPOR', 'B-TARIH',
+  'C-29', 'C-30', 'C-31', 'C-32', 'C-33', 'C-34', 'C-35', 'C-36', 'C-37', 'C-38', 'C-39', 'C-40', 'C-41',
+  'B-BOLGE', 'B-RAPOR', 'B-TARIH', 'B-IPTAL', 'B-GORUS', 'X-17', 'B-SAHIP',
 ]
 
 /* BİLİNMEYEN KOD SESSİZCE GEÇMİYOR (25 Eylül 2026, inceleme).
@@ -418,6 +443,18 @@ const SEKME_ICERIGI = JSON.stringify({
   roller: m.veri
     .rolleriGetir()
     .map((r) => (r.id === PARCA_PERSONELI.rol ? { ...r, izinler: r.izinler.filter((i) => i !== SEKME_IZNI) } : r)),
+})
+
+/* TALEPTE İŞ İZNİ OLMAYAN ROL (B-IPTAL, 8 Ekim 2026). Parça rolünden
+   talepteki iş izinleri (veri.js → TALEP_EYLEMLERI) çıkarılmış rol
+   listesi: Yönetici'nin varsayılan hâli bu, talepleri görür ama
+   değiştiremez. Sürüm 4 yazılı ki taşıma izinleri geri eklemesin. */
+const IS_IZINLERI = Object.values(m.veri.TALEP_EYLEMLERI)
+const ISSIZ_ICERIGI = JSON.stringify({
+  ...JSON.parse(ASIL_ICERIK || '{}'),
+  roller: m.veri
+    .rolleriGetir()
+    .map((r) => (r.id === PARCA_PERSONELI.rol ? { ...r, izinler: r.izinler.filter((i) => !IS_IZINLERI.includes(i)), izinSurumu: 4 } : r)),
 })
 
 await kapat()
@@ -1317,7 +1354,12 @@ try {
      PARCA_KODU), yalnız o parçanın uyduğu makinede. Süper 8002'de
      "Mekik dili" seçili gelmeli, tabloda olmayan "Yatak" açıklamaya
      yazılmalı; Hammer'da "Mekik dili" seçili GELMEMELİ (Hammer'ın
-     parçaları kendi grubunda). Ekilen değer katalog kodu ve adı. */
+     parçaları kendi grubunda). Ekilen değer katalog kodu ve adı.
+
+     8 Ekim 2026'dan beri Destek ekranı da aynı çeviriyle parçanın
+     görselini gösteriyor (lib/destekParcasi.js): Süper 8002'de "Düğüm hiç
+     atmıyor" belirtisinde Mekik dilinin satırı katalog koduyla ve resmi
+     inmiş olarak; Hammer'da aynı satır görselsiz. */
   if (secili('C-36')) {
     const katalog = JSON.parse(readFileSync(join(KOK, 'sunucu-taklidi', 'parca-katalogu', 'katalog.json'), 'utf8'))
     const MEKIK = katalog.parcalar.find((p) => p.kod === '201310101110')?.ad || ''
@@ -1333,6 +1375,34 @@ try {
       return { aciklama, sayfa: await metin() }
     }
     let hata = MEKIK ? null : 'katalogda 201310101110 yok — ERİŞİLEMEDİ'
+    const destekAc = async (model) => {
+      await connectKur([])
+      await s.js(`localStorage.setItem('paksan.destekUrun', JSON.stringify('${model}')); localStorage.removeItem('paksan.destekMakine'); 1`)
+      await s.git(ADRES + '/#/destek?belirti=dugum-atmiyor')
+      await sayiBekle('[data-destek-parca]', (v) => v > 0)
+      /* Resim tembel yükleniyor (loading="lazy"): bölüm sayfanın dibinde,
+         önce ekrana getiriliyor. */
+      await s.js(`document.querySelector('[data-destek-parca]')?.scrollIntoView({ block: 'center' }); 1`)
+      for (let i = 0; i < 15; i++) {
+        await bekle(300)
+        if (await s.js(`[...document.querySelectorAll('[data-destek-parca] .parca-resmi img')].every((x) => x.complete)`)) break
+      }
+      return s.js(`(() => {
+        const satir = [...document.querySelectorAll('[data-destek-parca]')].find((x) => x.textContent.includes('Mekik dili'))
+        const img = satir?.querySelector('.parca-resmi img')
+        return { var: Boolean(satir), kod: satir?.dataset.destekParca || '', resim: Boolean(img && img.complete && img.naturalWidth > 0) }
+      })()`)
+    }
+    if (!hata) {
+      const d = await destekAc('super-8002')
+      if (!d?.var) hata = 'Destek\'te "Mekik dili" satırı yok'
+      else if (d.kod !== '201310101110') hata = `Destek'te Mekik dili katalog koduna bağlanmadı ("${d.kod}")`
+      else if (!d.resim) hata = "Destek'te Mekik dilinin görseli inmedi"
+    }
+    if (!hata) {
+      const d = await destekAc('hammer')
+      if (d?.kod || d?.resim) hata = "Hammer'da Destek küçük balyanın parça görselini gösterdi"
+    }
     if (!hata) {
       const kucuk = await formuAc('super-8002')
       if (!kucuk.sayfa.includes(MEKIK)) hata = `Süper 8002'de "${MEKIK}" seçili gelmedi`
@@ -1343,7 +1413,7 @@ try {
       if (hammer.sayfa.includes(MEKIK)) hata = `Hammer'da küçük balyanın "${MEKIK}" parçası seçili geldi`
       else if (!hammer.aciklama.includes('Mekik dili')) hata = 'Hammer\'da eşleşmeyen "Mekik dili" açıklamaya yazılmadı'
     }
-    kaydet('C-36', 'Destek parça adı talepte koda çevriliyor, yalnız uyduğu makinede', hata, await metin())
+    kaydet('C-36', 'Destek parça adı Destek ekranında görseliyle, talepte koda çevriliyor, yalnız uyduğu makinede', hata, await metin())
   }
 
   /* X-06 · Servisim'de açık pencere, talep başka sekmede iptal edilince
@@ -2102,6 +2172,300 @@ try {
     kaydet('B-BOLGE', 'Backoffice: bölge dışı talebe bu iş için servis atama', hata, await metin())
   }
 
+  /* C-41 · Müşterinin talebi iptal etmesi (8 Ekim 2026, kullanıcının
+     isteği). Dokunulmamış talepte düğme hemen iptal yolunda
+     (`data-iptal-yolu="dogrudan"`); pencerede dört neden var; neden
+     seçilmeden gönderilince uyarı çıkıyor ve talep değişmiyor; neden
+     seçilip gönderilince talep depoda iptal, müşterinin işaretiyle, düğme
+     kalkıyor. İşleme alınmış talepte düğme istek yolunda; istek
+     gönderilince talep sürüyor, bekleyen istek kutusu çıkıyor, düğme
+     kalkıyor. Kayıt tarafı AK-39'da. Yazılara bakılmıyor. */
+  const talepKaydi = (id) =>
+    s.js(`JSON.stringify((JSON.parse(localStorage.getItem('paksan.requests') || '[]').find((x) => x.id === ${JSON.stringify(id)})) || null)`).then(JSON.parse)
+  const yaziYaz = (secici, deger) => s.js(`(() => {
+    const el = document.querySelector(${JSON.stringify(secici)})
+    if (!el) return 0
+    Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(el, ${JSON.stringify(deger)})
+    el.dispatchEvent(new Event('input', { bubbles: true }))
+    return 1
+  })()`)
+  if (secili('C-41')) {
+    const YENI = connectTalebi({ id: 'canli-41', no: 'SRV2609990041', status: 'yeni', makine: makineOf(makineler[1]) })
+    const ISLEMDE = connectTalebi({ id: 'canli-41b', no: 'SRV2609990042', status: 'incelemede', makine: makineOf(makineler[2]) })
+    await connectKur([YENI, ISLEMDE])
+    if (CEKIM) await s.olcu({ width: 390, height: 844, deviceScaleFactor: 2, mobile: true })
+    await s.git(ADRES + '/#/talebim/canli-41')
+    const yol = () => s.js(`document.querySelector('[data-eylem="talep-iptal"]')?.dataset.iptalYolu || ''`)
+    let hata = null
+    if ((await sayiBekle('[data-eylem="talep-iptal"]', (v) => v > 0)) < 1) hata = 'dokunulmamış talepte iptal düğmesi yok — ERİŞİLEMEDİ'
+    else if ((await yol()) !== 'dogrudan') hata = `dokunulmamış talepte düğme hemen iptal yolunda değil (${await yol()})`
+    if (!hata) {
+      await s.js(`document.querySelector('[data-eylem="talep-iptal"]').click(); 1`)
+      if ((await sayiBekle('[data-pencere="talep-iptal"] [data-iptal-neden]', (v) => v === 4)) !== 4) hata = 'iptal penceresinde dört neden yok'
+    }
+    if (!hata) {
+      /* Alttan açılan pencere ilk 400 ms dokunuşu yutuyor (Chrome.jsx → Sheet). */
+      await bekle(600)
+      await s.js(`document.querySelector('[data-eylem="talep-iptal-gonder"]').click(); 1`)
+      await bekle(400)
+      if ((await say('[data-pencere="talep-iptal"] .uyari-kart')) < 1) hata = 'neden seçilmeden gönderince uyarı çıkmadı'
+      else if ((await talepKaydi('canli-41'))?.status !== 'yeni') hata = 'neden seçilmeden talep iptal edildi'
+    }
+    if (!hata) {
+      await s.js(`document.querySelector('[data-iptal-neden="vazgectim"]').click(); 1`)
+      await bekle(300)
+      await cek('c41-pencere')
+      await s.js(`document.querySelector('[data-eylem="talep-iptal-gonder"]').click(); 1`)
+      await sayiBekle('[data-eylem="talep-iptal"]', (v) => v === 0)
+      const k = await talepKaydi('canli-41')
+      if (k?.status !== 'iptal') hata = `neden seçilip gönderilince talep iptal edilmedi (${k?.status})`
+      else if (!k?.iptalBilgi?.musteri) hata = 'iptal müşterinin olarak işaretlenmedi'
+      else if ((await say('[data-eylem="talep-iptal"]')) > 0) hata = 'iptal edilen talepte iptal düğmesi duruyor'
+    }
+    if (!hata) {
+      await s.git(ADRES + '/#/talebim/canli-41b')
+      if ((await sayiBekle('[data-eylem="talep-iptal"]', (v) => v > 0)) < 1) hata = 'işleme alınmış talepte iptal düğmesi yok'
+      else if ((await yol()) !== 'istek') hata = `işleme alınmış talepte düğme istek yolunda değil (${await yol()})`
+    }
+    if (!hata) {
+      await s.js(`document.querySelector('[data-eylem="talep-iptal"]').click(); 1`)
+      await sayiBekle('[data-pencere="talep-iptal"] [data-iptal-neden]', (v) => v === 4)
+      await bekle(600)
+      await s.js(`document.querySelector('[data-iptal-neden="gerekKalmadi"]').click(); 1`)
+      await bekle(200)
+      await s.js(`document.querySelector('[data-eylem="talep-iptal-gonder"]').click(); 1`)
+      await sayiBekle('[data-iptal-istegi="bekliyor"]', (v) => v > 0)
+      const k = await talepKaydi('canli-41b')
+      if (k?.status !== 'incelemede') hata = `iptal isteği talebin durumunu değiştirdi (${k?.status})`
+      else if (k?.iptalIstegi?.durum !== 'bekliyor') hata = 'iptal isteği kaydedilmedi'
+      else if ((await say('[data-iptal-istegi="bekliyor"]')) < 1) hata = 'bekleyen istek kutusu çıkmadı'
+      else if ((await say('[data-eylem="talep-iptal"]')) > 0) hata = 'bekleyen istek varken iptal düğmesi duruyor'
+      else await cek('c41-istek', '[data-iptal-istegi="bekliyor"]')
+    }
+    if (CEKIM) await s.olcu({ width: 1400, height: 1000, deviceScaleFactor: 1, mobile: false })
+    kaydet('C-41', 'Connect: dokunulmamış talep hemen iptal, işleme alınmış talepte iptal isteği', hata, await metin())
+  }
+
+  /* B-IPTAL · Backoffice'te müşterinin iptal isteği ve talepte iş izni
+     (8 Ekim 2026, kullanıcının istekleri). Depoya iptal isteği bekleyen
+     bir talep ekleniyor; ayrıntıda kutu var (`data-iptal-istegi`), ret
+     gerekçesiz gitmiyor, gerekçeyle gidince depoda istek reddedilmiş,
+     gerekçesi yazılı, talep sürüyor ve kutu geçmiş bilgiye dönüyor.
+     Sonra parça rolünden talepteki iş izinleri çıkarılıyor (Yönetici'nin
+     varsayılan hâli): parça talebinde "yetki yok" notu var, durum
+     düğmeleri ve not kutusu yok. */
+  if (secili('B-IPTAL')) {
+    const IST = connectTalebi({
+      id: 'canli-bi',
+      no: 'SRV2609990043',
+      status: 'incelemede',
+      makine: makineOf(makineler[1]),
+      iptalIstegi: { durum: 'bekliyor', tarih: Date.now() - 3600000, kod: 'vazgectim', neden: 'Müşteri vazgeçti', aciklama: 'Tur açıklaması' },
+    })
+    const PRC = connectTalebi({
+      id: 'canli-bp', no: 'YPR2609990044', tur: 'parca', status: 'incelemede', sahip: 'paksan', servis: null, masa: 'parca',
+      makine: makineOf(makineler[1]),
+    })
+    await s.git(ADRES + '/backoffice.html')
+    await depoYaz({ ...YEREL, 'paksan.requests': JSON.stringify([IST, PRC, ...JSON.parse(YEREL['paksan.requests'] || '[]')]) }, OTURUM)
+    await s.git(ADRES + '/backoffice.html')
+    let hata = null
+    await bekle(1200)
+    const satiriAc = async (no) => {
+      await s.js(`document.querySelector('.yan__bag[data-menu="talepler"]')?.click(); 1`)
+      await sayiBekle('tr.tiklanir', (v) => v > 0)
+      return s.js(`(() => { const tr = [...document.querySelectorAll('tr.tiklanir')].find((x) => x.textContent.includes(${JSON.stringify(no)})); if (!tr) return 0; tr.click(); return 1 })()`)
+    }
+    if (!(await satiriAc(IST.no))) hata = 'iptal isteği bekleyen talep listede yok — ERİŞİLEMEDİ'
+    else if ((await sayiBekle('[data-iptal-istegi="bekliyor"]', (v) => v > 0)) < 1) hata = 'ayrıntıda iptal isteği kutusu yok'
+    if (!hata) {
+      await cek('biptal-kutu', '[data-iptal-istegi="bekliyor"]')
+      await s.js(`document.querySelector('[data-eylem="iptal-istegi-reddet"]').click(); 1`)
+      await sayiBekle('[data-iptal-istegi="bekliyor"] textarea', (v) => v > 0)
+      await s.js(`document.querySelector('[data-eylem="iptal-istegi-reddet-gonder"]').click(); 1`)
+      await bekle(400)
+      if ((await talepKaydi('canli-bi'))?.iptalIstegi?.durum !== 'bekliyor') hata = 'gerekçesiz ret kaydedildi'
+    }
+    if (!hata) {
+      await yaziYaz('[data-iptal-istegi="bekliyor"] textarea', 'Tur gerekçesi')
+      await bekle(200)
+      await s.js(`document.querySelector('[data-eylem="iptal-istegi-reddet-gonder"]').click(); 1`)
+      await sayiBekle('[data-iptal-istegi="reddedildi"]', (v) => v > 0)
+      const k = await talepKaydi('canli-bi')
+      if (k?.iptalIstegi?.durum !== 'reddedildi') hata = `istek reddedilmedi (${k?.iptalIstegi?.durum})`
+      else if (k?.iptalIstegi?.karar?.gerekce !== 'Tur gerekçesi') hata = 'ret gerekçesi isteğe yazılmadı'
+      else if (k?.status !== 'incelemede') hata = `ret talebin durumunu değiştirdi (${k?.status})`
+      else if ((await say('[data-iptal-istegi="reddedildi"]')) < 1) hata = 'reddedilen istek geçmiş bilgi olarak görünmüyor'
+    }
+    if (!hata) {
+      await s.js(`localStorage.setItem('paksan.panelIcerik', ${JSON.stringify(ISSIZ_ICERIGI)}); sessionStorage.removeItem('paksan.panelOturum'); localStorage.setItem('paksan.panelOturum', ${JSON.stringify(KISITLI_OTURUM)}); 1`)
+      await s.git(ADRES + '/backoffice.html')
+      await bekle(1200)
+      if (!(await satiriAc(PRC.no))) hata = 'iş izni olmayan rolde parça talebi listede yok — ERİŞİLEMEDİ'
+      else if ((await sayiBekle('[data-uyari="talep-yetkisiz"]', (v) => v > 0)) < 1) hata = 'iş izni olmayan rolde "yetki yok" notu çıkmadı'
+      else if ((await say('[data-durum-dugmeleri]')) > 0) hata = 'iş izni olmayan rolde durum düğmeleri duruyor'
+      else if ((await say('[data-alan="talep-not"]')) > 0) hata = 'iş izni olmayan rolde not yazma kutusu duruyor'
+      else await cek('biptal-yetkisiz', '[data-uyari="talep-yetkisiz"]')
+    }
+    kaydet('B-IPTAL', "Backoffice: müşterinin iptal isteği karara bağlanıyor; talepte iş izni olmayan rol yalnız görüyor", hata, await metin())
+  }
+
+  /* B-GORUS · Geri Bildirimler (8 Ekim 2026, kullanıcının seçimi: durum ve
+     süzgeç, iç not, konu). Hesaba bağlı görüşte iç not müşteriye gitmiyor
+     (depoda `musteriye: false`, bildirim yok) ve durum Yeni kalıyor;
+     hesaba bağlı olmayan görüşte cevap düğmesi yok, nedeni yazıyor;
+     "Kapatıldı" süzgeci kapatılan görüşü gösteriyor. */
+  if (secili('B-GORUS')) {
+    const G1 = {
+      id: 'canli-g1', no: 'GBD999001', tarih: Date.now() - 3600000, konu: 'sorun', metin: 'Tur görüşü',
+      ad: MUSTERI.ad, tel: MUSTERI.tel, telUlke: 'TR', musteriId: MUSTERI.id, dil: 'tr', surum: 'tur', okundu: false,
+    }
+    const G2 = {
+      id: 'canli-g2', no: 'GBD999002', tarih: Date.now() - 7200000, metin: 'Tur hesapsız görüş',
+      ad: 'Bilinmeyen', tel: '5559998877', telUlke: 'TR', musteriId: null, okundu: false,
+    }
+    await s.git(ADRES + '/backoffice.html')
+    await depoYaz({ ...YEREL, 'paksan.geribildirim': JSON.stringify([G1, G2]) }, OTURUM)
+    await s.git(ADRES + '/backoffice.html')
+    await bekle(1200)
+    await s.js(`document.querySelector('.yan__bag[data-menu="geribildirim"]')?.click(); 1`)
+    const gorus = () => s.js(`JSON.stringify((JSON.parse(localStorage.getItem('paksan.geribildirim') || '[]').find((x) => x.id === 'canli-g1')) || null)`).then(JSON.parse)
+    let hata = null
+    if ((await sayiBekle('[data-gorus="GBD999001"]', (v) => v > 0)) < 1) hata = 'görüş listede yok — ERİŞİLEMEDİ'
+    else if ((await say('[data-gorus="GBD999002"] [data-eylem="gorus-cevap"]')) > 0) hata = 'hesaba bağlı olmayan görüşte cevap düğmesi var'
+    else if ((await say('[data-gorus="GBD999002"] [data-uyari="gorus-hesapsiz"]')) < 1) hata = 'hesaba bağlı olmayan görüşte nedeni yazmıyor'
+    else if ((await say('[data-gorus="GBD999001"] [data-eylem="gorus-cevap"]')) < 1) hata = 'hesaba bağlı görüşte cevap düğmesi yok'
+    if (!hata) {
+      await s.js(`document.querySelector('[data-gorus="GBD999001"] [data-eylem="gorus-ic-not"]').click(); 1`)
+      await sayiBekle('[data-gorus="GBD999001"] textarea', (v) => v > 0)
+      await yaziYaz('[data-gorus="GBD999001"] textarea', 'Tur iç notu')
+      await bekle(200)
+      await s.js(`document.querySelector('[data-gorus="GBD999001"] .dg--ana').click(); 1`)
+      await bekle(600)
+      const g = await gorus()
+      const bildirimVar = await s.js(`JSON.parse(localStorage.getItem('paksan.duyurular') || '[]').some((d) => d.tur === 'gorus')`)
+      if (g?.notlar?.[0]?.musteriye !== false) hata = 'iç not müşteriye gidecek gibi kaydedildi'
+      else if (bildirimVar) hata = 'iç not müşteriye bildirim yazdı'
+      else if ((await s.js(`document.querySelector('[data-gorus="GBD999001"] [data-gorus-durum-rozet]')?.dataset.gorusDurumRozet`)) !== 'yeni') hata = 'iç not görüşü cevaplanmış saydı'
+      else await cek('bgorus-icnot', '[data-gorus="GBD999001"]')
+    }
+    if (!hata) {
+      await s.js(`document.querySelector('[data-gorus="GBD999001"] [data-eylem="gorus-kapat"]').click(); 1`)
+      await bekle(500)
+      await s.js(`document.querySelector('[data-gorus-durum="kapandi"]').click(); 1`)
+      await bekle(400)
+      if ((await gorus())?.kapandi?.personel !== PERSONEL.ad) hata = 'kapatılan görüşe kapatan yazılmadı'
+      else if ((await say('[data-gorus="GBD999001"]')) !== 1 || (await say('[data-gorus="GBD999002"]')) !== 0) hata = '"Kapatıldı" süzgeci yalnız kapatılan görüşü göstermiyor'
+    }
+    kaydet('B-GORUS', 'Backoffice: geri bildirimde iç not müşteriye gitmiyor, hesapsız görüşe cevap düğmesi yok, durum süzgeci', hata, await metin())
+  }
+
+  /* B-SAHIP · Kayıtlı Makineler'de makinenin sahibini değiştirmek (9 Ekim
+     2026, kullanıcının onayı: "Evet, Sahibini Değiştir'i ekle"). Admin
+     oturumunda makinenin penceresinde Sahiplik kutusu var; hesabı olmayan
+     numara "bulunamadı" diyor; ikinci müşterinin numarası onun hesabını
+     buluyor; "Makineyi Bu Hesaba Geçir" backoffice'in onay penceresini
+     açıyor (tarayıcının uyarı kutusu değil) ve kabulde depoda defter
+     satırı yeni sahipte, kapanan sahiplik geçmişte, makine eski sahibin
+     Connect listesinden çıkmış; pencerede Sahiplik Geçmişi iki satır,
+     listede satırın altında ilk kayıt günü. Devir yetkisi olmayan rolde
+     (Yedek Parça) düğme yok, nedeni yazıyor. Yazılara bakılmıyor; ekilen
+     değer yeni sahibin müşteri numarası. Kayıt tarafı AK-41'de. */
+  if (secili('B-SAHIP')) {
+    const YENI = {
+      id: 'msc-tur-2', no: 'MST000777', createdAt: MUSTERI.createdAt, ad: 'Tur Yeni Sahip', ulke: 'TR',
+      tel: '5447770011', konumUlke: 'TR', il: 'Ankara', ilce: 'Polatlı', makineler: [],
+    }
+    const temizSeri = (x) => String(x || '').replace(/[^0-9A-Z]/gi, '')
+    const SERI_TUR = temizSeri(makineler[0].serial)
+    const satirAc = () =>
+      s.js(`(() => {
+        const tr = [...document.querySelectorAll('tr.tiklanir')].find((x) => (x.querySelector('td')?.textContent || '').replace(/[^0-9A-Z]/gi, '') === ${JSON.stringify(SERI_TUR)})
+        if (!tr) return 0
+        tr.click()
+        return 1
+      })()`)
+    const makinelerAc = async () => {
+      await s.git(ADRES + '/backoffice.html')
+      await bekle(1200)
+      await s.js(`document.querySelector('.yan__bag[data-menu="makineler"]')?.click(); 1`)
+      await sayiBekle('tr.tiklanir', (v) => v > 0)
+    }
+    await s.git(ADRES + '/backoffice.html')
+    await depoYaz({ ...YEREL, 'paksan.demoMusteriler': JSON.stringify([YENI]) }, OTURUM)
+    await makinelerAc()
+    let hata = null
+    if (!(await satirAc())) hata = 'makine listede yok — ERİŞİLEMEDİ'
+    else if ((await sayiBekle('[data-bolum="sahiplik"] [data-eylem="sahip-degistir"]', (v) => v > 0)) < 1) hata = 'admin penceresinde Sahibini Değiştir düğmesi yok'
+    /* yaziYaz yazı kutusu (textarea) için; numara alanı input. */
+    const bulDugmesi = async (tel) => {
+      await s.js(`(() => {
+        const el = document.querySelector('[data-alan="devir-tel"]')
+        Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, ${JSON.stringify(tel)})
+        el.dispatchEvent(new Event('input', { bubbles: true }))
+        return 1
+      })()`)
+      await bekle(150)
+      await s.js(`document.querySelector('[data-eylem="hesap-bul"]').click(); 1`)
+    }
+    if (!hata) {
+      await s.js(`document.querySelector('[data-eylem="sahip-degistir"]').click(); 1`)
+      await sayiBekle('[data-alan="devir-tel"]', (v) => v > 0)
+      await bulDugmesi('0555 000 00 00')
+      if ((await sayiBekle('[data-devir-sonuc="yok"]', (v) => v > 0)) < 1) hata = 'hesabı olmayan numarada "bulunamadı" çıkmadı'
+    }
+    if (!hata) {
+      await bulDugmesi('0544 777 00 11')
+      if ((await sayiBekle('[data-devir-sonuc="bulundu"] [data-eylem="devret"]', (v) => v > 0)) < 1) hata = 'yeni sahibin numarası hesabını bulmadı'
+      else if (!(await s.js(`document.querySelector('[data-devir-sonuc="bulundu"]').textContent.includes(${JSON.stringify(YENI.no)})`))) hata = 'bulunan hesap yeni sahibin hesabı değil'
+    }
+    if (!hata) {
+      await cek('bsahip-bulundu', '[data-bolum="sahiplik"]')
+      await s.js(`(() => {
+        window.__tarayiciUyarisi = 0
+        window.confirm = () => { window.__tarayiciUyarisi = 1; return true }
+        document.querySelector('[data-eylem="devret"]').click()
+        return 1
+      })()`)
+      const pencere = await sayiBekle('[data-pencere="onay"] [data-eylem="onay-evet"]', (v) => v > 0, 8)
+      if (await s.js('window.__tarayiciUyarisi')) hata = 'devir onayı tarayıcının uyarı kutusuyla soruldu'
+      else if (pencere < 1) hata = 'devir için onay penceresi açılmadı'
+      else {
+        await cek('bsahip-onay', '[data-pencere="onay"] .pencere__kart')
+        await s.js(`document.querySelector('[data-pencere="onay"] [data-eylem="onay-evet"]').click(); 1`)
+        await sayiBekle('[data-tablo="sahiplik"] tbody tr', (v) => v > 0)
+      }
+    }
+    if (!hata) {
+      const defter = await s.js(`JSON.stringify((JSON.parse(localStorage.getItem('paksan.makineKayitlari') || '[]').find((k) => String(k.seri || '').replace(/[^0-9A-Z]/gi, '') === ${JSON.stringify(SERI_TUR)})) || null)`).then(JSON.parse)
+      const liste = JSON.parse(await s.js(`localStorage.getItem('paksan.machines') || '[]'`))
+      const satirSayisi = await say('[data-tablo="sahiplik"] tbody tr')
+      if (defter?.musteriId !== YENI.id) hata = `defter satırı yeni sahibe geçmedi (${defter?.musteriId})`
+      else if (defter?.sahiplikGecmisi?.[0]?.musteriId !== MUSTERI.id) hata = 'kapanan sahiplik geçmişe yazılmadı'
+      else if (liste.some((x) => temizSeri(x.serial) === SERI_TUR)) hata = 'makine eski sahibin Connect listesinde kaldı'
+      else if (satirSayisi !== 2) hata = `Sahiplik Geçmişi iki satır değil (${satirSayisi})`
+      else if ((await say('[data-alan="devir-tel"]')) > 0) hata = 'devirden sonra form açık kaldı'
+      else await cek('bsahip-gecmis', '[data-tablo="sahiplik"]')
+    }
+    if (!hata) {
+      await s.js(`document.querySelector('.pencere .kart__tepe .dg')?.click(); 1`)
+      await bekle(300)
+      if ((await say('[data-ilk-kayit]')) < 1) hata = 'el değiştiren makinenin satırında ilk kayıt günü yok'
+    }
+    if (!hata) {
+      await s.js(`sessionStorage.removeItem('paksan.panelOturum'); localStorage.setItem('paksan.panelOturum', ${JSON.stringify(KISITLI_OTURUM)}); 1`)
+      await makinelerAc()
+      if (!(await satirAc())) hata = 'devir yetkisi olmayan rolde makine listede yok — ERİŞİLEMEDİ'
+      else if ((await sayiBekle('[data-uyari="devir-yetkisiz"]', (v) => v > 0)) < 1) hata = 'devir yetkisi olmayan rolde nedeni yazmıyor'
+      else if ((await say('[data-eylem="sahip-degistir"]')) > 0) hata = 'devir yetkisi olmayan rolde Sahibini Değiştir düğmesi var'
+    }
+    /* Depo ve oturum başlangıçtaki gibi: sonraki adımlar (B-RAPOR) yönetici
+       oturumuyla açıyor; Yedek Parça oturumu kalınca Raporlar'a
+       erişemiyordu (ilk tam koşu yakaladı). */
+    await depoYaz(YEREL, OTURUM)
+    kaydet('B-SAHIP', 'Backoffice: makinenin sahibi değişiyor; yeni sahip numarayla bulunuyor, onay penceresi, sahiplik geçmişi; yetkisiz rolde düğme yok', hata, await metin())
+  }
+
   /* B-RAPOR · Raporlar'ın sekme satırında kaydırma çubuğu yok (6 Ekim
      2026, kullanıcının bildirdiği: "sekme satırında sağda kaydırma çubuğu
      çıkıyor. Burada kaydırılacak bir şey yok"). Seçili sekmenin çizgisi
@@ -2460,6 +2824,70 @@ try {
     }
     if (CEKIM) await s.olcu({ width: 1400, height: 1000, deviceScaleFactor: 1, mobile: false })
     kaydet('X-16', 'Servisim: servis kaydında yapılan iş çok seçimli; parçasız "Parça Değişti" uyarıyor ve gitmiyor; Parçayı Taktım\'da seçili ve kilitli', hata, await metin())
+  }
+
+  /* X-17 · İşlerim'in bildirim satırı (8 Ekim 2026, kullanıcının isteği:
+     "bildirimler … işlerim sayfasında satır satır gösteriliyor, asıl işler
+     aşağıda kalıyor"; seçimi tek özet satırı ve kartta işaret). Okunmamış
+     bildirimler eklenince İşlerim'de tek satır var (`data-yeni-bildirim`,
+     sayı en az eklenen kadar), bildirimler satır satır yok, bildirimi
+     olan işin kartında etiket var; "Bildirimleri Gör" Bildirimler ekranını
+     açıyor (orada satırlar). */
+  if (secili('X-17')) {
+    const AD = 'Canlı Bildirim Sınaması'
+    const is17 = connectTalebi({ id: 'canli-17', no: 'SRV2609990045', status: 'yeni', ad: AD })
+    const bildirimler = [0, 1, 2].map((i) => ({
+      id: 'canli-17-b' + i, tarih: Date.now() - i * 60000, tur: 'talep', kisisel: true, alici: 'servis',
+      servisId: SERVIS.id, talepId: is17.id, talepNo: is17.no, olay: i === 0 ? 'musteriEkledi' : 'not', degerler: {},
+    }))
+    await s.git(ADRES + '/servis.html')
+    await depoYaz(YEREL, OTURUM)
+    if (CEKIM) await s.olcu({ width: 390, height: 844, deviceScaleFactor: 2, mobile: true })
+    await s.git(ADRES + '/servis.html')
+    await bekle(1800)
+    await s.js(`(() => {
+      const r = JSON.parse(localStorage.getItem('paksan.requests') || '[]'); r.unshift(${JSON.stringify(is17)}); localStorage.setItem('paksan.requests', JSON.stringify(r))
+      const d = JSON.parse(localStorage.getItem('paksan.duyurular') || '[]'); d.unshift(...${JSON.stringify(bildirimler)}); localStorage.setItem('paksan.duyurular', JSON.stringify(d))
+      return 1
+    })()`)
+    await s.js(depoOlayi('paksan.requests'))
+    await s.js(depoOlayi('paksan.duyurular'))
+    let hata = null
+    if ((await sayiBekle('[data-yeni-bildirim]', (v) => v > 0)) < 1) hata = "İşlerim'de yeni bildirim satırı yok"
+    else {
+      const sayi = Number(await s.js(`document.querySelector('[data-yeni-bildirim]').dataset.yeniBildirim`))
+      if (!(sayi >= 3)) hata = `satırdaki sayı eklenen bildirimleri saymıyor (${sayi})`
+      else if ((await say('[data-bildirim]')) > 0) hata = "İşlerim'de bildirimler hâlâ satır satır"
+      else if ((await sayiBekle('#is-canli-17 [data-yeni-bildirim-etiket]', (v) => v > 0)) < 1) hata = 'yeni bildirimi olan işin kartında etiket yok'
+    }
+    if (!hata) {
+      await cek('x17-islerim', '[data-yeni-bildirim]')
+      await s.js(`document.querySelector('.yeni-bildirim__ac').click(); 1`)
+      if ((await sayiBekle('[data-bildirim^="canli-17-b"]', (v) => v >= 3)) < 3) hata = '"Bildirimleri Gör" Bildirimler ekranını açmadı'
+    }
+    /* Bildirimler'de kart Connect'teki gibi (8 Ekim 2026): müşterinin
+       eklemesi PAKSAN'ın notundan ayrı türde ve "Müşteriden" etiketli,
+       okunmamışta nokta, işi açan kartta ok. */
+    if (!hata) {
+      const kart = await s.js(`(() => ['canli-17-b0', 'canli-17-b1'].map((id) => {
+        const k = document.querySelector('[data-bildirim="' + id + '"]')
+        return k && {
+          tur: k.dataset.bildirimTur,
+          musteriEtiketi: Boolean(k.querySelector('.bildirim-kart__etiket--musteri')),
+          nokta: Boolean(k.querySelector('.bildirim-kart__nokta[role="img"][aria-label]')),
+          ok: Boolean(k.querySelector('.bildirim-kart__ok')),
+        }
+      }))()`)
+      const [musteri, paksan] = kart || []
+      if (!musteri || !paksan) hata = 'Bildirimler ekranında eklenen kartlar yok'
+      else if (musteri.tur !== 'musteri' || !musteri.musteriEtiketi) hata = `müşterinin eklemesi müşteri kartı değil (${JSON.stringify(musteri)})`
+      else if (paksan.tur !== 'servis' || paksan.musteriEtiketi) hata = `PAKSAN'ın notu servis kartı değil (${JSON.stringify(paksan)})`
+      else if (!musteri.nokta || !paksan.nokta) hata = 'okunmamış kartta nokta yok'
+      else if (!musteri.ok || !paksan.ok) hata = 'işi açan kartta ok yok'
+      else await cek('x17-bildirimler', '[data-bildirim="canli-17-b0"]')
+    }
+    if (CEKIM) await s.olcu({ width: 1400, height: 1000, deviceScaleFactor: 1, mobile: false })
+    kaydet('X-17', "Servisim: İşlerim'de bildirimler tek satır ve kartta etiket; Bildirimler'de kart türüyle (müşteriden ayrı), nokta ve ok", hata, await metin())
   }
 
   /* X-12 · Servisim sipariş özetinde adet ve Kaldır (30 Eylül 2026,

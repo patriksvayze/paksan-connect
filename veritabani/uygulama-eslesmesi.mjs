@@ -230,6 +230,7 @@ export const ALANLAR = {
   'requests[].tekrar[].tarih': sutun('talep.YenidenAcma.OlusmaZamani', 'yapan müşteri: YapanTuruKodu musteri, YapanHesapKimlik'),
   'requests[].gecmis[].tarih': sutun('talep.DurumGecmisi.OlusmaZamani'),
   'requests[].gecmis[].personel': sutun('talep.DurumGecmisi.YapanAdi'),
+  'requests[].gecmis[].musteri': turer('talep.DurumGecmisi.YapanTuruKodu', "true: satırı müşteri Connect'ten yazdı (8 Ekim 2026, kendi iptali): YapanTuruKodu 'musteri', YapanHesapKimlik talebin hesabı, KaynakUygulamaKodu 'connect'"),
   /* Servisin "Destek İste"si (veri.js → destekTalepEt). 25.09.2026'da
      AK-31 ilk kez gerçek talebe yazdı; önce yalnız demo talebindeydi. */
   'requests[].gecmis[].kaynak': turer('talep.DurumGecmisi.YeniSahipKodu', "'devir': satır servisin destek isteğinden; sahip servisten PAKSAN'a geçer (talep.Devir ile aynı an)"),
@@ -393,6 +394,19 @@ export const ALANLAR = {
   'requests[].iptalBilgi.neden': sutun('talep.Iptal.IptalNedeniKodu', 'bugün yazı; veritabanında iptal nedeni kodu, serbest metin talep.Iptal.Aciklama'),
   'requests[].iptalBilgi.tarih': sutun('talep.Iptal.OlusmaZamani'),
   'requests[].iptalBilgi.personel': sutun('talep.Iptal.YapanAdi'),
+  /* Müşterinin kendi iptali ve iptal isteği (8 Ekim 2026, lib/musteriIptal.js). */
+  'requests[].iptalBilgi.aciklama': sutun('talep.Iptal.Aciklama'),
+  'requests[].iptalBilgi.kod': turer('talep.Iptal.IptalNedeniKodu', "müşterinin Connect'te seçtiği neden: vazgectim → musteriVazgecti, yanlis → yanlisAcilmis, baska → baskaNeden; gerekKalmadi'nin kod listesinde karşılığı yok (VT-TASARIM-EKLERI §16)"),
+  'requests[].iptalBilgi.musteri': turer('talep.Iptal.YapanTuruKodu', "true: müşteri Connect'ten iptal etti (YapanTuruKodu 'musteri', KaynakUygulamaKodu 'connect'; CK_talep_Iptal_Yapan buna izin veriyor)"),
+  'requests[].iptalBilgi.musteriIstegi': yok(`müşterinin iptal isteği ve PAKSAN'ın kararı (8 Ekim 2026): veritabanında iptal isteği tablosu henüz yok`, `${EKLER} §16`),
+  'requests[].iptalIstegi.durum': yok(`müşterinin iptal isteği ve PAKSAN'ın kararı (8 Ekim 2026): veritabanında iptal isteği tablosu henüz yok`, `${EKLER} §16`),
+  'requests[].iptalIstegi.tarih': yok(`müşterinin iptal isteği ve PAKSAN'ın kararı (8 Ekim 2026): veritabanında iptal isteği tablosu henüz yok`, `${EKLER} §16`),
+  'requests[].iptalIstegi.kod': yok(`müşterinin iptal isteği ve PAKSAN'ın kararı (8 Ekim 2026): veritabanında iptal isteği tablosu henüz yok`, `${EKLER} §16`),
+  'requests[].iptalIstegi.neden': yok(`müşterinin iptal isteği ve PAKSAN'ın kararı (8 Ekim 2026): veritabanında iptal isteği tablosu henüz yok`, `${EKLER} §16`),
+  'requests[].iptalIstegi.aciklama': yok(`müşterinin iptal isteği ve PAKSAN'ın kararı (8 Ekim 2026): veritabanında iptal isteği tablosu henüz yok`, `${EKLER} §16`),
+  'requests[].iptalIstegi.karar.personel': yok(`müşterinin iptal isteği ve PAKSAN'ın kararı (8 Ekim 2026): veritabanında iptal isteği tablosu henüz yok`, `${EKLER} §16`),
+  'requests[].iptalIstegi.karar.tarih': yok(`müşterinin iptal isteği ve PAKSAN'ın kararı (8 Ekim 2026): veritabanında iptal isteği tablosu henüz yok`, `${EKLER} §16`),
+  'requests[].iptalIstegi.karar.gerekce': yok(`müşterinin iptal isteği ve PAKSAN'ın kararı (8 Ekim 2026): veritabanında iptal isteği tablosu henüz yok`, `${EKLER} §16`),
 
   'requests[].notlar[].metin': sutun('talep.TalepNotu.Metin'),
   'requests[].notlar[].tarih': sutun('talep.TalepNotu.OlusmaZamani'),
@@ -454,6 +468,20 @@ export const ALANLAR = {
   'makineKayitlari[].kaydedenServisAd': turer('servis.Servis.Ad', 'makine.KayitOlayi.ServisKimlik üzerinden'),
   'makineKayitlari[].bayiAd': turer('bayi.Bayi.Ad', 'makine.MakineSatisi.SaticiBayiKimlik üzerinden'),
   'makineKayitlari[].musteriNo': turer(MUSTERI_NO, NUMARA_KARARI),
+  /* SAHİPLİK (9 Ekim 2026, ikinci el devir: veri.js → makineSahibiniDegistir).
+     Defter satırı bugünkü sahibi taşıyor; açık sahiplik satırı
+     makine.MakineSahipligi'de BitisZamani boş olan satır, kapanmışlar
+     sahiplikGecmisi[]. Hesap birleştirme veritabanında da sahiplik kapatıp
+     açıyor (BitisNedeniKodu 'birlestirme'); uygulama onu geçmişe yazmıyor,
+     sahip aynı kişi. */
+  'makineKayitlari[].sahiplikTarihi': sutun('makine.MakineSahipligi.BaslangicZamani', 'açık sahiplik (BitisZamani boş); alan yoksa sahiplik ilk kayıtla başladı (lib/makineKaydi.js → sahiplikTarihi). Devirde YapanTuruKodu personel, KaynakKodu personel'),
+  'makineKayitlari[].sahiplikGecmisi[].musteriId': sutun('makine.MakineSahipligi.HesapKimlik', 'kapanmış sahiplik'),
+  'makineKayitlari[].sahiplikGecmisi[].baslangic': sutun('makine.MakineSahipligi.BaslangicZamani', 'kapanmış sahiplik'),
+  'makineKayitlari[].sahiplikGecmisi[].bitis': sutun('makine.MakineSahipligi.BitisZamani'),
+  'makineKayitlari[].sahiplikGecmisi[].neden': sutun('makine.MakineSahipligi.BitisNedeniKodu', "bugün yalnız 'devir' (kod.SahiplikBitisNedeni)"),
+  'makineKayitlari[].sahiplikGecmisi[].yapan': sutun('makine.MakineSahipligi.YapanAdi', 'sahipliği kapatan devri yapan personel; veritabanında devirle açılan YENİ satırın YapanAdi/YapanKullaniciKimlik değeri de bu'),
+  'makineKayitlari[].sahiplikGecmisi[].musteriNo': turer(MUSTERI_NO, 'HesapKimlik üzerinden'),
+  'makineKayitlari[].sahiplikGecmisi[].musteriAd': turer('musteri.HesapKisisi.Adi', 'HesapKimlik üzerinden; bugünkü ad'),
 
   // -------------------------------------------------------------- Müşteri
   'hesap.id': sutun('musteri.Hesap.Kimlik', 'bugünkü kısa kimlik taşınırken EskiKayitNo\'ya'),
@@ -530,6 +558,12 @@ export const ALANLAR = {
   'geribildirim[].notlar[].metin': sutun('musteri.GeriBildirimNotu.Metin'),
   'geribildirim[].notlar[].tarih': sutun('musteri.GeriBildirimNotu.OlusmaZamani'),
   'geribildirim[].notlar[].personel': sutun('musteri.GeriBildirimNotu.YapanAdi'),
+  /* 8 Ekim 2026: iç not ile müşteriye cevap ayrıldı; veritabanında karşılığı hazırdı. */
+  'geribildirim[].notlar[].musteriye': sutun('musteri.GeriBildirimNotu.MusteriyeGonderildi', 'alanı olmayan eski not müşteriye gitmişti (veri.js → notMusteriyeMi)'),
+  'geribildirim[].okumaTarih': sutun('musteri.GeriBildirim.OkunmaZamani'),
+  'geribildirim[].konu': yok(`görüşün konusu ve kapatılması (8 Ekim 2026): musteri.GeriBildirim'de konu ve durum sütunu yok`, `${EKLER} §16`),
+  'geribildirim[].kapandi.personel': yok(`görüşün konusu ve kapatılması (8 Ekim 2026): musteri.GeriBildirim'de konu ve durum sütunu yok`, `${EKLER} §16`),
+  'geribildirim[].kapandi.tarih': yok(`görüşün konusu ve kapatılması (8 Ekim 2026): musteri.GeriBildirim'de konu ve durum sütunu yok`, `${EKLER} §16`),
 
   // --------------------------------------------- Destek asistanı kaydı
   /* Connect'in destek oturumları (lib/destekLog.js): oturum başına tek
@@ -816,12 +850,16 @@ export const ISLEVLER = {
   durumGecisiEngeli: { tur: 'hesap', not: 'fiyat teklifinin durum kapıları; sunucu aynı kuralı uygulamalı' },
   paksanRandevuEngeli: { tur: 'hesap', not: 'PAKSAN servis talebine yalnız devredilmişse (devir + sahip paksan) randevu verebilir; sunucu talepPlanla içinde aynı kuralı denetlemeli (29.09.2026)' },
   durumKilidi: { tur: 'hesap', not: 'kapanmış talebin ve gönderilmiş servis siparişinin durum kilidi; sunucu talepGeriAc iznini aynı kapıda denetlemeli (25.09.2026)' },
+  durumDugmesiKilidi: { tur: 'hesap', not: 'durum düğmesinin kilidi: talebin kilidi ve rolün iş izni (8.10.2026); sunucu talepDurum / talepIptal / talepTeklif izinlerini aynı kapıda denetlemeli' },
+  talepteYapabilir: { tur: 'hesap', not: 'talepteki iş için rol izni (TALEP_EYLEMLERI, 8.10.2026); yazan işlevler rol almıyor, sunucu her yazımda aynı izni denetlemeli' },
+  talepteIsYapabilir: 'hesap',
   serviseBildir: 'yazma', servisBildirimleri: 'okuma',
   bayiAtamasiniKaldir: 'yazma', bolgeDisiTalebeServisAta: 'yazma', talepNotEkle: 'yazma',
   musteriyeBildir: { tur: 'yazma', not: 'alıcısı (HesapKimlik) çözülmeyen bildirim yazılmıyor; CK_bildirim_Bildirim_Alici ile aynı kural (25.09.2026)' },
   bildirimAlicilari: { tur: 'okuma', not: 'ekranın "bildirim kime gitti" sorusu; servis siparişinde müşteri yok, servisin elle açtığı kimliksiz talep telefonla eşleşmiyor, alıcı çözülmüyorsa yok — sunucuda bildirim.Bildirim yazma kuralıyla aynı' },
   gonderimGecikti: 'hesap', gonderimGecikmeSaati: 'hesap', gecikmisMi: 'hesap',
   talepKapat: 'yazma', talepIptal: 'yazma', talepTeklifVer: 'yazma',
+  iptalIsteginiKarara: 'yazma', iptalIstegiBekliyorMu: 'hesap',
   teklifBekliyorMu: 'hesap', teklifBeklemeGunu: 'hesap', odemeOnayla: 'yazma',
   hakkedisIlerlemeEngeli: 'hesap', parcaIlerlemeEngeli: 'hesap',
   duyurulariGetir: 'okuma', duyuruYayinla: 'yazma', duyuruSil: 'yazma',
@@ -832,6 +870,7 @@ export const ISLEVLER = {
   seriDogruMu: 'hesap', numaraDogruMu: 'hesap', hesapBirlesmeOzeti: 'okuma',
   numaraTalebiKarar: { tur: 'yazma', not: 'onayda eski numarayla açılmış kimliksiz (elle olmayan) talepleri hesaba bağlar → talep.Talep.HesapKimlik (25.09.2026)' },
   geriBildirimGetir: 'okuma', geriBildirimNotEkle: 'yazma', geriBildirimOkundu: 'yazma',
+  geriBildirimKapat: 'yazma', gorusDurumu: 'hesap', gorusCevaplanabilirMi: 'hesap', notMusteriyeMi: 'hesap',
   servisleriGetirBackoffice: 'okuma',
   servisleriYaz: { tur: 'yazma', not: 'bütün listeyi yazıyor; sunucuda satır satır komuta dönmeli' },
   bayileriGetirBackoffice: 'okuma',
@@ -852,6 +891,7 @@ export const ISLEVLER = {
   bakiyeIskontosunuKaydet: { tur: 'yazma', not: 'ek iskonto oranı için sütun yok; değişince bütün servislere bildirim (VT-TASARIM-EKLERI §8)' },
   parcaDuzeltmesiYaz: { tur: 'yazma', not: 'katalog.* tablolarına yazmak istiyor; uygulama rolü bunlara yazamaz (V0015) — veritabanı kararı gerekir' },
   fiyatListesiYayinlandi: { tur: 'yazma', not: 'yalnız işlem kaydı (denetim.IslemKaydi); listenin kendisini sunucu yazar → katalog.FiyatListesi + FiyatListesiSatiri (sunucu-taklidi/fiyat-listesi-yayini.mjs sözleşmesi); uygulama rolünün katalog.* yazma izni yok (V0015) — parcaDuzeltmesiYaz ile aynı veritabanı kararı' },
+  kayitlardakiParcaGorselleri: { tur: 'okuma', not: 'talep.ParcaSatiri.GorselDosyasi + talep.ZiyaretParcaSatiri.GorselDosyasi; bugün yayın isteğiyle sunucuya gidiyor, sunucu yazıldığında veritabanından kendisi okur (VT-TASARIM-EKLERI §17)' },
   servisinTalepleri: 'okuma', destekTalepEt: 'yazma', servisKaydiGonder: 'yazma',
   hakkedisDuzelt: 'yazma', hakkedisOnayla: 'yazma', hakkedisReddet: 'yazma',
   servisParcasiGonderildi: 'yazma', servisParcaSiparisi: 'yazma', servisinSiparisleri: 'okuma',
@@ -869,5 +909,7 @@ export const ISLEVLER = {
   servisSifreTalepleriGetir: 'okuma', servisSifreTalebiAc: 'yazma', servisSifreTalebiKapat: 'yazma',
   makineKayitlariGetir: 'okuma', destekOturumlariGetir: 'okuma',
   makineAtamasiniKaydet: { tur: 'yazma', not: 'backoffice Kayıtlı Makineler ataması: servis → makine.MakineServisAtamasi (YapanTuruKodu personel), bayi → makine.MakineSatisi.SaticiBayiKimlik; makinenin servisi değişince ya da kalmayınca müşteriye bildirim.Bildirim (TurKodu makine); Connect aynı makinenin yalnız son atama bildirimini gösterir (lib/bildirimler.js), sunucu listesi de aynı kuralı uygulamalı (25.09.2026)' },
+  makineSahibiniDegistir: { tur: 'yazma', not: 'ikinci el devir (09.10.2026): makine.MakineSahipligi açık satırı kapanır (BitisNedeniKodu devir), yeni hesaba açık satır (YapanTuruKodu personel); makine.KayitOlayi değişmez; iki hesaba bildirim.Bildirim (TurKodu makine); yetki makineDevir' },
+  devirIcinMusteriBul: { tur: 'okuma', not: 'musteri.Hesap telefon anahtarıyla (TelefonUlkeKodu + TelefonUlusal); birleşmiş hesap hariç' },
   islemKaydiGetir: 'okuma', islemYaz: 'yazma',
 }

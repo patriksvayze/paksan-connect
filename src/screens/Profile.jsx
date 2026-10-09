@@ -7,6 +7,7 @@ import { telKullanici } from '../lib/tel'
 import { adTemizle } from '../lib/ad'
 import { geriBildirimGonder } from '../lib/geriBildirim'
 import { GonderButonu } from '../components/GonderButonu'
+import { KAPALI_DURUMLAR } from '../lib/talepEkleme'
 import { sifreyiDegistir, sifreGecerliMi, sifreDogruMu, SIFRE_HANE } from '../lib/hesap'
 import { SifreAlani } from '../components/SifreAlani'
 import { DilSecici } from '../components/DilSecici'
@@ -21,8 +22,17 @@ import {
 /* TALEP LİSTESİ BURADA DEĞİL (25 Eylül 2026, kullanıcı sınaması).
    Hesap kartının altında duruyordu; ana ekrandaki "Aktif taleplerim"
    sayacı Profil'e gidip listeye kaydırıyor, başlıkta "Profil" yazıyordu.
-   Liste kendi ekranında: screens/Taleplerim.jsx. Buradaki "Talep"
-   sayacı oraya götürüyor. */
+   Liste kendi ekranında: screens/Taleplerim.jsx. Hesap kartındaki
+   "Taleplerim" satırı oraya götürüyor. */
+
+/* Görüşün konuları (8 Ekim 2026). Kimlik kayda yazılıyor (backoffice
+   süzüyor); ad ve örnek sözlükte, düz yazılı ki `npm run dogrula` görsün. */
+const GORUS_KONULARI = [
+  { id: 'oneri', ad: 'profil.geriBildirimKonuOneri', ornek: 'profil.geriBildirimOrnekOneri' },
+  { id: 'sorun', ad: 'profil.geriBildirimKonuSorun', ornek: 'profil.geriBildirimOrnekSorun' },
+  { id: 'tesekkur', ad: 'profil.geriBildirimKonuTesekkur', ornek: 'profil.geriBildirimOrnekTesekkur' },
+  { id: 'diger', ad: 'profil.geriBildirimKonuDiger', ornek: 'profil.geriBildirimOrnek' },
+]
 
 export default function Profile() {
   const nav = useNavigate()
@@ -34,8 +44,12 @@ export default function Profile() {
   const [yorum, setYorum] = useState('')
   const [yorumHata, setYorumHata] = useState('')
   const [yorumGonderiliyor, setYorumGonderiliyor] = useState(false)
+  /* Görüşün konusu (8 Ekim 2026, kullanıcının isteği): backoffice konuya
+     göre süzüyor. Zorunlu; yazı kutusunun örneği konuya göre değişiyor. */
+  const [konu, setKonu] = useState('')
   /* Kısa yazıda uyarı çıkınca imleç kutuya dönüyor (aşağıda yorumGonder). */
   const yorumKutusu = useRef(null)
+  const acikSayi = requests.filter((r) => !KAPALI_DURUMLAR.includes(r.status || 'yeni')).length
   const [ad, setAd] = useState(user?.adi || user?.ad?.split(' ')[0] || '')
   const [soyad, setSoyad] = useState(user?.soyadi || user?.ad?.split(' ').slice(1).join(' ') || '')
   const [il, setIl] = useState(user?.il || '')
@@ -90,6 +104,7 @@ export default function Profile() {
        Uyarı görünür bir kutuda ve imleç kutuya dönüyor (25 Eylül 2026,
        kullanıcı sınaması): tek satırlık küçük kırmızı yazı gözden
        kaçıyordu, ikinci basışta ekranda hiçbir şey değişmiyordu. */
+    if (!konu) return setYorumHata(t('profil.geriBildirimKonuSecin'))
     if (yorum.trim().length < 5) {
       yorumKutusu.current?.focus()
       return setYorumHata(t('profil.geriBildirimKisa'))
@@ -98,6 +113,7 @@ export default function Profile() {
     setYorumGonderiliyor(true)
     try {
       await geriBildirimGonder({
+        konu,
         metin: yorum.trim(),
         dil,
         surum: SURUM,
@@ -112,6 +128,7 @@ export default function Profile() {
         telUlke: user?.ulke || '',
       })
       setYorum('')
+      setKonu('')
       setGeriBildirim(false)
       showToast(t('profil.geriBildirimAlindi'))
     } catch {
@@ -155,27 +172,18 @@ export default function Profile() {
           <button className="btn btn--soft" style={{ marginTop: 14 }} data-eylem="bilgi-duzenle" onClick={() => setDuzenle(true)}>
             {t('profil.duzenle')}
           </button>
+          {/* TALEPLERİM HESAP KARTININ İÇİNDE (8 Ekim 2026, kullanıcının
+              seçimi: üç düzen gösterildi, "B seçeneği olsun ama Bilgilerimi
+              Düzenle ile Taleplerim yer değiştirsin"). 7 Ekim'deki tam
+              genişlikte turuncu satır beğenilmedi. Yanındaki mavi sayı AÇIK
+              talep sayısı; açık talep yoksa sayı çıkmıyor. */}
+          <button className="taleplerim-satir" data-eylem="taleplerim" onClick={() => nav('/taleplerim')}>
+            <span className="listitem__icon taleplerim-satir__ikon"><IconWrench size={20} /></span>
+            <span className="taleplerim-satir__ad">{t('profil.taleplerim')}</span>
+            {acikSayi > 0 && <span className="taleplerim-satir__sayi">{acikSayi}</span>}
+            <IconRight size={20} />
+          </button>
         </div>
-
-        {/* TALEPLERİM TEK VE GÖRÜNÜR SATIR (7 Ekim 2026, kullanıcının
-            isteği: "Kayıtlı Makine kısmını kaldır … Talep yerine
-            'Taleplerim' yazsın ve daha görünür olsun. Yeni bir kullanıcı
-            taleplerini aramak istese zor bulur"). Önce yan yana iki küçük
-            kutu vardı (kayıtlı makine sayısı ve "Talep"); makineler zaten
-            alt menüde. Şimdi tam genişlikte, adıyla ve talep sayısıyla. */}
-        <button
-          className="listitem taleplerim-kart"
-          style={{ marginTop: 14 }}
-          data-eylem="taleplerim"
-          onClick={() => nav('/taleplerim')}
-        >
-          <div className="listitem__icon taleplerim-kart__ikon"><IconWrench size={24} /></div>
-          <div className="listitem__body">
-            <div className="taleplerim-kart__baslik">{t('profil.taleplerim')}</div>
-          </div>
-          <span className="taleplerim-kart__sayi">{requests.length}</span>
-          <IconRight size={21} />
-        </button>
 
         {/* Menü ikiye ayrıldı.
 
@@ -489,20 +497,49 @@ export default function Profile() {
         title={t('profil.geriBildirim')}
       >
         <div className="stack" style={{ gap: 14 }}>
-          <p className="muted" style={{ lineHeight: 1.6 }}>{t('profil.geriBildirimAlt')}</p>
-          <textarea
-            ref={yorumKutusu}
-            className="textarea"
-            value={yorum}
-            onChange={(e) => {
-              setYorum(e.target.value)
-              /* Yazmaya başlayınca uyarı kalkıyor. */
-              if (yorumHata) setYorumHata('')
-            }}
-            placeholder={t('profil.geriBildirimOrnek')}
-            rows={5}
-            maxLength={1000}
-          />
+          <p className="muted" style={{ lineHeight: 1.6, margin: 0 }}>{t('profil.geriBildirimAlt')}</p>
+          {/* KONU VE ETİKETLİ KUTU (8 Ekim 2026, kullanıcının isteği:
+              "geri bildirim yaptığı ekranı da görsel olarak geliştirilebilir
+              çok abartmadan"). Konu talep formundaki tek seçimli
+              seçeneklerle aynı; kutunun altında kalan karakter sayısı. */}
+          <div className="field">
+            <span className="field__label">{t('profil.geriBildirimKonu')}</span>
+            <div className="secenekler" role="radiogroup">
+              {GORUS_KONULARI.map((k) => (
+                <button
+                  key={k.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={konu === k.id}
+                  data-gorus-konu={k.id}
+                  className={'secenek secenek--tekli' + (konu === k.id ? ' secenek--on' : '')}
+                  onClick={() => {
+                    setKonu(k.id)
+                    if (yorumHata) setYorumHata('')
+                  }}
+                >
+                  {t(k.ad)}
+                </button>
+              ))}
+            </div>
+          </div>
+          <label className="field">
+            <span className="field__label">{t('profil.geriBildirimMetin')}</span>
+            <textarea
+              ref={yorumKutusu}
+              className="textarea"
+              value={yorum}
+              onChange={(e) => {
+                setYorum(e.target.value)
+                /* Yazmaya başlayınca uyarı kalkıyor. */
+                if (yorumHata) setYorumHata('')
+              }}
+              placeholder={t(GORUS_KONULARI.find((k) => k.id === konu)?.ornek || 'profil.geriBildirimOrnek')}
+              rows={5}
+              maxLength={1000}
+            />
+            <span className="field__hint gorus-sayac" aria-live="polite">{yorum.length}/1000</span>
+          </label>
           {/* Talep detayındaki ekleme penceresiyle aynı uyarı kartı. */}
           {yorumHata && <div className="uyari-kart" role="alert">{yorumHata}</div>}
           <GonderButonu
@@ -513,7 +550,7 @@ export default function Profile() {
           />
           <button
             className="btn btn--soft"
-            onClick={() => { setGeriBildirim(false); setYorumHata('') }}
+            onClick={() => { setGeriBildirim(false); setYorumHata(''); setKonu('') }}
           >
             {t('ortak.vazgec')}
           </button>

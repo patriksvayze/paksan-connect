@@ -615,7 +615,9 @@ function useYeniIsHaberi(oturum, tazele) {
       const talepler = rolunTalepleri(talepleriGetir(), oturum.rol)
       return {
         talep: talepler.filter((t) => (t.status || 'yeni') === 'yeni').length,
-        gorus: geriBildirimGetir().filter((g) => !g.okundu).length,
+        /* Yalnız geri bildirimleri gören personele (8 Ekim 2026): sayaç ve
+           Dashboard satırı izne bağlıydı, tarayıcı bildirimi değildi. */
+        gorus: !izinli(oturum.rol, 'geribildirim') ? 0 : geriBildirimGetir().filter((g) => !g.okundu).length,
         /* Teklif verilmiş ama müşteri haftalardır dönmemiş talepler.
            Kimse yeni bir olay üretmediği için bunlar sessizce
            unutuluyordu; sayı arttığında satış ekibine haber gidiyor. */

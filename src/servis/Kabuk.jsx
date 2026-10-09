@@ -118,10 +118,13 @@ export function Kabuk({ baslik, alt, islem, fab, sekmeler, sekme, onSekme, onGer
               <Icon size={22} />
               {/* Yeni iş sayısı; İşlerim'deki "Yeni" sekmesiyle aynı
                   (isDurumu.js → yeniIsSayisi). Bildirim sayısı değil:
-                  o üst çubuktaki Bildirimler düğmesinde. Sayı 9'u geçince
-                  "9+" yazıyor: rozet daireden taşıp simgeyi örtmesin. */}
+                  o üst çubuktaki Bildirimler düğmesinde. SAYI SINIRSIZ
+                  (8 Ekim 2026, kullanıcının isteği: "9'da sınırlı
+                  kalmasın, ne kadar iş varsa o kadar gözüksün"); önce
+                  9'u geçince "9+" yazıyordu. Rozet hap: hane arttıkça
+                  sola doğru genişliyor. */}
               {rozet > 0 && (
-                <span className="uyg__rozet" aria-hidden="true">{rozet > 9 ? '9+' : rozet}</span>
+                <span className="uyg__rozet" aria-hidden="true">{rozet}</span>
               )}
             </span>
             <span className="uyg__tab-ad">{ad}</span>

@@ -77,9 +77,14 @@ import { DEMO_HESAP } from './demoKimlik'
    devredilmemiş işe randevu veremiyor (veri.js → paksanRandevuEngeli).
    9 (6 Ekim 2026): garanti parçasını servis birimi gönderiyor; demo işler
    servis masasında, gönderen Servis personeli (veri.js → rolunTalepleri).
+   10 (9 Ekim 2026, kullanıcının isteği: "tüm demo verilerini sıfırlayıp
+   günceller misin"): demo baştan kuruluyor; bir makine ikinci el sahibine
+   geçmiş olarak geliyor (backoffice/demo.js → ikinciElKur), 6-9 Ekim
+   değişiklikleri (iş izinleri, iptal isteği, görüş durumu, yol ve işçilik
+   tutarı, Destek parçaları) taze demoda görünüyor.
    Dışa açık: ekran turu demoyu kapatmak için bu sayıyı yazıyor
    (tools/ekosistem-turu.mjs); elle yazsaydı sürüm değişince bozulurdu. */
-export const DEMO_SURUMU = 9
+export const DEMO_SURUMU = 10
 const SURUM_ANAHTARI = 'demoSurumu'
 
 export async function demoKur() {

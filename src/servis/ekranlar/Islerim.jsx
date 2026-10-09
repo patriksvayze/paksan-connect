@@ -3,7 +3,7 @@ import { gecenSure } from '../../backoffice/ekranlar/ortak'
 import { load, save } from '../../lib/storage'
 import { duyuruGecerliMi } from '../../lib/duyuruHedef'
 import { servisDuyuruBaglami } from '../../lib/servisAtama'
-import { Bolum, Bos, Yaprak } from '../Kabuk'
+import { Bos, Yaprak } from '../Kabuk'
 import {
   IconBell,
   IconCalendar,
@@ -21,7 +21,7 @@ import { makineDurumAdi } from '../../data/talepAlanlari'
 import { kayitTelHref } from '../../lib/tel'
 import { randevuSaatliMi } from '../../lib/tarih'
 import { useBildirimIzni } from '../haber'
-import { bildirimYazisi, GORULEN_DUYURU, musteridenMi, okunduSay, okunmamislar } from '../talepBildirimleri'
+import { GORULEN_DUYURU, okunmamislar } from '../talepBildirimleri'
 import { devamSirasi, dokunulmamis, randevuSirasi, servisGecikti, yeniIsSirasi } from '../isDurumu'
 import { getProduct } from '../../data/katalog/products.js'
 import { PARA_BIRIMI, paraYaz } from '../../data/katalog/para.js'
@@ -104,7 +104,7 @@ const BOS = {
   biten: { baslik: 'Tamamlanan işiniz yok', alt: 'Kapanan ve iptal edilen işler burada görünür.' },
 }
 
-export function Isler({ oturum, bekleyen, biten, tumTalepler, onAc, onUcretler, sekme: secilen, onSekme, surum }) {
+export function Isler({ oturum, bekleyen, biten, tumTalepler, onAc, onBildirimler, sekme: secilen, onSekme, surum }) {
   /* 48 saati geçen işler "Yeni" sekmesinin başında, en eskisi önce
      (isDurumu.js → yeniIsSirasi); şerit de onları aynı sırayla sayıyor. */
   const geciken = useMemo(() => yeniIsSirasi(bekleyen.filter(servisGecikti)), [bekleyen])
@@ -120,6 +120,10 @@ export function Isler({ oturum, bekleyen, biten, tumTalepler, onAc, onUcretler, 
   /* Hiç açık iş yoksa Yeni sekmesinde eski büyük boş ekran: çizim ve
      "Kayıt Aç" yönlendirmesi. */
   const hicAcikYok = !yeniIsler.length && !devamEden.length
+  /* Okunmamış bildirimler ve hangi işlerin yeni bildirimi var (kartta
+     "Yeni bildirim" etiketi). `surum` değişince yeniden okunuyor. */
+  const okunmamis = useMemo(() => okunmamislar(oturum?.servisId), [oturum?.servisId, surum])
+  const bildirimliIsler = useMemo(() => new Set(okunmamis.map((b) => b.talepId).filter(Boolean)), [okunmamis])
 
   return (
     <>
@@ -133,16 +137,9 @@ export function Isler({ oturum, bekleyen, biten, tumTalepler, onAc, onUcretler, 
           sınaması O3). */}
       <ServisDuyurulari oturum={oturum} acil surum={surum} />
 
-      {/* Bildirim servisin kendi parça siparişine de ait olabilir;
-          sipariş İşlerim'in listelerinde yok. Önce yalnız işler
-          veriliyordu ve sipariş bildirimine dokunmak hiçbir şey açmıyordu
-          (24 Eylül 2026). */}
-      <PaksanBildirimleri
-        oturum={oturum}
-        talepler={tumTalepler || [...bekleyen, ...biten]}
-        onAc={onAc}
-        onUcretler={onUcretler}
-      />
+      {/* Okunmamış talep ve hesap bildirimlerinin sayısı; listesi
+          Bildirimler ekranında (8 Ekim 2026, YeniBildirimSatiri). */}
+      <YeniBildirimSatiri sayi={okunmamis.length} onBildirimler={onBildirimler} />
 
       <GecikmeSeridi
         geciken={geciken}
@@ -200,7 +197,7 @@ export function Isler({ oturum, bekleyen, biten, tumTalepler, onAc, onUcretler, 
 
       <div role="tabpanel" className="is-liste">
         {liste.length > 0 ? (
-          liste.map((t) => <TalepKarti key={t.id} talep={t} onAc={() => onAc(t)} />)
+          liste.map((t) => <TalepKarti key={t.id} talep={t} yeniBildirim={bildirimliIsler.has(t.id)} onAc={() => onAc(t)} />)
         ) : sekme === 'yeni' && hicAcikYok ? (
           <Bos
             gorsel={bosIsGorseli}
@@ -476,98 +473,37 @@ function GecikmeSeridi({ geciken, onGoster }) {
 }
 
 /* ==========================================================================
-   PAKSAN'ın talep bildirimleri — okunmamışlar (21 Eylül 2026)
+   YENİ BİLDİRİMLER TEK SATIR (8 Ekim 2026, kullanıcının isteği)
 
-   PAKSAN bir talepte servise dokunan bir işlem yaptığında (iptal,
-   kapatma, durum değişikliği, parça, kaydın onayı ya da düzeltilmesi,
-   not) kayıt düşüyor; burada okunmamışlar talep talep listeleniyor
-   (bkz. talepBildirimleri.js).
+   "Servisim'de müşteriden ve PAKSAN'dan gelen yeni bildirimler işlerim
+   sayfasında satır satır gösteriliyor, asıl işler aşağıda kalıyor …
+   Bildirimler biriktikçe İşlerim sayfası çok uzuyor." Seçimi: tek özet
+   satırı ve kartta işaret.
 
-   NEDEN İŞ LİSTESİNİN İÇİNDE DEĞİL. İptal ya da kapatılan iş "Tamamlanan"
-   bölümüne düşüyor ve o bölüm kapalı duruyor; bildirim kartın üstünde
-   olsaydı tam da en önemli haber — "bu işe gitme" — görünmezdi.
+   21 Eylül 2026'dan beri okunmamış her bildirim burada ayrı satırdı
+   ("PAKSAN'dan gelen bildirimler", 25 Eylül'den beri bir de "Müşteriden
+   Gelen Bildirimler"); demo verisiyle sekiz satır işlerin önündeydi.
+   Artık yalnız sayı ve Bildirimler ekranına giden düğme. Bildirimin
+   kendisi Bildirimler ekranında (talep ve hesap bildirimleri, duyurular
+   tek listede); hangi işle ilgili olduğu iş kartındaki "Yeni bildirim"
+   etiketinde (TalepKarti → yeniBildirim). İşi açmak o işin bildirimlerini
+   okundu sayıyor (TalepDetay.jsx).
 
-   Satıra dokununca bildirim okundu sayılıyor ve talep açılıyor. Hepsini
-   birden okundu saymak için ayrı düğme var: servis haberleri telefonun
-   bildirim perdesinde zaten okumuş olabilir.
-
-   Bölüm yalnız okunmamış varken çiziliyor; okunmuşlar talebin içinde
-   duruyor.
-
-   MÜŞTERİNİN İŞLEMİ AYRI BAŞLIKTA (25 Eylül 2026). Müşteri Connect'ten
-   talebe bir şey eklediğinde ya da "Sorun Devam Ediyor" dediğinde işi
-   yürüten servise aynı kayıttan bildirim gidiyor (lib/talepEkleme.js).
-   "PAKSAN'dan gelen bildirimler" başlığının altında dursaydı müşterinin
-   işi PAKSAN'ınki gibi okunurdu. Ayrım yeni bir alandan değil, olayın
-   adından (talepBildirimleri.js → musteridenMi). */
-function PaksanBildirimleri({ oturum, talepler, onAc, onUcretler }) {
-  const [, setSurum] = useState(0)
-  const liste = okunmamislar(oturum?.servisId)
-  if (!liste.length) return null
-
-  /* ÜCRET VE İNDİRİM BİLDİRİMİ BİR TALEBE BAĞLI DEĞİL (23 Eylül 2026,
-     `tur: 'hesap'`, bkz. veri.js → servisHesapBildir). Dokununca Hesap'taki
-     "Ücretlendirmeler" bölümü açılıyor; satırında talep numarası yok. */
-  const ac = (b) => {
-    okunduSay([b.id])
-    setSurum((s) => s + 1)
-    if (!b.talepId) return onUcretler?.()
-    const t = talepler.find((x) => x.id === b.talepId)
-    if (t) onAc(t)
-  }
-  const okunduYap = (kimlikler) => {
-    okunduSay(kimlikler)
-    setSurum((s) => s + 1)
-  }
-
+   ESKİ GEREKÇE ("iptal edilen iş Tamamlanan'a düşüyor, bildirim kartın
+   üstünde olsaydı 'bu işe gitme' haberi görünmezdi") karşılanıyor: satır
+   her sekmede en üstte ve iptal edilen işin kartı da etiketli. Acil
+   duyurular (güvenlik uyarısı) eskisi gibi ayrı, kart hâlinde en üstte.
+   ========================================================================== */
+function YeniBildirimSatiri({ sayi, onBildirimler }) {
+  if (!sayi) return null
   return (
-    <>
-      <BildirimBolumu
-        ad={`PAKSAN’dan gelen bildirimler`}
-        liste={liste.filter((b) => !musteridenMi(b))}
-        talepler={talepler}
-        onAc={ac}
-        onHepsi={okunduYap}
-      />
-      <BildirimBolumu
-        ad="Müşteriden Gelen Bildirimler"
-        liste={liste.filter(musteridenMi)}
-        talepler={talepler}
-        onAc={ac}
-        onHepsi={okunduYap}
-      />
-    </>
-  )
-}
-
-function BildirimBolumu({ ad, liste, talepler, onAc: ac, onHepsi }) {
-  if (!liste.length) return null
-  return (
-    <Bolum ad={ad} sayi={liste.length}>
-      <div className="talep-haberi">
-        {liste.map((b) => {
-          const y = bildirimYazisi(b)
-          const t = talepler.find((x) => x.id === b.talepId)
-          return (
-            <button key={b.id} className="talep-haberi__satir" onClick={() => ac(b)}>
-              <span className="talep-haberi__nokta" aria-hidden="true" />
-              <span className="talep-haberi__govde">
-                <span className="talep-haberi__baslik">{y.baslik}</span>
-                {y.metin && <span className="talep-haberi__metin">{y.metin}</span>}
-                <span className="talep-haberi__alt">
-                  {[b.talepNo, t?.servisSiparisi ? null : t?.ad, gecenSure(b.tarih)].filter(Boolean).join(' · ')}
-                </span>
-              </span>
-            </button>
-          )
-        })}
-      </div>
-      {liste.length > 1 && (
-        <button className="talep-haberi__hepsi" onClick={() => onHepsi(liste.map((b) => b.id))}>
-          Tümünü Okundu Say
-        </button>
-      )}
-    </Bolum>
+    <div className="yeni-bildirim" data-yeni-bildirim={sayi}>
+      <span className="yeni-bildirim__nokta" aria-hidden="true" />
+      <span className="yeni-bildirim__sayi">{sayi} yeni bildirim</span>
+      <button type="button" className="yeni-bildirim__ac" onClick={onBildirimler}>
+        Bildirimleri Gör
+      </button>
+    </div>
   )
 }
 
@@ -616,7 +552,7 @@ function isinSonucu(t) {
   return { ton: 'bitti', yazi: 'Tamamlandı' }
 }
 
-function TalepKarti({ talep, onAc }) {
+function TalepKarti({ talep, yeniBildirim = false, onAc }) {
   const paksanda = (talep.sahip || 'paksan') === 'paksan'
   const gecikti = servisGecikti(talep)
   /* ARA DÜĞMESİ ÜLKE KODUYLA ÇEVİRİYOR (25 Eylül 2026, kullanıcı
@@ -682,9 +618,16 @@ function TalepKarti({ talep, onAc }) {
         {tekrar && <span className="iskart__uyari">Sorun devam ediyor</span>}
       </button>
 
-      {(durum || tur || tel) && (
+      {(durum || tur || tel || yeniBildirim) && (
         <div className="iskart__dip">
           <span className="iskart__etiketler">
+            {/* Bu işle ilgili okunmamış bildirim (8 Ekim 2026): bildirim
+                listesi İşlerim'den kalktı, haber kartta. */}
+            {yeniBildirim && (
+              <span className="iskart__etiket iskart__etiket--yeni" data-yeni-bildirim-etiket>
+                Yeni bildirim
+              </span>
+            )}
             {tur && <span className="iskart__etiket iskart__etiket--tur">{tur}</span>}
             {durum && (
               <span className={'iskart__etiket iskart__etiket--' + durum.ton}>

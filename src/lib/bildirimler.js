@@ -40,6 +40,11 @@ export const BILDIRIM_TURU = {
      kendi simgesiyle (telefon) çıkıyor; 7 Ekim 2026'ya kadar simge
      tablosunda yoktu ve duyuru zili görünüyordu (kullanıcının bildirdiği). */
   NUMARA: 'numara',
+  /* PAKSAN'ın görüşe verdiği cevap (backoffice/veri.js →
+     geriBildirimNotEkle). 8 Ekim 2026'ya kadar bu tür de tanınmıyordu,
+     duyuruya düşüp "Kampanya" etiketiyle çıkıyordu (numara bildirimindeki
+     hatanın aynısı). */
+  GORUS: 'gorus',
 }
 
 /* BİR MAKİNE İÇİN YALNIZ SON ATAMA BİLDİRİMİ (25 Eylül 2026, kullanıcı
@@ -178,6 +183,7 @@ export function bildirimListesi({ requests = [], user = null, makineler = [] } =
         : d.tur === 'talep' ? BILDIRIM_TURU.TALEP
         : d.tur === 'makine' ? BILDIRIM_TURU.MAKINE
         : d.tur === 'numara' ? BILDIRIM_TURU.NUMARA
+        : d.tur === 'gorus' ? BILDIRIM_TURU.GORUS
         : BILDIRIM_TURU.DUYURU,
       /* Personelin elle yazdığı duyuru hazır metin; uygulamanın
          ürettiği otomatik bildirim sözlük anahtarı taşıyor ki müşterinin
