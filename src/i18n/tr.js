@@ -823,6 +823,11 @@ export const tr = {
     anladim: 'Anladım',
     sonraki: 'Sonraki',
     tumBildirimler: 'Tüm Bildirimlerim',
+    /* Pencerenin sayfalanması (9 Ekim 2026, components/DuyuruPenceresi.jsx). */
+    kapat: 'Kapat',
+    onceki: 'Önceki',
+    yeni: 'Yeni',
+    nokta: '{n}. duyuru',
   },
 
   /* Duyuru alt türlerinin ekranda görünen adları. Tanım

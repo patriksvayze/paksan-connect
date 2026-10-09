@@ -1027,57 +1027,6 @@ html:has(.onay-perde, .yaprak-perde) .katman {
   letter-spacing: 0;
 }
 
-/* ------------------------------------------- PAKSAN'ın talep bildirimleri
-
-   İşlerim'in üstünde okunmamış bildirimler (bkz. ServisPanel.jsx →
-   PaksanBildirimleri). İş kartının yüzeyi, kenarı ve gölgesi: yeni bir
-   görsel dil değil, aynı listenin parçası. Satırın tamamı dokunma
-   hedefi; soldaki mavi nokta "okunmadı" diyor ve yanında yazı var —
-   nokta tek başına anlam taşımıyor. */
-/* İşlerim'in üstündeki tek satır: kaç yeni bildirim var ve Bildirimler'e
-   giden düğme (8 Ekim 2026; önce her bildirim ayrı satırdı). Satırın
-   tamamı kart; düğme yazılı ve tam dokunma yüksekliğinde. */
-.yeni-bildirim {
-  display: flex;
-  align-items: center;
-  gap: var(--bosluk-3);
-  min-height: var(--dokunma);
-  margin-bottom: var(--bosluk-4);
-  padding: var(--bosluk-2) var(--bosluk-2) var(--bosluk-2) var(--bosluk-4);
-  border: 1px solid var(--cizgi);
-  border-radius: var(--r-3);
-  background: var(--yuzey);
-  box-shadow: var(--golge);
-}
-
-.yeni-bildirim__nokta {
-  flex: none;
-  width: 10px;
-  height: 10px;
-  border-radius: var(--r-tam);
-  background: var(--mavi);
-}
-
-.yeni-bildirim__sayi {
-  flex: 1;
-  min-width: 0;
-  font-weight: 700;
-  font-size: 16px;
-}
-
-.yeni-bildirim__ac {
-  flex: none;
-  min-height: var(--dokunma);
-  padding: 0 var(--bosluk-4);
-  border: 0;
-  border-radius: var(--r-2);
-  background: var(--mavi-soft);
-  color: var(--mavi-rz);
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-}
-
 /* BİLDİRİMLER — KART, CONNECT'TEKİ GİBİ (8 Ekim 2026, kullanıcının isteği;
    ekranlar/Bildirimler.jsx). Connect'in bildirim satırı (styles.css →
    .listitem, .bildirim) Servisim'in ölçüleriyle: her bildirim ayrı kart,
@@ -7009,4 +6958,246 @@ button.sgizlilik__satir {
 .sgizlilik__izin {
   flex: none;
   white-space: nowrap;
+}
+
+/* ==========================================================================
+   Yeni duyuru penceresi — ortada kart, sayfalı (9 Ekim 2026)
+
+   Bileşen components/DuyuruPenceresi.jsx (Connect'le ortak), Servisim'in
+   tarafı servis/AcilirDuyuru.jsx. Sayfanın kendisi (kapak, başlık, metin,
+   türlerin rengi) backoffice.css'te, burada perde, kart, sayfalama ve
+   düğmeler. Gerekçeler Connect'in karşılığında (styles.css → "Duyuru
+   penceresi"). Servisim'e özel olan: ana düğme Servisim'in turuncu düğmesi
+   (`.dg--ana` ile aynı), çerçeveli düğme `--cizgi-kontrol` kenarlı, düğme
+   yazısı `--y-govde`.
+   ========================================================================== */
+
+html:has(.dpen) {
+  overflow: hidden;
+}
+
+.dpen {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  padding: calc(16px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px))) 16px
+    calc(16px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
+  background: rgba(10, 26, 51, 0.56);
+  animation: dpen-perde 0.2s ease;
+}
+
+@keyframes dpen-perde {
+  from {
+    opacity: 0;
+  }
+}
+
+.dpen__kart {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 420px;
+  max-height: min(720px, 100%);
+  overflow: hidden;
+  border-radius: var(--r-kart, 24px);
+  background: var(--yuzey);
+  color: var(--murekkep);
+  box-shadow:
+    0 24px 56px -14px rgba(10, 26, 51, 0.5),
+    0 6px 16px -4px rgba(10, 26, 51, 0.2);
+  outline: none;
+  animation: dpen-gir 0.34s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+@keyframes dpen-gir {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.97);
+  }
+}
+
+.dpen__pencere {
+  display: flex;
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+.dpen__serit {
+  display: flex;
+  flex: none;
+  width: 100%;
+  transition: transform 0.34s cubic-bezier(0.22, 0.8, 0.24, 1);
+}
+
+.dpen__serit--cekiliyor {
+  transition: none;
+}
+
+.dpen__sayfa {
+  flex: 0 0 100%;
+  min-width: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.dpen__kapat {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px 0 11px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--yuzey);
+  color: var(--murekkep);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 3px 10px -2px rgba(10, 26, 51, 0.24);
+}
+
+/* Görünen hap 44 piksel; dokunma kutusu her yönde 4 piksel daha (48). */
+.dpen__kapat::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+}
+
+.dpen__dip {
+  flex: none;
+  padding: 8px 18px 18px;
+  border-top: 1px solid var(--cizgi);
+  background: var(--yuzey);
+}
+
+.dpen__noktalar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+
+.dpen__nokta {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.dpen__nokta span {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--cizgi-kontrol);
+  transition: width 0.25s cubic-bezier(0.22, 0.8, 0.24, 1), background-color 0.25s ease;
+}
+
+.dpen__nokta--acik span {
+  width: 22px;
+  background: var(--turuncu-dugme);
+}
+
+.dpen__sayac {
+  margin: 4px 0 10px;
+  text-align: center;
+  font-size: var(--y-alt, 14px);
+  font-weight: 700;
+  color: var(--murekkep-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.dpen__dugmeler {
+  display: grid;
+  gap: 10px;
+}
+
+.dpen__dugmeler--iki {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+}
+
+.dpen__dg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 56px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 18px;
+  font: inherit;
+  font-size: var(--y-govde, 16px);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  cursor: pointer;
+  transition: transform 0.13s ease, filter 0.13s ease;
+}
+
+.dpen__dg:active {
+  transform: scale(0.975);
+  filter: brightness(0.94);
+}
+
+.dpen__dg--ana {
+  background: var(--turuncu-dugme);
+  color: #fff;
+  box-shadow: var(--sh-turuncu);
+}
+
+.dpen__dg--ikincil {
+  background: var(--yuzey);
+  color: var(--murekkep);
+  border: 1px solid var(--cizgi-kontrol);
+}
+
+.dpen__dg:disabled {
+  opacity: 0.4;
+  cursor: default;
+  transform: none;
+  filter: none;
+}
+
+.dpen__tumu {
+  display: block;
+  width: 100%;
+  min-height: var(--dokunma, 48px);
+  margin-top: 4px;
+  border: 0;
+  background: none;
+  color: var(--mavi-rz);
+  font: inherit;
+  font-size: var(--y-govde, 16px);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Kartın kendisi açılışta odak alıyor (oklar ve Esc için); çerçevesi
+   yok, düğmelerin var. */
+.dpen button:focus-visible {
+  outline: 3px solid var(--mavi);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dpen,
+  .dpen__kart {
+    animation: none;
+  }
+
+  .dpen__serit,
+  .dpen__nokta span {
+    transition: none;
+  }
 }

@@ -155,11 +155,32 @@
      B-IPTAL iş izni olmayan role düğmeler çıkarsa              düştü
      B-GORUS hesapsız görüşte cevap düğmesi çıkarsa (8.10.2026) düştü
      B-GORUS iç not müşteriye giderse                           düştü
+     C-42  pencere yalnız görülmemişleri gösterirse (9.10.2026) düştü
+     C-42  kaydırmayla geçiş çalışmazsa                         düştü
+     C-42  ekrana gelen duyuru görülmüş sayılmazsa              düştü
+     C-42  görülmemiş yokken de açılırsa                        düştü
+     C-42  ilk sayfada Önceki açık kalırsa                      düştü
+     X-18  Servisim yeni gelen duyuruyu görmezse (9.10.2026)    düştü
+     X-18  "Yeni" rozeti her duyuruda çıkarsa                   düştü
+     C-43  kartın yükseklik sınırı kalkarsa (9.10.2026)         düştü
+     C-43  sayfa kendi içinde kaymazsa                          düştü
+             (önce düşmedi: koddan scrollTop yazmak kaydırması
+             kapalı sayfada da çalışıyordu; artık tekerlek hareketi)
+     C-43  görselin yükseklik sınırı kalkarsa                   düştü
+     C-43  boşluksuz uzun bağlantı kırılmazsa                   düştü
+     C-43  dikey parmak hareketi de sayfa çevirirse             düştü
+             (önce düşmedi: sapma sağa, ilk sayfada önceki yok)
+     X-19  kartın yükseklik sınırı kalkarsa (servis.css)        düştü
+     X-19  sayfa kendi içinde kaymazsa (servis.css)             düştü
+     X-19  görselin yükseklik sınırı kalkarsa (backoffice.css)  düştü
+     X-17  kartta yeni bildirim etiketi kalkarsa (9.10.2026)    düştü
+     X-17  İşlerim'e bildirim satırı geri gelirse               düştü
      B-SAHIP Sahiplik kutusu çizilmezse (9.10.2026)             düştü
      B-SAHIP Sahiplik Geçmişi çizilmezse                        düştü
      B-SAHIP listede ilk kayıt günü yazılmazsa                  düştü
      B-SAHIP devir yetkisi denetlenmezse                        düştü
      B-SAHIP onay tarayıcının uyarı kutusuyla sorulursa         düştü
+     B-SAHIP liste ve pencere sahibin eski adını gösterirse     düştü
      B-SAHIP devirden sonra form kapatılmazsa                   DÜŞMEDİ
              (iki kat: kutunun anahtarı sahibin kimliğini taşıyor,
              devirde kutu baştan kuruluyor ve form zaten kapanıyor)
@@ -262,7 +283,8 @@ const EK_DENETIMLER = [
   'X-01', 'X-02', 'X-03', 'X-04', 'X-05', 'X-06', 'X-07', 'X-08', 'X-09', 'X-10', 'X-11', 'X-12', 'X-13',
   'X-14', 'X-15', 'X-16',
   'C-29', 'C-30', 'C-31', 'C-32', 'C-33', 'C-34', 'C-35', 'C-36', 'C-37', 'C-38', 'C-39', 'C-40', 'C-41',
-  'B-BOLGE', 'B-RAPOR', 'B-TARIH', 'B-IPTAL', 'B-GORUS', 'X-17', 'B-SAHIP',
+  'B-BOLGE', 'B-RAPOR', 'B-TARIH', 'B-IPTAL', 'B-GORUS', 'X-17', 'B-SAHIP', 'C-42', 'X-18',
+  'C-43', 'X-19',
 ]
 
 /* BİLİNMEYEN KOD SESSİZCE GEÇMİYOR (25 Eylül 2026, inceleme).
@@ -2452,6 +2474,25 @@ try {
       await bekle(300)
       if ((await say('[data-ilk-kayit]')) < 1) hata = 'el değiştiren makinenin satırında ilk kayıt günü yok'
     }
+    /* Hesabın adı sonradan değişiyor (9 Ekim 2026, kullanıcının bildirdiği:
+       "zaten bu hesapta" deniyor, "Sahibi" başka bir ad gösteriyordu).
+       Defter satırı devir günündeki adı taşıyor; liste ve pencere hesabın
+       bugünkü adını göstermeli (veri.js → makineSahibininAdi). */
+    if (!hata) {
+      const YENI_AD = 'Tur Adı Değişmiş Sahip'
+      await s.js(`(() => { const k = 'paksan.demoMusteriler'; localStorage.setItem(k, JSON.stringify(JSON.parse(localStorage.getItem(k) || '[]').map((m) => m.id === ${JSON.stringify(YENI.id)} ? { ...m, ad: ${JSON.stringify(YENI_AD)} } : m))); return 1 })()`)
+      await makinelerAc()
+      const satirYazisi = await s.js(`[...document.querySelectorAll('tr.tiklanir')].find((x) => (x.querySelector('td')?.textContent || '').replace(/[^0-9A-Z]/gi, '') === ${JSON.stringify(SERI_TUR)})?.textContent || ''`)
+      if (!satirYazisi.includes(YENI_AD) || satirYazisi.includes(YENI.ad)) hata = 'listede makinenin sahibi hesabın bugünkü adıyla değil, defterdeki eski adla'
+      else if (!(await satirAc())) hata = 'makine listede yok — ERİŞİLEMEDİ'
+      else {
+        await sayiBekle('[data-bolum="sahiplik"]', (v) => v > 0)
+        const ust = await s.js(`document.querySelector('.pencere .ikili')?.textContent || ''`)
+        if (!ust.includes(YENI_AD) || ust.includes(YENI.ad)) hata = 'pencerenin "Sahibi" satırı hesabın bugünkü adını göstermiyor'
+        await s.js(`document.querySelector('.pencere .kart__tepe .dg')?.click(); 1`)
+        await bekle(300)
+      }
+    }
     if (!hata) {
       await s.js(`sessionStorage.removeItem('paksan.panelOturum'); localStorage.setItem('paksan.panelOturum', ${JSON.stringify(KISITLI_OTURUM)}); 1`)
       await makinelerAc()
@@ -2826,13 +2867,13 @@ try {
     kaydet('X-16', 'Servisim: servis kaydında yapılan iş çok seçimli; parçasız "Parça Değişti" uyarıyor ve gitmiyor; Parçayı Taktım\'da seçili ve kilitli', hata, await metin())
   }
 
-  /* X-17 · İşlerim'in bildirim satırı (8 Ekim 2026, kullanıcının isteği:
-     "bildirimler … işlerim sayfasında satır satır gösteriliyor, asıl işler
-     aşağıda kalıyor"; seçimi tek özet satırı ve kartta işaret). Okunmamış
-     bildirimler eklenince İşlerim'de tek satır var (`data-yeni-bildirim`,
-     sayı en az eklenen kadar), bildirimler satır satır yok, bildirimi
-     olan işin kartında etiket var; "Bildirimleri Gör" Bildirimler ekranını
-     açıyor (orada satırlar). */
+  /* X-17 · İşlerim'de bildirim satırı yok, kartta etiket var (8 Ekim
+     2026'da bildirimler tek özet satırına indi; 9 Ekim'de o satır da kalktı,
+     kullanıcının isteği: "İşlerim ekranındaki yeni bildirim kısmını
+     kaldıralım", seçimi "Etiket kalsın"). Okunmamış bildirimler eklenince
+     İşlerim'de ne özet satırı (`data-yeni-bildirim`) ne bildirim satırı
+     var; bildirimi olan işin kartında etiket var; üst çubuktaki zil
+     Bildirimler ekranını açıyor (orada kartlar). */
   if (secili('X-17')) {
     const AD = 'Canlı Bildirim Sınaması'
     const is17 = connectTalebi({ id: 'canli-17', no: 'SRV2609990045', status: 'yeni', ad: AD })
@@ -2853,17 +2894,13 @@ try {
     await s.js(depoOlayi('paksan.requests'))
     await s.js(depoOlayi('paksan.duyurular'))
     let hata = null
-    if ((await sayiBekle('[data-yeni-bildirim]', (v) => v > 0)) < 1) hata = "İşlerim'de yeni bildirim satırı yok"
-    else {
-      const sayi = Number(await s.js(`document.querySelector('[data-yeni-bildirim]').dataset.yeniBildirim`))
-      if (!(sayi >= 3)) hata = `satırdaki sayı eklenen bildirimleri saymıyor (${sayi})`
-      else if ((await say('[data-bildirim]')) > 0) hata = "İşlerim'de bildirimler hâlâ satır satır"
-      else if ((await sayiBekle('#is-canli-17 [data-yeni-bildirim-etiket]', (v) => v > 0)) < 1) hata = 'yeni bildirimi olan işin kartında etiket yok'
-    }
+    if ((await sayiBekle('#is-canli-17 [data-yeni-bildirim-etiket]', (v) => v > 0)) < 1) hata = 'yeni bildirimi olan işin kartında etiket yok'
+    else if ((await say('[data-yeni-bildirim]')) > 0) hata = "İşlerim'de yeni bildirim satırı hâlâ var"
+    else if ((await say('[data-bildirim]')) > 0) hata = "İşlerim'de bildirimler satır satır"
     if (!hata) {
-      await cek('x17-islerim', '[data-yeni-bildirim]')
-      await s.js(`document.querySelector('.yeni-bildirim__ac').click(); 1`)
-      if ((await sayiBekle('[data-bildirim^="canli-17-b"]', (v) => v >= 3)) < 3) hata = '"Bildirimleri Gör" Bildirimler ekranını açmadı'
+      await cek('x17-islerim', '#is-canli-17')
+      await s.js(`document.querySelector('.uyg__bildirim').click(); 1`)
+      if ((await sayiBekle('[data-bildirim^="canli-17-b"]', (v) => v >= 3)) < 3) hata = 'zil Bildirimler ekranını açmadı'
     }
     /* Bildirimler'de kart Connect'teki gibi (8 Ekim 2026): müşterinin
        eklemesi PAKSAN'ın notundan ayrı türde ve "Müşteriden" etiketli,
@@ -2887,7 +2924,326 @@ try {
       else await cek('x17-bildirimler', '[data-bildirim="canli-17-b0"]')
     }
     if (CEKIM) await s.olcu({ width: 1400, height: 1000, deviceScaleFactor: 1, mobile: false })
-    kaydet('X-17', "Servisim: İşlerim'de bildirimler tek satır ve kartta etiket; Bildirimler'de kart türüyle (müşteriden ayrı), nokta ve ok", hata, await metin())
+    kaydet('X-17', "Servisim: İşlerim'de bildirim satırı yok, kartta etiket var; Bildirimler'de kart türüyle (müşteriden ayrı), nokta ve ok", hata, await metin())
+  }
+
+  /* C-42 ve X-18 · Duyuru penceresi: ortada kart, sayfalı (9 Ekim 2026,
+     kullanıcının isteği: "duyurular arasında geçiş de yapabilsin", biçim
+     seçimi "Ortada kart"; Servisim'de de çıksın). Bileşen ortak
+     (components/DuyuruPenceresi.jsx). Yazılara bakılmıyor: sayfalar
+     `data-duyuru-sayfa`, görünen sayfa `inert` olmayan, noktalar
+     `data-duyuru-nokta` + `aria-current`, düğmeler `data-eylem`, rozet
+     `.dpen__yeni`. Ekilen duyurular herkese (kime: ikisi). */
+  const turDuyurusu = (id, alt, tur, saatOnce) => ({
+    id, tarih: Date.now() - saatOnce * 3600000, tur, alt, baslik: 'Tur duyurusu ' + id,
+    metin: 'Tur duyurusunun metni.', gorsel: null, personel: PERSONEL.ad, pencere: true, hedef: { kime: 'ikisi' },
+  })
+  const duyuruEkle = (liste, gorulenAnahtar, gorulenler = []) => s.js(`(() => {
+    const d = JSON.parse(localStorage.getItem('paksan.duyurular') || '[]'); d.unshift(...${JSON.stringify(liste)}); localStorage.setItem('paksan.duyurular', JSON.stringify(d))
+    const k = 'paksan.' + ${JSON.stringify(gorulenAnahtar)}
+    localStorage.setItem(k, JSON.stringify([...JSON.parse(localStorage.getItem(k) || '[]'), ...${JSON.stringify(gorulenler)}]))
+    return 1
+  })()`)
+  const pencereDurumu = () => s.js(`(() => {
+    const p = document.querySelector('[data-duyuru-penceresi]')
+    if (!p) return null
+    const sayfalar = [...p.querySelectorAll('[data-duyuru-sayfa]')]
+    return {
+      sira: sayfalar.map((x) => x.dataset.duyuruSayfa),
+      yeni: sayfalar.filter((x) => x.querySelector('.dpen__yeni')).map((x) => x.dataset.duyuruSayfa),
+      gorunen: sayfalar.filter((x) => !x.hasAttribute('inert')).map((x) => x.dataset.duyuruSayfa),
+      nokta: p.querySelectorAll('[data-duyuru-nokta]').length,
+      acikNokta: [...p.querySelectorAll('[data-duyuru-nokta]')].findIndex((x) => x.getAttribute('aria-current') === 'true'),
+      onceki: p.querySelector('[data-eylem="duyuru-onceki"]')?.disabled ?? null,
+      ana: p.querySelector('[data-eylem^="duyuru-anladim"], [data-eylem="duyuru-sonraki"]')?.dataset.eylem || '',
+      tumu: Boolean(p.querySelector('.dpen__tumu')),
+    }
+  })()`)
+  const pencereBekle = async (var_ = true, n = 10) => {
+    for (let i = 0; i < n; i++) {
+      const d = await pencereDurumu()
+      if (Boolean(d) === var_) return d
+      await bekle(300)
+    }
+    return pencereDurumu()
+  }
+  /* Parmakla sola kaydırma: dokunma olayları pencerenin şeridinde. */
+  const solaKaydir = () => s.js(`(() => {
+    const el = document.querySelector('.dpen__pencere'); const r = el.getBoundingClientRect()
+    const y = r.top + 60, x0 = r.left + r.width * 0.8
+    const ol = (tip, x) => el.dispatchEvent(new PointerEvent(tip, { bubbles: true, pointerId: 7, pointerType: 'touch', isPrimary: true, clientX: x, clientY: y, button: 0 }))
+    ol('pointerdown', x0); for (let i = 1; i <= 6; i++) ol('pointermove', x0 - i * 30); ol('pointerup', x0 - 180)
+    return 1
+  })()`)
+
+  if (secili('C-42')) {
+    await connectKur([])
+    if (CEKIM) await s.olcu({ width: 390, height: 844, deviceScaleFactor: 2, mobile: true })
+    await duyuruEkle(
+      [turDuyurusu('tur-d1', 'kampanya', 'duyuru', 1), turDuyurusu('tur-d2', 'guvenlik', 'uyari', 3), turDuyurusu('tur-d3', 'etkinlik', 'duyuru', 2)],
+      'gorulenDuyurular',
+      ['tur-d3'],
+    )
+    await s.git(ADRES + '/')
+    let hata = null
+    let d = await pencereBekle(true)
+    if (!d) hata = 'görülmemiş duyuru varken pencere açılmadı'
+    else if (d.sira[0] !== 'tur-d1' || d.sira[1] !== 'tur-d2') hata = `görülmemişler en yeni başta değil (${d.sira.join(',')})`
+    else if (!(d.sira.indexOf('tur-d3') > 1)) hata = `daha önce görülen yayındaki duyuru pencerede yok ya da önde (${d.sira.join(',')})`
+    else if (d.yeni.join(',') !== 'tur-d1,tur-d2') hata = `"Yeni" rozeti yalnız görülmemişlerde değil (${d.yeni.join(',')})`
+    else if (d.nokta !== d.sira.length || d.acikNokta !== 0) hata = `noktalar sayfa sayısını ya da ilk sayfayı göstermiyor (${d.nokta}/${d.sira.length}, ${d.acikNokta})`
+    else if (d.onceki !== true || d.ana !== 'duyuru-sonraki' || d.tumu) hata = 'ilk sayfada Önceki kapalı, ana düğme Sonraki değil ya da listeye gitme düğmesi erken'
+    if (!hata) {
+      await cek('c42-ilk', '[data-duyuru-penceresi] .dpen__kart')
+      if (CEKIM) {
+        await s.js(`document.documentElement.dataset.tema = 'koyu'; 1`)
+        await bekle(200)
+        await cek('c42-koyu', '[data-duyuru-penceresi] .dpen__kart')
+        await s.js(`document.documentElement.dataset.tema = 'acik'; 1`)
+      }
+      await s.js(`document.querySelector('[data-eylem="duyuru-sonraki"]').click(); 1`)
+      await bekle(450)
+      d = await pencereDurumu()
+      if (d?.gorunen.join(',') !== 'tur-d2' || d.acikNokta !== 1 || d.onceki !== false) hata = `Sonraki ikinci duyuruya geçmedi (${JSON.stringify(d)})`
+    }
+    if (!hata) {
+      await solaKaydir()
+      await bekle(450)
+      d = await pencereDurumu()
+      if (d?.acikNokta !== 2) hata = `sola kaydırma sonraki sayfaya geçmedi (${d?.acikNokta})`
+    }
+    if (!hata) {
+      await s.js(`document.querySelector('[data-eylem="duyuru-onceki"]').click(); 1`)
+      await bekle(450)
+      if ((await pencereDurumu())?.acikNokta !== 1) hata = 'Önceki geri dönmedi'
+    }
+    if (!hata) {
+      await s.js(`(() => { const n = document.querySelectorAll('[data-duyuru-nokta]'); n[n.length - 1].click(); return 1 })()`)
+      await bekle(450)
+      d = await pencereDurumu()
+      if (d?.acikNokta !== d?.sira.length - 1 || d?.ana !== 'duyuru-anladim' || !d?.tumu) hata = `noktayla son sayfaya gidilmedi ya da son sayfada Anladım ve liste düğmesi yok (${JSON.stringify(d)})`
+      else await cek('c42-son', '[data-duyuru-penceresi] .dpen__kart')
+    }
+    if (!hata) {
+      await s.js(`document.querySelector('[data-eylem="duyuru-anladim"]').click(); 1`)
+      const kapandi = await pencereBekle(false)
+      const gorulen = JSON.parse(await s.js(`localStorage.getItem('paksan.gorulenDuyurular') || '[]'`))
+      if (kapandi) hata = 'Anladım pencereyi kapatmadı'
+      else if (!['tur-d1', 'tur-d2'].every((id) => gorulen.includes(id))) hata = 'gezilen duyurular görülmüş sayılmadı'
+    }
+    if (!hata) {
+      await s.git(ADRES + '/')
+      await bekle(1500)
+      if (await pencereDurumu()) hata = 'hepsi görülmüşken pencere yeniden açıldı'
+    }
+    if (CEKIM) await s.olcu({ width: 1400, height: 1000, deviceScaleFactor: 1, mobile: false })
+    kaydet('C-42', 'Connect: duyuru penceresi ortada kart, yayındaki duyurular arasında Sonraki/Önceki, nokta ve kaydırmayla geçiş; görülmüşler yeniden açmıyor', hata, await metin())
+  }
+
+  if (secili('X-18')) {
+    await s.git(ADRES + '/servis.html')
+    await depoYaz(YEREL, OTURUM)
+    if (CEKIM) await s.olcu({ width: 390, height: 844, deviceScaleFactor: 2, mobile: true })
+    await s.git(ADRES + '/servis.html')
+    await bekle(1800)
+    let hata = null
+    if (await pencereDurumu()) hata = 'görülmemiş duyuru yokken Servisim pencere açtı'
+    /* İşin ayrıntısındayken pencere araya girmiyor. */
+    if (!hata) {
+      const acildi = await s.js(`(() => { const b = document.querySelector('.iskart__ac'); if (!b) return 0; b.click(); return 1 })()`)
+      if (!acildi) hata = 'İşlerim\'de açılacak iş yok — ERİŞİLEMEDİ'
+    }
+    if (!hata) {
+      await bekle(600)
+      await duyuruEkle([turDuyurusu('tur-s1', 'guvenlik', 'uyari', 1)], 'gorulenDuyurularServis')
+      await s.js(depoOlayi('paksan.duyurular'))
+      await bekle(1500)
+      if (await pencereDurumu()) hata = 'işin ayrıntısındayken duyuru penceresi araya girdi'
+    }
+    if (!hata) {
+      await s.js(`document.querySelector('.uyg__geri')?.click(); 1`)
+      const d = await pencereBekle(true)
+      if (!d) hata = 'ayrıntıdan dönünce yeni duyurunun penceresi açılmadı'
+      else if (d.sira[0] !== 'tur-s1' || d.yeni[0] !== 'tur-s1') hata = `yeni duyuru başta ve "Yeni" rozetli değil (${JSON.stringify(d)})`
+      else {
+        await cek('x18-pencere', '[data-duyuru-penceresi] .dpen__kart')
+        if (CEKIM) {
+          await s.js(`document.documentElement.dataset.tema = 'koyu'; 1`)
+          await bekle(200)
+          await cek('x18-koyu', '[data-duyuru-penceresi] .dpen__kart')
+          await s.js(`document.documentElement.dataset.tema = 'acik'; 1`)
+        }
+      }
+    }
+    if (!hata) {
+      /* Ayrıntıdan dönüşte Servisim 350 ms dokunuş yutuyor (ServisPanel →
+         GECIS_KILIDI_MS, çift dokunuşun ikincisi yeni ekranda iş açmasın);
+         pencere o sırada açıldı, Kapat'a ondan sonra basılıyor. */
+      await bekle(500)
+      await s.js(`document.querySelector('[data-eylem="duyuru-kapat"]').click(); 1`)
+      const kapandi = await pencereBekle(false)
+      const gorulen = JSON.parse(await s.js(`localStorage.getItem('paksan.gorulenDuyurularServis') || '[]'`))
+      if (kapandi) hata = 'Kapat pencereyi kapatmadı'
+      else if (!gorulen.includes('tur-s1')) hata = 'pencerede görülen duyuru görülmüş sayılmadı'
+    }
+    /* İşlerim açıkken gelen yeni duyuru pencereyi açıyor. */
+    if (!hata) {
+      await bekle(500)
+      await duyuruEkle([turDuyurusu('tur-s2', 'kampanya', 'duyuru', 0)], 'gorulenDuyurularServis')
+      await s.js(depoOlayi('paksan.duyurular'))
+      const d = await pencereBekle(true)
+      if (!d) hata = 'İşlerim açıkken gelen yeni duyuru pencere açmadı'
+      else if (d.sira[0] !== 'tur-s2' || d.yeni.join(',') !== 'tur-s2') hata = `yalnız yeni gelen "Yeni" rozetli ve başta değil (${JSON.stringify(d)})`
+      else if (!d.sira.includes('tur-s1')) hata = 'daha önce görülen yayındaki duyuru pencerede yok'
+    }
+    if (CEKIM) await s.olcu({ width: 1400, height: 1000, deviceScaleFactor: 1, mobile: false })
+    kaydet('X-18', 'Servisim: yeni duyuru penceresi Connect\'teki gibi; işin ayrıntısında araya girmiyor, dönünce açılıyor; görülen işaretleniyor', hata, await metin())
+  }
+
+  /* C-43 ve X-19 · Görselli ve uzun metinli duyuru ekrana sığıyor (9 Ekim
+     2026, kullanıcının sorusu: "görsel ve uzun metinli duyurular
+     yayımlandığında ekran alanını ve tepkisini ölçtün mü"). Başlık
+     backoffice'te 70 harfle sınırlı, metin sınırsız; görsel dikey de
+     olabilir. İki duyuru: dikey görselli, 70 harflik başlıklı, boşluksuz
+     uzun bağlantılı ve 2.600 harflik metinli; görselsiz uzun metinli.
+     Dört ekran boyunda (320×568, 360×640, 390×844 telefon; 640×360 yatay)
+     her biri için: kart ekranın içinde, dip (noktalar ve düğmeler) tam
+     görünüyor, ana düğme ekranda, yatay taşma yok, görsel ekranın üçte
+     birini geçmiyor ve başlığın en az bir satırı ilk bakışta görünüyor
+     (yatayda görsel alanı kaplıyor, orada başlık kaydırınca), sayfa kendi
+     içinde kayıyor ve sona kaydırınca metnin son satırı görünüyor. Dikey
+     parmak hareketi sayfa değiştirmiyor; sona kaydırılmış sayfada yatay
+     kaydırma sonraki duyuruya geçiyor. Ölçüler `PAKSAN_TUR_OLCU=1` ile
+     basılıyor. */
+  const UZUN_METIN = Array.from({ length: 8 }, (_, i) =>
+    `${i + 1}. paragraf: sınama metni, uzun duyurunun pencerede kaydırılarak okunabildiğini denetliyor. `.repeat(3).trim()).join('\n\n')
+    + '\n\nAyrıntı: https://www.paksanmakina.com.tr/duyurular/uzun-bir-baglanti-adresi-bosluksuz-yazildiginda-satir-tasmasin-diye-denetleniyor'
+  const gorselEkle = (id, w, h) => s.js(`(async () => {
+    const c = document.createElement('canvas'); c.width = ${w}; c.height = ${h}
+    const g = c.getContext('2d'); g.fillStyle = '#f26a1b'; g.fillRect(0, 0, ${w}, ${h})
+    g.fillStyle = '#0a1a33'; g.fillRect(${w} * 0.1, ${h} * 0.1, ${w} * 0.8, ${h} * 0.8)
+    const blob = await new Promise((r) => c.toBlob(r, 'image/jpeg', 0.8))
+    const db = await new Promise((tamam, hata) => { const i = indexedDB.open('paksan-ekler', 1)
+      i.onupgradeneeded = () => { if (!i.result.objectStoreNames.contains('ekler')) i.result.createObjectStore('ekler') }
+      i.onsuccess = () => tamam(i.result); i.onerror = () => hata(i.error) })
+    await new Promise((tamam, hata) => { const t = db.transaction('ekler', 'readwrite'); t.objectStore('ekler').put(blob, ${JSON.stringify(id)}); t.oncomplete = tamam; t.onerror = () => hata(t.error) })
+    db.close(); return blob.size
+  })()`)
+  const uzunDuyurular = (on) => [
+    { ...turDuyurusu(on + '-gorselli', 'kampanya', 'duyuru', 0), baslik: 'Uzun başlık sınaması: yetmiş harfe kadar yazılabilen bir duyuru başlığı', metin: UZUN_METIN, gorsel: { id: on + '-gorsel', ad: 'dikey.jpg', boyut: 1 } },
+    { ...turDuyurusu(on + '-metinli', 'guvenlik', 'uyari', 1), baslik: 'Görselsiz uzun duyuru', metin: UZUN_METIN },
+  ]
+  const OLCU_BOYLARI = [[320, 568], [360, 640], [390, 844], [640, 360]]
+  const pencereOlc = () => s.js(`(() => {
+    const p = document.querySelector('[data-duyuru-penceresi]'); if (!p) return null
+    const r = (e) => { const b = e.getBoundingClientRect(); return { t: Math.round(b.top), b: Math.round(b.bottom), h: Math.round(b.height), w: Math.round(b.width) } }
+    const sayfa = [...p.querySelectorAll('[data-duyuru-sayfa]')].find((x) => !x.hasAttribute('inert'))
+    const img = sayfa.querySelector('img'), metin = sayfa.querySelector('.dpen__metin')
+    return { vw: innerWidth, vh: innerHeight, kart: r(p.querySelector('.dpen__kart')), sayfa: r(sayfa), dip: r(p.querySelector('.dpen__dip')),
+      ana: r(p.querySelector('.dpen__dg--ana')), baslik: r(sayfa.querySelector('.dpen__baslik')), metin: r(metin),
+      gorsel: img ? { ...r(img), yuklu: img.complete && img.naturalWidth > 0 } : null,
+      kayar: sayfa.scrollHeight - sayfa.clientHeight, yatay: Math.max(sayfa.scrollWidth - sayfa.clientWidth, metin.scrollWidth - metin.clientWidth),
+      sayfaKimlik: sayfa.dataset.duyuruSayfa }
+  })()`)
+  /* Sona kaydırma gerçek tekerlek hareketiyle (CDP): koddan `scrollTop`
+     yazmak kaydırması kapalı (`overflow: hidden`) sayfada da çalışıyordu,
+     bozma düşmedi. Sona varana ya da sayfa kımıldamayana kadar. */
+  const sayfaKaydirma = `[...document.querySelectorAll('[data-duyuru-sayfa]')].find((e) => !e.hasAttribute('inert'))`
+  const sonaKaydir = async () => {
+    const yer = await s.js(`(() => { const r = ${sayfaKaydirma}.getBoundingClientRect(); return { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) } })()`)
+    let once = -1
+    for (let i = 0; i < 40; i++) {
+      await s.cdp.gonder('Input.dispatchMouseEvent', { type: 'mouseWheel', x: yer.x, y: yer.y, deltaX: 0, deltaY: 600 }, s.oturum)
+      await bekle(60)
+      const st = await s.js(`Math.round(${sayfaKaydirma}.scrollTop)`)
+      if (st === once) break
+      once = st
+    }
+  }
+  /* Dikey çekişte küçük yatay sapma SOLA: ilk sayfada "önceki" yok, sağa
+     sapma bozuk kodda da sayfa değiştirmezdi (bozma düşmedi). */
+  const dikeyCek = () => s.js(`(() => {
+    const el = document.querySelector('.dpen__pencere'); const r = el.getBoundingClientRect()
+    const x = r.left + r.width / 2, y0 = r.top + r.height * 0.7
+    const ol = (tip, y) => el.dispatchEvent(new PointerEvent(tip, { bubbles: true, pointerId: 9, pointerType: 'touch', isPrimary: true, clientX: x - (y0 - y) * 0.15, clientY: y, button: 0 }))
+    ol('pointerdown', y0); for (let i = 1; i <= 6; i++) ol('pointermove', y0 - i * 30); ol('pointerup', y0 - 180)
+    return 1
+  })()`)
+  const olcuDenetimi = async (kod) => {
+    for (const [w, h] of OLCU_BOYLARI) {
+      await s.olcu({ width: w, height: h, deviceScaleFactor: 1, mobile: true })
+      await bekle(500)
+      /* Görsel IndexedDB'den geliyor; yüklenene kadar bekleniyor. */
+      let o = null
+      for (let i = 0; i < 10; i++) {
+        o = await pencereOlc()
+        if (!o || (o.gorsel?.yuklu && o.gorsel.h > 0)) break
+        await bekle(300)
+      }
+      if (process.env.PAKSAN_TUR_OLCU) console.log(`      ${kod} ${w}×${h}:`, JSON.stringify(o))
+      const yer = `${w}×${h}`
+      if (!o) return `${yer}: pencere yok`
+      if (o.sayfaKimlik.endsWith('-gorselli') && !o.gorsel?.yuklu) return `${yer}: görsel yüklenmedi`
+      if (o.kart.t < 0 || o.kart.b > o.vh) return `${yer}: kart ekrandan taşıyor (${o.kart.t}–${o.kart.b}, ekran ${o.vh})`
+      if (o.dip.t < 0 || o.dip.b > o.vh || o.dip.b > o.kart.b + 1) return `${yer}: dip tam görünmüyor (${o.dip.t}–${o.dip.b})`
+      if (o.ana.b > o.vh || o.ana.h < 44) return `${yer}: ana düğme ekranda değil ya da küçük (${o.ana.t}–${o.ana.b})`
+      if (o.yatay > 0) return `${yer}: ${o.yatay} piksel yatay taşma`
+      if (o.gorsel && o.gorsel.h > o.vh * 0.34 + 1) return `${yer}: görsel ekranın üçte birini geçiyor (${o.gorsel.h})`
+      if (w < h && o.baslik.t + 30 > o.sayfa.b) return `${yer}: başlık ilk bakışta görünmüyor (başlık ${o.baslik.t}, sayfanın altı ${o.sayfa.b})`
+      if (o.kayar <= 0) return `${yer}: uzun metin sayfada kaymıyor`
+      await sonaKaydir()
+      await bekle(150)
+      const son = await pencereOlc()
+      if (son.metin.b > son.sayfa.b + 1) return `${yer}: sona kaydırınca metnin sonu görünmüyor (metin ${son.metin.b}, sayfa ${son.sayfa.b})`
+      await s.js(`(() => { document.querySelectorAll('[data-duyuru-sayfa]').forEach((e) => { e.scrollTop = 0 }); return 1 })()`)
+    }
+    await s.olcu({ width: 360, height: 640, deviceScaleFactor: 1, mobile: true })
+    await bekle(400)
+    const once = (await pencereDurumu())?.acikNokta
+    await dikeyCek()
+    await bekle(450)
+    if ((await pencereDurumu())?.acikNokta !== once) return 'dikey parmak hareketi sayfa değiştirdi'
+    await sonaKaydir()
+    await bekle(150)
+    await solaKaydir()
+    await bekle(450)
+    if ((await pencereDurumu())?.acikNokta !== once + 1) return 'sona kaydırılmış uzun sayfada yatay kaydırma sonraki duyuruya geçmedi'
+    return null
+  }
+
+  if (secili('C-43')) {
+    await connectKur([])
+    await gorselEkle('tur-c43-gorsel', 900, 1600)
+    await duyuruEkle(uzunDuyurular('tur-c43'), 'gorulenDuyurular')
+    await s.git(ADRES + '/')
+    let hata = (await pencereBekle(true)) ? null : 'uzun duyurular varken pencere açılmadı — ERİŞİLEMEDİ'
+    if (!hata) hata = await olcuDenetimi('C-43')
+    if (!hata && CEKIM) {
+      await s.olcu({ width: 360, height: 640, deviceScaleFactor: 2, mobile: true })
+      await s.js(`(() => { document.querySelector('[data-duyuru-nokta]')?.click(); document.querySelectorAll('[data-duyuru-sayfa]').forEach((e) => { e.scrollTop = 0 }); return 1 })()`)
+      await bekle(500)
+      await cek('c43-gorselli')
+    }
+    await s.olcu({ width: 1400, height: 1000, deviceScaleFactor: 1, mobile: false })
+    kaydet('C-43', 'Connect: görselli ve uzun metinli duyuru dört ekran boyunda sığıyor, sayfa kayıyor, düğmeler görünüyor', hata, await metin())
+  }
+
+  if (secili('X-19')) {
+    await s.git(ADRES + '/servis.html')
+    await depoYaz(YEREL, OTURUM)
+    await gorselEkle('tur-x19-gorsel', 900, 1600)
+    await duyuruEkle(uzunDuyurular('tur-x19'), 'gorulenDuyurularServis')
+    await s.git(ADRES + '/servis.html')
+    let hata = (await pencereBekle(true, 15)) ? null : 'uzun duyurular varken Servisim pencere açmadı — ERİŞİLEMEDİ'
+    if (!hata) hata = await olcuDenetimi('X-19')
+    if (!hata && CEKIM) {
+      await s.olcu({ width: 360, height: 640, deviceScaleFactor: 2, mobile: true })
+      await s.js(`(() => { document.querySelector('[data-duyuru-nokta]')?.click(); document.querySelectorAll('[data-duyuru-sayfa]').forEach((e) => { e.scrollTop = 0 }); return 1 })()`)
+      await bekle(500)
+      await cek('x19-gorselli')
+    }
+    await s.olcu({ width: 1400, height: 1000, deviceScaleFactor: 1, mobile: false })
+    kaydet('X-19', 'Servisim: görselli ve uzun metinli duyuru dört ekran boyunda sığıyor, sayfa kayıyor, düğmeler görünüyor', hata, await metin())
   }
 
   /* X-12 · Servisim sipariş özetinde adet ve Kaldır (30 Eylül 2026,

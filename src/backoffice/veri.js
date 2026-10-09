@@ -4956,6 +4956,24 @@ export function makineAtamasiniKaydet(kayitId, yama, { ozet, personel } = {}) {
 
    @returns {{tamam: true, kayit: object, kapanan: object|null, yeni: object}
              | {hata: 'kayitYok'|'hesapYok'|'ayniHesap'}} */
+/* MAKİNENİN SAHİBİNİN ADI HESAPTAN (9 Ekim 2026, kullanıcının bildirdiği:
+   Sahiplik kutusu "Makine zaten bu hesapta kayıtlı" diyordu, pencerenin
+   "Sahibi" satırı başka bir ad gösteriyordu). Defter satırındaki
+   `musteriAd` makinenin eklendiği günün adı; hesabın adı sonradan değişince
+   (Connect → Bilgilerimi Düzenle, backoffice → musteriGuncelle) satır eski
+   adla kalıyordu, aynı hesap iki adla görünüyordu. Hesap bulunursa onun
+   bugünkü adı; satırdaki ad yalnız hesap bu tarayıcıda yoksa. Hesap
+   kimlikle aranıyor, satırda kimlik yoksa numarayla. Kapanan sahiplikler
+   (`sahiplikGecmisi`) devir gününün adını taşıyor; onlara dokunulmuyor. */
+export function makineSahibininAdi(kayit, musteriler = musterileriGetir()) {
+  const hesap = kayit?.musteriId
+    ? musteriler.find((m) => m.id === kayit.musteriId)
+    : kayit?.musteriNo
+      ? musteriler.find((m) => m.no === kayit.musteriNo)
+      : null
+  return hesap?.ad || kayit?.musteriAd || ''
+}
+
 export function makineSahibiniDegistir(kayitId, yeniMusteriId, { personel } = {}) {
   const once = makineKayitlari().find((k) => k.id === kayitId)
   if (!once) return { hata: 'kayitYok' }
@@ -4968,7 +4986,7 @@ export function makineSahibiniDegistir(kayitId, yeniMusteriId, { personel } = {}
     ? {
         musteriId: once.musteriId || null,
         musteriNo: once.musteriNo || null,
-        musteriAd: once.musteriAd || '',
+        musteriAd: makineSahibininAdi(once),
         baslangic: sahiplikTarihi(once),
         bitis: simdi,
         neden: 'devir',
@@ -4976,6 +4994,8 @@ export function makineSahibiniDegistir(kayitId, yeniMusteriId, { personel } = {}
       }
     : null
 
+  /* `musteriAd` bugün de yazılıyor: hesap bu tarayıcıda olmayınca okunan
+     yedek o (makineSahibininAdi). */
   const sonra = makineKaydiGuncelle(kayitId, {
     musteriId: yeni.id,
     musteriNo: yeni.no || null,

@@ -323,6 +323,10 @@
      AK-20  düzeltme satırı parça değişikliğini yazmazsa        düştü
      AK-32  TC sağlamasında eksi kalan düzeltmesi geri alınırsa düştü
             (8.10.2026, kullanıcının bildirdiği)
+     AK-20  Servisim yol satırı tutarı yazmazsa (9.10.2026)     düştü
+     AK-20  garanti dışı eski kayda da yol tutarı yazarsa       düştü
+            (sınanmayan: TalepDetay.jsx'in satırı yolYazisi'ndan
+            çizmesi; ekran görüntüsüyle bakıldı)
      9 Ekim 2026 (makinenin sahibi değişiyor, ikinci el devir):
      AK-41  makine eski sahibin listesinden çıkmazsa            düştü
      AK-41  kapanan sahiplik geçmişe yazılmazsa                 düştü
@@ -333,6 +337,8 @@
      AK-41  eski sahibe bildirim gitmezse                       düştü
      AK-41  aynı hesabın yeniden eklemesi sahipliği başlatırsa  düştü
      AK-41  hesapsız satıra ekleme sahipliği başlatmazsa        düştü
+     AK-41  sahibin adı hesaptan değil defterden okunursa       düştü
+     AK-41  kapanan sahiplik eski (defterdeki) adı yazarsa      düştü
             (sınanmayan: Connect'in açık sekmesinin makine listesini
             depodan tazelemesi — AppState.jsx, tarayıcıda; tur B-SAHIP
             backoffice penceresini sınıyor)

@@ -563,6 +563,10 @@ export const en = {
     anladim: 'Got it',
     sonraki: 'Next',
     tumBildirimler: 'All My Notifications',
+    kapat: 'Close',
+    onceki: 'Previous',
+    yeni: 'New',
+    nokta: 'Announcement {n}',
   },
 
   duyuruTuru: {

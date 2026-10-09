@@ -8,6 +8,7 @@ import { useVeri } from '../kanca'
 import { ACILIR, AcilirOk, Baslik, Bekleme, Bos, tarihYaz } from './ortak'
 import { boyutYaz, ekAdresi, ekSil, ekYaz, fotoKucult } from '../../lib/ekler'
 import { altBilgi, DUYURU_UST, yayinlanabilirTurler } from '../../data/duyuruTurleri'
+import { DuyuruSayfasi } from '../../components/DuyuruPenceresi'
 
 /* ==========================================================================
    Duyurular
@@ -710,32 +711,32 @@ export function Duyurular({ personel, bildir, tazele, surum }) {
    yayımlıyordu — hangi renk, hangi ikon, başlık görselin altında mı
    üstünde mi?
 
-   BİREBİR AYNI SINIFLARI KULLANIYOR. Ayrı bir "önizleme görünümü"
-   yazılmadı; müşteri uygulamasındaki pencere hangi sınıflarla
-   çiziliyorsa burada da onlar var (bkz. styles.css → .duyuru-kutu).
-   Ayrı yazılsaydı ikisi zamanla ayrışır ve önizleme yanıltıcı olurdu.
-   Renkler backoffice kökünde ayrıca tanımlı — token'lar paylaşılmıyor
-   (bkz. CLAUDE.md).
+   AYNI BİLEŞEN, AYNI SINIFLAR. Ayrı bir "önizleme görünümü" yazılmadı:
+   9 Ekim 2026'dan beri önizleme Connect ve Servisim'deki duyuru
+   penceresinin bir sayfası (components/DuyuruPenceresi.jsx →
+   DuyuruSayfasi; kapak, başlık, gün, metin). Ayrı yazılsaydı ikisi
+   zamanla ayrışır ve önizleme yanıltıcı olurdu. Sayfalama ve düğmeler
+   önizlemede yok; onlar her duyuruda aynı. Renkler backoffice kökünde
+   ayrıca tanımlı — token'lar paylaşılmıyor (bkz. CLAUDE.md).
    ========================================================================== */
-function Onizleme({ alt, baslik, metin, gorsel }) {
-  const bilgi = altBilgi({ alt })
+const ONIZLEME_GUNU = new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'long' })
 
+function Onizleme({ alt, baslik, metin, gorsel }) {
   return (
     <div className="alan">
       <span className="alan__ad">Önizleme</span>
-      <div className={'duyuru-kutu duyuru-kutu--' + bilgi.ton}>
-        <div className="duyuru-kutu__tepe">
-          <span className="duyuru-kutu__etiket">{bilgi.ad}</span>
-        </div>
-        <div className="duyuru-kutu__ic">
-          {gorsel && <DuyuruGorseli gorsel={gorsel} />}
-          <h3 className="duyuru-kutu__baslik">
-            {baslik.trim() || 'Başlık buraya gelecek'}
-          </h3>
-          <p className="duyuru-kutu__metin">
-            {metin.trim() || 'Metin buraya gelecek.'}
-          </p>
-        </div>
+      <div className="dpen__kart--onizleme" data-duyuru-onizleme>
+        <DuyuruSayfasi
+          duyuru={{
+            id: 'onizleme',
+            alt,
+            baslik: baslik.trim() || 'Başlık buraya gelecek',
+            metin: metin.trim() || 'Metin buraya gelecek.',
+            gorsel: gorsel || null,
+          }}
+          turAdi={(d) => altBilgi(d).ad}
+          tarih={() => ONIZLEME_GUNU.format(new Date())}
+        />
       </div>
       <span className="kucuk sonuk">
         Müşteri ve servis ekranlarında bu renk ve başlıkla görünecek.

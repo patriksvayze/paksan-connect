@@ -13,6 +13,7 @@ import {
 import {
   ASAMA, buZiyaretinKaydi, duzeltmeYazisi, GARANTI_DISI_OZET, iscilikYazisi, KAPI,
   parcaYazisiKodlu as parcaYazisi, satirlarinAdedi, siparisGonderimi, talebinParcalari, temizParcalar,
+  yolYazisi,
 } from '../../lib/servisKaydi'
 import { DikteliKutu } from '../Dikte'
 import { bildirimYazisi, musteridenMi, okunduSay, talebinBildirimleri } from '../talepBildirimleri'
@@ -1209,7 +1210,7 @@ function ServisKaydi({ talep, servisAd }) {
       {k.kapi !== 'garanti' && <Satir ad="Garanti Durumu" deger={KAPI[k.kapi]} />}
       <Satir ad="Yapılan İş" deger={k.yapilanIs} />
       <Satir ad="Sonuç" deger={k.sonuc} />
-      <Satir ad="Gidilen Yol" deger={k.km ? k.km + ' km' : ''} />
+      <Satir ad="Gidilen Yol" deger={yolYazisi(k)} />
       <Satir ad="İşçilik" deger={iscilikYazisi(k)} />
 
       {/* Parça listesi satır değil TABLO: kod, ad ve adet ayrı

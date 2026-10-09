@@ -2316,6 +2316,15 @@ export function AK20(m) {
   )
   d.dogru(servisBildirimleriDepodan(m).some((x) => x.talepNo === r.no), 'düzeltme servise bildirildi')
 
+  /* Servisim'in "Gidilen Yol" satırı tutarıyla (9 Ekim 2026, kullanıcının
+     bildirdiği: işçilik tutarlı, yol yalnız km). Tutar Ödeme Tutarı'nın
+     yol kalemi; garanti dışı eski kayıtta yalnız kilometre. */
+  const yolKayit = { kapi: 'garanti', km: 86, kmUcreti: 12, iscilikSaat: 1, saatUcreti: 50 }
+  d.esit(sk.yolYazisi(yolKayit), '86 km · 1.032 TL', 'Servisim yol satırı Ödeme Tutarı ile aynı yol tutarını yazıyor')
+  d.esit(sk.hakkedisHesapla(yolKayit).yol, 86 * 12, 'yol tutarı km × kaydın km ücreti')
+  d.esit(sk.yolYazisi({ ...yolKayit, kapi: 'disi' }), '86 km', 'garanti dışı eski kayıtta yol satırı tutarsız')
+  d.esit(sk.yolYazisi({ ...yolKayit, km: 0 }), '', 'yolsuz kayıtta satır boş')
+
   m.veri.hakkedisOnayla(t3, 'Sınama Yöneticisi')
   d.esit(m.veri.cariBakiye(SERVIS.id), 10 * sk.TARIFE.yolKm + ucret, 'cariye düzeltilmiş tutar yazıldı')
 
@@ -5843,8 +5852,16 @@ export async function AK41(m, ctx) {
   d.esit(bul('0544 000 11 22').durum, 'yok', 'birleştirilip kapanmış hesap bulunmuyor')
   d.esit(bul('533 999').durum, 'eksik', 'eksik numara aranmıyor')
 
+  // hesabın adı sonradan değişti (9 Ekim 2026, kullanıcının bildirdiği:
+  // "zaten bu hesapta" deniyor, "Sahibi" başka ad gösteriyordu)
+  const YENI_AD = 'Adı Değişmiş Sınama Hesabı'
+  m.veri.musteriGuncelle(m.veri.musterileriGetir().find((x) => x.id === MUSTERI.id), { ad: YENI_AD }, PERSONEL.ad)
+  d.esit(satir().musteriAd, MUSTERI.ad, 'defter satırı eklendiği günün adını taşıyor (yedek)')
+  d.esit(m.veri.makineSahibininAdi(satir()), YENI_AD, 'makinenin sahibi hesabın bugünkü adıyla okunuyor')
+  d.esit(m.veri.makineSahibininAdi({ musteriId: 'bu-tarayicida-yok', musteriAd: 'Satırdaki Ad' }), 'Satırdaki Ad', 'hesap bilinmeyince satırdaki ad')
+
   // reddedilenler
-  const devret = (kimden, kime) => m.veri.makineSahibiniDegistir(kimden, kime, { personel: PERSONEL.ad })
+  const devret =(kimden, kime) => m.veri.makineSahibiniDegistir(kimden, kime, { personel: PERSONEL.ad })
   d.esit(devret(ilk.id, MUSTERI.id).hata, 'ayniHesap', 'aynı hesaba devir reddedildi')
   d.esit(devret(ilk.id, 'olmayan').hata, 'hesapYok', 'bilinmeyen hesaba devir reddedildi')
   d.esit(devret(ilk.id, KAPALI.id).hata, 'hesapYok', 'kapanmış hesaba devir reddedildi')
@@ -5871,6 +5888,7 @@ export async function AK41(m, ctx) {
   d.esit(s.sahiplikGecmisi?.length, 1, 'geçmişte bir kapanmış sahiplik')
   d.esit(g?.musteriId, MUSTERI.id, 'kapanan sahiplik eski sahibin')
   d.esit(g?.musteriNo, MUSTERI.no, 'kapanan sahiplikte eski sahibin numarası')
+  d.esit(g?.musteriAd, YENI_AD, 'kapanan sahiplikte eski sahibin devir günündeki adı')
   d.esit(g?.baslangic, ilk.tarih, 'kapanan sahiplik ilk kayıtla başlamıştı')
   d.esit(g?.bitis, mk.sahiplikTarihi(s), 'kapanan sahiplik yenisinin başladığı an bitti')
   d.esit(g?.neden, 'devir', 'bitiş nedeni devir')

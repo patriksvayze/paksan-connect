@@ -20,10 +20,11 @@ import { PARA_BIRIMI, paraYaz } from '../data/katalog/para.js'
      - okunmuşluğu: bu cihazda hangisinin açıldığı
      - süzgeçleri: okunmamışlar, bir talebin bütün bildirimleri
 
-   Üç yerde kullanılıyor: İşlerim'in üstündeki özet satırı ve iş kartının
-   etiketi (ekranlar/Islerim.jsx → YeniBildirimSatiri; 8 Ekim 2026'dan önce
-   her bildirim ayrı satırdı), talebin içinde o talebin
-   geçmişi (ekranlar/TalepDetay.jsx) ve telefon bildirimi (haber.js).
+   Üç yerde kullanılıyor: iş kartının "Yeni bildirim" etiketi
+   (ekranlar/Islerim.jsx; İşlerim'in üstündeki özet satırı 9 Ekim 2026'da
+   kalktı, ondan önce her bildirim ayrı satırdı) ve Bildirimler ekranı,
+   talebin içinde o talebin geçmişi (ekranlar/TalepDetay.jsx) ve telefon
+   bildirimi (haber.js).
 
    OKUNMUŞLUK CİHAZDA. Müşteri uygulamasındaki okunan bildirimlerin
    aynısı; sunucu geldiğinde bildirim.Teslimat.OkunmaZamani'na geçecek.

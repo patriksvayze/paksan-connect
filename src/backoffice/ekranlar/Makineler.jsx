@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   devirIcinMusteriBul, gorunenDurum, izinli, KAPALI_DURUMLAR, makineAtamasiniKaydet,
-  makineKayitlariGetir, makineSahibiniDegistir, rolunTalepleri, talepleriGetir,
+  makineKayitlariGetir, makineSahibininAdi, makineSahibiniDegistir, musterileriGetir,
+  rolunTalepleri, talepleriGetir,
 } from '../veri'
 import { useVeri } from '../kanca'
 import {
@@ -154,15 +155,19 @@ export function Makineler({ personel, rol, bildir, tazele, surum, sorgu }) {
   const { siralama, cevir } = useSiralama('tarih', 'azalan')
 
   /* Her kayda bayisi ve servisi yazılıyor; süzgeç, sıralama ve tablo
-     hepsi bu türetilmiş alanlara bakıyor. */
+     hepsi bu türetilmiş alanlara bakıyor. Sahibin adı da hesabın bugünkü
+     adı (veri.js → makineSahibininAdi, 9 Ekim 2026): tablo, arama,
+     sıralama, Excel, pencere ve devir onayı aynı adı okusun. */
   const zenginler = useMemo(() => {
     void surum
     const bayiler = bayileriGetir()
+    const musteriler = musterileriGetir()
     return kayitlar.map((k) => {
       const bayi = bayiler.find((b) => b.id === k.bayiId) || null
       const bulunan = kayitServisi(k)
       return {
         ...k,
+        musteriAd: makineSahibininAdi(k, musteriler),
         _bayiAd: bayi?.ad || k.bayiAd || '',
         _servisAd: bulunan?.servis.ad || '',
         _servisKaynak: bulunan?.kaynak || '',

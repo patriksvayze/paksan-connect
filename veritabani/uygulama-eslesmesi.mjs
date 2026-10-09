@@ -911,5 +911,6 @@ export const ISLEVLER = {
   makineAtamasiniKaydet: { tur: 'yazma', not: 'backoffice Kayıtlı Makineler ataması: servis → makine.MakineServisAtamasi (YapanTuruKodu personel), bayi → makine.MakineSatisi.SaticiBayiKimlik; makinenin servisi değişince ya da kalmayınca müşteriye bildirim.Bildirim (TurKodu makine); Connect aynı makinenin yalnız son atama bildirimini gösterir (lib/bildirimler.js), sunucu listesi de aynı kuralı uygulamalı (25.09.2026)' },
   makineSahibiniDegistir: { tur: 'yazma', not: 'ikinci el devir (09.10.2026): makine.MakineSahipligi açık satırı kapanır (BitisNedeniKodu devir), yeni hesaba açık satır (YapanTuruKodu personel); makine.KayitOlayi değişmez; iki hesaba bildirim.Bildirim (TurKodu makine); yetki makineDevir' },
   devirIcinMusteriBul: { tur: 'okuma', not: 'musteri.Hesap telefon anahtarıyla (TelefonUlkeKodu + TelefonUlusal); birleşmiş hesap hariç' },
+  makineSahibininAdi: { tur: 'okuma', not: 'makine.MakineSahipligi açık satırının HesapId → musteri.Hesap.AdSoyad (bugünkü ad, 09.10.2026); veritabanında ad zaten tek yerde, defterdeki kopya ad yalnız tarayıcının yedeği' },
   islemKaydiGetir: 'okuma', islemYaz: 'yazma',
 }

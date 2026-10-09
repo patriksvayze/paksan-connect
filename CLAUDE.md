@@ -141,9 +141,10 @@ otomasyon paketi kurulu değil. Buna karşılık dört şey var:
   seçimli yapılan işi; 8 Ekim'de C-41 müşterinin talebi iptal etmesi,
   B-IPTAL iptal isteğinin kararı ve iş izni olmayan rol, B-GORUS geri
   bildirimin iç notu ve durum süzgeci, X-17 İşlerim'in tek bildirim
-  satırı; 9 Ekim'de B-SAHIP makinenin sahibini değiştirmek) ve **on bir
-  formun boş gönderimi** (`tools/ekosistem/formlar.mjs`) — toplam 107
-  denetim). Her ekranda
+  satırı; 9 Ekim'de B-SAHIP makinenin sahibini değiştirmek, C-42 ve X-18
+  sayfalı duyuru penceresi, C-43 ve X-19 görselli ve uzun metinli
+  duyurunun dört ekran boyunda sığması) ve **on bir formun boş gönderimi**
+  (`tools/ekosistem/formlar.mjs`) — toplam 111 denetim). Her ekranda
   üç soru: boş mu açıldı, hata verdi mi, ekili değer basılı mı.
   `--yalniz C-27,X-03` yalnız adı verilen denetimleri koşturur (bozma
   denemesi için; kapsam iddiası tam koşunun); bilinmeyen kod verilirse
@@ -372,8 +373,9 @@ göre"); seçili türde oluşmayan durum listede çıkmıyor. Kod değişmedi.
 üst çubukta "Bildirimler" (okunmamış sayısıyla), ekranı
 `servis/ekranlar/Bildirimler.jsx` — talep ve hesap bildirimleri ile
 duyurular tek listede, Connect'teki gibi günlere göre. İşlerim'deki
-okunmamış bölümü 8 Ekim 2026'dan beri tek satır; liste aynı gün
-Connect'teki gibi karta döndü (aşağıda, "8 Ekim 2026 — on istek").
+okunmamış bölümü 8 Ekim 2026'da tek satıra indi, 9 Ekim'de o satır da
+kalktı (iş kartındaki etiket duruyor); liste 8 Ekim'de Connect'teki gibi
+karta döndü (aşağıda, "8 Ekim 2026 — on istek").
 
 **ELLE KAYITTA SERİ YOKSA MODEL VE TAHMİNİ YIL** (24 Eylül 2026,
 kullanıcının kararı): seri ya yazılıyor ya da "Seri Numarası Yok"
@@ -1713,6 +1715,61 @@ yapan bir yol yoktu.
   bütün geçmişini seriden görüyor. Garanti seriden, makineyle geçiyor.
 - Sınama AK-41 (dokuz bozma), tur B-SAHIP (altı bozma, biri düşmedi,
   gerekçesi başlıkta). Metinler Codex'ten, İngilizcesi Claude'da.
+- **Sahibin adı hesaptan** (aynı gün, kullanıcının bildirdiği: Sahiplik
+  kutusu "Makine zaten bu hesapta kayıtlı" diyordu, pencerenin "Sahibi"
+  satırı başka bir ad gösteriyordu). Hesap aynıydı (aynı müşteri
+  numarası); defter satırı makinenin eklendiği günün adını taşıyordu,
+  hesabın adı sonradan (Bilgilerimi Düzenle ya da backoffice'te düzeltme)
+  değişince satır eski adla kaldı. Kayıtlı Makineler'in listesi,
+  araması, sıralaması, Excel'i, penceresi ve devir onayı artık hesabın
+  bugünkü adını okuyor (`veri.js → makineSahibininAdi`); satırdaki ad
+  yalnız hesap bu tarayıcıda yoksa yedek. Kapanan sahiplik devir gününün
+  adını yazıyor. AK-41 (iki bozma), B-SAHIP (bir bozma).
+
+**SERVİSİM'DE YOL TUTARI** (aynı gün, kullanıcının bildirdiği: garanti
+kaydında "Gidilen Yol" yalnız km, işçilik tutarlıydı). Servisim'in
+servis kaydında "86 km · 1.032 TL", tutar Ödeme Tutarı'nın yol kalemi
+(`lib/servisKaydi.js → yolYazisi`); garanti dışı eski kayıtta yalnız km.
+AK-20 (iki bozma).
+
+**DUYURU PENCERESİ ORTADA KART, SAYFALI; SERVİSİM'DE DE** (aynı gün,
+kullanıcının istekleri: "Yeni bir duyuru yapıldığında Servisim'de de
+bildirim ekrana gelebilsin Connect'teki gibi", "bildirim ekranını
+geliştirelim, çok düşük ve kalitesiz kaldı … duyurular arasında geçiş de
+yapabilsin"; biçim seçimi "Ortada kart").
+- Ortak bileşen `components/DuyuruPenceresi.jsx` (yalnız çiziyor; yazılar,
+  sıra ve "görüldü" deposu dışarıdan). Kapak: görsel ya da türün renginde
+  alan ve simgesi, türün adı köşede; başlık 22, metin 16 piksel; sayfa
+  noktaları, Önceki/Sonraki, parmakla kaydırma; son sayfada "Anladım" ve
+  bütün bildirimler; görülmemişte "Yeni" rozeti; Esc ve oklar. Stiller
+  `.dpen*`: Connect `styles.css`, Servisim `servis.css` + sayfası
+  `backoffice.css` (backoffice'in duyuru önizlemesi de aynı sayfayı
+  çiziyor). Eski `.duyuru-kutu` kalktı.
+- Kural iki uygulamada aynı: görülmemiş bir pencere duyurusu varsa açılıyor
+  (uygulama açıkken yeni duyuru gelirse de); pencerede yayındaki bütün
+  duyurular, önce görülmemişler; ekrana gelen duyuru görülmüş sayılıyor;
+  yarıda kapatılan pencere aynı oturumda yeniden açılmıyor, yalnız yeni
+  gelen duyuru açıyor. Connect `components/Duyuru.jsx`, Servisim
+  `servis/AcilirDuyuru.jsx` (yalnız sekmelerin ana ekranında; iş
+  ayrıntısında, kayıt ve siparişte araya girmiyor, dönünce açılıyor).
+  Android geri tuşu kapatıyor. Servisim'in telefon bildirimi metni
+  pencereye göre değişti (`haber.js`).
+- İşlerim'deki "N yeni bildirim" satırı kalktı (kullanıcının isteği;
+  seçimi: iş kartındaki "Yeni bildirim" etiketi kalsın).
+- Tur C-42, X-18 (yedi bozma), X-17 güncellendi (iki bozma).
+- **Görselli ve uzun metinli duyuru ölçüldü** (aynı gün, kullanıcının
+  sorusu). Dikey görsel, 70 harflik başlık (backoffice sınırı), 2.600
+  harflik metin ve boşluksuz uzun bağlantı; 320×568, 360×640, 390×844 ve
+  yatay 640×360. Kart ekranın içinde, dip ve düğmeler hep görünüyor,
+  görsel ekranın üçte birini geçmiyor (dikey görsel kapakta ortalı,
+  kesilmeden), metin kartın içinde kayıyor, yatay taşma yok; dikey
+  parmak hareketi sayfa çevirmiyor. Sona kaydırınca metin Kapat
+  düğmesinin altından geçiyor (düğme kartın köşesinde sabit, bilerek).
+  Tur C-43, X-19 (sekiz bozma). Ölçülemeyen: telefonun yazı büyütmesi
+  (Android textZoom) headless Chrome'da yok.
+- Kullanıcıya soruldu, yapılmadı: backoffice Duyurular'da "yalnız
+  müşterilere" seçiliyken Servis süzgecinin kapatılması (süzgeç müşteride
+  "bu servisin baktığı makinelerin sahipleri" demek, 23 Eylül kararı).
 
 **DEMO BAŞTAN** (kullanıcının isteği: "tüm demo verilerini sıfırlayıp
 günceller misin"). `DEMO_SURUMU` 10: tarayıcıdaki demo Servisim bir kez

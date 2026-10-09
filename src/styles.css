@@ -5246,77 +5246,371 @@ p {
    çalışıyor.
    ========================================================================== */
 
-/* Zemin --surface, --surface-2 DEĞİL. Şeridin yarı saydam tinti kutu
-   zemininin üstüne biniyor; --surface-2 karanlık temada daha açık
-   olduğu için kırmızı şeritteki yazı 4,19'a düşüyordu (ölçüldü,
-   eşik 4,5). --surface üzerinde 4,64. Kutu, sayfa zeminiyle
-   karışmasın diye kenarlık alıyor. */
-.duyuru-kutu {
-  border-radius: var(--r-lg, 14px);
+/* ==========================================================================
+   Duyuru penceresi — ortada kart, sayfalı (9 Ekim 2026)
+
+   Bileşen components/DuyuruPenceresi.jsx, Servisim'le ortak; aynı sınıflar
+   Servisim'de servis.css ve backoffice.css'te kendi token'larıyla.
+
+   Kullanıcının isteği: "bildirim ekranını geliştirelim, çok düşük ve
+   kalitesiz kaldı … duyurular arasında geçiş de yapabilsin", biçim seçimi
+   "Ortada kart". Önce alttan açılan yapraktaki küçük bir kutuydu
+   (`.duyuru-kutu`, kaldırıldı): türün ince şeridi, başlık, metin.
+
+     · KAPAK: görsel varsa görsel (`contain`, kampanya görselinin
+       üzerindeki yazı kırpılmasın), yoksa türün açık renginde geniş alan
+       ve ortada türün simgesi. Türün adı kapağın köşesinde, kendi renginde.
+       Renk tek başına anlam taşımıyor: simge ve ad da var.
+     · Başlık 22 piksel, metin 16 piksel ve 1,65 satır aralığı: tarlada,
+       güneşte okunuyor. Uzun metinde yalnız sayfa kayıyor; düğmeler
+       dipte sabit.
+     · SAYFALAR yan yana bir şeritte; geçiş şeridin kaymasıyla (0,34 sn,
+       hızlı başlayıp yavaşlayan eğri). Parmakla sürüklerken şerit parmağı
+       izliyor, bırakınca yerine oturuyor. Hareket azaltılmışsa geçiş anlık.
+     · Noktaların dokunma kutusu 26×36 piksel, nokta 8 piksel; seçili olan
+       uzuyor (renk tek başına seçimi anlatmasın). Asıl yol düğmeler: 52
+       piksel.
+     · Kartın gölgesi kaymalı ve yumuşak; perde --sheet ile aynı lacivert.
+   ========================================================================== */
+
+html:has(.dpen) {
   overflow: hidden;
-  background: var(--surface);
-  border: 1px solid var(--line);
 }
 
-.duyuru-kutu__tepe {
+.dpen {
+  position: fixed;
+  inset: 0;
+  z-index: 85;
+  display: grid;
+  place-items: center;
+  padding: calc(16px + var(--safe-top, 0px)) 16px calc(16px + var(--safe-bottom, 0px));
+  background: rgba(10, 26, 51, 0.56);
+  animation: fade 0.2s ease;
+}
+
+.dpen__kart {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 420px;
+  max-height: min(720px, 100%);
+  overflow: hidden;
+  border-radius: 24px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow:
+    0 24px 56px -14px rgba(10, 26, 51, 0.5),
+    0 6px 16px -4px rgba(10, 26, 51, 0.2);
+  outline: none;
+  animation: dpen-gir 0.34s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+@keyframes dpen-gir {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.97);
+  }
+}
+
+/* Şeridin penceresi. `pan-y`: dikey kaydırma tarayıcının, yatay
+   sürükleme sayfa değiştirmenin. */
+.dpen__pencere {
+  display: flex;
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+.dpen__serit {
+  display: flex;
+  flex: none;
+  width: 100%;
+  transition: transform 0.34s cubic-bezier(0.22, 0.8, 0.24, 1);
+}
+
+.dpen__serit--cekiliyor {
+  transition: none;
+}
+
+.dpen__sayfa {
+  flex: 0 0 100%;
+  min-width: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Simge türün etiketinin ALTINDA: üstteki pay etiket ve Kapat satırının
+   yüksekliği. Uzun tür adı ("GÜVENLİK UYARISI") simgeye binmesin. Görselli
+   kapakta pay yok, etiket görselin üstünde. */
+.dpen__kapak {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 60px 16px 26px;
+  background: var(--dpen-zemin);
+  color: var(--dpen-renk);
+}
+
+.dpen__kapak--gorsel {
+  padding: 0;
+}
+
+.dpen__gorsel {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 34vh;
+  object-fit: contain;
+  user-select: none;
+}
+
+.dpen__simge {
+  display: grid;
+  place-items: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--dpen-renk);
+  box-shadow: 0 8px 20px -8px rgba(10, 26, 51, 0.32);
+}
+
+.dpen__tur {
+  position: absolute;
+  top: 15px;
+  left: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 0 12px 0 10px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--dpen-renk);
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px -2px rgba(10, 26, 51, 0.2);
+}
+
+.dpen__kapat {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px 0 11px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 3px 10px -2px rgba(10, 26, 51, 0.24);
+}
+
+/* Görünen hap 44 piksel; dokunma kutusu her yönde 4 piksel daha. */
+.dpen__kapat::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+}
+
+.dpen__govde {
+  padding: 20px 22px 18px;
+}
+
+.dpen__baslik {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.28;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.dpen__bilgi {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 11px 14px;
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--ink-3);
 }
 
-.duyuru-kutu__etiket {
-  font-size: 12px;
+.dpen__yeni {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--pk-red-soft);
+  color: var(--pk-red-yazi);
+  font-size: 12.5px;
   font-weight: 800;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
 }
 
-.duyuru-kutu__ic {
-  padding: 14px;
-}
-
-.duyuru-kutu__baslik {
-  margin: 0;
-  font-size: 18px;
-  line-height: 1.35;
-}
-
-/* Görsel varsa başlığın üstünde, kutunun içinde nefes payıyla. */
-.duyuru-kutu__ic .duyuru-gorsel {
-  margin-bottom: 12px;
-}
-
-.duyuru-kutu__metin {
-  margin: 8px 0 0;
+.dpen__metin {
+  margin: 14px 0 0;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--ink-2);
   white-space: pre-wrap;
-  line-height: 1.7;
+  overflow-wrap: anywhere;
 }
 
-.duyuru-kutu--kampanya .duyuru-kutu__tepe {
-  background: var(--pk-orange-soft);
-  color: var(--pk-orange-ink);
+.dpen__dip {
+  flex: none;
+  padding: 8px 18px 18px;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
 }
 
-.duyuru-kutu--yeniUrun .duyuru-kutu__tepe {
-  background: var(--pk-blue-soft);
+.dpen__noktalar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+
+.dpen__nokta {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.dpen__nokta span {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--line-strong);
+  transition: width 0.25s cubic-bezier(0.22, 0.8, 0.24, 1), background-color 0.25s ease;
+}
+
+.dpen__nokta--acik span {
+  width: 22px;
+  background: var(--dolgu);
+}
+
+.dpen__sayac {
+  margin: 4px 0 10px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.dpen__dugmeler {
+  display: grid;
+  gap: 10px;
+}
+
+.dpen__dugmeler--iki {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+}
+
+.dpen__dg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 16px;
+  font: inherit;
+  font-size: 16.5px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  cursor: pointer;
+  transition: transform 0.13s ease, filter 0.13s ease;
+}
+
+.dpen__dg:active {
+  transform: scale(0.975);
+  filter: brightness(0.94);
+}
+
+.dpen__dg--ana {
+  background: var(--dolgu);
+  color: #fff;
+}
+
+.dpen__dg--ikincil {
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+}
+
+.dpen__dg:disabled {
+  opacity: 0.4;
+  cursor: default;
+  transform: none;
+  filter: none;
+}
+
+.dpen__tumu {
+  display: block;
+  width: 100%;
+  min-height: 46px;
+  margin-top: 4px;
+  border: 0;
+  background: none;
   color: var(--pk-blue-yazi);
+  font: inherit;
+  font-size: 15.5px;
+  font-weight: 700;
+  cursor: pointer;
 }
 
-.duyuru-kutu--etkinlik .duyuru-kutu__tepe {
-  background: var(--tur-parca-soft);
-  color: var(--tur-parca-yazi);
+/* Kartın kendisi açılışta odak alıyor (oklar ve Esc için); çerçevesi
+   yok, düğmelerin var. */
+.dpen button:focus-visible {
+  outline: 3px solid var(--pk-blue);
+  outline-offset: 2px;
 }
 
-.duyuru-kutu--guvenlik .duyuru-kutu__tepe {
-  background: var(--pk-red-soft);
-  color: var(--pk-red-yazi);
+.dpen--kampanya {
+  --dpen-zemin: var(--pk-orange-soft);
+  --dpen-renk: var(--pk-orange-ink);
 }
 
-.duyuru-kutu--geriCagirma .duyuru-kutu__tepe {
-  background: var(--pk-red-soft);
-  color: var(--pk-red-yazi);
-  box-shadow: inset 0 -2px 0 currentColor;
+.dpen--yeniUrun {
+  --dpen-zemin: var(--pk-blue-soft);
+  --dpen-renk: var(--pk-blue-yazi);
+}
+
+.dpen--etkinlik {
+  --dpen-zemin: var(--tur-parca-soft);
+  --dpen-renk: var(--tur-parca-yazi);
+}
+
+.dpen--guvenlik,
+.dpen--geriCagirma {
+  --dpen-zemin: var(--pk-red-soft);
+  --dpen-renk: var(--pk-red-yazi);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dpen,
+  .dpen__kart {
+    animation: none;
+  }
+
+  .dpen__serit,
+  .dpen__nokta span {
+    transition: none;
+  }
 }
 
 /* ---------------------------------------- Bildirim listesindeki satır */
@@ -5574,23 +5868,6 @@ p {
 .randevu-kart .listitem__chev {
   color: var(--pk-orange-ink);
   opacity: 0.7;
-}
-
-/* ==========================================================================
-   Duyuru görseli
-
-   Pencerenin en üstünde, tam genişlikte. `contain` kullanılıyor:
-   kampanya görselinin üzerindeki yazı kırpılmasın. Önerilen oran 16:9
-   (bkz. backoffice → Duyurular ekranı).
-   ========================================================================== */
-
-.duyuru-gorsel {
-  display: block;
-  width: 100%;
-  max-height: 220px;
-  object-fit: contain;
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
 }
 
 /* Bildirim listesindeki küçük önizleme */

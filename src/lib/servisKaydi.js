@@ -303,6 +303,20 @@ export function iscilikYazisi(kayit) {
   return saatOku(kayit.iscilikSaat) ? `${saatYaz(kayit.iscilikSaat)} saat · ${tl}` : tl
 }
 
+/* Servis kaydının "Gidilen Yol" satırı: "86 km · 1.032 TL" (9 Ekim 2026,
+   kullanıcının isteği: backoffice'teki gibi Servisim'de de). İşçilik
+   satırı tutarıyla çıkıyor, yol yalnız kilometreyle çıkıyordu; servis
+   Ödeme Tutarı'nın yarısının nereden geldiğini göremiyordu. Tutar Ödeme
+   Tutarı'nın hesabıyla aynı: km × kaydın kendi km ücreti
+   (hakkedisHesapla). Garanti dışı eski kayıtta yol parasını PAKSAN
+   ödemiyor; yalnız kilometre. */
+export function yolYazisi(kayit) {
+  const km = Math.max(0, Number(kayit?.km) || 0)
+  if (!km) return ''
+  if (kayit?.kapi !== 'garanti') return `${km} km`
+  return `${km} km · ${paraYaz(hakkedisHesapla(kayit).yol)} ${PARA_BIRIMI}`
+}
+
 /* PAKSAN'ın düzeltmesinin tek satırlık özeti (Servisim ve backoffice).
    Düzeltme süreyle yapıldıysa süreler, eski kayıtta tutarlar.
 

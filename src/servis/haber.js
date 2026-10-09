@@ -167,9 +167,12 @@ export function useServisHaberi(oturum, tazele) {
 
       const yeniDuyuru = artan(yeni.duyuru, eski.duyuru)
       if (yeniDuyuru) {
+        /* 9 Ekim 2026'dan beri uyarı uygulama açılınca ekranın ortasında
+           pencere (AcilirDuyuru.jsx); İşlerim'in üstündeki şerit pencerede
+           görülünce iniyor, eski metin onu gösteriyordu. */
         bildirimGoster({
           baslik: `PAKSAN uyarısı`,
-          metin: 'İşlerim ekranının üst bölümünde okuyabilirsiniz.',
+          metin: 'Uyarıyı görmek için uygulamayı açın.',
         })
       }
 

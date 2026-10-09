@@ -1,30 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppState'
 import { useDil } from '../i18n'
 import { load, save } from '../lib/storage'
-import { ekAdresi } from '../lib/ekler'
 import { duyuruGecerliMi, personelDuyurusuMu } from '../lib/duyuruHedef'
 import { makinelereServisEkle } from '../lib/servisAtama'
 import { yurtdisiTalepMi } from '../lib/ihracat'
-import { Sheet } from './Chrome'
+import { useGeriYakala } from '../lib/geriYakala'
 import { altBilgi } from '../data/duyuruTurleri'
-import {
-  IconAlert, IconBell, IconCalendar, IconMachine, IconTag, IconUndo,
-} from './Icons'
-
-/* Alt türün ikonu. Tablodaki `ikon` adı burada bileşene bağlanıyor —
-   veri dosyası JSX taşımıyor, üç ürün de kendi ikon setini kullanıyor. */
-const IKONLAR = {
-  etiket: IconTag,
-  makine: IconMachine,
-  takvim: IconCalendar,
-  uyari: IconAlert,
-  geri: IconUndo,
-}
+import { DuyuruPenceresi } from './DuyuruPenceresi'
 
 /* ==========================================================================
-   Duyuru penceresi
+   Duyuru penceresi — Connect'in tarafı
 
    NEDEN PENCERE
 
@@ -35,8 +22,8 @@ const IKONLAR = {
    NEDEN YALNIZ PENCERE DEĞİL
 
    Pencereyi kapatan kişi bir daha ulaşamasın istemiyoruz. Bu yüzden
-   duyuru iki yerde birden: burada bir kez pencere olarak, sonrasında
-   Bildirimler listesinde kalıcı olarak.
+   duyuru iki yerde birden: burada pencere olarak, sonrasında Bildirimler
+   listesinde kalıcı olarak.
 
    HANGİSİ KİME GİDİYOR
 
@@ -46,11 +33,23 @@ const IKONLAR = {
               ilişkin bildirim ticari ileti sayılmıyor ve zaten
               görülmemesi tehlikeli.
 
-   ÜST ÜSTE YIĞILMIYOR: duyurular tek pencerede sırayla gösteriliyor.
+   NE ZAMAN AÇILIYOR, NEYİ GÖSTERİYOR (9 Ekim 2026, kullanıcının isteği:
+   "yayında daha fazla duyuru varsa o duyurular arasında geçiş de
+   yapabilsin")
+     · Görülmemiş bir pencere duyurusu varsa açılıyor. Uygulama açıkken
+       yeni duyuru gelirse de (başka sekmede yayımlandı, sekmeye
+       dönüldü) açılıyor.
+     · Pencerede yayındaki BÜTÜN duyurular var: önce görülmemişler, sonra
+       daha önce görülenler, ikisi de yeniden eskiye. Önce yalnız
+       görülmemişler vardı, "Sonraki" ile tek yönde ilerleniyordu.
+     · Bir duyuru ekrana geldiği an görülmüş sayılıyor. Yarıda kapatan
+       kişinin göremediği duyuru bir sonraki açılışta yine gelir.
+     · Çizim ortak bileşende (DuyuruPenceresi.jsx), Servisim de aynısını
+       kullanıyor.
 
-   GÖRÜLDÜ BİLGİSİ okundu bilgisinden AYRI tutuluyor: pencereyi
-   kapatmak duyuruyu okundu saymıyor, Bildirimler listesinde mavi
-   noktası duruyor. Kapatan kişi "sonra bakarım" demiş olabilir.
+   GÖRÜLDÜ BİLGİSİ okundu bilgisinden AYRI tutuluyor: pencerede görmek
+   duyuruyu okundu saymıyor, Bildirimler listesinde mavi noktası duruyor.
+   Kapatan kişi "sonra bakarım" demiş olabilir.
    ========================================================================== */
 
 const ANAHTAR = 'gorulenDuyurular'
@@ -58,20 +57,35 @@ const ANAHTAR = 'gorulenDuyurular'
 export function Duyuru() {
   const nav = useNavigate()
   const { user, machines } = useApp()
-  const { t } = useDil()
-  const [duyurular, setDuyurular] = useState([])
-  const [sira, setSira] = useState(0)
+  const { t, dil } = useDil()
+  /* Açık pencerenin duyuruları ve açıldığı andaki "görülmemiş" kümesi:
+     rozet pencere açıkken yerinde kalsın (sayfa görülünce depo değişiyor). */
+  const [pencere, setPencere] = useState(null)
+  const [tazelik, setTazelik] = useState(0)
+  /* Bu açılışta pencerede gösterilmiş duyurular. Yarıda kapatılan
+     pencere, görülmemiş duyuru kaldı diye hemen yeniden açılmasın: aynı
+     oturumda yalnız YENİ gelen duyuru açıyor; kalanlar bir sonraki
+     açılışta. */
+  const bilinen = useRef(new Set())
 
+  /* Başka sekmede yayımlanan duyuru ya da uygulamaya dönüş. */
+  useEffect(() => {
+    const tazele = () => setTazelik((n) => n + 1)
+    window.addEventListener('storage', tazele)
+    window.addEventListener('focus', tazele)
+    return () => {
+      window.removeEventListener('storage', tazele)
+      window.removeEventListener('focus', tazele)
+    }
+  }, [])
 
   useEffect(() => {
-    if (!user) return
-
+    if (!user || pencere) return
     const gorulen = new Set(load(ANAHTAR, []))
-    /* Kime gideceği kararı tek yerde: src/lib/duyuruHedef.js.
-       Kampanya izni, yurtdışı ve hedefleme kuralları orada; burada
-       yalnız pencereye özel iki koşul kalıyor. */
-    const aday = load('duyurular', [])
-      .filter((d) => d.pencere && personelDuyurusuMu(d))
+    /* Kime gideceği kararı tek yerde: src/lib/duyuruHedef.js. Kampanya
+       izni, yurtdışı ve hedefleme kuralları orada. */
+    const yayinda = load('duyurular', [])
+      .filter((d) => personelDuyurusuMu(d))
       .filter((d) =>
         duyuruGecerliMi(d, {
           user,
@@ -81,118 +95,49 @@ export function Duyuru() {
           yurtdisi: yurtdisiTalepMi(user),
         }),
       )
-      .filter((d) => !gorulen.has(d.id))
       .sort((a, b) => b.tarih - a.tarih)
-
-    setDuyurular(aday)
-    setSira(0)
-  }, [user, machines])
-
-  function kapat() {
-    const acik = duyurular[sira]
-    if (acik) save(ANAHTAR, [...new Set([...load(ANAHTAR, []), acik.id])])
-    setDuyurular([])
-  }
-
-  function ilerle() {
-    const acik = duyurular[sira]
-    if (!acik) return
-    save(ANAHTAR, [...new Set([...load(ANAHTAR, []), acik.id])])
-    if (sira < duyurular.length - 1) setSira(sira + 1)
-    else setDuyurular([])
-  }
-
-  const acik = duyurular[sira]
-  if (!acik) return null
-
-  /* ------------------------------------------------------------- Tasarım
-
-     ÖNCEKİ HÂLİ TÜRÜ ANLATMIYORDU. Bütün duyurular aynı kutuda,
-     yuvarlak ikonla ve tek başlıkla görünüyordu; kampanya ile güvenlik
-     uyarısı arasındaki tek fark ikonun rengiydi. Okuyan kişi neyle
-     karşılaştığını başlığı okuyana kadar bilmiyordu.
-
-     Şimdi türün kendi şeridi var: renk, ikon ve türün adı en üstte.
-     Renkli şerit, ekranın en üstünde ve metinden önce görülüyor —
-     kampanya turuncu, güvenlik uyarısı kırmızı.
-
-     Sınıf adları backoffice önizlemesiyle birebir aynı
-     (bkz. backoffice/ekranlar/Duyurular.jsx → Onizleme); personelin
-     yayınlamadan önce gördüğü kutu ile müşterinin gördüğü kutu
-     ayrışmasın diye. */
-  const bilgi = altBilgi(acik)
-  const Ikon = IKONLAR[bilgi.ikon] || IconBell
-  const sonuncu = sira >= duyurular.length - 1
-
-  /* Pencere başlığı ÜST türü söylüyor, şerit alt türü. İkisi de alt
-     türü yazınca "Kampanya" iki kez okunuyordu. Üstte hukuki sınıf,
-     altta ne olduğu: "PAKSAN Duyurusu" › KAMPANYA. */
-  return (
-    <Sheet
-      open
-      onClose={kapat}
-      title={bilgi.ust === 'uyari' ? t('duyuru.uyariBaslik') : t('duyuru.baslik')}
-    >
-      <div className={'duyuru-kutu duyuru-kutu--' + bilgi.ton}>
-        <div className="duyuru-kutu__tepe">
-          <Ikon size={18} />
-          <span className="duyuru-kutu__etiket">{t(bilgi.anahtar)}</span>
-        </div>
-
-        <div className="duyuru-kutu__ic">
-          {/* Görsel varsa metnin üstünde, tam genişlikte. `contain` ile:
-              kampanya görselinin üzerindeki yazı kırpılmasın. */}
-          {acik.gorsel && <DuyuruGorseli gorsel={acik.gorsel} />}
-
-          <h2 className="duyuru-kutu__baslik">{acik.baslik}</h2>
-          <p className="duyuru-kutu__metin">{acik.metin}</p>
-        </div>
-      </div>
-
-      <div className="stack" style={{ gap: 10, marginTop: 16 }}>
-        <button className="btn btn--primary btn--lg" onClick={ilerle}>
-          {sonuncu ? t('duyuru.anladim') : t('duyuru.sonraki')}
-        </button>
-        {/* Sıradaki duyuru varken listeye gitme düğmesi görünmüyor:
-            arkada bekleyen duyuru okunmadan kapanırdı. */}
-        {sonuncu && (
-          <button
-            className="btn btn--soft"
-            onClick={() => {
-              kapat()
-              nav('/bildirimler')
-            }}
-          >
-            {t('duyuru.tumBildirimler')}
-          </button>
-        )}
-      </div>
-    </Sheet>
-  )
-}
-
-/* Duyuru görseli.
-
-   Dosyanın kendisi IndexedDB'de duruyor (backoffice oraya yazıyor); burada
-   geçici bir adres üretilip gösteriliyor ve ekrandan çıkarken
-   bırakılıyor — yoksa hafızada birikiyor. */
-function DuyuruGorseli({ gorsel }) {
-  const [adres, setAdres] = useState(null)
-
-  useEffect(() => {
-    let gecerli = true
-    let acik = null
-    ekAdresi(gorsel.id).then((a) => {
-      if (!gecerli) return a && URL.revokeObjectURL(a)
-      acik = a
-      setAdres(a)
+    const yeniler = yayinda.filter((d) => !gorulen.has(d.id))
+    if (!yeniler.some((d) => d.pencere && !bilinen.current.has(d.id))) return
+    yayinda.forEach((d) => bilinen.current.add(d.id))
+    setPencere({
+      duyurular: [...yeniler, ...yayinda.filter((d) => gorulen.has(d.id))],
+      yeni: new Set(yeniler.map((d) => d.id)),
     })
-    return () => {
-      gecerli = false
-      if (acik) URL.revokeObjectURL(acik)
-    }
-  }, [gorsel.id])
+  }, [user, machines, tazelik, pencere])
 
-  if (!adres) return null
-  return <img className="duyuru-gorsel" src={adres} alt="" />
+  const kapat = useCallback(() => setPencere(null), [])
+  useGeriYakala(Boolean(pencere), kapat)
+
+  const gunYazisi = useMemo(
+    () => new Intl.DateTimeFormat(dil === 'en' ? 'en-GB' : 'tr-TR', { day: 'numeric', month: 'long' }),
+    [dil],
+  )
+
+  if (!pencere) return null
+
+  return (
+    <DuyuruPenceresi
+      duyurular={pencere.duyurular}
+      yeniMi={(d) => pencere.yeni.has(d.id)}
+      yazi={{
+        kapat: t('duyuru.kapat'),
+        onceki: t('duyuru.onceki'),
+        sonraki: t('duyuru.sonraki'),
+        anladim: t('duyuru.anladim'),
+        tumu: t('duyuru.tumBildirimler'),
+        yeni: t('duyuru.yeni'),
+        nokta: (n) => t('duyuru.nokta', { n }),
+        /* Pencerenin adı ÜST türü söylüyor, kapaktaki etiket alt türü. */
+        pencere: (d) => (altBilgi(d).ust === 'uyari' ? t('duyuru.uyariBaslik') : t('duyuru.baslik')),
+      }}
+      turAdi={(d) => t(altBilgi(d).anahtar)}
+      tarih={(d) => gunYazisi.format(new Date(d.tarih))}
+      onGoster={(d) => save(ANAHTAR, [...new Set([...load(ANAHTAR, []), d.id])])}
+      onKapat={kapat}
+      onTumu={() => {
+        kapat()
+        nav('/bildirimler')
+      }}
+    />
+  )
 }

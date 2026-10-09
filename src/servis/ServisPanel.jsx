@@ -76,6 +76,7 @@ import { SIRKET } from '../data/kimlik.js'
 import girisGorseli from '../assets/gorseller/servis-giris-orka870.jpg'
 import { TalepDetay } from './ekranlar/TalepDetay'
 import { Isler } from './ekranlar/Islerim'
+import { AcilirDuyuru } from './AcilirDuyuru'
 import { Parca } from './ekranlar/Parca'
 import { Bayilerim } from './ekranlar/Bayilerim'
 import { Ucretlerim } from './ekranlar/Ucretlerim'
@@ -598,6 +599,12 @@ function Uygulama({ oturum, onCikis }) {
      bildirim perdesine düşüyor (bkz. haber.js). */
   const yenile = useCallback(() => setTazele((x) => x + 1), [])
   useServisHaberi(oturum, yenile)
+  /* Duyuru penceresi kapanınca: zildeki sayı görülenleri düşsün, kapatan
+     dokunuşun ikincisi alttaki işe gitmesin. */
+  const duyuruKapandi = useCallback(() => {
+    yenile()
+    pencereKapandi()
+  }, [yenile, pencereKapandi])
 
   /* OTURUM YAŞIYOR MU, BAŞKA SEKME NE YAZDI (25 Eylül 2026, kullanıcı
      sınaması O6 ve O7).
@@ -959,6 +966,14 @@ function Uygulama({ oturum, onCikis }) {
       onSekme={setSekme}
     >
       {basari && <BasariSeridi mesaj={basari} />}
+      {/* Yeni duyuru penceresi (9 Ekim 2026): yalnız sekmelerin ana
+          ekranında, gerekçesi AcilirDuyuru.jsx başında. */}
+      <AcilirDuyuru
+        oturum={oturum}
+        surum={tazele}
+        onBildirimler={() => setAlt('bildirimler')}
+        onKapandi={duyuruKapandi}
+      />
       {sekme === 'isler' && (
         <Isler
           oturum={oturum}
@@ -966,7 +981,6 @@ function Uygulama({ oturum, onCikis }) {
           biten={biten}
           tumTalepler={talepler}
           onAc={ac}
-          onBildirimler={() => setAlt('bildirimler')}
           sekme={isSekme}
           onSekme={setIsSekme}
           surum={tazele}

@@ -304,6 +304,13 @@ const BILEREK_AYRI = new Map([
   ['--tur-parca', 'backoffice beyaz yazı için koyu ton kullanıyor (kontrast)'],
   ['--tur-satis', 'backoffice beyaz yazı için koyu ton kullanıyor (kontrast)'],
   ['--r', 'masaüstünde daha sıkı köşe yarıçapı'],
+  /* Kök token değil, duyuru penceresinin tür rengi (9 Ekim 2026,
+     components/DuyuruPenceresi.jsx): her ürün kendi tür renklerine bağlıyor
+     (Connect --pk-orange-ink, Servisim ve backoffice --turuncu-d). O iki
+     renk 23 Eylül'den beri iki kökte ayrı; eski duyuru kutusu da aynı
+     ayrı renkleri kullanıyordu, yalnız ara değişken adı yoktu. */
+  ['--dpen-renk', 'duyuru penceresinin tür rengi; her ürün kendi tür rengine bağlı'],
+  ['--dpen-zemin', 'duyuru penceresinin tür zemini; her ürün kendi tür rengine bağlı'],
 ])
 
 const ortak = [...tUyg.keys()].filter((k) => tBo.has(k))
